@@ -17,7 +17,7 @@ if gl_check.lower() in ['0', 'false', 'no']:
 
 # To be able to use our GL provider, we must have a window
 # Automaticly import window auto to ensure the default window creation
-import kivy.core.window.default
+import kivy.core.window
 
 # Display the current OpenGL version
 version = glGetString(GL_VERSION)

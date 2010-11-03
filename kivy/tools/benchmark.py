@@ -58,7 +58,7 @@ class bench_widget_dispatch:
     def run(self):
         root = self.root
         for x in xrange(1000):
-            root.dispatch_event('on_update')
+            root.dispatch('on_update')
 
 class bench_graphx_line:
     '''Graphx: draw lines (5000 x/y) 1000 times'''

@@ -76,8 +76,9 @@ class WindowPygame(WindowBase):
         pygame.key.set_repeat(repeat_delay, int(1000. / repeat_rate))
 
         # set window icon before calling set_mode
-        icon = pygame.image.load(Config.get('graphics', 'window_icon'))
-        pygame.display.set_icon(icon)
+        # XXX FIXME
+        #icon = pygame.image.load(Config.get('graphics', 'window_icon'))
+        #pygame.display.set_icon(icon)
 
         # init ourself size + setmode
         # before calling on_resize
@@ -171,7 +172,7 @@ class WindowPygame(WindowBase):
                 if event.buttons == (0, 0, 0):
                     continue
                 x, y = event.pos
-                self.dispatch_event('on_mouse_move', x, y, self.modifiers)
+                self.dispatch('on_mouse_move', x, y, self.modifiers)
 
             # mouse action
             elif event.type in (pygame.MOUSEBUTTONDOWN,
@@ -186,22 +187,22 @@ class WindowPygame(WindowBase):
                 eventname = 'on_mouse_down'
                 if event.type == pygame.MOUSEBUTTONUP:
                     eventname = 'on_mouse_up'
-                self.dispatch_event(eventname, x, y, btn, self.modifiers)
+                self.dispatch(eventname, x, y, btn, self.modifiers)
 
             # keyboard action
             elif event.type in (pygame.KEYDOWN, pygame.KEYUP):
                 self._pygame_update_modifiers(event.mod)
                 # atm, don't handle keyup
                 if event.type == pygame.KEYUP:
-                    self.dispatch_event('on_key_up', event.key,
+                    self.dispatch('on_key_up', event.key,
                         event.scancode)
                     continue
 
                 # don't dispatch more key if down event is accepted
-                if self.dispatch_event('on_key_down', event.key,
+                if self.dispatch('on_key_down', event.key,
                                        event.scancode, event.unicode):
                     continue
-                self.dispatch_event('on_keyboard', event.key,
+                self.dispatch('on_keyboard', event.key,
                                     event.scancode, event.unicode)
 
             # video resize
@@ -219,7 +220,7 @@ class WindowPygame(WindowBase):
     def mainloop(self):
         # don't known why, but pygame required a resize event
         # for opengl, before mainloop... window reinit ?
-        self.dispatch_event('on_resize', *self.size)
+        self.dispatch('on_resize', *self.size)
 
         while not EventLoop.quit:
             try:

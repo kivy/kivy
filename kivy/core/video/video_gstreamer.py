@@ -48,7 +48,7 @@ class VideoGStreamer(VideoBase):
         # reset to start for next play
         self._pipeline.seek_simple(
             gst.FORMAT_TIME, gst.SEEK_FLAG_FLUSH, 0)
-        self.dispatch_event('on_eos')
+        self.dispatch('on_eos')
         super(VideoGStreamer, self)._do_eos()
 
     def stop(self):

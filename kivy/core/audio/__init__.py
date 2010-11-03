@@ -103,9 +103,9 @@ class Sound(EventDispatcher):
             return
         self._status = x
         if x == 'stop':
-            self.dispatch_event('on_stop')
+            self.dispatch('on_stop')
         elif x == 'play':
-            self.dispatch_event('on_play')
+            self.dispatch('on_play')
         else:
             assert('unknown status %s' % x)
     status = property(_get_status,

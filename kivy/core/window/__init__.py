@@ -79,7 +79,6 @@ class WindowBase(EventDispatcher):
         self.register_event_type('on_flip')
         self.register_event_type('on_rotate')
         self.register_event_type('on_draw')
-        self.register_event_type('on_update')
         self.register_event_type('on_resize')
         self.register_event_type('on_close')
         self.register_event_type('on_touch_down')
@@ -92,8 +91,8 @@ class WindowBase(EventDispatcher):
         self.register_event_type('on_key_down')
         self.register_event_type('on_key_up')
 
-        #self.children = SafeList()
-        #self.parent = self
+        self.children = []
+        self.parent = self
         #self.visible = True
 
         # add view
@@ -160,6 +159,7 @@ class WindowBase(EventDispatcher):
 
         # attach modules + listener event
         Modules.register_window(self)
+        EventLoop.set_window(self)
         EventLoop.add_event_listener(self)
 
         # mark as initialized
@@ -185,10 +185,6 @@ class WindowBase(EventDispatcher):
         '''Flip between buffers'''
         pass
 
-    def dispatch_events(self):
-        '''Dispatch all events from windows'''
-        pass
-
     def _get_modifiers(self):
         return self._modifiers
     modifiers = property(_get_modifiers)
@@ -202,7 +198,7 @@ class WindowBase(EventDispatcher):
     def _set_size(self, size):
         if super(WindowBase, self)._set_size(size):
             Logger.debug('Window: Resize window to %s' % str(self.size))
-            self.dispatch_event('on_resize', *size)
+            self.dispatch('on_resize', *size)
             return True
         return False
     size = property(_get_size, _set_size,
@@ -264,13 +260,6 @@ class WindowBase(EventDispatcher):
     def get_parent_layout(self):
         return None
 
-    def on_update(self):
-        '''Event called when window are update the widget tree.
-        (Usually before on_draw call.)
-        '''
-        for w in self.children[:]:
-            w.dispatch_event('on_update')
-
     def on_draw(self):
         '''Event called when window we are drawing window.
         This function are cleaning the buffer with bg-color css,
@@ -281,14 +270,14 @@ class WindowBase(EventDispatcher):
 
         # then, draw childrens
         for w in self.children[:]:
-            w.dispatch_event('on_draw')
+            w.dispatch('on_draw')
 
     def on_touch_down(self, touch):
         '''Event called when a touch is down'''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in reversed(self.children[:]):
-            if w.dispatch_event('on_touch_down', touch):
+            if w.dispatch('on_touch_down', touch):
                 return True
 
     def on_touch_move(self, touch):
@@ -296,7 +285,7 @@ class WindowBase(EventDispatcher):
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in reversed(self.children[:]):
-            if w.dispatch_event('on_touch_move', touch):
+            if w.dispatch('on_touch_move', touch):
                 return True
 
     def on_touch_up(self, touch):
@@ -304,7 +293,7 @@ class WindowBase(EventDispatcher):
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in reversed(self.children[:]):
-            if w.dispatch_event('on_touch_up', touch):
+            if w.dispatch('on_touch_up', touch):
                 return True
 
     def on_resize(self, width, height):
@@ -312,6 +301,9 @@ class WindowBase(EventDispatcher):
         self.update_viewport()
 
     def update_viewport(self):
+        # XXX FIXME
+        from kivy.core.gl import *
+
         width, height = self.system_size
         w2 = width / 2.
         h2 = height / 2.
@@ -357,8 +349,8 @@ class WindowBase(EventDispatcher):
         if x not in (0, 90, 180, 270):
             raise ValueError('can rotate only 0,90,180,270 degrees')
         self._rotation = x
-        self.dispatch_event('on_resize', *self.size)
-        self.dispatch_event('on_rotate', x)
+        self.dispatch('on_resize', *self.size)
+        self.dispatch('on_rotate', x)
     rotation = property(_get_rotation, _set_rotation,
             'Get/set the window content rotation. Can be one of '
             '0, 90, 180, 270 degrees.')
@@ -411,5 +403,5 @@ class WindowBase(EventDispatcher):
 # Load the appropriate provider
 Window = core_select_lib('window', (
     ('pygame', 'window_pygame', 'WindowPygame'),
-))
+))()
 

@@ -39,7 +39,7 @@ class TouchInfos(MTWidget):
                 self.bubbles[uid] = bubble
             bubble.pos = touch.pos
             bubble.label = info(touch)
-            bubble.dispatch_event('on_draw')
+            bubble.dispatch('on_draw')
 
         alive = [x.uid for x in current]
         for uid in bubbles.keys()[:]:

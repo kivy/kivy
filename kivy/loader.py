@@ -193,7 +193,7 @@ class LoaderBase(object):
                 # got one client to update
                 client.image = image
                 client.loaded = True
-                client.dispatch_event('on_load')
+                client.dispatch('on_load')
                 self._client.remove((c_filename, client))
 
     def image(self, filename, load_callback=None, post_callback=None):

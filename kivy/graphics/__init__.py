@@ -9,5 +9,5 @@ Kivy. We hardly ask you to use theses class !
 .. seealso:: Read the full documentation at :mod:`kivy.c_ext.c_graphics`
 '''
 
-from kivy.c_ext.graphics import Canvas
+from kivy.c_ext.graphics import *
 

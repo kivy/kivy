@@ -143,14 +143,15 @@ class MouseTouchProvider(TouchProvider):
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''
         if not self.window:
-            from kivy.base import getWindow
-            self.window = getWindow()
+            from kivy.core.window import Window
+            self.window = Window
             if self.window:
-                self.window.push_handlers(
-                    on_mouse_move=self.on_mouse_motion,
+                Window.bind(on_mouse_move=self.on_mouse_motion)
+                ''',
                     on_mouse_down=self.on_mouse_press,
                     on_mouse_up=self.on_mouse_release
                 )
+                '''
         if not self.window:
             return
         try:

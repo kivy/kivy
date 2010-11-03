@@ -3,7 +3,7 @@ Base: Main event loop, provider creation, window management...
 '''
 
 __all__ = (
-    'EventLoop', 'Window',
+    'EventLoop',
     'runTouchApp', 'stopTouchApp',
     'getCurrentTouches',
 )
@@ -19,7 +19,6 @@ from kivy.input import TouchFactory, kivy_postproc_modules
 
 # private vars
 EventLoop               = None
-Window                  = None
 
 def getCurrentTouches():
     '''Return the list of all current touches
@@ -37,6 +36,12 @@ class EventLoopBase(object):
         self.status = 'idle'
         self.input_providers = []
         self.event_listeners = []
+        self.window = None
+
+    def set_window(self, window):
+        '''Set the window used for event loop
+        '''
+        self.window = window
 
     def add_input_provider(self, provider):
         '''Add a new input provider to listen for touch event
@@ -110,11 +115,11 @@ class EventLoopBase(object):
         if not touch.grab_exclusive_class:
             for listener in self.event_listeners:
                 if event == 'down':
-                    listener.dispatch_event('on_touch_down', touch)
+                    listener.dispatch('on_touch_down', touch)
                 elif event == 'move':
-                    listener.dispatch_event('on_touch_move', touch)
+                    listener.dispatch('on_touch_move', touch)
                 elif event == 'up':
-                    listener.dispatch_event('on_touch_up', touch)
+                    listener.dispatch('on_touch_up', touch)
 
         # dispatch grabbed touch
         touch.grab_state = True
@@ -153,12 +158,12 @@ class EventLoopBase(object):
             if event == 'down':
                 # don't dispatch again touch in on_touch_down
                 # a down event are nearly uniq here.
-                # wid.dispatch_event('on_touch_down', touch)
+                # wid.dispatch('on_touch_down', touch)
                 pass
             elif event == 'move':
-                wid.dispatch_event('on_touch_move', touch)
+                wid.dispatch('on_touch_move', touch)
             elif event == 'up':
-                wid.dispatch_event('on_touch_up', touch)
+                wid.dispatch('on_touch_up', touch)
 
             touch.grab_current = None
 
@@ -202,11 +207,10 @@ class EventLoopBase(object):
         # read and dispatch input from providers
         self.dispatch_input()
 
-        if kivy_window:
-            kivy_window.dispatch_events()
-            kivy_window.dispatch_event('on_update')
-            kivy_window.dispatch_event('on_draw')
-            kivy_window.dispatch_event('on_flip')
+        window = self.window
+        if window:
+            window.dispatch('on_draw')
+            window.dispatch('on_flip')
 
         # don't loop if we don't have listeners !
         if len(self.event_listeners) == 0:
@@ -224,8 +228,8 @@ class EventLoopBase(object):
     def exit(self):
         '''Close the main loop, and close the window'''
         self.close()
-        if kivy_window:
-            kivy_window.close()
+        if self.window:
+            self.window.close()
 
 #: EventLoop instance
 EventLoop = EventLoopBase()
@@ -275,11 +279,6 @@ def runTouchApp(widget=None, slave=False):
 
     # Ok, we got one widget, and we are not in slave mode
     # so, user don't create the window, let's create it for him !
-    ### Not needed, since we always create window ?!
-    #if not slave and widget:
-    #    global kivy_window
-    #    from ui.window import MTWindow
-    #    kivy_window = MTWindow()
 
     # Instance all configured input
     for key, value in Config.items('input'):
@@ -306,8 +305,8 @@ def runTouchApp(widget=None, slave=False):
         EventLoop.add_postproc_module(mod)
 
     # add main widget
-    if widget and getWindow():
-        getWindow().add_widget(widget)
+    if widget and EventLoop.window:
+        EventLoop.window.add_widget(widget)
 
     # start event loop
     Logger.info('Base: Start application main loop')
@@ -329,10 +328,10 @@ def runTouchApp(widget=None, slave=False):
     #    ourself (previous behavior.)
     #
     try:
-        if kivy_window is None:
+        if EventLoop.window is None:
             _run_mainloop()
         else:
-            kivy_window.mainloop()
+            EventLoop.window.mainloop()
     finally:
         stopTouchApp()
 
