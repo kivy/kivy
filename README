@@ -1,0 +1,267 @@
+Kivy - A Gestural Toolkit living in GPU
+=======================================
+
+Website: http://kivy.org/
+
+Kivy is the toolkit derivated from PyMT.
+
+
+About 1.0 alpha
+---------------
+
+This is alpha, so keep in mind that it might not work as intended at all times.
+You can post bug reports and feature requests on our Google Project page :
+
+  http://code.google.com/p/kivy/issues/list
+
+If you need more help, you can discuss on mailing list :
+
+  * Google Group : http://groups.google.com/group/kivy-dev
+  * Email        : kivy-dev@googlegroups.com
+
+We also have an IRC channel :
+
+  * Server  : irc.freenode.net
+  * Channel : #kivy
+
+
+Introduction
+------------
+
+Kivy is a python module for developing multi-touch enabled media rich
+applications. Currently the aim is to allow for quick and easy interaction
+design and rapid prototype development.
+
+Kivy is written in python, based on OpenGL and supports different input methods
+like Mouse, Dual Mouse, TUIO, WiiMote, WM_TOUCH, HIDtouch etc.
+
+Kivy is actively being developed by a community and free to use. It operates on
+all major platforms (Linux, OSX, Windows).
+
+
+Installation
+------------
+
+Depending on your operating system you can follow one of the following guides
+to install Kivy and the dependencies:
+
+ * http://kivy.org/wiki/DevGuide/InstallKivyUbuntu
+ * http://kivy.org/wiki/DevGuide/InstallKivyMacOSX
+ * http://kivy.org/wiki/DevGuide/InstallKivyWindows
+
+If you chose to install all the dependencies (see below) yourself, you can invoke
+the setup script as follows to install kivy systemwide for python:
+
+  python setup.py install
+
+
+Dependencies
+------------
+
+Since we abstract from the libraries that we use, some dependencies are
+optional and may be used instead of others. A list of dependencies and what
+we use them for is http://kivy.org/wiki/Devel/FeaturesByLibraries
+
+Here is what works best:
+
+  * python (>= 2.6, < 3.0) - http://python.org
+  * PyOpenGL >= 3.0.1
+  * Pygame
+  * PIL
+  * GST + PyGST
+  * Cython
+
+
+Dcoumentation, Examples & Tutorials
+-----------------------------------
+
+There is an API reference included in doc. Check the doc/README about how
+to build the documentation. It's also available online at :
+
+	http://kivy.org/docs/api/
+
+There is some simple example apps in the examples folder that should get
+you started for now. Additionally you may want to take a look at our wiki
+at :
+
+	http://kivy.org/wiki/
+
+
+Configuration
+-------------
+
+  [kivy]
+
+  # show/hide fps
+  show_fps = (0|1)
+
+  # set log level
+  log_level = (debug|info|warning|error|critical)
+
+  # detection time of double tap (in milliseconds)
+  double_tap_time = <integer>
+
+  # max distance allowed for double tap (normalized in range 0 - 1000)
+  double_tap_distance = <integer>
+
+  # detection time of retain touch (in milliseconds)
+  retain_time = <integer>
+
+  # max distance allowed for retain touch (normalized in range 0 - 1000)
+  retain_distance = <integer>
+
+  # max distance to detect jittering (normalized in range 0 - 1000)
+  jitter_distance = <integer>
+
+  # list of device to ignore jittering
+  jitter_ignore_devices = <devicename>,...
+
+  # log directory
+  log_dir = <string>
+
+  # log name (can use format string from strftime)
+  log_name = <string>
+
+  # activate logging on file
+  log_enable = (0|1)
+
+  # GL error check (disable to have more speed)
+  gl_error_check = (0|1)
+
+  # ignore list
+  ignore = [(xmin, ymin, xmax, ymax), ...]
+
+  # INTERNAL, NEVER TOUCH TO config_version !!
+  config_version = <integer>
+
+
+  [keyboard]
+
+  # default layout of keyboard
+  layout = (azerty|qwerty)
+
+  # repeat delay of the on-screen keyboard
+  repeat_delay = <integer>
+
+  # repeat rate of the on-screen keyboard
+  repeat_rate = <integer>
+
+
+  [graphics]
+
+  # maximum fps allowed
+  # if fps is <= 0, and vsync activated, the default maximum
+  # fps will be set to 60.
+  fps = <integer>
+
+  # activate fullscreen
+  fullscreen = (0|1)
+
+  # width of window
+  width = <integer>
+
+  # height of window
+  height = <integer>
+
+  # force vsync
+  vsync = (0|1)
+
+  # force fbo type
+  fbo = (hardware|software|force-hardware)
+
+  # opengl line smooth
+  line_smooth = (0|1)
+
+  # show cursor on fullscreen
+  show_cursor = (0|1)
+
+  # position of the window on the screen
+  # "auto" mean you have no control about the initial position
+  # "custom" mean the position is controled with "top" and "left" attribute
+  position = (auto|custom)
+
+  # top position of the window (if position is custom)
+  top = <integer>
+
+  # left position of the window (if position is custom)
+  left = <integer>
+
+  # path to the window icon (for replacing the default pygame icon.)
+  window_icon = <path>
+
+  # rotation of the window
+  rotation = (0|90|180|270)
+
+
+  [input]
+
+  # example of input provider instance
+  yourid = providerid,parameters
+
+  # example for tuio provider
+  default = tuio,127.0.0.1:3333
+  mytable = tuio,192.168.0.1:3334
+
+
+  [dump]
+
+  # activate record of frames
+  enabled = (0|1)
+
+  # prefix to use for dump
+  prefix = <string>
+
+  # format of dump image
+  format = <jpeg|png>
+
+
+  [widgets]
+
+  # mtlist control
+
+  # maximum distance to trigger down/up on child (pixels)
+  list_trigger_distance = <int>
+
+  # friction (factor, 1 = no friction)
+  list_friction = <int>
+
+  # friction when a bound have been hit
+  list_friction_bound = <int>
+
+  # keyboard type
+  keyboard_type = <real|virtual>
+
+
+  [modules]
+
+  # modulename= to activate a module
+  # you can have a list of module with :
+  # python example.py -m list
+  # example:
+  keybinding=
+  closeapp=
+  feedback=
+  touchring=
+
+
+
+Other Python/MT resources
+-------------------------
+
+pymt.eu
+^^^^^^^
+
+Experimental toolkit in python for multitouch interaction.
+Now deprecated in favour of Kivy.
+
+movid.org
+^^^^^^^^^
+
+Another image tracker we are working on.
+
+nuigroup.com
+^^^^^^^^^^^^
+
+THE resource and research community for open source multi touch and other
+natural user interfaces.
+

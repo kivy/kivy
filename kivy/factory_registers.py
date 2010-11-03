@@ -1,0 +1,28 @@
+# Auto-generated file by setup.py build_factory
+
+from kivy.factory import Factory
+
+Factory.register('SafeList', module='kivy.utils')
+Factory.register('MTContext', module='kivy.plugin')
+Factory.register('MTPlugins', module='kivy.plugin')
+Factory.register('ExceptionHandler', module='kivy.exceptions')
+Factory.register('OBJ', module='kivy.obj')
+Factory.register('Material', module='kivy.obj')
+Factory.register('MaterialGroup', module='kivy.obj')
+Factory.register('Mesh', module='kivy.obj')
+Factory.register('FactoryException', module='kivy.factory')
+Factory.register('Vector', module='kivy.vector')
+Factory.register('ProxyImage', module='kivy.loader')
+Factory.register('Texture', module='kivy.texture')
+Factory.register('TextureRegion', module='kivy.texture')
+Factory.register('Cache', module='kivy.cache')
+Factory.register('LoggerHistory', module='kivy.logger')
+Factory.register('Gesture', module='kivy.gesture')
+Factory.register('GestureDatabase', module='kivy.gesture')
+Factory.register('GesturePoint', module='kivy.gesture')
+Factory.register('GestureStroke', module='kivy.gesture')
+Factory.register('TouchProvider', module='kivy.input.provider')
+Factory.register('TouchFactory', module='kivy.input.factory')
+Factory.register('TouchShape', module='kivy.input.shape')
+Factory.register('TouchShapeRect', module='kivy.input.shape')
+Factory.register('Widget', module='kivy.uix.widget')
