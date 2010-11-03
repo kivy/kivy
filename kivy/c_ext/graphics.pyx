@@ -202,9 +202,6 @@ cdef class Shader:
         else:
             Logger.debug('Shader compiled sucessfully')
     
-_default_vertex_shader = open(os.path.join(kivy_shader_dir, 'default.vs')).read()
-_default_fragment_shader = open(os.path.join(kivy_shader_dir, 'default.fs')).read()
-_default_shader = None#Shader(_default_vertex_shader, _default_fragment_shader)
 
 
 
@@ -217,16 +214,22 @@ cdef class GraphicContext:
     cdef list stack
     cdef set journal
     cdef readonly int need_flush
+    cdef Shader _default_shader
 
     property default_shader:
         def __get__(self):
-            return _default_shader
+            if not self._default_shader:
+                _default_vertex_shader = open(os.path.join(kivy_shader_dir, 'default.vs')).read()
+                _default_fragment_shader = open(os.path.join(kivy_shader_dir, 'default.fs')).read()
+                self._default_shader = Shader(_default_vertex_shader, _default_fragment_shader)
+            return self._default_shader
 
     def __cinit__(self):
         self.state = {}
         self.stack = []
         self.journal = set()
         self.need_flush = 0
+        self._default_shader = None
 
     def __init__(self):
         # create initial state
@@ -601,12 +604,13 @@ cdef class GraphicElement:
         self.v_buffer.grow(num_verts)
         self.i_buffer.grow(num_verts)
 
-        #allocte on vbo and update indices with 
-        self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
-
         #set data pointers to be able to index vertices and indices
         self.v_data = <vertex*> self.v_buffer.pointer()
         self.i_data =    <int*> self.i_buffer.pointer()
+
+        #allocte on vbo and update indices with 
+        self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
+
 
 
     cdef update_vbo_data(self):
@@ -616,6 +620,7 @@ cdef class GraphicElement:
         '''
         cdef vertex* vtx = self.v_data
         cdef int* idx    = self.i_data
+        cdef int i
         for i in range(self.v_count): 
             self.vbo.update_vertices(idx[i], &vtx[1], 1)     
 
@@ -648,6 +653,7 @@ cdef class Triangle(GraphicElement):
 
     property points:
         def __set__(self, points):
+            cdef int i
             for i in range(6):
                 self._points[i] = points[i]
             self.build()
@@ -658,6 +664,7 @@ cdef class Triangle(GraphicElement):
 
     property tex_coords:
         def __set__(self, coords):
+            cdef int i
             for i in range(6):
                 self._tex_coords[i] = coords[i]
             self.build()
@@ -682,10 +689,10 @@ cdef class Rectangle(GraphicElement):
         self.tex_coords  = kwargs.get('tex_coords', (0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0))
        
         #tell VBO which triangles to draw using our vertices 
-        self.indices = (0,1,2, 2,3,0) 
+        self.indices = [0,1,2, 2,3,0] 
         self.canvas.add(self, self.indices)
 
-    cdef build_rectangle(self):
+    cdef build(self):
         cdef float* tc = self._tex_coords
         self.v_data[0] = vertex4f(self.x, self.y, tc[0], tc[1])
         self.v_data[1] = vertex4f(self.x, self.y, tc[2], tc[3])
@@ -715,6 +722,7 @@ cdef class Rectangle(GraphicElement):
             return (p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]) 
 
         def __set__(self, coords):
+            cdef int i
             for i in range(6):
                 self._tex_coords[i] = <float> coords[i]
             self.build()
@@ -756,7 +764,7 @@ cdef class BorderRectangle(GraphicElement):
             |        b0        |
             v0---v1------v2----v3
         '''
-        self.indices = (
+        self.indices = [
              0,  1, 12,    12, 11,  0,  #bottom left 
              1,  2, 13,    13, 12,  1,  #bottom middle 
              2,  3,  4,     4, 13,  2,  #bottom right 
@@ -765,7 +773,7 @@ cdef class BorderRectangle(GraphicElement):
             15, 14,  7,     7,  8, 15,   #top middle 
             10, 15,  8,     8,  9, 10,   #top left 
             11, 12, 15,    15, 10, 11,   #center left 
-            12, 13, 14,    14, 15, 12)   #center middel 
+            12, 13, 14,    14, 15, 12]   #center middel 
         self.canvas.add(self, self.indices)
 
     cdef build(self):
@@ -867,6 +875,7 @@ cdef class BorderRectangle(GraphicElement):
         def __get__(self):
             return self._texture
         def __set__(self, tex):
+            cdef int i
             self._texture = tex
             tcords = self.texture.tex_coords
             for i in range(8):
