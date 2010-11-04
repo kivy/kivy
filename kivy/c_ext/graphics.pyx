@@ -234,7 +234,7 @@ cdef class MatrixStack:
         mat = matrix_multiply(identity_matrix(), self.stack[-1])
         self.stack.append(mat)
 
-    def apply(self, mat):
+    cpdef apply(self, mat):
         self.stack[-1] = matrix_multiply(mat, self.stack[-1])
         self.context.set('modelview_mat', self.stack[-1])
 
@@ -689,11 +689,11 @@ cdef class ContextInstruction(GraphicInstruction):
 
 
 cdef class PushMatrix(ContextInstruction):
-    def apply(self):
+    cpdef apply(self):
         self.context.get('mvm').push()
      
 cdef class PopMatrix(ContextInstruction):
-    def apply(self):
+    cpdef apply(self):
         self.context.get('mvm').push()
 
 
@@ -868,7 +868,7 @@ cdef class Color(ContextInstruction):
             return self.color[:-1]
         def __set__(self, rgb):
             rgba = (rgb[0], rgb[1], rgb[2], 1.0)
-            self.rbga = rgba
+            self.rgba = rgba
 
     property r:
         def __get__(self):
