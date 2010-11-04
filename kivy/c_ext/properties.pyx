@@ -129,6 +129,13 @@ cdef class ListProperty(Property):
         if type(value) is not list:
             raise ValueError('Value of the property is not a list')
 
+cdef class ObjectProperty(Property):
+    cdef check(self, obj, value):
+        if Property.check(self, obj, value):
+            return True
+        if not isinstance(value, object):
+            raise ValueError('Value accept only object')
+
 cdef class BoundedNumericProperty(Property):
     cdef int use_min
     cdef int use_max
