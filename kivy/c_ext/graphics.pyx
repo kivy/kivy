@@ -205,6 +205,10 @@ cdef class Shader:
         else:
             Logger.debug('Shader compiled sucessfully')
     
+def Context_instance():
+    global _default_context
+    print 'get', _default_context
+    return _default_context
 
 cdef class GraphicContext:
     '''Handle the saving/restore of the context
@@ -224,6 +228,8 @@ cdef class GraphicContext:
                 _default_fragment_shader = open(os.path.join(kivy_shader_dir, 'default.fs')).read()
                 self._default_shader = Shader(_default_vertex_shader, _default_fragment_shader)
             return self._default_shader
+
+    instance = staticmethod(Context_instance)
 
     def __cinit__(self):
         self.state = {}
@@ -417,6 +423,7 @@ cdef class Canvas:
     cdef list batch_slices
 
     def __cinit__(self):
+        global _default_context
         if _default_context == None:
             _default_context = GraphicContext()
         self._context = _default_context
