@@ -8,6 +8,8 @@ from c_opengl cimport *
 
 #TODO, see which ones we have to write in cython directlym e.g. transformations, texture etc.
 from kivy.core.image import Image
+from kivy.texture import Texture
+
 import numpy
 from kivy.lib.transformations import matrix_multiply, identity_matrix, \
              rotation_matrix, translation_matrix, scale_matrix
@@ -53,7 +55,7 @@ cdef list VERTEX_ATTRIBUTES = [
     {'name': 'vPosition',  'index':0, 'size': 2, 'type': GL_FLOAT, 'bytesize': sizeof(GLfloat)*2, 'per_vertex': True},
     {'name': 'vTexCoord0', 'index':1, 'size': 2, 'type': GL_FLOAT, 'bytesize': sizeof(GLfloat)*2, 'per_vertex': True},
     {'name': 'vTexCoord1', 'index':2, 'size': 2, 'type': GL_FLOAT, 'bytesize': sizeof(GLfloat)*2, 'per_vertex': True}, 
-    {'name': 'vTexCoord2', 'index':3, 'size': 2, 'type': GL_FLOAT, 'bytesize': sizeof(GLfloat)*2, 'per_vertex': True}, 
+    {'name': 'vOffset',    'index':3, 'size': 2, 'type': GL_FLOAT, 'bytesize': sizeof(GLfloat)*2, 'per_vertex': True}, 
     {'name': 'vColor',     'index':4, 'size': 4, 'type': GL_FLOAT, 'bytesize': sizeof(GLfloat)*4, 'per_vertex': False} 
 ] 
 
@@ -61,8 +63,9 @@ cdef list VERTEX_ATTRIBUTES = [
 
 
 cdef class GraphicContext
-cdef int ACTIVE_SHADER = 0
 cdef GraphicContext _default_context = None
+
+cdef int ACTIVE_SHADER = 0
 
 
 
@@ -204,7 +207,9 @@ cdef class Shader:
             raise Exception(message)
         else:
             Logger.debug('Shader compiled sucessfully')
-    
+   
+
+ 
 def Context_instance():
     global _default_context
     print 'get', _default_context
@@ -219,17 +224,26 @@ cdef class GraphicContext:
     cdef list stack
     cdef set journal
     cdef readonly int need_flush
-    cdef Shader _default_shader
+    cdef Shader  _default_shader
+    cdef object _default_texture 
+
+    instance = staticmethod(Context_instance)
 
     property default_shader:
         def __get__(self):
             if not self._default_shader:
-                _default_vertex_shader = open(os.path.join(kivy_shader_dir, 'default.vs')).read()
+                _default_vertex_shader   = open(os.path.join(kivy_shader_dir, 'default.vs')).read()
                 _default_fragment_shader = open(os.path.join(kivy_shader_dir, 'default.fs')).read()
                 self._default_shader = Shader(_default_vertex_shader, _default_fragment_shader)
             return self._default_shader
 
-    instance = staticmethod(Context_instance)
+    property default_texture:
+        def __get__(self):
+            if not self._default_texture:
+                img = Image(os.path.join(kivy_shader_dir, 'default.png'))
+                self._default_texture = img.texture
+            return self._default_texture
+
 
     def __cinit__(self):
         self.state = {}
@@ -260,7 +274,7 @@ cdef class GraphicContext:
         self.set('blend_sfactor', GL_SRC_ALPHA)
         self.set('blend_dfactor', GL_ONE_MINUS_SRC_ALPHA)
         self.set('linewidth', 1)
-        #self.set('texture0', 0)
+        self.set('texture0', self.default_texture)
 
     cpdef save(self):
         self.stack.append(self.state.copy())
@@ -272,21 +286,6 @@ cdef class GraphicContext:
             if not state[k] is v:
                 self.set(k, v)
     
-    cpdef translate(self, double x, double y, double z):
-        t = translation_matrix(x, y, z)
-        mat = matrix_multiply(self.get('modelview_mat'), t)
-        self.set('modelview_mat', mat)
-
-    cpdef scale(self, double s):
-        t = scale_matrix(s)
-        mat = matrix_multiply(self.get('modelview_mat'), t)
-        self.set('modelview_mat', mat)
-        
-    cpdef rotate(self, double angle, double x, double y, double z):
-        t = rotation_matrix(angle, [x, y, z])
-        mat = matrix_multiply(self.get('modelview_mat'), t)
-        self.set('modelview_mat', mat)
-
     cpdef flush(self):
         # activate all the last changes done on context
         # apply all the actions in the journal !
@@ -305,6 +304,12 @@ cdef class GraphicContext:
             value = state[x]
             if x == 'color':
                 glVertexAttrib4f(4, value[0], value[1], value[2], value[3]) #vColor
+
+            elif x == 'texture0':
+                if not value:
+                    value = self._default_texture
+                glActiveTexture(GL_TEXTURE0)
+                glBindTexture(value.target, value.id)
             
             elif x == 'blend':
                 if value:   glEnable(GL_BLEND)
@@ -543,12 +548,14 @@ cdef class Canvas:
                     print "bindign new texture", item.texture 
                     target = item.texture.target
                     tex_id = item.texture.id
-                    self.batch_slices.append(('instruction', BindTexture(0, target, tex_id)))
+                    self.batch_slices.append(('instruction', BindTexture(item.texture)))
                     self.batch_slices.append((command, b))
                     b = Buffer(sizeof(GLint))
             elif tex_id != -1: #no item.texture..must unbind bound_texture and start new slice
                 print "unbinding previous bound tetxure"
-                self.batch_slices.append(('instruction', UnbindTexture(0, tex_target)))
+                self.batch_slices.append(('instruction', BindTexture(None)))
+                
+                #self.batch_slices.append(('instruction', UnbindTexture(0, tex_target)))
                 self.batch_slices.append((command, b))
                 b = Buffer(sizeof(GLint))
 
@@ -589,7 +596,26 @@ cdef class Canvas:
 
 
 
+'''
 
+    
+    cpdef translate(self, double x, double y, double z):
+        t = translation_matrix(x, y, z)
+        mat = matrix_multiply(self.get('modelview_mat'), t)
+        self.set('modelview_mat', mat)
+
+    cpdef scale(self, double s):
+        t = scale_matrix(s)
+        mat = matrix_multiply(self.get('modelview_mat'), t)
+        self.set('modelview_mat', mat)
+        
+    cpdef rotate(self, double angle, double x, double y, double z):
+        t = rotation_matrix(angle, [x, y, z])
+        mat = matrix_multiply(self.get('modelview_mat'), t)
+        self.set('modelview_mat', mat)
+
+
+'''
 
 cdef class GraphicInstruction:
     cdef int CODE     #Graphic instruction op code
@@ -614,7 +640,7 @@ cdef class GraphicInstruction:
 
 
 cdef class ContextInstruction(GraphicInstruction):
-    def __init__(self):  
+    def __init__(self, **kwargs):  
         '''
            Abstract Base class for GraphicInstructions that modidifies the
            context.  (so that canvas/compiler can know about how to optimize)
@@ -625,7 +651,19 @@ cdef class ContextInstruction(GraphicInstruction):
         pass
 
 
+'''
+cdef class LineWidth(ContextInstruction):
+    cdef float lw
+    cdef __init__(self, float lw, **kwargs):
+        ContextInstruction.__init__(self, **kwargs):
+        self.lw = lw
 
+    cpdef set(self, float lw):
+        self.lw = lw
+
+    cpdef apply(self):
+        self.canvas.context.set('linewidth', self.lw)
+'''
 cdef class SetColor(ContextInstruction):
     #TODO:
     '''
@@ -675,33 +713,25 @@ cdef class SetColor(ContextInstruction):
 
 
 cdef class BindTexture(ContextInstruction):
-    cdef int index
-    cdef int target
-    cdef int tex_id
+    cdef object texture
 
-    def __init__(self, int index, int target, int tex_id):
+    def __init__(self, object tex):
         '''
         BindTexture Graphic instruction:
             The BindTexture Instruction will bind a texture and enable
             GL_TEXTURE_2D for subsequent drawing.
 
         :Parameters:
-            `index`, int: teh texture index to unbind, e.g. 0 for GL_TEXTURE0
             `texture`, Texture:  specifies teh texture to bind to teh given index 
         '''
         ContextInstruction.__init__(self)
-        self.index  = index
-        self.target = target
-        self.tex_id = tex_id
+        self.texture = tex
 
     def apply(self): 
-        glActiveTexture(GL_TEXTURE0+self.index)
-        glEnable(self.target)
-        glBindTexture(self.target, self.tex_id)
-        self.canvas.context.set('texture0', 0)
+        self.canvas.context.set('texture0', self.texture)
 
 
-
+"""
 cdef class UnbindTexture(ContextInstruction):
     cdef int index
     cdef int target
@@ -724,7 +754,7 @@ cdef class UnbindTexture(ContextInstruction):
         glActiveTexture(GL_TEXTURE0+self.index)
         glBindTexture(self.target, 0)
         glDisable(self.target)
-
+"""
 
 
 
