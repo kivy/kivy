@@ -22,6 +22,7 @@ cdef extern from "math.h":
     double sin(double)
     double sqrt(double)
 
+
 cdef struct vertex:
     GLfloat x, y
     GLfloat s0, t0 
@@ -519,12 +520,11 @@ cdef class Canvas:
 
         #loop pver all teh whole slice, and combine all instructions
         for item in self.batch[slice_start:slice_end+1]:  
-            print "adding", item, "to batch_slice", item.num_elements
+            print "adding", item, "to batch_slice"
             # add the vertex indices to be drawn from this item
             for i in range(item.num_elements): 
                 v = item.element_data[i]
                 b.add(&v, NULL, 1)
-                print "adding INDEX:", i, v
 
             #handle textures (should go somewhere else?, maybe set GI_CONTEXT_MOD FLAG ALSO?)
             if item.texture:
@@ -541,8 +541,7 @@ cdef class Canvas:
                     b = Buffer(sizeof(GLint))
             elif tex_id != -1: #no item.texture..must unbind bound_texture and start new slice
                 print "unbinding previous bound tetxure"
-                target = item.texture.target
-                self.batch_slices.append(('instruction', UnbindTexture(0, target)))
+                self.batch_slices.append(('instruction', UnbindTexture(0, tex_target)))
                 self.batch_slices.append((command, b))
                 b = Buffer(sizeof(GLint))
 
@@ -641,10 +640,10 @@ cdef class SetColor(ContextInstruction):
             `d_factor`, GLenum: destination factor mode for blending
         '''
         ContextInstruction.__init__(self)
-        self.color     = <tuple> kwargs.get('color', (1.0, 1.0, 1.0, 1.0))
-        self.blend    =  <int> kwargs.get('blend', 0)
-        self.s_factor =  <int> kwargs.get('s_factor', GL_SRC_ALPHA) 
-        self.d_factor =  <int> kwargs.get('d_factor', GL_ONE_MINUS_SRC_ALPHA)
+        self.color    =  (r,g,b,a)
+        self.blend    =  <int>   kwargs.get('blend', 0)
+        self.s_factor =  <int>   kwargs.get('s_factor', GL_SRC_ALPHA) 
+        self.d_factor =  <int>   kwargs.get('d_factor', GL_ONE_MINUS_SRC_ALPHA)
         self.canvas.add(self)
         
     def apply(self):
@@ -803,7 +802,6 @@ cdef class VertexDataInstruction(GraphicInstruction):
         self.i_data = <int*> self.i_buffer.pointer()
 
         #allocte on vbo and update indices with 
-        print self.v_count, "ASASASASASASASASAS\n", num_verts, self.v_buffer.count()
         self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
         print "done allocating"
 
@@ -816,7 +814,7 @@ cdef class VertexDataInstruction(GraphicInstruction):
                      draw two triangles corrosponding to the vertices stored in v_data
                      this function automatically converts teh indices from local to vbo indices 
         '''
-        def __set__(self, tuple batch):
+        def __set__(self, object batch): #list or tuple..iterable?
             #create element buffer for list of vbo indices to be drawn
             self.element_buffer = Buffer(sizeof(int))
             cdef int i, e
@@ -1127,49 +1125,189 @@ cdef class BorderRectangle(VertexDataInstruction):
             self.build()
 
 
+"""
+cdef int PEN_UP   = 0
+cdef int PEN_DOWN = 1
+"""
+
+#cdef class Pen:
+#    cdef stroke_width
+#    def __init__(self):
+#        self.stroke_width = 10
+
 cdef class Path(VertexDataInstruction):
-    cdef Buffer points
+    #cdef Pen pen
     cdef float pen_x, pen_y
-    def __init__(self, **kwargs):
-        self.points = Buffer(sizeof(vertex))
+    cdef Buffer point_buffer
+    def __init__(self):
+        VertexDataInstruction.__init__(self)
+        self.point_buffer = Buffer(sizeof(vertex))
+
+    cdef int add_point(self, float x, float y):
+        cdef int idx
+        cdef vertex v = vertex2f(x,y)
+        self.point_buffer.add(&v, &idx, 1)
+        return idx
+
+    cdef build(self):
+        cdef vertex* p    #pointer into point buffer
+        cdef vertex v[4]  #to hold the vertices for each quad were creating
+        cdef int  idx[4]  #to hold teh vbo indecies for every quad we add 
+        cdef int num_points, i #number of points in path, loop counter
+        cdef float x0,x1, y0,y1, dx,dy, ns, sw
+        cdef int  end_point_idx[2]  # to connect end points from previous segment
+ 
+        sw = 3.0 #self.pen.stroke_width
+        p = <vertex*>self.point_buffer.pointer()
+        num_points = self.point_buffer.count()
+
+        #generate a quad for every line
+        self.v_buffer = Buffer(sizeof(vertex))
+        self.i_buffer = Buffer(sizeof(GLint))
+        self.element_buffer = Buffer(sizeof(int))
+        for i in range(num_points-1):
+            #normals for this line: (-dy,dx), (dy,-dx)
+            x0 = p[i].x;  x1 = p[i+1].x; dx = (x1-x0);
+            y0 = p[i].y;  y1 = p[i+1].y; dy = (y1-y0);
+
+            #normalize normal vector and scale for stroke offset 
+            ns = sqrt( (dx*dx) + (dy*dy) ) 
+            if ns == 0.0:
+                "skipping line, the deistance between the two line end points was zero..."
+                continue
+
+            dx = sw/2.0 * dx/ns
+            dy = sw/2.0 * dy/ns
+
+            '''
+            print "PATH VERTICES:"
+            print "                                                     "
+            print "v[0] : x0 - dy  \t\t  y0 + dx"
+            print "v[0] : %f - %f  \t\t  %f + %f" % (x0, dy, y0, dx)
+            print "v[0] : %f       \t\t  %f  " % (x0-dy,y0+dx)
+            print "----------------------------------------------------\n"
+            print "v[1] : x0 + dy  \t\t  y0 - dx"
+            print "v[1] : %f + %f  \t\t  %f - %f" % (x0, dy, y0, dx)
+            print "v[1] : %f       \t\t  %f  " % (x0+dy,y0-dx)
+            print "----------------------------------------------------\n"
+            print "v[2] : x1 - dy  \t\t  y1 + dx"
+            print "v[2] : %f - %f  \t\t  %f + %f" % (x1, dy, y1, dx)
+            print "v[2] : %f       \t\t  %f  " % (x1-dy,y1+dx)
+            print "----------------------------------------------------\n"
+            print "v[3] : x1 + dy  \t\t  y1 - dx"
+            print "v[3] : %f + %f  \t\t  %f - %f" % (x1, dy, y1, dx)
+            print "v[4] : %f       \t\t  %f  " % (x1+dy,y1-dx)
+            '''
+
+            #create quad, with cornerss pull off the line by the normal
+            v[0] = vertex2f(x0-dy, y0+dx); 
+            v[1] = vertex2f(x0+dy, y0-dx); 
+            v[2] = vertex2f(x1+dy, y1-dx); 
+            v[3] = vertex2f(x1-dy, y1+dx); 
+
+            #add vertices to vertex buffer, get vbo indices
+            self.v_buffer.add(v, idx, 4)
+            self.i_buffer.add(idx, NULL, 4)
+            self.v_count = self.v_count + 4
+ 
+            #and extend eleemnt buffer with indices to include this quad in draw 
+            #print "segment:", idx[0], idx[1], idx[2],  ":",  idx[2], idx[3], idx[0]
+            self.element_buffer.add(&idx[0], NULL, 3)
+            self.element_buffer.add(&idx[2], NULL, 2)
+            self.element_buffer.add(&idx[0], NULL, 1)
+
+            #also connect to the previous line segment with nice joint
+            if i > 0: #not the first time...nothing to connect to    
+                #print "connection:", end_point_idx[0], end_point_idx[1], idx[0],  ":",  idx[0], idx[3], end_point_idx[0]
+                self.element_buffer.add(end_point_idx, NULL, 2) 
+                self.element_buffer.add(&idx[0], NULL, 1)
+                self.element_buffer.add(&idx[1], NULL, 1)
+                self.element_buffer.add(&idx[1], NULL, 1)
+                self.element_buffer.add(end_point_idx, NULL, 1) 
+
+            end_point_idx[0] = idx[3]
+            end_point_idx[1] = idx[2]
 
 
 
-cdef ACTIVE_PATH = None
+        #update vertex and vbo index pointers
+        self.v_data = <vertex*>  self.v_buffer.pointer()
+        self.i_data = <int*>     self.i_buffer.pointer()
+        self.element_data = <int*> self.element_buffer.pointer()
+        self.num_elements = self.element_buffer.count()
 
+        #actually add vertices to VBO
+        self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
+        self.canvas.add(self)
+        self.canvas.update(self)
+
+
+
+cdef Path ACTIVE_PATH = None
 cdef class PathInstruction(GraphicInstruction):
     cdef Path path 
-    cdef float pen_x, pen_y
-
     def __init__(self):
         global ACTIVE_PATH
         GraphicInstruction.__init__(self, GI_IGNORE) 
-        if ACTIVE_PATH:
-            self.path = ACTIVE_PATH
+        self.path = ACTIVE_PATH
+
+
 
 cdef class PathStart(PathInstruction): 
-    def __init__(self, **kwargs):
+    cdef int index
+    def __init__(self, float x, float y):
+        '''
+        Starts a new path at position x,y.  Will raise an Excpetion, if called while another path is already started
+        :Parameters:
+            `x`, float:  x position
+            `y`, float:  y position
+        '''
         global ACTIVE_PATH
+        print "START PATH", ACTIVE_PATH
         PathInstruction.__init__(self)
-
         if ACTIVE_PATH != None: 
-            raise Exception("Can't start a new path, before the currently starte done has been ended")
-        ACTIVE_PATH = self.path = Path()
-
-        cdef tuple pos = kwargs.get('pos', (0.0, 0.0))
-        self.path.pen_x = pos[0]
-        self.path.pen_y = pos[1]
-
-cdef class PathMoveTo(PathInstruction):
-    def __init__(self, x, y): 
-        PathInstruction.__init__(self) 
-        self.path.pen_x = x
-        self.path.pen_y = y
-
+            raise Exception("Can't start a new path while another one is being constructed")
+        ACTIVE_PATH = self.path = Path() 
+        self.index = self.path.add_point(x, y)
+        
 
 cdef class PathLineTo(PathInstruction):
+    cdef int index
+    def __init__(self, x, y): 
+        '''
+        Adds a line from the current location to the x, y coordinates passed as parameters 
+        '''
+        PathInstruction.__init__(self)
+        self.index = self.path.add_point(x, y)
+
+
+cdef class PathClose(PathInstruction):
+    def __init__(self): 
+        '''
+        Closes the path, by adding a line from teh current location to the first vertex taht started teh path
+        '''
+        PathInstruction.__init__(self)
+        cdef vertex* v = <vertex*> self.path.point_buffer.pointer()
+        self.path.add_point(v[0].x, v[0].y)
+
+
+cdef class PathEnd(PathInstruction):
+    def __init__(self):
+        '''
+        ends path construction on teh current path, teh path will be build
+        and added to the canvas
+        '''    
+        global ACTIVE_PATH
+        PathInstruction.__init__(self) 
+        self.path.build()
+        ACTIVE_PATH = None
+        print "END PATH", ACTIVE_PATH
+'''
+    cdef class PathMoveTo(PathInstruction):
+    cdef float x,y
     def __init__(self, x, y): 
         PathInstruction.__init__(self) 
+        self.path.pen_state = PEN_UP
         self.path.pen_x = x
         self.path.pen_y = y
-
+'''
