@@ -21,6 +21,7 @@ class App(EventDispatcher):
         super(App, self).__init__()
         self.register_event_type('on_start')
         self.register_event_type('on_stop')
+        self.options = kwargs
         self.use_default_uxl = kwargs.get('use_default_uxl', True)
         self.is_build = False
         self.root = None
