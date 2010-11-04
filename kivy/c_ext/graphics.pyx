@@ -310,7 +310,7 @@ cdef class GraphicContext:
         self.set('blend', 0)
         self.set('blend_sfactor', GL_SRC_ALPHA)
         self.set('blend_dfactor', GL_ONE_MINUS_SRC_ALPHA)
-        self.set('linewidth', 1)
+        #self.set('linewidth', 1)
         self.set('texture0', self.default_texture)
         self.set('mvm', MatrixStack(self))
 
