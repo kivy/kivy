@@ -304,6 +304,10 @@ class WindowBase(EventDispatcher):
     def update_viewport(self):
         # XXX FIXME
         from kivy.core.gl import *
+        from kivy.graphics import GraphicContext
+        from kivy.lib.transformations import clip_matrix
+        context = GraphicContext.instance()
+        context.set('projection_mat', clip_matrix(0, self.width, 0, self.height, -1, 1))
 
         width, height = self.system_size
         w2 = width / 2.
@@ -312,13 +316,9 @@ class WindowBase(EventDispatcher):
         # prepare the viewport
         glViewport(0, 0, width, height)
 
-        # set the projection
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glFrustum(-w2, w2, -h2, h2, .1, 1000)
-        glScalef(5000, 5000, 1)
-
         # use the rotated size.
+        # XXX FIXME fix rotation
+        '''
         width, height = self.size
         w2 = width / 2.
         h2 = height / 2.
@@ -330,6 +330,7 @@ class WindowBase(EventDispatcher):
         glTranslatef(w2, h2, 0)
         glRotatef(self._rotation, 0, 0, 1)
         glTranslatef(-w2, -h2, 0)
+        '''
 
         # update window size
         for w in self.children:

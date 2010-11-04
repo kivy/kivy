@@ -12,9 +12,8 @@ __all__ = ('Widget', )
 from kivy.weakmethod import WeakMethod
 from kivy.c_ext.event import EventDispatcher
 from kivy.c_ext.properties import *
-from kivy.base import EventLoop
-EventLoop.ensure_window()
 from kivy.graphics import Canvas
+from kivy.base import EventLoop
 
 class Widget(EventDispatcher):
     '''
@@ -64,6 +63,7 @@ class Widget(EventDispatcher):
         self.register_event_type('on_touch_up')
         self.register_event_type('on_draw')
 
+        EventLoop.ensure_window()
         self.canvas = Canvas()
 
 
