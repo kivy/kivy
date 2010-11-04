@@ -38,3 +38,8 @@ class Button(Widget):
         self.dispatch('on_release')
         return True
 
+    def on_press(self):
+        pass
+
+    def on_release(self):
+        pass
