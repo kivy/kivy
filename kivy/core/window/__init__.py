@@ -238,9 +238,10 @@ class WindowBase(EventDispatcher):
 
     def clear(self):
         '''Clear the window with background color'''
-        pass
-        #glClearColor(0, 0, 0, 0)
-        #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        # XXX FIXME use late binding
+        from kivy.core.gl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
+        glClearColor(0, 0, 0, 0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     def draw(self):
         '''Draw the window background'''
