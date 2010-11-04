@@ -12,6 +12,9 @@ __all__ = ('Widget', )
 from kivy.weakmethod import WeakMethod
 from kivy.c_ext.event import EventDispatcher
 from kivy.c_ext.properties import *
+from kivy.base import EventLoop
+EventLoop.ensure_window()
+from kivy.graphics import Canvas
 
 class Widget(EventDispatcher):
     '''
@@ -54,6 +57,73 @@ class Widget(EventDispatcher):
             if isinstance(attr, Property):
                 attr.unlink(self)
 
+    def __init__(self, **kwargs):
+        super(Widget, self).__init__()
+        self.register_event_type('on_touch_down')
+        self.register_event_type('on_touch_move')
+        self.register_event_type('on_touch_up')
+        self.register_event_type('on_draw')
+
+        self.canvas = Canvas()
+
+
+    #
+    # Collision
+    #
+
+    def collide_point(self, x, y):
+        return self.x <= x <= self.right and self.y <= y <= self.top
+
+
+    #
+    # Default event handlers
+    #
+
+    def on_draw(self):
+        '''Dispatch the on_draw even in every child
+        '''
+        self.draw()
+        for child in reversed(self.children):
+            child.dispatch('on_draw')
+
+    def on_touch_down(self, touch):
+        '''Send the touch down event in every child
+        Return true if one child use it
+        '''
+        for child in self.children[:]:
+            if child.dispatch('on_touch_down', touch):
+                return True
+
+    def on_touch_move(self, touch):
+        '''Send the touch move event in every child
+        Return true if one child use it
+        '''
+        for child in self.children[:]:
+            if child.dispatch('on_touch_move', touch):
+                return True
+
+    def on_touch_up(self, touch):
+        '''Send the touch down event in every child
+        Return true if one child use it
+        '''
+        for child in self.children[:]:
+            if child.dispatch('on_touch_up', touch):
+                return True
+
+
+    #
+    # Drawing
+    #
+    def draw(self):
+        '''Draw the widget
+        '''
+        self.canvas.draw()
+
+
+    #
+    # Events
+    #
+
     def bind(self, **kwargs):
         '''Bind properties or event to handler
 
@@ -82,6 +152,29 @@ class Widget(EventDispatcher):
 
             self.__class__.__dict__[key].unbind(self, value)
 
+
+    #
+    # Tree management
+    #
+
+    def add_widget(self, widget):
+        '''Add a new widget as a child of current widget
+        '''
+        self.children = self.children + [widget]
+
+    def remove_widget(self, widget):
+        '''Remove a widget from the childs of current widget
+        '''
+        if widget in self.children:
+            self.children = self.children.remove(widget)
+
+
+
+
+    #
+    # Properties
+    #
+
     def setter(self, name):
         '''Return the setter of a property. Useful if you want to directly bind
         a property to another. For example ::
@@ -94,11 +187,6 @@ class Widget(EventDispatcher):
         '''Return the getter of a property.
         '''
         return self.__class__.__dict__[name].__get__
-
-
-    #
-    # Properties
-    #
 
     #: X position of the widget
     x = NumericProperty(0)
@@ -149,3 +237,21 @@ class Widget(EventDispatcher):
 
     #: User id of the widget
     id = StringProperty(None, allownone=True)
+
+    #: Children list
+    children = ListProperty([])
+
+    #: Parent
+    parent = ObjectProperty(None)
+
+    #: Size hint X
+    size_hint_x = NumericProperty(None, allownone=True)
+
+    #: Size hint Y
+    size_hint_y = NumericProperty(None, allownone=True)
+
+    #: Size hint
+    size_hint = ReferenceListProperty(size_hint_x, size_hint_y)
+
+    #: Canvas
+    canvas = None
