@@ -196,6 +196,7 @@ class Texture(object):
     def create(width, height, format=GL_RGBA, rectangle=False, mipmap=False):
         '''Create a texture based on size.'''
         target = GL_TEXTURE_2D
+        rectangle = False
         if rectangle:
             if _is_pow2(width) and _is_pow2(height):
                 rectangle = False

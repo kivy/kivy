@@ -366,11 +366,10 @@ cdef class VBO:
             glVertexAttribPointer(attr['index'], attr['size'], attr['type'], GL_FALSE, sizeof(vertex), <GLvoid*>offset)
             offset += attr['bytesize']
 
-    cpdef unbind(self):
+    cdef unbind(self):
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     cdef add_vertices(self, void *v, int* indices, int count):
-        cdef int i
         self.need_upload = 1
         self.data.add(v, indices, count)
 
@@ -383,13 +382,37 @@ cdef class VBO:
 
 
 
-canvas_statement = None
+
+
+
+'''
+Insruction type bitmask. Graphic Instruction Codes
+    bitmask to hold various graphic intrcution codes so its 
+    possible to set teh code on any GraphicInstruction
+    in order to let the compiler know how to handle it best
+'''
+cdef int GI_NOOP         = 0x0000000
+cdef int GI_IGNORE       = 0x0000001
+cdef int GI_VERTEX_DATA  = 0x0000002
+cdef int GI_CONTEXT_MOD  = 0x0000004
+
+
+
+
+cdef class GraphicInstruction
+cdef class VertexDataInstruction
+cdef class Canvas
+cdef Canvas ACTIVE_CANVAS = None
+
 cdef class Canvas:
     cdef GraphicContext _context
     cdef VBO vertex_buffer
-    cdef list batch
-    cdef int need_compile
     cdef list texture_map
+    cdef list batch
+
+    #move to graphics compiler?:
+    cdef int need_compile
+    cdef int num_slices
     cdef list batch_slices
 
     def __cinit__(self):
@@ -397,26 +420,34 @@ cdef class Canvas:
             _default_context = GraphicContext()
         self._context = _default_context
         self.vertex_buffer = VBO()
-        self.batch = []
-        self.need_compile = 1
         self.texture_map = []
+        self.batch = []
+        
+        self.need_compile = 1
         self.batch_slices = []
+        self.num_slices = 0
+
 
     property context:
         def __get__(self):
             return self._context
 
     cpdef __enter__(self):
-        global canvas_statement
-        canvas_statement = self
+        global ACTIVE_CANVAS
+        ACTIVE_CANVAS = self
 
     cpdef __exit__(self, extype, value, traceback):
-        global canvas_statement
-        canvas_statement = None
+        global ACTIVE_CANVAS 
+        ACTIVE_CANVAS = None
 
-    cdef add(self, element, vertices):
+    cdef add(self, GraphicInstruction instruction):
         self.need_compile = 1
-        self.batch.append((element, vertices))
+        self.batch.append(instruction)
+
+    cdef update(self, instruction):
+        ''' called by graphic instructions taht are part of teh canvas,
+            when they have been changed in some way ''' 
+        self.need_compile = 1
 
     cdef remove(self, element):
         pass
@@ -425,54 +456,100 @@ cdef class Canvas:
         with self:
             self.compile_run()
 
-    cdef compile_run(self):
-        cdef int slice_start = -1
-        cdef int slice_stop = -1
-        cdef int i
-        cdef object item
-
-        self.compile_init()
-
-        for i in xrange(len(self.batch)):
-            item = self.batch[i]
-            if isinstance(item[0], GraphicElement) :
-                if slice_start == -1:
-                    slice_start = slice_stop = i
-                else:
-                    slice_stop = i
-            else:
-                if slice_start != -1:
-                    self.compile_slice('draw', slice_start, slice_stop)
-                    slice_start = slice_stop = -1
-                self.batch_slices.append(('instruction', item))
-        if slice_start != -1:
-            self.compile_slice('draw', slice_start, slice_stop)
-
-
-    cpdef compile_init(self):
+    cdef compile_init(self):
         self.texture_map = []
         self.batch_slices = []
 
-    cpdef compile_slice(self, str command, slice_start, slice_end):
+    cdef compile_run(self):
+        cdef GraphicInstruction item
+        cdef int slice_start = -1
+        cdef int slice_stop  = -1
+        cdef int i, code
+
+        self.compile_init()
+
+        print "starting compile"
+
+        for i in xrange(len(self.batch)):
+            item = self.batch[i]
+            code = item.CODE
+
+            print "batch element CODE:", code
+
+            #the instruction modifies teh context, so we cant combine the drawing
+            #calls before and after it
+            if code & GI_CONTEXT_MOD:
+                print "context mod"
+                #first compile the slices we been loopiing over which we can combine
+                #from slice_start to slice_stop. (using compile_slice() )
+                #add the context modifying instruction to batch_slices
+                #reset slice start/stop index
+                self.compile_slice('draw', slice_start, slice_stop)
+                self.batch_slices.append(('instruction', item)) 
+                slice_start = slice_stop = -1
+            
+            #the instruction pushes vertices to the pipeline and doesnt modify
+            #teh context, so we can happily combine it with any prior or follwing
+            #instructions that do teh same, just keep incrementing slice stop index
+            #until we cant combine any more, then well call compile_slice()
+            elif code & GI_VERTEX_DATA:
+                print "Vertex data"
+                slice_stop = i
+                if slice_start == -1:
+                    slice_start = i
+
+        #maybe we ended on an slice of vartex data, whcih we didnt push yet
+        self.compile_slice('draw', slice_start, slice_stop)
+
+
+
+    cdef compile_slice(self, str command, slice_start, slice_end):
+        print "compiling slice:", slice_start, slice_end, command
+        cdef VertexDataInstruction item
         cdef Buffer b = Buffer(sizeof(GLint))
-        cdef int v
-        cdef GraphicElement item
-        cdef object bound_texture = None
-        for item, vertices in self.batch[slice_start:slice_end+1]:  
-            for v in vertices:  # add the vertices for this item
+        cdef int tex_target = -1
+        cdef int tex_id = -1
+        cdef int v, i
+
+        #check if we have a valid slice
+        if slice_start == -1:
+            print "nothign to compile..empty slice"
+            return
+
+
+        #loop pver all teh whole slice, and combine all instructions
+        for item in self.batch[slice_start:slice_end+1]:  
+            print "adding", item, "to batch_slice", item.num_elements
+            # add the vertex indices to be drawn from this item
+            for i in range(item.num_elements): 
+                v = item.element_data[i]
                 b.add(&v, NULL, 1)
-            if item.texture == bound_texture: #the same, sweet, keep going
-                continue
-            elif item.texture and item.texture != bound_texture:  #nope..muts bind the new texture 
-                self.batch_slices.append(('instruction', BindTexture(item.texture)))
-                self.batch_slices.append((command, b))
-                b = Buffer(sizeof(GLint))
-            else: #no item.texture..must unbind bound_texture and start new slice
-                self.batch_slices.append(('instruction', UnbindTexture()))
+                print "adding INDEX:", i, v
+
+            #handle textures (should go somewhere else?, maybe set GI_CONTEXT_MOD FLAG ALSO?)
+            if item.texture:
+                print "texture attached, must split batch_slice"
+                if item.texture.id == tex_id: #the same, sweet, keep going
+                    print "texture already bound on context...no split after all"
+                    continue
+                elif item.texture.id != tex_id:  #nope..muts bind the new texture
+                    print "bindign new texture", item.texture 
+                    target = item.texture.target
+                    tex_id = item.texture.id
+                    self.batch_slices.append(('instruction', BindTexture(0, target, tex_id)))
+                    self.batch_slices.append((command, b))
+                    b = Buffer(sizeof(GLint))
+            elif tex_id != -1: #no item.texture..must unbind bound_texture and start new slice
+                print "unbinding previous bound tetxure"
+                target = item.texture.target
+                self.batch_slices.append(('instruction', UnbindTexture(0, target)))
                 self.batch_slices.append((command, b))
                 b = Buffer(sizeof(GLint))
 
+
+        print "done compiling slice"
         if b.count() > 0:  # last slice, all done, only have to add if there is actually somethign in it
+            print "adding last slice"
             self.batch_slices.append((command, b))
 
 
@@ -485,101 +562,208 @@ cdef class Canvas:
             print "Done Compiling", self.batch_slices
             self.need_compile = 0
 
-
-        self.context.flush()
         self.vertex_buffer.bind() 
         attr = VERTEX_ATTRIBUTES[0]
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer.id)
+
         for command, item in self.batch_slices:
+            #print command, item
             if command == 'draw':
                 self.context.flush()
                 b = item
+                #print "drawing elements:", b.count()
                 glDrawElements(GL_TRIANGLES, b.count(), GL_UNSIGNED_INT, b.pointer())
             elif command == 'instruction':
-                (<GraphicInstruction>item).apply()
+                item.apply()
                 
         glUseProgram(0)
 
 
+
+
+
+
+
+
 cdef class GraphicInstruction:
-    cdef int ignore
-    cdef Canvas canvas
+    cdef int CODE     #Graphic instruction op code
+    cdef Canvas canvas  #canvas on which to operate
 
-    def __cinit__(self):
-        self.ignore = 0
-        self.canvas = canvas_statement
 
-    cdef apply(self):
+    def __init__(self, int code):
+        '''
+            Base class for all Graphi Instructions
+            :Parameters:
+            `code`, constant: instruction code for hinting teh compiler
+                currently a combination of:
+                    GI_NOOP
+                    GI_IGNORE
+                    GI_CONTEXT_MOD
+                    GI_VERTEX_DATA
+                    
+        '''
+        global ACTIVE_CANVAS
+        self.CODE = code
+        self.canvas = ACTIVE_CANVAS
+
+
+cdef class ContextInstruction(GraphicInstruction):
+    def __init__(self):  
+        '''
+           Abstract Base class for GraphicInstructions that modidifies the
+           context.  (so that canvas/compiler can know about how to optimize)
+        '''
+        GraphicInstruction.__init__(self, GI_CONTEXT_MOD)
+        
+    def apply(self):
         pass
 
 
-cdef class BindTexture(GraphicInstruction):
-    cdef object texture
 
-    def __init__(self, texture):
+cdef class SetColor(ContextInstruction):
+    #TODO:
+    '''
+     add blending "mode", so user can pass str or enum
+     e.g.: 'normal', 'subtract', 'multiply', 'burn', 'dodge', etc
+    '''    
+    cdef int blend
+    cdef int s_factor
+    cdef int d_factor
+    cdef tuple _color    
+    
+    def __init__(self, r, g, b, a, **kwargs):
+        '''
+        SetColor will change the color being used to draw in the context
+        :Parameters:
+            `color`, tuple : 3 or 4 tuple, or r,g,b [,a] color components
+            `blend`, bool  : enable or disable blending
+            `s_factor`, GLenum: source factor mode used for blending
+            `d_factor`, GLenum: destination factor mode for blending
+        '''
+        ContextInstruction.__init__(self)
+        self.color     = <tuple> kwargs.get('color', (1.0, 1.0, 1.0, 1.0))
+        self.blend    =  <int> kwargs.get('blend', 0)
+        self.s_factor =  <int> kwargs.get('s_factor', GL_SRC_ALPHA) 
+        self.d_factor =  <int> kwargs.get('d_factor', GL_ONE_MINUS_SRC_ALPHA)
+        self.canvas.add(self)
+        
+    def apply(self):
+        cdef GraphicContext c = self.canvas.context
+        cdef tuple col = self._color
+        c.set('color', (col[0], col[1], col[2], col[3]))
+        c.set('blend', self.blend)
+        c.set('blend_sfactor', self.s_factor)
+        c.set('blend_dfactor', self.d_factor)
+
+    property color:
+        def __get__(self):  
+            return self.color
+        def __set__(self, tuple c):    
+            cdef int c_dim = len(c)
+            if len(c) == 4:
+                self._color = c
+            else:
+                self._color = (c[0], c[1], c[2], 1.0)
+
+
+
+
+cdef class BindTexture(ContextInstruction):
+    cdef int index
+    cdef int target
+    cdef int tex_id
+
+    def __init__(self, int index, int target, int tex_id):
         '''
         BindTexture Graphic instruction:
             The BindTexture Instruction will bind a texture and enable
             GL_TEXTURE_2D for subsequent drawing.
 
         :Parameters:
-            `tetxture`, Texture:  specifies teh texture to bind        
+            `index`, int: teh texture index to unbind, e.g. 0 for GL_TEXTURE0
+            `texture`, Texture:  specifies teh texture to bind to teh given index 
         '''
-        self.texture = texture
+        ContextInstruction.__init__(self)
+        self.index  = index
+        self.target = target
+        self.tex_id = tex_id
 
-    cdef apply(self): 
-        texture = self.texture
-        glActiveTexture(GL_TEXTURE0)
-        glEnable(texture.target)
-        glBindTexture(texture.target, texture.id)
-        #need to also set the texture index on teh shader
+    def apply(self): 
+        glActiveTexture(GL_TEXTURE0+self.index)
+        glEnable(self.target)
+        glBindTexture(self.target, self.tex_id)
         self.canvas.context.set('texture0', 0)
 
 
 
-cdef class UnbindTexture(GraphicInstruction):
+cdef class UnbindTexture(ContextInstruction):
+    cdef int index
+    cdef int target
 
-    def __cinit__(self):
+    def __init__(self, int index, int target):
         '''
         UnbindTexture Graphic instruction:
             The UnbindTexture Instruction will unbind any texture and
-            disable GL_TEXTURE_2D for subsequent drawing.
+            disable the target for subsequent drawing.
+
+        :Parameters:
+            `index`, int: teh texture index to unbind, e.g. 0 for GL_TEXTURE0
+            `target`, GLenum:  the target to disable.  e.g. GL_TEXTURE_2D           
         '''
-        GraphicInstruction.__cinit__(self)
+        ContextInstruction.__init__(self)
+        self.index  = index
+        self.target = target
 
-    cdef apply(self): 
-        glBindTexture(GL_TEXTURE_2D, 0)
-        glDisable(GL_TEXTURE_2D)
+    def apply(self): 
+        glActiveTexture(GL_TEXTURE0+self.index)
+        glBindTexture(self.target, 0)
+        glDisable(self.target)
 
 
 
-cdef class GraphicElement:
+
+
+
+
+
+cdef class VertexDataInstruction(GraphicInstruction): 
     #canvas, vbo and texture to use with this element
-    cdef Canvas canvas     
     cdef VBO vbo           
     cdef object _texture    
    
-    #indices to draw.  e.g. [1,2,3], will draw triangle:
-    #  self.v_data[0], self.v_data[1], self.v_data[2]
-    cdef list indices
-    
     #local vertex buffers and vbo index storage 
     cdef int     v_count   #vertex count
-    cdef Buffer  v_buffer
-    cdef Buffer  i_buffer
-    cdef vertex* v_data
+    cdef Buffer  v_buffer  #local buffer of vertex data
+    cdef vertex* v_data  
+
+    #local buffer of vertex indices on vbp
+    cdef Buffer  i_buffer 
     cdef int*    i_data
 
+    #indices to draw.  e.g. [1,2,3], will draw triangle:
+    #  self.v_data[0], self.v_data[1], self.v_data[2]
+    cdef int*    element_data
+    cdef Buffer  element_buffer
+    cdef int     num_elements  
 
-    def __cinit__(self):
-        if canvas_statement is None:
-            raise ValueError('Canvas must be bound')
-        self.canvas = canvas_statement
-        self.vbo = self.canvas.vertex_buffer
-        self.v_count = 0 #no vertices to draw until initialized
 
     def __init__(self, **kwargs):
-        self.texture = kwargs.get('texture', None)
+        '''
+        VertexDataInstruction
+        A VertexDataInstruction pushes vertices into teh graphics pipeline
+        this class manages a vbo, allocating a set of vertices on teh vbo
+        and can update the vbo data, when local changes have been made
+
+        :Parameters:
+            `texture`: The tetxure to be bound while drawing teh vertices
+
+        '''
+        GraphicInstruction.__init__(self, GI_VERTEX_DATA)
+        self.vbo     = self.canvas.vertex_buffer
+        self.v_count = 0 #no vertices to draw until initialized
+        self._texture = kwargs.get('texture', None)
+
+        print "VERTEX INIT", 
 
     cdef allocate_vertex_buffers(self, int num_verts):
         ''' For allocating and initializing vertes data buffers
@@ -615,13 +799,36 @@ cdef class GraphicElement:
         self.i_buffer.grow(num_verts)
 
         #set data pointers to be able to index vertices and indices
-        self.v_data = <vertex*> self.v_buffer.pointer()
-        self.i_data =    <int*> self.i_buffer.pointer()
+        self.v_data = <vertex*>  self.v_buffer.pointer()
+        self.i_data = <int*> self.i_buffer.pointer()
 
         #allocte on vbo and update indices with 
+        print self.v_count, "ASASASASASASASASAS\n", num_verts, self.v_buffer.count()
         self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
         print "done allocating"
 
+
+    property indices:
+        '''
+        `indecies` : this property is write only.  it determines, which of teh vertices 
+                     from this object will be drawn by teh canvas.  if e.g. teh object 
+                     has 4 vertices.  tehn setting vdi.indices = (0,1,2 2,4,0), will
+                     draw two triangles corrosponding to the vertices stored in v_data
+                     this function automatically converts teh indices from local to vbo indices 
+        '''
+        def __set__(self, tuple batch):
+            #create element buffer for list of vbo indices to be drawn
+            self.element_buffer = Buffer(sizeof(int))
+            cdef int i, e
+            print "setting indices!!"
+            for i in xrange(len(batch)):
+                e = batch[i]
+                print "element:", e
+                self.element_buffer.add(&self.i_data[e], NULL, 1)
+            self.element_data = <int*> self.element_buffer.pointer()
+            self.num_elements = self.element_buffer.count()
+            #since we changed the list of vertices to draw, canvas must recompile 
+            self.canvas.update(self)
 
 
     cdef update_vbo_data(self):
@@ -634,10 +841,11 @@ cdef class GraphicElement:
         cdef int i
         print "updating vbo data:"
         for i in range(self.v_count): 
-            print idx[i], vtx[i].x, vtx[i].y
+            print idx[i], vtx[i].x, vtx[i].y, vtx[i].s0, vtx[i].t0
             self.vbo.update_vertices(idx[i], &vtx[i], 1)     
 
     property texture:
+        ''' set/get the texture to be bound while the vertices are being drawn'''
         def __get__(self):
             return self._texture
         def __set__(self, tex):
@@ -645,16 +853,17 @@ cdef class GraphicElement:
 
  
 
-cdef class Triangle(GraphicElement):
+cdef class Triangle(VertexDataInstruction):
     cdef float _points[6]
     cdef float _tex_coords[6]
 
     def __init__(self, **kwargs):
-        GraphicElement.__init__(self, **kwargs)
+        VertexDataInstruction.__init__(self, **kwargs)
         self.allocate_vertex_buffers(3)
-               
         self.points  = kwargs.get('points')
         self.tex_coords  = kwargs.get('tex_coords', self.points)
+        self.indices = (0,1,2) 
+        self.canvas.add(self)
 
     cdef build(self):
         cdef float *vc, *tc
@@ -687,13 +896,13 @@ cdef class Triangle(GraphicElement):
             return (p[0],p[1],p[2],p[3],p[4],p[5]) 
 
 
-cdef class Rectangle(GraphicElement):
+cdef class Rectangle(VertexDataInstruction):
     cdef float x, y      #position
     cdef float w, h      #size
     cdef float _tex_coords[8] 
 
     def __init__(self, **kwargs):       
-        GraphicElement.__init__(self, **kwargs)
+        VertexDataInstruction.__init__(self, **kwargs)
         self.allocate_vertex_buffers(4)
 
         #get keyword args for configuring rectangle
@@ -705,8 +914,8 @@ cdef class Rectangle(GraphicElement):
         self.tex_coords  = kwargs.get('tex_coords', t_coords)
         
         #tell VBO which triangles to draw using our vertices 
-        self.indices = [0,1,2, 2,3,0] 
-        self.canvas.add(self, self.indices)
+        self.indices = (0,1,2, 2,3,0) 
+        self.canvas.add(self)
 
     cdef build(self):
         cdef float* tc = self._tex_coords
@@ -741,25 +950,28 @@ cdef class Rectangle(GraphicElement):
 
         def __set__(self, coords):
             cdef int i
+            print "setting textire coordinates:", coords
             for i in range(8):
-                self._tex_coords[i] = <float> coords[i]
+                self._tex_coords[i] = coords[i]
             self.build()
 
 
 
-cdef class BorderRectangle(GraphicElement):
+cdef class BorderRectangle(VertexDataInstruction):
     cdef float x, y
     cdef float w, h
     cdef float _border[4]
     cdef float _tex_coords[8]
 
     def __init__(self, **kwargs):       
-        #we have eight vertices in BorderRectangle
-        self.allocate_vertex_buffers(16)
+        #we have 16 vertices in BorderRectangle
         
-        GraphicElement.__init__(self, **kwargs)
+        VertexDataInstruction.__init__(self, **kwargs)
+        self.allocate_vertex_buffers(16)
         if not self.texture:
             raise AttributeError("BorderRectangle must have a texture!")
+        else:
+            self.texture = self._texture
 
 
         #get keyword args for configuring rectangle
@@ -787,7 +999,7 @@ cdef class BorderRectangle(GraphicElement):
             |        b0        |
             v0---v1------v2----v3
         '''
-        self.indices = [
+        self.indices = (
              0,  1, 12,    12, 11,  0,  #bottom left 
              1,  2, 13,    13, 12,  1,  #bottom middle 
              2,  3,  4,     4, 13,  2,  #bottom right 
@@ -796,8 +1008,8 @@ cdef class BorderRectangle(GraphicElement):
             15, 14,  7,     7,  8, 15,   #top middle 
             10, 15,  8,     8,  9, 10,   #top left 
             11, 12, 15,    15, 10, 11,   #center left 
-            12, 13, 14,    14, 15, 12]   #center middel 
-        self.canvas.add(self, self.indices)
+            12, 13, 14,    14, 15, 12)   #center middel 
+        self.canvas.add(self)
 
     cdef build(self):
         #pos and size of border rectangle
@@ -822,23 +1034,23 @@ cdef class BorderRectangle(GraphicElement):
         tb[2] = b[2] / th*tch
         tb[3] = b[3] / tw*tcw
 
-        print "x,y,w,h:", x, y, w, h
-        print "texture|coord size:", tw, th, tcw, tch
-        print "border:", b[0], b[1], b[2], b[3]
-        print "texture border:", tb[0], tb[1], tb[2], tb[3]
+        #print "x,y,w,h:", x, y, w, h
+        #print "texture|coord size:", tw, th, tcw, tch
+        #print "border:", b[0], b[1], b[2], b[3]
+        #print "texture border:", tb[0], tb[1], tb[2], tb[3]
        
          #horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
         hs[0] = x;            vs[0] = y
-        hs[1] = x + b[4];     vs[1] = y + b[0]
+        hs[1] = x + b[3];     vs[1] = y + b[0]
         hs[2] = x + w - b[1]; vs[2] = y + h - b[2]
         hs[3] = x + w;        vs[3] = y + h
         
         cdef float ths[4]
         cdef float tvs[4] 
         ths[0] = tc[0];              tvs[0] = tc[1]
-        ths[1] = tc[0] + tb[4];      tvs[1] = tc[1] + tb[0]
+        ths[1] = tc[0] + tb[3];      tvs[1] = tc[1] + tb[0]
         ths[2] = tc[0] + tcw-tb[1];  tvs[2] = tc[1] + tch - tb[2]
         ths[3] = tc[0] + tcw;        tvs[3] = tc[1] + tch
 
@@ -915,6 +1127,49 @@ cdef class BorderRectangle(GraphicElement):
             self.build()
 
 
+cdef class Path(VertexDataInstruction):
+    cdef Buffer points
+    cdef float pen_x, pen_y
+    def __init__(self, **kwargs):
+        self.points = Buffer(sizeof(vertex))
 
 
+
+cdef ACTIVE_PATH = None
+
+cdef class PathInstruction(GraphicInstruction):
+    cdef Path path 
+    cdef float pen_x, pen_y
+
+    def __init__(self):
+        global ACTIVE_PATH
+        GraphicInstruction.__init__(self, GI_IGNORE) 
+        if ACTIVE_PATH:
+            self.path = ACTIVE_PATH
+
+cdef class PathStart(PathInstruction): 
+    def __init__(self, **kwargs):
+        global ACTIVE_PATH
+        PathInstruction.__init__(self)
+
+        if ACTIVE_PATH != None: 
+            raise Exception("Can't start a new path, before the currently starte done has been ended")
+        ACTIVE_PATH = self.path = Path()
+
+        cdef tuple pos = kwargs.get('pos', (0.0, 0.0))
+        self.path.pen_x = pos[0]
+        self.path.pen_y = pos[1]
+
+cdef class PathMoveTo(PathInstruction):
+    def __init__(self, x, y): 
+        PathInstruction.__init__(self) 
+        self.path.pen_x = x
+        self.path.pen_y = y
+
+
+cdef class PathLineTo(PathInstruction):
+    def __init__(self, x, y): 
+        PathInstruction.__init__(self) 
+        self.path.pen_x = x
+        self.path.pen_y = y
 
