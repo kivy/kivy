@@ -306,6 +306,7 @@ class WindowBase(EventDispatcher):
         from kivy.core.gl import *
         from kivy.graphics import GraphicContext
         from kivy.lib.transformations import clip_matrix
+
         context = GraphicContext.instance()
         context.set('projection_mat', clip_matrix(0, self.width, 0, self.height, -1, 1))
 

@@ -63,6 +63,8 @@ class FactoryBase(object):
 
         return cls
 
+    get = __getattr__
+
 
 #: Factory instance to use for getting new classes
 Factory = FactoryBase()
