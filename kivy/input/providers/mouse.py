@@ -96,7 +96,7 @@ class MouseTouchProvider(TouchProvider):
         del self.touches[cur.id]
         self.waiting_event.append(('up', cur))
 
-    def on_mouse_motion(self, x, y, modifiers):
+    def on_mouse_motion(self, win, x, y, modifiers):
         width, height = self.window.system_size
         rx = x / float(width)
         ry = 1. - y / float(height)
@@ -110,7 +110,7 @@ class MouseTouchProvider(TouchProvider):
             self.create_touch(rx, ry, is_double_tap)
         return True
 
-    def on_mouse_press(self, x, y, button, modifiers):
+    def on_mouse_press(self, win, x, y, button, modifiers):
         if self.test_activity():
             return
         width, height = self.window.system_size
@@ -127,7 +127,7 @@ class MouseTouchProvider(TouchProvider):
                 self.current_drag = None
         return True
 
-    def on_mouse_release(self, x, y, button, modifiers):
+    def on_mouse_release(self, win, x, y, button, modifiers):
         width, height = self.window.system_size
         rx = x / float(width)
         ry = 1. - y / float(height)
@@ -146,12 +146,11 @@ class MouseTouchProvider(TouchProvider):
             from kivy.core.window import Window
             self.window = Window
             if self.window:
-                Window.bind(on_mouse_move=self.on_mouse_motion)
-                ''',
+                Window.bind(
+                    on_mouse_move=self.on_mouse_motion,
                     on_mouse_down=self.on_mouse_press,
                     on_mouse_up=self.on_mouse_release
                 )
-                '''
         if not self.window:
             return
         try:

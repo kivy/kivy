@@ -88,7 +88,7 @@ cdef class EventDispatcher(object):
                 # XXX FIXME event stack change while iterating
                 self.event_stack[event_type].remove(value)
                 continue
-            if handler(*largs):
+            if handler(self, *largs):
                 return True
 
         handler = getattr(self, event_type)
