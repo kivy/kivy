@@ -216,8 +216,8 @@ class UxlParser(object):
             return fd.read()
 
 def create_handler(element, key):
-    def call_fn(*fargs, **fwargs):
-        print 'call_fn', element, key, fargs, fwargs
+    def call_fn(sender, value):
+        setattr(element, key, value)
     return call_fn
 
 
@@ -285,7 +285,6 @@ class UxlBuilder(object):
                             raise UxlError(ctx, ln, 'Reference format should '
                                            'be <id>.<property>')
                         # bind
-                        print 'bind', value, 'to', key, value
                         m = self.idmap[value[0]]
                         kw = { value[1]: create_handler(element, key) }
                         m.bind(**kw)
