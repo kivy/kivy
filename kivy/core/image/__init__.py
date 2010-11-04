@@ -131,7 +131,7 @@ class Image(EventDispatcher):
     def __init__(self, arg, **kwargs):
         kwargs.setdefault('keep_data', False)
 
-        super(Image, self).__init__(**kwargs)
+        super(Image, self).__init__()
 
         self._texture_rectangle = kwargs.get('texture_rectangle', True)
         self._texture_mipmap    = kwargs.get('texture_mipmap', False)
@@ -172,8 +172,8 @@ class Image(EventDispatcher):
     def _set_image(self, image):
         self._image = image
         if image:
-            self.width      = self.image.width
-            self.height     = self.image.height
+            self._size[0]      = self.image.width
+            self._size[1]     = self.image.height
     image = property(_get_image, _set_image,
             doc='Get/set the data image object')
 

@@ -59,9 +59,11 @@ cdef list VERTEX_ATTRIBUTES = [
 
 
 
-
-
+cdef class GraphicContext
 cdef int ACTIVE_SHADER = 0
+cdef GraphicContext _default_context = None
+
+
 
 cdef class Shader:
     '''Create a vertex or fragment shader
@@ -80,13 +82,13 @@ cdef class Shader:
     cdef dict uniform_locations 
     cdef dict uniform_values
 
-    def __cinit__(self, str vert_src, str frag_src):
-        self.frag_src = frag_src
-        self.vert_src = vert_src
+    def __cinit__(self):
         self.uniform_locations = dict()
         self.uniform_values = dict()
 
     def __init__(self, str vert_src, str frag_src):
+        self.frag_src = frag_src
+        self.vert_src = vert_src
         self.program = glCreateProgram()
         self.bind_attrib_locations()
         self.build()
@@ -203,8 +205,6 @@ cdef class Shader:
             Logger.debug('Shader compiled sucessfully')
     
 
-
-
 cdef class GraphicContext:
     '''Handle the saving/restore of the context
 
@@ -313,7 +313,6 @@ cdef class GraphicContext:
         journal.clear()
         self.need_flush = 0
 
-_default_context = GraphicContext()
 
 
 
@@ -383,6 +382,7 @@ cdef class VBO:
         self.data.remove(indices, count)
 
 
+
 canvas_statement = None
 cdef class Canvas:
     cdef GraphicContext _context
@@ -393,6 +393,8 @@ cdef class Canvas:
     cdef list batch_slices
 
     def __cinit__(self):
+        if _default_context == None:
+            _default_context = GraphicContext()
         self._context = _default_context
         self.vertex_buffer = VBO()
         self.batch = []
@@ -420,6 +422,10 @@ cdef class Canvas:
         pass
 
     cdef compile(self):
+        with self:
+            self.compile_run()
+
+    cdef compile_run(self):
         cdef int slice_start = -1
         cdef int slice_stop = -1
         cdef int i
@@ -497,9 +503,11 @@ cdef class Canvas:
 
 cdef class GraphicInstruction:
     cdef int ignore
+    cdef Canvas canvas
 
     def __cinit__(self):
         self.ignore = 0
+        self.canvas = canvas_statement
 
     cdef apply(self):
         pass
@@ -508,7 +516,7 @@ cdef class GraphicInstruction:
 cdef class BindTexture(GraphicInstruction):
     cdef object texture
 
-    def __cinit__(self, texture):
+    def __init__(self, texture):
         '''
         BindTexture Graphic instruction:
             The BindTexture Instruction will bind a texture and enable
@@ -517,23 +525,21 @@ cdef class BindTexture(GraphicInstruction):
         :Parameters:
             `tetxture`, Texture:  specifies teh texture to bind        
         '''
-        GraphicInstruction.__cinit__(self)
         self.texture = texture
 
     cdef apply(self): 
-        global canvas_instruction
         texture = self.texture
         glActiveTexture(GL_TEXTURE0)
         glEnable(texture.target)
         glBindTexture(texture.target, texture.id)
         #need to also set the texture index on teh shader
-        canvas_instruction.context.set('texture0', 0)
+        self.canvas.context.set('texture0', 0)
 
 
 
 cdef class UnbindTexture(GraphicInstruction):
 
-    def __cinit__(self, texture):
+    def __cinit__(self):
         '''
         UnbindTexture Graphic instruction:
             The UnbindTexture Instruction will unbind any texture and
@@ -570,8 +576,10 @@ cdef class GraphicElement:
             raise ValueError('Canvas must be bound')
         self.canvas = canvas_statement
         self.vbo = self.canvas.vertex_buffer
-        self.texture = None
         self.v_count = 0 #no vertices to draw until initialized
+
+    def __init__(self, **kwargs):
+        self.texture = kwargs.get('texture', None)
 
     cdef allocate_vertex_buffers(self, int num_verts):
         ''' For allocating and initializing vertes data buffers
@@ -595,6 +603,8 @@ cdef class GraphicElement:
                           vertex in v_data.  so self.i_data[i] is vbo index of 
                           self.v_buffer[i]  
         '''
+
+        print "allocating vertex data:", num_verts
         #create vertex and index buffers
         self.v_buffer = Buffer(sizeof(vertex))
         self.i_buffer = Buffer(sizeof(GLint))
@@ -610,6 +620,7 @@ cdef class GraphicElement:
 
         #allocte on vbo and update indices with 
         self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
+        print "done allocating"
 
 
 
@@ -621,8 +632,10 @@ cdef class GraphicElement:
         cdef vertex* vtx = self.v_data
         cdef int* idx    = self.i_data
         cdef int i
+        print "updating vbo data:"
         for i in range(self.v_count): 
-            self.vbo.update_vertices(idx[i], &vtx[1], 1)     
+            print idx[i], vtx[i].x, vtx[i].y
+            self.vbo.update_vertices(idx[i], &vtx[i], 1)     
 
     property texture:
         def __get__(self):
@@ -686,18 +699,23 @@ cdef class Rectangle(GraphicElement):
         #get keyword args for configuring rectangle
         self.size = kwargs.get('size')
         self.pos  = kwargs.get('pos', (0,0))
-        self.tex_coords  = kwargs.get('tex_coords', (0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0))
-       
+        cdef tuple t_coords =  (0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0)
+        if self.texture:
+            t_coords = self.texture.tex_coords
+        self.tex_coords  = kwargs.get('tex_coords', t_coords)
+        
         #tell VBO which triangles to draw using our vertices 
         self.indices = [0,1,2, 2,3,0] 
         self.canvas.add(self, self.indices)
 
     cdef build(self):
         cdef float* tc = self._tex_coords
-        self.v_data[0] = vertex4f(self.x, self.y, tc[0], tc[1])
-        self.v_data[1] = vertex4f(self.x, self.y, tc[2], tc[3])
-        self.v_data[2] = vertex4f(self.x, self.y, tc[4], tc[5])
-        self.v_data[3] = vertex4f(self.x, self.y, tc[6], tc[7])
+        cdef float x,y,w,h
+        x = self.x; y=self.y; w = self.w; h = self.h
+        self.v_data[0] = vertex4f(x,    y, tc[0], tc[1])
+        self.v_data[1] = vertex4f(x+w,  y, tc[2], tc[3])
+        self.v_data[2] = vertex4f(x+w, y+h, tc[4], tc[5])
+        self.v_data[3] = vertex4f(x,   y+h, tc[6], tc[7])
         self.update_vbo_data()
 
     property pos:
@@ -723,7 +741,7 @@ cdef class Rectangle(GraphicElement):
 
         def __set__(self, coords):
             cdef int i
-            for i in range(6):
+            for i in range(8):
                 self._tex_coords[i] = <float> coords[i]
             self.build()
 
@@ -736,18 +754,23 @@ cdef class BorderRectangle(GraphicElement):
     cdef float _tex_coords[8]
 
     def __init__(self, **kwargs):       
+        print kwargs
         GraphicElement.__init__(self, **kwargs)
         if not self.texture:
             raise AttributeError("BorderRectangle must have a texture!")
 
         #we have eight vertices in BorderRectangle
-        self.allocate_vertex_buffers(12)
+        self.allocate_vertex_buffers(16)
 
         #get keyword args for configuring rectangle
-        s = kwargs.get('size')
-        p = kwargs.get('pos', (0,0))
+        cdef tuple s = kwargs.get('size')
+        cdef tuple p = kwargs.get('pos', (0,0))
+        cdef tuple bv = kwargs.get('border', (10,10,10,10))
+        cdef float* b = self._border
+        b[0] = bv[0];  b[1]=bv[1];  b[2]=bv[2];  b[3]=bv[3];
         self.x = p[0]; self.y = p[1]
         self.h = s[0]; self.h = s[1]
+       
         self.build()      
 
 
@@ -875,6 +898,8 @@ cdef class BorderRectangle(GraphicElement):
         def __get__(self):
             return self._texture
         def __set__(self, tex):
+            if tex == None:
+                return
             cdef int i
             self._texture = tex
             tcords = self.texture.tex_coords
