@@ -238,9 +238,10 @@ class WindowBase(EventDispatcher):
 
     def clear(self):
         '''Clear the window with background color'''
-        pass
-        #glClearColor(0, 0, 0, 0)
-        #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        # XXX FIXME use late binding
+        from kivy.core.gl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
+        glClearColor(0, 0, 0, 0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     def draw(self):
         '''Draw the window background'''
@@ -306,6 +307,7 @@ class WindowBase(EventDispatcher):
         from kivy.core.gl import *
         from kivy.graphics import GraphicContext
         from kivy.lib.transformations import clip_matrix
+
         context = GraphicContext.instance()
         context.set('projection_mat', clip_matrix(0, self.width, 0, self.height, -1, 1))
 

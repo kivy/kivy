@@ -212,7 +212,8 @@ cdef class Shader:
  
 def Context_instance():
     global _default_context
-    print 'get', _default_context
+    if _default_context == None:
+        _default_context = GraphicContext()
     return _default_context
 
 

@@ -23,7 +23,7 @@ Example of Uxl files ::
                 size: self.size
 '''
 
-#from kivy.uix.factory import Factory
+from kivy.factory import Factory
 
 class UxlError(Exception):
     def __init__(self, context, line, message):
@@ -40,21 +40,20 @@ class UxlError(Exception):
         sc = '\n'.join(sc)
 
         message = 'Uxl: File "%s", line %d:\n%s\n%s' % (
-            self.filename, self.line,
-            sc,
-            message)
+            self.filename, self.line, sc, message)
         super(UxlError, self).__init__(message)
 
 
-class Uxl(object):
-    '''Create an Uxl object to parse a Uxl file or Uxl content.
+class UxlParser(object):
+    '''Create an UxlParser object to parse a Uxl file or Uxl content.
     '''
 
     CLASS_RANGE = range(ord('A'), ord('Z') + 1)
 
     def __init__(self, **kwargs):
-        super(Uxl, self).__init__()
+        super(UxlParser, self).__init__()
         self.sourcecode = []
+        self.objects = []
         content = kwargs.get('content', None)
         self.filename = filename = kwargs.get('filename', None)
         if filename:
@@ -64,8 +63,10 @@ class Uxl(object):
                              'content attribute')
         self.parse(content)
 
+
     def parse(self, content):
-        '''Parse the content of a Uxl file, and return a list of root objects.
+        '''Parse the content of a UxlParser file, and return a list
+        of root objects.
         '''
         # Read and parse the lines of the file
         lines = content.split('\n')
@@ -83,9 +84,12 @@ class Uxl(object):
         # Get object from the first level
         objects, lines = self.parse_level(0, lines)
 
-        from pprint import pprint
-        pprint(objects)
-        pprint(lines)
+        if len(lines):
+            ln, content = lines[0]
+            raise UxlError(self, ln, 'Invalid data (not parsed)')
+
+        self.objects = objects
+
 
     def parse_version(self, line):
         '''Parse the version line.
@@ -127,20 +131,25 @@ class Uxl(object):
             ln, content = line
 
             # Get the number of space
-            tmp = content.lstrip(' ')
-            count = len(content) - len(tmp)
+            tmp = content.lstrip(' \t')
+
+            # Replace any tab with 4 spaces
+            tmp = content[:len(content)-len(tmp)]
+            tmp = tmp.replace('\t', '    ')
+            count = len(tmp)
+
             if count % 4 != 0:
-                raise UxlError(self, ln, 'Invalid indentation, must be a '
-                               'multiple of 4')
-            content = tmp.strip()
+                raise UxlError(self, ln,
+                               'Invalid indentation, must be a multiple of 4')
+            content = content.strip()
 
             # Level finished
             if count < indent:
-                return objects, lines[i:]
+                return objects, lines[i-1:]
 
             # Current level, create an object
             elif count == indent:
-                current_object = dict()
+                current_object = {'__line__': ln, '__ctx__': self}
                 current_property = None
                 x = content.split(':', 2)
                 if not len(x[0]):
@@ -158,9 +167,9 @@ class Uxl(object):
                 # It's a class, add to the current object as a children
                 current_property = None
                 name = x[0]
-                if ord(name[0]) in Uxl.CLASS_RANGE:
+                if ord(name[0]) in UxlParser.CLASS_RANGE:
                     _objects, _lines = self.parse_level(level + 1, lines[i:])
-                    current_object['children'] = _objects
+                    current_object['children'] = (_objects, ln, self)
                     lines = _lines
                     i = 0
 
@@ -170,9 +179,11 @@ class Uxl(object):
                         raise UxlError(self, ln,
                                        '<children> usage is forbidden')
 
+                    if len(x) == 1:
+                        raise UxlError(self, ln, 'Syntax error')
                     value = x[1].strip()
                     if len(value):
-                        current_object[name] = value
+                        current_object[name] = (value, ln, self)
                     else:
                         current_property = name
 
@@ -183,7 +194,7 @@ class Uxl(object):
                                    'Invalid indentation, only allowed '
                                    'for canvas')
                 _objects, _lines = self.parse_level(level + 2, lines[i:])
-                current_object[current_property] = _objects
+                current_object[current_property] = (_objects, ln, self)
                 current_property = None
                 lines = _lines
                 i = 0
@@ -197,6 +208,78 @@ class Uxl(object):
             i += 1
 
         return objects, []
+
+    def load_resource(self, filename):
+        '''Load an external resource
+        '''
+        with open(filename, 'r') as fd:
+            return fd.read()
+
+
+class UxlBuilder(object):
+    def __init__(self, **kwargs):
+        super(UxlBuilder, self).__init__()
+        self.root = None
+        self.rules = []
+        self.parser = UxlParser(**kwargs)
+        self.build(self.parser.objects)
+
+    def build(self, objects):
+        for item, params in objects:
+            if item.startswith('<'):
+                self.build_rule(item, params)
+            else:
+                if self.root is not None:
+                    raise UxlError(params['__ctx__'], params['__line__'],
+                                   'Only one root object is allowed')
+                self.root = self.build_item(item, params)
+
+    def build_item(self, item, params):
+        if item.startswith('<'):
+            raise UxlError(params['__ctx__'], params['__line__'],
+                           'Rules are not accepted inside Widget')
+        widget = Factory.get(item)()
+        for key, value in params.iteritems():
+            if key in ('__line__', '__ctx__'):
+                continue
+            value, ln, ctx = value
+            if key == 'canvas':
+                self.build_canvas(item, value)
+            elif key == 'children':
+                children = []
+                for citem, cparams, in value:
+                    child = self.build_item(citem, cparams)
+                    children.append(child)
+                widget.children = children
+            else:
+                try:
+                    value = eval(value)
+                    setattr(widget, key, value)
+                except Exception, e:
+                    raise UxlError(ctx, ln, str(e))
+        return widget
+
+    def build_canvas(self, item, elements):
+        print item, elements
+        for name, params in elements:
+            element = Factory.get(name)()
+            for key, value in params:
+                if key in ('__line__', '__ctx__'):
+                    continue
+                value, ln, ctx = value
+                try:
+                    setattr(element, key, value)
+                except Exception, e:
+                    raise UxlError(ctx, ln, str(e))
+            print element
+
+    def build_rule(self, item, params):
+        pass
+
+
+# XXX FIXME move this into graphics
+Factory.register('Rectangle', module='kivy.graphics')
+Factory.register('Color', module='kivy.graphics')
 
 
 if __name__ == '__main__':
