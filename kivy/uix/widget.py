@@ -34,13 +34,15 @@ class Widget(EventDispatcher):
         self.__dict__['__uid'] = Widget.__widget_uid
 
         # First loop, link all the properties storage to our instance
-        attrs = cls.__dict__
-        for k, attr in attrs.iteritems():
+        attrs = dir(cls)
+        for k in attrs:
+            attr = getattr(cls, k)
             if isinstance(attr, Property):
                 attr.link(self, k)
 
         # Second loop, resolve all the reference
-        for k, attr in attrs.iteritems():
+        for k in attrs:
+            attr = getattr(cls, k)
             if isinstance(attr, Property):
                 attr.link_deps(self, k)
 
@@ -255,3 +257,4 @@ class Widget(EventDispatcher):
 
     #: Canvas
     canvas = None
+
