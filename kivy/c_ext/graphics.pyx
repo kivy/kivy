@@ -754,13 +754,13 @@ cdef class BorderRectangle(GraphicElement):
     cdef float _tex_coords[8]
 
     def __init__(self, **kwargs):       
-        print kwargs
+        #we have eight vertices in BorderRectangle
+        self.allocate_vertex_buffers(16)
+        
         GraphicElement.__init__(self, **kwargs)
         if not self.texture:
             raise AttributeError("BorderRectangle must have a texture!")
 
-        #we have eight vertices in BorderRectangle
-        self.allocate_vertex_buffers(16)
 
         #get keyword args for configuring rectangle
         cdef tuple s = kwargs.get('size')
@@ -769,7 +769,7 @@ cdef class BorderRectangle(GraphicElement):
         cdef float* b = self._border
         b[0] = bv[0];  b[1]=bv[1];  b[2]=bv[2];  b[3]=bv[3];
         self.x = p[0]; self.y = p[1]
-        self.h = s[0]; self.h = s[1]
+        self.w = s[0]; self.h = s[1]
        
         self.build()      
 
@@ -822,7 +822,12 @@ cdef class BorderRectangle(GraphicElement):
         tb[2] = b[2] / th*tch
         tb[3] = b[3] / tw*tcw
 
-        #horizontal and vertical sections
+        print "x,y,w,h:", x, y, w, h
+        print "texture|coord size:", tw, th, tcw, tch
+        print "border:", b[0], b[1], b[2], b[3]
+        print "texture border:", tb[0], tb[1], tb[2], tb[3]
+       
+         #horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
         hs[0] = x;            vs[0] = y
@@ -880,6 +885,7 @@ cdef class BorderRectangle(GraphicElement):
         def __get__(self):
             return (self.w, self.h)
         def __set__(self, size):
+            print "setting size: ", size
             self.w = size[0]
             self.h = size[1]
             self.build()
@@ -903,6 +909,7 @@ cdef class BorderRectangle(GraphicElement):
             cdef int i
             self._texture = tex
             tcords = self.texture.tex_coords
+            print "SETTINF texture coords:", tcords
             for i in range(8):
                 self._tex_coords[i] = tcords[i] 
             self.build()

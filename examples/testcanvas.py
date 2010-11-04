@@ -11,7 +11,7 @@ c = Canvas()
 with c:
     c.context.set('color', (1,1,1,1))
     c.context.set('projection_mat', clip_matrix(0,Window.width,0,Window.height,-1,1))
-    Rectangle(size=[100, 100], texture=img.texture)
+    BorderRectangle(size=(100, 100), texture=img.texture)
 
 
 def draw():
