@@ -5,12 +5,8 @@ Base: Main event loop, provider creation, window management...
 __all__ = (
     'EventLoop',
     'runTouchApp', 'stopTouchApp',
-    'getCurrentTouches',
 )
 
-import kivy
-import sys
-import os
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.exceptions import ExceptionManager
@@ -19,11 +15,6 @@ from kivy.input import TouchFactory, kivy_postproc_modules
 
 # private vars
 EventLoop               = None
-
-def getCurrentTouches():
-    '''Return the list of all current touches
-    '''
-    return touch_list
 
 class EventLoopBase(object):
     '''Main event loop. This loop handle update of input + dispatch event
@@ -37,6 +28,18 @@ class EventLoopBase(object):
         self.input_providers = []
         self.event_listeners = []
         self.window = None
+        self.touch_list = []
+
+    @property
+    def touches(self):
+        '''Return the list of all touches currently in down or move state
+        '''
+        return self.touch_list
+
+    def ensure_window(self):
+        '''Ensure that we have an window
+        '''
+        import kivy.core.window
 
     def set_window(self, window):
         '''Set the window used for event loop
@@ -106,10 +109,10 @@ class EventLoopBase(object):
         grabbed, it's dispatched through grabbed widgets'''
         # update available list
         if event == 'down':
-            touch_list.append(touch)
+            self.touch_list.append(touch)
         elif event == 'up':
-            if touch in touch_list:
-                touch_list.remove(touch)
+            if touch in self.touch_list:
+                self.touch_list.remove(touch)
 
         # dispatch to listeners
         if not touch.grab_exclusive_class:
@@ -279,6 +282,8 @@ def runTouchApp(widget=None, slave=False):
 
     # Ok, we got one widget, and we are not in slave mode
     # so, user don't create the window, let's create it for him !
+    if widget:
+        EventLoop.ensure_window()
 
     # Instance all configured input
     for key, value in Config.items('input'):
