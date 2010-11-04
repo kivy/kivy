@@ -9,7 +9,7 @@ from kivy.c_ext.properties import OptionProperty
 
 class Button(Widget):
 
-    state = OptionProperty(['normal', 'down'])
+    state = OptionProperty('normal', options=('normal', 'down'))
 
     def __init__(self, **kwargs):
         super(Button, self).__init__(**kwargs)
@@ -43,3 +43,4 @@ class Button(Widget):
 
     def on_release(self):
         pass
+

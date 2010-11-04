@@ -239,7 +239,8 @@ class WindowBase(EventDispatcher):
     def clear(self):
         '''Clear the window with background color'''
         # XXX FIXME use late binding
-        from kivy.core.gl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
+        from kivy.core.gl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, \
+            GL_DEPTH_BUFFER_BIT, glGetError
         glClearColor(0, 0, 0, 0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -271,7 +272,7 @@ class WindowBase(EventDispatcher):
         self.draw()
 
         # then, draw childrens
-        for w in self.children[:]:
+        for w in self.children:
             w.dispatch('on_draw')
 
     def on_touch_down(self, touch):

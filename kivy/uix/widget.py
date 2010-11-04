@@ -53,8 +53,10 @@ class Widget(EventDispatcher):
         # The thing here, since the storage of the property is inside the
         # Property class, we must remove ourself from the storage of each
         # Property. The usage is faster, the creation / deletion is longer.
-        attrs = self.__class__.__dict__
-        for k, attr in attrs.iteritems():
+        cls = self.__class__
+        attrs = dir(cls)
+        for k in attrs:
+            attr = getattr(cls, k)
             if isinstance(attr, Property):
                 attr.unlink(self)
 
@@ -85,14 +87,14 @@ class Widget(EventDispatcher):
         '''Dispatch the on_draw even in every child
         '''
         self.draw()
-        for child in reversed(self.children):
+        for child in self.children:
             child.dispatch('on_draw')
 
     def on_touch_down(self, touch):
         '''Send the touch down event in every child
         Return true if one child use it
         '''
-        for child in self.children[:]:
+        for child in reversed(self.children[:]):
             if child.dispatch('on_touch_down', touch):
                 return True
 
@@ -100,7 +102,7 @@ class Widget(EventDispatcher):
         '''Send the touch move event in every child
         Return true if one child use it
         '''
-        for child in self.children[:]:
+        for child in reversed(self.children[:]):
             if child.dispatch('on_touch_move', touch):
                 return True
 
@@ -108,7 +110,7 @@ class Widget(EventDispatcher):
         '''Send the touch down event in every child
         Return true if one child use it
         '''
-        for child in self.children[:]:
+        for child in reversed(self.children[:]):
             if child.dispatch('on_touch_up', touch):
                 return True
 
@@ -140,7 +142,7 @@ class Widget(EventDispatcher):
         for key, value in kwargs.iteritems():
             if key.startswith('on_'):
                 continue
-            self.__class__.__dict__[key].bind(self, value)
+            getattr(self.__class__, key).bind(self, value)
 
     def unbind(self, **kwargs):
         '''Unbind properties or event from handler
@@ -151,8 +153,7 @@ class Widget(EventDispatcher):
         for key, value in kwargs.iteritems():
             if key.startswith('on_'):
                 continue
-
-            self.__class__.__dict__[key].unbind(self, value)
+            getattr(self.__class__, key).unbind(self, value)
 
 
     #
@@ -162,15 +163,27 @@ class Widget(EventDispatcher):
     def add_widget(self, widget):
         '''Add a new widget as a child of current widget
         '''
-        self.children = self.children + [widget]
+        widget.parent = self
+        self.children = [widget] + self.children
 
     def remove_widget(self, widget):
         '''Remove a widget from the childs of current widget
         '''
         if widget in self.children:
             self.children = self.children.remove(widget)
+            widget.parent = None
 
+    def get_root_window(self):
+        '''Return the root window
+        '''
+        if self.parent:
+            return self.parent.get_root_window()
 
+    def get_parent_window(self):
+        '''Return the parent window
+        '''
+        if self.parent:
+            return self.parent.get_parent_window()
 
 
     #
@@ -183,12 +196,12 @@ class Widget(EventDispatcher):
 
             self.bind(right=nextchild.setter('x'))
         '''
-        return self.__class__.__dict__[name].__set__
+        return getattr(self.__class__, name).__set__
 
     def getter(self, name):
         '''Return the getter of a property.
         '''
-        return self.__class__.__dict__[name].__get__
+        return getattr(self.__class__, name).__get__
 
     #: X position of the widget
     x = NumericProperty(0)

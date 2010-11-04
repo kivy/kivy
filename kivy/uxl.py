@@ -215,10 +215,16 @@ class UxlParser(object):
         with open(filename, 'r') as fd:
             return fd.read()
 
+def create_handler(element, key):
+    def call_fn(*fargs, **fwargs):
+        print 'call_fn', element, key, fargs, fwargs
+    return call_fn
+
 
 class UxlBuilder(object):
     def __init__(self, **kwargs):
         super(UxlBuilder, self).__init__()
+        self.idmap = {}
         self.root = None
         self.rules = []
         self.parser = UxlParser(**kwargs)
@@ -239,12 +245,14 @@ class UxlBuilder(object):
             raise UxlError(params['__ctx__'], params['__line__'],
                            'Rules are not accepted inside Widget')
         widget = Factory.get(item)()
+        self.idmap['self'] = widget
         for key, value in params.iteritems():
             if key in ('__line__', '__ctx__'):
                 continue
             value, ln, ctx = value
             if key == 'canvas':
-                self.build_canvas(item, value)
+                with widget.canvas:
+                    self.build_canvas(item, value)
             elif key == 'children':
                 children = []
                 for citem, cparams, in value:
@@ -260,16 +268,31 @@ class UxlBuilder(object):
         return widget
 
     def build_canvas(self, item, elements):
-        print item, elements
         for name, params in elements:
             element = Factory.get(name)()
-            for key, value in params:
+            for key, value in params.iteritems():
                 if key in ('__line__', '__ctx__'):
                     continue
                 value, ln, ctx = value
                 try:
+                    # is the value is a string, numeric, tuple, list ?
+                    if value[0] in ('(', '[', '"', '\''):
+                        value = eval(value)
+                    # must be an object.property
+                    else:
+                        value = value.split('.')
+                        if len(value) != 2:
+                            raise UxlError(ctx, ln, 'Reference format should '
+                                           'be <id>.<property>')
+                        # bind
+                        print 'bind', value, 'to', key, value
+                        m = self.idmap[value[0]]
+                        kw = { value[1]: create_handler(element, key) }
+                        m.bind(**kw)
+                        value = getattr(self.idmap[value[0]], value[1])
                     setattr(element, key, value)
                 except Exception, e:
+                    raise
                     raise UxlError(ctx, ln, str(e))
             print element
 

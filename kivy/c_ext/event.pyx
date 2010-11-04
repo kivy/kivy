@@ -58,6 +58,8 @@ cdef class EventDispatcher(object):
             self.bind(on_press=self.my_press_callback)
         '''
         for key, value in kwargs.iteritems():
+            if key not in self.event_stack:
+                continue
             # convert the handler to a weak method
             handler = WeakMethod(value)
             self.event_stack[key].append(handler)
