@@ -6,7 +6,7 @@ from kivy.graphics import *
 class TestApp(App):
     def build(self):
         a = Widget()
-        texture = Image('kivy.jpg').texture
+        texture = Image('test.png').texture
         with a.canvas:
             Rectangle(size=(345, 345), texture=texture)
         return a

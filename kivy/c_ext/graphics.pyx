@@ -330,8 +330,6 @@ cdef class GraphicContext:
         cdef set journal
         cdef str x
 
-        print "need_redraw:", self.need_redraw
-
         self.state['shader'].use()
         
         if not self.journal:
@@ -676,55 +674,156 @@ cdef class ContextInstruction(GraphicInstruction):
         '''
         GraphicInstruction.__init__(self, GI_CONTEXT_MOD)
         self.context = self.canvas.context
-        print "CONTEXT INSTR", args, kwargs
-        self.set(*args, **kwargs)
         self.canvas.add(self)
         
     cpdef apply(self):
         pass
 
-    def set(self, *args, **kwargs):
-        pass
 
-    def update(self, *args, **kwargs):
-        self.context.post_update()
-        self.set(*args, **kwargs)
+    
 
 
 
 
 
+
+cdef class PushMatrix(ContextInstruction):
+    def apply(self):
+        self.context.get('mvm').push()
+     
+cdef class PopMatrix(ContextInstruction):
+    def apply(self):
+        self.context.get('mvm').push()
 
 
 cdef class MatrixInstruction(ContextInstruction):
     cdef object mat 
 
-    def set(self, *args): 
-        self.mat = identity_matrix()
+    def __init__(self, *args, **kwargs):
+        ContextInstruction.__init__(self)
 
     cpdef apply(self):
          self.context.get('mvm').apply(self.mat)
-        
+
+    property matrix:
+        def __get__(self):
+            return self.mat
+        def __set__(self, mat):
+            self.mat = mat
+            self.context.post_update()
 
 
-cdef class Translate(MatrixInstruction):
-    def set(self, *t): 
-        self.mat = translation_matrix(t[0], t[1], t[2])
+cdef class Transform(MatrixInstruction):
+    cpdef transform(self, object trans): 
+        self.mat = matrix_multiply(self.mat, trans)
 
-cdef class Rotate(MatrixInstruction):
-    def set(self, *t):
-        self.mat = rotation_matrix(t[0], t[1:4])
+    cpdef translate(self, float tx, float ty, float tz):
+        self.transform( translation_matrix(tx, ty, tz) )
 
-cdef class Scale(MatrixInstruction):
-    def set(self, *s):
-        self.mat = scale_matrix(s[0])
+    cpdef rotate(self, float angle, float ax, float ay, float az):
+        self.transform( rotation_matrix(angle, [ax, ay, az]) )
+
+    cpdef scale(self, float s):
+        self.transform( scale_matrix(s, s, s) )
+
+    cpdef identity(self):
+        self.matrix = identity_matrix()
+
+
+       
+cdef class  Rotation(Transform):
+    cdef float _angle
+    cdef tuple _axis
+
+    def __init__(self, *args):
+        Transform.__init__(self)
+        if len(args) == 4:
+            self.set(args[0], args[1], args[2], args[3])
+
+    def set(self, float angle, float ax, float ay, float az):
+        self._angle = angle
+        self._axis = (ax, ay, az)
+        self.matrix = rotation_matrix(self._angle, self._axis) 
+
+    property angle:
+        def __get__(self):
+            return self._angle
+        def __set__(self, a):
+            self.set(a, *self._axis)
+
+    property axis:  
+        def __get__(self):
+            return self._axis
+        def __set__(self, axis): 
+           self.set(self._angle, *axis)
+
+
+cdef class  Scale(Transform):
+    cdef float s
+    def __init__(self, *args):
+        Transform.__init__(self)
+        if len(args) == 1:
+            self.s = args[0]
+            self.matrix = scale_matrix(self.s)
+ 
+    property scale:  
+        def __get__(self):
+            return self.s
+        def __set__(self, s): 
+            self.s = s
+            self.matrix = scale_matrix(s)
+
+
+cdef class  Translate(Transform):
+    cdef float _x, _y, _z
+    def __init__(self, *args):
+        Transform.__init__(self)
+        if len(args) == 3:
+            self.matrix = translation_matrix(args)
+
+    def set_translate(self, x, y, z): 
+        self.matrix = translation_matrix([x,y,z]) 
+
+    property x:
+        def __get__(self):
+            return self._x
+        def __set__(self, float x):
+            self.set_translate(x, self._y, self._z)
+    
+    property y:
+        def __get__(self):
+            return self._y
+        def __set__(self, float y):
+            self.set_translate(self._x, y, self._z)
+ 
+    property z:
+        def __get__(self):
+            return self._z
+        def __set__(self, float z):
+            self.set_translate(self._x, self._y, z)
+
+    property xy:
+        def __get__(self):
+            return self._x, self._y
+        def __set__(self, c):
+            self.set_translate(c[0], c[1], self._z)
+ 
+    property xyz:  
+        def __get__(self):
+            return self._x, self._y, self._z
+        def __set__(self, c): 
+            self.set_translate(c[0], c[1], c[2])
+
+
+
 
 
 cdef class LineWidth(ContextInstruction):
     cdef float lw
-    def __init__(self, float lw, **kwargs):
+    def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
-        self.lw = lw
+        if len(args) == 1:
+            self.lw = args[0]
 
     def set(self, float lw):
         self.lw = lw
@@ -739,38 +838,57 @@ cdef class Color(ContextInstruction):
      add blending "mode", so user can pass str or enum
      e.g.: 'normal', 'subtract', 'multiply', 'burn', 'dodge', etc
     '''    
-    cdef int blend
-    cdef int s_factor
-    cdef int d_factor
-    cdef tuple color    
-    """
-    def __init__(self, *args):
+    cdef list color    
+ 
+    def __init__(self, *args, **kwargs):
         '''
         SetColor will change the color being used to draw in the context
         :Parameters:
-            `color`, tuple : 3 or 4 tuple, or r,g,b [,a] color components
-            `blend`, bool  : enable or disable blending
-            `s_factor`, GLenum: source factor mode used for blending
-            `d_factor`, GLenum: destination factor mode for blending
+        
         '''
         ContextInstruction.__init__(self)
-        print "INIT", args
-        self.set(*args)
+        self.rgba = args
         self.canvas.add(self)
-       """ 
+        
     cpdef apply(self):
-        cdef GraphicContext c = self.canvas.context
-        cdef tuple col = self.color
-        c.set('color', (col[0], col[1], col[2], col[3]))
-        #c.set('blend', self.blend)
-        #c.set('blend_sfactor', self.s_factor)
-        #c.set('blend_dfactor', self.d_factor)
+        self.context.set('color', (self.r, self.g, self.b, self.a))
 
+    property rgba:
+        def __get__(self):
+            return self.color
+        def __set__(self, rgba):
+            if not rgba:
+                rgba = (1.0, 1.0, 1.0, 1.0)
+            self.color = list(rgba)
+            self.context.post_update()
 
-    def set(self, *c):
-        print "COLOR SET", c
-        self.color    =  (c[0],c[1],c[2],c[3])
+    property rgb:
+        def __get__(self):
+            return self.color[:-1]
+        def __set__(self, rgb):
+            rgba = (rgb[0], rgb[1], rgb[2], 1.0)
+            self.rbga = rgba
 
+    property r:
+        def __get__(self):
+            return self.color[0]
+        def __set__(self, r):
+            self.rbga = [r, self.g, self.b, self.a]
+    property g:
+        def __get__(self):
+            return self.color[1]
+        def __set__(self, g):
+            self.rbga = [self.r, g, self.b, self.a]
+    property b:
+        def __get__(self):
+            return self.color[2]
+        def __set__(self, b):
+            self.rbga = [self.r, self.g, b, self.a]
+    property a:
+        def __get__(self):
+            return self.color[3]
+        def __set__(self, a):
+            self.rbga = [self.r, self.g, self.b, a]
 
 
 
@@ -930,7 +1048,7 @@ cdef class Triangle(VertexDataInstruction):
     def __init__(self, **kwargs):
         VertexDataInstruction.__init__(self, **kwargs)
         self.allocate_vertex_buffers(3)
-        self.points  = kwargs.get('points')
+        self.points  = kwargs.get('points', (0,0,  100,0,  50,100))
         self.tex_coords  = kwargs.get('tex_coords', self.points)
         self.indices = (0,1,2) 
         self.canvas.add(self)
@@ -976,7 +1094,7 @@ cdef class Rectangle(VertexDataInstruction):
         self.allocate_vertex_buffers(4)
 
         #get keyword args for configuring rectangle
-        self.size = kwargs.get('size')
+        self.size = kwargs.get('size', (100,100))
         self.pos  = kwargs.get('pos', (0,0))
         cdef tuple t_coords =  (0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0)
         if self.texture:
@@ -1038,16 +1156,12 @@ cdef class BorderRectangle(VertexDataInstruction):
         
         VertexDataInstruction.__init__(self, **kwargs)
         self.allocate_vertex_buffers(16)
-        if not self.texture:
-            raise AttributeError("BorderRectangle must have a texture!")
-        else:
-            self.texture = self._texture
 
 
         #get keyword args for configuring rectangle
-        cdef tuple s = kwargs.get('size')
+        cdef tuple s = kwargs.get('size', (100, 100))
         cdef tuple p = kwargs.get('pos', (0,0))
-        cdef tuple bv = kwargs.get('border', (10,10,10,10))
+        cdef tuple bv = kwargs.get('border', (5,5,5,5))
         cdef float* b = self._border
         b[0] = bv[0];  b[1]=bv[1];  b[2]=bv[2];  b[3]=bv[3];
         self.x = p[0]; self.y = p[1]
@@ -1082,6 +1196,10 @@ cdef class BorderRectangle(VertexDataInstruction):
         self.canvas.add(self)
 
     cdef build(self):
+        if not self.texture:
+            print "need texture for BorderImage"
+            return
+
         #pos and size of border rectangle
         cdef float x,y,w,h
         x=self.x;  y=self.y; w=self.w;  h=self.h
