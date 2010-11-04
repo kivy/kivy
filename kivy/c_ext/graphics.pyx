@@ -215,6 +215,32 @@ def Context_instance():
     print 'get', _default_context
     return _default_context
 
+
+
+cdef class MatrixStack:
+    cdef list stack
+    cdef GraphicContext context
+
+    def __init__(self, context):
+        self.context = context
+        self.stack = [identity_matrix()]
+
+    def pop(self):
+        self.stack.pop()
+        self.context.set('modelview_mat', self.stack[-1])
+
+    def push(self):
+        mat = matrix_multiply(identity_matrix(), self.stack[-1])
+        self.stack.append(mat)
+
+    def apply(self, mat):
+        self.stack[-1] = matrix_multiply(mat, self.stack[-1])
+        self.context.set('modelview_mat', self.stack[-1])
+
+    def transform(self):
+        return self.stack[-1]
+
+
 cdef class GraphicContext:
     '''Handle the saving/restore of the context
 
@@ -225,7 +251,8 @@ cdef class GraphicContext:
     cdef set journal
     cdef readonly int need_flush
     cdef Shader  _default_shader
-    cdef object _default_texture 
+    cdef object _default_texture
+    cdef int need_redraw
 
     instance = staticmethod(Context_instance)
 
@@ -245,6 +272,8 @@ cdef class GraphicContext:
             return self._default_texture
 
 
+
+
     def __cinit__(self):
         self.state = {}
         self.stack = []
@@ -256,6 +285,13 @@ cdef class GraphicContext:
         # create initial state
         self.reset()
         self.save()
+        self.need_redraw = 1
+
+    cpdef post_update(self):
+        self.need_redraw = 1
+
+    cpdef finish_frame(self):
+        self.need_redraw = 0
 
     cpdef set(self, str key, value):
         self.state[key] = value
@@ -275,6 +311,7 @@ cdef class GraphicContext:
         self.set('blend_dfactor', GL_ONE_MINUS_SRC_ALPHA)
         self.set('linewidth', 1)
         self.set('texture0', self.default_texture)
+        self.set('mvm', MatrixStack(self))
 
     cpdef save(self):
         self.stack.append(self.state.copy())
@@ -293,6 +330,8 @@ cdef class GraphicContext:
         cdef set journal
         cdef str x
 
+        print "need_redraw:", self.need_redraw
+
         self.state['shader'].use()
         
         if not self.journal:
@@ -302,6 +341,8 @@ cdef class GraphicContext:
         journal = self.journal
         for x in journal:
             value = state[x]
+            if x in ('mvm',):
+                continue
             if x == 'color':
                 glVertexAttrib4f(4, value[0], value[1], value[2], value[3]) #vColor
 
@@ -423,7 +464,7 @@ cdef class Canvas:
     cdef list batch
 
     #move to graphics compiler?:
-    cdef int need_compile
+    cdef int _need_compile
     cdef int num_slices
     cdef list batch_slices
 
@@ -436,10 +477,17 @@ cdef class Canvas:
         self.texture_map = []
         self.batch = []
         
-        self.need_compile = 1
+        self._need_compile = 1
         self.batch_slices = []
         self.num_slices = 0
 
+    property need_compile:
+        def __set__(self, int i):
+            if i:   
+                self.context.post_update()
+            self._need_compile = i
+        def __get__(self):
+            return self._need_compile
 
     property context:
         def __get__(self):
@@ -463,6 +511,7 @@ cdef class Canvas:
         self.need_compile = 1
 
     cdef remove(self, element):
+        self.need_compile = 1
         pass
 
     cdef compile(self):
@@ -588,34 +637,13 @@ cdef class Canvas:
                 glDrawElements(GL_TRIANGLES, b.count(), GL_UNSIGNED_INT, b.pointer())
             elif command == 'instruction':
                 item.apply()
+
+        self.context.finish_frame()
                 
-        glUseProgram(0)
 
 
 
 
-
-
-'''
-
-    
-    cpdef translate(self, double x, double y, double z):
-        t = translation_matrix(x, y, z)
-        mat = matrix_multiply(self.get('modelview_mat'), t)
-        self.set('modelview_mat', mat)
-
-    cpdef scale(self, double s):
-        t = scale_matrix(s)
-        mat = matrix_multiply(self.get('modelview_mat'), t)
-        self.set('modelview_mat', mat)
-        
-    cpdef rotate(self, double angle, double x, double y, double z):
-        t = rotation_matrix(angle, [x, y, z])
-        mat = matrix_multiply(self.get('modelview_mat'), t)
-        self.set('modelview_mat', mat)
-
-
-'''
 
 cdef class GraphicInstruction:
     cdef int CODE     #Graphic instruction op code
@@ -640,31 +668,72 @@ cdef class GraphicInstruction:
 
 
 cdef class ContextInstruction(GraphicInstruction):
-    def __init__(self, **kwargs):  
+    cdef GraphicContext context
+    def __init__(self, *args, **kwargs):  
         '''
            Abstract Base class for GraphicInstructions that modidifies the
            context.  (so that canvas/compiler can know about how to optimize)
         '''
         GraphicInstruction.__init__(self, GI_CONTEXT_MOD)
+        self.context = self.canvas.context
+        print "CONTEXT INSTR", args, kwargs
+        self.set(*args, **kwargs)
+        self.canvas.add(self)
         
-    def apply(self):
+    cpdef apply(self):
         pass
 
+    def set(self, *args, **kwargs):
+        pass
 
-'''
+    def update(self, *args, **kwargs):
+        self.context.post_update()
+        self.set(*args, **kwargs)
+
+
+
+
+
+
+
+cdef class MatrixInstruction(ContextInstruction):
+    cdef object mat 
+
+    def set(self, *args): 
+        self.mat = identity_matrix()
+
+    cpdef apply(self):
+         self.context.get('mvm').apply(self.mat)
+        
+
+
+cdef class Translate(MatrixInstruction):
+    def set(self, *t): 
+        self.mat = translation_matrix(t[0], t[1], t[2])
+
+cdef class Rotate(MatrixInstruction):
+    def set(self, *t):
+        self.mat = rotation_matrix(t[0], t[1:4])
+
+cdef class Scale(MatrixInstruction):
+    def set(self, *s):
+        self.mat = scale_matrix(s[0])
+
+
 cdef class LineWidth(ContextInstruction):
     cdef float lw
-    cdef __init__(self, float lw, **kwargs):
-        ContextInstruction.__init__(self, **kwargs):
+    def __init__(self, float lw, **kwargs):
+        ContextInstruction.__init__(self, **kwargs)
         self.lw = lw
 
-    cpdef set(self, float lw):
+    def set(self, float lw):
         self.lw = lw
 
     cpdef apply(self):
         self.canvas.context.set('linewidth', self.lw)
-'''
-cdef class SetColor(ContextInstruction):
+
+
+cdef class Color(ContextInstruction):
     #TODO:
     '''
      add blending "mode", so user can pass str or enum
@@ -673,9 +742,9 @@ cdef class SetColor(ContextInstruction):
     cdef int blend
     cdef int s_factor
     cdef int d_factor
-    cdef tuple _color    
-    
-    def __init__(self, r, g, b, a, **kwargs):
+    cdef tuple color    
+    """
+    def __init__(self, *args):
         '''
         SetColor will change the color being used to draw in the context
         :Parameters:
@@ -685,37 +754,30 @@ cdef class SetColor(ContextInstruction):
             `d_factor`, GLenum: destination factor mode for blending
         '''
         ContextInstruction.__init__(self)
-        self.color    =  (r,g,b,a)
-        self.blend    =  <int>   kwargs.get('blend', 0)
-        self.s_factor =  <int>   kwargs.get('s_factor', GL_SRC_ALPHA) 
-        self.d_factor =  <int>   kwargs.get('d_factor', GL_ONE_MINUS_SRC_ALPHA)
+        print "INIT", args
+        self.set(*args)
         self.canvas.add(self)
-        
-    def apply(self):
+       """ 
+    cpdef apply(self):
         cdef GraphicContext c = self.canvas.context
-        cdef tuple col = self._color
+        cdef tuple col = self.color
         c.set('color', (col[0], col[1], col[2], col[3]))
-        c.set('blend', self.blend)
-        c.set('blend_sfactor', self.s_factor)
-        c.set('blend_dfactor', self.d_factor)
+        #c.set('blend', self.blend)
+        #c.set('blend_sfactor', self.s_factor)
+        #c.set('blend_dfactor', self.d_factor)
 
-    property color:
-        def __get__(self):  
-            return self.color
-        def __set__(self, tuple c):    
-            cdef int c_dim = len(c)
-            if len(c) == 4:
-                self._color = c
-            else:
-                self._color = (c[0], c[1], c[2], 1.0)
+
+    def set(self, *c):
+        print "COLOR SET", c
+        self.color    =  (c[0],c[1],c[2],c[3])
 
 
 
 
 cdef class BindTexture(ContextInstruction):
     cdef object texture
-
-    def __init__(self, object tex):
+    """
+    def __init__(self, *args, **kwargs):
         '''
         BindTexture Graphic instruction:
             The BindTexture Instruction will bind a texture and enable
@@ -726,39 +788,12 @@ cdef class BindTexture(ContextInstruction):
         '''
         ContextInstruction.__init__(self)
         self.texture = tex
-
-    def apply(self): 
+    """
+    cpdef apply(self): 
         self.canvas.context.set('texture0', self.texture)
 
-
-"""
-cdef class UnbindTexture(ContextInstruction):
-    cdef int index
-    cdef int target
-
-    def __init__(self, int index, int target):
-        '''
-        UnbindTexture Graphic instruction:
-            The UnbindTexture Instruction will unbind any texture and
-            disable the target for subsequent drawing.
-
-        :Parameters:
-            `index`, int: teh texture index to unbind, e.g. 0 for GL_TEXTURE0
-            `target`, GLenum:  the target to disable.  e.g. GL_TEXTURE_2D           
-        '''
-        ContextInstruction.__init__(self)
-        self.index  = index
-        self.target = target
-
-    def apply(self): 
-        glActiveTexture(GL_TEXTURE0+self.index)
-        glBindTexture(self.target, 0)
-        glDisable(self.target)
-"""
-
-
-
-
+    def set(self, object texture):
+        self.texture = texture
 
 
 
