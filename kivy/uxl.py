@@ -169,7 +169,7 @@ class UxlParser(object):
                 name = x[0]
                 if ord(name[0]) in UxlParser.CLASS_RANGE:
                     _objects, _lines = self.parse_level(level + 1, lines[i:])
-                    current_object['children'] = _objects
+                    current_object['children'] = (_objects, ln, self)
                     lines = _lines
                     i = 0
 
@@ -183,7 +183,7 @@ class UxlParser(object):
                         raise UxlError(self, ln, 'Syntax error')
                     value = x[1].strip()
                     if len(value):
-                        current_object[name] = value
+                        current_object[name] = (value, ln, self)
                     else:
                         current_property = name
 
@@ -194,7 +194,7 @@ class UxlParser(object):
                                    'Invalid indentation, only allowed '
                                    'for canvas')
                 _objects, _lines = self.parse_level(level + 2, lines[i:])
-                current_object[current_property] = _objects
+                current_object[current_property] = (_objects, ln, self)
                 current_property = None
                 lines = _lines
                 i = 0
@@ -238,24 +238,48 @@ class UxlBuilder(object):
         if item.startswith('<'):
             raise UxlError(params['__ctx__'], params['__line__'],
                            'Rules are not accepted inside Widget')
-        widget = Factory.get(item)
+        widget = Factory.get(item)()
         for key, value in params.iteritems():
             if key in ('__line__', '__ctx__'):
                 continue
-            elif key == 'canvas':
-                pass
+            value, ln, ctx = value
+            if key == 'canvas':
+                self.build_canvas(item, value)
             elif key == 'children':
                 children = []
-                for citem, cparams in value:
+                for citem, cparams, in value:
                     child = self.build_item(citem, cparams)
                     children.append(child)
                 widget.children = children
             else:
-                setattr(widget, key, value)
+                try:
+                    value = eval(value)
+                    setattr(widget, key, value)
+                except Exception, e:
+                    raise UxlError(ctx, ln, str(e))
         return widget
+
+    def build_canvas(self, item, elements):
+        print item, elements
+        for name, params in elements:
+            element = Factory.get(name)()
+            for key, value in params:
+                if key in ('__line__', '__ctx__'):
+                    continue
+                value, ln, ctx = value
+                try:
+                    setattr(element, key, value)
+                except Exception, e:
+                    raise UxlError(ctx, ln, str(e))
+            print element
 
     def build_rule(self, item, params):
         pass
+
+
+# XXX FIXME move this into graphics
+Factory.register('Rectangle', module='kivy.graphics')
+Factory.register('Color', module='kivy.graphics')
 
 
 if __name__ == '__main__':
