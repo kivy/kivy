@@ -260,10 +260,10 @@ class Widget(EventDispatcher):
     parent = ObjectProperty(None)
 
     #: Size hint X
-    size_hint_x = NumericProperty(None, allownone=True)
+    size_hint_x = NumericProperty(1, allownone=True)
 
     #: Size hint Y
-    size_hint_y = NumericProperty(None, allownone=True)
+    size_hint_y = NumericProperty(1, allownone=True)
 
     #: Size hint
     size_hint = ReferenceListProperty(size_hint_x, size_hint_y)
