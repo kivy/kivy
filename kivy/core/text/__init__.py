@@ -4,9 +4,9 @@ Text: Handle drawing of text
 
 __all__ = ('LabelBase', 'Label')
 
-import kivy
 import re
 import os
+from kivy import kivy_data_dir
 from kivy.texture import Texture
 from kivy.core import core_select_lib
 
@@ -103,7 +103,7 @@ class LabelBase(object):
                 if label_font_cache[fontname] is not None:
                     self.options['font_name'] = label_font_cache[fontname]
             else:
-                filename = os.path.join(kivy.kivy_data_dir, fontname)
+                filename = os.path.join(kivy_data_dir, fontname)
                 if os.path.exists(filename):
                     label_font_cache[fontname] = filename
                     self.options['font_name'] = filename
