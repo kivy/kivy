@@ -332,7 +332,6 @@ cdef class GraphicContext:
         cdef str x
 
         self.state['shader'].use()
-        
         if not self.journal:
             return
 
@@ -359,7 +358,6 @@ cdef class GraphicContext:
                 glBlendFunc(state['blend_sfactor'], state['blend_dfactor'])
          
             elif x != 'shader': #set uniform variable
-                #print "setting uniform", x, value
                 self.state['shader'].set_uniform(x, value)
 
         journal.clear()
@@ -534,13 +532,9 @@ cdef class Canvas:
         for i in xrange(len(self.batch)):
             item = self.batch[i]
             code = item.CODE
-
-            print "batch element CODE:", code
-
             #the instruction modifies teh context, so we cant combine the drawing
             #calls before and after it
             if code & GI_CONTEXT_MOD:
-                print "context mod"
                 #first compile the slices we been loopiing over which we can combine
                 #from slice_start to slice_stop. (using compile_slice() )
                 #add the context modifying instruction to batch_slices
@@ -554,7 +548,6 @@ cdef class Canvas:
             #instructions that do teh same, just keep incrementing slice stop index
             #until we cant combine any more, then well call compile_slice()
             elif code & GI_VERTEX_DATA:
-                print "Vertex data"
                 slice_stop = i
                 if slice_start == -1:
                     slice_start = i
@@ -568,19 +561,15 @@ cdef class Canvas:
         print "compiling slice:", slice_start, slice_end, command
         cdef VertexDataInstruction item
         cdef Buffer b = Buffer(sizeof(GLint))
-        cdef int tex_target = -1
-        cdef int tex_id = -1
         cdef int v, i
 
         #check if we have a valid slice
         if slice_start == -1:
-            print "nothign to compile..empty slice"
             return
 
 
         #loop pver all teh whole slice, and combine all instructions
         for item in self.batch[slice_start:slice_end+1]:  
-            print "adding", item, "to batch_slice"
             # add the vertex indices to be drawn from this item
             for i in range(item.num_elements): 
                 v = item.element_data[i]
@@ -588,29 +577,16 @@ cdef class Canvas:
 
             #handle textures (should go somewhere else?, maybe set GI_CONTEXT_MOD FLAG ALSO?)
             if item.texture:
-                print "texture attached, must split batch_slice"
-                if item.texture.id == tex_id: #the same, sweet, keep going
-                    print "texture already bound on context...no split after all"
-                    continue
-                elif item.texture.id != tex_id:  #nope..muts bind the new texture
-                    print "bindign new texture", item.texture 
-                    target = item.texture.target
-                    tex_id = item.texture.id
-                    self.batch_slices.append(('instruction', BindTexture(item.texture)))
-                    self.batch_slices.append((command, b))
-                    b = Buffer(sizeof(GLint))
-            elif tex_id != -1: #no item.texture..must unbind bound_texture and start new slice
-                print "unbinding previous bound tetxure"
+                self.batch_slices.append(('instruction', BindTexture(item.texture)))
+                self.batch_slices.append((command, b))
+                b = Buffer(sizeof(GLint))
+            else: #no item.texture..must unbind bound_texture and start new slice
                 self.batch_slices.append(('instruction', BindTexture(None)))
-                
-                #self.batch_slices.append(('instruction', UnbindTexture(0, tex_target)))
                 self.batch_slices.append((command, b))
                 b = Buffer(sizeof(GLint))
 
 
-        print "done compiling slice"
         if b.count() > 0:  # last slice, all done, only have to add if there is actually somethign in it
-            print "adding last slice"
             self.batch_slices.append((command, b))
 
 
@@ -620,7 +596,6 @@ cdef class Canvas:
 
         if self.need_compile:
             self.compile()
-            print "Done Compiling", self.batch_slices
             self.need_compile = 0
 
         self.vertex_buffer.bind() 
@@ -628,14 +603,12 @@ cdef class Canvas:
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer.id)
 
         for command, item in self.batch_slices:
-            #print command, item
-            if command == 'draw':
-                self.context.flush()
-                b = item
-                #print "drawing elements:", b.count()
-                glDrawElements(GL_TRIANGLES, b.count(), GL_UNSIGNED_INT, b.pointer())
-            elif command == 'instruction':
+            if command == 'instruction':
                 item.apply()
+            if command == 'draw':
+                b = item
+                self.context.flush()
+                glDrawElements(GL_TRIANGLES, b.count(), GL_UNSIGNED_INT, b.pointer())
 
         self.context.finish_frame()
                 
@@ -687,14 +660,14 @@ cdef class PushMatrix(ContextInstruction):
     '''
     PushMatrix on context's matrix stack
     '''
-    cdef apply(self):
+    cpdef apply(self):
         self.context.get('mvm').push()
      
 cdef class PopMatrix(ContextInstruction):
     '''
     Pop Matrix from context's matrix stack onto model view
     '''
-    cdef apply(self):
+    cpdef apply(self):
         self.context.get('mvm').push()
 
 
@@ -894,22 +867,17 @@ cdef class LineWidth(ContextInstruction):
 
 
 cdef class Color(ContextInstruction):
-    #TODO:
     '''
-     add blending "mode", so user can pass str or enum
-     e.g.: 'normal', 'subtract', 'multiply', 'burn', 'dodge', etc
+    Instruction to set the color state for any vetices being drawn after it
     '''    
     cdef list color    
  
     def __init__(self, *args, **kwargs):
         '''
         SetColor will change the color being used to draw in the context
-        :Parameters:
-        
         '''
         ContextInstruction.__init__(self)
         self.rgba = args
-        self.canvas.add(self)
         
     cpdef apply(self):
         self.context.set('color', (self.r, self.g, self.b, self.a))
@@ -954,8 +922,8 @@ cdef class Color(ContextInstruction):
 
 
 cdef class BindTexture(ContextInstruction):
-    cdef object texture
-    """
+    cdef object _texture
+    
     def __init__(self, *args, **kwargs):
         '''
         BindTexture Graphic instruction:
@@ -966,14 +934,20 @@ cdef class BindTexture(ContextInstruction):
             `texture`, Texture:  specifies teh texture to bind to teh given index 
         '''
         ContextInstruction.__init__(self)
-        self.texture = tex
-    """
+        self.texture = args[0]
+    
     cpdef apply(self): 
         self.canvas.context.set('texture0', self.texture)
 
     def set(self, object texture):
         self.texture = texture
-
+    
+    property texture:
+        def __get__(self):
+            return self._texture
+        def __set__(self, tex):
+            self._texture = tex
+            self.context.post_update()
 
 
 cdef class VertexDataInstruction(GraphicInstruction): 
@@ -1012,8 +986,6 @@ cdef class VertexDataInstruction(GraphicInstruction):
         self.vbo     = self.canvas.vertex_buffer
         self.v_count = 0 #no vertices to draw until initialized
         self._texture = kwargs.get('texture', None)
-
-        print "VERTEX INIT", 
 
     cdef allocate_vertex_buffers(self, int num_verts):
         ''' For allocating and initializing vertes data buffers
@@ -1198,7 +1170,6 @@ cdef class Rectangle(VertexDataInstruction):
 
         def __set__(self, coords):
             cdef int i
-            print "setting textire coordinates:", coords
             for i in range(8):
                 self._tex_coords[i] = coords[i]
             self.build()
@@ -1379,47 +1350,64 @@ cdef class BorderRectangle(VertexDataInstruction):
 cdef class Ellipse(VertexDataInstruction):
     cdef float x,y,w,h
     cdef int segments
+    cdef tuple _tex_coords
 
     def __init__(self, *args, **kwargs):
         VertexDataInstruction.__init__(self, **kwargs)
 
         #get keyword args for configuring rectangle
+        self.segments = kwargs.get('segments', 180)
         cdef tuple s = kwargs.get('size', (100, 100))
         cdef tuple p = kwargs.get('pos', (0,0))
-        self.segments = kwargs.get('segments', 180)
         self.x = p[0]; self.y = p[1]
         self.w = s[0]; self.h = s[1]
+
+        cdef tuple t_coords =  (0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0)
+        if self.texture:
+            t_coords = self.texture.tex_coords
+        self.tex_coords  = kwargs.get('tex_coords', t_coords)
+
 
         self.allocate_vertex_buffers(self.segments + 1)
         self.build()     
         
         indices = []
         for i in range(self.segments):
-            indices.extend(  (i, 360, i+1) )
-        print indices
+            indices.extend(  (i, self.segments, (i+1)%self.segments) )
         self.indices = indices
         self.canvas.add(self)
 
     cdef build(self):
-        cdef float x, y, angle, rx, ry
+        cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
+        print self.tex_coords
         cdef vertex* v = self.v_data
         cdef int i = 0
+        cdef tuple tc = self.tex_coords
+        tx = tc[0]; ty=tc[1];  tw=tc[4]-tx;  th=tc[5]-ty        
         angle = 0.0
-        rx = 0.5*(self.w-self.x)
-        ry = 0.5*(self.h-self.y)
+        rx = 0.5*(self.w)
+        ry = 0.5*(self.h)
         for i in xrange(self.segments):
             # rad = deg * (pi / 180), where pi/180 = 0.0174...
             angle = i * 360.0/self.segments *0.017453292519943295
-            # Polar coordinates to cartesian space
-            x = self.x + (rx * 2.0 * cos(angle))
-            y = self.y + (ry * 2.0 * sin(angle))
-            v[i] = vertex2f(x, y)
-        v[self.segments] = vertex2f(self.x+rx, self.y+ry)
+            x = (self.x+rx)+ (rx*cos(angle))
+            y = (self.y+ry)+ (ry*sin(angle))
+            ttx = ((x-self.x)/self.w)*tw + tx  
+            tty = ((y-self.y)/self.h)*th + ty 
+            v[i] = vertex4f(x, y, ttx, tty)
+        x, y = self.x+rx, self.y+ry 
+        ttx = ((x-self.x)/self.w)*tw + tx  
+        tty = ((y-self.y)/self.h)*th + ty
+        v[self.segments] = vertex4f(x,y,ttx, tty )
         self.update_vbo_data()
         
              
 
-
+    property tex_coords:
+        def __get__(self):
+            return self._tex_coords
+        def __set__(self, coords):
+            self._tex_coords = coords
 
     property pos:
         def __get__(self):
@@ -1433,7 +1421,6 @@ cdef class Ellipse(VertexDataInstruction):
         def __get__(self):
             return (self.w, self.h)
         def __set__(self, size):
-            print "setting size: ", size
             self.w = size[0]
             self.h = size[1]
             self.build()
