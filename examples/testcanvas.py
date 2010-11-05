@@ -14,7 +14,7 @@ my_color = None
 t1 = None
 with c:
     Color(0,0,1,1)
-    Ellipse(pos=(100,100), size=(200,100), segments = 32)
+    Ellipse(pos=(100,100), size=(200,100), segments = 128)
     '''
     PathStart(100,100)
     PathLineTo(200,200)
