@@ -10,4 +10,7 @@ Kivy. We hardly ask you to use theses class !
 '''
 
 from kivy.c_ext.graphics import *
+from kivy.c_ext.graphics_context import GraphicContext
+from kivy.c_ext.graphics_shader import Shader
+from kivy.c_ext.graphics_vbo import VBO
 

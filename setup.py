@@ -1,8 +1,8 @@
 import sys
 import os
 import shutil
-from setuptools import setup
-from setuptools.extension import Extension
+from distutils.core import setup
+from distutils.extension import Extension
 
 #check for numpy, which is absolutely required!
 try:
@@ -93,19 +93,23 @@ if have_cython:
     else:
         libraries.append('GL')
 
-    ext_modules.append(Extension('kivy.c_ext.buffer',
-        ['kivy/c_ext/buffer.pyx']))
-    ext_modules.append(Extension('kivy.c_ext.event',
-        ['kivy/c_ext/event.pyx']))
-    ext_modules.append(Extension('kivy.c_ext.properties',
-        ['kivy/c_ext/properties.pyx']))
-    ext_modules.append(Extension('kivy.c_ext.opengl',
-        ['kivy/c_ext/opengl.pyx']))
-    ext_modules.append(Extension('kivy.c_ext.graphics',
-        ['kivy/c_ext/graphics.pyx'],
-        libraries=libraries,
-        include_dirs=include_dirs,
-        extra_link_args=extra_link_args))
+    # simple extensions
+    for x in ('buffer', 'event', 'properties', 'opengl'):
+        ext_modules.append(Extension(
+            'kivy.c_ext.%s' % x, ['kivy/c_ext/%s.pyx' % x]
+        ))
+
+    # opengl aware modules
+    for x in ('graphics_context', 'graphics_matrix',
+              'graphics_vbo', 'graphics_shader',
+              'graphics_vertex', 'graphics'):
+        ext_modules.append(Extension(
+            'kivy.c_ext.%s' % x, ['kivy/c_ext/%s.pyx' % x],
+            libraries=libraries,
+            include_dirs=include_dirs,
+            extra_link_args=extra_link_args
+        ))
+
 
 
 #setup datafiles to be included in the disytibution, liek examples...
