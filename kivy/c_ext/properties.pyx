@@ -1,3 +1,5 @@
+#cython: profile=True
+
 cdef class Property:
     '''Base class for build more complex property. This handle all the basics
     setter and getter, None handling, and observers.

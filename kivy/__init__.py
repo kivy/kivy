@@ -126,6 +126,8 @@ if os.path.basename(sys.argv[0]) in ('sphinx-build', 'autobuild.py'):
     os.environ['KIVY_DOC'] = '1'
 if os.path.basename(sys.argv[0]) in ('sphinx-build', ):
     os.environ['KIVY_DOC_INCLUDE'] = '1'
+if os.path.basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
+    os.environ['KIVY_UNITTEST'] = '1'
 if not 'KIVY_DOC_INCLUDE' in os.environ:
 
     # Configuration management
@@ -150,75 +152,81 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
 
-    # save sys argv, otherwize, gstreamer use it and display help..
-    sys_argv = sys.argv
-    sys.argv = sys.argv[:1]
-
     # Can be overrided in command line
-    try:
-        opts, args = getopt.getopt(sys_argv[1:], 'hp:fkawFem:snr:',
-            ['help', 'fullscreen', 'windowed', 'fps', 'event',
-             'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
-             'display=', 'size=', 'rotate='])
+    if 'KIVY_UNITTEST' not in os.environ:
+
+        # save sys argv, otherwize, gstreamer use it and display help..
+        sys_argv = sys.argv
+        sys.argv = sys.argv[:1]
+
+        try:
+            opts, args = getopt.getopt(sys_argv[1:], 'hp:fkawFem:snr:',
+                ['help', 'fullscreen', 'windowed', 'fps', 'event',
+                 'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
+                 'display=', 'size=', 'rotate='])
+
+        except getopt.GetoptError, err:
+            Logger.error('Core: %s' % str(err))
+            kivy_usage()
+            sys.exit(2)
 
         # set argv to the non-read args
         sys.argv = sys_argv[0:1] + args
+    else:
+        opts = []
+        args = []
 
-        need_save = False
-        for opt, arg in opts:
-            if opt in ('-h', '--help'):
-                kivy_usage()
-                sys.exit(0)
-            elif opt in ('-p', '--provider'):
-                pid, args = arg.split(':', 1)
-                Config.set('input', pid, args)
-            elif opt in ('-a', '--auto-fullscreen'):
-                Config.set('graphics', 'fullscreen', 'auto')
-            elif opt in ('-k', '--fake-fullscreen'):
-                Config.set('graphics', 'fullscreen', 'fake')
-            elif opt in ('-f', '--fullscreen'):
-                Config.set('graphics', 'fullscreen', '1')
-            elif opt in ('-w', '--windowed'):
-                Config.set('graphics', 'fullscreen', '0')
-            elif opt in ('-F', '--fps'):
-                Config.set('kivy', 'show_fps', '1')
-            elif opt in ('-e', '--eventstats'):
-                Config.set('kivy', 'show_eventstats', '1')
-            elif opt in ('--size', ):
-                w, h = str(arg).split('x')
-                Config.set('graphics', 'width', w)
-                Config.set('graphics', 'height', h)
-            elif opt in ('--display', ):
-                Config.set('graphics', 'display', str(arg))
-            elif opt in ('-m', '--module'):
-                if str(arg) == 'list':
-                    kivy_modules.usage_list()
-                    sys.exit(0)
-                args = arg.split(':', 1)
-                if len(args) == 1:
-                    args += ['']
-                Config.set('modules', args[0], args[1])
-            elif opt in ('-s', '--save'):
-                need_save = True
-            elif opt in ('-r', '--rotation'):
-                Config.set('graphics', 'rotation', arg)
-            elif opt in ('-n', ):
-                kivy_options['shadow_window'] = False
 
-        if need_save:
-            try:
-                with open(kivy_config_fn, 'w') as fd:
-                    Config.write(fd)
-            except Exception, e:
-                Logger.exception('Core: error while saving default'
-                                 'configuration file')
-            Logger.info('Core: Kivy configuration saved.')
+    need_save = False
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            kivy_usage()
             sys.exit(0)
+        elif opt in ('-p', '--provider'):
+            pid, args = arg.split(':', 1)
+            Config.set('input', pid, args)
+        elif opt in ('-a', '--auto-fullscreen'):
+            Config.set('graphics', 'fullscreen', 'auto')
+        elif opt in ('-k', '--fake-fullscreen'):
+            Config.set('graphics', 'fullscreen', 'fake')
+        elif opt in ('-f', '--fullscreen'):
+            Config.set('graphics', 'fullscreen', '1')
+        elif opt in ('-w', '--windowed'):
+            Config.set('graphics', 'fullscreen', '0')
+        elif opt in ('-F', '--fps'):
+            Config.set('kivy', 'show_fps', '1')
+        elif opt in ('-e', '--eventstats'):
+            Config.set('kivy', 'show_eventstats', '1')
+        elif opt in ('--size', ):
+            w, h = str(arg).split('x')
+            Config.set('graphics', 'width', w)
+            Config.set('graphics', 'height', h)
+        elif opt in ('--display', ):
+            Config.set('graphics', 'display', str(arg))
+        elif opt in ('-m', '--module'):
+            if str(arg) == 'list':
+                kivy_modules.usage_list()
+                sys.exit(0)
+            args = arg.split(':', 1)
+            if len(args) == 1:
+                args += ['']
+            Config.set('modules', args[0], args[1])
+        elif opt in ('-s', '--save'):
+            need_save = True
+        elif opt in ('-r', '--rotation'):
+            Config.set('graphics', 'rotation', arg)
+        elif opt in ('-n', ):
+            kivy_options['shadow_window'] = False
 
-    except getopt.GetoptError, err:
-        Logger.error('Core: %s' % str(err))
-        kivy_usage()
-        sys.exit(2)
+    if need_save:
+        try:
+            with open(kivy_config_fn, 'w') as fd:
+                Config.write(fd)
+        except Exception, e:
+            Logger.exception('Core: error while saving default'
+                             'configuration file')
+        Logger.info('Core: Kivy configuration saved.')
+        sys.exit(0)
 
 # cleanup namespace
 if not 'KIVY_DOC_INCLUDE' in os.environ:

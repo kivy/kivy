@@ -224,7 +224,8 @@ class ColoredLogger(logging.Logger):
         self.addHandler(FileHandler())
         return
 
-logging.setLoggerClass(ColoredLogger)
+if 'nosetests' not in sys.argv:
+    logging.setLoggerClass(ColoredLogger)
 
 #: Kivy default logger instance
 Logger = logging.getLogger('Kivy')
