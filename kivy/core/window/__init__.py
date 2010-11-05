@@ -240,7 +240,7 @@ class WindowBase(EventDispatcher):
         '''Clear the window with background color'''
         # XXX FIXME use late binding
         from kivy.core.gl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, \
-            GL_DEPTH_BUFFER_BIT, glGetError
+            GL_DEPTH_BUFFER_BIT
         glClearColor(0, 0, 0, 0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
