@@ -272,9 +272,6 @@ cdef class GraphicContext:
                 self._default_texture = img.texture
             return self._default_texture
 
-
-
-
     def __cinit__(self):
         self.state = {}
         self.stack = []
@@ -293,6 +290,9 @@ cdef class GraphicContext:
 
     cpdef finish_frame(self):
         self.need_redraw = 0
+        err = glGetError()
+        if err:
+            print "GL Error while drawing frame:", err
 
     cpdef set(self, str key, value):
         self.state[key] = value
@@ -439,9 +439,9 @@ cdef class VBO:
 
 '''
 Insruction type bitmask. Graphic Instruction Codes
-    bitmask to hold various graphic intrcution codes so its 
-    possible to set teh code on any GraphicInstruction
-    in order to let the compiler know how to handle it best
+bitmask to hold various graphic intrcution codes so its 
+possible to set teh code on any GraphicInstruction
+in order to let the compiler know how to handle it best
 '''
 cdef int GI_NOOP         = 0x0000000
 cdef int GI_IGNORE       = 0x0000001
@@ -681,32 +681,47 @@ cdef class ContextInstruction(GraphicInstruction):
         pass
 
 
-    
-
-
-
-
 
 
 cdef class PushMatrix(ContextInstruction):
-    cpdef apply(self):
+    '''
+    PushMatrix on context's matrix stack
+    '''
+    cdef apply(self):
         self.context.get('mvm').push()
      
 cdef class PopMatrix(ContextInstruction):
-    cpdef apply(self):
+    '''
+    Pop Matrix from context's matrix stack onto model view
+    '''
+    cdef apply(self):
         self.context.get('mvm').push()
 
 
 cdef class MatrixInstruction(ContextInstruction):
+    '''
+    Base class for Matrix Instruction on canvas
+    '''
+
     cdef object mat 
 
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self)
 
     cpdef apply(self):
-         self.context.get('mvm').apply(self.mat)
+        '''
+        apply matrix to the matix of this instance to the 
+        context model view matrix
+        '''
+        self.context.get('mvm').apply(self.mat)
 
     property matrix:
+        '''
+        matrix property.  numpy matrix from trasformation module
+        setting the matrix using this porperty when a change is made 
+        is important, becasue it will notify teh context about 
+        teh update
+        '''
         def __get__(self):
             return self.mat
         def __set__(self, mat):
@@ -715,24 +730,52 @@ cdef class MatrixInstruction(ContextInstruction):
 
 
 cdef class Transform(MatrixInstruction):
+    '''
+    Transform class.  A matrix instruction class which 
+    has function to modify the transformation matrix
+    
+    '''
     cpdef transform(self, object trans): 
+        '''
+        multiply the instructions matrix by trans
+        '''
         self.mat = matrix_multiply(self.mat, trans)
 
     cpdef translate(self, float tx, float ty, float tz):
+        '''
+        translate the instrcutions transformation by tx, ty, tz
+        '''
         self.transform( translation_matrix(tx, ty, tz) )
 
     cpdef rotate(self, float angle, float ax, float ay, float az):
+        '''
+        rotate the transformation by matrix by angle degress around the 
+        axis defined by the vector ax, ay, az
+        '''
         self.transform( rotation_matrix(angle, [ax, ay, az]) )
 
     cpdef scale(self, float s):
+        '''
+        Applies a uniform scaling of s to teh matrix transformation
+        '''
         self.transform( scale_matrix(s, s, s) )
 
     cpdef identity(self):
+        '''
+        resets teh transformation to teh identity matrix 
+        '''
         self.matrix = identity_matrix()
 
 
        
-cdef class  Rotation(Transform):
+cdef class Rotate(Transform):
+    '''
+    Rotate the coordinate space by applying a rotation trnasformation
+    on teh modelview matrix.  you can set the properties of teh 
+    instructions afterwards with e.g.: 
+    rot.angle = 90
+    rot.axis = (0,0,1)  
+    '''
     cdef float _angle
     cdef tuple _axis
 
@@ -760,6 +803,9 @@ cdef class  Rotation(Transform):
 
 
 cdef class  Scale(Transform):
+    '''
+    Instruction to perform a uniform scale transformation
+    '''
     cdef float s
     def __init__(self, *args):
         Transform.__init__(self)
@@ -768,6 +814,9 @@ cdef class  Scale(Transform):
             self.matrix = scale_matrix(self.s)
  
     property scale:  
+        ''' 
+        sets the scale factor for the transformation
+        '''
         def __get__(self):
             return self.s
         def __set__(self, s): 
@@ -776,6 +825,9 @@ cdef class  Scale(Transform):
 
 
 cdef class  Translate(Transform):
+    '''
+    Instruction to create a translation of teh model view coordinate space
+    '''
     cdef float _x, _y, _z
     def __init__(self, *args):
         Transform.__init__(self)
@@ -786,30 +838,35 @@ cdef class  Translate(Transform):
         self.matrix = translation_matrix([x,y,z]) 
 
     property x:
+        ''' sets teh translation on the x axis'''
         def __get__(self):
             return self._x
         def __set__(self, float x):
             self.set_translate(x, self._y, self._z)
     
     property y:
+        ''' sets the translation on teh y axis '''
         def __get__(self):
             return self._y
         def __set__(self, float y):
             self.set_translate(self._x, y, self._z)
  
     property z:
+        ''' sets teh translation on teh z axis ''' 
         def __get__(self):
             return self._z
         def __set__(self, float z):
             self.set_translate(self._x, self._y, z)
 
     property xy:
+        ''' 2 tuple with translation vector in 2D for x and y axis '''
         def __get__(self):
             return self._x, self._y
         def __set__(self, c):
             self.set_translate(c[0], c[1], self._z)
  
     property xyz:  
+        ''' 3 tuple translation vector in 3D in x, y, and z axis'''
         def __get__(self):
             return self._x, self._y, self._z
         def __set__(self, c): 
@@ -820,6 +877,9 @@ cdef class  Translate(Transform):
 
 
 cdef class LineWidth(ContextInstruction):
+    '''
+    Instruction to set the line width of teh drawing context
+    '''
     cdef float lw
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
@@ -1012,7 +1072,6 @@ cdef class VertexDataInstruction(GraphicInstruction):
             print "setting indices!!"
             for i in xrange(len(batch)):
                 e = batch[i]
-                print "element:", e
                 self.element_buffer.add(&self.i_data[e], NULL, 1)
             self.element_data = <int*> self.element_buffer.pointer()
             self.num_elements = self.element_buffer.count()
@@ -1030,7 +1089,7 @@ cdef class VertexDataInstruction(GraphicInstruction):
         cdef int i
         print "updating vbo data:"
         for i in range(self.v_count): 
-            print idx[i], vtx[i].x, vtx[i].y, vtx[i].s0, vtx[i].t0
+            #print idx[i], vtx[i].x, vtx[i].y, vtx[i].s0, vtx[i].t0
             self.vbo.update_vertices(idx[i], &vtx[i], 1)     
 
     property texture:
@@ -1095,8 +1154,8 @@ cdef class Rectangle(VertexDataInstruction):
         self.allocate_vertex_buffers(4)
 
         #get keyword args for configuring rectangle
-        self.size = kwargs.get('size', (100,100))
-        self.pos  = kwargs.get('pos', (0,0))
+        self.x, self.y  = kwargs.get('pos',  (0,0))
+        self.w, self.h  = kwargs.get('size', (100,100))
         cdef tuple t_coords =  (0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0)
         if self.texture:
             t_coords = self.texture.tex_coords
@@ -1316,18 +1375,72 @@ cdef class BorderRectangle(VertexDataInstruction):
             self.build()
 
 
-"""
-cdef int PEN_UP   = 0
-cdef int PEN_DOWN = 1
-"""
 
-#cdef class Pen:
-#    cdef stroke_width
-#    def __init__(self):
-#        self.stroke_width = 10
+cdef class Ellipse(VertexDataInstruction):
+    cdef float x,y,w,h
+    cdef int segments
+
+    def __init__(self, *args, **kwargs):
+        VertexDataInstruction.__init__(self, **kwargs)
+
+        #get keyword args for configuring rectangle
+        cdef tuple s = kwargs.get('size', (100, 100))
+        cdef tuple p = kwargs.get('pos', (0,0))
+        self.segments = kwargs.get('segments', 180)
+        self.x = p[0]; self.y = p[1]
+        self.w = s[0]; self.h = s[1]
+
+        self.allocate_vertex_buffers(self.segments + 1)
+        self.build()     
+        
+        indices = []
+        for i in range(self.segments):
+            indices.extend(  (i, 360, i+1) )
+        print indices
+        self.indices = indices
+        self.canvas.add(self)
+
+    cdef build(self):
+        cdef float x, y, angle, rx, ry
+        cdef vertex* v = self.v_data
+        cdef int i = 0
+        angle = 0.0
+        rx = 0.5*(self.w-self.x)
+        ry = 0.5*(self.h-self.y)
+        for i in xrange(self.segments):
+            # rad = deg * (pi / 180), where pi/180 = 0.0174...
+            angle = i * 360.0/self.segments *0.017453292519943295
+            # Polar coordinates to cartesian space
+            x = self.x + (rx * 2.0 * cos(angle))
+            y = self.y + (ry * 2.0 * sin(angle))
+            v[i] = vertex2f(x, y)
+        v[self.segments] = vertex2f(self.x+rx, self.y+ry)
+        self.update_vbo_data()
+        
+             
+
+
+
+    property pos:
+        def __get__(self):
+            return (self.x, self.y)
+        def __set__(self, pos):
+            self.x = pos[0]
+            self.y = pos[1]
+            self.build()
+        
+    property size:
+        def __get__(self):
+            return (self.w, self.h)
+        def __set__(self, size):
+            print "setting size: ", size
+            self.w = size[0]
+            self.h = size[1]
+            self.build()
+
+
 
 cdef class Path(VertexDataInstruction):
-    #cdef Pen pen
     cdef float pen_x, pen_y
     cdef Buffer point_buffer
     def __init__(self):
@@ -1364,31 +1477,11 @@ cdef class Path(VertexDataInstruction):
             #normalize normal vector and scale for stroke offset 
             ns = sqrt( (dx*dx) + (dy*dy) ) 
             if ns == 0.0:
-                "skipping line, the deistance between the two line end points was zero..."
+                print "skipping line, the two points are 0 unit apart."
                 continue
 
             dx = sw/2.0 * dx/ns
             dy = sw/2.0 * dy/ns
-
-            '''
-            print "PATH VERTICES:"
-            print "                                                     "
-            print "v[0] : x0 - dy  \t\t  y0 + dx"
-            print "v[0] : %f - %f  \t\t  %f + %f" % (x0, dy, y0, dx)
-            print "v[0] : %f       \t\t  %f  " % (x0-dy,y0+dx)
-            print "----------------------------------------------------\n"
-            print "v[1] : x0 + dy  \t\t  y0 - dx"
-            print "v[1] : %f + %f  \t\t  %f - %f" % (x0, dy, y0, dx)
-            print "v[1] : %f       \t\t  %f  " % (x0+dy,y0-dx)
-            print "----------------------------------------------------\n"
-            print "v[2] : x1 - dy  \t\t  y1 + dx"
-            print "v[2] : %f - %f  \t\t  %f + %f" % (x1, dy, y1, dx)
-            print "v[2] : %f       \t\t  %f  " % (x1-dy,y1+dx)
-            print "----------------------------------------------------\n"
-            print "v[3] : x1 + dy  \t\t  y1 - dx"
-            print "v[3] : %f + %f  \t\t  %f - %f" % (x1, dy, y1, dx)
-            print "v[4] : %f       \t\t  %f  " % (x1+dy,y1-dx)
-            '''
 
             #create quad, with cornerss pull off the line by the normal
             v[0] = vertex2f(x0-dy, y0+dx); 
@@ -1418,8 +1511,6 @@ cdef class Path(VertexDataInstruction):
 
             end_point_idx[0] = idx[3]
             end_point_idx[1] = idx[2]
-
-
 
         #update vertex and vbo index pointers
         self.v_data = <vertex*>  self.v_buffer.pointer()
@@ -1454,7 +1545,6 @@ cdef class PathStart(PathInstruction):
             `y`, float:  y position
         '''
         global ACTIVE_PATH
-        print "START PATH", ACTIVE_PATH
         PathInstruction.__init__(self)
         if ACTIVE_PATH != None: 
             raise Exception("Can't start a new path while another one is being constructed")

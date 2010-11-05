@@ -13,16 +13,20 @@ c = Canvas()
 my_color = None
 t1 = None
 with c:
-    c.context.set('projection_mat', clip_matrix(0,Window.width,0,Window.height,-1,1))
-    PushMatrix()
-    t1= Translate(200,0,0)
-    my_color = Color(1.0, 1.0, 1.0, 1.0)
-    my_rect = Rectangle(pos=(100,100), size=(100,100))
-    PushMatrix()
-
-
+    Color(0,0,1,1)
+    Ellipse(pos=(100,100), size=(200,100), segments = 32)
+    '''
+    PathStart(100,100)
+    PathLineTo(200,200)
+    PathLineTo(300,200)
+    PathLineTo(300,400)
+    PathLineTo(200,250)
+    PathLineTo(100,300)
+    PathLineTo(150,250)
+    PathClose()
+    PathEnd()
+    '''
 def draw(*args):
-    t1.x = t1.x - .1
     c.draw()
 
 Window.bind(on_draw=draw)
