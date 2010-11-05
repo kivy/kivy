@@ -114,7 +114,7 @@ cdef class NumericProperty(Property):
         if Property.check(self, obj, value):
             return True
         if type(value) not in (int, float):
-            raise ValueError('Value of the property is not a numeric (int/float)')
+            raise ValueError('NumericProperty accept only int/float')
 
 
 cdef class StringProperty(Property):
@@ -122,21 +122,28 @@ cdef class StringProperty(Property):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, basestring):
-            raise ValueError('Value of the property is not a string')
+            raise ValueError('StringProperty accept only str/unicode')
 
 cdef class ListProperty(Property):
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
         if type(value) is not list:
-            raise ValueError('Value of the property is not a list')
+            raise ValueError('ListProperty accept only list')
 
 cdef class ObjectProperty(Property):
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, object):
-            raise ValueError('Value accept only object')
+            raise ValueError('ObjectProperty accept only object')
+
+cdef class BooleanProperty(Property):
+    cdef check(self, obj, value):
+        if Property.check(self, obj, value):
+            return True
+        if not isinstance(value, object):
+            raise ValueError('BooleanProperty accept only bool')
 
 cdef class BoundedNumericProperty(Property):
     cdef int use_min
