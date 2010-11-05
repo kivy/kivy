@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 from kivy.app import App
-from kivy.uxl import UxlBuilder
+from kivy.uxl import Uxl
 
 class UxlApp(App):
     def build(self):
-        uxl = UxlBuilder(filename=self.options['filename'])
-        return uxl.root
+        return Uxl.load_file(self.options['filename'])
 
 if __name__ == '__main__':
     import sys
