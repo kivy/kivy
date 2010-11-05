@@ -5,11 +5,17 @@
 
 /* Outputs from the vertex shader */
 varying vec4 frag_color;
-varying vec2 tex_coord;
+varying vec2 tex_coord0;
+varying vec2 tex_coord1;
+varying vec2 tex_coord2;
+
+
 
 /* uniform texture samplers */
 uniform sampler2D texture0;
 
 void main (void){
-    gl_FragColor   = frag_color * texture2D(texture0, tex_coord);
+    float d = 1.0 -length(tex_coord2.xy);
+    d = d*d*d ;
+    gl_FragColor   = vec4(d,d,d,d) * texture2D(texture0, tex_coord0);
 }

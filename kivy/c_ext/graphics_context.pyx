@@ -73,7 +73,7 @@ cdef class GraphicContext:
         self.set('projection_mat', identity_matrix())
         self.set('modelview_mat', identity_matrix())
         self.set('color', (1.0, 1.0, 1.0, 1.0) )
-        self.set('blend', 0)
+        self.set('blend', 1)
         self.set('blend_sfactor', GL_SRC_ALPHA)
         self.set('blend_dfactor', GL_ONE_MINUS_SRC_ALPHA)
         #self.set('linewidth', 1)

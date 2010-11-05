@@ -5,8 +5,9 @@ __all__ = (
     'Color', 'BindTexture', 'VertexDataInstruction', 'Triangle',
     'Rectangle', 'BorderRectangle', 'Ellipse', 'Path',
     'PathInstruction', 'PathStart', 'PathLineTo', 'PathClose',
-    'PathEnd',
+    'PathEnd','PathStroke', 'PathFill'
 )
+
 
 include "graphics_common.pxi"
 
@@ -600,7 +601,7 @@ cdef class VertexDataInstruction(GraphicInstruction):
             #create element buffer for list of vbo indices to be drawn
             self.element_buffer = Buffer(sizeof(int))
             cdef int i, e
-            print "setting indices!!"
+            print "setting indices!!", batch
             for i in xrange(len(batch)):
                 e = batch[i]
                 self.element_buffer.add(&self.i_data[e], NULL, 1)
@@ -997,7 +998,7 @@ cdef class Path(VertexDataInstruction):
         self.points.append(Point(x,y))
         return idx
 
-    cdef old_build(self):
+    cdef build_stroke(self):
         cdef vertex* p    #pointer into point buffer
         cdef vertex v[4]  #to hold the vertices for each quad were creating
         cdef int  idx[4]  #to hold the vbo indecies for every quad we add
@@ -1028,10 +1029,10 @@ cdef class Path(VertexDataInstruction):
             dy = sw/2.0 * dy/ns
 
             #create quad, with cornerss pull off the line by the normal
-            v[0] = vertex2f(x0-dy, y0+dx);
-            v[1] = vertex2f(x0+dy, y0-dx);
-            v[2] = vertex2f(x1+dy, y1-dx);
-            v[3] = vertex2f(x1-dy, y1+dx);
+            v[0] = vertex8f(x0-dy, y0+dx, 0,0, -dy, dx, -1.0,-1.0);
+            v[1] = vertex8f(x0+dy, y0-dx, 0,0,  dy,-dx,  1.0, 1.0);
+            v[2] = vertex8f(x1+dy, y1-dx, 0,0,  dy,-dx,  1.0, 1.0);
+            v[3] = vertex8f(x1-dy, y1+dx, 0,0, -dy, dx, -1.0,-1.0);
 
             #add vertices to vertex buffer, get vbo indices
             self.v_buffer.add(v, idx, 4)
@@ -1068,40 +1069,42 @@ cdef class Path(VertexDataInstruction):
         self.canvas.update(self)
 
 
-    cdef build(self):
+    cdef build_fill(self):
 
         cdef vertex v[4]  #to hold the vertices for each quad were creating
         cdef int  idx[4]  #to hold the vbo indecies for every quad we add
         cdef list triangles 
         cdef list indices = []
-
-        print "BUILDING PATH:", self.points
-        poly = CDT([])
-        #poly.triangulate()
-        return
+        print self.points
+        poly = CDT(self.points)
+        triangles = poly.triangulate()
 
 
         cdef int i = 0
         self.v_buffer = Buffer(sizeof(vertex))
         self.i_buffer = Buffer(sizeof(GLint))
         for t in triangles:
-            print "triangle:", t.debug_print()
+            
             v[0] = vertex2f(t.a.x, t.a.y)
             v[1] = vertex2f(t.b.x, t.b.y)
             v[2] = vertex2f(t.c.x, t.c.y)
-            self.v_count += 3    
+            self.v_count += 3   
+
+            print "ADDING:", 
+
             self.v_buffer.add(v, idx, 3)
             self.i_buffer.add(idx, NULL, 3)
 
-            indices.extend(i, i+1, i+2)
+            print i, "extending:", i, i+1, i+2
+            indices.extend([i, i+1, i+2])
             i +=3
+
 
         #update vertex and vbo index pointers
         self.v_data = <vertex*>  self.v_buffer.pointer()
         self.i_data = <int*>     self.i_buffer.pointer()
-        self.element_data = <int*> self.element_buffer.pointer()
-        self.num_elements = self.element_buffer.count()
-
+        self.indices = indices
+        
         #actually add vertices to VBO
         self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
         self.canvas.add(self)
@@ -1151,19 +1154,30 @@ cdef class PathClose(PathInstruction):
         cdef vertex* v = <vertex*> self.path.point_buffer.pointer()
         self.path.add_point(v[0].x, v[0].y)
 
-
-cdef class PathEnd(PathInstruction):
+cdef class PathFill(PathInstruction):
     def __init__(self):
         '''Ends path construction on the current path, the path will be build
         and added to the canvas
         '''
         global _active_path
         PathInstruction.__init__(self)
-        self.path.build()
+        self.path.build_fill()
         _active_path = None
 
 
+cdef class PathStroke(PathInstruction):
+    def __init__(self):
+        '''Ends path construction on the current path, the path will be build
+        and added to the canvas
+        '''
+        global _active_path
+        PathInstruction.__init__(self)
+        self.path.build_stroke()
+        _active_path = None
 
+
+cdef class PathEnd(PathStroke):
+    pass
 
 
 

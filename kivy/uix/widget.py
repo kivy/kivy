@@ -71,6 +71,7 @@ class Widget(EventDispatcher):
         self.canvas = Canvas()
 
 
+
     #
     # Collision
     #

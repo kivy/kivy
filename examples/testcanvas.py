@@ -15,6 +15,8 @@ class TestApp(App):
             #Ellipse(pos=(300,100), size=(200,100), texture=tex2)
             #Color(1,0,0,1)
             #Rectangle(texture=tex2)
+
+            LineWidth(10)
             PathStart(100,100)
             PathLineTo(200,200)
             PathLineTo(300,200)
@@ -22,8 +24,7 @@ class TestApp(App):
             PathLineTo(200,250)
             PathLineTo(100,300)
             PathLineTo(150,250)
-            PathClose()
-            PathEnd()
+            PathStroke()
         return a
 
 TestApp().run()
