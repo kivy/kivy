@@ -176,9 +176,11 @@ class UxlParser(object):
 
                 # It's a property
                 else:
+                    '''
                     if name == 'children':
                         raise UxlError(self, ln,
                                        '<children> usage is forbidden')
+                    '''
 
                     if len(x) == 1:
                         raise UxlError(self, ln, 'Syntax error')
@@ -221,51 +223,130 @@ def create_handler(element, key):
         setattr(element, key, value)
     return call_fn
 
+class UxlRule(object):
+    def __init__(self, key):
+        self.key = key.lower()
 
-class UxlBuilder(object):
-    def __init__(self, **kwargs):
-        super(UxlBuilder, self).__init__()
-        self.idmap = {}
-        self.root = None
+    def match(self, widget):
+        raise NotImplemented()
+
+    def __repr__(self):
+        return '<%s key=%s>' % (self.__class__.__name__, self.key)
+
+class UxlRuleId(UxlRule):
+    def match(self, widget):
+        return widget.id.lower() == self.key
+
+class UxlRuleClass(UxlRule):
+    def match(self, widget):
+        return self.key in widget.cls
+
+class UxlRuleName(UxlRule):
+    def match(self, widget):
+        return widget.__class__.__name__.lower() == self.key
+
+class UxlBase(object):
+    '''Uxl object are able to load Uxl file or string, return the root object of
+    the file, and inject rules in the rules database.
+    '''
+    def __init__(self):
+        super(UxlBase, self).__init__()
         self.rules = []
-        self.parser = UxlParser(**kwargs)
-        self.build(self.parser.objects)
+        self.idmap = {}
+
+    def add_rule(self, rule, defs):
+        print 'add rule', rule
+        self.rules.append((rule, defs))
+
+    def load_file(self, filename, **kwargs):
+        with open(filename, 'r') as fd:
+            return self.load_string(fd.read(), **kwargs)
+
+    def load_string(self, string, rulesonly=False):
+        parser = UxlParser(content=string)
+        root = self.build(parser.objects)
+        if rulesonly and root:
+            raise Exception('The file <%s> contain also non-rules '
+                            'directives' % filename)
+
+    def match(self, widget):
+        '''Return the list of the rules matching the widget
+        '''
+        matches = []
+        for rule, defs in self.rules:
+            if rule.match(widget):
+                matches.append(defs)
+        return matches
+
+    def apply(self, widget):
+        '''Apply all the Uxl rules matching the widget on the widget.
+        '''
+        print 'Ask apply from', widget
+        matches = self.match(widget)
+        print '=> matches', matches
+        if not matches:
+            return
+        for defs in matches:
+            self.build_item(widget, defs, is_instance=True)
+
+
+    #
+    # Private
+    #
 
     def build(self, objects):
+        root = None
         for item, params in objects:
             if item.startswith('<'):
                 self.build_rule(item, params)
             else:
-                if self.root is not None:
+                if root is not None:
                     raise UxlError(params['__ctx__'], params['__line__'],
                                    'Only one root object is allowed')
-                self.root = self.build_item(item, params)
+                root = self.build_item(item, params)
+        return root
 
-    def build_item(self, item, params):
-        if item.startswith('<'):
-            raise UxlError(params['__ctx__'], params['__line__'],
-                           'Rules are not accepted inside Widget')
-        widget = Factory.get(item)()
+    def build_item(self, item, params, is_instance=False):
+        if is_instance is False:
+            if item.startswith('<'):
+                raise UxlError(params['__ctx__'], params['__line__'],
+                               'Rules are not accepted inside Widget')
+            widget = Factory.get(item)()
+        else:
+            widget = item
         self.idmap['self'] = widget
+
+        # first loop, do attributes
         for key, value in params.iteritems():
             if key in ('__line__', '__ctx__'):
                 continue
             value, ln, ctx = value
-            if key == 'canvas':
-                with widget.canvas:
-                    self.build_canvas(item, value)
-            elif key == 'children':
+            if key == 'children':
                 children = []
                 for citem, cparams, in value:
                     child = self.build_item(citem, cparams)
                     children.append(child)
                 widget.children = children
+            elif key == 'canvas':
+                pass
             else:
                 try:
                     value = eval(value)
-                    setattr(widget, key, value)
+                    if not hasattr(widget, key):
+                        widget.create_property(key, value)
+                    else:
+                        setattr(widget, key, value)
                 except Exception, e:
                     raise UxlError(ctx, ln, str(e))
+
+        # second loop, only for canvas
+        for key, value in params.iteritems():
+            if key != 'canvas':
+                continue
+            value, ln, ctx = value
+            with widget.canvas:
+                self.build_canvas(item, value)
+
         return widget
 
     def build_canvas(self, item, elements):
@@ -278,7 +359,8 @@ class UxlBuilder(object):
                 try:
                     # is the value is a string, numeric, tuple, list ?
                     if value[0] in ('(', '[', '"', '\''):
-                        value = eval(value)
+                        print dir(self.idmap['self'])
+                        value = eval(value, {}, self.idmap)
                     # must be an object.property
                     else:
                         value = value.split('.')
@@ -290,6 +372,7 @@ class UxlBuilder(object):
                         kw = { value[1]: create_handler(element, key) }
                         m.bind(**kw)
                         value = getattr(self.idmap[value[0]], value[1])
+                    print 'SETATTR', element, key, value
                     setattr(element, key, value)
                 except Exception, e:
                     raise
@@ -297,13 +380,27 @@ class UxlBuilder(object):
             print element
 
     def build_rule(self, item, params):
-        pass
+        if item[0] != '<' or item[-1] != '>':
+            raise UxlError(params['__ctx__'], params['__line__'],
+                           'Invalid rule (must be inside <>)')
+        rules = item[1:-1].split(',')
+        for rule in rules:
+            if not len(rule):
+                raise UxlError(params['__ctx__'], params['__line__'],
+                               'Empty rule detected')
+            crule = None
+            if rule[0] == '.':
+                crule = UxlRuleClass(rule[1:])
+            elif rule[0] == '#':
+                crule = UxlRuleId(rule[1:])
+            else:
+                crule = UxlRuleName(rule)
+            self.add_rule(crule, params)
 
 
-# XXX FIXME move this into graphics
-Factory.register('Rectangle', module='kivy.graphics')
-Factory.register('Color', module='kivy.graphics')
-
+#: Rules instance, can be use for asking if we are matching a rule or not
+Uxl = UxlBase()
+Uxl.load_file('kivy/data/style.uxl', rulesonly=True)
 
 if __name__ == '__main__':
     uxl_content = '''#:uxl 1.0

@@ -1,21 +1,9 @@
 #:uxl 1.0
 
 Widget:
-
 	Button:
 		label: "Hello World"
-		canvas:
-			Color:
-				rgb: (1, 0, 0)
-			Rectangle:
-				pos: self.pos
-
 
 	Button:
 		label: "I'm another label"
 		pos: (200, 200)
-		canvas:
-			Color:
-				rgb: (0, 1, 0)
-			Rectangle:
-				pos: self.pos

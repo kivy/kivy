@@ -39,7 +39,7 @@ class FactoryBuild(Command):
                 raise Exception('Directory should start with the kivy'
                                 'directory')
             root = 'kivy' + root[len(root_dir):].replace(os.path.sep, '.')
-            for filename in fnmatch.filter(filenames, '*.py'):
+            for filename in fnmatch.filter(filenames, '*.[ps][yo]'):
                 module = '%s.%s' % (root, filename[:-3])
 
                 # check ignore list first
@@ -60,7 +60,12 @@ class FactoryBuild(Command):
 
                 print '>>>', module, '::',
 
-                m = __import__(name=module, fromlist='.')
+                try:
+                    m = __import__(name=module, fromlist='.')
+                except Exception, e:
+                    print
+                    print 'ERROR:', e
+                    continue
                 if not hasattr(m, '__all__'):
                     print
                     continue

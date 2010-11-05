@@ -34,7 +34,7 @@ cdef class Canvas:
     cdef GraphicContext _context
     cdef VBO vertex_buffer
     cdef list texture_map
-    cdef list batch
+    cdef list _batch
 
     #move to graphics compiler?:
     cdef int _need_compile
@@ -45,7 +45,7 @@ cdef class Canvas:
         self._context = GraphicContext.instance()
         self.vertex_buffer = VBO()
         self.texture_map = []
-        self.batch = []
+        self._batch = []
 
         self._need_compile = 1
         self.batch_slices = []
@@ -63,6 +63,10 @@ cdef class Canvas:
         def __get__(self):
             return self._context
 
+    property batch:
+        def __get__(self):
+            return self._batch
+
     cpdef __enter__(self):
         global _active_canvas
         _active_canvas = self
@@ -73,7 +77,7 @@ cdef class Canvas:
 
     cdef add(self, GraphicInstruction instruction):
         self.need_compile = 1
-        self.batch.append(instruction)
+        self._batch.append(instruction)
 
     cdef update(self, instruction):
         ''' called by graphic instructions taht are part of the canvas,
@@ -102,8 +106,8 @@ cdef class Canvas:
 
         print "starting compile"
 
-        for i in xrange(len(self.batch)):
-            item = self.batch[i]
+        for i in xrange(len(self._batch)):
+            item = self._batch[i]
             code = item.code
             #the instruction modifies the context, so we cant combine the drawing
             #calls before and after it
@@ -142,7 +146,7 @@ cdef class Canvas:
 
 
         #loop pver all the whole slice, and combine all instructions
-        for item in self.batch[slice_start:slice_end+1]:
+        for item in self._batch[slice_start:slice_end+1]:
             # add the vertex indices to be drawn from this item
             for i in range(item.num_elements):
                 v = item.element_data[i]
