@@ -1,0 +1,30 @@
+﻿==================
+INSTALLATION GUIDE
+==================
+
+------------
+Dependencies
+------------
+
+  Core poly2tri lib:
+  - Cython
+  
+  Testbed:
+  - Pygame
+
+----------------------------------------------
+Building the library
+----------------------------------------------
+
+python setup.py build_ext -i
+
+----------------------------------------------
+Running the Examples
+----------------------------------------------
+
+python test.py <filename> <translate-x> <translate-y> <zoom>
+
+Examples:
+
+  python test.py data/dude.dat 100 -200 1
+  python test.py data/nazca_monkey.dat 400 300 4.5

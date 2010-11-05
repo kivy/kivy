@@ -18,6 +18,8 @@ from graphics_shader cimport Shader
 from graphics_context cimport GraphicContext
 from graphics_matrix cimport MatrixStack
 
+from kivy.c_ext.p2t import CDT, Point
+
 from kivy.lib.transformations import matrix_multiply, identity_matrix, \
              rotation_matrix, translation_matrix, scale_matrix
 
@@ -218,6 +220,110 @@ cdef class ContextInstruction(GraphicInstruction):
     cpdef apply(self):
         pass
 
+
+
+
+cdef class LineWidth(ContextInstruction):
+    '''
+    Instruction to set the line width of the drawing context
+    '''
+    cdef float lw
+    def __init__(self, *args, **kwargs):
+        ContextInstruction.__init__(self, **kwargs)
+        if len(args) == 1:
+            self.lw = args[0]
+
+    def set(self, float lw):
+        self.lw = lw
+
+    cpdef apply(self):
+        self.canvas.context.set('linewidth', self.lw)
+
+
+cdef class Color(ContextInstruction):
+    '''
+    Instruction to set the color state for any vetices being drawn after it
+    '''
+    cdef list color
+
+    def __init__(self, *args, **kwargs):
+        '''
+        SetColor will change the color being used to draw in the context
+        '''
+        ContextInstruction.__init__(self)
+        self.rgba = args
+
+    cpdef apply(self):
+        self.context.set('color', (self.r, self.g, self.b, self.a))
+
+    property rgba:
+        def __get__(self):
+            return self.color
+        def __set__(self, rgba):
+            if not rgba:
+                rgba = (1.0, 1.0, 1.0, 1.0)
+            self.color = list(rgba)
+            self.context.post_update()
+
+    property rgb:
+        def __get__(self):
+            return self.color[:-1]
+        def __set__(self, rgb):
+            rgba = (rgb[0], rgb[1], rgb[2], 1.0)
+            self.rgba = rgba
+
+    property r:
+        def __get__(self):
+            return self.color[0]
+        def __set__(self, r):
+            self.rbga = [r, self.g, self.b, self.a]
+    property g:
+        def __get__(self):
+            return self.color[1]
+        def __set__(self, g):
+            self.rbga = [self.r, g, self.b, self.a]
+    property b:
+        def __get__(self):
+            return self.color[2]
+        def __set__(self, b):
+            self.rbga = [self.r, self.g, b, self.a]
+    property a:
+        def __get__(self):
+            return self.color[3]
+        def __set__(self, a):
+            self.rbga = [self.r, self.g, self.b, a]
+
+
+
+cdef class BindTexture(ContextInstruction):
+    cdef object _texture
+
+    def __init__(self, *args, **kwargs):
+        '''
+        BindTexture Graphic instruction:
+            The BindTexture Instruction will bind a texture and enable
+            GL_TEXTURE_2D for subsequent drawing.
+
+        :Parameters:
+            `texture`, Texture:  specifies the texture to bind to the given index
+        '''
+        ContextInstruction.__init__(self)
+        self.texture = args[0]
+
+    cpdef apply(self):
+        self.canvas.context.set('texture0', self.texture)
+
+    def set(self, object texture):
+        self.texture = texture
+
+    property texture:
+        def __get__(self):
+            return self._texture
+        def __set__(self, tex):
+            self._texture = tex
+            self.context.post_update()
+
+
 cdef class PushMatrix(ContextInstruction):
     '''
     PushMatrix on context's matrix stack
@@ -401,105 +507,6 @@ cdef class  Translate(Transform):
 
 
 
-cdef class LineWidth(ContextInstruction):
-    '''
-    Instruction to set the line width of the drawing context
-    '''
-    cdef float lw
-    def __init__(self, *args, **kwargs):
-        ContextInstruction.__init__(self, **kwargs)
-        if len(args) == 1:
-            self.lw = args[0]
-
-    def set(self, float lw):
-        self.lw = lw
-
-    cpdef apply(self):
-        self.canvas.context.set('linewidth', self.lw)
-
-
-cdef class Color(ContextInstruction):
-    '''
-    Instruction to set the color state for any vetices being drawn after it
-    '''
-    cdef list color
-
-    def __init__(self, *args, **kwargs):
-        '''
-        SetColor will change the color being used to draw in the context
-        '''
-        ContextInstruction.__init__(self)
-        self.rgba = args
-
-    cpdef apply(self):
-        self.context.set('color', (self.r, self.g, self.b, self.a))
-
-    property rgba:
-        def __get__(self):
-            return self.color
-        def __set__(self, rgba):
-            if not rgba:
-                rgba = (1.0, 1.0, 1.0, 1.0)
-            self.color = list(rgba)
-            self.context.post_update()
-
-    property rgb:
-        def __get__(self):
-            return self.color[:-1]
-        def __set__(self, rgb):
-            rgba = (rgb[0], rgb[1], rgb[2], 1.0)
-            self.rgba = rgba
-
-    property r:
-        def __get__(self):
-            return self.color[0]
-        def __set__(self, r):
-            self.rbga = [r, self.g, self.b, self.a]
-    property g:
-        def __get__(self):
-            return self.color[1]
-        def __set__(self, g):
-            self.rbga = [self.r, g, self.b, self.a]
-    property b:
-        def __get__(self):
-            return self.color[2]
-        def __set__(self, b):
-            self.rbga = [self.r, self.g, b, self.a]
-    property a:
-        def __get__(self):
-            return self.color[3]
-        def __set__(self, a):
-            self.rbga = [self.r, self.g, self.b, a]
-
-
-
-cdef class BindTexture(ContextInstruction):
-    cdef object _texture
-
-    def __init__(self, *args, **kwargs):
-        '''
-        BindTexture Graphic instruction:
-            The BindTexture Instruction will bind a texture and enable
-            GL_TEXTURE_2D for subsequent drawing.
-
-        :Parameters:
-            `texture`, Texture:  specifies the texture to bind to the given index
-        '''
-        ContextInstruction.__init__(self)
-        self.texture = args[0]
-
-    cpdef apply(self):
-        self.canvas.context.set('texture0', self.texture)
-
-    def set(self, object texture):
-        self.texture = texture
-
-    property texture:
-        def __get__(self):
-            return self._texture
-        def __set__(self, tex):
-            self._texture = tex
-            self.context.post_update()
 
 
 cdef class VertexDataInstruction(GraphicInstruction):
@@ -736,10 +743,8 @@ cdef class BorderRectangle(VertexDataInstruction):
 
     def __init__(self, **kwargs):
         #we have 16 vertices in BorderRectangle
-
         VertexDataInstruction.__init__(self, **kwargs)
         self.allocate_vertex_buffers(16)
-
 
         #get keyword args for configuring rectangle
         cdef tuple s = kwargs.get('size', (100, 100))
@@ -805,10 +810,6 @@ cdef class BorderRectangle(VertexDataInstruction):
         tb[2] = b[2] / th*tch
         tb[3] = b[3] / tw*tcw
 
-        #print "x,y,w,h:", x, y, w, h
-        #print "texture|coord size:", tw, th, tcw, tch
-        #print "border:", b[0], b[1], b[2], b[3]
-        #print "texture border:", tb[0], tb[1], tb[2], tb[3]
 
          #horizontal and vertical sections
         cdef float hs[4]
@@ -919,7 +920,6 @@ cdef class Ellipse(VertexDataInstruction):
             t_coords = self.texture.tex_coords
         self.tex_coords  = kwargs.get('tex_coords', t_coords)
 
-
         self.allocate_vertex_buffers(self.segments + 1)
         self.build()
 
@@ -953,8 +953,6 @@ cdef class Ellipse(VertexDataInstruction):
         v[self.segments] = vertex4f(x,y,ttx, tty )
         self.update_vbo_data()
 
-
-
     property tex_coords:
         def __get__(self):
             return self._tex_coords
@@ -982,20 +980,24 @@ cdef class Ellipse(VertexDataInstruction):
 cdef class Path
 cdef Path _active_path = None
 
+
 cdef class Path(VertexDataInstruction):
     cdef float pen_x, pen_y
+    cdef list points
     cdef Buffer point_buffer
     def __init__(self):
         VertexDataInstruction.__init__(self)
         self.point_buffer = Buffer(sizeof(vertex))
+        self.points  = list()
 
     cdef int add_point(self, float x, float y):
         cdef int idx
         cdef vertex v = vertex2f(x,y)
         self.point_buffer.add(&v, &idx, 1)
+        self.points.append(Point(x,y))
         return idx
 
-    cdef build(self):
+    cdef old_build(self):
         cdef vertex* p    #pointer into point buffer
         cdef vertex v[4]  #to hold the vertices for each quad were creating
         cdef int  idx[4]  #to hold the vbo indecies for every quad we add
@@ -1066,6 +1068,44 @@ cdef class Path(VertexDataInstruction):
         self.canvas.update(self)
 
 
+    cdef build(self):
+
+        cdef vertex v[4]  #to hold the vertices for each quad were creating
+        cdef int  idx[4]  #to hold the vbo indecies for every quad we add
+        cdef list triangles 
+        cdef list indices = []
+
+        print "BUILDING PATH:", self.points
+        poly = CDT([])
+        #poly.triangulate()
+        return
+
+
+        cdef int i = 0
+        self.v_buffer = Buffer(sizeof(vertex))
+        self.i_buffer = Buffer(sizeof(GLint))
+        for t in triangles:
+            print "triangle:", t.debug_print()
+            v[0] = vertex2f(t.a.x, t.a.y)
+            v[1] = vertex2f(t.b.x, t.b.y)
+            v[2] = vertex2f(t.c.x, t.c.y)
+            self.v_count += 3    
+            self.v_buffer.add(v, idx, 3)
+            self.i_buffer.add(idx, NULL, 3)
+
+            indices.extend(i, i+1, i+2)
+            i +=3
+
+        #update vertex and vbo index pointers
+        self.v_data = <vertex*>  self.v_buffer.pointer()
+        self.i_data = <int*>     self.i_buffer.pointer()
+        self.element_data = <int*> self.element_buffer.pointer()
+        self.num_elements = self.element_buffer.count()
+
+        #actually add vertices to VBO
+        self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
+        self.canvas.add(self)
+        self.canvas.update(self)
 
 cdef class PathInstruction(GraphicInstruction):
     cdef Path path
@@ -1073,7 +1113,6 @@ cdef class PathInstruction(GraphicInstruction):
         global _active_path
         GraphicInstruction.__init__(self, GI_IGNORE)
         self.path = _active_path
-
 
 
 cdef class PathStart(PathInstruction):
@@ -1122,13 +1161,11 @@ cdef class PathEnd(PathInstruction):
         PathInstruction.__init__(self)
         self.path.build()
         _active_path = None
-        print "END PATH", _active_path
-'''
-    cdef class PathMoveTo(PathInstruction):
-    cdef float x,y
-    def __init__(self, x, y):
-        PathInstruction.__init__(self)
-        self.path.pen_state = PEN_UP
-        self.path.pen_x = x
-        self.path.pen_y = y
-'''
+
+
+
+
+
+
+
+
