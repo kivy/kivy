@@ -76,7 +76,8 @@ class UxlParser(object):
         self.sourcecode = lines[:]
 
         # Ensure the version
-        self.parse_version(lines[0])
+        if self.filename:
+            self.parse_version(lines[0])
 
         # Strip all comments
         self.strip_comments(lines)
