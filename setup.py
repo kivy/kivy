@@ -1,8 +1,8 @@
 import sys
 import os
 import shutil
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup
+from setuptools.extension import Extension
 
 #check for numpy, which is absolutely required!
 try:
@@ -140,6 +140,7 @@ setup(
     description='A framework for making accelerated multitouch UI',
     ext_modules=ext_modules,
     cmdclass=cmdclass,
+    test_suite='nose.collector',
     packages=[
         'kivy',
         'kivy.c_ext',
@@ -148,12 +149,13 @@ setup(
         'kivy.core.camera',
         'kivy.core.clipboard',
         'kivy.core.image',
+        'kivy.core.gl',
         'kivy.core.spelling',
         'kivy.core.svg',
         'kivy.core.text',
         'kivy.core.video',
+        'kivy.core.window',
         'kivy.graphics',
-        'kivy.graphx',
         'kivy.input',
         'kivy.input.postproc',
         'kivy.input.providers',
@@ -161,27 +163,16 @@ setup(
         'kivy.lib.osc',
         'kivy.modules',
         'kivy.tools',
-        'kivy.tools.calibration',
-        'kivy.tools.designerapp',
         'kivy.tools.packaging',
         'kivy.tools.packaging.win32',
         'kivy.tools.packaging.osx',
-        'kivy.ui',
-        'kivy.ui.widgets',
-        'kivy.ui.widgets.composed',
-        'kivy.ui.widgets.layout',
-        'kivy.ui.window',
+        'kivy.uix',
     ],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
-        'data/icons/filetype/*.png',
-        'data/icons/svg/*.svg',
-        'data/icons/*.png',
-        'data/logo/*.png',
         'data/*.css',
         'data/*.png',
         'data/*.ttf',
-        'tools/designerapp/icons/*.png',
         'tools/packaging/README.txt',
         'tools/packaging/win32/kivy.bat',
         'tools/packaging/win32/README.txt',
