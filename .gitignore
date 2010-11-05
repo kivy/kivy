@@ -1,0 +1,11 @@
+.noseids
+Kivy.egg-info
+*.c
+*.so
+*.pyc
+*.pyo
+*~
+*.swp
+*.DS_Store
+*.kpf
+build/*
