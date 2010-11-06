@@ -51,7 +51,7 @@ class LabelBase(object):
 
     _cache_glyphs = {}
 
-    def __init__(self, label, **kwargs):
+    def __init__(self, **kwargs):
         kwargs.setdefault('font_size', 12)
         kwargs.setdefault('font_name', DEFAULT_FONT)
         kwargs.setdefault('bold', False)
@@ -86,9 +86,9 @@ class LabelBase(object):
         if uw != None:
             kwargs['size'] = uw - kwargs['padding_x'] * 2, uh
 
-        super(LabelBase, self).__init__(**kwargs)
+        super(LabelBase, self).__init__()
 
-        self._label     = None
+        self._text      = None
 
         self.color      = kwargs.get('color')
         self.usersize   = kwargs.get('size')
@@ -110,7 +110,7 @@ class LabelBase(object):
                 else:
                     label_font_cache[fontname] = None
 
-        self.label      = label
+        self.text      = kwargs.get('text', '')
 
     def get_extents(self, text):
         '''Return a tuple with (width, height) for a text.'''
@@ -143,7 +143,7 @@ class LabelBase(object):
 
         # no width specified, faster method
         if uw is None:
-            for line in self.label.split('\n'):
+            for line in self.text.split('\n'):
                 lw, lh = self.get_extents(line)
                 if real:
                     x = 0
@@ -166,7 +166,7 @@ class LabelBase(object):
 
             if not real:
                 # verify that each glyph have size
-                glyphs = list(set(self.label))
+                glyphs = list(set(self.text))
                 for glyph in glyphs:
                     if not glyph in cache:
                         cache[glyph] = self.get_extents(glyph)
@@ -175,7 +175,7 @@ class LabelBase(object):
             glyphs = []
             lines = []
             lw = lh = 0
-            for word in re.split(r'( |\n)', self.label):
+            for word in re.split(r'( |\n)', self.text):
 
                 # calculate the word width
                 ww, wh = 0, 0
@@ -262,7 +262,7 @@ class LabelBase(object):
 
 
     def refresh(self):
-        '''Force re-rendering of the label'''
+        '''Force re-rendering of the text'''
         # first pass, calculating width/height
         sz = self.render()
         self._size = sz
@@ -271,22 +271,34 @@ class LabelBase(object):
         self._size = sz[0] + self.options['padding_x'] * 2, \
                      sz[1] + self.options['padding_y'] * 2
 
-    def _get_label(self):
-        return self._label
-    def _set_label(self, label):
-        if label == self._label:
+    def _get_text(self):
+        return self._text
+    def _set_text(self, text):
+        if text == self._text:
             return
         # try to automaticly decode unicode
         try:
-            self._label = label.decode('utf8')
+            self._text = text.decode('utf8')
         except:
             try:
-                self._label = str(label)
+                self._text = str(text)
             except:
-                self._label = label
+                self._text = text
         self.refresh()
-    label = property(_get_label, _set_label, doc='Get/Set the label text')
-    text = property(_get_label, _set_label, doc='Get/Set the label text')
+    text = property(_get_text, _set_text, doc='Get/Set the text')
+    label = property(_get_text, _set_text, doc='Get/Set the text')
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def width(self):
+        return self._size[0]
+
+    @property
+    def height(self):
+        return self._size[1]
 
     @property
     def content_width(self):

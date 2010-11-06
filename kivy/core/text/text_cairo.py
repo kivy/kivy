@@ -4,8 +4,8 @@ Text Cairo: Draw text with cairo
 
 __all__ = ('LabelCairo', )
 
-import kivy
 from . import LabelBase
+from kivy.core.image import ImageData
 
 try:
     import cairo
@@ -61,7 +61,7 @@ class LabelCairo(LabelBase):
     def _render_begin(self):
         # create a surface, context, font...
         self._cairo_surface = cairo.ImageSurface(
-                cairo.FORMAT_ARGB32, *self.size)
+                cairo.FORMAT_ARGB32, *self._size)
         self._cairo_context = cairo.Context(self._cairo_surface)
 
         self._select_font(self._cairo_context)
@@ -74,7 +74,7 @@ class LabelCairo(LabelBase):
         self._cairo_context.show_text(text)
 
     def _render_end(self):
-        data = kivy.ImageData(self.width, self.height,
+        data = ImageData(self._size[0], self._size[1],
             'RGBA', buffer(self._cairo_surface.get_data())[:])
 
         del self._cairo_surface

@@ -9,9 +9,10 @@ try:
 except:
     raise
 
-import kivy
 import os
 from . import LabelBase
+from kivy import kivy_data_dir
+from kivy.core.image import ImageData
 
 # used for fetching extends before creature image surface
 default_font = ImageFont.load_default()
@@ -23,7 +24,7 @@ class LabelPIL(LabelBase):
         fontname = self.options['font_name'].split(',')[0]
         id = '%s.%s' % (unicode(fontname), unicode(fontsize))
         if not id in self._cache:
-            filename = os.path.join(kivy.kivy_data_dir, 'DejaVuSans.ttf')
+            filename = os.path.join(kivy_data_dir, 'DejaVuSans.ttf')
             font = ImageFont.truetype(filename, fontsize)
             self._cache[id] = font
 
@@ -36,7 +37,7 @@ class LabelPIL(LabelBase):
 
     def _render_begin(self):
         # create a surface, context, font...
-        self._pil_im = Image.new('RGBA', self.size)
+        self._pil_im = Image.new('RGBA', self._size)
         self._pil_draw = ImageDraw.Draw(self._pil_im)
 
     def _render_text(self, text, x, y):
@@ -44,7 +45,7 @@ class LabelPIL(LabelBase):
         self._pil_draw.text((int(x), int(y)), text, font=self._select_font(), fill=color)
 
     def _render_end(self):
-        data = kivy.ImageData(self.width, self.height,
+        data = ImageData(self._size[0], self._size[1],
             self._pil_im.mode, self._pil_im.tostring())
 
         del self._pil_im
