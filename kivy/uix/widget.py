@@ -68,12 +68,19 @@ class Widget(EventDispatcher):
         self.register_event_type('on_touch_up')
         self.register_event_type('on_draw')
 
+        # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
+
+        # Apply the existing arguments to our widget
+        for key, value in kwargs.iteritems():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+        # Create the default canvas
         self.canvas = Canvas()
 
         # Apply all the styles
         Uxl.apply(self)
-
 
 
 
