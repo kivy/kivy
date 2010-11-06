@@ -260,7 +260,6 @@ class LabelBase(object):
         # update texture
         self.texture.blit_data(data)
 
-
     def refresh(self):
         '''Force re-rendering of the text'''
         # first pass, calculating width/height
@@ -284,7 +283,6 @@ class LabelBase(object):
                 self._text = str(text)
             except:
                 self._text = text
-        self.refresh()
     text = property(_get_text, _set_text, doc='Get/Set the text')
     label = property(_get_text, _set_text, doc='Get/Set the text')
 

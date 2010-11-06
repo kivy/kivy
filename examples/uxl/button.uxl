@@ -2,8 +2,8 @@
 
 Widget:
 	Button:
-		label: "Hello World"
+		text: "Hello World"
 
 	Button:
-		label: "I'm another label"
+		text: "I'm another label"
 		pos: (200, 200)

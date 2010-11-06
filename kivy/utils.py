@@ -12,7 +12,6 @@ __all__ = ('intersection', 'difference', 'curry', 'strtotuple',
 import inspect
 import re
 import functools
-from kivy.logger import Logger
 
 def boundary(value, minvalue, maxvalue):
     '''Limit a value between a minvalue and maxvalue'''
@@ -140,6 +139,7 @@ def deprecated(func):
                 func.func_code.co_filename,
                 func.func_code.co_firstlineno + 1,
                 file, line, caller)
+            from kivy.logger import Logger
             Logger.warn(warning)
             if func.__doc__:
                 Logger.warn(func.__doc__)
