@@ -111,7 +111,7 @@ cdef class Canvas:
 
         self.compile_init()
 
-        Logger.debug('GCanvas: start compilation')
+        Logger.trace('GCanvas: start compilation')
 
         for i in xrange(len(self._batch)):
             item = self._batch[i]
@@ -142,7 +142,7 @@ cdef class Canvas:
 
 
     cdef compile_slice(self, str command, slice_start, slice_end):
-        Logger.debug('Canvas: compiling slice: %s' % str((
+        Logger.trace('Canvas: compiling slice: %s' % str((
                      slice_start, slice_end, command)))
         cdef VertexDataInstruction item
         cdef Buffer b = Buffer(sizeof(GLint))
@@ -573,7 +573,7 @@ cdef class VertexDataInstruction(GraphicInstruction):
                 v_data.  so self.i_data[i] is vbo index of self.v_buffer[i]
         '''
 
-        Logger.debug('GVertex: allocating vertex data: %s' % str(num_verts))
+        Logger.trace('GVertex: allocating vertex data: %s' % str(num_verts))
 
         # create vertex and index buffers
         self.v_buffer = Buffer(sizeof(vertex))
@@ -591,7 +591,7 @@ cdef class VertexDataInstruction(GraphicInstruction):
         # allocte on vbo and update indices with
         self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
 
-        Logger.debug('GVertex: done allocating')
+        Logger.trace('GVertex: done allocating')
 
 
     property indices:
@@ -622,7 +622,7 @@ cdef class VertexDataInstruction(GraphicInstruction):
         cdef int* idx    = self.i_data
         cdef int i
 
-        Logger.debug('GVertex: uploading vbo data')
+        Logger.trace('GVertex: uploading vbo data')
 
         for i in range(self.v_count):
             #print idx[i], vtx[i].x, vtx[i].y, vtx[i].s0, vtx[i].t0
@@ -1024,7 +1024,7 @@ cdef class Path(VertexDataInstruction):
             #normalize normal vector and scale for stroke offset
             ns = sqrt( (dx*dx) + (dy*dy) )
             if ns == 0.0:
-                Logger.debug('GPath: skipping line, the two points are 0 '
+                Logger.trace('GPath: skipping line, the two points are 0 '
                              'unit apart.')
                 continue
 
@@ -1078,7 +1078,7 @@ cdef class Path(VertexDataInstruction):
         cdef int  idx[4]  #to hold the vbo indecies for every quad we add
         cdef list triangles
         cdef list indices = []
-        Logger.debug('GPath: build fill %s' % str(self.points))
+        Logger.trace('GPath: build fill %s' % str(self.points))
         poly = CDT(self.points)
         triangles = poly.triangulate()
 

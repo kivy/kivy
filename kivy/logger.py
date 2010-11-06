@@ -59,6 +59,7 @@ def formatter_message(message, use_color=True):
     return message
 
 COLORS = {
+    'TRACE': MAGENTA,
     'WARNING': YELLOW,
     'INFO': GREEN,
     'DEBUG': CYAN,
@@ -66,7 +67,9 @@ COLORS = {
     'ERROR': RED
 }
 
+logging.TRACE = 9
 LOG_LEVELS = {
+    'trace': logging.TRACE,
     'debug': logging.DEBUG,
     'info': logging.INFO,
     'warning': logging.WARNING,
@@ -195,6 +198,9 @@ class ColoredFormatter(logging.Formatter):
         except:
             pass
         levelname = record.levelname
+        if record.levelno == logging.TRACE:
+            levelname = 'TRACE'
+            record.levelname = levelname
         if self.use_color and levelname in COLORS:
             levelname_color = COLOR_SEQ % (30 + COLORS[levelname]) + levelname + RESET_SEQ
             record.levelname = levelname_color
@@ -230,6 +236,9 @@ if 'nosetests' not in sys.argv:
 #: Kivy default logger instance
 Logger = logging.getLogger('Kivy')
 Logger.logfile_activated = False
+
+from kivy.utils import curry
+Logger.trace = curry(Logger.log, logging.TRACE)
 
 #: Kivy history handler
 LoggerHistory = HistoryHandler
