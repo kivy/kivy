@@ -194,7 +194,7 @@ class ColoredFormatter(logging.Formatter):
         try:
             msg = record.msg.split(':', 1)
             if len(msg) == 2:
-                record.msg = '[%-8s]%s' % (msg[0], msg[1])
+                record.msg = '[%-12s]%s' % (msg[0], msg[1])
         except:
             pass
         levelname = record.levelname
