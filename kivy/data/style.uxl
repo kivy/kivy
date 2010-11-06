@@ -12,3 +12,22 @@
 			Rectangle:
 				size: (100, 100)
 
+<Slider>:
+    canvas:
+        Color:
+            rgb: (.3, .3, .3)
+        Rectangle:
+            pos: self.pos
+            size: self.size   
+
+        Color:
+            rgb: (.7, .2, .5)
+        Rectangle:
+            pos: self.handle_pos
+            size: (20,self.height)
+
+
+
+
+
+

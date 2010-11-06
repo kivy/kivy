@@ -288,22 +288,22 @@ cdef class Color(ContextInstruction):
         def __get__(self):
             return self.color[0]
         def __set__(self, r):
-            self.rbga = [r, self.g, self.b, self.a]
+            self.rgba = [r, self.g, self.b, self.a]
     property g:
         def __get__(self):
             return self.color[1]
         def __set__(self, g):
-            self.rbga = [self.r, g, self.b, self.a]
+            self.rgba = [self.r, g, self.b, self.a]
     property b:
         def __get__(self):
             return self.color[2]
         def __set__(self, b):
-            self.rbga = [self.r, self.g, b, self.a]
+            self.rgba = [self.r, self.g, b, self.a]
     property a:
         def __get__(self):
             return self.color[3]
         def __set__(self, a):
-            self.rbga = [self.r, self.g, self.b, a]
+            self.rgba = [self.r, self.g, self.b, a]
 
 
 
