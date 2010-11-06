@@ -19,10 +19,17 @@ from graphics_shader cimport Shader
 from graphics_context cimport GraphicContext
 from graphics_matrix cimport MatrixStack
 
+
+#tesselation of complex polygons
 from kivy.c_ext.p2t import CDT, Point
 
+#TODO: write matrix transforms in c or cython
 from kivy.lib.transformations import matrix_multiply, identity_matrix, \
              rotation_matrix, translation_matrix, scale_matrix
+
+
+from kivy.logger import Logger
+
 
 cdef class Canvas
 cdef class GraphicContext
@@ -104,7 +111,7 @@ cdef class Canvas:
 
         self.compile_init()
 
-        print "starting compile"
+        Logger.debug("starting compile")
 
         for i in xrange(len(self._batch)):
             item = self._batch[i]
@@ -135,7 +142,7 @@ cdef class Canvas:
 
 
     cdef compile_slice(self, str command, slice_start, slice_end):
-        print "compiling slice:", slice_start, slice_end, command
+        Logger.debug("compiling slice:", slice_start, slice_end, command)
         cdef VertexDataInstruction item
         cdef Buffer b = Buffer(sizeof(GLint))
         cdef int v, i
