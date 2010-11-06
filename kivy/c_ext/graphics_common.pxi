@@ -4,17 +4,17 @@ cdef list VERTEX_ATTRIBUTES = [
     {'name': 'vPosition',  'index': 0, 'size': 2, 'type': GL_FLOAT,
      'bytesize': sizeof(GLfloat) * 2, 'per_vertex': True},
 
-    {'name': 'vTexCoord0', 'index': 1, 'size': 2, 'type': GL_FLOAT,
+    {'name': 'vTexCoords0', 'index': 1, 'size': 2, 'type': GL_FLOAT,
      'bytesize': sizeof(GLfloat) * 2, 'per_vertex': True},
 
-    {'name': 'vTexCoord1', 'index': 2, 'size': 2, 'type': GL_FLOAT,
-     'bytesize': sizeof(GLfloat) * 2, 'per_vertex': True}, 
+    {'name': 'vTexCoords1', 'index': 2, 'size': 2, 'type': GL_FLOAT,
+     'bytesize': sizeof(GLfloat) * 2, 'per_vertex': True},
 
-    {'name': 'vTexCoord2',    'index': 3, 'size': 2, 'type': GL_FLOAT,
-     'bytesize': sizeof(GLfloat) * 2, 'per_vertex': True}, 
+    {'name': 'vTexCoords2',    'index': 3, 'size': 2, 'type': GL_FLOAT,
+     'bytesize': sizeof(GLfloat) * 2, 'per_vertex': True},
 
     {'name': 'vColor',     'index': 4, 'size': 4, 'type': GL_FLOAT,
-     'bytesize': sizeof(GLfloat) * 4, 'per_vertex': False} 
+     'bytesize': sizeof(GLfloat) * 4, 'per_vertex': False}
 ]
 
 

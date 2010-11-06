@@ -7,7 +7,6 @@ varying vec4 frag_color;
 varying vec2 tex_coord0;
 varying vec2 tex_coord1;
 varying vec2 tex_coord2;
-varying vec2 tex_coord3;
 
 
 /* vertex attributes */
@@ -21,7 +20,7 @@ attribute vec2     vTexCoords2;
 uniform mat4       modelview_mat;
 uniform mat4       projection_mat;
 uniform float      linewidth;
-    
+
 void main (void){
   vec2 pos    = (linewidth * vTexCoords1.xy) + vPosition.xy;
   gl_Position = projection_mat * modelview_mat * vec4(pos.xy, 0.0, 1.0);
