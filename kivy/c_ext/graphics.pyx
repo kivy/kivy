@@ -43,6 +43,7 @@ cdef class Canvas:
     cdef VBO vertex_buffer
     cdef list texture_map
     cdef list _batch
+    cdef list _children
 
     #move to graphics compiler?:
     cdef int _need_compile
@@ -54,6 +55,7 @@ cdef class Canvas:
         self.vertex_buffer = VBO()
         self.texture_map = []
         self._batch = []
+        self._children = []
 
         self._need_compile = 1
         self.batch_slices = []
@@ -82,6 +84,14 @@ cdef class Canvas:
     cpdef __exit__(self, extype, value, traceback):
         global _active_canvas
         _active_canvas = None
+
+    cpdef add_canvas(self, Canvas canvas):
+        if not canvas in self._children:
+            self._children.append(canvas)
+
+    cpdef remove_canvas(self, Canvas canvas):
+        if canvas in self._children:
+            self._children.remove(canvas)
 
     cdef add(self, GraphicInstruction instruction):
         self.need_compile = 1
@@ -140,7 +150,13 @@ cdef class Canvas:
         # maybe we ended on an slice of vartex data, whcih we didnt push yet
         self.compile_slice('draw', slice_start, slice_stop)
 
+        # draw children!
+        self.compile_children()
 
+    cdef compile_children(self):
+        cdef Canvas child
+        for child in self._children:
+            self.batch_slices.append(('instruction', CanvasDraw(child)))
 
     cdef compile_slice(self, str command, slice_start, slice_end):
         Logger.trace('Canvas: compiling slice: %s' % str((
@@ -177,8 +193,12 @@ cdef class Canvas:
             self.batch_slices.append((command, b))
 
     cpdef draw(self):
+        self._draw()
+
+    cdef _draw(self):
         cdef int i
         cdef Buffer b
+        cdef ContextInstruction ci
 
         if self.need_compile:
             self.compile()
@@ -190,7 +210,8 @@ cdef class Canvas:
 
         for command, item in self.batch_slices:
             if command == 'instruction':
-                item.apply()
+                ci = item
+                ci.apply()
             if command == 'draw':
                 b = item
                 self.context.flush()
@@ -200,6 +221,14 @@ cdef class Canvas:
 
 
 cdef class GraphicInstruction:
+    '''Base class for all Graphics Instructions
+
+    :Parameters:
+        `code`: constant
+            instruction code for hinting the compiler currently a
+            combination of : GI_NOOP, GI_IGNORE, GI_CONTEXT_MOD,
+            GI_VERTEX_DATA
+    '''
     #: Graphic instruction op code
     cdef int code
 
@@ -207,31 +236,23 @@ cdef class GraphicInstruction:
     cdef Canvas canvas
 
     def __init__(self, int code):
-        '''Base class for all Graphics Instructions
-
-        :Parameters:
-            `code`: constant
-                instruction code for hinting the compiler currently a
-                combination of : GI_NOOP, GI_IGNORE, GI_CONTEXT_MOD,
-                GI_VERTEX_DATA
-        '''
         self.code = code
         self.canvas = _active_canvas
 
 
 cdef class ContextInstruction(GraphicInstruction):
+    '''Abstract Base class for GraphicInstructions that modidifies the
+    context. (so that canvas/compiler can know about how to optimize).
+    '''
     #: Graphics context to use (usually equal to _default_context)
     cdef GraphicContext context
 
     def __init__(self, *args, **kwargs):
-        '''Abstract Base class for GraphicInstructions that modidifies the
-        context. (so that canvas/compiler can know about how to optimize).
-        '''
         GraphicInstruction.__init__(self, GI_CONTEXT_MOD)
         self.context = self.canvas.context
         self.canvas.add(self)
 
-    cpdef apply(self):
+    cdef apply(self):
         pass
 
 
@@ -247,7 +268,7 @@ cdef class LineWidth(ContextInstruction):
     def set(self, float lw):
         self.lw = lw
 
-    cpdef apply(self):
+    cdef apply(self):
         self.canvas.context.set('linewidth', self.lw)
 
 
@@ -260,7 +281,7 @@ cdef class Color(ContextInstruction):
         ContextInstruction.__init__(self)
         self.rgba = args
 
-    cpdef apply(self):
+    cdef apply(self):
         self.context.set('color', (self.r, self.g, self.b, self.a))
 
     property rgba:
@@ -301,23 +322,33 @@ cdef class Color(ContextInstruction):
             self.rbga = [self.r, self.g, self.b, a]
 
 
+cdef class CanvasDraw(ContextInstruction):
+    cdef Canvas obj
+
+    def __init__(self, *args, **kwargs):
+        ContextInstruction.__init__(self)
+        self.obj = args[0]
+
+    cdef apply(self):
+        self.obj.draw()
+
 
 cdef class BindTexture(ContextInstruction):
+    '''BindTexture Graphic instruction.
+    The BindTexture Instruction will bind a texture and enable
+    GL_TEXTURE_2D for subsequent drawing.
+
+    :Parameters:
+        `texture`: Texture
+            specifies the texture to bind to the given index
+    '''
     cdef object _texture
 
     def __init__(self, *args, **kwargs):
-        '''BindTexture Graphic instruction.
-        The BindTexture Instruction will bind a texture and enable
-        GL_TEXTURE_2D for subsequent drawing.
-
-        :Parameters:
-            `texture`: Texture
-                specifies the texture to bind to the given index
-        '''
         ContextInstruction.__init__(self)
         self.texture = args[0]
 
-    cpdef apply(self):
+    cdef apply(self):
         self.canvas.context.set('texture0', self.texture)
 
     def set(self, object texture):
@@ -334,13 +365,13 @@ cdef class BindTexture(ContextInstruction):
 cdef class PushMatrix(ContextInstruction):
     '''PushMatrix on context's matrix stack
     '''
-    cpdef apply(self):
+    cdef apply(self):
         self.context.get('mvm').push()
 
 cdef class PopMatrix(ContextInstruction):
     '''Pop Matrix from context's matrix stack onto model view
     '''
-    cpdef apply(self):
+    cdef apply(self):
         self.context.get('mvm').push()
 
 
@@ -353,7 +384,7 @@ cdef class MatrixInstruction(ContextInstruction):
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self)
 
-    cpdef apply(self):
+    cdef apply(self):
         '''Apply matrix to the matrix of this instance to the
         context model view matrix
         '''
@@ -515,6 +546,17 @@ cdef class  Translate(Transform):
 
 
 cdef class VertexDataInstruction(GraphicInstruction):
+    '''A VertexDataInstruction pushes vertices into the graphics pipeline
+    this class manages a vbo, allocating a set of vertices on the vbo
+    and can update the vbo data, when local changes have been made
+
+    :Parameters:
+        `source`: str
+            Filename to load for the texture
+        `texture`: Texture
+            The texture to be bound while drawing the vertices
+
+    '''
     #canvas, vbo and texture to use with this element
     cdef VBO        vbo
     cdef object     _texture
@@ -542,17 +584,6 @@ cdef class VertexDataInstruction(GraphicInstruction):
         self.v_data = NULL
 
     def __init__(self, **kwargs):
-        '''A VertexDataInstruction pushes vertices into the graphics pipeline
-        this class manages a vbo, allocating a set of vertices on the vbo
-        and can update the vbo data, when local changes have been made
-
-        :Parameters:
-            `source`: str
-                Filename to load for the texture
-            `texture`: Texture
-                The texture to be bound while drawing the vertices
-
-        '''
         GraphicInstruction.__init__(self, GI_VERTEX_DATA)
         self.vbo        = self.canvas.vertex_buffer
         self.v_count    = 0 #no vertices to draw until initialized
@@ -1159,14 +1190,17 @@ cdef class PathInstruction(GraphicInstruction):
 
 
 cdef class PathStart(PathInstruction):
+    '''Starts a new path at position x,y.  Will raise an Excpetion, if called
+    while another path is already started.
+
+    :Parameters:
+        `x`: float
+            x position
+        `y`: float
+            y position
+    '''
     cdef int index
     def __init__(self, float x, float y):
-        '''
-        Starts a new path at position x,y.  Will raise an Excpetion, if called while another path is already started
-        :Parameters:
-            `x`, float:  x position
-            `y`, float:  y position
-        '''
         global _active_path
         PathInstruction.__init__(self)
         if _active_path != None:
@@ -1176,29 +1210,29 @@ cdef class PathStart(PathInstruction):
 
 
 cdef class PathLineTo(PathInstruction):
+    '''Adds a line from the current location to the x, y coordinates passed as
+    parameters.
+    '''
     cdef int index
     def __init__(self, x, y):
-        '''
-        Adds a line from the current location to the x, y coordinates passed as parameters
-        '''
         PathInstruction.__init__(self)
         self.index = self.path.add_point(x, y)
 
 
 cdef class PathClose(PathInstruction):
+    '''Closes the path, by adding a line from the current location to the first
+    vertex taht started the path.
+    '''
     def __init__(self):
-        '''
-        Closes the path, by adding a line from the current location to the first vertex taht started the path
-        '''
         PathInstruction.__init__(self)
         cdef vertex* v = <vertex*> self.path.point_buffer.pointer()
         self.path.add_point(v[0].x, v[0].y)
 
 cdef class PathFill(PathInstruction):
+    '''Ends path construction on the current path, the path will be build
+    and added to the canvas
+    '''
     def __init__(self):
-        '''Ends path construction on the current path, the path will be build
-        and added to the canvas
-        '''
         global _active_path
         PathInstruction.__init__(self)
         self.path.build_fill()
@@ -1206,10 +1240,10 @@ cdef class PathFill(PathInstruction):
 
 
 cdef class PathStroke(PathInstruction):
+    '''Ends path construction on the current path, the path will be build
+    and added to the canvas
+    '''
     def __init__(self):
-        '''Ends path construction on the current path, the path will be build
-        and added to the canvas
-        '''
         global _active_path
         PathInstruction.__init__(self)
         self.path.build_stroke()
