@@ -250,15 +250,22 @@ class Widget(EventDispatcher):
     #: Top position of the widget (y + height)
     top = AliasProperty(get_top, set_top, bind=(y, height))
 
-    def get_center(self):
-        return [self.x + self.width / 2.,
-                self.y + self.height / 2.]
-    def set_center(self, value):
-        self.x = value[0] - self.width / 2.
-        self.y = value[1] - self.height / 2.
+    #: X center position
+    def get_center_x(self):
+        return self.x + self.width / 2.
+    def set_center_x(self, value):
+        self.x = value - self.width / 2.
+    center_x = AliasProperty(get_center_x, set_center_x, bind=(x, width))
+
+    #: Y center position
+    def get_center_y(self):
+        return self.y + self.height / 2.
+    def set_center_y(self, value):
+        self.y = value - self.height / 2.
+    center_y = AliasProperty(get_center_y, set_center_y, bind=(y, height))
 
     #: Center position of the widget (x + width / 2, y + height / 2)
-    center = AliasProperty(get_center, set_center, bind=(x, y, width, height))
+    center = ListProperty(center_x, center_y)
 
     #: Class of the widget, used for style
     cls = ListProperty([])

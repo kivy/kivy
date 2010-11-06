@@ -225,8 +225,11 @@ class UxlParser(object):
 
 def create_handler(element, key, value, idmap):
 
+    # first, remove all the string from the value
+    tmp = re.sub('([\'"][^\'"]*[\'"])', '', value)
+
     # detect key.value inside value
-    kw = re.findall('([a-zA-Z0-9_.]+\.[a-zA-Z0-9_.]+)', value)
+    kw = re.findall('([a-zA-Z0-9_.]+\.[a-zA-Z0-9_.]+)', tmp)
     if not kw:
         # look like no reference, just pass it
         return eval(value)
