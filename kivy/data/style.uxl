@@ -1,16 +1,22 @@
 <Button>:
 	canvas:
 		Color:
-			rgb: dict(normal=(0, 1, 1), down=(1, 0, 0))[root.state]
-		Rectangle:
+			rgb:
+				if root.state == 'down':
+					return (1, 1, 0)
+				else:
+					return (1, 1, 1)
+		BorderImage:
 			pos: self.pos
 			size: self.size
+			source: 'data/images/button.png'
 	Label:
-		font_size: 30
+		text: root.text
+		font_size: 18
 		canvas:
 			Color:
 				rgb: (1, 1, 1)
-			BorderRectangle:
+			Rectangle:
 				texture: self.texture
 				size: self.texture_size
 				pos: root.center[0] - self.texture_size[0] / 2., root.center[1] - self.texture_size[1] / 2.

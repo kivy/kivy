@@ -3,7 +3,7 @@ __all__ = (
     'PushMatrix', 'PopMatrix', 'MatrixInstruction',
     'Transform', 'Rotate', 'Scale', 'Translate', 'LineWidth',
     'Color', 'BindTexture', 'VertexDataInstruction', 'Triangle',
-    'Rectangle', 'BorderRectangle', 'Ellipse', 'Path',
+    'Rectangle', 'BorderImage', 'Ellipse', 'Path',
     'PathInstruction', 'PathStart', 'PathLineTo', 'PathClose',
     'PathEnd','PathStroke', 'PathFill'
 )
@@ -27,8 +27,9 @@ from kivy.c_ext.p2t import CDT, Point
 from kivy.lib.transformations import matrix_multiply, identity_matrix, \
              rotation_matrix, translation_matrix, scale_matrix
 
-
 from kivy.logger import Logger
+from kivy.core.image import Image
+from kivy.resources import resource_find
 
 
 cdef class Canvas
@@ -515,23 +516,24 @@ cdef class  Translate(Transform):
 
 cdef class VertexDataInstruction(GraphicInstruction):
     #canvas, vbo and texture to use with this element
-    cdef VBO vbo
-    cdef object _texture
+    cdef VBO        vbo
+    cdef object     _texture
 
     #local vertex buffers and vbo index storage
-    cdef int     v_count   #vertex count
-    cdef Buffer  v_buffer  #local buffer of vertex data
-    cdef vertex* v_data
+    cdef int        v_count   #vertex count
+    cdef Buffer     v_buffer  #local buffer of vertex data
+    cdef vertex*    v_data
 
     #local buffer of vertex indices on vbp
-    cdef Buffer  i_buffer
-    cdef int*    i_data
+    cdef Buffer     i_buffer
+    cdef int*       i_data
 
     #indices to draw.  e.g. [1,2,3], will draw triangle:
     #  self.v_data[0], self.v_data[1], self.v_data[2]
-    cdef int*    element_data
-    cdef Buffer  element_buffer
-    cdef int     num_elements
+    cdef int*       element_data
+    cdef Buffer     element_buffer
+    cdef int        num_elements
+    cdef bytes      _source
 
 
     def __init__(self, **kwargs):
@@ -540,14 +542,17 @@ cdef class VertexDataInstruction(GraphicInstruction):
         and can update the vbo data, when local changes have been made
 
         :Parameters:
+            `source`: str
+                Filename to load for the texture
             `texture`: Texture
                 The texture to be bound while drawing the vertices
 
         '''
         GraphicInstruction.__init__(self, GI_VERTEX_DATA)
-        self.vbo     = self.canvas.vertex_buffer
-        self.v_count = 0 #no vertices to draw until initialized
-        self._texture = kwargs.get('texture', None)
+        self.vbo        = self.canvas.vertex_buffer
+        self.v_count    = 0 #no vertices to draw until initialized
+        self.source     = kwargs.get('source', None)
+        self.texture    = kwargs.get('texture', None)
 
     cdef allocate_vertex_buffers(self, int num_verts):
         '''For allocating and initializing vertes data buffers of this
@@ -628,14 +633,37 @@ cdef class VertexDataInstruction(GraphicInstruction):
             #print idx[i], vtx[i].x, vtx[i].y, vtx[i].s0, vtx[i].t0
             self.vbo.update_vertices(idx[i], &vtx[i], 1)
 
+    cdef trigger_texture_update(self):
+        '''Called when the texture is updated
+        '''
+
     property texture:
         '''Set/get the texture to be bound while the vertices are being drawn
         '''
         def __get__(self):
             return self._texture
         def __set__(self, tex):
+            if tex is self._texture:
+                return
             self._texture = tex
+            self.trigger_texture_update()
 
+    property source:
+        '''Set/get the source (filename) to load for texture.
+        '''
+        def __get__(self):
+            return self._source
+        def __set__(self, bytes filename):
+            if self._source == filename:
+                return
+            self._source = resource_find(filename)
+            if self._source is None:
+                Logger.warning('GVertex: unable to found <%s>' % filename)
+                return
+            if filename is None:
+                self.texture = None
+            else:
+                self.texture = Image(self._source).texture
 
 
 cdef class Triangle(VertexDataInstruction):
@@ -684,19 +712,19 @@ cdef class Triangle(VertexDataInstruction):
 cdef class Rectangle(VertexDataInstruction):
     cdef float x, y      #position
     cdef float w, h      #size
+    cdef int _user_texcoords
     cdef float _tex_coords[8]
 
     def __init__(self, **kwargs):
+        self._user_texcoords = 0
         VertexDataInstruction.__init__(self, **kwargs)
         self.allocate_vertex_buffers(4)
 
-        #get keyword args for configuring rectangle
+        # get keyword args for configuring rectangle
         self.x, self.y  = kwargs.get('pos',  (0,0))
         self.w, self.h  = kwargs.get('size', (100,100))
-        cdef tuple t_coords =  (0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0)
-        if self.texture:
-            t_coords = self.texture.tex_coords
-        self.tex_coords  = kwargs.get('tex_coords', t_coords)
+        if 'tex_coords' in kwargs:
+            self.tex_coords = kwargs['tex_coords']
 
         #tell VBO which triangles to draw using our vertices
         self.indices = (0,1,2, 2,3,0)
@@ -711,6 +739,16 @@ cdef class Rectangle(VertexDataInstruction):
         self.v_data[2] = vertex4f(x+w, y+h, tc[4], tc[5])
         self.v_data[3] = vertex4f(x,   y+h, tc[6], tc[7])
         self.update_vbo_data()
+
+    cdef trigger_texture_update(self):
+        if self._texture is None or self._user_texcoords == 1:
+            return
+        self.set_tex_coords(self._texture.tex_coords)
+
+    cdef set_tex_coords(self, coords):
+        for i in range(8):
+            self._tex_coords[i] = coords[i]
+        self.build()
 
     property pos:
         def __get__(self):
@@ -732,27 +770,23 @@ cdef class Rectangle(VertexDataInstruction):
         def __get__(self):
             cdef float *p = self._tex_coords
             return (p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7])
-
         def __set__(self, coords):
-            cdef int i
-            for i in range(8):
-                self._tex_coords[i] = coords[i]
-            self.build()
+            self._user_texcoords = 1
+            self.set_tex_coords(coords)
 
 
-
-cdef class BorderRectangle(VertexDataInstruction):
+cdef class BorderImage(VertexDataInstruction):
     cdef float x, y
     cdef float w, h
     cdef float _border[4]
     cdef float _tex_coords[8]
 
     def __init__(self, **kwargs):
-        #we have 16 vertices in BorderRectangle
+        # we have 16 vertices in BorderImage
         VertexDataInstruction.__init__(self, **kwargs)
         self.allocate_vertex_buffers(16)
 
-        #get keyword args for configuring rectangle
+        # get keyword args for configuring rectangle
         cdef tuple s = kwargs.get('size', (100, 100))
         cdef tuple p = kwargs.get('pos', (0,0))
         cdef tuple bv = kwargs.get('border', (5,5,5,5))
@@ -761,11 +795,12 @@ cdef class BorderRectangle(VertexDataInstruction):
         self.x = p[0]; self.y = p[1]
         self.w = s[0]; self.h = s[1]
 
-        self.build()
+        # setting the texture or filename will rebuild the border rectangle
+        self.source = kwargs.get('source', None)
+        self.texture = kwargs.get('texture', None)
 
-
-        #tell VBO which triangles to draw using our vertices
-        #two triangles per quad
+        # tell VBO which triangles to draw using our vertices
+        # two triangles per quad
         '''
             v9---v8------v7----v6
             |        b2        |
@@ -778,27 +813,27 @@ cdef class BorderRectangle(VertexDataInstruction):
             v0---v1------v2----v3
         '''
         self.indices = (
-             0,  1, 12,    12, 11,  0,  #bottom left
-             1,  2, 13,    13, 12,  1,  #bottom middle
-             2,  3,  4,     4, 13,  2,  #bottom right
-            13,  4,  5,     5, 14, 13,   #center right
-            14,  5,  6,     6,  7, 14,   #top right
-            15, 14,  7,     7,  8, 15,   #top middle
-            10, 15,  8,     8,  9, 10,   #top left
-            11, 12, 15,    15, 10, 11,   #center left
-            12, 13, 14,    14, 15, 12)   #center middel
+             0,  1, 12,    12, 11,  0,  # bottom left
+             1,  2, 13,    13, 12,  1,  # bottom middle
+             2,  3,  4,     4, 13,  2,  # bottom right
+            13,  4,  5,     5, 14, 13,  # center right
+            14,  5,  6,     6,  7, 14,  # top right
+            15, 14,  7,     7,  8, 15,  # top middle
+            10, 15,  8,     8,  9, 10,  # top left
+            11, 12, 15,    15, 10, 11,  # center left
+            12, 13, 14,    14, 15, 12)  # center middel
         self.canvas.add(self)
 
     cdef build(self):
         if not self.texture:
-            Logger.error('GBorderRectangle: texture missing')
+            Logger.trace('GBorderImage: texture missing')
             return
 
         #pos and size of border rectangle
         cdef float x,y,w,h
         x=self.x;  y=self.y; w=self.w;  h=self.h
 
-        #width and heigth of texture in pixels, and tex coord space
+        # width and heigth of texture in pixels, and tex coord space
         cdef float tw, th, tcw, tch
         cdef float* tc = self._tex_coords
         tsize  = self.texture.size
@@ -807,17 +842,17 @@ cdef class BorderRectangle(VertexDataInstruction):
         tcw = tc[2] - tc[0]  #right - left
         tch = tc[7] - tc[1]  #top - bottom
 
-        #calculate border offset in texture coord space
+        # calculate border offset in texture coord space
         # border width(px)/texture width(px) *  tcoord width
         cdef float *b = self._border
-        cdef float tb[4] #border offset in texture coordinate space
+        cdef float tb[4] # border offset in texture coordinate space
         tb[0] = b[0] / th*tch
         tb[1] = b[1] / tw*tcw
         tb[2] = b[2] / th*tch
         tb[3] = b[3] / tw*tcw
 
 
-         #horizontal and vertical sections
+        # horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
         hs[0] = x;            vs[0] = y
@@ -832,36 +867,42 @@ cdef class BorderRectangle(VertexDataInstruction):
         ths[2] = tc[0] + tcw-tb[1];  tvs[2] = tc[1] + tch - tb[2]
         ths[3] = tc[0] + tcw;        tvs[3] = tc[1] + tch
 
-        #set the vertex data
+        # set the vertex data
         cdef vertex* v = self.v_data
-        #bottom row
+        # bottom row
         v[0] = vertex4f(hs[0], vs[0], ths[0], tvs[0])
         v[1] = vertex4f(hs[1], vs[0], ths[1], tvs[0])
         v[2] = vertex4f(hs[2], vs[0], ths[2], tvs[0])
         v[3] = vertex4f(hs[3], vs[0], ths[3], tvs[0])
 
-        #bottom inner border row
+        # bottom inner border row
         v[11] = vertex4f(hs[0], vs[1], ths[0], tvs[1])
         v[12] = vertex4f(hs[1], vs[1], ths[1], tvs[1])
         v[13] = vertex4f(hs[2], vs[1], ths[2], tvs[1])
         v[4]  = vertex4f(hs[3], vs[1], ths[3], tvs[1])
 
-        #top inner border row
+        # top inner border row
         v[10] = vertex4f(hs[0], vs[2], ths[0], tvs[2])
         v[15] = vertex4f(hs[1], vs[2], ths[1], tvs[2])
         v[14] = vertex4f(hs[2], vs[2], ths[2], tvs[2])
         v[5]  = vertex4f(hs[3], vs[2], ths[3], tvs[2])
 
-        #top row
+        # top row
         v[9] = vertex4f(hs[0], vs[3], ths[0], tvs[3])
         v[8] = vertex4f(hs[1], vs[3], ths[1], tvs[3])
         v[7] = vertex4f(hs[2], vs[3], ths[2], tvs[3])
         v[6] = vertex4f(hs[3], vs[3], ths[3], tvs[3])
 
-        #phew....all done
+        # phew....all done
         self.update_vbo_data()
 
-
+    cdef trigger_texture_update(self):
+        if self._texture is None:
+            return
+        tcords = self.texture.tex_coords
+        for i in range(8):
+            self._tex_coords[i] = tcords[i]
+        self.build()
 
     property pos:
         def __get__(self):
@@ -888,20 +929,6 @@ cdef class BorderRectangle(VertexDataInstruction):
             for i in xrange(4):
                 self._border[i] = b[0]
             self.build()
-
-    property texture:
-        def __get__(self):
-            return self._texture
-        def __set__(self, tex):
-            if tex == None:
-                return
-            cdef int i
-            self._texture = tex
-            tcords = self.texture.tex_coords
-            for i in range(8):
-                self._tex_coords[i] = tcords[i]
-            self.build()
-
 
 
 cdef class Ellipse(VertexDataInstruction):

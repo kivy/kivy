@@ -7,10 +7,12 @@ __all__ = ('resource_find', 'resource_add_path')
 from os.path import join, dirname, exists
 from kivy.logger import Logger
 import sys
+import kivy
 
 resource_paths = [
     '.',
     dirname(sys.argv[0]),
+    dirname(kivy.__file__)
 ]
 
 def resource_find(filename):
