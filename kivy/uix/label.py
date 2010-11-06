@@ -4,6 +4,7 @@ Label:
 
 __all__ = ('Label', )
 
+from kivy.utils import curry
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
@@ -49,34 +50,42 @@ class Label(Widget):
     #: Texture of the label
     texture = ObjectProperty(None, allownone=True)
 
+    #: Texture size of the label
+    texture_size = ListProperty([0, 0])
+
     def __init__(self, **kwargs):
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture
         d = ('text', 'font_size', 'font_name', 'bold', 'italic', 'halign',
              'valign', 'padding_x', 'padding_y')
-        dkw = dict(zip(d, [self._trigger_texture_update] * len(d)))
+        dkw = {}
+        for x in d:
+            dkw[x] = curry(self._trigger_texture_update, x)
         self.bind(**dkw)
 
         dkw = dict(zip(d, [getattr(self, x) for x in d]))
-        print dkw
         self._label = CoreLabel(**dkw)
 
         # force the texture creation
-        self._trigger_texture_update()
-
-        import pprint
+        self._texture_update()
+        '''
         def printm(sender, value):
-            print sender, value
+            print self.text, sender, value
         self.bind(texture=printm)
+        '''
 
-    def _trigger_texture_update(self, source=None, value=None):
-        print '_trigger_texture_update()', source, value
+    def _trigger_texture_update(self, name=None, source=None, value=None):
         if source:
-            self._label.options[source.name] = value
+            if name == 'text':
+                self._label.text = value
+            else:
+                self._label.options[name] = value
         Clock.unschedule(self._texture_update)
         Clock.schedule_once(self._texture_update)
 
     def _texture_update(self, *largs):
         self._label.refresh()
+        self.texture = None
         self.texture = self._label.texture
+        self.texture_size = list(self.texture.size)

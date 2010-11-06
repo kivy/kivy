@@ -25,6 +25,8 @@ Example of Uxl files ::
 
 __all__ = ('Uxl', 'UxlParser')
 
+import re
+from copy import copy
 from kivy.factory import Factory
 from kivy.logger import Logger
 
@@ -221,9 +223,49 @@ class UxlParser(object):
         with open(filename, 'r') as fd:
             return fd.read()
 
-def create_handler(element, key):
-    def call_fn(sender, value):
-        setattr(element, key, value)
+def create_handler(element, key, value, idmap):
+
+    # detect key.value inside value
+    kw = re.findall('([a-zA-Z0-9_.]+\.[a-zA-Z0-9_.]+)', value)
+    if not kw:
+        # look like no reference, just pass it
+        return eval(value)
+
+    # create an handler
+    idmap = copy(idmap)
+    def call_fn(sender, _value):
+        trace('Uxl: call_fn %s, key=%s, value=%s' % (element, key, value))
+        trace('Uxl: call_fn => value=%s' % str(eval(value, {}, idmap)))
+        setattr(element, key, eval(value, {}, idmap))
+
+    # bind every key.value
+    for x in kw:
+        k = x.split('.')
+        if len(k) != 2:
+            continue
+        f = idmap[k[0]]
+        f.bind(**{k[1]: call_fn})
+
+    return eval(value, {}, idmap)
+
+    # is the value is a string, numeric, tuple, list ?
+    if value[0] in ['(', '[', '"', '\'', '-'] + range(9):
+        value = eval(value, {}, self.idmap)
+    # must be an object.property
+    else:
+        value = value.split('.', 2)
+        if len(value) != 2:
+            raise UxlError(ctx, ln, 'Reference format should '
+                           'be <id>.<property>')
+        # bind
+        m = self.idmap[value[0]]
+        kw = { value[1]: create_handler(element, key) }
+        m.bind(**kw)
+        trace('Uxl: bind %s.%s to %s.%s' % (
+            m, value[1], element, key))
+        value = getattr(self.idmap[value[0]], value[1])
+    trace('Uxl: set %s=%s for %s' % (key, value, element))
+
     return call_fn
 
 class UxlRule(object):
@@ -256,6 +298,7 @@ class UxlBase(object):
         super(UxlBase, self).__init__()
         self.rules = []
         self.idmap = {}
+        self.idmaps = []
 
     def add_rule(self, rule, defs):
         trace('Uxl: add rule %s' % str(rule))
@@ -285,20 +328,31 @@ class UxlBase(object):
     def apply(self, widget):
         '''Apply all the Uxl rules matching the widget on the widget.
         '''
-        trace('Uxl: Apply uxl to %s' % widget)
         matches = self.match(widget)
         trace('Uxl: Found %d matches for %s' % (len(matches), widget))
         if not matches:
             return
-        self.idmap['root'] = widget
+        self._push_ids()
+        have_root = 'root' in self.idmap
+        if not have_root:
+            self.idmap['root'] = widget
         for defs in matches:
             self.build_item(widget, defs, is_instance=True)
-        del self.idmap['root']
+        if not have_root:
+            del self.idmap['root']
+        self._pop_ids()
 
 
     #
     # Private
     #
+
+    def _push_ids(self):
+        self.idmaps.append(self.idmap)
+        self.idmap = copy(self.idmap)
+
+    def _pop_ids(self):
+        self.idmap = self.idmaps.pop()
 
     def build(self, objects):
         root = None
@@ -313,6 +367,8 @@ class UxlBase(object):
         return root
 
     def build_item(self, item, params, is_instance=False):
+        self._push_ids()
+
         if is_instance is False:
             trace('Uxl: build item %s' % item)
             if item.startswith('<'):
@@ -338,17 +394,13 @@ class UxlBase(object):
                 pass
             else:
                 try:
-                    value = eval(value)
-                    '''
-                    # XXX FIXME be able to create live property
-                    if not hasattr(widget, key):
-                        widget.create_property(key, value)
-                    else:
-                        setattr(widget, key, value)
-                    '''
+                    value = create_handler(widget, key, value, self.idmap)
+                    trace('Uxl: set %s=%s for %s' % (key, value, widget))
                     setattr(widget, key, value)
                 except Exception, e:
-                    raise UxlError(ctx, ln, str(e))
+                    m = UxlError(ctx, ln, str(e))
+                    print m
+                    raise
 
         # second loop, only for canvas
         for key, value in params.iteritems():
@@ -358,6 +410,7 @@ class UxlBase(object):
             with widget.canvas:
                 self.build_canvas(item, value)
 
+        self._pop_ids()
         return widget
 
     def build_canvas(self, item, elements):
@@ -369,26 +422,13 @@ class UxlBase(object):
                     continue
                 value, ln, ctx = value
                 try:
-                    # is the value is a string, numeric, tuple, list ?
-                    if value[0] in ['(', '[', '"', '\'', '-'] + range(9):
-                        print dir(self.idmap['self'])
-                        value = eval(value, {}, self.idmap)
-                    # must be an object.property
-                    else:
-                        value = value.split('.')
-                        if len(value) != 2:
-                            raise UxlError(ctx, ln, 'Reference format should '
-                                           'be <id>.<property>')
-                        # bind
-                        m = self.idmap[value[0]]
-                        kw = { value[1]: create_handler(element, key) }
-                        m.bind(**kw)
-                        value = getattr(self.idmap[value[0]], value[1])
+                    value = create_handler(element, key, value, self.idmap)
                     trace('Uxl: set %s=%s for %s' % (key, value, element))
                     setattr(element, key, value)
                 except Exception, e:
+                    m = UxlError(ctx, ln, str(e))
+                    print m.message
                     raise
-                    raise UxlError(ctx, ln, str(e))
 
     def build_rule(self, item, params):
         trace('Uxl: build rule for %s' % item)
