@@ -111,7 +111,7 @@ cdef class Canvas:
 
         self.compile_init()
 
-        Logger.debug("starting compile")
+        Logger.debug('GCanvas: start compilation')
 
         for i in xrange(len(self._batch)):
             item = self._batch[i]
@@ -136,43 +136,44 @@ cdef class Canvas:
                 if slice_start == -1:
                     slice_start = i
 
-        #maybe we ended on an slice of vartex data, whcih we didnt push yet
+        # maybe we ended on an slice of vartex data, whcih we didnt push yet
         self.compile_slice('draw', slice_start, slice_stop)
 
 
 
     cdef compile_slice(self, str command, slice_start, slice_end):
-        Logger.debug("compiling slice:", slice_start, slice_end, command)
+        Logger.debug('Canvas: compiling slice: %s' % str((
+                     slice_start, slice_end, command)))
         cdef VertexDataInstruction item
         cdef Buffer b = Buffer(sizeof(GLint))
         cdef int v, i
 
-        #check if we have a valid slice
+        # check if we have a valid slice
         if slice_start == -1:
             return
 
-
-        #loop pver all the whole slice, and combine all instructions
+        # loop pver all the whole slice, and combine all instructions
         for item in self._batch[slice_start:slice_end+1]:
             # add the vertex indices to be drawn from this item
             for i in range(item.num_elements):
                 v = item.element_data[i]
                 b.add(&v, NULL, 1)
 
-            #handle textures (should go somewhere else?, maybe set GI_CONTEXT_MOD FLAG ALSO?)
+            # handle textures (should go somewhere else?, maybe set GI_CONTEXT_MOD FLAG ALSO?)
             if item.texture:
                 self.batch_slices.append(('instruction', BindTexture(item.texture)))
                 self.batch_slices.append((command, b))
                 b = Buffer(sizeof(GLint))
-            else: #no item.texture..must unbind bound_texture and start new slice
+
+            # no item.texture..must unbind bound_texture and start new slice
+            else:
                 self.batch_slices.append(('instruction', BindTexture(None)))
                 self.batch_slices.append((command, b))
                 b = Buffer(sizeof(GLint))
 
-
-        if b.count() > 0:  # last slice, all done, only have to add if there is actually somethign in it
+        # last slice, all done, only have to add if there is actually somethign in it
+        if b.count() > 0:
             self.batch_slices.append((command, b))
-
 
     cpdef draw(self):
         cdef int i
@@ -233,11 +234,8 @@ cdef class ContextInstruction(GraphicInstruction):
         pass
 
 
-
-
 cdef class LineWidth(ContextInstruction):
-    '''
-    Instruction to set the line width of the drawing context
+    '''Instruction to set the line width of the drawing context
     '''
     cdef float lw
     def __init__(self, *args, **kwargs):
@@ -253,15 +251,11 @@ cdef class LineWidth(ContextInstruction):
 
 
 cdef class Color(ContextInstruction):
-    '''
-    Instruction to set the color state for any vetices being drawn after it
+    '''Instruction to set the color state for any vetices being drawn after it
     '''
     cdef list color
 
     def __init__(self, *args, **kwargs):
-        '''
-        SetColor will change the color being used to draw in the context
-        '''
         ContextInstruction.__init__(self)
         self.rgba = args
 
@@ -311,13 +305,13 @@ cdef class BindTexture(ContextInstruction):
     cdef object _texture
 
     def __init__(self, *args, **kwargs):
-        '''
-        BindTexture Graphic instruction:
-            The BindTexture Instruction will bind a texture and enable
-            GL_TEXTURE_2D for subsequent drawing.
+        '''BindTexture Graphic instruction.
+        The BindTexture Instruction will bind a texture and enable
+        GL_TEXTURE_2D for subsequent drawing.
 
         :Parameters:
-            `texture`, Texture:  specifies the texture to bind to the given index
+            `texture`: Texture
+                specifies the texture to bind to the given index
         '''
         ContextInstruction.__init__(self)
         self.texture = args[0]
@@ -337,23 +331,20 @@ cdef class BindTexture(ContextInstruction):
 
 
 cdef class PushMatrix(ContextInstruction):
-    '''
-    PushMatrix on context's matrix stack
+    '''PushMatrix on context's matrix stack
     '''
     cpdef apply(self):
         self.context.get('mvm').push()
 
 cdef class PopMatrix(ContextInstruction):
-    '''
-    Pop Matrix from context's matrix stack onto model view
+    '''Pop Matrix from context's matrix stack onto model view
     '''
     cpdef apply(self):
         self.context.get('mvm').push()
 
 
 cdef class MatrixInstruction(ContextInstruction):
-    '''
-    Base class for Matrix Instruction on canvas
+    '''Base class for Matrix Instruction on canvas
     '''
 
     cdef object mat
@@ -404,20 +395,19 @@ cdef class Transform(MatrixInstruction):
         self.transform( scale_matrix(s, s, s) )
 
     cpdef identity(self):
-        '''
-        resets the transformation to the identity matrix
+        '''Resets the transformation to the identity matrix
         '''
         self.matrix = identity_matrix()
 
 
 
 cdef class Rotate(Transform):
-    '''
-    Rotate the coordinate space by applying a rotation trnasformation
-    on the modelview matrix.  you can set the properties of the
-    instructions afterwards with e.g.:
-    rot.angle = 90
-    rot.axis = (0,0,1)
+    '''Rotate the coordinate space by applying a rotation transformation
+    on the modelview matrix. You can set the properties of the instructions
+    afterwards with e.g. ::
+
+        rot.angle = 90
+        rot.axis = (0,0,1)
     '''
     cdef float _angle
     cdef tuple _axis
@@ -446,8 +436,7 @@ cdef class Rotate(Transform):
 
 
 cdef class  Scale(Transform):
-    '''
-    Instruction to perform a uniform scale transformation
+    '''Instruction to perform a uniform scale transformation
     '''
     cdef float s
     def __init__(self, *args):
@@ -457,8 +446,7 @@ cdef class  Scale(Transform):
             self.matrix = scale_matrix(self.s)
 
     property scale:
-        '''
-        sets the scale factor for the transformation
+        '''Sets the scale factor for the transformation
         '''
         def __get__(self):
             return self.s
@@ -468,8 +456,7 @@ cdef class  Scale(Transform):
 
 
 cdef class  Translate(Transform):
-    '''
-    Instruction to create a translation of the model view coordinate space
+    '''Instruction to create a translation of the model view coordinate space
     '''
     cdef float _x, _y, _z
     def __init__(self, *args):
@@ -481,35 +468,40 @@ cdef class  Translate(Transform):
         self.matrix = translation_matrix([x,y,z])
 
     property x:
-        ''' sets the translation on the x axis'''
+        '''Sets the translation on the x axis
+        '''
         def __get__(self):
             return self._x
         def __set__(self, float x):
             self.set_translate(x, self._y, self._z)
 
     property y:
-        ''' sets the translation on the y axis '''
+        '''Sets the translation on the y axis
+        '''
         def __get__(self):
             return self._y
         def __set__(self, float y):
             self.set_translate(self._x, y, self._z)
 
     property z:
-        ''' sets the translation on the z axis '''
+        '''Sets the translation on the z axis
+        '''
         def __get__(self):
             return self._z
         def __set__(self, float z):
             self.set_translate(self._x, self._y, z)
 
     property xy:
-        ''' 2 tuple with translation vector in 2D for x and y axis '''
+        '''2 tuple with translation vector in 2D for x and y axis
+        '''
         def __get__(self):
             return self._x, self._y
         def __set__(self, c):
             self.set_translate(c[0], c[1], self._z)
 
     property xyz:
-        ''' 3 tuple translation vector in 3D in x, y, and z axis'''
+        '''3 tuple translation vector in 3D in x, y, and z axis
+        '''
         def __get__(self):
             return self._x, self._y, self._z
         def __set__(self, c):
@@ -543,14 +535,13 @@ cdef class VertexDataInstruction(GraphicInstruction):
 
 
     def __init__(self, **kwargs):
-        '''
-        VertexDataInstruction
-        A VertexDataInstruction pushes vertices into the graphics pipeline
+        '''A VertexDataInstruction pushes vertices into the graphics pipeline
         this class manages a vbo, allocating a set of vertices on the vbo
         and can update the vbo data, when local changes have been made
 
         :Parameters:
-            `texture`: The tetxure to be bound while drawing the vertices
+            `texture`: Texture
+                The texture to be bound while drawing the vertices
 
         '''
         GraphicInstruction.__init__(self, GI_VERTEX_DATA)
@@ -559,60 +550,61 @@ cdef class VertexDataInstruction(GraphicInstruction):
         self._texture = kwargs.get('texture', None)
 
     cdef allocate_vertex_buffers(self, int num_verts):
-        ''' For allocating and initializing vertes data buffers
-            of this GraphicElement both locally and on VBO
+        '''For allocating and initializing vertes data buffers of this
+        GraphicElement both locally and on VBO.
 
-            Allocates local vertex and index buffers to be able to
-            hold num_verts vertices.  adds the vertices to the vbo
-            associated with the elements canvas and sets vbo indices
-            in i_data.
+        Allocates local vertex and index buffers to be able to hold num_verts
+        vertices.  adds the vertices to the vbo associated with the elements
+        canvas and sets vbo indices in i_data.
 
-            After calling the follwoing buffers will have enough room
-            for num_verts:
+        After calling the follwoing buffers will have enough room for
+        num_verts :
 
-            self.vbo:  num_verts are added to the canvas' VBO
+            self.vbo:
+                num_verts are added to the canvas' VBO
 
-            self.v_data : `vertex*`, vertex array with enough room for num_verts.
-                           pointing to start of v_buffer, so you can set data
-                           using indexing.  liek:  self.v_data[i] = <vertex> v
+            self.v_data:
+                `vertex*`, vertex array with enough room for num_verts.
+                pointing to start of v_buffer, so you can set data using
+                indexing.  liek:  self.v_data[i] = <vertex> v
 
-            self.i_data : 'int*', int array of size num_verts.  has vbo index of
-                          vertex in v_data.  so self.i_data[i] is vbo index of
-                          self.v_buffer[i]
+            self.i_data:
+                `int*`, int array of size num_verts. Has vbo index of vertex in
+                v_data.  so self.i_data[i] is vbo index of self.v_buffer[i]
         '''
 
-        print "allocating vertex data:", num_verts
-        #create vertex and index buffers
+        Logger.debug('GVertex: allocating vertex data: %s' % str(num_verts))
+
+        # create vertex and index buffers
         self.v_buffer = Buffer(sizeof(vertex))
         self.i_buffer = Buffer(sizeof(GLint))
 
-        #allocate enough room for vertex and index data
+        # allocate enough room for vertex and index data
         self.v_count = num_verts
         self.v_buffer.grow(num_verts)
         self.i_buffer.grow(num_verts)
 
-        #set data pointers to be able to index vertices and indices
+        # set data pointers to be able to index vertices and indices
         self.v_data = <vertex*>  self.v_buffer.pointer()
         self.i_data = <int*> self.i_buffer.pointer()
 
-        #allocte on vbo and update indices with
+        # allocte on vbo and update indices with
         self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
-        print "done allocating"
+
+        Logger.debug('GVertex: done allocating')
 
 
     property indices:
-        '''
-        `indecies` : this property is write only.  it determines, which of the vertices
-                     from this object will be drawn by the canvas.  if e.g. the object
-                     has 4 vertices.  then setting vdi.indices = (0,1,2 2,4,0), will
-                     draw two triangles corrosponding to the vertices stored in v_data
-                     this function automatically converts the indices from local to vbo indices
+        '''This property is write only. It determines, which of the vertices
+        from this object will be drawn by the canvas.  if e.g. the object has 4
+        vertices. Then setting vdi.indices = (0,1,2 2,4,0), will draw two
+        triangles corrosponding to the vertices stored in v_data this function
+        automatically converts the indices from local to vbo indices.
         '''
         def __set__(self, object batch): #list or tuple..iterable?
             #create element buffer for list of vbo indices to be drawn
             self.element_buffer = Buffer(sizeof(int))
             cdef int i, e
-            print "setting indices!!", batch
             for i in xrange(len(batch)):
                 e = batch[i]
                 self.element_buffer.add(&self.i_data[e], NULL, 1)
@@ -623,20 +615,22 @@ cdef class VertexDataInstruction(GraphicInstruction):
 
 
     cdef update_vbo_data(self):
-        '''
-            updates the vertex data stored on vbo to be same as local
-            needs to be called if you change v_data inside this element
+        '''Updates the vertex data stored on vbo to be same as local needs to be
+        called if you change v_data inside this element.
         '''
         cdef vertex* vtx = self.v_data
         cdef int* idx    = self.i_data
         cdef int i
-        print "updating vbo data:"
+
+        Logger.debug('GVertex: uploading vbo data')
+
         for i in range(self.v_count):
             #print idx[i], vtx[i].x, vtx[i].y, vtx[i].s0, vtx[i].t0
             self.vbo.update_vertices(idx[i], &vtx[i], 1)
 
     property texture:
-        ''' set/get the texture to be bound while the vertices are being drawn'''
+        '''Set/get the texture to be bound while the vertices are being drawn
+        '''
         def __get__(self):
             return self._texture
         def __set__(self, tex):
@@ -797,7 +791,7 @@ cdef class BorderRectangle(VertexDataInstruction):
 
     cdef build(self):
         if not self.texture:
-            print "need texture for BorderImage"
+            Logger.error('GBorderRectangle: texture missing')
             return
 
         #pos and size of border rectangle
@@ -881,7 +875,6 @@ cdef class BorderRectangle(VertexDataInstruction):
         def __get__(self):
             return (self.w, self.h)
         def __set__(self, size):
-            print "setting size: ", size
             self.w = size[0]
             self.h = size[1]
             self.build()
@@ -905,7 +898,6 @@ cdef class BorderRectangle(VertexDataInstruction):
             cdef int i
             self._texture = tex
             tcords = self.texture.tex_coords
-            print "SETTINF texture coords:", tcords
             for i in range(8):
                 self._tex_coords[i] = tcords[i]
             self.build()
@@ -943,7 +935,6 @@ cdef class Ellipse(VertexDataInstruction):
 
     cdef build(self):
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
-        print self.tex_coords
         cdef vertex* v = self.v_data
         cdef int i = 0
         cdef tuple tc = self.tex_coords
@@ -1033,7 +1024,8 @@ cdef class Path(VertexDataInstruction):
             #normalize normal vector and scale for stroke offset
             ns = sqrt( (dx*dx) + (dy*dy) )
             if ns == 0.0:
-                print "skipping line, the two points are 0 unit apart."
+                Logger.debug('GPath: skipping line, the two points are 0 '
+                             'unit apart.')
                 continue
 
             dx = sw/2.0 * dx/ns
@@ -1084,9 +1076,9 @@ cdef class Path(VertexDataInstruction):
 
         cdef vertex v[4]  #to hold the vertices for each quad were creating
         cdef int  idx[4]  #to hold the vbo indecies for every quad we add
-        cdef list triangles 
+        cdef list triangles
         cdef list indices = []
-        print self.points
+        Logger.debug('GPath: build fill %s' % str(self.points))
         poly = CDT(self.points)
         triangles = poly.triangulate()
 
@@ -1095,18 +1087,14 @@ cdef class Path(VertexDataInstruction):
         self.v_buffer = Buffer(sizeof(vertex))
         self.i_buffer = Buffer(sizeof(GLint))
         for t in triangles:
-            
+
             v[0] = vertex2f(t.a.x, t.a.y)
             v[1] = vertex2f(t.b.x, t.b.y)
             v[2] = vertex2f(t.c.x, t.c.y)
-            self.v_count += 3   
-
-            print "ADDING:", 
+            self.v_count += 3
 
             self.v_buffer.add(v, idx, 3)
             self.i_buffer.add(idx, NULL, 3)
-
-            print i, "extending:", i, i+1, i+2
             indices.extend([i, i+1, i+2])
             i +=3
 
@@ -1115,7 +1103,7 @@ cdef class Path(VertexDataInstruction):
         self.v_data = <vertex*>  self.v_buffer.pointer()
         self.i_data = <int*>     self.i_buffer.pointer()
         self.indices = indices
-        
+
         #actually add vertices to VBO
         self.vbo.add_vertices(self.v_data, self.i_data, self.v_count)
         self.canvas.add(self)
@@ -1189,8 +1177,4 @@ cdef class PathStroke(PathInstruction):
 
 cdef class PathEnd(PathStroke):
     pass
-
-
-
-
 
