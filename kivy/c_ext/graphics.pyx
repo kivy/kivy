@@ -436,7 +436,7 @@ cdef class Rotate(Transform):
            self.set(self._angle, *axis)
 
 
-cdef class  Scale(Transform):
+cdef class Scale(Transform):
     '''Instruction to perform a uniform scale transformation
     '''
     cdef float s
@@ -535,6 +535,11 @@ cdef class VertexDataInstruction(GraphicInstruction):
     cdef int        num_elements
     cdef bytes      _source
 
+    def __cinit__(self):
+        self._texture = None
+        self.v_count = 0
+        self.v_buffer = None
+        self.v_data = NULL
 
     def __init__(self, **kwargs):
         '''A VertexDataInstruction pushes vertices into the graphics pipeline
@@ -636,6 +641,7 @@ cdef class VertexDataInstruction(GraphicInstruction):
     cdef trigger_texture_update(self):
         '''Called when the texture is updated
         '''
+        pass
 
     property texture:
         '''Set/get the texture to be bound while the vertices are being drawn
@@ -643,7 +649,7 @@ cdef class VertexDataInstruction(GraphicInstruction):
         def __get__(self):
             return self._texture
         def __set__(self, tex):
-            if tex is self._texture:
+            if tex == self._texture:
                 return
             self._texture = tex
             self.trigger_texture_update()
@@ -714,11 +720,14 @@ cdef class Rectangle(VertexDataInstruction):
     cdef float w, h      #size
     cdef int _user_texcoords
     cdef float _tex_coords[8]
+    cdef int _is_init
 
     def __init__(self, **kwargs):
         self._user_texcoords = 0
+        self._is_init = 0
         VertexDataInstruction.__init__(self, **kwargs)
         self.allocate_vertex_buffers(4)
+        self.indices = (0,1,2, 2,3,0)
 
         # get keyword args for configuring rectangle
         self.x, self.y  = kwargs.get('pos',  (0,0))
@@ -726,9 +735,12 @@ cdef class Rectangle(VertexDataInstruction):
         if 'tex_coords' in kwargs:
             self.tex_coords = kwargs['tex_coords']
 
-        #tell VBO which triangles to draw using our vertices
-        self.indices = (0,1,2, 2,3,0)
+        # tell VBO which triangles to draw using our vertices
         self.canvas.add(self)
+
+        # trigger the tx coords + rebuild only now
+        self._is_init = 1
+        self.trigger_texture_update()
 
     cdef build(self):
         cdef float* tc = self._tex_coords
@@ -741,6 +753,8 @@ cdef class Rectangle(VertexDataInstruction):
         self.update_vbo_data()
 
     cdef trigger_texture_update(self):
+        if not self._is_init:
+            return
         if self._texture is None or self._user_texcoords == 1:
             return
         self.set_tex_coords(self._texture.tex_coords)
