@@ -388,11 +388,9 @@ class UxlBase(object):
                 continue
             value, ln, ctx = value
             if key == 'children':
-                children = []
                 for citem, cparams, in value:
                     child = self.build_item(citem, cparams)
-                    children.append(child)
-                widget.children = children
+                    widget.add_widget(child)
             elif key == 'canvas':
                 pass
             else:

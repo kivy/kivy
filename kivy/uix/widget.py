@@ -66,7 +66,6 @@ class Widget(EventDispatcher):
         self.register_event_type('on_touch_down')
         self.register_event_type('on_touch_move')
         self.register_event_type('on_touch_up')
-        self.register_event_type('on_draw')
 
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
@@ -95,13 +94,6 @@ class Widget(EventDispatcher):
     #
     # Default event handlers
     #
-
-    def on_draw(self):
-        '''Dispatch the on_draw even in every child
-        '''
-        self.draw()
-        for child in self.children:
-            child.dispatch('on_draw')
 
     def on_touch_down(self, touch):
         '''Send the touch down event in every child
@@ -178,13 +170,16 @@ class Widget(EventDispatcher):
         '''
         widget.parent = self
         self.children = [widget] + self.children
+        self.canvas.add_canvas(widget.canvas)
 
     def remove_widget(self, widget):
         '''Remove a widget from the childs of current widget
         '''
-        if widget in self.children:
-            self.children = self.children.remove(widget)
-            widget.parent = None
+        if widget not in self.children:
+            return
+        self.children = self.children.remove(widget)
+        self.canvas.remove_canvas(widget.canvas)
+        widget.parent = None
 
     def get_root_window(self):
         '''Return the root window

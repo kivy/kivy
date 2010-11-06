@@ -76,9 +76,9 @@ class WindowBase(EventDispatcher):
         self._rotation = 0
 
         # event subsystem
+        self.register_event_type('on_draw')
         self.register_event_type('on_flip')
         self.register_event_type('on_rotate')
-        self.register_event_type('on_draw')
         self.register_event_type('on_resize')
         self.register_event_type('on_close')
         self.register_event_type('on_touch_down')
@@ -157,6 +157,10 @@ class WindowBase(EventDispatcher):
         # configure the window
         self.create_window(params)
 
+        # create the canvas
+        from kivy.graphics import Canvas
+        self.canvas = Canvas()
+
         # attach modules + listener event
         Modules.register_window(self)
         EventLoop.set_window(self)
@@ -228,6 +232,7 @@ class WindowBase(EventDispatcher):
         '''Add a widget on window'''
         self.children.append(w)
         w.parent = self
+        self.canvas.add_canvas(w.canvas)
 
     def remove_widget(self, w):
         '''Remove a widget from window'''
@@ -235,6 +240,7 @@ class WindowBase(EventDispatcher):
             return
         self.children.remove(w)
         w.parent = None
+        self.canvas.remove_canvas(w.canvas)
 
     def clear(self):
         '''Clear the window with background color'''
@@ -264,16 +270,7 @@ class WindowBase(EventDispatcher):
         return None
 
     def on_draw(self):
-        '''Event called when window we are drawing window.
-        This function are cleaning the buffer with bg-color css,
-        and call children drawing + show fps timer on demand'''
-
-        # draw our window
-        self.draw()
-
-        # then, draw childrens
-        for w in self.children:
-            w.dispatch('on_draw')
+        self.canvas.draw()
 
     def on_touch_down(self, touch):
         '''Event called when a touch is down'''
