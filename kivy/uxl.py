@@ -286,8 +286,10 @@ class UxlBase(object):
         print '=> matches', matches
         if not matches:
             return
+        self.idmap['root'] = widget
         for defs in matches:
             self.build_item(widget, defs, is_instance=True)
+        del self.idmap['root']
 
 
     #
@@ -332,10 +334,14 @@ class UxlBase(object):
             else:
                 try:
                     value = eval(value)
+                    '''
+                    # XXX FIXME be able to create live property
                     if not hasattr(widget, key):
                         widget.create_property(key, value)
                     else:
                         setattr(widget, key, value)
+                    '''
+                    setattr(widget, key, value)
                 except Exception, e:
                     raise UxlError(ctx, ln, str(e))
 
