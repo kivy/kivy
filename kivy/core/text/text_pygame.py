@@ -4,8 +4,8 @@ Text Pygame: Draw text with pygame
 
 __all__ = ('LabelPygame', )
 
-import kivy
 from . import LabelBase
+from kivy.core.image import ImageData
 
 try:
     import pygame
@@ -55,7 +55,7 @@ class LabelPygame(LabelBase):
         return w, h
 
     def _render_begin(self):
-        self._pygame_surface = pygame.Surface(self.size, pygame.SRCALPHA, 32)
+        self._pygame_surface = pygame.Surface(self._size, pygame.SRCALPHA, 32)
         self._pygame_surface.fill((0, 0, 0, 0))
 
     def _render_text(self, text, x, y):
@@ -66,7 +66,7 @@ class LabelPygame(LabelBase):
         self._pygame_surface.blit(text, (x, y), None, pygame.BLEND_RGBA_ADD)
 
     def _render_end(self):
-        data = kivy.ImageData(self.width, self.height,
+        data = ImageData(self._size[0], self._size[1],
             'RGBA', buffer(self._pygame_surface.get_buffer())[:])
 
         del self._pygame_surface

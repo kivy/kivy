@@ -21,3 +21,4 @@ cdef class Shader:
     cdef get_shader_log(self, shader)
     cdef get_program_log(self, shader)
     cdef process_build_log(self)
+    cdef process_message(self, str ctype, str message)

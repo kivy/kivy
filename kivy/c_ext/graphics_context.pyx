@@ -1,4 +1,5 @@
 from os.path import join
+from kivy.logger import Logger
 from kivy.core.image import Image
 from kivy import kivy_shader_dir
 from kivy.resources import resource_find
@@ -58,7 +59,7 @@ cdef class GraphicContext:
         self.need_redraw = 0
         err = glGetError()
         if err:
-            print "GL Error while drawing frame:", err
+            Logger.warning('GContext: GL Error while drawing frame: %d' % err)
 
     cpdef set(self, str key, value):
         self.state[key] = value

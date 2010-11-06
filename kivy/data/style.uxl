@@ -5,12 +5,10 @@
 		Rectangle:
 			pos: self.pos
 			size: self.size
-	Widget:
+	Label:
 		canvas:
-			Color:
-				rgb: (0, 1, 0)
 			Rectangle:
-				size: (100, 100)
+				texture: self.texture
 
 <Slider>:
     canvas:

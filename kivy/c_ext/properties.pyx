@@ -5,13 +5,13 @@ cdef class Property:
     setter and getter, None handling, and observers.
     '''
 
-    cdef str name
+    cdef str _name
     cdef int allownone
     cdef object defaultvalue
     cdef dict storage
 
     def __cinit__(self):
-        self.name = ''
+        self._name = ''
         self.allownone = 0
         self.defaultvalue = None
         self.storage = {}
@@ -20,6 +20,10 @@ cdef class Property:
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
 
+    property name:
+        def __get__(self):
+            return self._name
+
     cdef init_storage(self, dict storage):
         storage['value'] = self.defaultvalue
         storage['allownone'] = self.allownone
@@ -27,7 +31,7 @@ cdef class Property:
 
     cpdef link(self, object obj, str name):
         d = dict()
-        self.name = name
+        self._name = name
         self.init_storage(d)
         self.storage[obj.__uid] = d
 

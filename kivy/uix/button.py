@@ -5,11 +5,13 @@ Button:
 __all__ = ('Button', )
 
 from kivy.uix.widget import Widget
-from kivy.c_ext.properties import OptionProperty
+from kivy.c_ext.properties import OptionProperty, StringProperty
 
 class Button(Widget):
 
     state = OptionProperty('normal', options=('normal', 'down'))
+
+    text = StringProperty('Hello')
 
     def __init__(self, **kwargs):
         super(Button, self).__init__(**kwargs)

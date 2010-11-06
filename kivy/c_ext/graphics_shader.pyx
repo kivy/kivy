@@ -117,24 +117,29 @@ cdef class Shader:
 
     cdef get_shader_log(self, shader):
         '''Return the shader log'''
-        cdef int msg_len
         cdef char msg[2048]
-        glGetShaderInfoLog(shader, 2048, &msg_len, msg)
+        msg[0] = '\0'
+        glGetShaderInfoLog(shader, 2048, NULL, msg)
         return msg
 
     cdef get_program_log(self, shader):
         '''Return the program log'''
-        cdef int msg_len
         cdef char msg[2048]
-        glGetProgramInfoLog(shader, 2048, &msg_len, msg)
+        msg[0] = '\0'
+        glGetProgramInfoLog(shader, 2048, NULL, msg)
         return msg
 
     cdef process_build_log(self):
-        message = self.get_program_log(self.program)
+        self.process_message('vertex shader', self.get_shader_log(self.vertex_shader))
+        self.process_message('fragment shader', self.get_shader_log(self.fragment_shader))
+        self.process_message('program', self.get_program_log(self.program))
+        error = glGetError()
+        if error:
+            Logger.error('GShader: GL error %d' % error)
+
+    cdef process_message(self, str ctype, str message):
         if message:
-            Logger.error('Shader: shader program message: %s' % message)
+            Logger.error('GShader: %s: %s' % (ctype, message))
             raise Exception(message)
         else:
-            Logger.debug('Shader compiled sucessfully')
-
-
+            Logger.debug('GShader: %s compiled successfully' % ctype)
