@@ -1,6 +1,5 @@
 .noseids
 Kivy.egg-info
-*.c
 *.so
 *.pyc
 *.pyo
