@@ -265,7 +265,7 @@ class Widget(EventDispatcher):
     center_y = AliasProperty(get_center_y, set_center_y, bind=(y, height))
 
     #: Center position of the widget (x + width / 2, y + height / 2)
-    center = ListProperty(center_x, center_y)
+    center = ReferenceListProperty(center_x, center_y)
 
     #: Class of the widget, used for style
     cls = ListProperty([])
