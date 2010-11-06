@@ -14,7 +14,7 @@ from kivy.c_ext.event import EventDispatcher
 from kivy.c_ext.properties import *
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
-from kivy.uxl import Uxl
+from kivy.lang import Builder
 
 class Widget(EventDispatcher):
     '''
@@ -79,7 +79,7 @@ class Widget(EventDispatcher):
         self.canvas = Canvas()
 
         # Apply all the styles
-        Uxl.apply(self)
+        Builder.apply(self)
 
 
 
