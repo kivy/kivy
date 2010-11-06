@@ -370,7 +370,7 @@ class UxlBase(object):
                 value, ln, ctx = value
                 try:
                     # is the value is a string, numeric, tuple, list ?
-                    if value[0] in ('(', '[', '"', '\''):
+                    if value[0] in ['(', '[', '"', '\'', '-'] + range(9):
                         print dir(self.idmap['self'])
                         value = eval(value, {}, self.idmap)
                     # must be an object.property
