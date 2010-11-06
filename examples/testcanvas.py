@@ -12,7 +12,7 @@ class TestApp(App):
 
             #Color(1,1,1,1)
             #Ellipse(pos=(300,100), size=(200,100), texture=tex2)
-            #Color(1,0,0,1)
+            Color(1,0,0,1)
             Rectangle(texture=tex2)
 
             #LineWidth(10)
