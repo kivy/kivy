@@ -23,7 +23,12 @@ Example of Uxl files ::
                 size: self.size
 '''
 
+__all__ = ('Uxl', 'UxlParser')
+
 from kivy.factory import Factory
+from kivy.logger import Logger
+
+trace = Logger.trace
 
 class UxlError(Exception):
     def __init__(self, context, line, message):
@@ -75,6 +80,8 @@ class UxlParser(object):
         lines = zip(range(len(lines)), lines)
         self.sourcecode = lines[:]
 
+        trace('UxlParser: parse %d lines' % len(lines))
+
         # Ensure the version
         if self.filename:
             self.parse_version(lines[0])
@@ -108,6 +115,7 @@ class UxlParser(object):
         if version != '1.0':
             raise UxlError(self, ln, 'Only Uxl 1.0 are supported'
                           ' (<%s> found)' % version)
+        trace('UxlParser: uxl version is %s' % version)
 
     def strip_comments(self, lines):
         '''Remove all comments from lines inplace.
@@ -176,12 +184,6 @@ class UxlParser(object):
 
                 # It's a property
                 else:
-                    '''
-                    if name == 'children':
-                        raise UxlError(self, ln,
-                                       '<children> usage is forbidden')
-                    '''
-
                     if len(x) == 1:
                         raise UxlError(self, ln, 'Syntax error')
                     value = x[1].strip()
@@ -215,6 +217,7 @@ class UxlParser(object):
     def load_resource(self, filename):
         '''Load an external resource
         '''
+        trace('UxlParser: load external <%s>' % filename)
         with open(filename, 'r') as fd:
             return fd.read()
 
@@ -255,10 +258,11 @@ class UxlBase(object):
         self.idmap = {}
 
     def add_rule(self, rule, defs):
-        print 'add rule', rule
+        trace('Uxl: add rule %s' % str(rule))
         self.rules.append((rule, defs))
 
     def load_file(self, filename, **kwargs):
+        trace('Uxl: load file %s' % filename)
         with open(filename, 'r') as fd:
             return self.load_string(fd.read(), **kwargs)
 
@@ -281,9 +285,9 @@ class UxlBase(object):
     def apply(self, widget):
         '''Apply all the Uxl rules matching the widget on the widget.
         '''
-        print 'Ask apply from', widget
+        trace('Uxl: Apply uxl to %s' % widget)
         matches = self.match(widget)
-        print '=> matches', matches
+        trace('Uxl: Found %d matches for %s' % (len(matches), widget))
         if not matches:
             return
         self.idmap['root'] = widget
@@ -310,6 +314,7 @@ class UxlBase(object):
 
     def build_item(self, item, params, is_instance=False):
         if is_instance is False:
+            trace('Uxl: build item %s' % item)
             if item.startswith('<'):
                 raise UxlError(params['__ctx__'], params['__line__'],
                                'Rules are not accepted inside Widget')
@@ -356,6 +361,7 @@ class UxlBase(object):
         return widget
 
     def build_canvas(self, item, elements):
+        trace('Uxl: build canvas for %s' % item)
         for name, params in elements:
             element = Factory.get(name)()
             for key, value in params.iteritems():
@@ -364,7 +370,7 @@ class UxlBase(object):
                 value, ln, ctx = value
                 try:
                     # is the value is a string, numeric, tuple, list ?
-                    if value[0] in ('(', '[', '"', '\''):
+                    if value[0] in ['(', '[', '"', '\'', '-'] + range(9):
                         print dir(self.idmap['self'])
                         value = eval(value, {}, self.idmap)
                     # must be an object.property
@@ -378,14 +384,14 @@ class UxlBase(object):
                         kw = { value[1]: create_handler(element, key) }
                         m.bind(**kw)
                         value = getattr(self.idmap[value[0]], value[1])
-                    print 'SETATTR', element, key, value
+                    trace('Uxl: set %s=%s for %s' % (key, value, element))
                     setattr(element, key, value)
                 except Exception, e:
                     raise
                     raise UxlError(ctx, ln, str(e))
-            print element
 
     def build_rule(self, item, params):
+        trace('Uxl: build rule for %s' % item)
         if item[0] != '<' or item[-1] != '>':
             raise UxlError(params['__ctx__'], params['__line__'],
                            'Invalid rule (must be inside <>)')

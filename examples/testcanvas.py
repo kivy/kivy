@@ -3,7 +3,6 @@ from kivy.uix.widget import Widget
 from kivy.core.image import Image
 from kivy.graphics import *
 
-
 class TestApp(App):
     def build(self):
         a = Widget()
