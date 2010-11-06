@@ -1,11 +1,7 @@
 <Button>:
 	canvas:
 		Color:
-			rgb:
-				if root.state == 'down':
-					return (1, 1, 0)
-				else:
-					return (1, 1, 1)
+			rgb: dict(down=(1, 1, 0), normal=(1, 1, 1))[root.state]
 		BorderImage:
 			pos: self.pos
 			size: self.size
