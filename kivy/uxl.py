@@ -384,7 +384,7 @@ class UxlBase(object):
                         kw = { value[1]: create_handler(element, key) }
                         m.bind(**kw)
                         value = getattr(self.idmap[value[0]], value[1])
-                    print 'SETATTR', element, key, value
+                    trace('Uxl: set %s=%s for %s' % (key, value, element))
                     setattr(element, key, value)
                 except Exception, e:
                     raise
