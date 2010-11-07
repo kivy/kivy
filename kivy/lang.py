@@ -30,6 +30,7 @@ from os.path import join
 from copy import copy
 from kivy.factory import Factory
 from kivy.logger import Logger
+from kivy.utils import OrderedDict
 from kivy import kivy_data_dir
 
 trace = Logger.trace
@@ -162,7 +163,9 @@ class Parser(object):
 
             # Current level, create an object
             elif count == indent:
-                current_object = {'__line__': ln, '__ctx__': self}
+                current_object = OrderedDict()
+                current_object['__line__'] = ln
+                current_object['__ctx__'] = self
                 current_property = None
                 x = content.split(':', 2)
                 if not len(x[0]):
@@ -259,6 +262,7 @@ def create_handler(element, key, value, idmap):
         if len(k) != 2:
             continue
         f = idmap[k[0]]
+        print 'bind()', k
         f.bind(**{k[1]: call_fn})
 
     return eval(value, _eval_globals, idmap)
@@ -293,7 +297,14 @@ class BuilderBase(object):
         super(BuilderBase, self).__init__()
         self.rules = []
         self.idmap = {}
+        self.gidmap = {}
         self.idmaps = []
+
+        # List of all the setattr needed to be done after creating the tree
+        self.listset = []
+        # List of all widget created during the tree, and then apply the style
+        # for each of them.
+        self.listwidget = []
 
     def add_rule(self, rule, defs):
         trace('Builder: add rule %s' % str(rule))
@@ -328,15 +339,15 @@ class BuilderBase(object):
         trace('Builder: Found %d matches for %s' % (len(matches), widget))
         if not matches:
             return
-        self._push_ids()
+        #self._push_ids()
         have_root = 'root' in self.idmap
         if not have_root:
             self.idmap['root'] = widget
         for defs in matches:
-            self.build_item(widget, defs, is_instance=True)
+            self.build_item(widget, defs, is_template=True)
         if not have_root:
             del self.idmap['root']
-        self._pop_ids()
+        #self._pop_ids()
 
 
     #
@@ -351,6 +362,7 @@ class BuilderBase(object):
         self.idmap = self.idmaps.pop()
 
     def build(self, objects):
+        self.idmap = {}
         root = None
         for item, params in objects:
             if item.startswith('<'):
@@ -360,52 +372,81 @@ class BuilderBase(object):
                     raise ParserError(params['__ctx__'], params['__line__'],
                                    'Only one root object is allowed')
                 root = self.build_item(item, params)
+                self.build_attributes()
+                self.apply(root)
         return root
 
-    def build_item(self, item, params, is_instance=False):
+    def _iterate(self, params):
+        for key, value in params.iteritems():
+            if key in ('__line__', '__ctx__'):
+                continue
+            yield key, value
+
+    def build_item(self, item, params, is_template=False):
         self._push_ids()
 
-        if is_instance is False:
+        if is_template is False:
             trace('Builder: build item %s' % item)
             if item.startswith('<'):
                 raise ParserError(params['__ctx__'], params['__line__'],
                                'Rules are not accepted inside Widget')
-            widget = Factory.get(item)()
+            widget = Factory.get(item)(__no_builder=True)
+            self.listwidget.append(widget)
         else:
             widget = item
         self.idmap['self'] = widget
 
-        # first loop, do attributes
-        for key, value in params.iteritems():
-            if key in ('__line__', '__ctx__'):
+        # first loop, create unknown attribute
+        for key, value in self._iterate(params):
+            value, ln, ctx = value
+            if hasattr(widget, key):
                 continue
+            widget.create_property(key)
+
+        # second loop, create the tree + canvas
+        for key, value in self._iterate(params):
             value, ln, ctx = value
             if key == 'children':
                 for citem, cparams, in value:
                     child = self.build_item(citem, cparams)
                     widget.add_widget(child)
             elif key == 'canvas':
-                pass
+                with widget.canvas:
+                    self.build_canvas(item, value)
+            elif key == 'id':
+                self.gidmap[value] = widget
             else:
-                try:
-                    value = create_handler(widget, key, value, self.idmap)
-                    trace('Builder: set %s=%s for %s' % (key, value, widget))
-                    setattr(widget, key, value)
-                except Exception, e:
-                    m = ParserError(ctx, ln, str(e))
-                    print m
-                    raise
-
-        # second loop, only for canvas
-        for key, value in params.iteritems():
-            if key != 'canvas':
-                continue
-            value, ln, ctx = value
-            with widget.canvas:
-                self.build_canvas(item, value)
+                self.listset.append((ctx, ln, widget, key, value, copy(self.idmap)))
 
         self._pop_ids()
+        if is_template:
+            self.build_attributes()
         return widget
+
+    def build_attributes(self):
+        # third loop, assign all attributes
+        for x in self.listset:
+            ctx, ln, widget, key, value, idmap = x
+            try:
+                idmap.update(self.gidmap)
+                value = create_handler(widget, key, value, idmap)
+                trace('Builder: set %s=%s for %s' % (key, value, widget))
+                if not hasattr(widget, key):
+                    widget.create_property(key)
+                setattr(widget, key, value)
+            except Exception, e:
+                m = ParserError(ctx, ln, str(e))
+                print m
+                raise
+        self.listset = []
+        self.gidmap = {}
+
+        # last loop, apply style
+        listwidget = self.listwidget[:]
+        self.listwidget = []
+        for widget in listwidget:
+            self.apply(widget)
+
 
     def build_canvas(self, item, elements):
         trace('Builder: build canvas for %s' % item)

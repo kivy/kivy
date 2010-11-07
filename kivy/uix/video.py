@@ -36,7 +36,7 @@ class Video(Widget):
 
     def __init__(self, **kwargs):
         self._video = None
-        super(Video, self).__init__()
+        super(Video, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
         Clock.unschedule(self._trigger_video_update)
@@ -49,7 +49,7 @@ class Video(Widget):
             self._video.bind(on_load=self._video_loaded)
             if self.play:
                 self._video.play()
-            Clock.schedule_interval(self._trigger_video_update, 0)
+            Clock.schedule_interval(self._trigger_video_update, 1 / 30.)
 
     def _video_loaded(self, *largs):
         self.texture = self._video.texture

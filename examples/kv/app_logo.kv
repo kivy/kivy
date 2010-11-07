@@ -1,8 +1,7 @@
 Widget:
-
 	Video:
 		source: '/home/tito/code/pymt/examples/apps/videoplayer/softboy.avi'
-		play: True
+		play: mybutton.state == 'down'
 		canvas:
 			Color:
 				rgb: (1, 1, 1)
@@ -23,5 +22,6 @@ Widget:
 			PopMatrix:
 
 	Button:
+		id: mybutton
 		text: 'Push me'
 		pos: 100, 100

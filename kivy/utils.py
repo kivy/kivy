@@ -4,14 +4,15 @@ Utils: generic toolbox
 
 __all__ = ('intersection', 'difference', 'curry', 'strtotuple',
            'get_color_from_hex', 'get_color_for_pyglet', 'get_random_color',
-           'is_color_transparent', 'boundary', 'connect',
+           'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
-           'serialize_numpy', 'deserialize_numpy',
-           'interpolate')
+           'interpolate', 'UserDict')
 
 import inspect
 import re
 import functools
+from UserDict import DictMixin
+
 
 def boundary(value, minvalue, maxvalue):
     '''Limit a value between a minvalue and maxvalue'''
@@ -114,10 +115,6 @@ def is_color_transparent(c):
         return True
     return False
 
-def connect(w1, p1, w2, p2, func=lambda x: x):
-    '''Connect events to a widget property'''
-    w1.connect(p1, w2, p2, func)
-
 DEPRECATED_CALLERS = []
 def deprecated(func):
     '''This is a decorator which can be used to mark functions
@@ -162,20 +159,101 @@ class SafeList(list):
             return reversed(iter(self))
         return iter(self)
 
+class OrderedDict(dict, DictMixin):
 
-def serialize_numpy(obj):
-    import numpy
-    from StringIO import StringIO
-    from base64 import b64encode
-    io = StringIO()
-    numpy.save(io, obj)
-    io.seek(0)
-    return b64encode(io.read())
+    def __init__(self, *args, **kwds):
+        if len(args) > 1:
+            raise TypeError('expected at most 1 arguments, got %d' % len(args))
+        try:
+            self.__end
+        except AttributeError:
+            self.clear()
+        self.update(*args, **kwds)
 
-def deserialize_numpy(s):
-    import numpy
-    from StringIO import StringIO
-    from base64 import b64decode
-    io = StringIO(b64decode(s))
-    return numpy.load(io)
+    def clear(self):
+        self.__end = end = []
+        end += [None, end, end]         # sentinel node for doubly linked list
+        self.__map = {}                 # key --> [key, prev, next]
+        dict.clear(self)
 
+    def __setitem__(self, key, value):
+        if key not in self:
+            end = self.__end
+            curr = end[1]
+            curr[2] = end[1] = self.__map[key] = [key, curr, end]
+        dict.__setitem__(self, key, value)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        key, prev, next = self.__map.pop(key)
+        prev[2] = next
+        next[1] = prev
+
+    def __iter__(self):
+        end = self.__end
+        curr = end[2]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[2]
+
+    def __reversed__(self):
+        end = self.__end
+        curr = end[1]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[1]
+
+    def popitem(self, last=True):
+        if not self:
+            raise KeyError('dictionary is empty')
+        if last:
+            key = reversed(self).next()
+        else:
+            key = iter(self).next()
+        value = self.pop(key)
+        return key, value
+
+    def __reduce__(self):
+        items = [[k, self[k]] for k in self]
+        tmp = self.__map, self.__end
+        del self.__map, self.__end
+        inst_dict = vars(self).copy()
+        self.__map, self.__end = tmp
+        if inst_dict:
+            return (self.__class__, (items,), inst_dict)
+        return self.__class__, (items,)
+
+    def keys(self):
+        return list(self)
+
+    setdefault = DictMixin.setdefault
+    update = DictMixin.update
+    pop = DictMixin.pop
+    values = DictMixin.values
+    items = DictMixin.items
+    iterkeys = DictMixin.iterkeys
+    itervalues = DictMixin.itervalues
+    iteritems = DictMixin.iteritems
+
+    def __repr__(self):
+        if not self:
+            return '%s()' % (self.__class__.__name__,)
+        return '%s(%r)' % (self.__class__.__name__, self.items())
+
+    def copy(self):
+        return self.__class__(self)
+
+    @classmethod
+    def fromkeys(cls, iterable, value=None):
+        d = cls()
+        for key in iterable:
+            d[key] = value
+        return d
+
+    def __eq__(self, other):
+        if isinstance(other, OrderedDict):
+            return len(self)==len(other) and self.items() == other.items()
+        return dict.__eq__(self, other)
+
+    def __ne__(self, other):
+        return not self == other

@@ -37,7 +37,7 @@ class Widget(EventDispatcher):
         self.__dict__['__uid'] = Widget.__widget_uid
 
         # First loop, link all the properties storage to our instance
-        attrs_found = []
+        attrs_found = {}
         attrs = dir(cls)
         for k in attrs:
             attr = getattr(cls, k)
@@ -46,7 +46,7 @@ class Widget(EventDispatcher):
                     raise Exception(
                         'The property <%s> have a forbidden name' % k)
                 attr.link(self, k)
-                attrs_found.append(k)
+                attrs_found[k] = attr
 
         # Second loop, resolve all the reference
         for k in attrs:
@@ -54,7 +54,7 @@ class Widget(EventDispatcher):
             if isinstance(attr, Property):
                 attr.link_deps(self, k)
 
-        setattr(self, '__properties', attrs_found)
+        self.__properties = attrs_found
 
         # Then, return the class instance
         return self
@@ -63,12 +63,8 @@ class Widget(EventDispatcher):
         # The thing here, since the storage of the property is inside the
         # Property class, we must remove ourself from the storage of each
         # Property. The usage is faster, the creation / deletion is longer.
-        cls = self.__class__
-        attrs = dir(cls)
-        for k in attrs:
-            attr = getattr(cls, k)
-            if isinstance(attr, Property):
-                attr.unlink(self)
+        for attr in self._properties.itervalues():
+            attr.unlink(self)
 
     def __init__(self, **kwargs):
         super(Widget, self).__init__()
@@ -80,7 +76,7 @@ class Widget(EventDispatcher):
         EventLoop.ensure_window()
 
         # Auto bind on own handler if exist
-        properties = getattr(self, '__properties')
+        properties = self.__properties.keys()
         for func in dir(self):
             if not func.startswith('on_'):
                 continue
@@ -97,8 +93,21 @@ class Widget(EventDispatcher):
         self.canvas = Canvas()
 
         # Apply all the styles
-        Builder.apply(self)
+        if '__no_builder' not in kwargs:
+            print 'APPLY', self
+            Builder.apply(self)
 
+
+    def create_property(self, name):
+        '''Create on live a new property. Unfortunatly, you cannot specify
+        the type of the property. It will be an ObjectProperty with None value
+        by default, until you set a new value.
+        '''
+        prop = ObjectProperty(None)
+        prop.link(self, name)
+        prop.link_deps(self, name)
+        self.__properties[name] = prop
+        setattr(self, name, prop)
 
 
     #
@@ -165,7 +174,7 @@ class Widget(EventDispatcher):
         for key, value in kwargs.iteritems():
             if key.startswith('on_'):
                 continue
-            getattr(self.__class__, key).bind(self, value)
+            self.__properties[key].bind(self, value)
 
     def unbind(self, **kwargs):
         '''Unbind properties or event from handler
@@ -176,7 +185,7 @@ class Widget(EventDispatcher):
         for key, value in kwargs.iteritems():
             if key.startswith('on_'):
                 continue
-            getattr(self.__class__, key).unbind(self, value)
+            self.__properties[key].unbind(self, value)
 
 
     #
@@ -222,12 +231,12 @@ class Widget(EventDispatcher):
 
             self.bind(right=nextchild.setter('x'))
         '''
-        return getattr(self.__class__, name).__set__
+        return self.__properties[name].__set__
 
     def getter(self, name):
         '''Return the getter of a property.
         '''
-        return getattr(self.__class__, name).__get__
+        return self.__properties[name].__get__
 
     #: X position of the widget
     x = NumericProperty(0)
