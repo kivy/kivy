@@ -17,22 +17,19 @@
 				size: self.texture_size
 				pos: root.center[0] - self.texture_size[0] / 2., root.center[1] - self.texture_size[1] / 2.
 
+
 <Slider>:
     canvas:
+        #draw the background
         Color:
             rgb: (.3, .3, .3)
         Rectangle:
             pos: self.pos
             size: self.size   
 
+        #draw the index marker
         Color:
             rgb: (.7, .2, .5)
         Rectangle:
-            pos: self.handle_pos
+            pos: self.value_pos
             size: (20,self.height)
-
-
-
-
-
-
