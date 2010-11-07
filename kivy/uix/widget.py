@@ -220,6 +220,44 @@ class Widget(EventDispatcher):
         if self.parent:
             return self.parent.get_parent_window()
 
+    def to_widget(self, x, y, relative=False):
+        '''Return the coordinate from window to local widget'''
+        if self.parent:
+            x, y = self.parent.to_widget(x, y)
+        return self.to_local(x, y, relative=relative)
+
+    def to_window(self, x, y, initial=True, relative=False):
+        '''Transform local coordinate to window coordinate'''
+        if not initial:
+            x, y = self.to_parent(x, y, relative=relative)
+        if self.parent:
+            return self.parent.to_window(x, y, initial=False, relative=relative)
+        return (x, y)
+
+    def to_parent(self, x, y, relative=False):
+        '''Transform local coordinate to parent coordinate
+
+        :Parameters:
+            `relative`: bool, default to False
+                Change to True is you want to translate relative position from
+                widget to his parent.
+        '''
+        if relative:
+            return (x + self.x, y + self.y)
+        return (x, y)
+
+    def to_local(self, x, y, relative=False):
+        '''Transform parent coordinate to local coordinate
+
+        :Parameters:
+            `relative`: bool, default to False
+                Change to True is you want to translate a coordinate to a
+                relative coordinate from widget.
+        '''
+        if relative:
+            return (x - self.x, y - self.y)
+        return (x, y)
+
 
     #
     # Properties

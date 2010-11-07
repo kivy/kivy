@@ -1,5 +1,6 @@
 Widget:
 	Video:
+		id: myvideo
 		source: '/home/tito/code/pymt/examples/apps/videoplayer/softboy.avi'
 		play: mybutton.state == 'down'
 		canvas:
@@ -25,3 +26,11 @@ Widget:
 		id: mybutton
 		text: 'Push me'
 		pos: 100, 100
+
+	Slider:
+		width: myvideo.width
+		height: 25
+		min: 0
+		max: myvideo.duration
+		value: myvideo.position
+		pos: myvideo.pos

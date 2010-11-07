@@ -29,16 +29,22 @@ class Slider(Widget):
 
     #: The value of the slide normalized to the range [min - max]
     def get_norm_value(self):
-        return (self.value - self.min) / float(self.max-self.min)
+        d = self.max - self.min
+        if d == 0:
+            return 0
+        return (self.value - self.min) / float(d)
     def set_norm_value(self, n_val):
         self.value = n_val*(self.max-self.min) + self.min
     value_normalized = AliasProperty(get_norm_value, set_norm_value, bind=(value, min, max))
 
     #: The value of the slider mapped to the screen position between self.x and self.right
     def get_value_pos(self):
-        return  (self.x + self.value_normalized*self.width, self.y)  
+        return  (self.x + self.value_normalized*self.width, self.y)
     def set_value_pos(self, pos):
-        self.value_normalized = (pos[0] - self.x) / float(self.width)
+        if self.width == 0:
+            self.value_normalized = 0
+        else:
+            self.value_normalized = (pos[0] - self.x) / float(self.width)
     value_pos = AliasProperty(get_value_pos, set_value_pos, bind=(value, min, max, value_normalized))
 
 
@@ -52,7 +58,7 @@ class Slider(Widget):
     #: on_touch_move handler.  set value based on where the touch occured
     def on_touch_move(self, touch):
         if touch.grab_current == self:
-            self.value_pos = touch.pos 
+            self.value_pos = touch.pos
             return True
 
     #: on_touch_up handler. set value based on touch pos, and ungrab touch
