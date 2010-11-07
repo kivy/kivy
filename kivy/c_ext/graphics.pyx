@@ -668,6 +668,7 @@ cdef class VertexDataInstruction(GraphicInstruction):
         for i in range(self.v_count):
             #print idx[i], vtx[i].x, vtx[i].y, vtx[i].s0, vtx[i].t0
             self.vbo.update_vertices(idx[i], &vtx[i], 1)
+        self.canvas.update(self)
 
     cdef trigger_texture_update(self):
         '''Called when the texture is updated
