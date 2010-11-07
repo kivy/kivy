@@ -17,8 +17,6 @@ class VideoBase(EventDispatcher):
     :Parameters:
         `filename` : str
             Filename of the video. Can be a file or an URI.
-        `color` : list
-            Color filter of the video (usually white.)
         `eos` : str, default to 'pause'
             Action to do when EOS is hit. Can be one of 'pause' or 'loop'
         `async` : bool, default to True
@@ -29,21 +27,23 @@ class VideoBase(EventDispatcher):
     :Events:
         `on_eos`
             Fired when EOS is hit
+        `on_load`
+            Fired when the video is loaded, texture is available
     '''
 
-    __slots__ = ('_wantplay', '_buffer', '_filename', '_texture', 'color',
+    __slots__ = ('_wantplay', '_buffer', '_filename', '_texture',
                  '_volume', 'eos', '_state', '_async', '_autoplay')
 
     def __init__(self, **kwargs):
         kwargs.setdefault('filename', None)
-        kwargs.setdefault('color', (1, 1, 1, 1))
         kwargs.setdefault('eos', 'pause')
         kwargs.setdefault('async', True)
         kwargs.setdefault('autoplay', False)
 
-        super(VideoBase, self).__init__(**kwargs)
+        super(VideoBase, self).__init__()
 
         self.register_event_type('on_eos')
+        self.register_event_type('on_load')
 
         self._wantplay      = False
         self._buffer        = None
@@ -55,7 +55,6 @@ class VideoBase(EventDispatcher):
         self._autoplay      = kwargs.get('autoplay')
         self._async         = kwargs.get('async')
         self.eos            = kwargs.get('eos')
-        self.color          = kwargs.get('color')
         self.filename       = kwargs.get('filename')
 
         if self._autoplay:
@@ -65,6 +64,9 @@ class VideoBase(EventDispatcher):
         self.unload()
 
     def on_eos(self):
+        pass
+
+    def on_load(self):
         pass
 
     def _get_filename(self):
@@ -142,10 +144,6 @@ class VideoBase(EventDispatcher):
     def update(self):
         '''Update the video content to texture.
         Must be called every frame, before draw.'''
-        pass
-
-    def draw(self):
-        '''Draw the current video on screen'''
         pass
 
 # Load the appropriate provider

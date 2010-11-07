@@ -14,7 +14,7 @@ cdef class MatrixStack:
         self.stack.append(mat)
 
     cpdef apply(self, mat):
-        self.stack[-1] = matrix_multiply(mat, self.stack[-1])
+        self.stack[-1] = matrix_multiply(self.stack[-1], mat)
         self.context.set('modelview_mat', self.stack[-1])
 
     def transform(self):

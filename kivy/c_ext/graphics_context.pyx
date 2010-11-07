@@ -97,8 +97,11 @@ cdef class GraphicContext:
         cdef dict state
         cdef set journal
         cdef str x
+        cdef Shader shader
 
-        self.state['shader'].use()
+        shader = self.state['shader']
+
+        shader.use()
         if not self.journal:
             return
 
@@ -125,7 +128,11 @@ cdef class GraphicContext:
                 glBlendFunc(state['blend_sfactor'], state['blend_dfactor'])
 
             elif x != 'shader': #set uniform variable
-                self.state['shader'].set_uniform(x, value)
+                shader = state['shader']
+                if x == 'modelview_mat':
+                    shader.set_uniform_matrix(x, value)
+                else:
+                    shader.set_uniform(x, value)
 
         journal.clear()
         self.need_flush = 0

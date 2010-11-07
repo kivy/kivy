@@ -12,9 +12,9 @@ except:
     raise
 
 import threading
-import kivy
 from . import VideoBase
 from kivy.core.gl import GL_RGB
+from kivy.texture import Texture
 from gst.extend import discoverer
 
 # install the gobject iteration
@@ -230,10 +230,11 @@ class VideoGStreamer(VideoBase):
                 cap = i.get_caps()[0]
                 structure_name = cap.get_name()
                 if structure_name.startswith('video') and cap.has_key('width'):
-                    self._videosize = self.size = (cap['width'], cap['height'])
-                    self._texture = kivy.Texture.create(
+                    self._videosize = (cap['width'], cap['height'])
+                    self._texture = Texture.create(
                         self._videosize[0], self._videosize[1], format=GL_RGB)
                     self._texture.flip_vertical()
+                    self.dispatch('on_load')
 
         # no texture again ?
         if self._texture is None:

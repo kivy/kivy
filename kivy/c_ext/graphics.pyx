@@ -372,7 +372,7 @@ cdef class PopMatrix(ContextInstruction):
     '''Pop Matrix from context's matrix stack onto model view
     '''
     cdef apply(self):
-        self.context.get('mvm').push()
+        self.context.get('mvm').pop()
 
 
 cdef class MatrixInstruction(ContextInstruction):
@@ -448,6 +448,8 @@ cdef class Rotate(Transform):
         Transform.__init__(self)
         if len(args) == 4:
             self.set(args[0], args[1], args[2], args[3])
+        else:
+            self.set(0, 0, 0, 1)
 
     def set(self, float angle, float ax, float ay, float az):
         self._angle = angle

@@ -1,0 +1,27 @@
+Widget:
+
+	Video:
+		source: '/home/tito/code/pymt/examples/apps/videoplayer/softboy.avi'
+		play: True
+		canvas:
+			Color:
+				rgb: (1, 1, 1)
+			BorderImage:
+				texture: self.texture
+				size: self.texture_size
+
+	Image:
+		source: '../kivy.jpg'
+		canvas:
+			PushMatrix:
+			Rotate:
+				angle: 1
+			BorderImage:
+				border: 250, 250, 250, 250
+				texture: self.texture
+				size: self.texture_size
+			PopMatrix:
+
+	Button:
+		text: 'Push me'
+		pos: 100, 100

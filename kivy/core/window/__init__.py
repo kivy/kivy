@@ -250,10 +250,6 @@ class WindowBase(EventDispatcher):
         glClearColor(0, 0, 0, 0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-    def draw(self):
-        '''Draw the window background'''
-        self.clear()
-
     def to_widget(self, x, y, initial=True, relative=False):
         return (x, y)
 
@@ -270,6 +266,7 @@ class WindowBase(EventDispatcher):
         return None
 
     def on_draw(self):
+        self.clear()
         self.canvas.draw()
 
     def on_touch_down(self, touch):

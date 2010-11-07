@@ -16,6 +16,8 @@ from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
 
+Widget_forbidden_properties = ('touch_down', 'touch_move', 'touch_up')
+
 class Widget(EventDispatcher):
     '''
     Widget is the very basic class for implementing any Kivy Widget.
@@ -35,17 +37,24 @@ class Widget(EventDispatcher):
         self.__dict__['__uid'] = Widget.__widget_uid
 
         # First loop, link all the properties storage to our instance
+        attrs_found = []
         attrs = dir(cls)
         for k in attrs:
             attr = getattr(cls, k)
             if isinstance(attr, Property):
+                if k in Widget_forbidden_properties:
+                    raise Exception(
+                        'The property <%s> have a forbidden name' % k)
                 attr.link(self, k)
+                attrs_found.append(k)
 
         # Second loop, resolve all the reference
         for k in attrs:
             attr = getattr(cls, k)
             if isinstance(attr, Property):
                 attr.link_deps(self, k)
+
+        setattr(self, '__properties', attrs_found)
 
         # Then, return the class instance
         return self
@@ -69,6 +78,15 @@ class Widget(EventDispatcher):
 
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
+
+        # Auto bind on own handler if exist
+        properties = getattr(self, '__properties')
+        for func in dir(self):
+            if not func.startswith('on_'):
+                continue
+            name = func[3:]
+            if name in properties:
+                self.bind(**{name: getattr(self, func)})
 
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():
