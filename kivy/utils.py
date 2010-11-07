@@ -6,7 +6,7 @@ __all__ = ('intersection', 'difference', 'curry', 'strtotuple',
            'get_color_from_hex', 'get_color_for_pyglet', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
-           'interpolate', 'UserDict')
+           'interpolate', 'OrderedDict')
 
 import inspect
 import re
