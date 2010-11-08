@@ -94,7 +94,6 @@ class Widget(EventDispatcher):
 
         # Apply all the styles
         if '__no_builder' not in kwargs:
-            print 'APPLY', self
             Builder.apply(self)
 
 
