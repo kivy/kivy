@@ -57,7 +57,9 @@ class BoxLayout(Layout):
             spacing = self._trigger_layout,
             padding = self._trigger_layout,
             children = self._trigger_layout,
-            orientation = self._trigger_layout
+            orientation = self._trigger_layout,
+            size = self._trigger_layout,
+            pos = self._trigger_layout
         )
 
     def _trigger_layout(self, *largs):
