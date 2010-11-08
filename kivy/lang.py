@@ -262,7 +262,6 @@ def create_handler(element, key, value, idmap):
         if len(k) != 2:
             continue
         f = idmap[k[0]]
-        print 'bind()', k
         f.bind(**{k[1]: call_fn})
 
     return eval(value, _eval_globals, idmap)

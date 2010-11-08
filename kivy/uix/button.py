@@ -18,6 +18,12 @@ class Button(Widget):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
 
+    def _do_press(self):
+        self.state = 'down'
+
+    def _do_release(self):
+        self.state = 'normal'
+
     def on_touch_down(self, touch):
         if not self.collide_point(touch.x, touch.y):
             return False
@@ -25,7 +31,7 @@ class Button(Widget):
             return False
         touch.grab(self)
         touch.userdata[self] = True
-        self.state = 'down'
+        self._do_press()
         self.dispatch('on_press')
         return True
 
@@ -36,7 +42,7 @@ class Button(Widget):
         if not self in touch.userdata:
             return False
         touch.ungrab(self)
-        self.state = 'normal'
+        self._do_release()
         self.dispatch('on_release')
         return True
 
