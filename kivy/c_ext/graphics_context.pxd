@@ -7,7 +7,7 @@ cdef class GraphicContext:
     cdef readonly int need_flush
     cdef Shader _default_shader
     cdef object _default_texture
-    cdef int need_redraw
+    cdef int _need_redraw
 
     cpdef post_update(self)
     cpdef finish_frame(self)

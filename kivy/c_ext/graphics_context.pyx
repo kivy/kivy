@@ -45,18 +45,22 @@ cdef class GraphicContext:
         self.journal = set()
         self.need_flush = 0
         self._default_shader = None
+        self._need_redraw = 1
 
     def __init__(self):
         # create initial state
         self.reset()
         self.save()
-        self.need_redraw = 1
+
+    property need_redraw:
+        def __get__(self):
+            return self._need_redraw
 
     cpdef post_update(self):
-        self.need_redraw = 1
+        self._need_redraw = 1
 
     cpdef finish_frame(self):
-        self.need_redraw = 0
+        self._need_redraw = 0
         err = glGetError()
         if err:
             Logger.warning('GContext: GL Error while drawing frame: %d' % err)

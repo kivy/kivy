@@ -7,7 +7,6 @@ __all__ = ('WindowPygame', )
 from . import WindowBase
 
 import os
-from time import sleep, time
 from kivy.config import Config
 from kivy.clock import Clock
 from kivy.exceptions import ExceptionManager
@@ -137,17 +136,6 @@ class WindowPygame(WindowBase):
     def flip(self):
         pygame.display.flip()
         super(WindowPygame, self).flip()
-
-        # do software vsync if asked
-        # FIXME: vsync is surely not 60 for everyone
-        # this is not a real vsync. this must be done by driver...
-        # but pygame can't do vsync on X11, and some people
-        # use hack to make it work under darwin...
-        fps = self._fps
-        if fps > 0:
-            s = 1 / fps - (time() - Clock.get_time())
-            if s > 0:
-                sleep(s)
 
     def toggle_fullscreen(self):
         if self.flags & pygame.FULLSCREEN:
