@@ -56,6 +56,9 @@ cdef class GraphicContext:
         def __get__(self):
             return self._need_redraw
 
+    cpdef trigger(self):
+        self._need_redraw = 1
+
     cpdef post_update(self):
         self._need_redraw = 1
 

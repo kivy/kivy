@@ -77,6 +77,9 @@ cdef class Canvas:
         def __get__(self):
             return self._batch
 
+    cpdef trigger(self):
+        self._context.trigger()
+
     cpdef __enter__(self):
         global _active_canvas
         _active_canvas = self

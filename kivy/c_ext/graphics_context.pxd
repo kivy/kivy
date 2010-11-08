@@ -9,6 +9,7 @@ cdef class GraphicContext:
     cdef object _default_texture
     cdef int _need_redraw
 
+    cpdef trigger(self)
     cpdef post_update(self)
     cpdef finish_frame(self)
     cpdef set(self, str key, value)
