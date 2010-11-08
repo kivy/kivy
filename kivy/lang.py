@@ -30,7 +30,7 @@ from os.path import join
 from copy import copy
 from kivy.factory import Factory
 from kivy.logger import Logger
-from kivy.utils import OrderedDict
+from kivy.utils import OrderedDict, curry
 from kivy import kivy_data_dir
 
 trace = Logger.trace
@@ -236,6 +236,10 @@ def _eval_center(boxsize, center):
     return center[0] - boxsize[0] / 2., center[1] - boxsize[1] / 2.
 _eval_globals['center'] = _eval_center
 
+def custom_callback(*largs, **kwargs):
+    element, key, value, idmap = largs[0]
+    locals().update(idmap)
+    exec value
 
 def create_handler(element, key, value, idmap):
 
@@ -428,11 +432,7 @@ class BuilderBase(object):
             ctx, ln, widget, key, value, idmap = x
             try:
                 idmap.update(self.gidmap)
-                value = create_handler(widget, key, value, idmap)
-                trace('Builder: set %s=%s for %s' % (key, value, widget))
-                if not hasattr(widget, key):
-                    widget.create_property(key)
-                setattr(widget, key, value)
+                self.build_handler(widget, key, value, idmap, True)
             except Exception, e:
                 m = ParserError(ctx, ln, str(e))
                 print m
@@ -446,6 +446,16 @@ class BuilderBase(object):
         for widget in listwidget:
             self.apply(widget)
 
+    def build_handler(self, element, key, value, idmap, is_widget):
+        if key.startswith('on_'):
+            element.bind(**{key:curry(custom_callback, (element, key, value, idmap))})
+
+        else:
+            value = create_handler(element, key, value, idmap)
+            trace('Builder: set %s=%s for %s' % (key, value, element))
+            if is_widget and not hasattr(element, key):
+                    element.create_property(key)
+            setattr(element, key, value)
 
     def build_canvas(self, item, elements):
         trace('Builder: build canvas for %s' % item)
@@ -456,9 +466,7 @@ class BuilderBase(object):
                     continue
                 value, ln, ctx = value
                 try:
-                    value = create_handler(element, key, value, self.idmap)
-                    trace('Builder: set %s=%s for %s' % (key, value, element))
-                    setattr(element, key, value)
+                    self.build_handler(element, key, value, self.idmap, False)
                 except Exception, e:
                     m = ParserError(ctx, ln, str(e))
                     print m.message
