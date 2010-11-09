@@ -77,6 +77,9 @@ cdef class Canvas:
         def __get__(self):
             return self._batch
 
+    cpdef trigger(self):
+        self._context.trigger()
+
     cpdef __enter__(self):
         global _active_canvas
         _active_canvas = self
@@ -111,8 +114,14 @@ cdef class Canvas:
             self.compile_run()
 
     cdef compile_init(self):
+        cdef GraphicInstruction x
         self.texture_map = []
         self.batch_slices = []
+
+        # to prevent to regenerate object from previous compilation
+        # remove all the object flagged as GI_COMPILER
+        self._batch = [x for x in self._batch if not (x.code & GI_COMPILER)]
+
 
     cdef compile_run(self):
         cdef GraphicInstruction item
@@ -127,8 +136,8 @@ cdef class Canvas:
         for i in xrange(len(self._batch)):
             item = self._batch[i]
             code = item.code
-            #the instruction modifies the context, so we cant combine the drawing
-            #calls before and after it
+            # the instruction modifies the context, so we cant combine the drawing
+            # calls before and after it
             if code & GI_CONTEXT_MOD:
                 #first compile the slices we been loopiing over which we can combine
                 #from slice_start to slice_stop. (using compile_slice() )
@@ -138,10 +147,10 @@ cdef class Canvas:
                 self.batch_slices.append(('instruction', item))
                 slice_start = slice_stop = -1
 
-            #the instruction pushes vertices to the pipeline and doesnt modify
-            #the context, so we can happily combine it with any prior or follwing
-            #instructions that do the same, just keep incrementing slice stop index
-            #until we cant combine any more, then well call compile_slice()
+            # the instruction pushes vertices to the pipeline and doesnt modify
+            # the context, so we can happily combine it with any prior or follwing
+            # instructions that do the same, just keep incrementing slice stop index
+            # until we cant combine any more, then well call compile_slice()
             elif code & GI_VERTEX_DATA:
                 slice_stop = i
                 if slice_start == -1:
@@ -155,8 +164,11 @@ cdef class Canvas:
 
     cdef compile_children(self):
         cdef Canvas child
+        cdef GraphicInstruction instr
         for child in self._children:
-            self.batch_slices.append(('instruction', CanvasDraw(child)))
+            instr = CanvasDraw(child)
+            instr.code |= GI_COMPILER
+            self.batch_slices.append(('instruction', instr))
 
     cdef compile_slice(self, str command, slice_start, slice_end):
         Logger.trace('Canvas: compiling slice: %s' % str((
@@ -164,6 +176,7 @@ cdef class Canvas:
         cdef VertexDataInstruction item
         cdef Buffer b = Buffer(sizeof(GLint))
         cdef int v, i
+        cdef GraphicInstruction instr
 
         # check if we have a valid slice
         if slice_start == -1:
@@ -176,23 +189,25 @@ cdef class Canvas:
                 v = item.element_data[i]
                 b.add(&v, NULL, 1)
 
-            # handle textures (should go somewhere else?, maybe set GI_CONTEXT_MOD FLAG ALSO?)
+            # handle textures (should go somewhere else?,
+            # maybe set GI_CONTEXT_MOD FLAG ALSO?)
             if item.texture:
-                self.batch_slices.append(('instruction', BindTexture(item.texture)))
-                self.batch_slices.append((command, b))
-                b = Buffer(sizeof(GLint))
-
-            # no item.texture..must unbind bound_texture and start new slice
+                instr = BindTexture(item.texture)
             else:
-                self.batch_slices.append(('instruction', BindTexture(None)))
-                self.batch_slices.append((command, b))
-                b = Buffer(sizeof(GLint))
+                instr = BindTexture(None)
+
+            # flags the instruction as a generated one
+            instr.code |= GI_COMPILER
+            self.batch_slices.append(('instruction', instr))
+            self.batch_slices.append((command, b))
+            b = Buffer(sizeof(GLint))
 
         # last slice, all done, only have to add if there is actually somethign in it
         if b.count() > 0:
             self.batch_slices.append((command, b))
 
     cpdef draw(self):
+        # early binding to prevent some python overhead
         self._draw()
 
     cdef _draw(self):
@@ -227,7 +242,7 @@ cdef class GraphicInstruction:
         `code`: constant
             instruction code for hinting the compiler currently a
             combination of : GI_NOOP, GI_IGNORE, GI_CONTEXT_MOD,
-            GI_VERTEX_DATA
+            GI_VERTEX_DATA, GI_COMPILER
     '''
     #: Graphic instruction op code
     cdef int code

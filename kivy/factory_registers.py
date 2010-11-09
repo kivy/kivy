@@ -3,6 +3,7 @@
 from kivy.factory import Factory
 
 Factory.register('SafeList', module='kivy.utils')
+Factory.register('OrderedDict', module='kivy.utils')
 Factory.register('MTContext', module='kivy.plugin')
 Factory.register('MTPlugins', module='kivy.plugin')
 Factory.register('ExceptionHandler', module='kivy.exceptions')
@@ -29,6 +30,8 @@ Factory.register('TouchShapeRect', module='kivy.input.shape')
 Factory.register('Video', module='kivy.uix.video')
 Factory.register('Widget', module='kivy.uix.widget')
 Factory.register('Button', module='kivy.uix.button')
+Factory.register('BoxLayout', module='kivy.uix.boxlayout')
+Factory.register('ToggleButton', module='kivy.uix.togglebutton')
 Factory.register('Image', module='kivy.uix.image')
 Factory.register('Label', module='kivy.uix.label')
 Factory.register('Slider', module='kivy.uix.slider')

@@ -17,8 +17,9 @@ If the callback return False, the schedule will be removed.
 
 __all__ =  ('Clock', )
 
-import time
+from time import time, sleep
 from kivy.weakmethod import WeakMethod
+from kivy.config import Config
 
 class _Event(object):
 
@@ -63,16 +64,19 @@ class _Event(object):
 
 class ClockBase(object):
     '''A clock object, that support events'''
-    __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps',
-            '_fps_counter', '_events')
+    __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
+            '_fps_counter', '_rfps_counter', '_events', '_max_fps')
 
     def __init__(self):
         self._dt = 0.0001
-        self._last_tick = time.time()
+        self._last_tick = time()
         self._fps = 0
+        self._rfps = 0
         self._fps_counter = 0
+        self._rfps_counter = 0
         self._last_fps_tick = None
         self._events = []
+        self._max_fps = float(Config.getint('graphics', 'fps'))
 
     @property
     def frametime(self):
@@ -83,8 +87,16 @@ class ClockBase(object):
     def tick(self):
         '''Advance clock to the next step. Must be called every frame.
         The default clock have the tick() function called by Kivy'''
+
+        # do we need to sleep ?
+        if self._max_fps > 0:
+            fps = self._max_fps
+            s = 1 / fps - (time() - self._last_tick)
+            if s > 0:
+                sleep(s)
+
         # tick the current time
-        current = time.time()
+        current = time()
         self._dt = current - self._last_tick
         self._fps_counter += 1
         self._last_tick = current
@@ -93,18 +105,36 @@ class ClockBase(object):
         if self._last_fps_tick == None:
             self._last_fps_tick = current
         elif current - self._last_fps_tick > 1:
-            self._fps = self._fps_counter / float(current - self._last_fps_tick)
+            d = float(current - self._last_fps_tick)
+            self._fps = self._fps_counter / d
+            self._rfps = self._rfps_counter
             self._last_fps_tick = current
             self._fps_counter = 0
+            self._rfps_counter = 0
 
         # process event
         self._process_events()
 
         return self._dt
 
+    def tick_draw(self):
+        '''Tick the drawing counter
+        '''
+        self._rfps_counter += 1
+
     def get_fps(self):
-        '''Get the current FPS calculated by the clock'''
+        '''Get the current FPS calculated by the clock
+        '''
         return self._fps
+
+    def get_rfps(self):
+        '''Get the current "real" FPS calculated by the clock.
+        This counter reflect the real frame displayed on the screen.
+
+        In contrary to get_fps(), this function return a counter of the number
+        of frame, not a average of frame per seconds
+        '''
+        return self._rfps
 
     def get_time(self):
         '''Get the last tick made by the clock'''

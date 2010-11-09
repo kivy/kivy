@@ -70,3 +70,4 @@ class Video(Widget):
         self._video.update()
         self.duration = self._video.duration
         self.position = self._video.position
+        self.canvas.trigger()

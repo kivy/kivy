@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.lang import Builder
 
 class KvApp(App):
+    def _print_fps(self, *largs):
+        print 'FPS: %2.4f (real draw: %d)' % (
+            Clock.get_fps(), Clock.get_rfps())
     def build(self):
+        Clock.schedule_interval(self._print_fps, 1)
         return Builder.load_file(self.options['filename'])
 
 if __name__ == '__main__':

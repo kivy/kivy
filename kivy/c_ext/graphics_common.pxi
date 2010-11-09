@@ -32,10 +32,11 @@ possible to set the code on any GraphicInstruction
 in order to let the compiler know how to handle it best
 '''
 
-cdef int GI_NOOP         = 0x0000000
-cdef int GI_IGNORE       = 0x0000001
-cdef int GI_VERTEX_DATA  = 0x0000002
-cdef int GI_CONTEXT_MOD  = 0x0000004
+cdef int GI_NOOP         = 1 << 0
+cdef int GI_IGNORE       = 1 << 1
+cdef int GI_VERTEX_DATA  = 1 << 2
+cdef int GI_CONTEXT_MOD  = 1 << 3
+cdef int GI_COMPILER	 = 1 << 4
 
 
 
