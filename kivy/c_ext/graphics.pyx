@@ -1093,8 +1093,15 @@ cdef class Path(VertexDataInstruction):
     cdef int add_point(self, float x, float y):
         cdef int idx
         cdef vertex v = vertex2f(x,y)
+        for p in self. points:
+            if abs(p.x-x) < 0.001 and abs(p.y-y) < 0.001:
+                Logger("PATH: ignoring point(x,y)...already in list")
+                return 0
+        
         self.point_buffer.add(&v, &idx, 1)
         self.points.append(Point(x,y))
+        
+        
         return idx
 
     cdef build_stroke(self):
@@ -1129,10 +1136,10 @@ cdef class Path(VertexDataInstruction):
             dy = sw/2.0 * dy/ns
 
             #create quad, with cornerss pull off the line by the normal
-            v[0] = vertex8f(x0-dy, y0+dx, 0,0, -dy, dx, -1.0,-1.0);
-            v[1] = vertex8f(x0+dy, y0-dx, 0,0,  dy,-dx,  1.0, 1.0);
-            v[2] = vertex8f(x1+dy, y1-dx, 0,0,  dy,-dx,  1.0, 1.0);
-            v[3] = vertex8f(x1-dy, y1+dx, 0,0, -dy, dx, -1.0,-1.0);
+            v[0] = vertex8f(x0, y0, 0,0, -dy, dx, -1.0,-1.0);
+            v[1] = vertex8f(x0, y0, 0,0,  dy,-dx,  1.0, 1.0);
+            v[2] = vertex8f(x1, y1, 0,0,  dy,-dx,  1.0, 1.0);
+            v[3] = vertex8f(x1, y1, 0,0, -dy, dx, -1.0,-1.0);
 
             #add vertices to vertex buffer, get vbo indices
             self.v_buffer.add(v, idx, 4)
@@ -1214,6 +1221,7 @@ cdef class PathInstruction(GraphicInstruction):
         self.path = _active_path
 
 
+
 cdef class PathStart(PathInstruction):
     '''Starts a new path at position x,y.  Will raise an Excpetion, if called
     while another path is already started.
@@ -1225,13 +1233,13 @@ cdef class PathStart(PathInstruction):
             y position
     '''
     cdef int index
-    def __init__(self, float x, float y):
+    def __init__(self):
         global _active_path
         PathInstruction.__init__(self)
         if _active_path != None:
             raise Exception("Can't start a new path while another one is being constructed")
         _active_path = self.path = Path()
-        self.index = self.path.add_point(x, y)
+        #self.index = self.path.add_point(x, y)
 
 
 cdef class PathLineTo(PathInstruction):
@@ -1277,4 +1285,11 @@ cdef class PathStroke(PathInstruction):
 
 cdef class PathEnd(PathStroke):
     pass
+
+
+
+
+
+
+
 
