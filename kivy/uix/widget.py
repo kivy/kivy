@@ -336,7 +336,7 @@ class Widget(EventDispatcher):
     children = ListProperty([])
 
     #: Parent
-    parent = ObjectProperty(None)
+    parent = ObjectProperty(None, allownone=True)
 
     #: Size hint X
     size_hint_x = NumericProperty(1, allownone=True)
