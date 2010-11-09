@@ -91,10 +91,12 @@ cdef class Canvas:
     cpdef add_canvas(self, Canvas canvas):
         if not canvas in self._children:
             self._children.append(canvas)
+        self._need_compile = 1
 
     cpdef remove_canvas(self, Canvas canvas):
         if canvas in self._children:
             self._children.remove(canvas)
+        self._need_compile = 1
 
     cdef add(self, GraphicInstruction instruction):
         self.need_compile = 1
