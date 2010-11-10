@@ -201,7 +201,7 @@ class Parser(object):
 
             # Two more level ?
             elif count == indent + 8:
-                if current_property not in ('canvas', ):
+                if current_property not in ('canvas', 'canvas.after'):
                     raise ParserError(self, ln,
                                    'Invalid indentation, only allowed '
                                    'for canvas')
@@ -415,6 +415,9 @@ class BuilderBase(object):
                     widget.add_widget(child)
             elif key == 'canvas':
                 with widget.canvas:
+                    self.build_canvas(item, value)
+            elif key == 'canvas.after':
+                with widget.canvas.after:
                     self.build_canvas(item, value)
             elif key == 'id':
                 self.gidmap[value] = widget

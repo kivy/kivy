@@ -37,13 +37,28 @@ cdef class GraphicContext
 cdef class GraphicInstruction
 
 cdef Canvas _active_canvas = None
+cdef int _active_canvas_after = 0
+
+cdef class CanvasAfter:
+    cdef Canvas canvas
+    def __init__(self, canvas):
+        self.canvas = canvas
+
+    def __enter__(self):
+        self.canvas.__enter__(after=1)
+
+    def __exit__(self, extype, value, traceback):
+        self.canvas.__exit__(extype, value, traceback, after=1)
+
 
 cdef class Canvas:
     cdef GraphicContext _context
     cdef VBO vertex_buffer
     cdef list texture_map
     cdef list _batch
+    cdef list _batch_after
     cdef list _children
+    cdef CanvasAfter _canvas_after
 
     #move to graphics compiler?:
     cdef int _need_compile
@@ -52,9 +67,11 @@ cdef class Canvas:
 
     def __cinit__(self):
         self._context = GraphicContext.instance()
+        self._canvas_after = CanvasAfter(self)
         self.vertex_buffer = VBO()
         self.texture_map = []
         self._batch = []
+        self._batch_after = []
         self._children = []
 
         self._need_compile = 1
@@ -77,16 +94,24 @@ cdef class Canvas:
         def __get__(self):
             return self._batch
 
+    property after:
+        def __get__(self):
+            return self._canvas_after
+
     cpdef trigger(self):
         self._context.trigger()
 
-    cpdef __enter__(self):
-        global _active_canvas
+    def __enter__(self, after=0):
+        global _active_canvas, _active_canvas_after
+        if _active_canvas:
+            raise Exception('Cannot stack canvas usage.')
         _active_canvas = self
+        _active_canvas_after = after
 
-    cpdef __exit__(self, extype, value, traceback):
-        global _active_canvas
+    def __exit__(self, extype, value, traceback, after=0):
+        global _active_canvas, _active_canvas_after
         _active_canvas = None
+        _active_canvas_after = after
 
     cpdef add_canvas(self, Canvas canvas):
         if not canvas in self._children:
@@ -100,43 +125,62 @@ cdef class Canvas:
 
     cdef add(self, GraphicInstruction instruction):
         self.need_compile = 1
-        self._batch.append(instruction)
+        if _active_canvas_after:
+            self._batch_after.append(instruction)
+        else:
+            self._batch.append(instruction)
+
+    cdef remove(self, GraphicInstruction instruction):
+        self.need_compile = 1
+        if _active_canvas_after:
+            self._batch_after.remove(instruction)
+        else:
+            self._batch.remove(instruction)
 
     cdef update(self, instruction):
         ''' called by graphic instructions taht are part of the canvas,
             when they have been changed in some way '''
         self.need_compile = 1
 
-    cdef remove(self, element):
-        self.need_compile = 1
-        pass
-
-    cdef compile(self):
-        with self:
-            self.compile_run()
-
     cdef compile_init(self):
-        cdef GraphicInstruction x
         self.texture_map = []
         self.batch_slices = []
 
         # to prevent to regenerate object from previous compilation
         # remove all the object flagged as GI_COMPILER
-        self._batch = [x for x in self._batch if not (x.code & GI_COMPILER)]
+        self._batch = self.compile_strip_compiler(self._batch)
+        self._batch_after = self.compile_strip_compiler(self._batch_after)
 
+    cdef list compile_strip_compiler(self, list batch):
+        cdef GraphicInstruction x
+        return [x for x in batch if not (x.code & GI_COMPILER)]
 
-    cdef compile_run(self):
+    cdef compile(self):
+        Logger.trace('GCanvas: start compilation')
+
+        self.compile_init()
+        with self:
+            self.compile_batch(self._batch)
+            self.compile_children()
+        with self.after:
+            self.compile_batch(self._batch_after)
+
+    cdef compile_batch(self, list batch):
         cdef GraphicInstruction item
         cdef int slice_start = -1
         cdef int slice_stop  = -1
-        cdef int i, code
+        cdef int i, code, batch_len
 
-        self.compile_init()
+        # care about the batch. since we adding instruction, the size can change
+        # while we are iterating.
+        batch_len = len(batch)
 
-        Logger.trace('GCanvas: start compilation')
+        # always start with binding vbo
+        if batch_len:
+            self.batch_slices.append(('bind', None))
 
-        for i in xrange(len(self._batch)):
-            item = self._batch[i]
+        for i in xrange(batch_len):
+            item = batch[i]
             code = item.code
             # the instruction modifies the context, so we cant combine the drawing
             # calls before and after it
@@ -145,7 +189,7 @@ cdef class Canvas:
                 #from slice_start to slice_stop. (using compile_slice() )
                 #add the context modifying instruction to batch_slices
                 #reset slice start/stop index
-                self.compile_slice('draw', slice_start, slice_stop)
+                self.compile_slice('draw', batch, slice_start, slice_stop)
                 self.batch_slices.append(('instruction', item))
                 slice_start = slice_stop = -1
 
@@ -159,10 +203,7 @@ cdef class Canvas:
                     slice_start = i
 
         # maybe we ended on an slice of vartex data, whcih we didnt push yet
-        self.compile_slice('draw', slice_start, slice_stop)
-
-        # draw children!
-        self.compile_children()
+        self.compile_slice('draw', batch, slice_start, slice_stop)
 
     cdef compile_children(self):
         cdef Canvas child
@@ -172,10 +213,11 @@ cdef class Canvas:
             instr.code |= GI_COMPILER
             self.batch_slices.append(('instruction', instr))
 
-    cdef compile_slice(self, str command, slice_start, slice_end):
+    cdef compile_slice(self, str command, list batch, slice_start, slice_end):
         Logger.trace('Canvas: compiling slice: %s' % str((
                      slice_start, slice_end, command)))
-        cdef VertexDataInstruction item
+        cdef GraphicInstruction item
+        cdef VertexDataInstruction vdi
         cdef Buffer b = Buffer(sizeof(GLint))
         cdef int v, i
         cdef GraphicInstruction instr
@@ -184,12 +226,14 @@ cdef class Canvas:
         if slice_start == -1:
             return
 
-        # loop pver all the whole slice, and combine all instructions
-        for item in self._batch[slice_start:slice_end+1]:
-            # add the vertex indices to be drawn from this item
-            for i in range(item.num_elements):
-                v = item.element_data[i]
-                b.add(&v, NULL, 1)
+        # loop over all the whole slice, and combine all instructions
+        for item in batch[slice_start:slice_end+1]:
+            if isinstance(item, VertexDataInstruction):
+                vdi = item
+                # add the vertex indices to be drawn from this item
+                for i in range(vdi.num_elements):
+                    v = vdi.element_data[i]
+                    b.add(&v, NULL, 1)
 
             # handle textures (should go somewhere else?,
             # maybe set GI_CONTEXT_MOD FLAG ALSO?)
@@ -221,15 +265,15 @@ cdef class Canvas:
             self.compile()
             self.need_compile = 0
 
-        self.vertex_buffer.bind()
-        attr = VERTEX_ATTRIBUTES[0]
-        glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer.id)
-
         for command, item in self.batch_slices:
-            if command == 'instruction':
+            if command == 'bind':
+                self.vertex_buffer.bind()
+                attr = VERTEX_ATTRIBUTES[0]
+                glBindBuffer(GL_ARRAY_BUFFER, self.vertex_buffer.id)
+            elif command == 'instruction':
                 ci = item
                 ci.apply()
-            if command == 'draw':
+            elif command == 'draw':
                 b = item
                 self.context.flush()
                 glDrawElements(GL_TRIANGLES, b.count(), GL_UNSIGNED_INT, b.pointer())
@@ -1097,11 +1141,9 @@ cdef class Path(VertexDataInstruction):
             if abs(p.x-x) < 0.001 and abs(p.y-y) < 0.001:
                 Logger("PATH: ignoring point(x,y)...already in list")
                 return 0
-        
+
         self.point_buffer.add(&v, &idx, 1)
         self.points.append(Point(x,y))
-        
-        
         return idx
 
     cdef build_stroke(self):
@@ -1285,11 +1327,4 @@ cdef class PathStroke(PathInstruction):
 
 cdef class PathEnd(PathStroke):
     pass
-
-
-
-
-
-
-
 
