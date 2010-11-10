@@ -21,13 +21,12 @@
 <Slider>:
     canvas:
         Color:
-            rgb: (.3, .3, .3)
-        Rectangle:
-            pos: self.pos
-            size: self.size   
-
-        Color:
-            rgb: (.7, .2, .5)
-        Rectangle:
-            pos: self.value_pos
-            size: (20,self.height)
+            rgb: 1, 1, 1
+		BorderImage:
+			pos: self.pos
+			size: self.size
+			source: 'data/images/slider-background.png'
+		BorderImage:
+			pos: self.value_pos
+			size: (20, self.height)
+			source: 'data/images/button.png'
