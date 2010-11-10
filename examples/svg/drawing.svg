@@ -8,8 +8,8 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    version="1.1"
-   width="744.09448"
-   height="1052.3622"
+   width="200"
+   height="200"
    id="svg2">
   <defs
      id="defs4" />
@@ -28,8 +28,8 @@
   <g
      id="layer1">
     <path
-       d="M 314.28572,832.36218 311.42857,1040.9336 22.857147,1038.0765 C 22.857147,1038.0765 22.857141,829.50504 314.28572,832.36218 z"
-       id="path3778"
-       style="fill:#ff0000;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+       d="M 100,200 C 100,200 0,100 25,50 50,0 150,0 150,50 150,100 100,100 100,100 z"
+       id="path2985"
+       style="fill:none;stroke:#000000;stroke-width:1.32014501px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
   </g>
 </svg>
