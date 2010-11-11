@@ -5,17 +5,13 @@
 body {
     font-family: sans-serif;
     font-size: 100%;
-    background-color: #000000;
+    background-color: #ffffff;
     color: #000;
     margin: 0;
     padding: 0;
 }
 
 /* :::: LAYOUT :::: */
-
-div.document {
-    background-color: #1c4e63 url('bg.png') top left repeat;
-}
 
 div.documentwrapper {
     float: left;

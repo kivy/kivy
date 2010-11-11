@@ -31,8 +31,10 @@ def writefile(filename, data):
 
 
 # Activate Kivy modules
+'''
 for k in kivy.kivy_modules.list().keys():
     kivy.kivy_modules.import_module(k)
+'''
 
 # Search all kivy module
 l = [(x, sys.modules[x], os.path.basename(sys.modules[x].__file__).rsplit('.', 1)[0]) for x in sys.modules if x.startswith('kivy') and sys.modules[x]]
