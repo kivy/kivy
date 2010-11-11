@@ -1,3 +1,5 @@
+__all__ = ('GraphicContext', )
+
 from os.path import join
 from kivy.logger import Logger
 from kivy.core.image import Image

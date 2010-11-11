@@ -1,3 +1,5 @@
+__all__ = ('Shader', )
+
 include "graphics_common.pxi"
 
 from numpy import ndarray, ascontiguousarray

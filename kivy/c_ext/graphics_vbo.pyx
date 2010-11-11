@@ -1,3 +1,5 @@
+__all__ = ('VBO', )
+
 include "graphics_common.pxi"
 
 from buffer cimport Buffer

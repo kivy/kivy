@@ -1,3 +1,4 @@
+
 from c_opengl cimport GLfloat, GL_FLOAT
 
 cdef vertex vertex8f(GLfloat x, GLfloat y, GLfloat s0, GLfloat t0, GLfloat s1, GLfloat t1, GLfloat s2, GLfloat t2):
@@ -13,7 +14,7 @@ cdef vertex vertex6f(GLfloat x, GLfloat y, GLfloat s0, GLfloat t0, GLfloat s1, G
 
 cdef vertex vertex4f(GLfloat x, GLfloat y, GLfloat s0, GLfloat t0):
     return vertex8f(x,y,s0,t0,0.0,0.0,0.0,0.0)
-    
+
 cdef vertex vertex2f(GLfloat x, GLfloat y):
     return vertex8f(x,y,0.0,0.0,0.0,0.0,0.0,0.0)
 
