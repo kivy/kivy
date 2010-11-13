@@ -1,6 +1,6 @@
 from buffer cimport Buffer
 from c_opengl cimport GLuint
-from graphics_vertex cimport vertex
+from vertex cimport vertex
 
 cdef class VBO:
     cdef GLuint id
@@ -19,4 +19,3 @@ cdef class VBO:
     cdef add_vertices(self, void *v, int* indices, int count)
     cdef update_vertices(self, int index, vertex* v, int count)
     cdef remove_vertices(self, int* indices, int count)
-

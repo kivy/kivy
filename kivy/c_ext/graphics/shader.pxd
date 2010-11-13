@@ -1,3 +1,4 @@
+
 from c_opengl cimport *
 
 cdef class Shader:
@@ -8,6 +9,8 @@ cdef class Shader:
     cdef object frag_src
     cdef dict uniform_locations
     cdef dict uniform_values
+
+    cdef Shader active_shader(self)
 
     cdef int get_uniform_loc(self, str name)
     cpdef set_uniform(self, str name, value)

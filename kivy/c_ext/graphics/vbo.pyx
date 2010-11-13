@@ -1,10 +1,11 @@
+
 __all__ = ('VBO', )
 
-include "graphics_common.pxi"
+include "common.pxi"
 
 from buffer cimport Buffer
 from c_opengl cimport *
-from graphics_vertex cimport *
+from vertex cimport *
 
 cdef class VBO:
     def __cinit__(self):

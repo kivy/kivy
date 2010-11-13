@@ -1,12 +1,14 @@
 __all__ = ('Shader', )
 
-include "graphics_common.pxi"
+include "common.pxi"
 
 from numpy import ndarray, ascontiguousarray
 from kivy.logger import Logger
 from c_opengl cimport *
 
-cdef int ACTIVE_SHADER = 0
+
+cdef class Shader
+cdef Shader ACTIVE_SHADER = None
 
 cdef class Shader:
     '''Create a vertex or fragment shader
@@ -27,6 +29,10 @@ cdef class Shader:
         self.program = glCreateProgram()
         self.bind_attrib_locations()
         self.build()
+
+    cdef Shader active_shader(self):
+        global ACTIVE_SHADER
+        return ACTIVE_SHADER
 
     cdef int get_uniform_loc(self, str name):
         name_byte_str = name
@@ -84,7 +90,7 @@ cdef class Shader:
 
     cpdef use(self):
         '''Use the shader'''
-        if ACTIVE_SHADER == self.program:
+        if ACTIVE_SHADER == self:
             return
         glUseProgram(self.program)
         for k,v in self.uniform_values.iteritems():
@@ -145,3 +151,4 @@ cdef class Shader:
             raise Exception(message)
         else:
             Logger.debug('GShader: %s compiled successfully' % ctype)
+

@@ -1,24 +1,17 @@
-__all__ = ('LineWidth', 'Color', 'CanvasDraw', 'BindTexture', 'PushMatrix',
-           'PopMatrix', 'MatrixInstruction', 'Transform', 'Rotate', 'Scale',
-           'Translate')
+from instructions cimport ContextInstruction 
 
-# TODO: write matrix transforms in c or cython
-from kivy.lib.transformations import matrix_multiply, identity_matrix, \
-             rotation_matrix, translation_matrix, scale_matrix
 
 cdef class LineWidth(ContextInstruction):
     '''Instruction to set the line width of the drawing context
     '''
     def __init__(self, *args, **kwargs):
-        ContextInstruction.__init__(self, **kwargs)
+        ContextInstruction.__init__(self)
         if len(args) == 1:
-            self.lw = args[0]
+            self.context_state['linewidth'] = lw
 
     def set(self, float lw):
-        self.lw = lw
-
-    cdef apply(self):
-        self.canvas.context.set('linewidth', self.lw)
+        self.context_state['linewidth'] = lw
+        self.context.post_update()
 
 
 cdef class Color(ContextInstruction):
@@ -28,16 +21,13 @@ cdef class Color(ContextInstruction):
         ContextInstruction.__init__(self)
         self.rgba = args
 
-    cdef apply(self):
-        self.context.set('color', (self.r, self.g, self.b, self.a))
-
     property rgba:
         def __get__(self):
             return self.color
         def __set__(self, rgba):
             if not rgba:
                 rgba = (1.0, 1.0, 1.0, 1.0)
-            self.color = list(rgba)
+            self.context_state['color', list(rgba))
             self.context.post_update()
 
     property rgb:
@@ -69,15 +59,6 @@ cdef class Color(ContextInstruction):
             self.rgba = [self.r, self.g, self.b, a]
 
 
-cdef class CanvasDraw(ContextInstruction):
-    def __init__(self, *args, **kwargs):
-        ContextInstruction.__init__(self)
-        self.obj = args[0]
-
-    cdef apply(self):
-        self.obj.draw()
-
-
 cdef class BindTexture(ContextInstruction):
     '''BindTexture Graphic instruction.
     The BindTexture Instruction will bind a texture and enable
@@ -91,17 +72,15 @@ cdef class BindTexture(ContextInstruction):
         ContextInstruction.__init__(self)
         self.texture = args[0]
 
-    cdef apply(self):
-        self.canvas.context.set('texture0', self.texture)
 
     def set(self, object texture):
         self.texture = texture
 
     property texture:
         def __get__(self):
-            return self._texture
+            return self.context_state['texture0']
         def __set__(self, tex):
-            self._texture = tex
+            self.context_state['texture0', self.texture)
             self.context.post_update()
 
 
@@ -277,5 +256,4 @@ cdef class  Translate(Transform):
             return self._x, self._y, self._z
         def __set__(self, c):
             self.set_translate(c[0], c[1], c[2])
-
 

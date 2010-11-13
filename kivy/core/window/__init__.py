@@ -232,7 +232,7 @@ class WindowBase(EventDispatcher):
         '''Add a widget on window'''
         self.children.append(w)
         w.parent = self
-        self.canvas.add_canvas(w.canvas)
+        self.canvas.add(w.canvas)
 
     def remove_widget(self, w):
         '''Remove a widget from window'''
@@ -300,11 +300,11 @@ class WindowBase(EventDispatcher):
     def update_viewport(self):
         # XXX FIXME
         from kivy.core.gl import *
-        from kivy.graphics import GraphicContext
+        #from kivy.graphics import GraphicContext
         from kivy.lib.transformations import clip_matrix
 
-        context = GraphicContext.instance()
-        context.set('projection_mat', clip_matrix(0, self.width, 0, self.height, -1, 1))
+        #context = GraphicContext.instance()
+        #context.set('projection_mat', clip_matrix(0, self.width, 0, self.height, -1, 1))
 
         width, height = self.system_size
         w2 = width / 2.

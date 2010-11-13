@@ -101,22 +101,27 @@ if have_cython:
 
     # opengl aware modules
     for x in (
-        'graphics_context',
-        'graphics_matrix',
-        'graphics_instruction',
-        'graphics_canvas',
-        'graphics_instruction',
-        'graphics_instr_base',
-        'graphics_instr_vdi',
-        'graphics_instr_path',
-        'graphics_vbo',
-        'graphics_shader',
-        'graphics_vertex',
+        #'graphics_context',
+        #'graphics_matrix',
+        #'graphics_instruction',
+        #'graphics_canvas',
+        #'graphics_instruction',
+        #'graphics_instr_base',
+        #'graphics_instr_vdi',
+        #'graphics_instr_path',
+        #'graphics_vbo',
+        #'graphics_shader',
+        #'graphics_vertex',
+        'instructions',
+        'shader',
+        'vertex',
+        'vertex_instructions',
+        'canvas',
     ):
         ext_modules.append(Extension(
-            'kivy.c_ext.%s' % x, ['kivy/c_ext/%s.pyx' % x],
+            'kivy.c_ext.graphics.%s' % x, ['kivy/c_ext/graphics/%s.pyx' % x],
             libraries=libraries,
-            include_dirs=include_dirs,
+            include_dirs=include_dirs+['kivy/c_ext'],
             extra_link_args=extra_link_args
         ))
 

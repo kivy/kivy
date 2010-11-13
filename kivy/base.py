@@ -12,7 +12,7 @@ from kivy.logger import Logger
 from kivy.exceptions import ExceptionManager
 from kivy.clock import Clock
 from kivy.input import TouchFactory, kivy_postproc_modules
-from kivy.graphics import GraphicContext
+#from kivy.graphics import GraphicContext
 
 # private vars
 EventLoop               = None
@@ -212,8 +212,8 @@ class EventLoopBase(object):
         self.dispatch_input()
 
         window = self.window
-        need_redraw = GraphicContext.instance().need_redraw
-        if window and need_redraw:
+        #need_redraw = GraphicContext.instance().need_redraw
+        if window:
             Clock.tick_draw()
             window.dispatch('on_draw')
             window.dispatch('on_flip')
