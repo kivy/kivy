@@ -8,6 +8,8 @@ Kivy. We hardly ask you to use theses class !
 
 .. seealso:: Read the full documentation at :mod:`kivy.c_ext.c_graphics`
 '''
-
-from kivy.c_ext.graphics.canvas import *
-
+#from kivy.c_ext.graphics.context import RenderContext
+#from kivy.c_ext.graphics.canvas import Canvas
+from kivy.c_ext.graphics.instructions import *
+from kivy.c_ext.graphics.context_instructions import *
+from kivy.c_ext.graphics.vertex_instructions import *

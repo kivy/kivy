@@ -11,13 +11,10 @@ from random import random
 
 class TestApp(App):
     def build(self):
-        v = Video(source='/home/tito/code/pymt/examples/apps/videoplayer/softboy.avi', play=True)
-        v.bind(on_load=self._load)
-        return v
-    def _load(self, *largs):
-        print 'LOAD'
-        with self.root.canvas:
-            Color(1, 1, 1)
-            Rectangle(texture=self.root.texture)
+        w = Widget()
+        with w.canvas:
+            Rectangle(pos=(25,50), size=(200,300))
+
+        return w
 
 TestApp().run()

@@ -11,20 +11,20 @@ varying vec2 tex_coord2;
 
 /* vertex attributes */
 attribute vec2     vPosition;
-attribute vec4     vColor;
 attribute vec2     vTexCoords0;
 attribute vec2     vTexCoords1;
 attribute vec2     vTexCoords2;
 
 /* uniform variables */
+uniform float      linewidth;
 uniform mat4       modelview_mat;
 uniform mat4       projection_mat;
-uniform float      linewidth;
+uniform vec4       color;
 
 void main (void){
-  vec2 pos    = (linewidth * vTexCoords1.xy) + vPosition.xy;
-  gl_Position = projection_mat * modelview_mat * vec4(pos.xy, 0.0, 1.0);
-  frag_color  = vColor;
+  vec2 pos    = vPosition.xy;
+  gl_Position = vec4(pos.xy, 0.0, 1.0);
+  frag_color  = vec4(1.0,1.0,color.x, 1.0);
   tex_coord0   = vTexCoords0;
   tex_coord1   = vTexCoords1;
   tex_coord2   = vTexCoords2;

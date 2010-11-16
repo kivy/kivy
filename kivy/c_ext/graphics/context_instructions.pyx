@@ -1,5 +1,6 @@
-from context cimport *
-from instructions cimport ContextInstruction 
+__all__ = ('LineWidth', 'Color', 'BindTexture')
+
+from instructions cimport ContextInstruction
 
 
 cdef class LineWidth(ContextInstruction):

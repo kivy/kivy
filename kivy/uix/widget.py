@@ -196,7 +196,7 @@ class Widget(EventDispatcher):
         '''
         widget.parent = self
         self.children = [widget] + self.children
-        self.canvas.add_canvas(widget.canvas)
+        self.canvas.add(widget.canvas)
 
     def remove_widget(self, widget):
         '''Remove a widget from the childs of current widget

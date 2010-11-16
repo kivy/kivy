@@ -157,9 +157,9 @@ class WindowBase(EventDispatcher):
         # configure the window
         self.create_window(params)
 
-        # create the canvas
-        from kivy.graphics import Canvas
-        self.canvas = Canvas()
+        # create the render context and canvas
+        from kivy.graphics import RenderContext, Canvas
+        self.canvas = RenderContext()
 
         # attach modules + listener event
         Modules.register_window(self)
@@ -247,8 +247,8 @@ class WindowBase(EventDispatcher):
         # XXX FIXME use late binding
         from kivy.core.gl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, \
             GL_DEPTH_BUFFER_BIT
-        glClearColor(0, 0, 0, 0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        #glClearColor(0, 0, 0, 0)
+        #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     def to_widget(self, x, y, initial=True, relative=False):
         return (x, y)

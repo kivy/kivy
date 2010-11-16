@@ -1,3 +1,5 @@
+__all__ = ('RenderContext',)
+
 from os.path import join
 from kivy import kivy_shader_dir
 
@@ -38,7 +40,7 @@ cdef class RenderContext(InstructionGroup):
 cdef RenderContext ACTIVE_CONTEXT = None
 cdef list CONTEXT_STACK  = list()
 
-cdef RenderContext getActiveContext():
+cdef object getActiveContext():
     global ACTIVE_CONTEXT
     return ACTIVE_CONTEXT
 

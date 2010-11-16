@@ -43,7 +43,8 @@ cdef class Shader:
 
     cdef set_uniform(self, str name, value):
         self.uniform_values[name] = value
-        self.upload_uniform(name, value)
+        for k,v in self.uniform_values.iteritems():
+            self.upload_uniform(k, v)
 
 
     cdef upload_uniform(self, str name, value):
@@ -51,7 +52,10 @@ cdef class Shader:
         '''
         cdef int vec_size, loc
         val_type = type(value)
-        loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
+        #loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
+        loc = self.get_uniform_loc(name)
+        Logger.trace("Shader: uploading uniform " + name +"," +str(loc) + " \n\t" +str(value) + "\n\t" +
+                "Error " + str(glGetError()))
 
         # TODO: use cython matrix transforms
         if val_type == ndarray:
@@ -64,6 +68,7 @@ cdef class Shader:
             #must have been a list, tuple, or other sequnce and be a vector uniform
             val_type = type(value[0])
             vec_size = len(value)
+            Logger.trace('Shader: uploading vector '+str(vec_size) + str(val_type))
             if val_type == float:
                 if vec_size == 2:
                     glUniform2f(loc, value[0], value[1])
@@ -71,6 +76,8 @@ cdef class Shader:
                     glUniform3f(loc, value[0], value[1], value[2])
                 elif vec_size == 4:
                     glUniform4f(loc, value[0], value[1], value[2], value[3])
+                    Logger.trace("Shader: uploading 4f " + str(loc) + "\n\t" +
+                "Error " + str(glGetError()))
             elif val_type == int:
                 if vec_size == 2:
                     glUniform2i(loc, value[0], value[1])

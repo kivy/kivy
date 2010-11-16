@@ -2,7 +2,7 @@
 cdef class Vertex:
 
     def __init__(self, x, y, s0=0,t0=0, s1=0,t1=0, s2=0,t2=0):
-        self.data.x = y
+        self.data.x = x
         self.data.y = y
         self.data.s0 = s0
         self.data.t0 = t0
@@ -27,3 +27,6 @@ cdef class Vertex:
         self.data.s2 = s
         self.data.t2 = t
 
+
+    def __repr__(self):
+        return "vertex: x=%d, y=%d" %(self.data.x, self.data.y)

@@ -91,7 +91,10 @@ cdef class Buffer:
         '''Remove block from our list
         '''
         cdef int i, m, value
-        m = max(self.l_free)
+        m = 0
+        if self.l_free:
+            m = max(self.l_free)
+
         for i in xrange(count):
             value = indices[i]
 

@@ -1,3 +1,6 @@
+__all__ = ('Triangle', 'Rectangle', 'ImageRectangle', 'BorderImage', 'Ellipse')
+
+
 include "common.pxi"
 from vbo cimport *
 from vertex cimport *
@@ -7,7 +10,7 @@ from c_opengl cimport *
 from kivy.logger import Logger
 from kivy.resources import resource_find
 from kivy.core.image import Image
-
+import sys
 
 cdef class Triangle(VertexInstruction):
     cdef list _points
@@ -62,6 +65,7 @@ cdef class Rectangle(VertexInstruction):
         w, h = self.w, self.h
         cdef list tc = self.tex_coords
 
+        Logger.trace("RECTANGLE: x=%d, y=%d, w=%d, h=%d\n\n" %(x,y,w,h) )
         self.vertices = [
             Vertex( x,   y,   tc[0], tc[1]),
             Vertex( x+w, y,   tc[2], tc[3]),
@@ -90,8 +94,7 @@ cdef class Rectangle(VertexInstruction):
         def __get__(self):
             return self._tex_coords
         def __set__(self, tc):
-            self._tex_coords = list(tc[0],tc[1],tc[2],tc[3],
-                                    tc[4],tc[5],tc[6],tc[7])
+            self._tex_coords = list(tc)
             self.flag_update()
 
 
