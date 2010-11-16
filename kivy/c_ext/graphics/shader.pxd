@@ -10,14 +10,12 @@ cdef class Shader:
     cdef dict uniform_locations
     cdef dict uniform_values
 
-    cdef Shader active_shader(self)
-
+    cdef use(self)
+    cdef stop(self)
+    cdef set_uniform(self, str name, value)
+    cdef upload_uniform(self, str name, value)
+    cdef upload_uniform_matrix(self, str name, value)
     cdef int get_uniform_loc(self, str name)
-    cpdef set_uniform(self, str name, value)
-    cpdef upload_uniform(self, str name, value)
-    cdef set_uniform_matrix(self, str name, value)
-    cpdef use(self)
-    cpdef stop(self)
     cdef bind_attrib_locations(self)
     cdef build(self)
     cdef compile_shader(self, char* source, shadertype)
@@ -25,3 +23,5 @@ cdef class Shader:
     cdef get_program_log(self, shader)
     cdef process_build_log(self)
     cdef process_message(self, str ctype, str message)
+
+

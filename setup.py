@@ -114,8 +114,12 @@ if have_cython:
         #'graphics_vertex',
         'instructions',
         'shader',
+        'context',
+        'context_instructions',
+        'vbo',
         'vertex',
         'vertex_instructions',
+        'compiler',
         'canvas',
     ):
         ext_modules.append(Extension(

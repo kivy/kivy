@@ -1,22 +1,12 @@
 include "common.pxi"
+from vbo cimport *
 from vertex cimport *
+from instructions cimport *
+from c_opengl cimport *
 
 from kivy.logger import Logger
 from kivy.resources import resource_find
 from kivy.core.image import Image
-
-
-cdef class VertexInstruction:
-    cdef list vertices
-    cdef list indices
-
-    def __init__(self):
-        self.vertices = list()
-        self.indices = list()
-
-    def build(self):
-        pass
-
 
 
 cdef class Triangle(VertexInstruction):
@@ -44,14 +34,14 @@ cdef class Triangle(VertexInstruction):
             return self._points
         def __set__(self, points):
             self._points = list(points)
-            self.need_update = 1
+            self.flag_update()
 
     property tex_coords:
         def __get__(self):
             return self._tex_coords          
         def __set__(self, tc):
             self._tex_coords = list(tc[0],tc[1],tc[2],tc[3],tc[4],tc[5])
-            self.need_update = 1
+            self.flag_update()
 
 
 
@@ -86,7 +76,7 @@ cdef class Rectangle(VertexInstruction):
         def __set__(self, pos):
             self.x = pos[0]
             self.y = pos[1]
-            self.need_update = 1
+            self.flag_update()
 
     property size:
         def __get__(self):
@@ -94,7 +84,7 @@ cdef class Rectangle(VertexInstruction):
         def __set__(self, size):
             self.w = size[0]
             self.h = size[1]
-            self.need_update = 1
+            self.flag_update()
 
     property tex_coords:
         def __get__(self):
@@ -102,7 +92,7 @@ cdef class Rectangle(VertexInstruction):
         def __set__(self, tc):
             self._tex_coords = list(tc[0],tc[1],tc[2],tc[3],
                                     tc[4],tc[5],tc[6],tc[7])
-            self.need_update = 1
+            self.flag_update()
 
 
 
@@ -243,7 +233,7 @@ cdef class BorderImage(ImageRectangle):
             return self._border
         def __set__(self, b):
             self._border = list(b)
-            self.need_update = 1
+            self.flag_update()
 
 
 

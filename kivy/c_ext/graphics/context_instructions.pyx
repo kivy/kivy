@@ -1,60 +1,65 @@
+from context cimport *
 from instructions cimport ContextInstruction 
 
 
 cdef class LineWidth(ContextInstruction):
     '''Instruction to set the line width of the drawing context
     '''
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args):
         ContextInstruction.__init__(self)
-        if len(args) == 1:
-            self.context_state['linewidth'] = lw
+        if args:
+            self.linewidth = args[0]
+        else:
+            self.linewidth = 2.0
 
-    def set(self, float lw):
-        self.context_state['linewidth'] = lw
-        self.context.post_update()
+    property linewidth:
+        def __get__(self):
+            return self.context_state['linewidth']
+        def __set__(self, lw):
+            self.set_state('linewidth', lw)
 
 
 cdef class Color(ContextInstruction):
     '''Instruction to set the color state for any vetices being drawn after it
     '''
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args):
         ContextInstruction.__init__(self)
-        self.rgba = args
+        cdef int vec_size = len(args)
+        if vec_size == 4:
+            self.set_state('color', args)
+        elif vec_size == 3:
+            self.set_state('color', [args[0], args[1], args[2], 1.0])
+        else:
+            self.set_state('color', [1.0, 1.0, 1.0, 1.0])
 
     property rgba:
         def __get__(self):
-            return self.color
+            return self.context_state['color']
         def __set__(self, rgba):
-            if not rgba:
-                rgba = (1.0, 1.0, 1.0, 1.0)
-            self.context_state['color', list(rgba))
-            self.context.post_update()
-
+            self.set_state('color', rgba)
     property rgb:
         def __get__(self):
-            return self.color[:-1]
+            return self.rgba[:-1]
         def __set__(self, rgb):
-            rgba = (rgb[0], rgb[1], rgb[2], 1.0)
-            self.rgba = rgba
-
+            self.rgba = (rgb[0], rgb[1], rgb[2], 1.0)
     property r:
         def __get__(self):
-            return self.color[0]
+            return self.rgba[0]
         def __set__(self, r):
             self.rgba = [r, self.g, self.b, self.a]
     property g:
         def __get__(self):
-            return self.color[1]
+            return self.rgba[1]
         def __set__(self, g):
             self.rgba = [self.r, g, self.b, self.a]
     property b:
         def __get__(self):
-            return self.color[2]
+            return self.rgba[2]
         def __set__(self, b):
             self.rgba = [self.r, self.g, b, self.a]
     property a:
         def __get__(self):
-            return self.color[3]
+            return self.rgba[3]
         def __set__(self, a):
             self.rgba = [self.r, self.g, self.b, a]
 
@@ -68,22 +73,21 @@ cdef class BindTexture(ContextInstruction):
         `texture`: Texture
             specifies the texture to bind to the given index
     '''
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args):
         ContextInstruction.__init__(self)
-        self.texture = args[0]
-
-
-    def set(self, object texture):
-        self.texture = texture
+        if args:
+            self.set_state('texture0', args[0])
+        else:
+            self.set_state('texture0', 0)
 
     property texture:
         def __get__(self):
-            return self.context_state['texture0']
-        def __set__(self, tex):
-            self.context_state['texture0', self.texture)
-            self.context.post_update()
+            return self.context_state['tetxure0']
+        def __set__(self, object texture):
+            self.set_state('texture0', texture)
 
 
+"""
 cdef class PushMatrix(ContextInstruction):
     '''PushMatrix on context's matrix stack
     '''
@@ -256,4 +260,4 @@ cdef class  Translate(Transform):
             return self._x, self._y, self._z
         def __set__(self, c):
             self.set_translate(c[0], c[1], c[2])
-
+"""

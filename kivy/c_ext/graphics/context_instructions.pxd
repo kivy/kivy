@@ -1,16 +1,15 @@
 from instructions cimport ContextInstruction
 
 cdef class LineWidth(ContextInstruction):
-    cdef float lw
     cdef apply(self)
 
 cdef class Color(ContextInstruction):
-    cdef list color
     cdef apply(self)
 
 cdef class BindTexture(ContextInstruction):
-    cdef object _texture
+    cdef apply(self)
 
+"""
 cdef class PushMatrix(ContextInstruction):
     cdef apply(self)
 
@@ -41,4 +40,4 @@ cdef class Scale(Transform):
 cdef class Translate(Transform):
     cdef float _x, _y, _z
     cdef apply(self)
-
+"""

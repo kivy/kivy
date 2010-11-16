@@ -1,20 +1,31 @@
+include "opcodes.pxi"
 
-cdef int GI_NOOP         = 1 << 0
-cdef int GI_IGNORE       = 1 << 1
-cdef int GI_GROUP        = 1 << 2
-cdef int GI_VERTEX_DATA  = 1 << 3
-cdef int GI_CONTEXT_MOD  = 1 << 4
-cdef int GI_COMPILER	 = 1 << 5
+from context cimport *
+from canvas cimport *
+
+
 
 
 
 cdef class GraphicsInstruction:
     def __cinit__(self):
         self.flags = 0
-        self.parent = None
+
+    def __init__(self):
+        self.parent = getActiveCanvas()
+        if self.parent:
+            self.parent.add(self)
 
     cdef apply(self):
         pass
+
+    cdef flag_update(self):
+        if self.parent:
+            self.parent.flag_udate()
+        self.flags &= GI_NEED_UPDATE
+
+    cdef flag_update_done(self):
+        self.flags &= ~GI_NEED_UPDATE
 
 
 
@@ -30,6 +41,7 @@ cdef class InstructionGroup(GraphicsInstruction):
     cpdef add(self, GraphicsInstruction c):
         c.parent = self
         self.children.append(c)
+        self.flag_update()
 
 
 
@@ -39,17 +51,32 @@ cdef class ContextInstruction(GraphicsInstruction):
         self.context_state = dict()
 
     cdef apply(self):
-        pass
-        #for key, val in self.context_state:
-        #    self.shader.set_uniform(key, val)
+        getActiveContext().set_states(self.context_state)
+
+    cdef set_state(self, str name, value):
+        self.context_state[name] = value
+        self.flag_update()
 
 
 
-cdef class VertexInstruction:
+cdef class VertexInstruction(GraphicsInstruction):
     def __init__(self):
-        self.flags &= GI_VERTEX_DATA
+        self.flags = GI_VERTEX_DATA
+        self.batch = VertexBatch()
         self.vertices = list()
         self.indices = list()
-
+        
     cdef build(self):
         pass
+
+    cdef update_batch(self):
+        self.batch.set_data(self.vertices, self.indices)
+        self.flag_update_done()
+
+    cdef apply(self):
+        if self.need_build:
+            self.build()
+            self.update_batch()
+
+        self.batch.draw()
+        

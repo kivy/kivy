@@ -11,11 +11,22 @@ cdef class VBO:
     cdef int need_upload
     cdef int vbo_size
 
-    cdef create_buffer(self)
     cdef allocate_buffer(self)
     cdef update_buffer(self)
     cdef bind(self)
     cdef unbind(self)
-    cdef add_vertices(self, void *v, int* indices, int count)
-    cdef update_vertices(self, int index, vertex* v, int count)
-    cdef remove_vertices(self, int* indices, int count)
+    cdef add_vertex_data(self, void *v, int* indices, int count)
+    cdef update_vertex_data(self, int index, vertex* v, int count)
+    cdef remove_vertex_data(self, int* indices, int count)
+
+
+cdef class VertexBatch:
+    cdef VBO vbo
+    cdef Buffer elements
+    cdef Buffer vbo_index
+    cdef list vertices
+    cdef list indices
+
+    cdef set_data(self, list vertices, list indices)
+    cdef build(self)
+    cdef draw(self)
