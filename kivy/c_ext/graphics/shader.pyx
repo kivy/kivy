@@ -52,8 +52,8 @@ cdef class Shader:
         '''
         cdef int vec_size, loc
         val_type = type(value)
-        #loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
-        loc = self.get_uniform_loc(name)
+        loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
+        #loc = self.get_uniform_loc(name)
         Logger.trace("Shader: uploading uniform " + name +"," +str(loc) + " \n\t" +str(value) + "\n\t" +
                 "Error " + str(glGetError()))
 
@@ -68,7 +68,6 @@ cdef class Shader:
             #must have been a list, tuple, or other sequnce and be a vector uniform
             val_type = type(value[0])
             vec_size = len(value)
-            Logger.trace('Shader: uploading vector '+str(vec_size) + str(val_type))
             if val_type == float:
                 if vec_size == 2:
                     glUniform2f(loc, value[0], value[1])
@@ -76,8 +75,6 @@ cdef class Shader:
                     glUniform3f(loc, value[0], value[1], value[2])
                 elif vec_size == 4:
                     glUniform4f(loc, value[0], value[1], value[2], value[3])
-                    Logger.trace("Shader: uploading 4f " + str(loc) + "\n\t" +
-                "Error " + str(glGetError()))
             elif val_type == int:
                 if vec_size == 2:
                     glUniform2i(loc, value[0], value[1])
@@ -153,15 +150,15 @@ cdef class Shader:
         self.process_message('program', self.get_program_log(self.program))
         error = glGetError()
         if error:
-            Logger.error('GShader: GL error %d' % error)
+            Logger.error('Shader: GL error %d' % error)
 
 
     cdef process_message(self, str ctype, str message):
         if message:
-            Logger.error('GShader: %s: %s' % (ctype, message))
+            Logger.error('Shader: %s: %s' % (ctype, message))
             raise Exception(message)
         else:
-            Logger.debug('GShader: %s compiled successfully' % ctype)
+            Logger.debug('Shader: %s compiled successfully' % ctype)
 
 
 

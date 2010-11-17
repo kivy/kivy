@@ -13,7 +13,8 @@ class TestApp(App):
     def build(self):
         w = Widget()
         with w.canvas:
-            Rectangle(pos=(25,50), size=(200,300))
+            Color(0,1,0,1)
+            Rectangle(pos=(100,50), size=(200,300))
 
         return w
 

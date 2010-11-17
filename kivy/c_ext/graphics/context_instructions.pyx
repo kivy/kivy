@@ -27,9 +27,9 @@ cdef class Color(ContextInstruction):
         ContextInstruction.__init__(self)
         cdef int vec_size = len(args)
         if vec_size == 4:
-            self.set_state('color', args)
+            self.rgba = args
         elif vec_size == 3:
-            self.set_state('color', [args[0], args[1], args[2], 1.0])
+            self.rgb = args
         else:
             self.set_state('color', [1.0, 1.0, 1.0, 1.0])
 
@@ -37,7 +37,7 @@ cdef class Color(ContextInstruction):
         def __get__(self):
             return self.context_state['color']
         def __set__(self, rgba):
-            self.set_state('color', rgba)
+            self.set_state('color', map(float,rgba))
     property rgb:
         def __get__(self):
             return self.rgba[:-1]

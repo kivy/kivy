@@ -12,7 +12,6 @@ cdef class GraphicsInstruction:
 
     def __init__(self):
         self.parent = getActiveCanvas()
-        Logger.trace("GraphicsInstruction: init \n\t adding self to " + str(self.parent))
         if self.parent:
             self.parent.add(self)
 
@@ -22,7 +21,7 @@ cdef class GraphicsInstruction:
     cdef flag_update(self):
         if self.parent:
             self.parent.flag_update()
-        self.flags &= GI_NEED_UPDATE
+        self.flags |= GI_NEED_UPDATE
 
     cdef flag_update_done(self):
         self.flags &= ~GI_NEED_UPDATE
@@ -36,7 +35,6 @@ cdef class InstructionGroup(GraphicsInstruction):
 
 
     cdef apply(self):
-        Logger.trace("InstructionGroup: " + str(self))
         cdef GraphicsInstruction c
         for c in self.children:
             c.apply()
@@ -60,7 +58,7 @@ cdef class ContextInstruction(GraphicsInstruction):
         self.context_state = dict()
 
     cdef apply(self):
-        Logger.trace("Context Instruction:  active_context" +str(getActiveContext()))
+        #Logger.trace("ContextInstr: setting state " + str(self.context_state))
         getActiveContext().set_states(self.context_state)
 
     cdef set_state(self, str name, value):
@@ -71,7 +69,7 @@ cdef class ContextInstruction(GraphicsInstruction):
 cdef class VertexInstruction(GraphicsInstruction):
     def __init__(self):
         GraphicsInstruction.__init__(self)
-        self.flags = GI_VERTEX_DATA
+        self.flags = GI_VERTEX_DATA & GI_NEED_UPDATE
         self.batch = VertexBatch()
         self.vertices = list()
         self.indices = list()
@@ -84,8 +82,7 @@ cdef class VertexInstruction(GraphicsInstruction):
         self.flag_update_done()
 
     cdef apply(self):
-        Logger.trace("VertexInstr: " + str(self.flags & GI_NEED_UPDATE))
-        if 1 or self.flags & GI_NEED_UPDATE:
+        if self.flags & GI_NEED_UPDATE:
             self.build()
             self.update_batch()
 
@@ -144,6 +141,11 @@ from os.path import join
 from kivy import kivy_shader_dir
 from kivy.lib.transformations import identity_matrix
 
+
+
+include "common.pxi"
+from vertex cimport *
+
 cdef class RenderContext(InstructionGroup):
 
     def __init__(self, *args, **kwargs):
@@ -151,43 +153,46 @@ cdef class RenderContext(InstructionGroup):
 
         vertex_file   = join(kivy_shader_dir, 'default.vs')
         fragment_file = join(kivy_shader_dir, 'default.fs')
-        vertex_file   = kwargs.get('vertex_shader',   vertex_file)
-        fragment_file = kwargs.get('fragment_shader', fragment_file)
-        vertex_src   = open(vertex_file,   'r').read()
-        fragment_src = open(fragment_file, 'r').read()
-        self.shader = Shader(vertex_src, fragment_src)
+        vertex_src    = open(vertex_file,   'r').read()
+        fragment_src  = open(fragment_file, 'r').read()
+        self.shader   = Shader(vertex_src, fragment_src)
+
         self.shader.use()
-        self.set_states({
-            'modelview_mat':identity_matrix(),
-            'linewidth' : 1.0,
-            'color' : [1.0,1.0,1.0,1.0]
-        })
+        self.set_states({ 'projection_mat': identity_matrix(),
+                          'modelview_mat':  identity_matrix(),
+                          'color':    [1.0,1.0,1.0,1.0],
+                          'linewidth': 1.0 })
 
     cdef set_state(self, str name, value):
-        self.shader.set_uniform(name, value)
+        Logger.trace('RenderContext: stting state %s=%s'%(name, str(value)))
+        if ACTIVE_CONTEXT != self:
+            self.shader.set_uniform(name, value)
+        else:
+            self.shader.uniform_values[name] = value
 
     cdef set_states(self, dict states):
         cdef str name
         for name, value in states.iteritems():
-            Logger.trace("RenderContext:set_states: " + name + str(value))
-            self.shader.set_uniform(name, value)
-            Logger.trace("RenderContext:\t Error %d" % glGetError())
-
+            self.set_state(name, value)
 
     cdef enter(self):
-        global ACTIVE_CONTEXT
-        Logger.trace("RenderContext: enabling shader, "+str(self.shader))
         self.shader.use()
 
     cdef apply(self):
         pushActiveContext(self)
-        Logger.trace("RenderContext:  entered, active_context:" +str(getActiveContext()))
         InstructionGroup.apply(self)
         popActiveContext()
-        Logger.trace("RenderContext: end\n\n\n")
-
+        
     cpdef draw(self):
         self.apply()
+
+
+    def __setitem__(self, key, val):
+        self.set_state(key, val)
+
+    def __getitem__(self, key):
+        return self.shader.uniform_values[key]
+
 
 
 

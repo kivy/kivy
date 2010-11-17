@@ -29,4 +29,4 @@ cdef class Vertex:
 
 
     def __repr__(self):
-        return "vertex: x=%d, y=%d" %(self.data.x, self.data.y)
+        return "vertex: x=%.2f, y=%.2f" %(self.data.x, self.data.y)

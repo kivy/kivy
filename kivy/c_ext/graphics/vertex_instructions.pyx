@@ -65,14 +65,13 @@ cdef class Rectangle(VertexInstruction):
         w, h = self.w, self.h
         cdef list tc = self.tex_coords
 
-        Logger.trace("RECTANGLE: x=%d, y=%d, w=%d, h=%d\n\n" %(x,y,w,h) )
         self.vertices = [
             Vertex( x,   y,   tc[0], tc[1]),
             Vertex( x+w, y,   tc[2], tc[3]),
             Vertex( x+w, y+h, tc[4], tc[5]),
             Vertex( x,   y+h, tc[6], tc[7])]
 
-        self.indices  = [0,1,2, 2,3,1]
+        self.indices  = [0,1,2, 2,3,0]
 
     property pos:
         def __get__(self):

@@ -159,7 +159,9 @@ class WindowBase(EventDispatcher):
 
         # create the render context and canvas
         from kivy.graphics import RenderContext, Canvas
-        self.canvas = RenderContext()
+        self.render_context = RenderContext()
+        self.canvas = Canvas()
+        self.render_context.add(self.canvas)
 
         # attach modules + listener event
         Modules.register_window(self)
@@ -267,7 +269,7 @@ class WindowBase(EventDispatcher):
 
     def on_draw(self):
         self.clear()
-        self.canvas.draw()
+        self.render_context.draw()
 
     def on_touch_down(self, touch):
         '''Event called when a touch is down'''
@@ -298,13 +300,8 @@ class WindowBase(EventDispatcher):
         self.update_viewport()
 
     def update_viewport(self):
-        # XXX FIXME
-        from kivy.core.gl import *
-        #from kivy.graphics import GraphicContext
+        from kivy.core.gl import glViewport
         from kivy.lib.transformations import clip_matrix
-
-        #context = GraphicContext.instance()
-        #context.set('projection_mat', clip_matrix(0, self.width, 0, self.height, -1, 1))
 
         width, height = self.system_size
         w2 = width / 2.
@@ -312,6 +309,8 @@ class WindowBase(EventDispatcher):
 
         # prepare the viewport
         glViewport(0, 0, width, height)
+        projection_mat = clip_matrix(0.0, width, 0.0, height, -1.0, 1.0)
+        self.render_context['projection_mat'] = projection_mat
 
         # use the rotated size.
         # XXX FIXME fix rotation
