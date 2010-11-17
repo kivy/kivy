@@ -43,7 +43,7 @@ cdef class Triangle(VertexInstruction):
         def __get__(self):
             return self._tex_coords          
         def __set__(self, tc):
-            self._tex_coords = list(tc[0],tc[1],tc[2],tc[3],tc[4],tc[5])
+            self._tex_coords = list(tc)
             self.flag_update()
 
 
@@ -242,7 +242,7 @@ cdef class BorderImage(ImageRectangle):
 
 
 cdef class Ellipse(Rectangle):
-    cdef int _segments
+    cdef int segments
 
     def __init__(self, *args, **kwargs):
         Rectangle.__init__(self, **kwargs)
