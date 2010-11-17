@@ -1,4 +1,4 @@
-__all__ = ('Triangle', 'Rectangle', 'ImageRectangle', 'BorderImage', 'Ellipse')
+__all__ = ('Triangle', 'Quad','Rectangle', 'ImageRectangle', 'BorderImage', 'Ellipse')
 
 
 include "common.pxi"
@@ -18,7 +18,7 @@ cdef class Triangle(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self)
-        self.points = kwargs.get('points', (0.0,0.0, 1.0,0.0, 0.5,1.0))
+        self.points = kwargs.get('points', (0.0,0.0, 100.0,0.0, 50.0,100.0))
         self.tex_coords = kwargs.get('tex_coords', self.points)
 
     cdef build(self):
@@ -46,6 +46,45 @@ cdef class Triangle(VertexInstruction):
             self._tex_coords = list(tc)
             self.flag_update()
 
+
+cdef class Quad(VertexInstruction):
+    cdef list _points
+    cdef list _tex_coords
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self)
+        self.points = kwargs.get('points', ( 0.0,  50.0,   
+                                            50.0,   0.0,
+                                           100.0,  50.0,   
+                                            50.0, 100.0 ))
+
+        self.tex_coords = kwargs.get('tex_coords', self.points)
+
+    cdef build(self):
+        cdef list vc, tc
+        vc = self.points;  tc = self.tex_coords
+
+        self.vertices = [
+            Vertex(vc[0], vc[1], tc[0], tc[1]),
+            Vertex(vc[2], vc[3], tc[2], tc[3]),
+            Vertex(vc[4], vc[5], tc[4], tc[5]),
+            Vertex(vc[6], vc[7] ,tc[6], tc[7])]
+
+        self.indices = [0,1,2, 2,3,0]
+
+    property points:
+        def __get__(self):
+            return self._points
+        def __set__(self, points):
+            self._points = list(points)
+            self.flag_update()
+
+    property tex_coords:
+        def __get__(self):
+            return self._tex_coords          
+        def __set__(self, tc):
+            self._tex_coords = list(tc)
+            self.flag_update()
 
 
 cdef class Rectangle(VertexInstruction):
@@ -98,7 +137,7 @@ cdef class Rectangle(VertexInstruction):
 
 
 
-cdef class ImageRectangle(Rectangle):
+cdef class ImageRectangle(Quad):
     cdef str _source
     cdef object _texture
 

@@ -14,7 +14,7 @@ class TestApp(App):
         w = Widget()
         with w.canvas:
             Color(0,1,0,1)
-            Rectangle(pos=(100,50), size=(200,300))
+            Quad()
 
         return w
 
