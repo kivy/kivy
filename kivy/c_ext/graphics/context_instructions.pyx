@@ -1,7 +1,11 @@
 __all__ = ('LineWidth', 'Color', 'BindTexture')
 
-from instructions cimport ContextInstruction
+from instructions cimport *
+from texture cimport *
 
+from kivy.resources import resource_find
+from kivy.core.image import Image
+from kivy.logger import Logger
 
 cdef class LineWidth(ContextInstruction):
     '''Instruction to set the line width of the drawing context
@@ -65,6 +69,9 @@ cdef class Color(ContextInstruction):
             self.rgba = [self.r, self.g, self.b, a]
 
 
+
+
+
 cdef class BindTexture(ContextInstruction):
     '''BindTexture Graphic instruction.
     The BindTexture Instruction will bind a texture and enable
@@ -74,18 +81,43 @@ cdef class BindTexture(ContextInstruction):
         `texture`: Texture
             specifies the texture to bind to the given index
     '''
-    def __init__(self, *args):
+    def __init__(self, **kwargs):
         ContextInstruction.__init__(self)
-        if args:
-            self.set_state('texture0', args[0])
-        else:
-            self.set_state('texture0', 0)
+
+        cdef str source = kwargs.get('source', None)
+        if source: self.source = source
+        self.texture = kwargs.get('texture', None)
+
+    cdef apply(self):
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(self._texture.target, self._texture.id)
 
     property texture:
         def __get__(self):
-            return self.context_state['tetxure0']
+            return self._texture
         def __set__(self, object texture):
-            self.set_state('texture0', texture)
+            if not texture:
+                texture = get_default_texture()
+            self._texture = texture
+
+    property source:
+        '''Set/get the source (filename) to load for texture.
+        '''
+        def __get__(self):
+            return self._source
+        def __set__(self, bytes filename):
+            if filename == None:
+                return
+            cdef str source_path = resource_find(filename)
+            if self._source == source_path:
+                return
+            self._source = source_path
+            if self._source is None:
+                Logger.warning('BindTexture: unable to find <%s>' % filename)
+                self.texture = None
+                return
+            else:
+                self.texture = Image(self._source).texture
 
 
 """

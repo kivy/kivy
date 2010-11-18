@@ -58,7 +58,6 @@ cdef class ContextInstruction(GraphicsInstruction):
         self.context_state = dict()
 
     cdef apply(self):
-        #Logger.trace("ContextInstr: setting state " + str(self.context_state))
         getActiveContext().set_states(self.context_state)
 
     cdef set_state(self, str name, value):
@@ -67,13 +66,45 @@ cdef class ContextInstruction(GraphicsInstruction):
 
 
 cdef class VertexInstruction(GraphicsInstruction):
-    def __init__(self):
+    def __init__(self, **kwargs):
+        #add a BindTexture instruction to bind teh texture used for 
+        #this instruction before the actual vertex instruction
+        self.texture_binding = BindTexture(**kwargs)
+        self.texture = self.texture_binding.texture #auto compute tex coords
+        self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
+
         GraphicsInstruction.__init__(self)
         self.flags = GI_VERTEX_DATA & GI_NEED_UPDATE
         self.batch = VertexBatch()
         self.vertices = list()
         self.indices = list()
-        
+
+    property texture:
+        '''Set/get the texture to be bound when drawing the vertices'''
+        def __get__(self):
+            return self._texture_binding.texture
+        def __set__(self, tex):
+            self.texture_binding.texture = tex
+            if tex:
+                self.tex_coords = tex.tex_coords
+            else:
+                self.tex_coords = [0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0]
+            self.flag_update()
+
+    property source:
+        def __get__(self):
+            return self.texture_binding.source
+        def __set__(self, source):
+            self.texture_binding.source = source
+            self.texture = self.texture_binding._texture
+
+    property tex_coords:
+        def __get__(self):
+            return self._tex_coords
+        def __set__(self, tc):
+            self._tex_coords = list(tc)
+            self.flag_update()
+
     cdef build(self):
         pass
 
@@ -85,7 +116,6 @@ cdef class VertexInstruction(GraphicsInstruction):
         if self.flags & GI_NEED_UPDATE:
             self.build()
             self.update_batch()
-
         self.batch.draw()
 
 
@@ -137,38 +167,43 @@ cdef popActiveCanvas():
 
 #TODO: same as canvas, move back to context.pyx..fix circular import 
 #on actual import from python problem
+include "common.pxi"
+from vertex cimport *
+from texture cimport *
+
 from os.path import join
 from kivy import kivy_shader_dir
+from kivy.core.image import Image
 from kivy.lib.transformations import identity_matrix
 
 
 
-include "common.pxi"
-from vertex cimport *
 
-cdef class RenderContext(InstructionGroup):
+cdef class RenderContext(Canvas):
 
     def __init__(self, *args, **kwargs):
-        InstructionGroup.__init__(self)
+        Canvas.__init__(self)
+        vs_file = join(kivy_shader_dir, 'default.vs')
+        fs_file = join(kivy_shader_dir, 'default.fs')
+        vs_src  = open(vs_file, 'r').read()
+        fs_src  = open(fs_file, 'r').read()
+        self.shader = Shader(vs_src, fs_src)
+        self.texture_manager = TextureManager()
 
-        vertex_file   = join(kivy_shader_dir, 'default.vs')
-        fragment_file = join(kivy_shader_dir, 'default.fs')
-        vertex_src    = open(vertex_file,   'r').read()
-        fragment_src  = open(fragment_file, 'r').read()
-        self.shader   = Shader(vertex_src, fragment_src)
+        self.default_texture = Image(join(kivy_shader_dir, 'default.png')).texture
 
         self.shader.use()
-        self.set_states({ 'projection_mat': identity_matrix(),
-                          'modelview_mat':  identity_matrix(),
-                          'color':    [1.0,1.0,1.0,1.0],
-                          'linewidth': 1.0 })
+        self.set_states({ 
+            'texture0' : 0,
+            'linewidth': 1.0,
+            'color'    : [1.0,1.0,1.0,1.0],
+            'projection_mat': identity_matrix(),
+            'modelview_mat' :  identity_matrix(),
+        })
 
     cdef set_state(self, str name, value):
-        Logger.trace('RenderContext: stting state %s=%s'%(name, str(value)))
-        if ACTIVE_CONTEXT != self:
-            self.shader.set_uniform(name, value)
-        else:
-            self.shader.uniform_values[name] = value
+        #upload the uniform value for the shdeer
+        self.shader.set_uniform(name, value)
 
     cdef set_states(self, dict states):
         cdef str name
@@ -180,13 +215,9 @@ cdef class RenderContext(InstructionGroup):
 
     cdef apply(self):
         pushActiveContext(self)
-        InstructionGroup.apply(self)
+        Canvas.apply(self)
         popActiveContext()
         
-    cpdef draw(self):
-        self.apply()
-
-
     def __setitem__(self, key, val):
         self.set_state(key, val)
 

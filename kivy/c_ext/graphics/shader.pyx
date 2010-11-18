@@ -7,6 +7,8 @@ from numpy import ndarray, ascontiguousarray
 from kivy.logger import Logger
 
 
+
+
 cdef class Shader:
     '''Create a vertex or fragment shader
 
@@ -53,9 +55,8 @@ cdef class Shader:
         cdef int vec_size, loc
         val_type = type(value)
         loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
-        #loc = self.get_uniform_loc(name)
-        Logger.trace("Shader: uploading uniform " + name +"," +str(loc) + " \n\t" +str(value) + "\n\t" +
-                "Error " + str(glGetError()))
+        #Logger.trace("Shader: uploading uniform " + name +"," +str(loc) + 
+        #" \n\t" +str(value) + "\n\t" + "Error " + str(glGetError()))
 
         # TODO: use cython matrix transforms
         if val_type == ndarray:

@@ -1,3 +1,7 @@
+cdef class LineWidth
+cdef class Color
+cdef class BindTexture
+
 from instructions cimport ContextInstruction
 
 cdef class LineWidth(ContextInstruction):
@@ -7,6 +11,7 @@ cdef class Color(ContextInstruction):
     cdef apply(self)
 
 cdef class BindTexture(ContextInstruction):
+    cdef object _texture
     cdef apply(self)
 
 """

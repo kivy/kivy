@@ -103,15 +103,17 @@ if have_cython:
     for x in (
         'opengl',
         'buffer',
-        'instructions',
         'shader',
-        #'canvas',
-        #'context',
-        'context_instructions',
+        'texture',
         'vbo',
         'vertex',
+        #'canvas',
+        #'context',
+        'instructions',
+        'context_instructions',
         'vertex_instructions',
         'compiler',
+
     ):
         ext_modules.append(Extension(
             'kivy.c_ext.graphics.%s'%x, ['kivy/c_ext/graphics/%s.pyx' % x],

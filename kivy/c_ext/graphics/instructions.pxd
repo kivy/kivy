@@ -6,11 +6,8 @@ cdef class VertexInstruction
 cdef class Canvas
 cdef class RenderContext
 
-
-
 from vbo cimport *
-from shader cimport *
-
+from context_instructions cimport *
 
 cdef class GraphicsInstruction:
     cdef int flags
@@ -29,9 +26,11 @@ cdef class ContextInstruction(GraphicsInstruction):
     cdef set_state(self, str name, value)
 
 cdef class VertexInstruction(GraphicsInstruction):
+    cdef BindTexture texture_binding
     cdef VertexBatch batch
     cdef list vertices
     cdef list indices
+    cdef list _tex_coords
 
     cdef update_batch(self)
     cdef build(self)
@@ -45,8 +44,12 @@ cdef class Canvas(InstructionGroup):
 
 
 
-cdef class RenderContext(InstructionGroup):
+from shader cimport *
+from texture cimport *
+cdef class RenderContext(Canvas):
     cdef Shader shader
+    cdef TextureManager texture_manager
+    cdef object default_texture
     cdef set_state(self, str name, value)
     cdef set_states(self, dict states)
     cdef enter(self)

@@ -1,4 +1,4 @@
-__all__ = ('Triangle', 'Quad','Rectangle', 'ImageRectangle', 'BorderImage', 'Ellipse')
+__all__ = ('Triangle', 'Quad','Rectangle', 'BorderImage', 'Ellipse')
 
 
 include "common.pxi"
@@ -14,16 +14,14 @@ import sys
 
 cdef class Triangle(VertexInstruction):
     cdef list _points
-    cdef list _tex_coords
 
     def __init__(self, **kwargs):
-        VertexInstruction.__init__(self)
+        VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', (0.0,0.0, 100.0,0.0, 50.0,100.0))
-        self.tex_coords = kwargs.get('tex_coords', self.points)
 
     cdef build(self):
         cdef list vc, tc
-        vc = self.points;  tc = self.tex_coords
+        vc = self.points;  tc = self._tex_coords
 
         self.vertices = [
             Vertex(vc[0], vc[1], tc[0], tc[1]),
@@ -39,30 +37,19 @@ cdef class Triangle(VertexInstruction):
             self._points = list(points)
             self.flag_update()
 
-    property tex_coords:
-        def __get__(self):
-            return self._tex_coords          
-        def __set__(self, tc):
-            self._tex_coords = list(tc)
-            self.flag_update()
-
 
 cdef class Quad(VertexInstruction):
     cdef list _points
-    cdef list _tex_coords
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self)
-        self.points = kwargs.get('points', ( 0.0,  50.0,   
-                                            50.0,   0.0,
-                                           100.0,  50.0,   
-                                            50.0, 100.0 ))
-
-        self.tex_coords = kwargs.get('tex_coords', self.points)
+        self.points = kwargs.get('points', 
+               (  0.0,  50.0,   50.0,   0.0,
+                100.0,  50.0,   50.0, 100.0 ))
 
     cdef build(self):
         cdef list vc, tc
-        vc = self.points;  tc = self.tex_coords
+        vc = self.points;  tc = self._tex_coords
 
         self.vertices = [
             Vertex(vc[0], vc[1], tc[0], tc[1]),
@@ -79,30 +66,20 @@ cdef class Quad(VertexInstruction):
             self._points = list(points)
             self.flag_update()
 
-    property tex_coords:
-        def __get__(self):
-            return self._tex_coords          
-        def __set__(self, tc):
-            self._tex_coords = list(tc)
-            self.flag_update()
-
 
 cdef class Rectangle(VertexInstruction):
     cdef float x,y,w,h
-    cdef list _tex_coords
 
     def __init__(self, **kwargs):
-        VertexInstruction.__init__(self)
+        VertexInstruction.__init__(self, **kwargs)
         self.pos  = kwargs.get('pos',  (0,0))
         self.size = kwargs.get('size', (100,100))
-        self.tex_coords = kwargs.get('tex_coords', 
-                [0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0])
 
     cdef build(self):
         cdef float x, y, w, h
         x, y = self.x, self.y
         w, h = self.w, self.h
-        cdef list tc = self.tex_coords
+        cdef list tc = self._tex_coords
 
         self.vertices = [
             Vertex( x,   y,   tc[0], tc[1]),
@@ -128,59 +105,13 @@ cdef class Rectangle(VertexInstruction):
             self.h = size[1]
             self.flag_update()
 
-    property tex_coords:
-        def __get__(self):
-            return self._tex_coords
-        def __set__(self, tc):
-            self._tex_coords = list(tc)
-            self.flag_update()
 
 
-
-cdef class ImageRectangle(Quad):
-    cdef str _source
-    cdef object _texture
-
-    def __init__(self, **kwargs):
-        Rectangle.__init__(self, **kwargs)
-        self.texture = kwargs.get('texture', None)
-        self.source = kwargs.get('source', None)
-
-    property texture:
-        '''Set/get the texture to be bound while the vertices are being drawn
-        '''
-        def __get__(self):
-            return self._texture
-        def __set__(self, tex):
-            self._texture = tex
-            if tex:
-                self.texture_coords = tex.texture_coords
-
-    property source:
-        '''Set/get the source (filename) to load for texture.
-        '''
-        def __get__(self):
-            return self._source
-        def __set__(self, bytes filename):
-            cdef str source_path = resource_find(filename)
-            if self._source == source_path:
-                return
-            self._source = source_path
-            if self._source is None:
-                Logger.warning('GVertex: unable to find <%s>' % filename)
-                self.texture = None
-                return
-            else:
-                self.texture = Image(self._source).texture
-
-
-
-
-cdef class BorderImage(ImageRectangle):
+cdef class BorderImage(Rectangle):
     cdef list _border
 
     def __init__(self, **kwargs):
-        ImageRectangle.__init__(self, **kwargs)
+        Rectangle.__init__(self, **kwargs)
         self.border = kwargs.get('border', (10,10,10,10))
 
     cdef build(self):
