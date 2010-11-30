@@ -11,6 +11,7 @@ cdef class Color(ContextInstruction):
     cdef apply(self)
 
 cdef class BindTexture(ContextInstruction):
+    cdef str _source
     cdef object _texture
     cdef apply(self)
 

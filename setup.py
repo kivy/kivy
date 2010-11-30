@@ -124,6 +124,7 @@ if have_cython:
 
 
     #poly2try extension
+    """
     ext_modules.append(Extension('kivy.c_ext.p2t', [
      'kivy/c_ext/poly2tri/src/p2t.pyx',
      'kivy/c_ext/poly2tri/poly2tri/common/shapes.cc',
@@ -132,7 +133,7 @@ if have_cython:
      'kivy/c_ext/poly2tri/poly2tri/sweep/sweep.cc',
      'kivy/c_ext/poly2tri/poly2tri/sweep/sweep_context.cc'
     ], language="c++"))
-
+    """
 
 #setup datafiles to be included in the disytibution, liek examples...
 #extracts all examples files except sandbox

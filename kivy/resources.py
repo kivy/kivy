@@ -19,6 +19,8 @@ def resource_find(filename):
     '''Search a resource in list of paths.
     Use resource_add_path to add a custom path to search.
     '''
+    if not filename:
+        return None
     if exists(filename):
         return filename
     for path in reversed(resource_paths):

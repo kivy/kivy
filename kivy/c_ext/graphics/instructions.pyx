@@ -56,19 +56,32 @@ cdef class ContextInstruction(GraphicsInstruction):
         GraphicsInstruction.__init__(self)
         self.flags &= GI_CONTEXT_MOD
         self.context_state = dict()
+        self.context_push = list()
+        self.context_pop = list()
 
     cdef apply(self):
-        getActiveContext().set_states(self.context_state)
+        cdef RenderContext context = getActiveContext()
+        context.push_states(self.context_push)
+        context.set_states(self.context_state)
+        context.pop_states(self.context_pop)
 
     cdef set_state(self, str name, value):
         self.context_state[name] = value
         self.flag_update()
 
+    cdef push_state(self, str name):
+        self.context_push.append(name)
+        self.flag_update()
+
+    cdef pop_state(self, str name):
+        self.context_pop.append(name)
+        self.flag_update()
 
 cdef class VertexInstruction(GraphicsInstruction):
     def __init__(self, **kwargs):
         #add a BindTexture instruction to bind teh texture used for 
         #this instruction before the actual vertex instruction
+        Logger.warn("VERTINSTR %s" % kwargs)
         self.texture_binding = BindTexture(**kwargs)
         self.texture = self.texture_binding.texture #auto compute tex coords
         self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
@@ -82,7 +95,7 @@ cdef class VertexInstruction(GraphicsInstruction):
     property texture:
         '''Set/get the texture to be bound when drawing the vertices'''
         def __get__(self):
-            return self._texture_binding.texture
+            return self.texture_binding.texture
         def __set__(self, tex):
             self.texture_binding.texture = tex
             if tex:
@@ -102,6 +115,7 @@ cdef class VertexInstruction(GraphicsInstruction):
         def __get__(self):
             return self._tex_coords
         def __set__(self, tc):
+            Logger.debug("setting texture coords %s %s" %(self, tc))
             self._tex_coords = list(tc)
             self.flag_update()
 
@@ -192,23 +206,46 @@ cdef class RenderContext(Canvas):
 
         self.default_texture = Image(join(kivy_shader_dir, 'default.png')).texture
 
+        self.state_stacks = {
+            'texture0' : [0],
+            'linewidth': [1.0],
+            'color'    : [[1.0,1.0,1.0,1.0]],
+            'projection_mat': [identity_matrix()],
+            'modelview_mat' : [identity_matrix()],
+        }
+
         self.shader.use()
-        self.set_states({ 
-            'texture0' : 0,
-            'linewidth': 1.0,
-            'color'    : [1.0,1.0,1.0,1.0],
-            'projection_mat': identity_matrix(),
-            'modelview_mat' :  identity_matrix(),
-        })
+        for key, stack in self.state_stacks.iteritems():
+            self.set_state(key, stack[0])
 
     cdef set_state(self, str name, value):
         #upload the uniform value for the shdeer
+        self.state_stacks[name][-1] = value
         self.shader.set_uniform(name, value)
 
     cdef set_states(self, dict states):
         cdef str name
         for name, value in states.iteritems():
             self.set_state(name, value)
+
+    cdef push_state(self, str name):
+        stack = self.state_stacks[name] 
+        stack.append(stack[name][-1])
+
+    cdef push_states(self, list names):
+        cdef str name
+        for name in names:
+            self.push_state(name)
+
+    cdef pop_state(self, str name):
+        stack = self.state_stacks[name] 
+        stack.pop()
+        self.set_state(name, stack[-1])
+
+    cdef pop_states(self, list names):
+        cdef str name
+        for name in names:
+            self.pop_state(name)
 
     cdef enter(self):
         self.shader.use()

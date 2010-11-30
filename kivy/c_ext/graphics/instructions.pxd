@@ -23,7 +23,12 @@ cdef class InstructionGroup(GraphicsInstruction):
 
 cdef class ContextInstruction(GraphicsInstruction):
     cdef dict context_state
+    cdef list context_push
+    cdef list context_pop
+    
     cdef set_state(self, str name, value)
+    cdef push_state(self, str name)
+    cdef pop_state(self, str name)
 
 cdef class VertexInstruction(GraphicsInstruction):
     cdef BindTexture texture_binding
@@ -48,10 +53,16 @@ from shader cimport *
 from texture cimport *
 cdef class RenderContext(Canvas):
     cdef Shader shader
+    cdef dict state_stacks
     cdef TextureManager texture_manager
     cdef object default_texture
+    
     cdef set_state(self, str name, value)
     cdef set_states(self, dict states)
+    cdef push_state(self, str name)
+    cdef push_states(self, list names)
+    cdef pop_state(self, str name)
+    cdef pop_states(self, list names)
     cdef enter(self)
     cdef apply(self)
     cpdef draw(self)

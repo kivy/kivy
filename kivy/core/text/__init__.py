@@ -257,8 +257,9 @@ class LabelBase(object):
         else:
             self.texture = self.texture.get_region(0, 0, self.width, self.height)
 
+        self.texture = Texture.create_from_data(data)
         # update texture
-        self.texture.blit_data(data)
+        #self.texture.blit_data(data)
 
     def refresh(self):
         '''Force re-rendering of the text'''

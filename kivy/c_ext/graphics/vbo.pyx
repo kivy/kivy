@@ -91,6 +91,7 @@ cdef class VertexBatch:
         cdef Vertex v
         cdef int vi
         for v in self.vertices:
+            #Logger.warn("Vertex" + str(v))
             self.vbo.add_vertex_data(&(v.data), &vi, 1)
             self.vbo_index.add(&vi, NULL, 1)
 

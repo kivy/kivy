@@ -83,12 +83,22 @@ cdef class BindTexture(ContextInstruction):
     '''
     def __init__(self, **kwargs):
         ContextInstruction.__init__(self)
+        if 'source' in kwargs and 'texture' in kwargs:
+            Logger.warn("BindTexuture:  both source and texture   \
+                         specified in kwargs! settign source will \
+                         will overwrite texture property")
 
-        cdef str source = kwargs.get('source', None)
-        if source: self.source = source
-        self.texture = kwargs.get('texture', None)
+        self.source = kwargs.get('source', None)
+        if self.source == None:
+            Logger.warn("setting texture")
+            self.texture = kwargs.get('texture', None)
+
+        Logger.warn("done %s" % kwargs)
+        Logger.warn("done nitializing texture binding %s, %s", self.source, self.texture)
 
     cdef apply(self):
+
+        #Logger.trace('BindTexture: binding <%s> %s' % (str(self.texture), self.texture.target))
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(self._texture.target, self._texture.id)
 
@@ -106,18 +116,15 @@ cdef class BindTexture(ContextInstruction):
         def __get__(self):
             return self._source
         def __set__(self, bytes filename):
-            if filename == None:
-                return
-            cdef str source_path = resource_find(filename)
-            if self._source == source_path:
-                return
-            self._source = source_path
-            if self._source is None:
-                Logger.warning('BindTexture: unable to find <%s>' % filename)
-                self.texture = None
-                return
-            else:
+            #if not filename:
+            #    self._source = None
+            #    self.texture = None
+            Logger.trace('BindTexture: setting source: <%s>' % filename)
+            self._source = resource_find(filename)
+            if self._source:
                 self.texture = Image(self._source).texture
+            else:
+                self.texture = None
 
 
 """
