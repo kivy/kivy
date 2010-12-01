@@ -19,7 +19,6 @@ if gl_check.lower() in ['0', 'false', 'no']:
 # Automaticly import window auto to ensure the default window creation
 import kivy.core.window
 
-# Display the current OpenGL version
-version = glGetString(GL_VERSION)
-Logger.info('GL: OpenGL version <%s>' % str(version))
-
+def print_gl_version():
+    version = glGetString(GL_VERSION)
+    Logger.info('GL: OpenGL version <%s>' % str(version))

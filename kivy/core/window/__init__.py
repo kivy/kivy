@@ -154,6 +154,9 @@ class WindowBase(EventDispatcher):
         if Config.getboolean('kivy', 'show_fps'):
             self.show_fps = True
 
+        # before creating the window
+        import kivy.core.gl
+
         # configure the window
         self.create_window(params)
 
@@ -181,7 +184,8 @@ class WindowBase(EventDispatcher):
 
     def create_window(self, params):
         '''Will create the main window and configure it'''
-        pass
+        from kivy.core.gl import print_gl_version
+        print_gl_version()
 
     def on_flip(self):
         '''Flip between buffers (event)'''
