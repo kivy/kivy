@@ -1,4 +1,4 @@
-__all__ = ('LineWidth', 'Color', 'BindTexture')
+__all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix', 'Rotate', 'Scale', 'Translate')
 
 from instructions cimport *
 from texture cimport *
@@ -127,18 +127,24 @@ cdef class BindTexture(ContextInstruction):
                 self.texture = None
 
 
-"""
+
+from math import radians
+from kivy.lib.transformations import matrix_multiply, identity_matrix, \
+        scale_matrix, rotation_matrix, translation_matrix
+
 cdef class PushMatrix(ContextInstruction):
     '''PushMatrix on context's matrix stack
     '''
-    cdef apply(self):
-        self.context.get('mvm').push()
+    def __init__(self, *args, **kwargs):
+        ContextInstruction.__init__(self)
+        self.context_push = ['modelview_mat']
 
 cdef class PopMatrix(ContextInstruction):
     '''Pop Matrix from context's matrix stack onto model view
     '''
-    cdef apply(self):
-        self.context.get('mvm').pop()
+    def __init__(self, *args, **kwargs):
+        ContextInstruction.__init__(self)
+        self.context_pop = ['modelview_mat']
 
 
 cdef class MatrixInstruction(ContextInstruction):
@@ -149,10 +155,12 @@ cdef class MatrixInstruction(ContextInstruction):
         ContextInstruction.__init__(self)
 
     cdef apply(self):
-        '''Apply matrix to the matrix of this instance to the
+        '''Apply the matrix of this instance to the
         context model view matrix
         '''
-        self.context.get('mvm').apply(self.mat)
+        cdef RenderContext context = self.get_context()
+        mvm = context.get_state('modelview_mat')
+        context.set_state('modelview_mat', matrix_multiply(self.mat, mvm))
 
     property matrix:
         ''' Matrix property. Numpy matrix from transformation module
@@ -163,7 +171,7 @@ cdef class MatrixInstruction(ContextInstruction):
             return self.mat
         def __set__(self, mat):
             self.mat = mat
-            self.context.post_update()
+            self.flag_update()
 
 cdef class Transform(MatrixInstruction):
     '''Transform class.  A matrix instruction class which
@@ -172,7 +180,7 @@ cdef class Transform(MatrixInstruction):
     cpdef transform(self, object trans):
         '''Multiply the instructions matrix by trans
         '''
-        self.mat = matrix_multiply(self.mat, trans)
+        self.matrix = matrix_multiply(self.matrix, trans)
 
     cpdef translate(self, float tx, float ty, float tz):
         '''Translate the instrcutions transformation by tx, ty, tz
@@ -214,7 +222,7 @@ cdef class Rotate(Transform):
             self.set(0, 0, 0, 1)
 
     def set(self, float angle, float ax, float ay, float az):
-        self._angle = angle
+        self._angle = radians(angle)
         self._axis = (ax, ay, az)
         self.matrix = rotation_matrix(self._angle, self._axis)
 
@@ -300,4 +308,4 @@ cdef class  Translate(Transform):
             return self._x, self._y, self._z
         def __set__(self, c):
             self.set_translate(c[0], c[1], c[2])
-"""
+

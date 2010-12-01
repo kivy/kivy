@@ -59,8 +59,12 @@ cdef class ContextInstruction(GraphicsInstruction):
         self.context_push = list()
         self.context_pop = list()
 
-    cdef apply(self):
+    cdef RenderContext get_context(self):
         cdef RenderContext context = getActiveContext()
+        return context
+
+    cdef apply(self):
+        cdef RenderContext context = self.get_context()
         context.push_states(self.context_push)
         context.set_states(self.context_state)
         context.pop_states(self.context_pop)
@@ -223,6 +227,9 @@ cdef class RenderContext(Canvas):
         self.state_stacks[name][-1] = value
         self.shader.set_uniform(name, value)
 
+    cdef get_state(self, str name):
+        return self.state_stacks[name][-1]
+
     cdef set_states(self, dict states):
         cdef str name
         for name, value in states.iteritems():
@@ -230,7 +237,7 @@ cdef class RenderContext(Canvas):
 
     cdef push_state(self, str name):
         stack = self.state_stacks[name] 
-        stack.append(stack[name][-1])
+        stack.append(stack[-1])
 
     cdef push_states(self, list names):
         cdef str name

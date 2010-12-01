@@ -26,6 +26,7 @@ cdef class ContextInstruction(GraphicsInstruction):
     cdef list context_push
     cdef list context_pop
     
+    cdef RenderContext get_context(self)
     cdef set_state(self, str name, value)
     cdef push_state(self, str name)
     cdef pop_state(self, str name)
@@ -58,6 +59,7 @@ cdef class RenderContext(Canvas):
     cdef object default_texture
     
     cdef set_state(self, str name, value)
+    cdef get_state(self, str name)
     cdef set_states(self, dict states)
     cdef push_state(self, str name)
     cdef push_states(self, list names)
