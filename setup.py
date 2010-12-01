@@ -104,7 +104,7 @@ if have_cython:
         'opengl',
         'buffer',
         'shader',
-        'texture',
+        #'texture',
         'vbo',
         'vertex',
         #'canvas',

@@ -131,6 +131,7 @@ cdef class VertexInstruction(GraphicsInstruction):
         self.flag_update_done()
 
     cdef apply(self):
+        #print "DRAWING", self.texture_binding.texture, self.tex_coords
         if self.flags & GI_NEED_UPDATE:
             self.build()
             self.update_batch()
@@ -187,7 +188,7 @@ cdef popActiveCanvas():
 #on actual import from python problem
 include "common.pxi"
 from vertex cimport *
-from texture cimport *
+#from texture cimport *
 
 from os.path import join
 from kivy import kivy_shader_dir
@@ -206,7 +207,7 @@ cdef class RenderContext(Canvas):
         vs_src  = open(vs_file, 'r').read()
         fs_src  = open(fs_file, 'r').read()
         self.shader = Shader(vs_src, fs_src)
-        self.texture_manager = TextureManager()
+        #self.texture_manager = TextureManager()
 
         self.default_texture = Image(join(kivy_shader_dir, 'default.png')).texture
 

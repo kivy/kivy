@@ -1,11 +1,20 @@
 __all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix', 'Rotate', 'Scale', 'Translate')
 
 from instructions cimport *
-from texture cimport *
 
 from kivy.resources import resource_find
 from kivy.core.image import Image
 from kivy.logger import Logger
+
+from os.path import join
+from kivy import kivy_shader_dir 
+cdef object DEFAULT_TEXTURE
+cdef object get_default_texture():
+    global DEFAULT_TEXTURE
+    if not DEFAULT_TEXTURE:
+        DEFAULT_TEXTURE = Image(join(kivy_shader_dir, 'default.png')).texture
+    return DEFAULT_TEXTURE
+
 
 cdef class LineWidth(ContextInstruction):
     '''Instruction to set the line width of the drawing context
