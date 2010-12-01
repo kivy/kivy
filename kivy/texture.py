@@ -197,6 +197,7 @@ class Texture(object):
         '''Create a texture based on size.'''
         target = GL_TEXTURE_2D
         rectangle = False
+        mipmap = True
         if rectangle:
             if _is_pow2(width) and _is_pow2(height):
                 rectangle = False

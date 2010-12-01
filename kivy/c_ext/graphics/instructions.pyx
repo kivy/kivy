@@ -135,6 +135,9 @@ cdef class VertexInstruction(GraphicsInstruction):
         if self.flags & GI_NEED_UPDATE:
             self.build()
             self.update_batch()
+
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         self.batch.draw()
 
 
