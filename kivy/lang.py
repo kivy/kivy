@@ -183,7 +183,7 @@ class Parser(object):
                 # It's a class, add to the current object as a children
                 current_property = None
                 name = x[0]
-                if ord(name[0]) in Parser.CLASS_RANGE:
+                if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
                     _objects, _lines = self.parse_level(level + 1, lines[i:])
                     current_object['children'] = (_objects, ln, self)
                     lines = _lines
@@ -393,8 +393,13 @@ class BuilderBase(object):
             if item.startswith('<'):
                 raise ParserError(params['__ctx__'], params['__line__'],
                                'Rules are not accepted inside Widget')
+            no_apply = False
+            if item.startswith('+'):
+                item = item[1:]
+                no_apply = True
             widget = Factory.get(item)(__no_builder=True)
-            self.listwidget.append(widget)
+            if not no_apply:
+                self.listwidget.append(widget)
         else:
             widget = item
         self.idmap['self'] = widget
@@ -414,6 +419,7 @@ class BuilderBase(object):
                     child = self.build_item(citem, cparams)
                     widget.add_widget(child)
             elif key == 'canvas':
+                widget.canvas.clear()
                 with widget.canvas:
                     self.build_canvas(item, value)
             elif key == 'canvas.after':

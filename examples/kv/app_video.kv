@@ -19,9 +19,14 @@ BoxLayout:
 		size_hint_y: None
 		height: 30
 
+		Label:
+			id: mylabel
+			text: str(myvideo.position)
+
 		Slider:
 			value: myvideo.position
 			max: myvideo.duration
+			on_value: print arg[0]
 
 	BoxLayout:
 		size_hint_y: None

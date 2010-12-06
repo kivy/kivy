@@ -253,8 +253,8 @@ class WindowBase(EventDispatcher):
         # XXX FIXME use late binding
         from kivy.core.gl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, \
             GL_DEPTH_BUFFER_BIT
-        #glClearColor(0, 0, 0, 0)
-        #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glClearColor(0, 0, 0, 0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     def to_widget(self, x, y, initial=True, relative=False):
         return (x, y)
