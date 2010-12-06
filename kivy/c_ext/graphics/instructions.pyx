@@ -33,12 +33,10 @@ cdef class InstructionGroup(GraphicsInstruction):
         GraphicsInstruction.__init__(self)
         self.children = list()
 
-
     cdef apply(self):
         cdef GraphicsInstruction c
         for c in self.children:
             c.apply()
-
 
     cpdef add(self, GraphicsInstruction c):
         c.parent = self
@@ -49,6 +47,11 @@ cdef class InstructionGroup(GraphicsInstruction):
         c.parent = None
         self.children.remove(c)
         self.flag_update()
+
+    cpdef clear(self):
+        cdef GraphicsInstruction c
+        for c in self.children[:]:
+            self.remove(c)
 
 
 cdef class ContextInstruction(GraphicsInstruction):

@@ -20,12 +20,13 @@ cdef class InstructionGroup(GraphicsInstruction):
     cdef list children
     cpdef add(self, GraphicsInstruction c)
     cpdef remove(self, GraphicsInstruction c)
+    cpdef clear(self)
 
 cdef class ContextInstruction(GraphicsInstruction):
     cdef dict context_state
     cdef list context_push
     cdef list context_pop
-    
+
     cdef RenderContext get_context(self)
     cdef set_state(self, str name, value)
     cdef push_state(self, str name)
@@ -56,7 +57,7 @@ cdef class RenderContext(Canvas):
     cdef dict state_stacks
     #cdef TextureManager texture_manager
     cdef object default_texture
-    
+
     cdef set_state(self, str name, value)
     cdef get_state(self, str name)
     cdef set_states(self, dict states)
