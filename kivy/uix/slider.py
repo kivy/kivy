@@ -10,6 +10,10 @@ from kivy.c_ext.properties import NumericProperty, AliasProperty
 class Slider(Widget):
     def __init__(self, **kwargs):
         super(Slider, self).__init__(**kwargs)
+        def update_pos(*args):
+            self.value_pos = (self.x+1, self.y)
+        self.bind(pos=update_pos)
+        self.bind(size=update_pos)
 
     #: Value of the slider
     value = NumericProperty(0)
@@ -41,10 +45,12 @@ class Slider(Widget):
     def get_value_pos(self):
         return  (self.x + self.value_normalized*self.width, self.y)
     def set_value_pos(self, pos):
+        x = min(self.right,  max(pos[0], self.x))
+        y = min(self.top,    max(pos[1], self.y))
         if self.width == 0:
             self.value_normalized = 0
         else:
-            self.value_normalized = (pos[0] - self.x) / float(self.width)
+            self.value_normalized = (x - self.x) / float(self.width)
     value_pos = AliasProperty(get_value_pos, set_value_pos, bind=(value, min, max, value_normalized))
 
 
