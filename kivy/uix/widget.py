@@ -9,9 +9,10 @@ TODO: write how the base class are working
 
 __all__ = ('Widget', )
 
-from kivy.weakmethod import WeakMethod
 from kivy.c_ext.event import EventDispatcher
-from kivy.c_ext.properties import *
+from kivy.c_ext.properties import NumericProperty, StringProperty, \
+        AliasProperty, ReferenceListProperty, Property, ObjectProperty, \
+        ListProperty
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
