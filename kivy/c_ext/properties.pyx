@@ -66,13 +66,16 @@ cdef class Property:
             return self
         return self.get(obj)
 
+    cdef compare_value(self, a, b):
+        return a == b
+
     cpdef set(self, obj, value):
         '''Set a new value for the property
         '''
         value = self.convert(obj, value)
         d = self.storage[obj.__uid]
         realvalue = d['value']
-        if realvalue == value:
+        if self.compare_value(realvalue, value):
             return False
         self.check(obj, value)
         d['value'] = value
@@ -267,7 +270,7 @@ cdef class ReferenceListProperty(Property):
         cdef int idx
         storage = self.storage[obj.__uid]
         value = self.convert(obj, value)
-        if storage['value'] == value:
+        if self.compare_value(storage['value'], value):
             return False
         self.check(obj, value)
         # prevent dependice loop
@@ -325,4 +328,12 @@ cdef class AliasProperty(Property):
 
     cpdef set(self, obj, value):
         self.storage[obj.__uid]['setter'](obj, value)
+
+cdef class NumpyProperty(Property):
+    cdef init_storage(self, dict storage):
+        Property.init_storage(self, storage)
+        storage['value'] = self.defaultvalue.copy()
+
+    cdef compare_value(self, a, b):
+        return (a == b).all()
 
