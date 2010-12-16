@@ -8,3 +8,5 @@ Kivy.egg-info
 *.DS_Store
 *.kpf
 build/*
+doc/build
+doc/sources/api-*.rst
