@@ -8,12 +8,12 @@ from kivy.logger import Logger
 
 if 'KIVY_DOC' in os.environ:
     # stub for sphinx generation
-    def core_select_lib(category, llist):
+    def core_select_lib(category, llist, create_instance=False):
         pass
     def core_register_libs(category, libs):
         pass
 else:
-    def core_select_lib(category, llist):
+    def core_select_lib(category, llist, create_instance=True):
         category = category.lower()
         for option, modulename, classname in llist:
             try:
@@ -33,6 +33,8 @@ else:
                 # ok !
                 Logger.info('%s: using <%s> as %s provider' %
                     (category.capitalize(), option, category))
+                if create_instance:
+                    cls = cls()
                 return cls
 
             except Exception as e:
@@ -66,17 +68,3 @@ else:
                     (category.capitalize(), option))
                 Logger.debug('', exc_info=e)
 
-
-'''
-from kivy.core.audio import *
-from kivy.core.camera import *
-from kivy.core.image import *
-from kivy.core.text import *
-from kivy.core.video import *
-from kivy.core.svg import *
-from kivy.core.spelling import *
-from kivy.core.clipboard import *
-
-# only after core loading, load extensions
-from text.markup import *
-'''

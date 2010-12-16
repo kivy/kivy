@@ -13,7 +13,24 @@ from glob import glob
 
 os.environ['KIVY_SHADOW_WINDOW'] = '0'
 import kivy
+
+# force loading of kivy modules
+import kivy.core.audio
+import kivy.core.camera
+import kivy.core.clipboard
+import kivy.core.gl
+import kivy.core.image
+import kivy.core.spelling
+import kivy.core.svg
+import kivy.core.text
+import kivy.core.video
+import kivy.core.window
 import kivy.graphics
+from kivy.factory import Factory
+
+# force loading of all classes from factory
+for x in Factory.classes:
+    getattr(Factory, x)
 
 
 # Directory of doc

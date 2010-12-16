@@ -405,5 +405,5 @@ class WindowBase(EventDispatcher):
 # Load the appropriate provider
 Window = core_select_lib('window', (
     ('pygame', 'window_pygame', 'WindowPygame'),
-))()
+), True)
 

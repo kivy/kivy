@@ -26,4 +26,4 @@ class ClipboardBase(object):
 Clipboard = core_select_lib('clipboard', (
     ('pygame', 'clipboard_pygame', 'ClipboardPygame'),
     ('dummy', 'clipboard_dummy', 'ClipboardDummy')
-))()
+), True)
