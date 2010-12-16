@@ -13,29 +13,23 @@ body {
 
 /* :::: LAYOUT :::: */
 
+div.related,
+div.header,
 div.documentwrapper {
-    float: left;
-    width: 100%;
+    width: 800px;
+    margin: 0px auto;
 }
 
 div.bodywrapper {
-    margin: 0 0 0 310px;
+	margin-top: 20px;
 }
 
 div.body {
-    background-color: white;
     padding: 0 20px 30px 20px;
 }
 
 div.sphinxsidebarwrapper {
     padding: 10px 5px 0 10px;
-}
-
-div.sphinxsidebar {
-    float: left;
-    width: 310px;
-    margin-left: -100%;
-    font-size: 90%;
 }
 
 div.clearer {
@@ -51,14 +45,10 @@ div.footer {
 }
 
 div.footer a {
-    color: #fff;
     text-decoration: underline;
 }
 
 div.related {
-    background-color: #133f52;
-    color: #fff;
-    width: 100%;
     line-height: 30px;
     font-size: 90%;
 }
@@ -82,8 +72,24 @@ div.related li.right {
     margin-right: 5px;
 }
 
-div.related a {
-    color: white;
+div.header {
+	margin-top: 20px;
+	height: 80px;
+	line-height: 80px;
+}
+
+div.logo {
+	float: left;
+	height: 80px;
+	width: 75px;
+}
+
+#searchbox {
+	float: right;
+}
+
+div.related {
+	clear: left;
 }
 
 /* ::: TOC :::: */
@@ -306,16 +312,16 @@ div.body h6 {
     background-color: #f2f2f2;
     font-weight: normal;
     color: #20435c;
-    border-bottom: 1px solid #ccc;
+    --border-bottom: 1px solid #ccc;
     margin: 20px -20px 10px -20px;
     padding: 3px 0 3px 10px;
 }
 
-div.body h1 { margin-top: 0; font-size: 200%; }
-div.body h2 { font-size: 160%; }
-div.body h3 { font-size: 140%; }
-div.body h4 { font-size: 120%; }
-div.body h5 { font-size: 110%; }
+div.body h1 { margin-top: 0; font-size: 160%; }
+div.body h2 { font-size: 140%; }
+div.body h3 { font-size: 120%; }
+div.body h4 { font-size: 110%; }
+div.body h5 { font-size: 105%; }
 div.body h6 { font-size: 100%; }
 
 a.headerlink {
@@ -720,3 +726,4 @@ table.field-list td.field-body dd {
         display: none;
     }
 }
+

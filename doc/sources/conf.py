@@ -36,7 +36,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'Kivy'
-copyright = '2009, kivy-dev'
+copyright = '2010, kivy-dev'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -97,7 +97,7 @@ html_style = 'default.css'
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
-html_logo = 'kivy-logo.png'
+html_logo = 'kivy-logo-mini.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
