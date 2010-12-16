@@ -1,11 +1,12 @@
 <Button,ToggleButton>:
 	canvas:
 		Color:
-			rgb: dict(down=(1, 1, 0), normal=(1, 1, 1))[root.state]
+			rgb: (1, 1, 1)
 		BorderImage:
+			border: (5, 5, 5, 5)
 			pos: self.pos
 			size: self.size
-			source: 'data/images/button.png'
+			source: 'data/images/button.png' if self.state == 'normal' else 'data/images/button_pressed.png'
 	+Label:
 		text: root.text
 		font_size: 12
