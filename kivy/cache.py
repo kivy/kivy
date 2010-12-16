@@ -1,7 +1,8 @@
 '''
-Cache Manager: cache object and delete them automaticly
+Cache Manager: cache object and delete them automatically
 
 How to use the cache ::
+
     # register a new Cache
     Cache.register('mycache', limit=10, timeout=5)
 
@@ -19,6 +20,7 @@ not used the label since 5 seconds, and you've reach the limit.
 
 __all__ = ('Cache', )
 
+from os import environ
 from kivy.logger import Logger
 from kivy.clock import Clock
 
@@ -218,5 +220,6 @@ class Cache(object):
                 str(Cache._categories[category]['timeout'])
             )
 
-# install the schedule clock for purging
-Clock.schedule_interval(Cache._purge_by_timeout, 1)
+if 'KIVY_DOC_INCLUDE' not in environ:
+    # install the schedule clock for purging
+    Clock.schedule_interval(Cache._purge_by_timeout, 1)

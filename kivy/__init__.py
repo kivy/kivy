@@ -146,7 +146,7 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
     '''
 
     # configuration
-    from kivy.config import *
+    from kivy.config import Config
 
     # Set level of logger
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))

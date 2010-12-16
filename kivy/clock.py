@@ -15,8 +15,9 @@ You can add new event like this ::
 If the callback return False, the schedule will be removed.
 '''
 
-__all__ =  ('Clock', )
+__all__ =  ('Clock', 'ClockBase')
 
+from os import environ
 from time import time, sleep
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
@@ -164,6 +165,9 @@ class ClockBase(object):
                     self._events.remove(event)
 
 
-#: Instance of the ClockBase, available for everybody
-Clock = ClockBase()
+if 'KIVY_DOC_INCLUDE' in environ:
+    #: Instance of the ClockBase, available for everybody
+    Clock = None
+else:
+    Clock = ClockBase()
 

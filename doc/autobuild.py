@@ -125,8 +125,8 @@ for package in packages:
         summary = 'NO DOCUMENTATION (package %s)' % package
     t = template.replace('$SUMMARY', summary)
     t = t.replace('$PACKAGE', package)
-    t = t.replace('$EXAMPLES', '')
     t = t.replace('$EXAMPLES_REF', '')
+    t = t.replace('$EXAMPLES', '')
 
     # search packages
     for subpackage in packages:
