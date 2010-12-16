@@ -1,6 +1,6 @@
 import sys
 import shutil
-from os.path import join, dirname, realpath
+from os.path import join, dirname, realpath, sep
 from os import walk
 from glob import glob
 from distutils.core import setup
@@ -43,8 +43,8 @@ ext_modules = []
 
 # accelerated matrix transformation module written in C for numpy
 ext_modules.append( Extension(
-    'kivy.c_ext._transformations',
-    ['kivy/c_ext/transformations.c'],
+    'kivy.lib._transformations',
+    ['kivy/lib/transformations.c'],
     include_dirs=[numpy.get_include()])
 )
 
@@ -56,7 +56,7 @@ pyx_files = []
 kivy_libs_dir = realpath(kivy.kivy_libs_dir)
 for root, dirnames, filenames in os.walk(join(dirname(__file__), 'kivy')):
     # ignore lib directory
-    if realpath(root) == kivy_libs_dir:
+    if realpath(root).startswith(kivy_libs_dir):
         continue
     for filename in fnmatch.filter(filenames, '*.pyx'):
         pyx_files.append(os.path.join(root, filename))
@@ -107,15 +107,15 @@ if have_cython:
         libraries.append('GL')
 
     # simple extensions
-    for x in (x for x in pyx_files if not 'graphics' in x):
-        ext_modules.append(Extension(
-            'kivy.c_ext.%s' % x, ['kivy/c_ext/%s.pyx' % x]
-        ))
+    for pyx in (x for x in pyx_files if not 'graphics' in x):
+        module_name = pyx[:-4].replace(sep, '.')
+        ext_modules.append(Extension(module_name, [pyx]))
 
     # opengl aware modules
-    for x in (x for x in pyx_files if 'graphics' in x):
+    for pyx in (x for x in pyx_files if 'graphics' in x):
+        module_name = pyx[:-4].replace(sep, '.')
         ext_modules.append(Extension(
-            'kivy.c_ext.graphics.%s'%x, ['kivy/c_ext/graphics/%s.pyx' % x],
+            module_name, [pyx],
             libraries=libraries,
             include_dirs=include_dirs,
             extra_link_args=extra_link_args

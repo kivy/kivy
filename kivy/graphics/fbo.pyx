@@ -29,12 +29,12 @@ cdef class Fbo(RenderContext):
         glGenFramebuffers(1, &id)
         self.buffer_id = id
         glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
-        
+
         if self.depthbuffer_attached:
             glGenRenderbuffers(1, &id)
             self.depthbuffer_id = id
             glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
                                   self.width, self.height)
             glBindRenderbuffer(GL_RENDERBUFFER, 0)
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, 
@@ -53,16 +53,16 @@ cdef class Fbo(RenderContext):
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
 
-    def bind(self):
+    cpdef bind(self):
         self._is_bound = True
         glBindFramebuffer(GL_FRAMEBUFFER, self.framebuffer)
         glViewport(0, 0, self.width, self.height)
 
-    def release(self):
+    cpdef release(self):
         self._is_bound = False
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        
-    def clear(self):
+
+    cpdef clear(self):
         cdef float c[4] 
         c[0] = self.clear_color[0]
         c[1] = self.clear_color[2]
@@ -82,6 +82,4 @@ cdef class Fbo(RenderContext):
     def __exit__(self, type, value, traceback):
         Canvas.__exit__(self, type, value, traceback)
         self.release()
- 
-
 
