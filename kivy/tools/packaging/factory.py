@@ -31,9 +31,13 @@ class FactoryBuild(Command):
         print 'Building factory relation file'
         print '--------------------------------------------'
 
+        root_dir = os.path.dirname(kivy.__file__)
+        filename = os.path.join(root_dir, 'factory_registers.py')
+        with open(filename, 'w') as fd:
+            fd.close()
+
         # ensure we don't have any thing like doc running
         symbols = []
-        root_dir = os.path.dirname(kivy.__file__)
         for root, dirnames, filenames in os.walk(root_dir):
             if not root.startswith(root_dir):
                 raise Exception('Directory should start with the kivy'
