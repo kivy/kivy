@@ -5,7 +5,7 @@ Toggle button:
 __all__ = ('ToggleButton', )
 
 from kivy.uix.button import Button
-from kivy.c_ext.properties import StringProperty
+from kivy.properties import StringProperty
 
 class ToggleButton(Button):
 

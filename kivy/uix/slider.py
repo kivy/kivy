@@ -5,7 +5,7 @@ Slider:
 __all__ = ('Slider', )
 
 from kivy.uix.widget import Widget
-from kivy.c_ext.properties import NumericProperty, AliasProperty
+from kivy.properties import NumericProperty, AliasProperty
 
 class Slider(Widget):
     def __init__(self, **kwargs):

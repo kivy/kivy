@@ -10,3 +10,5 @@ Kivy.egg-info
 build/*
 doc/build
 doc/sources/api-*.rst
+kivy/*.c
+kivy/graphics/*.c

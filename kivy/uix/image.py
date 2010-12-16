@@ -7,7 +7,7 @@ __all__ = ('Image', )
 from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
-from kivy.c_ext.properties import StringProperty, ObjectProperty, ListProperty
+from kivy.properties import StringProperty, ObjectProperty, ListProperty
 
 class Image(Widget):
 

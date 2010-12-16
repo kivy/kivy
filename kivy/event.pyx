@@ -1,3 +1,9 @@
+'''Event: Event dispatch framework.
+
+All objects that produce events in Kivy implement `EventDispatcher`,
+providing a consistent interface for registering and manipulating event
+handlers.
+'''
 __all__ = ('EventDispatcher', )
 
 from kivy.weakmethod import WeakMethod

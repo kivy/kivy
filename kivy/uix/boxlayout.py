@@ -7,7 +7,7 @@ __all__ = ('BoxLayout', )
 
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
-from kivy.c_ext.properties import NumericProperty, OptionProperty
+from kivy.properties import NumericProperty, OptionProperty
 
 class Layout(Widget):
     def __init__(self, **kwargs):

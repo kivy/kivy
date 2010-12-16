@@ -5,7 +5,7 @@ Button:
 __all__ = ('Button', )
 
 from kivy.uix.widget import Widget
-from kivy.c_ext.properties import OptionProperty, StringProperty
+from kivy.properties import OptionProperty, StringProperty
 
 class Button(Widget):
 
