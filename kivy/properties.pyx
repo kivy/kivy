@@ -117,6 +117,10 @@ cdef class Property:
 
 
 cdef class NumericProperty(Property):
+    '''Property that represent a numeric value.
+
+    The NumericProperty accept only int or float.
+    '''
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
