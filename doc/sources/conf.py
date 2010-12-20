@@ -25,6 +25,11 @@ import sys, os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc']
 
+# XXX HACK mathieu: monkey patch the autodoc module, to give a better priority
+# for ClassDocumenter, or the cython class will be documented as AttributeClass
+import sphinx.ext.autodoc
+sphinx.ext.autodoc.ClassDocumenter.priority = 10
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
 
