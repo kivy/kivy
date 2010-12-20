@@ -13,7 +13,7 @@ Example of very simple application with button ::
     MyApp().run()
 '''
 
-from kivy.base import EventLoop, runTouchApp
+from kivy.base import runTouchApp
 from kivy.event import EventDispatcher
 
 class App(EventDispatcher):

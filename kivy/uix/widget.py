@@ -343,7 +343,9 @@ class Widget(EventDispatcher):
 
     def setter(self, name):
         '''Return the setter of a property. Useful if you want to directly bind
-        a property to another. For example ::
+        a property to another.
+
+        For example, if you want to position one widget next to you ::
 
             self.bind(right=nextchild.setter('x'))
         '''
@@ -357,39 +359,41 @@ class Widget(EventDispatcher):
     x = NumericProperty(0)
     '''X position of the widget.
 
-    `x` is a :class:`kivy.properties.NumericProperty`, default to 0.
+    :data:`x` is a :class:`kivy.properties.NumericProperty`, default to 0.
     '''
 
     y = NumericProperty(0)
     '''Y position of the widget.
 
-    `y` is a :class:`kivy.properties.NumericProperty`, default to 0.
+    :data:`y` is a :class:`kivy.properties.NumericProperty`, default to 0.
     '''
 
     width = NumericProperty(100)
     '''Width of the widget.
 
-    `width` is a :class:`kivy.properties.NumericProperty`, default to 100.
+    :data:`width` is a :class:`kivy.properties.NumericProperty`, default
+    to 100.
     '''
 
     height = NumericProperty(100)
     '''Height of the widget.
 
-    `height` is a :class:`kivy.properties.NumericProperty`, default to 100.
+    :data:`height` is a :class:`kivy.properties.NumericProperty`, default
+    to 100.
     '''
 
     pos = ReferenceListProperty(x, y)
     '''Position of the widget.
 
-    `pos` is a :class:`kivy.properties.ReferenceListProperty` of (x, y)
-    properties.
+    :data:`pos` is a :class:`kivy.properties.ReferenceListProperty` of
+    (:data:`x`, :data:`y`) properties.
     '''
 
     size = ReferenceListProperty(width, height)
     '''Size of the widget.
 
-    `size` is a :class:`kivy.properties.ReferenceListProperty` of
-    (width, height) properties.
+    :data:`size` is a :class:`kivy.properties.ReferenceListProperty` of
+    (:data:`width`, :data:`height`) properties.
     '''
 
     def get_right(self):
@@ -397,39 +401,68 @@ class Widget(EventDispatcher):
     def set_right(self, value):
         self.x = value - self.width
 
-    #: Right position of the widget (x + width)
     right = AliasProperty(get_right, set_right, bind=(x, width))
+    '''Right position of the widget
+
+    :data:`right` is a :class:`kivy.properties.AliasProperty` of
+    (:data:`x` + :data:`width`)
+    '''
 
     def get_top(self):
         return self.y + self.height
     def set_top(self, value):
         self.y = value - self.height
 
-    #: Top position of the widget (y + height)
     top = AliasProperty(get_top, set_top, bind=(y, height))
+    '''Top position of the widget
 
-    #: X center position
+    :data:`top` is a :class:`kivy.properties.AliasProperty` of
+    (:data:`y` + :data:`height`)
+    '''
+
     def get_center_x(self):
         return self.x + self.width / 2.
     def set_center_x(self, value):
         self.x = value - self.width / 2.
     center_x = AliasProperty(get_center_x, set_center_x, bind=(x, width))
+    '''X center position of the widget
 
-    #: Y center position
+    :data:`center_x` is a :class:`kivy.properties.AliasProperty` of
+    (:data:`x` + :data:`width` / 2.)
+    '''
+
     def get_center_y(self):
         return self.y + self.height / 2.
     def set_center_y(self, value):
         self.y = value - self.height / 2.
     center_y = AliasProperty(get_center_y, set_center_y, bind=(y, height))
+    '''Y center position of the widget
 
-    #: Center position of the widget (x + width / 2, y + height / 2)
+    :data:`center_y` is a :class:`kivy.properties.AliasProperty` of
+    (:data:`y` + :data:`height` / 2.)
+    '''
+
     center = ReferenceListProperty(center_x, center_y)
+    '''Center position of the widget
 
-    #: Class of the widget, used for style
+    :data:`center` is a :class:`kivy.properties.ReferenceListProperty` of
+    (:data:`center_x`, :data:`center_y`)
+    '''
+
     cls = ListProperty([])
+    '''Class of the widget, used for styling.
+    '''
 
-    #: User id of the widget
     id = StringProperty(None, allownone=True)
+    '''Uniq identifier of the widget in the tree.
+
+    :data:`id` is a :class:`kivy.properties.StringProperty`, default to None.
+
+    .. warning::
+
+        If the :data:`id` is already used in the tree, an exception will
+        occur.
+    '''
 
     #: Children list
     children = ListProperty([])
@@ -437,21 +470,42 @@ class Widget(EventDispatcher):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of the widget
 
-    `parent` is an :class:`kivy.properties.ObjectProperty` instance, default to
+    :data:`parent` is an :class:`kivy.properties.ObjectProperty` instance, default to
     None.
 
     The parent of a widget is set when the widget is added to another one, and
     unset when the widget is removed from his parent.
     '''
 
-    #: Size hint X
     size_hint_x = NumericProperty(1, allownone=True)
+    '''X size hint. It represent how much space the widget should use in the X
+    axis from his parent. Only :class:`kivy.uix.layout.Layout` and
+    :class:`kivy.core.window.Window` are using the hint.
 
-    #: Size hint Y
+    Value is in percent, 1. will mean the full size of his parent, aka 100%. 0.5
+    will represent 50%.
+
+    :data:`size_hint_x` is a :class:`kivy.properties.NumericProperty`, default
+    to 1.
+    '''
+
     size_hint_y = NumericProperty(1, allownone=True)
+    '''Y size hint.
+    
+    :data:`size_hint_y` is a :class:`kivy.properties.NumericProperty`, default
+    to 1.
 
-    #: Size hint
+    See :data:`size_hint_x` for more information
+    '''
+
     size_hint = ReferenceListProperty(size_hint_x, size_hint_y)
+    '''Size hint.
+    
+    :data:`size_hint` is a :class:`kivy.properties.ReferenceListProperty` of
+    (:data:`size_hint_x`, :data:`size_hint_y`)
+
+    See :data:`size_hint_x` for more information
+    '''
 
     canvas = None
     '''Canvas of the widget.

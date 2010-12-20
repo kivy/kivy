@@ -655,7 +655,6 @@ dl.class dt {
 	background: #f0f0ff url('element-method-16.png') center left no-repeat;
 	border-top: 1px solid #e0e0ef;
 	border-bottom: 1px solid #e0e0ef;
-	font-size: 11pt;
 	margin: 10px 0px;
 	padding-left: 20px;
 }
@@ -698,6 +697,11 @@ table.field-list td.field-body dl dt {
 	border: none;
 	margin: 0px;
 	padding: 1px 5px;
+}
+
+table.field-list td.field-body dl dt {
+	margin: 0px;
+	padding-left: 20px;
 }
 
 table.field-list td.field-body dt span.classifier-delimiter,
