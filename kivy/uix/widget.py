@@ -464,13 +464,21 @@ class Widget(EventDispatcher):
         occur.
     '''
 
-    #: Children list
     children = ListProperty([])
+    '''Children list
+
+    :data:`children` is a :class:`kivy.properties.ListProperty` instance,
+    default to an empty list.
+    
+    Use :func:`add_widget` and :func:`remove_widget` for manipulate children
+    list. Don't manipulate children list directly until you know what you are
+    doing.
+    '''
 
     parent = ObjectProperty(None, allownone=True)
     '''Parent of the widget
 
-    :data:`parent` is an :class:`kivy.properties.ObjectProperty` instance, default to
+    :data:`parent` is a :class:`kivy.properties.ObjectProperty` instance, default to
     None.
 
     The parent of a widget is set when the widget is added to another one, and
