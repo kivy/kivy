@@ -8,8 +8,7 @@ from . import WindowBase
 
 import os
 from kivy.config import Config
-from kivy.clock import Clock
-from kivy.exceptions import ExceptionManager
+from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 

@@ -23,7 +23,7 @@ if 'KIVY_DOC' in os.environ:
     def core_register_libs(category, libs):
         pass
 else:
-    def core_select_lib(category, llist, create_instance=True):
+    def core_select_lib(category, llist, create_instance=False):
         category = category.lower()
         for option, modulename, classname in llist:
             try:
