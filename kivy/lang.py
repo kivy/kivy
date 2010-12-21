@@ -1,5 +1,5 @@
 '''
-Implement the grammar of Kivy language
+Lang: Implement the grammar of Kivy language
 
 One level = 4 spaces. No more, no less. Tab not allowed.
 

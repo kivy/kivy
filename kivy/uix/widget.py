@@ -121,7 +121,7 @@ class Widget(EventDispatcher):
                 Name of the property
         
         The class of the property cannot be specified, it will be always an
-        :class:`kivy.properties.ObjectProperty` class.The default value of the
+        :class:`~kivy.properties.ObjectProperty` class.The default value of the
         property will be None, until you set a new value.
 
         >>> mywidget = Widget()
@@ -167,7 +167,7 @@ class Widget(EventDispatcher):
         '''Receive a touch down event
 
         :Parameters:
-            `touch`: :class:`kivy.input.touch.Touch` class
+            `touch`: :class:`~kivy.input.touch.Touch` class
                 Touch received
 
         :Returns:
@@ -210,9 +210,9 @@ class Widget(EventDispatcher):
     #
 
     def bind(self, **kwargs):
-        '''Bind properties or event to handler
-
-        Usage ::
+        '''Bind properties or event to handler.
+        
+        Example of usage::
 
             def my_x_callback(obj, value):
                 print 'on object', obj', 'x changed to', value
@@ -281,7 +281,7 @@ class Widget(EventDispatcher):
 
         :Returns:
             Instance of the root window. Can be
-            :class:`kivy.core.window.WindowBase` or
+            :class:`~kivy.core.window.WindowBase` or
             :class:`Widget`
         '''
         if self.parent:
@@ -292,7 +292,7 @@ class Widget(EventDispatcher):
 
         :Returns:
             Instance of the root window. Can be
-            :class:`kivy.core.window.WindowBase` or
+            :class:`~kivy.core.window.WindowBase` or
             :class:`Widget`
         '''
         if self.parent:
@@ -359,40 +359,40 @@ class Widget(EventDispatcher):
     x = NumericProperty(0)
     '''X position of the widget.
 
-    :data:`x` is a :class:`kivy.properties.NumericProperty`, default to 0.
+    :data:`x` is a :class:`~kivy.properties.NumericProperty`, default to 0.
     '''
 
     y = NumericProperty(0)
     '''Y position of the widget.
 
-    :data:`y` is a :class:`kivy.properties.NumericProperty`, default to 0.
+    :data:`y` is a :class:`~kivy.properties.NumericProperty`, default to 0.
     '''
 
     width = NumericProperty(100)
     '''Width of the widget.
 
-    :data:`width` is a :class:`kivy.properties.NumericProperty`, default
+    :data:`width` is a :class:`~kivy.properties.NumericProperty`, default
     to 100.
     '''
 
     height = NumericProperty(100)
     '''Height of the widget.
 
-    :data:`height` is a :class:`kivy.properties.NumericProperty`, default
+    :data:`height` is a :class:`~kivy.properties.NumericProperty`, default
     to 100.
     '''
 
     pos = ReferenceListProperty(x, y)
     '''Position of the widget.
 
-    :data:`pos` is a :class:`kivy.properties.ReferenceListProperty` of
+    :data:`pos` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`x`, :data:`y`) properties.
     '''
 
     size = ReferenceListProperty(width, height)
     '''Size of the widget.
 
-    :data:`size` is a :class:`kivy.properties.ReferenceListProperty` of
+    :data:`size` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`width`, :data:`height`) properties.
     '''
 
@@ -404,7 +404,7 @@ class Widget(EventDispatcher):
     right = AliasProperty(get_right, set_right, bind=(x, width))
     '''Right position of the widget
 
-    :data:`right` is a :class:`kivy.properties.AliasProperty` of
+    :data:`right` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`x` + :data:`width`)
     '''
 
@@ -416,7 +416,7 @@ class Widget(EventDispatcher):
     top = AliasProperty(get_top, set_top, bind=(y, height))
     '''Top position of the widget
 
-    :data:`top` is a :class:`kivy.properties.AliasProperty` of
+    :data:`top` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`y` + :data:`height`)
     '''
 
@@ -427,7 +427,7 @@ class Widget(EventDispatcher):
     center_x = AliasProperty(get_center_x, set_center_x, bind=(x, width))
     '''X center position of the widget
 
-    :data:`center_x` is a :class:`kivy.properties.AliasProperty` of
+    :data:`center_x` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`x` + :data:`width` / 2.)
     '''
 
@@ -438,14 +438,14 @@ class Widget(EventDispatcher):
     center_y = AliasProperty(get_center_y, set_center_y, bind=(y, height))
     '''Y center position of the widget
 
-    :data:`center_y` is a :class:`kivy.properties.AliasProperty` of
+    :data:`center_y` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`y` + :data:`height` / 2.)
     '''
 
     center = ReferenceListProperty(center_x, center_y)
     '''Center position of the widget
 
-    :data:`center` is a :class:`kivy.properties.ReferenceListProperty` of
+    :data:`center` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`center_x`, :data:`center_y`)
     '''
 
@@ -456,7 +456,7 @@ class Widget(EventDispatcher):
     id = StringProperty(None, allownone=True)
     '''Uniq identifier of the widget in the tree.
 
-    :data:`id` is a :class:`kivy.properties.StringProperty`, default to None.
+    :data:`id` is a :class:`~kivy.properties.StringProperty`, default to None.
 
     .. warning::
 
@@ -467,7 +467,7 @@ class Widget(EventDispatcher):
     children = ListProperty([])
     '''Children list
 
-    :data:`children` is a :class:`kivy.properties.ListProperty` instance,
+    :data:`children` is a :class:`~kivy.properties.ListProperty` instance,
     default to an empty list.
     
     Use :func:`add_widget` and :func:`remove_widget` for manipulate children
@@ -478,7 +478,7 @@ class Widget(EventDispatcher):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of the widget
 
-    :data:`parent` is a :class:`kivy.properties.ObjectProperty` instance, default to
+    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance, default to
     None.
 
     The parent of a widget is set when the widget is added to another one, and
@@ -487,20 +487,20 @@ class Widget(EventDispatcher):
 
     size_hint_x = NumericProperty(1, allownone=True)
     '''X size hint. It represent how much space the widget should use in the X
-    axis from his parent. Only :class:`kivy.uix.layout.Layout` and
-    :class:`kivy.core.window.Window` are using the hint.
+    axis from his parent. Only :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` are using the hint.
 
     Value is in percent, 1. will mean the full size of his parent, aka 100%. 0.5
     will represent 50%.
 
-    :data:`size_hint_x` is a :class:`kivy.properties.NumericProperty`, default
+    :data:`size_hint_x` is a :class:`~kivy.properties.NumericProperty`, default
     to 1.
     '''
 
     size_hint_y = NumericProperty(1, allownone=True)
     '''Y size hint.
     
-    :data:`size_hint_y` is a :class:`kivy.properties.NumericProperty`, default
+    :data:`size_hint_y` is a :class:`~kivy.properties.NumericProperty`, default
     to 1.
 
     See :data:`size_hint_x` for more information
@@ -509,7 +509,7 @@ class Widget(EventDispatcher):
     size_hint = ReferenceListProperty(size_hint_x, size_hint_y)
     '''Size hint.
     
-    :data:`size_hint` is a :class:`kivy.properties.ReferenceListProperty` of
+    :data:`size_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`size_hint_x`, :data:`size_hint_y`)
 
     See :data:`size_hint_x` for more information
@@ -519,6 +519,6 @@ class Widget(EventDispatcher):
     '''Canvas of the widget.
 
     The canvas is a graphics object that contain all the drawing instruction.
-    Check :class:`kivy.graphics.Canvas` for more information about usage.
+    Check :class:`~kivy.graphics.Canvas` for more information about usage.
     '''
 
