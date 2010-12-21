@@ -309,10 +309,10 @@ div.body h4,
 div.body h5,
 div.body h6 {
     font-family: 'Trebuchet MS', sans-serif;
-    background-color: #f2f2f2;
+    --background-color: #f2f2f2;
+    --border-bottom: 1px solid #ccc;
     font-weight: normal;
     color: #20435c;
-    --border-bottom: 1px solid #ccc;
     margin: 20px -20px 10px -20px;
     padding: 3px 0 3px 10px;
 }
@@ -528,12 +528,10 @@ th {
 }
 
 pre {
-    padding: 5px;
-    background-color: #efc;
+    padding: 1em;
+	font-size: 1.05em;
+    background-color: #f4f4f4;
     color: #333;
-    border: 1px solid #ac9;
-    border-left: none;
-    border-right: none;
     overflow: auto;
 }
 

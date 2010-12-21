@@ -15,6 +15,7 @@ os.environ['KIVY_SHADOW_WINDOW'] = '0'
 import kivy
 
 # force loading of kivy modules
+import kivy.app
 import kivy.core.audio
 import kivy.core.camera
 import kivy.core.clipboard
@@ -77,6 +78,7 @@ API documentation for Kivy
 ===================================================================
 
 .. toctree::
+    :maxdepth: 2
 
 '''
 for package in [x for x in packages if len(x.split('.')) <= 2]:

@@ -7,8 +7,8 @@ Example of very simple application with button ::
     from kivy.uix.button import Button
 
     class MyApp(App):
-        def init(self):
-            self.root = Button(label='hello world'))
+        def build(self):
+            return Button(label='hello world')
 
     MyApp().run()
 '''
@@ -17,6 +17,15 @@ from kivy.base import runTouchApp
 from kivy.event import EventDispatcher
 
 class App(EventDispatcher):
+    '''App class is a the base for creating Kivy application.
+
+    :Events:
+        `on_start`:
+            Fired when the application is beeing started (before the
+            :func:`~kivy.base.runTouchApp` call.
+        `on_stop`:
+            Fired when the application stop.
+    '''
     def __init__(self, **kwargs):
         super(App, self).__init__()
         self.register_event_type('on_start')
