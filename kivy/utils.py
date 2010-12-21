@@ -1,5 +1,7 @@
 '''
-Utils: generic toolbox
+Utils
+=====
+
 '''
 
 __all__ = ('intersection', 'difference', 'curry', 'strtotuple',

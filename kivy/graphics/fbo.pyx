@@ -1,5 +1,12 @@
-__all__ = ('Fbo',)
+'''
+Framebuffer
+===========
 
+Fbo is like an offscreen window. You can activate the fbo for rendering into a
+texture, and use your fbo as a texture for another drawing.
+'''
+
+__all__ = ('Fbo',)
 
 import kivy
 from kivy import Logger
