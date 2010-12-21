@@ -1,3 +1,15 @@
+'''
+Shader
+======
+
+The :class:`Shader` class handle the compilation of the Vertex and Fragment
+shader, and the creation of the program in OpenGL.
+
+.. todo::
+
+    Write a more complete documentation about shader.
+
+'''
 __all__ = ('Shader', )
 
 include "common.pxi"
@@ -5,9 +17,6 @@ from c_opengl cimport *
 
 from numpy import ndarray, ascontiguousarray
 from kivy.logger import Logger
-
-
-
 
 cdef class Shader:
     '''Create a vertex or fragment shader
@@ -32,14 +41,16 @@ cdef class Shader:
 
 
     cdef use(self):
-        '''Use the shader'''
+        '''Use the shader
+        '''
         glUseProgram(self.program)
         for k,v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
 
 
     cdef stop(self):
-        '''Stop using the shader'''
+        '''Stop using the shader
+        '''
         glUseProgram(0)
 
 
@@ -160,8 +171,4 @@ cdef class Shader:
             raise Exception(message)
         else:
             Logger.debug('Shader: %s compiled successfully' % ctype)
-
-
-
-
 

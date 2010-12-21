@@ -1,3 +1,5 @@
+#cython: embedsignature=True
+
 '''
 Framebuffer
 ===========
@@ -15,6 +17,9 @@ from c_opengl cimport *
 from instructions cimport RenderContext, Canvas
 
 cdef class Fbo(RenderContext):
+    '''Fbo class for wrapping the OpenGL Framebuffer extension. The Fbo support
+    "with" statement.
+    '''
     def __init__(self, *args, **kwargs):
         RenderContext.__init__(self, *args, **kwargs)
 
@@ -61,16 +66,22 @@ cdef class Fbo(RenderContext):
 
 
     cpdef bind(self):
+        '''Activate the FBO
+        '''
         self._is_bound = True
         glBindFramebuffer(GL_FRAMEBUFFER, self.framebuffer)
         glViewport(0, 0, self.width, self.height)
 
     cpdef release(self):
+        '''Release the FBo
+        '''
         self._is_bound = False
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
     cpdef clear(self):
-        cdef float c[4] 
+        '''Clear the FBO with the :data:`clear_color`
+        '''
+        cdef float c[4]
         c[0] = self.clear_color[0]
         c[1] = self.clear_color[2]
         c[2] = self.clear_color[2]
@@ -80,7 +91,6 @@ cdef class Fbo(RenderContext):
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         else:
             glClear(GL_COLOR_BUFFER_BIT)
-
 
     def __enter__(self):
         Canvas.__enter__(self)

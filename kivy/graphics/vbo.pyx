@@ -1,3 +1,10 @@
+'''
+Vertex Buffer
+=============
+
+The :class:`VBO` class handle the creation and update of Vertex Buffer Object in
+OpenGL. 
+'''
 
 __all__ = ('VBO', )
 
