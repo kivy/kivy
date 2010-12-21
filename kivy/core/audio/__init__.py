@@ -1,5 +1,13 @@
 '''
-Audio: Load and play sound
+Audio
+=====
+
+Core class for loading and play sound.
+
+.. note::
+
+    Recording audio is not supported.
+
 '''
 
 __all__ = ('Sound', 'SoundLoader')

@@ -1,18 +1,22 @@
 '''
-WeakMethod: implementation of weakref for function and bounded method.
+Weak Method
+===========
 
-This class is used in Clock class, to prevent the clock of taking memory if the
-object is deleted. Check examples/core/clock_method.py for more informations.
+:class:`WeakMethod` is used in Clock class, to prevent the clock of taking
+memory if the object is deleted. Check examples/core/clock_method.py for more
+informations.
 
 This WeakMethod class is taken from the recipe
-http://code.activestate.com/recipes/81253/,
-based on the nicodemus version. (thanks to him !)
+http://code.activestate.com/recipes/81253/, based on the nicodemus version.
+(thanks to him !)
 '''
 
 import weakref
 import new
 
 class WeakMethod(object):
+    '''Implementation of weakref for function and bounded method.
+    '''
     def __init__(self, method):
         try:
             if method.im_self is not None:

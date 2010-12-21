@@ -1,4 +1,6 @@
-'''Event: Event dispatch framework.
+'''
+Event dispatcher
+================
 
 All objects that produce events in Kivy implement :class:`EventDispatcher`,
 providing a consistent interface for registering and manipulating event

@@ -1,11 +1,14 @@
-'''Vector: class to handle Vector operation.
-For example, if you want to get length of a vector ::
+'''
+Vector
+======
 
-    from kivy import *
-    v = Vector(1, 5)
+class to handle Vector operation.
 
-    # get length
-    print Vector.length(v)
+For example, if you want to get length of a vector::
+
+    >>> from kivy.vector import Vector
+    >>> v = Vector(1, 5)
+    >>> print v.length()
 
 '''
 

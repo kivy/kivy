@@ -1,5 +1,6 @@
 '''
-App: base class for creating a Kivy application
+Application object
+==================
 
 Example of very simple application with button ::
 

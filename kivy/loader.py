@@ -1,18 +1,19 @@
 '''
-Loader: asynchronous loader, easily extensible.
+Asynchronous data loader
+========================
 
 This is the Asynchronous Loader. You can use it to load an image
 and use it, even if data are not yet available. You must specify a default
-loading image for using a such loader ::
+loading image for using a such loader::
 
     from kivy import *
     image = Loader.image('mysprite.png')
 
-You can also load image from url ::
+You can also load image from url::
 
     image = Loader.image('http://mysite.com/test.png')
 
-If you want to change the default loading image, you can do ::
+If you want to change the default loading image, you can do::
 
     Loader.loading_image = Image('another_loading.png')
 

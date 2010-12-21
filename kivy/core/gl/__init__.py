@@ -1,5 +1,9 @@
 '''
-GL: Select which library will be used for providing OpenGL support
+OpenGL
+======
+
+Select and use the best OpenGL library available. Depending of your system, the
+core provider can select an OpenGL ES or classical OpenGL library.
 '''
 
 # Right now, only PyOpenGL

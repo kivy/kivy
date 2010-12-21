@@ -1,5 +1,7 @@
 '''
-Base: Main event loop, provider creation, window management...
+Event loop management
+=====================
+
 '''
 
 __all__ = (

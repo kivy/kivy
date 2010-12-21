@@ -14,7 +14,7 @@ except:
 import threading
 from . import VideoBase
 from kivy.core.gl import GL_RGB
-from kivy.texture import Texture
+from kivy.graphics.texture import Texture
 from gst.extend import discoverer
 
 # install the gobject iteration

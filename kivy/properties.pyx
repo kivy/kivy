@@ -1,5 +1,14 @@
 '''
-Properties: classes used for widget creation.
+Properties
+==========
+
+The properties classes are used for creating :class:`~kivy.uix.widget.Widget`.
+Theses classes are supporting :
+    - Observer pattern: you can bind a property to be called when the value is
+      changing.
+    - Better memory management: the same instance of a property is shared across
+      multiple widget instance. The value storage is independant of the Widget.
+
 '''
 
 #cython: profile=True

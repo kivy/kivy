@@ -61,6 +61,8 @@ l = [(x, sys.modules[x], os.path.basename(sys.modules[x].__file__).rsplit('.', 1
 packages = []
 modules = {}
 for name, module, filename in l:
+    if name == 'kivy.factory_registers':
+        continue
     if filename == '__init__':
         packages.append(name)
     else:
@@ -118,11 +120,6 @@ template_examples_ref = \
 for package in packages:
     try:
         summary = [x for x in sys.modules[package].__doc__.split("\n") if len(x) > 1][0]
-        try:
-            title, content = summary.split(':', 1)
-            summary = '**%s**: %s' % (title, content)
-        except:
-            pass
     except:
         summary = 'NO DOCUMENTATION (package %s)' % package
     t = template.replace('$SUMMARY', summary)
@@ -156,11 +153,6 @@ refid = 0
 for module in m:
     try:
         summary = [x for x in sys.modules[module].__doc__.split("\n") if len(x) > 1][0]
-        try:
-            title, content = summary.split(':', 1)
-            summary = '**%s**: %s' % (title, content)
-        except:
-            pass
     except:
         summary = 'NO DOCUMENTATION (module %s)' % module
 

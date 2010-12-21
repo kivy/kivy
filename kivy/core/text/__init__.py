@@ -1,5 +1,9 @@
 '''
-Text: Handle drawing of text
+Text
+====
+
+Abstraction of text creation. Depending of the selected backend, the text
+rendering can be more or less accurate.
 '''
 
 __all__ = ('LabelBase', 'Label')
@@ -7,7 +11,7 @@ __all__ = ('LabelBase', 'Label')
 import re
 import os
 from kivy import kivy_data_dir
-from kivy.texture import Texture
+from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 
 DEFAULT_FONT = 'Liberation Sans,Bitstream Vera Sans,Free Sans,Arial, Sans'

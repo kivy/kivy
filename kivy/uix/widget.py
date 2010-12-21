@@ -1,5 +1,6 @@
 '''
-Widget: base widget of Kivy. 
+Widget class
+============
 
 TODO: write how the base class are working
 

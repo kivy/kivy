@@ -1,5 +1,15 @@
 '''
-Core: providers for image, text, video, audio, camera...
+Core abstraction
+================
+
+Each part of Kivy like image, video, text... are called `Feature`. We are adding
+an abstraction around every Features, to be able to change the library to use.
+That permit us to test new libraries, and support new hardware with custom
+libraries.
+
+Most of case, you must not use directly a library. Always try to use our
+providers first. In the case we are missing a feature, or a method, report by
+opening a new Bug report, instead of relying on your library.
 '''
 
 import os

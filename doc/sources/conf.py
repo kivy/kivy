@@ -16,14 +16,14 @@ import sys, os
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-#sys.path.append(os.path.abspath('some/directory'))
+sys.path.append(os.path.abspath('sphinxext'))
 
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'preprocess']
 
 # XXX HACK mathieu: monkey patch the autodoc module, to give a better priority
 # for ClassDocumenter, or the cython class will be documented as AttributeClass
@@ -46,7 +46,6 @@ copyright = '2010, kivy-dev'
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
-import os
 os.environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
 print kivy.__file__

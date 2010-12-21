@@ -1,12 +1,23 @@
 '''
-Image: handle loading of images
+Image
+=====
+
+Core classes for loading image and convert them to
+:class:`~kivy.graphics.texture.Texture`. The raw image data can be keep in
+memory for further access.
+
+.. note::
+
+    Saving image is not yet supported.
 '''
 
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
-from kivy.texture import Texture, TextureRegion
+
+# late binding
+Texture = TextureRegion = None
 
 class ImageData(object):
     '''Container for data image : width, height, mode and data.
@@ -257,7 +268,6 @@ class Image(EventDispatcher):
 
         return color
 
-
 def load(filename):
     '''Load an image'''
     return Image.load(filename)
@@ -267,3 +277,7 @@ core_register_libs('image', (
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
 ))
+
+# resolve binding.
+from kivy.graphics.texture import Texture, TextureRegion
+

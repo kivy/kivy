@@ -1,5 +1,9 @@
 '''
-Clipboard: get/put data from system clipboard
+Clipboard
+=========
+
+Core class for accessing to the Clipboard. If we are not able to access to the
+system clipboard, a fake one will be used.
 '''
 
 __all__ = ('ClipboardBase', 'Clipboard')

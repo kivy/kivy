@@ -1,5 +1,9 @@
 '''
-Texture: abstraction to handle GL texture, and region
+Texture management
+==================
+
+OpenGL texture can be a pain to manage ourself, except if you know perfectly all
+the OpenGL API :).
 '''
 
 __all__ = ('Texture', 'TextureRegion')

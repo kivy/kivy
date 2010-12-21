@@ -1,12 +1,9 @@
 '''
-Window: Create a GL Window
+Window
+======
 
-For windowing system, we try to use the best windowing system available for
-your system. Actually, theses libraries are handled :
-
-    * PyGame (wrapper around SDL)
-    * GLUT (last solution, really buggy :/)
-
+Core class for create the default Kivy window. Kivy support only one window
+creation. Don't try to create more than one.
 '''
 
 __all__ = ('WindowBase', 'Window')
