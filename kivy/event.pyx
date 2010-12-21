@@ -1,6 +1,6 @@
 '''Event: Event dispatch framework.
 
-All objects that produce events in Kivy implement `EventDispatcher`,
+All objects that produce events in Kivy implement :class:`EventDispatcher`,
 providing a consistent interface for registering and manipulating event
 handlers.
 '''
@@ -27,7 +27,25 @@ cdef class EventDispatcher(object):
 
         Registering event types allows the dispatcher to validate event handler
         names as they are attached, and to search attached objects for suitable
-        handlers.
+        handlers. Each event type declaration must :
+
+            1. start with the prefix `on_`
+            2. have a default handler in the class
+
+        Example of creating custom event::
+
+            class MyWidget(Widget):
+                def __init__(self, **kwargs):
+                    super(MyWidget, self).__init__(**kwargs)
+                    self.register_event_type('on_swipe')
+
+                def on_swipe(self):
+                    pass
+
+            def on_swipe_callback(*largs):
+                print 'my swipe is called', largs
+            w = MyWidget()
+            w.dispatch_event('on_swipe')
         '''
 
         if not event_type.startswith('on_'):
@@ -52,7 +70,8 @@ cdef class EventDispatcher(object):
     def bind(self, **kwargs):
         '''Bind an event type or a property to a callback
 
-        Usage ::
+        Usage::
+
             # With properties
             def my_x_callback(obj, value):
                 print 'on object', obj', 'x changed to', value
