@@ -23,7 +23,10 @@ sys.path.append(os.path.abspath('sphinxext'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'preprocess']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'preprocess']
+
+# Todo configuration
+todo_include_todos = True
 
 # XXX HACK mathieu: monkey patch the autodoc module, to give a better priority
 # for ClassDocumenter, or the cython class will be documented as AttributeClass
