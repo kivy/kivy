@@ -1,5 +1,6 @@
 '''
-Slider:
+Slider
+======
 
 '''
 __all__ = ('Slider', )

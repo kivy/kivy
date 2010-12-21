@@ -1,5 +1,7 @@
 '''
-Label: 
+Label
+=====
+
 '''
 
 __all__ = ('Label', )

@@ -41,12 +41,6 @@ def callback_docstring(app, what, name, obj, options, lines):
             line = lines[idx]
             if line.startswith('    '):
                 lines[idx] = line[4:]
-        print what, name, lines
-        return
-        if what == 'class':
-            doc = '\n'.join(lines)
-            del lines[:]
-            lines.extend([doc])
 
 def callback_signature(app, what, name, obj, options, signature,
                        return_annotation):

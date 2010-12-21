@@ -1,5 +1,6 @@
 '''
-Toggle button:
+Toggle button
+=============
 '''
 
 __all__ = ('ToggleButton', )

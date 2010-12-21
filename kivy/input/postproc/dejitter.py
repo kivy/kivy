@@ -1,5 +1,8 @@
 '''
-Dejitter: Prevent blob jittering.
+Dejitter
+========
+
+Prevent blob jittering.
 
 A problem that is often faced (esp. in optical MT setups) is that of
 jitterish BLOBs caused by bad camera characteristics. With this module

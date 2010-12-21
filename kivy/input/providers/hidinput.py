@@ -1,5 +1,6 @@
 '''
-HIDInput: Native support of HID input from linux kernel
+Native support of HID input from linux kernel
+=============================================
 
 Support start from 2.6.32-ubuntu, or 2.6.34.
 

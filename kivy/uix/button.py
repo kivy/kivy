@@ -1,5 +1,6 @@
 '''
-Button: 
+Button
+======
 '''
 
 __all__ = ('Button', )

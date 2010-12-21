@@ -6,6 +6,14 @@ Be careful if you change anything in !
 
 '''
 
+ignore_list = (
+    'kivy.factory_registers',
+    'kivy.graphics.buffer',
+    'kivy.graphics.shader',
+    'kivy.graphics.vbo',
+    'kivy.graphics.vertex',
+)
+
 import os
 import sys
 import re
@@ -61,7 +69,7 @@ l = [(x, sys.modules[x], os.path.basename(sys.modules[x].__file__).rsplit('.', 1
 packages = []
 modules = {}
 for name, module, filename in l:
-    if name == 'kivy.factory_registers':
+    if name in ignore_list:
         continue
     if filename == '__init__':
         packages.append(name)

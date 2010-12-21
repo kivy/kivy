@@ -1,5 +1,6 @@
 '''
-BoxLayout: 
+Box Layout
+==========
 
 '''
 

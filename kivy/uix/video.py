@@ -1,5 +1,6 @@
 '''
-Video widget
+Video
+=====
 '''
 
 __all__ = ('Video', )

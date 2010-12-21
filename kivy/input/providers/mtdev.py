@@ -1,5 +1,6 @@
 '''
-MTDev: Native support of Multitouch device on Linux, using libmtdev.
+Native support of Multitouch device on Linux, using libmtdev.
+=============================================================
 
 Mtdev project is a part of Ubuntu Maverick multitouch architecture.
 You can read more on http://wiki.ubuntu.com/Multitouch

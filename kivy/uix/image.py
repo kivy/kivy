@@ -1,5 +1,6 @@
 '''
-Image widget
+Image
+=====
 '''
 
 __all__ = ('Image', )

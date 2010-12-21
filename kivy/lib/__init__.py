@@ -1,10 +1,11 @@
 '''
-Lib: some libraries used by Kivy
+External libraries
+==================
 
-Currently, Kivy use:
+Kivy come with other python/c libraries :
 
- * squirtle (modified / optimized)
- * oscAPI (modified / optimized)
- * transformation (C)
+    - squirtle (modified / optimized)
+    - oscAPI (modified / optimized)
+    - transformation (C)
 
 '''
