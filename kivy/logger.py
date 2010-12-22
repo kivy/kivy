@@ -1,14 +1,15 @@
 '''
-Logger: the Kivy logger
+Logger object
+=============
 
-Fifferents level are available :
+Differents level are available :
     - debug
     - info
     - warning
     - error
     - critical
 
-Examples of usage ::
+Examples of usage::
 
     from kivy.logger import Logger
     Logger.notice('This is a notice')
@@ -16,22 +17,10 @@ Examples of usage ::
 
     try:
         raise Exception('bleh')
-    except Exception, e
+    except Exception, e:
         Logger.exception(e)
 
-
-By default, logger log also in a file, with the according configuration token ::
-
-    [kivy]
-    # will be stored in a "logs" directory in kivy home
-    log_dir = logs
-    # name of the log, according to time.strftime format
-    # the %_ will be incremented from 0 to 10000 if the first
-    # part of name already exist
-    log_name = kivy_%y-%m-%d_%_.txt
-    # activate or deactivate logs
-    log_enable = 1
-
+Logger can be controled in the Kivy configuration.
 '''
 
 import logging

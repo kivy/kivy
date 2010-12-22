@@ -1,5 +1,6 @@
 '''
-Probe sysfs: Create input entry for each Multitouch hardware found (linux only).
+Create input entry for each Multitouch hardware found (linux only).
+===================================================================
 
 Thanks to Marc Tardif for the probing code, used from scan-for-mt-device script.
 

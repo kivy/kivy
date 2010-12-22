@@ -1,24 +1,23 @@
 '''
-Factory: used for register and create any classes
+Factory object
+==============
 
 The factory can be also use for automaticly importing any class from a module,
 by specifing the module to import instead of the class instance.
 
 The class list + modules available is automaticly generated with setup.py.
 
-Example of registering a class/module ::
+Example of registering a class/module::
 
-    from kivy.factory import Factory
+    >>> from kivy.factory import Factory
+    >>> Factory.register('Widget', 'kivy.uix.widget')
+    >>> Factory.register('Vector', 'kivy.vector')
 
-    Factory.register('Widget', 'kivy.uix.widget')
-    Factory.register('Vector', 'kivy.vector')
+Example of using the Factory::
 
-Example of using the Factory ::
-
-    from kivy.factory import Factory
-
-    widget = Factory.Widget(pos=(456,456))
-    vector = Factory.Vector(9, 2)
+    >>> from kivy.factory import Factory
+    >>> widget = Factory.Widget(pos=(456,456))
+    >>> vector = Factory.Vector(9, 2)
 
 '''
 

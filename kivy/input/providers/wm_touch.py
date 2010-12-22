@@ -1,5 +1,6 @@
 '''
-WM_TOUCH: Support of WM_TOUCH message (Window platform)
+Support of WM_TOUCH message (Window platform)
+=============================================
 '''
 
 __all__ = ('WM_TouchProvider', 'WM_Touch')

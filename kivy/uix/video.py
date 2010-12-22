@@ -1,5 +1,6 @@
 '''
-Video widget
+Video
+=====
 '''
 
 __all__ = ('Video', )
@@ -8,7 +9,7 @@ from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
-from kivy.c_ext.properties import StringProperty, ObjectProperty, \
+from kivy.properties import StringProperty, ObjectProperty, \
         ListProperty, BooleanProperty, NumericProperty
 
 class Video(Widget):

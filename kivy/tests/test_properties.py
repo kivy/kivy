@@ -13,7 +13,7 @@ wid = Widget()
 
 class PropertiesTestCase(unittest.TestCase):
     def test(self):
-        from kivy.c_ext.properties import Property
+        from kivy.properties import Property
 
         a = Property(-1)
         a.link(wid, 'a')
@@ -25,7 +25,7 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 1)
 
     def test_observer(self):
-        from kivy.c_ext.properties import Property
+        from kivy.properties import Property
 
         a = Property(-1)
         a.link(wid, 'a')
@@ -50,7 +50,7 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(observe_called, 1)
 
     def test_stringcheck(self):
-        from kivy.c_ext.properties import StringProperty
+        from kivy.properties import StringProperty
 
         a = StringProperty('')
         a.link(wid, 'a')
@@ -66,7 +66,7 @@ class PropertiesTestCase(unittest.TestCase):
             pass
 
     def test_numericcheck(self):
-        from kivy.c_ext.properties import NumericProperty
+        from kivy.properties import NumericProperty
 
         a = NumericProperty(0)
         a.link(wid, 'a')
@@ -82,7 +82,7 @@ class PropertiesTestCase(unittest.TestCase):
             pass
 
     def test_propertynone(self):
-        from kivy.c_ext.properties import NumericProperty
+        from kivy.properties import NumericProperty
 
         a = NumericProperty(0, allownone=True)
         a.link(wid, 'a')
@@ -97,7 +97,7 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 1)
 
     def test_alias(self):
-        from kivy.c_ext.properties import NumericProperty, AliasProperty
+        from kivy.properties import NumericProperty, AliasProperty
 
         x = NumericProperty(0)
         x.link(wid, 'x')
@@ -152,7 +152,7 @@ class PropertiesTestCase(unittest.TestCase):
 
 
     def test_reference(self):
-        from kivy.c_ext.properties import NumericProperty, ReferenceListProperty
+        from kivy.properties import NumericProperty, ReferenceListProperty
 
         x = NumericProperty(0)
         x.link(wid, 'x')

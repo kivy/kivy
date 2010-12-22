@@ -1,5 +1,6 @@
 '''
-WM_Touch/WM_Pen: common definitions for both input providers
+Common definitions for Windows provider
+=======================================
 
 This file provide common definition of some const used for WM_Touch / WM_Pen
 '''

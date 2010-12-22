@@ -1770,7 +1770,6 @@ def _import_module(module_name, warn=True, prefix='_py_', ignore='_'):
 
     """
     sys.path.append(os.path.dirname(__file__))
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'c_ext'))
     try:
         module = __import__(module_name)
     except ImportError:

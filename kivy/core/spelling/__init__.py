@@ -1,7 +1,10 @@
 '''
-Spelling: Provide abstracted access to a range of spellchecking backends.
-          Also provides word suggestions. The API is inspired by enchant,
-          but other backends can be added that implement the same API.
+Spelling
+========
+
+Provide abstracted access to a range of spellchecking backends.  Also provides
+word suggestions. The API is inspired by enchant, but other backends can be
+added that implement the same API.
 '''
 
 __all__ = ('Spelling', 'SpellingBase', 'NoSuchLangError', 'NoLanguageSelectedError' )

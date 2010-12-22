@@ -1,5 +1,6 @@
 '''
-Kivy: Python Multitouch Toolkit
+Kivy framework
+==============
 
 Kivy is an open source library for developing multi-touch applications. It is
 completely cross-platform (Linux/OSX/Win) and released under the terms of the
@@ -146,7 +147,7 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
     '''
 
     # configuration
-    from kivy.config import *
+    from kivy.config import Config
 
     # Set level of logger
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))

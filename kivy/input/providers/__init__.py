@@ -1,5 +1,7 @@
 '''
-Providers: list of all input providers
+Providers
+=========
+
 '''
 
 import sys

@@ -6,6 +6,14 @@ Be careful if you change anything in !
 
 '''
 
+ignore_list = (
+    'kivy.factory_registers',
+    'kivy.graphics.buffer',
+    'kivy.graphics.shader',
+    'kivy.graphics.vbo',
+    'kivy.graphics.vertex',
+)
+
 import os
 import sys
 import re
@@ -13,7 +21,25 @@ from glob import glob
 
 os.environ['KIVY_SHADOW_WINDOW'] = '0'
 import kivy
+
+# force loading of kivy modules
+import kivy.app
+import kivy.core.audio
+import kivy.core.camera
+import kivy.core.clipboard
+import kivy.core.gl
+import kivy.core.image
+import kivy.core.spelling
+import kivy.core.svg
+import kivy.core.text
+import kivy.core.video
+import kivy.core.window
 import kivy.graphics
+from kivy.factory import Factory
+
+# force loading of all classes from factory
+for x in Factory.classes:
+    getattr(Factory, x)
 
 
 # Directory of doc
@@ -43,6 +69,8 @@ l = [(x, sys.modules[x], os.path.basename(sys.modules[x].__file__).rsplit('.', 1
 packages = []
 modules = {}
 for name, module, filename in l:
+    if name in ignore_list:
+        continue
     if filename == '__init__':
         packages.append(name)
     else:
@@ -55,11 +83,11 @@ packages.sort()
 
 # Create index
 api_index = \
-'''===================================================================
-API documentation for Kivy
-===================================================================
+'''API documentation
+=================
 
 .. toctree::
+    :maxdepth: 2
 
 '''
 for package in [x for x in packages if len(x.split('.')) <= 2]:
@@ -99,17 +127,12 @@ template_examples_ref = \
 for package in packages:
     try:
         summary = [x for x in sys.modules[package].__doc__.split("\n") if len(x) > 1][0]
-        try:
-            title, content = summary.split(':', 1)
-            summary = '**%s**: %s' % (title, content)
-        except:
-            pass
     except:
         summary = 'NO DOCUMENTATION (package %s)' % package
     t = template.replace('$SUMMARY', summary)
     t = t.replace('$PACKAGE', package)
-    t = t.replace('$EXAMPLES', '')
     t = t.replace('$EXAMPLES_REF', '')
+    t = t.replace('$EXAMPLES', '')
 
     # search packages
     for subpackage in packages:
@@ -137,11 +160,6 @@ refid = 0
 for module in m:
     try:
         summary = [x for x in sys.modules[module].__doc__.split("\n") if len(x) > 1][0]
-        try:
-            title, content = summary.split(':', 1)
-            summary = '**%s**: %s' % (title, content)
-        except:
-            pass
     except:
         summary = 'NO DOCUMENTATION (module %s)' % module
 

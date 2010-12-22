@@ -1,15 +1,43 @@
 '''
-Graphics: all low level function to draw object in OpenGL.
+Graphics
+========
 
-Previous version of graphx was rely on Immediate mode of Open Immediate mode
-is not anymore allowed in OpenGL 3.0, and OpenGL ES.
-This graphics module is the new and stable way to draw every elements inside
-Kivy. We hardly ask you to use theses class !
+This package assemble all low level function to draw object. The whole graphics
+package is compatible OpenGL ES 2.0, and have a lot of rendering optimizations.
 
-.. seealso:: Read the full documentation at :mod:`kivy.c_ext.c_graphics`
+The basics
+----------
+
+For drawing on a screen, you will need :
+
+    1. a :class:`Canvas` object.
+    2. :class:`CanvasInstructions` objects.
+
+Each widget in Kivy already have by default their :class:`Canvas`. When you are
+creating a widget, you can create all the instructions needed for drawing. If
+`self` is your current widget, you can do::
+
+    from kivy.graphics import *
+    with self.canvas:
+        # Add a red color
+        Color(1., 0, 0)
+
+        # Add a rectangle
+        Rectangle(pos=(10, 10), size=(500, 500))
+
+The instructions :class:`Color` and :class:`Rectangle` are automaticly added to
+the canvas object, and will be used when the window drawing will happen.
+
+
+Compilation
+-----------
+
+.. todo::
+
+    Write more about the compilation.
+
 '''
-#from kivy.c_ext.graphics.context import RenderContext
-#from kivy.c_ext.graphics.canvas import Canvas
-from kivy.c_ext.graphics.instructions import *
-from kivy.c_ext.graphics.context_instructions import *
-from kivy.c_ext.graphics.vertex_instructions import *
+
+from kivy.graphics.instructions import *
+from kivy.graphics.context_instructions import *
+from kivy.graphics.vertex_instructions import *

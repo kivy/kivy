@@ -1,5 +1,13 @@
 '''
-VideoBase: base for implementing a video reader
+Video
+=====
+
+Core class for reading video file and manage the
+:class:`kivy.graphics.texture.Texture` video.
+
+.. note::
+
+    Recording is not supported.
 '''
 
 __all__ = ('VideoBase', 'Video')

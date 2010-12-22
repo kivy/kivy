@@ -1,5 +1,6 @@
 '''
-Tuio: TUIO input provider implementation
+TUIO input provider implementation
+==================================
 '''
 
 __all__ = ('TuioTouchProvider', 'Tuio2dCurTouch', 'Tuio2dObjTouch')

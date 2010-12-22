@@ -1,10 +1,11 @@
 '''
-Gesture: Base for gesture recognition.
+Gesture recognition
+===================
 
 You can easily use these class to create
-new gesture, and compare them ! ::
+new gesture, and compare them::
 
-    from kivy import *
+    from kivy.gesture import Gesture, GestureDatabase
 
     # Create a gesture
     g = Gesture()
@@ -19,6 +20,7 @@ new gesture, and compare them ! ::
     g2 = Gesture()
     # ...
     gdb.find(g2)
+
 '''
 
 __all__ = ('Gesture', 'GestureDatabase', 'GesturePoint', 'GestureStroke')

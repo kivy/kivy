@@ -5,6 +5,7 @@
 body {
     font-family: sans-serif;
     font-size: 100%;
+	background: #ffffff url('background.png') top left repeat-y;
     background-color: #ffffff;
     color: #000;
     margin: 0;
@@ -13,19 +14,21 @@ body {
 
 /* :::: LAYOUT :::: */
 
-div.related,
-div.header,
-div.documentwrapper {
-    width: 800px;
-    margin: 0px auto;
+div.sphinxsidebar {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 250px;
+	font-size: 14px;
 }
 
-div.bodywrapper {
-	margin-top: 20px;
+div.documentwrapper {
+    width: 800px;
+    margin-left: 250px;
 }
 
 div.body {
-    padding: 0 20px 30px 20px;
+    padding: 10px 20px 30px 30px;
 }
 
 div.sphinxsidebarwrapper {
@@ -78,14 +81,9 @@ div.header {
 	line-height: 80px;
 }
 
-div.logo {
-	float: left;
-	height: 80px;
-	width: 75px;
-}
-
-#searchbox {
-	float: right;
+p.logo {
+	margin: 0px;
+	padding: 0px;
 }
 
 div.related {
@@ -95,7 +93,7 @@ div.related {
 /* ::: TOC :::: */
 div.sphinxsidebar h3 {
     font-family: 'Trebuchet MS', sans-serif;
-    color: white;
+    color: #727905;
     font-size: 1.4em;
     font-weight: normal;
     margin: 0;
@@ -103,12 +101,12 @@ div.sphinxsidebar h3 {
 }
 
 div.sphinxsidebar h3 a {
-    color: white;
+    color: #727905;
 }
 
 div.sphinxsidebar h4 {
     font-family: 'Trebuchet MS', sans-serif;
-    color: white;
+    color: #727905;
     font-size: 1.3em;
     font-weight: normal;
     margin: 5px 0 0 0;
@@ -116,7 +114,7 @@ div.sphinxsidebar h4 {
 }
 
 div.sphinxsidebar p {
-    color: white;
+    color: #727905;
 }
 
 div.sphinxsidebar p.topless {
@@ -127,7 +125,7 @@ div.sphinxsidebar ul {
     margin: 10px;
     padding: 0;
     list-style: none;
-    color: white;
+    color: #727905;
 }
 
 div.sphinxsidebar ul ul,
@@ -142,7 +140,7 @@ div.sphinxsidebar ul ul {
 }
 
 div.sphinxsidebar a {
-    color: #98dbcc;
+    color: #989e49;
 }
 
 div.sphinxsidebar form {
@@ -309,10 +307,10 @@ div.body h4,
 div.body h5,
 div.body h6 {
     font-family: 'Trebuchet MS', sans-serif;
-    background-color: #f2f2f2;
+    --background-color: #f2f2f2;
+    --border-bottom: 1px solid #ccc;
     font-weight: normal;
     color: #20435c;
-    --border-bottom: 1px solid #ccc;
     margin: 20px -20px 10px -20px;
     padding: 3px 0 3px 10px;
 }
@@ -528,12 +526,10 @@ th {
 }
 
 pre {
-    padding: 5px;
-    background-color: #efc;
+    padding: 1em;
+	font-size: 1.05em;
+    background-color: #f4f4f4;
     color: #333;
-    border: 1px solid #ac9;
-    border-left: none;
-    border-right: none;
     overflow: auto;
 }
 
@@ -555,7 +551,8 @@ table.highlighttable td {
 tt {
     background-color: #ecf0f3;
     padding: 0 1px 0 1px;
-    font-size: 0.95em;
+    font-size: 1em;
+	font-size: inherit;
 }
 
 tt.descname {
@@ -655,7 +652,6 @@ dl.class dt {
 	background: #f0f0ff url('element-method-16.png') center left no-repeat;
 	border-top: 1px solid #e0e0ef;
 	border-bottom: 1px solid #e0e0ef;
-	font-size: 11pt;
 	margin: 10px 0px;
 	padding-left: 20px;
 }
@@ -698,6 +694,11 @@ table.field-list td.field-body dl dt {
 	border: none;
 	margin: 0px;
 	padding: 1px 5px;
+}
+
+table.field-list td.field-body dl dt {
+	margin: 0px;
+	padding-left: 20px;
 }
 
 table.field-list td.field-body dt span.classifier-delimiter,

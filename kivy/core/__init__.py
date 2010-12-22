@@ -1,5 +1,15 @@
 '''
-Core: providers for image, text, video, audio, camera...
+Core abstraction
+================
+
+Each part of Kivy like image, video, text... are called `Feature`. We are adding
+an abstraction around every Features, to be able to change the library to use.
+That permit us to test new libraries, and support new hardware with custom
+libraries.
+
+Most of case, you must not use directly a library. Always try to use our
+providers first. In the case we are missing a feature, or a method, report by
+opening a new Bug report, instead of relying on your library.
 '''
 
 import os
@@ -8,12 +18,12 @@ from kivy.logger import Logger
 
 if 'KIVY_DOC' in os.environ:
     # stub for sphinx generation
-    def core_select_lib(category, llist):
+    def core_select_lib(category, llist, create_instance=False):
         pass
     def core_register_libs(category, libs):
         pass
 else:
-    def core_select_lib(category, llist):
+    def core_select_lib(category, llist, create_instance=False):
         category = category.lower()
         for option, modulename, classname in llist:
             try:
@@ -33,6 +43,8 @@ else:
                 # ok !
                 Logger.info('%s: using <%s> as %s provider' %
                     (category.capitalize(), option, category))
+                if create_instance:
+                    cls = cls()
                 return cls
 
             except Exception as e:
@@ -66,17 +78,3 @@ else:
                     (category.capitalize(), option))
                 Logger.debug('', exc_info=e)
 
-
-'''
-from kivy.core.audio import *
-from kivy.core.camera import *
-from kivy.core.image import *
-from kivy.core.text import *
-from kivy.core.video import *
-from kivy.core.svg import *
-from kivy.core.spelling import *
-from kivy.core.clipboard import *
-
-# only after core loading, load extensions
-from text.markup import *
-'''

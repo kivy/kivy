@@ -1,5 +1,6 @@
 '''
-MacTouch: Native support of MultitouchSupport framework for MacBook (MaxOSX platform)
+Native support of MultitouchSupport framework for MacBook (MaxOSX platform)
+===========================================================================
 '''
 
 __all__ = ('MacTouchProvider', )

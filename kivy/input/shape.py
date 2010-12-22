@@ -1,5 +1,8 @@
 '''
-Touch Shape: Represent the shape of the touch
+Touch Shape
+===========
+
+Represent the shape of the touch
 '''
 
 __all__ = ('TouchShape', 'TouchShapeRect')

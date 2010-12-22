@@ -1,12 +1,27 @@
-include "opcodes.pxi"
+#cython: embedsignature=True
 
-__all__ = ('GraphicsInstruction', 'InstructionGroup', 
+'''
+Canvas
+======
+
+The :class:`Canvas` is the root object used for drawing by a
+:class:`~kivy.uix.widget.Widget`. Check module documentation for more
+information about the usage of Canvas.
+
+'''
+
+__all__ = ('GraphicsInstruction', 'InstructionGroup',
            'ContextInstruction', 'VertexInstruction',
            'Canvas','RenderContext')
+
+include "opcodes.pxi"
 
 from kivy.logger import Logger
 
 cdef class GraphicsInstruction:
+    '''Represent the smallest instruction available. This class is for internal
+    usage only, don't use it directly.
+    '''
     def __cinit__(self):
         self.flags = 0
 
@@ -27,8 +42,10 @@ cdef class GraphicsInstruction:
         self.flags &= ~GI_NEED_UPDATE
 
 
-
 cdef class InstructionGroup(GraphicsInstruction):
+    '''Group of :class:`GraphicsInstruction`. Add the possibility of adding and
+    removing graphics instruction.
+    '''
     def __init__(self):
         GraphicsInstruction.__init__(self)
         self.children = list()
@@ -39,22 +56,30 @@ cdef class InstructionGroup(GraphicsInstruction):
             c.apply()
 
     cpdef add(self, GraphicsInstruction c):
+        '''Add a new :class:`GraphicsInstruction` in our list.
+        '''
         c.parent = self
         self.children.append(c)
         self.flag_update()
 
     cpdef remove(self, GraphicsInstruction c):
+        '''Remove an existing :class:`GraphicsInstruction` from our list.
+        '''
         c.parent = None
         self.children.remove(c)
         self.flag_update()
 
     cpdef clear(self):
+        '''Remove all the :class:`GraphicsInstruction`
+        '''
         cdef GraphicsInstruction c
         for c in self.children[:]:
             self.remove(c)
 
-
 cdef class ContextInstruction(GraphicsInstruction):
+    '''A context instruction is the base for creating non-display instruction
+    for Canvas (texture binding, color parameters, matrix manipulation...)
+    '''
     def __init__(self):
         GraphicsInstruction.__init__(self)
         self.flags &= GI_CONTEXT_MOD
@@ -84,6 +109,7 @@ cdef class ContextInstruction(GraphicsInstruction):
         self.context_pop.append(name)
         self.flag_update()
 
+
 cdef class VertexInstruction(GraphicsInstruction):
     def __init__(self, **kwargs):
         #add a BindTexture instruction to bind teh texture used for 
@@ -100,7 +126,9 @@ cdef class VertexInstruction(GraphicsInstruction):
         self.indices = list()
 
     property texture:
-        '''Set/get the texture to be bound when drawing the vertices'''
+        '''Property for getting/setting the texture to be bound when drawing the
+        vertices.
+        '''
         def __get__(self):
             return self.texture_binding.texture
         def __set__(self, tex):
@@ -112,6 +140,8 @@ cdef class VertexInstruction(GraphicsInstruction):
             self.flag_update()
 
     property source:
+        '''Property for getting/setting a filename as a source for the texture.
+        '''
         def __get__(self):
             return self.texture_binding.source
         def __set__(self, source):
@@ -119,6 +149,8 @@ cdef class VertexInstruction(GraphicsInstruction):
             self.texture = self.texture_binding._texture
 
     property tex_coords:
+        '''Property for getting/setting texture coordinates.
+        '''
         def __get__(self):
             return self._tex_coords
         def __set__(self, tc):
@@ -149,7 +181,28 @@ cdef class VertexInstruction(GraphicsInstruction):
 
 #TODO: move back into canvas.pyx, but need to resolve circular reference to instructions
 cdef class Canvas(InstructionGroup):
+    '''Our famous Canvas class. Use this class for add graphics or context
+    instructions to use when drawing
+
+    .. note::
+
+        The Canvas support "with" statement.
+
+    Usage of Canvas without "with" statement::
+
+        self.canvas.add(Color(1., 1., 0))
+        self.canvas.add(Rectangle(size=(50, 50)))
+
+    Usage of Canvas with the "with" statement::
+
+        with self.canvas:
+            Color(1., 1., 0)
+            Rectangle(size=(50, 50))
+    '''
+
     cpdef draw(self):
+        '''Apply the instruction on our window.
+        '''
         self.apply()
 
     def __enter__(self):
@@ -157,6 +210,7 @@ cdef class Canvas(InstructionGroup):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         popActiveCanvas()
+
 
 # Active Canvas and getActiveCanvas function is used
 # by instructions, so they know which canvas to add
@@ -166,7 +220,6 @@ cdef Canvas ACTIVE_CANVAS = None
 cdef Canvas getActiveCanvas():
     global ACTIVE_CANVAS
     return ACTIVE_CANVAS
-
 
 # Canvas Stack, for internal use so canvas can be bound 
 # inside other canvas, and restroed when other canvas is done
@@ -182,14 +235,6 @@ cdef popActiveCanvas():
     ACTIVE_CANVAS = CANVAS_STACK.pop()
 
 
-
-
-
-
-
-
-
-
 #TODO: same as canvas, move back to context.pyx..fix circular import 
 #on actual import from python problem
 include "common.pxi"
@@ -201,11 +246,14 @@ from kivy import kivy_shader_dir
 from kivy.core.image import Image
 from kivy.lib.transformations import identity_matrix
 
-
-
-
 cdef class RenderContext(Canvas):
+    '''The render context store all the necessary information for drawing, aka:
 
+    - the fragment shader
+    - the vertex shader
+    - the default texture
+    - the state stack (color, texture, matrix...)
+    '''
     def __init__(self, *args, **kwargs):
         Canvas.__init__(self)
         vs_file = join(kivy_shader_dir, 'default.vs')
@@ -243,7 +291,7 @@ cdef class RenderContext(Canvas):
             self.set_state(name, value)
 
     cdef push_state(self, str name):
-        stack = self.state_stacks[name] 
+        stack = self.state_stacks[name]
         stack.append(stack[-1])
 
     cdef push_states(self, list names):
@@ -252,7 +300,7 @@ cdef class RenderContext(Canvas):
             self.push_state(name)
 
     cdef pop_state(self, str name):
-        stack = self.state_stacks[name] 
+        stack = self.state_stacks[name]
         stack.pop()
         self.set_state(name, stack[-1])
 
@@ -268,7 +316,7 @@ cdef class RenderContext(Canvas):
         pushActiveContext(self)
         Canvas.apply(self)
         popActiveContext()
-        
+
     def __setitem__(self, key, val):
         self.set_state(key, val)
 
@@ -298,4 +346,4 @@ cdef popActiveContext():
     if ACTIVE_CONTEXT:
         ACTIVE_CONTEXT.enter()
 
-        
+

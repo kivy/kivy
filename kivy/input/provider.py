@@ -1,5 +1,8 @@
 '''
-Touch Provider: Abstract class for a provider
+Touch Provider
+==============
+
+Abstract class for a provider
 '''
 
 __all__ = ('TouchProvider', )

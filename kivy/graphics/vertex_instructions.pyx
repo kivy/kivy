@@ -1,3 +1,12 @@
+#cython: embedsignature=True
+
+'''
+Vertex Instructions
+===================
+
+This module include all the classes for drawing simple vertex object.
+'''
+
 __all__ = ('Triangle', 'Quad','Rectangle', 'BorderImage', 'Ellipse')
 
 
@@ -13,6 +22,13 @@ from kivy.core.image import Image
 import sys
 
 cdef class Triangle(VertexInstruction):
+    '''A 2d triangle.
+
+    :Parameters:
+        `points`: list
+            List of point in the format (x1, y1, x2, y2, x3, y3)
+    '''
+
     cdef list _points
 
     def __init__(self, **kwargs):
@@ -31,6 +47,8 @@ cdef class Triangle(VertexInstruction):
         self.indices = [0,1,2]
 
     property points:
+        '''Property for getting/settings points of the triangle
+        '''
         def __get__(self):
             return self._points
         def __set__(self, points):
@@ -39,11 +57,17 @@ cdef class Triangle(VertexInstruction):
 
 
 cdef class Quad(VertexInstruction):
+    '''A 2d quad.
+
+    :Parameters:
+        `points`: list
+            List of point in the format (x1, y1, x2, y2, x3, y3, x4, y4)
+    '''
     cdef list _points
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self)
-        self.points = kwargs.get('points', 
+        self.points = kwargs.get('points',
                (  0.0,  50.0,   50.0,   0.0,
                 100.0,  50.0,   50.0, 100.0 ))
 
@@ -60,6 +84,8 @@ cdef class Quad(VertexInstruction):
         self.indices = [0,1,2, 2,3,0]
 
     property points:
+        '''Property for getting/settings points of the quads
+        '''
         def __get__(self):
             return self._points
         def __set__(self, points):
@@ -68,6 +94,14 @@ cdef class Quad(VertexInstruction):
 
 
 cdef class Rectangle(VertexInstruction):
+    '''A 2d rectangle.
+
+    :Parameters:
+        `pos`: list
+            Position of the rectangle, in the format (x, y)
+        `size`: list
+            Size of the rectangle, in the format (width, height)
+    '''
     cdef float x,y,w,h
 
     def __init__(self, **kwargs):
@@ -90,6 +124,8 @@ cdef class Rectangle(VertexInstruction):
         self.indices  = [0,1,2, 2,3,0]
 
     property pos:
+        '''Property for getting/settings the position of the rectangle
+        '''
         def __get__(self):
             return (self.x, self.y)
         def __set__(self, pos):
@@ -98,6 +134,8 @@ cdef class Rectangle(VertexInstruction):
             self.flag_update()
 
     property size:
+        '''Property for getting/settings the size of the rectangle
+        '''
         def __get__(self):
             return (self.w, self.h)
         def __set__(self, size):
@@ -108,6 +146,14 @@ cdef class Rectangle(VertexInstruction):
 
 
 cdef class BorderImage(Rectangle):
+    '''A 2d border image. The behavior of the border image is similar to the
+    concept of CSS3 border-image.
+
+    :Parameters:
+        `border`: list
+            Border information in the format (top, right, bottom, left).
+            Each value is in pixels.
+    '''
     cdef list _border
 
     def __init__(self, **kwargs):
@@ -201,6 +247,8 @@ cdef class BorderImage(Rectangle):
 
 
     property border:
+        '''Property for getting/setting the border of the class
+        '''
         def __get__(self):
             return self._border
         def __set__(self, b):
@@ -208,10 +256,14 @@ cdef class BorderImage(Rectangle):
             self.flag_update()
 
 
-
-
-
 cdef class Ellipse(Rectangle):
+    '''A 2d ellipse.
+
+    :Parameters:
+        `segments`: int, default to 180
+            Define how much segment is needed for drawing the ellipse.
+            The drawing will be smoother if you have lot of segment.
+    '''
     cdef int segments
 
     def __init__(self, *args, **kwargs):
@@ -241,10 +293,4 @@ cdef class Ellipse(Rectangle):
         ttx = ((x-self.x)/self.w)*tw + tx
         tty = ((y-self.y)/self.h)*th + ty
         self.vertices.append( Vertex(x,y,ttx, tty) )
-
-
-
-
-
-
 

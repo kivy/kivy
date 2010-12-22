@@ -1,5 +1,8 @@
 '''
-Touch Factory: Factory of touch providers.
+Touch Factory
+=============
+
+Factory of touch providers.
 '''
 
 __all__ = ('TouchFactory', )

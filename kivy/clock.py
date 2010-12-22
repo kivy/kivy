@@ -1,7 +1,11 @@
 '''
-Clock: a clock with scheduled events
+Clock object
+============
 
-You can add new event like this ::
+The :class:`Clock` object allow you to schedule a function call. The scheduling
+can be repetitive or just once.
+
+You can add new event like this::
 
     def my_callback(dt):
         pass
@@ -12,11 +16,17 @@ You can add new event like this ::
     # call my_callback in 5 seconds
     Clock.schedule_once(my_callback, 5)
 
-If the callback return False, the schedule will be removed.
+    # call my_callback as soon as possible (usually next frame.)
+    Clock.schedule_once(my_callback)
+
+.. note::
+
+    If the callback return False, the schedule will be removed.
 '''
 
-__all__ =  ('Clock', )
+__all__ =  ('Clock', 'ClockBase')
 
+from os import environ
 from time import time, sleep
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
@@ -63,7 +73,8 @@ class _Event(object):
 
 
 class ClockBase(object):
-    '''A clock object, that support events'''
+    '''A clock object, that support events
+    '''
     __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
             '_fps_counter', '_rfps_counter', '_events', '_max_fps')
 
@@ -164,6 +175,9 @@ class ClockBase(object):
                     self._events.remove(event)
 
 
-#: Instance of the ClockBase, available for everybody
-Clock = ClockBase()
+if 'KIVY_DOC_INCLUDE' in environ:
+    #: Instance of the ClockBase, available for everybody
+    Clock = None
+else:
+    Clock = ClockBase()
 

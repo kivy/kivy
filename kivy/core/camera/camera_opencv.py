@@ -9,7 +9,7 @@ OpenCV Camera: Implement CameraBase with OpenCV
 __all__ = ('CameraOpenCV', )
 
 from kivy.logger import Logger
-from kivy.texture import Texture
+from kivy.graphics.texture import Texture
 from . import CameraBase
 from kivy.core.gl import GL_BGR_EXT
 

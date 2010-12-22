@@ -1,5 +1,6 @@
 '''
-LinuxWacom: Native support of Wacom tablet from linuxwacom driver
+Native support of Wacom tablet from linuxwacom driver
+=====================================================
 
 To configure LinuxWacom, put in your configuration ::
 

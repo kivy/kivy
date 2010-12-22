@@ -1,5 +1,14 @@
-__all__ = ('Fbo',)
+#cython: embedsignature=True
 
+'''
+Framebuffer
+===========
+
+Fbo is like an offscreen window. You can activate the fbo for rendering into a
+texture, and use your fbo as a texture for another drawing.
+'''
+
+__all__ = ('Fbo',)
 
 import kivy
 from kivy import Logger
@@ -8,6 +17,9 @@ from c_opengl cimport *
 from instructions cimport RenderContext, Canvas
 
 cdef class Fbo(RenderContext):
+    '''Fbo class for wrapping the OpenGL Framebuffer extension. The Fbo support
+    "with" statement.
+    '''
     def __init__(self, *args, **kwargs):
         RenderContext.__init__(self, *args, **kwargs)
 
@@ -29,12 +41,12 @@ cdef class Fbo(RenderContext):
         glGenFramebuffers(1, &id)
         self.buffer_id = id
         glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
-        
+
         if self.depthbuffer_attached:
             glGenRenderbuffers(1, &id)
             self.depthbuffer_id = id
             glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
                                   self.width, self.height)
             glBindRenderbuffer(GL_RENDERBUFFER, 0)
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, 
@@ -53,17 +65,23 @@ cdef class Fbo(RenderContext):
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
 
-    def bind(self):
+    cpdef bind(self):
+        '''Activate the FBO
+        '''
         self._is_bound = True
         glBindFramebuffer(GL_FRAMEBUFFER, self.framebuffer)
         glViewport(0, 0, self.width, self.height)
 
-    def release(self):
+    cpdef release(self):
+        '''Release the FBo
+        '''
         self._is_bound = False
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        
-    def clear(self):
-        cdef float c[4] 
+
+    cpdef clear(self):
+        '''Clear the FBO with the :data:`clear_color`
+        '''
+        cdef float c[4]
         c[0] = self.clear_color[0]
         c[1] = self.clear_color[2]
         c[2] = self.clear_color[2]
@@ -74,7 +92,6 @@ cdef class Fbo(RenderContext):
         else:
             glClear(GL_COLOR_BUFFER_BIT)
 
-
     def __enter__(self):
         Canvas.__enter__(self)
         self.bind()
@@ -82,6 +99,4 @@ cdef class Fbo(RenderContext):
     def __exit__(self, type, value, traceback):
         Canvas.__exit__(self, type, value, traceback)
         self.release()
- 
-
 

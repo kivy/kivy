@@ -1,5 +1,8 @@
 '''
-Ignore list: ignore touch in some part on screen
+Ignore list
+===========
+
+Ignore touch in some part on screen
 '''
 
 __all__ = ('InputPostprocIgnoreList', )

@@ -1,5 +1,10 @@
 '''
-Resources: Search a file inside a list of paths
+Resources management
+====================
+
+Resource management can be a pain if you have multiple path and project. We are
+offering you 2 functions for searching specific resources across a list of
+paths.
 '''
 
 __all__ = ('resource_find', 'resource_add_path')

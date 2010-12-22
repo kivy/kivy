@@ -1,6 +1,9 @@
 '''
-Geometry: facilities functions for geometry calculations
+Geometry utilities
+==================
+
 '''
+
 __all__ = ('circumcircle', 'minimum_bounding_circle')
 
 from kivy.vector import Vector
@@ -29,19 +32,19 @@ def circumcircle(a, b, c):
 
     mPQ = (P+Q)*.5
     mQR = (Q+R)*.5
-    
+
     numer = -(-mPQ.y*R.y + mPQ.y*Q.y + mQR.y*R.y - mQR.y*Q.y \
               -mPQ.x*R.x + mPQ.x*Q.x + mQR.x*R.x - mQR.x*Q.x)
     denom =  (-Q.x*R.y + P.x*R.y - P.x*Q.y + Q.y*R.x - P.y*R.x + P.y*Q.x)
-    
+
     t = numer/denom
-    
+
     cx  = -t * (Q.y - P.y) + mPQ.x
     cy  =  t * (Q.x - P.x) + mPQ.y
-    
+
     return ((cx, cy), (P - (cx, cy)).length())
-    
-    
+
+
 def minimum_bounding_circle(points):
     '''
     Returns the minimum bounding circle for a set of points
@@ -60,25 +63,25 @@ def minimum_bounding_circle(points):
             * The second the radius (float)
     '''
     points = [Vector(p[0], p[1]) for p in points]
-    
+
     if len(points) == 1:
         return (points[0].x, points[0].y), 0.0
-        
+
     if len(points) == 2:
         p1, p2 = points
         return (p1+p2)*.5, ((p1-p2)*.5).length()
 
     # determine a point P with the smallest y value
     P = min(points, key=lambda p:p.y)
-    
+
     # find a point Q such that the angle of the line segment
     # PQ with the x axis is minimal
     def x_axis_angle(q):
         if q == P:
             return 1e10 # max val if teh same, to skip
-        return abs( (q - P).angle((1, 0)) ) 
+        return abs( (q - P).angle((1, 0)) )
     Q = min(points, key=x_axis_angle)
-    
+
     for p in points:
         # find R such that angle PRQ is minimal
         def angle_pq(r):
@@ -91,22 +94,21 @@ def minimum_bounding_circle(points):
         # by two points, P and Q. radius = |(P-Q)/2|, center = (P+Q)/2
         if angle_pq(R) > 90.0:
             return (P+Q)*.5, ((P-Q)*.5).length()
-        
+
         # if angle RPQ is obtuse, make P = R, and try again
         if abs((R-P).angle(Q-P)) > 90:
             P = R
             continue
-    
+
         # if angle PQR is obtuse, make Q = R, and try again
         if abs((P-Q).angle(R-Q)) > 90:
             Q = R
             continue
-   
+
         # all angles were acute..we just need teh circle through the
         # two points furthest apart!
         break
-    
+
     # find teh circumcenter for triangle given by P,Q,R
     return circumcircle(P, Q, R)
-   
-    
+

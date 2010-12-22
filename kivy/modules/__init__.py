@@ -1,5 +1,8 @@
 '''
-Modules: UI module you can plug on any running Kivy apps.
+Modules
+=======
+
+UI module you can plug on any running Kivy apps.
 '''
 
 __all__ = ('Modules', )

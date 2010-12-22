@@ -1,5 +1,9 @@
 '''
-Clipboard: get/put data from system clipboard
+Clipboard
+=========
+
+Core class for accessing to the Clipboard. If we are not able to access to the
+system clipboard, a fake one will be used.
 '''
 
 __all__ = ('ClipboardBase', 'Clipboard')
@@ -26,4 +30,4 @@ class ClipboardBase(object):
 Clipboard = core_select_lib('clipboard', (
     ('pygame', 'clipboard_pygame', 'ClipboardPygame'),
     ('dummy', 'clipboard_dummy', 'ClipboardDummy')
-))()
+), True)

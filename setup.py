@@ -1,6 +1,8 @@
 import sys
-import os
 import shutil
+from os.path import join, dirname, realpath, sep
+from os import walk
+from glob import glob
 from distutils.core import setup
 from distutils.extension import Extension
 
@@ -39,14 +41,27 @@ cmdclass['build_factory'] = FactoryBuild
 # extension modules
 ext_modules = []
 
-#accelerated matrix transformation module written in C for numpy
+# accelerated matrix transformation module written in C for numpy
 ext_modules.append( Extension(
-    'kivy.c_ext._transformations',
-    ['kivy/c_ext/transformations.c'],
+    'kivy.lib._transformations',
+    ['kivy/lib/transformations.c'],
     include_dirs=[numpy.get_include()])
 )
 
-#check for cython
+# list all files to compile
+import fnmatch
+import os
+
+pyx_files = []
+kivy_libs_dir = realpath(kivy.kivy_libs_dir)
+for root, dirnames, filenames in os.walk(join(dirname(__file__), 'kivy')):
+    # ignore lib directory
+    if realpath(root).startswith(kivy_libs_dir):
+        continue
+    for filename in fnmatch.filter(filenames, '*.pyx'):
+        pyx_files.append(os.path.join(root, filename))
+
+# check for cython
 try:
     have_cython = True
     from Cython.Distutils import build_ext
@@ -55,11 +70,9 @@ except:
 
 # create .c for every module in c_ext
 if 'sdist' in sys.argv and have_cython:
-    from glob import glob
     from Cython.Compiler.Main import compile
     print 'Generating C files...',
-    files = glob(os.path.join(os.path.dirname(__file__), 'kivy', 'c_ext', '*.pyx'))
-    compile(files)
+    compile(pyx_files)
     print 'Done !'
 
 #add cython core extension modules if cython is available
@@ -94,29 +107,15 @@ if have_cython:
         libraries.append('GL')
 
     # simple extensions
-    for x in ('event', 'properties'):
-        ext_modules.append(Extension(
-            'kivy.c_ext.%s' % x, ['kivy/c_ext/%s.pyx' % x]
-        ))
+    for pyx in (x for x in pyx_files if not 'graphics' in x):
+        module_name = pyx[:-4].replace(sep, '.')
+        ext_modules.append(Extension(module_name, [pyx]))
 
     # opengl aware modules
-    for x in (
-        'opengl',
-        'buffer',
-        'shader',
-        #'texture',
-        'vbo',
-        'vertex',
-        #'canvas',
-        #'context',
-        'instructions',
-        'context_instructions',
-        'vertex_instructions',
-        'compiler',
-
-    ):
+    for pyx in (x for x in pyx_files if 'graphics' in x):
+        module_name = pyx[:-4].replace(sep, '.')
         ext_modules.append(Extension(
-            'kivy.c_ext.graphics.%s'%x, ['kivy/c_ext/graphics/%s.pyx' % x],
+            module_name, [pyx],
             libraries=libraries,
             include_dirs=include_dirs,
             extra_link_args=extra_link_args
@@ -126,12 +125,12 @@ if have_cython:
     #poly2try extension
     """
     ext_modules.append(Extension('kivy.c_ext.p2t', [
-     'kivy/c_ext/poly2tri/src/p2t.pyx',
-     'kivy/c_ext/poly2tri/poly2tri/common/shapes.cc',
-     'kivy/c_ext/poly2tri/poly2tri/sweep/advancing_front.cc',
-     'kivy/c_ext/poly2tri/poly2tri/sweep/cdt.cc',
-     'kivy/c_ext/poly2tri/poly2tri/sweep/sweep.cc',
-     'kivy/c_ext/poly2tri/poly2tri/sweep/sweep_context.cc'
+     'kivy/lib/poly2tri/src/p2t.pyx',
+     'kivy/lib/poly2tri/poly2tri/common/shapes.cc',
+     'kivy/lib/poly2tri/poly2tri/sweep/advancing_front.cc',
+     'kivy/lib/poly2tri/poly2tri/sweep/cdt.cc',
+     'kivy/lib/poly2tri/poly2tri/sweep/sweep.cc',
+     'kivy/lib/poly2tri/poly2tri/sweep/sweep_context.cc'
     ], language="c++"))
     """
 
@@ -141,15 +140,15 @@ data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg',
                         'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl')
-for root, subFolders, files in os.walk('examples'):
+for root, subFolders, files in walk('examples'):
     if 'sandbox' in root:
         continue
     for file in files:
         ext = file.split('.')[-1].lower()
         if ext not in examples_allowed_ext:
             continue
-        filename = os.path.join(root, file)
-        directory = '%s%s' % (data_file_prefix, os.path.dirname(filename))
+        filename = join(root, file)
+        directory = '%s%s' % (data_file_prefix, dirname(filename))
         if not directory in examples:
             examples[directory] = []
         examples[directory].append(filename)

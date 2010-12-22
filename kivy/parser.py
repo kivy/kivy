@@ -1,5 +1,6 @@
 '''
-Parser: default parser from string to special type
+Parser utilities
+================
 
 Used specially for CSS
 '''

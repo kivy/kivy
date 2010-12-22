@@ -1,5 +1,7 @@
 '''
-Input Postproc: analyse and process input (double tap, ignore list...)
+Input Postprocessing
+====================
+
 '''
 
 __all__ = ('kivy_postproc_modules', )

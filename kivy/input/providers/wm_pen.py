@@ -1,5 +1,6 @@
 '''
-WM_PEN: Support of WM_PEN message (Window platform)
+Support of WM_PEN message (Window platform)
+===========================================
 '''
 
 __all__ = ('WM_PenProvider', 'WM_Pen')

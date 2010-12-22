@@ -1,5 +1,7 @@
 '''
-Label: 
+Label
+=====
+
 '''
 
 __all__ = ('Label', )
@@ -9,7 +11,7 @@ from kivy.utils import curry
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
-from kivy.c_ext.properties import StringProperty, OptionProperty, \
+from kivy.properties import StringProperty, OptionProperty, \
         NumericProperty, BooleanProperty, ReferenceListProperty, \
         ListProperty, ObjectProperty
 

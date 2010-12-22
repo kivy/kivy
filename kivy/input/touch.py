@@ -1,5 +1,8 @@
 '''
-Touch: Base for all touch objects
+Touch
+=====
+
+Base for all touch objects
 
 
 Every touch in Kivy derives from the abstract Touch class.

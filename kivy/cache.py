@@ -1,7 +1,14 @@
 '''
-Cache Manager: cache object and delete them automaticly
+Cache manager
+=============
 
-How to use the cache ::
+The cache manager can be used to store python object attached to an uniq key.
+The cache can be controlled in different manner, with a object limit or a
+timeout.
+
+For example, we can create a new cache with a limit of 10 objects, and a timeout
+of 5 seconds::
+
     # register a new Cache
     Cache.register('mycache', limit=10, timeout=5)
 
@@ -10,7 +17,7 @@ How to use the cache ::
     instance = MTLabel(label=label)
     Cache.append('mycache', label, instance)
 
-    # retreive the object later
+    # retrieve the cached object
     instance = Cache.get('mycache', label)
 
 If the instance is NULL, the cache may have trash it, because you've
@@ -19,11 +26,13 @@ not used the label since 5 seconds, and you've reach the limit.
 
 __all__ = ('Cache', )
 
+from os import environ
 from kivy.logger import Logger
 from kivy.clock import Clock
 
 class Cache(object):
-    '''Cache, a manager to cache object'''
+    '''See module documentation for more information.
+    '''
 
     _categories = {}
     _objects = {}
@@ -218,5 +227,6 @@ class Cache(object):
                 str(Cache._categories[category]['timeout'])
             )
 
-# install the schedule clock for purging
-Clock.schedule_interval(Cache._purge_by_timeout, 1)
+if 'KIVY_DOC_INCLUDE' not in environ:
+    # install the schedule clock for purging
+    Clock.schedule_interval(Cache._purge_by_timeout, 1)

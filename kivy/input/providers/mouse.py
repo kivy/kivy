@@ -1,5 +1,6 @@
 '''
-Mouse: Mouse provider implementation
+Mouse provider implementation
+=============================
 
 On linux system, mouse provider can be annoying when used with another
 multitouch provider (hidinput or mtdev.). Mouse can conflict with them: a single

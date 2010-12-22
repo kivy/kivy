@@ -1,3 +1,16 @@
+#cython: embedsignature=True
+
+'''
+Context instructions
+====================
+
+The context instructions represent non graphics elements like:
+    - Matrix manipulation
+    - Color manipulation
+    - Texture binding
+
+'''
+
 __all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix', 'Rotate', 'Scale', 'Translate')
 
 from instructions cimport *

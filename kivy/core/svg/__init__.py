@@ -1,5 +1,8 @@
 '''
-SVG: handle loading of svg data
+SVG
+===
+
+Abstraction to load SVG data.
 '''
 
 __all__ = ('Svg',)

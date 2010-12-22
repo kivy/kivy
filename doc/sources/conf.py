@@ -16,14 +16,22 @@ import sys, os
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-#sys.path.append(os.path.abspath('some/directory'))
+sys.path.append(os.path.abspath('sphinxext'))
 
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'preprocess']
+
+# Todo configuration
+todo_include_todos = True
+
+# XXX HACK mathieu: monkey patch the autodoc module, to give a better priority
+# for ClassDocumenter, or the cython class will be documented as AttributeClass
+import sphinx.ext.autodoc
+sphinx.ext.autodoc.ClassDocumenter.priority = 10
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -41,7 +49,6 @@ copyright = '2010, kivy-dev'
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
-import os
 os.environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
 print kivy.__file__
@@ -97,7 +104,7 @@ html_style = 'default.css'
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
-html_logo = 'kivy-logo-mini.png'
+html_logo = 'kivy-logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32

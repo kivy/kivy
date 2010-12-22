@@ -1,10 +1,13 @@
 '''
-Camera: Backend for acquiring camera image
+Camera
+======
+
+Core class for acquiring the camera, and convert the input to a
+:class:`~kivy.graphics.texture.Texture`.
 '''
 
 __all__ = ('CameraBase', 'Camera')
 
-import kivy
 from kivy.core.gl import GL_RGB
 from kivy.logger import Logger
 from kivy.core import core_select_lib
