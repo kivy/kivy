@@ -83,9 +83,8 @@ packages.sort()
 
 # Create index
 api_index = \
-'''===================================================================
-API documentation for Kivy
-===================================================================
+'''API documentation
+=================
 
 .. toctree::
     :maxdepth: 2
