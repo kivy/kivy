@@ -10,8 +10,8 @@ The basics
 
 For drawing on a screen, you will need :
 
-    1. a :class:`Canvas` object.
-    2. :class:`CanvasInstructions` objects.
+    1. a :class:`~kivy.graphics.instructions.Canvas` object.
+    2. :class:`~kivy.graphics.instructions.Instruction` objects.
 
 Each widget in Kivy already have by default their :class:`Canvas`. When you are
 creating a widget, you can create all the instructions needed for drawing. If

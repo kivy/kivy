@@ -1,4 +1,4 @@
-cdef class GraphicsInstruction
+cdef class Instruction
 cdef class InstructionGroup
 cdef class ContextInstruction
 cdef class VertexInstruction
@@ -9,20 +9,20 @@ cdef class RenderContext
 from vbo cimport *
 from context_instructions cimport *
 
-cdef class GraphicsInstruction:
+cdef class Instruction:
     cdef int flags
-    cdef GraphicsInstruction parent
+    cdef Instruction parent
     cdef apply(self)
     cdef flag_update(self)
     cdef flag_update_done(self)
 
-cdef class InstructionGroup(GraphicsInstruction):
+cdef class InstructionGroup(Instruction):
     cdef list children
-    cpdef add(self, GraphicsInstruction c)
-    cpdef remove(self, GraphicsInstruction c)
+    cpdef add(self, Instruction c)
+    cpdef remove(self, Instruction c)
     cpdef clear(self)
 
-cdef class ContextInstruction(GraphicsInstruction):
+cdef class ContextInstruction(Instruction):
     cdef dict context_state
     cdef list context_push
     cdef list context_pop
@@ -32,7 +32,7 @@ cdef class ContextInstruction(GraphicsInstruction):
     cdef push_state(self, str name)
     cdef pop_state(self, str name)
 
-cdef class VertexInstruction(GraphicsInstruction):
+cdef class VertexInstruction(Instruction):
     cdef BindTexture texture_binding
     cdef VertexBatch batch
     cdef list vertices

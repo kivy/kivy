@@ -10,7 +10,7 @@ information about the usage of Canvas.
 
 '''
 
-__all__ = ('GraphicsInstruction', 'InstructionGroup',
+__all__ = ('Instruction', 'InstructionGroup',
            'ContextInstruction', 'VertexInstruction',
            'Canvas','RenderContext')
 
@@ -18,7 +18,7 @@ include "opcodes.pxi"
 
 from kivy.logger import Logger
 
-cdef class GraphicsInstruction:
+cdef class Instruction:
     '''Represent the smallest instruction available. This class is for internal
     usage only, don't use it directly.
     '''
@@ -42,46 +42,46 @@ cdef class GraphicsInstruction:
         self.flags &= ~GI_NEED_UPDATE
 
 
-cdef class InstructionGroup(GraphicsInstruction):
-    '''Group of :class:`GraphicsInstruction`. Add the possibility of adding and
+cdef class InstructionGroup(Instruction):
+    '''Group of :class:`Instruction`. Add the possibility of adding and
     removing graphics instruction.
     '''
     def __init__(self):
-        GraphicsInstruction.__init__(self)
+        Instruction.__init__(self)
         self.children = list()
 
     cdef apply(self):
-        cdef GraphicsInstruction c
+        cdef Instruction c
         for c in self.children:
             c.apply()
 
-    cpdef add(self, GraphicsInstruction c):
-        '''Add a new :class:`GraphicsInstruction` in our list.
+    cpdef add(self, Instruction c):
+        '''Add a new :class:`Instruction` in our list.
         '''
         c.parent = self
         self.children.append(c)
         self.flag_update()
 
-    cpdef remove(self, GraphicsInstruction c):
-        '''Remove an existing :class:`GraphicsInstruction` from our list.
+    cpdef remove(self, Instruction c):
+        '''Remove an existing :class:`Instruction` from our list.
         '''
         c.parent = None
         self.children.remove(c)
         self.flag_update()
 
     cpdef clear(self):
-        '''Remove all the :class:`GraphicsInstruction`
+        '''Remove all the :class:`Instruction`
         '''
-        cdef GraphicsInstruction c
+        cdef Instruction c
         for c in self.children[:]:
             self.remove(c)
 
-cdef class ContextInstruction(GraphicsInstruction):
+cdef class ContextInstruction(Instruction):
     '''A context instruction is the base for creating non-display instruction
     for Canvas (texture binding, color parameters, matrix manipulation...)
     '''
     def __init__(self):
-        GraphicsInstruction.__init__(self)
+        Instruction.__init__(self)
         self.flags &= GI_CONTEXT_MOD
         self.context_state = dict()
         self.context_push = list()
@@ -110,7 +110,7 @@ cdef class ContextInstruction(GraphicsInstruction):
         self.flag_update()
 
 
-cdef class VertexInstruction(GraphicsInstruction):
+cdef class VertexInstruction(Instruction):
     def __init__(self, **kwargs):
         #add a BindTexture instruction to bind teh texture used for 
         #this instruction before the actual vertex instruction
@@ -119,7 +119,7 @@ cdef class VertexInstruction(GraphicsInstruction):
         self.texture = self.texture_binding.texture #auto compute tex coords
         self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
 
-        GraphicsInstruction.__init__(self)
+        Instruction.__init__(self)
         self.flags = GI_VERTEX_DATA & GI_NEED_UPDATE
         self.batch = VertexBatch()
         self.vertices = list()

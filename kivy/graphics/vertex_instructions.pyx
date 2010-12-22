@@ -15,11 +15,7 @@ from vbo cimport *
 from vertex cimport *
 from instructions cimport *
 from c_opengl cimport *
-
 from kivy.logger import Logger
-from kivy.resources import resource_find
-from kivy.core.image import Image
-import sys
 
 cdef class Triangle(VertexInstruction):
     '''A 2d triangle.

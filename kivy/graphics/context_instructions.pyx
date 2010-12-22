@@ -11,7 +11,8 @@ The context instructions represent non graphics elements like:
 
 '''
 
-__all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix', 'Rotate', 'Scale', 'Translate')
+__all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
+           'Rotate', 'Scale', 'Translate', 'MatrixInstruction')
 
 from instructions cimport *
 
@@ -20,7 +21,7 @@ from kivy.core.image import Image
 from kivy.logger import Logger
 
 from os.path import join
-from kivy import kivy_shader_dir 
+from kivy import kivy_shader_dir
 cdef object DEFAULT_TEXTURE
 cdef object get_default_texture():
     global DEFAULT_TEXTURE
@@ -106,7 +107,7 @@ cdef class BindTexture(ContextInstruction):
     def __init__(self, **kwargs):
         ContextInstruction.__init__(self)
         if 'source' in kwargs and 'texture' in kwargs:
-            Logger.warn("BindTexuture:  both source and texture   \
+            Logger.warn("BindTexture:  both source and texture   \
                          specified in kwargs! settign source will \
                          will overwrite texture property")
 
@@ -149,10 +150,11 @@ cdef class BindTexture(ContextInstruction):
                 self.texture = None
 
 
-
-from math import radians
 from kivy.lib.transformations import matrix_multiply, identity_matrix, \
         scale_matrix, rotation_matrix, translation_matrix
+
+cdef double radians(double degrees):
+    return degrees * (3.14159265 / 180.)
 
 cdef class PushMatrix(ContextInstruction):
     '''PushMatrix on context's matrix stack
@@ -230,7 +232,7 @@ cdef class Transform(MatrixInstruction):
 cdef class Rotate(Transform):
     '''Rotate the coordinate space by applying a rotation transformation
     on the modelview matrix. You can set the properties of the instructions
-    afterwards with e.g. ::
+    afterwards with e.g.::
 
         rot.angle = 90
         rot.axis = (0,0,1)
@@ -244,17 +246,27 @@ cdef class Rotate(Transform):
             self.set(0, 0, 0, 1)
 
     def set(self, float angle, float ax, float ay, float az):
+        '''Set the angle and axis of rotation
+
+        >>> rotationobject.set(90, 0, 0, 1)
+        '''
         self._angle = radians(angle)
         self._axis = (ax, ay, az)
         self.matrix = rotation_matrix(self._angle, self._axis)
 
     property angle:
+        '''Property for getting/settings the angle of the rotation
+        '''
         def __get__(self):
             return self._angle
         def __set__(self, a):
             self.set(a, *self._axis)
 
     property axis:
+        '''Property for getting/settings the axis of the rotation
+
+        The format of the axis is (x, y, z).
+        '''
         def __get__(self):
             return self._axis
         def __set__(self, axis):
@@ -271,7 +283,9 @@ cdef class Scale(Transform):
             self.matrix = scale_matrix(self.s)
 
     property scale:
-        '''Sets the scale factor for the transformation
+        '''Property for getting/setting the scale.
+
+        The same scale value is applied on all axis.
         '''
         def __get__(self):
             return self.s
@@ -280,7 +294,7 @@ cdef class Scale(Transform):
             self.matrix = scale_matrix(s)
 
 
-cdef class  Translate(Transform):
+cdef class Translate(Transform):
     '''Instruction to create a translation of the model view coordinate space
     '''
     def __init__(self, *args):
@@ -292,7 +306,7 @@ cdef class  Translate(Transform):
         self.matrix = translation_matrix([x,y,z])
 
     property x:
-        '''Sets the translation on the x axis
+        '''Property for getting/setting the translation on X axis
         '''
         def __get__(self):
             return self._x
@@ -300,7 +314,7 @@ cdef class  Translate(Transform):
             self.set_translate(x, self._y, self._z)
 
     property y:
-        '''Sets the translation on the y axis
+        '''Property for getting/setting the translation on Y axis
         '''
         def __get__(self):
             return self._y
@@ -308,7 +322,7 @@ cdef class  Translate(Transform):
             self.set_translate(self._x, y, self._z)
 
     property z:
-        '''Sets the translation on the z axis
+        '''Property for getting/setting the translation on Z axis
         '''
         def __get__(self):
             return self._z
