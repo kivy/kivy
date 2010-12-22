@@ -2,6 +2,11 @@
 Scatter
 =======
 
+.. todo::
+
+    - Fix center_x / center_y attributes
+    - Ensure top and right are good
+
 '''
 
 __all__ = ('Scatter', )
@@ -56,8 +61,6 @@ class Scatter(Widget):
     def __init__(self, **kwargs):
         self._touches = []
         self._last_touch_pos = {}
-        self._transform_gl     = ascontiguousarray(identity_matrix().T,
-                                                   dtype='float32')
 
         super(Scatter, self).__init__(**kwargs)
 
@@ -145,7 +148,6 @@ class Scatter(Widget):
         angle_change = self.rotation - rotation
         r = rotation_matrix(-radians(angle_change), (0, 0, 1))
         self.apply_transform(r, post_multiply=True, anchor=self.to_local(*self.center))
-    #: Rotation value in degrees
     rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
         'x', 'y', 'transform'))
 
@@ -155,31 +157,12 @@ class Scatter(Widget):
         scale = p1.distance(p2)
         return float(scale)
     def _set_scale(self, scale):
-        #scale = boundary(scale, self.scale_min, self.scale_max) 
         rescale = scale * 1.0 / self.scale
         self.apply_transform(scale_matrix(rescale), post_multiply=True, anchor=self.to_local(*self.center))
-    #: Scale value
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
-
-    @property
-    def transform_gl(self):
-        '''Return the transformation matrix for OpenGL, read only.
-        '''
-        return self._transform_gl
 
     def on_transform(self, instance, value):
         self.transform_inv = inverse_matrix(value)
-        self._transform_gl = ascontiguousarray(self.transform.T,
-                                               dtype='float32')
-
-    """
-    def _get_state(self):
-        return serialize_numpy(self.transform)
-    def _set_state(self, state):
-        self.transform = deserialize_numpy(state)
-    state = property(_get_state, _set_state,
-        doc='Save/restore the state of matrix widget (require numpy)')
-    """
 
     def collide_point(self, x, y):
         x, y = self.to_local(x, y)
@@ -245,16 +228,14 @@ class Scatter(Widget):
         else:
             self.transform = matrix_multiply(t, self.transform)
 
-    def _apply_drag(self, touch):
-        # _last_touch_pos has last pos in correct parent space, just liek incoming touch
-        dx = (touch.x - self._last_touch_pos[touch][0]) * self.do_translation_x
-        dy = (touch.y - self._last_touch_pos[touch][1]) * self.do_translation_y
-        self.apply_transform(translation_matrix((dx, dy, 0)))
-
     def transform_with_touch(self, touch):
         # just do a simple one finger drag
         if len(self._touches) == 1:
-            return self._apply_drag(touch)
+            # _last_touch_pos has last pos in correct parent space, just liek incoming touch
+            dx = (touch.x - self._last_touch_pos[touch][0]) * self.do_translation_x
+            dy = (touch.y - self._last_touch_pos[touch][1]) * self.do_translation_y
+            self.apply_transform(translation_matrix((dx, dy, 0)))
+            return
 
         # we have more than one touch...
         points = [Vector(*self._last_touch_pos[t]) for t in self._touches]
