@@ -12,7 +12,6 @@ Scatter
 __all__ = ('Scatter', )
 
 from math import radians
-from numpy import ascontiguousarray
 from kivy.properties import BooleanProperty, AliasProperty, \
         NumericProperty, NumpyProperty
 from kivy.vector import Vector
