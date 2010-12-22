@@ -436,7 +436,8 @@ cdef class AliasProperty(Property):
 
     cpdef link_deps(self, object obj, str name):
         for prop in self.bind_objects:
-            prop.bind(obj, self.trigger_change)
+            oprop = getattr(obj.__class__, prop)
+            oprop.bind(obj, self.trigger_change)
 
     cpdef unlink(self, obj):
         for prop in self.bind_objects:

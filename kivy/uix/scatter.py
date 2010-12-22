@@ -1,12 +1,14 @@
 '''
-Scatter widget
+Scatter
+=======
+
 '''
 
 __all__ = ('Scatter', )
 
 from math import radians
 from numpy import ascontiguousarray
-from kivy.c_ext.properties import BooleanProperty, AliasProperty, \
+from kivy.properties import BooleanProperty, AliasProperty, \
         NumericProperty, NumpyProperty
 from kivy.vector import Vector
 from kivy.uix.widget import Widget
@@ -30,7 +32,7 @@ class Scatter(Widget):
             self.do_translation_x = self.do_translation_y = bool(value)
     #: Allow translation on X or Y axis
     do_translation = AliasProperty(_get_do_translation, _set_do_translation,
-                                   bind=(do_translation_x, do_translation_y))
+                                   bind=('do_translation_x', 'do_translation_y'))
 
 
     #: Allow rotation
@@ -92,8 +94,8 @@ class Scatter(Widget):
             if y > ymax:
                 ymax = y
         return (xmin, ymin), (xmax-xmin, ymax-ymin)
-    bbox = AliasProperty(_get_bbox, None, bind=(transform, Widget.width,
-                                                Widget.height))
+    bbox = AliasProperty(_get_bbox, None, bind=(
+        'transform', 'width', 'height'))
 
     def _get_center(self):
         return (self.bbox[0][0] + self.bbox[1][0]/2.0,
@@ -104,7 +106,7 @@ class Scatter(Widget):
         t = Vector(*center) - self.center
         trans = translation_matrix( (t.x, t.y, 0) )
         self.apply_transform(trans)
-    center = AliasProperty(_get_center, _set_center, bind=(bbox, ))
+    center = AliasProperty(_get_center, _set_center, bind=('bbox', ))
 
     def _get_pos(self):
         return self.bbox[0]
@@ -115,7 +117,7 @@ class Scatter(Widget):
         t = Vector(*pos) - _pos
         trans = translation_matrix( (t.x, t.y, 0) )
         self.apply_transform(trans)
-    pos = AliasProperty(_get_pos, _set_pos, bind=(bbox, ))
+    pos = AliasProperty(_get_pos, _set_pos, bind=('bbox', ))
 
     def _get_x(self):
         return self.bbox[0][0]
@@ -124,7 +126,7 @@ class Scatter(Widget):
             return False
         self.pos = (x, self.y)
         return True
-    x = AliasProperty(_get_x, _set_x, bind=(bbox, ))
+    x = AliasProperty(_get_x, _set_x, bind=('bbox', ))
 
     def _get_y(self):
         return self.bbox[0][1]
@@ -133,7 +135,7 @@ class Scatter(Widget):
             return False
         self.pos = (self.x, y)
         return True
-    y = AliasProperty(_get_y, _set_y, bind=(bbox, ))
+    y = AliasProperty(_get_y, _set_y, bind=('bbox', ))
 
     def _get_rotation(self):
         v1 = Vector(0, 10)
@@ -144,9 +146,8 @@ class Scatter(Widget):
         r = rotation_matrix(-radians(angle_change), (0, 0, 1))
         self.apply_transform(r, post_multiply=True, anchor=self.to_local(*self.center))
     #: Rotation value in degrees
-    rotation = AliasProperty(_get_rotation, _set_rotation, bind=(Widget.x,
-                                                                 Widget.y,
-                                                                 transform))
+    rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
+        'x', 'y', 'transform'))
 
     def _get_scale(self):
         p1 = Vector(*self.to_parent(0, 0))
@@ -158,7 +159,7 @@ class Scatter(Widget):
         rescale = scale * 1.0 / self.scale
         self.apply_transform(scale_matrix(rescale), post_multiply=True, anchor=self.to_local(*self.center))
     #: Scale value
-    scale = AliasProperty(_get_scale, _set_scale, bind=(Widget.x, Widget.y, transform))
+    scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
 
     @property
     def transform_gl(self):

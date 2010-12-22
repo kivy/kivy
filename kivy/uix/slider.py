@@ -30,7 +30,7 @@ class Slider(Widget):
         return (self.min, self.max)
     def set_range(self, range):
         self.min, self.max = range
-    range = AliasProperty(get_range, set_range, bind=(min, max))
+    range = AliasProperty(get_range, set_range, bind=('min', 'max'))
 
     #: The value of the slide normalized to the range [min - max]
     def get_norm_value(self):
@@ -40,7 +40,8 @@ class Slider(Widget):
         return (self.value - self.min) / float(d)
     def set_norm_value(self, n_val):
         self.value = n_val*(self.max-self.min) + self.min
-    value_normalized = AliasProperty(get_norm_value, set_norm_value, bind=(value, min, max))
+    value_normalized = AliasProperty(get_norm_value, set_norm_value,
+                                     bind=('value', 'min', 'max'))
 
     #: The value of the slider mapped to the screen position between self.x and self.right
     def get_value_pos(self):
@@ -52,7 +53,8 @@ class Slider(Widget):
             self.value_normalized = 0
         else:
             self.value_normalized = (x - self.x) / float(self.width)
-    value_pos = AliasProperty(get_value_pos, set_value_pos, bind=(value, min, max, value_normalized))
+    value_pos = AliasProperty(get_value_pos, set_value_pos,
+                              bind=('value', 'min', 'max', 'value_normalized'))
 
 
     #: on touch_down handler. if inside slider: grab touch, set value based on touch pos
