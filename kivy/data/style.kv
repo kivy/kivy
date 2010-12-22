@@ -46,3 +46,14 @@
 			texture: self.texture
 			size: self.texture_size
 			pos: self.center[0] - self.texture_size[0] / 2., self.center[1] - self.texture_size[1] / 2.
+
+<Scatter>:
+	canvas:
+		PushMatrix
+		MatrixInstruction:
+			matrix: self.transform
+		Color:
+			rgb: 0, 1, 0
+		Rectangle:
+			size: self.size
+		PopMatrix
