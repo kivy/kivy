@@ -20,12 +20,22 @@ from kivy.lib.transformations import matrix_multiply, identity_matrix, \
         translation_matrix, rotation_matrix, scale_matrix, inverse_matrix
 
 class Scatter(Widget):
+    '''Scatter implementation as a Widget.
+    '''
 
-    #: Allow translation on X axis
     do_translation_x = BooleanProperty(True)
+    '''Allow translation on X axis
 
-    #: Allow translation on Y axis
+    :data:`do_translation_x` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True.
+    '''
+
     do_translation_y = BooleanProperty(True)
+    '''Allow translation on Y axis
+
+    :data:`do_translation_y` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True.
+    '''
 
     def _get_do_translation(self):
         return (self.do_translation_x, self.do_translation_y)
@@ -34,56 +44,58 @@ class Scatter(Widget):
             self.do_translation_x, self.do_translation_y = value
         else:
             self.do_translation_x = self.do_translation_y = bool(value)
-    #: Allow translation on X or Y axis
     do_translation = AliasProperty(_get_do_translation, _set_do_translation,
                                    bind=('do_translation_x', 'do_translation_y'))
+    '''Allow translation on X or Y axis
+
+    :data:`do_translation` is a :class:`~kivy.properties.AliasProperty` of
+    (:data:`do_translation_x` + :data:`do_translation_y`)
+    '''
 
 
-    #: Allow rotation
     do_rotation = BooleanProperty(True)
+    '''Allow rotation
 
-    #: Allow scaling
+    :data:`do_rotation` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True.
+    '''
+
     do_scale = BooleanProperty(True)
+    '''Allow scaling
 
-    #: Minimum scaling allowed
+    :data:`do_scale` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True.
+    '''
+
     scale_min = NumericProperty(0.01)
+    '''Minimum scaling factor allowed
 
-    #: Maximum scaling allowed
+    :data:`scale_min` is a :class:`~kivy.properties.NumericProperty`, default to
+    0.01
+    '''
+
     scale_max = NumericProperty(1e20)
+    '''Maximum scaling factor allowed
 
-    #: Transformation matrice
+    :data:`scale_max` is a :class:`~kivy.properties.NumericProperty`, default to
+    1e20
+    '''
+
     transform = NumpyProperty(identity_matrix())
+    '''Transformation matrix
 
-    #: Inverse of the transformation matrice
+    :data:`transform` is a :class:`~kivy.properties.NumpyProperty`, default to
+    the numpy identity matrix.
+    '''
+
     transform_inv = NumpyProperty(identity_matrix())
+    '''Inverse of the transformation matrix
 
-    def __init__(self, **kwargs):
-        self._touches = []
-        self._last_touch_pos = {}
-
-        super(Scatter, self).__init__(**kwargs)
-
-        '''
-        # inital transformation
-        self.scale = kwargs.get('scale', 1)
-        self.rotation = kwargs.get('rotation', 0)
-        if kwargs.get('pos') and kwargs.get('center'):
-            pymt_logger.exception('both "pos" and "center" set in MTScatter'
-                                  'constructor, only use one of the two!')
-        if kwargs.get('pos'):
-            self.pos = kwargs.get('pos')
-        if kwargs.get('center'):
-            self.pos = kwargs.get('center')
-        '''
+    :data:`transform_inv` is a :class:`~kivy.properties.NumpyProperty`, default
+    to the numpy identity matrix.
+    '''
 
     def _get_bbox(self):
-        '''
-        Returns the bounding box of the widget in parent space ::
-
-            ((x, y), (w, h)
-            # x, y = lower left corner
-
-        '''
         xmin, ymin = xmax, ymax = self.to_parent(0, 0)
         for point in [(self.width, 0), (0, self.height), self.size]:
             x, y = self.to_parent(*point)
@@ -98,6 +110,42 @@ class Scatter(Widget):
         return (xmin, ymin), (xmax-xmin, ymax-ymin)
     bbox = AliasProperty(_get_bbox, None, bind=(
         'transform', 'width', 'height'))
+    '''Bounding box of the widget in parent space ::
+
+        ((x, y), (w, h))
+        # x, y = lower left corner
+
+    :data:`bbox` is a :class:`~kivy.properties.AliasProperty`.
+    '''
+
+    def _get_rotation(self):
+        v1 = Vector(0, 10)
+        v2 = Vector(*self.to_parent(*self.pos)) - self.to_parent(self.x, self.y + 10)
+        return -1.0 *(v1.angle(v2) + 180) % 360
+    def _set_rotation(self, rotation):
+        angle_change = self.rotation - rotation
+        r = rotation_matrix(-radians(angle_change), (0, 0, 1))
+        self.apply_transform(r, post_multiply=True, anchor=self.to_local(*self.center))
+    rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
+        'x', 'y', 'transform'))
+    '''Rotation value of the scatter
+
+    :data:`rotation` is a :class:`~kivy.properties.AliasProperty`.
+    '''
+
+    def _get_scale(self):
+        p1 = Vector(*self.to_parent(0, 0))
+        p2 = Vector(*self.to_parent(1, 0))
+        scale = p1.distance(p2)
+        return float(scale)
+    def _set_scale(self, scale):
+        rescale = scale * 1.0 / self.scale
+        self.apply_transform(scale_matrix(rescale), post_multiply=True, anchor=self.to_local(*self.center))
+    scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
+    '''Scale value of the scatter
+
+    :data:`scale` is a :class:`~kivy.properties.AliasProperty`.
+    '''
 
     def _get_center(self):
         return (self.bbox[0][0] + self.bbox[1][0]/2.0,
@@ -139,26 +187,10 @@ class Scatter(Widget):
         return True
     y = AliasProperty(_get_y, _set_y, bind=('bbox', ))
 
-    def _get_rotation(self):
-        v1 = Vector(0, 10)
-        v2 = Vector(*self.to_parent(*self.pos)) - self.to_parent(self.x, self.y + 10)
-        return -1.0 *(v1.angle(v2) + 180) % 360
-    def _set_rotation(self, rotation):
-        angle_change = self.rotation - rotation
-        r = rotation_matrix(-radians(angle_change), (0, 0, 1))
-        self.apply_transform(r, post_multiply=True, anchor=self.to_local(*self.center))
-    rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
-        'x', 'y', 'transform'))
-
-    def _get_scale(self):
-        p1 = Vector(*self.to_parent(0, 0))
-        p2 = Vector(*self.to_parent(1, 0))
-        scale = p1.distance(p2)
-        return float(scale)
-    def _set_scale(self, scale):
-        rescale = scale * 1.0 / self.scale
-        self.apply_transform(scale_matrix(rescale), post_multiply=True, anchor=self.to_local(*self.center))
-    scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
+    def __init__(self, **kwargs):
+        self._touches = []
+        self._last_touch_pos = {}
+        super(Scatter, self).__init__(**kwargs)
 
     def on_transform(self, instance, value):
         self.transform_inv = inverse_matrix(value)
