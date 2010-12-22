@@ -45,10 +45,13 @@ cdef class VertexInstruction(Instruction):
 
 
 
-cdef Canvas getActiveCanvas()
+cdef InstructionGroup getActiveCanvas()
+cdef class CanvasAfter(InstructionGroup):
+    pass
 cdef class Canvas(InstructionGroup):
+    cdef CanvasAfter _after
     cpdef draw(self)
-
+    cpdef clear(self)
 
 
 from shader cimport *

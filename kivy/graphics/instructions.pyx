@@ -176,10 +176,13 @@ cdef class VertexInstruction(Instruction):
         self.batch.draw()
 
 
+cdef class CanvasAfter(InstructionGroup):
+    def __enter__(self):
+        pushActiveCanvas(self)
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        popActiveCanvas()
 
-
-#TODO: move back into canvas.pyx, but need to resolve circular reference to instructions
 cdef class Canvas(InstructionGroup):
     '''Our famous Canvas class. Use this class for add graphics or context
     instructions to use when drawing
@@ -200,6 +203,19 @@ cdef class Canvas(InstructionGroup):
             Rectangle(size=(50, 50))
     '''
 
+    def __init__(self):
+        InstructionGroup.__init__(self)
+        self._after = CanvasAfter()
+        self._after.parent = self
+
+    cdef apply(self):
+        InstructionGroup.apply(self)
+        self._after.apply()
+
+    cpdef clear(self):
+        InstructionGroup.clear(self)
+        self._after.clear()
+
     cpdef draw(self):
         '''Apply the instruction on our window.
         '''
@@ -211,13 +227,18 @@ cdef class Canvas(InstructionGroup):
     def __exit__(self, exc_type, exc_val, exc_tb):
         popActiveCanvas()
 
+    property after:
+        '''Property for getting the after group.
+        '''
+        def __get__(self):
+            return self._after
 
 # Active Canvas and getActiveCanvas function is used
 # by instructions, so they know which canvas to add
 # tehmselves to
-cdef Canvas ACTIVE_CANVAS = None
+cdef InstructionGroup ACTIVE_CANVAS = None
 
-cdef Canvas getActiveCanvas():
+cdef InstructionGroup getActiveCanvas():
     global ACTIVE_CANVAS
     return ACTIVE_CANVAS
 
@@ -225,7 +246,7 @@ cdef Canvas getActiveCanvas():
 # inside other canvas, and restroed when other canvas is done
 cdef list CANVAS_STACK = list()
 
-cdef pushActiveCanvas(Canvas c):
+cdef pushActiveCanvas(InstructionGroup c):
     global ACTIVE_CANVAS, CANVAS_STACK
     CANVAS_STACK.append(ACTIVE_CANVAS)
     ACTIVE_CANVAS = c
