@@ -3,6 +3,7 @@ cdef class InstructionGroup
 cdef class ContextInstruction
 cdef class VertexInstruction
 
+cdef class CanvasBase
 cdef class Canvas
 cdef class RenderContext
 
@@ -19,6 +20,7 @@ cdef class Instruction:
 cdef class InstructionGroup(Instruction):
     cdef list children
     cpdef add(self, Instruction c)
+    cpdef insert(self, int index, Instruction c)
     cpdef remove(self, Instruction c)
     cpdef clear(self)
 
@@ -45,13 +47,16 @@ cdef class VertexInstruction(Instruction):
 
 
 
-cdef InstructionGroup getActiveCanvas()
-cdef class CanvasAfter(InstructionGroup):
+cdef CanvasBase getActiveCanvas()
+
+cdef class CanvasBase(InstructionGroup):
     pass
-cdef class Canvas(InstructionGroup):
-    cdef CanvasAfter _after
+
+cdef class Canvas(CanvasBase):
+    cdef CanvasBase _before
+    cdef CanvasBase _after
+    cpdef add(self, Instruction c)
     cpdef draw(self)
-    cpdef clear(self)
 
 
 from shader cimport *

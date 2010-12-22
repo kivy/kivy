@@ -202,7 +202,8 @@ class Parser(object):
 
             # Two more level ?
             elif count == indent + 8:
-                if current_property not in ('canvas', 'canvas.after'):
+                if current_property not in ('canvas', 'canvas.after',
+                                            'canvas.before'):
                     raise ParserError(self, ln,
                                    'Invalid indentation, only allowed '
                                    'for canvas')
@@ -420,12 +421,14 @@ class BuilderBase(object):
                     child = self.build_item(citem, cparams)
                     widget.add_widget(child)
             elif key == 'canvas':
-                widget.canvas.clear()
                 with widget.canvas:
-                    self.build_canvas(item, value)
+                    self.build_canvas(widget.canvas, item, value)
+            elif key == 'canvas.before':
+                with widget.canvas.before:
+                    self.build_canvas(widget.canvas.before, item, value)
             elif key == 'canvas.after':
                 with widget.canvas.after:
-                    self.build_canvas(item, value)
+                    self.build_canvas(widget.canvas.after, item, value)
             elif key == 'id':
                 self.gidmap[value] = widget
             else:
@@ -467,9 +470,12 @@ class BuilderBase(object):
                     element.create_property(key)
             setattr(element, key, value)
 
-    def build_canvas(self, item, elements):
+    def build_canvas(self, canvas, item, elements):
         trace('Builder: build canvas for %s' % item)
         for name, params in elements:
+            if name == 'Clear':
+                canvas.clear()
+                continue
             element = Factory.get(name)()
             for key, value in params.iteritems():
                 if key in ('__line__', '__ctx__'):

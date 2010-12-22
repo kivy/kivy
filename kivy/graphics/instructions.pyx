@@ -12,7 +12,7 @@ information about the usage of Canvas.
 
 __all__ = ('Instruction', 'InstructionGroup',
            'ContextInstruction', 'VertexInstruction',
-           'Canvas','RenderContext')
+           'Canvas', 'CanvasBase', 'RenderContext')
 
 include "opcodes.pxi"
 
@@ -60,6 +60,13 @@ cdef class InstructionGroup(Instruction):
         '''
         c.parent = self
         self.children.append(c)
+        self.flag_update()
+
+    cpdef insert(self, int index, Instruction c):
+        '''Insert a new :class:`Instruction` in our list at index.
+        '''
+        c.parent = self
+        self.children.insert(index, c)
         self.flag_update()
 
     cpdef remove(self, Instruction c):
@@ -176,14 +183,14 @@ cdef class VertexInstruction(Instruction):
         self.batch.draw()
 
 
-cdef class CanvasAfter(InstructionGroup):
+cdef class CanvasBase(InstructionGroup):
     def __enter__(self):
         pushActiveCanvas(self)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         popActiveCanvas()
 
-cdef class Canvas(InstructionGroup):
+cdef class Canvas(CanvasBase):
     '''Our famous Canvas class. Use this class for add graphics or context
     instructions to use when drawing
 
@@ -204,41 +211,50 @@ cdef class Canvas(InstructionGroup):
     '''
 
     def __init__(self):
-        InstructionGroup.__init__(self)
-        self._after = CanvasAfter()
-        self._after.parent = self
-
-    cdef apply(self):
-        InstructionGroup.apply(self)
-        self._after.apply()
-
-    cpdef clear(self):
-        InstructionGroup.clear(self)
-        self._after.clear()
+        CanvasBase.__init__(self)
+        self._before = None
+        self._after = None
 
     cpdef draw(self):
         '''Apply the instruction on our window.
         '''
         self.apply()
 
-    def __enter__(self):
-        pushActiveCanvas(self)
+    cpdef add(self, Instruction c):
+        c.parent = self
+        # the after group must remain the last one.
+        if self._after is None:
+            self.children.append(c)
+        else:
+            self.children.insert(-1, c)
+        self.flag_update()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        popActiveCanvas()
+    property before:
+        '''Property for getting the before group.
+        '''
+        def __get__(self):
+            if self._before is None:
+                self._before = CanvasBase()
+                self.insert(0, self._before)
+            return self._before
 
     property after:
         '''Property for getting the after group.
         '''
         def __get__(self):
+            cdef CanvasBase c
+            if self._after is None:
+                c = CanvasBase()
+                self.add(c)
+                self._after = c
             return self._after
 
 # Active Canvas and getActiveCanvas function is used
 # by instructions, so they know which canvas to add
 # tehmselves to
-cdef InstructionGroup ACTIVE_CANVAS = None
+cdef CanvasBase ACTIVE_CANVAS = None
 
-cdef InstructionGroup getActiveCanvas():
+cdef CanvasBase getActiveCanvas():
     global ACTIVE_CANVAS
     return ACTIVE_CANVAS
 
@@ -246,7 +262,7 @@ cdef InstructionGroup getActiveCanvas():
 # inside other canvas, and restroed when other canvas is done
 cdef list CANVAS_STACK = list()
 
-cdef pushActiveCanvas(InstructionGroup c):
+cdef pushActiveCanvas(CanvasBase c):
     global ACTIVE_CANVAS, CANVAS_STACK
     CANVAS_STACK.append(ACTIVE_CANVAS)
     ACTIVE_CANVAS = c
