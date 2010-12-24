@@ -60,11 +60,12 @@ cdef class Canvas(CanvasBase):
 
 
 from shader cimport *
+from texture cimport Texture
 cdef class RenderContext(Canvas):
     cdef Shader shader
     cdef dict state_stacks
     #cdef TextureManager texture_manager
-    cdef object default_texture
+    cdef Texture default_texture
 
     cdef set_state(self, str name, value)
     cdef get_state(self, str name)

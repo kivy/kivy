@@ -138,7 +138,8 @@ cdef class VertexInstruction(Instruction):
         '''
         def __get__(self):
             return self.texture_binding.texture
-        def __set__(self, tex):
+        def __set__(self, _tex):
+            cdef Texture tex = _tex
             self.texture_binding.texture = tex
             if tex:
                 self.tex_coords = tex.tex_coords

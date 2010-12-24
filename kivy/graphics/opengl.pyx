@@ -1010,16 +1010,3 @@ def glVertexAttribPointer(GLuint indx, GLint size):#, GLenum type, GLboolean nor
 def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     c_opengl.glViewport(x, y, width, height)
 
-# utilities
-AVAILABLE_GL_EXTENSIONS = ''
-def hasGLExtension( specifier ):
-    '''Given a string specifier, check for extension being available
-    '''
-    global AVAILABLE_GL_EXTENSIONS
-    if not AVAILABLE_GL_EXTENSIONS:
-        AVAILABLE_GL_EXTENSIONS[:] = glGetString( GL_EXTENSIONS ).split()
-    return specifier in AVAILABLE_GL_EXTENSIONS
-
-# compatibility layer
-GL_BGR = 0x80E0
-GL_BGRA = 0x80E1

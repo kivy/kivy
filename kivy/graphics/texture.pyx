@@ -23,9 +23,23 @@ from c_opengl cimport *
         glTexSubImage2D, glFlush, glGenTextures, glDeleteTextures, \
         GLubyte, glPixelStorei, GL_LUMINANCE, GLuint
 '''
-import opengl as gl
-#from OpenGL.GL.NV.texture_rectangle import glInitTextureRectangleNV
-#from OpenGL.GL.ARB.texture_rectangle import glInitTextureRectangleARB
+
+# XXX move missing symbol in c_opengl
+# utilities
+AVAILABLE_GL_EXTENSIONS = ''
+def hasGLExtension( specifier ):
+    '''Given a string specifier, check for extension being available
+    '''
+    global AVAILABLE_GL_EXTENSIONS
+    cdef bytes extensions
+    if not AVAILABLE_GL_EXTENSIONS:
+        extensions = <char *>glGetString( GL_EXTENSIONS )
+        AVAILABLE_GL_EXTENSIONS[:] = extensions.split()
+    return specifier in AVAILABLE_GL_EXTENSIONS
+
+# compatibility layer
+GL_BGR = 0x80E0
+GL_BGRA = 0x80E1
 
 cdef list _texture_release_list = []
 cdef int _has_bgr = -1
@@ -47,20 +61,20 @@ cdef int _is_pow2(int v):
     # http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
     return (v & (v - 1)) == 0
 
-cdef _mode_to_gl_format(GLuint x):
+cdef _mode_to_gl_format(str x):
     if x == 'RGBA':
         return GL_RGBA
     elif x == 'BGRA':
-        return gl.GL_BGRA
+        return GL_BGRA
     elif x == 'BGR':
-        return gl.GL_BGR
+        return GL_BGR
     else:
         return GL_RGB
 
 cdef _gl_format_size(GLuint x):
-    if x in (GL_RGB, gl.GL_BGR):
+    if x in (GL_RGB, GL_BGR):
         return 3
-    elif x in (GL_RGBA, gl.GL_BGRA):
+    elif x in (GL_RGBA, GL_BGRA):
         return 4
     elif x in (GL_LUMINANCE, ):
         return 1
@@ -73,18 +87,18 @@ cdef has_bgr():
                        'your graphic card')
         Logger.warning('Texture: Software conversion will be done to'
                        'RGB/RGBA')
-        _has_bgr = int(gl.hasGLExtension('GL_EXT_bgra'))
+        _has_bgr = int(hasGLExtension('GL_EXT_bgra'))
     return _has_bgr
 
 cdef _is_gl_format_supported(GLuint x):
-    if x in (gl.GL_BGR, gl.GL_BGRA):
+    if x in (GL_BGR, GL_BGRA):
         return not has_bgr()
     return True
 
 cdef _convert_gl_format(GLuint x):
-    if x == gl.GL_BGR:
+    if x == GL_BGR:
         return GL_RGB
-    elif x == gl.GL_BGRA:
+    elif x == GL_BGRA:
         return GL_RGBA
     return x
 
@@ -96,14 +110,14 @@ cdef _convert_buffer(Buffer data, GLuint format):
 
     # BGR / BGRA conversion not supported by hardware ?
     if not _is_gl_format_supported(format):
-        if format == gl.GL_BGR:
+        if format == GL_BGR:
             ret_format = GL_RGB
             a = array('b', data)
             a[0::3], a[2::3] = a[2::3], a[0::3]
             a = a.tostring()
             ret_buffer = Buffer(len(a))
             ret_buffer.add(a)
-        elif format == gl.GL_BGRA:
+        elif format == GL_BGRA:
             ret_format = GL_RGBA
             a = array('b', data)
             a[0::4], a[2::4] = a[2::4], a[0::4]
@@ -163,7 +177,8 @@ def texture_create(width, height, format=GL_RGBA, rectangle=False, mipmap=False)
         texture_width = _nearest_pow2(width)
         texture_height = _nearest_pow2(height)
 
-    texid = gl.glGenTextures(1)
+    cdef GLuint texid
+    glGenTextures(1, &texid)
     texture = Texture(texture_width, texture_height, target, texid,
                       mipmap=mipmap)
 
@@ -231,9 +246,9 @@ cdef class Texture:
         self._target        = target
         self._id            = texid
         self._mipmap        = mipmap
-        self._gl_wrap       = None
-        self._gl_min_filter = None
-        self._gl_mag_filter = None
+        self._gl_wrap       = 0
+        self._gl_min_filter = 0
+        self._gl_mag_filter = 0
         self._rectangle     = rectangle
 
     def __del__(self):
@@ -392,9 +407,12 @@ cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2
     texture handling.'''
 
+    cdef int x
+    cdef int y
+    cdef Texture owner
 
-    def __init__(self, x, y, width, height, origin):
-        TextureRegion.__init__(self, width, height, origin.target, origin.id)
+    def __init__(self, int x, int y, int width, int height, Texture origin):
+        Texture.__init__(self, width, height, origin.target, origin.id)
         self.x = x
         self.y = y
         self.owner = origin
