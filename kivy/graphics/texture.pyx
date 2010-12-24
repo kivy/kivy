@@ -27,7 +27,6 @@ import opengl as gl
 #from OpenGL.GL.NV.texture_rectangle import glInitTextureRectangleNV
 #from OpenGL.GL.ARB.texture_rectangle import glInitTextureRectangleARB
 
-cdef class TextureRegion
 cdef list _texture_release_list = []
 cdef int _has_bgr = -1
 cdef int _has_texture_nv = -1
@@ -89,6 +88,34 @@ cdef _convert_gl_format(GLuint x):
         return GL_RGBA
     return x
 
+
+cdef _convert_buffer(Buffer data, GLuint format):
+    # check if format is supported by user
+    ret_format = format
+    ret_buffer = data
+
+    # BGR / BGRA conversion not supported by hardware ?
+    if not _is_gl_format_supported(format):
+        if format == gl.GL_BGR:
+            ret_format = GL_RGB
+            a = array('b', data)
+            a[0::3], a[2::3] = a[2::3], a[0::3]
+            a = a.tostring()
+            ret_buffer = Buffer(len(a))
+            ret_buffer.add(a)
+        elif format == gl.GL_BGRA:
+            ret_format = GL_RGBA
+            a = array('b', data)
+            a[0::4], a[2::4] = a[2::4], a[0::4]
+            a = a.tostring()
+            ret_buffer = Buffer(len(a))
+            ret_buffer.add(a)
+        else:
+            Logger.critical('Texture: non implemented'
+                            '%s texture conversion' % str(format))
+            raise Exception('Unimplemented texture conversion for %s' %
+                            str(format))
+    return ret_buffer, ret_format
 
 def texture_create(width, height, format=GL_RGBA, rectangle=False, mipmap=False):
     '''Create a texture based on size.
@@ -192,17 +219,6 @@ def texture_create_from_data(im, rectangle=True, mipmap=False):
 cdef class Texture:
     '''Handle a OpenGL texture. This class can be used to create simple texture
     or complex texture based on ImageData.'''
-
-    cdef list tex_coords
-    cdef int _width
-    cdef int _height
-    cdef GLuint _target
-    cdef GLuint _id
-    cdef int _mipmap
-    cdef GLuint _gl_wrap
-    cdef GLuint _gl_min_filter
-    cdef GLuint _gl_max_filter
-    cdef int _rectangle
 
     create = staticmethod(texture_create)
     create_from_data = staticmethod(texture_create_from_data)
@@ -355,7 +371,7 @@ cdef class Texture:
         cdef bytes bbuffer
         bbuffer = pbuffer
         data.add(<char *>bbuffer, NULL, 1)
-        pdata, format = self._convert_buffer(data, format)
+        pdata, format = _convert_buffer(data, format)
 
         # transfer the new part of texture
         glTexSubImage2D(target, 0, pos[0], pos[1],
@@ -364,34 +380,6 @@ cdef class Texture:
 
         glFlush()
         glDisable(target)
-
-    cdef _convert_buffer(self, Buffer data, GLuint format):
-        # check if format is supported by user
-        ret_format = format
-        ret_buffer = data
-
-        # BGR / BGRA conversion not supported by hardware ?
-        if not _is_gl_format_supported(format):
-            if format == gl.GL_BGR:
-                ret_format = GL_RGB
-                a = array('b', data)
-                a[0::3], a[2::3] = a[2::3], a[0::3]
-                a = a.tostring()
-                ret_buffer = Buffer(len(a))
-                ret_buffer.add(a)
-            elif format == gl.GL_BGRA:
-                ret_format = GL_RGBA
-                a = array('b', data)
-                a[0::4], a[2::4] = a[2::4], a[0::4]
-                a = a.tostring()
-                ret_buffer = Buffer(len(a))
-                ret_buffer.add(a)
-            else:
-                Logger.critical('Texture: non implemented'
-                                '%s texture conversion' % str(format))
-                raise Exception('Unimplemented texture conversion for %s' %
-                                str(format))
-        return ret_buffer, ret_format
 
     property size:
         def __get__(self):
@@ -404,9 +392,6 @@ cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2
     texture handling.'''
 
-    cdef int x
-    cdef int y
-    cdef Texture owner
 
     def __init__(self, x, y, width, height, origin):
         TextureRegion.__init__(self, width, height, origin.target, origin.id)
