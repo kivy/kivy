@@ -90,6 +90,105 @@ cdef _convert_gl_format(GLuint x):
     return x
 
 
+def texture_create(width, height, format=GL_RGBA, rectangle=False, mipmap=False):
+    '''Create a texture based on size.
+    '''
+    target = GL_TEXTURE_2D
+    rectangle = rectangle
+    mipmap = True
+    if rectangle:
+        if _is_pow2(width) and _is_pow2(height):
+            rectangle = False
+        else:
+            rectangle = False
+
+            # Adapt this part to make it work.
+            # It cannot work for OpenGL ES 2.0,
+            # but for standard computer, we can gain lot of memory
+            '''
+            try:
+                if Texture._has_texture_nv is None:
+                    Texture._has_texture_nv = glInitTextureRectangleNV()
+                if Texture._has_texture_nv:
+                    target = GL_TEXTURE_RECTANGLE_NV
+                    rectangle = True
+            except Exception:
+                pass
+
+            try:
+                if Texture._has_texture_arb is None:
+                    Texture._has_texture_arb = glInitTextureRectangleARB()
+                if not rectangle and Texture._has_texture_arb:
+                    target = GL_TEXTURE_RECTANGLE_ARB
+                    rectangle = True
+            except Exception:
+                pass
+            '''
+
+            # Can't do mipmap with rectangle texture
+            if rectangle:
+                mipmap = False
+
+    if rectangle:
+        texture_width = width
+        texture_height = height
+    else:
+        texture_width = _nearest_pow2(width)
+        texture_height = _nearest_pow2(height)
+
+    texid = gl.glGenTextures(1)
+    texture = Texture(texture_width, texture_height, target, texid,
+                      mipmap=mipmap)
+
+    texture.bind()
+    texture.wrap        = GL_CLAMP_TO_EDGE
+    '''
+    #currently, GL_GENERATE_MIPMAP seem not inside Opengl ES
+    if mipmap:
+        texture.min_filter  = GL_LINEAR_MIPMAP_LINEAR
+        #texture.mag_filter  = GL_LINEAR_MIPMAP_LINEAR
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE)
+    else:
+    '''
+    if 1:
+        texture.min_filter  = GL_LINEAR
+        texture.mag_filter  = GL_LINEAR
+
+    if not _is_gl_format_supported(format):
+        format = _convert_gl_format(format)
+
+    cdef Buffer data
+    data = Buffer(sizeof(GLubyte) * texture_width * texture_height *
+            _gl_format_size(format))
+    glTexImage2D(target, 0, format, texture_width, texture_height, 0,
+                 format, GL_UNSIGNED_BYTE, data.pointer())
+
+    if rectangle:
+        texture.tex_coords = \
+            (0., 0., width, 0., width, height, 0., height)
+
+    glFlush()
+
+    if texture_width == width and texture_height == height:
+        return texture
+
+    return texture.get_region(0, 0, width, height)
+
+def texture_create_from_data(im, rectangle=True, mipmap=False):
+    '''Create a texture from an ImageData class'''
+
+    format = _mode_to_gl_format(im.mode)
+
+    texture = Texture.create(im.width, im.height,
+                             format, rectangle=rectangle,
+                             mipmap=mipmap)
+    if texture is None:
+        return None
+
+    texture.blit_data(im)
+
+    return texture
+
 cdef class Texture:
     '''Handle a OpenGL texture. This class can be used to create simple texture
     or complex texture based on ImageData.'''
@@ -104,6 +203,10 @@ cdef class Texture:
     cdef GLuint _gl_min_filter
     cdef GLuint _gl_max_filter
     cdef int _rectangle
+
+    create = staticmethod(texture_create)
+    create_from_data = staticmethod(texture_create_from_data)
+
 
     def __init__(self, width, height, target, texid, mipmap=False, rectangle=False):
         self.tex_coords     = (0., 0., 1., 0., 1., 1., 0., 1.)
@@ -296,108 +399,6 @@ cdef class Texture:
 
     def __str__(self):
         return '<Texture size=(%d, %d)>' % self.size
-
-def texture_create(width, height, format=GL_RGBA, rectangle=False, mipmap=False):
-    '''Create a texture based on size.
-    '''
-    target = GL_TEXTURE_2D
-    rectangle = rectangle
-    mipmap = True
-    if rectangle:
-        if _is_pow2(width) and _is_pow2(height):
-            rectangle = False
-        else:
-            rectangle = False
-
-            # Adapt this part to make it work.
-            # It cannot work for OpenGL ES 2.0,
-            # but for standard computer, we can gain lot of memory
-            '''
-            try:
-                if Texture._has_texture_nv is None:
-                    Texture._has_texture_nv = glInitTextureRectangleNV()
-                if Texture._has_texture_nv:
-                    target = GL_TEXTURE_RECTANGLE_NV
-                    rectangle = True
-            except Exception:
-                pass
-
-            try:
-                if Texture._has_texture_arb is None:
-                    Texture._has_texture_arb = glInitTextureRectangleARB()
-                if not rectangle and Texture._has_texture_arb:
-                    target = GL_TEXTURE_RECTANGLE_ARB
-                    rectangle = True
-            except Exception:
-                pass
-            '''
-
-            # Can't do mipmap with rectangle texture
-            if rectangle:
-                mipmap = False
-
-    if rectangle:
-        texture_width = width
-        texture_height = height
-    else:
-        texture_width = _nearest_pow2(width)
-        texture_height = _nearest_pow2(height)
-
-    texid = gl.glGenTextures(1)
-    texture = Texture(texture_width, texture_height, target, texid,
-                      mipmap=mipmap)
-
-    texture.bind()
-    texture.wrap        = GL_CLAMP_TO_EDGE
-    '''
-    #currently, GL_GENERATE_MIPMAP seem not inside Opengl ES
-    if mipmap:
-        texture.min_filter  = GL_LINEAR_MIPMAP_LINEAR
-        #texture.mag_filter  = GL_LINEAR_MIPMAP_LINEAR
-        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE)
-    else:
-    '''
-    if 1:
-        texture.min_filter  = GL_LINEAR
-        texture.mag_filter  = GL_LINEAR
-
-    if not _is_gl_format_supported(format):
-        format = _convert_gl_format(format)
-
-    cdef Buffer data
-    data = Buffer(sizeof(GLubyte) * texture_width * texture_height *
-            _gl_format_size(format))
-    glTexImage2D(target, 0, format, texture_width, texture_height, 0,
-                 format, GL_UNSIGNED_BYTE, data.pointer())
-
-    if rectangle:
-        texture.tex_coords = \
-            (0., 0., width, 0., width, height, 0., height)
-
-    glFlush()
-
-    if texture_width == width and texture_height == height:
-        return texture
-
-    return texture.get_region(0, 0, width, height)
-
-def texture_create_from_data(im, rectangle=True, mipmap=False):
-    '''Create a texture from an ImageData class'''
-
-    format = _mode_to_gl_format(im.mode)
-
-    texture = Texture.create(im.width, im.height,
-                             format, rectangle=rectangle,
-                             mipmap=mipmap)
-    if texture is None:
-        return None
-
-    texture.blit_data(im)
-
-    return texture
-
-Texture.create = classmethod(texture_create)
-Texture.create_from_data = classmethod(texture_create_from_data)
 
 cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2
