@@ -3,15 +3,16 @@
 Quickstart
 ==========
 
-This page will give you a good introduction in Kivy. This assumes you already
-have Kivy installed. If you do not, head over to the :ref:`installation`
-section.
+This page explains how to create a simple Kivy *"Hello world"* program.
+This assumes you already have Kivy installed. If you do not, head over to the
+:ref:`installation` section. We also assume basic `Python <http://docs.python.org/tutorial/>`_
+2.x knowledge.
 
 
 Create an application
 ---------------------
 
-The base code for creating an application look something like that :
+The base code for creating an application looks like this:
 
 .. sourcecode:: python
 
@@ -20,7 +21,7 @@ The base code for creating an application look something like that :
 
     class MyApp(App):
         def build(self):
-            return Button(label='hello world')
+            return Button(label='Hello World')
 
     if __name__ == '__main__':
         MyApp().run()
@@ -33,13 +34,16 @@ You should see a black window open. That's all.
 
 So what did that code do ?
 
- 1. First, we imported :class:`~kivy.app.App` class, to be able to extend it.
- 2. Next, we imported :class:`~kivy.uix.button.Button` class, to be able to
+ 1. First, we import the :class:`~kivy.app.App` class, to be able to extend it.
+    By extending this class, your own class gains several features that
+    we already developed for you to make sure it will be recognized by
+    Kivy.
+ 2. Next, we import the :class:`~kivy.uix.button.Button` class, to be able to
     create an instance of a button with a custom label.
- 2. Then, we have created our application, based from the App class. We have
-    extend the :meth:`~kivy.app.App.build` function to be able to return an
+ 2. Then, we create our application, based on the App class.
+    We extend the :meth:`~kivy.app.App.build` function to be able to return an
     instance of :class:`~kivy.uix.button.Button`. This instance will be used
     as the root of the widget tree.
- 3. Finally, we use :meth:`~kivy.app.App.run` on our application instance to launch the kivy
-    process with our application inside.
+ 3. Finally, we call :meth:`~kivy.app.App.run` on our application instance to
+    launch the Kivy process with our application inside.
 
