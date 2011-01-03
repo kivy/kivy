@@ -95,13 +95,13 @@ class Widget(EventDispatcher):
             if name in properties:
                 self.bind(**{name: getattr(self, func)})
 
+        # Create the default canvas
+        self.canvas = Canvas()
+
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():
             if hasattr(self, key):
                 setattr(self, key, value)
-
-        # Create the default canvas
-        self.canvas = Canvas()
 
         # Apply all the styles
         if '__no_builder' not in kwargs:
