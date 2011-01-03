@@ -46,7 +46,9 @@ class App(EventDispatcher):
         '''Launch the app in standalone mode
         '''
         if not self.is_build:
-            self.root = self.build()
+            root = self.build()
+            if root:
+                self.root = root
         self.dispatch('on_start')
         if self.root:
             runTouchApp(self.root)
