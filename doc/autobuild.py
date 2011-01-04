@@ -35,6 +35,7 @@ import kivy.core.text
 import kivy.core.video
 import kivy.core.window
 import kivy.graphics
+import kivy.animation
 from kivy.factory import Factory
 
 # force loading of all classes from factory
