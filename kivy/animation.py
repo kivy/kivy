@@ -104,6 +104,29 @@ class Animation(EventDispatcher):
         '''
         return self._properties
 
+    @staticmethod
+    def stop_all(widget, *largs):
+        '''Stop all animations that concern a specific widget / list of
+        properties.
+
+        Example ::
+
+            widget = Widget()
+            animation = Animation(x=50)
+            animation.start(widget)
+
+            # and later
+            Animation.stop_all(widget, 'x')
+        '''
+        if len(largs):
+            for animation in list(Animation._instances):
+                for x in largs:
+                    animation.stop_property(widget, x)
+        else:
+            for animation in Animation._instances[:]:
+                animation.stop(widget)
+
+
     def start(self, widget):
         '''Start the animation on a widget
         '''
@@ -121,6 +144,18 @@ class Animation(EventDispatcher):
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
+
+    def stop_property(self, widget, prop):
+        '''Even if a animation is going, remove a property for beeing animated.
+        '''
+        props = self._widgets.get(widget, None)
+        if not props:
+            return
+        props['properties'].pop(prop, None)
+
+        # no more properties to animation ? kill the animation.
+        if not props['properties']:
+            self.stop(widget)
 
     #
     # Private
