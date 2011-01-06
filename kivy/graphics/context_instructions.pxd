@@ -2,6 +2,7 @@ cdef class LineWidth
 cdef class Color
 cdef class BindTexture
 
+from transformation cimport Matrix
 from instructions cimport ContextInstruction
 
 cdef class LineWidth(ContextInstruction):
@@ -23,11 +24,11 @@ cdef class PopMatrix(ContextInstruction):
     cdef apply(self)
 
 cdef class MatrixInstruction(ContextInstruction):
-    cdef object mat
+    cdef Matrix matrix
     cdef apply(self)
 
 cdef class Transform(MatrixInstruction):
-    cpdef transform(self, object trans)
+    cpdef transform(self, Matrix trans)
     cpdef translate(self, float tx, float ty, float tz)
     cpdef rotate(self, float angle, float ax, float ay, float az)
     cpdef scale(self, float s)

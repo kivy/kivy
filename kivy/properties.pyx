@@ -456,22 +456,3 @@ cdef class AliasProperty(Property):
     cpdef set(self, obj, value):
         self.storage[obj.__uid]['setter'](obj, value)
 
-cdef class NumpyProperty(Property):
-    '''Property that represent a numpy matrix.
-
-    This property exist only to be able to compare matrix content.
-    To prevent observer to be called if the matrix is assign, but didn't change,
-    we must compare 2 matrix (previous and new). But numpy is unable to use a
-    classic == comparaison. We are using ::
-
-        (a == b).all().
-
-    See numpy documentation for more information.
-    '''
-    cdef init_storage(self, dict storage):
-        Property.init_storage(self, storage)
-        storage['value'] = self.defaultvalue.copy()
-
-    cdef compare_value(self, a, b):
-        return (a == b).all()
-

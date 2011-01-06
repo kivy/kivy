@@ -1,5 +1,6 @@
 
 from c_opengl cimport *
+from transformation cimport Matrix
 
 cdef class Shader:
     cdef int program
@@ -14,7 +15,7 @@ cdef class Shader:
     cdef stop(self)
     cdef set_uniform(self, str name, value)
     cdef upload_uniform(self, str name, value)
-    cdef upload_uniform_matrix(self, str name, value)
+    cdef upload_uniform_matrix(self, str name, Matrix value)
     cdef int get_uniform_loc(self, str name)
     cdef bind_attrib_locations(self)
     cdef build(self)

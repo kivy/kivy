@@ -41,13 +41,6 @@ cmdclass['build_factory'] = FactoryBuild
 # extension modules
 ext_modules = []
 
-# accelerated matrix transformation module written in C for numpy
-ext_modules.append( Extension(
-    'kivy.lib._transformations',
-    ['kivy/lib/transformations.c'],
-    include_dirs=[numpy.get_include()])
-)
-
 # list all files to compile
 import fnmatch
 import os

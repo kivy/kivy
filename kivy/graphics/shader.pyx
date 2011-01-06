@@ -15,7 +15,7 @@ __all__ = ('Shader', )
 include "common.pxi"
 from c_opengl cimport *
 
-from numpy import ndarray, ascontiguousarray
+from kivy.graphics.transformation cimport Matrix
 from kivy.logger import Logger
 
 cdef class Shader:
@@ -70,7 +70,8 @@ cdef class Shader:
         #" \n\t" +str(value) + "\n\t" + "Error " + str(glGetError()))
 
         # TODO: use cython matrix transforms
-        if val_type == ndarray:
+        print 'upload uniform', type(value)
+        if val_type == Matrix:
             self.upload_uniform_matrix(name, value)
         elif val_type == int:
             glUniform1i(loc, value)
@@ -96,13 +97,12 @@ cdef class Shader:
                     glUniform4i(loc, value[0], value[1], value[2], value[3])
 
 
-    cdef upload_uniform_matrix(self, str name, value):
+    cdef upload_uniform_matrix(self, str name, Matrix value):
         #TODO: use cython matrix transforms
         cdef int loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
         cdef GLfloat mat[16]
-        np_flat = ascontiguousarray(value.T, dtype='float32').flatten()
         for i in range(16):
-            mat[i] = <GLfloat>np_flat[i]
+            mat[i] = <GLfloat>value.mat[i]
         glUniformMatrix4fv(loc, 1, False, mat)
 
 

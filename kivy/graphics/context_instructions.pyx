@@ -15,6 +15,7 @@ __all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
            'Rotate', 'Scale', 'Translate', 'MatrixInstruction')
 
 from instructions cimport *
+from transformation cimport *
 
 from kivy.resources import resource_find
 from kivy.core.image import Image
@@ -150,9 +151,6 @@ cdef class BindTexture(ContextInstruction):
                 self.texture = None
 
 
-from kivy.lib.transformations import matrix_multiply, identity_matrix, \
-        scale_matrix, rotation_matrix, translation_matrix
-
 cdef double radians(double degrees):
     return degrees * (3.14159265 / 180.)
 
@@ -183,25 +181,26 @@ cdef class MatrixInstruction(ContextInstruction):
         context model view matrix
         '''
         cdef RenderContext context = self.get_context()
+        cdef Matrix mvm
         mvm = context.get_state('modelview_mat')
-        context.set_state('modelview_mat', matrix_multiply(self.mat, mvm))
+        context.set_state('modelview_mat', matrix_multiply(self.matrix, mvm))
 
     property matrix:
-        ''' Matrix property. Numpy matrix from transformation module
+        ''' Matrix property. Matrix from transformation module
         setting the matrix using this porperty when a change is made
         is important, becasue it will notify the context about the update
         '''
         def __get__(self):
-            return self.mat
-        def __set__(self, mat):
-            self.mat = mat
+            return self.matrix
+        def __set__(self, x):
+            self.matrix = x
             self.flag_update()
 
 cdef class Transform(MatrixInstruction):
     '''Transform class.  A matrix instruction class which
     has function to modify the transformation matrix
     '''
-    cpdef transform(self, object trans):
+    cpdef transform(self, Matrix trans):
         '''Multiply the instructions matrix by trans
         '''
         self.matrix = matrix_multiply(self.matrix, trans)
@@ -209,23 +208,23 @@ cdef class Transform(MatrixInstruction):
     cpdef translate(self, float tx, float ty, float tz):
         '''Translate the instrcutions transformation by tx, ty, tz
         '''
-        self.transform( translation_matrix(tx, ty, tz) )
+        self.transform( matrix_translation(tx, ty, tz) )
 
     cpdef rotate(self, float angle, float ax, float ay, float az):
         '''Rotate the transformation by matrix by angle degress around the
         axis defined by the vector ax, ay, az
         '''
-        self.transform( rotation_matrix(angle, [ax, ay, az]) )
+        self.transform( matrix_rotation(angle, ax, ay, az) )
 
     cpdef scale(self, float s):
         '''Applies a uniform scaling of s to the matrix transformation
         '''
-        self.transform( scale_matrix(s, s, s) )
+        self.transform( matrix_scale(s, s, s) )
 
     cpdef identity(self):
         '''Resets the transformation to the identity matrix
         '''
-        self.matrix = identity_matrix()
+        self.matrix = matrix_identity()
 
 
 
@@ -252,7 +251,7 @@ cdef class Rotate(Transform):
         '''
         self._angle = radians(angle)
         self._axis = (ax, ay, az)
-        self.matrix = rotation_matrix(self._angle, self._axis)
+        self.matrix = matrix_rotation(self._angle, ax, ay, az)
 
     property angle:
         '''Property for getting/settings the angle of the rotation
@@ -277,10 +276,11 @@ cdef class Scale(Transform):
     '''Instruction to perform a uniform scale transformation
     '''
     def __init__(self, *args):
+        cdef double s
         Transform.__init__(self)
         if len(args) == 1:
-            self.s = args[0]
-            self.matrix = scale_matrix(self.s)
+            self.s = s = args[0]
+            self.matrix = matrix_scale(s, s, s)
 
     property scale:
         '''Property for getting/setting the scale.
@@ -291,19 +291,21 @@ cdef class Scale(Transform):
             return self.s
         def __set__(self, s):
             self.s = s
-            self.matrix = scale_matrix(s)
+            self.matrix = matrix_scale(s, s, s)
 
 
 cdef class Translate(Transform):
     '''Instruction to create a translation of the model view coordinate space
     '''
     def __init__(self, *args):
+        cdef double x, y, z
         Transform.__init__(self)
         if len(args) == 3:
-            self.matrix = translation_matrix(args)
+            x, y, z = args
+            self.matrix = matrix_translation(x, y, z)
 
     def set_translate(self, x, y, z):
-        self.matrix = translation_matrix([x,y,z])
+        self.matrix = matrix_translation(x, y, z)
 
     property x:
         '''Property for getting/setting the translation on X axis

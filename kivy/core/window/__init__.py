@@ -302,7 +302,7 @@ class WindowBase(EventDispatcher):
 
     def update_viewport(self):
         from kivy.core.gl import glViewport
-        from kivy.lib.transformations import clip_matrix
+        from kivy.graphics.transformation import matrix_clip
 
         width, height = self.system_size
         w2 = width / 2.
@@ -310,7 +310,7 @@ class WindowBase(EventDispatcher):
 
         # prepare the viewport
         glViewport(0, 0, width, height)
-        projection_mat = clip_matrix(0.0, width, 0.0, height, -1.0, 1.0)
+        projection_mat = matrix_clip(0.0, width, 0.0, height, -1.0, 1.0, 0)
         self.render_context['projection_mat'] = projection_mat
 
         # use the rotated size.
