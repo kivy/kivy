@@ -84,15 +84,15 @@ class Scatter(Widget):
     transform = ObjectProperty(matrix_identity())
     '''Transformation matrix
 
-    :data:`transform` is a :class:`~kivy.properties.NumpyProperty`, default to
-    the numpy identity matrix.
+    :data:`transform` is a :class:`~kivy.properties.ObjectProperty`, default to
+    the identity matrix.
     '''
 
     transform_inv = ObjectProperty(matrix_identity())
     '''Inverse of the transformation matrix
 
-    :data:`transform_inv` is a :class:`~kivy.properties.NumpyProperty`, default
-    to the numpy identity matrix.
+    :data:`transform_inv` is a :class:`~kivy.properties.ObjectProperty`, default
+    to the identity matrix.
     '''
 
     def _get_bbox(self):

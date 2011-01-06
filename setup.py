@@ -6,18 +6,6 @@ from glob import glob
 from distutils.core import setup
 from distutils.extension import Extension
 
-#check for numpy, which is absolutely required!
-try:
-    import numpy
-except:
-    print '#' * 80
-    print 'Kivy require numpy now. Please install it before running Kivy setup'
-    print '#' * 80
-    sys.exit(1)
-
-
-
-
 # extract version (simulate doc generation, kivy will be not imported)
 import kivy
 
