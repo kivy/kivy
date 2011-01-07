@@ -1,3 +1,18 @@
+'''
+Transformation
+==============
+
+Actually, only Matrix class is available. Handle :
+
+    * rotation / translation / scaling matrix
+    * multiply matrix
+    * create clip matrix (with or without perspective)
+    * transform 3d touch on a matrix
+
+'''
+
+__all__ = ('Matrix', )
+
 cdef extern from "math.h":
     double sqrt(double x)
     double sin(double x)
@@ -8,9 +23,211 @@ cdef extern from "string.h":
     void *memcpy(void *dest, void *src, int n)
     void *memset(void *s, int c, int n)
 
+cdef double _EPS = 8.8817841970012523e-16
+
 cdef class Matrix:
+    '''Optimized matrix class for OpenGL ::
+
+        >>> from kivy.graphics.transformation import Matrix
+        >>> m = Matrix()
+        >>> print m
+        [[ 1.000000 0.000000 0.000000 0.000000 ]
+        [ 0.000000 1.000000 0.000000 0.000000 ]
+        [ 0.000000 0.000000 1.000000 0.000000 ]
+        [ 0.000000 0.000000 0.000000 1.000000 ]]
+
+    '''
+
     def __cinit__(self):
         memset(self.mat, 0, sizeof(matrix_t))
+
+    def __init__(self):
+        self.identity()
+
+    cpdef Matrix rotate(Matrix self, double angle, double x, double y, double z):
+        '''Rotate the matrix with the angle, around the axis (x, y, z)
+        '''
+        cdef double d, c, s, co, ox, oy, oz, f1, f2, f3, f4, f5, f6, f7, f8, f9
+        d = sqrt(x * x + y * y + z * z)
+        if (d != 1.0):
+            x /= d
+            y /= d
+            z /= d
+        c = cos(angle)
+        s = sin(angle)
+        co = 1.0 - c
+        ox = x * co
+        oy = y * co
+        oz = z * co
+        f1 = x * ox + c
+        f5 = y * oy + c
+        f9 = z * oz + c
+        d = z * s
+        f2 = x * oy - d
+        f4 = y * ox + d
+        d = y * s
+        f3 = x * oz + d
+        f7 = z * ox - d
+        d = x * s
+        f6 = y * oz - d
+        f8 = z * oy + d
+        ox = self.mat[0]
+        oy = self.mat[1]
+        oz = self.mat[2]
+        self.mat[0] = ox * f1 + oy * f2 + oz * f3
+        self.mat[1] = ox * f4 + oy * f5 + oz * f6
+        self.mat[2] = ox * f7 + oy * f8 + oz * f9
+        ox = self.mat[4]
+        oy = self.mat[5]
+        oz = self.mat[6]
+        self.mat[4] = ox * f1 + oy * f2 + oz * f3
+        self.mat[5] = ox * f4 + oy * f5 + oz * f6
+        self.mat[6] = ox * f7 + oy * f8 + oz * f9
+        ox = self.mat[ 8]
+        oy = self.mat[ 9]
+        oz = self.mat[10]
+        self.mat[ 8] = ox * f1 + oy * f2 + oz * f3
+        self.mat[ 9] = ox * f4 + oy * f5 + oz * f6
+        self.mat[10] = ox * f7 + oy * f8 + oz * f9
+        return self
+
+    cpdef Matrix scale(Matrix self, double x, double y, double z):
+        '''Scale the matrix
+        '''
+        self.mat[ 0] *= x;
+        self.mat[ 1] *= x;
+        self.mat[ 2] *= x;
+        self.mat[ 4] *= y;
+        self.mat[ 5] *= y;
+        self.mat[ 6] *= y;
+        self.mat[ 8] *= z;
+        self.mat[ 9] *= z;
+        self.mat[10] *= z;
+        return self
+
+    cpdef Matrix translate(Matrix self, double x, double y, double z):
+        '''Translate the matrix
+        '''
+        self.mat[12] += x
+        self.mat[13] += y
+        self.mat[14] += z
+        return self
+
+    cpdef Matrix view_clip(Matrix self, double left, double right, double bottom, double top,
+                             double near, double far, int perspective):
+        '''Create a clip matrix (inplace)
+        '''
+        if left >= right or bottom >= top or near >= far:
+            raise ValueError('invalid frustrum')
+        if perspective:
+            raise Exception('not tested')
+            if near <= _EPS:
+                raise ValueError('invalid frustrum: near <= 0')
+            t = 2.0 * near
+            self.mat[0]  = -t/(right-left)
+            self.mat[4]  = 0.0
+            self.mat[8]  = (right+left)/(right-left)
+            self.mat[12] = 0.0
+            self.mat[1]  = 0.0
+            self.mat[5]  = -t/(top-bottom)
+            self.mat[9]  = (top+bottom)/(top-bottom)
+            self.mat[13] = 0.0
+            self.mat[2]  = 0.0
+            self.mat[6]  = 0.0
+            self.mat[10] = -(far+near)/(far-near)
+            self.mat[14] = t*far/(far-near)
+            self.mat[3]  = 0.0
+            self.mat[7]  = 0.0
+            self.mat[11] = -1.0
+            self.mat[15] = 0.0
+        else:
+            #(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)
+            self.mat[0]  = 2.0/(right-left)
+            self.mat[4]  = 0.0
+            self.mat[8]  = 0.0
+            self.mat[12] = (right+left)/(left-right)
+            self.mat[1]  = 0.0
+            self.mat[5]  = 2.0/(top-bottom)
+            self.mat[9]  = 0.0
+            self.mat[13] = (top+bottom)/(bottom-top)
+            self.mat[2]  = 0.0
+            self.mat[6]  = 0.0
+            self.mat[10] = 2.0/(far-near)
+            self.mat[14] = (far+near)/(near-far)
+            self.mat[3]  = 0.0
+            self.mat[7]  = 0.0
+            self.mat[11] = 0.0
+            self.mat[15] = 1.0
+        return self
+
+    cpdef tuple transform_point(Matrix self, double x, double y, double z):
+        cdef double tx, ty, tz
+        tx = x * self.mat[0] + y * self.mat[4] + z * self.mat[ 8] + self.mat[12];
+        ty = x * self.mat[1] + y * self.mat[5] + z * self.mat[ 9] + self.mat[13];
+        tz = x * self.mat[2] + y * self.mat[6] + z * self.mat[10] + self.mat[14];
+        return (tx, ty, tz)
+
+    cpdef Matrix identity(self):
+        '''Reset matrix to identity matrix (inplace)
+        '''
+        cdef double *m = self.mat
+        m[0] = m[5] = m[10] = m[15] = 1
+        m[1] = m[2] = m[3] = m[4] = m[6] = m[7] = \
+        m[8] = m[9] = m[11] = m[12] = m[13] = m[14] = 0
+        return self
+
+    cpdef Matrix inverse(self):
+        '''Return the inverted matrix
+        '''
+        cdef Matrix mr = Matrix()
+        cdef double *m = self.mat, *r = mr.mat
+        cdef double det
+        det = m[0] * (m[5] * m[10] - m[9] * m[6]) \
+                - m[4] * (m[1] * m[10] - m[9] * m[2]) \
+                + m[8] * (m[1] * m[ 6] - m[5] * m[2])
+        if det == 0:
+            return
+        det = 1.0 / det
+        r[ 0] =   det * (m[5] * m[10] - m[9] * m[6])
+        r[ 4] = - det * (m[4] * m[10] - m[8] * m[6])
+        r[ 8] =   det * (m[4] * m[ 9] - m[8] * m[5])
+        r[ 1] = - det * (m[1] * m[10] - m[9] * m[2])
+        r[ 5] =   det * (m[0] * m[10] - m[8] * m[2])
+        r[ 9] = - det * (m[0] * m[ 9] - m[8] * m[1])
+        r[ 2] =   det * (m[1] * m[ 6] - m[5] * m[2])
+        r[ 6] = - det * (m[0] * m[ 6] - m[4] * m[2])
+        r[10] =   det * (m[0] * m[ 5] - m[4] * m[1])
+        r[ 3] = 0
+        r[ 7] = 0
+        r[11] = 0
+        r[15] = 1
+        r[12] = -(m[12] * r[0] + m[13] * r[4] + m[14] * r[ 8])
+        r[13] = -(m[12] * r[1] + m[13] * r[5] + m[14] * r[ 9])
+        r[14] = -(m[12] * r[2] + m[13] * r[6] + m[14] * r[10])
+        return mr
+
+    cpdef Matrix multiply(Matrix mb, Matrix ma):
+        '''Return a new matrix of self * arg
+        '''
+        cdef Matrix mr = Matrix()
+        cdef double *a = ma.mat, *b = mb.mat, *r = mr.mat
+        r[ 0] = a[ 0] * b[0] + a[ 1] * b[4] + a[ 2] * b[ 8]
+        r[ 4] = a[ 4] * b[0] + a[ 5] * b[4] + a[ 6] * b[ 8]
+        r[ 8] = a[ 8] * b[0] + a[ 9] * b[4] + a[10] * b[ 8]
+        r[12] = a[12] * b[0] + a[13] * b[4] + a[14] * b[ 8] + b[12]
+        r[ 1] = a[ 0] * b[1] + a[ 1] * b[5] + a[ 2] * b[ 9]
+        r[ 5] = a[ 4] * b[1] + a[ 5] * b[5] + a[ 6] * b[ 9]
+        r[ 9] = a[ 8] * b[1] + a[ 9] * b[5] + a[10] * b[ 9]
+        r[13] = a[12] * b[1] + a[13] * b[5] + a[14] * b[ 9] + b[13]
+        r[ 2] = a[ 0] * b[2] + a[ 1] * b[6] + a[ 2] * b[10]
+        r[ 6] = a[ 4] * b[2] + a[ 5] * b[6] + a[ 6] * b[10]
+        r[10] = a[ 8] * b[2] + a[ 9] * b[6] + a[10] * b[10]
+        r[14] = a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + b[14]
+        r[ 3] = 0
+        r[ 7] = 0
+        r[11] = 0
+        r[15] = 1
+        return mr
 
     def __str__(self):
         cdef double *m = self.mat
@@ -21,183 +238,3 @@ cdef class Matrix:
                    m[8], m[9], m[10], m[11],
                    m[12], m[13], m[14], m[15])
 
-cpdef Matrix matrix_inverse(Matrix m):
-    cdef Matrix r = Matrix()
-    cdef double det
-    det = m.mat[0] * (m.mat[5] * m.mat[10] - m.mat[9] * m.mat[6]) \
-            - m.mat[4] * (m.mat[1] * m.mat[10] - m.mat[9] * m.mat[2]) \
-            + m.mat[8] * (m.mat[1] * m.mat[ 6] - m.mat[5] * m.mat[2])
-    if det == 0:
-        return
-    det = 1.0 / det
-    r.mat[ 0] =   det * (m.mat[5] * m.mat[10] - m.mat[9] * m.mat[6])
-    r.mat[ 4] = - det * (m.mat[4] * m.mat[10] - m.mat[8] * m.mat[6])
-    r.mat[ 8] =   det * (m.mat[4] * m.mat[ 9] - m.mat[8] * m.mat[5])
-    r.mat[ 1] = - det * (m.mat[1] * m.mat[10] - m.mat[9] * m.mat[2])
-    r.mat[ 5] =   det * (m.mat[0] * m.mat[10] - m.mat[8] * m.mat[2])
-    r.mat[ 9] = - det * (m.mat[0] * m.mat[ 9] - m.mat[8] * m.mat[1])
-    r.mat[ 2] =   det * (m.mat[1] * m.mat[ 6] - m.mat[5] * m.mat[2])
-    r.mat[ 6] = - det * (m.mat[0] * m.mat[ 6] - m.mat[4] * m.mat[2])
-    r.mat[10] =   det * (m.mat[0] * m.mat[ 5] - m.mat[4] * m.mat[1])
-    r.mat[ 3] = 0
-    r.mat[ 7] = 0
-    r.mat[11] = 0
-    r.mat[15] = 1
-    r.mat[12] = -(m.mat[12] * r.mat[0] + m.mat[13] * r.mat[4] + m.mat[14] * r.mat[ 8])
-    r.mat[13] = -(m.mat[12] * r.mat[1] + m.mat[13] * r.mat[5] + m.mat[14] * r.mat[ 9])
-    r.mat[14] = -(m.mat[12] * r.mat[2] + m.mat[13] * r.mat[6] + m.mat[14] * r.mat[10])
-    return r
-
-cpdef Matrix matrix_multiply(Matrix b, Matrix a):
-    cdef Matrix r = Matrix()
-    r.mat[ 0] = a.mat[ 0] * b.mat[0] + a.mat[ 1] * b.mat[4] + a.mat[ 2] * b.mat[ 8]
-    r.mat[ 4] = a.mat[ 4] * b.mat[0] + a.mat[ 5] * b.mat[4] + a.mat[ 6] * b.mat[ 8]
-    r.mat[ 8] = a.mat[ 8] * b.mat[0] + a.mat[ 9] * b.mat[4] + a.mat[10] * b.mat[ 8]
-    r.mat[12] = a.mat[12] * b.mat[0] + a.mat[13] * b.mat[4] + a.mat[14] * b.mat[ 8] + b.mat[12]
-    r.mat[ 1] = a.mat[ 0] * b.mat[1] + a.mat[ 1] * b.mat[5] + a.mat[ 2] * b.mat[ 9]
-    r.mat[ 5] = a.mat[ 4] * b.mat[1] + a.mat[ 5] * b.mat[5] + a.mat[ 6] * b.mat[ 9]
-    r.mat[ 9] = a.mat[ 8] * b.mat[1] + a.mat[ 9] * b.mat[5] + a.mat[10] * b.mat[ 9]
-    r.mat[13] = a.mat[12] * b.mat[1] + a.mat[13] * b.mat[5] + a.mat[14] * b.mat[ 9] + b.mat[13]
-    r.mat[ 2] = a.mat[ 0] * b.mat[2] + a.mat[ 1] * b.mat[6] + a.mat[ 2] * b.mat[10]
-    r.mat[ 6] = a.mat[ 4] * b.mat[2] + a.mat[ 5] * b.mat[6] + a.mat[ 6] * b.mat[10]
-    r.mat[10] = a.mat[ 8] * b.mat[2] + a.mat[ 9] * b.mat[6] + a.mat[10] * b.mat[10]
-    r.mat[14] = a.mat[12] * b.mat[2] + a.mat[13] * b.mat[6] + a.mat[14] * b.mat[10] + b.mat[14]
-    r.mat[ 3] = 0
-    r.mat[ 7] = 0
-    r.mat[11] = 0
-    r.mat[15] = 1
-    return r
-
-cpdef Matrix matrix_identity():
-    cdef Matrix m = Matrix()
-    m.mat[ 0] = 1
-    m.mat[ 1] = 0
-    m.mat[ 2] = 0
-    m.mat[ 3] = 0
-    m.mat[ 4] = 0
-    m.mat[ 5] = 1
-    m.mat[ 6] = 0
-    m.mat[ 7] = 0
-    m.mat[ 8] = 0
-    m.mat[ 9] = 0
-    m.mat[10] = 1
-    m.mat[11] = 0
-    m.mat[12] = 0
-    m.mat[13] = 0
-    m.mat[14] = 0
-    m.mat[15] = 1
-    return m
-
-cpdef Matrix matrix_scale(double x, double y, double z):
-    cdef Matrix m = matrix_identity()
-    m.mat[0] = x
-    m.mat[5] = y
-    m.mat[10]= z
-    return m
-
-cpdef Matrix matrix_translation(double x, double y, double z):
-    cdef Matrix m = matrix_identity()
-    m.mat[12] = x
-    m.mat[13] = y
-    m.mat[14] = z
-    return m
-
-cpdef Matrix matrix_rotation(double angle, double x, double y, double z):
-    cdef Matrix m = matrix_identity()
-    cdef double d, c, s, co, ox, oy, oz, f1, f2, f3, f4, f5, f6, f7, f8, f9
-    d = sqrt(x * x + y * y + z * z)
-    if (d != 1.0):
-        x /= d
-        y /= d
-        z /= d
-    c = cos(angle)
-    s = sin(angle)
-    co = 1.0 - c
-    ox = x * co
-    oy = y * co
-    oz = z * co
-    f1 = x * ox + c
-    f5 = y * oy + c
-    f9 = z * oz + c
-    d = z * s
-    f2 = x * oy - d
-    f4 = y * ox + d
-    d = y * s
-    f3 = x * oz + d
-    f7 = z * ox - d
-    d = x * s
-    f6 = y * oz - d
-    f8 = z * oy + d
-    ox = m.mat[0]
-    oy = m.mat[1]
-    oz = m.mat[2]
-    m.mat[0] = ox * f1 + oy * f2 + oz * f3
-    m.mat[1] = ox * f4 + oy * f5 + oz * f6
-    m.mat[2] = ox * f7 + oy * f8 + oz * f9
-    ox = m.mat[4]
-    oy = m.mat[5]
-    oz = m.mat[6]
-    m.mat[4] = ox * f1 + oy * f2 + oz * f3
-    m.mat[5] = ox * f4 + oy * f5 + oz * f6
-    m.mat[6] = ox * f7 + oy * f8 + oz * f9
-    ox = m.mat[ 8]
-    oy = m.mat[ 9]
-    oz = m.mat[10]
-    m.mat[ 8] = ox * f1 + oy * f2 + oz * f3
-    m.mat[ 9] = ox * f4 + oy * f5 + oz * f6
-    m.mat[10] = ox * f7 + oy * f8 + oz * f9
-    return m
-
-cdef double _EPS = 8.8817841970012523e-16
-cpdef Matrix matrix_clip(double left, double right, double bottom, double top,
-                         double near, double far, int perspective):
-    cdef Matrix m = Matrix()
-    if left >= right or bottom >= top or near >= far:
-        raise ValueError('invalid frustrum')
-    if perspective:
-        raise Exception('not tested')
-        if near <= _EPS:
-            raise ValueError('invalid frustrum: near <= 0')
-        t = 2.0 * near
-        m.mat[0]  = -t/(right-left)
-        m.mat[4]  = 0.0
-        m.mat[8]  = (right+left)/(right-left)
-        m.mat[12] = 0.0
-        m.mat[1]  = 0.0
-        m.mat[5]  = -t/(top-bottom)
-        m.mat[9]  = (top+bottom)/(top-bottom)
-        m.mat[13] = 0.0
-        m.mat[2]  = 0.0
-        m.mat[6]  = 0.0
-        m.mat[10] = -(far+near)/(far-near)
-        m.mat[14] = t*far/(far-near)
-        m.mat[3]  = 0.0
-        m.mat[7]  = 0.0
-        m.mat[11] = -1.0
-        m.mat[15] = 0.0
-    else:
-        #(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)
-        m.mat[0]  = 2.0/(right-left)
-        m.mat[4]  = 0.0
-        m.mat[8]  = 0.0
-        m.mat[12] = (right+left)/(left-right)
-        m.mat[1]  = 0.0
-        m.mat[5]  = 2.0/(top-bottom)
-        m.mat[9]  = 0.0
-        m.mat[13] = (top+bottom)/(bottom-top)
-        m.mat[2]  = 0.0
-        m.mat[6]  = 0.0
-        m.mat[10] = 2.0/(far-near)
-        m.mat[14] = (far+near)/(near-far)
-        m.mat[3]  = 0.0
-        m.mat[7]  = 0.0
-        m.mat[11] = 0.0
-        m.mat[15] = 1.0
-    return m
-
-cpdef tuple matrix_transform_point(Matrix m, double x, double y, double z):
-    cdef double tx, ty, tz
-    tx = x * m.mat[0] + y * m.mat[4] + z * m.mat[ 8] + m.mat[12];
-    ty = x * m.mat[1] + y * m.mat[5] + z * m.mat[ 9] + m.mat[13];
-    tz = x * m.mat[2] + y * m.mat[6] + z * m.mat[10] + m.mat[14];
-    return (tx, ty, tz)

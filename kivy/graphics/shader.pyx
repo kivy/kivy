@@ -94,7 +94,7 @@ cdef class Shader:
                 elif vec_size == 4:
                     glUniform4i(loc, value[0], value[1], value[2], value[3])
         else:
-            raise Exception('type not handled <%s>' % val_type)
+            raise Exception('for <%s>, type not handled <%s>' % (name, val_type))
 
 
     cdef upload_uniform_matrix(self, str name, Matrix value):

@@ -16,9 +16,7 @@ from kivy.properties import BooleanProperty, AliasProperty, \
         NumericProperty, ObjectProperty
 from kivy.vector import Vector
 from kivy.uix.widget import Widget
-from kivy.graphics.transformation import matrix_multiply, matrix_identity, \
-        matrix_translation, matrix_rotation, matrix_scale, matrix_inverse, \
-        matrix_transform_point
+from kivy.graphics.transformation import Matrix
 
 class Scatter(Widget):
     '''Scatter implementation as a Widget.
@@ -82,14 +80,14 @@ class Scatter(Widget):
     1e20
     '''
 
-    transform = ObjectProperty(matrix_identity())
+    transform = ObjectProperty(Matrix())
     '''Transformation matrix
 
     :data:`transform` is a :class:`~kivy.properties.ObjectProperty`, default to
     the identity matrix.
     '''
 
-    transform_inv = ObjectProperty(matrix_identity())
+    transform_inv = ObjectProperty(Matrix())
     '''Inverse of the transformation matrix
 
     :data:`transform_inv` is a :class:`~kivy.properties.ObjectProperty`, default
@@ -125,7 +123,7 @@ class Scatter(Widget):
         return -1.0 *(v1.angle(v2) + 180) % 360
     def _set_rotation(self, rotation):
         angle_change = self.rotation - rotation
-        r = matrix_rotation(-radians(angle_change), 0, 0, 1)
+        r = Matrix().rotate(-radians(angle_change), 0, 0, 1)
         self.apply_transform(r, post_multiply=True, anchor=self.to_local(*self.center))
     rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
         'x', 'y', 'transform'))
@@ -141,7 +139,7 @@ class Scatter(Widget):
         return float(scale)
     def _set_scale(self, scale):
         rescale = scale * 1.0 / self.scale
-        self.apply_transform(matrix_scale(rescale, rescale, rescale),
+        self.apply_transform(Matrix().scale(rescale, rescale, rescale),
                              post_multiply=True, anchor=self.to_local(*self.center))
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
     '''Scale value of the scatter
@@ -156,7 +154,7 @@ class Scatter(Widget):
         if center == self.center:
             return False
         t = Vector(*center) - self.center
-        trans = matrix_translation(t.x, t.y, 0)
+        trans = Matrix().translate(t.x, t.y, 0)
         self.apply_transform(trans)
     center = AliasProperty(_get_center, _set_center, bind=('bbox', ))
 
@@ -167,7 +165,7 @@ class Scatter(Widget):
         if pos == _pos:
             return
         t = Vector(*pos) - _pos
-        trans = matrix_translation(t.x, t.y, 0)
+        trans = Matrix().translate(t.x, t.y, 0)
         self.apply_transform(trans)
     pos = AliasProperty(_get_pos, _set_pos, bind=('bbox', ))
 
@@ -195,18 +193,18 @@ class Scatter(Widget):
         super(Scatter, self).__init__(**kwargs)
 
     def on_transform(self, instance, value):
-        self.transform_inv = matrix_inverse(value)
+        self.transform_inv = value.inverse()
 
     def collide_point(self, x, y):
         x, y = self.to_local(x, y)
         return 0 <= x <= self.width and 0 <= y <= self.height
 
     def to_parent(self, x, y, **k):
-        p = matrix_transform_point(self.transform, x, y, 0)
+        p = self.transform.transform_point(x, y, 0)
         return (p[0], p[1])
 
     def to_local(self, x, y, **k):
-        p = matrix_transform_point(self.transform_inv, x, y, 0)
+        p = self.transform_inv.transform_point(x, y, 0)
         return (p[0], p[1])
 
     def apply_angle_scale_trans(self, angle, scale, trans, point=Vector(0, 0)):
@@ -227,15 +225,15 @@ class Scatter(Widget):
         if new_scale < self.scale_min or old_scale > self.scale_max:
             scale = 1.
 
-        t = matrix_translation(
+        t = Matrix().translate(
             trans[0] * self.do_translation_x,
             trans[1] * self.do_translation_y,
             0
         )
-        t = matrix_multiply(t, matrix_translation(point[0], point[1], 0))
-        t = matrix_multiply(t, matrix_rotation(angle, 0, 0, 1))
-        t = matrix_multiply(t, matrix_scale(scale, scale, scale))
-        t = matrix_multiply(t, matrix_translation(-point[0], -point[1], 0))
+        t = t.multiply(Matrix().translate(point[0], point[1], 0))
+        t = t.multiply(Matrix().rotate(angle, 0, 0, 1))
+        t = t.multiply(Matrix().scale(scale, scale, scale))
+        t = t.multiply(Matrix().translate(-point[0], -point[1], 0))
         self.apply_transform(t)
 
     def apply_transform(self, trans, post_multiply=False, anchor=(0, 0)):
@@ -252,14 +250,14 @@ class Scatter(Widget):
                 If true the transform matrix is post multiplied
                 (as if applied before the current transform)
         '''
-        t = matrix_translation(anchor[0], anchor[1], 0)
-        t = matrix_multiply(t, trans)
-        t = matrix_multiply(t, matrix_translation(-anchor[0], -anchor[1], 0))
+        t = Matrix().translate(anchor[0], anchor[1], 0)
+        t = t.multiply(trans)
+        t = t.multiply(Matrix().translate(-anchor[0], -anchor[1], 0))
 
         if post_multiply:
-            self.transform = matrix_multiply(self.transform, t)
+            self.transform = self.transform.multiply(t)
         else:
-            self.transform = matrix_multiply(t, self.transform)
+            self.transform = t.multiply(self.transform)
 
     def transform_with_touch(self, touch):
         # just do a simple one finger drag
@@ -267,7 +265,7 @@ class Scatter(Widget):
             # _last_touch_pos has last pos in correct parent space, just liek incoming touch
             dx = (touch.x - self._last_touch_pos[touch][0]) * self.do_translation_x
             dy = (touch.y - self._last_touch_pos[touch][1]) * self.do_translation_y
-            self.apply_transform(matrix_translation(dx, dy, 0))
+            self.apply_transform(Matrix().translate(dx, dy, 0))
             return
 
         # we have more than one touch...
@@ -295,8 +293,8 @@ class Scatter(Widget):
         if new_scale < self.scale_min or new_scale > self.scale_max:
             scale = 1.0
 
-        self.apply_transform(matrix_rotation(angle, 0, 0, 1), anchor=anchor)
-        self.apply_transform(matrix_scale(scale, scale, scale), anchor=anchor)
+        self.apply_transform(Matrix().rotate(angle, 0, 0, 1), anchor=anchor)
+        self.apply_transform(Matrix().scale(scale, scale, scale), anchor=anchor)
 
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y

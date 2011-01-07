@@ -282,7 +282,7 @@ from vertex cimport *
 from os.path import join
 from kivy import kivy_shader_dir
 from kivy.core.image import Image
-from kivy.graphics.transformation cimport matrix_identity
+from kivy.graphics.transformation cimport Matrix
 
 cdef class RenderContext(Canvas):
     '''The render context store all the necessary information for drawing, aka:
@@ -307,8 +307,8 @@ cdef class RenderContext(Canvas):
             'texture0' : [0],
             'linewidth': [1.0],
             'color'    : [[1.0,1.0,1.0,1.0]],
-            'projection_mat': [matrix_identity()],
-            'modelview_mat' : [matrix_identity()],
+            'projection_mat': [Matrix()],
+            'modelview_mat' : [Matrix()],
         }
 
         self.shader.use()

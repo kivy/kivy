@@ -183,10 +183,10 @@ cdef class MatrixInstruction(ContextInstruction):
         cdef RenderContext context = self.get_context()
         cdef Matrix mvm
         mvm = context.get_state('modelview_mat')
-        context.set_state('modelview_mat', matrix_multiply(self.matrix, mvm))
+        context.set_state('modelview_mat', self.matrix.multiply(mvm))
 
     property matrix:
-        ''' Matrix property. Matrix from transformation module
+        ''' Matrix property. Numpy matrix from transformation module
         setting the matrix using this porperty when a change is made
         is important, becasue it will notify the context about the update
         '''
@@ -203,28 +203,28 @@ cdef class Transform(MatrixInstruction):
     cpdef transform(self, Matrix trans):
         '''Multiply the instructions matrix by trans
         '''
-        self.matrix = matrix_multiply(self.matrix, trans)
+        self.matrix = self.matrix.multiply(trans)
 
     cpdef translate(self, float tx, float ty, float tz):
         '''Translate the instrcutions transformation by tx, ty, tz
         '''
-        self.transform( matrix_translation(tx, ty, tz) )
+        self.transform( Matrix().translate(tx, ty, tz) )
 
     cpdef rotate(self, float angle, float ax, float ay, float az):
         '''Rotate the transformation by matrix by angle degress around the
         axis defined by the vector ax, ay, az
         '''
-        self.transform( matrix_rotation(angle, ax, ay, az) )
+        self.transform( Matrix().rotate(angle, ax, ay, az) )
 
     cpdef scale(self, float s):
         '''Applies a uniform scaling of s to the matrix transformation
         '''
-        self.transform( matrix_scale(s, s, s) )
+        self.transform( Matrix().scale(s, s, s) )
 
     cpdef identity(self):
         '''Resets the transformation to the identity matrix
         '''
-        self.matrix = matrix_identity()
+        self.matrix = Matrix()
 
 
 
@@ -251,7 +251,7 @@ cdef class Rotate(Transform):
         '''
         self._angle = radians(angle)
         self._axis = (ax, ay, az)
-        self.matrix = matrix_rotation(self._angle, ax, ay, az)
+        self.matrix = Matrix().rotate(self._angle, ax, ay, az)
 
     property angle:
         '''Property for getting/settings the angle of the rotation
@@ -280,7 +280,7 @@ cdef class Scale(Transform):
         Transform.__init__(self)
         if len(args) == 1:
             self.s = s = args[0]
-            self.matrix = matrix_scale(s, s, s)
+            self.matrix = Matrix().scale(s, s, s)
 
     property scale:
         '''Property for getting/setting the scale.
@@ -291,7 +291,7 @@ cdef class Scale(Transform):
             return self.s
         def __set__(self, s):
             self.s = s
-            self.matrix = matrix_scale(s, s, s)
+            self.matrix = Matrix().scale(s, s, s)
 
 
 cdef class Translate(Transform):
@@ -302,10 +302,10 @@ cdef class Translate(Transform):
         Transform.__init__(self)
         if len(args) == 3:
             x, y, z = args
-            self.matrix = matrix_translation(x, y, z)
+            self.matrix = Matrix().translate(x, y, z)
 
     def set_translate(self, x, y, z):
-        self.matrix = matrix_translation(x, y, z)
+        self.matrix = Matrix().translate(x, y, z)
 
     property x:
         '''Property for getting/setting the translation on X axis
