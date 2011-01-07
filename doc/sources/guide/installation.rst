@@ -9,8 +9,8 @@ existing, high-qualitative third-party libraries where possible.
 For the rich set of features that Kivy offers, several other libraries are
 required. If you do not use a specific feature (e.g. video playback) you
 don't need the corresponding dependency, however.
-That said, there are two dependencies that Kivy **does** require:
-`Cython <http://cython.org>`_ and `Numpy <http://numpy.scipy.org/>`_.
+That said, there are one dependency that Kivy **does** require:
+`Cython <http://cython.org>`_.
 In addition, you need a `Python <http://python.org/>`_ 2.x (**not**  3.x)
 interpreter. If you want to enable features like windowing (i.e., open a Window),
 audio/video playback or spelling correction, you must install other
@@ -44,7 +44,7 @@ Ubuntu
 ::
 
     $ sudo apt-get install sudo apt-get install python-setuptools python-pygame python-opengl \
-      python-numpy python-gst0.10 python-enchant gstreamer0.10-plugins-good cython python-dev \
+      python-gst0.10 python-enchant gstreamer0.10-plugins-good cython python-dev \
       build-essential libgl1-mesa-dev libglu1-mesa-dev
     $ git checkout git://github.com/tito/kivy.git
     $ cd kivy
