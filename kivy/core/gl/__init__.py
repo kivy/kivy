@@ -11,9 +11,7 @@ from os import environ
 
 from kivy.config import Config
 from kivy.logger import Logger
-import OpenGL
-from OpenGL.GL import *
-from OpenGL.GLU import *
+from kivy.graphics.opengl import *
 
 def print_gl_version():
     version = glGetString(GL_VERSION)

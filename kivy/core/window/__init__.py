@@ -248,7 +248,7 @@ class WindowBase(EventDispatcher):
     def clear(self):
         '''Clear the window with background color'''
         # XXX FIXME use late binding
-        from kivy.core.gl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, \
+        from kivy.graphics.opengl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, \
             GL_DEPTH_BUFFER_BIT
         glClearColor(0, 0, 0, 0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -301,7 +301,7 @@ class WindowBase(EventDispatcher):
         self.update_viewport()
 
     def update_viewport(self):
-        from kivy.core.gl import glViewport
+        from kivy.graphics.opengl import glViewport
         from kivy.graphics.transformation import Matrix
 
         width, height = self.system_size

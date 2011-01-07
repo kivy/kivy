@@ -105,6 +105,7 @@ class WindowPygame(WindowBase):
                 Logger.warning('WinPygame: Video setup failed :-(')
                 raise
 
+        '''
         if multisamples:
             # XXX FIXME
             from kivy.core.gl import glEnable, GL_MULTISAMPLE_ARB
@@ -112,6 +113,7 @@ class WindowPygame(WindowBase):
                 glEnable(GL_MULTISAMPLE_ARB)
             except Exception:
                 pass
+        '''
 
         super(WindowPygame, self).create_window(params)
 
