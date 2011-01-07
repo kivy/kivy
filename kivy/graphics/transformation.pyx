@@ -117,6 +117,7 @@ cdef class Matrix:
                              double near, double far, int perspective):
         '''Create a clip matrix (inplace)
         '''
+        cdef double t
         if left >= right or bottom >= top or near >= far:
             raise ValueError('invalid frustrum')
         if perspective:
