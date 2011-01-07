@@ -99,37 +99,9 @@ cdef class Shader:
 
     cdef upload_uniform_matrix(self, str name, Matrix value):
         cdef int loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
-
-        #
-        # We have translate the matrix same as the numpy one.
-        # but the translation to flatten is not ordered one :
-        # If a matrix is : 
-        # (( 0,  1,  2,  3),
-        #  ( 4,  5,  6,  7),
-        #  ( 8,  9, 10, 11),
-        #  (12, 13, 14, 15))
-        # The flatten matrix will be :
-        # (0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)
-        #
-        # So, do we need to correct the matrix operation ?
-        #
         cdef GLfloat mat[16]
-        mat[0] = <GLfloat>value.mat[0]
-        mat[1] = <GLfloat>value.mat[4]
-        mat[2] = <GLfloat>value.mat[8]
-        mat[3] = <GLfloat>value.mat[12]
-        mat[4] = <GLfloat>value.mat[1]
-        mat[5] = <GLfloat>value.mat[5]
-        mat[6] = <GLfloat>value.mat[9]
-        mat[7] = <GLfloat>value.mat[13]
-        mat[8] = <GLfloat>value.mat[2]
-        mat[9] = <GLfloat>value.mat[6]
-        mat[10] = <GLfloat>value.mat[10]
-        mat[11] = <GLfloat>value.mat[14]
-        mat[12] = <GLfloat>value.mat[3]
-        mat[13] = <GLfloat>value.mat[7]
-        mat[14] = <GLfloat>value.mat[11]
-        mat[15] = <GLfloat>value.mat[15]
+        for x in xrange(16):
+            mat[x] = <GLfloat>value.mat[x]
         glUniformMatrix4fv(loc, 1, False, mat)
 
 

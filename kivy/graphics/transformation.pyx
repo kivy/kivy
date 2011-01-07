@@ -97,9 +97,9 @@ cpdef Matrix matrix_scale(double x, double y, double z):
 
 cpdef Matrix matrix_translation(double x, double y, double z):
     cdef Matrix m = matrix_identity()
-    m.mat[3] = x
-    m.mat[7] = y
-    m.mat[11] = z
+    m.mat[12] = x
+    m.mat[13] = y
+    m.mat[14] = z
     return m
 
 cpdef Matrix matrix_rotation(double angle, double x, double y, double z):
@@ -159,38 +159,39 @@ cpdef Matrix matrix_clip(double left, double right, double bottom, double top,
         if near <= _EPS:
             raise ValueError('invalid frustrum: near <= 0')
         t = 2.0 * near
-        m.mat[0] = -t/(right-left)
-        m.mat[1] = 0.0
-        m.mat[2] = (right+left)/(right-left)
-        m.mat[3] = 0.0
-        m.mat[4] = 0.0
-        m.mat[5] = -t/(top-bottom)
-        m.mat[6] = (top+bottom)/(top-bottom)
-        m.mat[7] = 0.0
-        m.mat[8] = 0.0
-        m.mat[9] = 0.0
-        m.mat[10] = -(far+near)/(far-near)
-        m.mat[11] = t*far/(far-near)
+        m.mat[0]  = -t/(right-left)
+        m.mat[4]  = 0.0
+        m.mat[8]  = (right+left)/(right-left)
         m.mat[12] = 0.0
+        m.mat[1]  = 0.0
+        m.mat[5]  = -t/(top-bottom)
+        m.mat[9]  = (top+bottom)/(top-bottom)
         m.mat[13] = 0.0
-        m.mat[14] = -1.0
+        m.mat[2]  = 0.0
+        m.mat[6]  = 0.0
+        m.mat[10] = -(far+near)/(far-near)
+        m.mat[14] = t*far/(far-near)
+        m.mat[3]  = 0.0
+        m.mat[7]  = 0.0
+        m.mat[11] = -1.0
         m.mat[15] = 0.0
     else:
-        m.mat[0] = 2.0/(right-left)
-        m.mat[1] = 0.0
-        m.mat[2] = 0.0
-        m.mat[3] = (right+left)/(left-right)
-        m.mat[4] = 0.0
-        m.mat[5] = 2.0/(top-bottom)
-        m.mat[6] = 0.0
-        m.mat[7] = (top+bottom)/(bottom-top)
-        m.mat[8] = 0.0
-        m.mat[9] = 0.0
+        #(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)
+        m.mat[0]  = 2.0/(right-left)
+        m.mat[4]  = 0.0
+        m.mat[8]  = 0.0
+        m.mat[12] = (right+left)/(left-right)
+        m.mat[1]  = 0.0
+        m.mat[5]  = 2.0/(top-bottom)
+        m.mat[9]  = 0.0
+        m.mat[13] = (top+bottom)/(bottom-top)
+        m.mat[2]  = 0.0
+        m.mat[6]  = 0.0
         m.mat[10] = 2.0/(far-near)
-        m.mat[11] = (far+near)/(near-far)
-        m.mat[12] = 0.0
-        m.mat[13] = 0.0
-        m.mat[14] = 0.0
+        m.mat[14] = (far+near)/(near-far)
+        m.mat[3]  = 0.0
+        m.mat[7]  = 0.0
+        m.mat[11] = 0.0
         m.mat[15] = 1.0
     return m
 

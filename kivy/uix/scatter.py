@@ -17,7 +17,8 @@ from kivy.properties import BooleanProperty, AliasProperty, \
 from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.graphics.transformation import matrix_multiply, matrix_identity, \
-        matrix_translation, matrix_rotation, matrix_scale, matrix_inverse
+        matrix_translation, matrix_rotation, matrix_scale, matrix_inverse, \
+        matrix_transform_point
 
 class Scatter(Widget):
     '''Scatter implementation as a Widget.
@@ -201,11 +202,11 @@ class Scatter(Widget):
         return 0 <= x <= self.width and 0 <= y <= self.height
 
     def to_parent(self, x, y, **k):
-        p = matrix_multiply(self.transform, (x, y, 0, 1))
+        p = matrix_transform_point(self.transform, x, y, 0)
         return (p[0], p[1])
 
     def to_local(self, x, y, **k):
-        p = matrix_multiply(self.transform_inv, (x, y, 0, 1))
+        p = matrix_transform_point(self.transform_inv, x, y, 0)
         return (p[0], p[1])
 
     def apply_angle_scale_trans(self, angle, scale, trans, point=Vector(0, 0)):
@@ -251,9 +252,9 @@ class Scatter(Widget):
                 If true the transform matrix is post multiplied
                 (as if applied before the current transform)
         '''
-        t = matrix_translation( anchor[0], anchor[1], 0 )
+        t = matrix_translation(anchor[0], anchor[1], 0)
         t = matrix_multiply(t, trans)
-        t = matrix_multiply(t, matrix_translation( (-anchor[0], -anchor[1], 0) ))
+        t = matrix_multiply(t, matrix_translation(-anchor[0], -anchor[1], 0))
 
         if post_multiply:
             self.transform = matrix_multiply(self.transform, t)
@@ -332,7 +333,7 @@ class Scatter(Widget):
 
         # rotate/scale/translate
         if touch in self._touches and touch.grab_current == self:
-            self.transform_with_touch (touch)
+            self.transform_with_touch(touch)
             self._last_touch_pos[touch] = touch.pos
 
         # stop porpagating if its within our bounds
