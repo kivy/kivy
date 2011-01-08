@@ -2,9 +2,10 @@
 Kivy language
 =============
 
-One level = 4 spaces. No more, no less. Tab not allowed.
+One level of indentation is exactly 4 spaces. No more, no less.
+Tabs are not allowed.
 
-Example of Kivy files ::
+Example Kivy file ::
 
     #:kivy 1.0
 
@@ -56,7 +57,7 @@ class ParserError(Exception):
 
 
 class Parser(object):
-    '''Create an Parser object to parse a Kivy file or Kivy content.
+    '''Create a Parser object to parse a Kivy file or Kivy content.
     '''
 
     CLASS_RANGE = range(ord('A'), ord('Z') + 1)
@@ -83,10 +84,11 @@ class Parser(object):
         lines = content.splitlines()
         if not lines:
             return
-        lines = zip(range(len(lines)), lines)
+        num_lines = len(lines)
+        lines = zip(range(num_lines), lines)
         self.sourcecode = lines[:]
 
-        trace('Parser: parse %d lines' % len(lines))
+        trace('Parser: parsing %d lines' % num_lines)
 
         # Ensure the version
         if self.filename:
@@ -96,14 +98,15 @@ class Parser(object):
         self.strip_comments(lines)
 
         # Get object from the first level
-        objects, lines = self.parse_level(0, lines)
+        objects, remaining_lines = self.parse_level(0, lines)
 
-        if len(lines):
-            ln, content = lines[0]
+        # After parsing, there should be no remaining lines
+        # or there's an error we did not catch earlier.
+        if remaining_lines:
+            ln, content = remaining_lines[0]
             raise ParserError(self, ln, 'Invalid data (not parsed)')
 
         self.objects = objects
-
 
     def parse_version(self, line):
         '''Parse the version line.

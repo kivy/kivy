@@ -124,7 +124,7 @@ class Widget(EventDispatcher):
                 Name of the property
         
         The class of the property cannot be specified, it will be always an
-        :class:`~kivy.properties.ObjectProperty` class.The default value of the
+        :class:`~kivy.properties.ObjectProperty` class. The default value of the
         property will be None, until you set a new value.
 
         >>> mywidget = Widget()

@@ -2,8 +2,8 @@
 OpenGL
 ======
 
-Select and use the best OpenGL library available. Depending of your system, the
-core provider can select an OpenGL ES or classical OpenGL library.
+Select and use the best OpenGL library available. Depending on your system, the
+core provider can select an OpenGL ES or a 'classic' desktop OpenGL library.
 '''
 
 # Right now, only PyOpenGL
