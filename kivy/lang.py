@@ -80,7 +80,7 @@ class Parser(object):
         of root objects.
         '''
         # Read and parse the lines of the file
-        lines = content.split('\n')
+        lines = content.splitlines()
         if not lines:
             return
         lines = zip(range(len(lines)), lines)
