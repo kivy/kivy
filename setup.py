@@ -89,7 +89,7 @@ if True:
         include_dirs += ['/usr/local/include']
         extra_link_args += ['-L', '/usr/local/lib']
     else:
-        libraries.append('GL')
+        libraries.append('GLESv2')
 
     # simple extensions
     for pyx in (x for x in pyx_files if not 'graphics' in x):

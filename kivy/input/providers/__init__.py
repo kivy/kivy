@@ -41,3 +41,7 @@ if sys.platform == 'linux2' or 'KIVY_DOC' in os.environ:
         from kivy.input.providers.linuxwacom import *
     except:
         Logger.exception('Input: LinuxWacom is not supported by your version of linux')
+    try:
+        from kivy.input.providers.androidjoystick import *
+    except:
+        Logger.exception('Input: AndroidJoystick is not supported by your version of linux')

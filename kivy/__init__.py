@@ -132,6 +132,12 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
 
     # Configuration management
     user_home_dir = os.path.expanduser('~')
+    try:
+        import android
+        if user_home_dir == '/data':
+            user_home_dir = '/sdcard'
+    except ImportError:
+        pass
     kivy_home_dir = os.path.join(user_home_dir, '.kivy')
     kivy_config_fn = os.path.join(kivy_home_dir, 'config')
     if not os.path.exists(kivy_home_dir):

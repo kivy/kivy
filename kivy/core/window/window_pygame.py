@@ -124,6 +124,14 @@ class WindowPygame(WindowBase):
         # set rotation
         self.rotation = params['rotation']
 
+        # if we are on android platform, automaticly create hooks
+        try:
+            import android
+            from kivy.support import install_android
+            install_android()
+        except ImportError:
+            pass
+
     def close(self):
         pygame.display.quit()
 
@@ -202,9 +210,11 @@ class WindowPygame(WindowBase):
             elif event.type in (pygame.ACTIVEEVENT, pygame.VIDEOEXPOSE):
                 pass
 
+            '''
             # unhandled event !
             else:
                 Logger.debug('WinPygame: Unhandled event %s' % str(event))
+            '''
 
     def mainloop(self):
         # don't known why, but pygame required a resize event
