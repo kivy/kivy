@@ -25,7 +25,6 @@ __version__ = '0.6-dev'
 import sys
 import getopt
 import os
-import shutil
 from kivy.logger import Logger, LOG_LEVELS
 
 # internals for post-configuration
