@@ -10,10 +10,14 @@ texture, and use your fbo as a texture for another drawing.
 
 __all__ = ('Fbo',)
 
+include "config.pxi"
+
 import kivy
 from kivy import Logger
 
 from c_opengl cimport *
+IF USE_OPENGL_DEBUG == 1:
+    from c_opengl_debug cimport *
 from instructions cimport RenderContext, Canvas
 
 cdef class Fbo(RenderContext):

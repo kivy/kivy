@@ -10,11 +10,15 @@ This module include all the classes for drawing simple vertex object.
 __all__ = ('Triangle', 'Quad','Rectangle', 'BorderImage', 'Ellipse')
 
 
+include "config.pxi"
 include "common.pxi"
+
 from vbo cimport *
 from vertex cimport *
 from instructions cimport *
 from c_opengl cimport *
+IF USE_OPENGL_DEBUG == 1:
+    from c_opengl_debug cimport *
 from kivy.logger import Logger
 
 cdef class Triangle(VertexInstruction):

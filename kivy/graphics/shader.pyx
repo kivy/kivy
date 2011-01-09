@@ -12,8 +12,12 @@ shader, and the creation of the program in OpenGL.
 '''
 __all__ = ('Shader', )
 
+include "config.pxi"
 include "common.pxi"
+
 from c_opengl cimport *
+IF USE_OPENGL_DEBUG == 1:
+    from c_opengl_debug cimport *
 
 from kivy.graphics.transformation cimport Matrix
 from kivy.logger import Logger
@@ -134,7 +138,7 @@ cdef class Shader:
 
     cdef compile_shader(self, char* source, shadertype):
         shader = glCreateShader(shadertype)
-        glShaderSource(shader, 1, <GLchar**> &source, NULL)
+        glShaderSource(shader, 1, <char**> &source, NULL)
         glCompileShader(shader)
         return shader
 
@@ -165,8 +169,9 @@ cdef class Shader:
 
 
     cdef process_message(self, str ctype, str message):
-        if message:
-            Logger.error('Shader: %s: %s' % (ctype, message))
+        message = message.strip()
+        if message and message != 'Success.':
+            Logger.error('Shader: %s: <%s>' % (ctype, message))
             raise Exception(message)
         else:
             Logger.debug('Shader: %s compiled successfully' % ctype)
