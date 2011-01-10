@@ -275,8 +275,9 @@ class Widget(EventDispatcher):
         '''
         if widget not in self.children:
             return
-        self.children = self.children.remove(widget)
-        self.canvas.remove_canvas(widget.canvas)
+        self.children.remove(widget)
+        self.children = self.children[:]
+        self.canvas.remove(widget.canvas)
         widget.parent = None
 
     def get_root_window(self):

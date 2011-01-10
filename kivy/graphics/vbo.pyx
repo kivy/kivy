@@ -8,10 +8,13 @@ OpenGL.
 
 __all__ = ('VBO', )
 
+include "config.pxi"
 include "common.pxi"
 
 from buffer cimport Buffer
 from c_opengl cimport *
+IF USE_OPENGL_DEBUG == 1:
+    from c_opengl_debug cimport *
 from vertex cimport *
 from kivy.logger import Logger
 

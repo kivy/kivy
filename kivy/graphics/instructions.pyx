@@ -230,6 +230,11 @@ cdef class Canvas(CanvasBase):
             self.children.insert(-1, c)
         self.flag_update()
 
+    cpdef remove(self, Instruction c):
+        #c.parent = None
+        self.children.remove(c)
+        self.flag_update()
+
     property before:
         '''Property for getting the before group.
         '''
