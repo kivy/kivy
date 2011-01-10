@@ -30,7 +30,8 @@ Save it as `myapp.py` and run it with your Python interpreter ::
 
     $ python myapp.py
 
-You should see a black window open. That's all.
+A window should open, showing a sole button (with the label 'Hello World') that
+covers the entire window's area. That's all there is to it.
 
 So what did that code do ?
 
