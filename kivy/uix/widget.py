@@ -124,7 +124,7 @@ class Widget(EventDispatcher):
                 Name of the property
         
         The class of the property cannot be specified, it will be always an
-        :class:`~kivy.properties.ObjectProperty` class.The default value of the
+        :class:`~kivy.properties.ObjectProperty` class. The default value of the
         property will be None, until you set a new value.
 
         >>> mywidget = Widget()
@@ -275,8 +275,9 @@ class Widget(EventDispatcher):
         '''
         if widget not in self.children:
             return
-        self.children = self.children.remove(widget)
-        self.canvas.remove_canvas(widget.canvas)
+        self.children.remove(widget)
+        self.children = self.children[:]
+        self.canvas.remove(widget.canvas)
         widget.parent = None
 
     def get_root_window(self):

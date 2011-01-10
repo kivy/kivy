@@ -8,21 +8,16 @@ the OpenGL API :).
 
 __all__ = ('Texture', 'TextureRegion')
 
+include "config.pxi"
+
 import os
 import re
 from array import array
 from kivy import Logger
 from buffer cimport Buffer
 from c_opengl cimport *
-'''GL_RGBA, GL_UNSIGNED_BYTE, GL_TEXTURE_MIN_FILTER, \
-        GL_TEXTURE_MAG_FILTER, GL_TEXTURE_WRAP_T, GL_TEXTURE_WRAP_S, \
-        GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_RECTANGLE_ARB, \
-        GL_CLAMP_TO_EDGE, GL_LINEAR_MIPMAP_LINEAR, GL_GENERATE_MIPMAP, \
-        GL_TRUE, GL_LINEAR, GL_UNPACK_ALIGNMENT, GL_BGR, GL_BGRA, GL_RGB, \
-        glEnable, glDisable, glBindTexture, glTexParameteri, glTexImage2D, \
-        glTexSubImage2D, glFlush, glGenTextures, glDeleteTextures, \
-        GLubyte, glPixelStorei, GL_LUMINANCE, GLuint
-'''
+IF USE_OPENGL_DEBUG == 1:
+    from c_opengl_debug cimport *
 
 # XXX move missing symbol in c_opengl
 # utilities

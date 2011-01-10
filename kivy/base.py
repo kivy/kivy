@@ -259,6 +259,7 @@ class EventLoopBase(object):
         * read all input and dispatch event
         * dispatch on_update + on_draw + on_flip on window
         '''
+
         # update dt
         Clock.tick()
 

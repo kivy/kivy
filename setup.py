@@ -49,7 +49,7 @@ try:
 except:
     have_cython = False
 
-# create .c for every module in c_ext
+# create .c for every module
 if 'sdist' in sys.argv and have_cython:
     from Cython.Compiler.Main import compile
     print 'Generating C files...',
@@ -59,6 +59,10 @@ if 'sdist' in sys.argv and have_cython:
 #add cython core extension modules if cython is available
 if have_cython:
     cmdclass['build_ext'] = build_ext
+else:
+    pyx_files = ['%s.c' % x[:-4] for x in pyx_files]
+
+if True:
     libraries = []
     include_dirs = []
     extra_link_args = []
@@ -89,12 +93,12 @@ if have_cython:
 
     # simple extensions
     for pyx in (x for x in pyx_files if not 'graphics' in x):
-        module_name = pyx[:-4].replace(sep, '.')
+        module_name = '.'.join(pyx.split('.')[:-1]).replace(sep, '.')
         ext_modules.append(Extension(module_name, [pyx]))
 
     # opengl aware modules
     for pyx in (x for x in pyx_files if 'graphics' in x):
-        module_name = pyx[:-4].replace(sep, '.')
+        module_name = '.'.join(pyx.split('.')[:-1]).replace(sep, '.')
         ext_modules.append(Extension(
             module_name, [pyx],
             libraries=libraries,
@@ -150,7 +154,6 @@ setup(
     test_suite='nose.collector',
     packages=[
         'kivy',
-        'kivy.c_ext',
         'kivy.core',
         'kivy.core.audio',
         'kivy.core.camera',
@@ -177,9 +180,12 @@ setup(
     ],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
-        'data/*.css',
-        'data/*.png',
-        'data/*.ttf',
+        'data/*.kv',
+        'data/fonts/*.ttf',
+        'data/images/*.png',
+        'data/glsl/*.png',
+        'data/glsl/*.vs',
+        'data/glsl/*.fs',
         'tools/packaging/README.txt',
         'tools/packaging/win32/kivy.bat',
         'tools/packaging/win32/README.txt',

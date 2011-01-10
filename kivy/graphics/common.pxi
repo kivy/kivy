@@ -1,3 +1,6 @@
+#
+# Common definition
+#
 
 from c_opengl cimport GLfloat, GL_FLOAT
 
