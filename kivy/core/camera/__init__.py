@@ -8,7 +8,6 @@ Core class for acquiring the camera, and convert the input to a
 
 __all__ = ('CameraBase', 'Camera')
 
-from kivy.core.gl import GL_RGB
 from kivy.logger import Logger
 from kivy.core import core_select_lib
 
@@ -30,6 +29,9 @@ class CameraBase(object):
     '''
 
     def __init__(self, **kwargs):
+        # remove this part.
+        from kivy.core.gl import GL_RGB
+
         kwargs.setdefault('stopped', False)
         kwargs.setdefault('resolution', (640, 480))
         kwargs.setdefault('video_src', 0)
