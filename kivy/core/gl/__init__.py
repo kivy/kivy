@@ -9,7 +9,7 @@ core provider can select an OpenGL ES or a 'classic' desktop OpenGL library.
 # Right now, only PyOpenGL
 from os import environ
 
-if 'KIVY_DOC_INCLUDE' not in environ:
+if 'KIVY_DOC' not in environ:
 
     from kivy.config import Config
     from kivy.logger import Logger
