@@ -7,7 +7,7 @@ Vertex Instructions
 This module include all the classes for drawing simple vertex object.
 '''
 
-__all__ = ('Triangle', 'Quad','Rectangle', 'BorderImage', 'Ellipse')
+__all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse')
 
 
 include "config.pxi"

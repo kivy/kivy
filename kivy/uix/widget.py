@@ -280,6 +280,13 @@ class Widget(EventDispatcher):
         self.canvas.remove(widget.canvas)
         widget.parent = None
 
+    def clear_widgets(self):
+        '''Remove all widgets added to the widget.
+        '''
+        remove_widget = self.remove_widget
+        for child in self.children[:]:
+            remove_widget(child)
+
     def get_root_window(self):
         '''Return the root window
 

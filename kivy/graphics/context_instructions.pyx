@@ -17,6 +17,7 @@ __all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
 from instructions cimport *
 from transformation cimport *
 
+from kivy.cache import Cache
 from kivy.resources import resource_find
 from kivy.core.image import Image
 from kivy.logger import Logger
@@ -30,6 +31,8 @@ cdef object get_default_texture():
         DEFAULT_TEXTURE = Image(join(kivy_shader_dir, 'default.png')).texture
     return DEFAULT_TEXTURE
 
+# register Image cache
+Cache.register('kv.texture', timeout=60)
 
 cdef class LineWidth(ContextInstruction):
     '''Instruction to set the line width of the drawing context
@@ -93,9 +96,6 @@ cdef class Color(ContextInstruction):
             self.rgba = [self.r, self.g, self.b, a]
 
 
-
-
-
 cdef class BindTexture(ContextInstruction):
     '''BindTexture Graphic instruction.
     The BindTexture Instruction will bind a texture and enable
@@ -108,21 +108,15 @@ cdef class BindTexture(ContextInstruction):
     def __init__(self, **kwargs):
         ContextInstruction.__init__(self)
         if 'source' in kwargs and 'texture' in kwargs:
-            Logger.warn("BindTexture:  both source and texture   \
-                         specified in kwargs! settign source will \
-                         will overwrite texture property")
+            Logger.warn('BindTexture: both source and texture specified '
+                        'in kwargs! Settings source will overwrite'
+                        'texture property')
 
         self.source = kwargs.get('source', None)
         if self.source == None:
-            Logger.warn("setting texture")
             self.texture = kwargs.get('texture', None)
 
-        Logger.warn("done %s" % kwargs)
-        Logger.warn("done nitializing texture binding %s, %s", self.source, self.texture)
-
     cdef apply(self):
-
-        #Logger.trace('BindTexture: binding <%s> %s' % (str(self.texture), self.texture.target))
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(self._texture.target, self._texture.id)
 
@@ -140,13 +134,14 @@ cdef class BindTexture(ContextInstruction):
         def __get__(self):
             return self._source
         def __set__(self, bytes filename):
-            #if not filename:
-            #    self._source = None
-            #    self.texture = None
             Logger.trace('BindTexture: setting source: <%s>' % filename)
             self._source = resource_find(filename)
             if self._source:
-                self.texture = Image(self._source).texture
+                tex = Cache.get('kv.texture', filename)
+                if not tex:
+                    tex = Image(self._source).texture
+                    Cache.append('kv.texture', filename, tex)
+                self.texture = tex
             else:
                 self.texture = None
 

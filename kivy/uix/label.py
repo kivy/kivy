@@ -6,7 +6,6 @@ Label
 
 __all__ = ('Label', )
 
-from kivy.logger import Logger
 from kivy.utils import curry
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
@@ -72,11 +71,6 @@ class Label(Widget):
 
         # force the texture creation
         self._texture_update()
-        '''
-        def printm(sender, value):
-            print self.text, sender, value
-        self.bind(texture=printm)
-        '''
 
     def _trigger_texture_update(self, name=None, source=None, value=None):
         if source:
@@ -92,5 +86,4 @@ class Label(Widget):
         self.texture = None
         self.texture = self._label.texture
         self.texture_size = list(self.texture.size)
-        Logger.warn("LABEL TEXTURE UPDATE: %s %s", self.texture, self.texture.rectangle)
 
