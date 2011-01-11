@@ -14,7 +14,7 @@ these numerous solutions already support Multi-Touch.
 So what is it that makes Kivy special and worth using?
 
 
-    * **Fresh**:
+                Fresh
                     Kivy is made for today and tomorrow. Novel input
                     methods such as Multi-Touch become increasingly
                     important. We created Kivy from scratch, specifically
@@ -29,7 +29,7 @@ So what is it that makes Kivy special and worth using?
                     possibilities.
                     *This* is what really sets Kivy apart.
 
-    * **Fast**:
+                Fast
                     Kivy is fast. This applies to both: *application
                     development* and *application execution* speeds. We have
                     optimized Kivy in many ways. We implement time-critical
@@ -43,14 +43,14 @@ So what is it that makes Kivy special and worth using?
                     That's why we try to let the GPU do as much of the work
                     as possible, thus increasing performance considerably.
 
-    * **Flexible**:
+                Flexible
                     Kivy is flexible. This means it can be run on *a variety of
                     different devices*, including Android powered
                     smartphones and tablets. We support *all major
                     operating systems* (Windows, Linux, OS X).
-                    This also means that Kivy's fast-paced development
-                    allows it to *adapt to new technologies quickly*. More
-                    than once have we added support for new external
+                    Being flexible also means that Kivy's fast-paced development
+                    allows it to *adapt to new technologies quickly*.
+                    More than once have we added support for new external
                     devices and software protocols; sometimes even before
                     they were released.
                     Lastly, Kivy is also flexible in that it is possible
@@ -64,13 +64,14 @@ So what is it that makes Kivy special and worth using?
                     In addition to that, we support TUIO and a number of
                     other input sources.
 
-    * **Focused**:
+                Focused
                     Kivy is focused. You can write a simple application
                     with a few lines of code. Kivy programs are created by
                     using the *Python* programming language, which is
                     incredibly versatile, powerful yet easy to use.
                     In addition, we created our own description language,
-                    the *Kivy Language*, for creating sophisticated user interfaces. This
+                    the *Kivy Language*, for creating sophisticated user
+                    interfaces. This
                     language allows you to set up, connect and arrange your
                     application elements quickly.
                     We feel that allowing you to focus on the essence of
@@ -78,7 +79,7 @@ So what is it that makes Kivy special and worth using?
                     fiddle with compiler settings. We took that burden off
                     your shoulders.
 
-    * **Funded**:
+                Funded
                     Kivy is actively developed by professionals in their field.
                     Kivy is a community-influenced, professionally
                     developed and commercially backed solution. Some of
@@ -86,7 +87,7 @@ So what is it that makes Kivy special and worth using?
                     Kivy is here to stay. It's not a small, vanishing student
                     project.
 
-    * **Free**:
+                Free
                     Kivy is free to use. You don't have to pay for it. You
                     don't even have to pay for it if you're making money out
                     of selling an application that uses Kivy.
