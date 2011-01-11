@@ -1,40 +1,52 @@
 '''
-Show a circle under all touchs
+Touchring module
+================
+
+Show ring around every touch on the table. You can use this module for checking
+if you don't have any calibration trouble with touches.
 '''
 
 import os
-from kivy import MTWidget, set_color, getCurrentTouches, kivy_data_dir, Image
+from kivy import kivy_data_dir
+from kivy.core.image import Image
+from kivy.graphics import Color, Rectangle
 
 if not 'KIVY_DOC' in os.environ:
-    ring_fn = os.path.join(kivy_data_dir, 'ring.png')
+    ring_fn = os.path.join(kivy_data_dir, 'images', 'ring.png')
     ring_img = Image(ring_fn)
-    ring_img.scale = .30
-    ring_img.anchor_x = ring_img.width / 2
-    ring_img.anchor_y = ring_img.height / 2
 
-class TouchRing(MTWidget):
-    def __init__(self, **kwargs):
-        super(TouchRing, self).__init__(**kwargs)
+def _touch_down(win, touch):
+    ud = touch.userdata
+    touch.scale_for_screen(win.width, win.height)
+    with win.canvas.after:
+        ud['tr.color'] = Color(1, 1, 1, .7)
+        iw, ih = ring_img.size
+        ud['tr.rect'] = Rectangle(
+            pos=(
+                touch.x - (ring_img.width / 2. * 0.3),
+                touch.y - (ring_img.height / 2. * 0.3)),
+            size=(iw * 0.3, ih * 0.3),
+            texture=ring_img.texture)
 
-    def on_update(self):
-        self.bring_to_front()
+def _touch_move(win, touch):
+    ud = touch.userdata
+    ud['tr.rect'].pos = (
+        touch.x - (ring_img.width / 2. * 0.3),
+        touch.y - (ring_img.height / 2. * 0.3)
+    )
 
-    def draw(self):
-        color = self.style.get('color')
-        ring_img.color = color
-        for touch in getCurrentTouches():
-            alpha = color[3]
-            if 'kinetic' in touch.profile:
-                alpha = .2
+def _touch_up(win, touch):
+    ud = touch.userdata
+    win.canvas.after.remove(ud['tr.color'])
+    win.canvas.after.remove(ud['tr.rect'])
 
-            # draw touch
-            ring_img.opacity = alpha
-            ring_img.pos = touch.pos
-            ring_img.draw()
 
 def start(win, ctx):
-    ctx.w = TouchRing()
-    win.add_widget(ctx.w)
+    win.bind(on_touch_down=_touch_down,
+             on_touch_move=_touch_move,
+             on_touch_up=_touch_up)
 
 def stop(win, ctx):
-    win.remove_widget(ctx.w)
+    win.unbind(on_touch_down=_touch_down,
+             on_touch_move=_touch_move,
+             on_touch_up=_touch_up)
