@@ -1,3 +1,5 @@
+#cython: embedsignature=True
+
 '''
 Texture management
 ==================
@@ -56,15 +58,32 @@ cdef int _is_pow2(int v):
     # http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
     return (v & (v - 1)) == 0
 
-cdef _mode_to_gl_format(str x):
-    if x == 'RGBA':
+cdef _fmt_to_gl_format(str x):
+    x = x.lower()
+    if x == 'rgba':
         return GL_RGBA
-    elif x == 'BGRA':
+    elif x == 'bgra':
         return GL_BGRA
-    elif x == 'BGR':
+    elif x == 'bgr':
         return GL_BGR
-    else:
+    elif x == 'rgb':
         return GL_RGB
+    raise Exception('Unknown <%s> texture format' % x)
+
+cdef _buffer_type_to_gl_format(str x):
+    x = x.lower()
+    try:
+        return {
+            'ubyte': GL_UNSIGNED_BYTE,
+            'ushort': GL_UNSIGNED_SHORT,
+            'uint': GL_UNSIGNED_INT,
+            'byte': GL_BYTE,
+            'short': GL_SHORT,
+            'int': GL_INT,
+            'float': GL_FLOAT
+        }[x]
+    except KeyError:
+        raise Exception('Unknown <%s> format' % x)
 
 cdef _gl_format_size(GLuint x):
     if x in (GL_RGB, GL_BGR):
@@ -75,7 +94,7 @@ cdef _gl_format_size(GLuint x):
         return 1
     raise Exception('Unsupported format size <%s>' % str(format))
 
-cdef has_bgr():
+cdef int has_bgr():
     global _has_bgr
     if _has_bgr == -1:
         Logger.warning('Texture: BGR/BGRA format is not supported by'
@@ -85,35 +104,34 @@ cdef has_bgr():
         _has_bgr = int(hasGLExtension('GL_EXT_bgra'))
     return _has_bgr
 
-cdef _is_gl_format_supported(GLuint x):
-    if x in (GL_BGR, GL_BGRA):
+cdef int _is_gl_format_supported(str x):
+    if x in ('bgr', 'bgra'):
         return not has_bgr()
-    return True
+    return 1
 
-cdef _convert_gl_format(GLuint x):
-    if x == GL_BGR:
-        return GL_RGB
-    elif x == GL_BGRA:
-        return GL_RGBA
+cdef str _convert_gl_format(str x):
+    if x == 'bgr':
+        return 'rgb'
+    elif x == 'bgra':
+        return 'rgba'
     return x
 
-
-cdef _convert_buffer(Buffer data, GLuint format):
+cdef _convert_buffer(Buffer data, str fmt):
     # check if format is supported by user
-    ret_format = format
+    ret_format = fmt
     ret_buffer = data
 
     # BGR / BGRA conversion not supported by hardware ?
-    if not _is_gl_format_supported(format):
-        if format == GL_BGR:
-            ret_format = GL_RGB
+    if not _is_gl_format_supported(fmt):
+        if fmt == 'bgr':
+            ret_format = 'rgb'
             a = array('b', data)
             a[0::3], a[2::3] = a[2::3], a[0::3]
             a = a.tostring()
             ret_buffer = Buffer(len(a))
             ret_buffer.add(a)
-        elif format == GL_BGRA:
-            ret_format = GL_RGBA
+        elif fmt == 'bgra':
+            ret_format = 'rgba'
             a = array('b', data)
             a[0::4], a[2::4] = a[2::4], a[0::4]
             a = a.tostring()
@@ -121,23 +139,20 @@ cdef _convert_buffer(Buffer data, GLuint format):
             ret_buffer.add(a)
         else:
             Logger.critical('Texture: non implemented'
-                            '%s texture conversion' % str(format))
+                            '%s texture conversion' % fmt)
             raise Exception('Unimplemented texture conversion for %s' %
                             str(format))
     return ret_buffer, ret_format
 
-def texture_create(width, height, format=GL_RGBA, rectangle=False, mipmap=False):
-    '''Create a texture based on size.
-    '''
-    target = GL_TEXTURE_2D
-    rectangle = rectangle
-    mipmap = True
-    if rectangle:
-        if _is_pow2(width) and _is_pow2(height):
-            rectangle = False
-        else:
-            rectangle = False
 
+cdef _texture_create(int width, int height, str fmt, int rectangle, int mipmap):
+    cdef GLuint target = GL_TEXTURE_2D
+    if mipmap:
+        raise Exception('Mipmapping is not yet implemented on Kivy')
+
+    if rectangle:
+        rectangle = 0
+        if not _is_pow2(width) or not _is_pow2(height):
             # Adapt this part to make it work.
             # It cannot work for OpenGL ES 2.0,
             # but for standard computer, we can gain lot of memory
@@ -147,7 +162,7 @@ def texture_create(width, height, format=GL_RGBA, rectangle=False, mipmap=False)
                     Texture._has_texture_nv = glInitTextureRectangleNV()
                 if Texture._has_texture_nv:
                     target = GL_TEXTURE_RECTANGLE_NV
-                    rectangle = True
+                    rectangle = 1
             except Exception:
                 pass
 
@@ -156,14 +171,14 @@ def texture_create(width, height, format=GL_RGBA, rectangle=False, mipmap=False)
                     Texture._has_texture_arb = glInitTextureRectangleARB()
                 if not rectangle and Texture._has_texture_arb:
                     target = GL_TEXTURE_RECTANGLE_ARB
-                    rectangle = True
+                    rectangle = 1
             except Exception:
                 pass
             '''
 
             # Can't do mipmap with rectangle texture
             if rectangle:
-                mipmap = False
+                mipmap = 0
 
     if rectangle:
         texture_width = width
@@ -174,31 +189,29 @@ def texture_create(width, height, format=GL_RGBA, rectangle=False, mipmap=False)
 
     cdef GLuint texid
     glGenTextures(1, &texid)
+
+    if not _is_gl_format_supported(fmt):
+        fmt = _convert_gl_format(fmt)
+
     texture = Texture(texture_width, texture_height, target, texid,
-                      mipmap=mipmap)
+                      fmt=fmt, mipmap=mipmap)
 
     texture.bind()
-    texture.wrap        = GL_CLAMP_TO_EDGE
-    '''
-    #currently, GL_GENERATE_MIPMAP seem not inside Opengl ES
+    texture.wrap = GL_CLAMP_TO_EDGE
     if mipmap:
         texture.min_filter  = GL_LINEAR_MIPMAP_LINEAR
         #texture.mag_filter  = GL_LINEAR_MIPMAP_LINEAR
-        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE)
+        #glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE)
     else:
-    '''
-    if 1:
         texture.min_filter  = GL_LINEAR
         texture.mag_filter  = GL_LINEAR
 
-    if not _is_gl_format_supported(format):
-        format = _convert_gl_format(format)
-
+    cdef int glfmt = _fmt_to_gl_format(fmt)
     cdef Buffer data
     data = Buffer(sizeof(GLubyte) * texture_width * texture_height *
-            _gl_format_size(format))
-    glTexImage2D(target, 0, format, texture_width, texture_height, 0,
-                 format, GL_UNSIGNED_BYTE, data.pointer())
+            _gl_format_size(glfmt))
+    glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
+                 glfmt, GL_UNSIGNED_BYTE, data.pointer())
 
     if rectangle:
         texture.tex_coords = \
@@ -211,14 +224,31 @@ def texture_create(width, height, format=GL_RGBA, rectangle=False, mipmap=False)
 
     return texture.get_region(0, 0, width, height)
 
+def texture_create(size=(128, 128), fmt='rgba', rectangle=False, mipmap=False):
+    '''Create a texture based on size.
+
+    :Parameters:
+        `size`: tuple, default to (128, 128)
+            Size of the texture
+        `fmt`: str, default to 'rgba'
+            Internal format of the texture. Can be 'rgba' or 'rgb'
+        `rectangle`: bool, default to False
+            If True, it will use special opengl command for creating a rectangle
+            texture. It's not available on OpenGL ES, but can be used for
+            desktop. If we are on OpenGL ES platform, this parameter will be
+            ignored.
+        `mipmap`: bool, default to False
+            If True, it will automatically generate mipmap texture.
+    '''
+    width, height = size
+    return _texture_create(width, height, fmt, rectangle, mipmap)
+
+
 def texture_create_from_data(im, rectangle=True, mipmap=False):
     '''Create a texture from an ImageData class'''
 
-    format = _mode_to_gl_format(im.mode)
-
-    texture = Texture.create(im.width, im.height,
-                             format, rectangle=rectangle,
-                             mipmap=mipmap)
+    texture = _texture_create(im.width, im.height, im.fmt,
+                             rectangle, mipmap)
     if texture is None:
         return None
 
@@ -234,7 +264,7 @@ cdef class Texture:
     create_from_data = staticmethod(texture_create_from_data)
 
 
-    def __init__(self, width, height, target, texid, mipmap=False, rectangle=False):
+    def __init__(self, width, height, target, texid, fmt='rgb', mipmap=False, rectangle=False):
         self.tex_coords     = (0., 0., 1., 0., 1., 1., 0., 1.)
         self._width         = width
         self._height        = height
@@ -245,6 +275,7 @@ cdef class Texture:
         self._gl_min_filter = 0
         self._gl_mag_filter = 0
         self._rectangle     = rectangle
+        self._fmt           = fmt
 
     def __del__(self):
         # Add texture deletion outside GC call.
@@ -344,10 +375,10 @@ cdef class Texture:
     def blit_data(self, im, pos=(0, 0)):
         '''Replace a whole texture with a image data'''
         self.blit_buffer(im.data, size=(im.width, im.height),
-                         mode=im.mode, pos=pos)
+                         fmt=im.fmt, pos=pos)
 
-    def blit_buffer(self, pbuffer, size=None, mode='RGB', format=None,
-                    pos=(0, 0), buffertype=GL_UNSIGNED_BYTE):
+    def blit_buffer(self, pbuffer, size=None, fmt='rgb',
+                    pos=(0, 0), buffertype='ubyte'):
         '''Blit a buffer into a texture.
 
         :Parameters:
@@ -355,19 +386,17 @@ cdef class Texture:
                 Image data
             `size` : tuple, default to texture size
                 Size of the image (width, height)
-            `mode` : str, default to 'RGB'
-                Image mode, can be one of RGB, RGBA, BGR, BGRA
-            `format` : glconst, default to None
-                if format is passed, it will be used instead of mode
+            `fmt` : str, default to 'rgb'
+                Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra'
             `pos` : tuple, default to (0, 0)
                 Position to blit in the texture
-            `buffertype` : glglconst, default to GL_UNSIGNED_BYTE
-                Type of the data buffer
+            `buffertype` : str, default to 'ubyte'
+                Type of the data buffer, can be one of 'ubyte', 'ushort',
+                'uint', 'byte', 'short', 'int', 'float'
         '''
         if size is None:
             size = self.size
-        if format is None:
-            format = _mode_to_gl_format(mode)
+        buffertype = _buffer_type_to_gl_format(buffertype)
         target = self.target
         glBindTexture(target, self.id)
         glEnable(target)
@@ -381,11 +410,12 @@ cdef class Texture:
         cdef bytes bbuffer
         bbuffer = pbuffer
         data.add(<char *>bbuffer, NULL, 1)
-        pdata, format = _convert_buffer(data, format)
+        pdata, fmt = _convert_buffer(data, fmt)
+        glfmt = _fmt_to_gl_format(fmt)
 
         # transfer the new part of texture
         glTexSubImage2D(target, 0, pos[0], pos[1],
-                        size[0], size[1], format,
+                        size[0], size[1], glfmt,
                         buffertype, pdata.pointer())
 
         glFlush()

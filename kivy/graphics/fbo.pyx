@@ -141,7 +141,7 @@ cdef class Fbo(RenderContext):
         cdef int status
 
         # create texture
-        self._texture = Texture.create(self._width, self._height)
+        self._texture = Texture.create(size=(self._width, self._height))
 
         # create framebuffer
         glGenFramebuffers(1, &f_id)

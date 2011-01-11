@@ -46,7 +46,7 @@ class LabelPIL(LabelBase):
 
     def _render_end(self):
         data = ImageData(self._size[0], self._size[1],
-            self._pil_im.mode, self._pil_im.tostring())
+                         self._pil_im.mode.lower(), self._pil_im.tostring())
 
         del self._pil_im
         del self._pil_draw

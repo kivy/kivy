@@ -11,6 +11,7 @@ cdef class Texture:
     cdef GLuint _gl_min_filter
     cdef GLuint _gl_mag_filter
     cdef int _rectangle
+    cdef bytes _fmt
     cpdef flip_vertical(self)
     cpdef get_region(self, x, y, width, height)
     cpdef bind(self)

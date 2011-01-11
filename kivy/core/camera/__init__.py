@@ -29,9 +29,6 @@ class CameraBase(object):
     '''
 
     def __init__(self, **kwargs):
-        # remove this part.
-        from kivy.core.gl import GL_RGB
-
         kwargs.setdefault('stopped', False)
         kwargs.setdefault('resolution', (640, 480))
         kwargs.setdefault('video_src', 0)
@@ -40,7 +37,7 @@ class CameraBase(object):
         self._resolution    = kwargs.get('resolution')
         self._video_src     = kwargs.get('video_src')
         self._buffer        = None
-        self._format        = GL_RGB
+        self._format        = 'rgb'
         self._texture       = None
         self.capture_device = None
         kwargs.setdefault('size', self._resolution)
@@ -96,7 +93,7 @@ class CameraBase(object):
         if self._texture is None:
             Logger.debug('Camera: copy_to_gpu() failed, _texture is None !')
             return
-        self._texture.blit_buffer(self._buffer, format=self._format)
+        self._texture.blit_buffer(self._buffer, fmt=self._format)
         self._buffer = None
 
 # Load the appropriate provider

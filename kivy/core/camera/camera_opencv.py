@@ -11,7 +11,6 @@ __all__ = ('CameraOpenCV', )
 from kivy.logger import Logger
 from kivy.graphics.texture import Texture
 from . import CameraBase
-from kivy.core.gl import GL_BGR_EXT
 
 try:
     import opencv as cv
@@ -78,7 +77,7 @@ class CameraOpenCV(CameraBase):
             return
         try:
             frame = hg.cvQueryFrame(self._device)
-            self._format = GL_BGR_EXT
+            self._format = 'bgr'
             self._buffer = frame.imageData
             self._copy_to_gpu()
         except:

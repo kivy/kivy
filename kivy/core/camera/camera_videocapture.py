@@ -10,7 +10,6 @@ __all__ = ('CameraVideoCapture', )
 
 import kivy
 from . import CameraBase
-from kivy.core.gl import GL_BGR
 
 try:
     from VideoCapture import Device
@@ -30,7 +29,7 @@ class CameraVideoCapture(CameraBase):
         kwargs.setdefault('video_src', 0)
         self._device = None
         super(CameraVideoCapture, self).__init__(**kwargs)
-        self._format = GL_BGR
+        self._format = 'rgb'
 
     def init_camera(self):
         # create the device
@@ -47,8 +46,8 @@ class CameraVideoCapture(CameraBase):
             # first update, resize if necessary
             self.size = camera_width, camera_height
             # and create texture
-            self._texture = kivy.Texture.create(camera_width, camera_height,
-                                                format=GL_BGR)
+            self._texture = kivy.Texture.create(
+                size=self.size, fmt='bgr')
 
         # update buffer
         self._buffer = data

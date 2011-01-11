@@ -13,7 +13,6 @@ except:
 
 import threading
 from . import VideoBase
-from kivy.core.gl import GL_RGB
 from kivy.graphics.texture import Texture
 from gst.extend import discoverer
 
@@ -231,8 +230,7 @@ class VideoGStreamer(VideoBase):
                 structure_name = cap.get_name()
                 if structure_name.startswith('video') and cap.has_key('width'):
                     self._videosize = (cap['width'], cap['height'])
-                    self._texture = Texture.create(
-                        self._videosize[0], self._videosize[1], format=GL_RGB)
+                    self._texture = Texture.create(size=self._videosize, fmt='rgb')
                     self._texture.flip_vertical()
                     self.dispatch('on_load')
 
@@ -251,5 +249,5 @@ class VideoGStreamer(VideoBase):
             if self._buffer is not None:
                 self._texture.blit_buffer(self._buffer.data,
                                           size=self._videosize,
-                                          format=GL_RGB)
+                                          fmt='rgb')
                 self._buffer = None

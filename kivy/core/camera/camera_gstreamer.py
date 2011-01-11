@@ -6,7 +6,6 @@ __all__ = ('CameraGStreamer', )
 
 import kivy
 from . import CameraBase
-from kivy.core.gl import GL_RGB
 
 try:
     import pygst
@@ -57,7 +56,7 @@ class CameraGStreamer(CameraBase):
             self.start()
 
     def _gst_new_buffer(self, *largs):
-        self._format = GL_RGB
+        self._format = 'rgb'
         frame = self._camerasink.emit('pull-buffer')
         if frame is None:
             return
@@ -82,6 +81,6 @@ class CameraGStreamer(CameraBase):
             return
         self._copy_to_gpu()
         if self._texture is None and self._texturesize is not None:
-            w, h = self._texturesize
-            self._texture = kivy.Texture.create(w, h, format=GL_RGB)
+            self._texture = kivy.Texture.create(
+                size=self._texturesize, fmt='rgb')
             self._texture.flip_vertical()
