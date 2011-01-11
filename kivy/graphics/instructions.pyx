@@ -121,7 +121,6 @@ cdef class VertexInstruction(Instruction):
     def __init__(self, **kwargs):
         #add a BindTexture instruction to bind teh texture used for 
         #this instruction before the actual vertex instruction
-        Logger.warn("VERTINSTR %s" % kwargs)
         self.texture_binding = BindTexture(**kwargs)
         self.texture = self.texture_binding.texture #auto compute tex coords
         self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
@@ -162,7 +161,6 @@ cdef class VertexInstruction(Instruction):
         def __get__(self):
             return self._tex_coords
         def __set__(self, tc):
-            Logger.debug("setting texture coords %s %s" %(self, tc))
             self._tex_coords = list(tc)
             self.flag_update()
 
@@ -174,7 +172,6 @@ cdef class VertexInstruction(Instruction):
         self.flag_update_done()
 
     cdef apply(self):
-        #print "DRAWING", self.texture_binding.texture, self.tex_coords
         if self.flags & GI_NEED_UPDATE:
             self.build()
             self.update_batch()
@@ -286,6 +283,7 @@ from vertex cimport *
 
 from os.path import join
 from kivy import kivy_shader_dir
+from kivy.cache import Cache
 from kivy.core.image import Image
 from kivy.graphics.transformation cimport Matrix
 
@@ -304,9 +302,14 @@ cdef class RenderContext(Canvas):
         vs_src  = open(vs_file, 'r').read()
         fs_src  = open(fs_file, 'r').read()
         self.shader = Shader(vs_src, fs_src)
-        #self.texture_manager = TextureManager()
 
-        self.default_texture = Image(join(kivy_shader_dir, 'default.png')).texture
+        # load default texture image
+        filename = join(kivy_shader_dir, 'default.png')
+        tex = Cache.get('kv.texture', filename)
+        if not tex:
+            tex = Image(filename).texture
+            Cache.append('kv.texture', filename, tex)
+        self.default_texture = tex
 
         self.state_stacks = {
             'texture0' : [0],
