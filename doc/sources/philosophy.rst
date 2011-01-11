@@ -69,8 +69,8 @@ So what is it that makes Kivy special and worth using?
                     with a few lines of code. Kivy programs are created by
                     using the *Python* programming language, which is
                     incredibly versatile, powerful yet easy to use.
-                    In addition, we created our own description language
-                    for creating sophisticated user interfaces. This
+                    In addition, we created our own description language,
+                    the *Kivy Language*, for creating sophisticated user interfaces. This
                     language allows you to set up, connect and arrange your
                     application elements quickly.
                     We feel that allowing you to focus on the essence of
