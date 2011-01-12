@@ -15,16 +15,18 @@ include "config.pxi"
 import os
 import re
 from array import array
-from kivy import Logger
+from kivy.clock import Clock
+from kivy.logger import Logger
+
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
-    void free(void *ptr)
-    void *calloc(size_t nmemb, size_t size)
-    void *malloc(size_t size)
+    void free(void *ptr) nogil
+    void *calloc(size_t nmemb, size_t size) nogil
+    void *malloc(size_t size) nogil
 
 # XXX move missing symbol in c_opengl
 # utilities
@@ -40,15 +42,15 @@ def hasGLExtension( specifier ):
     return specifier in AVAILABLE_GL_EXTENSIONS
 
 # compatibility layer
-GL_BGR = 0x80E0
-GL_BGRA = 0x80E1
+cdef GLuint GL_BGR = 0x80E0
+cdef GLuint GL_BGRA = 0x80E1
 
 cdef list _texture_release_list = []
 cdef int _has_bgr = -1
 cdef int _has_texture_nv = -1
 cdef int _has_texture_arb = -1
 
-cdef int _nearest_pow2(int v):
+cdef inline int _nearest_pow2(int v):
     # From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
     # Credit: Sean Anderson
     v -= 1
@@ -59,11 +61,11 @@ cdef int _nearest_pow2(int v):
     v |= v >> 16
     return v + 1
 
-cdef int _is_pow2(int v):
+cdef inline int _is_pow2(int v):
     # http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
     return (v & (v - 1)) == 0
 
-cdef int _fmt_to_gl_format(str x):
+cdef inline int _fmt_to_gl_format(str x):
     x = x.lower()
     if x == 'rgba':
         return GL_RGBA
@@ -75,31 +77,33 @@ cdef int _fmt_to_gl_format(str x):
         return GL_RGB
     raise Exception('Unknown <%s> texture format' % x)
 
-cdef int _buffer_type_to_gl_format(str x):
+cdef dict _gl_format_type = {
+    'ubyte': GL_UNSIGNED_BYTE,
+    'ushort': GL_UNSIGNED_SHORT,
+    'uint': GL_UNSIGNED_INT,
+    'byte': GL_BYTE,
+    'short': GL_SHORT,
+    'int': GL_INT,
+    'float': GL_FLOAT
+}
+
+cdef inline int _buffer_type_to_gl_format(str x):
     x = x.lower()
     try:
-        return {
-            'ubyte': GL_UNSIGNED_BYTE,
-            'ushort': GL_UNSIGNED_SHORT,
-            'uint': GL_UNSIGNED_INT,
-            'byte': GL_BYTE,
-            'short': GL_SHORT,
-            'int': GL_INT,
-            'float': GL_FLOAT
-        }[x]
+        return _gl_format_type[x]
     except KeyError:
         raise Exception('Unknown <%s> format' % x)
 
-cdef _gl_format_size(GLuint x):
+cdef inline int _gl_format_size(GLuint x):
     if x in (GL_RGB, GL_BGR):
         return 3
     elif x in (GL_RGBA, GL_BGRA):
         return 4
-    elif x in (GL_LUMINANCE, ):
+    elif x == GL_LUMINANCE:
         return 1
     raise Exception('Unsupported format size <%s>' % str(format))
 
-cdef int has_bgr():
+cdef inline int has_bgr():
     global _has_bgr
     if _has_bgr == -1:
         Logger.warning('Texture: BGR/BGRA format is not supported by'
@@ -109,19 +113,19 @@ cdef int has_bgr():
         _has_bgr = int(hasGLExtension('GL_EXT_bgra'))
     return _has_bgr
 
-cdef int _is_gl_format_supported(str x):
+cdef inline int _is_gl_format_supported(str x):
     if x in ('bgr', 'bgra'):
         return not has_bgr()
     return 1
 
-cdef str _convert_gl_format(str x):
+cdef inline str _convert_gl_format(str x):
     if x == 'bgr':
         return 'rgb'
     elif x == 'bgra':
         return 'rgba'
     return x
 
-cdef _convert_buffer(bytes data, str fmt):
+cdef inline _convert_buffer(bytes data, str fmt):
     cdef bytes ret_buffer
     cdef str ret_format
 
@@ -215,23 +219,27 @@ cdef _texture_create(int width, int height, str fmt, int rectangle, int mipmap):
     # ok, allocate memory for initial texture
     cdef int glfmt = _fmt_to_gl_format(fmt)
     cdef int datasize = sizeof(GLubyte) * texture_width * texture_height * _gl_format_size(glfmt)
-    cdef void *data
+    cdef void *data = NULL
+    cdef int dataerr = 0
 
-    data = calloc(1, datasize)
-    if data == NULL:
+    with nogil:
+        data = calloc(1, datasize)
+        if data != NULL:
+            glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
+                         glfmt, GL_UNSIGNED_BYTE, data)
+            glFlush()
+            free(data)
+            data = NULL
+        else:
+            dataerr = 1
+
+    if dataerr:
         raise Exception('Unable to allocate memory for texture (size is %s)' %
                         datasize)
-
-    # upload data
-    glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
-                 glfmt, GL_UNSIGNED_BYTE, data)
-
-    free(data)
 
     if rectangle:
         texture.uvsize = (width, height)
 
-    glFlush()
 
     if texture_width == width and texture_height == height:
         return texture
@@ -302,11 +310,14 @@ cdef class Texture:
         self.update_tex_coords()
 
     def __del__(self):
+        self.release()
+
+    cdef release(self):
         # Add texture deletion outside GC call.
         # This case happen if some texture have been not deleted
         # before application exit...
         if _texture_release_list is not None:
-            _texture_release_list.append(self.id)
+            _texture_release_list.append(self._id)
 
     property mipmap:
         '''Return True if the texture have mipmap enabled (readonly)'''
@@ -465,6 +476,7 @@ cdef class Texture:
                 'uint', 'byte', 'short', 'int', 'float'
         '''
         cdef GLuint target = self.target
+        cdef int tid = self._id
         if fmt is None:
             fmt = 'rgb'
         if buffertype is None:
@@ -475,25 +487,27 @@ cdef class Texture:
             size = self.size
         buffertype = _buffer_type_to_gl_format(buffertype)
 
-        glBindTexture(target, self._id)
-        glEnable(target)
-
-        # activate 1 alignement, of window failed on updating weird size
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-
         # need conversion ?
         cdef bytes data, pdata
         data = pbuffer
         pdata, fmt = _convert_buffer(data, fmt)
-        glfmt = _fmt_to_gl_format(fmt)
 
-        # transfer the new part of texture
-        glTexSubImage2D(target, 0, pos[0], pos[1],
-                        size[0], size[1], glfmt,
-                        buffertype, <char *>data)
+        # prepare nogil
+        cdef int glfmt = _fmt_to_gl_format(fmt)
+        cdef int x = pos[0]
+        cdef int y = pos[1]
+        cdef int w = size[0]
+        cdef int h = size[1]
+        cdef char *cdata = <char *>data
+        cdef int glbuffertype = buffertype
 
-        glFlush()
-        glDisable(target)
+        with nogil:
+            glBindTexture(target, self._id)
+            glEnable(target)
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+            glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbuffertype, cdata)
+            glFlush()
+            glDisable(target)
 
     property size:
         def __get__(self):
@@ -528,24 +542,19 @@ cdef class TextureRegion(Texture):
         self._uvh = (height / <float>origin._height) * origin._uvh
         self.update_tex_coords()
 
-    def __del__(self):
-        # don't use self of owner !
-        pass
+# Releasing texture through GC is problematic
+# GC can happen in a middle of glBegin/glEnd
+# So, to prevent that, call the _texture_release
+# at flip time.
+def _texture_release(*largs):
+    cdef GLuint texture_id
+    if not _texture_release_list:
+        return
+    Logger.trace('Texture: releasing %d textures' % len(_texture_release_list))
+    for texture_id in _texture_release_list:
+        glDeleteTextures(1, &texture_id)
+    del _texture_release_list[:]
 
-'''
-if 'KIVY_DOC' not in os.environ:
-    from kivy.clock import Clock
+# install tick to release texture every 200ms
+Clock.schedule_interval(_texture_release, 0.2)
 
-    # Releasing texture through GC is problematic
-    # GC can happen in a middle of glBegin/glEnd
-    # So, to prevent that, call the _texture_release
-    # at flip time.
-    def _texture_release(*largs):
-        cdef GLuint texture_id
-        for texture_id in _texture_release_list:
-            glDeleteTextures(1, &texture_id)
-        del _texture_release_list[:]
-
-    # install tick to release texture every 200ms
-    Clock.schedule_interval(_texture_release, 0.2)
-'''
