@@ -16,10 +16,15 @@ import os
 import re
 from array import array
 from kivy import Logger
-from buffer cimport Buffer
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
+
+cdef extern from "stdlib.h":
+    ctypedef unsigned long size_t
+    void free(void *ptr)
+    void *calloc(size_t nmemb, size_t size)
+    void *malloc(size_t size)
 
 # XXX move missing symbol in c_opengl
 # utilities
@@ -58,7 +63,7 @@ cdef int _is_pow2(int v):
     # http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
     return (v & (v - 1)) == 0
 
-cdef _fmt_to_gl_format(str x):
+cdef int _fmt_to_gl_format(str x):
     x = x.lower()
     if x == 'rgba':
         return GL_RGBA
@@ -70,7 +75,7 @@ cdef _fmt_to_gl_format(str x):
         return GL_RGB
     raise Exception('Unknown <%s> texture format' % x)
 
-cdef _buffer_type_to_gl_format(str x):
+cdef int _buffer_type_to_gl_format(str x):
     x = x.lower()
     try:
         return {
@@ -116,7 +121,10 @@ cdef str _convert_gl_format(str x):
         return 'rgba'
     return x
 
-cdef _convert_buffer(Buffer data, str fmt):
+cdef _convert_buffer(bytes data, str fmt):
+    cdef bytes ret_buffer
+    cdef str ret_format
+
     # check if format is supported by user
     ret_format = fmt
     ret_buffer = data
@@ -127,16 +135,12 @@ cdef _convert_buffer(Buffer data, str fmt):
             ret_format = 'rgb'
             a = array('b', data)
             a[0::3], a[2::3] = a[2::3], a[0::3]
-            a = a.tostring()
-            ret_buffer = Buffer(len(a))
-            ret_buffer.add(a)
+            ret_buffer = a.tostring()
         elif fmt == 'bgra':
             ret_format = 'rgba'
             a = array('b', data)
             a[0::4], a[2::4] = a[2::4], a[0::4]
-            a = a.tostring()
-            ret_buffer = Buffer(len(a))
-            ret_buffer.add(a)
+            ret_buffer = a.tostring()
         else:
             Logger.critical('Texture: non implemented'
                             '%s texture conversion' % fmt)
@@ -147,6 +151,8 @@ cdef _convert_buffer(Buffer data, str fmt):
 
 cdef _texture_create(int width, int height, str fmt, int rectangle, int mipmap):
     cdef GLuint target = GL_TEXTURE_2D
+    cdef int texture_width, texture_height
+
     if mipmap:
         raise Exception('Mipmapping is not yet implemented on Kivy')
 
@@ -193,7 +199,7 @@ cdef _texture_create(int width, int height, str fmt, int rectangle, int mipmap):
     if not _is_gl_format_supported(fmt):
         fmt = _convert_gl_format(fmt)
 
-    texture = Texture(texture_width, texture_height, target, texid,
+    cdef Texture texture = Texture(texture_width, texture_height, target, texid,
                       fmt=fmt, mipmap=mipmap)
 
     texture.bind()
@@ -206,16 +212,24 @@ cdef _texture_create(int width, int height, str fmt, int rectangle, int mipmap):
         texture.min_filter  = GL_LINEAR
         texture.mag_filter  = GL_LINEAR
 
+    # ok, allocate memory for initial texture
     cdef int glfmt = _fmt_to_gl_format(fmt)
-    cdef Buffer data
-    data = Buffer(sizeof(GLubyte) * texture_width * texture_height *
-            _gl_format_size(glfmt))
+    cdef int datasize = sizeof(GLubyte) * texture_width * texture_height * _gl_format_size(glfmt)
+    cdef void *data
+
+    data = calloc(1, datasize)
+    if data == NULL:
+        raise Exception('Unable to allocate memory for texture (size is %s)' %
+                        datasize)
+
+    # upload data
     glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
-                 glfmt, GL_UNSIGNED_BYTE, data.pointer())
+                 glfmt, GL_UNSIGNED_BYTE, data)
+
+    free(data)
 
     if rectangle:
-        texture.tex_coords = \
-            (0., 0., width, 0., width, height, 0., height)
+        texture.uvsize = (width, height)
 
     glFlush()
 
@@ -265,7 +279,6 @@ cdef class Texture:
 
 
     def __init__(self, width, height, target, texid, fmt='rgb', mipmap=False, rectangle=False):
-        self.tex_coords     = (0., 0., 1., 0., 1., 1., 0., 1.)
         self._width         = width
         self._height        = height
         self._target        = target
@@ -274,8 +287,13 @@ cdef class Texture:
         self._gl_wrap       = 0
         self._gl_min_filter = 0
         self._gl_mag_filter = 0
+        self._uvx           = 0.
+        self._uvy           = 0.
+        self._uvw           = 1.
+        self._uvh           = 1.
         self._rectangle     = rectangle
         self._fmt           = fmt
+        self.update_tex_coords()
 
     def __del__(self):
         # Add texture deletion outside GC call.
@@ -314,10 +332,56 @@ cdef class Texture:
         def __get__(self):
             return self._height
 
+    property tex_coords:
+        '''Return the list of tex_coords (opengl)'''
+        def __get__(self):
+            return (
+                self._tex_coords[0],
+                self._tex_coords[1],
+                self._tex_coords[2],
+                self._tex_coords[3],
+                self._tex_coords[4],
+                self._tex_coords[5],
+                self._tex_coords[6],
+                self._tex_coords[7],
+            )
+
+    property uvpos:
+        '''Get/set the UV position inside texture
+        '''
+        def __get__(self):
+            return (self._uvx, self._uvy)
+        def __set__(self, x):
+            self._uvx, self._uvy = x
+            self.update_tex_coords()
+
+    property uvsize:
+        '''Get/set the UV size inside texture.
+
+        .. warning::
+            The size can be negative is the texture is flipped.
+        '''
+        def __get__(self):
+            return (self._uvw, self._uvh)
+        def __set__(self, x):
+            self._uvw, self._uvh = x
+            self.update_tex_coords()
+
+    cdef update_tex_coords(self):
+        self._tex_coords[0] = self._uvx
+        self._tex_coords[1] = self._uvy
+        self._tex_coords[2] = self._uvx + self._uvw
+        self._tex_coords[3] = self._uvy
+        self._tex_coords[4] = self._uvx + self._uvw
+        self._tex_coords[5] = self._uvy + self._uvh
+        self._tex_coords[6] = self._uvx
+        self._tex_coords[7] = self._uvy + self._uvh
+
     cpdef flip_vertical(self):
         '''Flip tex_coords for vertical displaying'''
-        a, b, c, d, e, f, g, h = self.tex_coords
-        self.tex_coords = (g, h, e, f, c, d, a, b)
+        self._uvy += self._uvh
+        self._uvh = -self._uvh
+        self.update_tex_coords()
 
     cpdef get_region(self, x, y, width, height):
         '''Return a part of the texture, from (x,y) with (width,height)
@@ -326,15 +390,15 @@ cdef class Texture:
 
     cpdef bind(self):
         '''Bind the texture to current opengl state'''
-        glBindTexture(self.target, self.id)
+        glBindTexture(self._target, self._id)
 
     cpdef enable(self):
         '''Do the appropriate glEnable()'''
-        glEnable(self.target)
+        glEnable(self._target)
 
     cpdef disable(self):
         '''Do the appropriate glDisable()'''
-        glDisable(self.target)
+        glDisable(self._target)
 
     property min_filter:
         '''Get/set the GL_TEXTURE_MIN_FILTER property
@@ -394,29 +458,28 @@ cdef class Texture:
                 Type of the data buffer, can be one of 'ubyte', 'ushort',
                 'uint', 'byte', 'short', 'int', 'float'
         '''
+        cdef GLuint target = self.target
+
         if size is None:
             size = self.size
         buffertype = _buffer_type_to_gl_format(buffertype)
-        target = self.target
-        glBindTexture(target, self.id)
+
+        glBindTexture(target, self._id)
         glEnable(target)
 
         # activate 1 alignement, of window failed on updating weird size
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
         # need conversion ?
-        cdef Buffer data, pdata
-        data = Buffer(len(pbuffer))
-        cdef bytes bbuffer
-        bbuffer = pbuffer
-        data.add(<char *>bbuffer, NULL, 1)
+        cdef bytes data, pdata
+        data = pbuffer
         pdata, fmt = _convert_buffer(data, fmt)
         glfmt = _fmt_to_gl_format(fmt)
 
         # transfer the new part of texture
         glTexSubImage2D(target, 0, pos[0], pos[1],
                         size[0], size[1], glfmt,
-                        buffertype, pdata.pointer())
+                        buffertype, <char *>data)
 
         glFlush()
         glDisable(target)
@@ -443,17 +506,16 @@ cdef class TextureRegion(Texture):
         self.owner = origin
 
         # recalculate texture coordinate
-        origin_u1 = origin.tex_coords[0]
-        origin_v1 = origin.tex_coords[1]
-        origin_u2 = origin.tex_coords[2]
-        origin_v2 = origin.tex_coords[5]
-        scale_u = origin_u2 - origin_u1
-        scale_v = origin_v2 - origin_v1
-        u1 = x / float(origin.width) * scale_u + origin_u1
-        v1 = y / float(origin.height) * scale_v + origin_v1
-        u2 = (x + width) / float(origin.width) * scale_u + origin_u1
-        v2 = (y + height) / float(origin.height) * scale_v + origin_v1
-        self.tex_coords = (u1, v1, u2, v1, u2, v2, u1, v2)
+        cdef float origin_u1, origin_v1, origin_u2, origin_v2
+        origin_u1 = origin._uvx
+        origin_v1 = origin._uvy
+        origin_u2 = origin._uvx + origin._uvw
+        origin_v2 = origin._uvy + origin._uvh
+        self._uvx = (x / <float>origin._width) * origin._uvw + origin_u1
+        self._uvy = (y / <float>origin._height) * origin._uvh + origin_v1
+        self._uvw = (width / <float>origin._width) * origin._uvw
+        self._uvh = (height / <float>origin._height) * origin._uvh
+        self.update_tex_coords()
 
     def __del__(self):
         # don't use self of owner !
