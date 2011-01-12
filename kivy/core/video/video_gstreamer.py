@@ -214,7 +214,7 @@ class VideoGStreamer(VideoBase):
             self._volumesink.set_property('volume', volume)
             self._volume = volume
 
-    def update(self):
+    def _update(self, dt):
         if self._do_load:
             self._really_load()
             self._do_load = False
@@ -251,3 +251,4 @@ class VideoGStreamer(VideoBase):
                                           size=self._videosize,
                                           fmt='rgb')
                 self._buffer = None
+                self.dispatch('on_frame')

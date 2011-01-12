@@ -5,7 +5,6 @@ Video
 
 __all__ = ('Video', )
 
-from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
@@ -40,21 +39,16 @@ class Video(Widget):
         super(Video, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
-        Clock.unschedule(self._trigger_video_update)
         if not value:
             self._video = None
             self.texture = None
         else:
             filename = resource_find(value)
             self._video = CoreVideo(filename=filename)
-            self._video.bind(on_load=self._video_loaded)
+            self._video.bind(on_load=self._on_video_load,
+                             on_frame=self._on_video_frame)
             if self.play:
                 self._video.play()
-            Clock.schedule_interval(self._trigger_video_update, 1 / 30.)
-
-    def _video_loaded(self, *largs):
-        self.texture = self._video.texture
-        self.texture_size = list(self.texture.size)
 
     def on_play(self, instance, value):
         if not self._video:
@@ -64,11 +58,11 @@ class Video(Widget):
         else:
             self._video.stop()
 
-    def _trigger_video_update(self, *largs):
-        if not self._video:
-            Clock.unschedule(self._trigger_video_update)
-            return
-        self._video.update()
+    def _on_video_frame(self, *largs):
         self.duration = self._video.duration
         self.position = self._video.position
-        #self.canvas.trigger()
+
+    def _on_video_load(self, *largs):
+        self.texture = self._video.texture
+        self.texture_size = list(self.texture.size)
+

@@ -12,6 +12,7 @@ Core class for reading video file and manage the
 
 __all__ = ('VideoBase', 'Video')
 
+from kivy.clock import Clock
 from kivy.core import core_select_lib
 from kivy.event import EventDispatcher
 
@@ -37,10 +38,13 @@ class VideoBase(EventDispatcher):
             Fired when EOS is hit
         `on_load`
             Fired when the video is loaded, texture is available
+        `on_frame`
+            Fired when a new frame is written on texture
     '''
 
     __slots__ = ('_wantplay', '_buffer', '_filename', '_texture',
-                 '_volume', 'eos', '_state', '_async', '_autoplay')
+                 '_volume', 'eos', '_state', '_async', '_autoplay',
+                 '__weakref__')
 
     def __init__(self, **kwargs):
         kwargs.setdefault('filename', None)
@@ -52,6 +56,7 @@ class VideoBase(EventDispatcher):
 
         self.register_event_type('on_eos')
         self.register_event_type('on_load')
+        self.register_event_type('on_frame')
 
         self._wantplay      = False
         self._buffer        = None
@@ -65,6 +70,8 @@ class VideoBase(EventDispatcher):
         self.eos            = kwargs.get('eos')
         self.filename       = kwargs.get('filename')
 
+        Clock.schedule_interval(self._update, 1 / 30.)
+
         if self._autoplay:
             self.play()
 
@@ -75,6 +82,9 @@ class VideoBase(EventDispatcher):
         pass
 
     def on_load(self):
+        pass
+
+    def on_frame(self):
         pass
 
     def _get_filename(self):
@@ -129,6 +139,11 @@ class VideoBase(EventDispatcher):
             self.stop()
             self.play()
 
+    def _update(self):
+        '''Update the video content to texture.
+        '''
+        pass
+
     def seek(self, percent):
         '''Move on percent position'''
         pass
@@ -149,10 +164,6 @@ class VideoBase(EventDispatcher):
         '''Unload the actual video'''
         self._state = ''
 
-    def update(self):
-        '''Update the video content to texture.
-        Must be called every frame, before draw.'''
-        pass
 
 # Load the appropriate provider
 Video = core_select_lib('video', (

@@ -8,8 +8,6 @@ try:
 except:
     raise
 
-import kivy
-from kivy.clock import Clock
 from . import VideoBase
 
 
@@ -54,12 +52,15 @@ class VideoPyglet(VideoBase):
         #_player.time does not get reset when you do seek(0) for soe reason, and is read only
         self.time = self._player.time
 
-    def update(self):
+    def _update(self, dt):
         if self._source.duration  - self.time < 0.1 : #we are at the end
             self.seek(0)
         if self.state == 'playing':
-            self.time += Clock.frametime #keep track of time into video
-            self._player.dispatch_events(Clock.frametime) #required by pyglet video if not in pyglet window
+            self.time += dt #keep track of time into video
+            self._player.dispatch_events(dt) #required by pyglet video if not in pyglet window
+        if self._player.get_texture():
+            # TODO: blit the pyglet texture to our own texture.
+            assert('TODO')
 
     def stop(self):
         self._player.pause()
@@ -91,5 +92,6 @@ class VideoPyglet(VideoBase):
     def _set_volume(self, volume):
         if self._player:
             self._player.volume = volume
+            self.dispatch('on_frame')
 
 
