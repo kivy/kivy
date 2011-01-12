@@ -238,7 +238,7 @@ cdef _texture_create(int width, int height, str fmt, int rectangle, int mipmap):
 
     return texture.get_region(0, 0, width, height)
 
-def texture_create(size=(128, 128), fmt='rgba', rectangle=False, mipmap=False):
+def texture_create(size=None, fmt=None, rectangle=False, mipmap=False):
     '''Create a texture based on size.
 
     :Parameters:
@@ -254,7 +254,13 @@ def texture_create(size=(128, 128), fmt='rgba', rectangle=False, mipmap=False):
         `mipmap`: bool, default to False
             If True, it will automatically generate mipmap texture.
     '''
-    width, height = size
+    cdef int width, height
+    if size is None:
+        width = height = 128
+    else:
+        width, height = size
+    if fmt is None:
+        fmt = 'rgba'
     return _texture_create(width, height, fmt, rectangle, mipmap)
 
 
