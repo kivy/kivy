@@ -11,7 +11,7 @@ try:
 except:
     raise
 
-import threading
+from threading import Lock
 from . import VideoBase
 from kivy.graphics.texture import Texture
 from gst.extend import discoverer
@@ -39,7 +39,7 @@ class VideoGStreamer(VideoBase):
         self._is_video      = None
         self._do_load       = None
         self._pipeline_canplay = False
-        self._buffer_lock   = threading.Lock()
+        self._buffer_lock   = Lock()
         self._videosize     = (0, 0)
         super(VideoGStreamer, self).__init__(**kwargs)
 
@@ -190,8 +190,19 @@ class VideoGStreamer(VideoBase):
         if self._videosink is None:
             return 0
         try:
-            return self._videosink.query_position(gst.FORMAT_TIME)[0] / 1000000000.
-        except:
+            # I don't understand, on ubuntu, the FORMAT_TIME is laggy, and we
+            # have a delay of 1 second. In addition, the FORMAT_BYTES return
+            # time, not bytes...
+            # I've also tryed:
+            #   vs = self._videosink
+            #   bduration = vs.query_duration(gst.FORMAT_BYTES)[0]
+            #   bposition = vs.query_position(gst.FORMAT_BYTES)[0]
+            #   return (bposition / float(bduration)) * self._get_duration()
+            # But query_duration failed with FORMAT_BYTES.
+            # Using FORMAT_DEFAULT result to have different information in
+            # duration and position. Unexplained right now.
+            return self._videosink.query_position(gst.FORMAT_BYTES)[0] / 1000000000.
+        except Exception, e:
             return 0
 
     def _get_duration(self):
