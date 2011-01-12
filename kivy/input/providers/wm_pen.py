@@ -27,6 +27,7 @@ if 'KIVY_DOC' in os.environ:
 
 else:
     from collections import deque
+    from ctypes.wintypes import ULONG
     from ctypes import wintypes, Structure, windll, byref, c_int16, \
             c_int, c_long, WINFUNCTYPE
     from kivy.input.provider import TouchProvider
@@ -36,11 +37,10 @@ else:
 
     class RECT(Structure):
         _fields_ = [
-        ('left',   wintypes.ULONG ),
-        ('top',    wintypes.ULONG ),
-        ('right',  wintypes.ULONG ),
-        ('bottom', wintypes.ULONG )
-        ]
+        ('left', ULONG),
+        ('top', ULONG),
+        ('right', ULONG),
+        ('bottom', ULONG)]
 
         x = property(lambda self: self.left)
         y = property(lambda self: self.top)

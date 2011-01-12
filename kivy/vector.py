@@ -45,7 +45,7 @@ class Vector(list):
             # result to vector
             return Vector(super(Vector, self).__getslice__(i, j))
         except Exception:
-            raise TypeError, 'vector::FAILURE in __getslice__'
+            raise TypeError('vector::FAILURE in __getslice__')
 
     def __add__(self, val):
         return Vector(map(lambda x, y: x + y, self, val))
@@ -179,8 +179,8 @@ class Vector(list):
         if denom == 0:
             return None
 
-        px = ( u * (x3 - x4)  -  (x1 - x2) * v ) / denom
-        py = ( u * (y3 - y4)  -  (y1 - y2) * v ) / denom
+        px = (u * (x3 - x4) - (x1 - x2) * v ) / denom
+        py = (u * (y3 - y4) - (y1 - y2) * v ) / denom
 
         return Vector(px, py)
 

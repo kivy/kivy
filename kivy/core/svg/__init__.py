@@ -30,7 +30,7 @@ class SvgBase(object):
         '''Load an svg'''
         raise NotImplementedError("abstract class SvgLoaderBase: subclass must be implemented by svg provider")
 
-    def __getattr__ (self, name):
+    def __getattr__(self, name):
         return self.svg_data.__getattribute__(name)
 
 class SvgLoader(object):

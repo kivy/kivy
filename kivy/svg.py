@@ -1,9 +1,9 @@
-from kivy.logger import Logger
-
-import re, math
+import re
+import math
+from pprint import pprint
 from xml.etree.cElementTree import parse
 
-from pprint import pprint
+from kivy.logger import Logger
 
 
 BEZIER_POINTS = 10
@@ -78,7 +78,7 @@ class SVGData(object):
                 Raw data string (you need to set a fake filename for cache anyway)
                 Defaults to None.
         """
-        self.width  = -1
+        self.width = -1
         self.height = -1
 
         self.bezier_points = BEZIER_POINTS
@@ -312,14 +312,15 @@ class SVGData(object):
         if self.path:
             path = []
             for orig_loop in self.path:
-                if not orig_loop: continue
+                if not orig_loop:
+                    continue
                 loop = [orig_loop[0]]
                 for pt in orig_loop:
                     if (pt[0] - loop[-1][0])**2 + (pt[1] - loop[-1][1])**2 > TOLERANCE:
                         loop.append(pt)
                 path.append(loop)
 
-            print "path: " 
+            print "path: "
             pprint(path)
             print "loop: "
             pprint(self.loop)

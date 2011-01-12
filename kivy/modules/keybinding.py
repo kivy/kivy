@@ -242,11 +242,11 @@ def _on_draw():
         y = h2
         max = int((h2 / 20))
         levels = {
-            logging.DEBUG:    ('DEBUG', (.4,.4,1)),
-            logging.INFO:     ('INFO', (.4,1,.4)),
-            logging.WARNING:  ('WARNING', (1,1,.4)),
-            logging.ERROR:    ('ERROR', (1,.4,.4)),
-            logging.CRITICAL: ('CRITICAL', (1,.4,.4)),
+            logging.DEBUG:    ('DEBUG', (.4, .4, 1)),
+            logging.INFO:     ('INFO', (.4, 1, .4)),
+            logging.WARNING:  ('WARNING', (1, 1, .4)),
+            logging.ERROR:    ('ERROR', (1, .4, .4)),
+            logging.CRITICAL: ('CRITICAL', (1, .4, .4)),
         }
 
         # draw title
@@ -314,7 +314,6 @@ class SceneGraphNode(MTBoxLayout):
                 print prop, ":", getattr(self.widget, prop)
 
 
-
 _scene_graph_modal_layover = None
 def toggle_scene_graph():
     global _scene_graph_modal_layover
@@ -330,7 +329,6 @@ def toggle_scene_graph():
         _scene_graph_modal_layover = MTModalWindow()
         _scene_graph_modal_layover.add_widget(plane)
         win.add_widget(_scene_graph_modal_layover)
-
 
 
 def _on_keyboard_handler(key, scancode, unicode):

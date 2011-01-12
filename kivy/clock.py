@@ -24,7 +24,7 @@ You can add new event like this::
     If the callback return False, the schedule will be removed.
 '''
 
-__all__ =  ('Clock', 'ClockBase')
+__all__ = ('Clock', 'ClockBase')
 
 from os import environ
 from time import time, sleep
@@ -64,7 +64,7 @@ class _Event(object):
         if not self.loop:
             return False
 
-        # if user return an explicit false,
+        # if the user returns False explicitly,
         # remove the event
         if ret == False:
             return False

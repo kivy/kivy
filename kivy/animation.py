@@ -346,8 +346,8 @@ class AnimationTransition(object):
     def in_out_quad(progress):
         '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_quad'''
         p = progress * 2
-        if p < 1 :
-           return 0.5 * p * p
+        if p < 1:
+            return 0.5 * p * p
         p -= 1.0
         return -0.5 * (p * (p - 2.0) - 1.0)
 
@@ -366,7 +366,7 @@ class AnimationTransition(object):
     def in_out_cubic(progress):
         '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_cubic'''
         p = progress * 2
-        if p < 1 :
+        if p < 1:
             return 0.5 * p * p * p
         p -= 2
         return 0.5 * (p * p * p + 2.0)
@@ -380,13 +380,13 @@ class AnimationTransition(object):
     def out_quart(progress):
         '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_quart'''
         p = progress - 1.0
-        return -1.0 * (p * p * p * p - 1.0);
+        return -1.0 * (p * p * p * p - 1.0)
 
     @staticmethod
     def in_out_quart(progress):
         '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_quart'''
         p = progress * 2
-        if p < 1 :
+        if p < 1:
             return 0.5 * p * p * p * p
         p -= 2
         return -0.5 * (p * p * p * p - 2.0)
@@ -400,13 +400,13 @@ class AnimationTransition(object):
     def out_quint(progress):
         '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_quint'''
         p = progress - 1.0
-        return p * p * p * p * p + 1.0;
+        return p * p * p * p * p + 1.0
 
     @staticmethod
     def in_out_quint(progress):
         '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_quint'''
         p = progress * 2
-        if p < 1 :
+        if p < 1:
             return 0.5 * p * p * p * p * p
         p -= 2.0
         return 0.5 * (p * p * p * p * p + 2.0)
@@ -492,7 +492,7 @@ class AnimationTransition(object):
         q = progress
         if q == 1:
             return 1.0
-        return pow(2, -10 * q) * sin ((q - s) * (2 * pi) / p) + 1.0
+        return pow(2, -10 * q) * sin((q - s) * (2 * pi) / p) + 1.0
 
     @staticmethod
     def in_out_elastic(progress):
@@ -503,10 +503,10 @@ class AnimationTransition(object):
         if q == 2:
             return 1.0
         if q < 1:
-            q -= 1.0;
-            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 *pi) / p));
+            q -= 1.0
+            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 *pi) / p))
         else:
-            q -= 1.0;
+            q -= 1.0
             return pow(2, -10 * q) * sin((q - s) * (2.0 * pi) / p) * .5 + 1.0;
 
     @staticmethod

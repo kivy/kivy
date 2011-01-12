@@ -36,8 +36,8 @@ Available configuration tokens
     `retain_time`: int
         Time allowed for a retain touch, in milliseconds
     `retain_distance`: int
-        Maximum distance allowed for a retain touch, normalized inside the range
-        0 - 1000
+        If the touch moves more than is indicated by retain_distance, it will
+        not be retained. Argument should be an int between 0 and 1000.
     `jitter_distance`: int
         Maximum distance for jittering detection, normalized inside the range 0
         - 1000
@@ -50,8 +50,8 @@ Available configuration tokens
     `log_enable`: (0, 1)
         Activate file logging
     `gl_error_check`: (0, 1)
-        Activate GL error checking on each instruction. Disable if you want more
-        speed.
+        Activate GL error checking on a per instruction basis.
+        Decreases performance. Only use during development.
     `ignore`: list of tuples
         List of region to ignore new touch. This configuration token can be used
         for resolving hotspot problem on DIY hardware. The format of the list
@@ -136,7 +136,7 @@ Available configuration tokens
 
     Module section is particular. You can activate new module with this syntax::
 
-        modulename = 
+        modulename =
 
     All the arguments after = will be passed to the module. Check each module
     documentation about the syntax of arguments.
@@ -157,10 +157,12 @@ KIVY_CONFIG_VERSION = 16
 #: Kivy configuration object
 Config = None
 
+
 class KivyConfigParser(ConfigParser):
     '''Enhanced ConfigParser class, that support the possibility of add default
     sections and default values.
     '''
+
     def setdefault(self, section, option, value):
         '''Set the default value on a particular option
         '''
@@ -306,7 +308,7 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
             Config.setdefault('widgets', 'list_trigger_distance', '5')
 
         elif version == 11:
-            Config.setdefault('graphics', 'window_icon', os.path.join(kivy_home_dir, 'icon', 'kivy32.png') )
+            Config.setdefault('graphics', 'window_icon', os.path.join(kivy_home_dir, 'icon', 'kivy32.png'))
 
         elif version == 12:
             # default configuration for keyboard repeatition

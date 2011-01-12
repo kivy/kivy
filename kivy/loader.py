@@ -143,7 +143,8 @@ class LoaderBase(object):
     def _load_urllib(self, filename):
         '''(internal) Loading a network file. First download it, save it to a
         temporary file, and pass it to _load_local()'''
-        import urllib2, tempfile
+        import urllib2
+        import tempfile
         data = None
         try:
             suffix = '.%s'  % (filename.split('.')[-1])

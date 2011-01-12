@@ -35,7 +35,8 @@ if 'KIVY_DOC' in os.environ:
     WM_TouchProvider = None
 
 else:
-    from ctypes import wintypes, windll, WINFUNCTYPE, c_long, c_int, \
+    from ctypes.wintypes import ULONG, HANDLE, DWORD, LONG
+    from ctypes import windll, WINFUNCTYPE, c_long, c_int, \
             Structure, pointer, sizeof, byref
     from collections import deque
     from kivy.input.provider import TouchProvider
@@ -49,16 +50,16 @@ else:
 
     class TOUCHINPUT(Structure):
         _fields_ = [
-            ('x',wintypes.LONG),
-            ('y',wintypes.LONG),
-            ('pSource',wintypes.HANDLE),
-            ('id',wintypes.DWORD),
-            ('flags',wintypes.DWORD),
-            ('mask',wintypes.DWORD),
-            ('time',wintypes.DWORD),
-            ('extraInfo',wintypes.ULONG ),
-            ('size_x',wintypes.DWORD),
-            ('size_y',wintypes.DWORD)
+            ('x', LONG),
+            ('y', LONG),
+            ('pSource', HANDLE),
+            ('id', DWORD),
+            ('flags', DWORD),
+            ('mask', DWORD),
+            ('time', DWORD),
+            ('extraInfo', ULONG),
+            ('size_x', DWORD),
+            ('size_y', DWORD)
         ]
 
         def size(self):
@@ -82,10 +83,10 @@ else:
 
     class RECT(Structure):
         _fields_ = [
-            ('left',   wintypes.ULONG ),
-            ('top',    wintypes.ULONG ),
-            ('right',  wintypes.ULONG ),
-            ('bottom', wintypes.ULONG )
+            ('left', ULONG),
+            ('top', ULONG ),
+            ('right', ULONG ),
+            ('bottom', ULONG )
         ]
 
         x = property(lambda self: self.left)
@@ -135,11 +136,11 @@ else:
                                                   self.uid, [x, y, t.size()])
                     dispatch_fn('down', self.touches[t.id] )
 
-                if t.event_type == 'move' and self.touches.has_key(t.id):
+                if t.event_type == 'move' and t.id in self.touches:
                     self.touches[t.id].move([x, y, t.size()])
                     dispatch_fn('move', self.touches[t.id] )
 
-                if t.event_type == 'up'  and self.touches.has_key(t.id):
+                if t.event_type == 'up' and t.id in self.touches:
                     self.touches[t.id].move([x, y, t.size()])
                     dispatch_fn('up', self.touches[t.id] )
                     del self.touches[t.id]
@@ -175,7 +176,7 @@ else:
         # this on pushes WM_TOUCH messages onto our event stack
         def _touch_handler(self, msg, wParam, lParam):
             touches = (TOUCHINPUT * wParam)()
-            windll.user32.GetTouchInputInfo(wintypes.HANDLE(lParam),
+            windll.user32.GetTouchInputInfo(HANDLE(lParam),
                                             wParam,
                                             pointer(touches),
                                             sizeof(TOUCHINPUT))

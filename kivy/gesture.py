@@ -198,7 +198,7 @@ class GestureStroke:
         # If this happens, we are into troubles...
         if not len(new_points) == sample_points:
             raise ValueError('Invalid number of strokes points; got '
-                             '%d while it should be %d' % 
+                             '%d while it should be %d' %
                              (len(new_points), sample_points))
 
         self.points = new_points
@@ -250,7 +250,7 @@ class Gesture:
         scale_factor = max(x_len, y_len)
         if scale_factor <= 0.0:
             return False
-        scale_factor = 1.0/scale_factor
+        scale_factor = 1.0 / scale_factor
         for stroke in self.strokes:
             stroke.scale_stroke(scale_factor)
         return True

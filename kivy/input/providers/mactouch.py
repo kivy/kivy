@@ -15,68 +15,70 @@ from kivy.input.touch import Touch
 from kivy.input.shape import TouchShapeRect
 
 if 'KIVY_DOC' not in os.environ:
-	CFArrayRef = ctypes.c_void_p
-	CFMutableArrayRef = ctypes.c_void_p
-	CFIndex = ctypes.c_long
+    CFArrayRef = ctypes.c_void_p
+    CFMutableArrayRef = ctypes.c_void_p
+    CFIndex = ctypes.c_long
 
-	MultitouchSupport = ctypes.CDLL('/System/Library/PrivateFrameworks/MultitouchSupport.framework/MultitouchSupport')
+    MultitouchSupport = ctypes.CDLL('/System/Library/PrivateFrameworks/MultitouchSupport.framework/MultitouchSupport')
 
-	CFArrayGetCount = MultitouchSupport.CFArrayGetCount
-	CFArrayGetCount.argtypes = [CFArrayRef]
-	CFArrayGetCount.restype = CFIndex
+    CFArrayGetCount = MultitouchSupport.CFArrayGetCount
+    CFArrayGetCount.argtypes = [CFArrayRef]
+    CFArrayGetCount.restype = CFIndex
 
-	CFArrayGetValueAtIndex = MultitouchSupport.CFArrayGetValueAtIndex
-	CFArrayGetValueAtIndex.argtypes = [CFArrayRef, CFIndex]
-	CFArrayGetValueAtIndex.restype = ctypes.c_void_p
+    CFArrayGetValueAtIndex = MultitouchSupport.CFArrayGetValueAtIndex
+    CFArrayGetValueAtIndex.argtypes = [CFArrayRef, CFIndex]
+    CFArrayGetValueAtIndex.restype = ctypes.c_void_p
 
-	MTDeviceCreateList = MultitouchSupport.MTDeviceCreateList
-	MTDeviceCreateList.argtypes = []
-	MTDeviceCreateList.restype = CFMutableArrayRef
+    MTDeviceCreateList = MultitouchSupport.MTDeviceCreateList
+    MTDeviceCreateList.argtypes = []
+    MTDeviceCreateList.restype = CFMutableArrayRef
 
-	class MTPoint(ctypes.Structure):
-		_fields_ = [('x', ctypes.c_float),
-					('y', ctypes.c_float)]
+    class MTPoint(ctypes.Structure):
+        _fields_ = [('x', ctypes.c_float),
+                    ('y', ctypes.c_float)]
 
-	class MTVector(ctypes.Structure):
-		_fields_ = [('position', MTPoint),
-					('velocity', MTPoint)]
+    class MTVector(ctypes.Structure):
+        _fields_ = [('position', MTPoint),
+                    ('velocity', MTPoint)]
 
-	class MTData(ctypes.Structure):
-		_fields_ = [
-		  ('frame', ctypes.c_int),
-		  ('timestamp', ctypes.c_double),
-		  ('identifier', ctypes.c_int),
-		  ('state', ctypes.c_int),  # Current state (of unknown meaning).
-		  ('unknown1', ctypes.c_int),
-		  ('unknown2', ctypes.c_int),
-		  ('normalized', MTVector),  # Normalized position and vector of
-									 # the touch (0 to 1).
-		  ('size', ctypes.c_float),  # The area of the touch.
-		  ('unknown3', ctypes.c_int),
-		  # The following three define the ellipsoid of a finger.
-		  ('angle', ctypes.c_float),
-		  ('major_axis', ctypes.c_float),
-		  ('minor_axis', ctypes.c_float),
-		  ('unknown4', MTVector),
-		  ('unknown5_1', ctypes.c_int),
-		  ('unknown5_2', ctypes.c_int),
-		  ('unknown6', ctypes.c_float),
-		]
+    class MTData(ctypes.Structure):
+        _fields_ = [
+                    ('frame', ctypes.c_int),
+                    ('timestamp', ctypes.c_double),
+                    ('identifier', ctypes.c_int),
+                    # Current state (of unknown meaning).
+                    ('state', ctypes.c_int),
+                    ('unknown1', ctypes.c_int),
+                    ('unknown2', ctypes.c_int),
+                    # Normalized position and vector of the touch (0 to 1)
+                    ('normalized', MTVector),
+                    # The area of the touch.
+                    ('size', ctypes.c_float),
+                    ('unknown3', ctypes.c_int),
+                    # The following three define the ellipsoid of a finger.
+                    ('angle', ctypes.c_float),
+                    ('major_axis', ctypes.c_float),
+                    ('minor_axis', ctypes.c_float),
+                    ('unknown4', MTVector),
+                    ('unknown5_1', ctypes.c_int),
+                    ('unknown5_2', ctypes.c_int),
+                    ('unknown6', ctypes.c_float),
+	]
 
-	MTDataRef = ctypes.POINTER(MTData)
+        MTDataRef = ctypes.POINTER(MTData)
 
-	MTContactCallbackFunction = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int, MTDataRef,
-		ctypes.c_int, ctypes.c_double, ctypes.c_int)
+        MTContactCallbackFunction = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int, MTDataRef,
+                                        ctypes.c_int, ctypes.c_double, ctypes.c_int)
 
-	MTDeviceRef = ctypes.c_void_p
+        MTDeviceRef = ctypes.c_void_p
 
-	MTRegisterContactFrameCallback = MultitouchSupport.MTRegisterContactFrameCallback
-	MTRegisterContactFrameCallback.argtypes = [MTDeviceRef, MTContactCallbackFunction]
-	MTRegisterContactFrameCallback.restype = None
+        MTRegisterContactFrameCallback = MultitouchSupport.MTRegisterContactFrameCallback
+        MTRegisterContactFrameCallback.argtypes = [MTDeviceRef, MTContactCallbackFunction]
+        MTRegisterContactFrameCallback.restype = None
 
-	MTDeviceStart = MultitouchSupport.MTDeviceStart
-	MTDeviceStart.argtypes = [MTDeviceRef, ctypes.c_int]
-	MTDeviceStart.restype = None
+        MTDeviceStart = MultitouchSupport.MTDeviceStart
+        MTDeviceStart.argtypes = [MTDeviceRef, ctypes.c_int]
+        MTDeviceStart.restype = None
 
 else:
 	MTContactCallbackFunction = lambda x: None
@@ -188,7 +190,7 @@ class MacTouchProvider(TouchProvider):
                 # check if he really moved
                 if data.normalized.position.x == touch.sx and \
                    data.normalized.position.y == touch.sy:
-                       continue
+                    continue
                 touch.move(args)
                 _instance.queue.append(('move', touch))
 

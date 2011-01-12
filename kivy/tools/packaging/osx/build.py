@@ -95,8 +95,6 @@ class OSXPortableBuild(Command):
             #for teh target, instead of the source were building from)
             Popen(cext_cmd, cwd=src_dist, stdout=PIPE, stderr=PIPE).communicate()
 
-
-
         print "\nFinalizing Application Bundle"
         print "---------------------------------------"
         print "*Copying launcher script into the app bundle"
