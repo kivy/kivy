@@ -8,6 +8,7 @@ Core class for acquiring the camera, and convert the input to a
 
 __all__ = ('CameraBase', 'Camera')
 
+from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
 from kivy.core import core_select_lib
@@ -90,17 +91,21 @@ class CameraBase(EventDispatcher):
         '''Initialise the camera (internal)'''
         pass
 
-    def update(self):
-        '''Update the camera (internal)'''
-        pass
-
     def start(self):
         '''Start the camera acquire'''
+        print 'start', self.stopped
         self.stopped = False
+        Clock.unschedule(self._update)
+        Clock.schedule_interval(self._update, 1. / 30)
 
     def stop(self):
         '''Release the camera'''
         self.stopped = True
+        Clock.unschedule(self._update)
+
+    def _update(self, dt):
+        '''Update the camera (internal)'''
+        pass
 
     def _copy_to_gpu(self):
         '''Copy the the buffer into the texture'''

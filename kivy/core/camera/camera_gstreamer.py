@@ -53,8 +53,6 @@ class CameraGStreamer(CameraBase):
         elif video_src == 'dc1394src':
             video_src += ' camera-number=%d' % self._index
 
-        print video_src
-
         GL_CAPS = 'video/x-raw-rgb,red_mask=(int)0xff0000,green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
         self._pipeline = gst.parse_launch('%s ! decodebin name=decoder ! ffmpegcolorspace ! appsink name=camerasink emit-signals=True caps=%s' % (video_src, GL_CAPS) )
         self._camerasink = self._pipeline.get_by_name('camerasink')
@@ -78,19 +76,19 @@ class CameraGStreamer(CameraBase):
                     return
 
     def start(self):
-        self.stopped = False
+        super(CameraGStreamer, self).start()
         self._pipeline.set_state(gst.STATE_PLAYING)
 
     def stop(self):
-        self.stopped = True
+        super(CameraGStreamer, self).stop()
         self._pipeline.set_state(gst.STATE_PAUSED)
 
-    def update(self):
+    def _update(self, dt):
         if self._buffer is None:
             return
-        self._copy_to_gpu()
         if self._texture is None and self._texturesize is not None:
             self._texture = Texture.create(
                 size=self._texturesize, fmt='rgb')
             self._texture.flip_vertical()
             self.dispatch('on_load')
+        self._copy_to_gpu()

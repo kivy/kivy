@@ -34,14 +34,13 @@ class CameraVideoCapture(CameraBase):
         except:
             raise Exception('VideoCapture: Resolution not supported')
 
-    def update(self):
+    def _update(self, dt):
         data, camera_width, camera_height = self._device.getBuffer()
         if self._texture is None:
             # first update, resize if necessary
             self.size = camera_width, camera_height
             # and create texture
-            self._texture = kivy.Texture.create(
-                size=self.size, fmt='bgr')
+            self._texture = kivy.Texture.create(size=self.size, fmt='bgr')
             self.dispatch('on_load')
 
         # update buffer

@@ -65,7 +65,7 @@ class CameraOpenCV(CameraBase):
         if not self.stopped:
             self.start()
 
-    def update(self):
+    def _update(self, dt):
         if self.stopped:
             return
         try:
