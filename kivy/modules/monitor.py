@@ -59,8 +59,7 @@ def start(win, ctx):
             ctx.stats.append(0)
             ctx.statsr.append(
                 Rectangle(pos=(win.width - 64 * 4 + x * 4, win.height - 25),
-                          size=(4, 0))
-            )
+                          size=(4, 0)))
     Clock.schedule_interval(partial(update_fps, ctx), .5)
     Clock.schedule_interval(partial(update_stats, ctx), 1 / 60.)
 

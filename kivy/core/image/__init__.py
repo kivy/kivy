@@ -49,10 +49,10 @@ class ImageLoaderBase(object):
     def __init__(self, filename, **kwargs):
         self._texture_rectangle = kwargs.get('texture_rectangle', True)
         self._texture_mipmap = kwargs.get('texture_mipmap', False)
-        self.keep_data  = kwargs.get('keep_data', False)
-        self.filename   = filename
-        self._texture   = None
-        self._data      = self.load(filename)
+        self.keep_data = kwargs.get('keep_data', False)
+        self.filename = filename
+        self._texture = None
+        self._data = self.load(filename)
 
     def load(self, filename):
         '''Load an image'''
@@ -145,23 +145,23 @@ class Image(EventDispatcher):
         super(Image, self).__init__()
 
         self._texture_rectangle = kwargs.get('texture_rectangle', True)
-        self._texture_mipmap    = kwargs.get('texture_mipmap', False)
+        self._texture_mipmap = kwargs.get('texture_mipmap', False)
         self._keep_data = kwargs.get('keep_data')
-        self._size      = [0, 0]
-        self._image     = None
-        self._filename  = None
-        self._texture   = None
+        self._size = [0, 0]
+        self._image = None
+        self._filename = None
+        self._texture = None
 
         if isinstance(arg, Image):
             for attr in Image.copy_attributes:
                 self.__setattr__(attr, arg.__getattribute__(attr))
         elif type(arg) in (Texture, TextureRegion):
-            self._texture   = arg
-            self._size      = self.texture.size
+            self._texture = arg
+            self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
-            self.image      = arg
+            self.image = arg
         elif isinstance(arg, basestring):
-            self.filename   = arg
+            self.filename = arg
         else:
             raise Exception('Unable to load image with type %s' % str(type(arg)))
 
@@ -183,8 +183,8 @@ class Image(EventDispatcher):
     def _set_image(self, image):
         self._image = image
         if image:
-            self._size[0]      = self.image.width
-            self._size[1]     = self.image.height
+            self._size[0] = self.image.width
+            self._size[1] = self.image.height
     image = property(_get_image, _set_image,
             doc='Get/set the data image object')
 

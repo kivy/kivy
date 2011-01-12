@@ -86,29 +86,29 @@ class Svg(object):
 
         super(Svg, self).__init__(**kwargs)
 
-        self._scale_x   = 1.
-        self._scale_y   = 1.
-        self._filename  = None
+        self._scale_x = 1.
+        self._scale_y = 1.
+        self._filename = None
         self.svg_object = None
-        self.scale      = 1.
-        self.anchor_x   = 0
-        self.anchor_y   = 0
+        self.scale = 1.
+        self.anchor_x = 0
+        self.anchor_y = 0
 
         #this actually loads the svg
         if isinstance(arg, basestring):
-            self.filename   = arg
+            self.filename = arg
         else:
             raise Exception('Unable to load image with type %s' % str(type(arg)))
 
         # after loading, let the user take the place
         if 'scale' in kwargs:
-            self.scale      = kwargs.get('scale')
+            self.scale = kwargs.get('scale')
         if 'anchor_x' in kwargs:
-            self.anchor_x   = kwargs.get('anchor_x')
+            self.anchor_x = kwargs.get('anchor_x')
         if 'anchor_y' in kwargs:
-            self.anchor_y   = kwargs.get('anchor_y')
+            self.anchor_y = kwargs.get('anchor_y')
         if 'pos' in kwargs:
-            self.x, self.y  = kwargs.get('pos')
+            self.x, self.y = kwargs.get('pos')
         if 'x' in kwargs:
             self.x = kwargs.get('x')
         if 'y' in kwargs:
@@ -127,14 +127,14 @@ class Svg(object):
     original_height = property(_get_original_height)
 
     def _get_width(self):
-        return self._scale_x*self.original_width
+        return self._scale_x * self.original_width
     def _set_width(self, w):
         if self.width != w: #nothing to do
             self._scale_x = w/float(self.original_width)
     width = property(_get_width, _set_width)
 
     def _get_height(self):
-        return self._scale_y*self.original_height
+        return self._scale_y * self.original_height
     def _set_height(self, h):
         if self.height != h: #nothing to do
             self._scale_y = h/float(self.original_height)

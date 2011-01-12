@@ -1,6 +1,9 @@
 """Better tokenizing for coverage.py."""
 
-import keyword, re, token, tokenize
+import keyword
+import re
+import token
+import tokenize
 from coverage.backward import StringIO              # pylint: disable-msg=W0622
 
 def phys_tokens(toks):

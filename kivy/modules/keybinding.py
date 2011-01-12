@@ -242,12 +242,11 @@ def _on_draw():
         y = h2
         max = int((h2 / 20))
         levels = {
-            logging.DEBUG:    ('DEBUG', (.4, .4, 1)),
-            logging.INFO:     ('INFO', (.4, 1, .4)),
-            logging.WARNING:  ('WARNING', (1, 1, .4)),
-            logging.ERROR:    ('ERROR', (1, .4, .4)),
-            logging.CRITICAL: ('CRITICAL', (1, .4, .4)),
-        }
+            logging.DEBUG: ('DEBUG', (.4, .4, 1)),
+            logging.INFO: ('INFO', (.4, 1, .4)),
+            logging.WARNING: ('WARNING', (1, 1, .4)),
+            logging.ERROR: ('ERROR', (1, .4, .4)),
+            logging.CRITICAL: ('CRITICAL', (1, .4, .4)), }
 
         # draw title
         drawLabel('Kivy logger',
@@ -283,21 +282,21 @@ class SceneGraphNode(MTBoxLayout):
             self.child_layout.add_widget(SceneGraphNode(node=c, size_hint=(None, None)))
         self.add_widget(self.child_layout)
 
-        self.node_btn = MTToggleButton(label=str(self.widget.__class__.__name__), size=(150,30))
-        self.title = MTAnchorLayout(size_hint=(None, None), size=(200,self.child_layout.height))
+        self.node_btn = MTToggleButton(label=str(self.widget.__class__.__name__), size=(150, 30))
+        self.title = MTAnchorLayout(size_hint=(None, None), size=(200, self.child_layout.height))
         self.title.add_widget(self.node_btn)
         self.add_widget(self.title)
 
-        self.node_btn.connect('on_release',self.select)
+        self.node_btn.connect('on_release', self.select)
 
     def draw(self):
         if self.selected:
-            set_color(1,0,0,0.3)
+            set_color(1, 0, 0, 0.3)
             drawRectangle(self.to_widget(*self.widget.pos), self.widget.size)
 
-        set_color(1,.3,0)
+        set_color(1, .3, 0)
         for c in self.child_layout.children:
-            drawLine((self.node_btn.centerright,c.node_btn.centerleft), width=2)
+            drawLine((self.node_btn.centerright, c.node_btn.centerleft), width=2)
 
     def select(self, *args):
         self.selected = not self.selected
@@ -306,7 +305,7 @@ class SceneGraphNode(MTBoxLayout):
         new_widget = MTButton(label="I'm new!!!")
         self.widget.add_widget(new_widget)
         self.child_layout.add_widget(SceneGraphNode(node=new_widget, size_hint=(None, None)))
-        self.title.size=(200,self.child_layout.height)
+        self.title.size=(200, self.child_layout.height)
 
     def print_props(self, *args):
         for prop in self.widget.__dict__:

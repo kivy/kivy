@@ -8,10 +8,11 @@ __all__ = ('circumcircle', 'minimum_bounding_circle')
 
 from kivy.vector import Vector
 
+
 def circumcircle(a, b, c):
     '''
-    Computes the circumcircle of a triangel defined by a,b,c
-    see: http://en.wikipedia.org/wiki/Circumscribed_circle#Circumscribed_circles_of_triangles
+    Computes the circumcircle of a triangle defined by a, b, c.
+    see: http://en.wikipedia.org/wiki/Circumscribed_circle
 
     :Parameters:
         `a` : iterable
@@ -22,9 +23,9 @@ def circumcircle(a, b, c):
             the 3. point of the triangle
 
     :Return:
-        A Circle that defined the tuple :
-            * The first element in the returned touple is the center (tuple x,y)
-            * The second the radius (float)
+        A tuple that defines the circle :
+         * The first element in the returned tuple is the center as (x, y)
+         * The second is the radius (float)
     '''
     P = Vector(a[0], a[1])
     Q = Vector(b[0], b[1])
@@ -40,7 +41,7 @@ def circumcircle(a, b, c):
     t = numer / denom
 
     cx = -t * (Q.y - P.y) + mPQ.x
-    cy =  t * (Q.x - P.x) + mPQ.y
+    cy = t * (Q.x - P.x) + mPQ.y
 
     return ((cx, cy), (P - (cx, cy)).length())
 
@@ -49,17 +50,20 @@ def minimum_bounding_circle(points):
     '''
     Returns the minimum bounding circle for a set of points
 
-    For a description of the problem being solved see http://en.wikipedia.org/wiki/Smallest_circle_problem
-    The function uses Applet's Algorithm Algorithm, worst case teh runtime is O(h^3 *n), where h= number of points in teh convex hull of the set of points. But it runs in linear time in almost all real world cases.
-    see: http://www.personal.kent.edu/~rmuhamma/Compgeometry/MyCG/CG-Applets/Center/centercli.htm
+    For a description of the problem being solved, see:
+        http://en.wikipedia.org/wiki/Smallest_circle_problem
+    The function uses Applet's Algorithm, the runtime is O(h^3 *n),
+    where h is the number of points in the convex hull of the set of points.
+    **But** it runs in linear time in almost all real world cases.
+    See: http://tinyurl.com/6e4n5yb
 
     :Parameters:
         `points` : iterable
             A list of points (2 tuple with x,y coordinates)
 
     :Return:
-        A Circle that defined the tuple :
-            * The first element in the returned touple is the center (tuple x,y)
+        A tuple that defines the circle:
+            * The first element in the returned tuple is the center (x, y)
             * The second the radius (float)
     '''
     points = [Vector(p[0], p[1]) for p in points]
@@ -69,10 +73,10 @@ def minimum_bounding_circle(points):
 
     if len(points) == 2:
         p1, p2 = points
-        return (p1+p2)*.5, ((p1-p2)*.5).length()
+        return (p1 + p2) * .5, ((p1 - p2) * .5).length()
 
     # determine a point P with the smallest y value
-    P = min(points, key=lambda p:p.y)
+    P = min(points, key = lambda p: p.y)
 
     # find a point Q such that the angle of the line segment
     # PQ with the x axis is minimal

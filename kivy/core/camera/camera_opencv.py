@@ -38,7 +38,7 @@ class CameraOpenCV(CameraBase):
                               self.resolution[1])
 
             # and get frame to check if it's ok
-            frame  = hg.cvQueryFrame(self._device)
+            frame = hg.cvQueryFrame(self._device)
             if not int(frame.width) == self.resolution[0]:
                 raise Exception('OpenCV: Resolution not supported')
 
@@ -49,7 +49,7 @@ class CameraOpenCV(CameraBase):
                     hg.CV_CAP_PROP_FRAME_WIDTH))
             h = int(hg.cvGetCaptureProperty(self._device,
                     hg.CV_CAP_PROP_FRAME_HEIGHT))
-            frame  = hg.cvQueryFrame(self._device)
+            frame = hg.cvQueryFrame(self._device)
             Logger.warning(
                 'OpenCV: Camera resolution %s not possible! Defaulting to %s.' %
                 (self.resolution, (w, h)))

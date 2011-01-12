@@ -16,6 +16,7 @@ __all__ = ('Vector', )
 
 import math
 
+
 class Vector(list):
     '''Represents a 2D vector.'''
 
@@ -151,8 +152,7 @@ class Vector(list):
         '''Computes the angle between a and b'''
         angle = -(180/math.pi) * math.atan2(
             self[0] * a[1] - self[1] * a[0],
-            self[0] * a[0] + self[1] * a[1]
-        )
+            self[0] * a[0] + self[1] * a[1])
         return angle
 
     def rotate(self, angle):
@@ -179,8 +179,8 @@ class Vector(list):
         if denom == 0:
             return None
 
-        px = (u * (x3 - x4) - (x1 - x2) * v ) / denom
-        py = (u * (y3 - y4) - (y1 - y2) * v ) / denom
+        px = (u * (x3 - x4) - (x1 - x2) * v) / denom
+        py = (u * (y3 - y4) - (y1 - y2) * v) / denom
 
         return Vector(px, py)
 

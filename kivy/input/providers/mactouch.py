@@ -62,8 +62,7 @@ if 'KIVY_DOC' not in os.environ:
                     ('unknown4', MTVector),
                     ('unknown5_1', ctypes.c_int),
                     ('unknown5_2', ctypes.c_int),
-                    ('unknown6', ctypes.c_float),
-	]
+                    ('unknown6', ctypes.c_float), ]
 
         MTDataRef = ctypes.POINTER(MTData)
 
@@ -81,7 +80,7 @@ if 'KIVY_DOC' not in os.environ:
         MTDeviceStart.restype = None
 
 else:
-	MTContactCallbackFunction = lambda x: None
+    MTContactCallbackFunction = lambda x: None
 
 
 class MacTouch(Touch):

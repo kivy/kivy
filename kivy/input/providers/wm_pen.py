@@ -77,7 +77,7 @@ else:
                 self.pen_events.appendleft(('up', x, y))
                 self.pen_status = False
 
-        def _pen_wndProc( self, hwnd, msg, wParam, lParam ):
+        def _pen_wndProc(self, hwnd, msg, wParam, lParam):
             if msg == WM_TABLET_QUERYSYSTEMGESTURE:
                 return QUERYSYSTEMGESTURE_WNDPROC
             if self._is_pen_message(msg):
@@ -99,8 +99,7 @@ else:
             self.old_windProc = windll.user32.SetWindowLongW(
                 self.hwnd,
                 GWL_WNDPROC,
-                self.new_windProc
-            )
+                self.new_windProc)
 
         def update(self, dispatch_fn):
             while True:
@@ -123,7 +122,6 @@ else:
             windll.user32.SetWindowLongW(
                 self.hwnd,
                 GWL_WNDPROC,
-                self.old_windProc
-            )
+                self.old_windProc)
 
     TouchFactory.register('wm_pen', WM_PenProvider)

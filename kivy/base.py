@@ -31,8 +31,9 @@ class ExceptionHandler:
 
         ExceptionManager.add_handler(E())
 
-    All exceptions will be set to PASS, and loggued to console !
+    All exceptions will be set to PASS, and logged to console !
     '''
+
     def __init__(self):
         pass
 
@@ -77,6 +78,7 @@ ExceptionManager = ExceptionManagerBase()
 class EventLoopBase(object):
     '''Main event loop. This loop handle update of input + dispatch event
     '''
+
     def __init__(self):
         super(EventLoopBase, self).__init__()
         self.quit = False

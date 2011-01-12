@@ -10,7 +10,7 @@ class KivyStyleChecker(pep8.Checker):
         pep8.Checker.__init__(self, filename)
 
     def report_error(self, line_number, offset, text, check):
-        if htmlmode == False:
+        if htmlmode is False:
             return pep8.Checker.report_error(
                 self, line_number, offset, text, check)
 

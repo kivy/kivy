@@ -122,7 +122,7 @@ class Widget(EventDispatcher):
         :Parameters:
             `name`: string
                 Name of the property
-        
+
         The class of the property cannot be specified, it will be always an
         :class:`~kivy.properties.ObjectProperty` class. The default value of the
         property will be None, until you set a new value.
@@ -214,7 +214,7 @@ class Widget(EventDispatcher):
 
     def bind(self, **kwargs):
         '''Bind properties or event to handler.
-        
+
         Example of usage::
 
             def my_x_callback(obj, value):
@@ -480,7 +480,7 @@ class Widget(EventDispatcher):
 
     :data:`children` is a :class:`~kivy.properties.ListProperty` instance,
     default to an empty list.
-    
+
     Use :func:`add_widget` and :func:`remove_widget` for manipulate children
     list. Don't manipulate children list directly until you know what you are
     doing.
@@ -510,7 +510,7 @@ class Widget(EventDispatcher):
 
     size_hint_y = NumericProperty(1, allownone=True)
     '''Y size hint.
-    
+
     :data:`size_hint_y` is a :class:`~kivy.properties.NumericProperty`, default
     to 1.
 
@@ -519,7 +519,7 @@ class Widget(EventDispatcher):
 
     size_hint = ReferenceListProperty(size_hint_x, size_hint_y)
     '''Size hint.
-    
+
     :data:`size_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`size_hint_x`, :data:`size_hint_y`)
 

@@ -43,12 +43,12 @@ class CameraBase(EventDispatcher):
         kwargs.setdefault('resolution', (640, 480))
         kwargs.setdefault('index', 0)
 
-        self.stopped        = kwargs.get('stopped')
-        self._resolution    = kwargs.get('resolution')
-        self._index         = kwargs.get('index')
-        self._buffer        = None
-        self._format        = 'rgb'
-        self._texture       = None
+        self.stopped = kwargs.get('stopped')
+        self._resolution = kwargs.get('resolution')
+        self._index = kwargs.get('index')
+        self._buffer = None
+        self._format = 'rgb'
+        self._texture = None
         self.capture_device = None
         kwargs.setdefault('size', self._resolution)
 

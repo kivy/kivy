@@ -47,6 +47,7 @@ from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
 
+
 class Animation(EventDispatcher):
     '''Create an animation definition, that can be used to animate a widget
 
@@ -126,7 +127,6 @@ class Animation(EventDispatcher):
             for animation in Animation._instances[:]:
                 animation.stop(widget)
 
-
     def start(self, widget):
         '''Start the animation on a widget
         '''
@@ -160,7 +160,6 @@ class Animation(EventDispatcher):
     #
     # Private
     #
-
     def _register(self):
         Animation._instances.add(self)
 
@@ -171,8 +170,7 @@ class Animation(EventDispatcher):
     def _initialize(self, widget):
         d = self._widgets[widget] = {
             'properties': {},
-            'time': 0.
-        }
+            'time': 0.}
 
         # get current values
         p = d['properties']
@@ -228,11 +226,9 @@ class Animation(EventDispatcher):
         else:
             return (a * (1. - t)) + (b * t)
 
-
     #
     # Default handlers
     #
-
     def on_start(self, widget):
         pass
 
@@ -248,7 +244,9 @@ class Animation(EventDispatcher):
     def __and__(self, animation):
         return Parallel(self, animation)
 
+
 class Sequence(Animation):
+
     def __init__(self, anim1, anim2):
         super(Sequence, self).__init__()
         self.anim1 = anim1
@@ -279,16 +277,22 @@ class Sequence(Animation):
 
     def on_anim1_start(self, instance, widget):
         self.dispatch('on_start', widget)
+
     def on_anim1_complete(self, instance, widget):
         self.anim2.start(widget)
+
     def on_anim1_progress(self, instance, widget, progress):
         self.dispatch('on_progress', widget, progress / 2.)
+
     def on_anim2_complete(self, instance, widget):
         self.dispatch('on_complete', widget)
+
     def on_anim2_progress(self, instance, widget, progress):
         self.dispatch('on_progress', widget, .5 + progress / 2.)
 
+
 class Parallel(Animation):
+
     def __init__(self, anim1, anim2):
         super(Parallel, self).__init__()
         self.anim1 = anim1
@@ -327,24 +331,21 @@ class AnimationTransition(object):
     Easing Functions ported into Kivy from Clutter Project
     http://www.clutter-project.org/docs/clutter/stable/ClutterAlpha.html
     '''
+
     @staticmethod
     def linear(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#linear'''
         return progress
 
     @staticmethod
     def in_quad(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_quad'''
         return progress * progress
 
     @staticmethod
     def out_quad(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_quad'''
         return -1.0 * progress * (progress - 2.0)
 
     @staticmethod
     def in_out_quad(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_quad'''
         p = progress * 2
         if p < 1:
             return 0.5 * p * p
@@ -353,18 +354,15 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_cubic(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_cubic'''
         return progress * progress * progress
 
     @staticmethod
     def out_cubic(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_cubic'''
         p = progress - 1.0
         return p * p * p + 1.0
 
     @staticmethod
     def in_out_cubic(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_cubic'''
         p = progress * 2
         if p < 1:
             return 0.5 * p * p * p
@@ -373,18 +371,15 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_quart(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_quart'''
         return progress * progress * progress * progress
 
     @staticmethod
     def out_quart(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_quart'''
         p = progress - 1.0
         return -1.0 * (p * p * p * p - 1.0)
 
     @staticmethod
     def in_out_quart(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_quart'''
         p = progress * 2
         if p < 1:
             return 0.5 * p * p * p * p
@@ -393,18 +388,15 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_quint(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_quint'''
         return progress * progress * progress * progress * progress
 
     @staticmethod
     def out_quint(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_quint'''
         p = progress - 1.0
         return p * p * p * p * p + 1.0
 
     @staticmethod
     def in_out_quint(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_quint'''
         p = progress * 2
         if p < 1:
             return 0.5 * p * p * p * p * p
@@ -413,36 +405,30 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_sine(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_sine'''
         return -1.0 * cos(progress * (pi/2.0)) + 1.0
 
     @staticmethod
     def out_sine(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_sine'''
         return sin(progress * (pi/2.0))
 
     @staticmethod
     def in_out_sine(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_sine'''
         return -0.5 * (cos(pi * progress) - 1.0)
 
     @staticmethod
     def in_expo(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_expo'''
         if progress == 0:
             return 0.0
         return pow(2, 10 * (progress - 1.0))
 
     @staticmethod
     def out_expo(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_expo'''
         if progress == 1.0:
             return 1.0
-        return  -pow(2, -10 * progress) + 1.0
+        return -pow(2, -10 * progress) + 1.0
 
     @staticmethod
     def in_out_expo(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_expo'''
         if progress == 0:
             return 0.0
         if progress == 1.:
@@ -455,18 +441,15 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_circ(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_circ'''
         return -1.0 * (sqrt(1.0 - progress * progress) - 1.0)
 
     @staticmethod
     def out_circ(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_circ'''
         p = progress - 1.0
         return sqrt(1.0 - p * p)
 
     @staticmethod
     def in_out_circ(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_circ'''
         p = progress * 2
         if p < 1:
             return -0.5 * (sqrt(1.0 - p * p) - 1.0)
@@ -475,7 +458,6 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_elastic(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_elastic'''
         p = .3
         s = p / 4.0
         q = progress
@@ -486,7 +468,6 @@ class AnimationTransition(object):
 
     @staticmethod
     def out_elastic(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_elastic'''
         p = .3
         s = p / 4.0
         q = progress
@@ -496,7 +477,6 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_out_elastic(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_elastic'''
         p = .3 * 1.5
         s = p / 4.0
         q = progress * 2
@@ -507,22 +487,19 @@ class AnimationTransition(object):
             return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 *pi) / p))
         else:
             q -= 1.0
-            return pow(2, -10 * q) * sin((q - s) * (2.0 * pi) / p) * .5 + 1.0;
+            return pow(2, -10 * q) * sin((q - s) * (2.0 * pi) / p) * .5 + 1.0
 
     @staticmethod
     def in_back(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_back'''
         return progress * progress * ((1.70158 + 1.0) * progress - 1.70158)
 
     @staticmethod
     def out_back(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_back'''
         p = progress - 1.0
         return p * p * ((1.70158 + 1) * p + 1.70158) + 1.0
 
     @staticmethod
     def in_out_back(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_back'''
         p = progress * 2.
         s = 1.70158 * 1.525
         if p < 1:
@@ -551,18 +528,16 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_bounce(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_bounce'''
         return AnimationTransition._in_bounce_internal(progress, 1.)
 
     @staticmethod
     def out_bounce(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#out_bounce'''
         return AnimationTransition._out_bounce_internal(progress, 1.)
 
     @staticmethod
     def in_out_bounce(progress):
-        '''See documentation at http://kivy.org/wiki/DevGuide/EasingFunctions#in_out_bounce'''
         p = progress * 2
         if p < 1.:
             return AnimationTransition._in_bounce_internal(progress * 2.0, 1.) * 0.5
         return AnimationTransition._out_bounce_internal(progress * 2.0 - 1., 1.) * 0.5 + 1.0 * 0.5
+

@@ -25,8 +25,14 @@ new gesture, and compare them::
 
 __all__ = ('Gesture', 'GestureDatabase', 'GesturePoint', 'GestureStroke')
 
+import pickle
+import base64
+import zlib
 import math
+from cStringIO import StringIO
+
 from kivy.vector import Vector
+
 
 class GestureDatabase(object):
     '''Class to handle a gesture database.'''
@@ -56,8 +62,6 @@ class GestureDatabase(object):
 
     def gesture_to_str(self, gesture):
         '''Convert a gesture into a unique string'''
-        from cStringIO import StringIO
-        import pickle, base64, zlib
         io = StringIO()
         p = pickle.Pickler(io)
         p.dump(gesture)
@@ -66,8 +70,6 @@ class GestureDatabase(object):
 
     def str_to_gesture(self, data):
         '''Convert a unique string to a gesture'''
-        from cStringIO import StringIO
-        import pickle, base64, zlib
         io = StringIO(zlib.decompress(base64.b64decode(data)))
         p = pickle.Unpickler(io)
         gesture = p.load()
@@ -89,7 +91,9 @@ class GesturePoint:
     def __repr__(self):
         return 'Mouse_point: %f,%f' % (self.x, self.y)
 
+
 class GestureStroke:
+
     ''' Gestures can be made up of multiple strokes '''
     def __init__(self):
         ''' A stroke in the gesture '''
@@ -178,7 +182,7 @@ class GestureStroke:
         src_distance = 0.0
         dst_distance = target_stroke_size
         for curr in self.points[1:]:
-            d = self.points_distance( prev, curr )
+            d = self.points_distance(prev, curr)
             if d > 0:
                 prev = curr
                 src_distance = src_distance+d
@@ -319,8 +323,8 @@ class Gesture:
             return 0
         if len(dstpts.strokes) < 1 or len(dstpts.strokes[0].points) < 1:
             return 0
-        target = Vector( [dstpts.strokes[0].points[0].x, dstpts.strokes[0].points[0].y]  )
-        source = Vector( [self.strokes[0].points[0].x, self.strokes[0].points[0].y] )
+        target = Vector([dstpts.strokes[0].points[0].x, dstpts.strokes[0].points[0].y])
+        source = Vector([self.strokes[0].points[0].x, self.strokes[0].points[0].y])
         return source.angle(target)
 
     def dot_product(self, comparison_gesture):
@@ -330,19 +334,19 @@ class Gesture:
         if getattr(comparison_gesture, 'gesture_product', True) is False or getattr(self, 'gesture_product', True) is False:
             return -1
         dot_product = 0.0
-        for stroke_index, (my_stroke, cmp_stroke) in enumerate( zip(self.strokes, comparison_gesture.strokes) ):
-            for pt_index, (my_point, cmp_point) in enumerate( zip(my_stroke.points, cmp_stroke.points) ):
+        for stroke_index, (my_stroke, cmp_stroke) in enumerate(zip(self.strokes, comparison_gesture.strokes)):
+            for pt_index, (my_point, cmp_point) in enumerate(zip(my_stroke.points, cmp_stroke.points)):
                 dot_product += my_point.x * cmp_point.x + my_point.y * cmp_point.y
         return dot_product
 
-    def rotate( self, angle ):
+    def rotate(self, angle):
         g = Gesture()
         for stroke in self.strokes:
             tmp = []
             for j in stroke.points:
                 v = Vector([j.x, j.y]).rotate(angle)
-                tmp.append( v )
-            g.add_stroke( tmp )
+                tmp.append(v)
+            g.add_stroke(tmp)
         g.gesture_product = g.dot_product(g)
         return g
 
@@ -351,10 +355,10 @@ class Gesture:
         if isinstance(comparison_gesture, Gesture):
             if rotation_invariant:
                 # get orientation
-                angle = self.get_rigid_rotation( comparison_gesture )
+                angle = self.get_rigid_rotation(comparison_gesture)
 
                 # rotate the gesture to be in the same frame.
-                comparison_gesture = comparison_gesture.rotate( angle )
+                comparison_gesture = comparison_gesture.rotate(angle)
 
             # this is the normal "orientation" code.
             score = self.dot_product(comparison_gesture)

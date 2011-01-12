@@ -261,8 +261,7 @@ class Touch(object):
             out.append('%s="%s"' % (x, v))
         return '<%s %s>' % (
             self.__class__.__name__,
-            ' '.join(out)
-        )
+            ' '.join(out))
 
     # facility
     @property

@@ -33,6 +33,7 @@ def difference(set1, set2):
 
 def curry(fn, *cargs, **ckwargs):
     '''Change the function signature to pass new variable.'''
+
     def call_fn(*fargs, **fkwargs):
         d = ckwargs.copy()
         d.update(fkwargs)
@@ -112,7 +113,6 @@ def get_random_color(alpha=1.0):
         return [random(), random(), random(), alpha]
 
 
-
 def get_color_for_pyglet(c):
     '''Transform from kivy color to pyglet color'''
     return map(lambda x: int(255 * x), c)
@@ -128,6 +128,8 @@ def is_color_transparent(c):
 
 
 DEPRECATED_CALLERS = []
+
+
 def deprecated(func):
     '''This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted the first time
@@ -162,6 +164,7 @@ class SafeList(list):
     .. warning::
         Usage of iterate() function will decrease your performance.
     '''
+
     def clear(self):
         del self[:]
 

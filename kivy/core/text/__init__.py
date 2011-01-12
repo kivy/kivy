@@ -87,7 +87,7 @@ class LabelBase(object):
                 kwargs['padding_y'] = 0
 
         uw, uh = kwargs['size']
-        if uw != None:
+        if uw is not None:
             kwargs['size'] = uw - kwargs['padding_x'] * 2, uh
 
         super(LabelBase, self).__init__()

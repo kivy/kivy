@@ -1,6 +1,7 @@
 """Raw data collector for Coverage."""
 
-import sys, threading
+import sys
+import threading
 
 try:
     # Use the C extension code when we can, for speed.
@@ -94,13 +95,13 @@ class PyTracer(object):
             self.last_exc_back = frame.f_back
             self.last_exc_firstlineno = frame.f_code.co_firstlineno
         return self._trace
-    
+
     def _profile(self, frame, event, func):
         """The profile function passed to sys.settrace."""
 
         if not frame.f_code.co_filename.endswith('pyx'):
             return self._profile
-        
+
         #print("profile event: %s %r @%d" % (
         #           event, frame.f_code.co_filename, frame.f_lineno))
         if self.last_exc_back:
@@ -132,7 +133,7 @@ class PyTracer(object):
             # Set the last_line to -1 because the next arc will be entering a
             # code block, indicated by (-1, n).
             self.last_line = -1
-            
+
             # Record an executed line.
             if self.cur_file_data is not None:
                 if self.arcs:
@@ -142,7 +143,7 @@ class PyTracer(object):
                     #print("lin", frame.f_lineno)
                     self.cur_file_data[frame.f_lineno] = None
             #self.last_line = frame.f_lineno
-            
+
             # Record an executed line.
             if self.cur_file_data is not None:
                 if self.arcs:
@@ -152,7 +153,7 @@ class PyTracer(object):
                     #print("lin", frame.f_lineno)
                     self.cur_file_data[frame.f_lineno] = None
             self.last_line = frame.f_lineno
-            
+
         elif event == 'return':
             if self.arcs and self.cur_file_data:
                 first = frame.f_code.co_firstlineno
@@ -160,9 +161,9 @@ class PyTracer(object):
             # Leaving this function, pop the filename stack.
             self.cur_file_data, self.last_line = self.data_stack.pop()
             #print("returned, stack is %d deep" % (len(self.data_stack)))
-        
+
         return self._profile
-    
+
     def start(self):
         """Start this Tracer.
 

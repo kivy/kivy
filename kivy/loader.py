@@ -36,6 +36,7 @@ import os
 # Register a cache for loader
 Cache.register('kivy.loader', limit=500, timeout=60)
 
+
 class ProxyImage(Image):
     '''Image returned by the Loader.image() function.
 
@@ -47,6 +48,7 @@ class ProxyImage(Image):
         `on_load`
             Fired when the image is loaded and changed
     '''
+
     def __init__(self, arg, **kwargs):
         kwargs.setdefault('loaded', False)
         super(ProxyImage, self).__init__(arg, **kwargs)
@@ -72,9 +74,9 @@ class LoaderBase(object):
         self._loading_image = None
         self._error_image = None
 
-        self._q_load  = collections.deque()
-        self._q_done  = collections.deque()
-        self._client  = SafeList()
+        self._q_load = collections.deque()
+        self._q_done = collections.deque()
+        self._client = SafeList()
         self._running = False
         self._start_wanted = False
 
@@ -147,7 +149,7 @@ class LoaderBase(object):
         import tempfile
         data = None
         try:
-            suffix = '.%s'  % (filename.split('.')[-1])
+            suffix = '.%s' % (filename.split('.')[-1])
             _out_osfd, _out_filename = tempfile.mkstemp(
                     prefix='kivyloader', suffix=suffix)
 
@@ -250,6 +252,7 @@ else:
         import pygame
 
         class LoaderPygame(LoaderBase):
+
             def __init__(self):
                 super(LoaderPygame, self).__init__()
                 self.worker = None
@@ -280,9 +283,9 @@ else:
         #
         # Default to the clock loader
         #
-
         class LoaderClock(LoaderBase):
             '''Loader implementation using a simple Clock()'''
+
             def start(self):
                 super(LoaderClock, self).start()
                 Clock.schedule_interval(self.run, 0.0001)

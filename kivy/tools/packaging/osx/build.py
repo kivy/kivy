@@ -1,10 +1,11 @@
-import os, sys, shutil, shlex, re
+import os
+import sys
+import shutil
+import shlex
+import re
 from urllib import urlretrieve
 from subprocess import Popen, PIPE
 from distutils.cmd import Command
-
-
-
 
 
 class OSXPortableBuild(Command):
@@ -15,8 +16,7 @@ class OSXPortableBuild(Command):
         ('deps-url=', None,
          "url of binary dependancies for portable kivy package default: http://kivy.googlecode.com/files/portable-deps-osx.zip"),
         ('no-cext', None,
-         "flag to disable building of c extensions")
-    ]
+         "flag to disable building of c extensions")]
 
     def initialize_options(self):
         self.dist_dir = None
@@ -27,11 +27,11 @@ class OSXPortableBuild(Command):
         if not self.deps_url:
             self.deps_url = 'http://kivy.googlecode.com/files/portable-deps-osx.zip'
         if not self.dist_dir:
-            self.dist_dir =  os.getcwd()
+            self.dist_dir = os.getcwd()
 
         self.src_dir = os.path.dirname(sys.modules['__main__'].__file__)
         self.dist_name = self.distribution.get_fullname() # e.g. Kivy-0.5 (name and verison passed to setup())
-        self.build_dir =  os.path.join(self.dist_dir, self.dist_name+'-osx-build')
+        self.build_dir = os.path.join(self.dist_dir, self.dist_name+'-osx-build')
 
 
 
@@ -45,8 +45,7 @@ class OSXPortableBuild(Command):
         if os.path.exists(self.build_dir):
             print "*Cleaning old build dir"
             shutil.rmtree(self.build_dir, ignore_errors=True)
-        print "*Creating build directory:"
-        print " "+self.build_dir
+        print "*Creating build directory:", self.build_dir
         os.makedirs(self.build_dir)
 
 
@@ -55,33 +54,33 @@ class OSXPortableBuild(Command):
         print "*Downloading:", self.deps_url
         #report_hook is called every time a piece of teh file is downloaded to print progress
         def report_hook(block_count, block_size, total_size):
-            p = block_count*block_size*100.0/total_size
-            print "\b\b\b\b\b\b\b\b\b", "%06.2f"%p +"%",
+            p = block_count * block_size * 100.0 / total_size
+            print "\b\b\b\b\b\b\b\b\b", "%06.2f" % p + "%",
         print " Progress: 000.00%",
         urlretrieve(self.deps_url, #location of binary dependencioes needed for portable kivy
-                    os.path.join(self.build_dir,'deps.zip'), #tmp file to store teh archive
+                    os.path.join(self.build_dir, 'deps.zip'), #tmp file to store teh archive
                     reporthook=report_hook)
         print " [Done]"
 
 
         print "*Extracting binary dependencies..."
         #using osx sysetm command, becasue python zipfile cant handle the hidden files in teh archive
-        Popen(['unzip', os.path.join(self.build_dir,'deps.zip')], cwd=self.build_dir, stdout=PIPE).communicate()
+        Popen(['unzip', os.path.join(self.build_dir, 'deps.zip')], cwd=self.build_dir, stdout=PIPE).communicate()
 
         print "\nPutting kivy into portable environment"
         print "---------------------------------------"
         print "*Building kivy source distribution"
         sdist_cmd = [sys.executable, #path to python.exe
-                     os.path.join(self.src_dir,'setup.py'), #path to setup.py
+                     os.path.join(self.src_dir, 'setup.py'), #path to setup.py
                      'sdist', #make setup.py create a src distribution
-                     '--dist-dir=%s'%self.build_dir] #put it into build folder
+                     '--dist-dir=%s' % self.build_dir] #put it into build folder
         Popen(sdist_cmd, stdout=PIPE).communicate()
 
 
         print "*Placing kivy source distribution in portable context"
-        src_dist = os.path.join(self.build_dir,self.dist_name)
+        src_dist = os.path.join(self.build_dir, self.dist_name)
         #using osx sysetm command, becasue python zipfile cant handle the hidden files in teh archive
-        Popen(['tar', 'xfv', src_dist+'.tar.gz'], cwd=self.build_dir, stdout=PIPE, stderr=PIPE).communicate()
+        Popen(['tar', 'xfv', src_dist + '.tar.gz'], cwd=self.build_dir, stdout=PIPE, stderr=PIPE).communicate()
         if self.no_cext:
             print "*Skipping C Extension build (either --no_cext or --no_mingw option set)"
         else:
@@ -99,12 +98,12 @@ class OSXPortableBuild(Command):
         print "---------------------------------------"
         print "*Copying launcher script into the app bundle"
         script_target = os.path.join(self.build_dir, 'portable-deps-osx', 'Kivy.app', 'Contents', 'Resources', 'script')
-        script = os.path.join(src_dist,'kivy','tools','packaging','osx', 'kivy.sh')
+        script = os.path.join(src_dist, 'kivy', 'tools', 'packaging', 'osx', 'kivy.sh')
         shutil.copy(script, script_target)
 
         print "*Moving examples out of app bundle to be included in disk image"
         examples_target = os.path.join(self.build_dir, 'portable-deps-osx', 'examples')
-        examples = os.path.join(src_dist,'examples')
+        examples = os.path.join(src_dist, 'examples')
         shutil.move(examples, examples_target)
 
         print "*Moving newly build kivy distribution into app bundle"
@@ -125,7 +124,7 @@ class OSXPortableBuild(Command):
         print "---------------------------------------"
         print "\nCreating intermediate DMG disk image: temp.dmg"
         print "*checking how much space is needed for disk image..."
-        du_cmd = 'du -sh %s'%dmg_dir
+        du_cmd = 'du -sh %s' % dmg_dir
         du_out = Popen(shlex.split(du_cmd), stdout=PIPE).communicate()[0]
         size, unit = re.search('(\d+)(.*)\s+/.*', du_out).group(1,2)
         print "  build needs at least %s%s." % (size, unit)

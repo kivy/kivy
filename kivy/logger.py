@@ -40,6 +40,7 @@ RESET_SEQ = "\033[0m"
 COLOR_SEQ = "\033[1;%dm"
 BOLD_SEQ = "\033[1m"
 
+
 def formatter_message(message, use_color=True):
     if use_color:
         message = message.replace("$RESET", RESET_SEQ).replace("$BOLD", BOLD_SEQ)
@@ -53,8 +54,7 @@ COLORS = {
     'INFO': GREEN,
     'DEBUG': CYAN,
     'CRITICAL': RED,
-    'ERROR': RED
-}
+    'ERROR': RED}
 
 logging.TRACE = 9
 LOG_LEVELS = {
@@ -63,8 +63,8 @@ LOG_LEVELS = {
     'info': logging.INFO,
     'warning': logging.WARNING,
     'error': logging.ERROR,
-    'critical': logging.CRITICAL
-}
+    'critical': logging.CRITICAL}
+
 
 class FileHandler(logging.Handler):
     history = []
@@ -169,7 +169,9 @@ class HistoryHandler(logging.Handler):
     def emit(self, message):
         HistoryHandler.history = [message] + HistoryHandler.history[:100]
 
+
 class ColoredFormatter(logging.Formatter):
+
     def __init__(self, msg, use_color=True):
         logging.Formatter.__init__(self, msg)
         self.use_color = use_color
@@ -195,6 +197,7 @@ class ColoredFormatter(logging.Formatter):
             record.levelname = levelname_color
         return logging.Formatter.format(self, record)
 
+
 class ColoredLogger(logging.Logger):
     use_color = True
     if os.name == 'nt':
@@ -218,6 +221,7 @@ class ColoredLogger(logging.Logger):
         self.addHandler(HistoryHandler())
         self.addHandler(FileHandler())
         return
+
 
 if 'nosetests' not in sys.argv:
     logging.setLoggerClass(ColoredLogger)

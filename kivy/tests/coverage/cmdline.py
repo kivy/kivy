@@ -1,6 +1,9 @@
 """Command-line support for Coverage."""
 
-import optparse, re, sys, traceback
+import optparse
+import re
+import sys
+import traceback
 
 from coverage.backward import sorted                # pylint: disable-msg=W0622
 from coverage.execfile import run_python_file
