@@ -436,13 +436,13 @@ cdef class Texture:
             glTexParameteri(self.target, GL_TEXTURE_WRAP_S, wrap)
             glTexParameteri(self.target, GL_TEXTURE_WRAP_T, wrap)
 
-    def blit_data(self, im, pos=(0, 0)):
+    def blit_data(self, im, pos=None):
         '''Replace a whole texture with a image data'''
         self.blit_buffer(im.data, size=(im.width, im.height),
                          fmt=im.fmt, pos=pos)
 
-    def blit_buffer(self, pbuffer, size=None, fmt='rgb',
-                    pos=(0, 0), buffertype='ubyte'):
+    def blit_buffer(self, pbuffer, size=None, fmt=None,
+                    pos=None, buffertype=None):
         '''Blit a buffer into a texture.
 
         :Parameters:
@@ -459,7 +459,12 @@ cdef class Texture:
                 'uint', 'byte', 'short', 'int', 'float'
         '''
         cdef GLuint target = self.target
-
+        if fmt is None:
+            fmt = 'rgb'
+        if buffertype is None:
+            buffertype = 'ubyte'
+        if pos is None:
+            pos = (0, 0)
         if size is None:
             size = self.size
         buffertype = _buffer_type_to_gl_format(buffertype)
