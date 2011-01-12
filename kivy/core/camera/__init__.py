@@ -93,7 +93,6 @@ class CameraBase(EventDispatcher):
 
     def start(self):
         '''Start the camera acquire'''
-        print 'start', self.stopped
         self.stopped = False
         Clock.unschedule(self._update)
         Clock.schedule_interval(self._update, 1. / 30)
