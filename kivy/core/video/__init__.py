@@ -19,10 +19,6 @@ from kivy.event import EventDispatcher
 class VideoBase(EventDispatcher):
     '''VideoBase, a class to implement a video reader.
 
-    .. warning::
-        For this object, you need to call update() yourself to let
-        the engine update the video texture before calling draw().
-
     :Parameters:
         `filename` : str
             Filename of the video. Can be a file or an URI.
