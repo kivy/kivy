@@ -1,10 +1,12 @@
 Architectural Overview
 ======================
 
-From a software engineering point of view, Kivy is a pretty well-designed product.
-If you just look at the code, chances are you will get a rough idea already, but
-since this approach certainly is daunting for most users, this section explains
-the basic ideas of the implementation.
+We would like to take a moment to explain how we designed Kivy from a
+software engineering point of view. This is key to understanding how
+everything works together.
+If you just look at the code, chances are you will get a rough idea
+already, but since this approach certainly is daunting for most users,
+this section explains the basic ideas of the implementation in more detail.
 
 
 Core Providers and Input Providers
