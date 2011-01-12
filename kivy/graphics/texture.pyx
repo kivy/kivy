@@ -153,9 +153,11 @@ cdef inline _convert_buffer(bytes data, str fmt):
     return ret_buffer, ret_format
 
 
-cdef _texture_create(int width, int height, str fmt, int rectangle, int mipmap):
+cdef _texture_create(int width, int height, str fmt, str buffertype, int
+                     rectangle, int mipmap):
     cdef GLuint target = GL_TEXTURE_2D
     cdef int texture_width, texture_height
+    cdef int glbuffertype = _buffer_type_to_gl_format(buffertype)
 
     if mipmap:
         raise Exception('Mipmapping is not yet implemented on Kivy')
@@ -226,7 +228,7 @@ cdef _texture_create(int width, int height, str fmt, int rectangle, int mipmap):
         data = calloc(1, datasize)
         if data != NULL:
             glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
-                         glfmt, GL_UNSIGNED_BYTE, data)
+                         glfmt, glbuffertype, data)
             glFlush()
             free(data)
             data = NULL
@@ -246,7 +248,7 @@ cdef _texture_create(int width, int height, str fmt, int rectangle, int mipmap):
 
     return texture.get_region(0, 0, width, height)
 
-def texture_create(size=None, fmt=None, rectangle=False, mipmap=False):
+def texture_create(size=None, fmt=None, buffertype=None, rectangle=False, mipmap=False):
     '''Create a texture based on size.
 
     :Parameters:
@@ -269,13 +271,15 @@ def texture_create(size=None, fmt=None, rectangle=False, mipmap=False):
         width, height = size
     if fmt is None:
         fmt = 'rgba'
-    return _texture_create(width, height, fmt, rectangle, mipmap)
+    if buffertype is None:
+        buffertype = 'ubyte'
+    return _texture_create(width, height, fmt, buffertype, rectangle, mipmap)
 
 
 def texture_create_from_data(im, rectangle=True, mipmap=False):
     '''Create a texture from an ImageData class'''
 
-    texture = _texture_create(im.width, im.height, im.fmt,
+    texture = _texture_create(im.width, im.height, im.fmt, 'ubyte',
                              rectangle, mipmap)
     if texture is None:
         return None
