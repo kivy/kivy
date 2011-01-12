@@ -103,6 +103,8 @@ cdef class Fbo(RenderContext):
             and will be automatically restored when the framebuffer released.
         `with_depthbuffer`: bool, default to True
             If True, the framebuffer will be allocated with a Z buffer.
+        `texture`: :class:`~kivy.graphics.texture.Texture`, default to None
+            If None, a default texture will be created.
     '''
     def __init__(self, *args, **kwargs):
         RenderContext.__init__(self, *args, **kwargs)
@@ -119,15 +121,14 @@ cdef class Fbo(RenderContext):
         self._depthbuffer_attached  = int(kwargs.get('with_depthbuffer'))
         self._push_viewport         = int(kwargs.get('push_viewport'))
         self._is_bound              = 0
-        self._texture               = None
+        self._texture               = kwargs.get('texture', None)
 
         self.create_fbo()
 
     cdef delete_fbo(self):
         # care on this case, if the deletion happen in another thread than main
         # thread, we are lost :)
-        if self._texture:
-            self._texture = None
+        self._texture = None
         self._depthbuffer_attached = 0
         if self._buffer_id != -1:
             glDeleteFramebuffers(1, &self._buffer_id)
@@ -141,7 +142,8 @@ cdef class Fbo(RenderContext):
         cdef int status
 
         # create texture
-        self._texture = Texture.create(size=(self._width, self._height))
+        if self._texture is None:
+            self._texture = Texture.create(size=(self._width, self._height))
 
         # create framebuffer
         glGenFramebuffers(1, &f_id)
@@ -161,7 +163,7 @@ cdef class Fbo(RenderContext):
 
         # attach the framebuffer to our texture
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_2D, self._texture.id, 0)
+                self._texture._target, self._texture._id, 0)
 
         # check the status of the framebuffer
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
