@@ -297,10 +297,14 @@ cdef class RenderContext(Canvas):
     '''
     def __init__(self, *args, **kwargs):
         Canvas.__init__(self)
-        vs_file = join(kivy_shader_dir, 'default.vs')
-        fs_file = join(kivy_shader_dir, 'default.fs')
-        vs_src  = open(vs_file, 'r').read()
-        fs_src  = open(fs_file, 'r').read()
+        vs_src = kwargs.get('vs', None)
+        fs_src = kwargs.get('fs', None)
+        if vs_src is None:
+            vs_file = join(kivy_shader_dir, 'default.vs')
+            vs_src  = open(vs_file, 'r').read()
+        if fs_src is None:
+            fs_file = join(kivy_shader_dir, 'default.fs')
+            fs_src  = open(fs_file, 'r').read()
         self.shader = Shader(vs_src, fs_src)
 
         # load default texture image
@@ -325,7 +329,10 @@ cdef class RenderContext(Canvas):
 
     cdef set_state(self, str name, value):
         #upload the uniform value for the shdeer
-        self.state_stacks[name][-1] = value
+        if not name in self.state_stacks:
+            self.state_stacks[name] = [value]
+        else:
+            self.state_stacks[name][-1] = value
         self.shader.set_uniform(name, value)
 
     cdef get_state(self, str name):
