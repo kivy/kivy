@@ -18,22 +18,16 @@ except:
 
 class CameraVideoCapture(CameraBase):
     '''Implementation of CameraBase using VideoCapture
-
-    :Parameters:
-        `video_src` : int, default is 0
-            Index of VideoCapture camera to use (0 mean default camera)
     '''
 
     def __init__(self, **kwargs):
-        # override the default source of video
-        kwargs.setdefault('video_src', 0)
         self._device = None
         super(CameraVideoCapture, self).__init__(**kwargs)
         self._format = 'rgb'
 
     def init_camera(self):
         # create the device
-        self._device = Device(devnum=self.video_src, showVideoWindow=0)
+        self._device = Device(devnum=self._index, showVideoWindow=0)
         # set resolution
         try:
             self._device.setResolution(self.resolution[0], self.resolution[1])
@@ -48,6 +42,7 @@ class CameraVideoCapture(CameraBase):
             # and create texture
             self._texture = kivy.Texture.create(
                 size=self.size, fmt='bgr')
+            self.dispatch('on_load')
 
         # update buffer
         self._buffer = data

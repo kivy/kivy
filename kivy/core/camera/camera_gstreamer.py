@@ -4,7 +4,8 @@ GStreamer Camera: Implement CameraBase with GStreamer
 
 __all__ = ('CameraGStreamer', )
 
-import kivy
+
+from kivy.graphics.texture import Texture
 from . import CameraBase
 
 try:
@@ -33,11 +34,11 @@ class CameraGStreamer(CameraBase):
     '''
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('video_src', 'v4l2src')
         self._pipeline = None
         self._camerasink = None
         self._decodebin = None
         self._texturesize = None
+        self._video_src = kwargs.get('video_src', 'v4l2src')
         super(CameraGStreamer, self).__init__(**kwargs)
 
     def init_camera(self):
@@ -46,8 +47,16 @@ class CameraGStreamer(CameraBase):
         if self._pipeline:
             self._pipeline = None
 
+        video_src = self._video_src
+        if video_src == 'v4l2src':
+            video_src += ' device=/dev/video%d' % self._index
+        elif video_src == 'dc1394src':
+            video_src += ' camera-number=%d' % self._index
+
+        print video_src
+
         GL_CAPS = 'video/x-raw-rgb,red_mask=(int)0xff0000,green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
-        self._pipeline = gst.parse_launch('%s ! decodebin name=decoder ! ffmpegcolorspace ! appsink name=camerasink emit-signals=True caps=%s' % (self.video_src, GL_CAPS) )
+        self._pipeline = gst.parse_launch('%s ! decodebin name=decoder ! ffmpegcolorspace ! appsink name=camerasink emit-signals=True caps=%s' % (video_src, GL_CAPS) )
         self._camerasink = self._pipeline.get_by_name('camerasink')
         self._camerasink.connect('new-buffer', self._gst_new_buffer)
         self._decodebin = self._pipeline.get_by_name('decoder')
@@ -81,6 +90,7 @@ class CameraGStreamer(CameraBase):
             return
         self._copy_to_gpu()
         if self._texture is None and self._texturesize is not None:
-            self._texture = kivy.Texture.create(
+            self._texture = Texture.create(
                 size=self._texturesize, fmt='rgb')
             self._texture.flip_vertical()
+            self.dispatch('on_load')
