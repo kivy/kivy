@@ -4,9 +4,9 @@ GStreamer Camera: Implement CameraBase with GStreamer
 
 __all__ = ('CameraGStreamer', )
 
-import kivy
+
+from kivy.graphics.texture import Texture
 from . import CameraBase
-from kivy.core.gl import GL_RGB
 
 try:
     import pygst
@@ -34,11 +34,11 @@ class CameraGStreamer(CameraBase):
     '''
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('video_src', 'v4l2src')
         self._pipeline = None
         self._camerasink = None
         self._decodebin = None
         self._texturesize = None
+        self._video_src = kwargs.get('video_src', 'v4l2src')
         super(CameraGStreamer, self).__init__(**kwargs)
 
     def init_camera(self):
@@ -47,8 +47,14 @@ class CameraGStreamer(CameraBase):
         if self._pipeline:
             self._pipeline = None
 
+        video_src = self._video_src
+        if video_src == 'v4l2src':
+            video_src += ' device=/dev/video%d' % self._index
+        elif video_src == 'dc1394src':
+            video_src += ' camera-number=%d' % self._index
+
         GL_CAPS = 'video/x-raw-rgb,red_mask=(int)0xff0000,green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
-        self._pipeline = gst.parse_launch('%s ! decodebin name=decoder ! ffmpegcolorspace ! appsink name=camerasink emit-signals=True caps=%s' % (self.video_src, GL_CAPS) )
+        self._pipeline = gst.parse_launch('%s ! decodebin name=decoder ! ffmpegcolorspace ! appsink name=camerasink emit-signals=True caps=%s' % (video_src, GL_CAPS) )
         self._camerasink = self._pipeline.get_by_name('camerasink')
         self._camerasink.connect('new-buffer', self._gst_new_buffer)
         self._decodebin = self._pipeline.get_by_name('decoder')
@@ -57,7 +63,7 @@ class CameraGStreamer(CameraBase):
             self.start()
 
     def _gst_new_buffer(self, *largs):
-        self._format = GL_RGB
+        self._format = 'rgb'
         frame = self._camerasink.emit('pull-buffer')
         if frame is None:
             return
@@ -70,18 +76,19 @@ class CameraGStreamer(CameraBase):
                     return
 
     def start(self):
-        self.stopped = False
+        super(CameraGStreamer, self).start()
         self._pipeline.set_state(gst.STATE_PLAYING)
 
     def stop(self):
-        self.stopped = True
+        super(CameraGStreamer, self).stop()
         self._pipeline.set_state(gst.STATE_PAUSED)
 
-    def update(self):
+    def _update(self, dt):
         if self._buffer is None:
             return
-        self._copy_to_gpu()
         if self._texture is None and self._texturesize is not None:
-            w, h = self._texturesize
-            self._texture = kivy.Texture.create(w, h, format=GL_RGB)
+            self._texture = Texture.create(
+                size=self._texturesize, fmt='rgb')
             self._texture.flip_vertical()
+            self.dispatch('on_load')
+        self._copy_to_gpu()

@@ -8,16 +8,20 @@ Core class for acquiring the camera, and convert the input to a
 
 __all__ = ('CameraBase', 'Camera')
 
+from kivy.clock import Clock
+from kivy.event import EventDispatcher
 from kivy.logger import Logger
 from kivy.core import core_select_lib
 
-class CameraBase(object):
+class CameraBase(EventDispatcher):
     '''Abstract Camera Widget class.
 
     Concrete camera classes must implement initialization and
     frame capturing to buffer that can be uploaded to gpu.
 
     :Parameters:
+        `index`: int
+            Source index of the camera.
         `size` : tuple (int, int)
             Size at which the image is drawn. If no size is specified,
             it defaults to resolution of the camera image.
@@ -26,26 +30,32 @@ class CameraBase(object):
             Used in the gstreamer pipeline by forcing the appsink caps
             to this resolution. If the camera doesnt support the resolution
             a negotiation error might be thrown.
+
+    :Events:
+        `on_load`
+            Fired when the camera is loaded, and the texture became available
+        `on_frame`
+            Fired each time the camera texture is updated
     '''
 
     def __init__(self, **kwargs):
-        # remove this part.
-        from kivy.core.gl import GL_RGB
-
         kwargs.setdefault('stopped', False)
         kwargs.setdefault('resolution', (640, 480))
-        kwargs.setdefault('video_src', 0)
+        kwargs.setdefault('index', 0)
 
         self.stopped        = kwargs.get('stopped')
         self._resolution    = kwargs.get('resolution')
-        self._video_src     = kwargs.get('video_src')
+        self._index         = kwargs.get('index')
         self._buffer        = None
-        self._format        = GL_RGB
+        self._format        = 'rgb'
         self._texture       = None
         self.capture_device = None
         kwargs.setdefault('size', self._resolution)
 
-        super(CameraBase, self).__init__(**kwargs)
+        super(CameraBase, self).__init__()
+
+        self.register_event_type('on_load')
+        self.register_event_type('on_frame')
 
         self.init_camera()
 
@@ -61,14 +71,16 @@ class CameraBase(object):
                 lambda self, x: self._set_resolution(x),
                 doc='Resolution of camera capture (width, height)')
 
-    def _set_video_src(self, src):
-        self._video_src = src
+    def _set_index(self, x):
+        if x == self._index:
+            return
+        self._index = x
         self.init_camera()
-    def _get_video_src(self):
-        return self._video_src
-    video_src = property(lambda self: self._get_video_src(),
-                lambda self, x: self._set_video_src(x),
-                doc='Source of the camera')
+    def _get_index(self):
+        return self._x
+    index = property(lambda self: self._get_index(),
+                lambda self, x: self._set_index(x),
+                doc='Source index of the camera')
 
     def _get_texture(self):
         return self._texture
@@ -79,25 +91,36 @@ class CameraBase(object):
         '''Initialise the camera (internal)'''
         pass
 
-    def update(self):
-        '''Update the camera (internal)'''
-        pass
-
     def start(self):
         '''Start the camera acquire'''
+        print 'start', self.stopped
         self.stopped = False
+        Clock.unschedule(self._update)
+        Clock.schedule_interval(self._update, 1. / 30)
 
     def stop(self):
         '''Release the camera'''
         self.stopped = True
+        Clock.unschedule(self._update)
+
+    def _update(self, dt):
+        '''Update the camera (internal)'''
+        pass
 
     def _copy_to_gpu(self):
         '''Copy the the buffer into the texture'''
         if self._texture is None:
             Logger.debug('Camera: copy_to_gpu() failed, _texture is None !')
             return
-        self._texture.blit_buffer(self._buffer, format=self._format)
+        self._texture.blit_buffer(self._buffer, fmt=self._format)
         self._buffer = None
+        self.dispatch('on_frame')
+
+    def on_frame(self):
+        pass
+
+    def on_load(self):
+        pass
 
 # Load the appropriate provider
 Camera = core_select_lib('camera', (

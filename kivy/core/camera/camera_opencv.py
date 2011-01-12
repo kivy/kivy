@@ -11,7 +11,6 @@ __all__ = ('CameraOpenCV', )
 from kivy.logger import Logger
 from kivy.graphics.texture import Texture
 from . import CameraBase
-from kivy.core.gl import GL_BGR_EXT
 
 try:
     import opencv as cv
@@ -21,23 +20,15 @@ except:
 
 class CameraOpenCV(CameraBase):
     '''Implementation of CameraBase using OpenCV
-
-    :Parameters:
-        `video_src` : int, default is 0
-            Index of OpenCV camera to use (0 mean default camera)
     '''
 
     def __init__(self, **kwargs):
-        # override the default source of video
-        kwargs.setdefault('video_src', 0)
-
         self._device = None
-
         super(CameraOpenCV, self).__init__(**kwargs)
 
     def init_camera(self):
         # create the device
-        self._device = hg.cvCreateCameraCapture(self.video_src)
+        self._device = hg.cvCreateCameraCapture(self._index)
 
         try:
             # try first to set resolution
@@ -69,16 +60,17 @@ class CameraOpenCV(CameraBase):
         # create texture !
         self._texture = Texture.create(*self._resolution)
         self._texture.flip_vertical()
+        self.dispatch('on_load')
 
         if not self.stopped:
             self.start()
 
-    def update(self):
+    def _update(self, dt):
         if self.stopped:
             return
         try:
             frame = hg.cvQueryFrame(self._device)
-            self._format = GL_BGR_EXT
+            self._format = 'bgr'
             self._buffer = frame.imageData
             self._copy_to_gpu()
         except:

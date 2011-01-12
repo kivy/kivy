@@ -106,10 +106,10 @@ class MarkupLabel(MarkupLabelBase):
 
         # create texture is necessary
         if self.texture is None:
-            self.texture = kivy.Texture.create(*self.size)
+            self.texture = kivy.Texture.create(size=self.size)
             self.texture.flip_vertical()
         elif self.width > self.texture.width or self.height > self.texture.height:
-            self.texture = kivy.Texture.create(*self.size)
+            self.texture = kivy.Texture.create(size=self.size)
             self.texture.flip_vertical()
         else:
             self.texture = self.texture.get_region(0, 0, self.width, self.height)

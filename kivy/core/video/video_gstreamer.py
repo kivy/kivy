@@ -11,9 +11,8 @@ try:
 except:
     raise
 
-import threading
+from threading import Lock
 from . import VideoBase
-from kivy.core.gl import GL_RGB
 from kivy.graphics.texture import Texture
 from gst.extend import discoverer
 
@@ -40,7 +39,7 @@ class VideoGStreamer(VideoBase):
         self._is_video      = None
         self._do_load       = None
         self._pipeline_canplay = False
-        self._buffer_lock   = threading.Lock()
+        self._buffer_lock   = Lock()
         self._videosize     = (0, 0)
         super(VideoGStreamer, self).__init__(**kwargs)
 
@@ -191,8 +190,19 @@ class VideoGStreamer(VideoBase):
         if self._videosink is None:
             return 0
         try:
-            return self._videosink.query_position(gst.FORMAT_TIME)[0] / 1000000000.
-        except:
+            # I don't understand, on ubuntu, the FORMAT_TIME is laggy, and we
+            # have a delay of 1 second. In addition, the FORMAT_BYTES return
+            # time, not bytes...
+            # I've also tryed:
+            #   vs = self._videosink
+            #   bduration = vs.query_duration(gst.FORMAT_BYTES)[0]
+            #   bposition = vs.query_position(gst.FORMAT_BYTES)[0]
+            #   return (bposition / float(bduration)) * self._get_duration()
+            # But query_duration failed with FORMAT_BYTES.
+            # Using FORMAT_DEFAULT result to have different information in
+            # duration and position. Unexplained right now.
+            return self._videosink.query_position(gst.FORMAT_BYTES)[0] / 1000000000.
+        except Exception, e:
             return 0
 
     def _get_duration(self):
@@ -215,7 +225,7 @@ class VideoGStreamer(VideoBase):
             self._volumesink.set_property('volume', volume)
             self._volume = volume
 
-    def update(self):
+    def _update(self, dt):
         if self._do_load:
             self._really_load()
             self._do_load = False
@@ -231,8 +241,7 @@ class VideoGStreamer(VideoBase):
                 structure_name = cap.get_name()
                 if structure_name.startswith('video') and cap.has_key('width'):
                     self._videosize = (cap['width'], cap['height'])
-                    self._texture = Texture.create(
-                        self._videosize[0], self._videosize[1], format=GL_RGB)
+                    self._texture = Texture.create(size=self._videosize, fmt='rgb')
                     self._texture.flip_vertical()
                     self.dispatch('on_load')
 
@@ -251,5 +260,6 @@ class VideoGStreamer(VideoBase):
             if self._buffer is not None:
                 self._texture.blit_buffer(self._buffer.data,
                                           size=self._videosize,
-                                          format=GL_RGB)
+                                          fmt='rgb')
                 self._buffer = None
+                self.dispatch('on_frame')

@@ -36,29 +36,29 @@ class ImageLoaderPygame(ImageLoaderBase):
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
 
-        mode = ''
+        fmt = ''
         if im.get_bytesize() == 3:
-            mode = 'RGB'
+            fmt = 'rgb'
         elif im.get_bytesize() == 4:
-            mode = 'RGBA'
+            fmt = 'rgba'
 
         # image loader work only with rgb/rgba image
-        if mode not in ('RGB', 'RGBA'):
+        if fmt not in ('rgb', 'rgba'):
             try:
                 imc = im.convert(32)
-                mode = 'RGBA'
+                fmt = 'rgba'
             except:
                 Logger.warning(
-                    'Image: Unable to convert image <%s> to RGBA (was %s)' %
-                    filename, im.mode)
+                    'Image: Unable to convert image <%s> to rgba (was %s)' %
+                    filename, im.fmt)
                 raise
             im = imc
 
         # update internals
         self.filename = filename
-        data = pygame.image.tostring(im, mode, True)
+        data = pygame.image.tostring(im, fmt.upper(), True)
         return ImageData(im.get_width(), im.get_height(),
-            mode, data)
+            fmt, data)
 
 
 # register

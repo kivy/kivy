@@ -75,7 +75,7 @@ class LabelCairo(LabelBase):
 
     def _render_end(self):
         data = ImageData(self._size[0], self._size[1],
-            'RGBA', buffer(self._cairo_surface.get_data())[:])
+            'rgba', buffer(self._cairo_surface.get_data())[:])
 
         del self._cairo_surface
         del self._cairo_context

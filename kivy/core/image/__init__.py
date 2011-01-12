@@ -20,20 +20,20 @@ from kivy.core import core_register_libs
 Texture = TextureRegion = None
 
 class ImageData(object):
-    '''Container for data image : width, height, mode and data.
+    '''Container for data image : width, height, fmt and data.
 
     .. warning::
-        Only RGB and RGBA mode are allowed.
+        Only RGB and RGBA format are allowed.
     '''
 
-    __slots__ = ('width', 'height', 'mode', 'data')
-    _supported_modes = ('RGB', 'RGBA', 'BGR', 'BGRA')
+    __slots__ = ('width', 'height', 'fmt', 'data')
+    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra')
 
-    def __init__(self, width, height, mode, data):
-        assert mode in ImageData._supported_modes
+    def __init__(self, width, height, fmt, data):
+        assert fmt in ImageData._supported_fmts
         self.width = int(width)
         self.height = int(height)
-        self.mode = mode
+        self.fmt = fmt
         self.data = data
 
     def release_data(self):
@@ -256,14 +256,14 @@ class Image(EventDispatcher):
         if not (0 <= x < data.width and 0 <= y < data.height):
             raise IndexError('Position (%d, %d) is out of range.' % (x, y))
 
-        assert data.mode in ImageData._supported_modes
-        size = 3 if data.mode in ('RGB', 'BGR') else 4
+        assert data.fmt in ImageData._supported_fmts
+        size = 3 if data.fmt in ('rgb', 'bgr') else 4
         index = y * data.width * size + x * size
         raw = data.data[index:index+size]
         color = map(lambda c: ord(c) / 255.0, raw)
 
         # conversion for BGR->RGB, BGR->RGBA format
-        if data.mode in ('BGR', 'BGRA'):
+        if data.fmt in ('bgr', 'bgra'):
             color[0], color[2] = color[2], color[0]
 
         return color
