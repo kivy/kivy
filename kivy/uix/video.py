@@ -26,10 +26,10 @@ class Video(Widget):
     play = BooleanProperty(False)
 
     #: Position
-    position = NumericProperty(0)
+    position = NumericProperty(-1)
 
     #: Duration
-    duration = NumericProperty(0)
+    duration = NumericProperty(-1)
 
     #: Volume
     volume = NumericProperty(1.)
@@ -49,6 +49,8 @@ class Video(Widget):
                              on_frame=self._on_video_frame)
             if self.play:
                 self._video.play()
+            self.duration = 1.
+            self.position = 0.
 
     def on_play(self, instance, value):
         if not self._video:
