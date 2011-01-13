@@ -173,17 +173,8 @@ class Widget(EventDispatcher):
 
         :Returns:
             bool. If True, the dispatching will stop.
-
-        By default, this method dispatch the `on_touch_down` event to every
-        children in reversed order.
-
-        .. note::
-
-            Since the drawing is from back to front, all the touch event should
-            be from front to back. That's why we are dispatching the event in
-            reverse order.
         '''
-        for child in reversed(self.children[:]):
+        for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
 
@@ -192,7 +183,7 @@ class Widget(EventDispatcher):
 
         See :func:`on_touch_down` for more information
         '''
-        for child in reversed(self.children[:]):
+        for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
                 return True
 
@@ -201,7 +192,7 @@ class Widget(EventDispatcher):
 
         See :func:`on_touch_down` for more information
         '''
-        for child in reversed(self.children[:]):
+        for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
 

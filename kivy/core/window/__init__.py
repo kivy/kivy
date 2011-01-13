@@ -281,7 +281,7 @@ class WindowBase(EventDispatcher):
         '''Event called when a touch is down'''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
-        for w in reversed(self.children[:]):
+        for w in self.children[:]:
             if w.dispatch('on_touch_down', touch):
                 return True
 
@@ -289,7 +289,7 @@ class WindowBase(EventDispatcher):
         '''Event called when a touch move'''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
-        for w in reversed(self.children[:]):
+        for w in self.children[:]:
             if w.dispatch('on_touch_move', touch):
                 return True
 
@@ -297,7 +297,7 @@ class WindowBase(EventDispatcher):
         '''Event called when a touch up'''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
-        for w in reversed(self.children[:]):
+        for w in self.children[:]:
             if w.dispatch('on_touch_up', touch):
                 return True
 
