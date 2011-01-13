@@ -4,6 +4,7 @@ cdef class BindTexture
 
 from transformation cimport Matrix
 from instructions cimport ContextInstruction
+from texture cimport Texture
 
 cdef class LineWidth(ContextInstruction):
     cdef apply(self)
@@ -13,7 +14,7 @@ cdef class Color(ContextInstruction):
 
 cdef class BindTexture(ContextInstruction):
     cdef str _source
-    cdef object _texture
+    cdef Texture _texture
     cdef apply(self)
 
 

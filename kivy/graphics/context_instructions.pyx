@@ -113,12 +113,12 @@ cdef class BindTexture(ContextInstruction):
                         'texture property')
 
         self.source = kwargs.get('source', None)
-        if self.source == None:
+        if self.source is None:
             self.texture = kwargs.get('texture', None)
 
     cdef apply(self):
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(self._texture.target, self._texture.id)
+        glBindTexture(self._texture.target, self._texture._id)
 
     property texture:
         def __get__(self):
