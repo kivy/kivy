@@ -58,7 +58,7 @@ class InputPostprocDoubleTap(object):
         for type, touch in events:
             if type == 'down':
                 double_tap = self.find_double_tap(touch)
-                if touch_double_tap:
+                if double_tap:
                     touch.is_double_tap = True
                     time = touch.time_start - double_tap.time_start
                     touch.double_tap_time = time
