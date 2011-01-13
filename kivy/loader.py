@@ -92,7 +92,7 @@ class LoaderBase(object):
     def loading_image(self):
         '''Image used for loading (readonly)'''
         if not self._loading_image:
-            loading_png_fn = os.path.join(kivy_data_dir, 'loader.png')
+            loading_png_fn = os.path.join(kivy_data_dir, 'images', 'loading-0.png')
             self._loading_image = ImageLoader.load(filename=loading_png_fn)
         return self._loading_image
 
@@ -270,8 +270,8 @@ else:
                 while self._running:
                     try:
                         parameters = self._q_load.pop()
-                    except:
                         time.sleep(0.1)
+                    except:
                         continue
                     self.worker.do(self._load, parameters)
 
