@@ -7,3 +7,7 @@ style:
 
 stylereport:
 	$(PYTHON) $(CHECKSCRIPT) -html $(KIVY_DIR)
+
+hook:
+	cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
+	chmod +x .git/hooks/pre-commit
