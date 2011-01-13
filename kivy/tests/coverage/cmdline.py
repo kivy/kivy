@@ -16,81 +16,65 @@ class Opts(object):
     append = optparse.make_option(
         '-a', '--append', action='store_false', dest="erase_first",
         help="Append coverage data to .coverage, otherwise it is started "
-                "clean with each run."
-        )
+             "clean with each run.")
     branch = optparse.make_option(
         '', '--branch', action='store_true',
-        help="Measure branch coverage in addition to statement coverage."
-        )
+        help="Measure branch coverage in addition to statement coverage.")
     directory = optparse.make_option(
         '-d', '--directory', action='store',
         metavar="DIR",
-        help="Write the output files to DIR."
-        )
+        help="Write the output files to DIR.")
     help = optparse.make_option(
         '-h', '--help', action='store_true',
-        help="Get help on this command."
-        )
+        help="Get help on this command.")
     ignore_errors = optparse.make_option(
         '-i', '--ignore-errors', action='store_true',
-        help="Ignore errors while reading source files."
-        )
+        help="Ignore errors while reading source files.")
     include = optparse.make_option(
         '', '--include', action='store',
         metavar="PAT1,PAT2,...",
         help="Include files only when their filename path matches one of "
-                "these patterns.  Usually needs quoting on the command line."
-        )
+             "these patterns.  Usually needs quoting on the command line.")
     pylib = optparse.make_option(
         '-L', '--pylib', action='store_true',
         help="Measure coverage even inside the Python installed library, "
-                "which isn't done by default."
-        )
+             "which isn't done by default.")
     show_missing = optparse.make_option(
         '-m', '--show-missing', action='store_true',
         help="Show line numbers of statements in each module that weren't "
-                "executed."
-        )
+             "executed.")
     old_omit = optparse.make_option(
         '-o', '--omit', action='store',
         metavar="PAT1,PAT2,...",
         help="Omit files when their filename matches one of these patterns. "
-                "Usually needs quoting on the command line."
-        )
+             "Usually needs quoting on the command line.")
     omit = optparse.make_option(
         '', '--omit', action='store',
         metavar="PAT1,PAT2,...",
         help="Omit files when their filename matches one of these patterns. "
-                "Usually needs quoting on the command line."
-        )
+             "Usually needs quoting on the command line.")
     output_xml = optparse.make_option(
         '-o', '', action='store', dest="outfile",
         metavar="OUTFILE",
-        help="Write the XML report to this file. Defaults to 'coverage.xml'"
-        )
+        help="Write the XML report to this file. Defaults to 'coverage.xml'")
     parallel_mode = optparse.make_option(
         '-p', '--parallel-mode', action='store_true',
         help="Append the machine name, process id and random number to the "
-                ".coverage data file name to simplify collecting data from "
-                "many processes."
-        )
+             ".coverage data file name to simplify collecting data from "
+             "many processes.")
     rcfile = optparse.make_option(
         '', '--rcfile', action='store',
-        help="Specify configuration file.  Defaults to '.coveragerc'"
-        )
+        help="Specify configuration file.  Defaults to '.coveragerc'")
     source = optparse.make_option(
         '', '--source', action='store', metavar="SRC1,SRC2,...",
-        help="A list of packages or directories of code to be measured."
-        )
+        help="A list of packages or directories of code to be measured.")
     timid = optparse.make_option(
         '', '--timid', action='store_true',
-        help="Use a simpler but slower trace method.  Try this if you get "
-                "seemingly impossible results!"
-        )
+        help="Use a simpler but slower trace method.  Try this if you get ")
+             "seemingly impossible results!"
     version = optparse.make_option(
         '', '--version', action='store_true',
-        help="Display version information and exit."
-        )
+        help="Display version information and exit.")
 
 
 class CoverageOptionParser(optparse.OptionParser, object):

@@ -41,7 +41,9 @@ import os
 from kivy.input.touch import Touch
 from kivy.input.shape import TouchShapeRect
 
+
 class MTDTouch(Touch):
+
     def depack(self, args):
         self.sx = args['x']
         self.sy = args['y']
@@ -57,7 +59,8 @@ class MTDTouch(Touch):
         super(MTDTouch, self).depack(args)
 
     def __str__(self):
-        return '<MTDTouch id=%d pos=(%f, %f) device=%s>' % (self.id, self.sx, self.sy, self.device)
+        i, sx, sy, d = (self.id, self.sx, self.sy, self.device)
+        return '<MTDTouch id=%d pos=(%f, %f) device=%s>' % (i, sx, sy, d)
 
 if 'KIVY_DOC' in os.environ:
 
@@ -112,7 +115,8 @@ else:
 
                 # ensure it's a key = value
                 if len(arg) != 2:
-                    Logger.error('MTD: invalid parameter %s, not in key=value format.' % arg)
+                    err = 'MTD: Bad parameter %s: Not in key=value format' % arg
+                    Logger.error()
                     continue
 
                 # ensure the key exist
@@ -125,7 +129,8 @@ else:
                 try:
                     self.default_ranges[key] = int(value)
                 except ValueError:
-                    Logger.error('MTD: invalid value %s for option %s' % (key, value))
+                    err = 'MTD: invalid value %s for option %s' % (key, value)
+                    Logger.error(err)
                     continue
 
                 # all good!

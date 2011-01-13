@@ -21,6 +21,7 @@ from kivy.lang import Builder
 
 Widget_forbidden_properties = ('touch_down', 'touch_move', 'touch_up')
 
+
 class Widget(EventDispatcher):
     '''
     Widget is the very basic class for implementing any Kivy Widget.
@@ -108,7 +109,6 @@ class Widget(EventDispatcher):
         # Apply all the styles
         if '__no_builder' not in kwargs:
             Builder.apply(self)
-
 
     def create_property(self, name):
         '''Create a new property at runtime.

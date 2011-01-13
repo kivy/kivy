@@ -16,6 +16,7 @@ __all__ = ('InputPostprocDejitter', )
 
 from kivy.config import Config
 
+
 class InputPostprocDejitter(object):
     '''
     Get rid of jitterish BLOBs.
@@ -33,6 +34,7 @@ class InputPostprocDejitter(object):
             should not be processed by dejitter (because they're
             very precise already).
     '''
+
     def __init__(self):
         self.jitterdist = Config.getfloat('kivy', 'jitter_distance')
         ignore_devices = Config.get('kivy', 'jitter_ignore_devices')

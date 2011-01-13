@@ -10,6 +10,7 @@ from kivy.core.camera import Camera as CoreCamera
 from kivy.properties import NumericProperty, ObjectProperty, \
         ListProperty
 
+
 class Camera(Widget):
 
     #: Source

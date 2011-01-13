@@ -10,6 +10,7 @@ from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty
 
+
 class Image(Widget):
 
     #: Filename of the image

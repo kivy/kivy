@@ -5,7 +5,9 @@ CloseApp: Close an application with one finger
 from kivy import MTWidget, getCurrentTouches, Vector, set_color
 from kivy import stopTouchApp, gx_matrix, drawSemiCircle, Clock
 
+
 class CloseApp(MTWidget):
+
     def __init__(self, **kwargs):
         super(CloseApp, self).__init__(**kwargs)
         self.dt = 0
@@ -64,9 +66,12 @@ class CloseApp(MTWidget):
             # add touches to closed touches
             self.closetouches[touch.id] = touch
 
+
 def start(win, ctx):
     ctx.w = CloseApp()
     win.add_widget(ctx.w)
 
+
 def stop(win, ctx):
     win.remove_widget(ctx.w)
+

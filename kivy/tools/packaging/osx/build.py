@@ -33,8 +33,6 @@ class OSXPortableBuild(Command):
         self.dist_name = self.distribution.get_fullname() # e.g. Kivy-0.5 (name and verison passed to setup())
         self.build_dir = os.path.join(self.dist_dir, self.dist_name+'-osx-build')
 
-
-
     def run(self):
         print "---------------------------------"
         print "Building Kivy Portable for OSX"
@@ -111,10 +109,9 @@ class OSXPortableBuild(Command):
         shutil.move(src_dist, kivy_target)
 
         print "*Removing intermediate file"
-        os.remove(os.path.join(self.build_dir,'deps.zip'))
-        os.remove(os.path.join(self.build_dir,src_dist+'.tar.gz'))
-        shutil.rmtree(os.path.join(self.build_dir,'__MACOSX'), ignore_errors=True)
-
+        os.remove(os.path.join(self.build_dir, 'deps.zip'))
+        os.remove(os.path.join(self.build_dir, src_dist + '.tar.gz'))
+        shutil.rmtree(os.path.join(self.build_dir, '__MACOSX'), ignore_errors=True)
 
         #contents of portable-deps-osx, are now ready to go into teh disk image
         dmg_dir = os.path.join(self.build_dir, 'portable-deps-osx')
@@ -126,7 +123,7 @@ class OSXPortableBuild(Command):
         print "*checking how much space is needed for disk image..."
         du_cmd = 'du -sh %s' % dmg_dir
         du_out = Popen(shlex.split(du_cmd), stdout=PIPE).communicate()[0]
-        size, unit = re.search('(\d+)(.*)\s+/.*', du_out).group(1,2)
+        size, unit = re.search('(\d+)(.*)\s+/.*', du_out).group(1, 2)
         print "  build needs at least %s%s." % (size, unit)
 
         size = int(size)+10
@@ -178,8 +175,11 @@ class OSXPortableBuild(Command):
         Popen(shlex.split(umount_cmd), cwd=self.build_dir, stdout=PIPE).communicate()
 
         print "*compressing and finalizing disk image"
-        convert_cmd = 'hdiutil convert "temp.dmg" -format UDZO -imagekey zlib-level=9 -o %s.dmg' % os.path.join(self.dist_dir,vol_name)
-        Popen(shlex.split(convert_cmd), cwd=self.build_dir, stdout=PIPE).communicate()
+        convert_cmd = 'hdiutil convert "temp.dmg" -format UDZO -imagekey ' + \
+                      'zlib-level=9 -o %s.dmg' % os.path.join(self.dist_dir,
+                                                              vol_name)
+        Popen(shlex.split(convert_cmd), cwd=self.build_dir,
+                stdout=PIPE).communicate()
 
         print "*Writing disk image, and cleaning build directory"
         shutil.rmtree(self.build_dir, ignore_errors=True)

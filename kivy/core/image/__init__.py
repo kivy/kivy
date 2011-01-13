@@ -19,6 +19,7 @@ from kivy.core import core_register_libs
 # late binding
 Texture = TextureRegion = None
 
+
 class ImageData(object):
     '''Container for data image : width, height, fmt and data.
 
@@ -110,7 +111,7 @@ class ImageLoader(object):
             im = loader(filename, **kwargs)
             break
         if im is None:
-            raise Exception('Unsupported extension <%s>, no loader found.' % ext)
+            raise Exception('Unknown extension <%s>, no loader found.' % ext)
         return im
 
 
@@ -119,10 +120,10 @@ class Image(EventDispatcher):
 
     :Parameters:
         `arg` : can be str or Texture or Image object
-            A string is interpreted as a path to the image that should be loaded.
-            You can also provide a texture object or an already existing image object.
-            In the latter case, a real copy of the given image object will be
-            returned.
+            A string is interpreted as a path to the image to be loaded.
+            You can also provide a texture object or an already existing
+            image object. In the latter case, a real copy of the given
+            image object will be returned.
         `keep_data` : bool, default to False
             Keep the image data when texture is created
         `opacity` : float, default to 1.0
@@ -163,7 +164,7 @@ class Image(EventDispatcher):
         elif isinstance(arg, basestring):
             self.filename = arg
         else:
-            raise Exception('Unable to load image with type %s' % str(type(arg)))
+            raise Exception('Unable to load image type %s' % str(type(arg)))
 
     @staticmethod
     def load(filename, **kwargs):
@@ -180,26 +181,30 @@ class Image(EventDispatcher):
 
     def _get_image(self):
         return self._image
+
     def _set_image(self, image):
         self._image = image
         if image:
             self._size[0] = self.image.width
             self._size[1] = self.image.height
+
     image = property(_get_image, _set_image,
             doc='Get/set the data image object')
 
     def _get_filename(self):
         return self._filename
+
     def _set_filename(self, value):
         if value is None:
             return
         if value == self._filename:
             return
         self._filename = value
-        self.image     = ImageLoader.load(
+        self.image = ImageLoader.load(
                 self._filename, keep_data=self._keep_data,
                 texture_rectangle=self._texture_rectangle,
                 texture_mipmap=self._texture_mipmap)
+
     filename = property(_get_filename, _set_filename,
             doc='Get/set the filename of image')
 
@@ -268,9 +273,11 @@ class Image(EventDispatcher):
 
         return color
 
+
 def load(filename):
     '''Load an image'''
     return Image.load(filename)
+
 
 # load image loaders
 core_register_libs('image', (

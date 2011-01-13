@@ -179,7 +179,7 @@ class CodeParser(object):
         linestarts = [0]
         for line in StringIO(self.text):
             linestarts.append(linestarts[-1]+len(line))
-        classdefs = range(1,len(linestarts))
+        classdefs = range(1, len(linestarts))
         #print len(linestarts), linestarts
         lno = 0
         func_starts = []

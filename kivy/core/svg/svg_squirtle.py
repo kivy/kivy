@@ -8,13 +8,14 @@ from kivy.logger import Logger
 from kivy.core.svg import SvgBase, SvgLoader
 from kivy.lib import squirtle
 
+
 class SvgSquirtle(SvgBase):
     '''Svg loader based on squirtle library'''
 
     @staticmethod
     def extensions():
         '''Return accepted extension for this loader'''
-        return ('svg',)
+        return ('svg', )
 
     def load(self, filename):
         '''loads a squirtle svg object from teh filename'''

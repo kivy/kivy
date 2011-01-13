@@ -31,7 +31,9 @@ import os
 from kivy.input.touch import Touch
 from kivy.input.shape import TouchShapeRect
 
+
 class LinuxWacomTouch(Touch):
+
     def depack(self, args):
         self.sx = args['x']
         self.sy = args['y']
@@ -47,7 +49,8 @@ class LinuxWacomTouch(Touch):
         super(LinuxWacomTouch, self).depack(args)
 
     def __str__(self):
-        return '<LinuxWacomTouch id=%d pos=(%f, %f) device=%s>' % (self.id, self.sx, self.sy, self.device)
+        return '<LinuxWacomTouch id=%d pos=(%f, %f) device=%s>' \
+                % (self.id, self.sx, self.sy, self.device)
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
@@ -140,7 +143,7 @@ else:
             # split arguments
             args = args.split(',')
             if not args:
-                Logger.error('LinuxWacom: No filename pass to LinuxWacom configuration')
+                Logger.error('LinuxWacom: No filename given in config')
                 Logger.error('LinuxWacom: Use /dev/input/event0 for example')
                 return None
 
@@ -156,7 +159,9 @@ else:
 
                 # ensure it's a key = value
                 if len(arg) != 2:
-                    Logger.error('LinuxWacom: invalid parameter %s, not in key=value format.' % arg)
+                    err = 'LinuxWacom: Bad parameter' \
+                            '%s: Not in key=value format.' % arg
+                    Logger.error(err)
                     continue
 
                 # ensure the key exist
@@ -173,13 +178,14 @@ else:
                 try:
                     self.default_ranges[key] = int(value)
                 except ValueError:
-                    Logger.error('LinuxWacom: invalid value %s for option %s' % (key, value))
+                    err = 'LinuxWacom: value %s invalid for %s' % (key, value)
+                    Logger.error(err)
                     continue
 
                 # all good!
-                Logger.info('LinuxWacom: Set custom %s to %d' % (key, int(value)))
+                msg = 'LinuxWacom: Set custom %s to %d' % (key, int(value))
+                Logger.info(msg)
             Logger.info('LinuxWacom: mode is <%s>' % self.mode)
-
 
         def start(self):
             if self.input_fn is None:
@@ -226,7 +232,9 @@ else:
                     except KeyError:
                         touch = LinuxWacomTouch(device, tid, args)
                         touches[touch.id] = touch
-                    if touch.sx == args['x'] and touch.sy == args['y'] and tid in touches_sent:
+                    if touch.sx == args['x'] \
+                            and touch.sy == args['y'] \
+                            and tid in touches_sent:
                         continue
                     touch.move(args)
                     if tid not in touches_sent:
@@ -249,7 +257,8 @@ else:
             fd = open(input_fn, 'rb')
 
             # get the controler name (EVIOCGNAME)
-            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16), " " * 256).split('\x00')[0]
+            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
+                                        " " * 256).split('\x00')[0]
             Logger.info('LinuxWacomTouch: using <%s>' % device_name)
 
             # get abs infos
@@ -263,7 +272,8 @@ else:
                 if (bit & (1 << x)) == 0:
                     continue
                 # ask abs info keys to the devices
-                sbit = fcntl.ioctl(fd, EVIOCGBIT + x + (KEY_MAX << 16), ' ' * sz_l)
+                sbit = fcntl.ioctl(fd, EVIOCGBIT + x + (KEY_MAX << 16),
+                                    ' ' * sz_l)
                 sbit, = struct.unpack('Q', sbit)
                 for y in xrange(KEY_MAX):
                     if (sbit & (1 << y)) == 0:
@@ -324,7 +334,9 @@ else:
                             p['x'] = touch_x
                             p['y'] = touch_y
                             p['pressure'] = touch_pressure
-                        if self.mode == 'pen' and touch_pressure == 0 and not reset_touch:
+                        if self.mode == 'pen' \
+                                and touch_pressure == 0 \
+                                and not reset_touch:
                             del l_points[touch_id]
                         if changed:
                             if not 'x' in p:

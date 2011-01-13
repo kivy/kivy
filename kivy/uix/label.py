@@ -14,6 +14,7 @@ from kivy.properties import StringProperty, OptionProperty, \
         NumericProperty, BooleanProperty, ReferenceListProperty, \
         ListProperty, ObjectProperty
 
+
 class Label(Widget):
 
     #: Text written in the label

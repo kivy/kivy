@@ -8,6 +8,7 @@ __all__ = ('ToggleButton', )
 from kivy.uix.button import Button
 from kivy.properties import StringProperty
 
+
 class ToggleButton(Button):
 
     __groups = {}

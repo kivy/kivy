@@ -6,7 +6,7 @@ The cache manager can be used to store python object attached to an uniq key.
 The cache can be controlled in different manner, with a object limit or a
 timeout.
 
-For example, we can create a new cache with a limit of 10 objects, and a timeout
+For example, we can create a new cache with a limit of 10 objects and a timeout
 of 5 seconds::
 
     # register a new Cache

@@ -16,6 +16,7 @@ ignore_list = (
     'kivy.parser',
 )
 
+
 class FactoryBuild(Command):
     description = 'Build the factory relation file (for factory.py)'
     user_options = []

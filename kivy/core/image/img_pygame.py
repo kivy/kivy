@@ -12,6 +12,7 @@ try:
 except:
     raise
 
+
 class ImageLoaderPygame(ImageLoaderBase):
     '''Image loader based on PIL library'''
 

@@ -7,7 +7,8 @@ word suggestions. The API is inspired by enchant, but other backends can be
 added that implement the same API.
 '''
 
-__all__ = ('Spelling', 'SpellingBase', 'NoSuchLangError', 'NoLanguageSelectedError' )
+__all__ = ('Spelling', 'SpellingBase', 'NoSuchLangError',
+           'NoLanguageSelectedError')
 
 import sys
 from kivy.core import core_select_lib
@@ -18,6 +19,7 @@ class NoSuchLangError(Exception):
     Exception to be raised when a specific language could not be found.
     '''
     pass
+
 
 class NoLanguageSelectedError(Exception):
     '''
@@ -32,6 +34,7 @@ class SpellingBase(object):
     Base class for all spelling providers.
     Supports some abstract methods for checking words and getting suggestions.
     '''
+
     def __init__(self, language=None):
         '''
         If a `language` identifier (such as 'en_US') is provided and a matching
@@ -47,7 +50,7 @@ class SpellingBase(object):
                 to be a language identifier understood by select_language(),
                 i.e. one of the options returned by list_languages().
                 If nothing is provided, the first available language is used.
-                If no language is available, a NoLanguageSelectedError is raised.
+                If no language is available, NoLanguageSelectedError is raised.
         '''
         langs = self.list_languages()
         try:
@@ -69,7 +72,7 @@ class SpellingBase(object):
                 list_languages(). Sets the language used for spell checking and
                 word suggestions.
         '''
-        raise NotImplementedError('select_language() method not implemented ' + \
+        raise NotImplementedError('select_language() method not implemented '
                                   'by abstract spelling base class!')
 
     def list_languages(self):
@@ -77,7 +80,7 @@ class SpellingBase(object):
         Return a list of all languages supported by the registered languages.
         E.g.: ['en', 'en_GB', 'en_US', 'de', ...]
         '''
-        raise NotImplementedError('list_languages() method not implemented ' + \
+        raise NotImplementedError('list_languages() is not implemented ' + \
                                   'by abstract spelling base class!')
 
     def check(self, word):
@@ -91,7 +94,7 @@ class SpellingBase(object):
                 If the word shouldn't be checked, return None (e.g. for '').
 
         '''
-        raise NotImplementedError('check() method not implemented by abstract ' + \
+        raise NotImplementedError('check() not implemented by abstract ' + \
                                   'spelling base class!')
 
     def suggest(self, fragment):
@@ -106,7 +109,7 @@ class SpellingBase(object):
                 E.g.: 'foo' might become 'of', 'food' or 'foot'.
 
         '''
-        raise NotImplementedError('suggest() method not implemented by abstract ' + \
+        raise NotImplementedError('suggest() not implemented by abstract ' + \
                                   'spelling base class!')
 
 

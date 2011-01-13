@@ -24,14 +24,17 @@ try:
 except:
     window_size = MTWindow().size
 
+
 class bench_core_label:
     '''Core: label creation (10000 * 10 a-z)'''
+
     def __init__(self):
         labels = []
         for x in xrange(10000):
             label = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
             labels.append(''.join(label))
         self.labels = labels
+
     def run(self):
         o = []
         for x in self.labels:
@@ -40,13 +43,16 @@ class bench_core_label:
 
 class bench_widget_creation:
     '''Widget: creation (10000 MTWidget)'''
+
     def run(self):
         o = []
         for x in xrange(10000):
             o.append(MTWidget())
 
+
 class bench_widget_dispatch:
     '''Widget: event dispatch (1000 on_update in 10*1000 MTWidget)'''
+
     def __init__(self):
         root = MTWidget()
         for x in xrange(10):
@@ -55,32 +61,39 @@ class bench_widget_dispatch:
                 parent.add_widget(MTWidget())
             root.add_widget(parent)
         self.root = root
+
     def run(self):
         root = self.root
         for x in xrange(1000):
             root.dispatch('on_update')
 
+
 class bench_graphx_line:
     '''Graphx: draw lines (5000 x/y) 1000 times'''
+
     def __init__(self):
         lines = []
         w, h = window_size
         for x in xrange(5000):
             lines.extend([random() * w, random() * h])
         self.lines = lines
+
     def run(self):
         lines = self.lines
         for x in xrange(1000):
             drawLine(lines)
 
+
 class bench_graphics_line:
     '''Graphics: draw lines (5000 x/y) 1000 times'''
+
     def __init__(self):
         w, h = window_size
         self.canvas = Canvas()
         line = self.canvas.line()
         for x in xrange(5000):
             line.points += [random() * w, random() * h]
+
     def run(self):
         canvas = self.canvas
         for x in xrange(1000):
@@ -89,20 +102,24 @@ class bench_graphics_line:
 
 class bench_graphx_rectangle:
     '''Graphx: draw rectangle (5000 rect) 1000 times'''
+
     def __init__(self):
         rects = []
         w, h = window_size
         for x in xrange(5000):
             rects.append(((random() * w, random() * h), (random() * w, random() * h)))
         self.rects = rects
+
     def run(self):
         rects = self.rects
         for x in xrange(1000):
             for pos, size in rects:
                 drawRectangle(pos=pos, size=size)
 
+
 class bench_graphics_rectangle:
     '''Graphics: draw rectangle (5000 rect) 1000 times'''
+
     def __init__(self):
         rects = []
         w, h = window_size
@@ -110,13 +127,16 @@ class bench_graphics_rectangle:
         for x in xrange(5000):
             canvas.rectangle(random() * w, random() * h, random() * w, random() * h)
         self.canvas = canvas
+
     def run(self):
         canvas = self.canvas
         for x in xrange(1000):
             canvas.draw()
 
+
 class bench_graphics_rectanglemesh:
     '''Graphics: draw rectangle in same mesh (5000 rect) 1000 times'''
+
     def __init__(self):
         rects = []
         w, h = window_size
@@ -127,19 +147,23 @@ class bench_graphics_rectanglemesh:
             vertex.extend([random() * w, random() * h, random() * w, random() * h])
         mesh.data_v = vertex
         self.canvas = canvas
+
     def run(self):
         canvas = self.canvas
         for x in xrange(1000):
             canvas.draw()
 
+
 class bench_graphx_roundedrectangle:
     '''Graphx: draw rounded rectangle (5000 rect) 1000 times'''
+
     def __init__(self):
         rects = []
         w, h = window_size
         for x in xrange(5000):
             rects.append(((random() * w, random() * h), (random() * w, random() * h)))
         self.rects = rects
+
     def run(self):
         rects = self.rects
         for x in xrange(1000):
@@ -149,6 +173,7 @@ class bench_graphx_roundedrectangle:
 
 class bench_graphics_roundedrectangle:
     '''Graphics: draw rounded rectangle (5000 rect) 1000 times'''
+
     def __init__(self):
         rects = []
         w, h = window_size
@@ -156,13 +181,16 @@ class bench_graphics_roundedrectangle:
         for x in xrange(5000):
             canvas.roundedRectangle(random() * w, random() * h, random() * w, random() * h)
         self.canvas = canvas
+
     def run(self):
         canvas = self.canvas
         for x in xrange(1000):
             canvas.draw()
 
+
 class bench_graphx_paintline:
     '''Graphx: paint line (5000 x/y) 1000 times'''
+
     def __init__(self):
         lines = []
         w, h = window_size
@@ -170,13 +198,16 @@ class bench_graphx_paintline:
             lines.extend([random() * w, random() * h])
         self.lines = lines
         set_brush(os.path.join(kivy_data_dir, 'particle.png'))
+
     def run(self):
         lines = self.lines
         for x in xrange(100):
             paintLine(lines)
 
+
 class bench_graphics_paintline:
     '''Graphics: paint lines (5000 x/y) 1000 times'''
+
     def __init__(self):
         w, h = window_size
         self.canvas = Canvas()
@@ -184,6 +215,7 @@ class bench_graphics_paintline:
         line = self.canvas.point(type='line_strip', texture=texture)
         for x in xrange(500):
             line.points += [random() * w, random() * h]
+
     def run(self):
         canvas = self.canvas
         for x in xrange(100):
@@ -193,6 +225,7 @@ class bench_graphics_paintline:
 if __name__ == '__main__':
     report = []
     report_newline = True
+
     def log(s, newline=True):
         global report_newline
         if not report_newline:

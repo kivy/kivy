@@ -10,6 +10,7 @@ __all__ = ('InputPostprocIgnoreList', )
 from kivy.config import Config
 from kivy.utils import strtotuple
 
+
 class InputPostprocIgnoreList(object):
     '''
     InputPostprocIgnoreList is a post-processor who remove touch in ignore list.
@@ -21,6 +22,7 @@ class InputPostprocIgnoreList(object):
 
     Ignore list coordinate are in 0-1, not in the screen width/height.
     '''
+
     def __init__(self):
         self.ignore_list = strtotuple(Config.get('kivy', 'ignore'))
 

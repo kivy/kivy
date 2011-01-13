@@ -51,18 +51,30 @@ def kivy_register_post_configuration(callback):
 def kivy_usage():
     '''Kivy Usage: %s [OPTION...] ::
 
-        -h, --help                  prints this mesage
-        -f, --fullscreen            force run in fullscreen
-        -k, --fake-fullscreen       force run in 'fake' fullscreen (no border mode)
-        -a, --auto-fullscreen       force run in 'auto' fullscreen (no resolution change)
-        -w, --windowed              force run in window
-        -p, --provider id:provider[,options] add a provider (eg: ccvtable1:tuio,192.168.0.1:3333)
-        -F, --fps                   show fps in window
-        -m mod, --module=mod        activate a module (use "list" to get available module)
-        -r, --rotation              rotate the window (0, 90, 180, 270)
-        -s, --save                  save current Kivy configuration
-        --size=640x480              size of window
-
+        -h, --help
+            Prints this help message.
+        -f, --fullscreen
+            Force running in fullscreen mode.
+        -a, --auto-fullscreen
+            Force run in 'auto' fullscreen (no resolution change) mode.
+            Uses your display's resolution. This is most likely what you want.
+        -k, --fake-fullscreen
+            Force running in 'fake' fullscreen (no border) mode.
+            Uses the resolution specified by width and height in your config.
+        -w, --windowed
+            Force running in window.
+        -p, --provider id:provider[,options]
+            Add an input provider (eg: ccvtable1:tuio,192.168.0.1:3333).
+        -F, --fps
+            Show FPS in window.
+        -m mod, --module=mod
+            Activate a module (use "list" to get available modules).
+        -r, --rotation
+            Rotate the window's contents (0, 90, 180, 270).
+        -s, --save
+            Save current Kivy configuration.
+        --size=640x480
+            Size of window geometry.
     '''
     print kivy_usage.__doc__ % (os.path.basename(sys.argv[0]))
 

@@ -17,7 +17,9 @@ pygame_cache = {}
 # init pygame font
 pygame.font.init()
 
+
 class LabelPygame(LabelBase):
+
     def _get_font_id(self):
         return '|'.join([unicode(self.options[x]) for x \
             in ('font_size', 'font_name', 'bold', 'italic')])

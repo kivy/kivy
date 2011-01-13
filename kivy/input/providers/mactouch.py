@@ -19,7 +19,9 @@ if 'KIVY_DOC' not in os.environ:
     CFMutableArrayRef = ctypes.c_void_p
     CFIndex = ctypes.c_long
 
-    MultitouchSupport = ctypes.CDLL('/System/Library/PrivateFrameworks/MultitouchSupport.framework/MultitouchSupport')
+    dll = '/System/Library/PrivateFrameworks/' + \
+            'MultitouchSupport.framework/MultitouchSupport'
+    MultitouchSupport = ctypes.CDLL()
 
     CFArrayGetCount = MultitouchSupport.CFArrayGetCount
     CFArrayGetCount.argtypes = [CFArrayRef]
@@ -66,13 +68,16 @@ if 'KIVY_DOC' not in os.environ:
 
         MTDataRef = ctypes.POINTER(MTData)
 
-        MTContactCallbackFunction = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int, MTDataRef,
-                                        ctypes.c_int, ctypes.c_double, ctypes.c_int)
+        MTContactCallbackFunction = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int,
+                                        MTDataRef, ctypes.c_int,
+                                        ctypes.c_double, ctypes.c_int)
 
         MTDeviceRef = ctypes.c_void_p
 
-        MTRegisterContactFrameCallback = MultitouchSupport.MTRegisterContactFrameCallback
-        MTRegisterContactFrameCallback.argtypes = [MTDeviceRef, MTContactCallbackFunction]
+        MTRegisterContactFrameCallback = \
+            MultitouchSupport.MTRegisterContactFrameCallback
+        MTRegisterContactFrameCallback.argtypes = \
+            [MTDeviceRef, MTContactCallbackFunction]
         MTRegisterContactFrameCallback.restype = None
 
         MTDeviceStart = MultitouchSupport.MTDeviceStart
@@ -96,9 +101,11 @@ class MacTouch(Touch):
         super(MacTouch, self).depack(args)
 
     def __str__(self):
-        return '<MacTouch id=%d pos=(%f, %f) device=%s>' % (self.id, self.sx, self.sy, self.device)
+        return '<MacTouch id=%d pos=(%f, %f) device=%s>' \
+                % (self.id, self.sx, self.sy, self.device)
 
 _instance = None
+
 
 class MacTouchProvider(TouchProvider):
 
@@ -171,7 +178,8 @@ class MacTouchProvider(TouchProvider):
             data_id = data.identifier
 
             # prepare argument position
-            args = (data.normalized.position.x, data.normalized.position.y, data.size)
+            norm_pos = data.normalized.position
+            args = (norm_pos.x, norm_pos.y, data.size)
 
             if not data_id in touches:
                 # increment uid

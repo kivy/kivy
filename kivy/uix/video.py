@@ -11,6 +11,7 @@ from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, \
         ListProperty, BooleanProperty, NumericProperty
 
+
 class Video(Widget):
 
     #: Filename of the Video

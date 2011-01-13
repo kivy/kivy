@@ -2,15 +2,16 @@
 SVG
 ===
 
-Abstraction to load SVG data.
+Abstraction layer for loading SVG files.
 '''
 
-__all__ = ('Svg',)
+__all__ = ('Svg', )
 
 from kivy.core import core_register_libs
 from kivy.cache import Cache
 
 Cache.register('kivy.svg', limit=50)
+
 
 class SvgBase(object):
     '''Base to implement an svg loader.'''
@@ -28,10 +29,12 @@ class SvgBase(object):
 
     def load(self, filename):
         '''Load an svg'''
-        raise NotImplementedError("abstract class SvgLoaderBase: subclass must be implemented by svg provider")
+        raise NotImplementedError("abstract class SvgLoaderBase: "
+                    "subclass must be implemented by svg provider")
 
     def __getattr__(self, name):
         return self.svg_data.__getattribute__(name)
+
 
 class SvgLoader(object):
     __slots__ = ('loaders')
@@ -52,8 +55,9 @@ class SvgLoader(object):
             im = loader(filename, **kwargs)
             break
         if im is None:
-            raise Exception('Unsupported extension <%s>, no loader found.' % ext)
+            raise Exception('Unknown extension <%s>, no loader found.' % ext)
         return im
+
 
 class Svg(object):
     '''Load and draw an SVG file.
@@ -66,9 +70,11 @@ class Svg(object):
         `scale`: float, default to 1.0
             Scale of the svg
         `anchor_x`: float, default to 0
-            X anchor (x coordinate based on original width, which will be at x pos and used as center for scaling)
+            X anchor (x coordinate based on original width,
+            which will be at x pos and used as center for scaling)
         `anchor_y`: float, default to 0
-            Y anchor (y coordinate based on original height, which will be at y pos and used as center for scaling)
+            Y anchor (y coordinate based on original height,
+            which will be at y pos and used as center for scaling)
     '''
 
     @staticmethod
@@ -98,7 +104,7 @@ class Svg(object):
         if isinstance(arg, basestring):
             self.filename = arg
         else:
-            raise Exception('Unable to load image with type %s' % str(type(arg)))
+            raise Exception('Unable to load image type %s' % str(type(arg)))
 
         # after loading, let the user take the place
         if 'scale' in kwargs:
@@ -128,27 +134,34 @@ class Svg(object):
 
     def _get_width(self):
         return self._scale_x * self.original_width
+
     def _set_width(self, w):
         if self.width != w: #nothing to do
             self._scale_x = w/float(self.original_width)
+
     width = property(_get_width, _set_width)
 
     def _get_height(self):
         return self._scale_y * self.original_height
+
     def _set_height(self, h):
         if self.height != h: #nothing to do
             self._scale_y = h/float(self.original_height)
+
     height = property(_get_height, _set_height)
 
     def _get_size(self):
         return (self.width, self.height)
+
     def _set_size(self, size):
         self.width = size[0]
         self.height = size[1]
+
     size = property(_get_size, _set_size)
 
     def _get_filename(self):
         return self._filename
+
     def _set_filename(self, value):
         if value is None:
             return
@@ -156,14 +169,17 @@ class Svg(object):
             return
         self._filename = value
         self.svg_object = SvgLoader.load(self._filename)
+
     filename = property(_get_filename, _set_filename,
             doc='Get/set the filename of svg')
 
     def _get_scale(self):
         return self._scale_x
+
     def _set_scale(self, s):
         self._scale_x = s
         self._scale_y = s
+
     scale = property(_get_scale, _set_scale)
 
 

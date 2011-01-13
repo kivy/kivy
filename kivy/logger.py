@@ -105,7 +105,6 @@ class FileHandler(logging.Handler):
 
         print 'Purge finished !'
 
-
     def _configure(self):
         from time import strftime
         from kivy.config import Config
@@ -165,7 +164,9 @@ class FileHandler(logging.Handler):
 
 
 class HistoryHandler(logging.Handler):
+
     history = []
+
     def emit(self, message):
         HistoryHandler.history = [message] + HistoryHandler.history[:100]
 

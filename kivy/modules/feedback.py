@@ -12,7 +12,9 @@ if not 'KIVY_DOC' in os.environ:
     ring_img.anchor_x = ring_img.width / 2
     ring_img.anchor_y = ring_img.height / 2
 
+
 class GlobalFeedbackTouch(MTWidget):
+
     def __init__(self, **kwargs):
         super(GlobalFeedbackTouch, self).__init__(**kwargs)
 
@@ -90,7 +92,9 @@ class GlobalFeedbackTouch(MTWidget):
             ox, oy = x, y
             alpha += alphastep
 
+
 class GlobalFeedback(MTWidget):
+
     def __init__(self, **kwargs):
         super(GlobalFeedback, self).__init__(**kwargs)
         self.touches = {}
@@ -140,6 +144,7 @@ class GlobalFeedback(MTWidget):
 def start(win, ctx):
     ctx.w = GlobalFeedback()
     win.add_widget(GlobalFeedback())
+
 
 def stop(win, ctx):
     win.remove_widget(ctx.w)

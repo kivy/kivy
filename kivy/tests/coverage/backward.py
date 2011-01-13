@@ -63,9 +63,7 @@ else:
         compile(
             "def exec_code_object(code, global_map):\n"
             "    exec code in global_map\n",
-            "<exec_function>", "exec"
-            )
-        )
+            "<exec_function>", "exec"))
 
 # ConfigParser was renamed to the more-standard configparser
 try:

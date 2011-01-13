@@ -16,6 +16,7 @@ from kivy.ui.widgets import *
 
 _toggle_state = ''
 
+
 def toggle(id):
     global _toggle_state
     if _toggle_state == id:
@@ -25,8 +26,10 @@ def toggle(id):
     if _toggle_state == '':
         return
 
+
 def _can_fullscreen():
     return sys.platform not in ('win32', 'darwin', 'cygwin', 'freebsd7')
+
 
 def _screenshot():
     import os
@@ -50,6 +53,7 @@ def _screenshot():
             Logger.exception('KeyBinding: Unable to take a screenshot')
     else:
         Logger.warning('KeyBinding: Unable to take screenshot, no more slot available')
+
 
 def _on_draw():
     global _toggle_state
@@ -268,8 +272,8 @@ def _on_draw():
         return True
 
 
-
 class SceneGraphNode(MTBoxLayout):
+
     def __init__(self, **kwargs):
         kwargs['invert'] = True
         super(SceneGraphNode, self).__init__(**kwargs)
@@ -314,6 +318,8 @@ class SceneGraphNode(MTBoxLayout):
 
 
 _scene_graph_modal_layover = None
+
+
 def toggle_scene_graph():
     global _scene_graph_modal_layover
     win = getWindow()
@@ -365,6 +371,7 @@ def _on_keyboard_handler(key, scancode, unicode):
 def start(win, ctx):
     win.push_handlers(on_keyboard=_on_keyboard_handler)
     win.push_handlers(on_draw=_on_draw)
+
 
 def stop(win, ctx):
     win.remove_handlers(on_keyboard=_on_keyboard_handler)

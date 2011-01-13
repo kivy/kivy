@@ -16,8 +16,11 @@ try:
 except:
     raise
 
+
 class ClipboardPygame(ClipboardBase):
+
     _is_init = False
+
     def init(self):
         if ClipboardPygame._is_init:
             return

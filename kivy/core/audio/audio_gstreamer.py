@@ -20,7 +20,9 @@ from kivy.logger import Logger
 from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
+
 class SoundGstreamer(Sound):
+
     @staticmethod
     def extensions():
         return ('wav', 'ogg', 'mp3', )
@@ -59,17 +61,18 @@ class SoundGstreamer(Sound):
 
     def load(self):
         self.unload()
-        if self.filename is None:
+        fn = self.filename
+        if fn is None:
             return
 
         slash = ''
         if sys.platform in ('win32', 'cygwin'):
             slash = '/'
 
-        if self.filename[0] == '/':
-            filepath = 'file://' + slash + self.filename
+        if fn[0] == '/':
+            filepath = 'file://' + slash + fn
         else:
-            filepath = 'file://' + slash + os.path.join(os.getcwd(), self.filename)
+            filepath = 'file://' + slash + os.path.join(os.getcwd(), fn)
 
         self._data = gst.element_factory_make('playbin2', 'player')
         fakesink = gst.element_factory_make('fakesink', 'fakesink')

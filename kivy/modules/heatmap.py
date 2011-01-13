@@ -7,7 +7,9 @@ import sys
 import os
 import sqlite3
 
+
 class HeatMap(MTWidget):
+
     def __init__(self, **kwargs):
         super(HeatMap, self).__init__(**kwargs)
         self.appname = sys.argv[0]
@@ -44,6 +46,7 @@ class HeatMap(MTWidget):
 def start(win, ctx):
     ctx.w = HeatMap()
     win.add_widget(ctx.w)
+
 
 def stop(win, ctx):
     win.remove_widget(ctx.w)

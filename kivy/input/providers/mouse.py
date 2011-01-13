@@ -24,10 +24,13 @@ from kivy.input.provider import TouchProvider
 from kivy.input.factory import TouchFactory
 from kivy.input.touch import Touch
 
+
 class MouseTouch(Touch):
+
     def depack(self, args):
         self.sx, self.sy = args
         super(MouseTouch, self).depack(args)
+
 
 class MouseTouchProvider(TouchProvider):
     __handlers__ = {}

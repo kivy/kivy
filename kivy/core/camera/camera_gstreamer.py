@@ -21,6 +21,7 @@ except:
 from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
+
 class CameraGStreamer(CameraBase):
     '''Implementation of CameraBase using GStreamer
 
@@ -42,8 +43,8 @@ class CameraGStreamer(CameraBase):
         super(CameraGStreamer, self).__init__(**kwargs)
 
     def init_camera(self):
-        # TODO: This does not work when camera resolution is resized at runtime...
-        # there must be some other way to release the camera?
+        # TODO: This doesn't work when camera resolution is resized at runtime.
+        # There must be some other way to release the camera?
         if self._pipeline:
             self._pipeline = None
 
@@ -53,8 +54,11 @@ class CameraGStreamer(CameraBase):
         elif video_src == 'dc1394src':
             video_src += ' camera-number=%d' % self._index
 
-        GL_CAPS = 'video/x-raw-rgb,red_mask=(int)0xff0000,green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
-        self._pipeline = gst.parse_launch('%s ! decodebin name=decoder ! ffmpegcolorspace ! appsink name=camerasink emit-signals=True caps=%s' % (video_src, GL_CAPS) )
+        GL_CAPS = 'video/x-raw-rgb,red_mask=(int)0xff0000,' + \
+                  'green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
+        pl = '%s ! decodebin name=decoder ! ffmpegcolorspace ! appsink ' + \
+             'name=camerasink emit-signals=True caps=%s'
+        self._pipeline = gst.parse_launch(pl % (video_src, GL_CAPS))
         self._camerasink = self._pipeline.get_by_name('camerasink')
         self._camerasink.connect('new-buffer', self._gst_new_buffer)
         self._decodebin = self._pipeline.get_by_name('decoder')

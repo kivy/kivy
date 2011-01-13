@@ -6,7 +6,9 @@ __all__ = ('ClipboardDummy', )
 
 from . import ClipboardBase
 
+
 class ClipboardDummy(ClipboardBase):
+
     def __init__(self):
         super(ClipboardDummy, self).__init__()
         self._data = dict()

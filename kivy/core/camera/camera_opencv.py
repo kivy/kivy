@@ -18,6 +18,7 @@ try:
 except:
     raise
 
+
 class CameraOpenCV(CameraBase):
     '''Implementation of CameraBase using OpenCV
     '''
@@ -51,7 +52,7 @@ class CameraOpenCV(CameraBase):
                     hg.CV_CAP_PROP_FRAME_HEIGHT))
             frame = hg.cvQueryFrame(self._device)
             Logger.warning(
-                'OpenCV: Camera resolution %s not possible! Defaulting to %s.' %
+                'OpenCV: Camera resolution %s impossible! Defaulting to %s.' %
                 (self.resolution, (w, h)))
 
             # set resolution to default one

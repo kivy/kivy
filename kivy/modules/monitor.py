@@ -18,10 +18,12 @@ from functools import partial
 _statsinput = 0
 _maxinput = -1
 
+
 def update_fps(ctx, *largs):
     ctx.label.text = 'FPS: %f' % Clock.get_fps()
     ctx.rectangle.texture = ctx.label.texture
     ctx.rectangle.size = ctx.label.texture_size
+
 
 def update_stats(ctx, *largs):
     global _statsinput
@@ -31,7 +33,9 @@ def update_stats(ctx, *largs):
     for index, x in enumerate(ctx.stats):
         ctx.statsr[index].size = (4, ctx.stats[index] / m * 20)
 
+
 class StatsInput(object):
+
     def process(self, events):
         global _statsinput, _maxinput
         _statsinput += len(events)
@@ -39,7 +43,9 @@ class StatsInput(object):
             _maxinput = float(_statsinput)
         return events
 
+
 kivy_postproc_modules['fps'] = StatsInput()
+
 
 def start(win, ctx):
     global _ctx
@@ -62,6 +68,7 @@ def start(win, ctx):
                           size=(4, 0)))
     Clock.schedule_interval(partial(update_fps, ctx), .5)
     Clock.schedule_interval(partial(update_stats, ctx), 1 / 60.)
+
 
 def stop(win, ctx):
     win.canvas.remove(ctx.label)

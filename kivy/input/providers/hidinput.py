@@ -42,7 +42,9 @@ import os
 from kivy.input.touch import Touch
 from kivy.input.shape import TouchShapeRect
 
+
 class HIDTouch(Touch):
+
     def depack(self, args):
         self.sx = args['x']
         self.sy = args['y']
@@ -58,7 +60,8 @@ class HIDTouch(Touch):
         super(HIDTouch, self).depack(args)
 
     def __str__(self):
-        return '<HIDTouch id=%d pos=(%f, %f) device=%s>' % (self.id, self.sx, self.sy, self.device)
+        return '<HIDTouch id=%d pos=(%f, %f) device=%s>' \
+            % (self.id, self.sx, self.sy, self.device)
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
@@ -146,7 +149,7 @@ else:
             # split arguments
             args = args.split(',')
             if not args:
-                Logger.error('HIDInput: No filename pass to HIDInput configuration')
+                Logger.error('HIDInput: Filename missing in configuration')
                 Logger.error('HIDInput: Use /dev/input/event0 for example')
                 return None
 
@@ -162,7 +165,8 @@ else:
 
                 # ensure it's a key = value
                 if len(arg) != 2:
-                    Logger.error('HIDInput: invalid parameter %s, not in key=value format.' % arg)
+                    Logger.error('HIDInput: invalid parameter '
+                                 '%s, not in key=value format.' % arg)
                     continue
 
                 # ensure the key exist
@@ -175,12 +179,12 @@ else:
                 try:
                     self.default_ranges[key] = int(value)
                 except ValueError:
-                    Logger.error('HIDInput: invalid value %s for option %s' % (key, value))
+                    err = 'HIDInput: invalid value "%s" for "%s"' % (key, value)
+                    Logger.error()
                     continue
 
                 # all good!
                 Logger.info('HIDInput: Set custom %s to %d' % (key, int(value)))
-
 
         def start(self):
             if self.input_fn is None:
@@ -249,7 +253,8 @@ else:
             fd = open(input_fn, 'rb')
 
             # get the controler name (EVIOCGNAME)
-            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16), " " * 256).split('\x00')[0]
+            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
+                " " * 256).split('\x00')[0]
             Logger.info('HIDTouch: using <%s>' % device_name)
 
             # get abs infos
@@ -263,7 +268,8 @@ else:
                 if (bit & (1 << x)) == 0:
                     continue
                 # ask abs info keys to the devices
-                sbit = fcntl.ioctl(fd, EVIOCGBIT + x + (KEY_MAX << 16), ' ' * sz_l)
+                sbit = fcntl.ioctl(fd, EVIOCGBIT + x + (KEY_MAX << 16),
+                                    ' ' * sz_l)
                 sbit, = struct.unpack('Q', sbit)
                 for y in xrange(KEY_MAX):
                     if (sbit & (1 << y)) == 0:

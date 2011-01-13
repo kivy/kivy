@@ -17,6 +17,7 @@ from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
 
+
 class SoundLoader:
     '''Load a sound, with usage of the best loader for a given filename.
     If you want to load an audio file ::
@@ -81,6 +82,7 @@ class Sound(EventDispatcher):
 
     def _get_filename(self):
         return self._filename
+
     def _set_filename(self, filename):
         if filename == self._filename:
             return
@@ -89,22 +91,26 @@ class Sound(EventDispatcher):
         if self._filename is None:
             return
         self.load()
+
     filename = property(lambda self: self._get_filename(),
             lambda self, x: self._set_filename(x),
             doc='Get/set the filename/uri of the sound')
 
     def _get_volume(self):
         return self._volume
+
     def _set_volume(self, volume):
         if self._volume == volume:
             return
         self._volume = volume
+
     volume = property(lambda self: self._get_volume(),
             lambda self, x: self._set_volume(x),
             doc='Get/set the volume of the sound')
 
     def _get_status(self):
         return self._status
+
     def _set_status(self, x):
         # this function must not be available for user
         if self._status == x:
@@ -116,11 +122,13 @@ class Sound(EventDispatcher):
             self.dispatch('on_play')
         else:
             assert('unknown status %s' % x)
+
     status = property(_get_status,
             doc='Get the status of the sound (stop, play)')
 
     def _get_length(self):
         return 0
+
     length = property(lambda self: self._get_length(),
             doc='Get length of the sound (in seconds)')
 

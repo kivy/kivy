@@ -27,7 +27,9 @@ reseted.
 from kivy.logger import Logger
 from time import time, sleep
 
+
 class Sleep(object):
+
     def __init__(self, config, win):
         super(Sleep, self).__init__()
         self.timer_no_activity = time()
@@ -77,11 +79,13 @@ class Sleep(object):
         if step >= 0:
             sleep(self.sleep[step])
 
+
 def start(win, ctx):
     ctx.config.setdefault('ramp', '5:10:20:30:60:180')
     ctx.config.setdefault('sleep', '.03:.1:.2:.5:1.:5.')
     ctx.sleep = Sleep(ctx.config, win)
     ctx.sleep.start()
+
 
 def stop(win, ctx):
     ctx.sleep.stop()

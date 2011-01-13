@@ -41,10 +41,13 @@ sem_next = threading.Semaphore(1)
 img_current = None
 connected = False
 
+
 def keep_running():
     return True
 
+
 class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
+
     def do_GET(self):
         global connected, sem_next
         try:
@@ -133,7 +136,9 @@ class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
                 dt = dt_current
                 frames = 0
 
+
 class MjpegServerThread(threading.Thread):
+
     def __init__(self, config):
         super(MjpegServerThread, self).__init__()
         self.config = config
@@ -145,6 +150,7 @@ class MjpegServerThread(threading.Thread):
         Logger.info('MjpegServer: Listen to %s:%d' % server_address)
         while keep_running():
             httpd.handle_request()
+
 
 def window_flip_and_save():
     global img_current
@@ -163,6 +169,7 @@ def window_flip_and_save():
 
     sem_current.release()
 
+
 def start(win, ctx):
     win.push_handlers(on_flip=window_flip_and_save)
 
@@ -174,6 +181,7 @@ def start(win, ctx):
     ctx.server = MjpegServerThread(ctx.config)
     ctx.server.daemon = True
     ctx.server.start()
+
 
 def stop(win, ctx):
     win.remove_handlers(on_flip=window_flip_and_save)

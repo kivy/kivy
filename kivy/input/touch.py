@@ -7,8 +7,8 @@ Base for all touch objects
 
 Every touch in Kivy derives from the abstract Touch class.
 A touch can have more or less attributes, depending on the provider.
-For example, the TUIO provider can give you a lot of information about the touch,
-like position, acceleration, width/height of the shape and so on.
+For example, the TUIO provider can give you a lot of information
+about the touch, like position, acceleration, width/height of the shap, etc.
 Another provider might just give you x/y coordinates and pressure.
 
 We call these attributes "capabilities". Every touch indicates its
@@ -52,6 +52,7 @@ from kivy.vector import Vector
 
 
 class TouchMetaclass(type):
+
     def __new__(mcs, name, bases, attrs):
         __attrs__ = []
         for base in bases:
@@ -244,8 +245,9 @@ class Touch(object):
             to.__setattr__(attr, copy(self.__getattribute__(attr)))
 
     def __str__(self):
-        classname = str(self.__class__).split('.')[-1].replace('>', '').replace('\'', '')
-        return '<%s spos=%s pos=%s>' % (classname, str(self.spos), str(self.pos))
+        basename = str(self.__class__)
+        classname = basename.split('.')[-1].replace('>', '').replace('\'', '')
+        return '<%s spos=%s pos=%s>' % (classname, self.spos, self.pos)
 
     def distance(self, other_touch):
         return Vector(self.pos).distance(other_touch.pos)

@@ -16,6 +16,7 @@ try:
 except:
     raise
 
+
 class CameraVideoCapture(CameraBase):
     '''Implementation of CameraBase using VideoCapture
     '''

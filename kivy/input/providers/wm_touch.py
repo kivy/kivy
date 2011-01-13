@@ -14,9 +14,11 @@ from kivy.input.providers.wm_common import WM_TABLET_QUERYSYSTEMGESTURE, \
 from kivy.input.touch import Touch
 from kivy.input.shape import TouchShapeRect
 
+
 class WM_Touch(Touch):
     '''Touch representing the WM_Touch event. Support pos, shape and size profiles'''
     __attrs__ = ('size', )
+
     def depack(self, args):
         self.shape = TouchShapeRect()
         self.sx, self.sy = args[0], args[1]
@@ -79,7 +81,6 @@ else:
                 return 'up'
         event_type = property(_event_type)
 
-
     class RECT(Structure):
         _fields_ = [
             ('left', ULONG),
@@ -91,7 +92,6 @@ else:
         y = property(lambda self: self.top)
         w = property(lambda self: self.right-self.left)
         h = property(lambda self: self.bottom-self.top)
-
 
     class WM_TouchProvider(TouchProvider):
 
@@ -140,7 +140,6 @@ else:
                     self.touches[t.id].move([x, y, t.size()])
                     dispatch_fn('up', self.touches[t.id])
                     del self.touches[t.id]
-
 
         def stop(self):
             windll.user32.UnregisterTouchWindow(self.hwnd)

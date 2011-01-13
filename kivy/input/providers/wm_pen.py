@@ -12,8 +12,10 @@ from kivy.input.providers.wm_common import PEN_OR_TOUCH_SIGNATURE, \
         QUERYSYSTEMGESTURE_WNDPROC, PEN_EVENT_TOUCH_MASK
 from kivy.input.touch import Touch
 
+
 class WM_Pen(Touch):
     '''Touch representing the WM_Pen event. Support pos profile'''
+
     def depack(self, args):
         self.sx, self.sy = args[0], args[1]
         super(WM_Pen, self).depack(args)
@@ -47,7 +49,6 @@ else:
         w = property(lambda self: self.right-self.left)
         h = property(lambda self: self.bottom-self.top)
     win_rect = RECT()
-
 
     class WM_PenProvider(TouchProvider):
 

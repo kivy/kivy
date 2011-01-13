@@ -18,6 +18,7 @@ from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.graphics.transformation import Matrix
 
+
 class Scatter(Widget):
     '''Scatter implementation as a Widget.
     '''
@@ -38,6 +39,7 @@ class Scatter(Widget):
 
     def _get_do_translation(self):
         return (self.do_translation_x, self.do_translation_y)
+
     def _set_do_translation(self, value):
         if type(value) in (list, tuple):
             self.do_translation_x, self.do_translation_y = value
@@ -121,6 +123,7 @@ class Scatter(Widget):
         v1 = Vector(0, 10)
         v2 = Vector(*self.to_parent(*self.pos)) - self.to_parent(self.x, self.y + 10)
         return -1.0 *(v1.angle(v2) + 180) % 360
+
     def _set_rotation(self, rotation):
         angle_change = self.rotation - rotation
         r = Matrix().rotate(-radians(angle_change), 0, 0, 1)
@@ -137,6 +140,7 @@ class Scatter(Widget):
         p2 = Vector(*self.to_parent(1, 0))
         scale = p1.distance(p2)
         return float(scale)
+
     def _set_scale(self, scale):
         rescale = scale * 1.0 / self.scale
         self.apply_transform(Matrix().scale(rescale, rescale, rescale),
@@ -150,6 +154,7 @@ class Scatter(Widget):
     def _get_center(self):
         return (self.bbox[0][0] + self.bbox[1][0]/2.0,
                 self.bbox[0][1] + self.bbox[1][1]/2.0)
+
     def _set_center(self, center):
         if center == self.center:
             return False
@@ -160,6 +165,7 @@ class Scatter(Widget):
 
     def _get_pos(self):
         return self.bbox[0]
+
     def _set_pos(self, pos):
         _pos = self.bbox[0]
         if pos == _pos:
@@ -171,6 +177,7 @@ class Scatter(Widget):
 
     def _get_x(self):
         return self.bbox[0][0]
+
     def _set_x(self, x):
         if x == self.bbox[0][0]:
             return False
@@ -180,6 +187,7 @@ class Scatter(Widget):
 
     def _get_y(self):
         return self.bbox[0][1]
+
     def _set_y(self, y):
         if y == self.bbox[0][1]:
             return False
@@ -228,8 +236,7 @@ class Scatter(Widget):
         t = Matrix().translate(
             trans[0] * self.do_translation_x,
             trans[1] * self.do_translation_y,
-            0
-        )
+            0)
         t = t.multiply(Matrix().translate(point[0], point[1], 0))
         t = t.multiply(Matrix().rotate(angle, 0, 0, 1))
         t = t.multiply(Matrix().scale(scale, scale, scale))

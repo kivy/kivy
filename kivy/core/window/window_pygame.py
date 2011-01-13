@@ -18,7 +18,9 @@ except:
     Logger.warning('WinPygame: Pygame is not installed !')
     raise
 
+
 class WindowPygame(WindowBase):
+
     def create_window(self, params):
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
@@ -34,7 +36,8 @@ class WindowPygame(WindowBase):
 
         if multisamples > 0:
             pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
-            pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, multisamples)
+            pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES,
+                multisamples)
         pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 16)
         pygame.display.gl_set_attribute(pygame.GL_STENCIL_SIZE, 1)
         pygame.display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
@@ -228,13 +231,11 @@ class WindowPygame(WindowBase):
         # force deletion of window
         pygame.display.quit()
 
-
     def _set_size(self, size):
         if super(WindowPygame, self)._set_size(size):
             self._pygame_set_mode()
             return True
     size = property(WindowBase._get_size, _set_size)
-
 
     #
     # Pygame wrapper

@@ -13,17 +13,21 @@ import kivy
 import os
 import sys
 
+
 class ModuleContext:
     '''Context of a module
 
     You can access to the config with self.config.
     '''
+
     def __init__(self):
         self.config = {}
+
 
 class ModuleBase:
     '''Handle modules of Kivy. Automaticly load and instance
     module for the general window'''
+
     def __init__(self, **kwargs):
         self.mods = {}
         self.wins = []

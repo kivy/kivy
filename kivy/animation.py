@@ -2,8 +2,9 @@
 Animation
 =========
 
-Theses classes is intended to be used on a :class:`~kivy.uix.widget.Widget`. The
-animation work in 2 part :
+These classes are intended to be used on a :class:`~kivy.uix.widget.Widget`.
+If you want to add animations to your application,
+you need to follow two steps:
 
     * First, setup the animation object
     * Then, use the animation on one or multiple widgets
@@ -536,8 +537,8 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_out_bounce(progress):
-        p = progress * 2
+        p = progress * 2.
         if p < 1.:
-            return AnimationTransition._in_bounce_internal(progress * 2.0, 1.) * 0.5
-        return AnimationTransition._out_bounce_internal(progress * 2.0 - 1., 1.) * 0.5 + 1.0 * 0.5
+            return AnimationTransition._in_bounce_internal(p, 1.) * .5
+        return AnimationTransition._out_bounce_internal(p - 1., 1.) * .5 + .5
 

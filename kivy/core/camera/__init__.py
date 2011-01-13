@@ -13,6 +13,7 @@ from kivy.event import EventDispatcher
 from kivy.logger import Logger
 from kivy.core import core_select_lib
 
+
 class CameraBase(EventDispatcher):
     '''Abstract Camera Widget class.
 
@@ -65,8 +66,10 @@ class CameraBase(EventDispatcher):
     def _set_resolution(self, res):
         self._resolution = res
         self.init_camera()
+
     def _get_resolution(self):
         return self._resolution
+
     resolution = property(lambda self: self._get_resolution(),
                 lambda self, x: self._set_resolution(x),
                 doc='Resolution of camera capture (width, height)')
@@ -76,8 +79,10 @@ class CameraBase(EventDispatcher):
             return
         self._index = x
         self.init_camera()
+
     def _get_index(self):
         return self._x
+
     index = property(lambda self: self._get_index(),
                 lambda self, x: self._set_index(x),
                 doc='Source index of the camera')

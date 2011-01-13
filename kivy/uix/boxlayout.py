@@ -10,7 +10,9 @@ from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, OptionProperty
 
+
 class Layout(Widget):
+
     def __init__(self, **kwargs):
         kwargs.setdefault('size', (1, 1))
         self._minimum_size = (0, 0)
@@ -21,6 +23,7 @@ class Layout(Widget):
         of children).
         '''
         return self._minimum_size
+
     def _set_minimum_size(self, size):
         '''Sets the layout minimum size property (the layout calculates this in
         update_minimum_size and uses it to perform layout calculations). If the
@@ -37,6 +40,7 @@ class Layout(Widget):
     def reposition_child(self, child, **kwargs):
         for prop in kwargs:
             child.__setattr__(prop, kwargs[prop])
+
 
 class BoxLayout(Layout):
 
@@ -60,8 +64,7 @@ class BoxLayout(Layout):
             children = self._trigger_layout,
             orientation = self._trigger_layout,
             size = self._trigger_layout,
-            pos = self._trigger_layout
-        )
+            pos = self._trigger_layout)
 
     def _trigger_layout(self, *largs):
         Clock.unschedule(self._do_layout)

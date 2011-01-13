@@ -11,6 +11,7 @@ from kivy.config import Config
 from kivy.vector import Vector
 import time
 
+
 class InputPostprocRetainTouch(object):
     '''
     InputPostprocRetainTouch is a post-processor to delay the 'up' event of a
@@ -25,6 +26,7 @@ class InputPostprocRetainTouch(object):
 
     Distance parameter is in 0-1000, and time is in millisecond.
     '''
+
     def __init__(self):
         self.timeout = Config.getint('kivy', 'retain_time') / 1000.0
         self.distance = Config.getint('kivy', 'retain_distance') / 1000.0

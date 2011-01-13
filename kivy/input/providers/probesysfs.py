@@ -78,7 +78,6 @@ else:
             capabilities = self.get_capabilities()
             return len(capabilities) > capability and capabilities[capability]
 
-
     def getconf(var):
         output = Popen(["getconf", var], stdout=PIPE).communicate()[0]
         return int(output)

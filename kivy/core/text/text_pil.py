@@ -17,8 +17,10 @@ from kivy.core.image import ImageData
 # used for fetching extends before creature image surface
 default_font = ImageFont.load_default()
 
+
 class LabelPIL(LabelBase):
     _cache = {}
+
     def _select_font(self):
         fontsize = int(self.options['font_size'] * 1.333)
         fontname = self.options['font_name'].split(',')[0]
@@ -42,7 +44,8 @@ class LabelPIL(LabelBase):
 
     def _render_text(self, text, x, y):
         color = tuple(map(lambda x: int(x * 255), self.options['color']))
-        self._pil_draw.text((int(x), int(y)), text, font=self._select_font(), fill=color)
+        self._pil_draw.text((int(x), int(y)),
+            text, font=self._select_font(), fill=color)
 
     def _render_end(self):
         data = ImageData(self._size[0], self._size[1],
