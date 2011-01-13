@@ -15,9 +15,9 @@ cdef class Fbo(RenderContext):
     cdef int _is_bound
 
     cpdef clear_buffer(self)
+    cpdef bind(self)
+    cpdef release(self)
 
-    cdef bind(self)
-    cdef release(self)
     cdef create_fbo(self)
     cdef delete_fbo(self)
     cdef apply(self)
