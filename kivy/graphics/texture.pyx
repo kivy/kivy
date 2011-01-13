@@ -94,6 +94,23 @@ cdef inline int _buffer_type_to_gl_format(str x):
     except KeyError:
         raise Exception('Unknown <%s> format' % x)
 
+cdef dict _gl_buffer_size = {
+    'ubyte': sizeof(GLubyte),
+    'ushort': sizeof(GLushort),
+    'uint': sizeof(GLuint),
+    'byte': sizeof(GLbyte),
+    'short': sizeof(GLshort),
+    'int': sizeof(GLint),
+    'float': sizeof(GLfloat)
+}
+
+cdef inline int _buffer_type_to_gl_size(str x):
+    x = x.lower()
+    try:
+        return _gl_buffer_size[x]
+    except KeyError:
+        raise Exception('Unknown <%s> format' % x)
+
 cdef inline int _gl_format_size(GLuint x):
     if x in (GL_RGB, GL_BGR):
         return 3
@@ -220,7 +237,8 @@ cdef _texture_create(int width, int height, str fmt, str buffertype, int
 
     # ok, allocate memory for initial texture
     cdef int glfmt = _fmt_to_gl_format(fmt)
-    cdef int datasize = sizeof(GLubyte) * texture_width * texture_height * _gl_format_size(glfmt)
+    cdef int datasize = texture_width * texture_height * \
+            _gl_format_size(glfmt) * _buffer_type_to_gl_size(buffertype)
     cdef void *data = NULL
     cdef int dataerr = 0
 
