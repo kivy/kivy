@@ -113,12 +113,24 @@ if __name__ == '__main__':
 
     for dirpath, dirnames, filenames in os.walk(basedir):
         # exclude libs
-        if '/lib' in dirpath:
+        exclude_patterns = ['/lib', 'coverage', 'pep8']
+        cont = False
+        for pat in exclude_patterns:
+            if pat in dirpath:
+                cont = True
+                break
+        if cont:
             continue
+        exclude_files = ['kivy/gesture.py']
         for filename in filenames:
             if filename.split('.')[-1] != 'py':
                 continue
             complete_filename = os.path.join(dirpath, filename)
+            for pat in exclude_files:
+                if complete_filename.endswith(pat):
+                    cont = True
+            if cont:
+                continue
 
             if htmlmode:
                 print '<tr><th colspan="2">%s</td></tr>' % complete_filename

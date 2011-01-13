@@ -159,12 +159,12 @@ def trailing_whitespace(physical_line):
         return len(stripped), "W291 trailing whitespace"
 
 
-def trailing_blank_lines(physical_line, lines, line_number):
-    """
-    JCR: Trailing blank lines are superfluous.
-    """
-    if physical_line.strip() == '' and line_number == len(lines):
-        return 0, "W391 blank line at end of file"
+#def trailing_blank_lines(physical_line, lines, line_number):
+#    """
+#    JCR: Trailing blank lines are superfluous.
+#    """
+#    if physical_line.strip() == '' and line_number == len(lines):
+#        return 0, "W391 blank line at end of file"
 
 
 def missing_newline(physical_line):
@@ -187,8 +187,8 @@ def maximum_line_length(physical_line):
     length to 72 characters is recommended.
     """
     length = len(physical_line.rstrip())
-    if length > 79:
-        return 79, "E501 line too long (%d characters)" % length
+    if length > 80:
+        return 80, "E501 line too long (%d characters)" % length
 
 
 def crlf_lines(physical_line):
