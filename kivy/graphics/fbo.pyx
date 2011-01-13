@@ -140,10 +140,12 @@ cdef class Fbo(RenderContext):
     cdef create_fbo(self):
         cdef GLuint f_id
         cdef int status
+        cdef int do_clear = 0
 
         # create texture
         if self._texture is None:
             self._texture = Texture.create(size=(self._width, self._height))
+            do_clear = 1
 
         # create framebuffer
         glGenFramebuffers(1, &f_id)
@@ -171,7 +173,8 @@ cdef class Fbo(RenderContext):
             raise FboException('FBO Initialization failed', status)
 
         # clear the fbo
-        self.clear_buffer()
+        if do_clear:
+            self.clear_buffer()
 
         # unbind the framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
