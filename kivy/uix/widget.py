@@ -143,7 +143,6 @@ class Widget(EventDispatcher):
     #
     # Collision
     #
-
     def collide_point(self, x, y):
         '''Check if a point (x, y) is inside the widget bounding box.
 
@@ -165,7 +164,6 @@ class Widget(EventDispatcher):
     #
     # Default event handlers
     #
-
     def on_touch_down(self, touch):
         '''Receive a touch down event
 
@@ -211,7 +209,6 @@ class Widget(EventDispatcher):
     #
     # Events
     #
-
     def bind(self, **kwargs):
         '''Bind properties or event to handler.
 
@@ -244,7 +241,6 @@ class Widget(EventDispatcher):
     #
     # Tree management
     #
-
     def add_widget(self, widget):
         '''Add a new widget as a child of current widget
 
@@ -351,7 +347,6 @@ class Widget(EventDispatcher):
     #
     # Properties
     #
-
     def setter(self, name):
         '''Return the setter of a property. Useful if you want to directly bind
         a property to another.
@@ -409,6 +404,7 @@ class Widget(EventDispatcher):
 
     def get_right(self):
         return self.x + self.width
+
     def set_right(self, value):
         self.x = value - self.width
 
@@ -421,6 +417,7 @@ class Widget(EventDispatcher):
 
     def get_top(self):
         return self.y + self.height
+
     def set_top(self, value):
         self.y = value - self.height
 
@@ -433,6 +430,7 @@ class Widget(EventDispatcher):
 
     def get_center_x(self):
         return self.x + self.width / 2.
+
     def set_center_x(self, value):
         self.x = value - self.width / 2.
     center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
@@ -444,6 +442,7 @@ class Widget(EventDispatcher):
 
     def get_center_y(self):
         return self.y + self.height / 2.
+
     def set_center_y(self, value):
         self.y = value - self.height / 2.
     center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
@@ -489,8 +488,8 @@ class Widget(EventDispatcher):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of the widget
 
-    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance, default to
-    None.
+    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance,
+    default to None.
 
     The parent of a widget is set when the widget is added to another one, and
     unset when the widget is removed from his parent.

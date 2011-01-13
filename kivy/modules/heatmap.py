@@ -17,7 +17,7 @@ class HeatMap(MTWidget):
             self.appname = 'python'
         elif self.appname[-3:] == '.py':
             self.appname = self.appname[:-3]
-        self.filename = 'heatmap-%s.db' % self.appname
+        self.filename = fn = 'heatmap-%s.db' % self.appname
         self.db = sqlite3.connect(self.filename)
         try:
             self.db.execute('''
@@ -28,9 +28,10 @@ class HeatMap(MTWidget):
                 )
             ''')
             self.db.commit()
-            Logger.info('Heatmap: Create new database for heatmap in %s' % self.filename)
+            msg = 'Heatmap: Create new database for heatmap in %s' % fn
+            Logger.info(msg)
         except sqlite3.OperationalError:
-            Logger.info('Heatmap: Fill heatmap database in %s' % self.filename)
+            Logger.info('Heatmap: Fill heatmap database in %s' % fn)
 
     def on_touch_down(self, touch):
         self.db.execute('''

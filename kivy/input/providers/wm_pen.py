@@ -21,8 +21,8 @@ class WM_Pen(Touch):
         super(WM_Pen, self).depack(args)
 
     def __str__(self):
-        return '<WMPen id:%d uid:%d pos:%s device:%s>' % (self.id, self.uid, str(self.spos), self.device)
-
+        i, u, s, d = (self.id, self.uid, str(self.spos), self.device)
+        return '<WMPen id:%d uid:%d pos:%s device:%s>' % (i, u, s, d)
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     WM_PenProvider = None
@@ -54,7 +54,8 @@ else:
 
         def _is_pen_message(self, msg):
             info = windll.user32.GetMessageExtraInfo()
-            if (info & PEN_OR_TOUCH_MASK) == PEN_OR_TOUCH_SIGNATURE: # its a touch or a pen
+            # It's a touch or a pen
+            if (info & PEN_OR_TOUCH_MASK) == PEN_OR_TOUCH_SIGNATURE:
                 if not info & PEN_EVENT_TOUCH_MASK:
                     return True
 
@@ -85,7 +86,8 @@ else:
                 self._pen_handler(msg, wParam, lParam)
                 return 1
             else:
-                return windll.user32.CallWindowProcW(self.old_windProc, hwnd, msg, wParam, lParam)
+                return windll.user32.CallWindowProcW(self.old_windProc,
+                                                hwnd, msg, wParam, lParam)
 
         def start(self):
             self.uid = 0
@@ -95,7 +97,8 @@ else:
 
             self.hwnd = windll.user32.GetActiveWindow()
 
-            # inject our own wndProc to handle messages before window manager does
+            # inject our own wndProc to handle messages
+            # before window manager does
             self.new_windProc = WNDPROC(self._pen_wndProc)
             self.old_windProc = windll.user32.SetWindowLongW(
                 self.hwnd,

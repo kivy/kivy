@@ -9,7 +9,8 @@ import logging
 from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.base import getWindow
-from kivy.graphx import drawRectangle, drawLabel, set_color, drawLine, drawCircle
+from kivy.graphx import drawRectangle, drawLabel, set_color, drawLine, \
+                        drawCircle
 from kivy.logger import kivy_logger_history, Logger
 from kivy.ui.colors import css_reload
 from kivy.ui.widgets import *
@@ -34,7 +35,8 @@ def _can_fullscreen():
 def _screenshot():
     import os
     import pygame
-    from kivy.core.gl import glReadBuffer, glReadPixels, GL_RGB, GL_UNSIGNED_BYTE, GL_FRONT
+    from kivy.core.gl import glReadBuffer, glReadPixels, GL_RGB, \
+                             GL_UNSIGNED_BYTE, GL_FRONT
     win = getWindow()
     glReadBuffer(GL_FRONT)
     data = glReadPixels(0, 0, win.width, win.height, GL_RGB, GL_UNSIGNED_BYTE)
@@ -52,7 +54,8 @@ def _screenshot():
         except:
             Logger.exception('KeyBinding: Unable to take a screenshot')
     else:
-        Logger.warning('KeyBinding: Unable to take screenshot, no more slot available')
+        warn = 'KeyBinding: Unable to take screenshot, no more slot available'
+        Logger.warning(warn)
 
 
 def _on_draw():
@@ -150,7 +153,7 @@ def _on_draw():
                 pass
             args = (x, usage, count, limit, timeout)
             drawLabel('%s: usage=%s%% count=%d limit=%s timeout=%s' % args,
-                      pos=(20, 20 + y), font_size=20, center=False, nocache=True)
+                    pos=(20, 20 + y), font_size=20, center=False, nocache=True)
 
         return True
 
@@ -281,13 +284,17 @@ class SceneGraphNode(MTBoxLayout):
         self.widget = kwargs['node']
         self.selected = False
 
-        self.child_layout = MTBoxLayout(size_hint=(None, None), spacing=10, orientation="vertical")
+        self.child_layout = MTBoxLayout(size_hint=(None, None), spacing=10,
+                                        orientation="vertical")
         for c in self.widget.children:
-            self.child_layout.add_widget(SceneGraphNode(node=c, size_hint=(None, None)))
+            self.child_layout.add_widget(SceneGraphNode(node=c,
+                                                        size_hint=(None, None)))
         self.add_widget(self.child_layout)
 
-        self.node_btn = MTToggleButton(label=str(self.widget.__class__.__name__), size=(150, 30))
-        self.title = MTAnchorLayout(size_hint=(None, None), size=(200, self.child_layout.height))
+        self.node_btn = MTToggleButton(
+                label=str(self.widget.__class__.__name__), size=(150, 30))
+        self.title = MTAnchorLayout(size_hint=(None, None), size=(200,
+                                    self.child_layout.height))
         self.title.add_widget(self.node_btn)
         self.add_widget(self.title)
 
@@ -300,7 +307,8 @@ class SceneGraphNode(MTBoxLayout):
 
         set_color(1, .3, 0)
         for c in self.child_layout.children:
-            drawLine((self.node_btn.centerright, c.node_btn.centerleft), width=2)
+            drawLine((self.node_btn.centerright, c.node_btn.centerleft),
+                        width=2)
 
     def select(self, *args):
         self.selected = not self.selected
@@ -308,7 +316,8 @@ class SceneGraphNode(MTBoxLayout):
     def add_new_widget(self, *args):
         new_widget = MTButton(label="I'm new!!!")
         self.widget.add_widget(new_widget)
-        self.child_layout.add_widget(SceneGraphNode(node=new_widget, size_hint=(None, None)))
+        self.child_layout.add_widget(SceneGraphNode(node=new_widget,
+                                        size_hint=(None, None)))
         self.title.size=(200, self.child_layout.height)
 
     def print_props(self, *args):
@@ -328,7 +337,8 @@ def toggle_scene_graph():
         _scene_graph_modal_layover = None
         return
     else:
-        scene_graph = SceneGraphNode(node=win.children[0], size_hint=(None, None))
+        scene_graph = SceneGraphNode(node=win.children[0],
+                                        size_hint=(None, None))
         plane = MTScatterPlane(do_rotation=False)
         plane.add_widget(scene_graph)
         _scene_graph_modal_layover = MTModalWindow()

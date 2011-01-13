@@ -107,9 +107,11 @@ class GlobalFeedback(MTWidget):
                 continue
             alivetouches.append(touch.id)
             if touch.id not in self.touches:
-                self.touches[touch.id] = GlobalFeedbackTouch(pos=(touch.x, touch.y))
+                self.touches[touch.id] = GlobalFeedbackTouch(pos=(touch.x,
+                                                                  touch.y))
                 self.add_widget(self.touches[touch.id])
-                newsprite = Image(ring_img, pos=touch.pos, opacity=0.75, scale=0.10)
+                newsprite = Image(ring_img, pos=touch.pos,
+                                    opacity=0.75, scale=0.10)
                 self.rings.append(newsprite)
             else:
                 self.touches[touch.id].pos = (touch.x, touch.y)

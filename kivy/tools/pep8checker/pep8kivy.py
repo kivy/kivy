@@ -121,7 +121,7 @@ if __name__ == '__main__':
                 break
         if cont:
             continue
-        exclude_files = ['kivy/gesture.py']
+        exclude_files = ['kivy/gesture.py', 'osx/build.py', 'win32/build.py']
         for filename in filenames:
             if filename.split('.')[-1] != 'py':
                 continue

@@ -107,7 +107,8 @@ class bench_graphx_rectangle:
         rects = []
         w, h = window_size
         for x in xrange(5000):
-            rects.append(((random() * w, random() * h), (random() * w, random() * h)))
+            rects.append(((random() * w, random() * h),
+                          (random() * w, random() * h)))
         self.rects = rects
 
     def run(self):
@@ -125,7 +126,8 @@ class bench_graphics_rectangle:
         w, h = window_size
         canvas = Canvas()
         for x in xrange(5000):
-            canvas.rectangle(random() * w, random() * h, random() * w, random() * h)
+            canvas.rectangle(random() * w, random() * h,
+                             random() * w, random() * h)
         self.canvas = canvas
 
     def run(self):
@@ -144,7 +146,8 @@ class bench_graphics_rectanglemesh:
         mesh = canvas.graphicElement(format='vv', type='quads')
         vertex = []
         for x in xrange(50000):
-            vertex.extend([random() * w, random() * h, random() * w, random() * h])
+            vertex.extend([random() * w, random() * h,
+                           random() * w, random() * h])
         mesh.data_v = vertex
         self.canvas = canvas
 
@@ -161,7 +164,8 @@ class bench_graphx_roundedrectangle:
         rects = []
         w, h = window_size
         for x in xrange(5000):
-            rects.append(((random() * w, random() * h), (random() * w, random() * h)))
+            rects.append(((random() * w, random() * h),
+                          (random() * w, random() * h)))
         self.rects = rects
 
     def run(self):
@@ -179,7 +183,8 @@ class bench_graphics_roundedrectangle:
         w, h = window_size
         canvas = Canvas()
         for x in xrange(5000):
-            canvas.roundedRectangle(random() * w, random() * h, random() * w, random() * h)
+            canvas.roundedRectangle(random() * w, random() * h,
+                                    random() * w, random() * h)
         self.canvas = canvas
 
     def run(self):
@@ -284,7 +289,8 @@ if __name__ == '__main__':
         # force gc before next test
         gc.collect()
 
-        log('%2d/%-2d %-60s' % (benchs.index(x)+1, len(benchs), x.__doc__), False)
+        log('%2d/%-2d %-60s' % (benchs.index(x)+1,
+            len(benchs), x.__doc__), False)
         try:
             sys.stderr.write('.')
             test = x()
@@ -317,7 +323,8 @@ except:
     pass
 
 try:
-    reply = raw_input('Do you want to send benchmark to paste.pocoo.org (Y/n) : ')
+    q = 'Do you want to send the benchmark to paste.pocoo.org (Y/n)? '
+    reply = raw_input()
 except EOFError:
     sys.exit(0)
 

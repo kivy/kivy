@@ -1,8 +1,8 @@
 '''
-Create input entry for each Multitouch hardware found (linux only).
-===================================================================
+Auto Create Input Provider Config Entry for Available MT Hardware (linux only).
+===============================================================================
 
-Thanks to Marc Tardif for the probing code, used from scan-for-mt-device script.
+Thanks to Marc Tardif for the probing code, taken from scan-for-mt-device.
 
 The device discovery is done by this provider. However, the reading of input can
 be made by 2 other providers: hidinput or mtdev. mtdev is used prior to
@@ -19,8 +19,9 @@ Here is an example of auto creation ::
     # using mtdev with a match on name
     device_%(name)s = probesysfs,provider=mtdev,match=acer
 
-    # using hidinput with custom parameters to hidinput
-    %(name)s = probesysfs,provider=hidinput,param=min_pressure=1,param=max_pressure=99
+    # using hidinput with custom parameters to hidinput (all on one line)
+    %(name)s = probesysfs,
+        provider=hidinput,param=min_pressure=1,param=max_pressure=99
 
 ProbeSysfs module will enumerate hardware from /sys/class/input device, and
 configure hardware with ABS_MT_POSITION_X capability.
@@ -29,6 +30,7 @@ configure hardware with ABS_MT_POSITION_X capability.
 __all__ = ('ProbeSysfsHardwareProbe', )
 
 import os
+from os.path import sep
 
 if 'KIVY_DOC' in os.environ:
 
@@ -147,7 +149,8 @@ else:
                                        ' rule in config, ignoring.')
                         continue
 
-                devicename = self.device % dict(name=device.device.split(os.path.sep)[-1])
+                d = device.device
+                devicename = self.device % dict(name=d.split(sep)[-1])
 
                 provider = TouchFactory.get(self.provider)
                 if provider is None:

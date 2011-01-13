@@ -46,7 +46,7 @@ class Scatter(Widget):
         else:
             self.do_translation_x = self.do_translation_y = bool(value)
     do_translation = AliasProperty(_get_do_translation, _set_do_translation,
-                                   bind=('do_translation_x', 'do_translation_y'))
+                                bind=('do_translation_x', 'do_translation_y'))
     '''Allow translation on X or Y axis
 
     :data:`do_translation` is a :class:`~kivy.properties.AliasProperty` of
@@ -121,13 +121,15 @@ class Scatter(Widget):
 
     def _get_rotation(self):
         v1 = Vector(0, 10)
-        v2 = Vector(*self.to_parent(*self.pos)) - self.to_parent(self.x, self.y + 10)
+        tp = self.to_parent
+        v2 = Vector(*tp(*self.pos)) - tp(self.x, self.y + 10)
         return -1.0 *(v1.angle(v2) + 180) % 360
 
     def _set_rotation(self, rotation):
         angle_change = self.rotation - rotation
         r = Matrix().rotate(-radians(angle_change), 0, 0, 1)
-        self.apply_transform(r, post_multiply=True, anchor=self.to_local(*self.center))
+        self.apply_transform(r, post_multiply=True,
+                            anchor=self.to_local(*self.center))
     rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
         'x', 'y', 'transform'))
     '''Rotation value of the scatter
@@ -144,7 +146,7 @@ class Scatter(Widget):
     def _set_scale(self, scale):
         rescale = scale * 1.0 / self.scale
         self.apply_transform(Matrix().scale(rescale, rescale, rescale),
-                             post_multiply=True, anchor=self.to_local(*self.center))
+                        post_multiply=True, anchor=self.to_local(*self.center))
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
     '''Scale value of the scatter
 
@@ -216,7 +218,8 @@ class Scatter(Widget):
         return (p[0], p[1])
 
     def apply_angle_scale_trans(self, angle, scale, trans, point=Vector(0, 0)):
-        '''Update matrix transformation by adding new angle, scale and translate.
+        '''Update matrix transformation by adding new angle,
+           scale and translate.
 
         :Parameters:
             `angle` : float
@@ -269,9 +272,12 @@ class Scatter(Widget):
     def transform_with_touch(self, touch):
         # just do a simple one finger drag
         if len(self._touches) == 1:
-            # _last_touch_pos has last pos in correct parent space, just liek incoming touch
-            dx = (touch.x - self._last_touch_pos[touch][0]) * self.do_translation_x
-            dy = (touch.y - self._last_touch_pos[touch][1]) * self.do_translation_y
+            # _last_touch_pos has last pos in correct parent space,
+            # just liek incoming touch
+            dx = (touch.x - self._last_touch_pos[touch][0]) \
+                                                    * self.do_translation_x
+            dy = (touch.y - self._last_touch_pos[touch][1]) \
+                                                    * self.do_translation_y
             self.apply_transform(Matrix().translate(dx, dy, 0))
             return
 

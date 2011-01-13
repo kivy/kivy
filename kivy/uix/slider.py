@@ -48,7 +48,8 @@ class Slider(Widget):
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'min', 'max'))
 
-    #: The value of the slider mapped to the screen position between self.x and self.right
+    #: The value of the slider mapped to the screen position
+    #  between self.x and self.right
     def get_value_pos(self):
         return  (self.x + self.value_normalized*self.width, self.y)
 
@@ -63,7 +64,8 @@ class Slider(Widget):
                               bind=('value', 'min', 'max', 'value_normalized'))
 
 
-    #: on touch_down handler. if inside slider: grab touch, set value based on touch pos
+    #: on touch_down handler. If inside slider:
+    #  grab touch, set value based on touch pos
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             touch.grab(self)

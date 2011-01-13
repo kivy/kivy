@@ -6,7 +6,8 @@ import os
 if 'KIVY_DOC' not in os.environ:
     import pygame
     import kivy
-    from kivy.core.gl import glReadBuffer, glReadPixels, GL_RGB, GL_UNSIGNED_BYTE, GL_FRONT
+    from kivy.core.gl import glReadBuffer, glReadPixels, GL_RGB, \
+                                GL_UNSIGNED_BYTE, GL_FRONT
     from kivy.utils import curry
 
     dump_prefix = kivy.Config.get('dump', 'prefix')

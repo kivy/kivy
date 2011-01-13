@@ -16,7 +16,9 @@ from kivy.input.shape import TouchShapeRect
 
 
 class WM_Touch(Touch):
-    '''Touch representing the WM_Touch event. Support pos, shape and size profiles'''
+    '''Touch representing the WM_Touch event.
+       Supports pos, shape and size profiles.
+    '''
     __attrs__ = ('size', )
 
     def depack(self, args):
@@ -30,7 +32,8 @@ class WM_Touch(Touch):
         super(WM_Touch, self).depack(args)
 
     def __str__(self):
-        return '<WMTouch id:%d uid:%d pos:%s device:%s>' % (self.id, self.uid, str(self.spos), self.device)
+        args = (self.id, self.uid, str(self.spos), self.device)
+        return '<WMTouch id:%d uid:%d pos:%s device:%s>' % args
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
@@ -104,7 +107,8 @@ else:
             self.hwnd = windll.user32.GetActiveWindow()
             windll.user32.RegisterTouchWindow(self.hwnd, 1)
 
-            # inject our own wndProc to handle messages before window manager does
+            # inject our own wndProc to handle messages
+            # before window manager does
             self.new_windProc = WNDPROC(self._touch_wndProc)
             self.old_windProc = windll.user32.SetWindowLongW(
                 self.hwnd,
@@ -162,7 +166,8 @@ else:
                 done = self._mouse_handler(msg, wParam, lParam)
 
             if not done:
-                return windll.user32.CallWindowProcW(self.old_windProc, hwnd, msg, wParam, lParam)
+                return windll.user32.CallWindowProcW(self.old_windProc,
+                                                hwnd, msg, wParam, lParam)
             return 1
 
 
@@ -178,10 +183,12 @@ else:
             return True
 
 
-        # filter fake mouse events, because touch and stylus also make mouse events
+        # filter fake mouse events, because touch and stylus
+        # also make mouse events
         def _mouse_handler(self, msg, wparam, lParam):
             info = windll.user32.GetMessageExtraInfo()
-            if (info & PEN_OR_TOUCH_MASK) == PEN_OR_TOUCH_SIGNATURE: # its a touch or a pen
+            # its a touch or a pen
+            if (info & PEN_OR_TOUCH_MASK) == PEN_OR_TOUCH_SIGNATURE:
                 if info & PEN_EVENT_TOUCH_MASK:
                     return True
 

@@ -29,7 +29,8 @@ import time
 import StringIO
 import random
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-from kivy.core.gl import glReadBuffer, glReadPixels, GL_RGB, GL_UNSIGNED_BYTE, GL_FRONT
+from kivy.core.gl import glReadBuffer, glReadPixels, GL_RGB, GL_UNSIGNED_BYTE, \
+                         GL_FRONT
 from kivy.utils import curry
 
 if 'KIVY_DOC' not in os.environ:
@@ -84,9 +85,11 @@ class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
             'MjpegServer: Client %s:%d connected' % self.client_address)
 
         self.send_response(200, 'OK')
-        self.boundary = 'kivy-mjpegserver-boundary-%d' % (random.randint(1, 9999999))
+        self.boundary = 'kivy-mjpegserver-boundary-%d' % (random.randint(1,
+                                                                    9999999))
         self.send_header('Server', 'Kivy MjpegServer')
-        self.send_header('Content-type', 'multipart/x-mixed-replace; boundary=%s' % self.boundary)
+        self.send_header('Content-type',
+                    'multipart/x-mixed-replace; boundary=%s' % self.boundary)
         self.end_headers()
 
         # don't accept connection until the window is created
@@ -132,7 +135,8 @@ class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
                 fps = frames / (dt_current - dt)
                 lfps.append(fps)
                 x = sum(lfps) / len(lfps)
-                Logger.debug('MjpegServer: current FPS is %.1f, average is %.1f' % (fps, x))
+                msg = 'MjpegServer: Current FPS: %.1f, Average: %.1f' % (fps, x)
+                Logger.debug(msg)
                 dt = dt_current
                 frames = 0
 
@@ -164,7 +168,8 @@ def window_flip_and_save():
 
     with lock_current:
         glReadBuffer(GL_FRONT)
-        data = glReadPixels(0, 0, win.width, win.height, GL_RGB, GL_UNSIGNED_BYTE)
+        data = glReadPixels(0, 0, win.width, win.height, GL_RGB,
+                            GL_UNSIGNED_BYTE)
         img_current = str(buffer(data))
 
     sem_current.release()
