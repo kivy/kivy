@@ -236,13 +236,14 @@ class Tuio2dObjTouch(TuioTouch):
         if len(args) < 5:
             self.sx, self.sy = args[0:2]
             self.profile = ('pos', )
-            self.fid, self.sx, self.sy, self.a, self.X, self.Y = args[:6]
         elif len(args) == 9:
+            self.fid, self.sx, self.sy, self.a, self.X, self.Y = args[:6]
             self.A, self.m, self.r = args[6:9]
             self.Y = -self.Y
             self.profile = ('markerid', 'pos', 'angle', 'mov', 'rot',
                             'motacc', 'rotacc')
         else:
+            self.fid, self.sx, self.sy, self.a, self.X, self.Y = args[:6]
             self.A, self.m, self.r, width, height = args[6:11]
             self.Y = -self.Y
             self.profile = ('markerid', 'pos', 'angle', 'mov', 'rot', 'rotacc',
