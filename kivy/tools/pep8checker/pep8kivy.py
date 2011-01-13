@@ -11,8 +11,8 @@ class KivyStyleChecker(pep8.Checker):
 
     def report_error(self, line_number, offset, text, check):
         if htmlmode is False:
-            return pep8.Checker.report_error(
-                self, line_number, offset, text, check)
+            return pep8.Checker.report_error(self,
+                line_number, offset, text, check)
 
         # html generation
         print '<tr><td>%d</td><td>%s</td></tr>' % (line_number, text)
@@ -111,11 +111,11 @@ if __name__ == '__main__':
         <p>Generated on %s</p>
         <table>''' % (time.strftime('%c'))
 
+    errors = 0
     for dirpath, dirnames, filenames in os.walk(basedir):
-        # exclude libs
-        exclude_patterns = ['/lib', 'coverage', 'pep8']
+        exclude_dirs = ['/lib', 'coverage']
         cont = False
-        for pat in exclude_patterns:
+        for pat in exclude_dirs:
             if pat in dirpath:
                 cont = True
                 break
@@ -123,6 +123,7 @@ if __name__ == '__main__':
             continue
         exclude_files = ['kivy/gesture.py', 'osx/build.py', 'win32/build.py']
         for filename in filenames:
+            cont = False
             if filename.split('.')[-1] != 'py':
                 continue
             complete_filename = os.path.join(dirpath, filename)
@@ -135,7 +136,10 @@ if __name__ == '__main__':
             if htmlmode:
                 print '<tr><th colspan="2">%s</td></tr>' % complete_filename
             checker = KivyStyleChecker(complete_filename)
-            checker.check_all()
+            errors += checker.check_all()
 
     if htmlmode:
         print '</div></div></table></body></html>'
+
+    # If errors is 0 we return with 0. That's just fine.
+    sys.exit(errors)
