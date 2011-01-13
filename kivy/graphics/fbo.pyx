@@ -180,7 +180,7 @@ cdef class Fbo(RenderContext):
         projection_mat.view_clip(0.0, self._width, 0.0, self._height, -1.0, 1.0, 0)
         self.set_state('projection_mat', projection_mat)
 
-    cdef bind(self):
+    cpdef bind(self):
         if self._is_bound:
             raise FboException('FBO is already binded.')
         else:
@@ -195,7 +195,7 @@ cdef class Fbo(RenderContext):
             glGetIntegerv(GL_VIEWPORT, <GLint *>&self._viewport)
             glViewport(0, 0, self._width, self._height)
 
-    cdef release(self):
+    cpdef release(self):
         if self._is_bound == 0:
             raise FboException('Cannot release a FBO not binded.')
         else:
