@@ -30,14 +30,18 @@ class Vector(list):
 
     def _get_x(self):
         return self[0]
+
     def _set_x(self, x):
         self[0] = x
+
     x = property(_get_x, _set_x)
 
     def _get_y(self):
         return self[1]
+
     def _set_y(self, y):
         self[1] = y
+
     y = property(_get_y, _set_y)
 
     def __getslice__(self, i, j):
@@ -119,7 +123,6 @@ class Vector(list):
             self.x /= val.x
             self.y /= val.y
         return self
-
 
     def length(self):
         '''Returns the length of a vector'''

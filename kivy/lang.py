@@ -179,7 +179,8 @@ class Parser(object):
                 if not len(x[0]):
                     raise ParserError(self, ln, 'Identifier missing')
                 if len(x) == 2 and len(x[1]):
-                    raise ParserError(self, ln, 'Invalid data after declaration')
+                    raise ParserError(self, ln,
+                                        'Invalid data after declaration')
                 objects.append((x[0], current_object))
 
             # Next level, is it a property or an object ?
@@ -455,7 +456,8 @@ class BuilderBase(object):
             elif key == 'id':
                 self.gidmap[value] = widget
             else:
-                self.listset.append((ctx, ln, widget, key, value, copy(self.idmap)))
+                self.listset.append((ctx, ln, widget, key, value,
+                                        copy(self.idmap)))
 
         self._pop_ids()
         if is_template:
@@ -484,7 +486,8 @@ class BuilderBase(object):
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):
-            element.bind(**{key: curry(custom_callback, (element, key, value, idmap))})
+            element.bind(**{key: curry(custom_callback, (element, key,
+                                                            value, idmap))})
 
         else:
             value = create_handler(element, key, value, idmap)

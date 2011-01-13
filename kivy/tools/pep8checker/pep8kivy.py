@@ -113,7 +113,7 @@ if __name__ == '__main__':
 
     errors = 0
     for dirpath, dirnames, filenames in os.walk(basedir):
-        exclude_dirs = ['/lib', 'coverage']
+        exclude_dirs = ['/lib', '/coverage', '/pep8']
         cont = False
         for pat in exclude_dirs:
             if pat in dirpath:

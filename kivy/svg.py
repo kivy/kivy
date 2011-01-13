@@ -258,7 +258,8 @@ class SVGData(object):
             self.new_path()
             for i in xrange(self.circle_points):
                 theta = 2 * i * math.pi / self.circle_points
-                self.line_to(cx + rx * math.cos(theta), cy + ry * math.sin(theta))
+                self.line_to(cx + rx * math.cos(theta),
+                             cy + ry * math.sin(theta))
             self.close_path()
             self.end_path()
 
@@ -272,7 +273,9 @@ class SVGData(object):
             try:
                 self.parse_element(c)
             except Exception, ex:
-                Logger.exception('SVGData: exception while parsing child element %s of %s' % (c, e))
+                err = 'SVGData: Exception while parsing child element ' \
+                      '%s of %s' % (c, e)
+                Logger.exception(err)
                 raise
 
         #done parsing element, restore transform
@@ -331,7 +334,8 @@ class SVGData(object):
                     continue
                 loop = [orig_loop[0]]
                 for pt in orig_loop:
-                    if (pt[0] - loop[-1][0])**2 + (pt[1] - loop[-1][1])**2 > TOLERANCE:
+                    val = (pt[0] - loop[-1][0])**2 + (pt[1] - loop[-1][1])**2
+                    if val > TOLERANCE:
                         loop.append(pt)
                 path.append(loop)
 

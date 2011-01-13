@@ -43,7 +43,8 @@ BOLD_SEQ = "\033[1m"
 
 def formatter_message(message, use_color=True):
     if use_color:
-        message = message.replace("$RESET", RESET_SEQ).replace("$BOLD", BOLD_SEQ)
+        message = message.replace("$RESET", RESET_SEQ)
+        message = message.replace("$BOLD", BOLD_SEQ)
     else:
         message = message.replace("$RESET", "").replace("$BOLD", "")
     return message
@@ -194,7 +195,8 @@ class ColoredFormatter(logging.Formatter):
             levelname = 'TRACE'
             record.levelname = levelname
         if self.use_color and levelname in COLORS:
-            levelname_color = COLOR_SEQ % (30 + COLORS[levelname]) + levelname + RESET_SEQ
+            levelname_color = COLOR_SEQ % (30 + COLORS[levelname]) \
+                                + levelname + RESET_SEQ
             record.levelname = levelname_color
         return logging.Formatter.format(self, record)
 
