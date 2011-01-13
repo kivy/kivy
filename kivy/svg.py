@@ -344,10 +344,5 @@ class SVGData(object):
             print "loop: "
             pprint(self.loop)
 
-
         self.path = []
-
-
-
-
 
