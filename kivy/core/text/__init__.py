@@ -253,21 +253,21 @@ class LabelBase(object):
         assert(data)
 
         # create texture is necessary
-        if self.texture is None:
-            self.texture = Texture.create(size=self.size)
-            self.texture.flip_vertical()
-        w = self.texture.width
-        h = self.texture.height
-        elif self.width > w or self.height > h:
-            self.texture = Texture.create(size=self.size)
-            self.texture.flip_vertical()
+        texture = self.texture
+        if texture is None:
+            texture = Texture.create(size=self.size)
+            texture.flip_vertical()
+        elif self.width > texture.width or self.height > texture.height:
+            texture = Texture.create(size=self.size)
+            texture.flip_vertical()
         else:
-            self.texture = self.texture.get_region(
+            texture = texture.get_region(
                 0, 0, self.width, self.height)
 
-        #self.texture = Texture.create_from_data(data)
+        self.texture = texture
+
         # update texture
-        self.texture.blit_data(data)
+        texture.blit_data(data)
 
     def refresh(self):
         '''Force re-rendering of the text'''
