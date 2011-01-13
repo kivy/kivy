@@ -32,8 +32,7 @@ def _touch_move(win, touch):
     ud = touch.userdata
     ud['tr.rect'].pos = (
         touch.x - (ring_img.width / 2. * 0.3),
-        touch.y - (ring_img.height / 2. * 0.3)
-    )
+        touch.y - (ring_img.height / 2. * 0.3))
 
 def _touch_up(win, touch):
     ud = touch.userdata

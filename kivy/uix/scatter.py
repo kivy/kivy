@@ -274,7 +274,7 @@ class Scatter(Widget):
         # we only want to transform if the touch is part of the two touches
         # furthest apart! So first we find anchor, the point to transform
         # around as the touch farthest away from touch
-        anchor  = max(points, key=lambda p: p.distance(touch.pos))
+        anchor = max(points, key=lambda p: p.distance(touch.pos))
 
         # now we find the touch farthest away from anchor, if its not the
         # same as touch. Touch is not one of the two touches used to transform
@@ -283,11 +283,11 @@ class Scatter(Widget):
             return
 
         # ok, so we have touch, and anchor, so we can actually compute the
-        # transformation        
+        # transformation
         old_line = Vector(*touch.dpos) - anchor
         new_line = Vector(*touch.pos) - anchor
 
-        angle = radians( new_line.angle(old_line) ) * self.do_rotation
+        angle = radians(new_line.angle(old_line)) * self.do_rotation
         scale = new_line.length() / old_line.length()
         new_scale = scale * self.scale
         if new_scale < self.scale_min or new_scale > self.scale_max:

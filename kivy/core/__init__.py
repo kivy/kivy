@@ -49,8 +49,8 @@ else:
 
             except Exception as e:
                 Logger.warning('%s: Unable to use <%s> as %s'
-                     'provider' % ( category.capitalize(), option, category))
-                Logger.debug('', exc_info=e)
+                     'provider' % (category.capitalize(), option, category))
+                Logger.debug('', exc_info = e)
 
         Logger.critical('%s: Unable to find any valuable %s provider'
               'at all!' % (category.capitalize(),category.capitalize()))

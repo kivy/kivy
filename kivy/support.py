@@ -4,6 +4,7 @@ Support: activate other framework/toolkit inside our event loop
 
 __all__ = ('install_gobject_iteration', )
 
+
 def install_gobject_iteration():
     '''Import and install gobject context iteration inside our event loop.
     This is used as soon as gobject is used (like gstreamer)

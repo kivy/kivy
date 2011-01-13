@@ -88,7 +88,7 @@ class Touch(object):
 
     def __init__(self, device, id, args):
         if self.__class__ == Touch:
-            raise NotImplementedError, 'class Touch is abstract'
+            raise NotImplementedError('class Touch is abstract')
 
         # Uniq ID
         Touch.__uniq_id += 1
@@ -200,15 +200,15 @@ class Touch(object):
             self.x = sx * float(w)
             self.y = sy * float(h)
         elif rotation == 90:
-            sx, sy = sy, 1-sx
+            sx, sy = sy, 1 - sx
             self.x = sx * float(h)
             self.y = sy * float(w)
         elif rotation == 180:
-            sx, sy = 1-sx, 1-sy
+            sx, sy = 1 - sx, 1 - sy
             self.x = sx * float(w)
             self.y = sy * float(h)
         elif rotation == 270:
-            sx, sy = 1-sy, sx
+            sx, sy = 1 - sy, sx
             self.x = sx * float(h)
             self.y = sy * float(w)
 
@@ -261,8 +261,7 @@ class Touch(object):
             out.append('%s="%s"' % (x, v))
         return '<%s %s>' % (
             self.__class__.__name__,
-            ' '.join(out)
-        )
+            ' '.join(out))
 
     # facility
     @property

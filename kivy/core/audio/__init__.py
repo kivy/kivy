@@ -74,9 +74,9 @@ class Sound(EventDispatcher):
         self.register_event_type('on_play')
         self.register_event_type('on_stop')
 
-        self._status    = 'stop'
-        self._volume    = kwargs.get('volume')
-        self._filename  = kwargs.get('filename')
+        self._status = 'stop'
+        self._volume = kwargs.get('volume')
+        self._filename = kwargs.get('filename')
         self.load()
 
     def _get_filename(self):

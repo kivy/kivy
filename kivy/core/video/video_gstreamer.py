@@ -158,7 +158,7 @@ class VideoGStreamer(VideoBase):
         self._pipeline.set_state(gst.STATE_PAUSED)
 
         # be sync if asked
-        if self._async == False:
+        if not self._async:
             self._pipeline.get_state()
 
     def seek(self, percent):
@@ -239,7 +239,7 @@ class VideoGStreamer(VideoBase):
             for i in self._decoder.src_pads():
                 cap = i.get_caps()[0]
                 structure_name = cap.get_name()
-                if structure_name.startswith('video') and cap.has_key('width'):
+                if structure_name.startswith('video') and 'width' in cap:
                     self._videosize = (cap['width'], cap['height'])
                     self._texture = Texture.create(size=self._videosize, fmt='rgb')
                     self._texture.flip_vertical()

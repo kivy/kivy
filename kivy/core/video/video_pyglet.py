@@ -53,7 +53,7 @@ class VideoPyglet(VideoBase):
         self.time = self._player.time
 
     def _update(self, dt):
-        if self._source.duration  - self.time < 0.1 : #we are at the end
+        if self._source.duration - self.time < 0.1: #we are at the end
             self.seek(0)
         if self.state == 'playing':
             self.time += dt #keep track of time into video
@@ -71,7 +71,7 @@ class VideoPyglet(VideoBase):
         super(VideoPyglet, self).play()
 
     def seek(self, percent):
-        t = self._source.duration*percent
+        t = self._source.duration * percent
         self.time = t
         self._player.seek(t)
         self.stop()

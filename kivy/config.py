@@ -36,8 +36,8 @@ Available configuration tokens
     `retain_time`: int
         Time allowed for a retain touch, in milliseconds
     `retain_distance`: int
-        Maximum distance allowed for a retain touch, normalized inside the range
-        0 - 1000
+        If the touch moves more than is indicated by retain_distance, it will
+        not be retained. Argument should be an int between 0 and 1000.
     `jitter_distance`: int
         Maximum distance for jittering detection, normalized inside the range 0
         - 1000
@@ -50,12 +50,12 @@ Available configuration tokens
     `log_enable`: (0, 1)
         Activate file logging
     `gl_error_check`: (0, 1)
-        Activate GL error checking on each instruction. Disable if you want more
-        speed.
+        Activate GL error checking on a per instruction basis.
+        Decreases performance. Only use during development.
     `ignore`: list of tuples
-        List of region to ignore new touch. This configuration token can be used
-        for resolving hotspot problem on DIY hardware. The format of the list
-        must be::
+        List of regions where new touches are ignored.
+        This configuration token can be used to resolve hotspot problems
+        with DIY hardware. The format of the list must be::
 
             ignore = [(xmin, ymin, xmax, ymax), ...]
 
@@ -67,10 +67,12 @@ Available configuration tokens
         Maximum FPS allowed. if fps is <= 0, and vsync activated, the default
         will be set to 60.
     `fullscreen`: (0, 1, fake, auto)
-        Activate fullscreen. If you use `1`, the fullscreen will be changed to fit
-        to `width` and `height`. If you use `auto`, the fullscreen will use your
-        current display size. If you want to place the window in another
-        display, use `fake`, and adjust `width`, `height`, `top` and `left`.
+        Activate fullscreen. If set to `1`, the fullscreen will use a
+        resolution of `width` times `height` pixels.
+        If set to `auto`, the fullscreen will use your current display's
+        resolution instead. This is most likely what you want.
+        If you want to place the window in another display,
+        use `fake` and adjust `width`, `height`, `top` and `left`.
     `width`: int
         Width of the :class:`~kivy.core.window.Window`, not used if in `auto
         fullscreen`
@@ -129,18 +131,18 @@ Available configuration tokens
         `list_friction` token.
 
     `keyboard_type`: (real, virtual)
-        Type of the keyboard to use. If `real` is used, no virtual keyboard will
-        be showed on the screen.
+        Type of the keyboard to use.
+        If set to `real`, no virtual keyboard will be shown on the screen.
+        You will have to use your hardware keyboard to enter text.
 
 :modules:
 
-    Module section is particular. You can activate new module with this syntax::
+    You can activate modules with this syntax::
 
-        modulename = 
+        modulename =
 
-    All the arguments after = will be passed to the module. Check each module
-    documentation about the syntax of arguments.
-
+    Anything after the = will be passed to the module as arguments.
+    Check the specific module's documentation for a list of accepted arguments.
 '''
 
 __all__ = ('Config', 'KivyConfigParser')
@@ -157,10 +159,12 @@ KIVY_CONFIG_VERSION = 16
 #: Kivy configuration object
 Config = None
 
+
 class KivyConfigParser(ConfigParser):
     '''Enhanced ConfigParser class, that support the possibility of add default
     sections and default values.
     '''
+
     def setdefault(self, section, option, value):
         '''Set the default value on a particular option
         '''
@@ -306,7 +310,8 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
             Config.setdefault('widgets', 'list_trigger_distance', '5')
 
         elif version == 11:
-            Config.setdefault('graphics', 'window_icon', os.path.join(kivy_home_dir, 'icon', 'kivy32.png') )
+            Config.setdefault('graphics', 'window_icon', \
+                os.path.join(kivy_home_dir, 'icon', 'kivy32.png'))
 
         elif version == 12:
             # default configuration for keyboard repeatition
@@ -346,4 +351,5 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
         try:
             Config.write()
         except Exception, e:
-            Logger.exception('Core: error while saving default configuration file')
+            Logger.exception('Core: Error while saving default config file')
+

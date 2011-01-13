@@ -1,4 +1,6 @@
-import os, sys, shutil
+import os
+import sys
+import shutil
 import zipfile
 from zipfile import ZipFile
 from urllib import urlretrieve
@@ -28,8 +30,7 @@ class WindowsPortableBuild(Command):
         ('no-cext', None,
          "flag to disable building of c extensions"),
         ('no-mingw', None,
-         "flag to disable bundling of mingw compiler for compiling c/cython extensions")
-    ]
+         "flag to disable bundling of mingw compiler for compiling c/cython extensions")]
 
     def initialize_options(self):
         self.dist_dir = None
@@ -41,27 +42,23 @@ class WindowsPortableBuild(Command):
         if not self.deps_url:
             self.deps_url = 'http://kivy.googlecode.com/files/portable-deps-win32.zip'
         if not self.dist_dir:
-            self.dist_dir =  os.getcwd()
+            self.dist_dir = os.getcwd()
 
         self.src_dir = os.path.dirname(sys.modules['__main__'].__file__)
         self.dist_name = self.distribution.get_fullname() # e.g. Kivy-0.5 (name and verison passed to setup())
-        self.build_dir =  os.path.join(self.dist_dir, self.dist_name+'-w32')
-
-
+        self.build_dir = os.path.join(self.dist_dir, self.dist_name+'-w32')
 
     def run(self):
-        print "---------------------------------"
+        width = 30
+        print "-" * width
         print "Building Kivy Portable for Win 32"
-        print "---------------------------------"
-
-
+        print "-" * width
         print "\nPreparing Build..."
-        print "---------------------------------------"
+        print "-" * width
         if os.path.exists(self.build_dir):
             print "*Cleaning old build dir"
             shutil.rmtree(self.build_dir, ignore_errors=True)
-        print "*Creating build directory:"
-        print " "+self.build_dir
+        print "*Creating build directory:", self.build_dir
         os.makedirs(self.build_dir)
 
 
@@ -70,17 +67,17 @@ class WindowsPortableBuild(Command):
         print "*Downloading:", self.deps_url
         #report_hook is called every time a piece of teh file is downloaded to print progress
         def report_hook(block_count, block_size, total_size):
-            p = block_count*block_size*100.0/total_size
-            print "\b\b\b\b\b\b\b\b\b", "%06.2f"%p +"%",
+            p = block_count * block_size * 100.0 / total_size
+            print "\b\b\b\b\b\b\b\b\b", "%06.2f" % p + "%",
         print " Progress: 000.00%",
-        urlretrieve(self.deps_url, #location of binary dependencioes needed for portable kivy
-                    os.path.join(self.build_dir,'deps.zip'), #tmp file to store teh archive
-                    reporthook=report_hook)
+        urlretrieve(self.deps_url, # location of binary dependencies needed for portable kivy
+                    os.path.join(self.build_dir, 'deps.zip'), # tmp file to store the archive
+                    reporthook = report_hook)
         print " [Done]"
 
 
         print "*Extracting binary dependencies..."
-        zf = ZipFile(os.path.join(self.build_dir,'deps.zip'))
+        zf = ZipFile(os.path.join(self.build_dir, 'deps.zip'))
         zf.extractall(self.build_dir)
         zf.close()
         if self.no_mingw:
@@ -92,14 +89,14 @@ class WindowsPortableBuild(Command):
         print "---------------------------------------"
         print "*Building kivy source distribution"
         sdist_cmd = [sys.executable, #path to python.exe
-                     os.path.join(self.src_dir,'setup.py'), #path to setup.py
+                     os.path.join(self.src_dir, 'setup.py'), #path to setup.py
                      'sdist', #make setup.py create a src distribution
                      '--dist-dir=%s'%self.build_dir] #put it into build folder
         Popen(sdist_cmd, stdout=PIPE, stderr=PIPE).communicate()
 
 
         print "*Placing kivy source distribution in portable context"
-        src_dist = os.path.join(self.build_dir,self.dist_name)
+        src_dist = os.path.join(self.build_dir, self.dist_name)
         zf = ZipFile(src_dist+'.zip')
         zf.extractall(self.build_dir)
         zf.close()
@@ -121,19 +118,19 @@ class WindowsPortableBuild(Command):
         print "---------------------------------------"
         print "*Copying scripts and resources"
         #copy launcher script and readme to portable root dir/build dir
-        kivy_bat = os.path.join(src_dist,'kivy','tools','packaging','win32', 'kivy.bat')
+        kivy_bat = os.path.join(src_dist, 'kivy', 'tools', 'packaging', 'win32', 'kivy.bat')
         shutil.copy(kivy_bat, os.path.join(self.build_dir, 'kivy.bat'))
-        readme = os.path.join(src_dist,'kivy','tools','packaging','win32', 'README.txt')
+        readme = os.path.join(src_dist, 'kivy', 'tools', 'packaging', 'win32', 'README.txt')
         shutil.copy(readme, os.path.join(self.build_dir, 'README.txt'))
         #rename kivy directory to "kivy"
-        os.rename(src_dist, os.path.join(self.build_dir,'kivy'))
+        os.rename(src_dist, os.path.join(self.build_dir, 'kivy'))
 
         print "*Removing intermediate file"
-        os.remove(os.path.join(self.build_dir,'deps.zip'))
-        os.remove(os.path.join(self.build_dir,src_dist+'.zip'))
+        os.remove(os.path.join(self.build_dir, 'deps.zip'))
+        os.remove(os.path.join(self.build_dir, src_dist + '.zip'))
 
         print "*Compressing portable distribution target"
-        target = os.path.join(self.dist_dir, self.dist_name+"-w32.zip")
+        target = os.path.join(self.dist_dir, self.dist_name + "-w32.zip")
         zip_directory(self.build_dir, target)
         print "*Writing target:", target
         print "*Removing build dir"

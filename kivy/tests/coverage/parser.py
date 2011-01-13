@@ -1,6 +1,12 @@
 """Code parsing for Coverage."""
 
-import glob, opcode, os, re, sys, token, tokenize
+import glob
+import opcode
+import os
+import re
+import sys
+import token
+import tokenize
 
 from coverage.backward import set, sorted, StringIO # pylint: disable-msg=W0622
 from coverage.bytecode import ByteCodes, CodeObjects
@@ -145,7 +151,7 @@ class CodeParser(object):
         # Find the starts of the executable statements.
         if not empty:
             self.statement_starts.update(self.byte_parser._find_statements())
-    
+
     def _parse_pyx(self):
         """Parse cython pyx files to find the functions defined.
 
@@ -167,9 +173,9 @@ class CodeParser(object):
         prev_toktype = token.INDENT
         first_line = None
         empty = True
-        
+
         func_pattern = r'(?ms)(?P<def>[c]?[p]?def)\s*(?P<rtype>\S*?)\s*?(?P<name>\S+?)\((?P<args>.*?)\)\s*:'
-        
+
         linestarts = [0]
         for line in StringIO(self.text):
             linestarts.append(linestarts[-1]+len(line))
@@ -600,7 +606,7 @@ class ByteParser(object):
                     ch = byte_chunks[byte]
                 except KeyError:
                     for ch in chunks:
-                        if ch.byte <= byte < ch.byte+ch.length:
+                        if ch.byte <= byte < ch.byte + ch.length:
                             break
                     else:
                         # No chunk for this byte!

@@ -33,13 +33,13 @@ from kivy.core.gl import glReadBuffer, glReadPixels, GL_RGB, GL_UNSIGNED_BYTE, G
 from kivy.utils import curry
 
 if 'KIVY_DOC' not in os.environ:
-	from PIL import Image
+    from PIL import Image
 
-lock_current    = threading.Lock()
-sem_current     = threading.Semaphore(0)
-sem_next        = threading.Semaphore(1)
-img_current     = None
-connected       = False
+lock_current = threading.Lock()
+sem_current = threading.Semaphore(0)
+sem_next = threading.Semaphore(1)
+img_current = None
+connected = False
 
 def keep_running():
     return True
@@ -60,10 +60,10 @@ class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
     def _stream_video(self):
         global img_current
 
-        lfps        = []
-        dt          = 0
-        frames      = 0
-        fps_wanted  = self.server.config.get('fps')
+        lfps = []
+        dt = 0
+        frames = 0
+        fps_wanted = self.server.config.get('fps')
         if fps_wanted == '':
             fps_wanted = 0
         fps_wanted = float(fps_wanted)
@@ -71,7 +71,7 @@ class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
             fps_wanted = 0
         else:
             fps_wanted = 1 / fps_wanted
-        size        = self.server.config.get('size')
+        size = self.server.config.get('size')
         if size == '':
             size = None
         else:

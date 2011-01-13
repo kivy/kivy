@@ -30,6 +30,7 @@ from os import environ
 from kivy.logger import Logger
 from kivy.clock import Clock
 
+
 class Cache(object):
     '''See module documentation for more information.
     '''
@@ -53,8 +54,7 @@ class Cache(object):
         '''
         Cache._categories[category] = {
             'limit': limit,
-            'timeout': timeout
-        }
+            'timeout': timeout}
         Cache._objects[category] = {}
         Logger.debug('Cache: register <%s> with limit=%s, timeout=%ss' %
             (category, str(limit), str(timeout)))
@@ -87,8 +87,7 @@ class Cache(object):
             'object': obj,
             'timeout': timeout,
             'lastaccess': Clock.get_time(),
-            'timestamp': Clock.get_time()
-        }
+            'timestamp': Clock.get_time()}
 
     @staticmethod
     def get(category, key, default=None):
@@ -180,14 +179,11 @@ class Cache(object):
                 return
             del Cache._objects[category][key]
 
-
     @staticmethod
     def _purge_by_timeout(dt):
-
         curtime = Clock.get_time()
 
         for category in Cache._objects:
-
             timeout = Cache._categories[category]['timeout']
             if timeout is not None and dt > timeout:
                 # XXX got a lag ! that may be because the frame take lot of
@@ -200,9 +196,8 @@ class Cache(object):
                 continue
 
             for key in Cache._objects[category].keys()[:]:
-
-                lastaccess  = Cache._objects[category][key]['lastaccess']
-                objtimeout  = Cache._objects[category][key]['timeout']
+                lastaccess = Cache._objects[category][key]['lastaccess']
+                objtimeout = Cache._objects[category][key]['timeout']
 
                 # take the object timeout if available
                 if objtimeout is not None:
@@ -224,8 +219,7 @@ class Cache(object):
                 category.capitalize(),
                 len(Cache._objects[category]),
                 str(Cache._categories[category]['limit']),
-                str(Cache._categories[category]['timeout'])
-            )
+                str(Cache._categories[category]['timeout']))
 
 if 'KIVY_DOC_INCLUDE' not in environ:
     # install the schedule clock for purging

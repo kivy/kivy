@@ -1,6 +1,8 @@
 """XML reporting for coverage.py"""
 
-import os, sys, time
+import os
+import sys
+import time
 import xml.dom.minidom
 
 from coverage import __url__, __version__
@@ -92,7 +94,7 @@ class XmlReporter(Reporter):
         # are populated later.  Note that a package == a directory.
         dirname, fname = os.path.split(cu.name)
         dirname = dirname or '.'
-        package = self.packages.setdefault(dirname, [ {}, 0, 0, 0, 0 ])
+        package = self.packages.setdefault(dirname, [{}, 0, 0, 0, 0 ])
 
         xclass = self.xml_out.createElement("class")
 

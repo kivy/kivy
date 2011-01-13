@@ -150,8 +150,7 @@ class MouseTouchProvider(TouchProvider):
                 Window.bind(
                     on_mouse_move=self.on_mouse_motion,
                     on_mouse_down=self.on_mouse_press,
-                    on_mouse_up=self.on_mouse_release
-                )
+                    on_mouse_up=self.on_mouse_release)
         if not self.window:
             return
         try:

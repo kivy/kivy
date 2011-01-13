@@ -29,12 +29,15 @@ from kivy.logger import Logger, LOG_LEVELS
 
 # internals for post-configuration
 __kivy_post_configuration = []
+
+
 def kivy_configure():
     '''Call post-configuration of Kivy.
     This function must be called in case of you create yourself the window.
     '''
     for callback in __kivy_post_configuration:
         callback()
+
 
 def kivy_register_post_configuration(callback):
     '''Register a function to be call when kivy_configure() will be called.
@@ -43,6 +46,7 @@ def kivy_register_post_configuration(callback):
         Internal use only.
     '''
     __kivy_post_configuration.append(callback)
+
 
 def kivy_usage():
     '''Kivy Usage: %s [OPTION...] ::
@@ -72,14 +76,13 @@ kivy_options = {
     'shadow_window': True,
     'window': ('pygame', 'glut'),
     'text': ('pil', 'cairo', 'pygame'),
-    'video': ('gstreamer', 'pyglet' ),
+    'video': ('gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', ),
     'image': ('pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
-    'svg': ('squirtle',),
-    'spelling': ('enchant', 'osxappkit',),
-    'clipboard': ('pygame', 'dummy'),
-}
+    'svg': ('squirtle', ),
+    'spelling': ('enchant', 'osxappkit', ),
+    'clipboard': ('pygame', 'dummy'), }
 
 # Read environment
 for option in kivy_options:
@@ -87,7 +90,7 @@ for option in kivy_options:
     if key in os.environ:
         try:
             if type(kivy_options[option]) in (list, tuple):
-                kivy_options[option] = (str(os.environ[key]),)
+                kivy_options[option] = (str(os.environ[key]), )
             else:
                 kivy_options[option] = os.environ[key].lower() in \
                     ('true', '1', 'yes', 'yup')
@@ -98,28 +101,28 @@ for option in kivy_options:
 
 # Extract all needed path in kivy
 #: Kivy directory
-kivy_base_dir        = os.path.dirname(sys.modules[__name__].__file__)
+kivy_base_dir = os.path.dirname(sys.modules[__name__].__file__)
 #: Kivy external libraries directory
-kivy_libs_dir        = os.path.join(kivy_base_dir, 'lib')
+kivy_libs_dir = os.path.join(kivy_base_dir, 'lib')
 #: Kivy modules directory
-kivy_modules_dir     = os.path.join(kivy_base_dir, 'modules')
+kivy_modules_dir = os.path.join(kivy_base_dir, 'modules')
 #: Kivy data directory
-kivy_data_dir        = os.path.join(kivy_base_dir, 'data')
+kivy_data_dir = os.path.join(kivy_base_dir, 'data')
 #: Kivy glsl shader directory
-kivy_shader_dir        = os.path.join(kivy_data_dir, 'glsl')
+kivy_shader_dir = os.path.join(kivy_data_dir, 'glsl')
 #: Kivy input provider directory
-kivy_providers_dir   = os.path.join(kivy_base_dir, 'input', 'providers')
+kivy_providers_dir = os.path.join(kivy_base_dir, 'input', 'providers')
 #: Kivy icons config path (don't remove last '')
-kivy_icons_dir        = os.path.join(kivy_data_dir, 'icons', '')
+kivy_icons_dir = os.path.join(kivy_data_dir, 'icons', '')
 #: Kivy user-home storage directory
-kivy_home_dir        = None
+kivy_home_dir = None
 #: Kivy configuration filename
-kivy_config_fn       = None
+kivy_config_fn = None
 #: Kivy user modules directory
 kivy_usermodules_dir = None
 
 # Add lib in pythonpath
-sys.path           = [kivy_libs_dir] + sys.path
+sys.path = [kivy_libs_dir] + sys.path
 
 # Don't go further if we generate documentation
 if os.path.basename(sys.argv[0]) in ('sphinx-build', 'autobuild.py'):

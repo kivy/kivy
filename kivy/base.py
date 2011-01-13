@@ -17,7 +17,8 @@ from kivy.input import TouchFactory, kivy_postproc_modules
 #from kivy.graphics import GraphicContext
 
 # private vars
-EventLoop               = None
+EventLoop = None
+
 
 class ExceptionHandler:
     '''Base handler that catch exception in runTouchApp().
@@ -30,8 +31,9 @@ class ExceptionHandler:
 
         ExceptionManager.add_handler(E())
 
-    All exceptions will be set to PASS, and loggued to console !
+    All exceptions will be set to PASS, and logged to console !
     '''
+
     def __init__(self):
         pass
 
@@ -39,11 +41,12 @@ class ExceptionHandler:
         '''Handle one exception, default return ExceptionManager.STOP'''
         return ExceptionManager.RAISE
 
+
 class ExceptionManagerBase:
     '''ExceptionManager manage exceptions handlers.'''
 
-    RAISE   = 0
-    PASS    = 1
+    RAISE = 0
+    PASS = 1
 
     def __init__(self):
         self.handlers = []
@@ -71,9 +74,11 @@ class ExceptionManagerBase:
 #: Kivy Exception Manager instance
 ExceptionManager = ExceptionManagerBase()
 
+
 class EventLoopBase(object):
     '''Main event loop. This loop handle update of input + dispatch event
     '''
+
     def __init__(self):
         super(EventLoopBase, self).__init__()
         self.quit = False
@@ -295,6 +300,7 @@ class EventLoopBase(object):
 #: EventLoop instance
 EventLoop = EventLoopBase()
 
+
 def _run_mainloop():
     '''If user haven't create a window, this is the executed mainloop'''
     while True:
@@ -397,6 +403,7 @@ def runTouchApp(widget=None, slave=False):
             EventLoop.window.mainloop()
     finally:
         stopTouchApp()
+
 
 def stopTouchApp():
     '''Stop the current application by leaving the main loop'''

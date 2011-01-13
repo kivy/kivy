@@ -17,8 +17,8 @@ import kivy
 resource_paths = [
     '.',
     dirname(sys.argv[0]),
-    dirname(kivy.__file__)
-]
+    dirname(kivy.__file__)]
+
 
 def resource_find(filename):
     '''Search a resource in list of paths.
@@ -33,6 +33,7 @@ def resource_find(filename):
         if exists(output):
             return output
     return None
+
 
 def resource_add_path(path):
     '''Add a custom path to search in

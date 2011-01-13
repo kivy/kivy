@@ -14,9 +14,11 @@ http://code.activestate.com/recipes/81253/, based on the nicodemus version.
 import weakref
 import new
 
+
 class WeakMethod(object):
     '''Implementation of weakref for function and bounded method.
     '''
+
     def __init__(self, method):
         try:
             if method.im_self is not None:
@@ -48,13 +50,11 @@ class WeakMethod(object):
             # we don't have an instance: return just the function
             return self._func
 
-
     def is_dead(self):
         '''Returns True if the referenced callable was a bound method and
         the instance no longer exists. Otherwise, return False.
         '''
         return self._obj is not None and self._obj() is None
-
 
     def __eq__(self, other):
         try:

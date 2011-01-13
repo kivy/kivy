@@ -1,6 +1,7 @@
 """Source file annotation for Coverage."""
 
-import os, re
+import os
+import re
 
 from coverage.report import Reporter
 

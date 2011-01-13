@@ -47,8 +47,8 @@ class Slider(Widget):
     def get_value_pos(self):
         return  (self.x + self.value_normalized*self.width, self.y)
     def set_value_pos(self, pos):
-        x = min(self.right,  max(pos[0], self.x))
-        y = min(self.top,    max(pos[1], self.y))
+        x = min(self.right, max(pos[0], self.x))
+        y = min(self.top, max(pos[1], self.y))
         if self.width == 0:
             self.value_normalized = 0
         else:

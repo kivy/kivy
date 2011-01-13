@@ -17,6 +17,7 @@ Example of very simple application with button ::
 from kivy.base import runTouchApp
 from kivy.event import EventDispatcher
 
+
 class App(EventDispatcher):
     '''App class is a the base for creating Kivy application.
 
@@ -27,6 +28,7 @@ class App(EventDispatcher):
         `on_stop`:
             Fired when the application stop.
     '''
+
     def __init__(self, **kwargs):
         super(App, self).__init__()
         self.register_event_type('on_start')

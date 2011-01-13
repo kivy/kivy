@@ -167,5 +167,4 @@ else:
                     kivy.kivy_providers.append(instance)
 
 
-
     TouchFactory.register('probesysfs', ProbeSysfsHardwareProbe)

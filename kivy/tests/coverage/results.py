@@ -166,7 +166,7 @@ class Numbers(object):
         """Set the number of decimal places used to report percentages."""
         assert 0 <= precision < 10
         cls._precision = precision
-        cls._near0 = 1.0 / 10**precision
+        cls._near0 = 1.0 / 10 ** precision
         cls._near100 = 100.0 - cls._near0
     set_precision = classmethod(set_precision)
 
