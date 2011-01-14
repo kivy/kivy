@@ -41,6 +41,10 @@ cdef class Instruction:
     cdef flag_update_done(self):
         self.flags &= ~GI_NEED_UPDATE
 
+    property needs_redraw:
+        def __get__(self):
+            return bool(self.flags | GI_NEED_UPDATE)
+
 
 cdef class InstructionGroup(Instruction):
     '''Group of :class:`Instruction`. Add the possibility of adding and
