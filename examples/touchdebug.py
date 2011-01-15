@@ -5,7 +5,7 @@ from kivy.graphics import Color, Rectangle, Point
 from random import random
 from math import sqrt
 
-def calculate_points(x1, y1, x2, y2, steps=2):
+def calculate_points(x1, y1, x2, y2, steps=5):
     dx = x2 - x1
     dy = y2 - y1
     dist = sqrt(dx * dx + dy * dy)
@@ -13,9 +13,11 @@ def calculate_points(x1, y1, x2, y2, steps=2):
         return None
     o = []
     m = dist / steps
-    for i in xrange(int(m)):
+    for i in xrange(1, int(m)):
         mi = i / m
-        o.extend([x1 + dx * mi, y1 + dy * mi])
+        lastx = x1 + dx * mi
+        lasty = y1 + dy * mi
+        o.extend([lastx, lasty])
     return o
 
 
@@ -36,17 +38,16 @@ class Touchdebug(Widget):
         ud['label'] = Label()
         self.update_touch_label(ud['label'], touch)
         self.add_widget(ud['label'])
-        ud['oldtouch'] = touch.x, touch.y
 
     def on_touch_move(self, touch):
         ud = touch.userdata
         ud['lines'][0].pos = touch.x, 0
         ud['lines'][1].pos = 0, touch.y
 
-        oldx, oldy = ud['oldtouch']
+        points = ud['lines'][2].points
+        oldx, oldy = points[-2], points[-1]
         points = calculate_points(oldx, oldy, touch.x, touch.y)
         if points:
-            ud['oldtouch'] = touch.x, touch.y
             ud['lines'][2].points = ud['lines'][2].points + points
         ud['label'].pos = touch.pos
         self.update_touch_label(ud['label'], touch)
