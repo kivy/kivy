@@ -77,15 +77,15 @@ cdef class VBO:
 
 
 cdef class VertexBatch:
-    
     def __init__(self, **kwargs):
         self.vbo = kwargs.get('vbo', VBO())
         self.vbo_index = Buffer(sizeof(int)) #index of every vertex in the vbo
         self.elements = Buffer(sizeof(int)) #indices translated to vbo indices
-        
+
         vertices = kwargs.get('vertices', [])
         indices  = kwargs.get('indices' , [])
         self.set_data(vertices, indices)
+        self.set_mode(kwargs.get('mode', None))
 
     cdef set_data(self, list vertices, list indices):
         self.vertices = vertices
@@ -96,7 +96,7 @@ cdef class VertexBatch:
         #clear old vertices from vbo, and then reset index buffer
         self.vbo.remove_vertex_data(<int*>self.vbo_index.pointer(), self.vbo_index.count())
         self.vbo_index = Buffer(sizeof(int))
-        
+
         #add vertex data to vbo and get index for every vertex added
         cdef Vertex v
         cdef int vi
@@ -114,6 +114,24 @@ cdef class VertexBatch:
 
     cdef draw(self):
         self.vbo.bind()
-        glDrawElements(GL_TRIANGLES,    self.elements.count(), 
+        glDrawElements(self.mode, self.elements.count(),
                        GL_UNSIGNED_INT, self.elements.pointer())
 
+    cdef set_mode(self, str mode):
+        # most common case in top;
+        if mode is None:
+            self.mode = GL_TRIANGLES
+        if mode == 'points':
+            self.mode = GL_POINTS
+        elif mode == 'line_strip':
+            self.mode = GL_LINE_STRIP
+        elif mode == 'line_loop':
+            self.mode = GL_LINE_LOOP
+        elif mode == 'lines':
+            self.mode = GL_LINES
+        elif mode == 'triangle_strip':
+            self.mode = GL_TRIANGLE_STRIP
+        elif mode == 'triangle_fan':
+            self.mode = GL_TRIANGLE_FAN
+        else:
+            self.mode = GL_TRIANGLES
