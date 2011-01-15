@@ -41,8 +41,7 @@ class MouseTouch(Touch):
             with win.canvas:
                 de = (
                     Color(.8, .2, .2, .7),
-                    Ellipse(size=(20, 20), segments=15)
-                )
+                    Ellipse(size=(20, 20), segments=15))
             self.userdata['_drawelement'] = de
         de[1].pos = self.sx * win.width - 10, self.sy * win.height- 10
 
