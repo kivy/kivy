@@ -27,7 +27,6 @@ from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.utils import SafeList
 from kivy.core.image import ImageLoader, Image
-from abc import ABCMeta, abstractmethod
 
 import time
 import collections
@@ -67,8 +66,6 @@ class LoaderBase(object):
     less than 25 FPS.
     '''
 
-    __metaclass__ = ABCMeta
-
     def __init__(self):
 
         self._loading_image = None
@@ -76,7 +73,7 @@ class LoaderBase(object):
 
         self._q_load = collections.deque()
         self._q_done = collections.deque()
-        self._client = SafeList()
+        self._client = []
         self._running = False
         self._start_wanted = False
 
@@ -104,17 +101,14 @@ class LoaderBase(object):
             self._error_image = ImageLoader.load(filename=error_png_fn)
         return self._error_image
 
-    @abstractmethod
     def start(self):
         '''Start the loader thread/process'''
         self._running = True
 
-    @abstractmethod
     def run(self, *largs):
         '''Main loop for the loader.'''
         pass
 
-    @abstractmethod
     def stop(self):
         '''Stop the loader thread/process'''
         self._running = False

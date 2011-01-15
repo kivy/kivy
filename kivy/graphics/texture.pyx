@@ -176,9 +176,6 @@ cdef _texture_create(int width, int height, str fmt, str buffertype, int
     cdef int texture_width, texture_height
     cdef int glbuffertype = _buffer_type_to_gl_format(buffertype)
 
-    if mipmap:
-        raise Exception('Mipmapping is not yet implemented on Kivy')
-
     if rectangle:
         rectangle = 0
         if not _is_pow2(width) or not _is_pow2(height):
@@ -228,9 +225,8 @@ cdef _texture_create(int width, int height, str fmt, str buffertype, int
     texture.bind()
     texture.wrap = GL_CLAMP_TO_EDGE
     if mipmap:
-        texture.min_filter  = GL_LINEAR_MIPMAP_LINEAR
-        #texture.mag_filter  = GL_LINEAR_MIPMAP_LINEAR
-        #glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE)
+        texture.min_filter  = GL_LINEAR_MIPMAP_NEAREST
+        texture.mag_filter  = GL_LINEAR
     else:
         texture.min_filter  = GL_LINEAR
         texture.mag_filter  = GL_LINEAR
@@ -250,6 +246,10 @@ cdef _texture_create(int width, int height, str fmt, str buffertype, int
             glFlush()
             free(data)
             data = NULL
+            if mipmap:
+                glEnable(target)
+                glGenerateMipmap(target)
+                glDisable(target)
         else:
             dataerr = 1
 

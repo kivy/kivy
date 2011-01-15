@@ -12,6 +12,7 @@ from context_instructions cimport *
 
 cdef class Instruction:
     cdef int flags
+    cdef str group
     cdef Instruction parent
     cdef apply(self)
     cdef flag_update(self)
@@ -23,6 +24,8 @@ cdef class InstructionGroup(Instruction):
     cpdef insert(self, int index, Instruction c)
     cpdef remove(self, Instruction c)
     cpdef clear(self)
+    cpdef remove_group(self, str groupname)
+    cpdef get_group(self, str groupname)
 
 cdef class ContextInstruction(Instruction):
     cdef dict context_state

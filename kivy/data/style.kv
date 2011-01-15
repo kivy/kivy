@@ -16,7 +16,7 @@
 			Rectangle:
 				texture: self.texture
 				size: self.texture_size
-				pos: root.center[0] - self.texture_size[0] / 2., root.center[1] - self.texture_size[1] / 2.
+				pos: int(root.center[0] - self.texture_size[0] / 2.), int(root.center[1] - self.texture_size[1] / 2.)
 
 
 <Slider>:
@@ -45,7 +45,7 @@
 		Rectangle:
 			texture: self.texture
 			size: self.texture_size
-			pos: self.center[0] - self.texture_size[0] / 2., self.center[1] - self.texture_size[1] / 2.
+			pos: int(self.center[0] - self.texture_size[0] / 2.), int(self.center[1] - self.texture_size[1] / 2.)
 
 <Scatter>:
 	canvas.before:

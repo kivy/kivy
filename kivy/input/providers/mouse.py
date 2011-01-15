@@ -31,6 +31,27 @@ class MouseTouch(Touch):
         self.sx, self.sy = args
         super(MouseTouch, self).depack(args)
 
+    #
+    # Create automatically touch on the surface.
+    #
+    def update_graphics(self, win):
+        de = self.userdata.get('_drawelement', None)
+        if de is None:
+            from kivy.graphics import Color, Ellipse
+            with win.canvas:
+                de = (
+                    Color(.8, .2, .2, .7),
+                    Ellipse(size=(20, 20), segments=15)
+                )
+            self.userdata['_drawelement'] = de
+        de[1].pos = self.sx * win.width - 10, self.sy * win.height- 10
+
+    def clear_graphics(self, win):
+        de = self.userdata.pop('_drawelement', None)
+        if de is not None:
+            win.canvas.remove(de[0])
+            win.canvas.remove(de[1])
+
 
 class MouseTouchProvider(TouchProvider):
     __handlers__ = {}
@@ -91,6 +112,7 @@ class MouseTouchProvider(TouchProvider):
         self.current_drag = cur = MouseTouch(self.device, id=id, args=[rx, ry])
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
+        cur.update_graphics(self.window)
         self.waiting_event.append(('down', cur))
         return cur
 
@@ -99,6 +121,7 @@ class MouseTouchProvider(TouchProvider):
             return
         del self.touches[cur.id]
         self.waiting_event.append(('up', cur))
+        cur.clear_graphics(self.window)
 
     def on_mouse_motion(self, win, x, y, modifiers):
         width, height = self.window.system_size
@@ -107,11 +130,12 @@ class MouseTouchProvider(TouchProvider):
         if self.current_drag:
             cur = self.current_drag
             cur.move([rx, ry])
+            cur.update_graphics(win)
             self.waiting_event.append(('move', cur))
         elif self.alt_touch is not None and 'alt' not in modifiers:
             # alt just released ?
             is_double_tap = 'shift' in modifiers
-            self.create_touch(rx, ry, is_double_tap)
+            cur = self.create_touch(rx, ry, is_double_tap)
         return True
 
     def on_mouse_press(self, win, x, y, button, modifiers):

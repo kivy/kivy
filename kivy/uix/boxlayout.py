@@ -135,7 +135,7 @@ class BoxLayout(Layout):
         if orientation == 'horizontal':
             x = y = padding
             stretch_space = max(0.0, selfw - self.minimum_size[0])
-            for c in reversed(self.children):
+            for c in self.children:
                 shw, shh = c.size_hint
                 c_pos = selfx + x, selfy + y
                 c_size = list(c.size)
