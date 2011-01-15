@@ -25,7 +25,8 @@ cdef class Instruction:
     def __cinit__(self):
         self.flags = 0
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        self.group = kwargs.get('group', None)
         self.parent = getActiveCanvas()
         if self.parent:
             self.parent.add(self)
@@ -41,13 +42,17 @@ cdef class Instruction:
     cdef flag_update_done(self):
         self.flags &= ~GI_NEED_UPDATE
 
+    property needs_redraw:
+        def __get__(self):
+            return bool(self.flags | GI_NEED_UPDATE)
+
 
 cdef class InstructionGroup(Instruction):
     '''Group of :class:`Instruction`. Add the possibility of adding and
     removing graphics instruction.
     '''
-    def __init__(self):
-        Instruction.__init__(self)
+    def __init__(self, **kwargs):
+        Instruction.__init__(self, **kwargs)
         self.children = list()
 
     cdef apply(self):
@@ -83,12 +88,27 @@ cdef class InstructionGroup(Instruction):
         for c in self.children[:]:
             self.remove(c)
 
+    cpdef remove_group(self, str groupname):
+        '''Remove all :class:`Instruction` with a specific group name.
+        '''
+        cdef Instruction c
+        for c in self.children[:]:
+            if c.group == groupname:
+                self.remove(c)
+
+    cpdef get_group(self, str groupname):
+        '''Return a generator with all the :class:`Instruction` from a specific
+        group name.
+        '''
+        cdef Instruction c
+        return [c for c in self.children if c.group == groupname]
+
 cdef class ContextInstruction(Instruction):
     '''A context instruction is the base for creating non-display instruction
     for Canvas (texture binding, color parameters, matrix manipulation...)
     '''
-    def __init__(self):
-        Instruction.__init__(self)
+    def __init__(self, **kwargs):
+        Instruction.__init__(self, **kwargs)
         self.flags &= GI_CONTEXT_MOD
         self.context_state = dict()
         self.context_push = list()
@@ -121,12 +141,11 @@ cdef class VertexInstruction(Instruction):
     def __init__(self, **kwargs):
         #add a BindTexture instruction to bind teh texture used for 
         #this instruction before the actual vertex instruction
-        Logger.warn("VERTINSTR %s" % kwargs)
         self.texture_binding = BindTexture(**kwargs)
         self.texture = self.texture_binding.texture #auto compute tex coords
         self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
 
-        Instruction.__init__(self)
+        Instruction.__init__(self, **kwargs)
         self.flags = GI_VERTEX_DATA & GI_NEED_UPDATE
         self.batch = VertexBatch()
         self.vertices = list()
@@ -162,7 +181,6 @@ cdef class VertexInstruction(Instruction):
         def __get__(self):
             return self._tex_coords
         def __set__(self, tc):
-            Logger.debug("setting texture coords %s %s" %(self, tc))
             self._tex_coords = list(tc)
             self.flag_update()
 
@@ -174,7 +192,6 @@ cdef class VertexInstruction(Instruction):
         self.flag_update_done()
 
     cdef apply(self):
-        #print "DRAWING", self.texture_binding.texture, self.tex_coords
         if self.flags & GI_NEED_UPDATE:
             self.build()
             self.update_batch()
@@ -211,8 +228,8 @@ cdef class Canvas(CanvasBase):
             Rectangle(size=(50, 50))
     '''
 
-    def __init__(self):
-        CanvasBase.__init__(self)
+    def __init__(self, **kwargs):
+        CanvasBase.__init__(self, **kwargs)
         self._before = None
         self._after = None
 
@@ -286,6 +303,7 @@ from vertex cimport *
 
 from os.path import join
 from kivy import kivy_shader_dir
+from kivy.cache import Cache
 from kivy.core.image import Image
 from kivy.graphics.transformation cimport Matrix
 
@@ -298,15 +316,24 @@ cdef class RenderContext(Canvas):
     - the state stack (color, texture, matrix...)
     '''
     def __init__(self, *args, **kwargs):
-        Canvas.__init__(self)
-        vs_file = join(kivy_shader_dir, 'default.vs')
-        fs_file = join(kivy_shader_dir, 'default.fs')
-        vs_src  = open(vs_file, 'r').read()
-        fs_src  = open(fs_file, 'r').read()
+        Canvas.__init__(self, **kwargs)
+        vs_src = kwargs.get('vs', None)
+        fs_src = kwargs.get('fs', None)
+        if vs_src is None:
+            vs_file = join(kivy_shader_dir, 'default.vs')
+            vs_src  = open(vs_file, 'r').read()
+        if fs_src is None:
+            fs_file = join(kivy_shader_dir, 'default.fs')
+            fs_src  = open(fs_file, 'r').read()
         self.shader = Shader(vs_src, fs_src)
-        #self.texture_manager = TextureManager()
 
-        self.default_texture = Image(join(kivy_shader_dir, 'default.png')).texture
+        # load default texture image
+        filename = join(kivy_shader_dir, 'default.png')
+        tex = Cache.get('kv.texture', filename)
+        if not tex:
+            tex = Image(filename).texture
+            Cache.append('kv.texture', filename, tex)
+        self.default_texture = tex
 
         self.state_stacks = {
             'texture0' : [0],
@@ -322,7 +349,10 @@ cdef class RenderContext(Canvas):
 
     cdef set_state(self, str name, value):
         #upload the uniform value for the shdeer
-        self.state_stacks[name][-1] = value
+        if not name in self.state_stacks:
+            self.state_stacks[name] = [value]
+        else:
+            self.state_stacks[name][-1] = value
         self.shader.set_uniform(name, value)
 
     cdef get_state(self, str name):

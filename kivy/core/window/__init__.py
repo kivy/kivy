@@ -15,6 +15,7 @@ from kivy.base import EventLoop
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 
+
 class WindowBase(EventDispatcher):
     '''WindowBase is a abstract window widget, for any window implementation.
 
@@ -202,12 +203,14 @@ class WindowBase(EventDispatcher):
         if r == 0 or r == 180:
             return w, h
         return h, w
+
     def _set_size(self, size):
         if super(WindowBase, self)._set_size(size):
             Logger.debug('Window: Resize window to %s' % str(self.size))
             self.dispatch('on_resize', *size)
             return True
         return False
+
     size = property(_get_size, _set_size,
         doc='''Rotated size of the window''')
 
@@ -219,6 +222,7 @@ class WindowBase(EventDispatcher):
         if r == 0 or r == 180:
             return self._size[0]
         return self._size[1]
+
     @property
     def height(self):
         '''Rotated window height'''
@@ -226,6 +230,7 @@ class WindowBase(EventDispatcher):
         if r == 0 or r == 180:
             return self._size[1]
         return self._size[0]
+
     @property
     def center(self):
         '''Rotated window center'''
@@ -248,8 +253,8 @@ class WindowBase(EventDispatcher):
     def clear(self):
         '''Clear the window with background color'''
         # XXX FIXME use late binding
-        from kivy.graphics.opengl import glClearColor, glClear, GL_COLOR_BUFFER_BIT, \
-            GL_DEPTH_BUFFER_BIT
+        from kivy.graphics.opengl import glClearColor, glClear, \
+            GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
         glClearColor(0, 0, 0, 0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -276,7 +281,7 @@ class WindowBase(EventDispatcher):
         '''Event called when a touch is down'''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
-        for w in reversed(self.children[:]):
+        for w in self.children[:]:
             if w.dispatch('on_touch_down', touch):
                 return True
 
@@ -284,7 +289,7 @@ class WindowBase(EventDispatcher):
         '''Event called when a touch move'''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
-        for w in reversed(self.children[:]):
+        for w in self.children[:]:
             if w.dispatch('on_touch_move', touch):
                 return True
 
@@ -292,7 +297,7 @@ class WindowBase(EventDispatcher):
         '''Event called when a touch up'''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
-        for w in reversed(self.children[:]):
+        for w in self.children[:]:
             if w.dispatch('on_touch_up', touch):
                 return True
 
@@ -342,6 +347,7 @@ class WindowBase(EventDispatcher):
 
     def _get_rotation(self):
         return self._rotation
+
     def _set_rotation(self, x):
         x = int(x % 360)
         if x == self._rotation:
@@ -351,6 +357,7 @@ class WindowBase(EventDispatcher):
         self._rotation = x
         self.dispatch('on_resize', *self.size)
         self.dispatch('on_rotate', x)
+
     rotation = property(_get_rotation, _set_rotation,
             'Get/set the window content rotation. Can be one of '
             '0, 90, 180, 270 degrees.')

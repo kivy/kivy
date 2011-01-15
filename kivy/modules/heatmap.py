@@ -7,7 +7,9 @@ import sys
 import os
 import sqlite3
 
+
 class HeatMap(MTWidget):
+
     def __init__(self, **kwargs):
         super(HeatMap, self).__init__(**kwargs)
         self.appname = sys.argv[0]
@@ -15,7 +17,7 @@ class HeatMap(MTWidget):
             self.appname = 'python'
         elif self.appname[-3:] == '.py':
             self.appname = self.appname[:-3]
-        self.filename = 'heatmap-%s.db' % self.appname
+        self.filename = fn = 'heatmap-%s.db' % self.appname
         self.db = sqlite3.connect(self.filename)
         try:
             self.db.execute('''
@@ -26,9 +28,10 @@ class HeatMap(MTWidget):
                 )
             ''')
             self.db.commit()
-            Logger.info('Heatmap: Create new database for heatmap in %s' % self.filename)
+            msg = 'Heatmap: Create new database for heatmap in %s' % fn
+            Logger.info(msg)
         except sqlite3.OperationalError:
-            Logger.info('Heatmap: Fill heatmap database in %s' % self.filename)
+            Logger.info('Heatmap: Fill heatmap database in %s' % fn)
 
     def on_touch_down(self, touch):
         self.db.execute('''
@@ -44,6 +47,7 @@ class HeatMap(MTWidget):
 def start(win, ctx):
     ctx.w = HeatMap()
     win.add_widget(ctx.w)
+
 
 def stop(win, ctx):
     win.remove_widget(ctx.w)

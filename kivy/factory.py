@@ -25,24 +25,26 @@ __all__ = ('Factory', 'FactoryException')
 
 from kivy.logger import Logger
 
+
 class FactoryException(Exception):
     pass
 
+
 class FactoryBase(object):
+
     def __init__(self):
         super(FactoryBase, self).__init__()
         self.classes = {}
 
     def register(self, classname, cls=None, module=None):
-        '''Register a new classname refering to a real class or class definition
-        in a module.
+        '''Register a new classname refering to a real class or
+           class definition in a module.
         '''
         if cls is None and module is None:
             raise ValueError('You must specify either cls= or module=')
         self.classes[classname] = {
             'module': module,
-            'cls': cls
-        }
+            'cls': cls}
 
     def __getattr__(self, name):
         classes = self.classes

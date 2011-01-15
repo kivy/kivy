@@ -1,6 +1,8 @@
 """HTML reporting for Coverage."""
 
-import os, re, shutil
+import os
+import re
+import shutil
 
 from coverage import __url__, __version__           # pylint: disable-msg=W0611
 from coverage.misc import CoverageException

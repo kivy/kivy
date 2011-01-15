@@ -1,15 +1,16 @@
 '''
-Core abstraction
+Core Abstraction
 ================
 
-Each part of Kivy like image, video, text... are called `Feature`. We are adding
-an abstraction around every Features, to be able to change the library to use.
-That permit us to test new libraries, and support new hardware with custom
-libraries.
+This module defines the abstraction layers for our core providers and their
+implementations. For further information, please refer to
+`Architectural Overview` and the `Core Providers and Input Providers` section
+of the documentation.
 
-Most of case, you must not use directly a library. Always try to use our
-providers first. In the case we are missing a feature, or a method, report by
-opening a new Bug report, instead of relying on your library.
+In most cases, you shouldn't directly use a library that's already covered
+by the core abstraction. Always try to use our providers first.
+In case we are missing a feature or method, please let us know by
+opening a new Bug report instead of relying on your library.
 '''
 
 import os
@@ -20,9 +21,11 @@ if 'KIVY_DOC' in os.environ:
     # stub for sphinx generation
     def core_select_lib(category, llist, create_instance=False):
         pass
+
     def core_register_libs(category, libs):
         pass
 else:
+
     def core_select_lib(category, llist, create_instance=False):
         category = category.lower()
         for option, modulename, classname in llist:
@@ -49,12 +52,11 @@ else:
 
             except Exception as e:
                 Logger.warning('%s: Unable to use <%s> as %s'
-                     'provider' % ( category.capitalize(), option, category))
-                Logger.debug('', exc_info=e)
+                     'provider' % (category.capitalize(), option, category))
+                Logger.debug('', exc_info = e)
 
         Logger.critical('%s: Unable to find any valuable %s provider'
-              'at all!' % (category.capitalize(),category.capitalize()))
-
+              'at all!' % (category.capitalize(), category.capitalize()))
 
     def core_register_libs(category, libs):
         category = category.lower()

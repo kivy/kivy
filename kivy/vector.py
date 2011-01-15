@@ -16,6 +16,7 @@ __all__ = ('Vector', )
 
 import math
 
+
 class Vector(list):
     '''Represents a 2D vector.'''
 
@@ -29,14 +30,18 @@ class Vector(list):
 
     def _get_x(self):
         return self[0]
+
     def _set_x(self, x):
         self[0] = x
+
     x = property(_get_x, _set_x)
 
     def _get_y(self):
         return self[1]
+
     def _set_y(self, y):
         self[1] = y
+
     y = property(_get_y, _set_y)
 
     def __getslice__(self, i, j):
@@ -45,7 +50,7 @@ class Vector(list):
             # result to vector
             return Vector(super(Vector, self).__getslice__(i, j))
         except Exception:
-            raise TypeError, 'vector::FAILURE in __getslice__'
+            raise TypeError('vector::FAILURE in __getslice__')
 
     def __add__(self, val):
         return Vector(map(lambda x, y: x + y, self, val))
@@ -119,7 +124,6 @@ class Vector(list):
             self.y /= val.y
         return self
 
-
     def length(self):
         '''Returns the length of a vector'''
         return math.sqrt(self[0] ** 2 + self[1] ** 2)
@@ -151,8 +155,7 @@ class Vector(list):
         '''Computes the angle between a and b'''
         angle = -(180/math.pi) * math.atan2(
             self[0] * a[1] - self[1] * a[0],
-            self[0] * a[0] + self[1] * a[1]
-        )
+            self[0] * a[0] + self[1] * a[1])
         return angle
 
     def rotate(self, angle):
@@ -179,8 +182,8 @@ class Vector(list):
         if denom == 0:
             return None
 
-        px = ( u * (x3 - x4)  -  (x1 - x2) * v ) / denom
-        py = ( u * (y3 - y4)  -  (y1 - y2) * v ) / denom
+        px = (u * (x3 - x4) - (x1 - x2) * v) / denom
+        py = (u * (y3 - y4) - (y1 - y2) * v) / denom
 
         return Vector(px, py)
 

@@ -12,15 +12,13 @@ Core class for reading video file and manage the
 
 __all__ = ('VideoBase', 'Video')
 
+from kivy.clock import Clock
 from kivy.core import core_select_lib
 from kivy.event import EventDispatcher
 
+
 class VideoBase(EventDispatcher):
     '''VideoBase, a class to implement a video reader.
-
-    .. warning::
-        For this object, you need to call update() yourself to let
-        the engine update the video texture before calling draw().
 
     :Parameters:
         `filename` : str
@@ -37,10 +35,13 @@ class VideoBase(EventDispatcher):
             Fired when EOS is hit
         `on_load`
             Fired when the video is loaded, texture is available
+        `on_frame`
+            Fired when a new frame is written on texture
     '''
 
     __slots__ = ('_wantplay', '_buffer', '_filename', '_texture',
-                 '_volume', 'eos', '_state', '_async', '_autoplay')
+                 '_volume', 'eos', '_state', '_async', '_autoplay',
+                 '__weakref__')
 
     def __init__(self, **kwargs):
         kwargs.setdefault('filename', None)
@@ -52,18 +53,21 @@ class VideoBase(EventDispatcher):
 
         self.register_event_type('on_eos')
         self.register_event_type('on_load')
+        self.register_event_type('on_frame')
 
-        self._wantplay      = False
-        self._buffer        = None
-        self._filename      = None
-        self._texture       = None
-        self._volume        = 1.
-        self._state         = ''
+        self._wantplay = False
+        self._buffer = None
+        self._filename = None
+        self._texture = None
+        self._volume = 1.
+        self._state = ''
 
-        self._autoplay      = kwargs.get('autoplay')
-        self._async         = kwargs.get('async')
-        self.eos            = kwargs.get('eos')
-        self.filename       = kwargs.get('filename')
+        self._autoplay = kwargs.get('autoplay')
+        self._async = kwargs.get('async')
+        self.eos = kwargs.get('eos')
+        self.filename = kwargs.get('filename')
+
+        Clock.schedule_interval(self._update, 1 / 30.)
 
         if self._autoplay:
             self.play()
@@ -77,8 +81,12 @@ class VideoBase(EventDispatcher):
     def on_load(self):
         pass
 
+    def on_frame(self):
+        pass
+
     def _get_filename(self):
         return self._filename
+
     def _set_filename(self, filename):
         if filename == self._filename:
             return
@@ -87,38 +95,46 @@ class VideoBase(EventDispatcher):
         if self._filename is None:
             return
         self.load()
+
     filename = property(lambda self: self._get_filename(),
             lambda self, x: self._set_filename(x),
             doc='Get/set the filename/uri of current video')
 
     def _get_position(self):
         return 0
+
     def _set_position(self, pos):
         self.seek(pos)
+
     position = property(lambda self: self._get_position(),
             lambda self, x: self._set_position(x),
             doc='Get/set the position in the video (in seconds)')
 
     def _get_volume(self):
         return self._volume
+
     def _set_volume(self, volume):
         self._volume = volume
+
     volume = property(lambda self: self._get_volume(),
             lambda self, x: self._set_volume(x),
             doc='Get/set the volume in the video (1.0 = 100%)')
 
     def _get_duration(self):
         return 0
+
     duration = property(lambda self: self._get_duration(),
             doc='Get the video duration (in seconds)')
 
     def _get_texture(self):
         return self._texture
+
     texture = property(lambda self: self._get_texture(),
             doc='Get the video texture')
 
     def _get_state(self):
         return self._state
+
     state = property(lambda self: self._get_state(),
             doc='Get the video playing status')
 
@@ -128,6 +144,11 @@ class VideoBase(EventDispatcher):
         elif self.eos == 'loop':
             self.stop()
             self.play()
+
+    def _update(self):
+        '''Update the video content to texture.
+        '''
+        pass
 
     def seek(self, percent):
         '''Move on percent position'''
@@ -149,10 +170,6 @@ class VideoBase(EventDispatcher):
         '''Unload the actual video'''
         self._state = ''
 
-    def update(self):
-        '''Update the video content to texture.
-        Must be called every frame, before draw.'''
-        pass
 
 # Load the appropriate provider
 Video = core_select_lib('video', (

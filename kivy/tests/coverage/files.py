@@ -1,6 +1,8 @@
 """File wrangling."""
 
-import fnmatch, os, sys
+import fnmatch
+import os
+import sys
 
 class FileLocator(object):
     """Understand how filenames work."""

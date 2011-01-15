@@ -27,7 +27,9 @@ reseted.
 from kivy.logger import Logger
 from time import time, sleep
 
+
 class Sleep(object):
+
     def __init__(self, config, win):
         super(Sleep, self).__init__()
         self.timer_no_activity = time()
@@ -38,7 +40,8 @@ class Sleep(object):
         ramp = config.get('ramp').split(':')
         sleep = config.get('sleep').split(':')
         if len(ramp) != len(sleep):
-            raise ValueError('Sleep: Invalid ramp/sleep: list size is not the same')
+            err = 'Sleep: Invalid ramp/sleep: list size is not the same'
+            raise ValueError(err)
         self.ramp = map(float, ramp)
         self.sleep = map(float, sleep)
         Logger.debug('Sleep: ramp is %s' % str(self.ramp))
@@ -72,16 +75,19 @@ class Sleep(object):
                 Logger.info('Sleep: activity detected, wake up.')
             else:
                 Logger.info('Sleep: %ds inactivity detected. Reduce FPS to '
-                            '%.4f' % (self.ramp[step], 1. / float(self.sleep[step])))
+                            '%.4f' % (self.ramp[step],
+                            1. / float(self.sleep[step])))
             self.step = step
         if step >= 0:
             sleep(self.sleep[step])
+
 
 def start(win, ctx):
     ctx.config.setdefault('ramp', '5:10:20:30:60:180')
     ctx.config.setdefault('sleep', '.03:.1:.2:.5:1.:5.')
     ctx.sleep = Sleep(ctx.config, win)
     ctx.sleep.start()
+
 
 def stop(win, ctx):
     ctx.sleep.stop()

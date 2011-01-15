@@ -13,17 +13,21 @@ import kivy
 import os
 import sys
 
+
 class ModuleContext:
     '''Context of a module
 
     You can access to the config with self.config.
     '''
+
     def __init__(self):
         self.config = {}
+
 
 class ModuleBase:
     '''Handle modules of Kivy. Automaticly load and instance
     module for the general window'''
+
     def __init__(self, **kwargs):
         self.mods = {}
         self.wins = []
@@ -39,7 +43,8 @@ class ModuleBase:
             if module[-3:] != '.py' or module == '__init__.py':
                 continue
             module = module[:-3]
-            self.mods[module] = {'name': module, 'activated': False, 'context': ModuleContext()}
+            self.mods[module] = {'name': module, 'activated': False,
+                                 'context': ModuleContext()}
 
     def list(self):
         '''Return the list of available modules'''
@@ -57,7 +62,8 @@ class ModuleBase:
                            name)
             return
         if not hasattr(module, 'stop'):
-            Logger.warning('Modules: Module <%s> missing stop() function' % name)
+            err = 'Modules: Module <%s> missing stop() function' % name
+            Logger.warning(err)
             return
         self.mods[name]['module'] = module
 
@@ -91,7 +97,8 @@ class ModuleBase:
                     else:
                         config[x[0]] = x[1]
 
-            Logger.debug('Modules: Start <%s> with config %s' % (name, str(config)))
+            msg = 'Modules: Start <%s> with config %s' % (name, str(config))
+            Logger.debug(msg)
             self.mods[name]['context'].config = config
             module.start(win, self.mods[name]['context'])
 

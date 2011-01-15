@@ -2,7 +2,6 @@ import sys
 import shutil
 from os.path import join, dirname, realpath, sep
 from os import walk
-from glob import glob
 from distutils.core import setup
 from distutils.extension import Extension
 

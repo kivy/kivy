@@ -18,6 +18,7 @@ from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.graphics.transformation import Matrix
 
+
 class Scatter(Widget):
     '''Scatter implementation as a Widget.
     '''
@@ -38,13 +39,14 @@ class Scatter(Widget):
 
     def _get_do_translation(self):
         return (self.do_translation_x, self.do_translation_y)
+
     def _set_do_translation(self, value):
         if type(value) in (list, tuple):
             self.do_translation_x, self.do_translation_y = value
         else:
             self.do_translation_x = self.do_translation_y = bool(value)
     do_translation = AliasProperty(_get_do_translation, _set_do_translation,
-                                   bind=('do_translation_x', 'do_translation_y'))
+                                bind=('do_translation_x', 'do_translation_y'))
     '''Allow translation on X or Y axis
 
     :data:`do_translation` is a :class:`~kivy.properties.AliasProperty` of
@@ -119,12 +121,15 @@ class Scatter(Widget):
 
     def _get_rotation(self):
         v1 = Vector(0, 10)
-        v2 = Vector(*self.to_parent(*self.pos)) - self.to_parent(self.x, self.y + 10)
+        tp = self.to_parent
+        v2 = Vector(*tp(*self.pos)) - tp(self.x, self.y + 10)
         return -1.0 *(v1.angle(v2) + 180) % 360
+
     def _set_rotation(self, rotation):
         angle_change = self.rotation - rotation
         r = Matrix().rotate(-radians(angle_change), 0, 0, 1)
-        self.apply_transform(r, post_multiply=True, anchor=self.to_local(*self.center))
+        self.apply_transform(r, post_multiply=True,
+                            anchor=self.to_local(*self.center))
     rotation = AliasProperty(_get_rotation, _set_rotation, bind=(
         'x', 'y', 'transform'))
     '''Rotation value of the scatter
@@ -137,10 +142,11 @@ class Scatter(Widget):
         p2 = Vector(*self.to_parent(1, 0))
         scale = p1.distance(p2)
         return float(scale)
+
     def _set_scale(self, scale):
         rescale = scale * 1.0 / self.scale
         self.apply_transform(Matrix().scale(rescale, rescale, rescale),
-                             post_multiply=True, anchor=self.to_local(*self.center))
+                        post_multiply=True, anchor=self.to_local(*self.center))
     scale = AliasProperty(_get_scale, _set_scale, bind=('x', 'y', 'transform'))
     '''Scale value of the scatter
 
@@ -150,6 +156,7 @@ class Scatter(Widget):
     def _get_center(self):
         return (self.bbox[0][0] + self.bbox[1][0]/2.0,
                 self.bbox[0][1] + self.bbox[1][1]/2.0)
+
     def _set_center(self, center):
         if center == self.center:
             return False
@@ -160,6 +167,7 @@ class Scatter(Widget):
 
     def _get_pos(self):
         return self.bbox[0]
+
     def _set_pos(self, pos):
         _pos = self.bbox[0]
         if pos == _pos:
@@ -171,6 +179,7 @@ class Scatter(Widget):
 
     def _get_x(self):
         return self.bbox[0][0]
+
     def _set_x(self, x):
         if x == self.bbox[0][0]:
             return False
@@ -180,6 +189,7 @@ class Scatter(Widget):
 
     def _get_y(self):
         return self.bbox[0][1]
+
     def _set_y(self, y):
         if y == self.bbox[0][1]:
             return False
@@ -208,7 +218,8 @@ class Scatter(Widget):
         return (p[0], p[1])
 
     def apply_angle_scale_trans(self, angle, scale, trans, point=Vector(0, 0)):
-        '''Update matrix transformation by adding new angle, scale and translate.
+        '''Update matrix transformation by adding new angle,
+           scale and translate.
 
         :Parameters:
             `angle` : float
@@ -228,8 +239,7 @@ class Scatter(Widget):
         t = Matrix().translate(
             trans[0] * self.do_translation_x,
             trans[1] * self.do_translation_y,
-            0
-        )
+            0)
         t = t.multiply(Matrix().translate(point[0], point[1], 0))
         t = t.multiply(Matrix().rotate(angle, 0, 0, 1))
         t = t.multiply(Matrix().scale(scale, scale, scale))
@@ -262,9 +272,12 @@ class Scatter(Widget):
     def transform_with_touch(self, touch):
         # just do a simple one finger drag
         if len(self._touches) == 1:
-            # _last_touch_pos has last pos in correct parent space, just liek incoming touch
-            dx = (touch.x - self._last_touch_pos[touch][0]) * self.do_translation_x
-            dy = (touch.y - self._last_touch_pos[touch][1]) * self.do_translation_y
+            # _last_touch_pos has last pos in correct parent space,
+            # just liek incoming touch
+            dx = (touch.x - self._last_touch_pos[touch][0]) \
+                                                    * self.do_translation_x
+            dy = (touch.y - self._last_touch_pos[touch][1]) \
+                                                    * self.do_translation_y
             self.apply_transform(Matrix().translate(dx, dy, 0))
             return
 
@@ -274,7 +287,7 @@ class Scatter(Widget):
         # we only want to transform if the touch is part of the two touches
         # furthest apart! So first we find anchor, the point to transform
         # around as the touch farthest away from touch
-        anchor  = max(points, key=lambda p: p.distance(touch.pos))
+        anchor = max(points, key=lambda p: p.distance(touch.pos))
 
         # now we find the touch farthest away from anchor, if its not the
         # same as touch. Touch is not one of the two touches used to transform
@@ -283,11 +296,11 @@ class Scatter(Widget):
             return
 
         # ok, so we have touch, and anchor, so we can actually compute the
-        # transformation        
+        # transformation
         old_line = Vector(*touch.dpos) - anchor
         new_line = Vector(*touch.pos) - anchor
 
-        angle = radians( new_line.angle(old_line) ) * self.do_rotation
+        angle = radians(new_line.angle(old_line)) * self.do_rotation
         scale = new_line.length() / old_line.length()
         new_scale = scale * self.scale
         if new_scale < self.scale_min or new_scale > self.scale_max:

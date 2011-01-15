@@ -29,22 +29,26 @@ import time
 import StringIO
 import random
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-from kivy.core.gl import glReadBuffer, glReadPixels, GL_RGB, GL_UNSIGNED_BYTE, GL_FRONT
+from kivy.core.gl import glReadBuffer, glReadPixels, GL_RGB, GL_UNSIGNED_BYTE, \
+                         GL_FRONT
 from kivy.utils import curry
 
 if 'KIVY_DOC' not in os.environ:
-	from PIL import Image
+    from PIL import Image
 
-lock_current    = threading.Lock()
-sem_current     = threading.Semaphore(0)
-sem_next        = threading.Semaphore(1)
-img_current     = None
-connected       = False
+lock_current = threading.Lock()
+sem_current = threading.Semaphore(0)
+sem_next = threading.Semaphore(1)
+img_current = None
+connected = False
+
 
 def keep_running():
     return True
 
+
 class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
+
     def do_GET(self):
         global connected, sem_next
         try:
@@ -60,10 +64,10 @@ class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
     def _stream_video(self):
         global img_current
 
-        lfps        = []
-        dt          = 0
-        frames      = 0
-        fps_wanted  = self.server.config.get('fps')
+        lfps = []
+        dt = 0
+        frames = 0
+        fps_wanted = self.server.config.get('fps')
         if fps_wanted == '':
             fps_wanted = 0
         fps_wanted = float(fps_wanted)
@@ -71,7 +75,7 @@ class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
             fps_wanted = 0
         else:
             fps_wanted = 1 / fps_wanted
-        size        = self.server.config.get('size')
+        size = self.server.config.get('size')
         if size == '':
             size = None
         else:
@@ -81,9 +85,11 @@ class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
             'MjpegServer: Client %s:%d connected' % self.client_address)
 
         self.send_response(200, 'OK')
-        self.boundary = 'kivy-mjpegserver-boundary-%d' % (random.randint(1, 9999999))
+        self.boundary = 'kivy-mjpegserver-boundary-%d' % (random.randint(1,
+                                                                    9999999))
         self.send_header('Server', 'Kivy MjpegServer')
-        self.send_header('Content-type', 'multipart/x-mixed-replace; boundary=%s' % self.boundary)
+        self.send_header('Content-type',
+                    'multipart/x-mixed-replace; boundary=%s' % self.boundary)
         self.end_headers()
 
         # don't accept connection until the window is created
@@ -129,11 +135,14 @@ class MjpegHttpRequestHandler(BaseHTTPRequestHandler):
                 fps = frames / (dt_current - dt)
                 lfps.append(fps)
                 x = sum(lfps) / len(lfps)
-                Logger.debug('MjpegServer: current FPS is %.1f, average is %.1f' % (fps, x))
+                msg = 'MjpegServer: Current FPS: %.1f, Average: %.1f' % (fps, x)
+                Logger.debug(msg)
                 dt = dt_current
                 frames = 0
 
+
 class MjpegServerThread(threading.Thread):
+
     def __init__(self, config):
         super(MjpegServerThread, self).__init__()
         self.config = config
@@ -145,6 +154,7 @@ class MjpegServerThread(threading.Thread):
         Logger.info('MjpegServer: Listen to %s:%d' % server_address)
         while keep_running():
             httpd.handle_request()
+
 
 def window_flip_and_save():
     global img_current
@@ -158,10 +168,12 @@ def window_flip_and_save():
 
     with lock_current:
         glReadBuffer(GL_FRONT)
-        data = glReadPixels(0, 0, win.width, win.height, GL_RGB, GL_UNSIGNED_BYTE)
+        data = glReadPixels(0, 0, win.width, win.height, GL_RGB,
+                            GL_UNSIGNED_BYTE)
         img_current = str(buffer(data))
 
     sem_current.release()
+
 
 def start(win, ctx):
     win.push_handlers(on_flip=window_flip_and_save)
@@ -174,6 +186,7 @@ def start(win, ctx):
     ctx.server = MjpegServerThread(ctx.config)
     ctx.server.daemon = True
     ctx.server.start()
+
 
 def stop(win, ctx):
     win.remove_handlers(on_flip=window_flip_and_save)

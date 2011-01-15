@@ -21,6 +21,7 @@ from kivy.lang import Builder
 
 Widget_forbidden_properties = ('touch_down', 'touch_move', 'touch_up')
 
+
 class Widget(EventDispatcher):
     '''
     Widget is the very basic class for implementing any Kivy Widget.
@@ -109,7 +110,6 @@ class Widget(EventDispatcher):
         if '__no_builder' not in kwargs:
             Builder.apply(self)
 
-
     def create_property(self, name):
         '''Create a new property at runtime.
 
@@ -122,7 +122,7 @@ class Widget(EventDispatcher):
         :Parameters:
             `name`: string
                 Name of the property
-        
+
         The class of the property cannot be specified, it will be always an
         :class:`~kivy.properties.ObjectProperty` class. The default value of the
         property will be None, until you set a new value.
@@ -143,7 +143,6 @@ class Widget(EventDispatcher):
     #
     # Collision
     #
-
     def collide_point(self, x, y):
         '''Check if a point (x, y) is inside the widget bounding box.
 
@@ -165,7 +164,6 @@ class Widget(EventDispatcher):
     #
     # Default event handlers
     #
-
     def on_touch_down(self, touch):
         '''Receive a touch down event
 
@@ -175,17 +173,8 @@ class Widget(EventDispatcher):
 
         :Returns:
             bool. If True, the dispatching will stop.
-
-        By default, this method dispatch the `on_touch_down` event to every
-        children in reversed order.
-
-        .. note::
-
-            Since the drawing is from back to front, all the touch event should
-            be from front to back. That's why we are dispatching the event in
-            reverse order.
         '''
-        for child in reversed(self.children[:]):
+        for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
 
@@ -194,7 +183,7 @@ class Widget(EventDispatcher):
 
         See :func:`on_touch_down` for more information
         '''
-        for child in reversed(self.children[:]):
+        for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
                 return True
 
@@ -203,7 +192,7 @@ class Widget(EventDispatcher):
 
         See :func:`on_touch_down` for more information
         '''
-        for child in reversed(self.children[:]):
+        for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
 
@@ -211,10 +200,9 @@ class Widget(EventDispatcher):
     #
     # Events
     #
-
     def bind(self, **kwargs):
         '''Bind properties or event to handler.
-        
+
         Example of usage::
 
             def my_x_callback(obj, value):
@@ -244,7 +232,6 @@ class Widget(EventDispatcher):
     #
     # Tree management
     #
-
     def add_widget(self, widget):
         '''Add a new widget as a child of current widget
 
@@ -279,6 +266,13 @@ class Widget(EventDispatcher):
         self.children = self.children[:]
         self.canvas.remove(widget.canvas)
         widget.parent = None
+
+    def clear_widgets(self):
+        '''Remove all widgets added to the widget.
+        '''
+        remove_widget = self.remove_widget
+        for child in self.children[:]:
+            remove_widget(child)
 
     def get_root_window(self):
         '''Return the root window
@@ -344,7 +338,6 @@ class Widget(EventDispatcher):
     #
     # Properties
     #
-
     def setter(self, name):
         '''Return the setter of a property. Useful if you want to directly bind
         a property to another.
@@ -402,6 +395,7 @@ class Widget(EventDispatcher):
 
     def get_right(self):
         return self.x + self.width
+
     def set_right(self, value):
         self.x = value - self.width
 
@@ -414,6 +408,7 @@ class Widget(EventDispatcher):
 
     def get_top(self):
         return self.y + self.height
+
     def set_top(self, value):
         self.y = value - self.height
 
@@ -426,6 +421,7 @@ class Widget(EventDispatcher):
 
     def get_center_x(self):
         return self.x + self.width / 2.
+
     def set_center_x(self, value):
         self.x = value - self.width / 2.
     center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
@@ -437,6 +433,7 @@ class Widget(EventDispatcher):
 
     def get_center_y(self):
         return self.y + self.height / 2.
+
     def set_center_y(self, value):
         self.y = value - self.height / 2.
     center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
@@ -473,7 +470,7 @@ class Widget(EventDispatcher):
 
     :data:`children` is a :class:`~kivy.properties.ListProperty` instance,
     default to an empty list.
-    
+
     Use :func:`add_widget` and :func:`remove_widget` for manipulate children
     list. Don't manipulate children list directly until you know what you are
     doing.
@@ -482,8 +479,8 @@ class Widget(EventDispatcher):
     parent = ObjectProperty(None, allownone=True)
     '''Parent of the widget
 
-    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance, default to
-    None.
+    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance,
+    default to None.
 
     The parent of a widget is set when the widget is added to another one, and
     unset when the widget is removed from his parent.
@@ -503,7 +500,7 @@ class Widget(EventDispatcher):
 
     size_hint_y = NumericProperty(1, allownone=True)
     '''Y size hint.
-    
+
     :data:`size_hint_y` is a :class:`~kivy.properties.NumericProperty`, default
     to 1.
 
@@ -512,7 +509,7 @@ class Widget(EventDispatcher):
 
     size_hint = ReferenceListProperty(size_hint_x, size_hint_y)
     '''Size hint.
-    
+
     :data:`size_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`size_hint_x`, :data:`size_hint_y`)
 

@@ -17,6 +17,7 @@ __all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
 from instructions cimport *
 from transformation cimport *
 
+from kivy.cache import Cache
 from kivy.resources import resource_find
 from kivy.core.image import Image
 from kivy.logger import Logger
@@ -30,16 +31,18 @@ cdef object get_default_texture():
         DEFAULT_TEXTURE = Image(join(kivy_shader_dir, 'default.png')).texture
     return DEFAULT_TEXTURE
 
+# register Image cache
+Cache.register('kv.texture', timeout=60)
 
 cdef class LineWidth(ContextInstruction):
     '''Instruction to set the line width of the drawing context
     '''
-    def __init__(self, *args):
-        ContextInstruction.__init__(self)
+    def __init__(self, *args, **kwargs):
+        ContextInstruction.__init__(self, **kwargs)
         if args:
             self.linewidth = args[0]
         else:
-            self.linewidth = 2.0
+            self.linewidth = 1.0
 
     property linewidth:
         def __get__(self):
@@ -47,19 +50,75 @@ cdef class LineWidth(ContextInstruction):
         def __set__(self, lw):
             self.set_state('linewidth', lw)
 
+# Taken from colorsys module, and optimized for cython
+# HSV: Hue, Saturation, Value
+# H: position in the spectrum
+# S: color saturation ("purity")
+# V: color brightness
+
+cdef inline float max3(float a, float b, float c):
+    if a > b:
+        return a if a > c else c
+    return b if b > c else c
+
+cdef inline float min3(float a, float b, float c):
+    if a < b:
+        return a if a < c else c
+    return b if b < c else c
+
+cdef tuple rgb_to_hsv(float r, float g, float b):
+    cdef float h
+    cdef float maxc = max3(r, g, b)
+    cdef float minc = min3(r, g, b)
+    cdef float v = maxc
+    if minc == maxc: return 0.0, 0.0, v
+    cdef float s = (maxc-minc) / maxc
+    cdef float rc = (maxc-r) / (maxc-minc)
+    cdef float gc = (maxc-g) / (maxc-minc)
+    cdef float bc = (maxc-b) / (maxc-minc)
+    if r == maxc: h = bc-gc
+    elif g == maxc: h = 2.0+rc-bc
+    else: h = 4.0+gc-rc
+    h = (h/6.0) % 1.0
+    return h, s, v
+
+cdef tuple hsv_to_rgb(float h, float s, float v):
+    if s == 0.0: return v, v, v
+    cdef int i = int(h*6.0) # XXX assume int() truncates!
+    cdef float f = (h*6.0) - i
+    cdef float p = v*(1.0 - s)
+    cdef float q = v*(1.0 - s*f)
+    cdef float t = v*(1.0 - s*(1.0-f))
+    i = i%6
+    if i == 0: return v, t, p
+    if i == 1: return q, v, p
+    if i == 2: return p, v, t
+    if i == 3: return p, q, v
+    if i == 4: return t, p, v
+    if i == 5: return v, p, q
+    # Cannot get here
 
 cdef class Color(ContextInstruction):
     '''Instruction to set the color state for any vetices being drawn after it
     '''
-    def __init__(self, *args):
-        ContextInstruction.__init__(self)
+    def __init__(self, *args, **kwargs):
+        ContextInstruction.__init__(self, **kwargs)
         cdef int vec_size = len(args)
-        if vec_size == 4:
-            self.rgba = args
-        elif vec_size == 3:
-            self.rgb = args
+        if kwargs.get('mode', '') == 'hsv':
+            if vec_size == 4:
+                self.hsv = args[:3]
+                self.a = args[3]
+            elif vec_size == 3:
+                self.hsv = args
+            else:
+                self.set_state('color', [1.0, 1.0, 1.0, 1.0])
         else:
-            self.set_state('color', [1.0, 1.0, 1.0, 1.0])
+            if vec_size == 4:
+                self.rgba = args
+            elif vec_size == 3:
+                self.rgb = args
+            else:
+                self.set_state('color', [1.0, 1.0, 1.0, 1.0])
 
     property rgba:
         def __get__(self):
@@ -91,9 +150,26 @@ cdef class Color(ContextInstruction):
             return self.rgba[3]
         def __set__(self, a):
             self.rgba = [self.r, self.g, self.b, a]
-
-
-
+    property hsv:
+        def __get__(self):
+            return rgb_to_hsv(self.r, self.h, self.b)
+        def __set__(self, x):
+            self.rgb = hsv_to_rgb(x[0], x[1], x[2])
+    property h:
+        def __get__(self):
+            return self.hsv[0]
+        def __set__(self, x):
+            self.hsv = [x, self.s, self.v]
+    property s:
+        def __get__(self):
+            return self.hsv[1]
+        def __set__(self, x):
+            self.hsv = [self.h, x, self.v]
+    property v:
+        def __get__(self):
+            return self.hsv[2]
+        def __set__(self, x):
+            self.hsv = [self.h, self.s, x]
 
 
 cdef class BindTexture(ContextInstruction):
@@ -106,25 +182,19 @@ cdef class BindTexture(ContextInstruction):
             specifies the texture to bind to the given index
     '''
     def __init__(self, **kwargs):
-        ContextInstruction.__init__(self)
+        ContextInstruction.__init__(self, **kwargs)
         if 'source' in kwargs and 'texture' in kwargs:
-            Logger.warn("BindTexture:  both source and texture   \
-                         specified in kwargs! settign source will \
-                         will overwrite texture property")
+            Logger.warn('BindTexture: both source and texture specified '
+                        'in kwargs! Settings source will overwrite'
+                        'texture property')
 
         self.source = kwargs.get('source', None)
-        if self.source == None:
-            Logger.warn("setting texture")
+        if self.source is None:
             self.texture = kwargs.get('texture', None)
 
-        Logger.warn("done %s" % kwargs)
-        Logger.warn("done nitializing texture binding %s, %s", self.source, self.texture)
-
     cdef apply(self):
-
-        #Logger.trace('BindTexture: binding <%s> %s' % (str(self.texture), self.texture.target))
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(self._texture.target, self._texture.id)
+        glBindTexture(self._texture.target, self._texture._id)
 
     property texture:
         def __get__(self):
@@ -140,13 +210,14 @@ cdef class BindTexture(ContextInstruction):
         def __get__(self):
             return self._source
         def __set__(self, bytes filename):
-            #if not filename:
-            #    self._source = None
-            #    self.texture = None
             Logger.trace('BindTexture: setting source: <%s>' % filename)
             self._source = resource_find(filename)
             if self._source:
-                self.texture = Image(self._source).texture
+                tex = Cache.get('kv.texture', filename)
+                if not tex:
+                    tex = Image(self._source).texture
+                    Cache.append('kv.texture', filename, tex)
+                self.texture = tex
             else:
                 self.texture = None
 
@@ -158,14 +229,14 @@ cdef class PushMatrix(ContextInstruction):
     '''PushMatrix on context's matrix stack
     '''
     def __init__(self, *args, **kwargs):
-        ContextInstruction.__init__(self)
+        ContextInstruction.__init__(self, **kwargs)
         self.context_push = ['modelview_mat']
 
 cdef class PopMatrix(ContextInstruction):
     '''Pop Matrix from context's matrix stack onto model view
     '''
     def __init__(self, *args, **kwargs):
-        ContextInstruction.__init__(self)
+        ContextInstruction.__init__(self, **kwargs)
         self.context_pop = ['modelview_mat']
 
 
@@ -174,7 +245,7 @@ cdef class MatrixInstruction(ContextInstruction):
     '''
 
     def __init__(self, *args, **kwargs):
-        ContextInstruction.__init__(self)
+        ContextInstruction.__init__(self, **kwargs)
 
     cdef apply(self):
         '''Apply the matrix of this instance to the

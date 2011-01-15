@@ -41,7 +41,9 @@ import os
 from kivy.input.touch import Touch
 from kivy.input.shape import TouchShapeRect
 
+
 class MTDTouch(Touch):
+
     def depack(self, args):
         self.sx = args['x']
         self.sy = args['y']
@@ -57,7 +59,8 @@ class MTDTouch(Touch):
         super(MTDTouch, self).depack(args)
 
     def __str__(self):
-        return '<MTDTouch id=%d pos=(%f, %f) device=%s>' % (self.id, self.sx, self.sy, self.device)
+        i, sx, sy, d = (self.id, self.sx, self.sy, self.device)
+        return '<MTDTouch id=%d pos=(%f, %f) device=%s>' % (i, sx, sy, d)
 
 if 'KIVY_DOC' in os.environ:
 
@@ -112,7 +115,8 @@ else:
 
                 # ensure it's a key = value
                 if len(arg) != 2:
-                    Logger.error('MTD: invalid parameter %s, not in key=value format.' % arg)
+                    err = 'MTD: Bad parameter %s: Not in key=value format' % arg
+                    Logger.error()
                     continue
 
                 # ensure the key exist
@@ -125,7 +129,8 @@ else:
                 try:
                     self.default_ranges[key] = int(value)
                 except ValueError:
-                    Logger.error('MTD: invalid value %s for option %s' % (key, value))
+                    err = 'MTD: invalid value %s for option %s' % (key, value)
+                    Logger.error(err)
                     continue
 
                 # all good!
@@ -142,8 +147,7 @@ else:
                     queue=self.queue,
                     input_fn=self.input_fn,
                     device=self.device,
-                    default_ranges=self.default_ranges
-                ))
+                    default_ranges=self.default_ranges))
             self.thread.daemon = True
             self.thread.start()
 
@@ -188,36 +192,36 @@ else:
 
             # prepare some vars to get limit of some component
             ab = _device.get_abs(MTDEV_ABS_POSITION_X)
-            range_min_position_x    = drs('min_position_x', ab.minimum)
-            range_max_position_x    = drs('max_position_x', ab.maximum)
+            range_min_position_x = drs('min_position_x', ab.minimum)
+            range_max_position_x = drs('max_position_x', ab.maximum)
             Logger.info('MTD: <%s> range position X is %d - %d' %
                         (_fn, range_min_position_x, range_max_position_x))
 
             ab = _device.get_abs(MTDEV_ABS_POSITION_Y)
-            range_min_position_y    = drs('min_position_y', ab.minimum)
-            range_max_position_y    = drs('max_position_y', ab.maximum)
+            range_min_position_y = drs('min_position_y', ab.minimum)
+            range_max_position_y = drs('max_position_y', ab.maximum)
             Logger.info('MTD: <%s> range position Y is %d - %d' %
                         (_fn, range_min_position_y, range_max_position_y))
 
             ab = _device.get_abs(MTDEV_ABS_TOUCH_MAJOR)
-            range_min_major         = drs('min_touch_major', ab.minimum)
-            range_max_major         = drs('max_touch_major', ab.maximum)
+            range_min_major = drs('min_touch_major', ab.minimum)
+            range_max_major = drs('max_touch_major', ab.maximum)
             Logger.info('MTD: <%s> range touch major is %d - %d' %
                         (_fn, range_min_major, range_max_major))
 
             ab = _device.get_abs(MTDEV_ABS_TOUCH_MINOR)
-            range_min_minor         = drs('min_touch_minor', ab.minimum)
-            range_max_minor         = drs('max_touch_minor', ab.maximum)
+            range_min_minor = drs('min_touch_minor', ab.minimum)
+            range_max_minor = drs('max_touch_minor', ab.maximum)
             Logger.info('MTD: <%s> range touch minor is %d - %d' %
                         (_fn, range_min_minor, range_max_minor))
 
-            range_min_pressure      = drs('min_pressure', 0)
-            range_max_pressure      = drs('max_pressure', 255)
+            range_min_pressure = drs('min_pressure', 0)
+            range_max_pressure = drs('max_pressure', 255)
             Logger.info('MTD: <%s> range pressure is %d - %d' %
                         (_fn, range_min_pressure, range_max_pressure))
 
-            invert_x                = int(bool(drs('invert_x', 0)))
-            invert_y                = int(bool(drs('invert_y', 0)))
+            invert_x = int(bool(drs('invert_x', 0)))
+            invert_y = int(bool(drs('invert_y', 0)))
             Logger.info('MTD: <%s> axes invertion: X is %d, Y is %d' %
                         (_fn, invert_x, invert_y))
 

@@ -6,7 +6,8 @@
 # W0611: Unused import blah
 # W0622: Redefining built-in blah
 
-import os, sys
+import os
+import sys
 
 # Python 2.3 doesn't have `set`
 try:
@@ -62,9 +63,7 @@ else:
         compile(
             "def exec_code_object(code, global_map):\n"
             "    exec code in global_map\n",
-            "<exec_function>", "exec"
-            )
-        )
+            "<exec_function>", "exec"))
 
 # ConfigParser was renamed to the more-standard configparser
 try:

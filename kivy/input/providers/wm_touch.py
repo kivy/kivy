@@ -14,9 +14,13 @@ from kivy.input.providers.wm_common import WM_TABLET_QUERYSYSTEMGESTURE, \
 from kivy.input.touch import Touch
 from kivy.input.shape import TouchShapeRect
 
+
 class WM_Touch(Touch):
-    '''Touch representing the WM_Touch event. Support pos, shape and size profiles'''
+    '''Touch representing the WM_Touch event.
+       Supports pos, shape and size profiles.
+    '''
     __attrs__ = ('size', )
+
     def depack(self, args):
         self.shape = TouchShapeRect()
         self.sx, self.sy = args[0], args[1]
@@ -28,14 +32,16 @@ class WM_Touch(Touch):
         super(WM_Touch, self).depack(args)
 
     def __str__(self):
-        return '<WMTouch id:%d uid:%d pos:%s device:%s>' % (self.id, self.uid, str(self.spos), self.device)
+        args = (self.id, self.uid, str(self.spos), self.device)
+        return '<WMTouch id:%d uid:%d pos:%s device:%s>' % args
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     WM_TouchProvider = None
 
 else:
-    from ctypes import wintypes, windll, WINFUNCTYPE, c_long, c_int, \
+    from ctypes.wintypes import ULONG, HANDLE, DWORD, LONG
+    from ctypes import windll, WINFUNCTYPE, c_long, c_int, \
             Structure, pointer, sizeof, byref
     from collections import deque
     from kivy.input.provider import TouchProvider
@@ -49,26 +55,25 @@ else:
 
     class TOUCHINPUT(Structure):
         _fields_ = [
-            ('x',wintypes.LONG),
-            ('y',wintypes.LONG),
-            ('pSource',wintypes.HANDLE),
-            ('id',wintypes.DWORD),
-            ('flags',wintypes.DWORD),
-            ('mask',wintypes.DWORD),
-            ('time',wintypes.DWORD),
-            ('extraInfo',wintypes.ULONG ),
-            ('size_x',wintypes.DWORD),
-            ('size_y',wintypes.DWORD)
-        ]
+            ('x', LONG),
+            ('y', LONG),
+            ('pSource', HANDLE),
+            ('id', DWORD),
+            ('flags', DWORD),
+            ('mask', DWORD),
+            ('time', DWORD),
+            ('extraInfo', ULONG),
+            ('size_x', DWORD),
+            ('size_y', DWORD)]
 
         def size(self):
             return (self.size_x, self.size_y)
 
         def screen_x(self):
-            return self.x/100.0
+            return self.x / 100.0
 
         def screen_y(self):
-            return self.y/100.0
+            return self.y / 100.0
 
         def _event_type(self):
             if self.flags & TOUCHEVENTF_MOVE:
@@ -79,20 +84,17 @@ else:
                 return 'up'
         event_type = property(_event_type)
 
-
     class RECT(Structure):
         _fields_ = [
-            ('left',   wintypes.ULONG ),
-            ('top',    wintypes.ULONG ),
-            ('right',  wintypes.ULONG ),
-            ('bottom', wintypes.ULONG )
-        ]
+            ('left', ULONG),
+            ('top', ULONG),
+            ('right', ULONG),
+            ('bottom', ULONG)]
 
         x = property(lambda self: self.left)
         y = property(lambda self: self.top)
         w = property(lambda self: self.right-self.left)
         h = property(lambda self: self.bottom-self.top)
-
 
     class WM_TouchProvider(TouchProvider):
 
@@ -105,14 +107,13 @@ else:
             self.hwnd = windll.user32.GetActiveWindow()
             windll.user32.RegisterTouchWindow(self.hwnd, 1)
 
-            # inject our own wndProc to handle messages before window manager does
+            # inject our own wndProc to handle messages
+            # before window manager does
             self.new_windProc = WNDPROC(self._touch_wndProc)
             self.old_windProc = windll.user32.SetWindowLongW(
                 self.hwnd,
                 GWL_WNDPROC,
-                self.new_windProc
-            )
-
+                self.new_windProc)
 
         def update(self, dispatch_fn):
             win_rect = RECT()
@@ -133,30 +134,27 @@ else:
                     self.uid += 1
                     self.touches[t.id] = WM_Touch(self.device,
                                                   self.uid, [x, y, t.size()])
-                    dispatch_fn('down', self.touches[t.id] )
+                    dispatch_fn('down', self.touches[t.id])
 
-                if t.event_type == 'move' and self.touches.has_key(t.id):
+                if t.event_type == 'move' and t.id in self.touches:
                     self.touches[t.id].move([x, y, t.size()])
-                    dispatch_fn('move', self.touches[t.id] )
+                    dispatch_fn('move', self.touches[t.id])
 
-                if t.event_type == 'up'  and self.touches.has_key(t.id):
+                if t.event_type == 'up' and t.id in self.touches:
                     self.touches[t.id].move([x, y, t.size()])
-                    dispatch_fn('up', self.touches[t.id] )
+                    dispatch_fn('up', self.touches[t.id])
                     del self.touches[t.id]
-
 
         def stop(self):
             windll.user32.UnregisterTouchWindow(self.hwnd)
             self.new_windProc = windll.user32.SetWindowLongW(
                 self.hwnd,
                 GWL_WNDPROC,
-                self.old_windProc
-            )
-
+                self.old_windProc)
 
         # we inject this wndProc into our main window, to process
         # WM_TOUCH and mouse messages before the window manager does
-        def _touch_wndProc( self, hwnd, msg, wParam, lParam ):
+        def _touch_wndProc(self, hwnd, msg, wParam, lParam):
             done = False
             if msg == WM_TABLET_QUERYSYSTEMGESTURE:
                 return QUERYSYSTEMGESTURE_WNDPROC
@@ -168,14 +166,15 @@ else:
                 done = self._mouse_handler(msg, wParam, lParam)
 
             if not done:
-                return windll.user32.CallWindowProcW( self.old_windProc, hwnd, msg, wParam, lParam)
+                return windll.user32.CallWindowProcW(self.old_windProc,
+                                                hwnd, msg, wParam, lParam)
             return 1
 
 
         # this on pushes WM_TOUCH messages onto our event stack
         def _touch_handler(self, msg, wParam, lParam):
             touches = (TOUCHINPUT * wParam)()
-            windll.user32.GetTouchInputInfo(wintypes.HANDLE(lParam),
+            windll.user32.GetTouchInputInfo(HANDLE(lParam),
                                             wParam,
                                             pointer(touches),
                                             sizeof(TOUCHINPUT))
@@ -184,10 +183,12 @@ else:
             return True
 
 
-        # filter fake mouse events, because touch and stylus also make mouse events
+        # filter fake mouse events, because touch and stylus
+        # also make mouse events
         def _mouse_handler(self, msg, wparam, lParam):
             info = windll.user32.GetMessageExtraInfo()
-            if (info & PEN_OR_TOUCH_MASK) == PEN_OR_TOUCH_SIGNATURE: # its a touch or a pen
+            # its a touch or a pen
+            if (info & PEN_OR_TOUCH_MASK) == PEN_OR_TOUCH_SIGNATURE:
                 if info & PEN_EVENT_TOUCH_MASK:
                     return True
 

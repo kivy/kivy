@@ -15,6 +15,7 @@ MarkupLabelBase = Label
 if Label is None:
     MarkupLabelBase = LabelBase
 
+
 class MarkupLabel(MarkupLabelBase):
     '''Markup text label.
 
@@ -29,6 +30,7 @@ class MarkupLabel(MarkupLabelBase):
         * [size=<integer>][/size] : size
         * [color=#<color>][/color] : text color
     '''
+
     def __init__(self, *largs, **kwargs):
         self._style_stack = {}
         super(MarkupLabel, self).__init__(*largs, **kwargs)
@@ -105,14 +107,17 @@ class MarkupLabel(MarkupLabelBase):
         assert(data)
 
         # create texture is necessary
+        w = self.texture.width
+        h = self.texture.height
         if self.texture is None:
-            self.texture = kivy.Texture.create(*self.size)
+            self.texture = kivy.Texture.create(size=self.size)
             self.texture.flip_vertical()
-        elif self.width > self.texture.width or self.height > self.texture.height:
-            self.texture = kivy.Texture.create(*self.size)
+        elif self.width > w or self.height > h:
+            self.texture = kivy.Texture.create(size=self.size)
             self.texture.flip_vertical()
         else:
-            self.texture = self.texture.get_region(0, 0, self.width, self.height)
+            self.texture = self.texture.get_region(
+                0, 0, self.width, self.height)
 
         # update texture
         self.texture.blit_data(data)
@@ -174,7 +179,7 @@ class MarkupLabel(MarkupLabelBase):
 
             # advance the width
             lw += ww
-            x  += ww
+            x += ww
             lh = max(wh, lh)
             glyphs += list(word)
 

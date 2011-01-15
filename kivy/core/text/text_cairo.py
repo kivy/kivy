@@ -12,24 +12,26 @@ try:
 except:
     raise
 
-FONT_EXTENTS_ASCENT_IDX         = 0
-FONT_EXTENTS_DESCENT_IDX        = 1
-FONT_EXTENTS_HEIGHT_IDX         = 2
-FONT_EXTENTS_MAX_X_ADVANCE_IDX  = 3
-FONT_EXTENTS_MAX_Y_ADVANCE_IDX  = 4
+FONT_EXTENTS_ASCENT_IDX = 0
+FONT_EXTENTS_DESCENT_IDX = 1
+FONT_EXTENTS_HEIGHT_IDX = 2
+FONT_EXTENTS_MAX_X_ADVANCE_IDX = 3
+FONT_EXTENTS_MAX_Y_ADVANCE_IDX = 4
 
-TEXT_EXTENTS_X_BEARING_IDX      = 0
-TEXT_EXTENTS_Y_BEARING_IDX      = 1
-TEXT_EXTENTS_WIDTH_IDX          = 2
-TEXT_EXTENTS_HEIGHT_IDX         = 3
-TEXT_EXTENTS_X_ADVANCE_IDX      = 4
-TEXT_EXTENTS_Y_ADVANCE_IDX      = 5
+TEXT_EXTENTS_X_BEARING_IDX = 0
+TEXT_EXTENTS_Y_BEARING_IDX = 1
+TEXT_EXTENTS_WIDTH_IDX = 2
+TEXT_EXTENTS_HEIGHT_IDX = 3
+TEXT_EXTENTS_X_ADVANCE_IDX = 4
+TEXT_EXTENTS_Y_ADVANCE_IDX = 5
 
 # used for fetching extends before creature image surface
 cairo_default_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1)
 cairo_default_context = cairo.Context(cairo_default_surface)
 
+
 class LabelCairo(LabelBase):
+
     def _select_font(self, context):
         italic = cairo.FONT_SLANT_NORMAL
         bold = cairo.FONT_WEIGHT_NORMAL
@@ -75,7 +77,7 @@ class LabelCairo(LabelBase):
 
     def _render_end(self):
         data = ImageData(self._size[0], self._size[1],
-            'RGBA', buffer(self._cairo_surface.get_data())[:])
+            'rgba', buffer(self._cairo_surface.get_data())[:])
 
         del self._cairo_surface
         del self._cairo_context

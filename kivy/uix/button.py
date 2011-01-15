@@ -8,6 +8,7 @@ __all__ = ('Button', )
 from kivy.uix.widget import Widget
 from kivy.properties import OptionProperty, StringProperty
 
+
 class Button(Widget):
 
     state = OptionProperty('normal', options=('normal', 'down'))

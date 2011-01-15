@@ -7,6 +7,7 @@ Factory of touch providers.
 
 __all__ = ('TouchFactory', )
 
+
 class TouchFactory:
     '''Touch factory is a class who register all availables input factories.
     If you create a new input factory, don't forget to register it ::

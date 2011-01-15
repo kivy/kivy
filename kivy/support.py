@@ -4,6 +4,7 @@ Support: activate other framework/toolkit inside our event loop
 
 __all__ = ('install_gobject_iteration', 'install_android')
 
+
 def install_gobject_iteration():
     '''Import and install gobject context iteration inside our event loop.
     This is used as soon as gobject is used (like gstreamer)
@@ -24,7 +25,8 @@ def install_gobject_iteration():
 
     # schedule the iteration each frame
     def _gobject_iteration(*largs):
-        context.iteration(False)
+        if context.pending():
+            context.iteration(False)
     Clock.schedule_interval(_gobject_iteration, 0)
 
 def install_android():

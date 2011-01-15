@@ -2,7 +2,9 @@
 
 # Coincidentally named the same as http://code.activestate.com/recipes/496702/
 
-import re, sys
+import re
+import sys
+
 
 class Templite(object):
     """A simple template renderer, for a nano-subset of Django syntax.
@@ -164,3 +166,4 @@ class _TempliteEngine(object):
         else:
             value = self.context[expr]
         return value
+

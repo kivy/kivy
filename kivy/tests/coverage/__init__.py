@@ -47,14 +47,14 @@ def _singleton_method(name):
 
 # Define the module-level functions.
 use_cache = _singleton_method('use_cache')
-start =     _singleton_method('start')
-stop =      _singleton_method('stop')
-erase =     _singleton_method('erase')
-exclude =   _singleton_method('exclude')
-analysis =  _singleton_method('analysis')
+start = _singleton_method('start')
+stop = _singleton_method('stop')
+erase = _singleton_method('erase')
+exclude = _singleton_method('exclude')
+analysis = _singleton_method('analysis')
 analysis2 = _singleton_method('analysis2')
-report =    _singleton_method('report')
-annotate =  _singleton_method('annotate')
+report = _singleton_method('report')
+annotate = _singleton_method('annotate')
 
 
 # COPYRIGHT AND LICENSE

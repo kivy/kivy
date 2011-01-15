@@ -12,21 +12,24 @@ from kivy.input.providers.wm_common import PEN_OR_TOUCH_SIGNATURE, \
         QUERYSYSTEMGESTURE_WNDPROC, PEN_EVENT_TOUCH_MASK
 from kivy.input.touch import Touch
 
+
 class WM_Pen(Touch):
     '''Touch representing the WM_Pen event. Support pos profile'''
+
     def depack(self, args):
         self.sx, self.sy = args[0], args[1]
         super(WM_Pen, self).depack(args)
 
     def __str__(self):
-        return '<WMPen id:%d uid:%d pos:%s device:%s>' % (self.id, self.uid, str(self.spos), self.device)
-
+        i, u, s, d = (self.id, self.uid, str(self.spos), self.device)
+        return '<WMPen id:%d uid:%d pos:%s device:%s>' % (i, u, s, d)
 if 'KIVY_DOC' in os.environ:
     # documentation hack
     WM_PenProvider = None
 
 else:
     from collections import deque
+    from ctypes.wintypes import ULONG
     from ctypes import wintypes, Structure, windll, byref, c_int16, \
             c_int, c_long, WINFUNCTYPE
     from kivy.input.provider import TouchProvider
@@ -36,11 +39,10 @@ else:
 
     class RECT(Structure):
         _fields_ = [
-        ('left',   wintypes.ULONG ),
-        ('top',    wintypes.ULONG ),
-        ('right',  wintypes.ULONG ),
-        ('bottom', wintypes.ULONG )
-        ]
+        ('left', ULONG),
+        ('top', ULONG),
+        ('right', ULONG),
+        ('bottom', ULONG)]
 
         x = property(lambda self: self.left)
         y = property(lambda self: self.top)
@@ -48,12 +50,12 @@ else:
         h = property(lambda self: self.bottom-self.top)
     win_rect = RECT()
 
-
     class WM_PenProvider(TouchProvider):
 
         def _is_pen_message(self, msg):
             info = windll.user32.GetMessageExtraInfo()
-            if (info & PEN_OR_TOUCH_MASK) == PEN_OR_TOUCH_SIGNATURE: # its a touch or a pen
+            # It's a touch or a pen
+            if (info & PEN_OR_TOUCH_MASK) == PEN_OR_TOUCH_SIGNATURE:
                 if not info & PEN_EVENT_TOUCH_MASK:
                     return True
 
@@ -77,14 +79,15 @@ else:
                 self.pen_events.appendleft(('up', x, y))
                 self.pen_status = False
 
-        def _pen_wndProc( self, hwnd, msg, wParam, lParam ):
+        def _pen_wndProc(self, hwnd, msg, wParam, lParam):
             if msg == WM_TABLET_QUERYSYSTEMGESTURE:
                 return QUERYSYSTEMGESTURE_WNDPROC
             if self._is_pen_message(msg):
                 self._pen_handler(msg, wParam, lParam)
                 return 1
             else:
-                return windll.user32.CallWindowProcW(self.old_windProc, hwnd, msg, wParam, lParam)
+                return windll.user32.CallWindowProcW(self.old_windProc,
+                                                hwnd, msg, wParam, lParam)
 
         def start(self):
             self.uid = 0
@@ -94,13 +97,13 @@ else:
 
             self.hwnd = windll.user32.GetActiveWindow()
 
-            # inject our own wndProc to handle messages before window manager does
+            # inject our own wndProc to handle messages
+            # before window manager does
             self.new_windProc = WNDPROC(self._pen_wndProc)
             self.old_windProc = windll.user32.SetWindowLongW(
                 self.hwnd,
                 GWL_WNDPROC,
-                self.new_windProc
-            )
+                self.new_windProc)
 
         def update(self, dispatch_fn):
             while True:
@@ -123,7 +126,6 @@ else:
             windll.user32.SetWindowLongW(
                 self.hwnd,
                 GWL_WNDPROC,
-                self.old_windProc
-            )
+                self.old_windProc)
 
     TouchFactory.register('wm_pen', WM_PenProvider)

@@ -11,9 +11,11 @@ from kivy.config import Config
 from kivy.vector import Vector
 from kivy.clock import Clock
 
+
 class InputPostprocDoubleTap(object):
     '''
-    InputPostProcDoubleTap is a post-processor to check if a touch is a double tap or not.
+    InputPostProcDoubleTap is a post-processor to check if
+    a touch is a double tap or not.
     Double tap can be configured in the Kivy config file ::
 
         [kivy]
@@ -22,9 +24,12 @@ class InputPostprocDoubleTap(object):
 
     Distance parameter is in 0-1000, and time is in millisecond.
     '''
+
     def __init__(self):
-        self.double_tap_distance = Config.getint('kivy', 'double_tap_distance') / 1000.0
-        self.double_tap_time = Config.getint('kivy', 'double_tap_time') / 1000.0
+        dist = Config.getint('kivy', 'double_tap_distance')
+        self.double_tap_distance = dist / 1000.0
+        time = Config.getint('kivy', 'double_tap_time')
+        self.double_tap_time = time / 1000.0
         self.touches = {}
 
     def find_double_tap(self, ref):
@@ -48,16 +53,17 @@ class InputPostprocDoubleTap(object):
             return touch
         return None
 
-
     def process(self, events):
         # first, check if a touch down have a double tap
         for type, touch in events:
             if type == 'down':
-                touch_double_tap = self.find_double_tap(touch)
-                if touch_double_tap:
+                double_tap = self.find_double_tap(touch)
+                if double_tap:
                     touch.is_double_tap = True
-                    touch.double_tap_time = touch.time_start - touch_double_tap.time_start
-                    touch.double_tap_distance = touch_double_tap.double_tap_distance
+                    time = touch.time_start - double_tap.time_start
+                    touch.double_tap_time = time
+                    distance = double_tap.double_tap_distance
+                    touch.double_tap_distance = distance
 
             # add the touch internaly
             self.touches[touch.uid] = (type, touch)

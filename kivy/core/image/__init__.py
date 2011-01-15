@@ -19,21 +19,22 @@ from kivy.core import core_register_libs
 # late binding
 Texture = TextureRegion = None
 
+
 class ImageData(object):
-    '''Container for data image : width, height, mode and data.
+    '''Container for data image : width, height, fmt and data.
 
     .. warning::
-        Only RGB and RGBA mode are allowed.
+        Only RGB and RGBA format are allowed.
     '''
 
-    __slots__ = ('width', 'height', 'mode', 'data')
-    _supported_modes = ('RGB', 'RGBA', 'BGR', 'BGRA')
+    __slots__ = ('width', 'height', 'fmt', 'data')
+    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra')
 
-    def __init__(self, width, height, mode, data):
-        assert mode in ImageData._supported_modes
+    def __init__(self, width, height, fmt, data):
+        assert fmt in ImageData._supported_fmts
         self.width = int(width)
         self.height = int(height)
-        self.mode = mode
+        self.fmt = fmt
         self.data = data
 
     def release_data(self):
@@ -49,10 +50,10 @@ class ImageLoaderBase(object):
     def __init__(self, filename, **kwargs):
         self._texture_rectangle = kwargs.get('texture_rectangle', True)
         self._texture_mipmap = kwargs.get('texture_mipmap', False)
-        self.keep_data  = kwargs.get('keep_data', False)
-        self.filename   = filename
-        self._texture   = None
-        self._data      = self.load(filename)
+        self.keep_data = kwargs.get('keep_data', False)
+        self.filename = filename
+        self._texture = None
+        self._data = self.load(filename)
 
     def load(self, filename):
         '''Load an image'''
@@ -110,7 +111,7 @@ class ImageLoader(object):
             im = loader(filename, **kwargs)
             break
         if im is None:
-            raise Exception('Unsupported extension <%s>, no loader found.' % ext)
+            raise Exception('Unknown extension <%s>, no loader found.' % ext)
         return im
 
 
@@ -119,10 +120,10 @@ class Image(EventDispatcher):
 
     :Parameters:
         `arg` : can be str or Texture or Image object
-            A string is interpreted as a path to the image that should be loaded.
-            You can also provide a texture object or an already existing image object.
-            In the latter case, a real copy of the given image object will be
-            returned.
+            A string is interpreted as a path to the image to be loaded.
+            You can also provide a texture object or an already existing
+            image object. In the latter case, a real copy of the given
+            image object will be returned.
         `keep_data` : bool, default to False
             Keep the image data when texture is created
         `opacity` : float, default to 1.0
@@ -145,25 +146,25 @@ class Image(EventDispatcher):
         super(Image, self).__init__()
 
         self._texture_rectangle = kwargs.get('texture_rectangle', True)
-        self._texture_mipmap    = kwargs.get('texture_mipmap', False)
+        self._texture_mipmap = kwargs.get('texture_mipmap', False)
         self._keep_data = kwargs.get('keep_data')
-        self._size      = [0, 0]
-        self._image     = None
-        self._filename  = None
-        self._texture   = None
+        self._size = [0, 0]
+        self._image = None
+        self._filename = None
+        self._texture = None
 
         if isinstance(arg, Image):
             for attr in Image.copy_attributes:
                 self.__setattr__(attr, arg.__getattribute__(attr))
         elif type(arg) in (Texture, TextureRegion):
-            self._texture   = arg
-            self._size      = self.texture.size
+            self._texture = arg
+            self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
-            self.image      = arg
+            self.image = arg
         elif isinstance(arg, basestring):
-            self.filename   = arg
+            self.filename = arg
         else:
-            raise Exception('Unable to load image with type %s' % str(type(arg)))
+            raise Exception('Unable to load image type %s' % str(type(arg)))
 
     @staticmethod
     def load(filename, **kwargs):
@@ -180,26 +181,30 @@ class Image(EventDispatcher):
 
     def _get_image(self):
         return self._image
+
     def _set_image(self, image):
         self._image = image
         if image:
-            self._size[0]      = self.image.width
-            self._size[1]     = self.image.height
+            self._size[0] = self.image.width
+            self._size[1] = self.image.height
+
     image = property(_get_image, _set_image,
             doc='Get/set the data image object')
 
     def _get_filename(self):
         return self._filename
+
     def _set_filename(self, value):
         if value is None:
             return
         if value == self._filename:
             return
         self._filename = value
-        self.image     = ImageLoader.load(
+        self.image = ImageLoader.load(
                 self._filename, keep_data=self._keep_data,
                 texture_rectangle=self._texture_rectangle,
                 texture_mipmap=self._texture_mipmap)
+
     filename = property(_get_filename, _set_filename,
             doc='Get/set the filename of image')
 
@@ -256,21 +261,23 @@ class Image(EventDispatcher):
         if not (0 <= x < data.width and 0 <= y < data.height):
             raise IndexError('Position (%d, %d) is out of range.' % (x, y))
 
-        assert data.mode in ImageData._supported_modes
-        size = 3 if data.mode in ('RGB', 'BGR') else 4
+        assert data.fmt in ImageData._supported_fmts
+        size = 3 if data.fmt in ('rgb', 'bgr') else 4
         index = y * data.width * size + x * size
         raw = data.data[index:index+size]
         color = map(lambda c: ord(c) / 255.0, raw)
 
         # conversion for BGR->RGB, BGR->RGBA format
-        if data.mode in ('BGR', 'BGRA'):
+        if data.fmt in ('bgr', 'bgra'):
             color[0], color[2] = color[2], color[0]
 
         return color
 
+
 def load(filename):
     '''Load an image'''
     return Image.load(filename)
+
 
 # load image loaders
 core_register_libs('image', (

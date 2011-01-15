@@ -11,9 +11,8 @@ try:
 except:
     raise
 
-import threading
+from threading import Lock
 from . import VideoBase
-from kivy.core.gl import GL_RGB
 from kivy.graphics.texture import Texture
 from gst.extend import discoverer
 
@@ -21,8 +20,10 @@ from gst.extend import discoverer
 from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
+
 class VideoGStreamer(VideoBase):
-    '''VideoBase implementation using GStreamer (http://gstreamer.freedesktop.org/)
+    '''VideoBase implementation using GStreamer
+       See: (http://gstreamer.freedesktop.org/)
     '''
 
     __slots__ = ('_pipeline', '_decoder', '_videosink', '_colorspace',
@@ -30,18 +31,18 @@ class VideoGStreamer(VideoBase):
                  '_is_audio', '_is_video', '_do_load', '_pipeline_canplay')
 
     def __init__(self, **kwargs):
-        self._pipeline      = None
-        self._decoder       = None
-        self._videosink     = None
-        self._colorspace    = None
-        self._audiosink     = None
-        self._volumesink    = None
-        self._is_audio      = None
-        self._is_video      = None
-        self._do_load       = None
+        self._pipeline = None
+        self._decoder = None
+        self._videosink = None
+        self._colorspace = None
+        self._audiosink = None
+        self._volumesink = None
+        self._is_audio = None
+        self._is_video = None
+        self._do_load = None
         self._pipeline_canplay = False
-        self._buffer_lock   = threading.Lock()
-        self._videosize     = (0, 0)
+        self._buffer_lock = Lock()
+        self._videosize = (0, 0)
         super(VideoGStreamer, self).__init__(**kwargs)
 
     def _do_eos(self):
@@ -72,17 +73,17 @@ class VideoGStreamer(VideoBase):
             return
         self._pipeline.set_state(gst.STATE_NULL)
         self._pipeline.get_state() # block until the null is ok
-        self._pipeline      = None
-        self._decoder       = None
-        self._videosink     = None
-        self._texture       = None
-        self._audiosink     = None
-        self._volumesink    = None
-        self._is_audio      = None
-        self._is_video      = None
-        self._do_load       = None
+        self._pipeline = None
+        self._decoder = None
+        self._videosink = None
+        self._texture = None
+        self._audiosink = None
+        self._volumesink = None
+        self._is_audio = None
+        self._is_video = None
+        self._do_load = None
         self._pipeline_canplay = False
-        self._state         = ''
+        self._state = ''
 
     def load(self):
         # ensure that nothing is loaded before.
@@ -91,7 +92,7 @@ class VideoGStreamer(VideoBase):
         def discovered(d, is_media):
             self._is_audio = d.is_audio
             self._is_video = d.is_video
-            self._do_load  = True
+            self._do_load = True
 
         # discover the media
         d = discoverer.Discoverer(self._filename)
@@ -134,7 +135,8 @@ class VideoGStreamer(VideoBase):
         self._colorspace = gst.element_factory_make('ffmpegcolorspace')
 
         # will extract video/audio
-        caps_str = 'video/x-raw-rgb,red_mask=(int)0xff0000,green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
+        caps_str = 'video/x-raw-rgb,red_mask=(int)0xff0000,' + \
+                    'green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
         caps = gst.Caps(caps_str)
         self._videosink = gst.element_factory_make('appsink', 'videosink')
         self._videosink.set_property('emit-signals', True)
@@ -159,7 +161,7 @@ class VideoGStreamer(VideoBase):
         self._pipeline.set_state(gst.STATE_PAUSED)
 
         # be sync if asked
-        if self._async == False:
+        if not self._async:
             self._pipeline.get_state()
 
     def seek(self, percent):
@@ -191,15 +193,26 @@ class VideoGStreamer(VideoBase):
         if self._videosink is None:
             return 0
         try:
-            return self._videosink.query_position(gst.FORMAT_TIME)[0] / 1000000000.
-        except:
+            # I don't understand, on ubuntu, the FORMAT_TIME is laggy, and we
+            # have a delay of 1 second. In addition, the FORMAT_BYTES return
+            # time, not bytes...
+            # I've also tryed:
+            #   vs = self._videosink
+            #   bduration = vs.query_duration(gst.FORMAT_BYTES)[0]
+            #   bposition = vs.query_position(gst.FORMAT_BYTES)[0]
+            #   return (bposition / float(bduration)) * self._get_duration()
+            # But query_duration failed with FORMAT_BYTES.
+            # Using FORMAT_DEFAULT result to have different information in
+            # duration and position. Unexplained right now.
+            return self._videosink.query_position(gst.FORMAT_BYTES)[0] / 10e9
+        except Exception, e:
             return 0
 
     def _get_duration(self):
         if self._videosink is None:
             return 0
         try:
-            return self._videosink.query_duration(gst.FORMAT_TIME)[0] / 1000000000.
+            return self._videosink.query_duration(gst.FORMAT_TIME)[0] / 10e9
         except:
             return 0
 
@@ -215,7 +228,7 @@ class VideoGStreamer(VideoBase):
             self._volumesink.set_property('volume', volume)
             self._volume = volume
 
-    def update(self):
+    def _update(self, dt):
         if self._do_load:
             self._really_load()
             self._do_load = False
@@ -229,10 +242,10 @@ class VideoGStreamer(VideoBase):
             for i in self._decoder.src_pads():
                 cap = i.get_caps()[0]
                 structure_name = cap.get_name()
-                if structure_name.startswith('video') and cap.has_key('width'):
+                if structure_name.startswith('video') and 'width' in cap:
                     self._videosize = (cap['width'], cap['height'])
                     self._texture = Texture.create(
-                        self._videosize[0], self._videosize[1], format=GL_RGB)
+                        size=self._videosize, fmt='rgb')
                     self._texture.flip_vertical()
                     self.dispatch('on_load')
 
@@ -251,5 +264,6 @@ class VideoGStreamer(VideoBase):
             if self._buffer is not None:
                 self._texture.blit_buffer(self._buffer.data,
                                           size=self._videosize,
-                                          format=GL_RGB)
+                                          fmt='rgb')
                 self._buffer = None
+                self.dispatch('on_frame')

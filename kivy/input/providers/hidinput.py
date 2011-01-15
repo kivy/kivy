@@ -42,7 +42,9 @@ import os
 from kivy.input.touch import Touch
 from kivy.input.shape import TouchShapeRect
 
+
 class HIDTouch(Touch):
+
     def depack(self, args):
         self.sx = args['x']
         self.sy = args['y']
@@ -58,7 +60,8 @@ class HIDTouch(Touch):
         super(HIDTouch, self).depack(args)
 
     def __str__(self):
-        return '<HIDTouch id=%d pos=(%f, %f) device=%s>' % (self.id, self.sx, self.sy, self.device)
+        return '<HIDTouch id=%d pos=(%f, %f) device=%s>' \
+            % (self.id, self.sx, self.sy, self.device)
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
@@ -78,48 +81,48 @@ else:
     #
 
     # Event types
-    EV_SYN		    = 0x00
-    EV_KEY		    = 0x01
-    EV_REL		    = 0x02
-    EV_ABS		    = 0x03
-    EV_MSC		    = 0x04
-    EV_SW		    = 0x05
-    EV_LED		    = 0x11
-    EV_SND		    = 0x12
-    EV_REP		    = 0x14
-    EV_FF		    = 0x15
-    EV_PWR		    = 0x16
-    EV_FF_STATUS    = 0x17
-    EV_MAX		    = 0x1f
-    EV_CNT		    = (EV_MAX+1)
+    EV_SYN = 0x00
+    EV_KEY = 0x01
+    EV_REL = 0x02
+    EV_ABS = 0x03
+    EV_MSC = 0x04
+    EV_SW = 0x05
+    EV_LED = 0x11
+    EV_SND = 0x12
+    EV_REP = 0x14
+    EV_FF = 0x15
+    EV_PWR = 0x16
+    EV_FF_STATUS = 0x17
+    EV_MAX = 0x1f
+    EV_CNT = (EV_MAX+1)
 
-    KEY_MAX			= 0x2ff
+    KEY_MAX = 0x2ff
 
     # Synchronization events
-    SYN_REPORT		= 0
-    SYN_CONFIG		= 1
-    SYN_MT_REPORT	= 2
+    SYN_REPORT = 0
+    SYN_CONFIG = 1
+    SYN_MT_REPORT = 2
 
     # Misc events
-    MSC_SERIAL	    = 0x00
-    MSC_PULSELED    = 0x01
-    MSC_GESTURE	    = 0x02
-    MSC_RAW		    = 0x03
-    MSC_SCAN	    = 0x04
-    MSC_MAX		    = 0x07
-    MSC_CNT		    = (MSC_MAX+1)
+    MSC_SERIAL = 0x00
+    MSC_PULSELED = 0x01
+    MSC_GESTURE = 0x02
+    MSC_RAW = 0x03
+    MSC_SCAN = 0x04
+    MSC_MAX = 0x07
+    MSC_CNT = (MSC_MAX+1)
 
-    ABS_MT_TOUCH_MAJOR  = 0x30	# Major axis of touching ellipse
-    ABS_MT_TOUCH_MINOR  = 0x31	# Minor axis (omit if circular)
-    ABS_MT_WIDTH_MAJOR  = 0x32	# Major axis of approaching ellipse
-    ABS_MT_WIDTH_MINOR  = 0x33	# Minor axis (omit if circular)
-    ABS_MT_ORIENTATION  = 0x34	# Ellipse orientation
-    ABS_MT_POSITION_X   = 0x35	# Center X ellipse position
-    ABS_MT_POSITION_Y   = 0x36	# Center Y ellipse position
-    ABS_MT_TOOL_TYPE    = 0x37	# Type of touching device
-    ABS_MT_BLOB_ID	    = 0x38	# Group a set of packets as a blob
-    ABS_MT_TRACKING_ID  = 0x39	# Unique ID of initiated contact
-    ABS_MT_PRESSURE		= 0x3a	# Pressure on contact area
+    ABS_MT_TOUCH_MAJOR = 0x30	# Major axis of touching ellipse
+    ABS_MT_TOUCH_MINOR = 0x31	# Minor axis (omit if circular)
+    ABS_MT_WIDTH_MAJOR = 0x32	# Major axis of approaching ellipse
+    ABS_MT_WIDTH_MINOR = 0x33	# Minor axis (omit if circular)
+    ABS_MT_ORIENTATION = 0x34	# Ellipse orientation
+    ABS_MT_POSITION_X = 0x35	# Center X ellipse position
+    ABS_MT_POSITION_Y = 0x36	# Center Y ellipse position
+    ABS_MT_TOOL_TYPE = 0x37	# Type of touching device
+    ABS_MT_BLOB_ID = 0x38	# Group a set of packets as a blob
+    ABS_MT_TRACKING_ID = 0x39	# Unique ID of initiated contact
+    ABS_MT_PRESSURE = 0x3a	# Pressure on contact area
 
     # some ioctl base (with 0 value)
     EVIOCGNAME = 2147501318
@@ -146,7 +149,7 @@ else:
             # split arguments
             args = args.split(',')
             if not args:
-                Logger.error('HIDInput: No filename pass to HIDInput configuration')
+                Logger.error('HIDInput: Filename missing in configuration')
                 Logger.error('HIDInput: Use /dev/input/event0 for example')
                 return None
 
@@ -162,7 +165,8 @@ else:
 
                 # ensure it's a key = value
                 if len(arg) != 2:
-                    Logger.error('HIDInput: invalid parameter %s, not in key=value format.' % arg)
+                    Logger.error('HIDInput: invalid parameter '
+                                 '%s, not in key=value format.' % arg)
                     continue
 
                 # ensure the key exist
@@ -175,12 +179,12 @@ else:
                 try:
                     self.default_ranges[key] = int(value)
                 except ValueError:
-                    Logger.error('HIDInput: invalid value %s for option %s' % (key, value))
+                    err = 'HIDInput: invalid value "%s" for "%s"' % (key, value)
+                    Logger.error()
                     continue
 
                 # all good!
                 Logger.info('HIDInput: Set custom %s to %d' % (key, int(value)))
-
 
         def start(self):
             if self.input_fn is None:
@@ -193,8 +197,7 @@ else:
                     queue=self.queue,
                     input_fn=self.input_fn,
                     device=self.device,
-                    default_ranges=self.default_ranges
-                ))
+                    default_ranges=self.default_ranges))
             self.thread.daemon = True
             self.thread.start()
 
@@ -209,14 +212,14 @@ else:
             l_points = []
 
             # prepare some vars to get limit of some component
-            range_min_position_x    = 0
-            range_max_position_x    = 2048
-            range_min_position_y    = 0
-            range_max_position_y    = 2048
-            range_min_pressure      = 0
-            range_max_pressure      = 255
-            invert_x                = int(bool(drs('invert_x', 0)))
-            invert_y                = int(bool(drs('invert_y', 0)))
+            range_min_position_x = 0
+            range_max_position_x = 2048
+            range_min_position_y = 0
+            range_max_position_y = 2048
+            range_min_pressure = 0
+            range_max_pressure = 255
+            invert_x = int(bool(drs('invert_x', 0)))
+            invert_y = int(bool(drs('invert_y', 0)))
 
             def process(points):
                 actives = [args['id'] for args in points]
@@ -250,7 +253,8 @@ else:
             fd = open(input_fn, 'rb')
 
             # get the controler name (EVIOCGNAME)
-            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16), " " * 256).split('\x00')[0]
+            device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
+                " " * 256).split('\x00')[0]
             Logger.info('HIDTouch: using <%s>' % device_name)
 
             # get abs infos
@@ -264,7 +268,8 @@ else:
                 if (bit & (1 << x)) == 0:
                     continue
                 # ask abs info keys to the devices
-                sbit = fcntl.ioctl(fd, EVIOCGBIT + x + (KEY_MAX << 16), ' ' * sz_l)
+                sbit = fcntl.ioctl(fd, EVIOCGBIT + x + (KEY_MAX << 16),
+                                    ' ' * sz_l)
                 sbit, = struct.unpack('Q', sbit)
                 for y in xrange(KEY_MAX):
                     if (sbit & (1 << y)) == 0:

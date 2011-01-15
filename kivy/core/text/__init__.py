@@ -18,6 +18,7 @@ DEFAULT_FONT = 'Liberation Sans,Bitstream Vera Sans,Free Sans,Arial, Sans'
 
 label_font_cache = {}
 
+
 class LabelBase(object):
     '''Core text label.
     This is the abstract class used for different backend to render text.
@@ -36,7 +37,7 @@ class LabelBase(object):
             Activate "italic" text style
         `size`: list, default to (None, None)
             Add constraint to render the text (inside a bounding box)
-            If no size is given, the label size will be adapted from the text size.
+            If no size is given, the label size will be set to the text size.
         `padding`: int, default to None
             If it's a integer, it will set padding_x and padding_y
         `padding_x`: int, default to 0
@@ -87,19 +88,19 @@ class LabelBase(object):
                 kwargs['padding_y'] = 0
 
         uw, uh = kwargs['size']
-        if uw != None:
+        if uw is not None:
             kwargs['size'] = uw - kwargs['padding_x'] * 2, uh
 
         super(LabelBase, self).__init__()
 
-        self._text      = None
+        self._text = None
 
-        self.color      = kwargs.get('color')
-        self.usersize   = kwargs.get('size')
-        self.options    = kwargs
-        self.texture    = None
-        self.viewport_size  = kwargs.get('viewport_size')
-        self.viewport_pos   = kwargs.get('viewport_pos')
+        self.color = kwargs.get('color')
+        self.usersize = kwargs.get('size')
+        self.options = kwargs
+        self.texture = None
+        self.viewport_size = kwargs.get('viewport_size')
+        self.viewport_pos = kwargs.get('viewport_pos')
 
         if 'font_name' in self.options:
             fontname = self.options['font_name']
@@ -114,7 +115,7 @@ class LabelBase(object):
                 else:
                     label_font_cache[fontname] = None
 
-        self.text      = kwargs.get('text', '')
+        self.text = kwargs.get('text', '')
 
     def get_extents(self, text):
         '''Return a tuple with (width, height) for a text.'''
@@ -213,7 +214,7 @@ class LabelBase(object):
 
                 # advance the width
                 lw += ww
-                x  += ww
+                x += ww
                 lh = max(wh, lh)
                 glyphs += list(word)
 
@@ -252,18 +253,21 @@ class LabelBase(object):
         assert(data)
 
         # create texture is necessary
-        if self.texture is None:
-            self.texture = Texture.create(*self.size)
-            self.texture.flip_vertical()
-        elif self.width > self.texture.width or self.height > self.texture.height:
-            self.texture = Texture.create(*self.size)
-            self.texture.flip_vertical()
+        texture = self.texture
+        if texture is None:
+            texture = Texture.create(size=self.size)
+            texture.flip_vertical()
+        elif self.width > texture.width or self.height > texture.height:
+            texture = Texture.create(size=self.size)
+            texture.flip_vertical()
         else:
-            self.texture = self.texture.get_region(0, 0, self.width, self.height)
+            texture = texture.get_region(
+                0, 0, self.width, self.height)
 
-        #self.texture = Texture.create_from_data(data)
+        self.texture = texture
+
         # update texture
-        self.texture.blit_data(data)
+        texture.blit_data(data)
 
     def refresh(self):
         '''Force re-rendering of the text'''
@@ -277,6 +281,7 @@ class LabelBase(object):
 
     def _get_text(self):
         return self._text
+
     def _set_text(self, text):
         if text == self._text:
             return

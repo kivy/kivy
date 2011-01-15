@@ -252,7 +252,8 @@ class CoverageData(object):
 
 if __name__ == '__main__':
     # Ad-hoc: show the raw data in a data file.
-    import pprint, sys
+    import pprint
+    import sys
     covdata = CoverageData()
     if sys.argv[1:]:
         fname = sys.argv[1]

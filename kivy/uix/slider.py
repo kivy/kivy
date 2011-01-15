@@ -8,9 +8,12 @@ __all__ = ('Slider', )
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, AliasProperty
 
+
 class Slider(Widget):
+
     def __init__(self, **kwargs):
         super(Slider, self).__init__(**kwargs)
+
         def update_pos(*args):
             self.value_pos = (self.x+1, self.y)
         self.bind(pos=update_pos)
@@ -28,6 +31,7 @@ class Slider(Widget):
     #: Range of the slider. same as (self.min, self.max)
     def get_range(self):
         return (self.min, self.max)
+
     def set_range(self, range):
         self.min, self.max = range
     range = AliasProperty(get_range, set_range, bind=('min', 'max'))
@@ -38,17 +42,20 @@ class Slider(Widget):
         if d == 0:
             return 0
         return (self.value - self.min) / float(d)
+
     def set_norm_value(self, n_val):
         self.value = n_val*(self.max-self.min) + self.min
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'min', 'max'))
 
-    #: The value of the slider mapped to the screen position between self.x and self.right
+    #: The value of the slider mapped to the screen position
+    #  between self.x and self.right
     def get_value_pos(self):
         return  (self.x + self.value_normalized*self.width, self.y)
+
     def set_value_pos(self, pos):
-        x = min(self.right,  max(pos[0], self.x))
-        y = min(self.top,    max(pos[1], self.y))
+        x = min(self.right, max(pos[0], self.x))
+        y = min(self.top, max(pos[1], self.y))
         if self.width == 0:
             self.value_normalized = 0
         else:
@@ -57,7 +64,8 @@ class Slider(Widget):
                               bind=('value', 'min', 'max', 'value_normalized'))
 
 
-    #: on touch_down handler. if inside slider: grab touch, set value based on touch pos
+    #: on touch_down handler. If inside slider:
+    #  grab touch, set value based on touch pos
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             touch.grab(self)

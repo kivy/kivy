@@ -24,12 +24,13 @@ You can add new event like this::
     If the callback return False, the schedule will be removed.
 '''
 
-__all__ =  ('Clock', 'ClockBase')
+__all__ = ('Clock', 'ClockBase')
 
 from os import environ
 from time import time, sleep
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
+
 
 class _Event(object):
 
@@ -64,9 +65,9 @@ class _Event(object):
         if not self.loop:
             return False
 
-        # if user return an explicit false,
+        # if the user returns False explicitly,
         # remove the event
-        if ret == False:
+        if ret is False:
             return False
 
         return True
@@ -113,7 +114,7 @@ class ClockBase(object):
         self._last_tick = current
 
         # calculate fps things
-        if self._last_fps_tick == None:
+        if self._last_fps_tick is None:
             self._last_fps_tick = current
         elif current - self._last_fps_tick > 1:
             d = float(current - self._last_fps_tick)
@@ -169,7 +170,7 @@ class ClockBase(object):
 
     def _process_events(self):
         for event in self._events[:]:
-            if event.tick(self._last_tick) == False:
+            if event.tick(self._last_tick) is False:
                 # event may be already removed by the callback
                 if event in self._events:
                     self._events.remove(event)

@@ -7,7 +7,8 @@ Vertex Instructions
 This module include all the classes for drawing simple vertex object.
 '''
 
-__all__ = ('Triangle', 'Quad','Rectangle', 'BorderImage', 'Ellipse')
+__all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
+           'Point')
 
 
 include "config.pxi"
@@ -20,6 +21,93 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
+
+cdef class Line(VertexInstruction):
+    '''A 2d line.
+
+    :Parameters:
+        `points`: list
+            List of points in the format (x1, y1, x2, y2...)
+    '''
+    cdef list _points
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self.points = kwargs.get('points', [])
+        self.batch.set_mode('points')
+
+    cdef build(self):
+        cdef int i, count = len(self.points) / 2
+        cdef list p = self.points
+        self.vertices = [Vertex(p[i*2], p[i*2+1]) for i in xrange(count)]
+        self.indices = range(count)
+
+    property points:
+        '''Property for getting/settings points of the triangle
+        '''
+        def __get__(self):
+            return self._points
+        def __set__(self, points):
+            self._points = list(points)
+            self.flag_update()
+
+cdef class Point(VertexInstruction):
+    '''A 2d line.
+
+    :Parameters:
+        `points`: list
+            List of points in the format (x1, y1, x2, y2...)
+        `pointsize`: float, default to 1.
+            Size of the point (1. mean the real size will be 2)
+    '''
+    cdef list _points
+    cdef float _pointsize
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self.points = kwargs.get('points', [])
+        self.pointsize = kwargs.get('pointsize', 1.)
+
+    cdef build(self):
+        cdef float x, y, ps = self._pointsize
+        cdef int i, ii, count = len(self.points) / 2
+        cdef list p = self.points
+        cdef list vv = []
+        cdef list vi = []
+        cdef list tc = self._tex_coords
+        for i in xrange(count):
+            x = p[i*2]
+            y = p[i*2+1]
+            vv.append(Vertex(x - ps, y - ps, tc[0], tc[1]))
+            vv.append(Vertex(x + ps, y - ps, tc[2], tc[3]))
+            vv.append(Vertex(x + ps, y + ps, tc[4], tc[5]))
+            vv.append(Vertex(x - ps, y + ps, tc[6], tc[7]))
+            ii = i * 4
+            vi.extend([ii, ii+1, ii+2, ii+2, ii+3, ii])
+        self.vertices = vv
+        self.indices = vi
+
+    property points:
+        '''Property for getting/settings points of the triangle
+        '''
+        def __get__(self):
+            return self._points
+        def __set__(self, points):
+            if self._points == points:
+                return
+            self._points = list(points)
+            self.flag_update()
+
+    property pointsize:
+        '''Property for getting/setting point size
+        '''
+        def __get__(self):
+            return self._pointsize
+        def __set__(self, float pointsize):
+            if self._pointsize == pointsize:
+                return
+            self._pointsize = pointsize
+            self.flag_update()
 
 cdef class Triangle(VertexInstruction):
     '''A 2d triangle.

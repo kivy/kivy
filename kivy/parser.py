@@ -15,6 +15,7 @@ from kivy.resources import resource_find
 from kivy.core.image import Image
 from kivy.core.svg import Svg
 
+
 def parse_filename(filename):
     '''Parse a filename, and search inside resource if exist.
     If we haven't found it, just return the name.
@@ -24,6 +25,7 @@ def parse_filename(filename):
     if result is None:
         Logger.error('Resource: unable to found <%s>' % filename)
     return result or filename
+
 
 def parse_image(filename):
     '''Parse a filename to load an image ro svg'''
@@ -36,6 +38,7 @@ def parse_image(filename):
         return Image(filename)
     raise Exception('Error trying to load image specified in css: %s' \
                     % filename)
+
 
 def parse_color(text):
     '''Parse a text color to a kivy color. Format supported are :
@@ -60,6 +63,7 @@ def parse_color(text):
             value.append(1.)
     return value
 
+
 def parse_bool(text):
     '''Parse a string to a boolean'''
     if text.lower() in ('true', '1'):
@@ -68,17 +72,19 @@ def parse_bool(text):
         return False
     raise Exception('Invalid boolean: %s' % text)
 
+
 def parse_string(text):
     '''Parse a string to a string (remove quotes and double-quotes)'''
     if len(text) >= 2 and text[0] in ('"', "'") and text[-1] in ('"', "'"):
         text = text[1:-1]
     return text.strip()
 
+
 def parse_int2(text):
     '''Parse a string to a integer with exactly 2 number
 
-	>>> print parse_int2("12 54")
-	12, 54
+        >>> print parse_int2("12 54")
+        12, 54
 
     '''
     texts = [x for x in text.split(' ') if x.strip() != '']
@@ -91,11 +97,12 @@ def parse_int2(text):
         raise Exception('Too much value in %s : %s' % (text, str(value)))
     return value
 
+
 def parse_float4(text):
     '''Parse a string to a float with exactly 4 floats
 
-	>>> parse_float4('54 87. 35 0')
-	54, 87., 35, 0
+        >>> parse_float4('54 87. 35 0')
+        54, 87., 35, 0
 
     '''
     texts = [x for x in text.split(' ') if x.strip() != '']

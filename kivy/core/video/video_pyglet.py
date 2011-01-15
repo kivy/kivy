@@ -8,23 +8,27 @@ try:
 except:
     raise
 
-import kivy
-from kivy.clock import Clock
 from . import VideoBase
 
 
 #have to set these before importing pyglet.gl
-#otherwise pyglet creates a seperate gl context and fails on error checks becasue we use pygame window
+#otherwise pyglet creates a seperate gl context and fails
+# on error checks becasue we use pygame window
 pyglet.options['shadow_window'] = False
 pyglet.options['debug_gl'] = False
 import pyglet.gl
 
-#another pyglet fix, because pyglet has a bugfix which is a bad hacked,
-#it checks for context._workaround_unpack_row_length..but we're using the implicit context form pyglet or glut window
-#this means we cant have a pyglet window provider though! if we do, this will break pyglet window context
+
 class FakePygletContext:
+    # another pyglet fix, because pyglet has a bugfix which is a bad hacked,
+    # it checks for context._workaround_unpack_row_length..but we're using
+    # the implicit context form pyglet or glut window
+    # this means we cant have a pyglet window provider though! if we do,
+    # this will break pyglet window context
     _workaround_unpack_row_length = False
+
 pyglet.gl.current_context = FakePygletContext()
+
 
 class VideoPyglet(VideoBase):
     '''VideoBase implementation using Pyglet
@@ -50,16 +54,23 @@ class VideoPyglet(VideoBase):
         self.play()
         self.stop()
 
-        #we have to keep track of tie ourselves..at least its the only way i can get pyglet player to restart,
-        #_player.time does not get reset when you do seek(0) for soe reason, and is read only
+        # we have to keep track of tie ourselves..
+        # at least its the only way i can get pyglet player to restart,
+        # _player.time does not get reset when you do seek(0) for soe reason,
+        # and is read only
         self.time = self._player.time
 
-    def update(self):
-        if self._source.duration  - self.time < 0.1 : #we are at the end
+    def _update(self, dt):
+        if self._source.duration - self.time < 0.1: #we are at the end
             self.seek(0)
         if self.state == 'playing':
-            self.time += Clock.frametime #keep track of time into video
-            self._player.dispatch_events(Clock.frametime) #required by pyglet video if not in pyglet window
+            # keep track of time into video
+            self.time += dt
+            # required by pyglet video if not in pyglet window
+            self._player.dispatch_events(dt)
+        if self._player.get_texture():
+            # TODO: blit the pyglet texture to our own texture.
+            assert('TODO')
 
     def stop(self):
         self._player.pause()
@@ -70,7 +81,7 @@ class VideoPyglet(VideoBase):
         super(VideoPyglet, self).play()
 
     def seek(self, percent):
-        t = self._source.duration*percent
+        t = self._source.duration * percent
         self.time = t
         self._player.seek(t)
         self.stop()
@@ -91,5 +102,6 @@ class VideoPyglet(VideoBase):
     def _set_volume(self, volume):
         if self._player:
             self._player.volume = volume
+            self.dispatch('on_frame')
 
 

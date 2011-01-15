@@ -4,14 +4,20 @@ Test properties attached to a widget
 
 import unittest
 
-# Fake widget class
+
 class Widget(object):
+    '''Fake widget class'''
+
     def __init__(self, **kwargs):
         super(Widget, self).__init__(**kwargs)
         self.__dict__['__uid'] = 1
+
+
 wid = Widget()
 
+
 class PropertiesTestCase(unittest.TestCase):
+
     def test(self):
         from kivy.properties import Property
 
@@ -33,6 +39,7 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), -1)
         global observe_called
         observe_called = 0
+
         def observe(obj, value):
             global observe_called
             observe_called = 1
@@ -108,8 +115,10 @@ class PropertiesTestCase(unittest.TestCase):
 
         def get_right(self):
             return x.get(self) + width.get(self)
+
         def set_right(self, value):
             x.set(self, value - width.get(self))
+
         right = AliasProperty(get_right, set_right, bind=(x, width))
         right.link(wid, 'right')
         right.link_deps(wid, 'right')
@@ -127,6 +136,7 @@ class PropertiesTestCase(unittest.TestCase):
         # test observer
         global observe_called
         observe_called = 0
+
         def observe(obj, value):
             global observe_called
             observe_called = 1
@@ -149,7 +159,6 @@ class PropertiesTestCase(unittest.TestCase):
 
         right.set(wid, 700)
         self.assertEqual(observe_called, 0)
-
 
     def test_reference(self):
         from kivy.properties import NumericProperty, ReferenceListProperty
@@ -182,6 +191,7 @@ class PropertiesTestCase(unittest.TestCase):
         # test observer
         global observe_called
         observe_called = 0
+
         def observe(obj, value):
             global observe_called
             observe_called = 1

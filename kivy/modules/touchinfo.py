@@ -4,7 +4,9 @@ Get all informations of a touch
 
 from kivy import MTWidget, MTSpeechBubble, getCurrentTouches
 
+
 class TouchInfos(MTWidget):
+
     def __init__(self, **kwargs):
         super(TouchInfos, self).__init__(**kwargs)
         self.bubbles = {}
@@ -46,9 +48,11 @@ class TouchInfos(MTWidget):
             if uid not in alive:
                 del bubbles[uid]
 
+
 def start(win, ctx):
     ctx.w = TouchInfos()
     win.add_widget(ctx.w)
+
 
 def stop(win, ctx):
     win.remove_widget(ctx.w)

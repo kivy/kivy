@@ -27,7 +27,6 @@ from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.utils import SafeList
 from kivy.core.image import ImageLoader, Image
-from abc import ABCMeta, abstractmethod
 
 import time
 import collections
@@ -35,6 +34,7 @@ import os
 
 # Register a cache for loader
 Cache.register('kivy.loader', limit=500, timeout=60)
+
 
 class ProxyImage(Image):
     '''Image returned by the Loader.image() function.
@@ -47,6 +47,7 @@ class ProxyImage(Image):
         `on_load`
             Fired when the image is loaded and changed
     '''
+
     def __init__(self, arg, **kwargs):
         kwargs.setdefault('loaded', False)
         super(ProxyImage, self).__init__(arg, **kwargs)
@@ -65,16 +66,14 @@ class LoaderBase(object):
     less than 25 FPS.
     '''
 
-    __metaclass__ = ABCMeta
-
     def __init__(self):
 
         self._loading_image = None
         self._error_image = None
 
-        self._q_load  = collections.deque()
-        self._q_done  = collections.deque()
-        self._client  = SafeList()
+        self._q_load = collections.deque()
+        self._q_done = collections.deque()
+        self._client = []
         self._running = False
         self._start_wanted = False
 
@@ -90,7 +89,7 @@ class LoaderBase(object):
     def loading_image(self):
         '''Image used for loading (readonly)'''
         if not self._loading_image:
-            loading_png_fn = os.path.join(kivy_data_dir, 'loader.png')
+            loading_png_fn = os.path.join(kivy_data_dir, 'images', 'loading-0.png')
             self._loading_image = ImageLoader.load(filename=loading_png_fn)
         return self._loading_image
 
@@ -102,17 +101,14 @@ class LoaderBase(object):
             self._error_image = ImageLoader.load(filename=error_png_fn)
         return self._error_image
 
-    @abstractmethod
     def start(self):
         '''Start the loader thread/process'''
         self._running = True
 
-    @abstractmethod
     def run(self, *largs):
         '''Main loop for the loader.'''
         pass
 
-    @abstractmethod
     def stop(self):
         '''Stop the loader thread/process'''
         self._running = False
@@ -143,10 +139,11 @@ class LoaderBase(object):
     def _load_urllib(self, filename):
         '''(internal) Loading a network file. First download it, save it to a
         temporary file, and pass it to _load_local()'''
-        import urllib2, tempfile
+        import urllib2
+        import tempfile
         data = None
         try:
-            suffix = '.%s'  % (filename.split('.')[-1])
+            suffix = '.%s' % (filename.split('.')[-1])
             _out_osfd, _out_filename = tempfile.mkstemp(
                     prefix='kivyloader', suffix=suffix)
 
@@ -249,6 +246,7 @@ else:
         import pygame
 
         class LoaderPygame(LoaderBase):
+
             def __init__(self):
                 super(LoaderPygame, self).__init__()
                 self.worker = None
@@ -266,8 +264,8 @@ else:
                 while self._running:
                     try:
                         parameters = self._q_load.pop()
-                    except:
                         time.sleep(0.1)
+                    except:
                         continue
                     self.worker.do(self._load, parameters)
 
@@ -279,9 +277,9 @@ else:
         #
         # Default to the clock loader
         #
-
         class LoaderClock(LoaderBase):
             '''Loader implementation using a simple Clock()'''
+
             def start(self):
                 super(LoaderClock, self).start()
                 Clock.schedule_interval(self.run, 0.0001)

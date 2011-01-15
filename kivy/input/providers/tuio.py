@@ -13,6 +13,7 @@ from kivy.input.touch import Touch
 from kivy.input.shape import TouchShapeRect
 from kivy.logger import Logger
 
+
 class TuioTouchProvider(TouchProvider):
     '''Tuio provider listen to a socket, and handle part of OSC message
 
@@ -53,13 +54,15 @@ class TuioTouchProvider(TouchProvider):
         if len(args) <= 0:
             Logger.error('Tuio: Invalid configuration for TUIO provider')
             Logger.error('Tuio: Format must be ip:port (eg. 127.0.0.1:3333)')
-            Logger.error('Tuio: Actual TUIO configuration is <%s>' % (str(','.join(args))))
+            err = 'Tuio: Actual configuration is <%s>' % (str(','.join(args)))
+            Logger.error(err)
             return None
         ipport = args[0].split(':')
         if len(ipport) != 2:
             Logger.error('Tuio: Invalid configuration for TUIO provider')
             Logger.error('Tuio: Format must be ip:port (eg. 127.0.0.1:3333)')
-            Logger.error('Tuio: Actual TUIO configuration is <%s>' % (str(','.join(args))))
+            err = 'Tuio: Actual configuration is <%s>' % (str(','.join(args)))
+            Logger.error(err)
             return None
         self.ip, self.port = args[0].split(':')
         self.port = int(self.port)
@@ -130,7 +133,8 @@ class TuioTouchProvider(TouchProvider):
             id = args[1]
             if id not in self.touches[oscpath]:
                 # new touch
-                touch = TuioTouchProvider.__handlers__[oscpath](self.device, id, args[2:])
+                touch = TuioTouchProvider.__handlers__[oscpath](self.device,
+                                                                id, args[2:])
                 self.touches[oscpath][id] = touch
                 dispatch_fn('down', touch)
             else:
@@ -153,6 +157,7 @@ class TuioTouchProvider(TouchProvider):
             for touch in to_delete:
                 dispatch_fn('up', touch)
                 del self.touches[oscpath][touch.id]
+
 
 class TuioTouch(Touch):
     '''Abstraction for TUIO touch.
@@ -192,8 +197,10 @@ class TuioTouch(Touch):
     ymot = property(lambda self: self.Y)
     zmot = property(lambda self: self.Z)
 
+
 class Tuio2dCurTouch(TuioTouch):
     '''A 2dCur TUIO touch.'''
+
     def __init__(self, device, id, args):
         super(Tuio2dCurTouch, self).__init__(device, id, args)
 
@@ -206,7 +213,8 @@ class Tuio2dCurTouch(TuioTouch):
             self.Y = -self.Y
             self.profile = ('pos', 'mov', 'motacc')
         else:
-            self.sx, self.sy, self.X, self.Y, self.m, width, height = map(float, args[0:7])
+            self.sx, self.sy, self.X, self.Y = map(float, args[0:4])
+            self.m, width, height = map(float, args[4:7])
             self.Y = -self.Y
             self.profile = ('pos', 'mov', 'motacc', 'shape')
             if self.shape is None:
@@ -220,6 +228,7 @@ class Tuio2dCurTouch(TuioTouch):
 class Tuio2dObjTouch(TuioTouch):
     '''A 2dObj TUIO object.
     '''
+
     def __init__(self, device, id, args):
         super(Tuio2dObjTouch, self).__init__(device, id, args)
 
@@ -228,11 +237,14 @@ class Tuio2dObjTouch(TuioTouch):
             self.sx, self.sy = args[0:2]
             self.profile = ('pos', )
         elif len(args) == 9:
-            self.fid, self.sx, self.sy, self.a, self.X, self.Y, self.A, self.m, self.r = args[0:9]
+            self.fid, self.sx, self.sy, self.a, self.X, self.Y = args[:6]
+            self.A, self.m, self.r = args[6:9]
             self.Y = -self.Y
-            self.profile = ('markerid', 'pos', 'angle', 'mov', 'rot', 'motacc', 'rotacc')
+            self.profile = ('markerid', 'pos', 'angle', 'mov', 'rot',
+                            'motacc', 'rotacc')
         else:
-            self.fid, self.sx, self.sy, self.a, self.X, self.Y, self.A, self.m, self.r, width, height = args[0:11]
+            self.fid, self.sx, self.sy, self.a, self.X, self.Y = args[:6]
+            self.A, self.m, self.r, width, height = args[6:11]
             self.Y = -self.Y
             self.profile = ('markerid', 'pos', 'angle', 'mov', 'rot', 'rotacc',
                             'acc', 'shape')

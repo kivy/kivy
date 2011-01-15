@@ -20,27 +20,32 @@ def boundary(value, minvalue, maxvalue):
     '''Limit a value between a minvalue and maxvalue'''
     return min(max(value, minvalue), maxvalue)
 
+
 def intersection(set1, set2):
     '''Return intersection between 2 list'''
-    return filter(lambda s:s in set2, set1)
+    return filter(lambda s: s in set2, set1)
+
 
 def difference(set1, set2):
     '''Return difference between 2 list'''
-    return filter(lambda s:s not in set2, set1)
+    return filter(lambda s: s not in set2, set1)
+
 
 def curry(fn, *cargs, **ckwargs):
     '''Change the function signature to pass new variable.'''
+
     def call_fn(*fargs, **fkwargs):
         d = ckwargs.copy()
         d.update(fkwargs)
         return fn(*(cargs + fargs), **d)
     return call_fn
 
+
 def interpolate(value_from, value_to, step=10):
     '''Interpolate a value to another. Can be useful to smooth some transition.
     For example ::
 
-        # instead of setting directly 
+        # instead of setting directly
         self.pos = pos
 
         # use interpolate, and you'll have a nice transition
@@ -57,6 +62,7 @@ def interpolate(value_from, value_to, step=10):
         return out
     else:
         return value_from + (value_to - value_from) / float(step)
+
 
 def strtotuple(s):
     '''Convert a tuple string into tuple,
@@ -81,6 +87,7 @@ def strtotuple(s):
         raise Exception('Conversion failed')
     return r
 
+
 def get_color_from_hex(s):
     '''Transform from hex string color to kivy color'''
     if s.startswith('#'):
@@ -90,6 +97,7 @@ def get_color_from_hex(s):
     if len(value) == 3:
         value.append(1)
     return value
+
 
 def get_random_color(alpha=1.0):
     ''' Returns a random color (4 tuple)
@@ -109,6 +117,7 @@ def get_color_for_pyglet(c):
     '''Transform from kivy color to pyglet color'''
     return map(lambda x: int(255 * x), c)
 
+
 def is_color_transparent(c):
     '''Return true if alpha channel is 0'''
     if len(c) < 4:
@@ -117,7 +126,10 @@ def is_color_transparent(c):
         return True
     return False
 
+
 DEPRECATED_CALLERS = []
+
+
 def deprecated(func):
     '''This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted the first time
@@ -152,6 +164,7 @@ class SafeList(list):
     .. warning::
         Usage of iterate() function will decrease your performance.
     '''
+
     def clear(self):
         del self[:]
 
@@ -160,6 +173,7 @@ class SafeList(list):
         if reverse:
             return reversed(iter(self))
         return iter(self)
+
 
 class OrderedDict(dict, DictMixin):
 
@@ -222,8 +236,8 @@ class OrderedDict(dict, DictMixin):
         inst_dict = vars(self).copy()
         self.__map, self.__end = tmp
         if inst_dict:
-            return (self.__class__, (items,), inst_dict)
-        return self.__class__, (items,)
+            return (self.__class__, (items, ), inst_dict)
+        return self.__class__, (items, )
 
     def keys(self):
         return list(self)
@@ -239,7 +253,7 @@ class OrderedDict(dict, DictMixin):
 
     def __repr__(self):
         if not self:
-            return '%s()' % (self.__class__.__name__,)
+            return '%s()' % (self.__class__.__name__, )
         return '%s(%r)' % (self.__class__.__name__, self.items())
 
     def copy(self):
@@ -259,3 +273,4 @@ class OrderedDict(dict, DictMixin):
 
     def __ne__(self, other):
         return not self == other
+

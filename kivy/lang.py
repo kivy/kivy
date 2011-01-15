@@ -37,7 +37,9 @@ from kivy import kivy_data_dir
 
 trace = Logger.trace
 
+
 class ParserError(Exception):
+
     def __init__(self, context, line, message):
         self.filename = context.filename or '<inline>'
         self.line = line
@@ -74,7 +76,6 @@ class Parser(object):
             raise ValueError('No content passed. Use filename or '
                              'content attribute')
         self.parse(content)
-
 
     def parse(self, content):
         '''Parse the content of a Parser file, and return a list
@@ -178,7 +179,8 @@ class Parser(object):
                 if not len(x[0]):
                     raise ParserError(self, ln, 'Identifier missing')
                 if len(x) == 2 and len(x[1]):
-                    raise ParserError(self, ln, 'Invalid data after declaration')
+                    raise ParserError(self, ln,
+                                        'Invalid data after declaration')
                 objects.append((x[0], current_object))
 
             # Next level, is it a property or an object ?
@@ -236,21 +238,27 @@ class Parser(object):
         with open(filename, 'r') as fd:
             return fd.read()
 
+
 #
 # Utilities for eval()
 #
 _eval_globals = {}
+
+
 def _eval_center(boxsize, center):
     return center[0] - boxsize[0] / 2., center[1] - boxsize[1] / 2.
+
+
 _eval_globals['center'] = _eval_center
+
 
 def custom_callback(*largs, **kwargs):
     element, key, value, idmap = largs[0]
     locals().update(idmap)
     exec value
 
-def create_handler(element, key, value, idmap):
 
+def create_handler(element, key, value, idmap):
     # first, remove all the string from the value
     tmp = re.sub('([\'"][^\'"]*[\'"])', '', value)
 
@@ -262,6 +270,7 @@ def create_handler(element, key, value, idmap):
 
     # create an handler
     idmap = copy(idmap)
+
     def call_fn(sender, _value):
         trace('Builder: call_fn %s, key=%s, value=%s' % (element, key, value))
         e_value = eval(value, _eval_globals, idmap)
@@ -278,7 +287,9 @@ def create_handler(element, key, value, idmap):
 
     return eval(value, _eval_globals, idmap)
 
+
 class BuilderRule(object):
+
     def __init__(self, key):
         self.key = key.lower()
 
@@ -288,22 +299,30 @@ class BuilderRule(object):
     def __repr__(self):
         return '<%s key=%s>' % (self.__class__.__name__, self.key)
 
+
 class BuilderRuleId(BuilderRule):
+
     def match(self, widget):
         return widget.id.lower() == self.key
 
+
 class BuilderRuleClass(BuilderRule):
+
     def match(self, widget):
         return self.key in widget.cls
 
+
 class BuilderRuleName(BuilderRule):
+
     def match(self, widget):
         return widget.__class__.__name__.lower() == self.key
+
 
 class BuilderBase(object):
     '''Kv object are able to load Kv file or string, return the root object of
     the file, and inject rules in the rules database.
     '''
+
     def __init__(self):
         super(BuilderBase, self).__init__()
         self.rules = []
@@ -364,7 +383,6 @@ class BuilderBase(object):
     #
     # Private
     #
-
     def _push_ids(self):
         self.idmaps.append(self.idmap)
         self.idmap = copy(self.idmap)
@@ -438,7 +456,8 @@ class BuilderBase(object):
             elif key == 'id':
                 self.gidmap[value] = widget
             else:
-                self.listset.append((ctx, ln, widget, key, value, copy(self.idmap)))
+                self.listset.append((ctx, ln, widget, key, value,
+                                        copy(self.idmap)))
 
         self._pop_ids()
         if is_template:
@@ -467,7 +486,8 @@ class BuilderBase(object):
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):
-            element.bind(**{key:curry(custom_callback, (element, key, value, idmap))})
+            element.bind(**{key: curry(custom_callback, (element, key,
+                                                            value, idmap))})
 
         else:
             value = create_handler(element, key, value, idmap)
@@ -517,6 +537,7 @@ class BuilderBase(object):
 #: Rules instance, can be use for asking if we are matching a rule or not
 Builder = BuilderBase()
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
+
 
 if __name__ == '__main__':
     content = '''#:Kv 1.0

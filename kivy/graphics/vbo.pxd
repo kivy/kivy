@@ -26,7 +26,9 @@ cdef class VertexBatch:
     cdef Buffer vbo_index
     cdef list vertices
     cdef list indices
+    cdef GLuint mode
 
     cdef set_data(self, list vertices, list indices)
     cdef build(self)
     cdef draw(self)
+    cdef set_mode(self, str mode)

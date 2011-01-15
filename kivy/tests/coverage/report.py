@@ -1,6 +1,7 @@
 """Reporter foundation for Coverage."""
 
-import fnmatch, os
+import fnmatch
+import os
 from coverage.codeunit import code_unit_factory
 from coverage.misc import CoverageException, NoSource
 

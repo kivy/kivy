@@ -7,8 +7,12 @@
 #define __USE_GLES2		1
 
 #if __USE_GLES2
-#   warning "GL redirect is set on GLES 2 headers"
-#	include <GLES2/gl2.h>
+#	if __APPLE__
+#		include "apple_gl2.h"
+#	else
+#		warning "GL redirect is set on GLES 2 headers"
+#		include <GLES2/gl2.h>
+#	endif
 #else
 #   warning "GL redirect is set on standard GL headers"
 #	ifdef __APPLE__

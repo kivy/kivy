@@ -1,9 +1,9 @@
-from kivy.logger import Logger
-
-import re, math
+import re
+import math
+from pprint import pprint
 from xml.etree.cElementTree import parse
 
-from pprint import pprint
+from kivy.logger import Logger
 
 
 BEZIER_POINTS = 10
@@ -17,8 +17,10 @@ def parse_float(txt):
     else:
         return float(txt)
 
+
 def parse_list(string):
     return re.findall("([A-Za-z]|-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)", string)
+
 
 def parse_style(string):
     sdict = {}
@@ -29,56 +31,62 @@ def parse_style(string):
     return sdict
 
 
-
 class Matrix(object):
+
     def __init__(self, string=None):
-        self.values = [1, 0, 0, 1, 0, 0] #Identity matrix seems a sensible default
+        # Identity matrix seems a sensible default
+        self.values = vals = [1, 0, 0, 1, 0, 0]
         if isinstance(string, str):
             if string.startswith('matrix('):
-                self.values = [float(x) for x in parse_list(string[7:-1])]
+                vals = [float(x) for x in parse_list(string[7:-1])]
             elif string.startswith('translate('):
                 x, y = [float(x) for x in parse_list(string[10:-1])]
-                self.values = [1, 0, 0, 1, x, y]
+                vals = [1, 0, 0, 1, x, y]
             elif string.startswith('scale('):
                 sx, sy = [float(x) for x in parse_list(string[6:-1])]
-                self.values = [sx, 0, 0, sy, 0, 0]
+                vals = [sx, 0, 0, sy, 0, 0]
         elif string is not None:
-            self.values = list(string)
+            vals = list(string)
 
     def __call__(self, other):
-        return (self.values[0]*other[0] + self.values[2]*other[1] + self.values[4],
-                self.values[1]*other[0] + self.values[3]*other[1] + self.values[5])
+        vals = self.values
+        return (vals[0] * other[0] + vals[2] * other[1] + vals[4],
+                vals[1] * other[0] + vals[3] * other[1] + vals[5])
 
     def inverse(self):
-        d = float(self.values[0]*self.values[3] - self.values[1]*self.values[2])
-        return Matrix([self.values[3]/d, -self.values[1]/d, -self.values[2]/d, self.values[0]/d,
-                       (self.values[2]*self.values[5] - self.values[3]*self.values[4])/d,
-                       (self.values[1]*self.values[4] - self.values[0]*self.values[5])/d])
+        vals = self.values
+        d = float(vals[0] * vals[3] - vals[1] * vals[2])
+        return Matrix([vals[3] / d, - vals[1] / d, - vals[2] / d, vals[0] / d,
+                      (vals[2] * vals[5] - vals[3] * vals[4]) / d,
+                      (vals[1] * vals[4] - vals[0] * vals[5]) / d])
 
     def __mul__(self, other):
         a, b, c, d, e, f = self.values
         u, v, w, x, y, z = other.values
-        return Matrix([a*u + c*v, b*u + d*v, a*w + c*x, b*w + d*x, a*y + c*z + e, b*y + d*z + f])
-
-
+        return Matrix([a * u + c * v, b * u + d * v, a * w + c * x,
+                       b * w + d * x, a * y + c * z + e, b * y + d * z + f])
 
 
 class SVGData(object):
+
     def __init__(self, filename):
         """Creates an SVG object from a .svg or .svgz file.
 
             `filename`: str
                 The name of the file to be loaded.
             `bezier_points`: int
-                The number of line segments into which to subdivide Bezier splines. Defaults to 10.
+                The number of line segments into which to subdivide Bezier
+                splines.
+                Defaults to 10.
             `circle_points`: int
-                The number of line segments into which to subdivide circular and elliptic arcs.
+                The number of line segments into which to subdivide circular
+                and elliptic arcs.
                 Defaults to 10.
             `rawdata`: string
-                Raw data string (you need to set a fake filename for cache anyway)
+                Raw data string (need to set a fake filename for cache anyway)
                 Defaults to None.
         """
-        self.width  = -1
+        self.width = -1
         self.height = -1
 
         self.bezier_points = BEZIER_POINTS
@@ -86,7 +94,8 @@ class SVGData(object):
         self.bezier_coefficients = []
 
         self.filename = filename
-        if open(self.filename, 'rb').read(3) == '\x1f\x8b\x08': #gzip magic numbers
+        # gzip magic numbers
+        if open(self.filename, 'rb').read(3) == '\x1f\x8b\x08':
             import gzip
             f = gzip.open(self.filename, 'rb')
         else:
@@ -94,11 +103,9 @@ class SVGData(object):
         self.tree = parse(f)
         self.parse_doc()
 
-
     @property
     def size(self):
         return (self, width, self.height)
-
 
     def parse_doc(self):
         self.paths = []
@@ -107,7 +114,8 @@ class SVGData(object):
         if self.height:
             self.transform = Matrix([1, 0, 0, -1, 0, self.height])
         else:
-            x, y, w, h = (parse_float(x) for x in parse_list(self.tree._root.get("viewBox")))
+            r = self.tree._root
+            x, y, w, h = (parse_float(x) for x in parse_list(r.get("viewBox")))
             self.transform = Matrix([1, 0, 0, -1, -x, h + y])
             self.height = h
             self.width = w
@@ -115,7 +123,7 @@ class SVGData(object):
             try:
                 self.parse_element(e)
             except Exception, ex:
-                Logger.exception('SVGData: exception while parsing element %s' % e)
+                Logger.exception('SVGData: Error while parsing element %s' % e)
                 raise
 
     def parse_element(self, e):
@@ -124,7 +132,8 @@ class SVGData(object):
 
         if e.tag.endswith('path'):
             pathdata = e.get('d', '')
-            pathdata = re.findall("([A-Za-z]|-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)", pathdata)
+            regex = "([A-Za-z]|-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)"
+            pathdata = re.findall(regex, pathdata)
 
             def pnext():
                 return (float(pathdata.pop(0)), float(pathdata.pop(0)))
@@ -143,13 +152,17 @@ class SVGData(object):
                     x2, y2 = pnext()
                     x, y = pnext()
 
-                    self.curve_to(mx + x1, my + y1, mx + x2, my + y2, mx + x, my + y)
+                    self.curve_to(mx + x1, my + y1,
+                                  mx + x2, my + y2,
+                                  mx + x, my + y)
                 elif opcode == 'S':
-                    self.curve_to(2 * self.x - self.last_cx, 2 * self.y - self.last_cy, *(pnext() + pnext()))
+                    self.curve_to(2 * self.x - self.last_cx,
+                        2 * self.y - self.last_cy, *(pnext() + pnext()))
                 elif opcode == 's':
                     mx = self.x
                     my = self.y
-                    x1, y1 = 2 * self.x - self.last_cx, 2 * self.y - self.last_cy
+                    x1 = 2 * self.x - self.last_cx
+                    y1 = 2 * self.y - self.last_cy
                     x2, y2 = pnext()
                     x, y = pnext()
 
@@ -195,17 +208,20 @@ class SVGData(object):
             w = float(e.get('width'))
             self.new_path()
             self.set_position(x, y)
-            self.line_to(x+w,y)
-            self.line_to(x+w,y+h)
-            self.line_to(x,y+h)
-            self.line_to(x,y)
+            self.line_to(x + w, y)
+            self.line_to(x + w, y + h)
+            self.line_to(x, y + h)
+            self.line_to(x, y)
             self.end_path()
 
         elif e.tag.endswith('polyline') or e.tag.endswith('polygon'):
             pathdata = e.get('points')
-            pathdata = re.findall("(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)", pathdata)
+            regex = "(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)"
+            pathdata = re.findall(regex, pathdata)
+
             def pnext():
                 return (float(pathdata.pop(0)), float(pathdata.pop(0)))
+
             self.new_path()
             while pathdata:
                 self.line_to(*pnext())
@@ -242,7 +258,8 @@ class SVGData(object):
             self.new_path()
             for i in xrange(self.circle_points):
                 theta = 2 * i * math.pi / self.circle_points
-                self.line_to(cx + rx * math.cos(theta), cy + ry * math.sin(theta))
+                self.line_to(cx + rx * math.cos(theta),
+                             cy + ry * math.sin(theta))
             self.close_path()
             self.end_path()
 
@@ -256,7 +273,9 @@ class SVGData(object):
             try:
                 self.parse_element(c)
             except Exception, ex:
-                Logger.exception('SVGData: exception while parsing child element %s of %s' % (c,e))
+                err = 'SVGData: Exception while parsing child element ' \
+                      '%s of %s' % (c, e)
+                Logger.exception(err)
                 raise
 
         #done parsing element, restore transform
@@ -280,11 +299,10 @@ class SVGData(object):
         print "set position", x, y
         self.x = x
         self.y = y
-        self.loop.append([x,y])
-
+        self.loop.append([x, y])
 
     def curve_to(self, x1, y1, x2, y2, x, y):
-        print "curve to:", x1,y1, x2,y2, x, y
+        print "curve to:", x1, y1, x2, y2, x, y
         if not self.bezier_coefficients:
             for i in xrange(self.bezier_points+1):
                 t = float(i)/self.bezier_points
@@ -312,22 +330,19 @@ class SVGData(object):
         if self.path:
             path = []
             for orig_loop in self.path:
-                if not orig_loop: continue
+                if not orig_loop:
+                    continue
                 loop = [orig_loop[0]]
                 for pt in orig_loop:
-                    if (pt[0] - loop[-1][0])**2 + (pt[1] - loop[-1][1])**2 > TOLERANCE:
+                    val = (pt[0] - loop[-1][0])**2 + (pt[1] - loop[-1][1])**2
+                    if val > TOLERANCE:
                         loop.append(pt)
                 path.append(loop)
 
-            print "path: " 
+            print "path: "
             pprint(path)
             print "loop: "
             pprint(self.loop)
 
-
         self.path = []
-
-
-
-
 

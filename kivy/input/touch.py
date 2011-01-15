@@ -7,8 +7,8 @@ Base for all touch objects
 
 Every touch in Kivy derives from the abstract Touch class.
 A touch can have more or less attributes, depending on the provider.
-For example, the TUIO provider can give you a lot of information about the touch,
-like position, acceleration, width/height of the shape and so on.
+For example, the TUIO provider can give you a lot of information
+about the touch, like position, acceleration, width/height of the shap, etc.
 Another provider might just give you x/y coordinates and pressure.
 
 We call these attributes "capabilities". Every touch indicates its
@@ -52,6 +52,7 @@ from kivy.vector import Vector
 
 
 class TouchMetaclass(type):
+
     def __new__(mcs, name, bases, attrs):
         __attrs__ = []
         for base in bases:
@@ -88,7 +89,7 @@ class Touch(object):
 
     def __init__(self, device, id, args):
         if self.__class__ == Touch:
-            raise NotImplementedError, 'class Touch is abstract'
+            raise NotImplementedError('class Touch is abstract')
 
         # Uniq ID
         Touch.__uniq_id += 1
@@ -200,15 +201,15 @@ class Touch(object):
             self.x = sx * float(w)
             self.y = sy * float(h)
         elif rotation == 90:
-            sx, sy = sy, 1-sx
+            sx, sy = sy, 1 - sx
             self.x = sx * float(h)
             self.y = sy * float(w)
         elif rotation == 180:
-            sx, sy = 1-sx, 1-sy
+            sx, sy = 1 - sx, 1 - sy
             self.x = sx * float(w)
             self.y = sy * float(h)
         elif rotation == 270:
-            sx, sy = 1-sy, sx
+            sx, sy = 1 - sy, sx
             self.x = sx * float(h)
             self.y = sy * float(w)
 
@@ -244,8 +245,9 @@ class Touch(object):
             to.__setattr__(attr, copy(self.__getattribute__(attr)))
 
     def __str__(self):
-        classname = str(self.__class__).split('.')[-1].replace('>', '').replace('\'', '')
-        return '<%s spos=%s pos=%s>' % (classname, str(self.spos), str(self.pos))
+        basename = str(self.__class__)
+        classname = basename.split('.')[-1].replace('>', '').replace('\'', '')
+        return '<%s spos=%s pos=%s>' % (classname, self.spos, self.pos)
 
     def distance(self, other_touch):
         return Vector(self.pos).distance(other_touch.pos)
@@ -261,8 +263,7 @@ class Touch(object):
             out.append('%s="%s"' % (x, v))
         return '<%s %s>' % (
             self.__class__.__name__,
-            ' '.join(out)
-        )
+            ' '.join(out))
 
     # facility
     @property
