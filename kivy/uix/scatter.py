@@ -23,6 +23,14 @@ class Scatter(Widget):
     '''Scatter implementation as a Widget.
     '''
 
+    auto_bring_to_front = BooleanProperty(True)
+    '''If True, the widget will be automatically pushed on the top of parent
+    widget list for drawing.
+
+    :data:`auto_bring_to_front` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True.
+    '''
+
     do_translation_x = BooleanProperty(True)
     '''Allow translation on X axis
 
@@ -315,6 +323,12 @@ class Scatter(Widget):
         # if the touch isnt on the widget we do nothing
         if not self.collide_point(x, y):
             return False
+
+        # auto bring to front
+        if self.auto_bring_to_front and self.parent:
+            parent = self.parent
+            parent.remove_widget(self)
+            parent.add_widget(self)
 
         # let the child widgets handle the event if they want
         touch.push()
