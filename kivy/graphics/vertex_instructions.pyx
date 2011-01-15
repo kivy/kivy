@@ -217,8 +217,12 @@ cdef class Rectangle(VertexInstruction):
         def __get__(self):
             return (self.x, self.y)
         def __set__(self, pos):
-            self.x = pos[0]
-            self.y = pos[1]
+            cdef float x, y
+            x, y = pos
+            if self.x == x and self.y == y:
+                return
+            self.x = x
+            self.y = y
             self.flag_update()
 
     property size:
@@ -227,8 +231,12 @@ cdef class Rectangle(VertexInstruction):
         def __get__(self):
             return (self.w, self.h)
         def __set__(self, size):
-            self.w = size[0]
-            self.h = size[1]
+            cdef float w, h
+            w, h = size
+            if self.w == w and self.h == h:
+                return
+            self.w = w
+            self.h = h
             self.flag_update()
 
 
