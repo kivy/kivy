@@ -20,14 +20,18 @@
 
 import sys
 from os.path import dirname, abspath, sep, join
-from subprocess import call
+from subprocess import call, Popen, PIPE
 
 curdir = dirname(abspath(__file__))
 kivydir = sep.join(curdir.split(sep)[:-2])
 srcdir = join(kivydir, 'kivy')
 script = join(srcdir, 'tools', 'pep8checker', 'pep8kivy.py')
 
-retval = call(['python', script, srcdir])
+# Only check the files that were staged
+proc = Popen(['git', 'diff', '--cached', '--name-only', 'HEAD'], stdout=PIPE)
+proc.wait()
+targets = [join(kivydir, target) for target in proc.stdout]
+retval = call(['python', script, srcdir] + targets)
 
 if retval:
     # There are styleguide violations
