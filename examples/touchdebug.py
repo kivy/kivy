@@ -64,6 +64,7 @@ class Touchdebug(Widget):
             touch.y,
             touch.__class__.__name__
         )
+        label.texture_update()
         label.pos = touch.pos
         label.size = label.texture_size[0] + 20, label.texture_size[1] + 20
 
