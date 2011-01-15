@@ -148,8 +148,8 @@ cdef class VertexInstruction(Instruction):
         Instruction.__init__(self, **kwargs)
         self.flags = GI_VERTEX_DATA & GI_NEED_UPDATE
         self.batch = VertexBatch()
-        self.vertices = list()
-        self.indices = list()
+        self.vertices = []
+        self.indices = []
 
     property texture:
         '''Property for getting/setting the texture to be bound when drawing the

@@ -374,7 +374,9 @@ cdef class Ellipse(Rectangle):
         rx = 0.5*(self.w)
         ry = 0.5*(self.h)
 
-        self.vertices = list()
+        self.vertices = []
+        self.indices = []
+
         for i in xrange(self.segments):
             # rad = deg * (pi / 180), where pi/180 = 0.0174...
             angle = i * 360.0/self.segments *0.017453292519943295
