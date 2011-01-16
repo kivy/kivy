@@ -2,6 +2,10 @@ PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
 
+build:
+	$(PYTHON) setup.py build_ext --inplace
+	$(PYTHON) setup.py build_factory
+
 style:
 	$(PYTHON) $(CHECKSCRIPT) $(KIVY_DIR)
 
