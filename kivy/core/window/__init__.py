@@ -236,19 +236,21 @@ class WindowBase(EventDispatcher):
         '''Rotated window center'''
         return self.width / 2., self.height / 2.
 
-    def add_widget(self, w):
+    def add_widget(self, widget):
         '''Add a widget on window'''
-        self.children.append(w)
-        w.parent = self
-        self.canvas.add(w.canvas)
+        self.children.append(widget)
+        widget.parent = self
+        self.canvas.add(widget.canvas)
+        self.update_childsize([widget])
 
-    def remove_widget(self, w):
-        '''Remove a widget from window'''
-        if not w in self.children:
+    def remove_widget(self, widget):
+        '''Remove a widget from window
+        '''
+        if not widget in self.children:
             return
-        self.children.remove(w)
-        w.parent = None
-        self.canvas.remove_canvas(w.canvas)
+        self.children.remove(widget)
+        self.canvas.remove(widget.canvas)
+        widget.parent = None
 
     def clear(self):
         '''Clear the window with background color'''
@@ -335,8 +337,13 @@ class WindowBase(EventDispatcher):
         glTranslatef(-w2, -h2, 0)
         '''
 
-        # update window size
-        for w in self.children:
+        self.update_childsize()
+
+    def update_childsize(self, childs=None):
+        width, height = self.system_size
+        if childs is None:
+            childs = self.children
+        for w in childs:
             shw, shh = w.size_hint
             if shw and shh:
                 w.size = shw * width, shh * height
