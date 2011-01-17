@@ -193,8 +193,8 @@ cdef class BindTexture(ContextInstruction):
             self.texture = kwargs.get('texture', None)
 
     cdef apply(self):
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(self._texture.target, self._texture._id)
+        cdef RenderContext context = self.get_context()
+        context.set_texture(0, self._texture)
 
     property texture:
         def __get__(self):

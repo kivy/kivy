@@ -65,9 +65,12 @@ cdef class InstructionGroup(Instruction):
         if self.compiler:
             if self.flags & GI_NEED_UPDATE:
                 self.build()
-            if self.compiled_children:
+            if self.compiled_children and not (self.flags & GI_NO_APPLY_ONCE):
                 for c in self.compiled_children.children:
+                    if c.flags & GI_IGNORE:
+                        continue
                     c.apply()
+            self.flags &= ~GI_NO_APPLY_ONCE
         else:
             for c in self.children:
                 c.apply()
@@ -128,7 +131,7 @@ cdef class ContextInstruction(Instruction):
     '''
     def __init__(self, **kwargs):
         Instruction.__init__(self, **kwargs)
-        self.flags &= GI_CONTEXT_MOD
+        self.flags |= GI_CONTEXT_MOD
         self.context_state = dict()
         self.context_push = list()
         self.context_pop = list()
@@ -337,6 +340,7 @@ cdef class RenderContext(Canvas):
     - the state stack (color, texture, matrix...)
     '''
     def __init__(self, *args, **kwargs):
+        self.bind_texture = dict()
         Canvas.__init__(self, **kwargs)
         vs_src = kwargs.get('vs', None)
         fs_src = kwargs.get('fs', None)
@@ -370,10 +374,15 @@ cdef class RenderContext(Canvas):
 
     cdef set_state(self, str name, value):
         #upload the uniform value for the shdeer
+        cdef list d
         if not name in self.state_stacks:
             self.state_stacks[name] = [value]
+            self.flag_update()
         else:
-            self.state_stacks[name][-1] = value
+            d = self.state_stacks[name]
+            if value != d[-1]:
+                d[-1] = value
+                self.flag_update()
         self.shader.set_uniform(name, value)
 
     cdef get_state(self, str name):
@@ -387,6 +396,7 @@ cdef class RenderContext(Canvas):
     cdef push_state(self, str name):
         stack = self.state_stacks[name]
         stack.append(stack[-1])
+        self.flag_update()
 
     cdef push_states(self, list names):
         cdef str name
@@ -397,19 +407,33 @@ cdef class RenderContext(Canvas):
         stack = self.state_stacks[name]
         stack.pop()
         self.set_state(name, stack[-1])
+        self.flag_update()
 
     cdef pop_states(self, list names):
         cdef str name
         for name in names:
             self.pop_state(name)
 
+    cdef set_texture(self, int index, Texture texture):
+        if index in self.bind_texture and \
+           self.bind_texture[index] is texture:
+            return
+        self.bind_texture[index] = texture
+        glActiveTexture(GL_TEXTURE0 + index)
+        glBindTexture(texture.target, texture.id)
+        self.flag_update()
+
     cdef enter(self):
         self.shader.use()
 
     cdef apply(self):
+        keys = self.state_stacks.keys()
+        self.push_states(keys)
         pushActiveContext(self)
         Canvas.apply(self)
         popActiveContext()
+        self.pop_states(keys)
+        self.flag_update_done()
 
     def __setitem__(self, key, val):
         self.set_state(key, val)

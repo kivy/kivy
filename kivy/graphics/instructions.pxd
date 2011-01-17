@@ -73,7 +73,9 @@ cdef class RenderContext(Canvas):
     cdef dict state_stacks
     #cdef TextureManager texture_manager
     cdef Texture default_texture
+    cdef dict bind_texture
 
+    cdef set_texture(self, int index, Texture texture)
     cdef set_state(self, str name, value)
     cdef get_state(self, str name)
     cdef set_states(self, dict states)
