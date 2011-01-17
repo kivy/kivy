@@ -45,6 +45,7 @@ from kivy.input.shape import ShapeRect
 class MTDMotionEvent(MotionEvent):
 
     def depack(self, args):
+        self.is_touch = True
         self.sx = args['x']
         self.sy = args['y']
         self.profile = ['pos']
@@ -170,12 +171,12 @@ else:
                         touch = MTDMotionEvent(device, tid, args)
                         touches[touch.id] = touch
                     touch.move(args)
-                    action = 'move'
+                    action = 'update'
                     if tid not in touches_sent:
-                        action = 'down'
+                        action = 'begin'
                         touches_sent.append(tid)
                     if 'delete' in args:
-                        action = 'up'
+                        action = 'end'
                         del args['delete']
                         del touches[touch.id]
                         touches_sent.remove(tid)

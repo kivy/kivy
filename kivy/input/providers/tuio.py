@@ -136,12 +136,12 @@ class TuioMotionEventProvider(MotionEventProvider):
                 touch = TuioMotionEventProvider.__handlers__[oscpath](self.device,
                                                                 id, args[2:])
                 self.touches[oscpath][id] = touch
-                dispatch_fn('down', touch)
+                dispatch_fn('begin', touch)
             else:
                 # update a current touch
                 touch = self.touches[oscpath][id]
                 touch.move(args[2:])
-                dispatch_fn('move', touch)
+                dispatch_fn('update', touch)
 
         # alive event, check for deleted touch
         if command == 'alive':
@@ -155,7 +155,7 @@ class TuioMotionEventProvider(MotionEventProvider):
                         to_delete.append(touch)
 
             for touch in to_delete:
-                dispatch_fn('up', touch)
+                dispatch_fn('end', touch)
                 del self.touches[oscpath][touch.id]
 
 
@@ -233,6 +233,7 @@ class Tuio2dObjMotionEvent(TuioMotionEvent):
         super(Tuio2dObjMotionEvent, self).__init__(device, id, args)
 
     def depack(self, args):
+        self.is_touch = True
         if len(args) < 5:
             self.sx, self.sy = args[0:2]
             self.profile = ('pos', )

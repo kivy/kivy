@@ -93,6 +93,7 @@ class MacMotionEvent(MotionEvent):
     profile'''
 
     def depack(self, args):
+        self.is_touch = True
         self.shape = ShapeRect()
         self.sx, self.sy = args[0], args[1]
         self.shape.width = args[2]
@@ -189,7 +190,7 @@ class MacMotionEventProvider(MotionEventProvider):
                 touch = MacMotionEvent(_instance.device, _instance.uid, args)
                 _instance.lock.release()
                 # create event
-                _instance.queue.append(('down', touch))
+                _instance.queue.append(('begin', touch))
                 # store touch
                 touches[data_id] = touch
             else:
@@ -199,13 +200,13 @@ class MacMotionEventProvider(MotionEventProvider):
                    data.normalized.position.y == touch.sy:
                     continue
                 touch.move(args)
-                _instance.queue.append(('move', touch))
+                _instance.queue.append(('update', touch))
 
         # delete old touchs
         for tid in touches.keys()[:]:
             if tid not in actives:
                 touch = touches[tid]
-                _instance.queue.append(('up', touch))
+                _instance.queue.append(('end', touch))
                 del touches[tid]
 
         return 0

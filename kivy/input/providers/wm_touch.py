@@ -12,7 +12,7 @@ from kivy.input.providers.wm_common import WM_TABLET_QUERYSYSTEMGESTURE, \
         PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN, \
         TOUCHEVENTF_MOVE
 from kivy.input.motionevent import MotionEvent
-from kivy.input.shape import MotionEventShapeRect
+from kivy.input.shape import ShapeRect
 
 
 class WM_MotionEvent(MotionEvent):
@@ -22,7 +22,8 @@ class WM_MotionEvent(MotionEvent):
     __attrs__ = ('size', )
 
     def depack(self, args):
-        self.shape = MotionEventShapeRect()
+        self.is_touch = True
+        self.shape = ShapeRect()
         self.sx, self.sy = args[0], args[1]
         self.shape.width = args[2][0]
         self.shape.height = args[2][1]
@@ -77,11 +78,11 @@ else:
 
         def _event_type(self):
             if self.flags & TOUCHEVENTF_MOVE:
-                return 'move'
+                return 'begin'
             if self.flags & TOUCHEVENTF_DOWN:
-                return 'down'
+                return 'update'
             if self.flags & TOUCHEVENTF_UP:
-                return 'up'
+                return 'end'
         event_type = property(_event_type)
 
     class RECT(Structure):
@@ -130,19 +131,19 @@ else:
                 y = 1.0 - (t.screen_y()-win_rect.y)/float(win_rect.h)
 
                 # actually dispatch input
-                if t.event_type == 'down':
+                if t.event_type == 'begin':
                     self.uid += 1
                     self.touches[t.id] = WM_MotionEvent(self.device,
                                                   self.uid, [x, y, t.size()])
-                    dispatch_fn('down', self.touches[t.id])
+                    dispatch_fn('begin', self.touches[t.id])
 
-                if t.event_type == 'move' and t.id in self.touches:
+                if t.event_type == 'update' and t.id in self.touches:
                     self.touches[t.id].move([x, y, t.size()])
-                    dispatch_fn('move', self.touches[t.id])
+                    dispatch_fn('update', self.touches[t.id])
 
-                if t.event_type == 'up' and t.id in self.touches:
+                if t.event_type == 'end' and t.id in self.touches:
                     self.touches[t.id].move([x, y, t.size()])
-                    dispatch_fn('up', self.touches[t.id])
+                    dispatch_fn('end', self.touches[t.id])
                     del self.touches[t.id]
 
         def stop(self):

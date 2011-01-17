@@ -23,13 +23,12 @@ class WindowBase(EventDispatcher):
 
         The parameters are not working in normal case. Because at import, Kivy
         create a default OpenGL window, to add the ability to use OpenGL
-        directives, texture creation.. before creating MTWindow.
+        directives, texture creation.. before creating Window.
         If you don't like this behavior, you can include before the very first
         import of Kivy ::
 
             import os
             os.environ['KIVY_SHADOW'] = '0'
-            from kivy import *
 
         This will forbid Kivy to create the default window !
 
@@ -45,6 +44,31 @@ class WindowBase(EventDispatcher):
             Height of window
         `vsync`: bool
             Vsync window
+
+    :Events:
+        `on_motion`: etype, motionevent
+            Fired when a new :class:`~kivy.input.motionevent.MotionEvent` is
+            dispatched
+        `on_touch_down`:
+            Fired when a new touch appear
+        `on_touch_move`:
+            Fired when an existing touch is moved
+        `on_touch_down`:
+            Fired when an existing touch disapear
+        `on_draw`:
+            Fired when the :class:`Window` is beeing drawed
+        `on_flip`:
+            Fired when the :class:`Window` GL surface is beeing flipped
+        `on_rotate`: rotation
+            Fired when the :class:`Window` is beeing rotated
+        `on_close`: 
+            Fired when the :class:`Window` is closed
+        `on_keyboard`: key, scancode, unicode
+            Fired when the keyboard is in action
+        `on_key_down`: key, scancode, unicode
+            Fired when a key is down
+        `on_key_up`: key, scancode, unicode
+            Fired when a key is up
     '''
 
     __instance = None
@@ -79,6 +103,7 @@ class WindowBase(EventDispatcher):
         self.register_event_type('on_rotate')
         self.register_event_type('on_resize')
         self.register_event_type('on_close')
+        self.register_event_type('on_motion')
         self.register_event_type('on_touch_down')
         self.register_event_type('on_touch_move')
         self.register_event_type('on_touch_up')
@@ -279,8 +304,26 @@ class WindowBase(EventDispatcher):
         self.clear()
         self.render_context.draw()
 
+    def on_motion(self, etype, me):
+        '''Event called when a Motion Event is received.
+
+        :Parameters:
+            `etype`: str
+                One of 'begin', 'update', 'end'
+            `me`: :class:`~kivy.input.motionevent.MotionEvent`
+                Motion Event currently dispatched
+        '''
+        if me.is_touch:
+            if etype == 'begin':
+                self.dispatch('on_touch_down', me)
+            elif etype == 'update':
+                self.dispatch('on_touch_move', me)
+            elif etype == 'end':
+                self.dispatch('on_touch_up', me)
+
     def on_touch_down(self, touch):
-        '''Event called when a touch is down'''
+        '''Event called when a touch is down
+        '''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
@@ -288,7 +331,8 @@ class WindowBase(EventDispatcher):
                 return True
 
     def on_touch_move(self, touch):
-        '''Event called when a touch move'''
+        '''Event called when a touch move
+        '''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
@@ -296,7 +340,8 @@ class WindowBase(EventDispatcher):
                 return True
 
     def on_touch_up(self, touch):
-        '''Event called when a touch up'''
+        '''Event called when a touch up
+        '''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
@@ -414,7 +459,7 @@ class WindowBase(EventDispatcher):
         pass
 
 
-# Load the appropriate provider
+#: Instance of a :class:`WindowBase` implementation
 Window = core_select_lib('window', (
     ('pygame', 'window_pygame', 'WindowPygame'),
 ), True)

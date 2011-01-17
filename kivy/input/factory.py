@@ -1,6 +1,6 @@
 '''
-MotionEvent Factory
-===================
+Motion Event Factory
+====================
 
 Factory of :class:`~kivy.input.motionevent.MotionEvent` providers.
 '''

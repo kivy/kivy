@@ -35,6 +35,7 @@ from kivy.input.shape import ShapeRect
 class LinuxWacomMotionEvent(MotionEvent):
 
     def depack(self, args):
+        self.is_touch = True
         self.sx = args['x']
         self.sy = args['y']
         self.profile = ['pos']
@@ -238,15 +239,15 @@ else:
                         continue
                     touch.move(args)
                     if tid not in touches_sent:
-                        queue.append(('down', touch))
+                        queue.append(('begin', touch))
                         touches_sent.append(tid)
-                    queue.append(('move', touch))
+                    queue.append(('update', touch))
 
                 for tid in touches.keys()[:]:
                     if tid not in actives:
                         touch = touches[tid]
                         if tid in touches_sent:
-                            queue.append(('up', touch))
+                            queue.append(('end', touch))
                             touches_sent.remove(tid)
                         del touches[tid]
 

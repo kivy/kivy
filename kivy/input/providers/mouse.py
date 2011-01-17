@@ -28,6 +28,7 @@ from kivy.input.motionevent import MotionEvent
 class MouseMotionEvent(MotionEvent):
 
     def depack(self, args):
+        self.is_touch = True
         self.sx, self.sy = args
         super(MouseMotionEvent, self).depack(args)
 
@@ -112,14 +113,14 @@ class MouseMotionEventProvider(MotionEventProvider):
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
         cur.update_graphics(self.window)
-        self.waiting_event.append(('down', cur))
+        self.waiting_event.append(('begin', cur))
         return cur
 
     def remove_touch(self, cur):
         if cur.id not in self.touches:
             return
         del self.touches[cur.id]
-        self.waiting_event.append(('up', cur))
+        self.waiting_event.append(('end', cur))
         cur.clear_graphics(self.window)
 
     def on_mouse_motion(self, win, x, y, modifiers):
@@ -130,7 +131,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             cur = self.current_drag
             cur.move([rx, ry])
             cur.update_graphics(win)
-            self.waiting_event.append(('move', cur))
+            self.waiting_event.append(('update', cur))
         elif self.alt_touch is not None and 'alt' not in modifiers:
             # alt just released ?
             is_double_tap = 'shift' in modifiers

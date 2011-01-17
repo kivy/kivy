@@ -10,6 +10,32 @@ event. This class define all the properties and methods needed to handle 2D and
     You never create the :class:`MotionEvent` yourself, this is the role of the
     :ref:`~kivy.input.providers`.
 
+Motion Event and Touch
+----------------------
+
+We differentiate Motion Event and Touch event. A Touch event is a
+:class:`MotionEvent` with the `pos` profile. Only theses event are dispatched
+all over the widget tree.
+
+1. The :class:`MotionEvent` are gathered from input providers
+2. All the :class:`MotionEvent` are dispatched in
+:func:`~kivy.core.window.Window.on_motion`.
+3. If a :class:`MotionEvent` have a `pos` profile, we dispatch them in
+:func:`~kivy.core.window.Window.on_touch_down`,move,up.
+
+Listen to Motion Event
+----------------------
+
+If you want to receive all Motion Event, Touch or not, you can bind motion event
+from :class:`~kivy.core.window.Window` to your own callbacks ::
+
+    def on_motion(self, etype, motionevent):
+        # will receive all motion event.
+        pass
+
+    Window.bind(on_motion=on_motion)
+
+
 Profiles
 --------
 
@@ -92,7 +118,7 @@ class MotionEvent(object):
     __uniq_id = 0
     __attrs__ = \
         ('device', 'push_attrs', 'push_attrs_stack',
-         'id', 'shape', 'profile',
+         'is_touch', 'id', 'shape', 'profile',
          # current position, in 0-1 range
          'sx', 'sy', 'sz',
          # first position set, in 0-1 range
@@ -116,6 +142,10 @@ class MotionEvent(object):
         if self.__class__ == MotionEvent:
             raise NotImplementedError('class MotionEvent is abstract')
         MotionEvent.__uniq_id += 1
+
+        #: True if the Motion Event is a Touch. Can be also verified is `pos` is
+        #: :attr:`profile`.
+        self.is_touch = False
 
         #: Attributes to push by default, when we use :func:`push` : x, y, z,
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
@@ -251,6 +281,8 @@ class MotionEvent(object):
                     # it's a normal touch
                     pass
         '''
+        if not 'pos' in self.profile:
+            raise Exception('Grab work only for Touch Motion Event.')
         if self.grab_exclusive_class is not None:
             raise Exception('Cannot grab the touch, touch are exclusive')
         class_instance = weakref.ref(class_instance)
