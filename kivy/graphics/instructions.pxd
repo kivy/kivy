@@ -2,13 +2,13 @@ cdef class Instruction
 cdef class InstructionGroup
 cdef class ContextInstruction
 cdef class VertexInstruction
-
 cdef class CanvasBase
 cdef class Canvas
 cdef class RenderContext
 
 from vbo cimport *
 from context_instructions cimport *
+from compiler cimport *
 
 cdef class Instruction:
     cdef int flags
@@ -20,6 +20,9 @@ cdef class Instruction:
 
 cdef class InstructionGroup(Instruction):
     cdef list children
+    cdef InstructionGroup compiled_children
+    cdef GraphicsCompiler compiler
+    cdef build(self)
     cpdef add(self, Instruction c)
     cpdef insert(self, int index, Instruction c)
     cpdef remove(self, Instruction c)

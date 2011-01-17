@@ -54,30 +54,49 @@ cdef class InstructionGroup(Instruction):
     def __init__(self, **kwargs):
         Instruction.__init__(self, **kwargs)
         self.children = list()
+        self.compiled_children = None
+        if 'nocompiler' in kwargs:
+            self.compiler = None
+        else:
+            self.compiler = GraphicsCompiler()
 
     cdef apply(self):
         cdef Instruction c
-        for c in self.children:
-            c.apply()
+        if self.compiler:
+            if self.flags & GI_NEED_UPDATE:
+                self.build()
+            if self.compiled_children:
+                for c in self.compiled_children.children:
+                    c.apply()
+        else:
+            for c in self.children:
+                c.apply()
+
+    cdef build(self):
+        self.compiled_children = self.compiler.compile(self)
+        self.flag_update_done()
 
     cpdef add(self, Instruction c):
         '''Add a new :class:`Instruction` in our list.
         '''
-        c.parent = self
+        if c.parent is None:
+            c.parent = self
         self.children.append(c)
         self.flag_update()
 
     cpdef insert(self, int index, Instruction c):
         '''Insert a new :class:`Instruction` in our list at index.
         '''
-        c.parent = self
+        if c.parent is None:
+            c.parent = self
         self.children.insert(index, c)
         self.flag_update()
 
     cpdef remove(self, Instruction c):
         '''Remove an existing :class:`Instruction` from our list.
         '''
-        c.parent = None
+        if c.parent is self:
+            c.parent = None
         self.children.remove(c)
         self.flag_update()
 
@@ -239,7 +258,8 @@ cdef class Canvas(CanvasBase):
         self.apply()
 
     cpdef add(self, Instruction c):
-        c.parent = self
+        if c.parent is None:
+            c.parent = self
         # the after group must remain the last one.
         if self._after is None:
             self.children.append(c)
@@ -248,7 +268,8 @@ cdef class Canvas(CanvasBase):
         self.flag_update()
 
     cpdef remove(self, Instruction c):
-        #c.parent = None
+        if c.parent is self:
+            c.parent = None
         self.children.remove(c)
         self.flag_update()
 
