@@ -10,11 +10,11 @@ from kivy.input.providers.wm_common import PEN_OR_TOUCH_SIGNATURE, \
         PEN_OR_TOUCH_MASK, GWL_WNDPROC, WM_MOUSEMOVE, WM_LBUTTONUP, \
         WM_LBUTTONDOWN, WM_TABLET_QUERYSYSTEMGESTURE, \
         QUERYSYSTEMGESTURE_WNDPROC, PEN_EVENT_TOUCH_MASK
-from kivy.input.touch import Touch
+from kivy.input.motionevent import MotionEvent
 
 
-class WM_Pen(Touch):
-    '''Touch representing the WM_Pen event. Support pos profile'''
+class WM_Pen(MotionEvent):
+    '''MotionEvent representing the WM_Pen event. Support pos profile'''
 
     def depack(self, args):
         self.sx, self.sy = args[0], args[1]
@@ -32,8 +32,8 @@ else:
     from ctypes.wintypes import ULONG
     from ctypes import wintypes, Structure, windll, byref, c_int16, \
             c_int, c_long, WINFUNCTYPE
-    from kivy.input.provider import TouchProvider
-    from kivy.input.factory import TouchFactory
+    from kivy.input.provider import MotionEventProvider
+    from kivy.input.factory import MotionEventFactory
 
     WNDPROC = WINFUNCTYPE(c_long, c_int, c_int, c_int, c_int)
 
@@ -50,7 +50,7 @@ else:
         h = property(lambda self: self.bottom-self.top)
     win_rect = RECT()
 
-    class WM_PenProvider(TouchProvider):
+    class WM_PenProvider(MotionEventProvider):
 
         def _is_pen_message(self, msg):
             info = windll.user32.GetMessageExtraInfo()
@@ -128,4 +128,4 @@ else:
                 GWL_WNDPROC,
                 self.old_windProc)
 
-    TouchFactory.register('wm_pen', WM_PenProvider)
+    MotionEventFactory.register('wm_pen', WM_PenProvider)

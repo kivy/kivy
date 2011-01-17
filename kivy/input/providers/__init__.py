@@ -46,4 +46,4 @@ if sys.platform == 'linux2' or 'KIVY_DOC' in os.environ:
         from kivy.input.providers.linuxwacom import *
     except:
         err = 'Input: LinuxWacom is not supported by your version of linux'
-        Logger.exception()
+        Logger.exception(err)

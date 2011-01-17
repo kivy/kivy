@@ -1,24 +1,24 @@
 '''
-Touch Shape
-===========
+Motion Event Shape
+==================
 
-Represent the shape of the touch
+Represent the shape of the :class:`~kivy.input.motionevent.MotionEvent`
 '''
 
-__all__ = ('TouchShape', 'TouchShapeRect')
+__all__ = ('Shape', 'ShapeRect')
 
 
-class TouchShape(object):
+class Shape(object):
     '''Abstract class for all implementation of a shape'''
     pass
 
 
-class TouchShapeRect(TouchShape):
+class ShapeRect(Shape):
     '''Represent a rectangle shape.'''
-    __slots__ = ['width', 'height']
+    __slots__ = ('width', 'height')
 
     def __init__(self):
-        super(TouchShapeRect, self).__init__()
+        super(ShapeRect, self).__init__()
         self.width = 0
         self.height = 0
 

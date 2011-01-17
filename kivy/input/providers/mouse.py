@@ -15,48 +15,48 @@ be discarded. Put in your configuration ::
 
 '''
 
-__all__ = ('MouseTouchProvider', )
+__all__ = ('MouseMotionEventProvider', )
 
 import kivy.base
 from collections import deque
 from kivy.logger import Logger
-from kivy.input.provider import TouchProvider
-from kivy.input.factory import TouchFactory
-from kivy.input.touch import Touch
+from kivy.input.provider import MotionEventProvider
+from kivy.input.factory import MotionEventFactory
+from kivy.input.motionevent import MotionEvent
 
 
-class MouseTouch(Touch):
+class MouseMotionEvent(MotionEvent):
 
     def depack(self, args):
         self.sx, self.sy = args
-        super(MouseTouch, self).depack(args)
+        super(MouseMotionEvent, self).depack(args)
 
     #
     # Create automatically touch on the surface.
     #
     def update_graphics(self, win):
-        de = self.userdata.get('_drawelement', None)
+        de = self.ud.get('_drawelement', None)
         if de is None:
             from kivy.graphics import Color, Ellipse
-            with win.canvas:
+            with win.canvas.after:
                 de = (
                     Color(.8, .2, .2, .7),
                     Ellipse(size=(20, 20), segments=15))
-            self.userdata['_drawelement'] = de
+            self.ud._drawelement = de
         de[1].pos = self.sx * win.width - 10, self.sy * win.height- 10
 
     def clear_graphics(self, win):
-        de = self.userdata.pop('_drawelement', None)
+        de = self.ud.pop('_drawelement', None)
         if de is not None:
-            win.canvas.remove(de[0])
-            win.canvas.remove(de[1])
+            win.canvas.after.remove(de[0])
+            win.canvas.after.remove(de[1])
 
 
-class MouseTouchProvider(TouchProvider):
+class MouseMotionEventProvider(MotionEventProvider):
     __handlers__ = {}
 
     def __init__(self, device, args):
-        super(MouseTouchProvider, self).__init__(device, args)
+        super(MouseMotionEventProvider, self).__init__(device, args)
         self.waiting_event = deque()
         self.window = None
         self.touches = {}
@@ -88,13 +88,13 @@ class MouseTouchProvider(TouchProvider):
             return False
         # trying to get if we currently have other touch than us
         # discard touches generated from kinetic
-        touches = kivy.base.getCurrentTouches()
+        touches = kivy.base.getCurrentMotionEventes()
         for touch in touches:
             # discard all kinetic touch
-            if touch.__class__.__name__ == 'KineticTouch':
+            if touch.__class__.__name__ == 'KineticMotionEvent':
                 continue
             # not our instance, stop mouse
-            if touch.__class__ != MouseTouch:
+            if touch.__class__ != MouseMotionEvent:
                 return True
         return False
 
@@ -108,7 +108,7 @@ class MouseTouchProvider(TouchProvider):
     def create_touch(self, rx, ry, is_double_tap):
         self.counter += 1
         id = 'mouse' + str(self.counter)
-        self.current_drag = cur = MouseTouch(self.device, id=id, args=[rx, ry])
+        self.current_drag = cur = MouseMotionEvent(self.device, id=id, args=[rx, ry])
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
         cur.update_graphics(self.window)
@@ -143,9 +143,9 @@ class MouseTouchProvider(TouchProvider):
         width, height = self.window.system_size
         rx = x / float(width)
         ry = 1. - y / float(height)
-        newTouch = self.find_touch(rx, ry)
-        if newTouch:
-            self.current_drag = newTouch
+        newMotionEvent = self.find_touch(rx, ry)
+        if newMotionEvent:
+            self.current_drag = newMotionEvent
         else:
             is_double_tap = 'shift' in modifiers
             cur = self.create_touch(rx, ry, is_double_tap)
@@ -187,4 +187,4 @@ class MouseTouchProvider(TouchProvider):
             pass
 
 # registers
-TouchFactory.register('mouse', MouseTouchProvider)
+MotionEventFactory.register('mouse', MouseMotionEventProvider)

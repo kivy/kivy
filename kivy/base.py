@@ -13,7 +13,7 @@ __all__ = (
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
-from kivy.input import TouchFactory, kivy_postproc_modules
+from kivy.input import MotionEventFactory, kivy_postproc_modules
 
 # private vars
 EventLoop = None
@@ -356,10 +356,9 @@ def runTouchApp(widget=None, slave=False):
         if len(args) == 1:
             args.append('')
         provider_id, args = args
-        provider = TouchFactory.get(provider_id)
+        provider = MotionEventFactory.get(provider_id)
         if provider is None:
-            Logger.warning('Base: Unknown <%s> provider' % \
-                                str(provider_id))
+            Logger.warning('Base: Unknown <%s> provider' % str(provider_id))
             continue
 
         # create provider

@@ -24,7 +24,7 @@ def calculate_points(x1, y1, x2, y2, steps=5):
 class Touchdebug(Widget):
     def on_touch_down(self, touch):
         win = self.get_parent_window()
-        ud = touch.userdata
+        ud = touch.ud
         ud['group'] = g = str(touch.uid)
         with self.canvas:
             ud['color'] = Color(random(), 1, 1, mode='hsv', group=g)
@@ -40,7 +40,7 @@ class Touchdebug(Widget):
         self.add_widget(ud['label'])
 
     def on_touch_move(self, touch):
-        ud = touch.userdata
+        ud = touch.ud
         ud['lines'][0].pos = touch.x, 0
         ud['lines'][1].pos = 0, touch.y
 
@@ -53,7 +53,7 @@ class Touchdebug(Widget):
         self.update_touch_label(ud['label'], touch)
 
     def on_touch_up(self, touch):
-        ud = touch.userdata
+        ud = touch.ud
         self.canvas.remove_group(ud['group'])
         self.remove_widget(ud['label'])
 

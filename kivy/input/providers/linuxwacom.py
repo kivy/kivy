@@ -25,44 +25,44 @@ To fix that, you can add one of theses options on the argument line :
 * max_pressure : pressure maximum
 '''
 
-__all__ = ('LinuxWacomTouchProvider', 'LinuxWacomTouch')
+__all__ = ('LinuxWacomMotionEventProvider', 'LinuxWacomMotionEvent')
 
 import os
-from kivy.input.touch import Touch
-from kivy.input.shape import TouchShapeRect
+from kivy.input.motionevent import MotionEvent
+from kivy.input.shape import ShapeRect
 
 
-class LinuxWacomTouch(Touch):
+class LinuxWacomMotionEvent(MotionEvent):
 
     def depack(self, args):
         self.sx = args['x']
         self.sy = args['y']
         self.profile = ['pos']
         if 'size_w' in args and 'size_h' in args:
-            self.shape = TouchShapeRect()
+            self.shape = ShapeRect()
             self.shape.width = args['size_w']
             self.shape.height = args['size_h']
             self.profile.append('shape')
         if 'pressure' in args:
             self.pressure = args['pressure']
             self.profile.append('pressure')
-        super(LinuxWacomTouch, self).depack(args)
+        super(LinuxWacomMotionEvent, self).depack(args)
 
     def __str__(self):
-        return '<LinuxWacomTouch id=%d pos=(%f, %f) device=%s>' \
+        return '<LinuxWacomMotionEvent id=%d pos=(%f, %f) device=%s>' \
                 % (self.id, self.sx, self.sy, self.device)
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
-    LinuxWacomTouchProvider = None
+    LinuxWacomMotionEventProvider = None
 
 else:
     import threading
     import collections
     import struct
     import fcntl
-    from kivy.input.provider import TouchProvider
-    from kivy.input.factory import TouchFactory
+    from kivy.input.provider import MotionEventProvider
+    from kivy.input.factory import MotionEventFactory
     from kivy.logger import Logger
 
     #
@@ -127,7 +127,7 @@ else:
     struct_input_absinfo_sz = struct.calcsize('iiiiii')
     sz_l = struct.calcsize('Q')
 
-    class LinuxWacomTouchProvider(TouchProvider):
+    class LinuxWacomMotionEventProvider(MotionEventProvider):
 
         options = ('min_position_x', 'max_position_x',
                    'min_position_y', 'max_position_y',
@@ -135,7 +135,7 @@ else:
                    'invert_x', 'invert_y')
 
         def __init__(self, device, args):
-            super(LinuxWacomTouchProvider, self).__init__(device, args)
+            super(LinuxWacomMotionEventProvider, self).__init__(device, args)
             self.input_fn = None
             self.default_ranges = dict()
             self.mode = 'touch'
@@ -170,7 +170,7 @@ else:
                     self.mode = value
                     continue
 
-                if key not in LinuxWacomTouchProvider.options:
+                if key not in LinuxWacomMotionEventProvider.options:
                     Logger.error('LinuxWacom: unknown %s option' % key)
                     continue
 
@@ -230,7 +230,7 @@ else:
                     try:
                         touch = touches[tid]
                     except KeyError:
-                        touch = LinuxWacomTouch(device, tid, args)
+                        touch = LinuxWacomMotionEvent(device, tid, args)
                         touches[touch.id] = touch
                     if touch.sx == args['x'] \
                             and touch.sy == args['y'] \
@@ -259,7 +259,7 @@ else:
             # get the controler name (EVIOCGNAME)
             device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
                                         " " * 256).split('\x00')[0]
-            Logger.info('LinuxWacomTouch: using <%s>' % device_name)
+            Logger.info('LinuxWacomMotionEvent: using <%s>' % device_name)
 
             # get abs infos
             bit = fcntl.ioctl(fd, EVIOCGBIT + (EV_MAX << 16), ' ' * sz_l)
@@ -286,19 +286,19 @@ else:
                     if y == ABS_X:
                         range_min_position_x = drs('min_position_x', abs_min)
                         range_max_position_x = drs('max_position_x', abs_max)
-                        Logger.info('LinuxWacomTouch: ' +
+                        Logger.info('LinuxWacomMotionEvent: ' +
                             '<%s> range position X is %d - %d' % (
                             device_name, abs_min, abs_max))
                     elif y == ABS_Y:
                         range_min_position_y = drs('min_position_y', abs_min)
                         range_max_position_y = drs('max_position_y', abs_max)
-                        Logger.info('LinuxWacomTouch: ' +
+                        Logger.info('LinuxWacomMotionEvent: ' +
                             '<%s> range position Y is %d - %d' % (
                             device_name, abs_min, abs_max))
                     elif y == ABS_PRESSURE:
                         range_min_pressure = drs('min_pressure', abs_min)
                         range_max_pressure = drs('max_pressure', abs_max)
-                        Logger.info('LinuxWacomTouch: ' +
+                        Logger.info('LinuxWacomMotionEvent: ' +
                             '<%s> range pressure is %d - %d' % (
                             device_name, abs_min, abs_max))
 
@@ -383,4 +383,4 @@ else:
                 pass
 
 
-    TouchFactory.register('linuxwacom', LinuxWacomTouchProvider)
+    MotionEventFactory.register('linuxwacom', LinuxWacomMotionEventProvider)

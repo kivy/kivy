@@ -40,6 +40,6 @@ class InputPostprocIgnoreList(object):
             if type != 'down':
                 continue
             if self.collide_ignore(touch):
-                touch.userdata['__ignore__'] = True
+                touch.ud.__pp_ignore__ = True
         return [(type, touch) for type, touch in events \
-                if not '__ignore__' in touch.userdata]
+                if not '__pp_ignore__' in touch.ud]

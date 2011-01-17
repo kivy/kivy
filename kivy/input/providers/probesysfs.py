@@ -38,13 +38,12 @@ if 'KIVY_DOC' in os.environ:
 
 else:
     import kivy
-    import sys
-    import re
+    from re import match, IGNORECASE
     from glob import glob
     from subprocess import Popen, PIPE
     from kivy.logger import Logger
-    from kivy.input.provider import TouchProvider
-    from kivy.input.factory import TouchFactory
+    from kivy.input.provider import MotionEventProvider
+    from kivy.input.factory import MotionEventFactory
 
     # See linux/input.h
     ABS_MT_POSITION_X = 0x35
@@ -96,7 +95,7 @@ else:
         finally:
             f.close()
 
-    class ProbeSysfsHardwareProbe(TouchProvider):
+    class ProbeSysfsHardwareProbe(MotionEventProvider):
 
         def __new__(self, device, args):
             # hack to not return an instance of this provider.
@@ -144,7 +143,7 @@ else:
 
                 # must ignore ?
                 if self.match:
-                    if not re.match(self.match, device.name, re.IGNORECASE):
+                    if not match(self.match, device.name, IGNORECASE):
                         Logger.warning('ProbeSysfs: device not match the'
                                        ' rule in config, ignoring.')
                         continue
@@ -152,12 +151,12 @@ else:
                 d = device.device
                 devicename = self.device % dict(name=d.split(sep)[-1])
 
-                provider = TouchFactory.get(self.provider)
+                provider = MotionEventFactory.get(self.provider)
                 if provider is None:
                     Logger.info('ProbeSysfs: unable to found provider %s' %
                                      self.provider)
                     Logger.info('ProbeSysfs: fallback on hidinput')
-                    provider = TouchFactory.get('hidinput')
+                    provider = MotionEventFactory.get('hidinput')
                 if provider is None:
                     Logger.critical('ProbeSysfs: no input provider found'
                                     ' to handle this device !')
@@ -169,4 +168,4 @@ else:
                     kivy.kivy_providers.append(instance)
 
 
-    TouchFactory.register('probesysfs', ProbeSysfsHardwareProbe)
+    MotionEventFactory.register('probesysfs', ProbeSysfsHardwareProbe)

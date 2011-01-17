@@ -46,7 +46,7 @@ class InputPostprocDoubleTap(object):
                 continue
             distance = Vector.distance(
                 Vector(ref.sx, ref.sy),
-                Vector(touch.osxpos, touch.osypos))
+                Vector(touch.osx, touch.osy))
             if distance > self.double_tap_distance:
                 continue
             touch.double_tap_distance = distance

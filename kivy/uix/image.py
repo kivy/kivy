@@ -56,6 +56,5 @@ class AsyncImage(Image):
         image = self._coreimage
         if not image:
             return
-        print value.texture, self.texture
         self.texture = image.texture
 

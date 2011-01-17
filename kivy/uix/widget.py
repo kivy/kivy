@@ -168,7 +168,7 @@ class Widget(EventDispatcher):
         '''Receive a touch down event
 
         :Parameters:
-            `touch`: :class:`~kivy.input.touch.Touch` class
+            `touch`: :class:`~kivy.input.motionevent.MotionEvent` class
                 Touch received
 
         :Returns:

@@ -1,18 +1,18 @@
 '''
-Touch Factory
-=============
+MotionEvent Factory
+===================
 
-Factory of touch providers.
+Factory of :class:`~kivy.input.motionevent.MotionEvent` providers.
 '''
 
-__all__ = ('TouchFactory', )
+__all__ = ('MotionEventFactory', )
 
 
-class TouchFactory:
-    '''Touch factory is a class who register all availables input factories.
+class MotionEventFactory:
+    '''MotionEvent factory is a class who register all availables input factories.
     If you create a new input factory, don't forget to register it ::
 
-        TouchFactory.register('myproviderid', MyInputProvider)
+        MotionEventFactory.register('myproviderid', MyInputProvider)
 
     '''
     __providers__ = {}
@@ -20,16 +20,16 @@ class TouchFactory:
     @staticmethod
     def register(name, classname):
         '''Register a input provider in the database'''
-        TouchFactory.__providers__[name] = classname
+        MotionEventFactory.__providers__[name] = classname
 
     @staticmethod
     def list():
         '''Get a list of all providers availables'''
-        return TouchFactory.__providers__
+        return MotionEventFactory.__providers__
 
     @staticmethod
     def get(name):
         '''Get a provider class from provider id'''
-        if name in TouchFactory.__providers__:
-            return TouchFactory.__providers__[name]
+        if name in MotionEventFactory.__providers__:
+            return MotionEventFactory.__providers__[name]
         return None

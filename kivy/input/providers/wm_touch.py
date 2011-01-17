@@ -3,7 +3,7 @@ Support of WM_TOUCH message (Window platform)
 =============================================
 '''
 
-__all__ = ('WM_TouchProvider', 'WM_Touch')
+__all__ = ('WM_MotionEventProvider', 'WM_MotionEvent')
 
 import os
 from kivy.input.providers.wm_common import WM_TABLET_QUERYSYSTEMGESTURE, \
@@ -11,41 +11,41 @@ from kivy.input.providers.wm_common import WM_TABLET_QUERYSYSTEMGESTURE, \
         WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE, \
         PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN, \
         TOUCHEVENTF_MOVE
-from kivy.input.touch import Touch
-from kivy.input.shape import TouchShapeRect
+from kivy.input.motionevent import MotionEvent
+from kivy.input.shape import MotionEventShapeRect
 
 
-class WM_Touch(Touch):
-    '''Touch representing the WM_Touch event.
+class WM_MotionEvent(MotionEvent):
+    '''MotionEvent representing the WM_MotionEvent event.
        Supports pos, shape and size profiles.
     '''
     __attrs__ = ('size', )
 
     def depack(self, args):
-        self.shape = TouchShapeRect()
+        self.shape = MotionEventShapeRect()
         self.sx, self.sy = args[0], args[1]
         self.shape.width = args[2][0]
         self.shape.height = args[2][1]
         self.size = self.shape.width * self.shape.height
         self.profile = ('pos', 'shape', 'size')
 
-        super(WM_Touch, self).depack(args)
+        super(WM_MotionEvent, self).depack(args)
 
     def __str__(self):
         args = (self.id, self.uid, str(self.spos), self.device)
-        return '<WMTouch id:%d uid:%d pos:%s device:%s>' % args
+        return '<WMMotionEvent id:%d uid:%d pos:%s device:%s>' % args
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
-    WM_TouchProvider = None
+    WM_MotionEventProvider = None
 
 else:
     from ctypes.wintypes import ULONG, HANDLE, DWORD, LONG
     from ctypes import windll, WINFUNCTYPE, c_long, c_int, \
             Structure, pointer, sizeof, byref
     from collections import deque
-    from kivy.input.provider import TouchProvider
-    from kivy.input.factory import TouchFactory
+    from kivy.input.provider import MotionEventProvider
+    from kivy.input.factory import MotionEventFactory
 
     # check availability of RegisterTouchWindow
     if not hasattr(windll.user32, 'RegisterTouchWindow'):
@@ -96,7 +96,7 @@ else:
         w = property(lambda self: self.right-self.left)
         h = property(lambda self: self.bottom-self.top)
 
-    class WM_TouchProvider(TouchProvider):
+    class WM_MotionEventProvider(MotionEventProvider):
 
         def start(self):
             self.touch_events = deque()
@@ -132,7 +132,7 @@ else:
                 # actually dispatch input
                 if t.event_type == 'down':
                     self.uid += 1
-                    self.touches[t.id] = WM_Touch(self.device,
+                    self.touches[t.id] = WM_MotionEvent(self.device,
                                                   self.uid, [x, y, t.size()])
                     dispatch_fn('down', self.touches[t.id])
 
@@ -193,4 +193,4 @@ else:
                     return True
 
 
-    TouchFactory.register('wm_touch', WM_TouchProvider)
+    MotionEventFactory.register('wm_touch', WM_MotionEventProvider)
