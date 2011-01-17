@@ -1,3 +1,52 @@
+'''
+Graphics compiler
+=================
+
+Before rendering an :class:`~kivy.graphics.instructions.InstructionGroup`, we
+are compiling the group, in order to reduce the number of instructions executed
+at rendering time.
+
+Reducing the context instructions
+---------------------------------
+
+Imagine that you have a scheme like this ::
+
+    Color(1, 1, 1)
+    Rectangle(source='button.png', pos=(0, 0), size=(20, 20))
+    Color(1, 1, 1)
+    Rectangle(source='button.png', pos=(10, 10), size=(20, 20))
+    Color(1, 1, 1)
+    Rectangle(source='button.png', pos=(10, 20), size=(20, 20))
+
+The real instruction seen by the graphics canvas would be ::
+
+    Color: change 'color' context to 1, 1, 1
+    BindTexture: change 'texture0' to `button.png texture`
+    Rectangle: push vertices (x1, y1...) to vbo & draw
+    Color: change 'color' context to 1, 1, 1
+    BindTexture: change 'texture0' to `button.png texture`
+    Rectangle: push vertices (x1, y1...) to vbo & draw
+    Color: change 'color' context to 1, 1, 1
+    BindTexture: change 'texture0' to `button.png texture`
+    Rectangle: push vertices (x1, y1...) to vbo & draw
+
+Only the first :class:`~kivy.graphics.context_instructions.Color` and
+:class:`~kivy.graphics.context_instructions.BindTexture` are useful, and really
+change the context.  We can reduce them to ::
+
+    Color: change 'color' context to 1, 1, 1
+    BindTexture: change 'texture0' to `button.png texture`
+    Rectangle: push vertices (x1, y1...) to vbo & draw
+    Rectangle: push vertices (x1, y1...) to vbo & draw
+    Rectangle: push vertices (x1, y1...) to vbo & draw
+
+This is what the compiler does in the first place, by flagging all the unused
+instruction with GI_IGNORE flag. As soon as a Color content change, the whole
+InstructionGroup will be recompiled, and maybe a previous unused Color will be
+used at the next compilation.
+
+'''
+
 include 'opcodes.pxi'
 
 from instructions cimport Instruction, RenderContext, ContextInstruction
