@@ -28,6 +28,7 @@ from kivy.input.motionevent import MotionEvent
 class MouseMotionEvent(MotionEvent):
 
     def depack(self, args):
+        self.profile = ['pos']
         self.is_touch = True
         self.sx, self.sy = args
         super(MouseMotionEvent, self).depack(args)
@@ -109,7 +110,8 @@ class MouseMotionEventProvider(MotionEventProvider):
     def create_touch(self, rx, ry, is_double_tap):
         self.counter += 1
         id = 'mouse' + str(self.counter)
-        self.current_drag = cur = MouseMotionEvent(self.device, id=id, args=[rx, ry])
+        self.current_drag = cur = MouseMotionEvent(
+            self.device, id=id, args=[rx, ry])
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
         cur.update_graphics(self.window)

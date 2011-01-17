@@ -284,7 +284,7 @@ class MotionEvent(object):
                     # it's a normal touch
                     pass
         '''
-        if not 'pos' in self.profile:
+        if self.is_touch:
             raise Exception('Grab work only for Touch Motion Event.')
         if self.grab_exclusive_class is not None:
             raise Exception('Cannot grab the touch, touch are exclusive')
