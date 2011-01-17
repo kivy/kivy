@@ -14,6 +14,7 @@ __all__ = ('MotionEventProvider', )
 class MotionEventProvider(object):
     '''Base class for a provider.
     '''
+
     def __init__(self, device, args):
         self.device = device
         if self.__class__ == MotionEventProvider:

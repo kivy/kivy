@@ -61,7 +61,7 @@ class WindowBase(EventDispatcher):
             Fired when the :class:`Window` GL surface is beeing flipped
         `on_rotate`: rotation
             Fired when the :class:`Window` is beeing rotated
-        `on_close`: 
+        `on_close`:
             Fired when the :class:`Window` is closed
         `on_keyboard`: key, scancode, unicode
             Fired when the keyboard is in action

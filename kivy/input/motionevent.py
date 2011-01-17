@@ -81,12 +81,15 @@ from copy import copy
 from kivy.clock import Clock
 from kivy.vector import Vector
 
+
 class EnhancedDictionnary(dict):
+
     def __getattr__(self, attr):
         try:
             return self.__getitem__(attr)
         except KeyError:
             return super(EnhancedDictionnary, self).__getattr__(attr)
+
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
 
@@ -376,7 +379,6 @@ class MotionEvent(object):
         return Vector(self.pos).distance(other_touch.pos)
 
     # facilities
-
     @property
     def pos(self):
         '''Return position of the touch in the screen coordinate
