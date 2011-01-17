@@ -224,7 +224,7 @@ cdef class Fbo(RenderContext):
             glClear(GL_COLOR_BUFFER_BIT)
 
     cdef apply(self):
-        if self.flags & GI_NEED_UPDATE:
+        if self.flags & GI_NEEDS_UPDATE:
             self.bind()
             RenderContext.apply(self)
             self.release()

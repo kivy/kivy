@@ -79,7 +79,7 @@ cdef class GraphicsCompiler:
                 ci.apply()
 
                 # if the context didn't change at all, ignore the instruction
-                if rc.flags & GI_NEED_UPDATE:
+                if rc.flags & GI_NEEDS_UPDATE:
                     ci.flags &= ~GI_IGNORE
                 else:
                     ci.flags |= GI_IGNORE

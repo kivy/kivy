@@ -37,14 +37,14 @@ cdef class Instruction:
     cdef flag_update(self):
         if self.parent:
             self.parent.flag_update()
-        self.flags |= GI_NEED_UPDATE
+        self.flags |= GI_NEEDS_UPDATE
 
     cdef flag_update_done(self):
-        self.flags &= ~GI_NEED_UPDATE
+        self.flags &= ~GI_NEEDS_UPDATE
 
     property needs_redraw:
         def __get__(self):
-            return bool(self.flags | GI_NEED_UPDATE)
+            return bool(self.flags | GI_NEEDS_UPDATE)
 
 
 cdef class InstructionGroup(Instruction):
@@ -63,7 +63,7 @@ cdef class InstructionGroup(Instruction):
     cdef apply(self):
         cdef Instruction c
         if self.compiler:
-            if self.flags & GI_NEED_UPDATE:
+            if self.flags & GI_NEEDS_UPDATE:
                 self.build()
             if self.compiled_children and not (self.flags & GI_NO_APPLY_ONCE):
                 for c in self.compiled_children.children:
@@ -168,7 +168,7 @@ cdef class VertexInstruction(Instruction):
         self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
 
         Instruction.__init__(self, **kwargs)
-        self.flags = GI_VERTEX_DATA & GI_NEED_UPDATE
+        self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
         self.batch = VertexBatch()
         self.vertices = []
         self.indices = []
@@ -214,7 +214,7 @@ cdef class VertexInstruction(Instruction):
         self.flag_update_done()
 
     cdef apply(self):
-        if self.flags & GI_NEED_UPDATE:
+        if self.flags & GI_NEEDS_UPDATE:
             self.build()
             self.update_batch()
 
