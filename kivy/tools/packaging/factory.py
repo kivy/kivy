@@ -14,6 +14,7 @@ ignore_list = (
     'kivy.modules',
     'kivy.tools',
     'kivy.parser',
+    'kivy.tests',
 )
 
 
