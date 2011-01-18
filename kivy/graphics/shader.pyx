@@ -18,6 +18,8 @@ include "common.pxi"
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
+from vertex cimport vertex_attr_t
+from vbo cimport vbo_vertex_attr_list, vbo_vertex_attr_count
 
 from kivy.graphics.transformation cimport Matrix
 from kivy.logger import Logger
@@ -118,12 +120,14 @@ cdef class Shader:
 
 
     cdef bind_attrib_locations(self):
-        cdef char* c_name
-        for attr in VERTEX_ATTRIBUTES:
-            c_name = attr['name']
-            glBindAttribLocation(self.program, attr['index'], c_name)
-            if attr['per_vertex']:
-                glEnableVertexAttribArray(attr['index'])
+        cdef int i
+        cdef vertex_attr_t *attr
+        cdef vertex_attr_t *vattr = vbo_vertex_attr_list()
+        for i in xrange(vbo_vertex_attr_count()):
+            attr = &vattr[i]
+            glBindAttribLocation(self.program, attr.index, attr.name)
+            if attr.per_vertex == 1:
+                glEnableVertexAttribArray(attr.index)
 
 
     cdef build(self):

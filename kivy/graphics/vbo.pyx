@@ -18,11 +18,30 @@ IF USE_OPENGL_DEBUG == 1:
 from vertex cimport *
 from kivy.logger import Logger
 
+cdef int vattr_count = 2
+cdef vertex_attr_t vattr[2]
+vattr[0] = ['vPosition', 0, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
+vattr[1] = ['vTexCoords0', 1, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
+#vertex_attr_list[2] = ['vTexCoords1', 2, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
+#vertex_attr_list[3] = ['vTexCoords2', 3, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
+#vertex_attr_list[4] = ['vColor', 4, 2, GL_FLOAT, sizeof(GLfloat) * 4, 0]
+
+cdef int vbo_vertex_attr_count():
+    '''Return the number of vertex attributes used in VBO
+    '''
+    return vattr_count
+
+cdef vertex_attr_t *vbo_vertex_attr_list():
+    '''Return the list of vertex attributes used in VBO
+    '''
+    return vattr
+
 cdef class VBO:
     def __cinit__(self, **kwargs):
         self.usage  = GL_DYNAMIC_DRAW
         self.target = GL_ARRAY_BUFFER
-        self.format = VERTEX_ATTRIBUTES
+        self.format = vbo_vertex_attr_list()
+        self.format_count = vbo_vertex_attr_count()
         self.need_upload = 1
         self.vbo_size = 0
         glGenBuffers(1, &self.id)
@@ -31,18 +50,17 @@ cdef class VBO:
         glDeleteBuffers(1, &self.id)
 
     def __init__(self, **kwargs):
-        self.format = kwargs.get('format', self.format)
-        self.data = Buffer(sizeof(vertex))
+        self.data = Buffer(sizeof(vertex_t))
 
-    cdef allocate_buffer(self):
+    cdef void allocate_buffer(self):
         #Logger.trace("VBO:allocating VBO " + str(self.data.size()))
         self.vbo_size = self.data.size()
         glBindBuffer(GL_ARRAY_BUFFER, self.id)
         glBufferData(GL_ARRAY_BUFFER, self.vbo_size, self.data.pointer(), self.usage)
         self.need_upload = 0
 
-    cdef update_buffer(self):
-        cdef vertex* data = <vertex*>self.data.pointer()
+    cdef void update_buffer(self):
+        cdef vertex_t* data = <vertex_t*>self.data.pointer()
         if self.vbo_size < self.data.size():
             self.allocate_buffer()
         elif self.need_upload:
@@ -50,29 +68,31 @@ cdef class VBO:
             glBufferSubData(GL_ARRAY_BUFFER, 0, self.data.size(), self.data.pointer())
             self.need_upload  = 0
 
-    cdef bind(self):
-        cdef int offset = 0
+    cdef void bind(self):
+        cdef vertex_attr_t *attr
+        cdef int offset = 0, i
         self.update_buffer()
         glBindBuffer(GL_ARRAY_BUFFER, self.id)
-        for attr in self.format:
-            if not attr['per_vertex']:
+        for i in xrange(self.format_count):
+            attr = &self.format[i]
+            if attr.per_vertex == 0:
                 continue
-            glVertexAttribPointer( attr['index'], attr['size'], attr['type'], 
-                    GL_FALSE, sizeof(vertex), <GLvoid*>offset)
-            offset += attr['bytesize']
+            glVertexAttribPointer(attr.index, attr.size, attr.type,
+                    GL_FALSE, sizeof(vertex_t), <GLvoid*>offset)
+            offset += attr.bytesize
 
-    cdef unbind(self):
+    cdef void unbind(self):
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-    cdef add_vertex_data(self, void *v, int* indices, int count):
+    cdef void add_vertex_data(self, void *v, int* indices, int count):
         self.need_upload = 1
         self.data.add(v, indices, count)
 
-    cdef update_vertex_data(self, int index, vertex* v, int count):
+    cdef void update_vertex_data(self, int index, vertex_t* v, int count):
         self.need_upload = 1
         self.data.update(index, v, count)
 
-    cdef remove_vertex_data(self, int* indices, int count):
+    cdef void remove_vertex_data(self, int* indices, int count):
         self.data.remove(indices, count)
 
 
@@ -87,12 +107,12 @@ cdef class VertexBatch:
         self.set_data(vertices, indices)
         self.set_mode(kwargs.get('mode', None))
 
-    cdef set_data(self, list vertices, list indices):
+    cdef void set_data(self, list vertices, list indices):
         self.vertices = vertices
         self.indices  = indices
         self.build()
 
-    cdef build(self):
+    cdef void build(self):
         #clear old vertices from vbo, and then reset index buffer
         self.vbo.remove_vertex_data(<int*>self.vbo_index.pointer(), self.vbo_index.count())
         self.vbo_index = Buffer(sizeof(int))
@@ -112,12 +132,12 @@ cdef class VertexBatch:
             local_index = self.indices[i]
             self.elements.add(&vbi[local_index], NULL, 1)
 
-    cdef draw(self):
+    cdef void draw(self):
         self.vbo.bind()
         glDrawElements(self.mode, self.elements.count(),
                        GL_UNSIGNED_INT, self.elements.pointer())
 
-    cdef set_mode(self, str mode):
+    cdef void set_mode(self, str mode):
         # most common case in top;
         if mode is None:
             self.mode = GL_TRIANGLES
