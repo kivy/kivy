@@ -121,7 +121,7 @@ cdef class VertexBatch:
         # most common case in top;
         if mode is None:
             self.mode = GL_TRIANGLES
-        if mode == 'points':
+        elif mode == 'points':
             self.mode = GL_POINTS
         elif mode == 'line_strip':
             self.mode = GL_LINE_STRIP
