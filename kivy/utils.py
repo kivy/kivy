@@ -130,6 +130,7 @@ def deprecated(func):
 
     import inspect
     import functools
+
     @functools.wraps(func)
     def new_func(*args, **kwargs):
         file, line, caller = inspect.stack()[1][1:4]
