@@ -99,7 +99,8 @@ class FactoryBuild(Command):
             fd.write('\n')
             fd.write('from kivy.factory import Factory\n')
             fd.write('\n')
+            fd.write('r = Factory.register')
             for x in symbols:
-                fd.write("Factory.register('%s', module='%s')\n" % x)
+                fd.write("r('%s', module='%s')\n" % x)
 
         print 'File written at', filename
