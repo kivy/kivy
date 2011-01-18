@@ -22,7 +22,7 @@ cdef class InstructionGroup(Instruction):
     cdef list children
     cdef InstructionGroup compiled_children
     cdef GraphicsCompiler compiler
-    cdef build(self)
+    cdef void build(self)
     cpdef add(self, Instruction c)
     cpdef insert(self, int index, Instruction c)
     cpdef remove(self, Instruction c)
@@ -48,7 +48,7 @@ cdef class VertexInstruction(Instruction):
     cdef list _tex_coords
 
     cdef update_batch(self)
-    cdef build(self)
+    cdef void build(self)
 
 
 

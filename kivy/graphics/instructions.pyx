@@ -79,7 +79,7 @@ cdef class InstructionGroup(Instruction):
             for c in self.children:
                 c.apply()
 
-    cdef build(self):
+    cdef void build(self):
         self.compiled_children = self.compiler.compile(self)
         self.flag_update_done()
 
@@ -210,7 +210,7 @@ cdef class VertexInstruction(Instruction):
             self._tex_coords = list(tc)
             self.flag_update()
 
-    cdef build(self):
+    cdef void build(self):
         pass
 
     cdef update_batch(self):
