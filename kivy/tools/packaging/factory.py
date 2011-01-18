@@ -99,7 +99,7 @@ class FactoryBuild(Command):
             fd.write('\n')
             fd.write('from kivy.factory import Factory\n')
             fd.write('\n')
-            fd.write('r = Factory.register')
+            fd.write('r = Factory.register\n')
             for x in symbols:
                 fd.write("r('%s', module='%s')\n" % x)
 
