@@ -46,7 +46,7 @@ cdef class Shader:
         self.build()
 
 
-    cdef use(self):
+    cdef void use(self):
         '''Use the shader
         '''
         glUseProgram(self.program)
@@ -54,19 +54,19 @@ cdef class Shader:
             self.upload_uniform(k, v)
 
 
-    cdef stop(self):
+    cdef void stop(self):
         '''Stop using the shader
         '''
         glUseProgram(0)
 
 
-    cdef set_uniform(self, str name, value):
+    cdef void set_uniform(self, str name, value):
         self.uniform_values[name] = value
         for k,v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
 
 
-    cdef upload_uniform(self, str name, value):
+    cdef void upload_uniform(self, str name, value):
         '''Pass a uniform variable to the shader
         '''
         cdef int vec_size, loc
@@ -103,7 +103,7 @@ cdef class Shader:
             raise Exception('for <%s>, type not handled <%s>' % (name, val_type))
 
 
-    cdef upload_uniform_matrix(self, str name, Matrix value):
+    cdef void upload_uniform_matrix(self, str name, Matrix value):
         cdef int loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
         cdef GLfloat mat[16]
         for x in xrange(16):
@@ -119,7 +119,7 @@ cdef class Shader:
         return loc
 
 
-    cdef bind_attrib_locations(self):
+    cdef void bind_attrib_locations(self):
         cdef int i
         cdef vertex_attr_t *attr
         cdef vertex_attr_t *vattr = vbo_vertex_attr_list()
@@ -130,7 +130,7 @@ cdef class Shader:
                 glEnableVertexAttribArray(attr.index)
 
 
-    cdef build(self):
+    cdef void build(self):
         self.vertex_shader = self.compile_shader(self.vert_src, GL_VERTEX_SHADER)
         self.fragment_shader = self.compile_shader(self.frag_src, GL_FRAGMENT_SHADER)
         glAttachShader(self.program, self.vertex_shader)
@@ -140,14 +140,14 @@ cdef class Shader:
         self.process_build_log()
 
 
-    cdef compile_shader(self, char* source, shadertype):
+    cdef GLuint compile_shader(self, char* source, shadertype):
         shader = glCreateShader(shadertype)
         glShaderSource(shader, 1, <char**> &source, NULL)
         glCompileShader(shader)
         return shader
 
 
-    cdef get_shader_log(self, shader):
+    cdef str get_shader_log(self, shader):
         '''Return the shader log'''
         cdef char msg[2048]
         msg[0] = '\0'
@@ -155,7 +155,7 @@ cdef class Shader:
         return msg
 
 
-    cdef get_program_log(self, shader):
+    cdef str get_program_log(self, shader):
         '''Return the program log'''
         cdef char msg[2048]
         msg[0] = '\0'
@@ -163,7 +163,7 @@ cdef class Shader:
         return msg
 
 
-    cdef process_build_log(self):
+    cdef void process_build_log(self):
         self.process_message('vertex shader', self.get_shader_log(self.vertex_shader))
         self.process_message('fragment shader', self.get_shader_log(self.fragment_shader))
         self.process_message('program', self.get_program_log(self.program))
@@ -172,7 +172,7 @@ cdef class Shader:
             Logger.error('Shader: GL error %d' % error)
 
 
-    cdef process_message(self, str ctype, str message):
+    cdef void process_message(self, str ctype, str message):
         message = message.strip()
         if message and message != 'Success.':
             Logger.error('Shader: %s: <%s>' % (ctype, message))

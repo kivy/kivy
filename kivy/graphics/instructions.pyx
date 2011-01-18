@@ -14,8 +14,12 @@ __all__ = ('Instruction', 'InstructionGroup',
            'ContextInstruction', 'VertexInstruction',
            'Canvas', 'CanvasBase', 'RenderContext')
 
+include "config.pxi"
 include "opcodes.pxi"
 
+from c_opengl cimport *
+IF USE_OPENGL_DEBUG == 1:
+    from c_opengl_debug cimport *
 from kivy.logger import Logger
 
 cdef class Instruction:
