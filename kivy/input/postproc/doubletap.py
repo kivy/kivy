@@ -18,7 +18,7 @@ class InputPostprocDoubleTap(object):
     a touch is a double tap or not.
     Double tap can be configured in the Kivy config file ::
 
-        [kivy]
+        [postproc]
             double_tap_time = 250
             double_tap_distance = 20
 
@@ -26,9 +26,9 @@ class InputPostprocDoubleTap(object):
     '''
 
     def __init__(self):
-        dist = Config.getint('kivy', 'double_tap_distance')
+        dist = Config.getint('postproc', 'double_tap_distance')
         self.double_tap_distance = dist / 1000.0
-        time = Config.getint('kivy', 'double_tap_time')
+        time = Config.getint('postproc', 'double_tap_time')
         self.double_tap_time = time / 1000.0
         self.touches = {}
 

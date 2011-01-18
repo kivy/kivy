@@ -24,10 +24,18 @@ Available configuration tokens
 ------------------------------
 
 :kivy:
-    `show_fps`: (0, 1)
-        Display the FPS on the screen
+
     `log_level`: (debug, info, warning, error, critical)
         Set the minimum log level to use
+    `log_dir`: string
+        Path of log directory
+    `log_name`: string
+        Format string to use for the filename of log file
+    `log_enable`: (0, 1)
+        Activate file logging
+
+:postproc:
+
     `double_tap_time`: int
         Time allowed for the detection of double tap, in milliseconds
     `double_tap_distance`: float
@@ -43,15 +51,6 @@ Available configuration tokens
         - 1000
     `jitter_ignore_devices`: string, seperated with comma
         List of devices to ignore from jittering detection
-    `log_dir`: string
-        Path of log directory
-    `log_name`: string
-        Format string to use for the filename of log file
-    `log_enable`: (0, 1)
-        Activate file logging
-    `gl_error_check`: (0, 1)
-        Activate GL error checking on a per instruction basis.
-        Decreases performance. Only use during development.
     `ignore`: list of tuples
         List of regions where new touches are ignored.
         This configuration token can be used to resolve hotspot problems
@@ -63,7 +62,7 @@ Available configuration tokens
 
 :graphics:
 
-    `fps`: int
+    `maxfps`: int
         Maximum FPS allowed. if fps is <= 0, and vsync activated, the default
         will be set to 60.
     `fullscreen`: (0, 1, fake, auto)
@@ -148,13 +147,14 @@ Available configuration tokens
 __all__ = ('Config', 'KivyConfigParser')
 
 from ConfigParser import ConfigParser
-import sys
-import os
-from kivy.logger import Logger
+from sys import platform
+from os import environ
+from os.path import exists, join
 from kivy import kivy_home_dir, kivy_config_fn
+from kivy.logger import Logger
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 16
+KIVY_CONFIG_VERSION = 1
 
 #: Kivy configuration object
 Config = None
@@ -194,7 +194,7 @@ class KivyConfigParser(ConfigParser):
         with open(kivy_config_fn, 'w') as fd:
             ConfigParser.write(self, fd)
 
-if not 'KIVY_DOC_INCLUDE' in os.environ:
+if not 'KIVY_DOC_INCLUDE' in environ:
 
     #
     # Read, analyse configuration file
@@ -205,7 +205,7 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
     Config = KivyConfigParser()
 
     # Read config file if exist
-    if os.path.exists(kivy_config_fn):
+    if exists(kivy_config_fn):
         try:
             Config.read(kivy_config_fn)
         except Exception, e:
@@ -216,10 +216,9 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
 
     # Add defaults section
     Config.adddefaultsection('kivy')
-    Config.adddefaultsection('keyboard')
     Config.adddefaultsection('graphics')
     Config.adddefaultsection('input')
-    Config.adddefaultsection('dump')
+    Config.adddefaultsection('postproc')
     Config.adddefaultsection('modules')
     Config.adddefaultsection('widgets')
 
@@ -227,111 +226,75 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
     need_save = False
     if version != KIVY_CONFIG_VERSION:
         Logger.warning('Config: Older configuration version detected'
-                       '(%d instead of %d)' % (
+                       ' (%d instead of %d)' % (
                             version, KIVY_CONFIG_VERSION))
         Logger.warning('Config: Upgrading configuration in progress.')
         need_save = True
 
     while version < KIVY_CONFIG_VERSION:
-        Logger.debug('Config: Upgrading from %d' % version)
+        Logger.debug('Config: Upgrading from %d to %d' % (version, version + 1))
 
-        # Versionning introduced in version 0.4.
         if version == 0:
 
-            Config.setdefault('kivy', 'show_fps', '0')
+            # log level
+            Config.setdefault('kivy', 'keyboard_repeat_delay', '300')
+            Config.setdefault('kivy', 'keyboard_repeat_rate', '30')
+            Config.setdefault('kivy', 'log_dir', 'logs')
+            Config.setdefault('kivy', 'log_enable', '1')
             Config.setdefault('kivy', 'log_level', 'info')
-            Config.setdefault('kivy', 'double_tap_time', '250')
-            Config.setdefault('kivy', 'double_tap_distance', '20')
-            Config.setdefault('kivy', 'enable_simulator', '1')
-            Config.setdefault('kivy', 'ignore', '[]')
-            Config.setdefault('keyboard', 'layout', 'qwerty')
-            Config.setdefault('graphics', 'fbo', 'hardware')
-            Config.setdefault('graphics', 'fullscreen', '0')
-            Config.setdefault('graphics', 'width', '640')
-            Config.setdefault('graphics', 'height', '480')
-            Config.setdefault('graphics', 'vsync', '1')
+            Config.setdefault('kivy', 'log_name', 'kivy_%y-%m-%d_%_.txt')
+            Config.setdefault('kivy', 'window_icon', \
+                join(kivy_home_dir, 'icon', 'kivy32.png'))
+
+            # default graphics parameters
             Config.setdefault('graphics', 'display', '-1')
-            Config.setdefault('graphics', 'line_smooth', '1')
-            Config.setdefault('dump', 'enabled', '0')
-            Config.setdefault('dump', 'prefix', 'img_')
-            Config.setdefault('dump', 'format', 'jpeg')
+            Config.setdefault('graphics', 'fullscreen', 'no')
+            Config.setdefault('graphics', 'height', '480')
+            Config.setdefault('graphics', 'left', '0')
+            Config.setdefault('graphics', 'maxfps', '0')
+            Config.setdefault('graphics', 'multisamples', '2')
+            Config.setdefault('graphics', 'position', 'auto')
+            Config.setdefault('graphics', 'rotation', '0')
+            Config.setdefault('graphics', 'show_cursor', '1')
+            Config.setdefault('graphics', 'top', '0')
+            Config.setdefault('graphics', 'vsync', '1')
+            Config.setdefault('graphics', 'width', '640')
+
+            # input configuration
             Config.setdefault('input', 'default', 'tuio,0.0.0.0:3333')
             Config.setdefault('input', 'mouse', 'mouse')
 
             # activate native input provider in configuration
-            if sys.platform == 'darwin':
+            if platform == 'darwin':
                 Config.setdefault('input', 'mactouch', 'mactouch')
-            elif sys.platform == 'win32':
+            elif platform == 'win32':
                 Config.setdefault('input', 'wm_touch', 'wm_touch')
                 Config.setdefault('input', 'wm_pen', 'wm_pen')
+            elif platform == 'linux2':
+                Config.setdefault('input', '%(name)s', 'probesysfs')
 
-        elif version == 1:
-            # add retain postproc configuration
-            Config.setdefault('kivy', 'retain_time', '0')
-            Config.setdefault('kivy', 'retain_distance', '50')
-
-        elif version == 2:
-            # add show cursor
-            Config.setdefault('graphics', 'show_cursor', '1')
-
-        elif version == 3:
-            # add multisamples
-            Config.setdefault('graphics', 'multisamples', '2')
-
-        elif version == 4:
-            # remove mouse simulator
-            Config.remove_option('kivy', 'enable_simulator')
-
-        elif version == 5:
-            # add fixccv
-            Config.setdefault('kivy', 'fixccv', '0')
-
-        elif version == 6:
-            # add log_file format
-            Config.setdefault('kivy', 'log_enable', '1')
-            Config.setdefault('kivy', 'log_dir', 'logs')
-            Config.setdefault('kivy', 'log_name', 'kivy_%y-%m-%d_%_.txt')
-
-        elif version == 7:
-            # add option to turn off pyOpenGL Error Checking
-            Config.setdefault('kivy', 'gl_error_check', '1')
-
-        elif version == 8:
-            Config.setdefault('kivy', 'jitter_distance', '0')
-            Config.setdefault('kivy', 'jitter_ignore_devices',
+            # input postprocessing configuration
+            Config.setdefault('postproc', 'double_tap_distance', '20')
+            Config.setdefault('postproc', 'double_tap_time', '250')
+            Config.setdefault('postproc', 'ignore', '[]')
+            Config.setdefault('postproc', 'jitter_distance', '0')
+            Config.setdefault('postproc', 'jitter_ignore_devices',
                                    'mouse,mactouch,')
+            Config.setdefault('postproc', 'retain_distance', '50')
+            Config.setdefault('postproc', 'retain_time', '0')
 
-        elif version == 9:
+            # default configuration for keyboard repeatition
+            Config.setdefault('widgets', 'keyboard_layout', 'qwerty')
             Config.setdefault('widgets', 'keyboard_type', 'virtual')
-
-        elif version == 10:
             Config.setdefault('widgets', 'list_friction', '10')
             Config.setdefault('widgets', 'list_friction_bound', '20')
             Config.setdefault('widgets', 'list_trigger_distance', '5')
 
-        elif version == 11:
-            Config.setdefault('graphics', 'window_icon', \
-                os.path.join(kivy_home_dir, 'icon', 'kivy32.png'))
 
-        elif version == 12:
-            # default configuration for keyboard repeatition
-            Config.setdefault('keyboard', 'repeat_delay', '300')
-            Config.setdefault('keyboard', 'repeat_rate', '30')
-
-        elif version == 13:
-            # add possibility to set the position of windows
-            Config.setdefault('graphics', 'position', 'auto')
-            Config.setdefault('graphics', 'top', '0')
-            Config.setdefault('graphics', 'left', '0')
-
-        elif version == 14:
-            # ability to change maximum FPS
-            Config.setdefault('graphics', 'fps', '0')
-
-        elif version == 15:
-            # ability to rotate the window
-            Config.setdefault('graphics', 'rotation', '0')
-
+        #
+        #elif version == 1:
+        #   # add here the command for upgrading from configuration 0 to 1
+        #
         else:
             # for future.
             break
@@ -347,7 +310,7 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
         Logger.logfile_activated = True
 
     # If no configuration exist, write the default one.
-    if not os.path.exists(kivy_config_fn) or need_save:
+    if not exists(kivy_config_fn) or need_save:
         try:
             Config.write()
         except Exception, e:

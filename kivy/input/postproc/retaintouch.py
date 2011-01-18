@@ -20,7 +20,7 @@ class InputPostprocRetainTouch(object):
 
     Retain touch can be configured in the Kivy config file ::
 
-        [kivy]
+        [postproc]
             retain_time = 100
             retain_distance = 50
 
@@ -28,8 +28,8 @@ class InputPostprocRetainTouch(object):
     '''
 
     def __init__(self):
-        self.timeout = Config.getint('kivy', 'retain_time') / 1000.0
-        self.distance = Config.getint('kivy', 'retain_distance') / 1000.0
+        self.timeout = Config.getint('postproc', 'retain_time') / 1000.0
+        self.distance = Config.getint('postproc', 'retain_distance') / 1000.0
         self._available = []
         self._links = {}
 

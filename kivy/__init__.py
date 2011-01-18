@@ -20,11 +20,20 @@ on the C-level to maximize performance.
 See http://kivy.org for more information.
 '''
 
+__all__ = (
+    'kivy_configure', 'kivy_register_post_configuration',
+    'kivy_options', 'kivy_base_dir', 'kivy_libs_dir',
+    'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
+    'kivy_providers_dir', 'kivy_icons_dir', 'kivy_home_dir',
+    'kivy_config_fn', 'kivy_usermodules_dir',
+)
+
 __version__ = '0.6-dev'
 
 import sys
-import getopt
-import os
+from getopt import getopt, GetoptError
+from os import environ, mkdir
+from os.path import dirname, join, basename, exists, expanduser
 from kivy.logger import Logger, LOG_LEVELS
 
 # internals for post-configuration
@@ -53,6 +62,8 @@ def kivy_usage():
 
         -h, --help
             Prints this help message.
+        -d, --debug
+            Show debug log
         -f, --fullscreen
             Force running in fullscreen mode.
         -a, --auto-fullscreen
@@ -65,8 +76,6 @@ def kivy_usage():
             Force running in window.
         -p, --provider id:provider[,options]
             Add an input provider (eg: ccvtable1:tuio,192.168.0.1:3333).
-        -F, --fps
-            Show FPS in window.
         -m mod, --module=mod
             Activate a module (use "list" to get available modules).
         -r, --rotation
@@ -76,7 +85,7 @@ def kivy_usage():
         --size=640x480
             Size of window geometry.
     '''
-    print kivy_usage.__doc__ % (os.path.basename(sys.argv[0]))
+    print kivy_usage.__doc__ % (basename(sys.argv[0]))
 
 
 # Start !
@@ -99,12 +108,12 @@ kivy_options = {
 # Read environment
 for option in kivy_options:
     key = 'KIVY_%s' % option.upper()
-    if key in os.environ:
+    if key in environ:
         try:
             if type(kivy_options[option]) in (list, tuple):
-                kivy_options[option] = (str(os.environ[key]), )
+                kivy_options[option] = (str(environ[key]), )
             else:
-                kivy_options[option] = os.environ[key].lower() in \
+                kivy_options[option] = environ[key].lower() in \
                     ('true', '1', 'yes', 'yup')
         except Exception:
             Logger.warning('Core: Wrong value for %s'
@@ -113,19 +122,19 @@ for option in kivy_options:
 
 # Extract all needed path in kivy
 #: Kivy directory
-kivy_base_dir = os.path.dirname(sys.modules[__name__].__file__)
+kivy_base_dir = dirname(sys.modules[__name__].__file__)
 #: Kivy external libraries directory
-kivy_libs_dir = os.path.join(kivy_base_dir, 'lib')
+kivy_libs_dir = join(kivy_base_dir, 'lib')
 #: Kivy modules directory
-kivy_modules_dir = os.path.join(kivy_base_dir, 'modules')
+kivy_modules_dir = join(kivy_base_dir, 'modules')
 #: Kivy data directory
-kivy_data_dir = os.path.join(kivy_base_dir, 'data')
+kivy_data_dir = join(kivy_base_dir, 'data')
 #: Kivy glsl shader directory
-kivy_shader_dir = os.path.join(kivy_data_dir, 'glsl')
+kivy_shader_dir = join(kivy_data_dir, 'glsl')
 #: Kivy input provider directory
-kivy_providers_dir = os.path.join(kivy_base_dir, 'input', 'providers')
+kivy_providers_dir = join(kivy_base_dir, 'input', 'providers')
 #: Kivy icons config path (don't remove last '')
-kivy_icons_dir = os.path.join(kivy_data_dir, 'icons', '')
+kivy_icons_dir = join(kivy_data_dir, 'icons', '')
 #: Kivy user-home storage directory
 kivy_home_dir = None
 #: Kivy configuration filename
@@ -137,27 +146,27 @@ kivy_usermodules_dir = None
 sys.path = [kivy_libs_dir] + sys.path
 
 # Don't go further if we generate documentation
-if os.path.basename(sys.argv[0]) in ('sphinx-build', 'autobuild.py'):
-    os.environ['KIVY_DOC'] = '1'
-if os.path.basename(sys.argv[0]) in ('sphinx-build', ):
-    os.environ['KIVY_DOC_INCLUDE'] = '1'
-if os.path.basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
-    os.environ['KIVY_UNITTEST'] = '1'
-if not 'KIVY_DOC_INCLUDE' in os.environ:
+if basename(sys.argv[0]) in ('sphinx-build', 'autobuild.py'):
+    environ['KIVY_DOC'] = '1'
+if basename(sys.argv[0]) in ('sphinx-build', ):
+    environ['KIVY_DOC_INCLUDE'] = '1'
+if basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
+    environ['KIVY_UNITTEST'] = '1'
+if not 'KIVY_DOC_INCLUDE' in environ:
 
     # Configuration management
-    user_home_dir = os.path.expanduser('~')
-    kivy_home_dir = os.path.join(user_home_dir, '.kivy')
-    kivy_config_fn = os.path.join(kivy_home_dir, 'config')
-    if not os.path.exists(kivy_home_dir):
-        os.mkdir(kivy_home_dir)
-    kivy_usermodules_dir = os.path.join(kivy_home_dir, 'mods')
-    if not os.path.exists(kivy_usermodules_dir):
-        os.mkdir(kivy_usermodules_dir)
+    user_home_dir = expanduser('~')
+    kivy_home_dir = join(user_home_dir, '.kivy')
+    kivy_config_fn = join(kivy_home_dir, 'config.ini')
+    if not exists(kivy_home_dir):
+        mkdir(kivy_home_dir)
+    kivy_usermodules_dir = join(kivy_home_dir, 'mods')
+    if not exists(kivy_usermodules_dir):
+        mkdir(kivy_usermodules_dir)
     '''
-    icon_dir = os.path.join(kivy_home_dir, 'icon')
-    if not os.path.exists(icon_dir):
-        shutil.copytree(os.path.join(kivy_data_dir, 'logo'), icon_dir)
+    icon_dir = join(kivy_home_dir, 'icon')
+    if not exists(icon_dir):
+        shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
     '''
 
     # configuration
@@ -168,19 +177,19 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
     Logger.setLevel(level=level)
 
     # Can be overrided in command line
-    if 'KIVY_UNITTEST' not in os.environ:
+    if 'KIVY_UNITTEST' not in environ:
 
         # save sys argv, otherwize, gstreamer use it and display help..
         sys_argv = sys.argv
         sys.argv = sys.argv[:1]
 
         try:
-            opts, args = getopt.getopt(sys_argv[1:], 'hp:fkawFem:snr:',
+            opts, args = getopt(sys_argv[1:], 'hp:fkawFem:snr:d',
                 ['help', 'fullscreen', 'windowed', 'fps', 'event',
                  'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
-                 'display=', 'size=', 'rotate='])
+                 'display=', 'size=', 'rotate=', 'debug'])
 
-        except getopt.GetoptError, err:
+        except GetoptError, err:
             Logger.error('Core: %s' % str(err))
             kivy_usage()
             sys.exit(2)
@@ -208,10 +217,6 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
             Config.set('graphics', 'fullscreen', '1')
         elif opt in ('-w', '--windowed'):
             Config.set('graphics', 'fullscreen', '0')
-        elif opt in ('-F', '--fps'):
-            Config.set('kivy', 'show_fps', '1')
-        elif opt in ('-e', '--eventstats'):
-            Config.set('kivy', 'show_eventstats', '1')
         elif opt in ('--size', ):
             w, h = str(arg).split('x')
             Config.set('graphics', 'width', w)
@@ -232,6 +237,9 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
             Config.set('graphics', 'rotation', arg)
         elif opt in ('-n', ):
             kivy_options['shadow_window'] = False
+        elif opt in ('-d', '--debug'):
+            level = LOG_LEVELS.get('debug')
+            Logger.setLevel(level=level)
 
     if need_save:
         try:
@@ -243,7 +251,3 @@ if not 'KIVY_DOC_INCLUDE' in os.environ:
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
 
-# cleanup namespace
-if not 'KIVY_DOC_INCLUDE' in os.environ:
-    del level, need_save, opts, args
-del sys, getopt, os, key

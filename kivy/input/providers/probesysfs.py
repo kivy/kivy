@@ -165,7 +165,8 @@ else:
                 instance = provider(devicename, '%s,%s' % (device.device,
                                                            ','.join(self.args)))
                 if instance:
-                    kivy.kivy_providers.append(instance)
+                    from kivy.base import EventLoop
+                    EventLoop.add_input_provider(instance)
 
 
     MotionEventFactory.register('probesysfs', ProbeSysfsHardwareProbe)

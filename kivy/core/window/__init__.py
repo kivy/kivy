@@ -83,7 +83,6 @@ class WindowBase(EventDispatcher):
 
         kwargs.setdefault('force', False)
         kwargs.setdefault('config', None)
-        kwargs.setdefault('show_fps', False)
 
         # don't init window 2 times,
         # except if force is specified
@@ -151,7 +150,7 @@ class WindowBase(EventDispatcher):
         if 'fps' in kwargs:
             params['fps'] = kwargs.get('fps')
         else:
-            params['fps'] = Config.getint('graphics', 'fps')
+            params['fps'] = Config.getint('graphics', 'maxfps')
 
         if 'rotation' in kwargs:
             params['rotation'] = kwargs.get('rotation')
@@ -171,11 +170,6 @@ class WindowBase(EventDispatcher):
             params['left'] = kwargs.get('left')
         else:
             params['left'] = Config.getint('graphics', 'left')
-
-        # show fps if asked
-        self.show_fps = kwargs.get('show_fps')
-        if Config.getboolean('kivy', 'show_fps'):
-            self.show_fps = True
 
         # before creating the window
         import kivy.core.gl

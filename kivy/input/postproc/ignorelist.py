@@ -16,7 +16,7 @@ class InputPostprocIgnoreList(object):
     InputPostprocIgnoreList is a post-processor who remove touch in ignore list.
     Ignore list can be configured in the Kivy config file ::
 
-        [kivy]
+        [postproc]
         # Format: [(xmin, ymin, xmax, ymax), ...]
         ignore = [(0.1, 0.1, 0.15, 0.15)]
 
@@ -24,7 +24,7 @@ class InputPostprocIgnoreList(object):
     '''
 
     def __init__(self):
-        self.ignore_list = strtotuple(Config.get('kivy', 'ignore'))
+        self.ignore_list = strtotuple(Config.get('postproc', 'ignore'))
 
     def collide_ignore(self, touch):
         x, y = touch.sx, touch.sy
