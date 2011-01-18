@@ -152,6 +152,7 @@ from os import environ
 from os.path import exists, join
 from kivy import kivy_home_dir, kivy_config_fn
 from kivy.logger import Logger
+from kivy.utils import OrderedDict
 
 # Version number of current configuration format
 KIVY_CONFIG_VERSION = 1
@@ -164,6 +165,10 @@ class KivyConfigParser(ConfigParser):
     '''Enhanced ConfigParser class, that support the possibility of add default
     sections and default values.
     '''
+
+    def __init__(self):
+        ConfigParser.__init__(self)
+        self._sections = OrderedDict()
 
     def setdefault(self, section, option, value):
         '''Set the default value on a particular option
@@ -192,6 +197,10 @@ class KivyConfigParser(ConfigParser):
         '''Write the configuration to the default kivy file
         '''
         with open(kivy_config_fn, 'w') as fd:
+            fd.write('# Kivy configuration\n')
+            fd.write('# Check kivy.config documentation for more'
+                     'informations about theses sections and tokens.\n')
+            fd.write('\n')
             ConfigParser.write(self, fd)
 
 if not 'KIVY_DOC_INCLUDE' in environ:
@@ -219,8 +228,8 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     Config.adddefaultsection('graphics')
     Config.adddefaultsection('input')
     Config.adddefaultsection('postproc')
-    Config.adddefaultsection('modules')
     Config.adddefaultsection('widgets')
+    Config.adddefaultsection('modules')
 
     # Upgrade default configuration until having the current version
     need_save = False
