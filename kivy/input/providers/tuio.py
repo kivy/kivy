@@ -3,7 +3,8 @@ TUIO input provider implementation
 ==================================
 '''
 
-__all__ = ('TuioMotionEventProvider', 'Tuio2dCurMotionEvent', 'Tuio2dObjMotionEvent')
+__all__ = ('TuioMotionEventProvider', 'Tuio2dCurMotionEvent',
+           'Tuio2dObjMotionEvent')
 
 import osc
 from collections import deque
@@ -43,7 +44,7 @@ class TuioMotionEventProvider(MotionEventProvider):
                 super(TuioNEWPATHMotionEvent, self).depack(args)
 
         # Register it to tuio touch provider
-        TuioMotionEventProvider.register('/tuio/NEWPATH', TuioNEWPATHMotionEvent)
+        TuioMotionEventProvider.register('/tuio/PATH', TuioNEWPATHMotionEvent)
     '''
 
     __handlers__ = {}
@@ -133,8 +134,8 @@ class TuioMotionEventProvider(MotionEventProvider):
             id = args[1]
             if id not in self.touches[oscpath]:
                 # new touch
-                touch = TuioMotionEventProvider.__handlers__[oscpath](self.device,
-                                                                id, args[2:])
+                touch = TuioMotionEventProvider.__handlers__[oscpath](
+                    self.device, id, args[2:])
                 self.touches[oscpath][id] = touch
                 dispatch_fn('begin', touch)
             else:

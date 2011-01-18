@@ -89,8 +89,9 @@ else:
 
 
 class MacMotionEvent(MotionEvent):
-    '''MotionEvent representing a contact point on touchpad. Support pos and shape
-    profile'''
+    '''MotionEvent representing a contact point on touchpad. Support pos and
+    shape profile.
+    '''
 
     def depack(self, args):
         self.is_touch = True
