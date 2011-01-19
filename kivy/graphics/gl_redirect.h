@@ -8,7 +8,7 @@
 
 #if __USE_GLES2
 #	if __APPLE__
-#		include "apple_gl2.h"
+#		include "common_subset.h"
 #	else
 #		warning "GL redirect is set on GLES 2 headers"
 #		include <GLES2/gl2.h>

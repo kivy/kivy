@@ -24,8 +24,8 @@ module by default for :
     - Ignore regions
 '''
 
+from kivy.input.motionevent import MotionEvent
 from kivy.input.postproc import *
 from kivy.input.provider import *
 from kivy.input.factory import *
 from kivy.input.providers import *
-from kivy.input.touch import *

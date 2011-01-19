@@ -23,13 +23,12 @@ class WindowBase(EventDispatcher):
 
         The parameters are not working in normal case. Because at import, Kivy
         create a default OpenGL window, to add the ability to use OpenGL
-        directives, texture creation.. before creating MTWindow.
+        directives, texture creation.. before creating Window.
         If you don't like this behavior, you can include before the very first
         import of Kivy ::
 
             import os
             os.environ['KIVY_SHADOW'] = '0'
-            from kivy import *
 
         This will forbid Kivy to create the default window !
 
@@ -45,6 +44,31 @@ class WindowBase(EventDispatcher):
             Height of window
         `vsync`: bool
             Vsync window
+
+    :Events:
+        `on_motion`: etype, motionevent
+            Fired when a new :class:`~kivy.input.motionevent.MotionEvent` is
+            dispatched
+        `on_touch_down`:
+            Fired when a new touch appear
+        `on_touch_move`:
+            Fired when an existing touch is moved
+        `on_touch_down`:
+            Fired when an existing touch disapear
+        `on_draw`:
+            Fired when the :class:`Window` is beeing drawed
+        `on_flip`:
+            Fired when the :class:`Window` GL surface is beeing flipped
+        `on_rotate`: rotation
+            Fired when the :class:`Window` is beeing rotated
+        `on_close`:
+            Fired when the :class:`Window` is closed
+        `on_keyboard`: key, scancode, unicode
+            Fired when the keyboard is in action
+        `on_key_down`: key, scancode, unicode
+            Fired when a key is down
+        `on_key_up`: key, scancode, unicode
+            Fired when a key is up
     '''
 
     __instance = None
@@ -59,7 +83,6 @@ class WindowBase(EventDispatcher):
 
         kwargs.setdefault('force', False)
         kwargs.setdefault('config', None)
-        kwargs.setdefault('show_fps', False)
 
         # don't init window 2 times,
         # except if force is specified
@@ -79,6 +102,7 @@ class WindowBase(EventDispatcher):
         self.register_event_type('on_rotate')
         self.register_event_type('on_resize')
         self.register_event_type('on_close')
+        self.register_event_type('on_motion')
         self.register_event_type('on_touch_down')
         self.register_event_type('on_touch_move')
         self.register_event_type('on_touch_up')
@@ -126,7 +150,7 @@ class WindowBase(EventDispatcher):
         if 'fps' in kwargs:
             params['fps'] = kwargs.get('fps')
         else:
-            params['fps'] = Config.getint('graphics', 'fps')
+            params['fps'] = Config.getint('graphics', 'maxfps')
 
         if 'rotation' in kwargs:
             params['rotation'] = kwargs.get('rotation')
@@ -146,11 +170,6 @@ class WindowBase(EventDispatcher):
             params['left'] = kwargs.get('left')
         else:
             params['left'] = Config.getint('graphics', 'left')
-
-        # show fps if asked
-        self.show_fps = kwargs.get('show_fps')
-        if Config.getboolean('kivy', 'show_fps'):
-            self.show_fps = True
 
         # before creating the window
         import kivy.core.gl
@@ -236,19 +255,21 @@ class WindowBase(EventDispatcher):
         '''Rotated window center'''
         return self.width / 2., self.height / 2.
 
-    def add_widget(self, w):
+    def add_widget(self, widget):
         '''Add a widget on window'''
-        self.children.append(w)
-        w.parent = self
-        self.canvas.add(w.canvas)
+        self.children.append(widget)
+        widget.parent = self
+        self.canvas.add(widget.canvas)
+        self.update_childsize([widget])
 
-    def remove_widget(self, w):
-        '''Remove a widget from window'''
-        if not w in self.children:
+    def remove_widget(self, widget):
+        '''Remove a widget from window
+        '''
+        if not widget in self.children:
             return
-        self.children.remove(w)
-        w.parent = None
-        self.canvas.remove_canvas(w.canvas)
+        self.children.remove(widget)
+        self.canvas.remove(widget.canvas)
+        widget.parent = None
 
     def clear(self):
         '''Clear the window with background color'''
@@ -277,8 +298,26 @@ class WindowBase(EventDispatcher):
         self.clear()
         self.render_context.draw()
 
+    def on_motion(self, etype, me):
+        '''Event called when a Motion Event is received.
+
+        :Parameters:
+            `etype`: str
+                One of 'begin', 'update', 'end'
+            `me`: :class:`~kivy.input.motionevent.MotionEvent`
+                Motion Event currently dispatched
+        '''
+        if me.is_touch:
+            if etype == 'begin':
+                self.dispatch('on_touch_down', me)
+            elif etype == 'update':
+                self.dispatch('on_touch_move', me)
+            elif etype == 'end':
+                self.dispatch('on_touch_up', me)
+
     def on_touch_down(self, touch):
-        '''Event called when a touch is down'''
+        '''Event called when a touch is down
+        '''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
@@ -286,7 +325,8 @@ class WindowBase(EventDispatcher):
                 return True
 
     def on_touch_move(self, touch):
-        '''Event called when a touch move'''
+        '''Event called when a touch move
+        '''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
@@ -294,7 +334,8 @@ class WindowBase(EventDispatcher):
                 return True
 
     def on_touch_up(self, touch):
-        '''Event called when a touch up'''
+        '''Event called when a touch up
+        '''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
@@ -335,8 +376,13 @@ class WindowBase(EventDispatcher):
         glTranslatef(-w2, -h2, 0)
         '''
 
-        # update window size
-        for w in self.children:
+        self.update_childsize()
+
+    def update_childsize(self, childs=None):
+        width, height = self.system_size
+        if childs is None:
+            childs = self.children
+        for w in childs:
             shw, shh = w.size_hint
             if shw and shh:
                 w.size = shw * width, shh * height
@@ -407,7 +453,7 @@ class WindowBase(EventDispatcher):
         pass
 
 
-# Load the appropriate provider
+#: Instance of a :class:`WindowBase` implementation
 Window = core_select_lib('window', (
     ('pygame', 'window_pygame', 'WindowPygame'),
 ), True)

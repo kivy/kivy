@@ -477,7 +477,9 @@ cdef extern from "gl_redirect.h":
     cdef void  glPixelStorei(GLenum pname, GLint param) nogil
     cdef void  glPolygonOffset(GLfloat factor, GLfloat units) nogil
     cdef void  glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels) nogil
-    cdef void  glReleaseShaderCompiler() nogil
+    # XXX This one is commented out because a) it's not necessary and
+    #	    				b) it's breaking on OSX for some reason
+    #cdef void  glReleaseShaderCompiler() nogil
     cdef void  glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height) nogil
     cdef void  glSampleCoverage(GLclampf value, GLboolean invert) nogil
     cdef void  glScissor(GLint x, GLint y, GLsizei width, GLsizei height) nogil

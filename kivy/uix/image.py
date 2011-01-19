@@ -11,6 +11,7 @@ from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty
 from kivy.loader import Loader
 
+
 class Image(Widget):
 
     #: Filename of the image
@@ -55,6 +56,5 @@ class AsyncImage(Image):
         image = self._coreimage
         if not image:
             return
-        print value.texture, self.texture
         self.texture = image.texture
 

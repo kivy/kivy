@@ -837,8 +837,11 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     #c_opengl.glReadPixels(x, y, width, height, format, type, pixels)
     raise NotImplemented()
 
+# XXX This one is commented out because a) it's not necessary and
+#	    				b) it's breaking on OSX for some reason
 def glReleaseShaderCompiler():
-    c_opengl.glReleaseShaderCompiler()
+    raise NotImplemented()
+#    c_opengl.glReleaseShaderCompiler()
 
 def glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height):
     c_opengl.glRenderbufferStorage(target, internalformat, width, height)

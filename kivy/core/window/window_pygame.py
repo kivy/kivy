@@ -7,6 +7,7 @@ __all__ = ('WindowPygame', )
 from . import WindowBase
 
 import os
+from os.path import exists
 from kivy.config import Config
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
@@ -72,14 +73,15 @@ class WindowPygame(WindowBase):
         self._pos = (0, 0)
 
         # prepare keyboard
-        repeat_delay = int(Config.get('keyboard', 'repeat_delay'))
-        repeat_rate = float(Config.get('keyboard', 'repeat_rate'))
+        repeat_delay = int(Config.get('kivy', 'keyboard_repeat_delay'))
+        repeat_rate = float(Config.get('kivy', 'keyboard_repeat_rate'))
         pygame.key.set_repeat(repeat_delay, int(1000. / repeat_rate))
 
         # set window icon before calling set_mode
-        # XXX FIXME
-        #icon = pygame.image.load(Config.get('graphics', 'window_icon'))
-        #pygame.display.set_icon(icon)
+        filename_icon = Config.get('kivy', 'window_icon')
+        if exists(filename_icon):
+            icon = pygame.image.load(filename_icon)
+            pygame.display.set_icon(icon)
 
         # init ourself size + setmode
         # before calling on_resize

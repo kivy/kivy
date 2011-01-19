@@ -314,8 +314,21 @@ class BuilderRuleClass(BuilderRule):
 
 class BuilderRuleName(BuilderRule):
 
+    parents = {}
+
     def match(self, widget):
-        return widget.__class__.__name__.lower() == self.key
+        parents = BuilderRuleName.parents
+        cls = widget.__class__
+        if not cls in parents:
+            classes = []
+            parent = [cls]
+            while parent and len(parent):
+                classes.append(parent[0].__name__.lower())
+                if parent[0].__name__ == 'Widget':
+                    break
+                parent = parent[0].__bases__
+            parents[cls] = classes
+        return self.key in parents[cls]
 
 
 class BuilderBase(object):

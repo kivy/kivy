@@ -14,8 +14,12 @@ __all__ = ('Instruction', 'InstructionGroup',
            'ContextInstruction', 'VertexInstruction',
            'Canvas', 'CanvasBase', 'RenderContext')
 
+include "config.pxi"
 include "opcodes.pxi"
 
+from c_opengl cimport *
+IF USE_OPENGL_DEBUG == 1:
+    from c_opengl_debug cimport *
 from kivy.logger import Logger
 
 cdef class Instruction:
@@ -25,7 +29,8 @@ cdef class Instruction:
     def __cinit__(self):
         self.flags = 0
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        self.group = kwargs.get('group', None)
         self.parent = getActiveCanvas()
         if self.parent:
             self.parent.add(self)
@@ -36,43 +41,69 @@ cdef class Instruction:
     cdef flag_update(self):
         if self.parent:
             self.parent.flag_update()
-        self.flags |= GI_NEED_UPDATE
+        self.flags |= GI_NEEDS_UPDATE
 
     cdef flag_update_done(self):
-        self.flags &= ~GI_NEED_UPDATE
+        self.flags &= ~GI_NEEDS_UPDATE
+
+    property needs_redraw:
+        def __get__(self):
+            return bool(self.flags | GI_NEEDS_UPDATE)
 
 
 cdef class InstructionGroup(Instruction):
     '''Group of :class:`Instruction`. Add the possibility of adding and
     removing graphics instruction.
     '''
-    def __init__(self):
-        Instruction.__init__(self)
+    def __init__(self, **kwargs):
+        Instruction.__init__(self, **kwargs)
         self.children = list()
+        self.compiled_children = None
+        if 'nocompiler' in kwargs:
+            self.compiler = None
+        else:
+            self.compiler = GraphicsCompiler()
 
     cdef apply(self):
         cdef Instruction c
-        for c in self.children:
-            c.apply()
+        if self.compiler:
+            if self.flags & GI_NEEDS_UPDATE:
+                self.build()
+            if self.compiled_children and not (self.flags & GI_NO_APPLY_ONCE):
+                for c in self.compiled_children.children:
+                    if c.flags & GI_IGNORE:
+                        continue
+                    c.apply()
+            self.flags &= ~GI_NO_APPLY_ONCE
+        else:
+            for c in self.children:
+                c.apply()
+
+    cdef void build(self):
+        self.compiled_children = self.compiler.compile(self)
+        self.flag_update_done()
 
     cpdef add(self, Instruction c):
         '''Add a new :class:`Instruction` in our list.
         '''
-        c.parent = self
+        if c.parent is None:
+            c.parent = self
         self.children.append(c)
         self.flag_update()
 
     cpdef insert(self, int index, Instruction c):
         '''Insert a new :class:`Instruction` in our list at index.
         '''
-        c.parent = self
+        if c.parent is None:
+            c.parent = self
         self.children.insert(index, c)
         self.flag_update()
 
     cpdef remove(self, Instruction c):
         '''Remove an existing :class:`Instruction` from our list.
         '''
-        c.parent = None
+        if c.parent is self:
+            c.parent = None
         self.children.remove(c)
         self.flag_update()
 
@@ -83,13 +114,28 @@ cdef class InstructionGroup(Instruction):
         for c in self.children[:]:
             self.remove(c)
 
+    cpdef remove_group(self, str groupname):
+        '''Remove all :class:`Instruction` with a specific group name.
+        '''
+        cdef Instruction c
+        for c in self.children[:]:
+            if c.group == groupname:
+                self.remove(c)
+
+    cpdef get_group(self, str groupname):
+        '''Return a generator with all the :class:`Instruction` from a specific
+        group name.
+        '''
+        cdef Instruction c
+        return [c for c in self.children if c.group == groupname]
+
 cdef class ContextInstruction(Instruction):
     '''A context instruction is the base for creating non-display instruction
     for Canvas (texture binding, color parameters, matrix manipulation...)
     '''
-    def __init__(self):
-        Instruction.__init__(self)
-        self.flags &= GI_CONTEXT_MOD
+    def __init__(self, **kwargs):
+        Instruction.__init__(self, **kwargs)
+        self.flags |= GI_CONTEXT_MOD
         self.context_state = dict()
         self.context_push = list()
         self.context_pop = list()
@@ -125,11 +171,11 @@ cdef class VertexInstruction(Instruction):
         self.texture = self.texture_binding.texture #auto compute tex coords
         self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
 
-        Instruction.__init__(self)
-        self.flags = GI_VERTEX_DATA & GI_NEED_UPDATE
+        Instruction.__init__(self, **kwargs)
+        self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
         self.batch = VertexBatch()
-        self.vertices = list()
-        self.indices = list()
+        self.vertices = []
+        self.indices = []
 
     property texture:
         '''Property for getting/setting the texture to be bound when drawing the
@@ -164,7 +210,7 @@ cdef class VertexInstruction(Instruction):
             self._tex_coords = list(tc)
             self.flag_update()
 
-    cdef build(self):
+    cdef void build(self):
         pass
 
     cdef update_batch(self):
@@ -172,7 +218,7 @@ cdef class VertexInstruction(Instruction):
         self.flag_update_done()
 
     cdef apply(self):
-        if self.flags & GI_NEED_UPDATE:
+        if self.flags & GI_NEEDS_UPDATE:
             self.build()
             self.update_batch()
 
@@ -208,8 +254,8 @@ cdef class Canvas(CanvasBase):
             Rectangle(size=(50, 50))
     '''
 
-    def __init__(self):
-        CanvasBase.__init__(self)
+    def __init__(self, **kwargs):
+        CanvasBase.__init__(self, **kwargs)
         self._before = None
         self._after = None
 
@@ -219,7 +265,8 @@ cdef class Canvas(CanvasBase):
         self.apply()
 
     cpdef add(self, Instruction c):
-        c.parent = self
+        if c.parent is None:
+            c.parent = self
         # the after group must remain the last one.
         if self._after is None:
             self.children.append(c)
@@ -228,7 +275,8 @@ cdef class Canvas(CanvasBase):
         self.flag_update()
 
     cpdef remove(self, Instruction c):
-        #c.parent = None
+        if c.parent is self:
+            c.parent = None
         self.children.remove(c)
         self.flag_update()
 
@@ -296,7 +344,8 @@ cdef class RenderContext(Canvas):
     - the state stack (color, texture, matrix...)
     '''
     def __init__(self, *args, **kwargs):
-        Canvas.__init__(self)
+        self.bind_texture = dict()
+        Canvas.__init__(self, **kwargs)
         vs_src = kwargs.get('vs', None)
         fs_src = kwargs.get('fs', None)
         if vs_src is None:
@@ -329,10 +378,15 @@ cdef class RenderContext(Canvas):
 
     cdef set_state(self, str name, value):
         #upload the uniform value for the shdeer
+        cdef list d
         if not name in self.state_stacks:
             self.state_stacks[name] = [value]
+            self.flag_update()
         else:
-            self.state_stacks[name][-1] = value
+            d = self.state_stacks[name]
+            if value != d[-1]:
+                d[-1] = value
+                self.flag_update()
         self.shader.set_uniform(name, value)
 
     cdef get_state(self, str name):
@@ -346,6 +400,7 @@ cdef class RenderContext(Canvas):
     cdef push_state(self, str name):
         stack = self.state_stacks[name]
         stack.append(stack[-1])
+        self.flag_update()
 
     cdef push_states(self, list names):
         cdef str name
@@ -356,19 +411,33 @@ cdef class RenderContext(Canvas):
         stack = self.state_stacks[name]
         stack.pop()
         self.set_state(name, stack[-1])
+        self.flag_update()
 
     cdef pop_states(self, list names):
         cdef str name
         for name in names:
             self.pop_state(name)
 
+    cdef set_texture(self, int index, Texture texture):
+        if index in self.bind_texture and \
+           self.bind_texture[index] is texture:
+            return
+        self.bind_texture[index] = texture
+        glActiveTexture(GL_TEXTURE0 + index)
+        glBindTexture(texture.target, texture.id)
+        self.flag_update()
+
     cdef enter(self):
         self.shader.use()
 
     cdef apply(self):
+        keys = self.state_stacks.keys()
+        self.push_states(keys)
         pushActiveContext(self)
         Canvas.apply(self)
         popActiveContext()
+        self.pop_states(keys)
+        self.flag_update_done()
 
     def __setitem__(self, key, val):
         self.set_state(key, val)

@@ -71,7 +71,7 @@ class Label(Widget):
         self._label = CoreLabel(**dkw)
 
         # force the texture creation
-        self._texture_update()
+        self.texture_update()
 
     def _trigger_texture_update(self, name=None, source=None, value=None):
         if source:
@@ -79,10 +79,10 @@ class Label(Widget):
                 self._label.text = value
             else:
                 self._label.options[name] = value
-        Clock.unschedule(self._texture_update)
-        Clock.schedule_once(self._texture_update)
+        Clock.unschedule(self.texture_update)
+        Clock.schedule_once(self.texture_update)
 
-    def _texture_update(self, *largs):
+    def texture_update(self, *largs):
         self._label.refresh()
         self.texture = None
         self.texture = self._label.texture

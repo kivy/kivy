@@ -25,13 +25,12 @@ from kivy import kivy_data_dir
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.cache import Cache
-from kivy.utils import SafeList
 from kivy.core.image import ImageLoader, Image
-from abc import ABCMeta, abstractmethod
 
-import time
-import collections
-import os
+from collections import deque
+from time import sleep
+from os.path import join
+from os import write, close, unlink, environ
 
 # Register a cache for loader
 Cache.register('kivy.loader', limit=500, timeout=60)
@@ -67,16 +66,14 @@ class LoaderBase(object):
     less than 25 FPS.
     '''
 
-    __metaclass__ = ABCMeta
-
     def __init__(self):
 
         self._loading_image = None
         self._error_image = None
 
-        self._q_load = collections.deque()
-        self._q_done = collections.deque()
-        self._client = SafeList()
+        self._q_load = deque()
+        self._q_done = deque()
+        self._client = []
         self._running = False
         self._start_wanted = False
 
@@ -92,7 +89,7 @@ class LoaderBase(object):
     def loading_image(self):
         '''Image used for loading (readonly)'''
         if not self._loading_image:
-            loading_png_fn = os.path.join(kivy_data_dir, 'images', 'loading-0.png')
+            loading_png_fn = join(kivy_data_dir, 'images', 'loading-0.png')
             self._loading_image = ImageLoader.load(filename=loading_png_fn)
         return self._loading_image
 
@@ -100,21 +97,18 @@ class LoaderBase(object):
     def error_image(self):
         '''Image used for error (readonly)'''
         if not self._error_image:
-            error_png_fn = os.path.join(kivy_data_dir, 'error.png')
+            error_png_fn = join(kivy_data_dir, 'error.png')
             self._error_image = ImageLoader.load(filename=error_png_fn)
         return self._error_image
 
-    @abstractmethod
     def start(self):
         '''Start the loader thread/process'''
         self._running = True
 
-    @abstractmethod
     def run(self, *largs):
         '''Main loop for the loader.'''
         pass
 
-    @abstractmethod
     def stop(self):
         '''Stop the loader thread/process'''
         self._running = False
@@ -159,8 +153,8 @@ class LoaderBase(object):
             fd.close()
 
             # write to local filename
-            os.write(_out_osfd, idata)
-            os.close(_out_osfd)
+            write(_out_osfd, idata)
+            close(_out_osfd)
 
             # load data
             data = self._load_local(_out_filename)
@@ -168,7 +162,7 @@ class LoaderBase(object):
             Logger.exception('Failed to load image <%s>' % filename)
             return self.error_image
         finally:
-            os.unlink(_out_filename)
+            unlink(_out_filename)
 
         return data
 
@@ -238,7 +232,7 @@ class LoaderBase(object):
 # Loader implementation
 #
 
-if 'KIVY_DOC' in os.environ:
+if 'KIVY_DOC' in environ:
 
     Loader = None
 
@@ -270,7 +264,7 @@ else:
                 while self._running:
                     try:
                         parameters = self._q_load.pop()
-                        time.sleep(0.1)
+                        sleep(0.1)
                     except:
                         continue
                     self.worker.do(self._load, parameters)

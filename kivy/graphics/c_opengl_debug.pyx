@@ -466,11 +466,13 @@ cdef void  glReadPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum
     cgl.glReadPixels ( x, y, width, height, format, type, pixels)
     ret = glGetError()
     if ret: print "ERR %d / %x" % (ret, ret)
-cdef void  glReleaseShaderCompiler () with gil:
-    print "GL glReleaseShaderCompiler()"
-    cgl.glReleaseShaderCompiler ()
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
+# XXX This one is commented out because a) it's not necessary and
+#	    				b) it's breaking on OSX for some reason
+#cdef void  glReleaseShaderCompiler () with gil:
+#    print "GL glReleaseShaderCompiler()"
+#    cgl.glReleaseShaderCompiler ()
+#    ret = glGetError()
+#    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void  glRenderbufferStorage (GLenum target, GLenum internalformat, GLsizei width, GLsizei height) with gil:
     print "GL glRenderbufferStorage()"
     cgl.glRenderbufferStorage ( target, internalformat, width, height)
