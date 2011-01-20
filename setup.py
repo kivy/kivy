@@ -54,9 +54,17 @@ if 'sdist' in sys.argv and have_cython:
     compile(pyx_files)
     print 'Done !'
 
-#add cython core extension modules if cython is available
+# add cython core extension modules if cython is available
 if have_cython:
     cmdclass['build_ext'] = build_ext
+    # this is an hack to make setuptools works with Cython
+    # without this hack, cython is not executed, and we don't have C files at
+    # the end. More information can be found at
+    # http://mail.python.org/pipermail/distutils-sig/2007-September/008204.html
+    # The solution taken is http://pypi.python.org/pypi/setuptools_cython/
+    if 'setuptools.extension' in sys.modules:
+        m = sys.modules['setuptools.extension']
+        m.Extension.__dict__ = m._Extension.__dict__
 else:
     pyx_files = ['%s.c' % x[:-4] for x in pyx_files]
 
