@@ -20,4 +20,13 @@ test:
 	python setup.py nosetests
 
 cover:
-	coverage html --include='kivy*' --omit 'kivy/lib/*,kivy/tools/*,kivy/tests/*'
+	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
+
+clean:
+	-rm -rf build
+	-rm -rf htmlcov
+	-rm .coverage
+	-rm .noseids
+
+distclean: clean
+	-git clean -dxf
