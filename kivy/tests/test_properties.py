@@ -106,10 +106,10 @@ class PropertiesTestCase(unittest.TestCase):
     def test_alias(self):
         from kivy.properties import NumericProperty, AliasProperty
 
-        x = NumericProperty(0)
+        wid.__class__.x = x = NumericProperty(0)
         x.link(wid, 'x')
         x.link_deps(wid, 'x')
-        width = NumericProperty(100)
+        wid.__class__.width = width = NumericProperty(100)
         width.link(wid, 'width')
         width.link_deps(wid, 'width')
 
@@ -119,7 +119,7 @@ class PropertiesTestCase(unittest.TestCase):
         def set_right(self, value):
             x.set(self, value - width.get(self))
 
-        right = AliasProperty(get_right, set_right, bind=(x, width))
+        right = AliasProperty(get_right, set_right, bind=('x', 'width'))
         right.link(wid, 'right')
         right.link_deps(wid, 'right')
 
