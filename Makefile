@@ -15,3 +15,9 @@ stylereport:
 hook:
 	cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
+
+test:
+	python setup.py nosetests
+
+cover:
+	coverage html --include='kivy*' --omit 'kivy/lib/*,kivy/tools/*,kivy/tests/*'
