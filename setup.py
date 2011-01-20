@@ -1,16 +1,15 @@
 import sys
-import shutil
 from os.path import join, dirname, realpath, sep
 from os import walk
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup, Extension
 
 # extract version (simulate doc generation, kivy will be not imported)
 import kivy
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
-# see tools.packaging.{platform}.build.py for custom build commands for portable packages
-# also e.g. we use build_ext command from cython if its installed for c extensions
+# see tools.packaging.{platform}.build.py for custom build commands for
+# portable packages.  also e.g. we use build_ext command from cython if its
+# installed for c extensions.
 cmdclass = {}
 
 # add build rules for portable packages to cmdclass
@@ -18,8 +17,8 @@ if sys.platform == 'win32':
     from kivy.tools.packaging.win32.build import WindowsPortableBuild
     cmdclass['build_portable'] = WindowsPortableBuild
 elif sys.platform == 'darwin':
-   from kivy.tools.packaging.osx.build import OSXPortableBuild
-   cmdclass['build_portable'] = OSXPortableBuild
+    from kivy.tools.packaging.osx.build import OSXPortableBuild
+    cmdclass['build_portable'] = OSXPortableBuild
 
 from kivy.tools.packaging.factory import FactoryBuild
 cmdclass['build_factory'] = FactoryBuild
@@ -68,20 +67,6 @@ if True:
     if sys.platform == 'win32':
         libraries.append('opengl32')
     elif sys.platform == 'darwin':
-        '''
-        # On OSX, gl.h is not in GL/gl.h but OpenGL/gl.h. Cython has no
-        # such thing as #ifdef, hence we just copy the file here.
-        source = '/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers/gl.h'
-        incl = 'build/include/'
-        dest = os.path.join(incl, 'GL/')
-        try:
-            os.makedirs(dest)
-        except OSError:
-            # Already exists, so don't care
-            pass
-        shutil.copy(source, dest)
-        include_dirs = [incl]
-        '''
         # On OSX, it's not -lGL, but -framework OpenGL...
         extra_link_args = ['-framework', 'OpenGL']
     elif sys.platform.startswith('freebsd'):
@@ -102,8 +87,7 @@ if True:
             module_name, [pyx],
             libraries=libraries,
             include_dirs=include_dirs,
-            extra_link_args=extra_link_args
-        ))
+            extra_link_args=extra_link_args))
 
 
     #poly2try extension
@@ -150,6 +134,7 @@ setup(
     description='A framework for making accelerated multitouch UI',
     ext_modules=ext_modules,
     cmdclass=cmdclass,
+    setup_requires=['nose>=0.11'],
     test_suite='nose.collector',
     packages=[
         'kivy',
@@ -188,8 +173,7 @@ setup(
         'tools/packaging/README.txt',
         'tools/packaging/win32/kivy.bat',
         'tools/packaging/win32/README.txt',
-        'tools/packaging/osx/kivy.sh',]
-    },
+        'tools/packaging/osx/kivy.sh']},
     data_files=examples.items(),
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -200,7 +184,8 @@ setup(
         'Intended Audience :: End Users/Desktop',
         'Intended Audience :: Information Technology',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+        'License :: OSI Approved :: GNU Library or Lesser '
+        'General Public License (LGPL)',
         'Natural Language :: English',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
@@ -219,6 +204,5 @@ setup(
         'Topic :: Scientific/Engineering :: Human Machine Interfaces',
         'Topic :: Scientific/Engineering :: Visualization',
         'Topic :: Software Development :: Libraries :: Application Frameworks',
-        'Topic :: Software Development :: User Interfaces',
-    ]
-)
+        'Topic :: Software Development :: User Interfaces'])
+
