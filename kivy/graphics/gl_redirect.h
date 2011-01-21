@@ -26,4 +26,11 @@
 #	define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 	0x8CD9
 #endif
 
-
+// In the webserver / unittest / buildbot case, we are compiling and running
+// kivy in an headless env, without proper GL support.
+// This is a hack to prevent to link with wrong symbol. :(
+#ifdef __MESAGL__
+#define glBlendEquationSeparate
+#define glDepthRangef glDepthRange
+#define glClearDepthf glClearDepth
+#endif
