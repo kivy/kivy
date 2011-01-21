@@ -1,7 +1,5 @@
 /**
  * Redirect the inclusion of GL file to the selected provider
- *
- * TODO: make it work on macosx platform
  */
 
 #define __USE_GLES2		1
