@@ -169,8 +169,8 @@ cdef class Shader:
 
 
     cdef process_message(self, str ctype, str message):
-        message = message.strip()
-        if message and message != 'Success.':
+        message = message.strip().lower()
+        if message and message not in ('success.', 'link was successful.'):
             Logger.error('Shader: %s: <%s>' % (ctype, message))
             raise Exception(message)
         else:

@@ -41,4 +41,4 @@ Compilation
 from kivy.graphics.instructions import *
 from kivy.graphics.context_instructions import *
 from kivy.graphics.vertex_instructions import *
-from kivy.graphics.fbo import Fbo, FboException
+from kivy.graphics.fbo import *
