@@ -9,7 +9,7 @@ TODO: write how the base class are working
 * do we need to use WeakMethod for properties ?
 '''
 
-__all__ = ('Widget', )
+__all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, StringProperty, \
@@ -20,6 +20,12 @@ from kivy.base import EventLoop
 from kivy.lang import Builder
 
 Widget_forbidden_properties = ('touch_down', 'touch_move', 'touch_up')
+
+
+class WidgetException(Exception):
+    '''Fired when the widget got an exception
+    '''
+    pass
 
 
 class Widget(EventDispatcher):
@@ -244,6 +250,9 @@ class Widget(EventDispatcher):
         >>> slider = Slider()
         >>> root.add_widget(slider)
         '''
+        if not isinstance(widget, Widget):
+            raise WidgetException(
+                'add_widget() can be used only with Widget classes.')
         widget.parent = self
         self.children = [widget] + self.children
         self.canvas.add(widget.canvas)
