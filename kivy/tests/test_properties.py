@@ -18,7 +18,7 @@ wid = Widget()
 
 class PropertiesTestCase(unittest.TestCase):
 
-    def test(self):
+    def test_base(self):
         from kivy.properties import Property
 
         a = Property(-1)
