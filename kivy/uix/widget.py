@@ -75,7 +75,7 @@ class Widget(EventDispatcher):
         # The thing here, since the storage of the property is inside the
         # Property class, we must remove ourself from the storage of each
         # Property. The usage is faster, the creation / deletion is longer.
-        for attr in self._properties.itervalues():
+        for attr in self.__properties.itervalues():
             attr.unlink(self)
 
     def __init__(self, **kwargs):
