@@ -2,6 +2,7 @@ import unittest
 
 
 class WidgetTestCase(unittest.TestCase):
+
     def setUp(self):
         from kivy.uix.widget import Widget
         self.cls = Widget
