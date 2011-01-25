@@ -28,7 +28,7 @@ cmdclass['build_factory'] = FactoryBuild
 #
 c_options = {
     'use_opengl_es2': True,
-    'use_opengl_debug': True,
+    'use_opengl_debug': False,
     'use_glew': False,
     'use_mesagl': False}
 
@@ -108,7 +108,10 @@ if True:
         libraries.append('GL')
 
     if c_options['use_glew']:
-        libraries.append('GLEW')
+        if sys.platform == 'win32':
+            libraries.append('glew32')
+        else:
+            libraries.append('GLEW')
 
     # simple extensions
     for pyx in (x for x in pyx_files if not 'graphics' in x):
