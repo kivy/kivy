@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '0.6-dev'
+__version__ = '0.9.1-dev'
 
 import sys
 from getopt import getopt, GetoptError
