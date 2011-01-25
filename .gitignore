@@ -12,4 +12,3 @@ doc/build
 doc/sources/api-*.rst
 kivy/*.c
 kivy/graphics/*.c
-kivy/factory_registers.py
