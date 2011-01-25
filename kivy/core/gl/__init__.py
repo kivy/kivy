@@ -14,6 +14,10 @@ if 'KIVY_DOC' not in environ:
     from kivy.logger import Logger
     from kivy.graphics.opengl import *
 
+    def init_gl():
+        gl_init_symbols()
+        print_gl_version()
+
     def print_gl_version():
         version = glGetString(GL_VERSION)
         Logger.info('GL: OpenGL version <%s>' % str(version))

@@ -1,3 +1,5 @@
+include "config.pxi"
+
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
     void free(void *ptr)
@@ -1013,3 +1015,11 @@ def glVertexAttribPointer(GLuint indx, GLint size):#, GLenum type, GLboolean nor
 def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
     c_opengl.glViewport(x, y, width, height)
 
+IF USE_GLEW:
+    cdef extern from "gl_redirect.h":
+        void glewInit()
+    def gl_init_symbols():
+        glewInit()
+ELSE:
+    def gl_init_symbols():
+        pass

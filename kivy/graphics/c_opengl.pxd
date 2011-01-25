@@ -28,8 +28,6 @@ cdef extern from "gl_redirect.h":
 
     #int GL_ES_VERSION_2_0
 
-    int __USE_GLES20
-
     int GL_DEPTH_BUFFER_BIT
     int GL_STENCIL_BUFFER_BIT
     int GL_COLOR_BUFFER_BIT
