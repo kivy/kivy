@@ -12,3 +12,5 @@ doc/build
 doc/sources/api-*.rst
 kivy/*.c
 kivy/graphics/*.c
+kivy/graphics/config.h
+kivy/graphics/config.pxi
