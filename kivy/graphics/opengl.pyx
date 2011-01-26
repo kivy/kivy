@@ -5,6 +5,9 @@ cdef extern from "stdlib.h":
     void free(void *ptr)
     void *malloc(size_t size)
 
+cdef extern from "Python.h":
+    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+
 cimport c_opengl
 
 ctypedef  void              GLvoid
@@ -836,8 +839,28 @@ def glPolygonOffset(GLfloat factor, GLfloat units):
 
 def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
                  GLenum type): #, GLvoid* pixels):
-    #c_opengl.glReadPixels(x, y, width, height, format, type, pixels)
-    raise NotImplemented()
+    '''We are supporting only GL_RGB/GL_RGBA as format, and GL_UNSIGNED_BYTE as
+    type.
+    '''
+    assert(format in (GL_RGB, GL_RGBA))
+    assert(type == GL_UNSIGNED_BYTE)
+
+    cdef object py_pixels = None
+    cdef int size
+    cdef char *data
+
+    size = (3 if format == GL_RGB else 4) * width * height * sizeof(GLubyte)
+    data = <char *>malloc(size)
+    if data == NULL:
+        raise MemoryError('glReadPixels()')
+
+    c_opengl.glReadPixels(x, y, width, height, format, type, data)
+    try:
+        py_pixels = PyString_FromStringAndSize(data, size)
+    finally:
+        free(data)
+
+    return py_pixels
 
 # XXX This one is commented out because a) it's not necessary and
 #	    				b) it's breaking on OSX for some reason
