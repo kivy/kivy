@@ -414,6 +414,20 @@ class WindowBase(EventDispatcher):
         '''
         return self._size
 
+    def screenshot(name='screenshot%04d.jpg'):
+        '''Save the actual displayed image in a file
+        '''
+        from os.path import join, exists
+        from os import getcwd
+        i = 0
+        path = None
+        while True:
+            i += 1
+            path = join(getcwd(), 'screenshot%04d.jpg' % i)
+            if not exists(path):
+                break
+        return path
+
     def on_rotate(self, rotation):
         '''Event called when the screen have been rotated
         '''

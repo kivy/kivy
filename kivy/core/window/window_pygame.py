@@ -132,6 +132,18 @@ class WindowPygame(WindowBase):
     def close(self):
         pygame.display.quit()
 
+    def screenshot(self, name='screenshot%04d.jpg'):
+        filename = super(WindowPygame, self).screenshot()
+        if filename is None:
+            return None
+        from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        width, height = self.size
+        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+        data = str(buffer(data))
+        surface = pygame.image.fromstring(data, self.size, 'RGB', True)
+        pygame.image.save(surface, filename)
+        return filename
+
     def on_keyboard(self, key, scancode=None, unicode=None):
         if key == 27:
             stopTouchApp()
