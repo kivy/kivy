@@ -22,7 +22,9 @@ except:
 
 class WindowPygame(WindowBase):
 
-    def create_window(self, params):
+    def create_window(self):
+        params = self.params
+
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
         if not 'SDL_VIDEO_FULLSCREEN_HEAD' in os.environ and displayidx != -1:
@@ -110,17 +112,7 @@ class WindowPygame(WindowBase):
                 Logger.warning('WinPygame: Video setup failed :-(')
                 raise
 
-        '''
-        if multisamples:
-            # XXX FIXME
-            from kivy.core.gl import glEnable, GL_MULTISAMPLE_ARB
-            try:
-                glEnable(GL_MULTISAMPLE_ARB)
-            except Exception:
-                pass
-        '''
-
-        super(WindowPygame, self).create_window(params)
+        super(WindowPygame, self).create_window()
 
         # set mouse visibility
         pygame.mouse.set_visible(

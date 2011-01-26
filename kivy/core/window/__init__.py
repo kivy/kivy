@@ -175,7 +175,8 @@ class WindowBase(EventDispatcher):
         import kivy.core.gl
 
         # configure the window
-        self.create_window(params)
+        self.params = params
+        self.create_window()
 
         # create the render context and canvas
         from kivy.graphics import RenderContext, Canvas
@@ -199,8 +200,9 @@ class WindowBase(EventDispatcher):
         '''Close the window'''
         pass
 
-    def create_window(self, params):
-        '''Will create the main window and configure it'''
+    def create_window(self):
+        '''Will create the main window and configure it.
+        '''
         from kivy.core.gl import init_gl
         init_gl()
 
