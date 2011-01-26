@@ -414,7 +414,7 @@ class WindowBase(EventDispatcher):
         '''
         return self._size
 
-    def screenshot(name='screenshot%04d.jpg'):
+    def screenshot(self, name='screenshot%(counter)04d.jpg'):
         '''Save the actual displayed image in a file
         '''
         from os.path import join, exists
@@ -423,7 +423,7 @@ class WindowBase(EventDispatcher):
         path = None
         while True:
             i += 1
-            path = join(getcwd(), 'screenshot%04d.jpg' % i)
+            path = join(getcwd(), name % {'counter':i})
             if not exists(path):
                 break
         return path

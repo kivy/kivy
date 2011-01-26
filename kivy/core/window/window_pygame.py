@@ -132,8 +132,8 @@ class WindowPygame(WindowBase):
     def close(self):
         pygame.display.quit()
 
-    def screenshot(self, name='screenshot%04d.jpg'):
-        filename = super(WindowPygame, self).screenshot()
+    def screenshot(self, *largs, **kwargs):
+        filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
         if filename is None:
             return None
         from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
