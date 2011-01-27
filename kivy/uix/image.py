@@ -2,7 +2,22 @@
 Image
 =====
 
-Add an image widget inside your Widget tree.
+Use an image as a Widget. ::
+
+    wimg = Image(source='mylogo.png')
+
+Asynchronous loading
+--------------------
+
+If you want to load your image in an asynchronous way, you may use the
+:class:`AsyncImage` class. You can use it for loading external images on the
+web. ::
+
+    image = AsyncImage(source='http://mywebsite.com/logo.png')
+
+Alignement
+----------
+
 By default, the image is centered and fitted inside the widget bounding box.
 If you don't want that, we suggest you to inherit from :class:`Image`, and
 create your own style.
@@ -37,12 +52,7 @@ from kivy.loader import Loader
 
 
 class Image(Widget):
-    '''Image widget that will load the image at creation.
-
-    Exemple ::
-
-        logo = Image(source='logo.png')
-
+    '''Image class, see module documentation for more information.
     '''
 
     source = StringProperty(None)
@@ -134,13 +144,7 @@ class Image(Widget):
 
 
 class AsyncImage(Image):
-    '''Asynchronous Image widget.
-
-    This widget load an image, but in asynchronous way. You can use it for
-    loading web image too ::
-
-        image = AsyncImage(source='http://mywebsite.com/logo.png')
-
+    '''Asynchronous Image class, see module documentation for more information.
     '''
 
     def __init__(self, **kwargs):
