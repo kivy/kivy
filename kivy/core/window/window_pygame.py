@@ -220,7 +220,7 @@ class WindowPygame(WindowBase):
         # for opengl, before mainloop... window reinit ?
         self.dispatch('on_resize', *self.size)
 
-        while not EventLoop.quit:
+        while not EventLoop.quit and EventLoop.status == 'started':
             try:
                 self._mainloop()
                 if not pygame.display.get_active():
