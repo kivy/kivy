@@ -61,6 +61,11 @@ class Label(Widget):
         Clock.schedule_once(self.texture_update)
 
     def texture_update(self, *largs):
+        '''Force texture recreation with the current Label properties.
+
+        After this function call, the :data:`texture` and :data`texture_size`
+        will be updated in this order.
+        '''
         self._label.refresh()
         self.texture = None
         self.texture = self._label.texture
