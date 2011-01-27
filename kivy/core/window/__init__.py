@@ -221,7 +221,6 @@ class WindowBase(EventDispatcher):
         self.canvas = Canvas()
         self.render_context.add(self.canvas)
 
-
     def on_flip(self):
         '''Flip between buffers (event)'''
         self.flip()
@@ -441,7 +440,7 @@ class WindowBase(EventDispatcher):
         path = None
         while True:
             i += 1
-            path = join(getcwd(), name % {'counter':i})
+            path = join(getcwd(), name % {'counter': i})
             if not exists(path):
                 break
         return path
