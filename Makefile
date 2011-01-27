@@ -21,7 +21,9 @@ hook:
 	chmod +x .git/hooks/pre-commit
 
 test:
-	python setup.py nosetests
+	-rm -rf kivy/tests/build
+	nosetests kivy/tests
+# python setup.py nosetests
 
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
@@ -31,6 +33,7 @@ clean:
 	-rm -rf htmlcov
 	-rm .coverage
 	-rm .noseids
+	-rm -rf kivy/tests/build
 
 distclean: clean
 	-git clean -dxf
