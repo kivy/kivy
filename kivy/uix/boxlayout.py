@@ -2,57 +2,70 @@
 Box Layout
 ==========
 
+Arrange widgets in a vertical or an horizontal box.
+
+Example of a vertical layout: ::
+
+    layout = BoxLayout(orientation='vertical')
+    btn1 = Button(text='Hello')
+    btn2 = Button(text='World')
+    layout.add_widget(btn1)
+    layout.add_widget(btn2)
+
+Example of a horizontal layout, with a border of 10 pixels between
+the layout and all the childrens, and the first button should be 70% of the
+layout, and the second should be 30%. ::
+
+    layout = BoxLayout(spacing=10)
+    btn1 = Button(text='Hello', size_hint=(.7, 1))
+    btn2 = Button(text='World', size_hint=(.3, 1))
+    layout.add_widget(btn1)
+    layout.add_widget(btn2)
+
+.. note::
+
+    The `size_hint` represent the size available after substracting all the
+    fixed size. For example, if you have 3 widgets (width is 200px,
+    50%, 50%), and if the layout have a width of 600px :
+
+    - the first widget width will be 200px
+    - the second widget width will be 300px
+    - the third widget width will be 300px
+
 '''
 
 __all__ = ('BoxLayout', )
 
 from kivy.clock import Clock
-from kivy.uix.widget import Widget
+from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty
 
 
-class Layout(Widget):
-
-    def __init__(self, **kwargs):
-        kwargs.setdefault('size', (1, 1))
-        self._minimum_size = (0, 0)
-        super(Layout, self).__init__(**kwargs)
-
-    def _get_minimum_size(self):
-        '''Returns minimum size of layout (based on size of fixed / minimum size
-        of children).
-        '''
-        return self._minimum_size
-
-    def _set_minimum_size(self, size):
-        '''Sets the layout minimum size property (the layout calculates this in
-        update_minimum_size and uses it to perform layout calculations). If the
-        widgets size (width or height) is smaller than the minimum size, it is
-        resized to be at least minimum size.
-        '''
-        self._minimum_size = size
-        if self.width < size[0]:
-            self.width = size[0]
-        if self.height < size[1]:
-            self.height = size[1]
-    minimum_size = property(_get_minimum_size, _set_minimum_size)
-
-    def reposition_child(self, child, **kwargs):
-        for prop in kwargs:
-            child.__setattr__(prop, kwargs[prop])
-
-
 class BoxLayout(Layout):
+    '''Box layout class. See module documentation for more informations.
+    '''
 
-    #: Spacing between widget box and children
     spacing = NumericProperty(0)
+    '''Spacing between widget box and children, in pixels.
 
-    #: Spacing between each widget
+    :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
+    0.
+    '''
+
     padding = NumericProperty(0)
+    '''Padding is the space between each children, in pixels.
 
-    #: Orientation of the layout
-    orientation = OptionProperty('horizontal',
-                                 options=('horizontal', 'vertical'))
+    :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
+    0.
+    '''
+
+    orientation = OptionProperty('horizontal', options=(
+        'horizontal', 'vertical'))
+    '''Orientation of the layout.
+
+    :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
+    to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
+    '''
 
     def __init__(self, **kwargs):
         kwargs.setdefault('size', (1, 1))
