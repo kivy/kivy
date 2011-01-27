@@ -116,10 +116,27 @@ class GraphicUnitTest(unittest.TestCase):
             reffn = join(self.results_dir, test_uid)
             log.info('Compare with %s' % reffn)
 
+            # get sourcecode
+            import inspect
+            frame = inspect.getouterframes(inspect.currentframe())[6]
+            sourcecodetab, line = inspect.getsourcelines(frame[0])
+            line = frame[2] - line
+            currentline = sourcecodetab[line]
+            sourcecodetab[line] = '<span style="color: red;">%s</span>' % (
+                currentline)
+            sourcecode = ''.join(sourcecodetab)
+            sourcecodetab[line] = '>>>>>>>>\n%s<<<<<<<<\n' % currentline
+            sourcecodeask = ''.join(sourcecodetab)
+
             if not exists(reffn):
-                log.info('No image reference, move %s as ref' % test_uid)
-                move(tmpfn, reffn)
-                tmpfn = reffn
+                log.info('No image reference, move %s as ref ?' % test_uid)
+                if self.interactive_ask_ref(sourcecodeask, tmpfn, self.id()):
+                    move(tmpfn, reffn)
+                    tmpfn = reffn
+                    log.info('Image used as reference')
+                    match = True
+                else:
+                    log.info('Image discarded')
             else:
                 import pygame
                 s1 = pygame.image.load(tmpfn)
@@ -130,18 +147,16 @@ class GraphicUnitTest(unittest.TestCase):
                     log.critical(
                         '%s at render() #%d, images are different.' % (
                             self.id(), self.test_counter))
-                    self.test_failed = True
+                    if self.interactive_ask_diff(sourcecodeask,
+                                                 tmpfn, reffn, self.id()):
+                        log.critical('user ask to use it as ref.')
+                        move(tmpfn, reffn)
+                        tmpfn = reffn
+                        match = True
+                    else:
+                        self.test_failed = True
                 else:
                     match = True
-
-            # get sourcecode
-            import inspect
-            frame = inspect.getouterframes(inspect.currentframe())[6]
-            sourcecode, line = inspect.getsourcelines(frame[0])
-            line = frame[2] - line
-            sourcecode[line] = '<span style="color: red;">%s</span>' % (
-                sourcecode[line])
-            sourcecode = ''.join(sourcecode)
 
             # generate html
             from os.path import join, dirname, exists, basename
@@ -189,3 +204,68 @@ class GraphicUnitTest(unittest.TestCase):
             self.assertTrue(False)
         super(GraphicUnitTest, self).tearDown()
 
+    def interactive_ask_ref(self, code, imagefn, testid):
+        from os import environ
+        if 'UNITTEST_INTERACTIVE' not in environ:
+            return True
+
+        from Tkinter import Tk, Label, LEFT, RIGHT, BOTTOM, Button
+        from PIL import Image, ImageTk
+
+        self.retval = False
+
+        root = Tk()
+
+        def do_close():
+            root.destroy()
+
+        def do_yes():
+            self.retval = True
+            do_close()
+
+        image = Image.open(imagefn)
+        photo = ImageTk.PhotoImage(image)
+        Label(root, text='The test %s\nhave no reference.' % testid).pack()
+        Label(root, text='Use this image as a reference ?').pack()
+        Label(root, text=code, justify=LEFT).pack(side=RIGHT)
+        Label(root, image=photo).pack(side=LEFT)
+        Button(root, text='Use as reference', command=do_yes).pack(side=BOTTOM)
+        Button(root, text='Discard', command=do_close).pack(side=BOTTOM)
+        root.mainloop()
+
+        return self.retval
+
+    def interactive_ask_diff(self, code, tmpfn, reffn, testid):
+        from os import environ
+        if 'UNITTEST_INTERACTIVE' not in environ:
+            return False
+
+        from Tkinter import Tk, Label, LEFT, RIGHT, BOTTOM, Button
+        from PIL import Image, ImageTk
+
+        self.retval = False
+
+        root = Tk()
+
+        def do_close():
+            root.destroy()
+
+        def do_yes():
+            self.retval = True
+            do_close()
+
+        phototmp = ImageTk.PhotoImage(Image.open(tmpfn))
+        photoref = ImageTk.PhotoImage(Image.open(reffn))
+        Label(root, text='The test %s\nhave generated an different'
+              'image as the reference one..' % testid).pack()
+        Label(root, text='Which one is good ?').pack()
+        Label(root, text=code, justify=LEFT).pack(side=RIGHT)
+        Label(root, image=phototmp).pack(side=RIGHT)
+        Label(root, image=photoref).pack(side=LEFT)
+        Button(root, text='Use the new image -->',
+               command=do_yes).pack(side=BOTTOM)
+        Button(root, text='<-- Use the reference',
+               command=do_close).pack(side=BOTTOM)
+        root.mainloop()
+
+        return self.retval

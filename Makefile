@@ -22,8 +22,11 @@ hook:
 
 test:
 	-rm -rf kivy/tests/build
+	UNITTEST_INTERACTIVE=1 nosetests kivy/tests
+
+batchtest:
+	-rm -rf kivy/tests/build
 	nosetests kivy/tests
-# python setup.py nosetests
 
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
