@@ -69,7 +69,16 @@ class Slider(Widget):
     '''
 
     range = ReferenceListProperty(min, max)
-    '''Range of the slider, in the format (minimum value, maximum value)
+    '''Range of the slider, in the format (minimum value, maximum value). ::
+
+        >>> slider = Slider(min=10, max=80)
+        >>> slider.range
+        [10, 80]
+        >>> slider.range = (20, 100)
+        >>> slider.min
+        20
+        >>> slider.max
+        100
 
     :data:`range` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`min`, :data:`max`)
@@ -87,7 +96,30 @@ class Slider(Widget):
         self.value = value * (self.max - vmin) + vmin
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'min', 'max'))
-    '''Normalized value inside the :data:`range` (min/max) to 0-1 range.
+    '''Normalized value inside the :data:`range` (min/max) to 0-1 range. ::
+
+        >>> slider = Slider(value=50, min=0, max=100)
+        >>> slider.value
+        50
+        >>> slider.value_normalized
+        0.5
+        >>> slider.value = 0
+        >>> slider.value_normalized
+        0
+        >>> slider.value = 1
+        >>> slider.value_normalized
+        1
+
+    You can also use it for setting the real value without knowing the minimum
+    and maximum. ::
+
+        >>> slider = Slider(min=0, max=200)
+        >>> slider.value_normalized = .5
+        >>> slider.value
+        100
+        >>> slider.value_normalized = 1.
+        >>> slider.value
+        200
 
     :data:`value_normalized` is an :class:`~kivy.properties.AliasProperty`.
     '''
