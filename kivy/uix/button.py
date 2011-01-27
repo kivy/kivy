@@ -5,11 +5,11 @@ Button
 
 __all__ = ('Button', )
 
-from kivy.uix.widget import Widget
+from kivy.uix.label import Label
 from kivy.properties import OptionProperty, StringProperty
 
 
-class Button(Widget):
+class Button(Label):
 
     state = OptionProperty('normal', options=('normal', 'down'))
 
