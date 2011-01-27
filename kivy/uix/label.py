@@ -30,8 +30,7 @@ from kivy.properties import StringProperty, OptionProperty, \
 
 
 class Label(Widget):
-    '''The :class:`Label` widget is a text widget. You can control the font,
-    style, padding, alignment and color.
+    '''Label class, see module documentation for more information.
     '''
 
     def __init__(self, **kwargs):
@@ -112,7 +111,7 @@ class Label(Widget):
     bold = BooleanProperty(False)
     '''Indicate if you want to use the bold version of your font.
 
-    .. notice::
+    .. note::
 
         Depending of your font, the bold attribute may have no impact on your
         text rendering.
@@ -124,7 +123,7 @@ class Label(Widget):
     italic = BooleanProperty(False)
     '''Indicate if you want to use the italic version of your font.
 
-    .. notice::
+    .. note::
 
         Depending of your font, the italic attribute may have no impact on your
         text rendering.
