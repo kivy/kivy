@@ -178,12 +178,6 @@ class WindowBase(EventDispatcher):
         self.params = params
         self.create_window()
 
-        # create the render context and canvas
-        from kivy.graphics import RenderContext, Canvas
-        self.render_context = RenderContext()
-        self.canvas = Canvas()
-        self.render_context.add(self.canvas)
-
         # attach modules + listener event
         Modules.register_window(self)
         EventLoop.set_window(self)
@@ -202,9 +196,31 @@ class WindowBase(EventDispatcher):
 
     def create_window(self):
         '''Will create the main window and configure it.
+
+        .. warning::
+            This method is called automatically at runtime. If you call it, it
+            will recreate a RenderContext and Canvas. This mean you'll have a
+            new graphics tree, and the old one will be unusable.
+
+            This method exist to permit the creation of a new OpenGL context
+            AFTER closing the first one. (Like using runTouchApp() and
+            stopTouchApp()).
+
+            This method have been only tested in unittest environment, and will
+            be not suitable for Applications.
+
+            Again, don't use this method unless you know exactly what you are
+            doing !
         '''
         from kivy.core.gl import init_gl
         init_gl()
+
+        # create the render context and canvas
+        from kivy.graphics import RenderContext, Canvas
+        self.render_context = RenderContext()
+        self.canvas = Canvas()
+        self.render_context.add(self.canvas)
+
 
     def on_flip(self):
         '''Flip between buffers (event)'''
