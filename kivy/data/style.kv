@@ -18,8 +18,8 @@
 			size: self.size
 			source: 'data/images/slider-background.png'
 		BorderImage:
-			pos: (self.value_pos[0] -10, self.value_pos[1])
-			size: (20, self.height)
+			pos: (self.value_pos[0]-10, self.value_pos[1]) if self.orientation == 'horizontal' else (self.value_pos[0], self.value_pos[1]-10)
+			size: (20, self.height) if self.orientation == 'horizontal' else (self.width, 20)
 			source: 'data/images/button.png'
 
 <Label>:
