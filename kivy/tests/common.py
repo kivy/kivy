@@ -15,6 +15,7 @@ import unittest
 import logging
 log = logging.getLogger('unittest')
 
+
 class GraphicUnitTest(unittest.TestCase):
 
     def render(self, root, framecount=1):
