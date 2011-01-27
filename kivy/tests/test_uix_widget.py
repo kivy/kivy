@@ -19,13 +19,20 @@ class UIXWidgetTestCase(GraphicUnitTest):
         r(Button(text='Hello world', font_size=42))
         r(Button(text='This is my first line\nSecond line', halign='center'))
 
-    def test_slider_propperties(self):
+    def test_slider_properties(self):
         from kivy.uix.slider import Slider
         r = self.render
         r(Slider(value=25), 2)
         r(Slider(value=50), 2)
         r(Slider(value=100), 2)
         r(Slider(min=-100, max=100, value=0), 2)
+
+    def test_image_properties(self):
+        from kivy.uix.image import Image
+        from os.path import dirname, join
+        r = self.render
+        filename = join(dirname(__file__), 'test_button.png')
+        r(Image(source=filename))
 
     '''
     def test_default_label(self):

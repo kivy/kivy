@@ -1,12 +1,14 @@
 import sys
 import os
-from os.path import isdir, join
+from os.path import isdir, join, abspath, dirname
 import pep8
 import time
 
 htmlmode = False
 
+
 class KivyStyleChecker(pep8.Checker):
+
     def __init__(self, filename):
         pep8.Checker.__init__(self, filename)
 
@@ -46,7 +48,8 @@ if __name__ == '__main__':
     for target in targets:
         if os.path.isdir(target):
             if htmlmode:
-                print open(join(abspath(__file__), 'pep8base.html'), 'r').read()
+                path = join(dirname(abspath(__file__)), 'pep8base.html')
+                print open(path, 'r').read()
                 print '''<p>Generated: %s</p><table>''' % (time.strftime('%c'))
 
             for dirpath, dirnames, filenames in os.walk(target):
@@ -69,7 +72,8 @@ if __name__ == '__main__':
                         continue
 
                     if htmlmode:
-                        print '<tr><th colspan="2">%s</td></tr>' % complete_filename
+                        print '<tr><th colspan="2">%s</td></tr>' \
+                             % complete_filename
                     checker = KivyStyleChecker(complete_filename)
                     errors += checker.check_all()
 
