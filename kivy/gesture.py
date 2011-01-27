@@ -342,9 +342,12 @@ class Gesture:
            getattr(self, 'gesture_product', True) is False:
             return -1
         dot_product = 0.0
-        for stroke_index, (my_stroke, cmp_stroke) in enumerate(zip(self.strokes, comparison_gesture.strokes)):
-            for pt_index, (my_point, cmp_point) in enumerate(zip(my_stroke.points, cmp_stroke.points)):
-                dot_product += my_point.x * cmp_point.x + my_point.y * cmp_point.y
+        for stroke_index, (my_stroke, cmp_stroke) in enumerate(
+                zip(self.strokes, comparison_gesture.strokes)):
+            for pt_index, (my_point, cmp_point) in enumerate(
+                    zip(my_stroke.points, cmp_stroke.points)):
+                dot_product += my_point.x * cmp_point.x +\
+                               my_point.y * cmp_point.y
         return dot_product
 
     def rotate(self, angle):
@@ -359,7 +362,8 @@ class Gesture:
         return g
 
     def get_score(self, comparison_gesture, rotation_invariant=True):
-        ''' Returns the matching score of the gesture against another gesture '''
+        ''' Returns the matching score of the gesture against another gesture
+        '''
         if isinstance(comparison_gesture, Gesture):
             if rotation_invariant:
                 # get orientation
@@ -372,15 +376,18 @@ class Gesture:
             score = self.dot_product(comparison_gesture)
             if score <= 0:
                 return score
-            score /= math.sqrt(self.gesture_product * comparison_gesture.gesture_product)
+            score /= math.sqrt(
+                    self.gesture_product * comparison_gesture.gesture_product)
             return score
 
     def __eq__(self, comparison_gesture):
         ''' Allows easy comparisons between gesture instances '''
         if isinstance(comparison_gesture, Gesture):
-            # If the gestures don't have the same number of strokes, its definitely not the same gesture
+            # If the gestures don't have the same number of strokes, its
+            # definitely not the same gesture
             score = self.get_score(comparison_gesture)
-            if score > (1.0 - self.tolerance) and score < (1.0 + self.tolerance):
+            if (score > (1.0 - self.tolerance) and
+                score < (1.0 + self.tolerance)):
                 return True
             else:
                 return False
