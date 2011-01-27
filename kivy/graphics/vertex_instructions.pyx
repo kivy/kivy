@@ -34,7 +34,7 @@ cdef class Line(VertexInstruction):
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [])
-        self.batch.set_mode('points')
+        self.batch.set_mode('line_strip')
 
     cdef void build(self):
         cdef int i, count = len(self.points) / 2

@@ -70,6 +70,8 @@ Here is what works best:
   * PIL
   * GST + PyGST
   * Cython
+  * nosetests >= 0.11 (for unittest)
+  * coverage >= 0.34 (for coverage)
 
 
 Dcoumentation, Examples & Tutorials

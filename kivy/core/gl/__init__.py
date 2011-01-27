@@ -12,7 +12,13 @@ from os import environ
 if 'KIVY_DOC' not in environ:
 
     from kivy.logger import Logger
+    from kivy.graphics import gl_init_resources
     from kivy.graphics.opengl import *
+
+    def init_gl():
+        gl_init_symbols()
+        gl_init_resources()
+        print_gl_version()
 
     def print_gl_version():
         version = glGetString(GL_VERSION)

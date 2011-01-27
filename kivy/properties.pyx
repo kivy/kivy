@@ -441,7 +441,8 @@ cdef class AliasProperty(Property):
 
     cpdef unlink(self, obj):
         for prop in self.bind_objects:
-            prop.unbind(obj, self.trigger_change)
+            oprop = getattr(obj.__class__, prop)
+            oprop.unbind(obj, self.trigger_change)
         Property.unlink(self, obj)
 
     cpdef trigger_change(self, obj, value):

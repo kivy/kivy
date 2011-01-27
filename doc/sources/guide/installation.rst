@@ -45,10 +45,13 @@ Ubuntu
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good cython python-dev \
-      build-essential libgl1-mesa-dev libglu1-mesa-dev
+      build-essential libgl1-mesa-dev libgles2-mesa-dev
     $ git clone git://github.com/tito/kivy.git
     $ cd kivy
-    $ python setup.py build
-    $ sudo python setup.py install
+    $ python setup.py build_ext --inplace
+    $ python setup.py build_factory
 
+Then, add in your environment ::
+
+    $ export PYTHONPATH=~/path/of/kivy/clone
 

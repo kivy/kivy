@@ -133,6 +133,7 @@ class EventLoopBase(object):
         '''Must be call only one time before run().
         This start all configured input providers.'''
         self.status = 'started'
+        self.quit = False
         for provider in self.input_providers:
             provider.start()
 

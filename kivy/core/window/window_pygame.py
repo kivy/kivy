@@ -22,7 +22,9 @@ except:
 
 class WindowPygame(WindowBase):
 
-    def create_window(self, params):
+    def create_window(self):
+        params = self.params
+
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
         if not 'SDL_VIDEO_FULLSCREEN_HEAD' in os.environ and displayidx != -1:
@@ -110,17 +112,7 @@ class WindowPygame(WindowBase):
                 Logger.warning('WinPygame: Video setup failed :-(')
                 raise
 
-        '''
-        if multisamples:
-            # XXX FIXME
-            from kivy.core.gl import glEnable, GL_MULTISAMPLE_ARB
-            try:
-                glEnable(GL_MULTISAMPLE_ARB)
-            except Exception:
-                pass
-        '''
-
-        super(WindowPygame, self).create_window(params)
+        super(WindowPygame, self).create_window()
 
         # set mouse visibility
         pygame.mouse.set_visible(
@@ -131,6 +123,18 @@ class WindowPygame(WindowBase):
 
     def close(self):
         pygame.display.quit()
+
+    def screenshot(self, *largs, **kwargs):
+        filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
+        if filename is None:
+            return None
+        from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        width, height = self.size
+        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+        data = str(buffer(data))
+        surface = pygame.image.fromstring(data, self.size, 'RGB', True)
+        pygame.image.save(surface, filename)
+        return filename
 
     def on_keyboard(self, key, scancode=None, unicode=None):
         if key == 27:
@@ -216,7 +220,7 @@ class WindowPygame(WindowBase):
         # for opengl, before mainloop... window reinit ?
         self.dispatch('on_resize', *self.size)
 
-        while not EventLoop.quit:
+        while not EventLoop.quit and EventLoop.status == 'started':
             try:
                 self._mainloop()
                 if not pygame.display.get_active():

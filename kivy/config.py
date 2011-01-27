@@ -214,7 +214,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     Config = KivyConfigParser()
 
     # Read config file if exist
-    if exists(kivy_config_fn):
+    if exists(kivy_config_fn) and not 'KIVY_USE_DEFAULTCONFIG' in environ:
         try:
             Config.read(kivy_config_fn)
         except Exception, e:

@@ -103,7 +103,7 @@ cdef class EventDispatcher(object):
             for handler in self.event_stack[key]:
                 if handler() != value:
                     continue
-                self.event_stack[key].remove(value)
+                self.event_stack[key].remove(handler)
                 break
 
     def dispatch(self, str event_type, *largs):

@@ -175,13 +175,8 @@ class WindowBase(EventDispatcher):
         import kivy.core.gl
 
         # configure the window
-        self.create_window(params)
-
-        # create the render context and canvas
-        from kivy.graphics import RenderContext, Canvas
-        self.render_context = RenderContext()
-        self.canvas = Canvas()
-        self.render_context.add(self.canvas)
+        self.params = params
+        self.create_window()
 
         # attach modules + listener event
         Modules.register_window(self)
@@ -199,10 +194,33 @@ class WindowBase(EventDispatcher):
         '''Close the window'''
         pass
 
-    def create_window(self, params):
-        '''Will create the main window and configure it'''
-        from kivy.core.gl import print_gl_version
-        print_gl_version()
+    def create_window(self):
+        '''Will create the main window and configure it.
+
+        .. warning::
+            This method is called automatically at runtime. If you call it, it
+            will recreate a RenderContext and Canvas. This mean you'll have a
+            new graphics tree, and the old one will be unusable.
+
+            This method exist to permit the creation of a new OpenGL context
+            AFTER closing the first one. (Like using runTouchApp() and
+            stopTouchApp()).
+
+            This method have been only tested in unittest environment, and will
+            be not suitable for Applications.
+
+            Again, don't use this method unless you know exactly what you are
+            doing !
+        '''
+        from kivy.core.gl import init_gl
+        init_gl()
+
+        # create the render context and canvas
+        from kivy.graphics import RenderContext, Canvas
+        self.render_context = RenderContext()
+        self.canvas = Canvas()
+        self.render_context.add(self.canvas)
+
 
     def on_flip(self):
         '''Flip between buffers (event)'''
@@ -413,6 +431,20 @@ class WindowBase(EventDispatcher):
         '''Real size of the window, without taking care of the rotation
         '''
         return self._size
+
+    def screenshot(self, name='screenshot%(counter)04d.jpg'):
+        '''Save the actual displayed image in a file
+        '''
+        from os.path import join, exists
+        from os import getcwd
+        i = 0
+        path = None
+        while True:
+            i += 1
+            path = join(getcwd(), name % {'counter':i})
+            if not exists(path):
+                break
+        return path
 
     def on_rotate(self, rotation):
         '''Event called when the screen have been rotated
