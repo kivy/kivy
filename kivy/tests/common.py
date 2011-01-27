@@ -164,7 +164,7 @@ class GraphicUnitTest(unittest.TestCase):
                     fd.write('<td><img src="test_%s"/></td>' %
                              basename(reffn))
                 else:
-                    fd.write('<td>First time, no comparaison.</td></tr>')
+                    fd.write('<td>First time, no comparaison.</td>')
                 fd.write('<td><pre>%s</pre></td>' % sourcecode)
                 fd.write('</table></div>')
         finally:
