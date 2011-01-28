@@ -3,7 +3,7 @@
 		Color:
 			rgb: (1, 1, 1)
 		BorderImage:
-			border: (5, 5, 5, 5)
+			border: (8, 8, 8, 8)
 			pos: self.pos
 			size: self.size
 			source: 'data/images/button.png' if self.state == 'normal' else 'data/images/button_pressed.png'
@@ -14,13 +14,14 @@
         Color:
             rgb: 1, 1, 1
 		BorderImage:
-			pos: self.pos
-			size: self.size
-			source: 'data/images/slider-background.png'
-		BorderImage:
-			pos: (self.value_pos[0]-10, self.value_pos[1]) if self.orientation == 'horizontal' else (self.value_pos[0], self.value_pos[1]-10)
-			size: (20, self.height) if self.orientation == 'horizontal' else (self.width, 20)
-			source: 'data/images/button.png'
+			border: (0, 16, 0, 16) if self.orientation == 'horizontal' else (16, 0, 16, 0)
+			pos: (self.x, self.center_y - 16) if self.orientation == 'horizontal' else (self.center_x - 16, self.y)
+			size: (self.width, 32) if self.orientation == 'horizontal' else (32, self.height)
+			source: 'data/images/slider%s_background.png' % self.orientation[0]
+		Image:
+			pos: (self.value_pos[0] - 16, self.center_y - 16) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
+			size: (32, 32)
+			source: 'data/images/slider%s_cursor.png' % self.orientation[0]
 
 <Label>:
 	canvas:
