@@ -28,13 +28,13 @@ You can also select the camera resolution. ::
 
 __all__ = ('Camera', )
 
-from kivy.uix.widget import Widget
+from kivy.uix.image import Image
 from kivy.core.camera import Camera as CoreCamera
 from kivy.properties import NumericProperty, ObjectProperty, \
         ListProperty
 
 
-class Camera(Widget):
+class Camera(Image):
     '''Camera class. See module documentation for more informations.
     '''
 
