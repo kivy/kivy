@@ -41,7 +41,7 @@ Scale limitation
 We are using 32 bits matrix, in double representation. That's mean, we have
 limitation for scaling. You cannot do infite scale down/up with our
 implementation. Generally, you don't hit the minimum scale (because you don't
-see it on the screen), but the maximum scale : 9.99506983235e+19.
+see it on the screen), but the maximum scale : 9.99506983235e+19 (2^66)
 
 You can also limit the minimum and maximum zoom allowed. ::
 
