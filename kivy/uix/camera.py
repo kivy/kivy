@@ -30,12 +30,28 @@ __all__ = ('Camera', )
 
 from kivy.uix.image import Image
 from kivy.core.camera import Camera as CoreCamera
-from kivy.properties import NumericProperty, ObjectProperty, \
-        ListProperty
+from kivy.properties import NumericProperty, ListProperty, \
+        BooleanProperty
 
 
 class Camera(Image):
     '''Camera class. See module documentation for more informations.
+    '''
+
+    play = BooleanProperty(False)
+    '''Boolean indicate if the camera is playing.
+    You can start/stop the camera by setting this property. ::
+
+        # start the camera playing at creation
+        video = Camera(source='movie.mkv', play=True)
+
+        # create the camera, and start later
+        video = Camera(source='movie.mkv')
+        # and later
+        video.play = True
+
+    :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
+    True.
     '''
 
     index = NumericProperty(-1)
@@ -64,24 +80,6 @@ class Camera(Image):
     [-1, -1]
     '''
 
-    texture = ObjectProperty(None, allownone=True)
-    '''Texture object of the camera.
-
-    Depending of the texture creation, the value will be a
-    :class:`~kivy.graphics.texture.Texture` or
-    :class:`~kivy.graphics.texture.TextureRegion` object.
-
-    :data:`texture` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
-    '''
-
-    texture_size = ListProperty([0, 0])
-    '''Texture size of the camera.
-
-    :data:`texture_size` is a :class:`~kivy.properties.ListProperty`, default to
-    [0, 0]
-    '''
-
     def __init__(self, **kwargs):
         self._camera = None
         super(Camera, self).__init__(**kwargs)
@@ -95,26 +93,21 @@ class Camera(Image):
         self._camera = None
         if self.index < 0:
             return
-        self._camera = CoreCamera(index=self.index, resolution=self.resolution)
+        self._camera = CoreCamera(index=self.index,
+            resolution=self.resolution, stopped=True)
         self._camera.bind(on_load=self._camera_loaded)
+        if self.play:
+            self._camera.start()
 
     def _camera_loaded(self, *largs):
         self.texture = self._camera.texture
         self.texture_size = list(self.texture.size)
 
-    def start(self):
-        '''Start to acquire the camera.
-
-        .. note::
-
-            The camera is loaded at __init__. You don't need to use it, except
-            if you have currently stopped the camera with :func:`Camera.stop`.
-        '''
-        self._camera.start()
-
-    def stop(self):
-        '''Stop the camera
-        '''
-        self._camera.stop()
-
+    def on_play(self, instance, value):
+        if not self._camera:
+            return
+        if value:
+            self._camera.play()
+        else:
+            self._camera.stop()
 
