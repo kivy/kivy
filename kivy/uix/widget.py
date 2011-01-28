@@ -44,8 +44,8 @@ class Widget(EventDispatcher):
     # UID counter
     __widget_uid = 0
 
-    def __new__(cls, *largs, **kwargs):
-        self = super(Widget, cls).__new__(cls)
+    def __new__(__cls__, *largs, **kwargs):
+        self = super(Widget, __cls__).__new__(__cls__)
 
         # XXX for the moment, we need to create a uniq id for properties.
         # Properties need a identifier to the class instance. hash() and id()
@@ -56,9 +56,9 @@ class Widget(EventDispatcher):
 
         # First loop, link all the properties storage to our instance
         attrs_found = {}
-        attrs = dir(cls)
+        attrs = dir(__cls__)
         for k in attrs:
-            attr = getattr(cls, k)
+            attr = getattr(__cls__, k)
             if isinstance(attr, Property):
                 if k in Widget_forbidden_properties:
                     raise Exception(
@@ -68,7 +68,7 @@ class Widget(EventDispatcher):
 
         # Second loop, resolve all the reference
         for k in attrs:
-            attr = getattr(cls, k)
+            attr = getattr(__cls__, k)
             if isinstance(attr, Property):
                 attr.link_deps(self, k)
 
