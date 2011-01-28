@@ -50,6 +50,7 @@ class Layout(Widget):
             raise Exception('The Layout class cannot be used.')
         kwargs.setdefault('size', (1, 1))
         self._minimum_size = (0, 0)
+        self.bind(children=self.update_minimum_size)
         super(Layout, self).__init__(**kwargs)
 
     def _get_minimum_size(self):
@@ -77,4 +78,6 @@ class Layout(Widget):
         for prop in kwargs:
             child.__setattr__(prop, kwargs[prop])
 
+    def update_minimum_size(self, instance, *largs):
+        self.minimum_size = self.size
 
