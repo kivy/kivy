@@ -14,6 +14,7 @@ stunning applications in short time using the framework.
     guide-index.rst
     architecture.rst
     contribute.rst
+    contact.rst
 
 
 API Reference
