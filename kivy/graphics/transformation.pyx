@@ -2,12 +2,13 @@
 Transformation
 ==============
 
-Actually, only Matrix class is available. Handle :
+This module contain a Matrix class, used for our Graphics calculation. We are
+supporting:
 
-    * rotation / translation / scaling matrix
-    * multiply matrix
-    * create clip matrix (with or without perspective)
-    * transform 3d touch on a matrix
+- rotation, translation, scaling matrix
+- multiply matrix
+- create clip matrix (with or without perspective)
+- transform 3d touch on a matrix
 
 '''
 
