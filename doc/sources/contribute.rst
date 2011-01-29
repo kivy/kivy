@@ -50,9 +50,12 @@ this once):
     #. Clone your fork of our repository to your computer. Your fork will have
        the git remote name 'origin' and you will be on branch 'master'.
     #. Install our pre-commit hook that ensures your code doesn't violate our
-       styleguide by executing 'make hook' in your clone.
+       styleguide by executing 'make hook' in your clone. This will run our
+       styleguide check whenever you do a commit, and if there are violations in
+       the parts that you changed, your commit will be aborted. Fix & retry.
 
 Now, whenever you want to create a patch, you follow the following steps:
+
     #. See if there is a ticket in our bug tracker for the fix or feature and
        announce that you'll be working on it if it doesn't yet have an assignee.
     #. Create a new, appropriately named branch in your local repository for
@@ -60,11 +63,12 @@ Now, whenever you want to create a patch, you follow the following steps:
        (Keeping a new branch per feature makes sure we can easily pull in your
        changes without pulling any other stuff that is not supposed to be pulled.)
     #. Modify the code to do what you want (e.g., fix it).
-    #. Make sure the code follows
+    #. Test the code. Try to do this even for small fixes. You never know
+       whether you have introduced some weird bug without testing.
     #. Do one or more minimal, atomic commits per fix or per feature.
        Minimal/Atomic means *keep the commit clean*. Don't commit other stuff that
        doesn't logically belong to this fix or feature. This is NOT about
-       creating one commit per line changed. Use git add -p if necessary.
+       creating one commit per line changed. Use ``git add -p`` if necessary.
     #. Give each commit an appropriate commit message, so that others who are
        not familiar with the matter get a good idea of what you changed.
     #. Once you are satisfied with your changes, merge with our upstream
