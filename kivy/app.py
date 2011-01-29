@@ -35,7 +35,7 @@ class App(EventDispatcher):
         self.register_event_type('on_stop')
         self.options = kwargs
         self.use_default_uxl = kwargs.get('use_default_uxl', True)
-        self.is_build = False
+        self.built = False
         self.root = None
 
     def build(self):
@@ -47,7 +47,7 @@ class App(EventDispatcher):
     def run(self):
         '''Launch the app in standalone mode
         '''
-        if not self.is_build:
+        if not self.built:
             root = self.build()
             if root:
                 self.root = root
