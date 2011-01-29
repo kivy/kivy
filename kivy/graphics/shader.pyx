@@ -1,3 +1,5 @@
+#cython: embedsignature=True
+
 '''
 Shader
 ======
@@ -10,6 +12,7 @@ shader, and the creation of the program in OpenGL.
     Write a more complete documentation about shader.
 
 '''
+
 __all__ = ('Shader', )
 
 include "config.pxi"
