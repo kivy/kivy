@@ -189,7 +189,6 @@ class Scatter(Widget):
         p1 = Vector(*self.to_parent(0, 0))
         p2 = Vector(*self.to_parent(1, 0))
         scale = p1.distance(p2)
-        print 'scale', scale
         return float(scale)
 
     def _set_scale(self, scale):
