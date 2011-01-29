@@ -1,15 +1,15 @@
 '''
-Application object
-==================
+The Application Object
+======================
 
-Example of very simple application with button ::
+Here's an example of very simple application that just shows a button::
 
     from kivy.app import App
     from kivy.uix.button import Button
 
     class MyApp(App):
         def build(self):
-            return Button(label='hello world')
+            return Button(text='hello world')
 
     MyApp().run()
 '''
@@ -19,7 +19,16 @@ from kivy.event import EventDispatcher
 
 
 class App(EventDispatcher):
-    '''App class is a the base for creating Kivy application.
+    '''The App class is the base for creating Kivy applications.
+       Think of it as your main entry point into the Kivy runloop.
+       In most cases, you subclass this class and make your own app.
+       You create an instance of your specific app class and then, when you are
+       ready to start the application's life cycle, you call your instance's
+       run() method.
+
+       To initialize your app with a widget tree, override the build() method in
+       your app class and return the widget tree you constructed.
+
 
     :Events:
         `on_start`:
@@ -39,13 +48,14 @@ class App(EventDispatcher):
         self.root = None
 
     def build(self):
-        '''Initialization of the application, will be called only once.
-        If the build() return a widget, it will be used as the root widget.
+        '''Initializes the application, will be called only once.
+        If this method returns a widget (tree), it will be used as the root
+        widget and added to the window.
         '''
         pass
 
     def run(self):
-        '''Launch the app in standalone mode
+        '''Launches the app in standalone mode.
         '''
         if not self.built:
             root = self.build()
@@ -59,13 +69,16 @@ class App(EventDispatcher):
         self.dispatch('on_stop')
 
     def on_start(self):
-        '''Event called after initialization, and before running the
-        application
+        '''Event handler for the on_start event, which is fired after
+        initialization (after build() has been called), and before the
+        application is being run.
         '''
         pass
 
     def on_stop(self):
-        '''Event called after running, before closing the application
+        '''Event handler for the on_stop event, which is fired when the
+        application has finished running (e.g. the window is about to be
+        closed).
         '''
         pass
 
