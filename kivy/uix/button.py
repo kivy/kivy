@@ -2,24 +2,25 @@
 Button
 ======
 
-The button is a :class:`~kivy.uix.label.Label` with action. The button when you
-touch on it. You can use the same properties as Label to configure the label
-showed inside the Button ::
+The button is a :class:`~kivy.uix.label.Label` with an action associated to it
+that is triggered when the button is pressed (or released after a click/touch).
+To configure the button, you can use the same properties that you can use for
+the Label class::
 
     button = Button(text='Hello world', font_size=14)
 
-Attaching a callback when the button is pushed ::
+Attaching a callback when the button is pressed (clicked/touched) ::
 
     def callback(instance):
-        print 'The button <%s> is pressed' % instance.text
+        print 'The button <%s> is being pressed' % instance.text
 
     btn1 = Button(text='Hello world 1')
     btn1.bind(on_press=callback)
     btn2 = Button(text='Hello world 2')
     btn2.bind(on_press=callback)
 
-If you want to know every time the button state is changing, you can attach on
-:data:`Button.state` property ::
+If you want to be notified every time the button state changes, you can attach
+to the :data:`Button.state` property ::
 
     def callback(instance, value):
         print 'My button <%s> state is <%s>' % (instance, value)
@@ -39,9 +40,10 @@ class Button(Label):
 
     :Events:
         `on_press`
-            Fired when the button is pressed
+            Fired when the button is pressed.
         `on_release`
-            Fired when the button is released
+            Fired when the button is released (i.e., the touch/click that
+            pressed the button goes away).
     '''
 
     state = OptionProperty('normal', options=('normal', 'down'))
