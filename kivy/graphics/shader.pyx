@@ -158,6 +158,13 @@ cdef class Shader:
         glLinkProgram(self.program)
         self.uniform_locations = dict()
         self.process_build_log()
+        if not self.is_linked():
+            raise Exception('Shader didnt link, check info log.')
+
+    cdef int is_linked(self):
+        cdef GLint result
+        glGetProgramiv(self.program, GL_LINK_STATUS, &result)
+        return 1 if result == GL_TRUE else 0
 
     cdef GLuint compile_shader(self, char* source, shadertype):
         shader = glCreateShader(shadertype)
@@ -191,8 +198,7 @@ cdef class Shader:
     cdef void process_message(self, str ctype, str message):
         message = message.strip()
         if message and message != 'Success.':
-            Logger.error('Shader: %s: <%s>' % (ctype, message))
-            raise Exception(message)
+            Logger.info('Shader: %s: <%s>' % (ctype, message))
         else:
-            Logger.debug('Shader: %s compiled successfully' % ctype)
+            Logger.info('Shader: %s compiled successfully' % ctype)
 
