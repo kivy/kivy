@@ -31,27 +31,43 @@ Other optional libraries (mutually interchangable) are:
 Stable version
 --------------
 
-No stable version yet.
+No stable version yet. Please be patient. Once we release a stable
+version, we will provide packages for every supported platform that allow
+you to simply download and run Kivy applications.
 
-Development version
+
+Development Version
 -------------------
 
-If you want to work with the latest version of Kivy, you must clone and use our source code repository from `Github <https://github.com/tito/kivy/>`_.
+The development version is for developers and testers. Note that when
+running a development version, you're running potentially broken code at
+your own risk.
+To use the development version, you will first need to install the
+dependencies. Afterwards you have to set up Kivy on your computer in a way
+that allows for easy development. For that, please see our
+:ref:`contributing` document.
+
+Installing Dependencies
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To install Kivy's dependencies, follow the guide below for your platform.
 
 Ubuntu
-~~~~~~
+++++++
+
+For Ubuntu, simply enter the following command that will install all
+necessary packages:
 
 ::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good cython python-dev \
       build-essential libgl1-mesa-dev libgles2-mesa-dev
-    $ git clone git://github.com/tito/kivy.git
-    $ cd kivy
-    $ python setup.py build_ext --inplace
-    $ python setup.py build_factory
 
-Then, add in your environment ::
 
-    $ export PYTHONPATH=~/path/of/kivy/clone
+Installing Kivy
+~~~~~~~~~~~~~~~
 
+In order to set up Kivy for development, please set up a development
+environment for Kivy on your computer. Follow the steps mentioned in
+:ref:`contributing`.

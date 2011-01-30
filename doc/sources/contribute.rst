@@ -41,8 +41,8 @@ base. If you don't want to use GitHub, we assume you know what you do anyway.
 Code Workflow
 ~~~~~~~~~~~~~
 
-So here is the initial setup to begin with our workflow (You only need to do
-this once):
+So here is the initial setup to begin with our workflow (you only need to do
+this once to install Kivy):
 
     #. Log in to GitHub
     #. Create a fork of the `Kivy repository <https://github.com/tito/kivy>`_ by
@@ -55,7 +55,7 @@ this once):
        the parts that you changed, your commit will be aborted. Fix & retry.
     #. Set up the `PYTHONPATH environment variable <http://docs.python.org/tutorial/modules.html#the-module-search-path>`_
        to point at your clone.
-       This way you don't have to install (``setup.py install``) after every tine
+       This way you don't have to install (``setup.py install``) after every tiny
        modification. Python will instead import Kivy from your clone.
 
 Now, whenever you want to create a patch, you follow the following steps:
@@ -82,6 +82,16 @@ Now, whenever you want to create a patch, you follow the following steps:
     #. Send a *Pull Request* with a description of what you changed via the button
        in the GitHub interface of your repository. (This is why we forked
        initially. Your repository is linked against ours.)
+
+    **Note:**
+        When you change parts of the code base that require compilation, you
+        will have to recompile in order for your changes to take effect. The ``make
+        build`` command will do that for you (see the Makefile if you want to execute
+        the steps manually). If you need to clean your current directory from compiled
+        files, execute ``make clean``. If you want to get rid of **all** files that are
+        not under version control, run ``make distclean``
+        (**Caution:** If your changes are not under version control, this
+        command will delete them!)
 
 Now we will receive your pull request. We will check whether your changes are
 clean and make sense (if you talked to us before doing all of this we will have
