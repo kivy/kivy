@@ -64,10 +64,37 @@ necessary packages:
       python-gst0.10 python-enchant gstreamer0.10-plugins-good cython python-dev \
       build-essential libgl1-mesa-dev libgles2-mesa-dev
 
+.. _dev-install:
 
-Installing Kivy
-~~~~~~~~~~~~~~~
+Installing Kivy for Development
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In order to set up Kivy for development, please set up a development
-environment for Kivy on your computer. Follow the steps mentioned in
-:ref:`contributing`.
+Now that you've installed all the required dependencies, it's time to
+download and compile a development version of Kivy::
+
+    $ # Download Kivy from GitHub
+    $ git clone git://github.com/tito/kivy.git
+    $ cd kivy
+
+    $ # Compile:
+    $ python setup.py build_ext --inplace
+    $ python setup.py build_factory
+
+If you have the ``make`` command available, you can also use the
+following shortcut to compile (does the same as the last two commands)::
+
+    $ make build
+
+If you want to modify the Kivy codebase itself,
+set up the `PYTHONPATH environment variable <http://docs.python.org/tutorial/modules.html#the-module-search-path>`_
+to point at your clone.
+This way you don't have to install (``setup.py install``) after every tiny
+modification. Python will instead import Kivy from your clone.
+
+Or, if you don't want to make any changes to Kivy itself, you can also run
+(as admin, e.g. with sudo)::
+
+    $ python setup.py install
+
+If you want to contribute code (patches, new features) to the Kivy
+codebase, please read :ref:`contributing`.
