@@ -32,18 +32,19 @@ Save it as `myapp.py` and run it with your Python interpreter ::
 A window should open, showing a sole button (with the label 'Hello World') that
 covers the entire window's area. That's all there is to it.
 
-So what did that code do ?
+So what does that code do?
 
- 1. First, we import the :class:`~kivy.app.App` class, to be able to extend it.
-    By extending this class, your own class gains several features that
+ #. First, we import the :class:`~kivy.app.App` class, to be able to
+    subclass it.
+    By subclassing this class, your own class gains several features that
     we already developed for you to make sure it will be recognized by
     Kivy.
- 2. Next, we import the :class:`~kivy.uix.button.Button` class, to be able to
+ #. Next, we import the :class:`~kivy.uix.button.Button` class, to be able to
     create an instance of a button with a custom label.
- 2. Then, we create our application, based on the App class.
+ #. Then, we create our application class, based on the App class.
     We extend the :meth:`~kivy.app.App.build` function to be able to return an
     instance of :class:`~kivy.uix.button.Button`. This instance will be used
-    as the root of the widget tree.
- 3. Finally, we call :meth:`~kivy.app.App.run` on our application instance to
+    as the root of the widget tree (because we returned it).
+ #. Finally, we call :meth:`~kivy.app.App.run` on our application instance to
     launch the Kivy process with our application inside.
 
