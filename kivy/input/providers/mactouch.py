@@ -21,7 +21,7 @@ if 'KIVY_DOC' not in os.environ:
 
     dll = '/System/Library/PrivateFrameworks/' + \
             'MultitouchSupport.framework/MultitouchSupport'
-    MultitouchSupport = ctypes.CDLL()
+    MultitouchSupport = ctypes.CDLL(dll)
 
     CFArrayGetCount = MultitouchSupport.CFArrayGetCount
     CFArrayGetCount.argtypes = [CFArrayRef]
@@ -66,23 +66,23 @@ if 'KIVY_DOC' not in os.environ:
                     ('unknown5_2', ctypes.c_int),
                     ('unknown6', ctypes.c_float), ]
 
-        MTDataRef = ctypes.POINTER(MTData)
+    MTDataRef = ctypes.POINTER(MTData)
 
-        MTContactCallbackFunction = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int,
-                                        MTDataRef, ctypes.c_int,
-                                        ctypes.c_double, ctypes.c_int)
+    MTContactCallbackFunction = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int,
+                                    MTDataRef, ctypes.c_int,
+                                    ctypes.c_double, ctypes.c_int)
 
-        MTDeviceRef = ctypes.c_void_p
+    MTDeviceRef = ctypes.c_void_p
 
-        MTRegisterContactFrameCallback = \
-            MultitouchSupport.MTRegisterContactFrameCallback
-        MTRegisterContactFrameCallback.argtypes = \
-            [MTDeviceRef, MTContactCallbackFunction]
-        MTRegisterContactFrameCallback.restype = None
+    MTRegisterContactFrameCallback = \
+        MultitouchSupport.MTRegisterContactFrameCallback
+    MTRegisterContactFrameCallback.argtypes = \
+        [MTDeviceRef, MTContactCallbackFunction]
+    MTRegisterContactFrameCallback.restype = None
 
-        MTDeviceStart = MultitouchSupport.MTDeviceStart
-        MTDeviceStart.argtypes = [MTDeviceRef, ctypes.c_int]
-        MTDeviceStart.restype = None
+    MTDeviceStart = MultitouchSupport.MTDeviceStart
+    MTDeviceStart.argtypes = [MTDeviceRef, ctypes.c_int]
+    MTDeviceStart.restype = None
 
 else:
     MTContactCallbackFunction = lambda x: None
