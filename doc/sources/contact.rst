@@ -20,7 +20,12 @@ You can contact us in several different ways:
         is.
 
     Mail
-        We have a mailing list for developers
+        For users of our framework, there is a mailing list for support
+        inquiries `on Google Groups <https://groups.google.com/group/kivy-users>`_.
+        Use this list if you have issues with your Kivy-based app.
+
+        Also, we have a mailing list for matters that deal with development
+        of the actual Kivy framework code
         `on Google Groups <https://groups.google.com/group/kivy-dev>`_.
 
     IRC

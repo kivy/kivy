@@ -10,10 +10,9 @@ stunning applications in short time using the framework.
     :maxdepth: 2
 
     philosophy.rst
-    faq.rst
     guide-index.rst
-    architecture.rst
     contribute.rst
+    faq.rst
     contact.rst
 
 
