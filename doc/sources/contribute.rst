@@ -53,6 +53,10 @@ this once):
        styleguide by executing 'make hook' in your clone. This will run our
        styleguide check whenever you do a commit, and if there are violations in
        the parts that you changed, your commit will be aborted. Fix & retry.
+    #. Set up the `PYTHONPATH environment variable <http://docs.python.org/tutorial/modules.html#the-module-search-path>`_
+       to point at your clone.
+       This way you don't have to install (``setup.py install``) after every tine
+       modification. Python will instead import Kivy from your clone.
 
 Now, whenever you want to create a patch, you follow the following steps:
 
