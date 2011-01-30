@@ -21,10 +21,9 @@ The base code for creating an application looks like this:
 
     class MyApp(App):
         def build(self):
-            return Button(label='Hello World')
+            return Button(text='Hello World')
 
-    if __name__ == '__main__':
-        MyApp().run()
+    MyApp().run()
 
 Save it as `myapp.py` and run it with your Python interpreter ::
 
