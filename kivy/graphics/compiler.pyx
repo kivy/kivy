@@ -53,6 +53,9 @@ from instructions cimport Instruction, RenderContext, ContextInstruction
 
 cdef class GraphicsCompiler:
     cdef InstructionGroup compile(self, InstructionGroup group):
+        return group
+
+        '''
         cdef Instruction c
         cdef ContextInstruction ci
         cdef RenderContext rc = None
@@ -92,3 +95,4 @@ cdef class GraphicsCompiler:
         group.flags |= GI_NO_APPLY_ONCE
 
         return group
+        '''
