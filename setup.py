@@ -169,7 +169,8 @@ setup(
     author_email='kivy-dev@googlegroups.com',
     url='http://kivy.org/',
     license='LGPL',
-    description='A framework for making accelerated multitouch UI',
+    description='A software library for rapid development of ' + \
+                'hardware-accelerated multitouch applications.',
     ext_modules=ext_modules,
     cmdclass=cmdclass,
     setup_requires=['nose>=0.11'],
