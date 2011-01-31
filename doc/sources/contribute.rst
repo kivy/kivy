@@ -42,21 +42,20 @@ Code Workflow
 ~~~~~~~~~~~~~
 
 So here is the initial setup to begin with our workflow (you only need to do
-this once to install Kivy):
+this once to install Kivy). Basically you follow the installation
+instructions from :ref:`dev-install`, but you don't clone our repository,
+but the fork you create with the following steps:
 
     #. Log in to GitHub
     #. Create a fork of the `Kivy repository <https://github.com/tito/kivy>`_ by
        clicking the *fork* button.
     #. Clone your fork of our repository to your computer. Your fork will have
        the git remote name 'origin' and you will be on branch 'master'.
+    #. Compile and set up PYTHONPATH or install (see :ref:`dev-install`).
     #. Install our pre-commit hook that ensures your code doesn't violate our
        styleguide by executing 'make hook' in your clone. This will run our
        styleguide check whenever you do a commit, and if there are violations in
        the parts that you changed, your commit will be aborted. Fix & retry.
-    #. Set up the `PYTHONPATH environment variable <http://docs.python.org/tutorial/modules.html#the-module-search-path>`_
-       to point at your clone.
-       This way you don't have to install (``setup.py install``) after every tiny
-       modification. Python will instead import Kivy from your clone.
 
 Now, whenever you want to create a patch, you follow the following steps:
 
