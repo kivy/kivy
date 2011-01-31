@@ -14,3 +14,5 @@ kivy/*.c
 kivy/graphics/*.c
 kivy/graphics/config.h
 kivy/graphics/config.pxi
+kivy/tests/build
+kivy/tests/results
