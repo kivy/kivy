@@ -41,6 +41,15 @@ if __name__ == '__main__':
     else:
         targets = sys.argv[-1].split()
 
+    def check(fn):
+        try:
+            checker = KivyStyleChecker(fn)
+        except IOError:
+            # File couldn't be opened, so was deleted apparently.
+            # Don't check deleted files.
+            return 0
+        return checker.check_all()
+
     errors = 0
     pep8.process_options([''])
     exclude_dirs = ['/lib', '/coverage', '/pep8']
@@ -74,8 +83,7 @@ if __name__ == '__main__':
                     if htmlmode:
                         print '<tr><th colspan="2">%s</td></tr>' \
                              % complete_filename
-                    checker = KivyStyleChecker(complete_filename)
-                    errors += checker.check_all()
+                    errors += check(complete_filename)
 
             if htmlmode:
                 print '</div></div></table></body></html>'
@@ -86,8 +94,7 @@ if __name__ == '__main__':
                 if pat in target:
                     continue
             if target.endswith('.py'):
-                checker = KivyStyleChecker(target)
-                errors += checker.check_all()
+                errors += check(target)
 
     # If errors is 0 we return with 0. That's just fine.
     sys.exit(errors)
