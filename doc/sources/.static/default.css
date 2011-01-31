@@ -1,30 +1,118 @@
 /**
- * Sphinx Doc Design
+ * Sphinx / Kivy Doc Design
  */
 
-body {
-    font-family: sans-serif;
-    font-size: 100%;
-	background: #ffffff url('background.png') top left repeat-y;
-    background-color: #ffffff;
-    color: #000;
+@font-face {
+  font-family: 'Nobile';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Nobile'), url('nobile.ttf') format('truetype');
+}
+
+body { 
+    margin: 0;
+    padding: 0; 
+    font-family: 'Nobile', Helvetica, Arial, sans-serif;
+    font-size: .92em;
+    background-color: #fcfaf0;
+    color: #2a2522;
+}
+
+a {
+	color: #0065b0;
+	outline: 0;
+}
+
+a img {
+	border: none;
+}
+
+#logo,
+#wrapper,
+#menu {
+    width: 990px;
+	margin: 0 auto;
+}
+
+#wrapper {
+	padding-top: 160px;
+}
+
+#logo a {
+	position: absolute;
+	margin-top: 8px;
+}
+
+div.anchor {
+	float: left;
+	margin-top: -160px;
+}
+
+#searchbox {
+	margin-bottom: 10px;
+}
+
+/** Header
+ */
+#topbar {
+	position: fixed;
+	height: 160px;
+	width: 100%;
+	top: 0px;
+	z-index: 1000;
+    background: #fcfaf0 url('background.png') top left repeat-x;
+}
+
+#topbar a img {
+	border: none;
+}
+
+/** Menu
+ */
+
+#menu {
+	line-height: 33px;
+	margin-top: 119px;
+}
+
+/* Navigation
+ */
+
+ul.navigation {
+    list-style: none;
     margin: 0;
     padding: 0;
+	margin-left: 5px;
+}
+
+ul.navigation li a {
+	float: left;
+    margin-right: 20px;
+	outline: 0;
+	font-size: 13px;
+}
+
+ul.navigation li a {
+	color: #adaba8;
+	text-decoration: none;
+}
+
+ul.navigation li a.selected,
+ul.navigation li a:hover {
+	background: transparent url('highlight.png') center top no-repeat;
+	color: #f0f0f0;
 }
 
 /* :::: LAYOUT :::: */
 
-div.sphinxsidebar {
-	position: fixed;
-	top: 0px;
-	left: 0px;
-	width: 250px;
-	font-size: 14px;
+div.documentwrapper {
+	margin-left: 250px;
 }
 
-div.documentwrapper {
-    width: 800px;
-    margin-left: 250px;
+div.sphinxsidebar {
+	width: 250px;
+	font-size: 14px;
+	float: left;
 }
 
 div.body {
@@ -81,19 +169,12 @@ div.header {
 	line-height: 80px;
 }
 
-p.logo {
-	margin: 0px;
-	padding: 0px;
-}
-
 div.related {
 	clear: left;
 }
 
 /* ::: TOC :::: */
 div.sphinxsidebar h3 {
-    font-family: 'Trebuchet MS', sans-serif;
-    color: #f1d4c3;
     font-size: 1.4em;
     font-weight: normal;
     margin: 0;
@@ -101,12 +182,9 @@ div.sphinxsidebar h3 {
 }
 
 div.sphinxsidebar h3 a {
-    color: #f1d4c3;
 }
 
 div.sphinxsidebar h4 {
-    font-family: 'Trebuchet MS', sans-serif;
-    color: #f1d4c3;
     font-size: 1.3em;
     font-weight: normal;
     margin: 5px 0 0 0;
@@ -114,7 +192,6 @@ div.sphinxsidebar h4 {
 }
 
 div.sphinxsidebar p {
-    color: #f1d4c3;
 }
 
 div.sphinxsidebar p.topless {
@@ -125,13 +202,12 @@ div.sphinxsidebar ul {
     margin: 10px;
     padding: 0;
     list-style: none;
-    color: #fff;
 }
 
 div.sphinxsidebar ul ul,
 div.sphinxsidebar ul.want-points {
     margin-left: 20px;
-    list-style: square;
+    list-style: circle;
 }
 
 div.sphinxsidebar ul ul {
@@ -139,18 +215,17 @@ div.sphinxsidebar ul ul {
     margin-bottom: 0;
 }
 
-div.sphinxsidebar a {
-    color: #fff;
-}
-
 div.sphinxsidebar form {
     margin-top: 10px;
 }
 
+div.documentwrapper input,
 div.sphinxsidebar input {
-    border: 1px solid #98dbcc;
     font-family: sans-serif;
     font-size: 1em;
+	background-color: #eceae0;
+	padding: 6px 9px;
+	border: none;
 }
 
 /* :::: MODULE CLOUD :::: */
@@ -347,7 +422,7 @@ a.headerlink:hover {
 
 div.body p, div.body dd, div.body li {
     text-align: justify;
-    line-height: 130%;
+    line-height: 150%;
 }
 
 div.body p.caption {
@@ -458,6 +533,10 @@ div.body p.centered {
     margin-top: 25px;
 }
 
+dl.docutils dt {
+	font-weight: bold;
+}
+
 table.docutils {
     border: 0;
 }
@@ -489,7 +568,6 @@ table.footnote td, table.footnote th {
 
 dl {
     margin-bottom: 15px;
-    clear: both;
 }
 
 dd p {
@@ -513,6 +591,12 @@ dd {
 dt:target,
 .highlight {
     background-color: #fbe54e;
+	border-top-left-radius: 15px;
+	border-bottom-right-radius: 15px;
+	-moz-border-radius-topleft: 15px;
+	-moz-border-radius-bottomright: 15px;
+	-webkit-border-radius-topleft: 15px;
+	-webkit-border-radius-topright: 15px;
 }
 
 dl.glossary dt {
@@ -528,9 +612,14 @@ th {
 pre {
     padding: 1em;
 	font-size: 1.05em;
-    background-color: #f4f4f4;
-    color: #333;
+	background-color: #eceae0;
     overflow: auto;
+	border-top-left-radius: 15px;
+	border-bottom-right-radius: 15px;
+	-moz-border-radius-topleft: 15px;
+	-moz-border-radius-bottomright: 15px;
+	-webkit-border-radius-topleft: 15px;
+	-webkit-border-radius-topright: 15px;
 }
 
 td.linenos pre {
@@ -649,11 +738,30 @@ dl.exception dt,
 dl.function dt,
 dl.method dt,
 dl.class dt {
-	background: #f0f0ff url('element-method-16.png') center left no-repeat;
-	border-top: 1px solid #e0e0ef;
-	border-bottom: 1px solid #e0e0ef;
+	background: #eceae0 url('element-method-16.png') 8px 10px no-repeat;
 	margin: 10px 0px;
-	padding-left: 20px;
+	padding-left: 30px;
+	line-height: 28px;
+	border-top-left-radius: 15px;
+	border-bottom-right-radius: 15px;
+	-moz-border-radius-topleft: 15px;
+	-moz-border-radius-bottomright: 15px;
+	-webkit-border-radius-topleft: 15px;
+	-webkit-border-radius-topright: 15px;
+}
+
+dl.class dt {
+	background-color: #dedcd3;
+}
+
+
+dl.data dt,
+dl.attribute dt,
+dl.exception dt,
+dl.function dt,
+dl.method dt,
+dl.class dt dt {
+	background-color: #eceae0;
 }
 
 dl.class dl.method dt {
@@ -674,8 +782,6 @@ dl.attribute dt {
 
 table.field-list {
 	border-collapse: collapse;
-	border-top: 1px solid #e0e0e0;
-	border-bottom: 1px solid #e0e0e0;
 	font-size: 80%;
 	width: 100%;
 }
@@ -690,7 +796,7 @@ table.field-list th.field-name {
 
 table.field-list th.field-name,
 table.field-list td.field-body dl dt {
-	background-color: #f0f0f0 !important;
+	background-color: #eceae0 !important;
 	border: none;
 	margin: 0px;
 	padding: 1px 5px;

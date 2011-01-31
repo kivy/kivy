@@ -48,9 +48,6 @@
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
       <div class="header">
         <div class="headerwrapper">
-            <div class="logo"><a href="{{ pathto(master_doc) }}">
-              <img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
-            </a></div>
           {%- if pagename != "search" %}
           <div id="searchbox" style="display: none">
               <form class="search" action="{{ pathto('search') }}" method="get">
@@ -71,11 +68,18 @@
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-          {%- block sidebarlogo %}
-          {%- if logo %}
-            <p class="logo"><a href="{{ pathto(master_doc) }}">
-              <img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
-            </a></p>
+          {%- block sidebarsearch %}
+          {%- if pagename != "search" %}
+		  <h3>{{ _('Quick search') }}</h3>
+          <div id="searchbox" style="display: none">
+              <form class="search" action="{{ pathto('search') }}" method="get">
+                <input type="text" name="q" size="15" />
+                <input type="submit" value="{{ _('Go') }}" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
           {%- endif %}
           {%- endblock %}
           {%- block sidebartoc %}
@@ -92,20 +96,6 @@
 			  <li>Next: <a href="{{ next.link|e }}" title="{{ _('next chapter') }}">{{ next.title }}</a></li>
 			  {%- endif %}
 		  </ul>
-          {%- endblock %}
-          {%- block sidebarsearch %}
-          {%- if pagename != "search" %}
-		  <h3>{{ _('Quick search') }}</h3>
-          <div id="searchbox" style="display: none">
-              <form class="search" action="{{ pathto('search') }}" method="get">
-                <input type="text" name="q" size="15" />
-                <input type="submit" value="{{ _('Go') }}" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
-          {%- endif %}
           {%- endblock %}
         </div>
       </div>
@@ -137,6 +127,7 @@
     {%- for scriptfile in script_files %}
     <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script>
     {%- endfor %}
+    <script type="text/javascript" src="{{ pathto('_static/kivy.js', 1) }}"></script>
     {%- if use_opensearch %}
     <link rel="search" type="application/opensearchdescription+xml"
           title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
@@ -177,9 +168,27 @@
 
 {%- block relbar1 %}{% endblock %}
 
+	<div id="topbar">
+		<div id="logo">
+			<a href="http://kivy.org/docs/">
+				<img src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
+			</a>
+		</div>
+		<div id="menu">
+			<ul class="navigation">
+				<li><a href="http://kivy.org/">&laquo; Back to kivy.org</a></li>
+				<li><a href="{{ pathto('index') }}">Home</a></li>
+				<li><a href="{{ pathto('index') }}#user-s-guide">User's Guide</a></li>
+				<li><a href="{{ pathto('guide-index') }}">Programming Guide</a></li>
+				<li><a href="{{ pathto('api-index') }}">API Reference</a></li>
+				<li><a href="{{ pathto('faq') }}">FAQ</a></li>
+			</ul>
+		</div>
+	</div>
+
+    <div id="wrapper">
 {%- block sidebar1 %}{{ sidebar() }}{% endblock %}
 
-    <div class="document">
 {%- block document %}
       <div class="documentwrapper">
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}

@@ -16,13 +16,4 @@ stunning applications in short time using the framework.
     contact.rst
 
 
-API Reference
--------------
-
-The API reference is a lexicographic list of all the different classes,
-methods and features that Kivy offers.
-
-.. toctree::
-    :maxdepth: 4
-
-    api-index.rst
+.. include:: api-index.rst

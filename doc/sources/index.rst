@@ -14,12 +14,8 @@ We recommend that you get started with :ref:`installation` and then head over to
 the :ref:`quickstart` document. Besides the quickstart, there is also a more
 detailed :ref:`architecture`.
 
-We also have a list of :ref:`faq`.
-
-If you want to contribute to Kivy, make sure to read :ref:`contributing`.
-
-If your concern isn't addressed in the documentation, feel free to
-:ref:`contact`.
+If you want to contribute to Kivy, make sure to read :ref:`contributing`. If your
+concern isn't addressed in the documentation, feel free to :ref:`contact`.
 
 .. include:: contents.rst.inc
 
