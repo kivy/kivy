@@ -1,34 +1,74 @@
 '''
-The Application Object
-======================
+Application
+===========
+
+The :class:`App` class is the base for creating Kivy applications.
+Think of it as your main entry point into the Kivy runloop.  In most cases, you
+subclass this class and make your own app. You create an instance of your
+specific app class and then, when you are ready to start the application's life
+cycle, you call your instance's :func:`App.run` method.
+
+Create an application by overidding build()
+-------------------------------------------
+
+To initialize your app with a widget tree, override the build() method in
+your app class and return the widget tree you constructed.
 
 Here's an example of very simple application that just shows a button::
 
     from kivy.app import App
     from kivy.uix.button import Button
 
-    class MyApp(App):
+    class TestApp(App):
         def build(self):
             return Button(text='hello world')
 
-    MyApp().run()
+    if __name__ == '__main__':
+        TestApp().run()
+
+Check :file:`kivy/examples/application/app_with_build.py`.
+
+
+Create an application with kv file
+----------------------------------
+
+You can also use the :doc:`api-kivy.lang` for creating application. The .kv can
+contain rules and root widget definitions at the same time. Here is the same
+example as the Button one in a kv file.
+
+Content of 'test.kv'::
+
+    #:kivy 1.0
+
+    Button:
+        text: 'Hello world'
+
+
+Content of 'main.py'::
+
+    from kivy.app import App
+
+    class TestApp(App):
+        pass
+
+    if __name__ == '__main__':
+        TestApp().run()
+
+Check :file:`kivy/examples/application/app_with_kv.py`.
+
+The relation between main.py and test.kv is explained in :func:`App.load_kv`.
+
 '''
 
+from inspect import getfile
+from os.path import dirname, join, exists
 from kivy.base import runTouchApp
 from kivy.event import EventDispatcher
+from kivy.lang import Builder
 
 
 class App(EventDispatcher):
-    '''The App class is the base for creating Kivy applications.
-       Think of it as your main entry point into the Kivy runloop.
-       In most cases, you subclass this class and make your own app.
-       You create an instance of your specific app class and then, when you are
-       ready to start the application's life cycle, you call your instance's
-       run() method.
-
-       To initialize your app with a widget tree, override the build() method in
-       your app class and return the widget tree you constructed.
-
+    ''' Application class, see module documentation for more informations.
 
     :Events:
         `on_start`:
@@ -45,6 +85,9 @@ class App(EventDispatcher):
         self.options = kwargs
         self.use_default_uxl = kwargs.get('use_default_uxl', True)
         self.built = False
+
+        #: Root widget setted by the :func:`build` method or by the
+        #: :func:`load_kv` method if the kv file return a root widget.
         self.root = None
 
     def build(self):
@@ -54,10 +97,47 @@ class App(EventDispatcher):
         '''
         pass
 
+    def load_kv(self):
+        '''If the application have never been built, try to found the kv of the
+        application in the same directory as the application class.
+
+        For example, if you have a file named main.py that contains::
+
+            class ShowcaseApp(App):
+                pass
+
+        The :func:`load_kv` will search for a filename named `showcase.kv` in
+        the directory of the main.py. The name of the kv file is the lower name
+        of the class, without the App at the end if exist.
+
+        You can define rules and root widget in your kv file::
+
+            <ClassName>: # this is a rule
+                ...
+
+            ClassName: # this is a root widget
+                ...
+
+        You cannot declare a root widget twice. Check :doc:`api-kivy.lang`
+        documentation for more information about how to create kv files. If your
+        kv file return a root widget, it will be set in self.root
+        '''
+        directory = dirname(getfile(self.__class__))
+        clsname = self.__class__.__name__
+        if clsname.endswith('App'):
+            clsname = clsname[:-3]
+        filename = join(directory, '%s.kv' % clsname.lower())
+        if not exists(filename):
+            return
+        root = Builder.load_file(filename)
+        if root:
+            self.root = root
+
     def run(self):
         '''Launches the app in standalone mode.
         '''
         if not self.built:
+            self.load_kv()
             root = self.build()
             if root:
                 self.root = root
