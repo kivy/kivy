@@ -27,17 +27,17 @@ Our widget class is designed for:
 Usage of properties
 -------------------
 
-When you read the documentation, every property are described in the format:
+When you read the documentation, every property are described in the format::
 
     <name> is a <property class>, default to <default value>
 
-For example:
+For example::
 
     :data:`Widget.pos` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`Widget.x`, :data:`Widget.y`) properties.
 
 If you want to know when a the pos attribute change (meaning when the widget
-move), you can bind your own function like this:
+move), you can bind your own function like this::
 
     def callback_pos(instance, value):
         print 'the widget', instance, 'have moved to', value
