@@ -68,20 +68,6 @@
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-          {%- block sidebarsearch %}
-          {%- if pagename != "search" %}
-		  <h3>{{ _('Quick search') }}</h3>
-          <div id="searchbox" style="display: none">
-              <form class="search" action="{{ pathto('search') }}" method="get">
-                <input type="text" name="q" size="15" />
-                <input type="submit" value="{{ _('Go') }}" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
-          {%- endif %}
-          {%- endblock %}
           {%- block sidebartoc %}
 		  <h3><a href="{{ pathto(master_doc) }}">{{ _('Table Of Contents') }}</a></h3>
 		  {{ toc }}
@@ -127,6 +113,7 @@
     {%- for scriptfile in script_files %}
     <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script>
     {%- endfor %}
+    <script type="text/javascript" src="{{ pathto('_static/jquery.cookie.js', 1) }}"></script>
     <script type="text/javascript" src="{{ pathto('_static/kivy.js', 1) }}"></script>
     {%- if use_opensearch %}
     <link rel="search" type="application/opensearchdescription+xml"
@@ -178,12 +165,21 @@
 			<ul class="navigation">
 				<li><a href="http://kivy.org/">&laquo; Back to kivy.org</a></li>
 				<li><a href="{{ pathto('index') }}">Home</a></li>
-				<li><a href="{{ pathto('index') }}#user-s-guide">User's Guide</a></li>
+				<li><a href="{{ pathto('index.html#user-s-guide', 1) }}">User's Guide</a></li>
 				<li><a href="{{ pathto('guide-index') }}">Programming Guide</a></li>
 				<li><a href="{{ pathto('api-index') }}">API Reference</a></li>
 				<li><a href="{{ pathto('faq') }}">FAQ</a></li>
+				<li>
+					<form class="search" action="{{ pathto('search') }}" method="get">
+						&nbsp;
+						<input type="hidden" name="check_keywords" value="yes" />
+						<input type="hidden" name="area" value="default" />
+						<input type="text" class="text" name="q" />
+					</form>
+				</li>
 			</ul>
 		</div>
+		<div id="toggleheader"></div>
 	</div>
 
     <div id="wrapper">
