@@ -145,7 +145,7 @@ if True:
 data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg',
-                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl')
+                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv')
 for root, subFolders, files in walk('examples'):
     if 'sandbox' in root:
         continue
@@ -206,6 +206,7 @@ setup(
         'data/*.kv',
         'data/fonts/*.ttf',
         'data/images/*.png',
+        'data/logo/*.png',
         'data/glsl/*.png',
         'data/glsl/*.vs',
         'data/glsl/*.fs',

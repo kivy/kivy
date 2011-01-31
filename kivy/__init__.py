@@ -31,6 +31,7 @@ __all__ = (
 __version__ = '0.9.1-dev'
 
 import sys
+from shutil import copytree
 from getopt import getopt, GetoptError
 from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
@@ -163,11 +164,9 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
     if not exists(kivy_usermodules_dir):
         mkdir(kivy_usermodules_dir)
-    '''
     icon_dir = join(kivy_home_dir, 'icon')
     if not exists(icon_dir):
-        shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-    '''
+        copytree(join(kivy_data_dir, 'logo'), icon_dir)
 
     # configuration
     from kivy.config import Config
