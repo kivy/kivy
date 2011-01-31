@@ -52,6 +52,23 @@ div.anchor {
 	margin-bottom: 10px;
 }
 
+#toggleheader {
+	font-size: 10px;
+	float: right;
+	background-color: #eceae0;
+	background-color: #acaaa0;
+	margin-top: 35px;
+	margin-right: 10px;
+	padding: 3px 9px;
+	cursor: pointer;
+	border-bottom-left-radius: 15px;
+	border-bottom-right-radius: 15px;
+	-moz-border-radius-bottomleft: 15px;
+	-moz-border-radius-bottomright: 15px;
+	-webkit-border-radius-bottomleft: 15px;
+	-webkit-border-radius-topright: 15px;
+}
+
 /** Header
  */
 #topbar {
@@ -85,16 +102,26 @@ ul.navigation {
 	margin-left: 5px;
 }
 
+ul.navigation form.search,
 ul.navigation li a {
 	float: left;
     margin-right: 20px;
 	outline: 0;
 	font-size: 13px;
-}
-
-ul.navigation li a {
 	color: #adaba8;
 	text-decoration: none;
+}
+
+ul.navigation input {
+    font-family: sans-serif;
+    font-size: 1em;
+	background: #eceae0 url('search.png') 140px 3px no-repeat;
+	padding: 3px 5px 3px 10px;
+	border: none;
+	border-radius: 15px;
+	width: 150px;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
 }
 
 ul.navigation li a.selected,
