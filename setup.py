@@ -135,6 +135,8 @@ if True:
         pyxl = pyx.split(sep)
         while pyxl[0] != 'kivy':
             pyxl.pop(0)
+        if pyxl[1] == 'kivy':
+            pyxl.pop(0)
         return '.'.join(pyxl)
 
     # simple extensions
