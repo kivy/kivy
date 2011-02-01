@@ -1,9 +1,10 @@
 import sys
 from os.path import join, dirname, realpath, sep
-from os import walk
+from os import walk, environ
 from setuptools import setup, Extension
 
 # extract version (simulate doc generation, kivy will be not imported)
+environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
