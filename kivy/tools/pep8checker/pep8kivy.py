@@ -92,9 +92,10 @@ if __name__ == '__main__':
             # Got a single file to check
             for pat in exclude_dirs + exclude_files:
                 if pat in target:
-                    continue
-            if target.endswith('.py'):
-                errors += check(target)
+                    break
+            else:
+                if target.endswith('.py'):
+                    errors += check(target)
 
     # If errors is 0 we return with 0. That's just fine.
     sys.exit(errors)
