@@ -4,4 +4,4 @@ recursive-include examples *
 recursive-include kivy/data *.png *.svg *.css *.ttf *.kv *.fs *.vs
 recursive-include kivy/tools *.png *.txt *.bat *.sh
 recursive-include kivy/tests *.py *.png
-recursive-include kivy *.pyd *.pyx *.c *.pxi
+recursive-include kivy *.pyd *.pyx *.c *.pxi *.h
