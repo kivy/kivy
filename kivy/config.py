@@ -62,9 +62,8 @@ Available configuration tokens
 
 :graphics:
 
-    `maxfps`: int
-        Maximum FPS allowed. if fps is <= 0, and vsync activated, the default
-        will be set to 60.
+    `maxfps`: int, default to 60
+        Maximum FPS allowed.
     `fullscreen`: (0, 1, fake, auto)
         Activate fullscreen. If set to `1`, the fullscreen will use a
         resolution of `width` times `height` pixels.
@@ -78,8 +77,6 @@ Available configuration tokens
     `height`: int
         Height of the :class:`~kivy.core.window.Window`, not used if in `auto
         fullscreen`
-    `vsync`: (0, 1)
-        Force Vsync (actually not used by Pygame.)
     `fbo`: (hardware, software, force-hardware)
         Select the FBO backend to use.
     `show_cursor`: (0, 1)
@@ -155,7 +152,7 @@ from kivy.logger import Logger
 from kivy.utils import OrderedDict
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 1
+KIVY_CONFIG_VERSION = 2
 
 #: Kivy configuration object
 Config = None
@@ -299,6 +296,9 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.setdefault('widgets', 'list_friction_bound', '20')
             Config.setdefault('widgets', 'list_trigger_distance', '5')
 
+        elif version == 1:
+            Config.remove_option('graphics', 'vsync')
+            Config.set('graphics', 'maxfps', '60')
 
         #
         #elif version == 1:

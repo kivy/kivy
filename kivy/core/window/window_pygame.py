@@ -88,13 +88,6 @@ class WindowPygame(WindowBase):
         # init ourself size + setmode
         # before calling on_resize
         self._size = params['width'], params['height']
-        self._vsync = params['vsync']
-        self._fps = float(params['fps'])
-
-        # ensure the default fps will be 60 if vsync is actived
-        # and if user didn't set any maximum fps.
-        if self._vsync and self._fps <= 0:
-            self._fps = 60.
 
         # try to use mode with multisamples
         try:
