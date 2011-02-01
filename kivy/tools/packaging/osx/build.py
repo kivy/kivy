@@ -148,7 +148,7 @@ class OSXPortableBuild(Command):
 
         size = int(size) + 10
         print "*allocating %d%s for temp.dmg" % (size, unit, )
-        print "(volume name:%s)" (vol_name, )
+        print "(volume name:%s)" % (vol_name, )
         create_dmg_cmd = 'hdiutil create -srcfolder %s -volname %s -fs HFS+ \
                          -fsargs "-c c=64,a=16,e=16" -format UDRW -size %d%s \
                          temp.dmg' % (dmg_dir, vol_name, size+10, unit)
