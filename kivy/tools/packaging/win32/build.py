@@ -111,7 +111,7 @@ class WindowsPortableBuild(Command):
             #this time it runs teh setup.py inside the source distribution
             #thats has been generated inside the build dir (to generate ext
             #for teh target, instead of the source were building from)
-            Popen(cext_cmd, cwd=src_dist, stdout=PIPE, stderr=PIPE).communicate()
+            Popen(cext_cmd, cwd=src_dist).communicate()
 
 
         print "\nFinalizing kivy portable distribution..."
