@@ -62,7 +62,7 @@ The relation between main.py and test.kv is explained in :func:`App.load_kv`.
 
 from inspect import getfile
 from os.path import dirname, join, exists
-from kivy.base import runTouchApp
+from kivy.base import runTouchApp, stopTouchApp
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 
@@ -147,6 +147,14 @@ class App(EventDispatcher):
         else:
             runTouchApp()
         self.dispatch('on_stop')
+
+    def stop(self, *largs):
+        '''Stop the application.
+
+        If you use this method, the whole application will stop by using
+        :func:`~kivy.base.stopTouchApp` call.
+        '''
+        stopTouchApp()
 
     def on_start(self):
         '''Event handler for the on_start event, which is fired after
