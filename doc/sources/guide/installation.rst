@@ -31,10 +31,16 @@ Other optional libraries (mutually interchangable) are:
 Stable version
 --------------
 
-No stable version yet. Please be patient. Once we release a stable
-version, we will provide packages for every supported platform that allow
-you to simply download and run Kivy applications.
+The latest stable version can be found on the Kivy's website at http://kivy.org/#downloads
+Select the installations instructions for your platform:
 
+.. toctree::
+    :maxdepth: 1
+
+    installation-window.rst
+    installation-macosx.rst
+    installation-ubuntu.rst
+    installation-android.rst
 
 Development Version
 -------------------
