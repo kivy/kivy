@@ -212,6 +212,7 @@ setup(
         'data/glsl/*.fs',
         'tools/packaging/README.txt',
         'tools/packaging/win32/kivy.bat',
+        'tools/packaging/win32/kivyenv.sh',
         'tools/packaging/win32/README.txt',
         'tools/packaging/osx/kivy.sh']},
     data_files=examples.items(),

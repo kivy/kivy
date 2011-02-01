@@ -120,6 +120,8 @@ class WindowsPortableBuild(Command):
         #copy launcher script and readme to portable root dir/build dir
         kivy_bat = os.path.join(src_dist, 'kivy', 'tools', 'packaging', 'win32', 'kivy.bat')
         shutil.copy(kivy_bat, os.path.join(self.build_dir, 'kivy.bat'))
+        kivyenv_sh = os.path.join(src_dist, 'kivy', 'tools', 'packaging', 'win32', 'kivyenv.sh')
+        shutil.copy(kivyenv_sh, os.path.join(self.build_dir, 'kivyenv.sh'))
         readme = os.path.join(src_dist, 'kivy', 'tools', 'packaging', 'win32', 'README.txt')
         shutil.copy(readme, os.path.join(self.build_dir, 'README.txt'))
         #rename kivy directory to "kivy"
