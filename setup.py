@@ -130,14 +130,21 @@ if True:
         else:
             libraries.append('GLEW')
 
+    def get_modulename_from_file(filename):
+        pyx = '.'.join(filename.split('.')[:-1])
+        pyxl = pyx.split(sep)
+        while pyxl[0] != 'kivy':
+            pyxl.pop(0)
+        return '.'.join(pyxl)
+
     # simple extensions
     for pyx in (x for x in pyx_files if not 'graphics' in x):
-        module_name = '.'.join(pyx.split('.')[:-1]).replace(sep, '.')
+        module_name = get_modulename_from_file(pyx)
         ext_modules.append(Extension(module_name, [pyx]))
 
     # opengl aware modules
     for pyx in (x for x in pyx_files if 'graphics' in x):
-        module_name = '.'.join(pyx.split('.')[:-1]).replace(sep, '.')
+        module_name = get_modulename_from_file(pyx)
         ext_modules.append(Extension(
             module_name, [pyx],
             libraries=libraries,
