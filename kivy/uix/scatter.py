@@ -2,10 +2,50 @@
 Scatter
 =======
 
-.. todo::
+Scatter is a widget that you can translate, rotate and scale, with two or more
+fingers. This is the famous widget as you can see on many multitouch demo.
 
-    - Fix center_x / center_y attributes
-    - Ensure top and right are good
+Usage
+-----
+
+By default, the widget itself don't have any graphical representation. The idea
+is to combine Scatter widget with other widget, like
+:class:`~kivy.uix.image.Image` widget.
+
+    scatter = Scatter()
+    image = Image(source='sun.jpg')
+    scatter.add_widget(image)
+
+Control interactions
+--------------------
+
+You can also avoid some interaction, like rotation. ::
+
+    scatter = Scatter(do_rotation=False)
+
+Or allow only translation. ::
+
+    scatter = Scatter(do_rotation=False, do_scale=False)
+
+Automatic bring to front
+------------------------
+
+If you add and manipulate multiple scatter, you can have trouble if the scatter
+is behind another scatter. We have a property named
+:data:`Scatter.auto_bring_to_front` that remove and re-add the scatter in his
+parent. The scatter will be on top as soon as you touch it.
+
+Scale limitation
+----------------
+
+We are using 32 bits matrix, in double representation. That's mean, we have
+limitation for scaling. You cannot do infite scale down/up with our
+implementation. Generally, you don't hit the minimum scale (because you don't
+see it on the screen), but the maximum scale : 9.99506983235e+19 (2^66)
+
+You can also limit the minimum and maximum zoom allowed. ::
+
+    scatter = Scatter(scale_min=.5, scale_max=3.)
 
 '''
 
@@ -20,7 +60,7 @@ from kivy.graphics.transformation import Matrix
 
 
 class Scatter(Widget):
-    '''Scatter implementation as a Widget.
+    '''Scatter class. See module documentation for more information.
     '''
 
     auto_bring_to_front = BooleanProperty(True)

@@ -84,8 +84,11 @@ packages.sort()
 
 # Create index
 api_index = \
-'''API documentation
-=================
+'''API Reference
+-------------
+
+The API reference is a lexicographic list of all the different classes,
+methods and features that Kivy offers.
 
 .. toctree::
     :maxdepth: 2

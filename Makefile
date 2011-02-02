@@ -4,11 +4,9 @@ KIVY_DIR = kivy/
 
 mesabuild:
 	$(PYTHON) setup.py build_ext --inplace --define __MESAGL__
-	$(PYTHON) setup.py build_factory
 
 build:
 	$(PYTHON) setup.py build_ext --inplace
-	$(PYTHON) setup.py build_factory
 
 style:
 	$(PYTHON) $(CHECKSCRIPT) $(KIVY_DIR)
@@ -37,6 +35,8 @@ clean:
 	-rm .coverage
 	-rm .noseids
 	-rm -rf kivy/tests/build
+	-find kivy -iname '*.pyc' -exec rm {} \;
+	-find kivy -iname '*.pyo' -exec rm {} \;
 
 distclean: clean
 	-git clean -dxf

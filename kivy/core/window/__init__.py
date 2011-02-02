@@ -34,16 +34,12 @@ class WindowBase(EventDispatcher):
 
 
     :Parameters:
-        `fps`: int, default to 0
-            Maximum FPS allowed. If 0, fps will be not limited
         `fullscreen`: bool
             Make window as fullscreen
         `width`: int
             Width of window
         `height`: int
             Height of window
-        `vsync`: bool
-            Vsync window
 
     :Events:
         `on_motion`: etype, motionevent
@@ -141,16 +137,6 @@ class WindowBase(EventDispatcher):
             params['height'] = kwargs.get('height')
         else:
             params['height'] = Config.getint('graphics', 'height')
-
-        if 'vsync' in kwargs:
-            params['vsync'] = kwargs.get('vsync')
-        else:
-            params['vsync'] = Config.getint('graphics', 'vsync')
-
-        if 'fps' in kwargs:
-            params['fps'] = kwargs.get('fps')
-        else:
-            params['fps'] = Config.getint('graphics', 'maxfps')
 
         if 'rotation' in kwargs:
             params['rotation'] = kwargs.get('rotation')

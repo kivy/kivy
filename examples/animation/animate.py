@@ -11,7 +11,7 @@ class TestApp(App):
         animation.start(instance)
 
     def build(self):
-        button = Button(size_hint=(None, None), label='plop')
+        button = Button(size_hint=(None, None), text='plop')
         button.bind(on_press=self.animate)
         return button
 

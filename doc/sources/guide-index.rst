@@ -6,5 +6,5 @@ Programming Guide
 
     guide/installation
     guide/quickstart
-    tutorial/index
+    guide/architecture
 

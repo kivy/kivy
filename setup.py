@@ -1,9 +1,11 @@
-import sys
-from os.path import join, dirname, realpath, sep
-from os import walk
+from fnmatch import filter as fnfilter
+from sys import platform, argv, modules
+from os.path import join, dirname, realpath, sep, exists
+from os import walk, environ
 from setuptools import setup, Extension
 
 # extract version (simulate doc generation, kivy will be not imported)
+environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
 
 # extra build commands go in the cmdclass dict {'command-name': CommandClass}
@@ -13,10 +15,10 @@ import kivy
 cmdclass = {}
 
 # add build rules for portable packages to cmdclass
-if sys.platform == 'win32':
+if platform == 'win32':
     from kivy.tools.packaging.win32.build import WindowsPortableBuild
     cmdclass['build_portable'] = WindowsPortableBuild
-elif sys.platform == 'darwin':
+elif platform == 'darwin':
     from kivy.tools.packaging.osx.build import OSXPortableBuild
     cmdclass['build_portable'] = OSXPortableBuild
 
@@ -32,9 +34,27 @@ c_options = {
     'use_glew': False,
     'use_mesagl': False}
 
-if sys.platform == 'win32':
+# Detect which opengl version headers to use
+if platform == 'win32':
     print 'Windows platform detected, force GLEW usage.'
     c_options['use_glew'] = True
+elif platform == 'darwin':
+    # macosx is using their own gl.h
+    pass
+else:
+    # searching GLES headers
+    default_header_dirs = ['/usr/include', '/usr/local/include']
+    found = False
+    for hdir in default_header_dirs:
+        filename = join(hdir, 'GLES2', 'gl2.h')
+        if exists(filename):
+            found = True
+            print 'Found GLES 2.0 headers at', filename
+            break
+    if not found:
+        print 'WARNING: GLES 2.0 headers are not found'
+        print 'Fallback to Desktop opengl headers.'
+        c_options['use_opengl_es2'] = False
 
 print 'Generate config.h'
 with open(join(dirname(__file__), 'kivy', 'graphics', 'config.h'), 'w') as fd:
@@ -52,17 +72,14 @@ with open(join(dirname(__file__), 'kivy', 'graphics', 'config.pxi'), 'w') as fd:
 ext_modules = []
 
 # list all files to compile
-import fnmatch
-import os
-
 pyx_files = []
 kivy_libs_dir = realpath(kivy.kivy_libs_dir)
-for root, dirnames, filenames in os.walk(join(dirname(__file__), 'kivy')):
+for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
     # ignore lib directory
     if realpath(root).startswith(kivy_libs_dir):
         continue
-    for filename in fnmatch.filter(filenames, '*.pyx'):
-        pyx_files.append(os.path.join(root, filename))
+    for filename in fnfilter(filenames, '*.pyx'):
+        pyx_files.append(join(root, filename))
 
 # check for cython
 try:
@@ -72,7 +89,7 @@ except:
     have_cython = False
 
 # create .c for every module
-if 'sdist' in sys.argv and have_cython:
+if 'sdist' in argv and have_cython:
     from Cython.Compiler.Main import compile
     print 'Generating C files...',
     compile(pyx_files)
@@ -86,8 +103,8 @@ if have_cython:
     # the end. More information can be found at
     # http://mail.python.org/pipermail/distutils-sig/2007-September/008204.html
     # The solution taken is http://pypi.python.org/pypi/setuptools_cython/
-    if 'setuptools.extension' in sys.modules:
-        m = sys.modules['setuptools.extension']
+    if 'setuptools.extension' in modules:
+        m = modules['setuptools.extension']
         m.Extension.__dict__ = m._Extension.__dict__
 else:
     pyx_files = ['%s.c' % x[:-4] for x in pyx_files]
@@ -96,31 +113,40 @@ if True:
     libraries = []
     include_dirs = []
     extra_link_args = []
-    if sys.platform == 'win32':
+    if platform == 'win32':
         libraries.append('opengl32')
-    elif sys.platform == 'darwin':
+    elif platform == 'darwin':
         # On OSX, it's not -lGL, but -framework OpenGL...
         extra_link_args = ['-framework', 'OpenGL']
-    elif sys.platform.startswith('freebsd'):
+    elif platform.startswith('freebsd'):
         include_dirs += ['/usr/local/include']
         extra_link_args += ['-L', '/usr/local/lib']
     else:
         libraries.append('GL')
 
     if c_options['use_glew']:
-        if sys.platform == 'win32':
+        if platform == 'win32':
             libraries.append('glew32')
         else:
             libraries.append('GLEW')
 
+    def get_modulename_from_file(filename):
+        pyx = '.'.join(filename.split('.')[:-1])
+        pyxl = pyx.split(sep)
+        while pyxl[0] != 'kivy':
+            pyxl.pop(0)
+        if pyxl[1] == 'kivy':
+            pyxl.pop(0)
+        return '.'.join(pyxl)
+
     # simple extensions
     for pyx in (x for x in pyx_files if not 'graphics' in x):
-        module_name = '.'.join(pyx.split('.')[:-1]).replace(sep, '.')
+        module_name = get_modulename_from_file(pyx)
         ext_modules.append(Extension(module_name, [pyx]))
 
     # opengl aware modules
     for pyx in (x for x in pyx_files if 'graphics' in x):
-        module_name = '.'.join(pyx.split('.')[:-1]).replace(sep, '.')
+        module_name = get_modulename_from_file(pyx)
         ext_modules.append(Extension(
             module_name, [pyx],
             libraries=libraries,
@@ -145,7 +171,7 @@ if True:
 data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg',
-                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl')
+                        'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv')
 for root, subFolders, files in walk('examples'):
     if 'sandbox' in root:
         continue
@@ -169,7 +195,8 @@ setup(
     author_email='kivy-dev@googlegroups.com',
     url='http://kivy.org/',
     license='LGPL',
-    description='A framework for making accelerated multitouch UI',
+    description='A software library for rapid development of ' + \
+                'hardware-accelerated multitouch applications.',
     ext_modules=ext_modules,
     cmdclass=cmdclass,
     setup_requires=['nose>=0.11'],
@@ -205,11 +232,13 @@ setup(
         'data/*.kv',
         'data/fonts/*.ttf',
         'data/images/*.png',
+        'data/logo/*.png',
         'data/glsl/*.png',
         'data/glsl/*.vs',
         'data/glsl/*.fs',
         'tools/packaging/README.txt',
         'tools/packaging/win32/kivy.bat',
+        'tools/packaging/win32/kivyenv.sh',
         'tools/packaging/win32/README.txt',
         'tools/packaging/osx/kivy.sh']},
     data_files=examples.items(),

@@ -12,10 +12,8 @@ __all__ = ('Texture', 'TextureRegion')
 
 include "config.pxi"
 
-import os
-import re
+from os import environ
 from array import array
-from kivy.clock import Clock
 from kivy.logger import Logger
 
 from c_opengl cimport *
@@ -577,6 +575,8 @@ def _texture_release(*largs):
         glDeleteTextures(1, &texture_id)
     del _texture_release_list[:]
 
-# install tick to release texture every 200ms
-Clock.schedule_interval(_texture_release, 0.2)
+if 'KIVY_DOC_INCLUDE' not in environ:
+    # install tick to release texture every 200ms
+    from kivy.clock import Clock
+    Clock.schedule_interval(_texture_release, 0.2)
 

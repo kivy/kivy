@@ -1,12 +1,27 @@
+<Label>:
+	canvas:
+		Color:
+			rgb: 1, 1, 1
+		Rectangle:
+			texture: self.texture
+			size: self.texture_size
+			pos: int(self.center[0] - self.texture_size[0] / 2.), int(self.center[1] - self.texture_size[1] / 2.)
+
 <Button,ToggleButton>:
 	canvas:
 		Color:
 			rgb: (1, 1, 1)
 		BorderImage:
-			border: (8, 8, 8, 8)
+			border: (16, 16, 16, 16)
 			pos: self.pos
 			size: self.size
 			source: 'data/images/button.png' if self.state == 'normal' else 'data/images/button_pressed.png'
+		Color:
+			rgb: (1, 1, 1) if self.state == 'normal' else (0, 0, 0)
+		Rectangle:
+			texture: self.texture
+			size: self.texture_size
+			pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
 
 <Slider>:
@@ -21,16 +36,7 @@
 		Image:
 			pos: (self.value_pos[0] - 16, self.center_y - 16) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
 			size: (32, 32)
-			source: 'data/images/slider%s_cursor.png' % self.orientation[0]
-
-<Label>:
-	canvas:
-		Color:
-			rgb: 1, 1, 1
-		Rectangle:
-			texture: self.texture
-			size: self.texture_size
-			pos: int(self.center[0] - self.texture_size[0] / 2.), int(self.center[1] - self.texture_size[1] / 2.)
+			source: 'data/images/slider_cursor.png'
 
 <Scatter>:
 	canvas.before:

@@ -3,11 +3,24 @@ Properties
 ==========
 
 The properties classes are used for creating :class:`~kivy.uix.widget.Widget`.
-Theses classes are supporting :
-    - Observer pattern: you can bind a property to be called when the value is
-      changing.
-    - Better memory management: the same instance of a property is shared across
-      multiple widget instance. The value storage is independant of the Widget.
+Theses classes are supporting:
+
+    Value checker
+        When you assign a new value to a property, the value is checked to pass
+        some contraints implemented in class. For example, an
+        :class:`OptionProperty` will check that your value is inside a list of
+        possibilities, :class:`NumericProperty` will check that your value is an
+        int or double, etc.
+
+    Observer pattern
+        You can bind your own function to the change of a :class:`Property`. If
+        you want to be called when the :class:`~kivy.uix.widget.Widget.pos`
+        property change, you can :class:`~kivy.uix.widget.Widget.bind` a
+        function to it.
+
+    Better memory management
+        The same instance of a property is shared across multiple widget
+        instance. The value storage is independant of the Widget.
 
 '''
 

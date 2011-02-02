@@ -1,3 +1,5 @@
+.. _architecture:
+
 Architectural Overview
 ======================
 
@@ -11,6 +13,8 @@ this section explains the basic ideas of the implementation in more detail.
 Kivy consists of several building blocks that we will explain in the
 following.
 
+
+.. _providers:
 
 Core Providers and Input Providers
 ----------------------------------

@@ -46,14 +46,14 @@ class BoxLayout(Layout):
     '''
 
     spacing = NumericProperty(0)
-    '''Spacing between widget box and children, in pixels.
+    '''Spacing is the space between each children, in pixels.
 
     :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
     '''
 
     padding = NumericProperty(0)
-    '''Padding is the space between each children, in pixels.
+    '''Padding between widget box and children, in pixels.
 
     :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
@@ -83,7 +83,7 @@ class BoxLayout(Layout):
         Clock.unschedule(self._do_layout)
         Clock.schedule_once(self._do_layout)
 
-    def _update_minimum_size(self):
+    def update_minimum_size(self, *largs):
         '''Calculates the minimum size of the layout.
 
         In calculation, there must be a space for child widgets that have fixed
@@ -148,7 +148,7 @@ class BoxLayout(Layout):
         if orientation == 'horizontal':
             x = y = padding
             stretch_space = max(0.0, selfw - self.minimum_size[0])
-            for c in self.children:
+            for c in reversed(self.children):
                 shw, shh = c.size_hint
                 c_pos = selfx + x, selfy + y
                 c_size = list(c.size)

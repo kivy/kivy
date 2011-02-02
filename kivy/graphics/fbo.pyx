@@ -184,6 +184,23 @@ cdef class Fbo(RenderContext):
         self.set_state('projection_mat', projection_mat)
 
     cpdef bind(self):
+        '''Bind the FBO to the current opengl context.
+        `Bind` mean that you enable the Framebuffer, and all the drawing
+        operations will act inside the Framebuffer, until :func:`release` is
+        called.
+
+        The bind/release operation are automatically done when you add graphics
+        object in it. But if you want to manipulate a Framebuffer yourself, you
+        can use it like this: ::
+
+            self.fbo = FBO()
+            self.fbo.bind()
+            # do any drawing command
+            self.fbo.unbind()
+
+            # then, your fbo texture is available at
+            print self.fbo.texture
+        '''
         if self._is_bound:
             raise FboException('FBO is already binded.')
         else:
@@ -199,6 +216,8 @@ cdef class Fbo(RenderContext):
             glViewport(0, 0, self._width, self._height)
 
     cpdef release(self):
+        '''Release the Framebuffer (unbind).
+        '''
         if self._is_bound == 0:
             raise FboException('Cannot release a FBO not binded.')
         else:

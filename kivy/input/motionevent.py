@@ -19,9 +19,9 @@ all over the widget tree.
 
 1. The :class:`MotionEvent` are gathered from input providers
 2. All the :class:`MotionEvent` are dispatched in
-:func:`~kivy.core.window.Window.on_motion`.
+    :func:`~kivy.core.window.Window.on_motion`.
 3. If a :class:`MotionEvent` have a `pos` profile, we dispatch them in
-:func:`~kivy.core.window.Window.on_touch_down`,move,up.
+    :func:`~kivy.core.window.Window.on_touch_down`,move,up.
 
 Listen to Motion Event
 ----------------------
