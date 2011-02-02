@@ -1,4 +1,4 @@
-__all__ = ('AndroidTouchProvider', )
+__all__ = ('AndroidMotionEventProvider', )
 
 try:
     import android
@@ -6,24 +6,25 @@ except ImportError:
     raise Exception('android lib not found.')
 
 from kivy.logger import Logger
-from kivy.input.provider import TouchProvider
-from kivy.input.factory import TouchFactory
-from kivy.input.shape import TouchShapeRect
-from kivy.input.touch import Touch
+from kivy.input.provider import MotionEventProvider
+from kivy.input.factory import MotionEventFactory
+from kivy.input.shape import ShapeRect
+from kivy.input.motionevent import MotionEvent
 import pygame.joystick
 
-class AndroidTouch(Touch):
+class AndroidMotionEvent(MotionEvent):
     def depack(self, args):
+        self.is_touch = True
         self.profile = ['pos', 'pressure', 'shape']
         self.sx, self.sy, self.pressure, radius = args
-        self.shape = TouchShapeRect()
+        self.shape = ShapeRect()
         self.shape.width = radius
         self.shape.height = radius
-        super(AndroidTouch, self).depack(args)
+        super(AndroidMotionEvent, self).depack(args)
 
-class AndroidTouchProvider(TouchProvider):
+class AndroidMotionEventProvider(MotionEventProvider):
     def __init__(self, device, args):
-        super(AndroidTouchProvider, self).__init__(device, args)
+        super(AndroidMotionEventProvider, self).__init__(device, args)
         self.joysticks = []
         self.touches = {}
         self.uid = 0
@@ -65,20 +66,20 @@ class AndroidTouchProvider(TouchProvider):
             # new touche ?
             if pressed and jid not in touches:
                 self.uid += 1
-                touch = AndroidTouch(self.device, self.uid,
+                touch = AndroidMotionEvent(self.device, self.uid,
                                      [x, y, pressure, radius])
                 touches[jid] = touch
-                dispatch_fn('down', touch)
+                dispatch_fn('begin', touch)
             # update touch
             elif pressed:
                 touch = touches[jid]
                 touch.move([x, y, pressure, radius])
-                dispatch_fn('move', touch)
+                dispatch_fn('update', touch)
             # disapear
             elif not pressed and jid in touches:
                 touch = touches[jid]
                 touch.move([x, y, pressure, radius])
-                dispatch_fn('up', touch)
+                dispatch_fn('end', touch)
                 touches.pop(jid)
 
-TouchFactory.register('android', AndroidTouchProvider)
+MotionEventFactory.register('android', AndroidMotionEventProvider)
