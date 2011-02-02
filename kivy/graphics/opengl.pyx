@@ -496,8 +496,10 @@ def glClear(GLbitfield mask):
 def glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha):
     c_opengl.glClearColor(red, green, blue, alpha)
 
-def glClearDepthf(GLclampf depth):
-    c_opengl.glClearDepthf(depth)
+# We don't use this syumbol yet, but if we activate it, android platform crash
+# >_<
+#def glClearDepthf(GLclampf depth):
+#    c_opengl.glClearDepthf(depth)
 
 def glClearStencil(GLint s):
     c_opengl.glClearStencil(s)
@@ -563,8 +565,10 @@ def glDepthFunc(GLenum func):
 def glDepthMask(GLboolean flag):
     c_opengl.glDepthMask(flag)
 
-def glDepthRangef(GLclampf zNear, GLclampf zFar):
-    c_opengl.glDepthRangef(zNear, zFar)
+# We don't use this syumbol yet, but if we activate it, android platform crash
+# >_<
+#def glDepthRangef(GLclampf zNear, GLclampf zFar):
+#    c_opengl.glDepthRangef(zNear, zFar)
 
 def glDetachShader(GLuint program, GLuint shader):
     c_opengl.glDetachShader(program, shader)

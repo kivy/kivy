@@ -86,11 +86,13 @@ cdef void   glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf 
     cgl.glClearColor ( red, green, blue, alpha)
     ret = glGetError()
     if ret: print "ERR %d / %x" % (ret, ret)
-cdef void   glClearDepthf (GLclampf depth) with gil:
-    print "GL glClearDepthf()"
-    cgl.glClearDepthf ( depth)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
+
+# crash on android platform
+#cdef void   glClearDepthf (GLclampf depth) with gil:
+#    print "GL glClearDepthf()"
+#    cgl.glClearDepthf ( depth)
+#    ret = glGetError()
+#    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glClearStencil (GLint s) with gil:
     print "GL glClearStencil()"
     cgl.glClearStencil ( s)
@@ -181,11 +183,12 @@ cdef void   glDepthMask (GLboolean flag) with gil:
     cgl.glDepthMask ( flag)
     ret = glGetError()
     if ret: print "ERR %d / %x" % (ret, ret)
-cdef void   glDepthRangef (GLclampf zNear, GLclampf zFar) with gil:
-    print "GL glDepthRangef()"
-    cgl.glDepthRangef ( zNear, zFar)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
+#crash on android platform
+#cdef void   glDepthRangef (GLclampf zNear, GLclampf zFar) with gil:
+    #    print "GL glDepthRangef()"
+    #    cgl.glDepthRangef ( zNear, zFar)
+    #    ret = glGetError()
+    #    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glDetachShader (GLuint program, GLuint shader) with gil:
     print "GL glDetachShader()"
     cgl.glDetachShader ( program, shader)
