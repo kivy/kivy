@@ -13,7 +13,7 @@ __all__ = (
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
-from kivy.input import TouchFactory, kivy_postproc_modules
+from kivy.input import MotionEventFactory, kivy_postproc_modules
 
 # private vars
 EventLoop = None
@@ -87,13 +87,13 @@ class EventLoopBase(object):
         self.input_providers = []
         self.event_listeners = []
         self.window = None
-        self.touch_list = []
+        self.me_list = []
 
     @property
     def touches(self):
         '''Return the list of all touches currently in down or move state
         '''
-        return self.touch_list
+        return self.me_list
 
     def ensure_window(self):
         '''Ensure that we have an window
@@ -133,6 +133,7 @@ class EventLoopBase(object):
         '''Must be call only one time before run().
         This start all configured input providers.'''
         self.status = 'started'
+        self.quit = False
         for provider in self.input_providers:
             provider.start()
 
@@ -162,87 +163,84 @@ class EventLoopBase(object):
         if mod in self.postproc_modules:
             self.postproc_modules.remove(mod)
 
-    def post_dispatch_input(self, event, touch):
+    def post_dispatch_input(self, etype, me):
         '''This function is called by dispatch_input() when we want to dispatch
         a input event. The event is dispatched into all listeners, and if
-        grabbed, it's dispatched through grabbed widgets'''
+        grabbed, it's dispatched through grabbed widgets
+        '''
         # update available list
-        if event == 'down':
-            self.touch_list.append(touch)
-        elif event == 'up':
-            if touch in self.touch_list:
-                self.touch_list.remove(touch)
+        if etype == 'begin':
+            self.me_list.append(me)
+        elif etype == 'end':
+            if me in self.me_list:
+                self.me_list.remove(me)
 
         # dispatch to listeners
-        if not touch.grab_exclusive_class:
+        if not me.grab_exclusive_class:
             for listener in self.event_listeners:
-                if event == 'down':
-                    listener.dispatch('on_touch_down', touch)
-                elif event == 'move':
-                    listener.dispatch('on_touch_move', touch)
-                elif event == 'up':
-                    listener.dispatch('on_touch_up', touch)
+                listener.dispatch('on_motion', etype, me)
 
         # dispatch grabbed touch
-        touch.grab_state = True
-        for _wid in touch.grab_list[:]:
+        me.grab_state = True
+        for _wid in me.grab_list[:]:
 
             # it's a weakref, call it!
             wid = _wid()
             if wid is None:
                 # object is gone, stop.
-                touch.grab_list.remove(_wid)
+                me.grab_list.remove(_wid)
                 continue
 
             root_window = wid.get_root_window()
             if wid != root_window and root_window is not None:
-                touch.push()
+                me.push()
                 w, h = root_window.system_size
-                touch.scale_for_screen(w, h, rotation=root_window.rotation)
+                me.scale_for_screen(w, h, rotation=root_window.rotation)
                 parent = wid.parent
                 # and do to_local until the widget
                 try:
                     if parent:
-                        touch.apply_transform_2d(parent.to_widget)
+                        me.apply_transform_2d(parent.to_widget)
                     else:
-                        touch.apply_transform_2d(wid.to_widget)
-                        touch.apply_transform_2d(wid.to_parent)
+                        me.apply_transform_2d(wid.to_widget)
+                        me.apply_transform_2d(wid.to_parent)
                 except AttributeError:
                     # when using innerwindow, an app have grab the touch
                     # but app is removed. the touch can't access
                     # to one of the parent. (ie, self.parent will be None)
                     # and BAM the bug happen.
-                    touch.pop()
+                    me.pop()
                     continue
 
-            touch.grab_current = wid
+            me.grab_current = wid
 
-            if event == 'down':
+            if etype == 'begin':
                 # don't dispatch again touch in on_touch_down
                 # a down event are nearly uniq here.
                 # wid.dispatch('on_touch_down', touch)
                 pass
-            elif event == 'move':
-                wid.dispatch('on_touch_move', touch)
-            elif event == 'up':
-                wid.dispatch('on_touch_up', touch)
+            elif etype == 'update':
+                wid.dispatch('on_touch_move', me)
+            elif etype == 'end':
+                wid.dispatch('on_touch_up', me)
 
-            touch.grab_current = None
+            me.grab_current = None
 
             if wid != root_window and root_window is not None:
-                touch.pop()
-        touch.grab_state = False
+                me.pop()
+        me.grab_state = False
 
-    def _dispatch_input(self, event, touch):
-        ev = (event, touch)
+    def _dispatch_input(self, etype, me):
+        ev = (etype, me)
         # remove the save event for the touch if exist
         if ev in self.input_events[:]:
             self.input_events.remove(ev)
         self.input_events.append(ev)
 
     def dispatch_input(self):
-        '''Called by idle() to read events from input providers,
-        pass event to postproc, and dispatch final events'''
+        '''Called by idle() to read events from input providers, pass event to
+        postproc, and dispatch final events.
+        '''
         # first, aquire input events
         for provider in self.input_providers:
             provider.update(dispatch_fn=self._dispatch_input)
@@ -252,8 +250,8 @@ class EventLoopBase(object):
             self.input_events = mod.process(events=self.input_events)
 
         # real dispatch input
-        for event, touch in self.input_events:
-            self.post_dispatch_input(event=event, touch=touch)
+        for etype, me in self.input_events:
+            self.post_dispatch_input(etype, me)
 
         self.input_events = []
 
@@ -356,10 +354,9 @@ def runTouchApp(widget=None, slave=False):
         if len(args) == 1:
             args.append('')
         provider_id, args = args
-        provider = TouchFactory.get(provider_id)
+        provider = MotionEventFactory.get(provider_id)
         if provider is None:
-            Logger.warning('Base: Unknown <%s> provider' % \
-                                str(provider_id))
+            Logger.warning('Base: Unknown <%s> provider' % str(provider_id))
             continue
 
         # create provider

@@ -109,7 +109,9 @@ cdef void  glLinkProgram (GLuint program) with gil
 cdef void  glPixelStorei (GLenum pname, GLint param) with gil
 cdef void  glPolygonOffset (GLfloat factor, GLfloat units) with gil
 cdef void  glReadPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels) with gil
-cdef void  glReleaseShaderCompiler () with gil
+# XXX This one is commented out because a) it's not necessary and
+#	    				b) it's breaking on OSX for some reason
+#cdef void  glReleaseShaderCompiler () with gil
 cdef void  glRenderbufferStorage (GLenum target, GLenum internalformat, GLsizei width, GLsizei height) with gil
 cdef void  glSampleCoverage (GLclampf value, GLboolean invert) with gil
 cdef void  glScissor (GLint x, GLint y, GLsizei width, GLsizei height) with gil

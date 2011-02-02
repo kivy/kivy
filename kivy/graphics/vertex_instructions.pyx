@@ -34,9 +34,9 @@ cdef class Line(VertexInstruction):
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [])
-        self.batch.set_mode('points')
+        self.batch.set_mode('line_strip')
 
-    cdef build(self):
+    cdef void build(self):
         cdef int i, count = len(self.points) / 2
         cdef list p = self.points
         self.vertices = [Vertex(p[i*2], p[i*2+1]) for i in xrange(count)]
@@ -68,7 +68,7 @@ cdef class Point(VertexInstruction):
         self.points = kwargs.get('points', [])
         self.pointsize = kwargs.get('pointsize', 1.)
 
-    cdef build(self):
+    cdef void build(self):
         cdef float x, y, ps = self._pointsize
         cdef int i, ii, count = len(self.points) / 2
         cdef list p = self.points
@@ -123,7 +123,7 @@ cdef class Triangle(VertexInstruction):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', (0.0,0.0, 100.0,0.0, 50.0,100.0))
 
-    cdef build(self):
+    cdef void build(self):
         cdef list vc, tc
         vc = self.points;  tc = self._tex_coords
 
@@ -159,7 +159,7 @@ cdef class Quad(VertexInstruction):
                (  0.0,  50.0,   50.0,   0.0,
                 100.0,  50.0,   50.0, 100.0 ))
 
-    cdef build(self):
+    cdef void build(self):
         cdef list vc, tc
         vc = self.points;  tc = self._tex_coords
 
@@ -197,7 +197,7 @@ cdef class Rectangle(VertexInstruction):
         self.pos  = kwargs.get('pos',  (0,0))
         self.size = kwargs.get('size', (100,100))
 
-    cdef build(self):
+    cdef void build(self):
         cdef float x, y, w, h
         x, y = self.x, self.y
         w, h = self.w, self.h
@@ -217,8 +217,12 @@ cdef class Rectangle(VertexInstruction):
         def __get__(self):
             return (self.x, self.y)
         def __set__(self, pos):
-            self.x = pos[0]
-            self.y = pos[1]
+            cdef float x, y
+            x, y = pos
+            if self.x == x and self.y == y:
+                return
+            self.x = x
+            self.y = y
             self.flag_update()
 
     property size:
@@ -227,8 +231,12 @@ cdef class Rectangle(VertexInstruction):
         def __get__(self):
             return (self.w, self.h)
         def __set__(self, size):
-            self.w = size[0]
-            self.h = size[1]
+            cdef float w, h
+            w, h = size
+            if self.w == w and self.h == h:
+                return
+            self.w = w
+            self.h = h
             self.flag_update()
 
 
@@ -248,7 +256,7 @@ cdef class BorderImage(Rectangle):
         Rectangle.__init__(self, **kwargs)
         self.border = kwargs.get('border', (10,10,10,10))
 
-    cdef build(self):
+    cdef void build(self):
         if not self.texture:
             Logger.trace('GBorderImage: texture missing')
             return
@@ -358,7 +366,7 @@ cdef class Ellipse(Rectangle):
         Rectangle.__init__(self, **kwargs)
         self.segments = kwargs.get('segments', 180)
 
-    cdef build(self):
+    cdef void build(self):
         cdef list tc = self.tex_coords
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
         tx = tc[0]; ty=tc[1];  tw=tc[4]-tx;  th=tc[5]-ty
@@ -366,7 +374,9 @@ cdef class Ellipse(Rectangle):
         rx = 0.5*(self.w)
         ry = 0.5*(self.h)
 
-        self.vertices = list()
+        self.vertices = []
+        self.indices = []
+
         for i in xrange(self.segments):
             # rad = deg * (pi / 180), where pi/180 = 0.0174...
             angle = i * 360.0/self.segments *0.017453292519943295

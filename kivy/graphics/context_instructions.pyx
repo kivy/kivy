@@ -12,7 +12,8 @@ The context instructions represent non graphics elements like:
 '''
 
 __all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
-           'Rotate', 'Scale', 'Translate', 'MatrixInstruction')
+           'Rotate', 'Scale', 'Translate', 'MatrixInstruction',
+           'gl_init_resources')
 
 from instructions cimport *
 from transformation cimport *
@@ -24,7 +25,8 @@ from kivy.logger import Logger
 
 from os.path import join
 from kivy import kivy_shader_dir
-cdef object DEFAULT_TEXTURE
+
+cdef object DEFAULT_TEXTURE = None
 cdef object get_default_texture():
     global DEFAULT_TEXTURE
     if not DEFAULT_TEXTURE:
@@ -33,6 +35,12 @@ cdef object get_default_texture():
 
 # register Image cache
 Cache.register('kv.texture', timeout=60)
+
+# ensure that our resources are cleaned
+def gl_init_resources():
+    global DEFAULT_TEXTURE
+    DEFAULT_TEXTURE = None
+    Cache.remove('kv.texture')
 
 cdef class LineWidth(ContextInstruction):
     '''Instruction to set the line width of the drawing context
@@ -193,8 +201,8 @@ cdef class BindTexture(ContextInstruction):
             self.texture = kwargs.get('texture', None)
 
     cdef apply(self):
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(self._texture.target, self._texture._id)
+        cdef RenderContext context = self.get_context()
+        context.set_texture(0, self._texture)
 
     property texture:
         def __get__(self):

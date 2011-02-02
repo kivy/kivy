@@ -2,14 +2,54 @@
 Scatter
 =======
 
-.. todo::
+Scatter is a widget that you can translate, rotate and scale, with two or more
+fingers. This is the famous widget as you can see on many multitouch demo.
 
-    - Fix center_x / center_y attributes
-    - Ensure top and right are good
+Usage
+-----
+
+By default, the widget itself don't have any graphical representation. The idea
+is to combine Scatter widget with other widget, like
+:class:`~kivy.uix.image.Image` widget.
+
+    scatter = Scatter()
+    image = Image(source='sun.jpg')
+    scatter.add_widget(image)
+
+Control interactions
+--------------------
+
+You can also avoid some interaction, like rotation. ::
+
+    scatter = Scatter(do_rotation=False)
+
+Or allow only translation. ::
+
+    scatter = Scatter(do_rotation=False, do_scale=False)
+
+Automatic bring to front
+------------------------
+
+If you add and manipulate multiple scatter, you can have trouble if the scatter
+is behind another scatter. We have a property named
+:data:`Scatter.auto_bring_to_front` that remove and re-add the scatter in his
+parent. The scatter will be on top as soon as you touch it.
+
+Scale limitation
+----------------
+
+We are using 32 bits matrix, in double representation. That's mean, we have
+limitation for scaling. You cannot do infite scale down/up with our
+implementation. Generally, you don't hit the minimum scale (because you don't
+see it on the screen), but the maximum scale : 9.99506983235e+19 (2^66)
+
+You can also limit the minimum and maximum zoom allowed. ::
+
+    scatter = Scatter(scale_min=.5, scale_max=3.)
 
 '''
 
-__all__ = ('Scatter', )
+__all__ = ('Scatter', 'ScatterPlane')
 
 from math import radians
 from kivy.properties import BooleanProperty, AliasProperty, \
@@ -20,7 +60,15 @@ from kivy.graphics.transformation import Matrix
 
 
 class Scatter(Widget):
-    '''Scatter implementation as a Widget.
+    '''Scatter class. See module documentation for more information.
+    '''
+
+    auto_bring_to_front = BooleanProperty(True)
+    '''If True, the widget will be automatically pushed on the top of parent
+    widget list for drawing.
+
+    :data:`auto_bring_to_front` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True.
     '''
 
     do_translation_x = BooleanProperty(True)
@@ -199,7 +247,6 @@ class Scatter(Widget):
 
     def __init__(self, **kwargs):
         self._touches = []
-        self._last_touch_pos = {}
         super(Scatter, self).__init__(**kwargs)
 
     def on_transform(self, instance, value):
@@ -274,15 +321,13 @@ class Scatter(Widget):
         if len(self._touches) == 1:
             # _last_touch_pos has last pos in correct parent space,
             # just liek incoming touch
-            dx = (touch.x - self._last_touch_pos[touch][0]) \
-                                                    * self.do_translation_x
-            dy = (touch.y - self._last_touch_pos[touch][1]) \
-                                                    * self.do_translation_y
+            dx = touch.dx * self.do_translation_x
+            dy = touch.dy * self.do_translation_y
             self.apply_transform(Matrix().translate(dx, dy, 0))
             return
 
         # we have more than one touch...
-        points = [Vector(*self._last_touch_pos[t]) for t in self._touches]
+        points = [Vector(t.px, t.py) for t in self._touches]
 
         # we only want to transform if the touch is part of the two touches
         # furthest apart! So first we find anchor, the point to transform
@@ -297,7 +342,7 @@ class Scatter(Widget):
 
         # ok, so we have touch, and anchor, so we can actually compute the
         # transformation
-        old_line = Vector(*touch.dpos) - anchor
+        old_line = Vector(*touch.ppos) - anchor
         new_line = Vector(*touch.pos) - anchor
 
         angle = radians(new_line.angle(old_line)) * self.do_rotation
@@ -316,6 +361,12 @@ class Scatter(Widget):
         if not self.collide_point(x, y):
             return False
 
+        # auto bring to front
+        if self.auto_bring_to_front and self.parent:
+            parent = self.parent
+            parent.remove_widget(self)
+            parent.add_widget(self)
+
         # let the child widgets handle the event if they want
         touch.push()
         touch.apply_transform_2d(self.to_local)
@@ -326,7 +377,6 @@ class Scatter(Widget):
 
         # grab the touch so we get all it later move events for sure
         touch.grab(self)
-        self._last_touch_pos[touch] = touch.pos
         self._touches.append(touch)
 
         return True
@@ -345,7 +395,6 @@ class Scatter(Widget):
         # rotate/scale/translate
         if touch in self._touches and touch.grab_current == self:
             self.transform_with_touch(touch)
-            self._last_touch_pos[touch] = touch.pos
 
         # stop porpagating if its within our bounds
         if self.collide_point(x, y):
@@ -365,10 +414,18 @@ class Scatter(Widget):
         # remove it from our saved touches
         if touch in self._touches and touch.grab_state:
             touch.ungrab(self)
-            del self._last_touch_pos[touch]
             self._touches.remove(touch)
 
         # stop porpagating if its within our bounds
         if self.collide_point(x, y):
             return True
 
+
+class ScatterPlane(Scatter):
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault('auto_bring_to_front', False)
+        super(ScatterPlane, self).__init__(**kwargs)
+
+    def collide_point(self, x, y):
+        return True

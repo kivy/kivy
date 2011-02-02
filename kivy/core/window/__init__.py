@@ -23,28 +23,48 @@ class WindowBase(EventDispatcher):
 
         The parameters are not working in normal case. Because at import, Kivy
         create a default OpenGL window, to add the ability to use OpenGL
-        directives, texture creation.. before creating MTWindow.
+        directives, texture creation.. before creating Window.
         If you don't like this behavior, you can include before the very first
         import of Kivy ::
 
             import os
             os.environ['KIVY_SHADOW'] = '0'
-            from kivy import *
 
         This will forbid Kivy to create the default window !
 
 
     :Parameters:
-        `fps`: int, default to 0
-            Maximum FPS allowed. If 0, fps will be not limited
         `fullscreen`: bool
             Make window as fullscreen
         `width`: int
             Width of window
         `height`: int
             Height of window
-        `vsync`: bool
-            Vsync window
+
+    :Events:
+        `on_motion`: etype, motionevent
+            Fired when a new :class:`~kivy.input.motionevent.MotionEvent` is
+            dispatched
+        `on_touch_down`:
+            Fired when a new touch appear
+        `on_touch_move`:
+            Fired when an existing touch is moved
+        `on_touch_down`:
+            Fired when an existing touch disapear
+        `on_draw`:
+            Fired when the :class:`Window` is beeing drawed
+        `on_flip`:
+            Fired when the :class:`Window` GL surface is beeing flipped
+        `on_rotate`: rotation
+            Fired when the :class:`Window` is beeing rotated
+        `on_close`:
+            Fired when the :class:`Window` is closed
+        `on_keyboard`: key, scancode, unicode
+            Fired when the keyboard is in action
+        `on_key_down`: key, scancode, unicode
+            Fired when a key is down
+        `on_key_up`: key, scancode, unicode
+            Fired when a key is up
     '''
 
     __instance = None
@@ -59,7 +79,6 @@ class WindowBase(EventDispatcher):
 
         kwargs.setdefault('force', False)
         kwargs.setdefault('config', None)
-        kwargs.setdefault('show_fps', False)
 
         # don't init window 2 times,
         # except if force is specified
@@ -79,6 +98,7 @@ class WindowBase(EventDispatcher):
         self.register_event_type('on_rotate')
         self.register_event_type('on_resize')
         self.register_event_type('on_close')
+        self.register_event_type('on_motion')
         self.register_event_type('on_touch_down')
         self.register_event_type('on_touch_move')
         self.register_event_type('on_touch_up')
@@ -118,16 +138,6 @@ class WindowBase(EventDispatcher):
         else:
             params['height'] = Config.getint('graphics', 'height')
 
-        if 'vsync' in kwargs:
-            params['vsync'] = kwargs.get('vsync')
-        else:
-            params['vsync'] = Config.getint('graphics', 'vsync')
-
-        if 'fps' in kwargs:
-            params['fps'] = kwargs.get('fps')
-        else:
-            params['fps'] = Config.getint('graphics', 'fps')
-
         if 'rotation' in kwargs:
             params['rotation'] = kwargs.get('rotation')
         else:
@@ -147,22 +157,12 @@ class WindowBase(EventDispatcher):
         else:
             params['left'] = Config.getint('graphics', 'left')
 
-        # show fps if asked
-        self.show_fps = kwargs.get('show_fps')
-        if Config.getboolean('kivy', 'show_fps'):
-            self.show_fps = True
-
         # before creating the window
         import kivy.core.gl
 
         # configure the window
-        self.create_window(params)
-
-        # create the render context and canvas
-        from kivy.graphics import RenderContext, Canvas
-        self.render_context = RenderContext()
-        self.canvas = Canvas()
-        self.render_context.add(self.canvas)
+        self.params = params
+        self.create_window()
 
         # attach modules + listener event
         Modules.register_window(self)
@@ -180,10 +180,32 @@ class WindowBase(EventDispatcher):
         '''Close the window'''
         pass
 
-    def create_window(self, params):
-        '''Will create the main window and configure it'''
-        from kivy.core.gl import print_gl_version
-        print_gl_version()
+    def create_window(self):
+        '''Will create the main window and configure it.
+
+        .. warning::
+            This method is called automatically at runtime. If you call it, it
+            will recreate a RenderContext and Canvas. This mean you'll have a
+            new graphics tree, and the old one will be unusable.
+
+            This method exist to permit the creation of a new OpenGL context
+            AFTER closing the first one. (Like using runTouchApp() and
+            stopTouchApp()).
+
+            This method have been only tested in unittest environment, and will
+            be not suitable for Applications.
+
+            Again, don't use this method unless you know exactly what you are
+            doing !
+        '''
+        from kivy.core.gl import init_gl
+        init_gl()
+
+        # create the render context and canvas
+        from kivy.graphics import RenderContext, Canvas
+        self.render_context = RenderContext()
+        self.canvas = Canvas()
+        self.render_context.add(self.canvas)
 
     def on_flip(self):
         '''Flip between buffers (event)'''
@@ -236,19 +258,21 @@ class WindowBase(EventDispatcher):
         '''Rotated window center'''
         return self.width / 2., self.height / 2.
 
-    def add_widget(self, w):
+    def add_widget(self, widget):
         '''Add a widget on window'''
-        self.children.append(w)
-        w.parent = self
-        self.canvas.add(w.canvas)
+        self.children.append(widget)
+        widget.parent = self
+        self.canvas.add(widget.canvas)
+        self.update_childsize([widget])
 
-    def remove_widget(self, w):
-        '''Remove a widget from window'''
-        if not w in self.children:
+    def remove_widget(self, widget):
+        '''Remove a widget from window
+        '''
+        if not widget in self.children:
             return
-        self.children.remove(w)
-        w.parent = None
-        self.canvas.remove_canvas(w.canvas)
+        self.children.remove(widget)
+        self.canvas.remove(widget.canvas)
+        widget.parent = None
 
     def clear(self):
         '''Clear the window with background color'''
@@ -277,8 +301,26 @@ class WindowBase(EventDispatcher):
         self.clear()
         self.render_context.draw()
 
+    def on_motion(self, etype, me):
+        '''Event called when a Motion Event is received.
+
+        :Parameters:
+            `etype`: str
+                One of 'begin', 'update', 'end'
+            `me`: :class:`~kivy.input.motionevent.MotionEvent`
+                Motion Event currently dispatched
+        '''
+        if me.is_touch:
+            if etype == 'begin':
+                self.dispatch('on_touch_down', me)
+            elif etype == 'update':
+                self.dispatch('on_touch_move', me)
+            elif etype == 'end':
+                self.dispatch('on_touch_up', me)
+
     def on_touch_down(self, touch):
-        '''Event called when a touch is down'''
+        '''Event called when a touch is down
+        '''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
@@ -286,7 +328,8 @@ class WindowBase(EventDispatcher):
                 return True
 
     def on_touch_move(self, touch):
-        '''Event called when a touch move'''
+        '''Event called when a touch move
+        '''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
@@ -294,7 +337,8 @@ class WindowBase(EventDispatcher):
                 return True
 
     def on_touch_up(self, touch):
-        '''Event called when a touch up'''
+        '''Event called when a touch up
+        '''
         w, h = self.system_size
         touch.scale_for_screen(w, h, rotation=self._rotation)
         for w in self.children[:]:
@@ -335,8 +379,13 @@ class WindowBase(EventDispatcher):
         glTranslatef(-w2, -h2, 0)
         '''
 
-        # update window size
-        for w in self.children:
+        self.update_childsize()
+
+    def update_childsize(self, childs=None):
+        width, height = self.system_size
+        if childs is None:
+            childs = self.children
+        for w in childs:
             shw, shh = w.size_hint
             if shw and shh:
                 w.size = shw * width, shh * height
@@ -367,6 +416,20 @@ class WindowBase(EventDispatcher):
         '''Real size of the window, without taking care of the rotation
         '''
         return self._size
+
+    def screenshot(self, name='screenshot%(counter)04d.jpg'):
+        '''Save the actual displayed image in a file
+        '''
+        from os.path import join, exists
+        from os import getcwd
+        i = 0
+        path = None
+        while True:
+            i += 1
+            path = join(getcwd(), name % {'counter': i})
+            if not exists(path):
+                break
+        return path
 
     def on_rotate(self, rotation):
         '''Event called when the screen have been rotated
@@ -407,7 +470,7 @@ class WindowBase(EventDispatcher):
         pass
 
 
-# Load the appropriate provider
+#: Instance of a :class:`WindowBase` implementation
 Window = core_select_lib('window', (
     ('pygame', 'window_pygame', 'WindowPygame'),
 ), True)

@@ -36,44 +36,45 @@ configuration ::
 
 '''
 
-__all__ = ('HIDInputTouchProvider', 'HIDTouch')
+__all__ = ('HIDInputMotionEventProvider', 'HIDMotionEvent')
 
 import os
-from kivy.input.touch import Touch
-from kivy.input.shape import TouchShapeRect
+from kivy.input.motionevent import MotionEvent
+from kivy.input.shape import ShapeRect
 
 
-class HIDTouch(Touch):
+class HIDMotionEvent(MotionEvent):
 
     def depack(self, args):
+        self.is_touch = True
         self.sx = args['x']
         self.sy = args['y']
         self.profile = ['pos']
         if 'size_w' in args and 'size_h' in args:
-            self.shape = TouchShapeRect()
+            self.shape = ShapeRect()
             self.shape.width = args['size_w']
             self.shape.height = args['size_h']
             self.profile.append('shape')
         if 'pressure' in args:
             self.pressure = args['pressure']
             self.profile.append('pressure')
-        super(HIDTouch, self).depack(args)
+        super(HIDMotionEvent, self).depack(args)
 
     def __str__(self):
-        return '<HIDTouch id=%d pos=(%f, %f) device=%s>' \
+        return '<HIDMotionEvent id=%d pos=(%f, %f) device=%s>' \
             % (self.id, self.sx, self.sy, self.device)
 
 if 'KIVY_DOC' in os.environ:
     # documentation hack
-    HIDInputTouchProvider = None
+    HIDInputMotionEventProvider = None
 
 else:
     import threading
     import collections
     import struct
     import fcntl
-    from kivy.input.provider import TouchProvider
-    from kivy.input.factory import TouchFactory
+    from kivy.input.provider import MotionEventProvider
+    from kivy.input.factory import MotionEventFactory
     from kivy.logger import Logger
 
     #
@@ -134,7 +135,7 @@ else:
     struct_input_absinfo_sz = struct.calcsize('iiiiii')
     sz_l = struct.calcsize('Q')
 
-    class HIDInputTouchProvider(TouchProvider):
+    class HIDInputMotionEventProvider(MotionEventProvider):
 
         options = ('min_position_x', 'max_position_x',
                    'min_position_y', 'max_position_y',
@@ -142,7 +143,7 @@ else:
                    'invert_x', 'invert_y')
 
         def __init__(self, device, args):
-            super(HIDInputTouchProvider, self).__init__(device, args)
+            super(HIDInputMotionEventProvider, self).__init__(device, args)
             self.input_fn = None
             self.default_ranges = dict()
 
@@ -171,7 +172,7 @@ else:
 
                 # ensure the key exist
                 key, value = arg
-                if key not in HIDInputTouchProvider.options:
+                if key not in HIDInputMotionEventProvider.options:
                     Logger.error('HIDInput: unknown %s option' % key)
                     continue
 
@@ -231,18 +232,18 @@ else:
                             continue
                         touch.move(args)
                         if tid not in touches_sent:
-                            queue.append(('down', touch))
+                            queue.append(('begin', touch))
                             touches_sent.append(tid)
-                        queue.append(('move', touch))
+                        queue.append(('update', touch))
                     except KeyError:
-                        touch = HIDTouch(device, tid, args)
+                        touch = HIDMotionEvent(device, tid, args)
                         touches[touch.id] = touch
 
                 for tid in touches.keys()[:]:
                     if tid not in actives:
                         touch = touches[tid]
                         if tid in touches_sent:
-                            queue.append(('up', touch))
+                            queue.append(('end', touch))
                             touches_sent.remove(tid)
                         del touches[tid]
 
@@ -255,7 +256,7 @@ else:
             # get the controler name (EVIOCGNAME)
             device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
                 " " * 256).split('\x00')[0]
-            Logger.info('HIDTouch: using <%s>' % device_name)
+            Logger.info('HIDMotionEvent: using <%s>' % device_name)
 
             # get abs infos
             bit = fcntl.ioctl(fd, EVIOCGBIT + (EV_MAX << 16), ' ' * sz_l)
@@ -282,19 +283,19 @@ else:
                     if y == ABS_MT_POSITION_X:
                         range_min_position_x = drs('min_position_x', abs_min)
                         range_max_position_x = drs('max_position_x', abs_max)
-                        Logger.info('HIDTouch: ' +
+                        Logger.info('HIDMotionEvent: ' +
                             '<%s> range position X is %d - %d' % (
                             device_name, abs_min, abs_max))
                     elif y == ABS_MT_POSITION_Y:
                         range_min_position_y = drs('min_position_y', abs_min)
                         range_max_position_y = drs('max_position_y', abs_max)
-                        Logger.info('HIDTouch: ' +
+                        Logger.info('HIDMotionEvent: ' +
                             '<%s> range position Y is %d - %d' % (
                             device_name, abs_min, abs_max))
                     elif y == ABS_MT_PRESSURE:
                         range_min_pressure = drs('min_pressure', abs_min)
                         range_max_pressure = drs('max_pressure', abs_max)
-                        Logger.info('HIDTouch: ' +
+                        Logger.info('HIDMotionEvent: ' +
                             '<%s> range pressure is %d - %d' % (
                             device_name, abs_min, abs_max))
 
@@ -365,4 +366,4 @@ else:
                 pass
 
 
-    TouchFactory.register('hidinput', HIDInputTouchProvider)
+    MotionEventFactory.register('hidinput', HIDInputMotionEventProvider)

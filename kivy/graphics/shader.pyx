@@ -1,3 +1,5 @@
+#cython: embedsignature=True
+
 '''
 Shader
 ======
@@ -10,17 +12,20 @@ shader, and the creation of the program in OpenGL.
     Write a more complete documentation about shader.
 
 '''
+
 __all__ = ('Shader', )
 
 include "config.pxi"
 include "common.pxi"
 
-from c_opengl cimport *
+from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
-
+    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.vertex cimport vertex_attr_t
+from kivy.graphics.vbo cimport vbo_vertex_attr_list, vbo_vertex_attr_count
 from kivy.graphics.transformation cimport Matrix
 from kivy.logger import Logger
+
 
 cdef class Shader:
     '''Create a vertex or fragment shader
@@ -32,9 +37,11 @@ cdef class Shader:
             source code for fragment shader
     '''
     def __cinit__(self):
+        self.program = -1
+        self.vertex_shader = -1
+        self.fragment_shader = -1
         self.uniform_locations = dict()
         self.uniform_values = dict()
-
 
     def __init__(self, str vert_src, str frag_src):
         self.frag_src = frag_src
@@ -43,8 +50,20 @@ cdef class Shader:
         self.bind_attrib_locations()
         self.build()
 
+    def __dealloc__(self):
+        if self.program != -1:
+            if self.vertex_shader != -1:
+                glDetachShader(self.program, self.vertex_shader)
+                glDeleteShader(self.vertex_shader)
+                self.vertex_shader = -1
+            if self.fragment_shader != -1:
+                glDetachShader(self.program, self.fragment_shader)
+                glDeleteShader(self.fragment_shader)
+                self.fragment_shader = -1
+            glDeleteProgram(self.program)
+            self.program = -1
 
-    cdef use(self):
+    cdef void use(self):
         '''Use the shader
         '''
         glUseProgram(self.program)
@@ -52,19 +71,17 @@ cdef class Shader:
             self.upload_uniform(k, v)
 
 
-    cdef stop(self):
+    cdef void stop(self):
         '''Stop using the shader
         '''
         glUseProgram(0)
 
-
-    cdef set_uniform(self, str name, value):
+    cdef void set_uniform(self, str name, value):
         self.uniform_values[name] = value
         for k,v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
 
-
-    cdef upload_uniform(self, str name, value):
+    cdef void upload_uniform(self, str name, value):
         '''Pass a uniform variable to the shader
         '''
         cdef int vec_size, loc
@@ -100,8 +117,7 @@ cdef class Shader:
         else:
             raise Exception('for <%s>, type not handled <%s>' % (name, val_type))
 
-
-    cdef upload_uniform_matrix(self, str name, Matrix value):
+    cdef void upload_uniform_matrix(self, str name, Matrix value):
         cdef int loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
         cdef GLfloat mat[16]
         for x in xrange(16):
@@ -116,17 +132,25 @@ cdef class Shader:
         self.uniform_locations[name] = loc
         return loc
 
+    cdef void bind_attrib_locations(self):
+        cdef int i
+        cdef vertex_attr_t *attr
+        cdef vertex_attr_t *vattr = vbo_vertex_attr_list()
+        for i in xrange(vbo_vertex_attr_count()):
+            attr = &vattr[i]
+            glBindAttribLocation(self.program, attr.index, attr.name)
+            if attr.per_vertex == 1:
+                glEnableVertexAttribArray(attr.index)
 
-    cdef bind_attrib_locations(self):
-        cdef char* c_name
-        for attr in VERTEX_ATTRIBUTES:
-            c_name = attr['name']
-            glBindAttribLocation(self.program, attr['index'], c_name)
-            if attr['per_vertex']:
-                glEnableVertexAttribArray(attr['index'])
-
-
-    cdef build(self):
+    cdef void build(self):
+        if self.vertex_shader != -1:
+            glDetachShader(self.program, self.vertex_shader)
+            glDeleteShader(self.vertex_shader)
+            self.vertex_shader = -1
+        if self.fragment_shader != -1:
+            glDetachShader(self.program, self.fragment_shader)
+            glDeleteShader(self.fragment_shader)
+            self.fragment_shader = -1
         self.vertex_shader = self.compile_shader(self.vert_src, GL_VERTEX_SHADER)
         self.fragment_shader = self.compile_shader(self.frag_src, GL_FRAGMENT_SHADER)
         glAttachShader(self.program, self.vertex_shader)
@@ -134,16 +158,21 @@ cdef class Shader:
         glLinkProgram(self.program)
         self.uniform_locations = dict()
         self.process_build_log()
+        if not self.is_linked():
+            raise Exception('Shader didnt link, check info log.')
 
+    cdef int is_linked(self):
+        cdef GLint result
+        glGetProgramiv(self.program, GL_LINK_STATUS, &result)
+        return 1 if result == GL_TRUE else 0
 
-    cdef compile_shader(self, char* source, shadertype):
+    cdef GLuint compile_shader(self, char* source, shadertype):
         shader = glCreateShader(shadertype)
         glShaderSource(shader, 1, <char**> &source, NULL)
         glCompileShader(shader)
         return shader
 
-
-    cdef get_shader_log(self, shader):
+    cdef str get_shader_log(self, shader):
         '''Return the shader log'''
         cdef char msg[2048]
         msg[0] = '\0'
@@ -151,15 +180,14 @@ cdef class Shader:
         return msg
 
 
-    cdef get_program_log(self, shader):
+    cdef str get_program_log(self, shader):
         '''Return the program log'''
         cdef char msg[2048]
         msg[0] = '\0'
         glGetProgramInfoLog(shader, 2048, NULL, msg)
         return msg
 
-
-    cdef process_build_log(self):
+    cdef void process_build_log(self):
         self.process_message('vertex shader', self.get_shader_log(self.vertex_shader))
         self.process_message('fragment shader', self.get_shader_log(self.fragment_shader))
         self.process_message('program', self.get_program_log(self.program))
@@ -167,12 +195,10 @@ cdef class Shader:
         if error:
             Logger.error('Shader: GL error %d' % error)
 
-
-    cdef process_message(self, str ctype, str message):
-        message = message.strip().lower()
-        if message and message not in ('success.', 'link was successful.'):
-            Logger.error('Shader: %s: <%s>' % (ctype, message))
-            raise Exception(message)
+    cdef void process_message(self, str ctype, str message):
+        message = message.strip()
+        if message and message != 'Success.':
+            Logger.info('Shader: %s: <%s>' % (ctype, message))
         else:
-            Logger.debug('Shader: %s compiled successfully' % ctype)
+            Logger.info('Shader: %s compiled successfully' % ctype)
 

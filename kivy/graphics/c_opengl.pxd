@@ -1,3 +1,5 @@
+include "config.pxi"
+
 cdef extern from "gl_redirect.h":
 
     ctypedef void               GLvoid
@@ -27,8 +29,6 @@ cdef extern from "gl_redirect.h":
 
 
     #int GL_ES_VERSION_2_0
-
-    int __USE_GLES20
 
     int GL_DEPTH_BUFFER_BIT
     int GL_STENCIL_BUFFER_BIT
@@ -179,7 +179,6 @@ cdef extern from "gl_redirect.h":
     int GL_INT
     int GL_UNSIGNED_INT
     int GL_FLOAT
-    int GL_FIXED
 
     int GL_DEPTH_COMPONENT
     int GL_ALPHA
@@ -195,12 +194,9 @@ cdef extern from "gl_redirect.h":
     int GL_FRAGMENT_SHADER
     int GL_VERTEX_SHADER
     int GL_MAX_VERTEX_ATTRIBS
-    int GL_MAX_VERTEX_UNIFORM_VECTORS
-    int GL_MAX_VARYING_VECTORS
     int GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS
     int GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS
     int GL_MAX_TEXTURE_IMAGE_UNITS
-    int GL_MAX_FRAGMENT_UNIFORM_VECTORS
     int GL_SHADER_TYPE
     int GL_DELETE_STATUS
     int GL_LINK_STATUS
@@ -323,23 +319,11 @@ cdef extern from "gl_redirect.h":
     int GL_VERTEX_ATTRIB_ARRAY_POINTER
     int GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING
 
-    int GL_IMPLEMENTATION_COLOR_READ_TYPE
-    int GL_IMPLEMENTATION_COLOR_READ_FORMAT
-
     int GL_COMPILE_STATUS
     int GL_INFO_LOG_LENGTH
     int GL_SHADER_SOURCE_LENGTH
-    int GL_SHADER_COMPILER
 
     int GL_SHADER_BINARY_FORMATS
-    int GL_NUM_SHADER_BINARY_FORMATS
-
-    int GL_LOW_FLOAT
-    int GL_MEDIUM_FLOAT
-    int GL_HIGH_FLOAT
-    int GL_LOW_INT
-    int GL_MEDIUM_INT
-    int GL_HIGH_INT
 
     int GL_FRAMEBUFFER
     int GL_RENDERBUFFER
@@ -383,6 +367,22 @@ cdef extern from "gl_redirect.h":
     int GL_MAX_RENDERBUFFER_SIZE
 
     int GL_INVALID_FRAMEBUFFER_OPERATION
+
+    IF USE_OPENGL_ES2:
+        int GL_FIXED
+        int GL_MAX_VERTEX_UNIFORM_VECTORS
+        int GL_MAX_VARYING_VECTORS
+        int GL_MAX_FRAGMENT_UNIFORM_VECTORS
+        int GL_IMPLEMENTATION_COLOR_READ_TYPE
+        int GL_IMPLEMENTATION_COLOR_READ_FORMAT
+        int GL_SHADER_COMPILER
+        int GL_NUM_SHADER_BINARY_FORMATS
+        int GL_LOW_FLOAT
+        int GL_MEDIUM_FLOAT
+        int GL_HIGH_FLOAT
+        int GL_LOW_INT
+        int GL_MEDIUM_INT
+        int GL_HIGH_INT
 
     cdef void   glActiveTexture(GLenum texture) nogil
     cdef void   glAttachShader(GLuint program, GLuint shader) nogil
@@ -477,7 +477,9 @@ cdef extern from "gl_redirect.h":
     cdef void  glPixelStorei(GLenum pname, GLint param) nogil
     cdef void  glPolygonOffset(GLfloat factor, GLfloat units) nogil
     cdef void  glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels) nogil
-    cdef void  glReleaseShaderCompiler() nogil
+    # XXX This one is commented out because a) it's not necessary and
+    #	    				b) it's breaking on OSX for some reason
+    #cdef void  glReleaseShaderCompiler() nogil
     cdef void  glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height) nogil
     cdef void  glSampleCoverage(GLclampf value, GLboolean invert) nogil
     cdef void  glScissor(GLint x, GLint y, GLsizei width, GLsizei height) nogil

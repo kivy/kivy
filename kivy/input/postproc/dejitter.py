@@ -22,7 +22,7 @@ class InputPostprocDejitter(object):
     Get rid of jitterish BLOBs.
     Example ::
 
-        [kivy]
+        [postproc]
         jitter_distance = 0.004
         jitter_ignore_devices = mouse,mactouch
 
@@ -36,8 +36,8 @@ class InputPostprocDejitter(object):
     '''
 
     def __init__(self):
-        self.jitterdist = Config.getfloat('kivy', 'jitter_distance')
-        ignore_devices = Config.get('kivy', 'jitter_ignore_devices')
+        self.jitterdist = Config.getfloat('postproc', 'jitter_distance')
+        ignore_devices = Config.get('postproc', 'jitter_ignore_devices')
         self.ignore_devices = ignore_devices.split(',')
         self.last_touches = {}
 

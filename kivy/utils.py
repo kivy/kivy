@@ -5,14 +5,12 @@ Utils
 '''
 
 __all__ = ('intersection', 'difference', 'curry', 'strtotuple',
-           'get_color_from_hex', 'get_color_for_pyglet', 'get_random_color',
+           'get_color_from_hex', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'OrderedDict')
 
-import inspect
-import re
-import functools
+from re import match, split
 from UserDict import DictMixin
 
 
@@ -75,7 +73,7 @@ def strtotuple(s):
 
     '''
     # security
-    if not re.match('^[,.0-9 ()\[\]]*$', s):
+    if not match('^[,.0-9 ()\[\]]*$', s):
         raise Exception('Invalid characters in string for tuple conversion')
     # fast syntax check
     if s.count('(') != s.count(')'):
@@ -93,7 +91,7 @@ def get_color_from_hex(s):
     if s.startswith('#'):
         return get_color_from_hex(s[1:])
 
-    value = [int(x, 16)/255. for x in re.split('([0-9a-f]{2})', s) if x != '']
+    value = [int(x, 16)/255. for x in split('([0-9a-f]{2})', s) if x != '']
     if len(value) == 3:
         value.append(1)
     return value
@@ -113,11 +111,6 @@ def get_random_color(alpha=1.0):
         return [random(), random(), random(), alpha]
 
 
-def get_color_for_pyglet(c):
-    '''Transform from kivy color to pyglet color'''
-    return map(lambda x: int(255 * x), c)
-
-
 def is_color_transparent(c):
     '''Return true if alpha channel is 0'''
     if len(c) < 4:
@@ -134,6 +127,9 @@ def deprecated(func):
     '''This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted the first time
     the function is used.'''
+
+    import inspect
+    import functools
 
     @functools.wraps(func)
     def new_func(*args, **kwargs):

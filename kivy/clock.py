@@ -88,7 +88,7 @@ class ClockBase(object):
         self._rfps_counter = 0
         self._last_fps_tick = None
         self._events = []
-        self._max_fps = float(Config.getint('graphics', 'fps'))
+        self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
     @property
     def frametime(self):

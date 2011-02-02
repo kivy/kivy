@@ -2,30 +2,226 @@
 Kivy language
 =============
 
-One level of indentation is exactly 4 spaces. No more, no less.
-Tabs are not allowed.
+Kivy language is a language dedicated for describing user interface and
+interactions. You could compare this language to QML of Qt
+(http://qt.nokia.com), but we are including new concept like the rules
+definitions, templating and so on.
 
-Example Kivy file ::
+Overview
+--------
+
+The language permit you to create:
+
+    Rule
+        The rule is like CSS rules. You create a rule to match a specific class
+        or widget in your tree. You can automatically create interactions or
+        adding graphicals instructions to a specific widget (like all the
+        widgets with the attribute cls=test).
+
+    Root widget
+        You can use the language to create your user interface. A kv file can
+        contain only one root widget.
+
+    Template
+        This will be used to create part of your application, like the list
+        content. If you want to design the look of an entry in a list (icon in
+        the left, text in the right), you will use Template for that.
+
+        For the moment, templating are not yet designed in the language, we are
+        still working on it. Check the issue #17
+        (https://github.com/tito/kivy/issues#issue/17)
+
+
+Syntax of a kv file
+-------------------
+
+A kivy language file must be ended by the .kv extension.
+
+The content of the file must always start with the kivy header, where `version`
+must be replaced with the kivy language version you're using. For now, use
+1.0::
+
+    #:kivy `version`
+
+    `content`
+
+The `content` can contain rules, root widget and template::
+
+    # syntax of a rule
+    <Rule1,Rule2>:
+        .. definitions ..
+
+    <Rule3>:
+        .. definitions ..
+
+    # syntax for creating a root widget
+    RootClassName:
+        .. definitions ..
+
+Whatever is it's an rule, root widget or template, the definition should look
+like this::
+
+    <ClassName>:
+        prop1: value1
+        prop2: value2
+
+        canvas:
+            CanvasInstruction1:
+                canvasprop1: value1
+            CanvasInstruction2:
+                canvasprop2: value2
+
+        AnotherClass:
+            prop3: value1
+
+`prop1` and `prop2` are the properties of `ClassName` and `prop3` is the
+property of `AnotherClass`. If the property doesn't exist in the class, an
+:class:`~kivy.properties.ObjectProperty` will be automatically created and added
+to the instance.
+
+`AnotherClass` will be created and added as a child of `ClassName` instance.
+
+- The indentation is important, and must be 4 spaces. Tabs are not allowed.
+- The value of a property must be single line. (we may change this in a future
+version.)
+- The `canvas` property is special: you can put graphics class inside it to
+create your graphical representation of the current class.
+
+
+Here is an example of a kv file that contain a root widget::
 
     #:kivy 1.0
 
-    ColorScheme:
-        id: cs
-        backgroundcolor: #927836
+    Button:
+        text: 'Hello world'
 
-    Layout:
-        pos: 100, 100
-        size: 867, 567
 
+Value expression and reserved keyword
+-------------------------------------
+
+The value is a python expression. This expression can be static or dynamic,
+that's mean the value can use the values of other properties using reserved
+keywords.
+
+    self
+        The keyword self reference the "current widget instance"::
+
+            Button:
+                text: 'My state is %s' % self.state
+
+    root
+        This keyword is available only in rules definition, and represent the
+        root widget of the rule (the first instance of the rule)::
+
+            <Widget>:
+                custom: 'Hello world'
+                Button:
+                    text: root.custom
+
+Also, if a class definition contain an id, you can use it as a keyword::
+
+    <Widget>:
+        Button:
+            id: 'btn1'
+        Button:
+            text: 'The state of btn1 is %s' % btn1.state
+
+Please note that the id will be not available in the Widget instance: the `id`
+attribute will be not used.
+
+
+
+Relation between values and properties
+--------------------------------------
+
+When you use kv language, we are doing magical stuff to automatically get things
+work. You must know that :doc:`api-kivy.properties` implement the observer
+pattern: you can bind your own function to be called when the value of a
+property change.
+
+Kv language detect properties in your `value`, and create callback to
+automatically update the property from your expression.
+
+Simple example of using a property::
+
+    Button:
+        text: str(self.state)
+
+In this example, we are detecting `self.state` as a dynamic value. Since the
+:data:`~kivy.uix.button.Button.state` of the button can change at every moment,
+we are binding this value expression to the state property of the Button.
+Everytime the button state changed, the text property will be updated.
+
+Since the value is a python expression, you could do something more interesting
+like::
+
+    Button:
+        text: 'Plop world' if self.state == 'normal' else 'Release me!'
+
+The Button text change with the state of the button. By default, the button text
+will be 'Plop world', and when the button is pressed, the text will change to
+'Release me!'
+
+
+Graphical instructions
+----------------------
+
+The graphical instructions is a special part of the kv language. This concern
+the 'canvas' property definition::
+
+    Widget:
         canvas:
             Color:
-                rgb: cs.backgroundcolor
+                rgb: (1, 1, 1)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+All the classes added inside the canvas property are inherith from the
+:class:`~kivy.graphics.Instruction` class. You cannot put any Widget class
+inside the canvas property.
+
+If you want to do theming, you'll have the same problem as CSS: you don't know
+which rule have been executed before. For our case, the rule are executed in
+processing order.
+
+If you want to change of a Button is rendered, you can create your own kv, and
+put something like this::
+
+    <Button>
+        canvas:
+            Color:
+                rgb: (1, 0, 0)
             Rectangle:
                 pos: self.pos
                 size: self.size
+            Rectangle:
+                pos: self.pos
+                size: self.texture_size
+                texture: self.texture
+
+It will result a button with a red background, and the label texture in the
+bottom left.... in addition to all the precedent rules.
+You can clear all the previous instructions by using the `Clear` command::
+
+    <Button>
+        canvas:
+            Clear
+            Color:
+                rgb: (1, 0, 0)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+            Rectangle:
+                pos: self.pos
+                size: self.texture_size
+                texture: self.texture
+
+Then, only your rules will be taken.
+
 '''
 
-__all__ = ('Builder', 'Parser')
+__all__ = ('Builder', 'BuilderBase', 'Parser')
 
 import re
 from os.path import join
@@ -314,8 +510,21 @@ class BuilderRuleClass(BuilderRule):
 
 class BuilderRuleName(BuilderRule):
 
+    parents = {}
+
     def match(self, widget):
-        return widget.__class__.__name__.lower() == self.key
+        parents = BuilderRuleName.parents
+        cls = widget.__class__
+        if not cls in parents:
+            classes = []
+            parent = [cls]
+            while parent and len(parent):
+                classes.append(parent[0].__name__.lower())
+                if parent[0].__name__ == 'Widget':
+                    break
+                parent = parent[0].__bases__
+            parents[cls] = classes
+        return self.key in parents[cls]
 
 
 class BuilderBase(object):
@@ -341,14 +550,31 @@ class BuilderBase(object):
         self.rules.append((rule, defs))
 
     def load_file(self, filename, **kwargs):
+        '''Insert a file into the Language Builder
+
+        :parameters:
+            `rulesonly`: bool, default to False
+                If True, the Builder will raise an exception if you have a root
+                widget inside the definition
+        '''
         trace('Builder: load file %s' % filename)
         with open(filename, 'r') as fd:
+            kwargs['filename'] = filename
             return self.load_string(fd.read(), **kwargs)
 
-    def load_string(self, string, rulesonly=False):
+    def load_string(self, string, **kwargs):
+        '''Insert a string into the Language Builder
+
+        :parameters:
+            `rulesonly`: bool, default to False
+                If True, the Builder will raise an exception if you have a root
+                widget inside the definition
+        '''
+        kwargs.setdefault('rulesonly', False)
         parser = Parser(content=string)
         root = self.build(parser.objects)
-        if rulesonly and root:
+        if kwargs['rulesonly'] and root:
+            filename = kwargs.get('rulesonly', '<string>')
             raise Exception('The file <%s> contain also non-rules '
                             'directives' % filename)
         return root
@@ -534,7 +760,7 @@ class BuilderBase(object):
             self.add_rule(crule, params)
 
 
-#: Rules instance, can be use for asking if we are matching a rule or not
+#: Main instance of a :class:`BuilderBase`.
 Builder = BuilderBase()
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 

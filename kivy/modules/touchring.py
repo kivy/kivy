@@ -17,7 +17,7 @@ if not 'KIVY_DOC' in os.environ:
 
 
 def _touch_down(win, touch):
-    ud = touch.userdata
+    ud = touch.ud
     touch.scale_for_screen(win.width, win.height)
     with win.canvas.after:
         ud['tr.color'] = Color(1, 1, 1, .7)
@@ -31,14 +31,14 @@ def _touch_down(win, touch):
 
 
 def _touch_move(win, touch):
-    ud = touch.userdata
+    ud = touch.ud
     ud['tr.rect'].pos = (
         touch.x - (ring_img.width / 2. * 0.3),
         touch.y - (ring_img.height / 2. * 0.3))
 
 
 def _touch_up(win, touch):
-    ud = touch.userdata
+    ud = touch.ud
     win.canvas.after.remove(ud['tr.color'])
     win.canvas.after.remove(ud['tr.rect'])
 

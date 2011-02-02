@@ -7,6 +7,7 @@ __all__ = ('WindowPygame', )
 from . import WindowBase
 
 import os
+from os.path import exists
 from kivy.config import Config
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
@@ -21,7 +22,9 @@ except:
 
 class WindowPygame(WindowBase):
 
-    def create_window(self, params):
+    def create_window(self):
+        params = self.params
+
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
         if not 'SDL_VIDEO_FULLSCREEN_HEAD' in os.environ and displayidx != -1:
@@ -72,25 +75,19 @@ class WindowPygame(WindowBase):
         self._pos = (0, 0)
 
         # prepare keyboard
-        repeat_delay = int(Config.get('keyboard', 'repeat_delay'))
-        repeat_rate = float(Config.get('keyboard', 'repeat_rate'))
+        repeat_delay = int(Config.get('kivy', 'keyboard_repeat_delay'))
+        repeat_rate = float(Config.get('kivy', 'keyboard_repeat_rate'))
         pygame.key.set_repeat(repeat_delay, int(1000. / repeat_rate))
 
         # set window icon before calling set_mode
-        # XXX FIXME
-        #icon = pygame.image.load(Config.get('graphics', 'window_icon'))
-        #pygame.display.set_icon(icon)
+        filename_icon = Config.get('kivy', 'window_icon')
+        if exists(filename_icon):
+            icon = pygame.image.load(filename_icon)
+            pygame.display.set_icon(icon)
 
         # init ourself size + setmode
         # before calling on_resize
         self._size = params['width'], params['height']
-        self._vsync = params['vsync']
-        self._fps = float(params['fps'])
-
-        # ensure the default fps will be 60 if vsync is actived
-        # and if user didn't set any maximum fps.
-        if self._vsync and self._fps <= 0:
-            self._fps = 60.
 
         # try to use mode with multisamples
         try:
@@ -108,17 +105,7 @@ class WindowPygame(WindowBase):
                 Logger.warning('WinPygame: Video setup failed :-(')
                 raise
 
-        '''
-        if multisamples:
-            # XXX FIXME
-            from kivy.core.gl import glEnable, GL_MULTISAMPLE_ARB
-            try:
-                glEnable(GL_MULTISAMPLE_ARB)
-            except Exception:
-                pass
-        '''
-
-        super(WindowPygame, self).create_window(params)
+        super(WindowPygame, self).create_window()
 
         # set mouse visibility
         pygame.mouse.set_visible(
@@ -137,6 +124,18 @@ class WindowPygame(WindowBase):
 
     def close(self):
         pygame.display.quit()
+
+    def screenshot(self, *largs, **kwargs):
+        filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
+        if filename is None:
+            return None
+        from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        width, height = self.size
+        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+        data = str(buffer(data))
+        surface = pygame.image.fromstring(data, self.size, 'RGB', True)
+        pygame.image.save(surface, filename)
+        return filename
 
     def on_keyboard(self, key, scancode=None, unicode=None):
         if key == 27:
@@ -224,7 +223,7 @@ class WindowPygame(WindowBase):
         # for opengl, before mainloop... window reinit ?
         self.dispatch('on_resize', *self.size)
 
-        while not EventLoop.quit:
+        while not EventLoop.quit and EventLoop.status == 'started':
             try:
                 self._mainloop()
                 if not pygame.display.get_active():

@@ -1,19 +1,40 @@
 '''
 Toggle button
 =============
+
+The toggle button act like a checkbox. When you touch it, his state will be
+'down'. You need to touch it again to make his state to 'up'.
+
+The toggle button is also able to handle group. Only one button can be pushed in
+the same group. The group name can be a string, or any hashable Python object.
+::
+
+    btn1 = ToggleButton(text='Male', group='sex')
+    btn2 = ToggleButton(text='Female', group='sex')
+    btn3 = ToggleButton(text='Mixed', group='sex')
+
+Only one of them could be checked.
+
 '''
 
 __all__ = ('ToggleButton', )
 
 from kivy.uix.button import Button
-from kivy.properties import StringProperty
+from kivy.properties import ObjectProperty
 
 
 class ToggleButton(Button):
+    '''Toggle button class, see module documentation for more information.
+    '''
 
     __groups = {}
 
-    group = StringProperty(None, allownone=True)
+    group = ObjectProperty(None, allownone=True)
+    '''Group of the button. If None, no group will be used.
+    :data:`group` must be an hashable object, like a string.
+
+    :data:`group` is a :class:`~kivy.properties.ObjectProperty`
+    '''
 
     def __init__(self, **kwargs):
         self._previous_group = None

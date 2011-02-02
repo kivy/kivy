@@ -10,13 +10,14 @@ from kivy.input.providers.wm_common import PEN_OR_TOUCH_SIGNATURE, \
         PEN_OR_TOUCH_MASK, GWL_WNDPROC, WM_MOUSEMOVE, WM_LBUTTONUP, \
         WM_LBUTTONDOWN, WM_TABLET_QUERYSYSTEMGESTURE, \
         QUERYSYSTEMGESTURE_WNDPROC, PEN_EVENT_TOUCH_MASK
-from kivy.input.touch import Touch
+from kivy.input.motionevent import MotionEvent
 
 
-class WM_Pen(Touch):
-    '''Touch representing the WM_Pen event. Support pos profile'''
+class WM_Pen(MotionEvent):
+    '''MotionEvent representing the WM_Pen event. Support pos profile'''
 
     def depack(self, args):
+        self.is_touch = True
         self.sx, self.sy = args[0], args[1]
         super(WM_Pen, self).depack(args)
 
@@ -32,8 +33,8 @@ else:
     from ctypes.wintypes import ULONG
     from ctypes import wintypes, Structure, windll, byref, c_int16, \
             c_int, c_long, WINFUNCTYPE
-    from kivy.input.provider import TouchProvider
-    from kivy.input.factory import TouchFactory
+    from kivy.input.provider import MotionEventProvider
+    from kivy.input.factory import MotionEventFactory
 
     WNDPROC = WINFUNCTYPE(c_long, c_int, c_int, c_int, c_int)
 
@@ -50,7 +51,7 @@ else:
         h = property(lambda self: self.bottom-self.top)
     win_rect = RECT()
 
-    class WM_PenProvider(TouchProvider):
+    class WM_PenProvider(MotionEventProvider):
 
         def _is_pen_message(self, msg):
             info = windll.user32.GetMessageExtraInfo()
@@ -69,14 +70,14 @@ else:
             y = abs(1.0 - y)
 
             if msg == WM_LBUTTONDOWN:
-                self.pen_events.appendleft(('down', x, y))
+                self.pen_events.appendleft(('begin', x, y))
                 self.pen_status = True
 
             if msg == WM_MOUSEMOVE and self.pen_status:
-                self.pen_events.appendleft(('move', x, y))
+                self.pen_events.appendleft(('update', x, y))
 
             if msg == WM_LBUTTONUP:
-                self.pen_events.appendleft(('up', x, y))
+                self.pen_events.appendleft(('end', x, y))
                 self.pen_status = False
 
         def _pen_wndProc(self, hwnd, msg, wParam, lParam):
@@ -113,10 +114,10 @@ else:
                 except:
                     break
 
-                if  type == 'down':
+                if  type == 'begin':
                     self.uid += 1
                     self.pen = WM_Pen(self.device, self.uid, [x, y])
-                if  type == 'move':
+                if  type == 'update':
                     self.pen.move([x, y])
 
                 dispatch_fn(type, self.pen)
@@ -128,4 +129,4 @@ else:
                 GWL_WNDPROC,
                 self.old_windProc)
 
-    TouchFactory.register('wm_pen', WM_PenProvider)
+    MotionEventFactory.register('wm_pen', WM_PenProvider)

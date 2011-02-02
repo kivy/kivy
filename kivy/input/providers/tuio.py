@@ -3,18 +3,19 @@ TUIO input provider implementation
 ==================================
 '''
 
-__all__ = ('TuioTouchProvider', 'Tuio2dCurTouch', 'Tuio2dObjTouch')
+__all__ = ('TuioMotionEventProvider', 'Tuio2dCurMotionEvent',
+           'Tuio2dObjMotionEvent')
 
 import osc
 from collections import deque
-from kivy.input.provider import TouchProvider
-from kivy.input.factory import TouchFactory
-from kivy.input.touch import Touch
-from kivy.input.shape import TouchShapeRect
+from kivy.input.provider import MotionEventProvider
+from kivy.input.factory import MotionEventFactory
+from kivy.input.motionevent import MotionEvent
+from kivy.input.shape import ShapeRect
 from kivy.logger import Logger
 
 
-class TuioTouchProvider(TouchProvider):
+class TuioMotionEventProvider(MotionEventProvider):
     '''Tuio provider listen to a socket, and handle part of OSC message
 
         * /tuio/2Dcur
@@ -29,9 +30,9 @@ class TuioTouchProvider(TouchProvider):
     You can easily handle new tuio path by extending the providers like this ::
 
         # Create a class to handle the new touch type
-        class TuioNEWPATHTouch(Touch):
+        class TuioNEWPATHMotionEvent(MotionEvent):
             def __init__(self, id, args):
-                super(TuioNEWPATHTouch, self).__init__(id, args)
+                super(TuioNEWPATHMotionEvent, self).__init__(id, args)
 
             def depack(self, args):
                 # Write here the depack function of args.
@@ -40,16 +41,16 @@ class TuioTouchProvider(TouchProvider):
                     self.sx, self.sy = args
                     self.profile = ('pos', )
                 self.sy = 1 - self.sy
-                super(TuioNEWPATHTouch, self).depack(args)
+                super(TuioNEWPATHMotionEvent, self).depack(args)
 
         # Register it to tuio touch provider
-        TuioTouchProvider.register('/tuio/NEWPATH', TuioNEWPATHTouch)
+        TuioMotionEventProvider.register('/tuio/PATH', TuioNEWPATHMotionEvent)
     '''
 
     __handlers__ = {}
 
     def __init__(self, device, args):
-        super(TuioTouchProvider, self).__init__(device, args)
+        super(TuioMotionEventProvider, self).__init__(device, args)
         args = args.split(',')
         if len(args) <= 0:
             Logger.error('Tuio: Invalid configuration for TUIO provider')
@@ -74,25 +75,25 @@ class TuioTouchProvider(TouchProvider):
     @staticmethod
     def register(oscpath, classname):
         '''Register a new path to handle in tuio provider'''
-        TuioTouchProvider.__handlers__[oscpath] = classname
+        TuioMotionEventProvider.__handlers__[oscpath] = classname
 
     @staticmethod
     def unregister(oscpath, classname):
         '''Unregister a new path to handle in tuio provider'''
-        if oscpath in TuioTouchProvider.__handlers__:
-            del TuioTouchProvider.__handlers__[oscpath]
+        if oscpath in TuioMotionEventProvider.__handlers__:
+            del TuioMotionEventProvider.__handlers__[oscpath]
 
     @staticmethod
     def create(oscpath, **kwargs):
         '''Create a touch from a tuio path'''
-        if oscpath not in TuioTouchProvider.__handlers__:
+        if oscpath not in TuioMotionEventProvider.__handlers__:
             raise Exception('Unknown %s touch path' % oscpath)
-        return TuioTouchProvider.__handlers__[oscpath](**kwargs)
+        return TuioMotionEventProvider.__handlers__[oscpath](**kwargs)
 
     def start(self):
         '''Start the tuio provider'''
         self.oscid = osc.listen(self.ip, self.port)
-        for oscpath in TuioTouchProvider.__handlers__:
+        for oscpath in TuioMotionEventProvider.__handlers__:
             self.touches[oscpath] = {}
             osc.bind(self.oscid, self._osc_tuio_cb, oscpath)
 
@@ -133,15 +134,15 @@ class TuioTouchProvider(TouchProvider):
             id = args[1]
             if id not in self.touches[oscpath]:
                 # new touch
-                touch = TuioTouchProvider.__handlers__[oscpath](self.device,
-                                                                id, args[2:])
+                touch = TuioMotionEventProvider.__handlers__[oscpath](
+                    self.device, id, args[2:])
                 self.touches[oscpath][id] = touch
-                dispatch_fn('down', touch)
+                dispatch_fn('begin', touch)
             else:
                 # update a current touch
                 touch = self.touches[oscpath][id]
                 touch.move(args[2:])
-                dispatch_fn('move', touch)
+                dispatch_fn('update', touch)
 
         # alive event, check for deleted touch
         if command == 'alive':
@@ -155,14 +156,14 @@ class TuioTouchProvider(TouchProvider):
                         to_delete.append(touch)
 
             for touch in to_delete:
-                dispatch_fn('up', touch)
+                dispatch_fn('end', touch)
                 del self.touches[oscpath][touch.id]
 
 
-class TuioTouch(Touch):
+class TuioMotionEvent(MotionEvent):
     '''Abstraction for TUIO touch.
 
-    Depending of the tracker, the TuioTouch object support
+    Depending of the tracker, the TuioMotionEvent object support
     multiple profiles as :
 
         * fiducial : name markerid, property .fid
@@ -176,7 +177,7 @@ class TuioTouch(Touch):
     __attrs__ = ('a', 'b', 'c', 'X', 'Y', 'Z', 'A', 'B', 'C', 'm', 'r')
 
     def __init__(self, device, id, args):
-        super(TuioTouch, self).__init__(device, id, args)
+        super(TuioMotionEvent, self).__init__(device, id, args)
         # Default argument for TUIO touches
         self.a = 0.0
         self.b = 0.0
@@ -198,11 +199,11 @@ class TuioTouch(Touch):
     zmot = property(lambda self: self.Z)
 
 
-class Tuio2dCurTouch(TuioTouch):
+class Tuio2dCurMotionEvent(TuioMotionEvent):
     '''A 2dCur TUIO touch.'''
 
     def __init__(self, device, id, args):
-        super(Tuio2dCurTouch, self).__init__(device, id, args)
+        super(Tuio2dCurMotionEvent, self).__init__(device, id, args)
 
     def depack(self, args):
         if len(args) < 5:
@@ -218,21 +219,22 @@ class Tuio2dCurTouch(TuioTouch):
             self.Y = -self.Y
             self.profile = ('pos', 'mov', 'motacc', 'shape')
             if self.shape is None:
-                self.shape = TouchShapeRect()
+                self.shape = ShapeRect()
             self.shape.width = width
             self.shape.height = height
         self.sy = 1 - self.sy
-        super(Tuio2dCurTouch, self).depack(args)
+        super(Tuio2dCurMotionEvent, self).depack(args)
 
 
-class Tuio2dObjTouch(TuioTouch):
+class Tuio2dObjMotionEvent(TuioMotionEvent):
     '''A 2dObj TUIO object.
     '''
 
     def __init__(self, device, id, args):
-        super(Tuio2dObjTouch, self).__init__(device, id, args)
+        super(Tuio2dObjMotionEvent, self).__init__(device, id, args)
 
     def depack(self, args):
+        self.is_touch = True
         if len(args) < 5:
             self.sx, self.sy = args[0:2]
             self.profile = ('pos', )
@@ -249,13 +251,13 @@ class Tuio2dObjTouch(TuioTouch):
             self.profile = ('markerid', 'pos', 'angle', 'mov', 'rot', 'rotacc',
                             'acc', 'shape')
             if self.shape is None:
-                self.shape = TouchShapeRect()
+                self.shape = ShapeRect()
                 self.shape.width = width
                 self.shape.height = height
         self.sy = 1 - self.sy
-        super(Tuio2dObjTouch, self).depack(args)
+        super(Tuio2dObjMotionEvent, self).depack(args)
 
 # registers
-TuioTouchProvider.register('/tuio/2Dcur', Tuio2dCurTouch)
-TuioTouchProvider.register('/tuio/2Dobj', Tuio2dObjTouch)
-TouchFactory.register('tuio', TuioTouchProvider)
+TuioMotionEventProvider.register('/tuio/2Dcur', Tuio2dCurMotionEvent)
+TuioMotionEventProvider.register('/tuio/2Dobj', Tuio2dObjMotionEvent)
+MotionEventFactory.register('tuio', TuioMotionEventProvider)

@@ -2,14 +2,52 @@
 Widget class
 ============
 
-TODO: write how the base class are working
+The :class:`Widget` class is base class required to create a Widget.
+Our widget class is designed for:
 
-* add example about how to create your own widget
-* add example about how to bind from properties
-* do we need to use WeakMethod for properties ?
+    Event managed
+        The widget interaction is build on top of event. If a property change,
+        the widget will do something. If nothing change in the widget, nothing
+        will be done. That's the main goal of the
+        :class:`~kivy.properties.Property` class.
+
+    Seperate widget and graphical representation
+        We don't have a `draw()` method. The idea is to let you the possibility
+        to create your own graphical representation outside the widget class.
+        And you'll use all the available properties to do that.
+        Every widget have his own :class:`~kivy.graphics.Canvas`.
+
+    Bounding box / Collision
+        Since the graphical representation is seperated, the position and size
+        of the widget represent his bounding box. You can check if a point is
+        inside the widget with :func:`Widget.collide_point`, or if a widget is
+        colliding another widget with :func:`Widget.collide_widget`.
+
+
+Usage of properties
+-------------------
+
+When you read the documentation, every property are described in the format::
+
+    <name> is a <property class>, default to <default value>
+
+For example::
+
+    :data:`Widget.pos` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:data:`Widget.x`, :data:`Widget.y`) properties.
+
+If you want to know when a the pos attribute change (meaning when the widget
+move), you can bind your own function like this::
+
+    def callback_pos(instance, value):
+        print 'the widget', instance, 'have moved to', value
+
+    wid = Widget()
+    wid.bind(pos=callback_pos)
+
 '''
 
-__all__ = ('Widget', )
+__all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, StringProperty, \
@@ -22,9 +60,14 @@ from kivy.lang import Builder
 Widget_forbidden_properties = ('touch_down', 'touch_move', 'touch_up')
 
 
-class Widget(EventDispatcher):
+class WidgetException(Exception):
+    '''Fired when the widget got an exception
     '''
-    Widget is the very basic class for implementing any Kivy Widget.
+    pass
+
+
+class Widget(EventDispatcher):
+    '''Widget class. See module documentation for more informations.
 
     :Events:
         `on_touch_down`:
@@ -38,8 +81,8 @@ class Widget(EventDispatcher):
     # UID counter
     __widget_uid = 0
 
-    def __new__(cls, *largs, **kwargs):
-        self = super(Widget, cls).__new__(cls)
+    def __new__(__cls__, *largs, **kwargs):
+        self = super(Widget, __cls__).__new__(__cls__)
 
         # XXX for the moment, we need to create a uniq id for properties.
         # Properties need a identifier to the class instance. hash() and id()
@@ -50,9 +93,9 @@ class Widget(EventDispatcher):
 
         # First loop, link all the properties storage to our instance
         attrs_found = {}
-        attrs = dir(cls)
+        attrs = dir(__cls__)
         for k in attrs:
-            attr = getattr(cls, k)
+            attr = getattr(__cls__, k)
             if isinstance(attr, Property):
                 if k in Widget_forbidden_properties:
                     raise Exception(
@@ -62,7 +105,7 @@ class Widget(EventDispatcher):
 
         # Second loop, resolve all the reference
         for k in attrs:
-            attr = getattr(cls, k)
+            attr = getattr(__cls__, k)
             if isinstance(attr, Property):
                 attr.link_deps(self, k)
 
@@ -75,7 +118,7 @@ class Widget(EventDispatcher):
         # The thing here, since the storage of the property is inside the
         # Property class, we must remove ourself from the storage of each
         # Property. The usage is faster, the creation / deletion is longer.
-        for attr in self._properties.itervalues():
+        for attr in self.__properties.itervalues():
             attr.unlink(self)
 
     def __init__(self, **kwargs):
@@ -160,6 +203,35 @@ class Widget(EventDispatcher):
         '''
         return self.x <= x <= self.right and self.y <= y <= self.top
 
+    def collide_widget(self, wid):
+        '''Check if widget (bounding box) is colliding with our widget bounding
+        box.
+
+        :Parameters:
+            `wid`: :class:`Widget` class
+                Widget to collide to.
+
+        :Returns:
+            bool, True if the widget is colliding us.
+
+        >>> wid = Widget(size=(50, 50))
+        >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
+        >>> wid.collide_widget(wid2)
+        True
+        >>> wid2.pos = (55, 55)
+        >>> wid.collide_widget(wid2)
+        False
+        '''
+        if self.right < wid.x:
+            return False
+        if self.x > wid.right:
+            return False
+        if self.top < wid.y:
+            return False
+        if self.y > wid.top:
+            return False
+        return True
+
 
     #
     # Default event handlers
@@ -168,7 +240,7 @@ class Widget(EventDispatcher):
         '''Receive a touch down event
 
         :Parameters:
-            `touch`: :class:`~kivy.input.touch.Touch` class
+            `touch`: :class:`~kivy.input.motionevent.MotionEvent` class
                 Touch received
 
         :Returns:
@@ -244,6 +316,9 @@ class Widget(EventDispatcher):
         >>> slider = Slider()
         >>> root.add_widget(slider)
         '''
+        if not isinstance(widget, Widget):
+            raise WidgetException(
+                'add_widget() can be used only with Widget classes.')
         widget.parent = self
         self.children = [widget] + self.children
         self.canvas.add(widget.canvas)

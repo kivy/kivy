@@ -35,37 +35,38 @@ To fix that, you can add one of theses options on the argument line :
 * max_touch_minor : height shape maximum
 '''
 
-__all__ = ('MTDTouchProvider', 'MTDTouch')
+__all__ = ('MTDMotionEventProvider', 'MTDMotionEvent')
 
 import os
-from kivy.input.touch import Touch
-from kivy.input.shape import TouchShapeRect
+from kivy.input.motionevent import MotionEvent
+from kivy.input.shape import ShapeRect
 
 
-class MTDTouch(Touch):
+class MTDMotionEvent(MotionEvent):
 
     def depack(self, args):
+        self.is_touch = True
         self.sx = args['x']
         self.sy = args['y']
         self.profile = ['pos']
         if 'size_w' in args and 'size_h' in args:
-            self.shape = TouchShapeRect()
+            self.shape = ShapeRect()
             self.shape.width = args['size_w']
             self.shape.height = args['size_h']
             self.profile.append('shape')
         if 'pressure' in args:
             self.pressure = args['pressure']
             self.profile.append('pressure')
-        super(MTDTouch, self).depack(args)
+        super(MTDMotionEvent, self).depack(args)
 
     def __str__(self):
         i, sx, sy, d = (self.id, self.sx, self.sy, self.device)
-        return '<MTDTouch id=%d pos=(%f, %f) device=%s>' % (i, sx, sy, d)
+        return '<MTDMotionEvent id=%d pos=(%f, %f) device=%s>' % (i, sx, sy, d)
 
 if 'KIVY_DOC' in os.environ:
 
     # documentation hack
-    MTDTouchProvider = None
+    MTDMotionEventProvider = None
 
 else:
     import threading
@@ -77,11 +78,11 @@ else:
             MTDEV_CODE_TRACKING_ID, MTDEV_ABS_POSITION_X, \
             MTDEV_ABS_POSITION_Y, MTDEV_ABS_TOUCH_MINOR, \
             MTDEV_ABS_TOUCH_MAJOR
-    from kivy.input.provider import TouchProvider
-    from kivy.input.factory import TouchFactory
+    from kivy.input.provider import MotionEventProvider
+    from kivy.input.factory import MotionEventFactory
     from kivy.logger import Logger
 
-    class MTDTouchProvider(TouchProvider):
+    class MTDMotionEventProvider(MotionEventProvider):
 
         options = ('min_position_x', 'max_position_x',
                    'min_position_y', 'max_position_y',
@@ -91,7 +92,7 @@ else:
                    'invert_x', 'invert_y')
 
         def __init__(self, device, args):
-            super(MTDTouchProvider, self).__init__(device, args)
+            super(MTDMotionEventProvider, self).__init__(device, args)
             self._device = None
             self.input_fn = None
             self.default_ranges = dict()
@@ -121,7 +122,7 @@ else:
 
                 # ensure the key exist
                 key, value = arg
-                if key not in MTDTouchProvider.options:
+                if key not in MTDMotionEventProvider.options:
                     Logger.error('MTD: unknown %s option' % key)
                     continue
 
@@ -167,15 +168,15 @@ else:
                     try:
                         touch = touches[tid]
                     except KeyError:
-                        touch = MTDTouch(device, tid, args)
+                        touch = MTDMotionEvent(device, tid, args)
                         touches[touch.id] = touch
                     touch.move(args)
-                    action = 'move'
+                    action = 'update'
                     if tid not in touches_sent:
-                        action = 'down'
+                        action = 'begin'
                         touches_sent.append(tid)
                     if 'delete' in args:
-                        action = 'up'
+                        action = 'end'
                         del args['delete']
                         del touches[touch.id]
                         touches_sent.remove(tid)
@@ -294,4 +295,4 @@ else:
                 pass
 
 
-    TouchFactory.register('mtdev', MTDTouchProvider)
+    MotionEventFactory.register('mtdev', MTDMotionEventProvider)
