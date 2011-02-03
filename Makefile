@@ -30,6 +30,7 @@ cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
 
 clean:
+	-rm -rf doc/build
 	-rm -rf build
 	-rm -rf htmlcov
 	-rm .coverage
