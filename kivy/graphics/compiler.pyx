@@ -45,20 +45,31 @@ instruction with GI_IGNORE flag. As soon as a Color content change, the whole
 InstructionGroup will be recompiled, and maybe a previous unused Color will be
 used at the next compilation.
 
+
+Note to any Kivy contributor / internal developer:
+
+- All context instructions are checked if they are changing anything on the
+cache
+- We must ensure that a context instruction are needed into our current Canvas.
+- We must ensure that we don't depend of any other canvas
+- We must reset our cache if one of our children is another instruction group,
+because we don't know if they are doing weird things or not.
+
 '''
 
 include 'opcodes.pxi'
 
 from instructions cimport Instruction, RenderContext, ContextInstruction
+from context_instructions cimport BindTexture
 
 cdef class GraphicsCompiler:
     cdef InstructionGroup compile(self, InstructionGroup group):
-        return group
-
-        '''
+        cdef int count
         cdef Instruction c
         cdef ContextInstruction ci
-        cdef RenderContext rc = None
+        cdef RenderContext rc = None, oldrc = None
+        cdef dict cs_by_rc = {}
+        cdef list cs
 
         # Very simple compiler. We will apply all the element in the group.
         # If the render context is not changed between 2 call, we'll think that
@@ -75,18 +86,59 @@ cdef class GraphicsCompiler:
                 ci = c
 
                 # get the context, and flag as done
+                oldrc = rc
                 rc = ci.get_context()
+
+                # flag the old one as need update, if it's a new one
+                if rc != oldrc and oldrc is not None:
+                    oldrc.flag_update()
+
+                # it's a new render context, track changes.
                 rc.flag_update_done()
 
                 # apply the instruction
                 ci.apply()
 
-                # if the context didn't change at all, ignore the instruction
-                if rc.flags & GI_NEEDS_UPDATE:
-                    ci.flags &= ~GI_IGNORE
+                # whatever happen, flag as needed (ie not ignore this one.)
+                ci.flags &= ~GI_IGNORE
+
+                # before flag as ignore, we must ensure that all the states
+                # inside this context instruction are not needed at all.
+                # if a state has never been in the cache yet, we can't ignore
+                # it.
+                if not rc in cs_by_rc:
+                    cs = cs_by_rc[rc] = []
                 else:
+                    cs = cs_by_rc[rc]
+                needed = 0
+
+                if isinstance(ci, BindTexture):
+
+                    # on texture case, bindtexture don't use context_state
+                    # to transfer changes on render context, but use directly
+                    # rendercontext.set_texture(). So we have no choice to try the
+                    # apply(), and saving in cs, as a texture0
+                    if 'texture0' not in cs:
+                        cs.append('texture0')
+
+                else:
+
+                    for state in ci.context_state.keys():
+                        if state in cs:
+                            continue
+                        needed = 1
+                        cs.append(state)
+
+                # unflag the instruction only if it's not needed
+                # and if the render context have not been changed
+                if needed == 0 and not (rc.flags & GI_NEEDS_UPDATE):
                     ci.flags |= GI_IGNORE
+                    count += 1
             else:
+                if isinstance(c, InstructionGroup):
+                    # we have potentially new childs, and them can fuck up our
+                    # compilation, so reset our current cache.
+                    cs_by_rc = {}
                 c.apply()
 
         if rc:
@@ -94,5 +146,6 @@ cdef class GraphicsCompiler:
 
         group.flags |= GI_NO_APPLY_ONCE
 
+        #if count: print 'Ignored', count
+
         return group
-        '''

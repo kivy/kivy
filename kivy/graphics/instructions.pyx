@@ -146,9 +146,12 @@ cdef class ContextInstruction(Instruction):
 
     cdef apply(self):
         cdef RenderContext context = self.get_context()
-        context.push_states(self.context_push)
-        context.set_states(self.context_state)
-        context.pop_states(self.context_pop)
+        if len(self.context_push):
+            context.push_states(self.context_push)
+        if len(self.context_state):
+            context.set_states(self.context_state)
+        if len(self.context_pop):
+            context.pop_states(self.context_pop)
 
     cdef set_state(self, str name, value):
         self.context_state[name] = value
