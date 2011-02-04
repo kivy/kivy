@@ -591,6 +591,36 @@ class Widget(EventDispatcher):
     See :data:`size_hint_x` for more information
     '''
 
+    pos_hint_x = NumericProperty(None, allownone=True)
+    '''X position hint. It represent the X position of the widget within his
+    parent, in percent. Only :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` are using the hint.
+
+    Value is in percent, 1. X position of the parent + full width of the parent
+    (aka 100%.). 0.5 mean X position of the parent + 50% of the parent width.
+
+    :data:`pos_hint_x` is a :class:`~kivy.properties.NumericProperty`, default
+    to None
+    '''
+
+    pos_hint_y = NumericProperty(None, allownone=True)
+    '''Y position hint.
+
+    :data:`pos_hint_y` is a :class:`~kivy.properties.NumericProperty`, default
+    to 1.
+
+    See :data:`pos_hint_x` for more information
+    '''
+
+    pos_hint = ReferenceListProperty(pos_hint_x, pos_hint_y)
+    '''Position hint.
+
+    :data:`pos_hint` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:data:`pos_hint_x`, :data:`pos_hint_y`)
+
+    See :data:`pos_hint_x` for more information
+    '''
+
     canvas = None
     '''Canvas of the widget.
 

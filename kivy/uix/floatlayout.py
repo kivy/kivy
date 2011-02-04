@@ -2,8 +2,8 @@
 Float Layout
 ============
 
-This layout don't arrange widgets, but will respect the size_hint attribute.
-Position of children will be not touched at all.
+The :class:`FloatLayout` class will just honor the :data:`Widget.pos_hint` and
+:data:`Widget.size_hint` attributes.
 
 For example, if you create a :class:`FloatLayout` with size of (300, 300)::
 
@@ -18,6 +18,10 @@ For example, if you create a :class:`FloatLayout` with size of (300, 300)::
     # of the layout height, and set position to 20, 20, you can do
     button = Button(text='Hello world', size_hint=(.5, .25), pos=(20, 20))
 
+    # If you want to create a button that will always be the size of layout -
+    # 20% each sides
+    button = Button(text='Hello world', size_hint=(.6, .6), pos_hint=(.2, .2))
+
 .. note::
 
     This layout can be used to start an application. Most of time, you need to
@@ -29,7 +33,6 @@ __all__ = ('FloatLayout', )
 
 from kivy.clock import Clock
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, OptionProperty
 
 
 class FloatLayout(Layout):
@@ -71,11 +74,24 @@ class FloatLayout(Layout):
 
     def _do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop
-        selfw, selfh = self.size
+        w, h = self.size
+        x, y = self.pos
         for c in self.children:
+            # size
             shw, shh = c.size_hint
-            if shw:
-                c.width = selfw * shw
-            if shh:
-                c.height = selfh * shh
+            if shw and shh:
+                c.size = w * shw, h * shh
+            elif shw:
+                c.width = w * shw
+            elif shh:
+                c.height = h * shh
+
+            # pos
+            phx, phy = c.pos_hint
+            if phx and phy:
+                c.pos = x + w * phx, y + h * phy
+            elif phx:
+                c.x = x + w * phx
+            elif phy:
+                c.y = y + h * phy
 
