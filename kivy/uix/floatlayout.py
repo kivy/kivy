@@ -27,6 +27,12 @@ For example, if you create a :class:`FloatLayout` with size of (300, 300)::
     This layout can be used to start an application. Most of time, you need to
     want which size is your Window.
 
+.. warning::
+
+    If you are not using pos_hint, you must handle yourself the position of your
+    childs. Mean if the float layout is moving, your must handle the moving
+    childs too.
+
 '''
 
 __all__ = ('FloatLayout', )
@@ -45,6 +51,7 @@ class FloatLayout(Layout):
         super(FloatLayout, self).__init__(**kwargs)
         self.bind(
             children = self._trigger_layout,
+            pos = self._trigger_layout,
             size = self._trigger_layout)
 
     def _trigger_layout(self, *largs):
