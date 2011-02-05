@@ -20,7 +20,8 @@ For example, if you create a :class:`FloatLayout` with size of (300, 300)::
 
     # If you want to create a button that will always be the size of layout -
     # 20% each sides
-    button = Button(text='Hello world', size_hint=(.6, .6), pos_hint=(.2, .2))
+    button = Button(text='Hello world', size_hint=(.6, .6),
+                    pos_hint={'x':.2, 'y':.2})
 
 .. note::
 
@@ -94,11 +95,14 @@ class FloatLayout(Layout):
                 c.height = h * shh
 
             # pos
-            phx, phy = c.pos_hint
-            if phx and phy:
-                c.pos = x + w * phx, y + h * phy
-            elif phx:
-                c.x = x + w * phx
-            elif phy:
-                c.y = y + h * phy
+            for key, value in c.pos_hint.iteritems():
+                if key == 'x':
+                    c.x = x + value * w
+                elif key == 'right':
+                    c.right = x + value * w
+                elif key == 'y':
+                    c.y = y + value * h
+                elif key == 'top':
+                    c.top = y + value * h
+
 
