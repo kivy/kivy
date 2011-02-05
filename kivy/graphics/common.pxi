@@ -8,3 +8,11 @@ cdef extern from "math.h":
     double sin(double) nogil
     double sqrt(double) nogil
 
+cdef extern from "stdlib.h":
+    ctypedef unsigned long size_t
+    void free(void *ptr)
+    void *realloc(void *ptr, size_t size)
+    void *malloc(size_t size)
+
+cdef extern from "string.h":
+    void *memcpy(void *dest, void *src, size_t n)

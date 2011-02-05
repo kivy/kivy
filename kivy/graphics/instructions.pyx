@@ -177,8 +177,6 @@ cdef class VertexInstruction(Instruction):
         Instruction.__init__(self, **kwargs)
         self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
         self.batch = VertexBatch()
-        self.vertices = []
-        self.indices = []
 
     property texture:
         '''Property for getting/setting the texture to be bound when drawing the
@@ -216,15 +214,12 @@ cdef class VertexInstruction(Instruction):
     cdef void build(self):
         pass
 
-    cdef update_batch(self):
-        self.batch.set_data(self.vertices, self.indices)
-        self.flag_update_done()
-
     cdef apply(self):
         if self.flags & GI_NEEDS_UPDATE:
             self.build()
-            self.update_batch()
+            self.flag_update_done()
 
+        # TODO: REMOVE THIS UGLY THING §!!!!!!!!!!!!!
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         self.batch.draw()
@@ -268,7 +263,7 @@ cdef class Canvas(CanvasBase):
         self.apply()
 
     cpdef add(self, Instruction c):
-        if c.parent is None:
+        if c.parent is None and c is not self:
             c.parent = self
         # the after group must remain the last one.
         if self._after is None:

@@ -99,39 +99,53 @@ cdef class VBO:
 
 
 cdef class VertexBatch:
+    def __cinit__(self, **kwargs):
+        self.vertices_count = 0
+        self.vertices = NULL
+        self.indices_count = 0
+        self.indices = NULL
+
     def __init__(self, **kwargs):
         self.vbo = kwargs.get('vbo', VBO())
         self.vbo_index = Buffer(sizeof(int)) #index of every vertex in the vbo
         self.elements = Buffer(sizeof(int)) #indices translated to vbo indices
 
-        vertices = kwargs.get('vertices', [])
-        indices  = kwargs.get('indices' , [])
-        self.set_data(vertices, indices)
+        self.set_data(NULL, 0, NULL, 0)
         self.set_mode(kwargs.get('mode', None))
 
-    cdef void set_data(self, list vertices, list indices):
-        self.vertices = vertices
-        self.indices  = indices
-        self.build()
-
-    cdef void build(self):
-        #clear old vertices from vbo, and then reset index buffer
-        self.vbo.remove_vertex_data(<int*>self.vbo_index.pointer(), self.vbo_index.count())
+    cdef void set_data(self, vertex_t *vertices, int vertices_count,
+                       int *indices, int indices_count):
+        # clear old vertices from vbo and then reset index buffer
+        self.vbo.remove_vertex_data(<int*>self.vbo_index.pointer(),
+                                    self.vbo_index.count())
         self.vbo_index = Buffer(sizeof(int))
 
-        #add vertex data to vbo and get index for every vertex added
-        cdef Vertex v
-        cdef int vi
-        for v in self.vertices:
-            self.vbo.add_vertex_data(&(v.data), &vi, 1)
-            self.vbo_index.add(&vi, NULL, 1)
-
-        #build element list for DrawElements using vbo indices
+        # clear also our elements
         self.elements = Buffer(sizeof(int))
+        self.elements.grow(indices_count)
+
+        # now append the vertices and indices to vbo
+        self.append_data(vertices, vertices_count, indices, indices_count)
+
+    cdef void append_data(self, vertex_t *vertices, int vertices_count,
+                          int *indices, int indices_count):
+
+        # add vertex data to vbo and get index for every vertex added
+        cdef int *vi = <int *>malloc(sizeof(int) * indices_count)
+        if vi == NULL:
+            # raise MemoryError('vertex index allocation')
+            return
+        self.vbo.add_vertex_data(vertices, vi, vertices_count)
+        self.vbo_index.add(vi, NULL, vertices_count)
+        free(vi)
+
+        # build element list for DrawElements using vbo indices
+        # TODO: remove buffer usage in this case, the memory is always one big
+        # block. no need to use add() everytime we need to reconstruct the list.
         cdef int local_index
         cdef int * vbi = <int*>self.vbo_index.pointer()
-        for i in range(len(self.indices)):
-            local_index = self.indices[i]
+        for i in xrange(indices_count):
+            local_index = indices[i]
             self.elements.add(&vbi[local_index], NULL, 1)
 
     cdef void draw(self):
