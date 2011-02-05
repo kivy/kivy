@@ -360,11 +360,11 @@ cdef class Ellipse(Rectangle):
             Define how much segment is needed for drawing the ellipse.
             The drawing will be smoother if you have lot of segment.
     '''
-    cdef int segments
+    cdef int _segments
 
     def __init__(self, *args, **kwargs):
         Rectangle.__init__(self, **kwargs)
-        self.segments = kwargs.get('segments', 180)
+        self._segments = kwargs.get('segments', 180)
 
     cdef void build(self):
         cdef list tc = self.tex_coords
@@ -377,18 +377,26 @@ cdef class Ellipse(Rectangle):
         self.vertices = []
         self.indices = []
 
-        for i in xrange(self.segments):
+        for i in xrange(self._segments):
             # rad = deg * (pi / 180), where pi/180 = 0.0174...
-            angle = i * 360.0/self.segments *0.017453292519943295
+            angle = i * 360.0/self._segments *0.017453292519943295
             x = (self.x+rx)+ (rx*cos(angle))
             y = (self.y+ry)+ (ry*sin(angle))
             ttx = ((x-self.x)/self.w)*tw + tx
             tty = ((y-self.y)/self.h)*th + ty
             self.vertices.append( Vertex(x, y, ttx, tty) )
-            self.indices.extend([i, self.segments, (i+1)%self.segments])
+            self.indices.extend([i, self._segments, (i+1)%self._segments])
         #add last verte in the middle
         x, y = self.x+rx, self.y+ry
         ttx = ((x-self.x)/self.w)*tw + tx
         tty = ((y-self.y)/self.h)*th + ty
         self.vertices.append( Vertex(x,y,ttx, tty) )
 
+    property segments:
+        '''Property for getting/setting the number of segments of the ellipse
+        '''
+        def __get__(self):
+            return self._segments
+        def __set__(self, value):
+            self._segments = value
+            self.flag_update()
