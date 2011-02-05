@@ -368,6 +368,7 @@ cdef class Ellipse(Rectangle):
 
     cdef void build(self):
         cdef list tc = self.tex_coords
+        cdef int i
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
         tx = tc[0]; ty=tc[1];  tw=tc[4]-tx;  th=tc[5]-ty
         angle = 0.0
