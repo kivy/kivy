@@ -467,10 +467,12 @@ def create_handler(element, key, value, idmap):
     # create an handler
     idmap = copy(idmap)
 
+    c_value = compile(value, '<string>', 'eval')
+
     def call_fn(sender, _value):
-        trace('Builder: call_fn %s, key=%s, value=%s' % (element, key, value))
-        e_value = eval(value, _eval_globals, idmap)
-        trace('Builder: call_fn => value=%s' % str(e_value))
+        #trace('Builder: call_fn %s, key=%s, value=%s' % (element, key, value))
+        e_value = eval(c_value, _eval_globals, idmap)
+        #trace('Builder: call_fn => value=%s' % str(e_value))
         setattr(element, key, e_value)
 
     # bind every key.value
@@ -712,8 +714,8 @@ class BuilderBase(object):
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):
-            element.bind(**{key: curry(custom_callback, (element, key,
-                                                            value, idmap))})
+            element.bind(**{key: curry(custom_callback, (
+                element, key, value, idmap))})
 
         else:
             value = create_handler(element, key, value, idmap)
