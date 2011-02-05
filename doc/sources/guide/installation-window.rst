@@ -10,6 +10,8 @@ to install anything in "system" wide. Just unzip & run:
        use it for launching any kivy application
 
 
+.. _windows-run-app:
+
 Start any Kivy's application
 ----------------------------
 

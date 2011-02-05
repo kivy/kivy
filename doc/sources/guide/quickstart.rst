@@ -25,9 +25,30 @@ The base code for creating an application looks like this:
 
     MyApp().run()
 
-Save it as `myapp.py` and run it with your Python interpreter ::
+Save it as `myapp.py`.
 
-    $ python myapp.py
+Now, to run your application, depending of your platform, you can :
+
+    Linux
+        Follow the instructions for :ref:`running Kivy application on Linux <linux-run-app>`::
+
+            $ python myapp.py
+
+    Windows
+        Follow the instructions for :ref:`running Kivy application on Windows <windows-run-app>`::
+            
+            $ python myapp.py
+            # or
+            C:\appdir>kivy.bat myapp.py
+
+    MacOSX
+        Follow the instructions for :ref:`running Kivy application on MacOSX <macosx-run-app>`::
+
+            $ kivy myapp.py
+
+    Android
+        You application need some complementary files to be able to run on Android.
+        See :doc:`android` for more informations.
 
 A window should open, showing a sole button (with the label 'Hello World') that
 covers the entire window's area. That's all there is to it.
