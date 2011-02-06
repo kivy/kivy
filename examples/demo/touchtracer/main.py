@@ -76,5 +76,5 @@ class TouchdebugApp(App):
     def build(self):
         return Touchdebug()
 
-if __name__ == '__main__':
+if __name__ in  ('__main__', '__android__'):
     TouchdebugApp().run()
