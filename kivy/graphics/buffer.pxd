@@ -5,7 +5,8 @@ cdef class Buffer:
     cdef int block_count
     cdef int need_pack
 
-    cdef grow(self, int block_count)
+    cdef void clear(self)
+    cdef void grow(self, int block_count)
     cdef void add(self, void *blocks, int *indices, int count)
     cdef void remove(self, int *indices, int count)
     cdef void pack(self)
@@ -14,4 +15,4 @@ cdef class Buffer:
     cdef void *pointer(self)
     cdef void *offset_pointer(self, int offset)
     cdef void update(self, int index, void* blocks, int count)
-    
+
