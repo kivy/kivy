@@ -129,12 +129,10 @@ cdef class VertexBatch:
 
     cdef void append_data(self, vertex_t *vertices, int vertices_count,
                           int *indices, int indices_count):
-
         # add vertex data to vbo and get index for every vertex added
-        cdef int *vi = <int *>malloc(sizeof(int) * indices_count)
+        cdef int *vi = <int *>malloc(sizeof(int) * vertices_count)
         if vi == NULL:
-            # raise MemoryError('vertex index allocation')
-            return
+            raise MemoryError('vertex index allocation')
         self.vbo.add_vertex_data(vertices, vi, vertices_count)
         self.vbo_index.add(vi, NULL, vertices_count)
         free(vi)
@@ -152,6 +150,7 @@ cdef class VertexBatch:
         self.vbo.bind()
         glDrawElements(self.mode, self.elements.count(),
                        GL_UNSIGNED_INT, self.elements.pointer())
+        self.vbo.unbind()
 
     cdef void set_mode(self, str mode):
         # most common case in top;
