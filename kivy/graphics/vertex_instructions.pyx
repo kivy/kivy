@@ -96,7 +96,7 @@ cdef class Point(VertexInstruction):
     cdef void build(self):
         cdef float t0, t1, t2, t3, t4, t5, t6, t7
         cdef float x, y, ps = self._pointsize
-        cdef int i, iv, ii, count = len(self.points) / 2
+        cdef int i, iv, ii, count = <int>(len(self._points) * 0.5)
         cdef list p = self.points
         cdef list tc = self._tex_coords
         cdef vertex_t *vertices = NULL
@@ -146,6 +146,53 @@ cdef class Point(VertexInstruction):
 
         free(vertices)
         free(indices)
+
+    def add_point(self, float x, float y):
+        '''Add a point into the current :data:`points` list.
+
+        If you intend to add multiple point, prefer to use this method, instead
+        of reassign a new :data:`points` list. Assigning a new :data:`points`
+        list will recalculate and reupload the whole buffer into GPU.
+        If you use add_point, it will only upload the changes.
+        '''
+        cdef float t0, t1, t2, t3, t4, t5, t6, t7
+        cdef float ps = self._pointsize
+        cdef int iv, count = <int>(len(self._points) * 0.5)
+        cdef list tc = self._tex_coords
+        cdef vertex_t vertices[4]
+        cdef int indices[6]
+
+        self._points.append(x)
+        self._points.append(y)
+
+        t0, t1, t2, t3, t4, t5, t6, t7 = tc
+        vertices[0].x = x - ps
+        vertices[0].y = y - ps
+        vertices[0].s0 = t0
+        vertices[0].t0 = t1
+        vertices[1].x = x + ps
+        vertices[1].y = y - ps
+        vertices[1].s0 = t2
+        vertices[1].t0 = t3
+        vertices[2].x = x + ps
+        vertices[2].y = y + ps
+        vertices[2].s0 = t4
+        vertices[2].t0 = t5
+        vertices[3].x = x - ps
+        vertices[3].y = y + ps
+        vertices[3].s0 = t6
+        vertices[3].t0 = t7
+
+        iv = count * 4
+        indices[0] = iv
+        indices[1] = iv + 1
+        indices[2] = iv + 2
+        indices[3] = iv + 2
+        indices[4] = iv + 3
+        indices[5] = iv
+
+        # append the vertices / indices to current vertex batch
+        self.batch.append_data(vertices, 4, indices, 6)
 
     property points:
         '''Property for getting/settings points of the triangle
