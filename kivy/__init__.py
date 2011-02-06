@@ -21,6 +21,7 @@ See http://kivy.org for more information.
 '''
 
 __all__ = (
+    'require',
     'kivy_configure', 'kivy_register_post_configuration',
     'kivy_options', 'kivy_base_dir', 'kivy_libs_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
@@ -40,6 +41,79 @@ from kivy.logger import Logger, LOG_LEVELS
 # internals for post-configuration
 __kivy_post_configuration = []
 
+def require(version):
+    '''Require can be used to check the minimum version require to run a Kivy
+    application. For example, you can start your application like this::
+
+        import kivy
+        kivy.require('1.0.1')
+
+    If you don't have a kivy version that fit the minimum required for running
+    the application, it will raise an Exception.
+
+    .. note::
+
+        The Kivy version is builded like this::
+
+            X.Y.Z[-tag[-tagrevision]]
+
+            X is the Major version
+            Y is the Minor version
+            Z is the Bugfixes revision
+
+        The tag in Kivy version is optionnal, but may be one of 'dev', 'alpha',
+        'beta'.
+        The tagrevision in Kivy version if the revision of the tag.
+
+    .. warning::
+
+        You must not ask for a revision with a tag, except -dev. Asking for a
+        'dev' version will just warn the user if the current kivy version is not
+        a dev, it will never launch an exception.
+        You must not ask for a revision with a tagrevision.
+
+    '''
+
+    def parse_version(version):
+        # check for tag
+        tag = None
+        tagrev = None
+        if '-' in version:
+            l = version.split('-')
+            if len(l) == 2:
+                version, tag = l
+            elif len(l) == 3:
+                version, tag, tagrev = l
+            else:
+                raise Exception('Revision format must be X.Y.Z[-tag]')
+
+        # check x y z
+        l = version.split('.')
+        if len(l) != 3:
+            raise Exception('Revision format must be X.Y.Z[-tag]')
+        return [int(x) for x in l], tag, tagrev
+
+    # user version
+    revision, tag, tagrev = parse_version(version)
+    # current version
+    sysrevision, systag, systagrev = parse_version(__version__)
+
+    # ensure that the required version don't contain tag, except dev
+    if tag not in (None, 'dev'):
+        raise Exception('Revision format must not have any tag except "dev"')
+    if tag == 'dev' and systag != 'dev':
+        Logger.warning('Application request for a -dev version of Kivy. '
+                       '(You have %s, application require %s)' % (
+                            __version__, version))
+    # not tag rev (-alpha-1, -beta-x) allowed.
+    if tagrev is not None:
+        raise Exception('Revision format must not contain any tagrevision')
+
+    # finally, checking revision
+    if sysrevision < revision:
+        raise Exception('The version of Kivy installed on this system '
+                        'is too old. (You have %s, application require %s)' % (
+                            __version__, version))
 
 def kivy_configure():
     '''Call post-configuration of Kivy.
