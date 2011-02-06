@@ -24,7 +24,7 @@ cdef class Buffer:
         self.block_size = block_size
 
 
-    cdef grow(self, int block_count):
+    cdef void grow(self, int block_count):
         '''Automaticly realloc the memory if they are no enough block.
         Work only for "grow" operation, not the inverse.
         '''
@@ -52,6 +52,12 @@ cdef class Buffer:
 
         # Update how many block are allocated
         self.block_count = block_count
+
+
+    cdef void clear(self):
+        '''Clear the whole buffer, and mark all blocks as available.
+        '''
+        self.l_free = range(self.block_count)
 
 
     cdef void add(self, void *blocks, int *indices, int count):
