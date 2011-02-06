@@ -43,11 +43,8 @@ cdef class ContextInstruction(Instruction):
 cdef class VertexInstruction(Instruction):
     cdef BindTexture texture_binding
     cdef VertexBatch batch
-    cdef list vertices
-    cdef list indices
     cdef list _tex_coords
 
-    cdef update_batch(self)
     cdef void build(self)
 
 

@@ -393,13 +393,15 @@ class WindowBase(EventDispatcher):
                 w.width = shw * width
             elif shh:
                 w.height = shh * height
-            phx, phy = w.pos_hint
-            if phx and phy:
-                w.pos = phx * width, phy * height
-            elif phx:
-                w.x = phx * width
-            elif phy:
-                w.y = phy * height
+            for key, value in w.pos_hint.iteritems():
+                if key == 'x':
+                    w.x = value * width
+                elif key == 'right':
+                    w.right = value * width
+                elif key == 'y':
+                    w.y = value * height
+                elif key == 'top':
+                    w.top = value * height
 
     def _get_rotation(self):
         return self._rotation

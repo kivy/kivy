@@ -1,12 +1,4 @@
-cdef extern from "stdlib.h":
-    ctypedef unsigned long size_t
-    void free(void *ptr)
-    void *realloc(void *ptr, size_t size)
-    void *malloc(size_t size)
-
-cdef extern from "string.h":
-    void *memcpy(void *dest, void *src, size_t n)
-
+include "common.pxi"
 
 cdef class Buffer:
     '''Buffer class is designed to manage very fast a list of fixed size block.
