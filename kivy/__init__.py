@@ -256,3 +256,17 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
 
+# android hooks
+try:
+    import android
+    android_platform = True
+except ImportError:
+    android_platform = False
+
+if android_platform:
+    from kivy.config import Config
+    Config.set('graphics', 'fullscreen', 'auto')
+    Config.remove_section('input')
+    Config.add_section('input')
+    Config.set('input', 'androidtouch', 'android')
+
