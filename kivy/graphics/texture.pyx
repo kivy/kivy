@@ -498,7 +498,8 @@ cdef class Texture:
             `size` : tuple, default to texture size
                 Size of the image (width, height)
             `colorfmt` : str, default to 'rgb'
-                Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra'
+                Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra',
+                'luminance', 'luminance_alpha'
             `pos` : tuple, default to (0, 0)
                 Position to blit in the texture
             `bufferfmt` : str, default to 'ubyte'
