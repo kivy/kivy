@@ -48,11 +48,9 @@ class LabelBase(object):
             Horizontal text alignement inside bounding box
         `valign`: str, default to "bottom"
             Vertical text alignement inside bounding box
-        `color`: list, default to (1, 1, 1, 1)
-            Text color in (R, G, B, A)
     '''
 
-    __slots__ = ('options', 'texture', '_label', 'color', 'usersize')
+    __slots__ = ('options', 'texture', '_label', 'usersize')
 
     _cache_glyphs = {}
 
@@ -67,7 +65,6 @@ class LabelBase(object):
         kwargs.setdefault('padding', None)
         kwargs.setdefault('padding_x', None)
         kwargs.setdefault('padding_y', None)
-        kwargs.setdefault('color', (1, 1, 1, 1))
         kwargs.setdefault('viewport_size', None)
         kwargs.setdefault('viewport_pos', None)
 
@@ -95,7 +92,6 @@ class LabelBase(object):
 
         self._text = None
 
-        self.color = kwargs.get('color')
         self.usersize = kwargs.get('size')
         self.options = kwargs
         self.texture = None
@@ -255,7 +251,7 @@ class LabelBase(object):
         # create texture is necessary
         texture = self.texture
         if texture is None:
-            texture = Texture.create(size=self.size)
+            texture = Texture.create(size=self.size, colorfmt='luminance_alpha')
             texture.flip_vertical()
         elif self.width > texture.width or self.height > texture.height:
             texture = Texture.create(size=self.size)
