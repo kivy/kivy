@@ -11,7 +11,7 @@ cdef class Texture:
     cdef GLuint _gl_min_filter
     cdef GLuint _gl_mag_filter
     cdef int _rectangle
-    cdef bytes _fmt
+    cdef bytes _colorfmt
     cdef float _uvx
     cdef float _uvy
     cdef float _uvw
