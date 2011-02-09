@@ -106,7 +106,11 @@ class Vector(list):
     x = property(_get_x, _set_x)
     ''':data:`x` property is an alpha to the first element in the list::
 
-        a = Vector(
+        >>> v = Vector(12, 23)
+        >>> v[0]
+        12
+        >>> v.x
+        12
     '''
 
     def _get_y(self):
@@ -117,6 +121,13 @@ class Vector(list):
 
     y = property(_get_y, _set_y)
     ''':data:`y` property is an alpha to the first element in the list::
+
+        >>> v = Vector(12, 23)
+        >>> v[1]
+        23
+        >>> v.y
+        23
+
     '''
 
     def __getslice__(self, i, j):
