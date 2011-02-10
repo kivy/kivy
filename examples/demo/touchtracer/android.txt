@@ -1,0 +1,3 @@
+title=Touchtracer
+author=Kivy team
+orientation=portrait
