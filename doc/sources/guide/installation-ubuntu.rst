@@ -15,6 +15,12 @@ If you already installed kivy before, you can upgrade it with::
 
     $ easy_install -U kivy
 
+
+.. _linux-run-app:
+
+Start from Command Line
+-----------------------
+
 You can know run any example from the examples directory of kivy::
 
     $ cd <path to kivy directory>/examples/demo

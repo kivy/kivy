@@ -63,19 +63,23 @@ cdef inline int _is_pow2(int v):
     # http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
     return (v & (v - 1)) == 0
 
-cdef inline int _fmt_to_gl_format(str x):
-    x = x.lower()
-    if x == 'rgba':
-        return GL_RGBA
-    elif x == 'bgra':
-        return GL_BGRA
-    elif x == 'bgr':
-        return GL_BGR
-    elif x == 'rgb':
-        return GL_RGB
-    raise Exception('Unknown <%s> texture format' % x)
+cdef dict _gl_color_fmt = {
+    'rgba': GL_RGBA,
+    'bgra': GL_BGRA,
+    'rgb': GL_RGB,
+    'bgr': GL_BGR,
+    'luminance': GL_LUMINANCE,
+    'luminance_alpha': GL_LUMINANCE_ALPHA,
+}
 
-cdef dict _gl_format_type = {
+cdef inline int _color_fmt_to_gl(str x):
+    x = x.lower()
+    try:
+        return _gl_color_fmt[x]
+    except KeyError:
+        raise Exception('Unknown <%s> color format' % x)
+
+cdef dict _gl_buffer_fmt = {
     'ubyte': GL_UNSIGNED_BYTE,
     'ushort': GL_UNSIGNED_SHORT,
     'uint': GL_UNSIGNED_INT,
@@ -85,12 +89,12 @@ cdef dict _gl_format_type = {
     'float': GL_FLOAT
 }
 
-cdef inline int _buffer_type_to_gl_format(str x):
+cdef inline int _buffer_fmt_to_gl(str x):
     x = x.lower()
     try:
-        return _gl_format_type[x]
+        return _gl_buffer_fmt[x]
     except KeyError:
-        raise Exception('Unknown <%s> format' % x)
+        raise Exception('Unknown <%s> buffer format' % x)
 
 cdef dict _gl_buffer_size = {
     'ubyte': sizeof(GLubyte),
@@ -114,6 +118,8 @@ cdef inline int _gl_format_size(GLuint x):
         return 3
     elif x in (GL_RGBA, GL_BGRA):
         return 4
+    elif x == GL_LUMINANCE_ALPHA:
+        return 2
     elif x == GL_LUMINANCE:
         return 1
     raise Exception('Unsupported format size <%s>' % str(format))
@@ -168,11 +174,11 @@ cdef inline _convert_buffer(bytes data, str fmt):
     return ret_buffer, ret_format
 
 
-cdef _texture_create(int width, int height, str fmt, str buffertype, int
+cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
                      rectangle, int mipmap):
     cdef GLuint target = GL_TEXTURE_2D
     cdef int texture_width, texture_height
-    cdef int glbuffertype = _buffer_type_to_gl_format(buffertype)
+    cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
 
     if rectangle:
         rectangle = 0
@@ -214,11 +220,11 @@ cdef _texture_create(int width, int height, str fmt, str buffertype, int
     cdef GLuint texid
     glGenTextures(1, &texid)
 
-    if not _is_gl_format_supported(fmt):
-        fmt = _convert_gl_format(fmt)
+    if not _is_gl_format_supported(colorfmt):
+        colorfmt = _convert_gl_format(colorfmt)
 
     cdef Texture texture = Texture(texture_width, texture_height, target, texid,
-                      fmt=fmt, mipmap=mipmap)
+                      colorfmt=colorfmt, mipmap=mipmap)
 
     texture.bind()
     texture.wrap = GL_CLAMP_TO_EDGE
@@ -230,9 +236,9 @@ cdef _texture_create(int width, int height, str fmt, str buffertype, int
         texture.mag_filter  = GL_LINEAR
 
     # ok, allocate memory for initial texture
-    cdef int glfmt = _fmt_to_gl_format(fmt)
+    cdef int glfmt = _color_fmt_to_gl(colorfmt)
     cdef int datasize = texture_width * texture_height * \
-            _gl_format_size(glfmt) * _buffer_type_to_gl_size(buffertype)
+            _gl_format_size(glfmt) * _buffer_type_to_gl_size(bufferfmt)
     cdef void *data = NULL
     cdef int dataerr = 0
 
@@ -240,7 +246,7 @@ cdef _texture_create(int width, int height, str fmt, str buffertype, int
         data = calloc(1, datasize)
         if data != NULL:
             glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
-                         glfmt, glbuffertype, data)
+                         glfmt, glbufferfmt, data)
             glFlush()
             free(data)
             data = NULL
@@ -264,14 +270,18 @@ cdef _texture_create(int width, int height, str fmt, str buffertype, int
 
     return texture.get_region(0, 0, width, height)
 
-def texture_create(size=None, fmt=None, buffertype=None, rectangle=False, mipmap=False):
+def texture_create(size=None, colorfmt=None, bufferfmt=None, rectangle=False, mipmap=False):
     '''Create a texture based on size.
 
     :Parameters:
         `size`: tuple, default to (128, 128)
             Size of the texture
-        `fmt`: str, default to 'rgba'
-            Internal format of the texture. Can be 'rgba' or 'rgb'
+        `colorfmt`: str, default to 'rgba'
+            Internal color format of the texture. Can be 'rgba' or 'rgb',
+            'luminance', 'luminance_alpha'
+        `bufferfmt': str, default to 'ubyte'
+            Internal buffer format of the texture. Can be 'ubyte', 'ushort',
+            'uint', 'bute', 'short', 'int', 'float'
         `rectangle`: bool, default to False
             If True, it will use special opengl command for creating a rectangle
             texture. It's not available on OpenGL ES, but can be used for
@@ -285,11 +295,11 @@ def texture_create(size=None, fmt=None, buffertype=None, rectangle=False, mipmap
         width = height = 128
     else:
         width, height = size
-    if fmt is None:
-        fmt = 'rgba'
-    if buffertype is None:
-        buffertype = 'ubyte'
-    return _texture_create(width, height, fmt, buffertype, rectangle, mipmap)
+    if colorfmt is None:
+        colorfmt = 'rgba'
+    if bufferfmt is None:
+        bufferfmt = 'ubyte'
+    return _texture_create(width, height, colorfmt, bufferfmt, rectangle, mipmap)
 
 
 def texture_create_from_data(im, rectangle=True, mipmap=False):
@@ -312,7 +322,7 @@ cdef class Texture:
     create_from_data = staticmethod(texture_create_from_data)
 
 
-    def __init__(self, width, height, target, texid, fmt='rgb', mipmap=False, rectangle=False):
+    def __init__(self, width, height, target, texid, colorfmt='rgb', mipmap=False, rectangle=False):
         self._width         = width
         self._height        = height
         self._target        = target
@@ -326,7 +336,7 @@ cdef class Texture:
         self._uvw           = 1.
         self._uvh           = 1.
         self._rectangle     = rectangle
-        self._fmt           = fmt
+        self._colorfmt      = colorfmt
         self.update_tex_coords()
 
     def __del__(self):
@@ -476,10 +486,10 @@ cdef class Texture:
     def blit_data(self, im, pos=None):
         '''Replace a whole texture with a image data'''
         self.blit_buffer(im.data, size=(im.width, im.height),
-                         fmt=im.fmt, pos=pos)
+                         colorfmt=im.fmt, pos=pos)
 
-    def blit_buffer(self, pbuffer, size=None, fmt=None,
-                    pos=None, buffertype=None):
+    def blit_buffer(self, pbuffer, size=None, colorfmt=None,
+                    pos=None, bufferfmt=None):
         '''Blit a buffer into a texture.
 
         :Parameters:
@@ -487,45 +497,46 @@ cdef class Texture:
                 Image data
             `size` : tuple, default to texture size
                 Size of the image (width, height)
-            `fmt` : str, default to 'rgb'
-                Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra'
+            `colorfmt` : str, default to 'rgb'
+                Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra',
+                'luminance', 'luminance_alpha'
             `pos` : tuple, default to (0, 0)
                 Position to blit in the texture
-            `buffertype` : str, default to 'ubyte'
+            `bufferfmt` : str, default to 'ubyte'
                 Type of the data buffer, can be one of 'ubyte', 'ushort',
                 'uint', 'byte', 'short', 'int', 'float'
         '''
         cdef GLuint target = self.target
         cdef int tid = self._id
-        if fmt is None:
-            fmt = 'rgb'
-        if buffertype is None:
-            buffertype = 'ubyte'
+        if colorfmt is None:
+            colorfmt = 'rgb'
+        if bufferfmt is None:
+            bufferfmt = 'ubyte'
         if pos is None:
             pos = (0, 0)
         if size is None:
             size = self.size
-        buffertype = _buffer_type_to_gl_format(buffertype)
+        bufferfmt = _buffer_fmt_to_gl(bufferfmt)
 
         # need conversion ?
         cdef bytes data, pdata
         data = pbuffer
-        pdata, fmt = _convert_buffer(data, fmt)
+        pdata, colorfmt = _convert_buffer(data, colorfmt)
 
         # prepare nogil
-        cdef int glfmt = _fmt_to_gl_format(fmt)
+        cdef int glfmt = _color_fmt_to_gl(colorfmt)
         cdef int x = pos[0]
         cdef int y = pos[1]
         cdef int w = size[0]
         cdef int h = size[1]
         cdef char *cdata = <char *>data
-        cdef int glbuffertype = buffertype
+        cdef int glbufferfmt = bufferfmt
 
         with nogil:
             glBindTexture(target, self._id)
             glEnable(target)
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-            glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbuffertype, cdata)
+            glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
             glFlush()
             glDisable(target)
 

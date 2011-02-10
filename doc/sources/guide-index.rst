@@ -7,4 +7,5 @@ Programming Guide
     guide/installation
     guide/quickstart
     guide/architecture
+    guide/platform
 

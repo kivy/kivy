@@ -83,7 +83,7 @@ download and compile a development version of Kivy::
     $ cd kivy
 
     $ # Compile:
-    $ python setup.py build_ext --inplace
+    $ python setup.py build_ext --inplace -f
 
 If you have the ``make`` command available, you can also use the
 following shortcut to compile (does the same as the last two commands)::

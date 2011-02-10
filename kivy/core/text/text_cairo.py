@@ -69,8 +69,7 @@ class LabelCairo(LabelBase):
         self._select_font(self._cairo_context)
 
     def _render_text(self, text, x, y):
-        color = map(lambda x: x * 255, self.options['color'])
-        self._cairo_context.set_source_rgba(*color)
+        self._cairo_context.set_source_rgba(255, 255, 255, 255)
         self._cairo_context.move_to(x,
             y + self._font_extents[FONT_EXTENTS_ASCENT_IDX])
         self._cairo_context.show_text(text)

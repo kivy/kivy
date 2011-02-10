@@ -48,7 +48,10 @@ class Touchdebug(Widget):
         oldx, oldy = points[-2], points[-1]
         points = calculate_points(oldx, oldy, touch.x, touch.y)
         if points:
-            ud['lines'][2].points = ud['lines'][2].points + points
+            lp = ud['lines'][2].add_point
+            for idx in xrange(0, len(points), 2):
+                lp(points[idx], points[idx+1])
+
         ud['label'].pos = touch.pos
         self.update_touch_label(ud['label'], touch)
 
@@ -73,5 +76,5 @@ class TouchdebugApp(App):
     def build(self):
         return Touchdebug()
 
-if __name__ == '__main__':
+if __name__ in  ('__main__', '__android__'):
     TouchdebugApp().run()

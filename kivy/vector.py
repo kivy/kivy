@@ -2,13 +2,81 @@
 Vector
 ======
 
-class to handle Vector operation.
+The :class:`Vector` represent a 2D vector (x, y).
+Our implementation is made in top of a Python list.
 
-For example, if you want to get length of a vector::
+Exemple for constructing a Vector::
 
-    >>> from kivy.vector import Vector
-    >>> v = Vector(1, 5)
-    >>> print v.length()
+    >>> # Construct a point at 82,34
+    >>> v = Vector(82, 34)
+    >>> v[0]
+    82
+    >>> v.x
+    82
+    >>> v[1]
+    34
+    >>> v.y
+    34
+
+    >>> # Construct by giving a list of 2 values
+    >>> pos = (93, 45)
+    >>> v = Vector(pos)
+    >>> v[0]
+    93
+    >>> v.x
+    93
+    >>> v[1]
+    45
+    >>> v.y
+    45
+
+
+Optimized usage
+---------------
+
+Most of time, you can use a list for arguments, instead of using a Vector. For
+example, if you want to have the distance between 2 points::
+
+    a = (10, 10)
+    b = (87, 34)
+
+    # optimized method
+    print 'distance between a and b:', Vector(a).distance(b)
+
+    # non-optimized method
+    va = Vector(a)
+    vb = Vector(b)
+    print 'distance between a and b:', va.distance(vb)
+
+
+Vector operators
+----------------
+
+The :class:`Vector` support some numeric operator like +, -, /::
+
+    >>> Vector(1, 1) + Vector(9, 5)
+    [10, 6]
+
+    >>> Vector(9, 5) - Vector(5, 5)
+    [4, 0]
+
+    >>> Vector(10, 10) / Vector(2., 4.)
+    [5.0, 2.5]
+
+    >>> Vector(10, 10) / 5.
+    [2.0, 2.0]
+
+
+You can also do in-place operations::
+
+    >>> v = Vector(1, 1)
+    >>> v += 2
+    >>> v
+    [3, 3]
+    >>> v *= 5
+    [15, 15]
+    >>> v /= 2.
+    [7.5, 7.5]
 
 '''
 
@@ -18,7 +86,8 @@ import math
 
 
 class Vector(list):
-    '''Represents a 2D vector.'''
+    '''Vector class. See module documentation for more informations
+    '''
 
     def __init__(self, *largs):
         if len(largs) == 1:
@@ -35,6 +104,14 @@ class Vector(list):
         self[0] = x
 
     x = property(_get_x, _set_x)
+    ''':data:`x` property is an alpha to the first element in the list::
+
+        >>> v = Vector(12, 23)
+        >>> v[0]
+        12
+        >>> v.x
+        12
+    '''
 
     def _get_y(self):
         return self[1]
@@ -43,6 +120,15 @@ class Vector(list):
         self[1] = y
 
     y = property(_get_y, _set_y)
+    ''':data:`y` property is an alpha to the first element in the list::
+
+        >>> v = Vector(12, 23)
+        >>> v[1]
+        23
+        >>> v.y
+        23
+
+    '''
 
     def __getslice__(self, i, j):
         try:
@@ -125,41 +211,103 @@ class Vector(list):
         return self
 
     def length(self):
-        '''Returns the length of a vector'''
+        '''Returns the length of a vector::
+
+            >>> Vector(10, 10).length()
+            14.142135623730951
+
+            >>> pos = (10, 10)
+            >>> Vector(pos).length()
+            14.142135623730951
+
+        '''
         return math.sqrt(self[0] ** 2 + self[1] ** 2)
 
     def length2(self):
-        '''Returns the length of a vector squared.'''
+        '''Returns the length of a vector squared::
+
+            >>> Vector(10, 10).length2()
+            200
+
+            >>> pos = (10, 10)
+            >>> Vector(pos).length2()
+            200
+
+        '''
         return self[0] ** 2 + self[1] ** 2
 
     def distance(self, to):
-        '''Returns the distance between two points.'''
+        '''Returns the distance between two points::
+
+            >>> Vector(10, 10).distance((5, 10))
+            5.
+
+            >>> a = (90, 33)
+            >>> b = (76, 34)
+            >>> Vector(a).distance(b)
+            14.035668847618199
+
+        '''
         return math.sqrt((self[0] - to[0]) ** 2 + (self[1] - to[1]) ** 2)
 
     def distance2(self, to):
-        '''Returns the distance between two points squared.'''
+        '''Returns the distance between two points squared::
+
+            >>> Vector(10, 10).distance2((5, 10))
+            25
+
+        '''
         return (self[0] - to[0]) ** 2 + (self[1] - to[1]) ** 2
 
     def normalize(self):
         '''Returns a new vector that has the same direction as vec,
-        but has a length of one.'''
+        but has a length of one.
+
+            >>> v = Vector(88, 33).normalize()
+            >>> v
+            [0.93632917756904444, 0.3511234415883917]
+            >>> v.length()
+            1.0
+
+        '''
         if self[0] == 0. and self[1] == 0.:
             return Vector(0., 0.)
         return self / self.length()
 
     def dot(self, a):
-        '''Computes the dot product of a and b'''
+        '''Computes the dot product of a and b::
+
+            >>> Vector(2, 4).dot((2, 2))
+            12
+
+        '''
         return self[0] * a[0] + self[1] * a[1]
 
     def angle(self, a):
-        '''Computes the angle between a and b'''
+        '''Computes the angle between a and b, and return the angle in
+        degrees::
+
+            >>> Vector(100, 0).angle((0, 100))
+            -90.0
+
+            >>> Vector(87, 23).angle((-77, 10))
+            -157.7920283010705
+
+        '''
         angle = -(180/math.pi) * math.atan2(
             self[0] * a[1] - self[1] * a[0],
             self[0] * a[0] + self[1] * a[1])
         return angle
 
     def rotate(self, angle):
-        '''Rotate the vector'''
+        '''Rotate the vector with an angle in degrees::
+
+            >>> v = Vector(100, 0)
+            >>> v.rotate(45)
+            >>> v
+            [70.710678118654755, 70.710678118654741]
+
+        '''
         angle = math.radians(angle)
         return Vector((self[0] * math.cos(angle)) - (self[1] * math.sin(angle)),
                       (self[1] * math.cos(angle)) + (self[0] * math.sin(angle)))
@@ -168,7 +316,18 @@ class Vector(list):
     def line_intersection(v1, v2, v3, v4):
         '''
         Finds the intersection point between the lines (1)v1->v2 and (2)v3->v4
-        and returns it as a vector object
+        and returns it as a vector object::
+
+            >>> a = (98, 28)
+            >>> b = (72, 33)
+            >>> c = (10, -5)
+            >>> d = (20, 88)
+            >>> Vector.line_intersection(a, b, c, d)
+            [15.25931928687196, 43.911669367909241]
+
+        .. warning::
+
+            This is a line intersection method, not a segment intersection.
 
         For math see: http://en.wikipedia.org/wiki/Line-line_intersection
         '''
@@ -189,7 +348,16 @@ class Vector(list):
 
     @staticmethod
     def in_bbox(point, a, b):
-        '''Return a true if `point` is in bbox defined by `a` and `b`'''
+        '''Return a true if `point` is in bbox defined by `a` and `b`::
+
+            >>> bmin = (0, 0)
+            >>> bmax = (100, 100)
+            >>> Vector.in_bbox((50, 50), bmin, bmax)
+            True
+            >>> Vector.in_bbox((647, -10), bmin, bmax)
+            False
+
+        '''
         return ((point[0] <= a[0] and point[0] >= b[0] or
                  point[0] <= b[0] and point[0] >= a[0]) and
                 (point[1] <= a[1] and point[1] >= b[1] or
