@@ -176,7 +176,7 @@ cdef class Shader:
         if success == GL_FALSE:
             Logger.error('Shader <%s> failed to compile' % (
                 'vertex' if shadertype == GL_VERTEX_SHADER else 'fragment'))
-            return -1
+            return shader
         return shader
 
     cdef str get_shader_log(self, shader):
