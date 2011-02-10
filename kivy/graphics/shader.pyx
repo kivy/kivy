@@ -170,6 +170,13 @@ cdef class Shader:
         shader = glCreateShader(shadertype)
         glShaderSource(shader, 1, <char**> &source, NULL)
         glCompileShader(shader)
+
+        cdef GLint success
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success)
+        if success == GL_FALSE:
+            Logger.error('Shader <%s> failed to compile' % (
+                'vertex' if shadertype == GL_VERTEX_SHADER else 'fragment'))
+            return -1
         return shader
 
     cdef str get_shader_log(self, shader):
