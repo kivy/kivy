@@ -251,7 +251,12 @@ class LabelBase(object):
         # create texture is necessary
         texture = self.texture
         if texture is None:
-            texture = Texture.create(size=self.size, colorfmt='luminance_alpha')
+            try:
+                import android
+                colorfmt = 'rgba'
+            except ImportError:
+                colorfmt = 'luminance_alpha'
+            texture = Texture.create(size=self.size, colorfmt=colorfmt)
             texture.flip_vertical()
         elif self.width > texture.width or self.height > texture.height:
             texture = Texture.create(size=self.size)
