@@ -58,6 +58,7 @@ cdef class CanvasBase(InstructionGroup):
 cdef class Canvas(CanvasBase):
     cdef CanvasBase _before
     cdef CanvasBase _after
+    cpdef clear(self)
     cpdef add(self, Instruction c)
     cpdef remove(self, Instruction c)
     cpdef draw(self)

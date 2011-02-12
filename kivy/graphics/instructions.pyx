@@ -257,6 +257,13 @@ cdef class Canvas(CanvasBase):
         self._before = None
         self._after = None
 
+    cpdef clear(self):
+        cdef Instruction c
+        for c in self.children[:]:
+            if c is self._before or c is self._after:
+                continue
+            self.remove(c)
+
     cpdef draw(self):
         '''Apply the instruction on our window.
         '''
