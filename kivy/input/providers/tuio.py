@@ -206,6 +206,7 @@ class Tuio2dCurMotionEvent(TuioMotionEvent):
         super(Tuio2dCurMotionEvent, self).__init__(device, id, args)
 
     def depack(self, args):
+        self.is_touch = True
         if len(args) < 5:
             self.sx, self.sy = map(float, args[0:2])
             self.profile = ('pos', )
