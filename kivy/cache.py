@@ -13,9 +13,9 @@ of 5 seconds::
     Cache.register('mycache', limit=10, timeout=5)
 
     # create an object + id
-    label = 'objectid'
-    instance = MTLabel(label=label)
-    Cache.append('mycache', label, instance)
+    text = 'objectid'
+    instance = Label(text=text)
+    Cache.append('mycache', text, instance)
 
     # retrieve the cached object
     instance = Cache.get('mycache', label)
