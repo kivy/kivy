@@ -18,6 +18,10 @@ cdef class Instruction:
     cdef flag_update(self)
     cdef flag_update_done(self)
 
+    cdef radd(self, InstructionGroup ig)
+    cdef rinsert(self, InstructionGroup ig, int index)
+    cdef rremove(self, InstructionGroup ig)
+
 cdef class InstructionGroup(Instruction):
     cdef list children
     cdef InstructionGroup compiled_children
@@ -44,6 +48,10 @@ cdef class VertexInstruction(Instruction):
     cdef BindTexture texture_binding
     cdef VertexBatch batch
     cdef list _tex_coords
+
+    cdef radd(self, InstructionGroup ig)
+    cdef rinsert(self, InstructionGroup ig, int index)
+    cdef rremove(self, InstructionGroup ig)
 
     cdef void build(self)
 

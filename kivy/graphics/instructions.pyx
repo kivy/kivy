@@ -28,9 +28,13 @@ cdef class Instruction:
     '''
     def __cinit__(self):
         self.flags = 0
+        self.parent = None
 
     def __init__(self, **kwargs):
         self.group = kwargs.get('group', None)
+        if kwargs.get('noadd'):
+            self.flags |= GI_NO_REMOVE
+            return
         self.parent = getActiveCanvas()
         if self.parent:
             self.parent.add(self)
@@ -45,6 +49,18 @@ cdef class Instruction:
 
     cdef flag_update_done(self):
         self.flags &= ~GI_NEEDS_UPDATE
+
+    cdef radd(self, InstructionGroup ig):
+        ig.children.append(self)
+        self.parent = ig
+
+    cdef rremove(self, InstructionGroup ig):
+        ig.children.remove(self)
+        self.parent = None
+
+    cdef rinsert(self, InstructionGroup ig, int index):
+        ig.children.insert(index, self)
+        self.parent = ig
 
     property needs_redraw:
         def __get__(self):
@@ -86,25 +102,19 @@ cdef class InstructionGroup(Instruction):
     cpdef add(self, Instruction c):
         '''Add a new :class:`Instruction` in our list.
         '''
-        if c.parent is None:
-            c.parent = self
-        self.children.append(c)
+        c.radd(self)
         self.flag_update()
 
     cpdef insert(self, int index, Instruction c):
         '''Insert a new :class:`Instruction` in our list at index.
         '''
-        if c.parent is None:
-            c.parent = self
-        self.children.insert(index, c)
+        c.rinsert(self, index)
         self.flag_update()
 
     cpdef remove(self, Instruction c):
         '''Remove an existing :class:`Instruction` from our list.
         '''
-        if c.parent is self:
-            c.parent = None
-        self.children.remove(c)
+        c.rremove(self)
         self.flag_update()
 
     cpdef clear(self):
@@ -112,6 +122,8 @@ cdef class InstructionGroup(Instruction):
         '''
         cdef Instruction c
         for c in self.children[:]:
+            if c.flags & GI_NO_REMOVE:
+                continue
             self.remove(c)
 
     cpdef remove_group(self, str groupname):
@@ -119,6 +131,8 @@ cdef class InstructionGroup(Instruction):
         '''
         cdef Instruction c
         for c in self.children[:]:
+            if c.flags & GI_NO_REMOVE:
+                continue
             if c.group == groupname:
                 self.remove(c)
 
@@ -170,13 +184,25 @@ cdef class VertexInstruction(Instruction):
     def __init__(self, **kwargs):
         #add a BindTexture instruction to bind teh texture used for 
         #this instruction before the actual vertex instruction
-        self.texture_binding = BindTexture(**kwargs)
+        self.texture_binding = BindTexture(noadd=True, **kwargs)
         self.texture = self.texture_binding.texture #auto compute tex coords
         self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
 
         Instruction.__init__(self, **kwargs)
         self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
         self.batch = VertexBatch()
+
+    cdef radd(self, InstructionGroup ig):
+        ig.children.append(self.texture_binding)
+        ig.children.append(self)
+
+    cdef rinsert(self, InstructionGroup ig, int index):
+        ig.children.insert(index, self.texture_binding)
+        ig.children.insert(index, self)
+
+    cdef rremove(self, InstructionGroup ig):
+        ig.children.remove(self.texture_binding)
+        ig.children.remove(self)
 
     property texture:
         '''Property for getting/setting the texture to be bound when drawing the
@@ -262,6 +288,8 @@ cdef class Canvas(CanvasBase):
         for c in self.children[:]:
             if c is self._before or c is self._after:
                 continue
+            if c.flags & GI_NO_REMOVE:
+                continue
             self.remove(c)
 
     cpdef draw(self):
@@ -270,19 +298,15 @@ cdef class Canvas(CanvasBase):
         self.apply()
 
     cpdef add(self, Instruction c):
-        if c.parent is None and c is not self:
-            c.parent = self
         # the after group must remain the last one.
         if self._after is None:
-            self.children.append(c)
+            c.radd(self)
         else:
-            self.children.insert(-1, c)
+            c.rinsert(self, -1)
         self.flag_update()
 
     cpdef remove(self, Instruction c):
-        if c.parent is self:
-            c.parent = None
-        self.children.remove(c)
+        c.rremove(self)
         self.flag_update()
 
     property before:
