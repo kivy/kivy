@@ -16,7 +16,7 @@ cdef class Instruction:
     cdef Instruction parent
 
     cdef void apply(self)
-    cdef void flag_update(self)
+    cdef void flag_update(self, int do_parent=?)
     cdef void flag_update_done(self)
     cdef void set_parent(self, Instruction parent)
 

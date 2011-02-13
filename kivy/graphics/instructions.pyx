@@ -42,8 +42,8 @@ cdef class Instruction:
     cdef void apply(self):
         pass
 
-    cdef void flag_update(self):
-        if self.parent:
+    cdef void flag_update(self, int do_parent=1):
+        if do_parent and self.parent:
             self.parent.flag_update()
         self.flags |= GI_NEEDS_UPDATE
 
