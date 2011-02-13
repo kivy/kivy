@@ -257,9 +257,14 @@ class OSXPortableBuild(Command):
                             stdout=PIPE).communicate()
 
         print "*compressing and finalizing disk image"
+        fn = os.path.join(self.dist_dir, vol_name + ".dmg")
+
+        try:
+            os.remove(fn)
+        except OSError:
+            pass
         convert_cmd = 'hdiutil convert "temp.dmg" -format UDZO -imagekey ' + \
-                      'zlib-level=9 -o %s.dmg' % os.path.join(self.dist_dir,
-                                                              vol_name)
+                      'zlib-level=9 -o %s' % (fn,)
         Popen(shlex.split(convert_cmd), cwd=self.build_dir,
                 stdout=PIPE).communicate()
 
