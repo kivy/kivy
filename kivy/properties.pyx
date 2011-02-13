@@ -206,6 +206,24 @@ cdef class StringProperty(Property):
         if not isinstance(value, basestring):
             raise ValueError('StringProperty accept only str/unicode')
 
+cdef class ObservableList(list):
+    # Internal class to observe changes inside a native python list.
+    cdef Property prop
+    cdef object obj
+
+    def __init__(self, *largs):
+        self.prop = largs[0]
+        self.obj = largs[1]
+        super(ObservableList, self).__init__(*largs[2:])
+
+    def __setitem__(self, key, value):
+        list.__setitem__(self, key, value)
+        self.prop.dispatch(self.obj)
+
+    def __delitem__(self, key):
+        list.__delitem__(self, key)
+        self.prop.dispatch(self.obj)
+
 cdef class ListProperty(Property):
     '''Property that represent a list.
 
@@ -220,8 +238,13 @@ cdef class ListProperty(Property):
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
-        if type(value) is not list:
-            raise ValueError('ListProperty accept only list')
+        if type(value) is not ObservableList:
+            raise ValueError('ListProperty accept only ObservableList'
+                            ' (should never happen.)')
+
+    cpdef set(self, obj, value):
+        value = ObservableList(self, obj, value)
+        Property.set(self, obj, value)
 
 cdef class ObjectProperty(Property):
     '''Property that represent an Python object.
