@@ -18,6 +18,6 @@ cdef class Fbo(RenderContext):
     cpdef bind(self)
     cpdef release(self)
 
-    cdef create_fbo(self)
-    cdef delete_fbo(self)
-    cdef apply(self)
+    cdef void create_fbo(self)
+    cdef void delete_fbo(self)
+    cdef void apply(self)

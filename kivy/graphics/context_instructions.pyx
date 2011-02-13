@@ -200,7 +200,7 @@ cdef class BindTexture(ContextInstruction):
         if self.source is None:
             self.texture = kwargs.get('texture', None)
 
-    cdef apply(self):
+    cdef void apply(self):
         cdef RenderContext context = self.get_context()
         context.set_texture(0, self._texture)
 
@@ -255,7 +255,7 @@ cdef class MatrixInstruction(ContextInstruction):
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
 
-    cdef apply(self):
+    cdef void apply(self):
         '''Apply the matrix of this instance to the
         context model view matrix
         '''

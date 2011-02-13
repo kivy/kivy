@@ -125,7 +125,7 @@ cdef class Fbo(RenderContext):
 
         self.create_fbo()
 
-    cdef delete_fbo(self):
+    cdef void delete_fbo(self):
         # care on this case, if the deletion happen in another thread than main
         # thread, we are lost :)
         self._texture = None
@@ -137,7 +137,7 @@ cdef class Fbo(RenderContext):
             glDeleteRenderbuffers(1, &self._depthbuffer_id)
             self._depthbuffer_id = -1
 
-    cdef create_fbo(self):
+    cdef void create_fbo(self):
         cdef GLuint f_id
         cdef int status
         cdef int do_clear = 0
@@ -242,7 +242,7 @@ cdef class Fbo(RenderContext):
         else:
             glClear(GL_COLOR_BUFFER_BIT)
 
-    cdef apply(self):
+    cdef void apply(self):
         if self.flags & GI_NEEDS_UPDATE:
             self.bind()
             RenderContext.apply(self)
