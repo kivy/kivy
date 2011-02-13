@@ -259,7 +259,10 @@ class LabelBase(object):
         self.texture = texture
 
         # update texture
-        texture.blit_data(data)
+        # If the text is 1px width, usually, the data is black.
+        # Don't blit that kind of data, otherwise, you have a little black bar.
+        if data.width > 1:
+            texture.blit_data(data)
 
     def refresh(self):
         '''Force re-rendering of the text'''
