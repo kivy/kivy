@@ -39,28 +39,31 @@ cdef class Instruction:
         if self.parent:
             self.parent.add(self)
 
-    cdef apply(self):
+    cdef void apply(self):
         pass
 
-    cdef flag_update(self):
+    cdef void flag_update(self):
         if self.parent:
             self.parent.flag_update()
         self.flags |= GI_NEEDS_UPDATE
 
-    cdef flag_update_done(self):
+    cdef void flag_update_done(self):
         self.flags &= ~GI_NEEDS_UPDATE
 
-    cdef radd(self, InstructionGroup ig):
+    cdef void radd(self, InstructionGroup ig):
         ig.children.append(self)
-        self.parent = ig
+        self.set_parent(ig)
 
-    cdef rremove(self, InstructionGroup ig):
+    cdef void rremove(self, InstructionGroup ig):
         ig.children.remove(self)
-        self.parent = None
+        self.set_parent(None)
 
-    cdef rinsert(self, InstructionGroup ig, int index):
+    cdef void rinsert(self, InstructionGroup ig, int index):
         ig.children.insert(index, self)
-        self.parent = ig
+        self.set_parent(ig)
+
+    cdef void set_parent(self, Instruction parent):
+        self.parent = parent
 
     property needs_redraw:
         def __get__(self):
@@ -80,7 +83,7 @@ cdef class InstructionGroup(Instruction):
         else:
             self.compiler = GraphicsCompiler()
 
-    cdef apply(self):
+    cdef void apply(self):
         cdef Instruction c
         if self.compiler:
             if self.flags & GI_NEEDS_UPDATE:
@@ -104,6 +107,7 @@ cdef class InstructionGroup(Instruction):
         '''
         c.radd(self)
         self.flag_update()
+        return
 
     cpdef insert(self, int index, Instruction c):
         '''Insert a new :class:`Instruction` in our list at index.
@@ -158,7 +162,7 @@ cdef class ContextInstruction(Instruction):
         cdef RenderContext context = getActiveContext()
         return context
 
-    cdef apply(self):
+    cdef void apply(self):
         cdef RenderContext context = self.get_context()
         if len(self.context_push):
             context.push_states(self.context_push)
@@ -167,15 +171,15 @@ cdef class ContextInstruction(Instruction):
         if len(self.context_pop):
             context.pop_states(self.context_pop)
 
-    cdef set_state(self, str name, value):
+    cdef void set_state(self, str name, value):
         self.context_state[name] = value
         self.flag_update()
 
-    cdef push_state(self, str name):
+    cdef void push_state(self, str name):
         self.context_push.append(name)
         self.flag_update()
 
-    cdef pop_state(self, str name):
+    cdef void pop_state(self, str name):
         self.context_pop.append(name)
         self.flag_update()
 
@@ -192,17 +196,26 @@ cdef class VertexInstruction(Instruction):
         self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
         self.batch = VertexBatch()
 
-    cdef radd(self, InstructionGroup ig):
+    cdef void radd(self, InstructionGroup ig):
+        cdef Instruction instr = self.texture_binding
         ig.children.append(self.texture_binding)
         ig.children.append(self)
+        instr.set_parent(ig)
+        self.set_parent(ig)
 
-    cdef rinsert(self, InstructionGroup ig, int index):
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        cdef Instruction instr = self.texture_binding
         ig.children.insert(index, self.texture_binding)
         ig.children.insert(index, self)
+        instr.set_parent(ig)
+        self.set_parent(ig)
 
-    cdef rremove(self, InstructionGroup ig):
+    cdef void rremove(self, InstructionGroup ig):
+        cdef Instruction instr = self.texture_binding
         ig.children.remove(self.texture_binding)
         ig.children.remove(self)
+        instr.set_parent(None)
+        self.set_parent(None)
 
     property texture:
         '''Property for getting/setting the texture to be bound when drawing the
@@ -240,7 +253,7 @@ cdef class VertexInstruction(Instruction):
     cdef void build(self):
         pass
 
-    cdef apply(self):
+    cdef void apply(self):
         if self.flags & GI_NEEDS_UPDATE:
             self.build()
             self.flag_update_done()
@@ -405,7 +418,7 @@ cdef class RenderContext(Canvas):
         for key, stack in self.state_stacks.iteritems():
             self.set_state(key, stack[0])
 
-    cdef set_state(self, str name, value):
+    cdef void set_state(self, str name, value):
         #upload the uniform value for the shdeer
         cdef list d
         if not name in self.state_stacks:
@@ -421,33 +434,33 @@ cdef class RenderContext(Canvas):
     cdef get_state(self, str name):
         return self.state_stacks[name][-1]
 
-    cdef set_states(self, dict states):
+    cdef void set_states(self, dict states):
         cdef str name
         for name, value in states.iteritems():
             self.set_state(name, value)
 
-    cdef push_state(self, str name):
+    cdef void push_state(self, str name):
         stack = self.state_stacks[name]
         stack.append(stack[-1])
         self.flag_update()
 
-    cdef push_states(self, list names):
+    cdef void push_states(self, list names):
         cdef str name
         for name in names:
             self.push_state(name)
 
-    cdef pop_state(self, str name):
+    cdef void pop_state(self, str name):
         stack = self.state_stacks[name]
         stack.pop()
         self.set_state(name, stack[-1])
         self.flag_update()
 
-    cdef pop_states(self, list names):
+    cdef void pop_states(self, list names):
         cdef str name
         for name in names:
             self.pop_state(name)
 
-    cdef set_texture(self, int index, Texture texture):
+    cdef void set_texture(self, int index, Texture texture):
         if index in self.bind_texture and \
            self.bind_texture[index] is texture:
             return
@@ -456,10 +469,10 @@ cdef class RenderContext(Canvas):
         glBindTexture(texture.target, texture.id)
         self.flag_update()
 
-    cdef enter(self):
+    cdef void enter(self):
         self.shader.use()
 
-    cdef apply(self):
+    cdef void apply(self):
         keys = self.state_stacks.keys()
         self.push_states(keys)
         pushActiveContext(self)
