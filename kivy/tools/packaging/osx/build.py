@@ -3,6 +3,7 @@ import sys
 import shutil
 import shlex
 import re
+import time
 from urllib import urlretrieve
 from urllib2 import urlopen
 from subprocess import Popen, PIPE
@@ -41,9 +42,10 @@ class OSXPortableBuild(Command):
                                         self.dist_name + '-osx-build')
 
     def run(self):
-        print "---------------------------------"
-        print "Building Kivy Portable for OSX"
-        print "---------------------------------"
+        intro = "Building Kivy Portable for OSX (%s)" % (self.dist_name)
+        print "-" * len(intro)
+        print intro
+        print "-" * len(intro)
 
         print "\nPreparing Build..."
         print "---------------------------------------"
@@ -143,6 +145,35 @@ class OSXPortableBuild(Command):
         script = os.path.join(src_dist, 'kivy', 'tools', 'packaging',
                               'osx', 'kivy.sh')
         shutil.copy(script, script_target)
+
+
+        # Write plist files with updated version & year info (for copyright)
+        year = time.strftime("%Y")
+        first = '2011'
+        if year != first:
+            year = first + '-' + year
+        version = self.dist_name.replace("Kivy-", "")
+
+        def write_plist(fn, target):
+            print "*Writing", fn
+            plist_template = os.path.join(self.dist_dir, 'kivy', 'tools',
+                                        'packaging', 'osx', fn)
+            with open(plist_template, 'r') as fd:
+                plist_content = fd.read()
+            plist_content = plist_content.replace("{{__VERSION__}}", version)
+            plist_content = plist_content.replace("{{__YEAR__}}", year)
+            with open(plist_target, 'w') as fd:
+                fd.write(plist_content)
+
+        fn = 'InfoPlist.strings'
+        plist_target = os.path.join(self.build_dir, 'portable-deps-osx', 'Kivy.app',
+                            'Contents', 'Resources', 'English.lproj', fn)
+        write_plist(fn, plist_target)
+
+        fn = 'Info.plist'
+        plist_target = os.path.join(self.build_dir, 'portable-deps-osx', 'Kivy.app',
+                            'Contents', fn)
+        write_plist(fn, plist_target)
 
         print "*Moving examples out of app bundle to be included in disk image"
         examples_target = os.path.join(self.build_dir, 'portable-deps-osx',
