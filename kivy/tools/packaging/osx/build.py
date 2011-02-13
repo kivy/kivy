@@ -3,7 +3,9 @@ import sys
 import shutil
 import shlex
 import re
+import time
 from urllib import urlretrieve
+from urllib2 import urlopen
 from subprocess import Popen, PIPE
 from distutils.cmd import Command
 
@@ -40,9 +42,10 @@ class OSXPortableBuild(Command):
                                         self.dist_name + '-osx-build')
 
     def run(self):
-        print "---------------------------------"
-        print "Building Kivy Portable for OSX"
-        print "---------------------------------"
+        intro = "Building Kivy Portable for OSX (%s)" % (self.dist_name)
+        print "-" * len(intro)
+        print intro
+        print "-" * len(intro)
 
         print "\nPreparing Build..."
         print "---------------------------------------"
@@ -51,29 +54,57 @@ class OSXPortableBuild(Command):
             shutil.rmtree(self.build_dir, ignore_errors=True)
         print "*Creating build directory:", self.build_dir
         os.makedirs(self.build_dir)
+        def download_deps():
+            print "\nGetting binary dependencies..."
+            print "*Downloading:", self.deps_url
+            # report_hook is called every time a piece of teh file is
+            # downloaded to print progress
+            def report_hook(block_count, block_size, total_size):
+                p = block_count * block_size * 100.0 / total_size
+                print "\b\b\b\b\b\b\b\b\b", "%06.2f" % p + "%",
+            print " Progress: 000.00%",
+            # location of binary dependencioes needed for portable kivy
+            urlretrieve(self.deps_url,
+                        # tmp file to store the archive
+                        os.path.join(self.dist_dir, 'deps.zip'),
+                        reporthook=report_hook)
+            print " [Done]"
 
+        fn = '.last_known_portable_deps_hash'
 
-        print "\nGetting binary dependencies..."
+        def get_latest_hash():
+            u = urlopen("http://code.google.com/p/kivy/downloads/detail?name=portable-deps-osx.zip")
+            c = u.read()
+            start = """Checksum: </th><td style="white-space:nowrap"> """
+            start_index = c.find(start) + len(start)
+            # SHA1 hash is 40 chars long
+            latest_hash = c[start_index:start_index+40]
+            print "Latest SHA1 Hash for deps is:", repr(latest_hash)
+            return latest_hash
+
+        print "\nChecking binary dependencies..."
         print "---------------------------------------"
-        print "*Downloading:", self.deps_url
-        # report_hook is called every time a piece of teh file is
-        # downloaded to print progress
-        def report_hook(block_count, block_size, total_size):
-            p = block_count * block_size * 100.0 / total_size
-            print "\b\b\b\b\b\b\b\b\b", "%06.2f" % p + "%",
-        print " Progress: 000.00%",
-        # location of binary dependencioes needed for portable kivy
-        urlretrieve(self.deps_url,
-                    # tmp file to store the archive
-                    os.path.join(self.build_dir, 'deps.zip'),
-                    reporthook=report_hook)
-        print " [Done]"
-
+        download = False
+        try:
+            with open(fn, 'r') as fd:
+                last_hash = fd.read()
+            print "Stored SHA1 Hash for deps is:", repr(last_hash)
+        except:
+            print 'No cached copy of binary dependencies found.'
+            download = True
+        latest_hash = get_latest_hash()
+        deps = os.path.join(self.dist_dir, 'deps.zip')
+        if download or not (last_hash == latest_hash and os.path.isfile(deps)):
+            download_deps()
+            with open(fn, 'w') as fd:
+                fd.write(latest_hash)
+        else:
+            print "Using CACHED COPY for binary dependencies!"
 
         print "*Extracting binary dependencies..."
         # using osx sysetm command, because python zipfile cant
         # handle the hidden files in teh archive
-        Popen(['unzip', os.path.join(self.build_dir, 'deps.zip')],
+        Popen(['unzip', os.path.join(self.dist_dir, 'deps.zip')],
                 cwd=self.build_dir, stdout=PIPE).communicate()
 
         print "\nPutting kivy into portable environment"
@@ -115,6 +146,35 @@ class OSXPortableBuild(Command):
                               'osx', 'kivy.sh')
         shutil.copy(script, script_target)
 
+
+        # Write plist files with updated version & year info (for copyright)
+        year = time.strftime("%Y")
+        first = '2011'
+        if year != first:
+            year = first + '-' + year
+        version = self.dist_name.replace("Kivy-", "")
+
+        def write_plist(fn, target):
+            print "*Writing", fn
+            plist_template = os.path.join(self.dist_dir, 'kivy', 'tools',
+                                        'packaging', 'osx', fn)
+            with open(plist_template, 'r') as fd:
+                plist_content = fd.read()
+            plist_content = plist_content.replace("{{__VERSION__}}", version)
+            plist_content = plist_content.replace("{{__YEAR__}}", year)
+            with open(plist_target, 'w') as fd:
+                fd.write(plist_content)
+
+        fn = 'InfoPlist.strings'
+        plist_target = os.path.join(self.build_dir, 'portable-deps-osx', 'Kivy.app',
+                            'Contents', 'Resources', 'English.lproj', fn)
+        write_plist(fn, plist_target)
+
+        fn = 'Info.plist'
+        plist_target = os.path.join(self.build_dir, 'portable-deps-osx', 'Kivy.app',
+                            'Contents', fn)
+        write_plist(fn, plist_target)
+
         print "*Moving examples out of app bundle to be included in disk image"
         examples_target = os.path.join(self.build_dir, 'portable-deps-osx',
                                         'examples')
@@ -127,7 +187,6 @@ class OSXPortableBuild(Command):
         shutil.move(src_dist, kivy_target)
 
         print "*Removing intermediate file"
-        os.remove(os.path.join(self.build_dir, 'deps.zip'))
         os.remove(os.path.join(self.build_dir, src_dist + '.tar.gz'))
         shutil.rmtree(os.path.join(self.build_dir, '__MACOSX'),
                                 ignore_errors=True)
@@ -198,9 +257,14 @@ class OSXPortableBuild(Command):
                             stdout=PIPE).communicate()
 
         print "*compressing and finalizing disk image"
+        fn = os.path.join(self.dist_dir, vol_name + ".dmg")
+
+        try:
+            os.remove(fn)
+        except OSError:
+            pass
         convert_cmd = 'hdiutil convert "temp.dmg" -format UDZO -imagekey ' + \
-                      'zlib-level=9 -o %s.dmg' % os.path.join(self.dist_dir,
-                                                              vol_name)
+                      'zlib-level=9 -o %s' % (fn,)
         Popen(shlex.split(convert_cmd), cwd=self.build_dir,
                 stdout=PIPE).communicate()
 
