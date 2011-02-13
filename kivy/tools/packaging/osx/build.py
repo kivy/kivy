@@ -4,6 +4,7 @@ import shutil
 import shlex
 import re
 from urllib import urlretrieve
+from urllib2 import urlopen
 from subprocess import Popen, PIPE
 from distutils.cmd import Command
 
@@ -51,29 +52,57 @@ class OSXPortableBuild(Command):
             shutil.rmtree(self.build_dir, ignore_errors=True)
         print "*Creating build directory:", self.build_dir
         os.makedirs(self.build_dir)
+        def download_deps():
+            print "\nGetting binary dependencies..."
+            print "*Downloading:", self.deps_url
+            # report_hook is called every time a piece of teh file is
+            # downloaded to print progress
+            def report_hook(block_count, block_size, total_size):
+                p = block_count * block_size * 100.0 / total_size
+                print "\b\b\b\b\b\b\b\b\b", "%06.2f" % p + "%",
+            print " Progress: 000.00%",
+            # location of binary dependencioes needed for portable kivy
+            urlretrieve(self.deps_url,
+                        # tmp file to store the archive
+                        os.path.join(self.dist_dir, 'deps.zip'),
+                        reporthook=report_hook)
+            print " [Done]"
 
+        fn = '.last_known_portable_deps_hash'
 
-        print "\nGetting binary dependencies..."
+        def get_latest_hash():
+            u = urlopen("http://code.google.com/p/kivy/downloads/detail?name=portable-deps-osx.zip")
+            c = u.read()
+            start = """Checksum: </th><td style="white-space:nowrap"> """
+            start_index = c.find(start) + len(start)
+            # SHA1 hash is 40 chars long
+            latest_hash = c[start_index:start_index+40]
+            print "Latest SHA1 Hash for deps is:", repr(latest_hash)
+            return latest_hash
+
+        print "\nChecking binary dependencies..."
         print "---------------------------------------"
-        print "*Downloading:", self.deps_url
-        # report_hook is called every time a piece of teh file is
-        # downloaded to print progress
-        def report_hook(block_count, block_size, total_size):
-            p = block_count * block_size * 100.0 / total_size
-            print "\b\b\b\b\b\b\b\b\b", "%06.2f" % p + "%",
-        print " Progress: 000.00%",
-        # location of binary dependencioes needed for portable kivy
-        urlretrieve(self.deps_url,
-                    # tmp file to store the archive
-                    os.path.join(self.build_dir, 'deps.zip'),
-                    reporthook=report_hook)
-        print " [Done]"
-
+        download = False
+        try:
+            with open(fn, 'r') as fd:
+                last_hash = fd.read()
+            print "Stored SHA1 Hash for deps is:", repr(last_hash)
+        except:
+            print 'No cached copy of binary dependencies found.'
+            download = True
+        latest_hash = get_latest_hash()
+        deps = os.path.join(self.dist_dir, 'deps.zip')
+        if download or not (last_hash == latest_hash and os.path.isfile(deps)):
+            download_deps()
+            with open(fn, 'w') as fd:
+                fd.write(latest_hash)
+        else:
+            print "Using CACHED COPY for binary dependencies!"
 
         print "*Extracting binary dependencies..."
         # using osx sysetm command, because python zipfile cant
         # handle the hidden files in teh archive
-        Popen(['unzip', os.path.join(self.build_dir, 'deps.zip')],
+        Popen(['unzip', os.path.join(self.dist_dir, 'deps.zip')],
                 cwd=self.build_dir, stdout=PIPE).communicate()
 
         print "\nPutting kivy into portable environment"
@@ -127,7 +156,6 @@ class OSXPortableBuild(Command):
         shutil.move(src_dist, kivy_target)
 
         print "*Removing intermediate file"
-        os.remove(os.path.join(self.build_dir, 'deps.zip'))
         os.remove(os.path.join(self.build_dir, src_dist + '.tar.gz'))
         shutil.rmtree(os.path.join(self.build_dir, '__MACOSX'),
                                 ignore_errors=True)
