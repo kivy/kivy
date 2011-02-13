@@ -140,13 +140,16 @@ if True:
         return '.'.join(pyxl)
 
     OrigExtension = Extension
+
     def Extension(*args, **kwargs):
         # Small hack to only compile for x86_64 on OSX.
         # Is there a better way to do this?
         if platform == 'darwin':
             extra_args = ['-arch', 'x86_64']
-            kwargs['extra_compile_args'] = extra_args + kwargs.get('extra_compile_args', [])
-            kwargs['extra_link_args'] = extra_args + kwargs.get('extra_link_args', [])
+            kwargs['extra_compile_args'] = extra_args + \
+                kwargs.get('extra_compile_args', [])
+            kwargs['extra_link_args'] = extra_args + \
+                kwargs.get('extra_link_args', [])
         return OrigExtension(*args, **kwargs)
 
     # simple extensions
