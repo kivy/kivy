@@ -218,8 +218,16 @@ cdef class VertexInstruction(Instruction):
         self.set_parent(None)
 
     property texture:
-        '''Property for getting/setting the texture to be bound when drawing the
-        vertices.
+        '''Property that represent the texture used for drawing this
+        Instruction. You can set a new texture like this::
+
+            from kivy.core.image import Image
+
+            texture = Image('logo.png').texture
+            with self.canvas:
+                Rectangle(texture=texture, pos=self.pos, size=self.size)
+
+        Usually, you will use :data:`source` attribute instead of texture.
         '''
         def __get__(self):
             return self.texture_binding.texture
@@ -233,7 +241,26 @@ cdef class VertexInstruction(Instruction):
             self.flag_update()
 
     property source:
-        '''Property for getting/setting a filename as a source for the texture.
+        '''This property represent the filename to used for the texture.
+        If you want to use another image as a source, you can do::
+
+            with self.canvas:
+                Rectangle(source='mylogo.png', pos=self.pos, size=self.size)
+
+        Or in a kivy language::
+
+            <MyWidget>:
+                canvas:
+                    Rectangle:
+                        source: 'myfilename.png'
+                        pos: self.pos
+                        size: self.size
+
+        .. note::
+            
+            The filename will be search with
+            :func:`kivy.resources.resource_find` function.
+
         '''
         def __get__(self):
             return self.texture_binding.source
@@ -242,7 +269,26 @@ cdef class VertexInstruction(Instruction):
             self.texture = self.texture_binding._texture
 
     property tex_coords:
-        '''Property for getting/setting texture coordinates.
+        '''This property represent the texture coordinate used for drawing the
+        vertex instruction. The value must be a list of 8 values.
+
+        A texture coordinate have a position (u, v), and a size (w, h). The size
+        can be negative, and will represent the 'inversed' texture. By default,
+        the tex_coords will be::
+
+            [u, v, u + w, v, u + w, y + h, u, y + h]
+
+        You can pass your own texture coordinate, if you want to do fancy
+        effects.
+
+        .. warning::
+
+            The default value as exposed just before can be negative. Depending
+            of the provider of image nor label, the coordinate are flip in
+            vertical, because of the order of internal image. Instead of
+            flipping the image data, we are just flipping the texture coordinate 
+            to be faster.
+
         '''
         def __get__(self):
             return self._tex_coords
