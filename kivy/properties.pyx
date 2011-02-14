@@ -490,5 +490,6 @@ cdef class AliasProperty(Property):
         return self.storage[obj.__uid]['getter'](obj)
 
     cpdef set(self, obj, value):
-        self.storage[obj.__uid]['setter'](obj, value)
+        if self.storage[obj.__uid]['setter'](obj, value):
+            self.dispatch(obj)
 
