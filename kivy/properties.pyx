@@ -398,7 +398,7 @@ cdef class ReferenceListProperty(Property):
         self.dispatch(obj)
 
     cdef convert(self, obj, value):
-        if type(value) not in (list, tuple):
+        if not isinstance(value, (list, tuple)):
             raise ValueError('Value must be a list or tuple')
         return <list>value
 
