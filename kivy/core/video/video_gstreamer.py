@@ -245,7 +245,7 @@ class VideoGStreamer(VideoBase):
                 if structure_name.startswith('video') and 'width' in cap.keys():
                     self._videosize = (cap['width'], cap['height'])
                     self._texture = Texture.create(
-                        size=self._videosize, fmt='rgb')
+                        size=self._videosize, colorfmt='rgb')
                     self._texture.flip_vertical()
                     self.dispatch('on_load')
 
@@ -264,6 +264,6 @@ class VideoGStreamer(VideoBase):
             if self._buffer is not None:
                 self._texture.blit_buffer(self._buffer.data,
                                           size=self._videosize,
-                                          fmt='rgb')
+                                          colorfmt='rgb')
                 self._buffer = None
                 self.dispatch('on_frame')
