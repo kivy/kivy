@@ -442,7 +442,7 @@ cdef class RenderContext(Canvas):
         if fs_src is None:
             fs_file = join(kivy_shader_dir, 'default.fs')
             fs_src  = open(fs_file, 'r').read()
-        self.shader = Shader(vs_src, fs_src)
+        self._shader = Shader(vs_src, fs_src)
 
         # load default texture image
         filename = join(kivy_shader_dir, 'default.png')
@@ -460,7 +460,7 @@ cdef class RenderContext(Canvas):
             'modelview_mat' : [Matrix()],
         }
 
-        self.shader.use()
+        self._shader.use()
         for key, stack in self.state_stacks.iteritems():
             self.set_state(key, stack[0])
 
@@ -475,7 +475,7 @@ cdef class RenderContext(Canvas):
             if value != d[-1]:
                 d[-1] = value
                 self.flag_update()
-        self.shader.set_uniform(name, value)
+        self._shader.set_uniform(name, value)
 
     cdef get_state(self, str name):
         return self.state_stacks[name][-1]
@@ -516,24 +516,26 @@ cdef class RenderContext(Canvas):
         self.flag_update()
 
     cdef void enter(self):
-        self.shader.use()
+        self._shader.use()
 
     cdef void apply(self):
-        keys = self.state_stacks.keys()
-        self.push_states(keys)
         pushActiveContext(self)
+        cdef list keys = self.state_stacks.keys()
+        self.push_states(keys)
         Canvas.apply(self)
-        popActiveContext()
         self.pop_states(keys)
         self.flag_update_done()
+        popActiveContext()
 
     def __setitem__(self, key, val):
         self.set_state(key, val)
 
     def __getitem__(self, key):
-        return self.shader.uniform_values[key]
+        return self._shader.uniform_values[key]
 
-
+    property shader:
+        def __get__(self):
+            return self._shader
 
 
 
