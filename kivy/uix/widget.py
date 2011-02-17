@@ -141,8 +141,9 @@ class Widget(EventDispatcher):
             if name in properties:
                 self.bind(**{name: getattr(self, func)})
 
-        # Create the default canvas
-        self.canvas = Canvas()
+        # Create the default canvas if not exist
+        if self.canvas is None:
+            self.canvas = Canvas()
 
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():

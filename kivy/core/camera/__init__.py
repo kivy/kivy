@@ -116,7 +116,7 @@ class CameraBase(EventDispatcher):
         if self._texture is None:
             Logger.debug('Camera: copy_to_gpu() failed, _texture is None !')
             return
-        self._texture.blit_buffer(self._buffer, fmt=self._format)
+        self._texture.blit_buffer(self._buffer, colorfmt=self._format)
         self._buffer = None
         self.dispatch('on_frame')
 

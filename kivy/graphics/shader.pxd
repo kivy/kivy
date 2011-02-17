@@ -3,6 +3,7 @@ from c_opengl cimport GLuint
 from transformation cimport Matrix
 
 cdef class Shader:
+    cdef int _success
     cdef int program
     cdef int vertex_shader
     cdef int fragment_shader
@@ -19,11 +20,12 @@ cdef class Shader:
     cdef int get_uniform_loc(self, str name)
     cdef void bind_attrib_locations(self)
     cdef void build(self)
+    cdef void build_vertex(self)
+    cdef void build_fragment(self)
+    cdef void link_program(self)
     cdef int is_linked(self)
     cdef GLuint compile_shader(self, char* source, shadertype)
     cdef str get_shader_log(self, shader)
     cdef str get_program_log(self, shader)
-    cdef void process_build_log(self)
     cdef void process_message(self, str ctype, str message)
-
 

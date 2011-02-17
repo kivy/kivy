@@ -92,7 +92,7 @@ class CameraGStreamer(CameraBase):
             return
         if self._texture is None and self._texturesize is not None:
             self._texture = Texture.create(
-                size=self._texturesize, fmt='rgb')
+                size=self._texturesize, colorfmt='rgb')
             self._texture.flip_vertical()
             self.dispatch('on_load')
         self._copy_to_gpu()

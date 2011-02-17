@@ -16,3 +16,6 @@ kivy/graphics/config.h
 kivy/graphics/config.pxi
 kivy/tests/build
 kivy/tests/results
+.last_known_portable_deps_hash
+deps.zip
+Kivy.dmg
