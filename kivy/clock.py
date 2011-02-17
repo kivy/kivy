@@ -77,11 +77,12 @@ class ClockBase(object):
     '''A clock object, that support events
     '''
     __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
-            '_fps_counter', '_rfps_counter', '_events', '_max_fps')
+                 '_start_tick', '_fps_counter', '_rfps_counter', '_events',
+                 '_max_fps')
 
     def __init__(self):
         self._dt = 0.0001
-        self._last_tick = time()
+        self._start_tick = self._last_tick = time()
         self._fps = 0
         self._rfps = 0
         self._fps_counter = 0
@@ -151,6 +152,10 @@ class ClockBase(object):
     def get_time(self):
         '''Get the last tick made by the clock'''
         return self._last_tick
+
+    def get_boottime(self):
+        '''Get time in seconds from the application start'''
+        return self._last_tick - self._start_tick
 
     def schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds'''
