@@ -70,7 +70,7 @@ title('Libraries')
 def testimport(libname):
     try:
         l = __import__(libname)
-        report.append('%-20s exist' % libname)
+        report.append('%-20s exist at %s' % (libname, l.__file__))
     except ImportError, e:
         report.append('%-20s is missing' % libname)
 for x in (
