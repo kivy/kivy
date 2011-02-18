@@ -607,7 +607,8 @@ cdef class Texture:
             return (self.width, self.height)
 
     def __str__(self):
-        return '<Texture size=(%d, %d)>' % self.size
+        return '<Texture id=%d size=(%d, %d)>' % (
+            self._id, self.width, self.height)
 
 cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2
