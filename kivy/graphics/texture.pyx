@@ -113,6 +113,38 @@ cdef inline int _buffer_type_to_gl_size(str x):
     except KeyError:
         raise Exception('Unknown <%s> format' % x)
 
+cdef dict _gl_texture_min_filter = {
+    'nearest': GL_NEAREST,
+    'linear': GL_LINEAR,
+    'nearest_mipmap_nearest': GL_NEAREST_MIPMAP_NEAREST,
+    'nearest_mipmap_linear': GL_NEAREST_MIPMAP_LINEAR,
+    'linear_mipmap_nearest': GL_LINEAR_MIPMAP_NEAREST,
+    'linear_mipmap_linear': GL_LINEAR_MIPMAP_LINEAR,
+}
+
+cdef inline GLuint _str_to_gl_texture_min_filter(str x):
+    x = x.lower()
+    try:
+        return _gl_texture_min_filter[x]
+    except KeyError:
+        raise Exception('Unknown <%s> texture min filter' % x)
+
+cdef inline GLuint _str_to_gl_texture_mag_filter(str x):
+    x = x.lower()
+    if x == 'nearest':
+        return GL_NEAREST
+    elif x == 'linear':
+        return GL_LINEAR
+    raise Exception('Unknown <%s> texture mag filter' % x)
+
+cdef inline GLuint _str_to_gl_texture_wrap(str x):
+    if x == 'clamp_to_edge':
+        return GL_CLAMP_TO_EDGE
+    elif x == 'repeat':
+        return GL_REPEAT
+    elif x == 'mirrored_repeat':
+        return GL_MIRRORED_REPEAT
+
 cdef inline int _gl_format_size(GLuint x):
     if x in (GL_RGB, GL_BGR):
         return 3
@@ -227,13 +259,13 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
                       colorfmt=colorfmt, mipmap=mipmap)
 
     texture.bind()
-    texture.wrap = GL_CLAMP_TO_EDGE
+    texture.wrap = 'clamp_to_edge'
     if mipmap:
-        texture.min_filter  = GL_LINEAR_MIPMAP_NEAREST
-        texture.mag_filter  = GL_LINEAR
+        texture.min_filter  = 'linear_mipmap_nearest'
+        texture.mag_filter  = 'linear'
     else:
-        texture.min_filter  = GL_LINEAR
-        texture.mag_filter  = GL_LINEAR
+        texture.min_filter  = 'linear'
+        texture.mag_filter  = 'linear'
 
     # ok, allocate memory for initial texture
     cdef int glfmt = _color_fmt_to_gl(colorfmt)
@@ -328,9 +360,9 @@ cdef class Texture:
         self._target        = target
         self._id            = texid
         self._mipmap        = mipmap
-        self._gl_wrap       = 0
-        self._gl_min_filter = 0
-        self._gl_mag_filter = 0
+        self._wrap          = None
+        self._min_filter    = None
+        self._mag_filter    = None
         self._uvx           = 0.
         self._uvy           = 0.
         self._uvw           = 1.
@@ -448,40 +480,70 @@ cdef class Texture:
         glDisable(self._target)
 
     property min_filter:
-        '''Get/set the GL_TEXTURE_MIN_FILTER property
+        '''Get/set the min filter texture. Available values:
+
+        - linear
+        - nearest
+        - linear_mipmap_linear
+        - linear_mipmap_nearest
+        - nearest_mipmap_nearest
+        - nearest_mipmap_linear
+
+        Check opengl documentation for more information about the behavior of
+        theses values : http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
         '''
         def __get__(self):
-            return self._gl_min_filter
+            return self._min_filter
         def __set__(self, x):
-            if x == self._gl_min_filter:
+            cdef GLuint value
+            if x == self._min_filter:
                 return
             self.bind()
-            glTexParameteri(self.target, GL_TEXTURE_MIN_FILTER, x)
-            self._gl_min_filter = x
+            _value = _str_to_gl_texture_min_filter(x)
+            glTexParameteri(self.target, GL_TEXTURE_MIN_FILTER, _value)
+            self._min_filter = x
 
     property mag_filter:
-        '''Get/set the GL_TEXTURE_MAG_FILTER property
+        '''Get/set the mag filter texture. Available values:
+
+        - linear
+        - nearest
+
+        Check opengl documentation for more information about the behavior of
+        theses values : http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
         '''
         def __get__(self):
-            return self._gl_mag_filter
+            return self._mag_filter
         def __set__(self, x):
-            if x == self._gl_mag_filter:
+            cdef GLuint _value
+            if x == self._mag_filter:
                 return
             self.bind()
-            glTexParameteri(self.target, GL_TEXTURE_MAG_FILTER, x)
-            self._gl_mag_filter = x
+            _value = _str_to_gl_texture_mag_filter(x)
+            glTexParameteri(self.target, GL_TEXTURE_MAG_FILTER, _value)
+            self._mag_filter = x
 
     property wrap:
-        '''Get/set the GL_TEXTURE_WRAP_S,T property
+        '''Get/set the wrap texture. Available values:
+
+        - repeat
+        - mirrored_repeat
+        - clamp_to_edge
+
+        Check opengl documentation for more information about the behavior of
+        theses values : http://www.khronos.org/opengles/sdk/docs/man/xhtml/glTexParameter.xml.
         '''
         def __get__(self):
-            return self._gl_wrap
+            return self._wrap
         def __set__(self, wrap):
-            if wrap == self._gl_wrap:
+            cdef GLuint _value
+            if wrap == self._wrap:
                 return
             self.bind()
-            glTexParameteri(self.target, GL_TEXTURE_WRAP_S, wrap)
-            glTexParameteri(self.target, GL_TEXTURE_WRAP_T, wrap)
+            _value = _str_to_gl_texture_wrap(wrap)
+            glTexParameteri(self.target, GL_TEXTURE_WRAP_S, _value)
+            glTexParameteri(self.target, GL_TEXTURE_WRAP_T, _value)
+            self._wrap = wrap
 
     def blit_data(self, im, pos=None):
         '''Replace a whole texture with a image data'''
