@@ -116,6 +116,7 @@ class WindowPygame(WindowBase):
 
     def close(self):
         pygame.display.quit()
+        self.dispatch('on_close')
 
     def screenshot(self, *largs, **kwargs):
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
