@@ -79,7 +79,6 @@ cdef class Shader:
         glUseProgram(0)
 
     cdef void set_uniform(self, str name, value):
-        self.use()
         self.uniform_values[name] = value
         self.upload_uniform(name, value)
 
