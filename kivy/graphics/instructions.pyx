@@ -507,9 +507,12 @@ cdef class RenderContext(Canvas):
             self.pop_state(name)
 
     cdef void set_texture(self, int index, Texture texture):
-        if index in self.bind_texture and \
-           self.bind_texture[index] is texture:
-            return
+        # TODO this code is actually broken,
+        # the binded texture can be already set, but we may changed if we came
+        # from another render context.
+        #if index in self.bind_texture and \
+        #   self.bind_texture[index] is texture:
+        #    return
         self.bind_texture[index] = texture
         glActiveTexture(GL_TEXTURE0 + index)
         glBindTexture(texture.target, texture.id)
@@ -519,13 +522,13 @@ cdef class RenderContext(Canvas):
         self._shader.use()
 
     cdef void apply(self):
-        pushActiveContext(self)
         cdef list keys = self.state_stacks.keys()
+        pushActiveContext(self)
         self.push_states(keys)
         Canvas.apply(self)
         self.pop_states(keys)
-        self.flag_update_done()
         popActiveContext()
+        self.flag_update_done()
 
     def __setitem__(self, key, val):
         self.set_state(key, val)
