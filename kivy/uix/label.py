@@ -101,11 +101,11 @@ class Label(Widget):
     'fonts/DroidSans.ttf'.
     '''
 
-    font_size = NumericProperty(10)
+    font_size = NumericProperty(12)
     '''Font size of the text. The font size is in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
-    10.
+    12.
     '''
 
     bold = BooleanProperty(False)
