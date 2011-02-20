@@ -29,9 +29,9 @@
         Color:
             rgb: 1, 1, 1
 		BorderImage:
-			border: (0, 16, 0, 16) if self.orientation == 'horizontal' else (16, 0, 16, 0)
+			border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
 			pos: (self.x, self.center_y - 16) if self.orientation == 'horizontal' else (self.center_x - 16, self.y)
-			size: (self.width, 32) if self.orientation == 'horizontal' else (32, self.height)
+			size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
 			source: 'data/images/slider%s_background.png' % self.orientation[0]
 		Image:
 			pos: (self.value_pos[0] - 16, self.center_y - 16) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
