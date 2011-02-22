@@ -91,7 +91,7 @@ void main(void)
 
 shader_monochrome = header + '''
 void main() {
-    vec3 rgb = texture2D(texture0, tex_coord0);
+    vec4 rgb = texture2D(texture0, tex_coord0);
     float c = (rgb.x + rgb.y + rgb.z) * 0.3333;
     gl_FragColor = vec4(c, c, c, 1.0);
 }
@@ -185,8 +185,9 @@ class ShaderTreeApp(App):
                      pos_hint={'center_x': .25, 'center_y': .5})
         sw.add_widget(btn)
 
+        center = Window.width * 0.75 - 256, Window.height * 0.5 - 256
         scatter = ScatterImage(source='tex3.jpg', size_hint=(None, None),
-                               pos_hint={'center_x': .75, 'center_y': .5})
+                               size=(512, 512), pos=center)
         sw.add_widget(scatter)
 
         # create a button outside the shader widget, to change the current used
