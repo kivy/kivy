@@ -29,7 +29,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.3-dev'
+__version__ = '1.0.3-alpha'
 
 import sys
 from shutil import copytree
