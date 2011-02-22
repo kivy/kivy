@@ -601,8 +601,8 @@ class Widget(EventDispatcher):
 
         widget = Widget(pos_hint={'top': 0.9})
 
-    The keys 'x', 'right' will use the parent width.
-    The keys 'y', 'top' will use the parent height.
+    The keys 'x', 'right', 'center_x', will use the parent width.
+    The keys 'y', 'top', 'center_y', will use the parent height.
 
     Check :doc:`api-kivy.uix.floatlayout` for more informations.
 

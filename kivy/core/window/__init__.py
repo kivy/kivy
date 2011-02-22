@@ -429,6 +429,10 @@ class WindowBase(EventDispatcher):
                     w.y = value * height
                 elif key == 'top':
                     w.top = value * height
+                elif key == 'center_x':
+                    w.center_x = value * width
+                elif key == 'center_y':
+                    w.center_y = value * height
 
     def _get_rotation(self):
         return self._rotation
