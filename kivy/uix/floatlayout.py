@@ -104,5 +104,9 @@ class FloatLayout(Layout):
                     c.y = y + value * h
                 elif key == 'top':
                     c.top = y + value * h
+                elif key == 'center_x':
+                    c.center_x = x + value * w
+                elif key == 'center_y':
+                    c.center_y = y + value * h
 
 
