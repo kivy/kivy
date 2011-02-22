@@ -194,6 +194,9 @@ cdef class Shader:
 
         ctype = 'vertex' if shadertype == GL_VERTEX_SHADER else 'fragment'
 
+        # XXX to ensure that shader is ok, read error state right now.
+        glGetError()
+
         # create and compile
         shader = glCreateShader(shadertype)
         glShaderSource(shader, 1, <char**> &source, NULL)
@@ -209,7 +212,7 @@ cdef class Shader:
         if success == GL_FALSE:
             self._success = 0
             error = glGetError()
-            Logger.error('Shader <%s> failed to compile (gl:%d)' % (
+            Logger.error('Shader: <%s> failed to compile (gl:%d)' % (
                 ctype, error))
             glDeleteShader(shader)
             return -1
