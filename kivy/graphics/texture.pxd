@@ -7,9 +7,9 @@ cdef class Texture:
     cdef GLuint _target
     cdef GLuint _id
     cdef int _mipmap
-    cdef GLuint _gl_wrap
-    cdef GLuint _gl_min_filter
-    cdef GLuint _gl_mag_filter
+    cdef str _wrap
+    cdef str _min_filter
+    cdef str _mag_filter
     cdef int _rectangle
     cdef bytes _colorfmt
     cdef float _uvx

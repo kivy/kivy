@@ -59,7 +59,7 @@ class WindowBase(EventDispatcher):
             Fired when the :class:`Window` is beeing rotated
         `on_close`:
             Fired when the :class:`Window` is closed
-        `on_keyboard`: key, scancode, unicode
+        `on_keyboard`: key, scancode, unicode, modifier
             Fired when the keyboard is in action
         `on_key_down`: key, scancode, unicode
             Fired when a key is down
@@ -489,15 +489,15 @@ class WindowBase(EventDispatcher):
         '''Event called when mouse is moving, with buttons pressed'''
         pass
 
-    def on_keyboard(self, key, scancode=None, unicode=None):
+    def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
         '''Event called when keyboard is in action
 
         .. warning::
-            Some providers can skip `scancode` or `unicode` !!
+            Some providers may omit `scancode`, `unicode` and/or `modifier`!
         '''
         pass
 
-    def on_key_down(self, key, scancode=None, unicode=None):
+    def on_key_down(self, key, scancode=None, unicode=None, modifier=None):
         '''Event called when a key is down (same arguments as on_keyboard)'''
         pass
 
