@@ -108,6 +108,7 @@ class Video(Image):
             if self.eos:
                 self._video.stop()
                 self._video.position = 0.
+                self._video.eos = False
             self._video.play()
         else:
             self._video.stop()
