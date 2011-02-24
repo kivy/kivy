@@ -436,12 +436,6 @@ cdef class RenderContext(Canvas):
         Canvas.__init__(self, **kwargs)
         vs_src = kwargs.get('vs', None)
         fs_src = kwargs.get('fs', None)
-        if vs_src is None:
-            vs_file = join(kivy_shader_dir, 'default.vs')
-            vs_src  = open(vs_file, 'r').read()
-        if fs_src is None:
-            fs_file = join(kivy_shader_dir, 'default.fs')
-            fs_src  = open(fs_file, 'r').read()
         self._shader = Shader(vs_src, fs_src)
 
         # load default texture image
