@@ -206,6 +206,23 @@ cdef class StringProperty(Property):
         if not isinstance(value, basestring):
             raise ValueError('StringProperty accept only str/unicode')
 
+class ObservableList(list):
+    # Internal class to observe changes inside a native python list.
+    def __init__(self, *largs):
+        self.prop = largs[0]
+        self.obj = largs[1]
+        super(ObservableList, self).__init__(*largs[2:])
+
+    def __setitem__(self, key, value):
+        list.__setitem__(self, key, value)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def __delitem__(self, key):
+        list.__delitem__(self, key)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
 cdef class ListProperty(Property):
     '''Property that represent a list.
 
@@ -220,8 +237,13 @@ cdef class ListProperty(Property):
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
-        if type(value) is not list:
-            raise ValueError('ListProperty accept only list')
+        if type(value) is not ObservableList:
+            raise ValueError('ListProperty accept only ObservableList'
+                            ' (should never happen.)')
+
+    cpdef set(self, obj, value):
+        value = ObservableList(self, obj, value)
+        Property.set(self, obj, value)
 
 cdef class ObjectProperty(Property):
     '''Property that represent an Python object.
@@ -376,7 +398,7 @@ cdef class ReferenceListProperty(Property):
         self.dispatch(obj)
 
     cdef convert(self, obj, value):
-        if type(value) not in (list, tuple):
+        if not isinstance(value, (list, tuple)):
             raise ValueError('Value must be a list or tuple')
         return <list>value
 
@@ -468,5 +490,6 @@ cdef class AliasProperty(Property):
         return self.storage[obj.__uid]['getter'](obj)
 
     cpdef set(self, obj, value):
-        self.storage[obj.__uid]['setter'](obj, value)
+        if self.storage[obj.__uid]['setter'](obj, value):
+            self.dispatch(obj)
 

@@ -17,7 +17,7 @@
 			size: self.size
 			source: 'data/images/button.png' if self.state == 'normal' else 'data/images/button_pressed.png'
 		Color:
-			rgb: (1, 1, 1) if self.state == 'normal' else (0, 0, 0)
+			rgb: (1, 1 ,1)
 		Rectangle:
 			texture: self.texture
 			size: self.texture_size
@@ -29,12 +29,12 @@
         Color:
             rgb: 1, 1, 1
 		BorderImage:
-			border: (0, 16, 0, 16) if self.orientation == 'horizontal' else (16, 0, 16, 0)
-			pos: (self.x, self.center_y - 16) if self.orientation == 'horizontal' else (self.center_x - 16, self.y)
-			size: (self.width, 32) if self.orientation == 'horizontal' else (32, self.height)
+			border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
+			pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
+			size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
 			source: 'data/images/slider%s_background.png' % self.orientation[0]
 		Image:
-			pos: (self.value_pos[0] - 16, self.center_y - 16) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
+			pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
 			size: (32, 32)
 			source: 'data/images/slider_cursor.png'
 

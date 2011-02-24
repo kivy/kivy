@@ -142,8 +142,8 @@ class VideoGStreamer(VideoBase):
         self._videosink.set_property('emit-signals', True)
         self._videosink.set_property('caps', caps)
         self._videosink.set_property('drop', True)
-        self._videosink.set_property('render-delay', 1000000000)
-        self._videosink.set_property('max-lateness', 1000000000)
+        #self._videosink.set_property('render-delay', 1000000000)
+        #self._videosink.set_property('max-lateness', 1000000000)
         self._videosink.connect('new-buffer', self._gst_new_buffer)
         self._audiosink = gst.element_factory_make('autoaudiosink', 'audiosink')
         self._volumesink = gst.element_factory_make('volume', 'volume')
@@ -245,7 +245,7 @@ class VideoGStreamer(VideoBase):
                 if structure_name.startswith('video') and 'width' in cap.keys():
                     self._videosize = (cap['width'], cap['height'])
                     self._texture = Texture.create(
-                        size=self._videosize, fmt='rgb')
+                        size=self._videosize, colorfmt='rgb')
                     self._texture.flip_vertical()
                     self.dispatch('on_load')
 
@@ -264,6 +264,6 @@ class VideoGStreamer(VideoBase):
             if self._buffer is not None:
                 self._texture.blit_buffer(self._buffer.data,
                                           size=self._videosize,
-                                          fmt='rgb')
+                                          colorfmt='rgb')
                 self._buffer = None
                 self.dispatch('on_frame')

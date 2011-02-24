@@ -28,23 +28,42 @@ cdef class Instruction:
     '''
     def __cinit__(self):
         self.flags = 0
+        self.parent = None
 
     def __init__(self, **kwargs):
         self.group = kwargs.get('group', None)
+        if kwargs.get('noadd'):
+            self.flags |= GI_NO_REMOVE
+            return
         self.parent = getActiveCanvas()
         if self.parent:
             self.parent.add(self)
 
-    cdef apply(self):
+    cdef void apply(self):
         pass
 
-    cdef flag_update(self):
-        if self.parent:
+    cdef void flag_update(self, int do_parent=1):
+        if do_parent and self.parent:
             self.parent.flag_update()
         self.flags |= GI_NEEDS_UPDATE
 
-    cdef flag_update_done(self):
+    cdef void flag_update_done(self):
         self.flags &= ~GI_NEEDS_UPDATE
+
+    cdef void radd(self, InstructionGroup ig):
+        ig.children.append(self)
+        self.set_parent(ig)
+
+    cdef void rremove(self, InstructionGroup ig):
+        ig.children.remove(self)
+        self.set_parent(None)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        ig.children.insert(index, self)
+        self.set_parent(ig)
+
+    cdef void set_parent(self, Instruction parent):
+        self.parent = parent
 
     property needs_redraw:
         def __get__(self):
@@ -64,7 +83,7 @@ cdef class InstructionGroup(Instruction):
         else:
             self.compiler = GraphicsCompiler()
 
-    cdef apply(self):
+    cdef void apply(self):
         cdef Instruction c
         if self.compiler:
             if self.flags & GI_NEEDS_UPDATE:
@@ -86,25 +105,20 @@ cdef class InstructionGroup(Instruction):
     cpdef add(self, Instruction c):
         '''Add a new :class:`Instruction` in our list.
         '''
-        if c.parent is None:
-            c.parent = self
-        self.children.append(c)
+        c.radd(self)
         self.flag_update()
+        return
 
     cpdef insert(self, int index, Instruction c):
         '''Insert a new :class:`Instruction` in our list at index.
         '''
-        if c.parent is None:
-            c.parent = self
-        self.children.insert(index, c)
+        c.rinsert(self, index)
         self.flag_update()
 
     cpdef remove(self, Instruction c):
         '''Remove an existing :class:`Instruction` from our list.
         '''
-        if c.parent is self:
-            c.parent = None
-        self.children.remove(c)
+        c.rremove(self)
         self.flag_update()
 
     cpdef clear(self):
@@ -112,6 +126,8 @@ cdef class InstructionGroup(Instruction):
         '''
         cdef Instruction c
         for c in self.children[:]:
+            if c.flags & GI_NO_REMOVE:
+                continue
             self.remove(c)
 
     cpdef remove_group(self, str groupname):
@@ -119,6 +135,8 @@ cdef class InstructionGroup(Instruction):
         '''
         cdef Instruction c
         for c in self.children[:]:
+            if c.flags & GI_NO_REMOVE:
+                continue
             if c.group == groupname:
                 self.remove(c)
 
@@ -144,7 +162,7 @@ cdef class ContextInstruction(Instruction):
         cdef RenderContext context = getActiveContext()
         return context
 
-    cdef apply(self):
+    cdef void apply(self):
         cdef RenderContext context = self.get_context()
         if len(self.context_push):
             context.push_states(self.context_push)
@@ -153,15 +171,15 @@ cdef class ContextInstruction(Instruction):
         if len(self.context_pop):
             context.pop_states(self.context_pop)
 
-    cdef set_state(self, str name, value):
+    cdef void set_state(self, str name, value):
         self.context_state[name] = value
         self.flag_update()
 
-    cdef push_state(self, str name):
+    cdef void push_state(self, str name):
         self.context_push.append(name)
         self.flag_update()
 
-    cdef pop_state(self, str name):
+    cdef void pop_state(self, str name):
         self.context_pop.append(name)
         self.flag_update()
 
@@ -170,7 +188,7 @@ cdef class VertexInstruction(Instruction):
     def __init__(self, **kwargs):
         #add a BindTexture instruction to bind teh texture used for 
         #this instruction before the actual vertex instruction
-        self.texture_binding = BindTexture(**kwargs)
+        self.texture_binding = BindTexture(noadd=True, **kwargs)
         self.texture = self.texture_binding.texture #auto compute tex coords
         self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
 
@@ -178,9 +196,38 @@ cdef class VertexInstruction(Instruction):
         self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
         self.batch = VertexBatch()
 
+    cdef void radd(self, InstructionGroup ig):
+        cdef Instruction instr = self.texture_binding
+        ig.children.append(self.texture_binding)
+        ig.children.append(self)
+        instr.set_parent(ig)
+        self.set_parent(ig)
+
+    cdef void rinsert(self, InstructionGroup ig, int index):
+        cdef Instruction instr = self.texture_binding
+        ig.children.insert(index, self.texture_binding)
+        ig.children.insert(index, self)
+        instr.set_parent(ig)
+        self.set_parent(ig)
+
+    cdef void rremove(self, InstructionGroup ig):
+        cdef Instruction instr = self.texture_binding
+        ig.children.remove(self.texture_binding)
+        ig.children.remove(self)
+        instr.set_parent(None)
+        self.set_parent(None)
+
     property texture:
-        '''Property for getting/setting the texture to be bound when drawing the
-        vertices.
+        '''Property that represent the texture used for drawing this
+        Instruction. You can set a new texture like this::
+
+            from kivy.core.image import Image
+
+            texture = Image('logo.png').texture
+            with self.canvas:
+                Rectangle(texture=texture, pos=self.pos, size=self.size)
+
+        Usually, you will use :data:`source` attribute instead of texture.
         '''
         def __get__(self):
             return self.texture_binding.texture
@@ -194,7 +241,26 @@ cdef class VertexInstruction(Instruction):
             self.flag_update()
 
     property source:
-        '''Property for getting/setting a filename as a source for the texture.
+        '''This property represent the filename to used for the texture.
+        If you want to use another image as a source, you can do::
+
+            with self.canvas:
+                Rectangle(source='mylogo.png', pos=self.pos, size=self.size)
+
+        Or in a kivy language::
+
+            <MyWidget>:
+                canvas:
+                    Rectangle:
+                        source: 'myfilename.png'
+                        pos: self.pos
+                        size: self.size
+
+        .. note::
+            
+            The filename will be search with
+            :func:`kivy.resources.resource_find` function.
+
         '''
         def __get__(self):
             return self.texture_binding.source
@@ -203,7 +269,26 @@ cdef class VertexInstruction(Instruction):
             self.texture = self.texture_binding._texture
 
     property tex_coords:
-        '''Property for getting/setting texture coordinates.
+        '''This property represent the texture coordinate used for drawing the
+        vertex instruction. The value must be a list of 8 values.
+
+        A texture coordinate have a position (u, v), and a size (w, h). The size
+        can be negative, and will represent the 'inversed' texture. By default,
+        the tex_coords will be::
+
+            [u, v, u + w, v, u + w, y + h, u, y + h]
+
+        You can pass your own texture coordinate, if you want to do fancy
+        effects.
+
+        .. warning::
+
+            The default value as exposed just before can be negative. Depending
+            of the provider of image nor label, the coordinate are flip in
+            vertical, because of the order of internal image. Instead of
+            flipping the image data, we are just flipping the texture coordinate 
+            to be faster.
+
         '''
         def __get__(self):
             return self._tex_coords
@@ -214,7 +299,7 @@ cdef class VertexInstruction(Instruction):
     cdef void build(self):
         pass
 
-    cdef apply(self):
+    cdef void apply(self):
         if self.flags & GI_NEEDS_UPDATE:
             self.build()
             self.flag_update_done()
@@ -257,25 +342,30 @@ cdef class Canvas(CanvasBase):
         self._before = None
         self._after = None
 
+    cpdef clear(self):
+        cdef Instruction c
+        for c in self.children[:]:
+            if c is self._before or c is self._after:
+                continue
+            if c.flags & GI_NO_REMOVE:
+                continue
+            self.remove(c)
+
     cpdef draw(self):
         '''Apply the instruction on our window.
         '''
         self.apply()
 
     cpdef add(self, Instruction c):
-        if c.parent is None and c is not self:
-            c.parent = self
         # the after group must remain the last one.
         if self._after is None:
-            self.children.append(c)
+            c.radd(self)
         else:
-            self.children.insert(-1, c)
+            c.rinsert(self, -1)
         self.flag_update()
 
     cpdef remove(self, Instruction c):
-        if c.parent is self:
-            c.parent = None
-        self.children.remove(c)
+        c.rremove(self)
         self.flag_update()
 
     property before:
@@ -352,7 +442,7 @@ cdef class RenderContext(Canvas):
         if fs_src is None:
             fs_file = join(kivy_shader_dir, 'default.fs')
             fs_src  = open(fs_file, 'r').read()
-        self.shader = Shader(vs_src, fs_src)
+        self._shader = Shader(vs_src, fs_src)
 
         # load default texture image
         filename = join(kivy_shader_dir, 'default.png')
@@ -370,11 +460,11 @@ cdef class RenderContext(Canvas):
             'modelview_mat' : [Matrix()],
         }
 
-        self.shader.use()
+        self._shader.use()
         for key, stack in self.state_stacks.iteritems():
             self.set_state(key, stack[0])
 
-    cdef set_state(self, str name, value):
+    cdef void set_state(self, str name, value):
         #upload the uniform value for the shdeer
         cdef list d
         if not name in self.state_stacks:
@@ -385,65 +475,70 @@ cdef class RenderContext(Canvas):
             if value != d[-1]:
                 d[-1] = value
                 self.flag_update()
-        self.shader.set_uniform(name, value)
+        self._shader.set_uniform(name, value)
 
     cdef get_state(self, str name):
         return self.state_stacks[name][-1]
 
-    cdef set_states(self, dict states):
+    cdef void set_states(self, dict states):
         cdef str name
         for name, value in states.iteritems():
             self.set_state(name, value)
 
-    cdef push_state(self, str name):
+    cdef void push_state(self, str name):
         stack = self.state_stacks[name]
         stack.append(stack[-1])
         self.flag_update()
 
-    cdef push_states(self, list names):
+    cdef void push_states(self, list names):
         cdef str name
         for name in names:
             self.push_state(name)
 
-    cdef pop_state(self, str name):
+    cdef void pop_state(self, str name):
         stack = self.state_stacks[name]
         stack.pop()
         self.set_state(name, stack[-1])
         self.flag_update()
 
-    cdef pop_states(self, list names):
+    cdef void pop_states(self, list names):
         cdef str name
         for name in names:
             self.pop_state(name)
 
-    cdef set_texture(self, int index, Texture texture):
-        if index in self.bind_texture and \
-           self.bind_texture[index] is texture:
-            return
+    cdef void set_texture(self, int index, Texture texture):
+        # TODO this code is actually broken,
+        # the binded texture can be already set, but we may changed if we came
+        # from another render context.
+        #if index in self.bind_texture and \
+        #   self.bind_texture[index] is texture:
+        #    return
         self.bind_texture[index] = texture
         glActiveTexture(GL_TEXTURE0 + index)
         glBindTexture(texture.target, texture.id)
         self.flag_update()
 
-    cdef enter(self):
-        self.shader.use()
+    cdef void enter(self):
+        self._shader.use()
 
-    cdef apply(self):
-        keys = self.state_stacks.keys()
-        self.push_states(keys)
+    cdef void apply(self):
+        cdef list keys = self.state_stacks.keys()
         pushActiveContext(self)
+        self.push_states(keys)
         Canvas.apply(self)
-        popActiveContext()
         self.pop_states(keys)
+        popActiveContext()
         self.flag_update_done()
 
     def __setitem__(self, key, val):
         self.set_state(key, val)
 
     def __getitem__(self, key):
-        return self.shader.uniform_values[key]
+        return self._shader.uniform_values[key]
 
-
+    property shader:
+        def __get__(self):
+            return self._shader
 
 
 

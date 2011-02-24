@@ -109,3 +109,11 @@ nuigroup.com
 THE resource and research community for open source multi touch and other
 natural user interfaces.
 
+
+Licence
+-------
+
+- Kivy is licenced under LGPL 3, check the COPYING file.
+- DroidSans.ttf and DroidSansMono.ttf are licenced under Apache 2.0 Licence.
+  The license can be found at http://www.apache.org/licenses/LICENSE-2.0
+- Current ui design have been taken from SVG of Moblintouch theme, licenced under LGPL 2.1.

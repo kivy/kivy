@@ -11,6 +11,28 @@ many different things. Just talk to us if you want to help, and we will help you
 help us.
 
 
+Reporting an issue
+------------------
+
+If you found anything wrong, a crash, segfault, missing documentation, invalid
+spelling, weird example, please take 2 minutes to report the issue.
+
+#. Move your logging level to debug by editing `<user_directory>/.kivy/config.ini`::
+
+    [kivy]
+    log_level = debug
+
+#. Execute again your code, and copy/paste the complete output to http://paste.pocoo.org/,
+   including the log from kivy and the python backtrace.
+#. Open https://github.com/tito/kivy/issues/
+#. Write a title of your issue
+#. Explain how we can do to reproduce the issue + paste the link of the output previously sent on pocoo
+#. Validate the issue, you're done !
+
+
+If you feel good, you can also try to resolve the bug, and contribute by sending us
+the patch :) Read the next section about how to do it.
+
 Code Contributions
 ------------------
 

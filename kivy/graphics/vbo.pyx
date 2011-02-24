@@ -118,10 +118,10 @@ cdef class VertexBatch:
         # clear old vertices from vbo and then reset index buffer
         self.vbo.remove_vertex_data(<int*>self.vbo_index.pointer(),
                                     self.vbo_index.count())
-        self.vbo_index = Buffer(sizeof(int))
+        self.vbo_index.clear()
 
         # clear also our elements
-        self.elements = Buffer(sizeof(int))
+        self.elements.clear()
         self.elements.grow(indices_count)
 
         # now append the vertices and indices to vbo

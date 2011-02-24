@@ -14,9 +14,15 @@ cdef class Instruction:
     cdef int flags
     cdef str group
     cdef Instruction parent
-    cdef apply(self)
-    cdef flag_update(self)
-    cdef flag_update_done(self)
+
+    cdef void apply(self)
+    cdef void flag_update(self, int do_parent=?)
+    cdef void flag_update_done(self)
+    cdef void set_parent(self, Instruction parent)
+
+    cdef void radd(self, InstructionGroup ig)
+    cdef void rinsert(self, InstructionGroup ig, int index)
+    cdef void rremove(self, InstructionGroup ig)
 
 cdef class InstructionGroup(Instruction):
     cdef list children
@@ -36,14 +42,18 @@ cdef class ContextInstruction(Instruction):
     cdef list context_pop
 
     cdef RenderContext get_context(self)
-    cdef set_state(self, str name, value)
-    cdef push_state(self, str name)
-    cdef pop_state(self, str name)
+    cdef void set_state(self, str name, value)
+    cdef void push_state(self, str name)
+    cdef void pop_state(self, str name)
 
 cdef class VertexInstruction(Instruction):
     cdef BindTexture texture_binding
     cdef VertexBatch batch
     cdef list _tex_coords
+
+    cdef void radd(self, InstructionGroup ig)
+    cdef void rinsert(self, InstructionGroup ig, int index)
+    cdef void rremove(self, InstructionGroup ig)
 
     cdef void build(self)
 
@@ -58,6 +68,7 @@ cdef class CanvasBase(InstructionGroup):
 cdef class Canvas(CanvasBase):
     cdef CanvasBase _before
     cdef CanvasBase _after
+    cpdef clear(self)
     cpdef add(self, Instruction c)
     cpdef remove(self, Instruction c)
     cpdef draw(self)
@@ -66,21 +77,21 @@ cdef class Canvas(CanvasBase):
 from shader cimport *
 from texture cimport Texture
 cdef class RenderContext(Canvas):
-    cdef Shader shader
+    cdef Shader _shader
     cdef dict state_stacks
     #cdef TextureManager texture_manager
     cdef Texture default_texture
     cdef dict bind_texture
 
-    cdef set_texture(self, int index, Texture texture)
-    cdef set_state(self, str name, value)
+    cdef void set_texture(self, int index, Texture texture)
+    cdef void set_state(self, str name, value)
     cdef get_state(self, str name)
-    cdef set_states(self, dict states)
-    cdef push_state(self, str name)
-    cdef push_states(self, list names)
-    cdef pop_state(self, str name)
-    cdef pop_states(self, list names)
-    cdef enter(self)
-    cdef apply(self)
+    cdef void set_states(self, dict states)
+    cdef void push_state(self, str name)
+    cdef void push_states(self, list names)
+    cdef void pop_state(self, str name)
+    cdef void pop_states(self, list names)
+    cdef void enter(self)
+    cdef void apply(self)
     cpdef draw(self)
 

@@ -41,7 +41,7 @@ If you change anything in the `self.fbo` object, it will be automaticly updated,
 and canvas where the fbo is putted will be automaticly updated too.
 '''
 
-__all__ = ('Fbo', 'FboException')
+__all__ = ('Fbo', )
 
 include "config.pxi"
 include "opcodes.pxi"
@@ -57,15 +57,25 @@ from instructions cimport RenderContext, Canvas
 
 cdef list fbo_stack = [0]
 
-class FboException(Exception):
-    '''FboException is fired when an FBO error happen during creation or usage.
-    '''
-    def __init__(self, message, status=0):
-        if status:
-            message += ': %s (%d)' % (self.resolve_status(status), status)
-        super(FboException, self).__init__(message)
 
-    def resolve_status(self, status):
+cdef class Fbo(RenderContext):
+    '''Fbo class for wrapping the OpenGL Framebuffer extension. The Fbo support
+    "with" statement.
+
+    :Parameters:
+        `clear_color`: tuple, default to (0, 0, 0, 0)
+            Define the default color for clearing the framebuffer
+        `size`: tuple, default to (1024, 1024)
+            Default size of the framebuffer
+        `push_viewport`: bool, default to True
+            If True, the OpenGL viewport will be set to the framebuffer size,
+            and will be automatically restored when the framebuffer released.
+        `with_depthbuffer`: bool, default to True
+            If True, the framebuffer will be allocated with a Z buffer.
+        `texture`: :class:`~kivy.graphics.texture.Texture`, default to None
+            If None, a default texture will be created.
+    '''
+    cdef str resolve_status(self, int status):
         if status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
             return 'Incomplete attachment'
         elif status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
@@ -89,23 +99,11 @@ class FboException(Exception):
                 return 'Incomplete layer count'
         return 'Unknown (status=%x)' % status
 
-cdef class Fbo(RenderContext):
-    '''Fbo class for wrapping the OpenGL Framebuffer extension. The Fbo support
-    "with" statement.
+    cdef void raise_exception(self, str message, int status=0):
+        if status:
+            message += ': %s (%d)' % (self.resolve_status(status), status)
+        raise Exception(message)
 
-    :Parameters:
-        `clear_color`: tuple, default to (0, 0, 0, 0)
-            Define the default color for clearing the framebuffer
-        `size`: tuple, default to (1024, 1024)
-            Default size of the framebuffer
-        `push_viewport`: bool, default to True
-            If True, the OpenGL viewport will be set to the framebuffer size,
-            and will be automatically restored when the framebuffer released.
-        `with_depthbuffer`: bool, default to True
-            If True, the framebuffer will be allocated with a Z buffer.
-        `texture`: :class:`~kivy.graphics.texture.Texture`, default to None
-            If None, a default texture will be created.
-    '''
     def __init__(self, *args, **kwargs):
         RenderContext.__init__(self, *args, **kwargs)
 
@@ -125,7 +123,7 @@ cdef class Fbo(RenderContext):
 
         self.create_fbo()
 
-    cdef delete_fbo(self):
+    cdef void delete_fbo(self):
         # care on this case, if the deletion happen in another thread than main
         # thread, we are lost :)
         self._texture = None
@@ -137,7 +135,7 @@ cdef class Fbo(RenderContext):
             glDeleteRenderbuffers(1, &self._depthbuffer_id)
             self._depthbuffer_id = -1
 
-    cdef create_fbo(self):
+    cdef void create_fbo(self):
         cdef GLuint f_id
         cdef int status
         cdef int do_clear = 0
@@ -170,7 +168,7 @@ cdef class Fbo(RenderContext):
         # check the status of the framebuffer
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if status != GL_FRAMEBUFFER_COMPLETE:
-            raise FboException('FBO Initialization failed', status)
+            self.raise_exception('FBO Initialization failed', status)
 
         # clear the fbo
         if do_clear:
@@ -202,7 +200,7 @@ cdef class Fbo(RenderContext):
             print self.fbo.texture
         '''
         if self._is_bound:
-            raise FboException('FBO is already binded.')
+            self.raise_exception('FBO already binded.')
         else:
             self._is_bound = 1
 
@@ -219,7 +217,7 @@ cdef class Fbo(RenderContext):
         '''Release the Framebuffer (unbind).
         '''
         if self._is_bound == 0:
-            raise FboException('Cannot release a FBO not binded.')
+            self.raise_exception('FBO cannot be released (not binded).')
         else:
             self._is_bound = 0
 
@@ -242,7 +240,7 @@ cdef class Fbo(RenderContext):
         else:
             glClear(GL_COLOR_BUFFER_BIT)
 
-    cdef apply(self):
+    cdef void apply(self):
         if self.flags & GI_NEEDS_UPDATE:
             self.bind()
             RenderContext.apply(self)
@@ -264,6 +262,7 @@ cdef class Fbo(RenderContext):
             self._width, self._height = x
             self.delete_fbo()
             self.create_fbo()
+            self.flag_update()
 
     property clear_color:
         '''Clear color in (red, green, blue, alpha) format.

@@ -41,7 +41,7 @@ class CameraVideoCapture(CameraBase):
             # first update, resize if necessary
             self.size = camera_width, camera_height
             # and create texture
-            self._texture = kivy.Texture.create(size=self.size, fmt='bgr')
+            self._texture = kivy.Texture.create(size=self.size, colorfmt='bgr')
             self.dispatch('on_load')
 
         # update buffer

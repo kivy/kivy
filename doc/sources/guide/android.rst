@@ -9,6 +9,7 @@ The changes made from his project are :
 - Support of multitouch event
 - OpenGL ES 2.0 surface
 - Include more Python modules
+- Removing main() function and use __main__ hack.
 - Various enhancements on the build system for Kivy
 
 Introduction to the Kivy Launcher
@@ -53,4 +54,14 @@ Missing features:
 - Keyboard support in future TextInput widget
 - Ability to hook app on sleep/wakeup
 - Ability for an application to have a settings screen
+
+Working devices
+---------------
+
+- Motorola Droid 1
+- Motorola Droid 2
+- Samsung Galaxy Tab
+- HTC Desire
+- HTC Desire Z
+- Xperia 10 (custom ROM 2.1 + GLES 2.0 support)
 

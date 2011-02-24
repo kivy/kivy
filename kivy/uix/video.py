@@ -26,8 +26,7 @@ __all__ = ('Video', )
 from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
-from kivy.properties import ObjectProperty, ListProperty, \
-        BooleanProperty, NumericProperty
+from kivy.properties import BooleanProperty, NumericProperty
 
 
 class Video(Image):

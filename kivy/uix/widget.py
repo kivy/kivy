@@ -141,8 +141,9 @@ class Widget(EventDispatcher):
             if name in properties:
                 self.bind(**{name: getattr(self, func)})
 
-        # Create the default canvas
-        self.canvas = Canvas()
+        # Create the default canvas if not exist
+        if self.canvas is None:
+            self.canvas = Canvas()
 
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():
@@ -600,8 +601,8 @@ class Widget(EventDispatcher):
 
         widget = Widget(pos_hint={'top': 0.9})
 
-    The keys 'x', 'right' will use the parent width.
-    The keys 'y', 'top' will use the parent height.
+    The keys 'x', 'right', 'center_x', will use the parent width.
+    The keys 'y', 'top', 'center_y', will use the parent height.
 
     Check :doc:`api-kivy.uix.floatlayout` for more informations.
 

@@ -2,7 +2,8 @@ from fnmatch import filter as fnfilter
 from sys import platform, argv, modules
 from os.path import join, dirname, realpath, sep, exists
 from os import walk, environ
-from setuptools import setup, Extension
+from distutils.core import setup
+from distutils.extension import Extension
 
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
@@ -98,14 +99,6 @@ if 'sdist' in argv and have_cython:
 # add cython core extension modules if cython is available
 if have_cython:
     cmdclass['build_ext'] = build_ext
-    # this is an hack to make setuptools works with Cython
-    # without this hack, cython is not executed, and we don't have C files at
-    # the end. More information can be found at
-    # http://mail.python.org/pipermail/distutils-sig/2007-September/008204.html
-    # The solution taken is http://pypi.python.org/pypi/setuptools_cython/
-    if 'setuptools.extension' in modules:
-        m = modules['setuptools.extension']
-        m.Extension.__dict__ = m._Extension.__dict__
 else:
     pyx_files = ['%s.c' % x[:-4] for x in pyx_files]
 
@@ -138,6 +131,19 @@ if True:
         if pyxl[1] == 'kivy':
             pyxl.pop(0)
         return '.'.join(pyxl)
+
+    OrigExtension = Extension
+
+    def Extension(*args, **kwargs):
+        # Small hack to only compile for x86_64 on OSX.
+        # Is there a better way to do this?
+        if platform == 'darwin':
+            extra_args = ['-arch', 'x86_64']
+            kwargs['extra_compile_args'] = extra_args + \
+                kwargs.get('extra_compile_args', [])
+            kwargs['extra_link_args'] = extra_args + \
+                kwargs.get('extra_link_args', [])
+        return OrigExtension(*args, **kwargs)
 
     # simple extensions
     for pyx in (x for x in pyx_files if not 'graphics' in x):
@@ -199,8 +205,6 @@ setup(
                 'hardware-accelerated multitouch applications.',
     ext_modules=ext_modules,
     cmdclass=cmdclass,
-    setup_requires=['nose>=0.11'],
-    test_suite='nose.collector',
     packages=[
         'kivy',
         'kivy.core',

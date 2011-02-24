@@ -87,7 +87,7 @@ class Label(Widget):
     :data:`text` a :class:`~kivy.properties.StringProperty`.
     '''
 
-    font_name = StringProperty('fonts/DejaVuSans.ttf')
+    font_name = StringProperty('fonts/DroidSans.ttf')
     '''File of the font to use. The path used for the font can be a absolute
     path, or a relative path that will be search with the
     :func:`~kivy.resources.resource_find` function.
@@ -98,14 +98,14 @@ class Label(Widget):
         can mostly use this without trouble.
 
     :data:`font_name` is a :class:`~kivy.properties.StringProperty`, default to
-    'fonts/DejaVuSans.ttf'.
+    'fonts/DroidSans.ttf'.
     '''
 
-    font_size = NumericProperty(10)
+    font_size = NumericProperty(12)
     '''Font size of the text. The font size is in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
-    10.
+    12.
     '''
 
     bold = BooleanProperty(False)

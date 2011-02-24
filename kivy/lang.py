@@ -371,7 +371,7 @@ class Parser(object):
                 current_object['__line__'] = ln
                 current_object['__ctx__'] = self
                 current_property = None
-                x = content.split(':', 2)
+                x = content.split(':', 1)
                 if not len(x[0]):
                     raise ParserError(self, ln, 'Identifier missing')
                 if len(x) == 2 and len(x[1]):
@@ -381,7 +381,7 @@ class Parser(object):
 
             # Next level, is it a property or an object ?
             elif count == indent + 4:
-                x = content.split(':', 2)
+                x = content.split(':', 1)
                 if not len(x[0]):
                     raise ParserError(self, ln, 'Identifier missing')
 
@@ -459,7 +459,7 @@ def create_handler(element, key, value, idmap):
     tmp = re.sub('([\'"][^\'"]*[\'"])', '', value)
 
     # detect key.value inside value
-    kw = re.findall('([a-zA-Z0-9_.]+\.[a-zA-Z0-9_.]+)', tmp)
+    kw = re.findall('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)', tmp)
     if not kw:
         # look like no reference, just pass it
         return eval(value, _eval_globals)

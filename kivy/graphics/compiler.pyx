@@ -64,7 +64,7 @@ from context_instructions cimport BindTexture
 
 cdef class GraphicsCompiler:
     cdef InstructionGroup compile(self, InstructionGroup group):
-        cdef int count
+        cdef int count = 0
         cdef Instruction c
         cdef ContextInstruction ci
         cdef RenderContext rc = None, oldrc = None
@@ -91,7 +91,7 @@ cdef class GraphicsCompiler:
 
                 # flag the old one as need update, if it's a new one
                 if rc != oldrc and oldrc is not None:
-                    oldrc.flag_update()
+                    oldrc.flag_update(0)
 
                 # it's a new render context, track changes.
                 rc.flag_update_done()
@@ -120,6 +120,7 @@ cdef class GraphicsCompiler:
                     # apply(), and saving in cs, as a texture0
                     if 'texture0' not in cs:
                         cs.append('texture0')
+                        needed = 1
 
                 else:
 
@@ -142,7 +143,7 @@ cdef class GraphicsCompiler:
                 c.apply()
 
         if rc:
-            rc.flag_update()
+            rc.flag_update(0)
 
         group.flags |= GI_NO_APPLY_ONCE
 

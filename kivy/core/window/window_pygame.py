@@ -7,6 +7,7 @@ __all__ = ('WindowPygame', )
 from . import WindowBase
 
 import os
+import sys
 from os.path import exists
 from kivy.config import Config
 from kivy.base import ExceptionManager
@@ -116,6 +117,7 @@ class WindowPygame(WindowBase):
 
     def close(self):
         pygame.display.quit()
+        self.dispatch('on_close')
 
     def screenshot(self, *largs, **kwargs):
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
@@ -129,12 +131,15 @@ class WindowPygame(WindowBase):
         pygame.image.save(surface, filename)
         return filename
 
-    def on_keyboard(self, key, scancode=None, unicode=None):
-        if key == 27:
+    def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
+        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
+        # TODO If just CMD+w is pressed, only the window should be closed.
+        is_osx = sys.platform == 'darwin'
+        if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
             self.close()  #not sure what to do here
             return True
-        super(WindowPygame, self).on_keyboard(key, scancode, unicode)
+        super(WindowPygame, self).on_keyboard(key, scancode, unicode, modifier)
 
     def flip(self):
         pygame.display.flip()
@@ -191,10 +196,10 @@ class WindowPygame(WindowBase):
 
                 # don't dispatch more key if down event is accepted
                 if self.dispatch('on_key_down', event.key,
-                                       event.scancode, event.unicode):
+                                    event.scancode, event.unicode, event.mod):
                     continue
                 self.dispatch('on_keyboard', event.key,
-                                    event.scancode, event.unicode)
+                                    event.scancode, event.unicode, event.mod)
 
             # video resize
             elif event.type == pygame.VIDEORESIZE:

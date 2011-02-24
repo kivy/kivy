@@ -1,0 +1,27 @@
+#:kivy 1.0
+Widget:
+    id: background
+    size_hint: (1,1)
+    canvas:
+        Color:
+            rgb: (.4,.4,.4)
+        Rectangle:
+            size: self.size
+
+
+<Picture>:
+    size: 400, 400/self.image_ratio
+    canvas:
+        Color:
+            rgba: 1,1,1,1
+        BorderImage:
+            source: 'shadow32.png'
+            border: (36,36,36,36)
+            size:(self.width+72, self.height+72)
+            pos: (-36,-36)
+        Rectangle:
+            size: self.size
+            texture: self.texture
+
+
+

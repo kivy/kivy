@@ -35,13 +35,13 @@ class ImageLoaderPIL(ImageLoaderBase):
             raise
 
         # image loader work only with rgb/rgba image
-        if im.fmt not in ('rgb', 'rgba'):
+        if im.mode.lower() not in ('rgb', 'rgba'):
             try:
                 imc = im.convert('RGBA')
             except:
                 Logger.warning(
                     'Image: Unable to convert image <%s> to rgba (was %s)' %
-                    (filename, im.fmt))
+                    (filename, im.mode.lower()))
                 raise
             im = imc
 
@@ -52,7 +52,7 @@ class ImageLoaderPIL(ImageLoaderBase):
         self.filename = filename
 
         return ImageData(im.size[0], im.size[1],
-            im.fmt, im.tostring())
+            im.mode.lower(), im.tostring())
 
 # register
 ImageLoader.register(ImageLoaderPIL)

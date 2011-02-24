@@ -65,8 +65,6 @@ class LabelBase(object):
         kwargs.setdefault('padding', None)
         kwargs.setdefault('padding_x', None)
         kwargs.setdefault('padding_y', None)
-        kwargs.setdefault('viewport_size', None)
-        kwargs.setdefault('viewport_pos', None)
 
         padding = kwargs.get('padding', None)
         if not kwargs.get('padding_x', None):
@@ -95,8 +93,6 @@ class LabelBase(object):
         self.usersize = kwargs.get('size')
         self.options = kwargs
         self.texture = None
-        self.viewport_size = kwargs.get('viewport_size')
-        self.viewport_pos = kwargs.get('viewport_pos')
 
         if 'font_name' in self.options:
             fontname = self.options['font_name']
@@ -263,7 +259,10 @@ class LabelBase(object):
         self.texture = texture
 
         # update texture
-        texture.blit_data(data)
+        # If the text is 1px width, usually, the data is black.
+        # Don't blit that kind of data, otherwise, you have a little black bar.
+        if data.width > 1:
+            texture.blit_data(data)
 
     def refresh(self):
         '''Force re-rendering of the text'''

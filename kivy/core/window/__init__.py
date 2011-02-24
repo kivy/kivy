@@ -59,7 +59,7 @@ class WindowBase(EventDispatcher):
             Fired when the :class:`Window` is beeing rotated
         `on_close`:
             Fired when the :class:`Window` is closed
-        `on_keyboard`: key, scancode, unicode
+        `on_keyboard`: key, scancode, unicode, modifier
             Fired when the keyboard is in action
         `on_key_down`: key, scancode, unicode
             Fired when a key is down
@@ -91,6 +91,7 @@ class WindowBase(EventDispatcher):
         self._modifiers = []
         self._size = (0, 0)
         self._rotation = 0
+        self._clearcolor = [0, 0, 0, 0]
 
         # event subsystem
         self.register_event_type('on_draw')
@@ -236,6 +237,30 @@ class WindowBase(EventDispatcher):
     size = property(_get_size, _set_size,
         doc='''Rotated size of the window''')
 
+    def _get_clearcolor(self):
+        return self._clearcolor
+
+    def _set_clearcolor(self, value):
+        if value is not None:
+            if type(value) not in (list, tuple):
+                raise Exception('Clearcolor must be a list or tuple')
+            if len(value) != 4:
+                raise Exception('Clearcolor must contain 4 values')
+        self._clearcolor = value
+
+    clearcolor = property(_get_clearcolor, _set_clearcolor,
+        doc='''Color used to clear window::
+
+            from kivy.core.window import Window
+
+            # red background color
+            Window.clearcolor = (1, 0, 0, 1)
+
+            # don't clear background at all
+            Window.clearcolor = None
+
+        ''')
+
     # make some property read-only
     @property
     def width(self):
@@ -279,8 +304,10 @@ class WindowBase(EventDispatcher):
         # XXX FIXME use late binding
         from kivy.graphics.opengl import glClearColor, glClear, \
             GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
-        glClearColor(0, 0, 0, 0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        cc = self._clearcolor
+        if cc is not None:
+            glClearColor(*cc)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     def to_widget(self, x, y, initial=True, relative=False):
         return (x, y)
@@ -402,6 +429,10 @@ class WindowBase(EventDispatcher):
                     w.y = value * height
                 elif key == 'top':
                     w.top = value * height
+                elif key == 'center_x':
+                    w.center_x = value * width
+                elif key == 'center_y':
+                    w.center_y = value * height
 
     def _get_rotation(self):
         return self._rotation
@@ -462,15 +493,15 @@ class WindowBase(EventDispatcher):
         '''Event called when mouse is moving, with buttons pressed'''
         pass
 
-    def on_keyboard(self, key, scancode=None, unicode=None):
+    def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
         '''Event called when keyboard is in action
 
         .. warning::
-            Some providers can skip `scancode` or `unicode` !!
+            Some providers may omit `scancode`, `unicode` and/or `modifier`!
         '''
         pass
 
-    def on_key_down(self, key, scancode=None, unicode=None):
+    def on_key_down(self, key, scancode=None, unicode=None, modifier=None):
         '''Event called when a key is down (same arguments as on_keyboard)'''
         pass
 

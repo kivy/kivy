@@ -60,7 +60,7 @@ else:
                      'provider' % (category.capitalize(), option, category))
                 Logger.debug('', exc_info = e)
 
-        Logger.critical('%s: Unable to find any valuable %s provider'
+        Logger.critical('%s: Unable to find any valuable %s provider '
               'at all!' % (category.capitalize(), category.capitalize()))
 
     def core_register_libs(category, libs):
