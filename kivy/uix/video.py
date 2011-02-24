@@ -49,15 +49,12 @@ class Video(Image):
     False.
     '''
 
-
-
     eos = BooleanProperty(False)
     '''Boolean indicate if the video is done playing through the end.
 
     :data:`eos` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
     '''
-
 
     position = NumericProperty(-1)
     '''Position of the video between 0 and :data:`duration`. The position is
@@ -81,7 +78,6 @@ class Video(Image):
     :data:`volume` is a :class:`~kivy.properties.NumericProperty`, default to
     1.
     '''
-
 
     def __init__(self, **kwargs):
         self._video = None
