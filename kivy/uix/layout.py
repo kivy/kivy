@@ -85,3 +85,7 @@ class Layout(Widget):
         super(Layout, self).add_widget(widget)
         widget.bind(size_hint=self.update_minimum_size)
 
+    def remove_widget(self, widget):
+        super(Layout, self).add_widget(widget)
+        widget.unbind(size_hint=self.update_minimum_size)
+
