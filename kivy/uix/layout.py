@@ -81,3 +81,7 @@ class Layout(Widget):
     def update_minimum_size(self, instance, *largs):
         self.minimum_size = self.size
 
+    def add_widget(self, widget):
+        super(Layout, self).add_widget(widget)
+        widget.bind(size_hint=self.update_minimum_size)
+
