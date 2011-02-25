@@ -346,11 +346,11 @@ cdef void   glGetShaderInfoLog (GLuint shader, GLsizei bufsize, GLsizei* length,
     cgl.glGetShaderInfoLog ( shader, bufsize, length, infolog)
     ret = glGetError()
     if ret: print "ERR %d / %x" % (ret, ret)
-cdef void   glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision) with gil:
-    print "GL glGetShaderPrecisionFormat()"
-    cgl.glGetShaderPrecisionFormat ( shadertype, precisiontype, range, precision)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
+#cdef void   glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision) with gil:
+#    print "GL glGetShaderPrecisionFormat()"
+#    cgl.glGetShaderPrecisionFormat ( shadertype, precisiontype, range, precision)
+#    ret = glGetError()
+#    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glGetShaderSource (GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* source) with gil:
     print "GL glGetShaderSource()"
     cgl.glGetShaderSource ( shader, bufsize, length, source)
@@ -488,11 +488,11 @@ cdef void  glScissor (GLint x, GLint y, GLsizei width, GLsizei height) with gil:
     cgl.glScissor ( x, y, width, height)
     ret = glGetError()
     if ret: print "ERR %d / %x" % (ret, ret)
-cdef void  glShaderBinary (GLsizei n,  GLuint* shaders, GLenum binaryformat,  GLvoid* binary, GLsizei length) with gil:
-    print "GL glShaderBinary()"
-    cgl.glShaderBinary ( n, shaders, binaryformat, binary, length)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
+#cdef void  glShaderBinary (GLsizei n,  GLuint* shaders, GLenum binaryformat,  GLvoid* binary, GLsizei length) with gil:
+#    print "GL glShaderBinary()"
+#    cgl.glShaderBinary ( n, shaders, binaryformat, binary, length)
+#    ret = glGetError()
+#    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void  glShaderSource (GLuint shader, GLsizei count,  GLchar** string,  GLint* length) with gil:
     print "GL glShaderSource()"
     cgl.glShaderSource ( shader, count, string, length)
