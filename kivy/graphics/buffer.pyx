@@ -6,10 +6,10 @@ cdef class Buffer:
     '''
     def __cinit__(self):
         self.data = NULL
+        self.i_free = 0
         self.block_size = 0
         self.block_count = 0
-        self.l_free = []
-
+        self.l_free = NULL
 
     def __del__(self):
         if self.data != NULL:
@@ -17,18 +17,19 @@ cdef class Buffer:
             self.data = NULL
         self.block_count = 0
         self.block_size = 0
-        self.l_free = []
-
+        if self.l_free != NULL:
+            free(self.l_free)
 
     def __init__(self, int block_size):
         self.block_size = block_size
-
 
     cdef void grow(self, int block_count):
         '''Automaticly realloc the memory if they are no enough block.
         Work only for "grow" operation, not the inverse.
         '''
         cdef void *newptr = NULL
+        cdef int i
+        cdef int l_free_tmp
 
         # set block_count to the nearest 8 block
         diff = block_count % 8
@@ -47,18 +48,24 @@ cdef class Buffer:
         self.data = newptr
 
         # Create the free blocks
-        diff = block_count - self.block_count
-        self.l_free.extend(range(self.block_count, self.block_count + diff))
+        newptr = realloc(self.l_free, sizeof(int) * block_count)
+        if newptr == NULL:
+            raise SystemError('Unable to realloc memory for free list')
+        self.l_free = <int *>newptr
+
+        # Initialize the list with index of free block
+        for i in xrange(self.block_count, block_count):
+            self.l_free[i] = i
 
         # Update how many block are allocated
         self.block_count = block_count
 
-
     cdef void clear(self):
         '''Clear the whole buffer, and mark all blocks as available.
         '''
-        self.l_free = range(self.block_count)
-
+        for i in xrange(self.block_count):
+            self.l_free[i] = i
+        self.i_free = 0
 
     cdef void add(self, void *blocks, int *indices, int count):
         '''Add a list of block inside our buffer
@@ -67,7 +74,7 @@ cdef class Buffer:
         cdef void *p
 
         # Ensure that our buffer is enough for having all the elements
-        if count > len(self.l_free):
+        if count > self.block_count - self.i_free:
             self.grow(self.block_count + count)
 
         # Add all the block inside our buffer
@@ -75,7 +82,8 @@ cdef class Buffer:
             p = blocks + (self.block_size * i)
 
             # Take a free block
-            block = self.l_free.pop(0)
+            block = self.l_free[self.i_free]
+            self.i_free += 1
 
             # Copy content
             memcpy(self.data + (block * self.block_size), p, self.block_size)
@@ -84,74 +92,30 @@ cdef class Buffer:
             if indices != NULL:
                 indices[i] = block
 
-
     cdef void remove(self, int *indices, int count):
         '''Remove block from our list
         '''
-        cdef int i, m, value
-        m = 0
-        if self.l_free:
-            m = max(self.l_free)
+        cdef int i
 
         for i in xrange(count):
-            value = indices[i]
-
-            # if the current indice is lower than the maximum
-            # we'll have a hole. so, flag the buffer as needed for packing
-            if value < m:
-                self.need_pack = 1
-
             # Append the new indice as free block
-            self.l_free.append(value)
+            self.i_free -= 1
+            self.l_free[self.i_free] = indices[i]
 
     cdef void update(self, int index, void* blocks, int count):
         '''Update count number of blocks starting at index with the data in blocks
         '''
         memcpy(self.data + (index * self.block_size), blocks, self.block_size * count)
 
-
-    cdef void pack(self):
-        '''Ensure the memory is packed
-        '''
-        if not self.need_pack:
-            return
-
-        # Allocate a memory block that can contain the whole list
-        cdef void *memory, *p
-        cdef int i, j
-
-        memory = p = malloc(self.block_count * self.block_size)
-        if memory == NULL:
-            raise SystemError('Unable to allocate memory for packing')
-
-        j = 0
-        for i in xrange(self.block_count):
-            if i in self.l_free:
-                continue
-            memcpy(p, self.data + i * self.block_size, self.block_size)
-            j += 1
-            p += self.block_size
-
-        # Replace the current memory buffer with new one
-        if self.data:
-            free(self.data)
-        self.data = memory
-
-        # Replace the free list
-        self.l_free = range(j, self.block_count)
-
-
     cdef int count(self):
         '''Return how many block are currently used
         '''
-        return self.block_count - len(self.l_free)
-
+        return self.i_free
 
     cdef int size(self):
         '''Return the size of the allocated buffer
         '''
         return self.block_size * self.block_count
-
 
     cdef void *pointer(self):
         '''Return the data pointer
