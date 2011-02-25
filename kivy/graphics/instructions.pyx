@@ -368,6 +368,13 @@ cdef class Canvas(CanvasBase):
         c.rremove(self)
         self.flag_update()
 
+    def ask_update(self):
+        '''Ask the canvas to update itself the next frame.
+        Can be useful when a texture content is changing, but anything else in
+        the canvas.
+        '''
+        self.flag_update()
+
     property before:
         '''Property for getting the before group.
         '''

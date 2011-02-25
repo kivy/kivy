@@ -117,6 +117,7 @@ class Video(Image):
         self.duration = self._video.duration
         self.position = self._video.position
         self.texture = self._video.texture
+        self.canvas.ask_update()
 
     def _on_eos(self, *largs):
         self.eos = True
