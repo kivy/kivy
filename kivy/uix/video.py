@@ -86,7 +86,6 @@ class Video(Image):
     def on_source(self, instance, value):
         if self._video:
             self._video.stop()
-            self._video.unload()
         if not value:
             self._video = None
             self.texture = None
