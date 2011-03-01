@@ -9,19 +9,28 @@ from os.path import isdir
 
 
 class FileSelectorException(Exception):
+    '''Exception in the manipulation of FileSelector widget.
+    '''
     pass
 
 
 def alpha_sort(stringlist):
+    '''this is an alphanumeric sort, intended to be used by fileselector
+    '''
     return sorted(stringlist)
 
 
 def filetype_sort(stringlist):
+    '''this is an sort on file type, intended to be used by fileselector
+    '''
     #TODO
     raise NotImplementedError
 
 
 class file(object):
+    '''
+    object representing a file that one can select using FileSelector widget
+    '''
 
     def __init__(self, name):
         self.name = name
@@ -31,6 +40,8 @@ class file(object):
 
 
 class FileSelector(Widget):
+    '''FileSelector widget
+    '''
 
     def __init__(self, *largs):
         Widget.__init__(self)
