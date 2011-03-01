@@ -13,10 +13,10 @@ cdef class Color(ContextInstruction):
     cdef void apply(self)
 
 cdef class BindTexture(ContextInstruction):
+    cdef int _index
     cdef str _source
     cdef Texture _texture
     cdef void apply(self)
-
 
 cdef class PushMatrix(ContextInstruction):
     cdef void apply(self)
