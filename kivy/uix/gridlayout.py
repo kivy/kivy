@@ -6,17 +6,18 @@ Arrange widgets in a matrix
 
 Example of a GridLayout::
 
-layout = GridLayout(cols=3, rows=3)
-for i in range(9):
-layout.add_widget(Label(text=str(i)))
+    layout = GridLayout(cols=3, rows=3)
+    for i in range(9):
+        layout.add_widget(Label(text=str(i)))
 
-another example using two different widgets and some spacing::
+Another example using two different widgets and some spacing::
 
-layout = GridLayout(cols=3, rows=5, spacing=10)
-for i in range(9):
-layout.add_widget(Label(text=str(i)))
-for i in range(10,16):
-layout.add_widget(Button(text=str(i)))
+    layout = GridLayout(cols=3, rows=5, spacing=10)
+    for i in range(9):
+        layout.add_widget(Label(text=str(i)))
+
+    for i in range(10,16):
+        layout.add_widget(Button(text=str(i)))
 
 
 .. note::
