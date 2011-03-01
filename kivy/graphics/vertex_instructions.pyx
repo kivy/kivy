@@ -8,7 +8,7 @@ This module include all the classes for drawing simple vertex object.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'GraphicException', 'Bezier')
+           'Point', 'Mesh', 'GraphicException', 'Bezier')
 
 
 include "config.pxi"
@@ -126,7 +126,7 @@ cdef class Line(VertexInstruction):
         free(indices)
 
     property points:
-        '''Property for getting/settings points of the triangle
+        '''Property for getting/settings points of the line
 
         .. warning::
 
@@ -352,6 +352,71 @@ cdef class Bezier(VertexInstruction):
                 raise GraphicException('Invalid dash_offset value, must be >= 0')
             self._dash_offset = value
             self.flag_update()
+
+
+cdef class Mesh(VertexInstruction):
+    '''A 2d mesh.
+
+    :Parameters:
+        `vertices`: list
+            List of points in the format (x1, y1, x2, y2...)
+        `indices`: list
+            List of indices in the format (i1, i2, i3...)
+    '''
+    cdef list _vertices
+    cdef list _indices
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self.vertices = kwargs.get('vertices', [])
+        self.indices = kwargs.get('indices', [])
+        self.batch.set_mode('points')
+
+    cdef void build(self):
+        cdef int i, vcount = len(self._vertices) / 2
+        cdef int icount = len(self._indices)
+        cdef vertex_t *vertices = NULL
+        cdef int *indices = NULL
+        cdef list lvertices = self._vertices
+        cdef list lindices = self._indices
+
+        vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError('vertices')
+
+        indices = <int *>malloc(icount * sizeof(int))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        for i in xrange(vcount):
+            vertices[i].x = lvertices[i * 4]
+            vertices[i].y = lvertices[i * 4 + 1]
+            vertices[i].s0 = lvertices[i * 4 + 2]
+            vertices[i].t0 = lvertices[i * 4 + 3]
+
+        for i in xrange(icount):
+            indices[i] = lindices[i]
+
+        self.batch.set_data(vertices, vcount, indices, icount)
+
+        free(vertices)
+        free(indices)
+
+    property vertices:
+        def __get__(self):
+            return self._vertices
+        def __set__(self, value):
+            self._vertices = list(value)
+            self.flag_update()
+
+    property indices:
+        def __get__(self):
+            return self._indices
+        def __set__(self, value):
+            self._indices = list(value)
+            self.flag_update()
+
 
 
 cdef class Point(VertexInstruction):
