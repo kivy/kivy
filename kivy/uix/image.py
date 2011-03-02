@@ -100,22 +100,17 @@ class Image(Widget):
         ratio = self.image_ratio
         w, h = self.size
         tw, th = self.texture.size
-        iw, ih = 0, 0
-        # cases if the image is lower than the widget
-        if iw < w and ih < h:
-            if iw < w:
-                iw = w
-                ih = iw / ratio
-            elif ih < h:
-                ih = h
-                iw = ih * ratio
-        # cases if the image is bigger than the widget
-        if iw > w:
-            iw = w
-            ih = iw * ratio
+
+        # ensure that the width is always maximized to the containter width
+        iw = w if tw < w else w
+        # calculate the appropriate height
+        ih = iw / ratio
+        # if the height is too higher, take the height of the container
+        # and calculate appropriate width. no need to test further. :)
         if ih > h:
             ih = h
-            iw = ih / ratio
+            iw = ih * ratio
+
         return iw, ih
 
 

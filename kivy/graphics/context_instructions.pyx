@@ -200,9 +200,11 @@ cdef class BindTexture(ContextInstruction):
         if self.source is None:
             self.texture = kwargs.get('texture', None)
 
+        self.index = kwargs.get('index', 0)
+
     cdef void apply(self):
         cdef RenderContext context = self.get_context()
-        context.set_texture(0, self._texture)
+        context.set_texture(self._index, self._texture)
 
     property texture:
         def __get__(self):
@@ -211,6 +213,15 @@ cdef class BindTexture(ContextInstruction):
             if not texture:
                 texture = get_default_texture()
             self._texture = texture
+
+    property index:
+        def __get__(self):
+            return self._index
+        def __set__(self, int index):
+            if self._index == index:
+                return
+            self._index = index
+            self.flag_update()
 
     property source:
         '''Set/get the source (filename) to load for texture.

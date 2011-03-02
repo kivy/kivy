@@ -710,7 +710,10 @@ class BuilderBase(object):
         listwidget = self.listwidget[:]
         self.listwidget = []
         for widget in listwidget:
+            self._push_ids()
+            self.idmap['root'] = widget
             self.apply(widget)
+            self._pop_ids()
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):

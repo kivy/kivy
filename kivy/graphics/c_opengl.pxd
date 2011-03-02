@@ -453,7 +453,7 @@ cdef extern from "gl_redirect.h":
     cdef void   glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint* params) nogil
     cdef void   glGetShaderiv(GLuint shader, GLenum pname, GLint* params) nogil
     cdef void   glGetShaderInfoLog(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* infolog) nogil
-    cdef void   glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision) nogil
+    #cdef void   glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision) nogil
     cdef void   glGetShaderSource(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* source) nogil
     cdef   GLubyte*  glGetString(GLenum name) nogil
     cdef void   glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params) nogil
@@ -483,7 +483,7 @@ cdef extern from "gl_redirect.h":
     cdef void  glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height) nogil
     cdef void  glSampleCoverage(GLclampf value, GLboolean invert) nogil
     cdef void  glScissor(GLint x, GLint y, GLsizei width, GLsizei height) nogil
-    cdef void  glShaderBinary(GLsizei n,  GLuint* shaders, GLenum binaryformat,  GLvoid* binary, GLsizei length) nogil
+    #cdef void  glShaderBinary(GLsizei n,  GLuint* shaders, GLenum binaryformat,  GLvoid* binary, GLsizei length) nogil
     cdef void  glShaderSource(GLuint shader, GLsizei count,  GLchar** string,  GLint* length) nogil
     cdef void  glStencilFunc(GLenum func, GLint ref, GLuint mask) nogil
     cdef void  glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask) nogil
