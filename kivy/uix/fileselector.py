@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-from kivy.widget import Widget
-from kivy.button import Button
-from kivy.label import Label
+from kivy.uix.widget import Widget
+from kivy.uix.button import Button
+from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 
+from kivy.app import App
 from os import listdir
 from os.path import isdir
 
@@ -27,7 +28,7 @@ def filetype_sort(stringlist):
     raise NotImplementedError
 
 
-class file(object):
+class File(object):
     '''
     object representing a file that one can select using FileSelector widget
     '''
@@ -60,9 +61,19 @@ class FileSelector(Widget):
         def update_display(self):
             self.grid.clear_widgets()
             for f in self.ls():
-                button = Button(text=f, on_press=)
+                button = Button(text=f, on_press=f.call)
                 self.grid.add_widget(button)
 
         def ls(self):
-            return self.sort(listdir(self.path))
+            return (File(name) for name in self.sort(listdir(self.path)))
 
+
+class FSDemo(App):
+    '''Example application
+    '''
+
+    def build(self):
+        return FileSelector()
+
+if __name__ == '__main__':
+    FSDemo().run()
