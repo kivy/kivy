@@ -46,26 +46,27 @@ class FileSelector(Widget):
 
     def __init__(self, *largs):
         Widget.__init__(self)
-        self.cd = '.'
+        self.path = '.'
         self.grid = GridLayout(rows=(self.height-50)/20)
         self.add_widget(self.grid)
         self.sort = alpha_sort
+        self.update_display()
 
-        def cd(self, path):
-            if isdir(path):
-                self.path = path
-                self.update_display()
-            else:
-                raise FileSelectorException("invalid path "+path)
+    def cd(self, path):
+        if isdir(path):
+            self.path = path
+            self.update_display()
+        else:
+            raise FileSelectorException("invalid path "+path)
 
-        def update_display(self):
-            self.grid.clear_widgets()
-            for f in self.ls():
-                button = Button(text=f, on_press=f.call)
-                self.grid.add_widget(button)
+    def update_display(self):
+        self.grid.clear_widgets()
+        for f in self.ls():
+            button = Button(text=f.name, on_press=f.call)
+            self.grid.add_widget(button)
 
-        def ls(self):
-            return (File(name) for name in self.sort(listdir(self.path)))
+    def ls(self):
+        return (File(name) for name in self.sort(listdir(self.path)))
 
 
 class FSDemo(App):
