@@ -8,6 +8,8 @@ from kivy.app import App
 from os import listdir
 from os.path import isdir
 
+__all__ = ('FileSelectorException', 'FileSelector')
+
 
 class FileSelectorException(Exception):
     '''Exception in the manipulation of FileSelector widget.
@@ -36,13 +38,13 @@ class File(object):
     def __init__(self, name):
         self.name = name
 
-    def call(self):
-        pass
-
 
 class FileSelector(Widget):
     '''FileSelector widget
     '''
+
+    def default_callback(self, filename):
+        print filename
 
     def __init__(self, *largs):
         Widget.__init__(self)
@@ -52,17 +54,26 @@ class FileSelector(Widget):
         self.sort = alpha_sort
         self.update_display()
 
-    def cd(self, path):
-        if isdir(path):
-            self.path = path
-            self.update_display()
+        if 'callback' in largs:
+            self.callback = largs['callback']
         else:
-            raise FileSelectorException("invalid path "+path)
+            self.callback = self.default_callback
+
+    def selecter(self):
+
+        def select(instance):
+            if isdir(self.path+instance.name):
+                self.path += instance.name
+                self.update_display()
+            else:
+                self.callback(instance.name)
+        return select
 
     def update_display(self):
         self.grid.clear_widgets()
         for f in self.ls():
-            button = Button(text=f.name, on_press=f.call)
+            select = self.selecter()
+            button = Button(text=f.name, on_press=self.selecter())
             self.grid.add_widget(button)
 
     def ls(self):
