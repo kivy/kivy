@@ -7,8 +7,12 @@ from kivy.properties import ObjectProperty
 
 from kivy.app import App
 from os import listdir
+from os import sep
+from os import getcwd
 from os.path import isdir
 from os.path import join
+
+from time import sleep
 
 __all__ = ('FileSelectorException', 'FileSelector')
 
@@ -43,28 +47,32 @@ class File(Button):
         Button.__init__(self, text=text)
         self.name = text
         self.callback = callback
+        self.touched = False
 
-    def on_touch_down(self, touch):
-        #print "tap"
-        #if touch.is_double_tap:
-            #print "double tap"
-            print self.text
-            print self.name
-            self.callback(self.text)
+    def on_touch_up(self, touch):
+        if self.collide_point(touch.x, touch.y):
+            if self.touched:
+                return
+            else:
+                self.touched = True
+                print "tap " + self.name
+                if touch.is_double_tap:
+                    print "double tap"
+                    print self.name
+                self.callback(self.text)
 
 
 class FileSelector(Widget):
     '''FileSelector widget
     '''
 
-    callback = ObjectProperty(None)
-
-    def __init__(self, *largs):
+    def __init__(self, callback, path=getcwd()):
         '''
         '''
         Widget.__init__(self)
-        self.path = '.'
-        self.grid = GridLayout(rows=(self.height-50)/20)
+        self.callback = callback
+        self.path = getcwd()
+        self.grid = GridLayout(cols=4)
         self.add_widget(self.grid)
         self.sort = alpha_sort
         self.update_display()
@@ -72,13 +80,15 @@ class FileSelector(Widget):
     def select(self, name):
         '''
         '''
+        print "select", name
         self.callback(join(self.path, name))
 
     def cd(self, name):
         '''
         '''
-        print join(self.path, name)
-        self.path += os.sep + name
+        print "cd", name
+        self.path = name
+        sleep(0.02)
         self.update_display()
 
     def update_display(self):
@@ -86,7 +96,7 @@ class FileSelector(Widget):
         '''
         self.grid.clear_widgets()
         for f in self.ls():
-            if isdir(join(self.path, f)):
+            if isdir(f):
                 c = self.cd
             else:
                 c = self.select
@@ -97,7 +107,7 @@ class FileSelector(Widget):
     def ls(self):
         '''
         '''
-        return self.sort(listdir(self.path))
+        return reversed(['..', ] + self.sort(listdir(self.path)))
 
 
 class FSDemo(App):
