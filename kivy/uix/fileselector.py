@@ -3,10 +3,12 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
+from kivy.properties import ObjectProperty
 
 from kivy.app import App
 from os import listdir
 from os.path import isdir
+from os.path import join
 
 __all__ = ('FileSelectorException', 'FileSelector')
 
@@ -30,23 +32,36 @@ def filetype_sort(stringlist):
     raise NotImplementedError
 
 
-class File(object):
+class File(Button):
     '''
     object representing a file that one can select using FileSelector widget
     '''
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, text, callback):
+        '''
+        '''
+        Button.__init__(self, text=text)
+        self.name = text
+        self.callback = callback
+
+    def on_touch_down(self, touch):
+        #print "tap"
+        #if touch.is_double_tap:
+            #print "double tap"
+            print self.text
+            print self.name
+            self.callback(self.text)
 
 
 class FileSelector(Widget):
     '''FileSelector widget
     '''
 
-    def default_callback(self, filename):
-        print filename
+    callback = ObjectProperty(None)
 
     def __init__(self, *largs):
+        '''
+        '''
         Widget.__init__(self)
         self.path = '.'
         self.grid = GridLayout(rows=(self.height-50)/20)
@@ -54,38 +69,47 @@ class FileSelector(Widget):
         self.sort = alpha_sort
         self.update_display()
 
-        if 'callback' in largs:
-            self.callback = largs['callback']
-        else:
-            self.callback = self.default_callback
+    def select(self, name):
+        '''
+        '''
+        self.callback(join(self.path, name))
 
-    def selecter(self):
-
-        def select(instance):
-            if isdir(self.path+instance.name):
-                self.path += instance.name
-                self.update_display()
-            else:
-                self.callback(instance.name)
-        return select
+    def cd(self, name):
+        '''
+        '''
+        print join(self.path, name)
+        self.path += os.sep + name
+        self.update_display()
 
     def update_display(self):
+        '''
+        '''
         self.grid.clear_widgets()
         for f in self.ls():
-            select = self.selecter()
-            button = Button(text=f.name, on_press=self.selecter())
+            if isdir(join(self.path, f)):
+                c = self.cd
+            else:
+                c = self.select
+
+            button = File(text=f, callback=c)
             self.grid.add_widget(button)
 
     def ls(self):
-        return (File(name) for name in self.sort(listdir(self.path)))
+        '''
+        '''
+        return self.sort(listdir(self.path))
 
 
 class FSDemo(App):
     '''Example application
     '''
 
+    def callback(self, filename):
+        print filename
+        self.stop()
+
     def build(self):
-        return FileSelector()
+        return FileSelector(self.callback)
 
 if __name__ == '__main__':
     FSDemo().run()
