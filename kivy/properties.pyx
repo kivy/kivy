@@ -108,7 +108,7 @@ cdef class Property:
     cpdef unbind(self, obj, observer):
         '''Remove the observer from our widget observer list
         '''
-        if obj not in self.storage:
+        if obj.__uid not in self.storage:
             return
         observers = self.storage[obj.__uid]['observers']
         if observer in observers:

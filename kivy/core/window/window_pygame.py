@@ -132,6 +132,7 @@ class WindowPygame(WindowBase):
         data = str(buffer(data))
         surface = pygame.image.fromstring(data, self.size, 'RGB', True)
         pygame.image.save(surface, filename)
+        Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
 
     def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
