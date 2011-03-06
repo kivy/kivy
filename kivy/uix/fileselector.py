@@ -50,7 +50,7 @@ class File(Button):
         self.touched = False
         self.height = 20
 
-    def on_touch_up(self, touch):
+    def on_touch_down(self, touch):
         if self.collide_point(touch.x, touch.y):
             if self.touched:
                 return
@@ -60,6 +60,9 @@ class File(Button):
                 if touch.is_double_tap:
                     print "double tap"
                     self.callback(self.text)
+
+    def on_touch_up(self, touch):
+        self.touched = False
 
 
 class FileSelector(Widget):
