@@ -59,8 +59,7 @@ class File(Button):
                 print "tap " + self.name
                 if touch.is_double_tap:
                     print "double tap"
-                    print self.name
-                self.callback(self.text)
+                    self.callback(self.text)
 
 
 class FileSelector(Widget):
@@ -114,6 +113,11 @@ class FileSelector(Widget):
                 (
                     self.path != '/' and ['..', ] or '/') +
                     self.sort(listdir(self.path)))
+
+    def on_touch_move(self, touch):
+        print touch.dpos
+        self.grid.top += touch.dsy
+        self.grid.x += touch.dsx
 
 
 class FSDemo(App):
