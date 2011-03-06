@@ -116,8 +116,8 @@ class FileSelector(Widget):
 
     def on_touch_move(self, touch):
         print touch.dpos
-        self.grid.top += touch.dsy
-        self.grid.x += touch.dsx
+        self.grid.top += touch.dsy * 1000
+        self.grid.x += touch.dsx * 1000
 
 
 class FSDemo(App):
