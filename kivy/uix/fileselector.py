@@ -48,6 +48,7 @@ class File(Button):
         self.name = text
         self.callback = callback
         self.touched = False
+        self.height = 20
 
     def on_touch_up(self, touch):
         if self.collide_point(touch.x, touch.y):
@@ -72,31 +73,33 @@ class FileSelector(Widget):
         Widget.__init__(self)
         self.callback = callback
         self.path = getcwd()
-        self.grid = GridLayout(cols=4)
+        self.grid = GridLayout(cols=6)
         self.add_widget(self.grid)
         self.sort = alpha_sort
         self.update_display()
 
     def select(self, name):
+        ''' call the callback given to the widget, with the full pathname to
+        the selected file.
         '''
-        '''
-        print "select", name
         self.callback(join(self.path, name))
 
     def cd(self, name):
+        ''' change widget current directory to the selected directory.
         '''
-        '''
-        print "cd", name
-        self.path = name
-        sleep(0.02)
+        if name == '..':
+            self.path = sep.join(self.path.split('/')[:-1])
+        else:
+            self.path += sep + name
         self.update_display()
 
     def update_display(self):
-        '''
+        ''' recreate the set of widgets to show directories and files of the
+        current working directory.
         '''
         self.grid.clear_widgets()
         for f in self.ls():
-            if isdir(f):
+            if isdir(join(self.path, f)):
                 c = self.cd
             else:
                 c = self.select
@@ -105,9 +108,12 @@ class FileSelector(Widget):
             self.grid.add_widget(button)
 
     def ls(self):
+        ''' return the set of files to display
         '''
-        '''
-        return reversed(['..', ] + self.sort(listdir(self.path)))
+        return reversed(
+                (
+                    self.path != '/' and ['..', ] or '/') +
+                    self.sort(listdir(self.path)))
 
 
 class FSDemo(App):
