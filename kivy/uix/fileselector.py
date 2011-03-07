@@ -52,10 +52,10 @@ class File(Button):
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.x, touch.y):
-            if self.touched:
-                return
-            else:
-                self.touched = True
+            #if self.touched:
+                #return
+            #else:
+                #self.touched = True
                 print "tap " + self.name
                 if touch.is_double_tap:
                     print "double tap"
