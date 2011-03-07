@@ -4,6 +4,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ObjectProperty
+from kivy.config import Config
 
 from kivy.app import App
 from os import listdir
@@ -51,19 +52,8 @@ class File(Button):
         self.height = 20
 
     def on_touch_down(self, touch):
-        if self.collide_point(touch.x, touch.y):
-            #if self.touched:
-                #return
-            #else:
-                #self.touched = True
-                print "tap " + self.name
-                if touch.is_double_tap:
-                    print "double tap"
-                    self.callback(self.text)
-
-    def on_touch_up(self, touch):
-        self.touched = False
-
+        if self.collide_point(touch.x, touch.y) and touch.is_double_tap:
+            self.callback(self.text)
 
 class FileSelector(Widget):
     '''FileSelector widget
@@ -75,6 +65,8 @@ class FileSelector(Widget):
         Widget.__init__(self)
         self.callback = callback
         self.path = getcwd()
+        self.label = Label(text=self.path)
+        self.add_widget(self.label)
         self.grid = GridLayout(cols=6)
         self.add_widget(self.grid)
         self.sort = alpha_sort
@@ -90,7 +82,7 @@ class FileSelector(Widget):
         ''' change widget current directory to the selected directory.
         '''
         if name == '..':
-            self.path = sep.join(self.path.split('/')[:-1])
+            self.path = sep.join(self.path.split('/')[:-1]) or '/'
         else:
             self.path += sep + name
         self.update_display()
@@ -108,17 +100,14 @@ class FileSelector(Widget):
 
             button = File(text=f, callback=c)
             self.grid.add_widget(button)
+        self.grid.top = Config.getint('graphics', 'height')
 
     def ls(self):
         ''' return the set of files to display
         '''
-        return reversed(
-                (
-                    self.path != '/' and ['..', ] or '/') +
-                    self.sort(listdir(self.path)))
+        return reversed((['..', ] + self.sort(listdir(self.path))))
 
     def on_touch_move(self, touch):
-        print touch.dpos
         self.grid.top += touch.dsy * 1000
         self.grid.x += touch.dsx * 1000
 
