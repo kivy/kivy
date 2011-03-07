@@ -533,7 +533,7 @@ def glCreateProgram():
 
 def glCreateShader(GLenum type):
     cdef GLuint id
-    c_opengl.glCreateShader(type)
+    id = c_opengl.glCreateShader(type)
     return id
 
 def glCullFace(GLenum mode):
