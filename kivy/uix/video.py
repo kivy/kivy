@@ -49,6 +49,13 @@ class Video(Image):
     False.
     '''
 
+    eos = BooleanProperty(False)
+    '''Boolean indicate if the video is done playing through the end.
+
+    :data:`eos` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False.
+    '''
+
     position = NumericProperty(-1)
     '''Position of the video between 0 and :data:`duration`. The position is
     default to -1, and set to real position when the video is loaded.
@@ -77,6 +84,8 @@ class Video(Image):
         super(Video, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
+        if self._video:
+            self._video.stop()
         if not value:
             self._video = None
             self.texture = None
@@ -84,7 +93,8 @@ class Video(Image):
             filename = resource_find(value)
             self._video = CoreVideo(filename=filename)
             self._video.bind(on_load=self._on_video_frame,
-                             on_frame=self._on_video_frame)
+                             on_frame=self._on_video_frame,
+                             on_eos=self._on_eos)
             if self.play:
                 self._video.play()
             self.duration = 1.
@@ -94,6 +104,10 @@ class Video(Image):
         if not self._video:
             return
         if value:
+            if self.eos:
+                self._video.stop()
+                self._video.position = 0.
+                self._video.eos = False
             self._video.play()
         else:
             self._video.stop()
@@ -102,4 +116,7 @@ class Video(Image):
         self.duration = self._video.duration
         self.position = self._video.position
         self.texture = self._video.texture
+        self.canvas.ask_update()
 
+    def _on_eos(self, *largs):
+        self.eos = True

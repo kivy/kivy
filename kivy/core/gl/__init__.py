@@ -21,8 +21,9 @@ if 'KIVY_DOC' not in environ:
         print_gl_version()
 
     def print_gl_version():
-        version = glGetString(GL_VERSION)
-        Logger.info('GL: OpenGL version <%s>' % str(version))
+        Logger.info('GL: OpenGL version <%s>' % str(glGetString(GL_VERSION)))
+        Logger.info('GL: OpenGL vendor <%s>' % str(glGetString(GL_VENDOR)))
+        Logger.info('GL: OpenGL renderer <%s>' % str(glGetString(GL_RENDERER)))
 
     # To be able to use our GL provider, we must have a window
     # Automaticly import window auto to ensure the default window creation

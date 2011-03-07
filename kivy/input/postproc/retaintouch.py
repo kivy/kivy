@@ -39,9 +39,11 @@ class InputPostprocRetainTouch(object):
             return events
 
         d = time.time()
-        for type, touch in events[:]:
-            if type == 'up':
-                events.remove((type, touch))
+        for etype, touch in events[:]:
+            if not touch.is_touch:
+                continue
+            if etype == 'begin':
+                events.remove((etype, touch))
                 if touch.uid in self._links:
                     selection = self._links[touch.uid]
                     selection.ud.__pp_retain_time__ = d
@@ -50,18 +52,18 @@ class InputPostprocRetainTouch(object):
                 else:
                     touch.ud.__pp_retain_time__ = d
                     self._available.append(touch)
-            elif type == 'move':
+            elif etype == 'update':
                 if touch.uid in self._links:
                     selection = self._links[touch.uid]
                     selection.x = touch.x
                     selection.y = touch.y
                     selection.sx = touch.sx
                     selection.sy = touch.sy
-                    events.remove((type, touch))
-                    events.append((type, selection))
+                    events.remove((etype, touch))
+                    events.append((etype, selection))
                 else:
                     pass
-            elif type == 'down':
+            elif etype == 'end':
                 # new touch, found the nearest one
                 selection = None
                 selection_distance = 99999
@@ -80,12 +82,12 @@ class InputPostprocRetainTouch(object):
 
                 self._links[touch.uid] = selection
                 self._available.remove(selection)
-                events.remove((type, touch))
+                events.remove((etype, touch))
 
         for touch in self._available[:]:
             t = touch.ud.__pp_retain_time__
             if d - t > self.timeout:
                 self._available.remove(touch)
-                events.append(('up', touch))
+                events.append(('end', touch))
 
         return events

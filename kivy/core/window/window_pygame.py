@@ -83,8 +83,11 @@ class WindowPygame(WindowBase):
         # set window icon before calling set_mode
         filename_icon = Config.get('kivy', 'window_icon')
         if exists(filename_icon):
-            icon = pygame.image.load(filename_icon)
-            pygame.display.set_icon(icon)
+            try:
+                icon = pygame.image.load(filename_icon)
+                pygame.display.set_icon(icon)
+            except:
+                Logger.exception('WinPygame: error while loading icon')
 
         # init ourself size + setmode
         # before calling on_resize
@@ -97,7 +100,7 @@ class WindowPygame(WindowBase):
             if multisamples:
                 Logger.warning('WinPygame: Video: failed (multisamples=%d)' %
                                multisamples)
-                Logger.warning('Video: trying without antialiasing')
+                Logger.warning('WinPygame: trying without antialiasing')
                 pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 0)
                 pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 0)
                 multisamples = 0
@@ -137,6 +140,7 @@ class WindowPygame(WindowBase):
         data = str(buffer(data))
         surface = pygame.image.fromstring(data, self.size, 'RGB', True)
         pygame.image.save(surface, filename)
+        Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
 
     def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):

@@ -10,7 +10,7 @@ Usage
 
 By default, the widget itself don't have any graphical representation. The idea
 is to combine Scatter widget with other widget, like
-:class:`~kivy.uix.image.Image` widget.
+:class:`~kivy.uix.image.Image` widget::
 
     scatter = Scatter()
     image = Image(source='sun.jpg')

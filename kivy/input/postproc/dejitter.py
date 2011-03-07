@@ -49,16 +49,18 @@ class InputPostprocDejitter(object):
         if not self.jitterdist:
             return events
         processed = []
-        for type, touch in events:
-            if touch.device in self.ignore_devices:
-                processed.append((type, touch))
+        for etype, touch in events:
+            if not touch.is_touch:
                 continue
-            if type == 'down':
+            if touch.device in self.ignore_devices:
+                processed.append((etype, touch))
+                continue
+            if etype == 'begin':
                 self.last_touches[touch.id] = touch.spos
-            if type == 'up':
+            if etype == 'end':
                 del self.last_touches[touch.id]
-            if type != 'move':
-                processed.append((type, touch))
+            if etype != 'update':
+                processed.append((etype, touch))
                 continue
             # Check whether the touch moved more than the jitter distance
             last_spos = self.last_touches[touch.id]
@@ -67,5 +69,5 @@ class InputPostprocDejitter(object):
                 # Only if the touch has moved more than the jitter dist we take
                 # it into account and dispatch it. Otherwise suppress it.
                 self.last_touches[touch.id] = touch.spos
-                processed.append((type, touch))
+                processed.append((etype, touch))
         return processed

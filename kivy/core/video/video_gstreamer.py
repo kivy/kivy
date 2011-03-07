@@ -2,6 +2,12 @@
 VideoGStreamer: implementation of VideoBase with GStreamer
 '''
 
+# XXX Why using weakref ?
+# Cause connect() will refer to self, that represent VideoGStreamer.
+# For example, you'll have a cyclic ref: VideoGstreamer ->
+# discoverer object -> _discovered -> VideoGstreamer
+# For unknown reason, this cyclic is never freed.
+
 try:
     import pygst
     if not hasattr(pygst, '_gst_already_checked'):
@@ -15,11 +21,55 @@ from threading import Lock
 from . import VideoBase
 from kivy.graphics.texture import Texture
 from gst.extend import discoverer
+from functools import partial
+from weakref import ref
 
 # install the gobject iteration
 from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
+def _discovered(obj, d, is_media):
+    obj = obj()
+    if not obj:
+        return
+    obj._is_audio = d.is_audio
+    obj._is_video = d.is_video
+    obj._do_load = True
+    obj._discoverer.disconnect(obj._discoverer_sid)
+    obj._discoverer.set_state(gst.STATE_NULL)
+    obj._discoverer = None
+
+def _on_gst_message(obj, bus, message):
+    obj = obj()
+    if not obj:
+        return
+    if message.type == gst.MESSAGE_ASYNC_DONE:
+        obj._pipeline_canplay = True
+    elif message.type == gst.MESSAGE_EOS:
+        obj._do_eos()
+
+def _gst_new_pad(obj, dbin, pad, *largs):
+    obj = obj()
+    if not obj:
+        return
+    # a new pad from decoder ?
+    # if it's a video, connect decoder -> colorspace
+    c = pad.get_caps().to_string()
+    try:
+        if c.startswith('video'):
+            dbin.link(obj._colorspace)
+        elif c.startswith('audio'):
+            dbin.link(obj._volumesink)
+    except:
+        pass
+
+def _gst_new_buffer(obj, appsink):
+    obj = obj()
+    if not obj:
+        return
+    # new buffer is comming, pull it.
+    with obj._buffer_lock:
+        obj._buffer = appsink.emit('pull-buffer')
 
 class VideoGStreamer(VideoBase):
     '''VideoBase implementation using GStreamer
@@ -28,7 +78,8 @@ class VideoGStreamer(VideoBase):
 
     __slots__ = ('_pipeline', '_decoder', '_videosink', '_colorspace',
                  '_videosize', '_buffer_lock', '_audiosink', '_volumesink',
-                 '_is_audio', '_is_video', '_do_load', '_pipeline_canplay')
+                 '_is_audio', '_is_video', '_do_load', '_pipeline_canplay',
+                 '_discoverer', '_discoverer_sid')
 
     def __init__(self, **kwargs):
         self._pipeline = None
@@ -89,21 +140,11 @@ class VideoGStreamer(VideoBase):
         # ensure that nothing is loaded before.
         self.unload()
 
-        def discovered(d, is_media):
-            self._is_audio = d.is_audio
-            self._is_video = d.is_video
-            self._do_load = True
-
         # discover the media
-        d = discoverer.Discoverer(self._filename)
-        d.connect('discovered', discovered)
-        d.discover()
-
-    def _on_gst_message(self, bus, message):
-        if message.type == gst.MESSAGE_ASYNC_DONE:
-            self._pipeline_canplay = True
-        elif message.type == gst.MESSAGE_EOS:
-            self._do_eos()
+        self._discoverer = discoverer.Discoverer(self._filename)
+        self._discoverer_sid = self._discoverer.connect('discovered',
+                       partial(_discovered, ref(self)))
+        self._discoverer.discover()
 
     def _really_load(self):
         # create the pipeline
@@ -113,21 +154,22 @@ class VideoGStreamer(VideoBase):
         bus = self._pipeline.get_bus()
         bus.add_signal_watch()
         bus.enable_sync_message_emission()
-        bus.connect('message', self._on_gst_message)
+        bus.connect('message', partial(_on_gst_message, ref(self)))
 
         # hardcoded to check which decoder is better
         if self._filename.split(':')[0] in ('http', 'https', 'file'):
             # network decoder
             self._decoder = gst.element_factory_make('uridecodebin', 'decoder')
             self._decoder.set_property('uri', self._filename)
-            self._decoder.connect('pad-added', self._gst_new_pad)
+            self._decoder.connect('pad-added', partial(_gst_new_pad, ref(self)))
             self._pipeline.add(self._decoder)
         else:
             # local decoder
             filesrc = gst.element_factory_make('filesrc')
             filesrc.set_property('location', self._filename)
             self._decoder = gst.element_factory_make('decodebin', 'decoder')
-            self._decoder.connect('new-decoded-pad', self._gst_new_pad)
+            self._decoder.connect('new-decoded-pad',
+                                  partial(_gst_new_pad, ref(self)))
             self._pipeline.add(filesrc, self._decoder)
             gst.element_link_many(filesrc, self._decoder)
 
@@ -142,9 +184,10 @@ class VideoGStreamer(VideoBase):
         self._videosink.set_property('emit-signals', True)
         self._videosink.set_property('caps', caps)
         self._videosink.set_property('drop', True)
-        self._videosink.set_property('render-delay', 1000000000)
-        self._videosink.set_property('max-lateness', 1000000000)
-        self._videosink.connect('new-buffer', self._gst_new_buffer)
+        #self._videosink.set_property('render-delay', 1000000000)
+        #self._videosink.set_property('max-lateness', 1000000000)
+        self._videosink.connect('new-buffer',
+                                partial(_gst_new_buffer, ref(self)))
         self._audiosink = gst.element_factory_make('autoaudiosink', 'audiosink')
         self._volumesink = gst.element_factory_make('volume', 'volume')
 
@@ -171,23 +214,6 @@ class VideoGStreamer(VideoBase):
             gst.FORMAT_PERCENT,
             gst.SEEK_FLAG_FLUSH,
             percent)
-
-    def _gst_new_pad(self, dbin, pad, *largs):
-        # a new pad from decoder ?
-        # if it's a video, connect decoder -> colorspace
-        c = pad.get_caps().to_string()
-        try:
-            if c.startswith('video'):
-                dbin.link(self._colorspace)
-            elif c.startswith('audio'):
-                dbin.link(self._volumesink)
-        except:
-            pass
-
-    def _gst_new_buffer(self, appsink):
-        # new buffer is comming, pull it.
-        with self._buffer_lock:
-            self._buffer = appsink.emit('pull-buffer')
 
     def _get_position(self):
         if self._videosink is None:

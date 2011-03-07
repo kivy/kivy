@@ -108,7 +108,7 @@ cdef class Property:
     cpdef unbind(self, obj, observer):
         '''Remove the observer from our widget observer list
         '''
-        if obj not in self.storage:
+        if obj.__uid not in self.storage:
             return
         observers = self.storage[obj.__uid]['observers']
         if observer in observers:
@@ -223,6 +223,61 @@ class ObservableList(list):
         cdef Property prop = self.prop
         prop.dispatch(self.obj)
 
+    def __setslice__(self, *largs):
+        list.__setslice__(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def __delslice__(self, *largs):
+        list.__delslice__(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def __iadd__(self, *largs):
+        list.__iadd__(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def __imul__(self, *largs):
+        list.__imul__(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def __add__(self, *largs):
+        list.__add__(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def append(self, *largs):
+        list.append(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def remove(self, *largs):
+        list.remove(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def insert(self, *largs):
+        list.insert(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def pop(self, *largs):
+        list.pop(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def extend(self, *largs):
+        list.extend(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
+    def sort(self, *largs):
+        list.sort(self, *largs)
+        cdef Property prop = self.prop
+        prop.dispatch(self.obj)
+
 cdef class ListProperty(Property):
     '''Property that represent a list.
 
@@ -234,6 +289,11 @@ cdef class ListProperty(Property):
         time you want to add or remove an object. Don't rely on append(),
         remove() and pop() functions.
     '''
+    cpdef link(self, object obj, str name):
+        Property.link(self, obj, name)
+        storage = self.storage[obj.__uid]
+        storage['value'] = ObservableList(self, obj, storage['value'])
+
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True

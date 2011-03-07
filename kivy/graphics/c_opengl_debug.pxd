@@ -87,7 +87,7 @@ cdef void   glGetProgramInfoLog (GLuint program, GLsizei bufsize, GLsizei* lengt
 cdef void   glGetRenderbufferParameteriv (GLenum target, GLenum pname, GLint* params) with gil
 cdef void   glGetShaderiv (GLuint shader, GLenum pname, GLint* params) with gil
 cdef void   glGetShaderInfoLog (GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* infolog) with gil
-cdef void   glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision) with gil
+#cdef void   glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision) with gil
 cdef void   glGetShaderSource (GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* source) with gil
 cdef   GLubyte*  glGetString (GLenum name) with gil
 cdef void   glGetTexParameterfv (GLenum target, GLenum pname, GLfloat* params) with gil
@@ -117,7 +117,7 @@ cdef void  glReadPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 cdef void  glRenderbufferStorage (GLenum target, GLenum internalformat, GLsizei width, GLsizei height) with gil
 cdef void  glSampleCoverage (GLclampf value, GLboolean invert) with gil
 cdef void  glScissor (GLint x, GLint y, GLsizei width, GLsizei height) with gil
-cdef void  glShaderBinary (GLsizei n,  GLuint* shaders, GLenum binaryformat,  GLvoid* binary, GLsizei length) with gil
+#cdef void  glShaderBinary (GLsizei n,  GLuint* shaders, GLenum binaryformat,  GLvoid* binary, GLsizei length) with gil
 cdef void  glShaderSource (GLuint shader, GLsizei count,  GLchar** string,  GLint* length) with gil
 cdef void  glStencilFunc (GLenum func, GLint ref, GLuint mask) with gil
 cdef void  glStencilFuncSeparate (GLenum face, GLenum func, GLint ref, GLuint mask) with gil

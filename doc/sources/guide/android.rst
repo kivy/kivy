@@ -61,6 +61,7 @@ Working devices
 - Motorola Droid 1
 - Motorola Droid 2
 - Samsung Galaxy Tab
+- HTC Desire
 - HTC Desire Z
 - Xperia 10 (custom ROM 2.1 + GLES 2.0 support)
 

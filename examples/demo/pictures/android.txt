@@ -1,0 +1,3 @@
+title=Pictures
+author=Kivy team
+orientation=portrait

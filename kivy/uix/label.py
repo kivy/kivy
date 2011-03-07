@@ -38,7 +38,7 @@ class Label(Widget):
 
         # bind all the property for recreating the texture
         d = ('text', 'font_size', 'font_name', 'bold', 'italic', 'halign',
-             'valign', 'padding_x', 'padding_y')
+             'valign', 'padding_x', 'padding_y', 'text_size')
         dkw = {}
         for x in d:
             dkw[x] = curry(self._trigger_texture_update, x)
@@ -54,6 +54,8 @@ class Label(Widget):
         if source:
             if name == 'text':
                 self._label.text = value
+            elif name == 'text_size':
+                self._label.usersize = value
             else:
                 self._label.options[name] = value
         Clock.unschedule(self.texture_update)
@@ -85,6 +87,26 @@ class Label(Widget):
         widget = Label(text=u'My unicode string')
 
     :data:`text` a :class:`~kivy.properties.StringProperty`.
+    '''
+
+    text_size = ListProperty([None, None])
+    '''By default, the label is not contraint to any bounding box.
+    You can set the size constraint of the label creation with this property.
+
+    For example, whatever is your current widget size, if you want your label to
+    be created in a box with width=200 and unlimited height::
+
+        Label(text='Very big big line', text_size=(200, None))
+
+    .. note::
+
+        This text_size property is the same as
+        :data:`~kivy.core.text.Label.usersize` property in
+        :class:`~kivy.core.text.Label` class. (Even if it's named size= in
+        constructor.)
+
+    :data:`text_size` is a :class:`~kivy.properties.ListProperty` instance,
+    default to (None, None). Mean they are no size restriction by default.
     '''
 
     font_name = StringProperty('fonts/DroidSans.ttf')

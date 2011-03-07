@@ -371,7 +371,7 @@ class Parser(object):
                 current_object['__line__'] = ln
                 current_object['__ctx__'] = self
                 current_property = None
-                x = content.split(':', 2)
+                x = content.split(':', 1)
                 if not len(x[0]):
                     raise ParserError(self, ln, 'Identifier missing')
                 if len(x) == 2 and len(x[1]):
@@ -381,7 +381,7 @@ class Parser(object):
 
             # Next level, is it a property or an object ?
             elif count == indent + 4:
-                x = content.split(':', 2)
+                x = content.split(':', 1)
                 if not len(x[0]):
                     raise ParserError(self, ln, 'Identifier missing')
 
@@ -710,7 +710,10 @@ class BuilderBase(object):
         listwidget = self.listwidget[:]
         self.listwidget = []
         for widget in listwidget:
+            self._push_ids()
+            self.idmap['root'] = widget
             self.apply(widget)
+            self._pop_ids()
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):

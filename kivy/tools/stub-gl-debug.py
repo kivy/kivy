@@ -6,7 +6,7 @@ cdef void   glBindFramebuffer (cgl.GLenum target, cgl.GLuint framebuffer)
 cdef void   glBindRenderbuffer (cgl.GLenum target, cgl.GLuint renderbuffer)
 cdef void   glBindTexture (cgl.GLenum target, cgl.GLuint texture)
 cdef void   glBlendColor (cgl.GLclampf red, cgl.GLclampf green, cgl.GLclampf blue, cgl.GLclampf alpha)
-cdef void   glBlendEquation ( cgl.GLenum mode )
+cdef void   glBlendEquation (cgl.GLenum mode)
 cdef void   glBlendEquationSeparate (cgl.GLenum modeRGB, cgl.GLenum modeAlpha)
 cdef void   glBlendFunc (cgl.GLenum sfactor, cgl.GLenum dfactor)
 cdef void   glBlendFuncSeparate (cgl.GLenum srcRGB, cgl.GLenum dstRGB, cgl.GLenum srcAlpha, cgl.GLenum dstAlpha)
@@ -67,7 +67,7 @@ cdef void   glGetProgramInfoLog (cgl.GLuint program, cgl.GLsizei bufsize, cgl.GL
 cdef void   glGetRenderbufferParameteriv (cgl.GLenum target, cgl.GLenum pname, cgl.GLint* params)
 cdef void   glGetShaderiv (cgl.GLuint shader, cgl.GLenum pname, cgl.GLint* params)
 cdef void   glGetShaderInfoLog (cgl.GLuint shader, cgl.GLsizei bufsize, cgl.GLsizei* length, cgl.GLchar* infolog)
-cdef void   glGetShaderPrecisionFormat (cgl.GLenum shadertype, cgl.GLenum precisiontype, cgl.GLint* range, cgl.GLint* precision)
+#cdef void   glGetShaderPrecisionFormat (cgl.GLenum shadertype, cgl.GLenum precisiontype, cgl.GLint* range, cgl.GLint* precision)
 cdef void   glGetShaderSource (cgl.GLuint shader, cgl.GLsizei bufsize, cgl.GLsizei* length, cgl.GLchar* source)
 cdef   cgl.GLubyte*  glGetString (cgl.GLenum name)
 cdef void   glGetTexParameterfv (cgl.GLenum target, cgl.GLenum pname, cgl.GLfloat* params)
@@ -91,11 +91,11 @@ cdef void  glLinkProgram (cgl.GLuint program)
 cdef void  glPixelStorei (cgl.GLenum pname, cgl.GLint param)
 cdef void  glPolygonOffset (cgl.GLfloat factor, cgl.GLfloat units)
 cdef void  glReadPixels (cgl.GLint x, cgl.GLint y, cgl.GLsizei width, cgl.GLsizei height, cgl.GLenum format, cgl.GLenum type, cgl.GLvoid* pixels)
-cdef void  glReleaseShaderCompiler ()
+#cdef void  glReleaseShaderCompiler ()
 cdef void  glRenderbufferStorage (cgl.GLenum target, cgl.GLenum internalformat, cgl.GLsizei width, cgl.GLsizei height)
 cdef void  glSampleCoverage (cgl.GLclampf value, cgl.GLboolean invert)
 cdef void  glScissor (cgl.GLint x, cgl.GLint y, cgl.GLsizei width, cgl.GLsizei height)
-cdef void  glShaderBinary (cgl.GLsizei n,  cgl.GLuint* shaders, cgl.GLenum binaryformat,  cgl.GLvoid* binary, cgl.GLsizei length)
+#cdef void  glShaderBinary (cgl.GLsizei n,  cgl.GLuint* shaders, cgl.GLenum binaryformat,  cgl.GLvoid* binary, cgl.GLsizei length)
 cdef void  glShaderSource (cgl.GLuint shader, cgl.GLsizei count,  cgl.GLchar** string,  cgl.GLint* length)
 cdef void  glStencilFunc (cgl.GLenum func, cgl.GLint ref, cgl.GLuint mask)
 cdef void  glStencilFuncSeparate (cgl.GLenum face, cgl.GLenum func, cgl.GLint ref, cgl.GLuint mask)
@@ -160,17 +160,39 @@ def replace(s):
             continue
         yield x
 
-print '''cimport c_opengl as cgl
+print '''
+# This file was automatically generated with kivy/tools/stub-gl-debug.py
+cimport c_opengl as cgl
 
 '''
 
-lines = a.split('\n')
+lines = a.splitlines()
 for x in lines:
+    if x.startswith('#'):
+        # There are some functions that either do not exist or break on OSX.
+        # Just skip those.
+        print '# Skipping generation of: "%s"' % x
+        continue
     x = x.replace('cgl.', '')
     y = ' '.join(replace(x))
 
-    print '%s:' % x
-    print '    print "GL %s()"' % x.split()[2]
+    print '%s with gil:' % x
+    s = x.split()
+    print '    print "GL %s(' % s[2],
+    pointer = 0
+    for arg in s[3:]:
+        arg = arg.strip()
+        arg = arg.replace(',', '').replace(')', '')
+        if 'GL' in arg or arg == '(':
+            pointer = arg.count('*')
+            continue
+        pointer = '*' * pointer
+        if pointer:
+            print '%s%s=", repr(hex(<long> %s)), ",' % (arg, pointer, arg),
+        else:
+            print '%s = ", %s, ",' % (arg, arg),
+        pointer = 0
+    print ')"'
     print '    %s' % y
     print '    ret = glGetError()'
     print '    if ret: print "ERR %d / %x" % (ret, ret)'

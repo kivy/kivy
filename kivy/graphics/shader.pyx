@@ -18,6 +18,7 @@ __all__ = ('Shader', )
 include "config.pxi"
 include "common.pxi"
 
+from os.path import join
 from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
@@ -26,15 +27,18 @@ from kivy.graphics.vbo cimport vbo_vertex_attr_list, vbo_vertex_attr_count
 from kivy.graphics.transformation cimport Matrix
 from kivy.logger import Logger
 from kivy.clock import Clock
+from kivy import kivy_shader_dir
 
+cdef str default_vs = open(join(kivy_shader_dir, 'default.vs')).read()
+cdef str default_fs = open(join(kivy_shader_dir, 'default.fs')).read()
 
 cdef class Shader:
     '''Create a vertex or fragment shader
 
     :Parameters:
-        `vert_src` : string
+        `vs` : string
             source code for vertex shader
-        `frag_src` : string
+        `fs` : string
             source code for fragment shader
     '''
     def __cinit__(self):
@@ -45,12 +49,11 @@ cdef class Shader:
         self.uniform_locations = dict()
         self.uniform_values = dict()
 
-    def __init__(self, str vert_src, str frag_src):
-        self.frag_src = frag_src
-        self.vert_src = vert_src
+    def __init__(self, str vs, str fs):
         self.program = glCreateProgram()
         self.bind_attrib_locations()
-        self.build()
+        self.fs = fs
+        self.vs = vs
 
     def __dealloc__(self):
         if self.program == -1:
@@ -247,14 +250,18 @@ cdef class Shader:
     property vs:
         def __get__(self):
             return self.vert_src
-        def __set__(self, str source):
+        def __set__(self, object source):
+            if source is None:
+                source = default_vs
             self.vert_src = source
             self.build_vertex()
 
     property fs:
         def __get__(self):
             return self.frag_src
-        def __set__(self, str source):
+        def __set__(self, object source):
+            if source is None:
+                source = default_fs
             self.frag_src = source
             self.build_fragment()
 

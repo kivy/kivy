@@ -72,6 +72,10 @@ class BoxLayout(Layout):
         self._minimum_size = (0, 0)
         super(BoxLayout, self).__init__(**kwargs)
         self.bind(
+            spacing = self.update_minimum_size,
+            padding = self.update_minimum_size,
+            orientation = self.update_minimum_size)
+        self.bind(
             spacing = self._trigger_layout,
             padding = self._trigger_layout,
             children = self._trigger_layout,
