@@ -120,3 +120,7 @@ class Video(Image):
 
     def _on_eos(self, *largs):
         self.eos = True
+
+    def on_volume(self, instance, value):
+        if self._video:
+            self._video.volume = max(value, .0000001)
