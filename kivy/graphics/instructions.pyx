@@ -12,7 +12,8 @@ information about the usage of Canvas.
 
 __all__ = ('Instruction', 'InstructionGroup',
            'ContextInstruction', 'VertexInstruction',
-           'Canvas', 'CanvasBase', 'RenderContext')
+           'Canvas', 'CanvasBase', 'RenderContext',
+           'Callback')
 
 include "config.pxi"
 include "opcodes.pxi"
@@ -185,6 +186,9 @@ cdef class ContextInstruction(Instruction):
 
 
 cdef class VertexInstruction(Instruction):
+    '''A vertex instruction is the base for creating displayed instruction
+    for Canvas (Rectangles, Triangles, Lines, Ellipse...)
+    '''
     def __init__(self, **kwargs):
         #add a BindTexture instruction to bind teh texture used for 
         #this instruction before the actual vertex instruction
@@ -310,12 +314,113 @@ cdef class VertexInstruction(Instruction):
         self.batch.draw()
 
 
+cdef class Callback(Instruction):
+    '''A Callback is a instruction that will be called when the drawing happen.
+    If you are building a canvas, you can do::
+
+        with self.canvas:
+            Color(1, 1, 1)
+            Rectangle(pos=self.pos, size=self.size)
+            Callback(self.my_callback)
+
+    The definition of the callback must be::
+
+        def my_callback(self, instr):
+            print 'I am called !'
+
+    The drawing of your canvas can not happen until something new changes. From
+    your callback, you can ask for an update::
+
+        with self.canvas:
+            self.cb = Canvas(self.my_callback)
+        # then later in the code
+        self.cb.ask_update()
+
+    If you are using the Callback class to call rendering method of another
+    toolkit, you will have issues with opengl context. The opengl state can be
+    changed inside the another tookit, and so, as soon as you'll back to Kivy,
+    it will just broke. You can have glitch, crash, etc.
+    To prevent that, you can activate the :data:`reset_context` option. It will
+    reset the opengl context state to make Kivy rendering correct, after the
+    call of your callback.
+
+    .. warning::
+
+        The :data:`reset_context` is not a full OpenGL reset. If you have issues
+        around that, please contact us.
+
+    '''
+    cdef object func
+    cdef int _reset_context
+
+    def __init__(self, arg, **kwargs):
+        Instruction.__init__(self, **kwargs)
+        self.func = arg
+        self._reset_context = int(kwargs.get('reset_context', False))
+
+    def ask_update(self):
+        '''Ask the parent canvas to update itself the next frame.
+        Can be useful when a texture content is changing, but anything else in
+        the canvas.
+        '''
+        self.flag_update()
+
+    cdef void apply(self):
+        cdef RenderContext context
+        cdef Shader shader
+
+        if self.func(self):
+            self.flag_update_done()
+
+        if self._reset_context:
+            # FIXME do that in a proper way
+            glDisable(GL_DEPTH_TEST)
+            glDisable(GL_CULL_FACE)
+            glDisable(GL_SCISSOR_TEST)
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            glUseProgram(0)
+
+            # FIXME don't use 10. use max texture available from gl conf
+            for i in xrange(10):
+                glActiveTexture(GL_TEXTURE0 + i)
+                glBindTexture(GL_TEXTURE_2D, 0)
+                glDisableVertexAttribArray(i)
+                glBindBuffer(GL_ARRAY_BUFFER, 0)
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+            # force binding again all our textures.
+            context = getActiveContext()
+            shader = context.shader
+            context.enter()
+            shader.bind_attrib_locations()
+            for index, texture in context.bind_texture.iteritems():
+                context.set_texture(index, texture)
+
+    cdef void enter(self):
+        self._shader.use()
+
+    property reset_context:
+        '''Set to True if you want to reset OpenGL context for kivy after the
+        callback have been called.
+        '''
+        def __get__(self):
+            return self._reset_context
+        def __set__(self, value):
+            value = int(value)
+            if self._reset_context == value:
+                return
+            self._reset_context = value
+            self.flag_update()
+
+
 cdef class CanvasBase(InstructionGroup):
     def __enter__(self):
         pushActiveCanvas(self)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         popActiveCanvas()
+
 
 cdef class Canvas(CanvasBase):
     '''Our famous Canvas class. Use this class for add graphics or context
