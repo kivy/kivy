@@ -244,9 +244,10 @@ class ObservableList(list):
         prop.dispatch(self.obj)
 
     def __add__(self, *largs):
-        list.__add__(self, *largs)
+        cdef object result = list.__add__(self, *largs)
         cdef Property prop = self.prop
         prop.dispatch(self.obj)
+        return result
 
     def append(self, *largs):
         list.append(self, *largs)
