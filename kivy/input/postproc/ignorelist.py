@@ -36,10 +36,12 @@ class InputPostprocIgnoreList(object):
     def process(self, events):
         if not len(self.ignore_list):
             return events
-        for type, touch in events:
-            if type != 'down':
+        for etype, touch in events:
+            if not touch.is_touch:
+                continue
+            if etype != 'begin':
                 continue
             if self.collide_ignore(touch):
                 touch.ud.__pp_ignore__ = True
-        return [(type, touch) for type, touch in events \
+        return [(etype, touch) for etype, touch in events \
                 if not '__pp_ignore__' in touch.ud]

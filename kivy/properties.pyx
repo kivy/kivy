@@ -108,7 +108,7 @@ cdef class Property:
     cpdef unbind(self, obj, observer):
         '''Remove the observer from our widget observer list
         '''
-        if obj not in self.storage:
+        if obj.__uid not in self.storage:
             return
         observers = self.storage[obj.__uid]['observers']
         if observer in observers:
@@ -244,9 +244,10 @@ class ObservableList(list):
         prop.dispatch(self.obj)
 
     def __add__(self, *largs):
-        list.__add__(self, *largs)
+        cdef object result = list.__add__(self, *largs)
         cdef Property prop = self.prop
         prop.dispatch(self.obj)
+        return result
 
     def append(self, *largs):
         list.append(self, *largs)

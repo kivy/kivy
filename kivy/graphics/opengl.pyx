@@ -533,7 +533,7 @@ def glCreateProgram():
 
 def glCreateShader(GLenum type):
     cdef GLuint id
-    c_opengl.glCreateShader(type)
+    id = c_opengl.glCreateShader(type)
     return id
 
 def glCullFace(GLenum mode):
@@ -858,6 +858,7 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     if data == NULL:
         raise MemoryError('glReadPixels()')
 
+    c_opengl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
     c_opengl.glReadPixels(x, y, width, height, format, type, data)
     try:
         py_pixels = PyString_FromStringAndSize(data, size)
