@@ -36,6 +36,7 @@ of his parent, you can write: ::
 
 __all__ = ('Layout', )
 
+from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.properties import AliasProperty
 
@@ -50,8 +51,12 @@ class Layout(Widget):
             raise Exception('The Layout class cannot be used.')
         kwargs.setdefault('size', (1, 1))
         self._minimum_size = (0, 0)
-        self.bind(children=self.update_minimum_size)
+        self.bind(children=self._trigger_minimum_size)
         super(Layout, self).__init__(**kwargs)
+
+    def _trigger_minimum_size(self, *largs):
+        Clock.unschedule(self.update_minimum_size)
+        Clock.schedule_once(self.update_minimum_size)
 
     def _get_minimum_size(self):
         return self._minimum_size
@@ -82,10 +87,14 @@ class Layout(Widget):
         self.minimum_size = self.size
 
     def add_widget(self, widget):
-        widget.bind(size_hint=self.update_minimum_size)
+        widget.bind(
+                size = self._trigger_minimum_size,
+                size_hint = self._trigger_minimum_size)
         return super(Layout, self).add_widget(widget)
 
     def remove_widget(self, widget):
-        widget.unbind(size_hint=self.update_minimum_size)
+        widget.unbind(
+                size = self._trigger_minimum_size,
+                size_hint = self._trigger_minimum_size)
         return super(Layout, self).remove_widget(widget)
 

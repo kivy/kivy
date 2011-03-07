@@ -36,6 +36,7 @@ layout, and the second should be 30%. ::
 
 __all__ = ('BoxLayout', )
 
+import kivy
 from kivy.clock import Clock
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty
@@ -72,9 +73,9 @@ class BoxLayout(Layout):
         self._minimum_size = (0, 0)
         super(BoxLayout, self).__init__(**kwargs)
         self.bind(
-            spacing = self.update_minimum_size,
-            padding = self.update_minimum_size,
-            orientation = self.update_minimum_size)
+            spacing = self._trigger_minimum_size,
+            padding = self._trigger_minimum_size,
+            orientation = self._trigger_minimum_size)
         self.bind(
             spacing = self._trigger_layout,
             padding = self._trigger_layout,
@@ -130,7 +131,10 @@ class BoxLayout(Layout):
                     if shh is not None:
                         height += _h
 
-        self.minimum_size = (width, height)
+        before = self.minimum_size
+        if before[0] != width or before[1] != height:
+            self.minimum_size = (width, height)
+            self._trigger_layout()
 
     def _do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop
