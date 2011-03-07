@@ -3,6 +3,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ObjectProperty
 from kivy.config import Config
 
@@ -65,11 +66,18 @@ class FileSelector(Widget):
         Widget.__init__(self)
         self.callback = callback
         self.path = getcwd()
-        self.label = Label(text=self.path)
-        self.add_widget(self.label)
         self.grid = GridLayout(cols=6)
-        self.add_widget(self.grid)
         self.sort = alpha_sort
+
+        self.box = BoxLayout(orientation='vertical', padding=10)
+        self.label = Label(text=self.path)
+        self.label.top = 0
+        #self.label.x = 0
+        #self.label.height = 20
+
+        self.box.add_widget(self.label)
+        self.box.add_widget(self.grid)
+        self.add_widget(self.box)
         self.update_display()
 
     def select(self, name):
@@ -91,6 +99,7 @@ class FileSelector(Widget):
         ''' recreate the set of widgets to show directories and files of the
         current working directory.
         '''
+        self.label.text = self.path
         self.grid.clear_widgets()
         for f in self.ls():
             if isdir(join(self.path, f)):
@@ -100,7 +109,9 @@ class FileSelector(Widget):
 
             button = File(text=f, callback=c)
             self.grid.add_widget(button)
-        self.grid.top = Config.getint('graphics', 'height')
+        self.box.update_minimum_size()
+        self.box.top = Config.getint('graphics', 'height')
+        self.grid.top = 0
 
     def ls(self):
         ''' return the set of files to display
