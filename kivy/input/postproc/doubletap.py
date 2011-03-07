@@ -39,8 +39,8 @@ class InputPostprocDoubleTap(object):
         for touchid in self.touches:
             if ref.uid == touchid:
                 continue
-            type, touch = self.touches[touchid]
-            if type != 'up':
+            etype, touch = self.touches[touchid]
+            if etype != 'end':
                 continue
             if touch.is_double_tap:
                 continue
@@ -55,8 +55,10 @@ class InputPostprocDoubleTap(object):
 
     def process(self, events):
         # first, check if a touch down have a double tap
-        for type, touch in events:
-            if type == 'down':
+        for etype, touch in events:
+            if not touch.is_touch:
+                continue
+            if etype == 'begin':
                 double_tap = self.find_double_tap(touch)
                 if double_tap:
                     touch.is_double_tap = True
@@ -66,13 +68,13 @@ class InputPostprocDoubleTap(object):
                     touch.double_tap_distance = distance
 
             # add the touch internaly
-            self.touches[touch.uid] = (type, touch)
+            self.touches[touch.uid] = (etype, touch)
 
         # second, check if up-touch is timeout for double tap
         time_current = Clock.get_time()
         for touchid in self.touches.keys()[:]:
-            type, touch = self.touches[touchid]
-            if type != 'up':
+            etype, touch = self.touches[touchid]
+            if etype != 'end':
                 continue
             if time_current - touch.time_start < self.double_tap_time:
                 continue
