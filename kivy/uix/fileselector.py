@@ -4,7 +4,9 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import ObjectProperty
+from kivy.properties import StringProperty
+from kivy.properties import BooleanProperty
+from kivy.properties import ListProperty
 from kivy.config import Config
 
 from kivy.app import App
@@ -49,28 +51,26 @@ class FileSelector(Scatter):
     '''FileSelector widget
     '''
 
-    def __init__(self, callback, path=getcwd()):
+    path = StringProperty(getcwd())
+
+    files = ListProperty([])
+
+    multiple_selection = BooleanProperty(False)
+
+    selection = ListProperty([])
+
+    def __init__(self):
         ''' parameter 'callback' must be a callable accepting one parameter to
         pass the filename selected, optional 'path' argument is the path where
         the FileSelector widget start browsing.
         '''
         Scatter.__init__(self)
         self.do_rotation = False
-        self.callback = callback
         self.path = getcwd()
         self.grid = GridLayout(cols=6, spacing=5)
         self.sort = self.filetype_sort
+        files = self.ls()
 
-        self.box = BoxLayout(orientation='vertical', spacing=20,
-                uniform_height=True, uniform_width=True)
-        self.label = Label(text=self.path)
-        #self.label.top = 0
-        #self.label.x = 0
-        #self.label.height = 20
-
-        self.box.add_widget(self.label)
-        self.box.add_widget(self.grid)
-        self.add_widget(self.box)
         self.update_display()
 
     def alpha_sort(self, stringlist):
@@ -82,8 +82,10 @@ class FileSelector(Scatter):
         '''this is an sort on file type, intended to be used by fileselector
         '''
         #TODO
-        return sorted(stringlist, key=lambda f: (isdir(join(self.path, f)) and
-        'A' or 'B') + f.lower())
+        return sorted(
+                stringlist,
+                key=lambda f: (isdir(join(self.path, f)) and 'A' or 'B')
+                + f.lower())
 
     def select(self, name):
         ''' call the callback given to the widget, with the full pathname to
@@ -104,7 +106,6 @@ class FileSelector(Scatter):
         ''' recreate the set of widgets to show directories and files of the
         current working directory.
         '''
-        self.label.text = self.path
         self.grid.clear_widgets()
         for f in self.ls():
             if isdir(join(self.path, f)):
@@ -115,8 +116,6 @@ class FileSelector(Scatter):
                 color = [1, 1, 1]
 
             self.grid.add_widget(FileItem(text=f, callback=c, color=color))
-        self.box.update_minimum_size()
-        self.box.top = Config.getint('graphics', 'height')
 
     def ls(self):
         ''' return the set of files to display
@@ -133,7 +132,7 @@ class FSDemo(App):
         self.stop()
 
     def build(self):
-        return FileSelector(self.callback)
+        return FileSelector()
 
 if __name__ in ('__main__', '__android__'):
     FSDemo().run()
