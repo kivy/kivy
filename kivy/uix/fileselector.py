@@ -38,7 +38,7 @@ def filetype_sort(stringlist):
     raise NotImplementedError
 
 
-class File(Button):
+class FileItem(Button):
     '''
     object representing a file that one can select using FileSelector widget
     '''
@@ -115,7 +115,7 @@ class FileSelector(Scatter):
                 c = self.select
                 color = [1, 1, 1]
 
-            self.grid.add_widget(File(text=f, callback=c, color=color))
+            self.grid.add_widget(FileItem(text=f, callback=c, color=color))
         self.box.update_minimum_size()
         self.box.top = Config.getint('graphics', 'height')
 
