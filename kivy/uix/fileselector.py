@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from kivy.uix.widget import Widget
+from kivy.uix.scatter import Scatter
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
@@ -43,35 +43,41 @@ class File(Button):
     object representing a file that one can select using FileSelector widget
     '''
 
-    def __init__(self, text, callback):
+    def __init__(self, text, callback, color):
         '''
         '''
-        Button.__init__(self, text=text)
+        Button.__init__(self, text=text, color=color)
+        self.text_size = (100, None)
         self.name = text
         self.callback = callback
         self.touched = False
-        self.height = 20
+        self.height = 50
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.x, touch.y) and touch.is_double_tap:
             self.callback(self.text)
 
-class FileSelector(Widget):
+
+class FileSelector(Scatter):
     '''FileSelector widget
     '''
 
     def __init__(self, callback, path=getcwd()):
+        ''' parameter 'callback' must be a callable accepting one parameter to
+        pass the filename selected, optional 'path' argument is the path where
+        the FileSelector widget start browsing.
         '''
-        '''
-        Widget.__init__(self)
+        Scatter.__init__(self)
+        self.do_rotation = False
         self.callback = callback
         self.path = getcwd()
-        self.grid = GridLayout(cols=6)
+        self.grid = GridLayout(cols=6, spacing=5)
         self.sort = alpha_sort
 
-        self.box = BoxLayout(orientation='vertical', padding=10)
+        self.box = BoxLayout(orientation='vertical', spacing=20,
+                uniform_height=True, uniform_width=True)
         self.label = Label(text=self.path)
-        self.label.top = 0
+        #self.label.top = 0
         #self.label.x = 0
         #self.label.height = 20
 
@@ -104,23 +110,19 @@ class FileSelector(Widget):
         for f in self.ls():
             if isdir(join(self.path, f)):
                 c = self.cd
+                color = [1, 1, 0]
             else:
                 c = self.select
+                color = [1, 1, 1]
 
-            button = File(text=f, callback=c)
-            self.grid.add_widget(button)
+            self.grid.add_widget(File(text=f, callback=c, color=color))
         self.box.update_minimum_size()
         self.box.top = Config.getint('graphics', 'height')
-        self.grid.top = 0
 
     def ls(self):
         ''' return the set of files to display
         '''
         return reversed((['..', ] + self.sort(listdir(self.path))))
-
-    def on_touch_move(self, touch):
-        self.grid.top += touch.dsy * 1000
-        self.grid.x += touch.dsx * 1000
 
 
 class FSDemo(App):
@@ -134,5 +136,5 @@ class FSDemo(App):
     def build(self):
         return FileSelector(self.callback)
 
-if __name__ == '__main__':
+if __name__ in ('__main__', '__android__'):
     FSDemo().run()
