@@ -123,4 +123,4 @@ class Video(Image):
 
     def on_volume(self, instance, value):
         if self._video:
-            self._video.volume = max(value, .0000001)
+            self._video.volume = value
