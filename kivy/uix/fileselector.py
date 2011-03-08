@@ -25,19 +25,6 @@ class FileSelectorException(Exception):
     pass
 
 
-def alpha_sort(stringlist):
-    '''this is an alphanumeric sort, intended to be used by fileselector
-    '''
-    return sorted(stringlist)
-
-
-def filetype_sort(stringlist):
-    '''this is an sort on file type, intended to be used by fileselector
-    '''
-    #TODO
-    raise NotImplementedError
-
-
 class FileItem(Button):
     '''
     object representing a file that one can select using FileSelector widget
@@ -72,7 +59,7 @@ class FileSelector(Scatter):
         self.callback = callback
         self.path = getcwd()
         self.grid = GridLayout(cols=6, spacing=5)
-        self.sort = alpha_sort
+        self.sort = self.filetype_sort
 
         self.box = BoxLayout(orientation='vertical', spacing=20,
                 uniform_height=True, uniform_width=True)
@@ -85,6 +72,18 @@ class FileSelector(Scatter):
         self.box.add_widget(self.grid)
         self.add_widget(self.box)
         self.update_display()
+
+    def alpha_sort(self, stringlist):
+        '''this is an alphanumeric sort, intended to be used by fileselector
+        '''
+        return sorted(stringlist)
+
+    def filetype_sort(self, stringlist):
+        '''this is an sort on file type, intended to be used by fileselector
+        '''
+        #TODO
+        return sorted(stringlist, key=lambda f: (isdir(join(self.path, f)) and
+        'A' or 'B') + f.lower())
 
     def select(self, name):
         ''' call the callback given to the widget, with the full pathname to
