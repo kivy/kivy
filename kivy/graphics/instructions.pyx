@@ -11,8 +11,8 @@ information about the usage of Canvas.
 
 __all__ = ('Instruction', 'InstructionGroup',
            'ContextInstruction', 'VertexInstruction',
-           'Canvas', 'CanvasBase', 'RenderContext',
-           'Callback')
+           'Canvas', 'CanvasBase', 'StencilCanvas',
+           'RenderContext', 'Callback')
 
 include "config.pxi"
 include "opcodes.pxi"
@@ -682,4 +682,48 @@ cdef popActiveContext():
     if ACTIVE_CONTEXT:
         ACTIVE_CONTEXT.enter()
 
+
+
+cdef class StencilCanvas(Canvas):
+    '''Stencil Canvas is a regular canvas that has a 'stencil group'
+    only areas drawn to inside teh stencil group will be actually drawn in the
+    normal children fo this canvas
+    '''
+    cdef CanvasBase _stencil
+
+    def __init__(self, **kwargs):
+        Canvas.__init__(self, **kwargs)
+        self._stencil = CanvasBase()
+
+    cdef void apply(self):
+        #TODO: if other stencil is already active, we must get reference
+        #to the StencilCanvas, and restore teh stebcil buffer with all the
+        #prior stencil pattern groups, to allow stencil inside other etc.
+        #if not glIsEnabled(GL_STENCIL_TEST):
+        glClearStencil(0)
+        glClear(GL_STENCIL_BUFFER_BIT)
+        glEnable(GL_STENCIL_TEST)
+
+        # set up stencil buffer, and draw stencil pattern
+        glStencilFunc(GL_NEVER, 0x0, 0x0)
+        glStencilOp(GL_INCR, GL_INCR, GL_INCR)
+        glColorMask(0, 0, 0, 0)
+        self._stencil.apply()
+
+        #draw actual canvas contents with stencil test enabled
+        glColorMask(1, 1, 1, 1)
+        glStencilFunc(GL_EQUAL, 1,1)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        Canvas.apply(self)
+
+        glDisable(GL_STENCIL_TEST)
+
+    property stencil:
+        '''Property for getting the stencil group.
+        The instruction swill draw to teh stencil buffer
+        to define the pattern used for masking.  use just like
+        before or after on regular canvas.
+        '''
+        def __get__(self):
+            return self._stencil
 
