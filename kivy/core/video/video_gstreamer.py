@@ -252,7 +252,7 @@ class VideoGStreamer(VideoBase):
     def _set_volume(self, volume):
         if self._audiosink is not None:
             self._volumesink.set_property('volume', volume)
-            self._volume = volume
+            self._volume = max(volume, .0000001)
 
     def _update(self, dt):
         if self._do_load:
