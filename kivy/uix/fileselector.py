@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from kivy.uix.scatter import Scatter
+from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
@@ -41,13 +41,43 @@ class FileItem(Button):
         self.callback = callback
         self.touched = False
         self.height = 50
+        self.selected = False
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.x, touch.y) and touch.is_double_tap:
-            self.callback(self.text)
+            self.selected = not self.selected
 
 
-class FileSelector(Scatter):
+class FileSelectorScrollview(Widget):
+    ''' Scrollview containing buttons to select files
+    '''
+    #FIXME: change inneritence to ScrollerView when avaiable
+    files = ListProperty([])
+
+    def __init__(self):
+        self.grid = GridLayout(cols=6, spacing=5)
+        self.add_widget(self.grid)
+
+    def update_display(self):
+        ''' recreate the set of widgets to show directories and files of the
+        current working directory.
+        '''
+        self.grid.clear_widgets()
+        for f in self.files:
+            if isdir(join(self.path, f)):
+                c = self.cd
+                color = [1, 1, 0]
+            else:
+                c = self.select
+                color = [1, 1, 1]
+
+            self.grid.add_widget(FileItem(text=f, callback=c, color=color))
+
+    def selected(self):
+        return [item.name for item in self.grid.children if item.selected]
+
+
+class FileSelector(Widget):
     '''FileSelector widget
     '''
 
@@ -64,14 +94,9 @@ class FileSelector(Scatter):
         pass the filename selected, optional 'path' argument is the path where
         the FileSelector widget start browsing.
         '''
-        Scatter.__init__(self)
-        self.do_rotation = False
-        self.path = getcwd()
-        self.grid = GridLayout(cols=6, spacing=5)
+        Widget.__init__(self)
         self.sort = self.filetype_sort
-        files = self.ls()
-
-        self.update_display()
+        self.files = self.ls()
 
     def alpha_sort(self, stringlist):
         '''this is an alphanumeric sort, intended to be used by fileselector
@@ -81,17 +106,9 @@ class FileSelector(Scatter):
     def filetype_sort(self, stringlist):
         '''this is an sort on file type, intended to be used by fileselector
         '''
-        #TODO
-        return sorted(
-                stringlist,
+        return sorted(stringlist,
                 key=lambda f: (isdir(join(self.path, f)) and 'A' or 'B')
                 + f.lower())
-
-    def select(self, name):
-        ''' call the callback given to the widget, with the full pathname to
-        the selected file.
-        '''
-        self.callback(join(self.path, name))
 
     def cd(self, name):
         ''' change widget current directory to the selected directory.
@@ -100,22 +117,6 @@ class FileSelector(Scatter):
             self.path = sep.join(self.path.split('/')[:-1]) or '/'
         else:
             self.path += sep + name
-        self.update_display()
-
-    def update_display(self):
-        ''' recreate the set of widgets to show directories and files of the
-        current working directory.
-        '''
-        self.grid.clear_widgets()
-        for f in self.ls():
-            if isdir(join(self.path, f)):
-                c = self.cd
-                color = [1, 1, 0]
-            else:
-                c = self.select
-                color = [1, 1, 1]
-
-            self.grid.add_widget(FileItem(text=f, callback=c, color=color))
 
     def ls(self):
         ''' return the set of files to display
