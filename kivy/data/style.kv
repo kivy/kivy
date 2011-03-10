@@ -1,3 +1,5 @@
+#:kivy 1.0
+
 <Label>:
 	canvas:
 		Color:
@@ -54,3 +56,22 @@
 			texture: self.texture
 			size: self.norm_image_size
 			pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
+
+<TextInput>:
+	padding_x: 6
+	padding_y: 6
+	canvas.before:
+		Color:
+			rgb: (1, 1, 1)
+		BorderImage:
+			border: (16, 16, 16, 16)
+			pos: self.pos
+			size: self.size
+			source: 'data/images/textinput.png' if not self.focus else 'data/images/textinput_active.png'
+		Color:
+			rgba: (1, 0, 0, 1 if self.focus and not self.cursor_blink else 0)
+		Rectangle:
+			pos: map(int, self.cursor_pos)
+			size: 1, -self.line_height
+		Color:
+			rgb: (0, 0, 0)
