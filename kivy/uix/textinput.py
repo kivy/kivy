@@ -533,7 +533,6 @@ class TextInput(Widget):
         # size the text maybe be put after size_hint have been resolved.
         self._trigger_refresh_text()
         self.scroll_x = self.scroll_y = 0
-        self.cursor = self.cursor
 
     def _get_cursor_pos(self):
         # return the current cursor x/y from the row/col
@@ -742,6 +741,9 @@ class TextInput(Widget):
         return self._cursor
 
     def _set_cursor(self, pos):
+        if not self._lines:
+            self._trigger_refresh_text()
+            return
         l = self._lines
         cr = boundary(pos[1], 0, len(l) - 1)
         cc = boundary(pos[0], 0, len(l[cr]))
