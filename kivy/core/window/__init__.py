@@ -88,6 +88,7 @@ class WindowBase(EventDispatcher):
         super(WindowBase, self).__init__()
 
         # init privates
+        self._keyboard_callback = None
         self._modifiers = []
         self._size = (0, 0)
         self._rotation = 0
@@ -508,6 +509,30 @@ class WindowBase(EventDispatcher):
     def on_key_up(self, key, scancode=None, unicode=None):
         '''Event called when a key is up (same arguments as on_keyboard)'''
         pass
+
+    def request_keyboard(self, callback):
+        '''Internal method for widget, to request the keyboard. This method is
+        not intented to be used by end-user, however, if you want to use the
+        real-keyboard (not virtual keyboard), you don't want to share it with
+        another widget.
+
+        A widget can request the keyboard, indicating a callback to call
+        when the keyboard will be released (or taken by another widget).
+        '''
+        self.release_keyboard()
+        self._keyboard_callback = callback
+        return True
+
+    def release_keyboard(self):
+        '''Internal method for widget, to release the real-keyboard. Check
+        :func:`request_keyboard` to understand how it works.
+        '''
+        if self._keyboard_callback:
+            # this way will prevent possible recursion.
+            callback = self._keyboard_callback
+            self._keyboard_callback = None
+            callback()
+            return True
 
 
 #: Instance of a :class:`WindowBase` implementation
