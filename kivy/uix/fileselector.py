@@ -18,7 +18,7 @@ from os.path import join
 
 from time import sleep
 
-__all__ = ('FileSelectorException', 'FileSelector')
+__all__ = ('FileSelectorException', 'FileSelector', 'FileSelectorScrollview')
 
 
 class FileSelectorException(Exception):
@@ -32,7 +32,7 @@ class FileItem(Button):
     object representing a file that one can select using FileSelector widget
     '''
 
-    def __init__(self, text, callback, color):
+    def __init__(self, text, callback, color, **kwargs):
         '''
         '''
         Button.__init__(self, text=text, color=color)
@@ -54,7 +54,8 @@ class FileSelectorScrollview(Widget):
     #FIXME: change inneritence to ScrollerView when avaiable
     files = ListProperty([])
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        Widget.__init__(self, **kwargs)
         self.grid = GridLayout(cols=6, spacing=5)
         self.add_widget(self.grid)
 
@@ -77,7 +78,7 @@ class FileSelectorScrollview(Widget):
         return [item.name for item in self.grid.children if item.selected]
 
 
-class FileSelector(Widget):
+class FileSelector(BoxLayout):
     '''FileSelector widget
     '''
 
@@ -89,12 +90,13 @@ class FileSelector(Widget):
 
     selection = ListProperty([])
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         ''' parameter 'callback' must be a callable accepting one parameter to
         pass the filename selected, optional 'path' argument is the path where
         the FileSelector widget start browsing.
         '''
-        Widget.__init__(self)
+        BoxLayout.__init__(self, **kwargs)
+        self.orientation = 'vertical'
         self.sort = self.filetype_sort
         self.files = self.ls()
 

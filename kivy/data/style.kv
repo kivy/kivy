@@ -10,7 +10,7 @@
 <Button,ToggleButton>:
 	canvas:
 		Color:
-			rgb: (1, 1, 1)
+			rgb: self.color
 		BorderImage:
 			border: (16, 16, 16, 16)
 			pos: self.pos
@@ -54,3 +54,27 @@
 			texture: self.texture
 			size: self.norm_image_size
 			pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
+
+
+<FileSelector>:
+    Label:
+        size_hint: (1, None)
+        height: 25
+        text: root.path
+
+    FileSelectorScrollview:
+        size_hint: (1, 10)
+        #controler: root
+        files: root.files
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: (1, 1)
+        height: 25
+        Button:
+            text: 'Ok'
+            on_pressed: root.dispatch('on_select', root.selection)
+        Button:
+            text: 'Cancel'
+            on_pressed: root.dispatch('on_cancel')
+
