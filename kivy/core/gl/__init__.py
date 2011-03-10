@@ -24,12 +24,16 @@ if 'KIVY_DOC' not in environ:
         print_gl_version()
 
     def print_gl_version():
+        version = str(glGetString(GL_VERSION))
+        Logger.info('GL: OpenGL version <%s>' % version)
+        Logger.info('GL: OpenGL vendor <%s>' % str(glGetString(GL_VENDOR)))
+        Logger.info('GL: OpenGL renderer <%s>' % str(glGetString(GL_RENDERER)))
+
         # As per http://www.opengl.org/resources/faq/technical/extensions.htm
         # the format for the string is:
         # """The first part of the return string must be of the form
         # [major-number].[minor-number], optionally followed by a release
         # number or other vendor-specific information.
-        version = str(glGetString(GL_VERSION))
         try:
             majorminor = version.split()[0]
             major, minor = majorminor.split('.')
@@ -45,10 +49,6 @@ if 'KIVY_DOC' not in environ:
                       'Try upgrading your graphics drivers and/or your ' \
                       'graphics hardware in case of problems.'
                 Logger.critical(msg)
-
-        Logger.info('GL: OpenGL version <%s>' % version)
-        Logger.info('GL: OpenGL vendor <%s>' % str(glGetString(GL_VENDOR)))
-        Logger.info('GL: OpenGL renderer <%s>' % str(glGetString(GL_RENDERER)))
 
     # To be able to use our GL provider, we must have a window
     # Automaticly import window auto to ensure the default window creation
