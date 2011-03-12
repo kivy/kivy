@@ -2,11 +2,99 @@
 Text Input
 ==========
 
-The text input widget support :
+The :class:`TextInput` element displays a box of editable plain text.
 
-- Single or multi lines
-- Specials keys like Home, End, Shift+Home, Shift+End
-- Text selection with Control+C, Control+V, Control+X, Control+A
+This widget support by default nice features such as :
+
+    - Unicode text
+    - Multiline editing
+    - Key navigations
+    - Selection by keys or touch
+    - Clipboard support
+
+
+.. note::
+
+    The documentation have 2 differents measurement:
+
+        - (x, y) Coordinates in pixels, mostly used for rendering on screen
+        - (row, col) Index in characters / lines, used for selection and cursor
+          movement.
+
+
+Usage example
+-------------
+
+Creation of a multiline textinput::
+
+    from kivy.uix.textinput import TextInput
+    textinput = TextInput(text='Hello world')
+
+
+You can create a monoline textinput: the 'enter' key will have no impact. ::
+
+    textinput = TextInput(text='Hello world', multiline=False)
+
+
+Get all the text changes::
+
+    def on_text(instance, value):
+        print 'The widget', instance, 'have:', value
+
+    textinput = TextInput()
+    textinput.bind(text=on_text)
+
+
+You can 'focus' a textinput, mean that the input box will be highlighted, and
+keyboard will be requested ::
+
+    textinput = TextInput(focus=True)
+
+The textinput can be leaved by escape or if another textinput is requesting the
+real keyboard. That's mean the widget will be 'unfocused'. You attach to focus
+property, and check the current status::
+
+    def on_focus(instance, value):
+        if value:
+            print 'User entered in', instance
+        else:
+            print 'User leaved from', instance
+
+    textinput = TextInput()
+    textinput.bind(focus=on_focus)
+
+
+Selection
+---------
+
+Selection of the textinput is automatically managed. You can get the current
+selection with :data:`TextInput.selection_text` property. The selection is
+automatically updated when the cursor position change.
+
+
+Default shortcuts
+-----------------
+
+=============== ========================================================
+   Shortcuts    Description
+--------------- --------------------------------------------------------
+Left            Move cursor to left
+Right           Move cursor to right
+Up              Move cursor to up
+Down            Move cursor to down
+Home            Move cursor at the beginning of the line
+End             Move cursor at the end of the line
+PageUp          Move cursor to 3 lines before
+PageDown        Move cursor to 3 lines after
+Backspace       Delete the selection or character before the cursor
+Del             Delete the selection of character after the cursor
+Shift + <dir>   Start a text selection. Dir can be Up, Down, Left, Right
+Control + c     Copy selection
+Control + x     Cut selection
+Control + p     Paste selection
+control + a     Select all the content
+=============== ========================================================
+
 '''
 
 
