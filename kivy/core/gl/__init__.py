@@ -36,11 +36,12 @@ if 'KIVY_DOC' not in environ:
         # number or other vendor-specific information.
         try:
             majorminor = version.split()[0]
-            major, minor = majorminor.split('.')
+            major, minor = majorminor.split('.')[0:2]
+            major, minor = int(major), int(minor)
         except:
             # We don't want to bail out here if there is an error while parsing
             # Just raise a warning (God knows what vendors return here...)
-            Logger.warning('GL: Error parsing OpenGL version: %s' % version)
+            Logger.warning('GL: Error parsing OpenGL version: %r' % version)
         else:
             # If parsing went without problems, let the user know if his
             # graphics hardware/drivers are too old
