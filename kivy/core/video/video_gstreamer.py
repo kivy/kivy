@@ -28,6 +28,7 @@ from weakref import ref
 from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
+
 def _discovered(obj, d, is_media):
     obj = obj()
     if not obj:
@@ -39,6 +40,7 @@ def _discovered(obj, d, is_media):
     obj._discoverer.set_state(gst.STATE_NULL)
     obj._discoverer = None
 
+
 def _on_gst_message(obj, bus, message):
     obj = obj()
     if not obj:
@@ -47,6 +49,7 @@ def _on_gst_message(obj, bus, message):
         obj._pipeline_canplay = True
     elif message.type == gst.MESSAGE_EOS:
         obj._do_eos()
+
 
 def _gst_new_pad(obj, dbin, pad, *largs):
     obj = obj()
@@ -63,6 +66,7 @@ def _gst_new_pad(obj, dbin, pad, *largs):
     except:
         pass
 
+
 def _gst_new_buffer(obj, appsink):
     obj = obj()
     if not obj:
@@ -70,6 +74,7 @@ def _gst_new_buffer(obj, appsink):
     # new buffer is comming, pull it.
     with obj._buffer_lock:
         obj._buffer = appsink.emit('pull-buffer')
+
 
 class VideoGStreamer(VideoBase):
     '''VideoBase implementation using GStreamer
@@ -199,6 +204,7 @@ class VideoGStreamer(VideoBase):
         if self._is_audio:
             self._pipeline.add(self._audiosink, self._volumesink)
             gst.element_link_many(self._volumesink, self._audiosink)
+            self._volumesink.set_property('volume', self._volume)
 
         # set to paused, for loading the file, and get the size information.
         self._pipeline.set_state(gst.STATE_PAUSED)
@@ -250,9 +256,9 @@ class VideoGStreamer(VideoBase):
         return self._volume
 
     def _set_volume(self, volume):
+        self._volume = max(volume, .0000001)
         if self._audiosink is not None:
-            self._volumesink.set_property('volume', volume)
-            self._volume = max(volume, .0000001)
+            self._volumesink.set_property('volume', self._volume)
 
     def _update(self, dt):
         if self._do_load:
