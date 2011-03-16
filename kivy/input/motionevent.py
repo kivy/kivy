@@ -8,7 +8,7 @@ event. This class define all the properties and methods needed to handle 2D and
 
 .. note::
     You never create the :class:`MotionEvent` yourself, this is the role of the
-    :ref:`~kivy.input.providers`.
+    :mod:`~kivy.input.providers`.
 
 Motion Event and Touch
 ----------------------
