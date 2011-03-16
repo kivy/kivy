@@ -37,10 +37,10 @@ Select the installations instructions for your platform:
 .. toctree::
     :maxdepth: 1
 
-    installation-window.rst
-    installation-macosx.rst
-    installation-ubuntu.rst
-    installation-android.rst
+    installation-window
+    installation-macosx
+    installation-ubuntu
+    installation-android
 
 Development Version
 -------------------

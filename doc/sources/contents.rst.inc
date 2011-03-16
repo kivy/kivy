@@ -9,11 +9,12 @@ stunning applications in short time using the framework.
 .. toctree::
     :maxdepth: 2
 
-    philosophy.rst
-    guide-index.rst
-    contribute.rst
-    faq.rst
-    contact.rst
+    philosophy
+    installation/installation
+    guide-index
+    contribute
+    faq
+    contact
 
 
 .. include:: api-index.rst

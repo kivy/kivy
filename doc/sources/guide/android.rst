@@ -1,5 +1,7 @@
-Android platform
-================
+.. _android:
+
+Kivy on Android
+===============
 
 We want to thanks Renpy Tom for beeing able to run pygame on android,
 with his `Pygame Subset for Android <http://renpy.org/pygame/>`_ project.
@@ -16,7 +18,7 @@ Introduction to the Kivy Launcher
 ---------------------------------
 
 The Kivy launcher is an application to run any kivy examples stored on your
-sdcard from android. Check the :doc:`installation-android`.
+SD Card from android. See :ref:`androidinstall`.
 
 Your application must be saved into::
 

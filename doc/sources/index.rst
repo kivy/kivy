@@ -20,10 +20,9 @@ concern isn't addressed in the documentation, feel free to :ref:`contact`.
 .. include:: contents.rst.inc
 
 
-Indices and tables
-==================
+Appendix
+========
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+The appendix contains an enumeration of all the different module, class,
+function and variable names available in Kivy.
 
