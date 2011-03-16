@@ -5,11 +5,24 @@ Contributing
 
 There are many ways in which you can contribute to Kivy.
 Code patches are just one thing amongst others that you can submit to help the
-project. We also welcome bug reports, feature requests, documentation
+project. We also welcome feedback, bug reports, feature requests, documentation
 improvements, advertisement & advocating, testing, graphics contributions and
 many different things. Just talk to us if you want to help, and we will help you
 help us.
 
+Feedback
+--------
+
+This is by far the easiest way to contribute something. If you're using
+Kivy for your own project, don't hesitate sharing. It doesn't have to be a
+high-class enterprise app, obviously. It's just incredibly motivating to
+know that people use the things you develop and what it enables them to
+do. If you have something that you would like to tell us, please don't
+hesitate. Screenshots and videos are also very welcome!
+We're also interested in the problems you had when getting started. Please
+feel encouraged to report any obstacles you encountered such as missing
+documentation, misleading directions or similar.
+We are perfectionists, so even if it's just a typo, let us know.
 
 Reporting an issue
 ------------------
