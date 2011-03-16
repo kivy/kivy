@@ -1,0 +1,161 @@
+\definecolor{TitleColor}{rgb}{0,0,0}
+\definecolor{InnerLinkColor}{rgb}{0,0,0}
+% Make links the same color as links on the website
+\definecolor{OuterLinkColor}{rgb}{0.875,0.392,0.133}
+
+% TODO Find a way not to have this active when printing the file
+\definecolor{bgcolor}{rgb}{0.98,0.98,0.945}
+\pagecolor{bgcolor}
+
+% Color for warning boxes
+\definecolor{warningcolor}{rgb}{0.78,0.18,0}
+
+% This could be used to add a tiled background:
+%\usepackage{wallpaper}
+%\ThisTileSquareWallPaper{10}{background.png}
+
+% Code background color
+\definecolor{VerbatimColor}{rgb}{0.925,0.918,0.882}
+
+% Palatino needs more leading (space between lines)
+\linespread{1.05}
+
+
+% Override default commands below for custom style:
+
+\renewcommand{\maketitle}{%
+  \begin{titlepage}%1
+    \let\footnotesize\small
+    \let\footnoterule\relax
+    \ifsphinxpdfoutput
+      \begingroup
+      % This \def is required to deal with multi-line authors; it
+      % changes \\ to ', ' (comma-space), making it pass muster for
+      % generating document info in the PDF file.
+      \def\\{, }
+      \pdfinfo{
+        /Author (\@author)
+        /Title (\@title)
+      }
+      \endgroup
+    \fi
+    \begin{flushright}%
+      %\sphinxlogo%
+      {\center
+	\vspace*{3cm}
+	\includegraphics[scale=0.7]{logo.pdf}
+	\vspace{3cm}
+	\par
+        {\rm\Huge \@title \par}%
+        {\em\LARGE \py@release\releaseinfo \par}
+	% Small hack to get the URL onto the first page
+	{\small www.kivy.org}
+        {\large
+         %\@date \par
+         \py@authoraddress \par
+        }
+      }
+    \end{flushright}%\par
+    \@thanks
+  \end{titlepage}%
+  \cleardoublepage%
+  \setcounter{footnote}{0}%
+  \let\thanks\relax\let\maketitle\relax
+  %\gdef\@thanks{}\gdef\@author{}\gdef\@title{}
+}
+
+\fancypagestyle{normal}{
+  \fancyhf{}
+  \fancyfoot[LE,RO]{{\thepage}}
+  \fancyfoot[LO]{{\nouppercase{\rightmark}}}
+  \fancyfoot[RE]{{\nouppercase{\leftmark}}}
+  \fancyhead[LE,RO]{{ \@title, \py@release}}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[LE,RO]{{\thepage}}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+}
+
+\titleformat{\section}{\Large}%
+            {\py@TitleColor\thesection}{0.5em}{\py@TitleColor}{\py@NormalColor}
+\titleformat{\subsection}{\large}%
+            {\py@TitleColor\thesubsection}{0.5em}{\py@TitleColor}{\py@NormalColor}
+\titleformat{\subsubsection}{}%
+            {\py@TitleColor\thesubsubsection}{0.5em}{\py@TitleColor}{\py@NormalColor}
+\titleformat{\paragraph}{\large}%
+            {\py@TitleColor}{0em}{\py@TitleColor}{\py@NormalColor}
+
+\ChNameVar{\raggedleft\normalsize}
+\ChNumVar{\raggedleft \bfseries\Large}
+\ChTitleVar{\raggedleft \rm\Huge}
+
+\renewcommand\thepart{\@Roman\c@part}
+\renewcommand\part{%
+   \pagestyle{plain}
+   \if@noskipsec \leavevmode \fi
+   \cleardoublepage
+   \vspace*{6cm}%
+   \@afterindentfalse
+   \secdef\@part\@spart}
+
+\def\@part[#1]#2{%
+    \ifnum \c@secnumdepth >\m@ne
+      \refstepcounter{part}%
+      \addcontentsline{toc}{part}{\thepart\hspace{1em}#1}%
+    \else
+      \addcontentsline{toc}{part}{#1}%
+    \fi
+    {\parindent \z@ %\center
+     \interlinepenalty \@M
+     \normalfont
+     \ifnum \c@secnumdepth >\m@ne
+       \rm\Large \partname~\thepart
+       \par\nobreak
+     \fi
+     \MakeUppercase{\rm\Huge #2}%
+     \markboth{}{}\par}%
+    \nobreak
+    \vskip 8ex
+    \@afterheading}
+\def\@spart#1{%
+    {\parindent \z@ %\center
+     \interlinepenalty \@M
+     \normalfont
+     \huge \bfseries #1\par}%
+     \nobreak
+     \vskip 3ex
+     \@afterheading}
+
+% We want colored warning boxes
+\renewcommand{\py@heavybox}{
+  \setlength{\fboxrule}{1pt}
+  \setlength{\fboxsep}{6pt}
+  \setlength{\py@noticelength}{\linewidth}
+  \addtolength{\py@noticelength}{-2\fboxsep}
+  \addtolength{\py@noticelength}{-2\fboxrule}
+  %\setlength{\shadowsize}{3pt}
+  \color{warningcolor}
+  \Sbox
+  \minipage{\py@noticelength}
+  % After drawing the box, reset to black
+  \color{black}
+}
+
+
+% Font used for code snippets
+\usepackage{beramono}
+
+
+% XXX find a solution for this
+% fix single quotes, for inconsolata. (does not work)
+%%\usepackage{textcomp}
+%%\begingroup
+%%  \catcode`'=\active
+%%  \g@addto@macro\@noligs{\let'\textsinglequote}
+%%  \endgroup
+%%\endinput
