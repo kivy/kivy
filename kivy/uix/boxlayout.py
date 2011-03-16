@@ -36,7 +36,6 @@ layout, and the second should be 30%. ::
 
 __all__ = ('BoxLayout', )
 
-import kivy
 from kivy.clock import Clock
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty
