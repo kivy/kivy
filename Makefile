@@ -2,11 +2,11 @@ PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
 
-mesabuild:
-	$(PYTHON) setup.py build_ext --inplace --define __MESAGL__
-
 build:
 	$(PYTHON) setup.py build_ext --inplace
+
+mesabuild:
+	$(PYTHON) setup.py build_ext --inplace --define __MESAGL__
 
 pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
