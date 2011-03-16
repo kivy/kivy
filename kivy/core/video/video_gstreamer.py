@@ -63,6 +63,7 @@ def _gst_new_pad(obj, dbin, pad, *largs):
             dbin.link(obj._colorspace)
         elif c.startswith('audio'):
             dbin.link(obj._volumesink)
+            obj._volumesink.set_property('volume', obj._volume)
     except:
         pass
 
@@ -195,6 +196,7 @@ class VideoGStreamer(VideoBase):
                                 partial(_gst_new_buffer, ref(self)))
         self._audiosink = gst.element_factory_make('autoaudiosink', 'audiosink')
         self._volumesink = gst.element_factory_make('volume', 'volume')
+        self._volumesink.set_property('volume', self._volume)
 
         # connect colorspace -> appsink
         if self._is_video:
@@ -204,7 +206,6 @@ class VideoGStreamer(VideoBase):
         if self._is_audio:
             self._pipeline.add(self._audiosink, self._volumesink)
             gst.element_link_many(self._volumesink, self._audiosink)
-            self._volumesink.set_property('volume', self._volume)
 
         # set to paused, for loading the file, and get the size information.
         self._pipeline.set_state(gst.STATE_PAUSED)
@@ -252,7 +253,7 @@ class VideoGStreamer(VideoBase):
         if self._audiosink is not None:
             self._volume = self._volumesink.get_property('volume')
         else:
-            self._volume = 1.
+            self._volume = 0.00000001
         return self._volume
 
     def _set_volume(self, volume):
@@ -271,15 +272,18 @@ class VideoGStreamer(VideoBase):
 
         # get size information first to create the texture
         if self._texture is None:
-            for i in self._decoder.src_pads():
-                cap = i.get_caps()[0]
-                structure_name = cap.get_name()
-                if structure_name.startswith('video') and 'width' in cap.keys():
-                    self._videosize = (cap['width'], cap['height'])
-                    self._texture = Texture.create(
-                        size=self._videosize, colorfmt='rgb')
-                    self._texture.flip_vertical()
-                    self.dispatch('on_load')
+            try:
+                for i in self._decoder.src_pads():
+                    cap = i.get_caps()[0]
+                    is_video_struct = cap.get_name().startswith('video')
+                    if is_video_struct and 'width' in cap.keys():
+                        self._videosize = (cap['width'], cap['height'])
+                        self._texture = Texture.create(
+                            size=self._videosize, colorfmt='rgb')
+                        self._texture.flip_vertical()
+                        self.dispatch('on_load')
+            except:
+                pass # can be resyn error
 
         # no texture again ?
         if self._texture is None:
