@@ -37,7 +37,7 @@ Select the installations instructions for your platform:
 .. toctree::
     :maxdepth: 1
 
-    installation-window
+    installation-windows
     installation-macosx
     installation-ubuntu
     installation-android
