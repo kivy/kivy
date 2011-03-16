@@ -286,7 +286,7 @@ class Widget(EventDispatcher):
     def bind(self, **kwargs):
         '''Bind properties or events to a handler.
 
-        Example of usage::
+        Example usage::
 
             def my_x_callback(obj, value):
                 print 'on object', obj', 'x changed to', value
