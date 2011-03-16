@@ -9,8 +9,9 @@ existing, high-qualitative third-party libraries where possible.
 For the rich set of features that Kivy offers, several other libraries are
 required. If you do not use a specific feature (e.g. video playback) you
 don't need the corresponding dependency, however.
-That said, there are one dependency that Kivy **does** require:
+That said, there is one dependency that Kivy **does** require:
 `Cython <http://cython.org>`_.
+
 In addition, you need a `Python <http://python.org/>`_ 2.x (**not**  3.x)
 interpreter. If you want to enable features like windowing (i.e., open a Window),
 audio/video playback or spelling correction, you must install other
@@ -18,21 +19,30 @@ dependencies. For these, we recommend `Pygame <http://pygame.org>`_, `Gst-Python
 <http://www.gstreamer.net/modules/gst-python.html>`_ and `Enchant
 <http://www.rfk.id.au/software/pyenchant/>`_, respectively.
 
-Other optional libraries (mutually interchangable) are:
+Other optional libraries (mutually interchangeable) are:
 
-    * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_: Camera input.
-    * `PIL <http://www.pythonware.com/products/pil/index.htm>`_: Image and text display.
-    * `PyCairo <http://www.cairographics.org/pycairo/>`_: Text display.
-    * `PyEnchant <http://www.rfk.id.au/software/pyenchant/>`_: Spelling correction.
-    * `Pygame <http://www.pygame.org>`_ : Window creation, image and text display, audio playback.
-    * `PyGST <http://gstreamer.freedesktop.org/ + http://pygstdocs.berlios.de/>`_: Audio/video playback and camera input.
+    * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_ -- Camera input.
+    * `PIL <http://www.pythonware.com/products/pil/index.htm>`_ -- Image and text display.
+    * `PyCairo <http://www.cairographics.org/pycairo/>`_ -- Text display.
+    * `PyEnchant <http://www.rfk.id.au/software/pyenchant/>`_ -- Spelling correction.
+    * `Pygame <http://www.pygame.org>`_ -- Window creation, image and text display, audio playback.
+    * `PyGST <http://gstreamer.freedesktop.org/ + http://pygstdocs.berlios.de/>`_ -- Audio/video playback and camera input.
 
 
-Stable version
+That said, **DON'T PANIC**!
+
+We don't ask you to install all those things on your own.
+Instead, we created nice portable packages that you can use directly
+since they already contain the necessary packages for your platform.
+We just want you to know about the alternatives for the defaults and give
+you an overview about the things Kivy uses internally.
+
+
+Stable Version
 --------------
 
 The latest stable version can be found on the Kivy's website at http://kivy.org/#downloads
-Select the installations instructions for your platform:
+Please refer to the installation instructions for your specific platform:
 
 .. toctree::
     :maxdepth: 1
@@ -86,11 +96,11 @@ download and compile a development version of Kivy::
     $ python setup.py build_ext --inplace -f
 
 If you have the ``make`` command available, you can also use the
-following shortcut to compile (does the same as the last two commands)::
+following shortcut to compile (does the same as the last command)::
 
-    $ make build
+    $ make
 
-If you want to modify the Kivy codebase itself,
+If you want to modify the Kivy code itself,
 set up the `PYTHONPATH environment variable <http://docs.python.org/tutorial/modules.html#the-module-search-path>`_
 to point at your clone.
 This way you don't have to install (``setup.py install``) after every tiny
@@ -102,4 +112,4 @@ Or, if you don't want to make any changes to Kivy itself, you can also run
     $ python setup.py install
 
 If you want to contribute code (patches, new features) to the Kivy
-codebase, please read :ref:`contributing`.
+code base, please read :ref:`contributing`.

@@ -44,14 +44,14 @@ Now, to run your application, depending of your platform, you can :
             # or
             C:\appdir>kivy.bat main.py
 
-    MacOSX
+    Mac OS X
         Follow the instructions for :ref:`running Kivy application on MacOSX <macosx-run-app>`::
 
             $ kivy main.py
 
     Android
-        You application need some complementary files to be able to run on Android.
-        See :doc:`android` for more informations.
+        Your application needs some complementary files to be able to run on Android.
+        See :doc:`android` for further reference.
 
 A window should open, showing a sole button (with the label 'Hello World') that
 covers the entire window's area. That's all there is to it.

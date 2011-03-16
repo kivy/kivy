@@ -1,8 +1,15 @@
 Installation on Ubuntu
 ======================
 
+The following instructions are for Ubuntu, but they should work in a
+similar fashion for other Linux distributions (e.g. Debian, opensuse,
+fedora, etc.). Obviously you will need to adjust the commands.
+
 Ubuntu 10.10 (Maverick)
 -----------------------
+
+Unfortunately there is no kivy package in the Ubuntu repositories yet.
+We're working on it. Until then, do the following instead:
 
 ::
 
