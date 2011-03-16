@@ -1,57 +1,66 @@
 Installation on Windows
 =======================
 
-The windows stable version is what we call a portable package. You don't have
-to install anything in "system" wide. Just unzip & run:
+For Windows, we provide what we call a 'portable package'. You don't have
+to install anything "system" wide. Just unzip & run:
 
-    1. Download the latest version from http://kivy.org/#downloads
-    2. Unzip the package
-    3. Then, in the unzipped package, you have a script called `kivy.bat`,
-       use it for launching any kivy application
+    #. Download the latest version from http://kivy.org/#downloads
+    #. Unzip the package
+    #. Then, in the unzipped package, you have a script called `kivy.bat`,
+       use it for launching any kivy application as described below
 
 
 .. _windows-run-app:
 
-Start any Kivy's application
-----------------------------
+Start a Kivy Application
+------------------------
 
-If you want to double-click and make it just "work", you need to use the
-`kivy.bat` included in the package for starting Kivy application. To make
-it work, do
+There are some simple steps that you need to do once in order to be able
+to launch any kivy application by just double-clicking it:
 
-    1. Right click on the python file of the application
-    2. Open With
-    3. Select the default software
-    4. Browse your files to select the `kivy.bat`
-    5. Select "Always open the file with..." if you want
-    6. Ok !
+    #. Right click on the main python file (.py ending) of the application you want to launch
+    #. From the context menu that appears, select *Open With*
+    #. Browse your hard disk drive and find the file ``kivy.bat`` from the portable package. Select it.
+    #. Select "Always open the file with..." if you don't want to repeat this procedure every time you double click a .py file.
+    #. You are done. Open the file.
 
-Next time, your python file will be executed with the Kivy's python !
+The next time you double click a .py file, it will be executed with the version
+of python that Kivy ships with.
+
+.. note::
+   On Windows we have to ship our own version of Python since it's not
+   installed by default on Windows (unlike Mac OS X and Linux). By
+   following the steps above, you will set Kivy's version of Python as the
+   default for opening .py files for your user.
+   Normally this should not be harmful as it's just a normal version of
+   Python with the :ref:`necessary third party libraries <winpackagecontents>`
+   added to the module search path.
+   If you do encounter unexpected problems, please :ref:`contact`.
 
 
-Start from commandline
-----------------------
+Start from Command-Line
+-----------------------
 
-If you want just to use or develop with latest stable kivy, we offer you an
-alternative way with a console. You need a minimalist GNU system installed on
+If you just want to use or develop with the latest stable kivy version, we offer
+an alternative way with a console. You need a minimalist GNU system installed on
 your system. Use `msysGit <http://code.google.com/p/msysgit/>`_.
 
-When you install the msysGit, you must select theses options:
+When you install msysGit, you must select theses options:
 
     * Don't replace windows shell
-    * Checkout at-is, commit at-is (no clrf replacement !)
+    * Checkout as-is, commit as-is (no CLRF replacement!)
 
 You'll have an icon "Git bash" on your desktop, this is the console we want:
 
-    1. Start "Git bash"
-    2. cd "directory of portable kivy"
-    3. source kivyenv.sh "full directory of portable kivy" (don't use .)
+    #. Start "Git bash"
+    #. ``cd <directory of portable kivy>``
+    #. ``source kivyenv.sh <full directory path of portable kivy>`` # (don't use .)
 
-You are now ready to launch python/kivy in commande line ! Just do::
+You are now ready to launch python/kivy from the command-line! Just do::
 
     python <filename.py>
 
-Also, all other scripts and binary are available such as:
+Also, all other scripts and binaries are available, such as:
 
     * cython
     * gcc / make...
@@ -59,12 +68,14 @@ Also, all other scripts and binary are available such as:
     * gst-inspect-0.10
 
 
-Content of the package
-----------------------
+.. _winpackagecontents:
 
-The latest windows package contain:
+Package Contents
+----------------
 
-    * Latest kivy stable version
+The latest Windows package contains:
+
+    * Latest stable kivy version
     * Python 2.7.1
     * Glew 1.5.7
     * Pygame 1.9.2
@@ -72,5 +83,4 @@ The latest windows package contain:
     * MingW
     * Gstreamer
     * Setuptools
-
 

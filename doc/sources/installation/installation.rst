@@ -14,8 +14,8 @@ That said, there is one dependency that Kivy **does** require:
 
 In addition, you need a `Python <http://python.org/>`_ 2.x (**not**  3.x)
 interpreter. If you want to enable features like windowing (i.e., open a Window),
-audio/video playback or spelling correction, you must install other
-dependencies. For these, we recommend `Pygame <http://pygame.org>`_, `Gst-Python
+audio/video playback or spelling correction, additional dependencies must
+be available. For these, we recommend `Pygame <http://pygame.org>`_, `Gst-Python
 <http://www.gstreamer.net/modules/gst-python.html>`_ and `Enchant
 <http://www.rfk.id.au/software/pyenchant/>`_, respectively.
 
@@ -41,16 +41,17 @@ you an overview about the things Kivy uses internally.
 Stable Version
 --------------
 
-The latest stable version can be found on the Kivy's website at http://kivy.org/#downloads
+The latest stable version can be found on Kivy's website at http://kivy.org/#downloads
 Please refer to the installation instructions for your specific platform:
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     installation-windows
     installation-macosx
     installation-ubuntu
     installation-android
+
 
 Development Version
 -------------------
