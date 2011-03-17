@@ -178,7 +178,7 @@ latex_documents = [
 latex_elements = {
     'fontpkg':      r'\usepackage{mathpazo}',
     'papersize':    'a4paper',
-    'pointsize':    '8pt',
+    'pointsize':    '10pt',
     'preamble':     r'\usepackage{kivystyle}'
 }
 latex_additional_files = ['kivystyle.sty', 'logo.pdf']

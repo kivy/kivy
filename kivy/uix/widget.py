@@ -289,7 +289,7 @@ class Widget(EventDispatcher):
         Example usage::
 
             def my_x_callback(obj, value):
-                print 'on object', obj', 'x changed to', value
+                print 'on object', obj, 'x changed to', value
             def my_width_callback(obj, value):
                 print 'on object', obj, 'width changed to', value
             self.bind(x=my_x_callback, width=my_width_callback)

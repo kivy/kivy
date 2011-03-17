@@ -435,7 +435,7 @@ cdef class Canvas(CanvasBase):
         self.canvas.add(Color(1., 1., 0))
         self.canvas.add(Rectangle(size=(50, 50)))
 
-    Usage of Canvas with the "with" statement::
+    Usage of Canvas with Python's ``with`` statement::
 
         with self.canvas:
             Color(1., 1., 0)
