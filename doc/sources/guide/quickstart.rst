@@ -6,7 +6,7 @@ Quickstart
 This page explains how to create a simple Kivy *"Hello world"* program.
 This assumes you already have Kivy installed. If you do not, head over to the
 :ref:`installation` section. We also assume basic `Python <http://docs.python.org/tutorial/>`_
-2.x knowledge.
+2.x knowledge throughout the rest of this documentation.
 
 
 Create an application
@@ -30,7 +30,7 @@ The base code for creating an application looks like this:
 
 Save it as `main.py`.
 
-Now, to run your application, depending of your platform, you can :
+To run the application, follow the instructions for your operating system:
 
     Linux
         Follow the instructions for :ref:`running Kivy application on Linux <linux-run-app>`::
