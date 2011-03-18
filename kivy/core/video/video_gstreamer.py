@@ -28,6 +28,7 @@ from weakref import ref
 from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
+
 def _discovered(obj, d, is_media):
     obj = obj()
     if not obj:
@@ -39,6 +40,7 @@ def _discovered(obj, d, is_media):
     obj._discoverer.set_state(gst.STATE_NULL)
     obj._discoverer = None
 
+
 def _on_gst_message(obj, bus, message):
     obj = obj()
     if not obj:
@@ -47,6 +49,7 @@ def _on_gst_message(obj, bus, message):
         obj._pipeline_canplay = True
     elif message.type == gst.MESSAGE_EOS:
         obj._do_eos()
+
 
 def _gst_new_pad(obj, dbin, pad, *largs):
     obj = obj()
@@ -63,6 +66,7 @@ def _gst_new_pad(obj, dbin, pad, *largs):
     except:
         pass
 
+
 def _gst_new_buffer(obj, appsink):
     obj = obj()
     if not obj:
@@ -70,6 +74,7 @@ def _gst_new_buffer(obj, appsink):
     # new buffer is comming, pull it.
     with obj._buffer_lock:
         obj._buffer = appsink.emit('pull-buffer')
+
 
 class VideoGStreamer(VideoBase):
     '''VideoBase implementation using GStreamer
@@ -79,7 +84,7 @@ class VideoGStreamer(VideoBase):
     __slots__ = ('_pipeline', '_decoder', '_videosink', '_colorspace',
                  '_videosize', '_buffer_lock', '_audiosink', '_volumesink',
                  '_is_audio', '_is_video', '_do_load', '_pipeline_canplay',
-                 '_discoverer', '_discoverer_sid')
+                 '_discoverer', '_discoverer_sid', '_colorfmt')
 
     def __init__(self, **kwargs):
         self._pipeline = None
@@ -91,6 +96,7 @@ class VideoGStreamer(VideoBase):
         self._is_audio = None
         self._is_video = None
         self._do_load = None
+        self._colorfmt = kwargs.get('colorfmt', None)
         self._pipeline_canplay = False
         self._buffer_lock = Lock()
         self._videosize = (0, 0)
@@ -177,12 +183,14 @@ class VideoGStreamer(VideoBase):
         self._colorspace = gst.element_factory_make('ffmpegcolorspace')
 
         # will extract video/audio
-        caps_str = 'video/x-raw-rgb,red_mask=(int)0xff0000,' + \
-                    'green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
-        caps = gst.Caps(caps_str)
         self._videosink = gst.element_factory_make('appsink', 'videosink')
         self._videosink.set_property('emit-signals', True)
-        self._videosink.set_property('caps', caps)
+        if not self._colorfmt:
+            self._colorfmt = 'rgb'
+            caps_str = ('video/x-raw-rgb,red_mask=(int)0xff0000,'
+                        'green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff')
+            caps = gst.Caps(caps_str)
+            self._videosink.set_property('caps', caps)
         self._videosink.set_property('drop', True)
         #self._videosink.set_property('render-delay', 1000000000)
         #self._videosink.set_property('max-lateness', 1000000000)
@@ -271,7 +279,7 @@ class VideoGStreamer(VideoBase):
                 if structure_name.startswith('video') and 'width' in cap.keys():
                     self._videosize = (cap['width'], cap['height'])
                     self._texture = Texture.create(
-                        size=self._videosize, colorfmt='rgb')
+                        size=self._videosize, colorfmt=self._colorfmt)
                     self._texture.flip_vertical()
                     self.dispatch('on_load')
 
@@ -288,8 +296,8 @@ class VideoGStreamer(VideoBase):
         # update needed ?
         with self._buffer_lock:
             if self._buffer is not None:
-                self._texture.blit_buffer(self._buffer.data,
-                                          size=self._videosize,
-                                          colorfmt='rgb')
+                self._texture.blit_buffer(
+                    self._buffer.data, size=self._videosize,
+                    colorfmt=self._colorfmt)
                 self._buffer = None
                 self.dispatch('on_frame')
