@@ -131,9 +131,9 @@ Does the Kivy project participate in Google's Summer of Code 2011?
 
 Since Google announced that there will be a GSoC 2011 we have had many
 potential students ask whether we would participate.
-The clear answer is: We don't know, but we hope so.
-The NUIGroup will apply as an umbrella organization and then hopefully
-get chosen as one of the mentoring organizations. Given enough slots
+The clear answer is: Indeed. :-)
+The NUIGroup has applied as an umbrella organization and luckily
+got chosen as one of the mentoring organizations. Given enough slots
 for NUIGroup, slots will be dedicated to Kivy. That also depends on the
 overall quality of the student proposals (i.e. if there is only one
 Kivy student proposal with a bad quality, Kivy will not get a slot).
@@ -142,3 +142,4 @@ chances of being accepted, start talking to us today and try fixing
 some smaller (or larger, if you can ;-) problems to get used to our
 workflow. If we know you can work well with us, that'd be a big plus.
 
+See: http://wiki.nuigroup.com/Google_Summer_of_Code_2011
