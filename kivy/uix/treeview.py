@@ -115,10 +115,10 @@ class TreeView(Widget):
     def select_node(self, node):
         '''Select a node in the tree
         '''
-        if self.selected_node:
-            self.selected_node['widget'].is_selected = False
+        if self._selected_node:
+            self._selected_node['widget'].is_selected = False
         node['widget'].is_selected = True
-        self.selected_node = node
+        self._selected_node = node
 
     def toggle_node(self, node):
         '''Toggle the state of the node (open/collapse)
