@@ -236,7 +236,7 @@ cdef class VertexInstruction(Instruction):
                 Rectangle(texture=texture, pos=self.pos, size=self.size)
 
         Usually, you will use the :data:`source` attribute instead of the
-	texture.
+        texture.
         '''
         def __get__(self):
             return self.texture_binding.texture
@@ -295,8 +295,8 @@ cdef class VertexInstruction(Instruction):
             The default value as mentioned before can be negative. Depending
             on the image and label providers, the coordinates are flipped
             vertically, because of the order in which the image is internally
-	    stored. Instead of flipping the image data, we are just flipping
-	    the texture coordinates to be faster.
+            stored. Instead of flipping the image data, we are just flipping
+            the texture coordinates to be faster.
 
         '''
         def __get__(self):
@@ -336,8 +336,8 @@ cdef class Callback(Instruction):
 
     .. warning::
 
-	Note that if you perform many and/or costly calls to callbacks, you
-	might potentially slow down the rendering performance significantly.
+        Note that if you perform many and/or costly calls to callbacks, you
+        might potentially slow down the rendering performance significantly.
 
     The drawing of your canvas can not happen until something new happens. From
     your callback, you can ask for an update::
@@ -371,9 +371,9 @@ cdef class Callback(Instruction):
         self._reset_context = int(kwargs.get('reset_context', False))
 
     def ask_update(self):
-	'''Inform the parent canvas that we'd like it to update on the next
-	frame. This is useful when you need to trigger a redraw due to some
-	value having changed for example.
+        '''Inform the parent canvas that we'd like it to update on the next
+        frame. This is useful when you need to trigger a redraw due to some
+        value having changed for example.
         '''
         self.flag_update()
 
@@ -414,7 +414,7 @@ cdef class Callback(Instruction):
 
     property reset_context:
         '''Set this to True if you want to reset the OpenGL context for Kivy
-	after the callback has been called.
+        after the callback has been called.
         '''
         def __get__(self):
             return self._reset_context
@@ -441,7 +441,7 @@ cdef class Canvas(CanvasBase):
     .. note::
 
         The Canvas supports Python's ``with`` statement and its enter & exit
-	semantics.
+        semantics.
 
     Usage of a canvas without the ``with`` statement::
 
@@ -487,9 +487,9 @@ cdef class Canvas(CanvasBase):
         self.flag_update()
 
     def ask_update(self):
-	'''Inform the canvas that we'd like it to update on the next frame.
-	This is useful when you need to trigger a redraw due to some value
-	having changed for example.
+        '''Inform the canvas that we'd like it to update on the next frame.
+        This is useful when you need to trigger a redraw due to some value
+        having changed for example.
         '''
         self.flag_update()
 
