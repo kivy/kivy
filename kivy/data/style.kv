@@ -75,3 +75,28 @@
 			size: 1, -self.line_height
 		Color:
 			rgb: (0, 0, 0)
+
+
+<TreeViewLabel>:
+    width: self.texture_size[0]
+    height: max(self.texture_size[1], 24)
+    canvas.before:
+        Color:
+            rgba: .1, .1, .1, int(self.is_selected)
+        Rectangle:
+            pos: [self.parent.x, self.y] if self.parent else [0, 0]
+            size: [self.parent.width, self.height] if self.parent else [1, 1]
+        Color:
+            rgba: 1, 1, 1, int(not self.is_leaf)
+        Rectangle:
+            source: 'data/images/tree_%s.png' % ('opened' if self.is_open else 'closed')
+            size: 16, 16
+            pos: self.x - 20, self.center[1] - 8
+    canvas.after:
+        Color:
+            rgba: .5, .5, .5, .2
+        Line:
+            points: [self.parent.x, self.y, self.parent.right, self.y] if self.parent else []
+
+<TreeView>:
+    #size: self.minimum_size
