@@ -8,25 +8,21 @@ subclass this class and make your own app. You create an instance of your
 specific app class and then, when you are ready to start the application's life
 cycle, you call your instance's :func:`App.run` method.
 
+
 Create an application by overidding build()
 -------------------------------------------
 
 To initialize your app with a widget tree, override the build() method in
 your app class and return the widget tree you constructed.
 
-Here's an example of very simple application that just shows a button::
+Here's an example of very simple application that just shows a button:
 
-    from kivy.app import App
-    from kivy.uix.button import Button
+.. include:: ../examples/application/app_with_build.py
+   :literal:
 
-    class TestApp(App):
-        def build(self):
-            return Button(text='hello world')
 
-    if __name__ == '__main__':
-        TestApp().run()
-
-Check :file:`kivy/examples/application/app_with_build.py`.
+The file is also available in the examples folder at
+:file:`kivy/examples/application/app_with_build.py`.
 
 
 Create an application with kv file
