@@ -462,7 +462,6 @@ cdef class ReferenceListProperty(Property):
         Property.link_deps(self, obj, name)
         for prop in self.properties:
             prop.bind(obj, self.trigger_change)
-        self.trigger_change(obj, None)
 
     cpdef unlink(self, obj):
         for prop in self.properties:
@@ -471,9 +470,9 @@ cdef class ReferenceListProperty(Property):
 
     cpdef trigger_change(self, obj, value):
         s = self.storage[obj.__uid]
-        p = s['properties']
         if s['stop_event']:
             return
+        p = s['properties']
         s['value'] = [p[x].get(obj) for x in xrange(len(p))]
         self.dispatch(obj)
 
@@ -505,6 +504,11 @@ cdef class ReferenceListProperty(Property):
         self.dispatch(obj)
         return True
 
+    cpdef get(self, obj):
+        s = self.storage[obj.__uid]
+        p = s['properties']
+        s['value'] = [p[x].get(obj) for x in xrange(len(p))]
+        return s['value']
 
 cdef class AliasProperty(Property):
     '''Create a property with a custom getter and setter.
@@ -560,6 +564,7 @@ cdef class AliasProperty(Property):
         Property.unlink(self, obj)
 
     cpdef trigger_change(self, obj, value):
+        self.storage[obj.__uid]['value'] = self.get(obj)
         self.dispatch(obj)
 
     cdef check(self, obj, value):
@@ -570,5 +575,6 @@ cdef class AliasProperty(Property):
 
     cpdef set(self, obj, value):
         if self.storage[obj.__uid]['setter'](obj, value):
+            self.storage[obj.__uid]['value'] = self.get(obj)
             self.dispatch(obj)
 
