@@ -466,7 +466,8 @@ class TextInput(Widget):
     def _refresh_text(self, text):
         # Refresh all the lines from a new text.
         # By using cache in internal functions, this method should be fast.
-        self._lines, self._lines_flags = self._split_smart(text)
+        _lines, self._lines_flags = self._split_smart(text)
+        self._lines = _lines
         self._lines_labels = [self._create_line_label(x) for x in self._lines]
         self._lines_rects = [Rectangle(texture=x, size=x.size) \
                              for x in self._lines_labels]
