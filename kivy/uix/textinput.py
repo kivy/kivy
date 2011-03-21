@@ -120,6 +120,7 @@ class TextInput(Widget):
     '''
 
     def __init__(self, **kwargs):
+        self._win = None
         self._cursor_blink_time = Clock.get_time()
         self._cursor = [0, 0]
         self._selection = False
@@ -395,7 +396,9 @@ class TextInput(Widget):
     # Private
     #
     def on_focus(self, instance, value):
-        win = self.get_root_window()
+        win = self._win
+        if not win:
+            self._win = win = self.get_root_window()
         if value:
             win.request_keyboard(self._keyboard_released)
             win.bind(on_key_down=self._window_on_key_down,
@@ -407,6 +410,7 @@ class TextInput(Widget):
                      on_key_up=self._window_on_key_up)
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
+            self._win = None
 
     def _keyboard_released(self):
         # Callback called when the real keyboard is taken by someone else
