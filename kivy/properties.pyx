@@ -479,16 +479,17 @@ cdef class ReferenceListProperty(Property):
     cdef convert(self, obj, value):
         if not isinstance(value, (list, tuple)):
             raise ValueError('Value must be a list or a tuple')
-        return <list>value
+        return list(value)
 
     cdef check(self, obj, value):
         if len(value) != len(self.storage[obj.__uid]['properties']):
             raise ValueError('Value length is immutable')
 
-    cpdef set(self, obj, value):
+    cpdef set(self, obj, _value):
         cdef int idx
+        cdef list value
         storage = self.storage[obj.__uid]
-        value = self.convert(obj, value)
+        value = self.convert(obj, _value)
         if self.compare_value(storage['value'], value):
             return False
         self.check(obj, value)
