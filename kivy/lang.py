@@ -514,17 +514,22 @@ class BuilderRuleName(BuilderRule):
 
     parents = {}
 
+    def get_bases(self, cls):
+        for base in cls.__bases__:
+            if base.__name__ == 'object':
+                break
+            yield base
+            if base.__name__ == 'Widget':
+                break
+            for cbase in self.get_bases(base):
+                yield cbase
+
     def match(self, widget):
         parents = BuilderRuleName.parents
         cls = widget.__class__
         if not cls in parents:
-            classes = []
-            parent = [cls]
-            while parent and len(parent):
-                classes.append(parent[0].__name__.lower())
-                if parent[0].__name__ == 'Widget':
-                    break
-                parent = parent[0].__bases__
+            classes = [x.__name__.lower() for x in \
+                       [cls] + list(self.get_bases(cls))]
             parents[cls] = classes
         return self.key in parents[cls]
 
