@@ -12,31 +12,93 @@ Tree View
 :class:`TreeView` is a widget to represent tree list. It's currently very basic,
 but support the minimal features set to be usable.
 
+Introduction to the TreeView
+----------------------------
+
+A :class:`TreeView` is populated with :class:`TreeViewNode`, but you cannot use
+directly a :class:`TreeViewNode`. You must combine it with another widget, such
+as :class:`~kivy.uix.label.Label`, :class:`~kivy.uix.button.Button`... or even
+your own widget. The TreeView always create a default root node, based on
+:class:`TreeViewLabel`.
+
+The :class:`TreeViewNode` is just an class object that hold the needed property
+to successful use the other class as a node for the Tree. You can read the next
+section about how to create custom node to be used in the :class:`TreeView`.
+
+For you, we have combine Label + TreeViewNode: the result is a
+:class:`TreeViewLabel`, that you can directly use as a node in the Tree.
+
+For example, you can create 2 nodes, directly attached to root::
+
+    tv = TreeView()
+    tv.add_node(TreeViewLabel(text='My first item'))
+    tv.add_node(TreeViewLabel(text='My second item'))
+
+If you want to create 2 nodes attached to another one, you can do::
+
+    tv = TreeView()
+    n1 = tv.add_node(TreeViewLabel(text='Item 1'))
+    tv.add_node(TreeViewLabel(text='SubItem 1'), n1)
+    tv.add_node(TreeViewLabel(text='SubItem 2'), n1)
+
+The default root widget is always opened, and have a default text 'Root'. If you
+want to change that, you can use :data:`TreeView.root_options` property. This
+will pass options to the root widget::
+
+    tv = TreeView(root_options=dict(text='My root label'))
+
+
+Create your own node widget
+---------------------------
+
+If you want to create a button node for example, you can just combine
+:class:`~kivy.uix.button.Button` + :class:`TreeViewNode` like this::
+
+    class TreeViewButton(Button, TreeViewNode):
+        pass
+
+You must know that only the :data:`~kivy.uix.widget.Widget.size_hint_x` will be
+honored. The allocated width will depend of the current width of the TreeView
+and the level of the node. For example, if your node is at level 4, the width
+allocated will be:
+
+    treeview.width - treeview.indent_start - treeview.indent_level * node.level
+
+You might have some trouble with that, it's on your side to correctly handle
+that case, and adapt the graphical representation of your node if needed
 '''
 
 from kivy.clock import Clock
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, \
-        StringProperty, AliasProperty
+        AliasProperty, NumericProperty
 
 
-class TreeViewLabel(Label):
-    '''TreeViewLabel class, used for TreeView widget. See module documentation
-    for more information
+class TreeViewException(Exception):
+    '''Exception for errors in the :class:`TreeView`
+    '''
+    pass
+
+
+class TreeViewNode(object):
+    '''TreeViewNode class, used to build node class for TreeView object.
     '''
 
-    is_leaf = BooleanProperty(False)
+    def __init__(self, **kwargs):
+        if self.__class__ is TreeViewNode:
+            raise TreeViewException('You cannot use directly TreeViewNode.')
+        super(TreeViewNode, self).__init__(**kwargs)
+
+    def get_is_leaf(self):
+        return not bool(len(self.nodes))
+
+    is_leaf = AliasProperty(get_is_leaf, None, bind=('nodes', ))
     '''Boolean to indicate if this node is a leaf or not, used to adjust
     graphical representation.
 
-    .. warning::
-
-        This property is automatically setted by the :class:`TreeView`. You can
-        read it but not write on it.
-
-    :data:`is_leaf` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`is_leaf` is a :class:`~kivy.properties.AliasProperty`, default to
+    False, and read-only.
     '''
 
     is_open = BooleanProperty(False)
@@ -65,11 +127,40 @@ class TreeViewLabel(Label):
     to False.
     '''
 
+    no_selection = BooleanProperty(False)
+    '''Boolean to indicate if we allow selection of the node or not.
 
-class TreeViewException(Exception):
-    '''Exception for errors in the :class:`TreeView`
+    :data:`no_selection` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False
     '''
-    pass
+
+    nodes = ListProperty([])
+    '''List of nodes. The nodes list is differents than children. Nodes
+    represent a node on the tree, while children represent the widget associated
+    to the current node.
+
+    .. warning::
+
+        This property is automatically setted by the :class:`TreeView`. You can
+        read it, but not write on it.
+
+    :data:`nodes` is a :class:`~kivy.properties.ListProperty`, default to [].
+    '''
+
+    level = NumericProperty(-1)
+    '''Level of the node.
+
+    :data:`level` is a :class:`~kivy.properties.NumericProperty`, default to -1.
+    '''
+
+
+class TreeViewLabel(Label, TreeViewNode):
+    '''Combine :class:`~kivy.uix.label.Label` and :class:`TreeViewNode` to
+    create a :class:`TreeViewLabel`, that can be used as a text node in the
+    tree.
+
+    See module documentation for more information.
+    '''
 
 
 class TreeView(Widget):
@@ -86,23 +177,28 @@ class TreeView(Widget):
         self.register_event_type('on_node_expand')
         self.register_event_type('on_node_collapse')
         super(TreeView, self).__init__(**kwargs)
-        self._root = self.add_node(
-            TreeViewLabel(text='Root', is_open=True), None)
+        tvlabel = TreeViewLabel(text='Root', is_open=True, level=0)
+        for key, value in self.root_options.iteritems():
+            setattr(tvlabel, key, value)
+        self._root = self.add_node(tvlabel, None)
+        self.bind(
+            size=self._trigger_layout,
+            indent_level=self._trigger_layout,
+            indent_start=self._trigger_layout)
+        self._trigger_layout()
 
-    def add_node(self, widget, parent=None):
+    def add_node(self, node, parent=None):
         # check if the widget is "ok" for a node
-        if not hasattr(widget, 'is_leaf'):
-            raise TreeViewException('Missing is_leaf property')
-        if not hasattr(widget, 'is_selected'):
-            raise TreeViewException('Missing is_selected property')
-        if not hasattr(widget, 'is_open'):
-            raise TreeViewException('Missing is_open property')
+        if not isinstance(node, TreeViewNode):
+            raise TreeViewException(
+                'The node must be a subclass of TreeViewNode')
         # create node
-        node = {'nodes': [], 'widget': widget}
         if parent is None and self._root:
             parent = self._root
         if parent:
-            parent['nodes'].append(node)
+            parent.nodes.append(node)
+            node.level = parent.level + 1
+        node.bind(size=self._trigger_layout)
         self._trigger_layout()
         return node
 
@@ -115,58 +211,75 @@ class TreeView(Widget):
     def select_node(self, node):
         '''Select a node in the tree
         '''
+        if node.no_selection:
+            return
         if self._selected_node:
-            self._selected_node['widget'].is_selected = False
-        node['widget'].is_selected = True
+            self._selected_node.is_selected = False
+        node.is_selected = True
         self._selected_node = node
 
     def toggle_node(self, node):
         '''Toggle the state of the node (open/collapse)
         '''
-        widget = node['widget']
-        widget.is_open = not widget.is_open
-        if widget.is_open:
+        node.is_open = not node.is_open
+        if node.is_open:
             self.dispatch('on_node_expand', node)
         else:
             self.dispatch('on_node_collapse', node)
         self._trigger_layout()
 
     def get_node_at_pos(self, pos):
-        '''Get a node a at the position (x, y)
+        '''Get a node a at the position (x, y).
         '''
         x, y = pos
-        for node in self.iterate_node(self.root):
-            widget = node['widget']
+        for node in self.iterate_open_nodes(self.root):
             if self.x <= x <= self.right and \
-               widget.y <= y <= widget.top:
+               node.y <= y <= node.top:
                 return node
 
-    def iterate_node(self, node):
-        '''Generator to iterate over expanded nodes
+    def iterate_open_nodes(self, node=None):
+        '''Generator to iterate over expanded nodes.
+        Example for get all the node opened::
+
+            treeview = TreeView()
+            # ... add nodes ...
+            for node in treeview.iterate_open_nodes():
+                print node
         '''
-        yield node
-        if not node['widget'].is_open:
+        if not node:
+            node = self.root
+        if self.hide_root and node is self.root:
+            pass
+        else:
+            yield node
+        if not node.is_open:
             return
-        for cnode in node['nodes']:
-            for ynode in self.iterate_node(cnode):
+        f = self.iterate_open_nodes
+        for cnode in node.nodes:
+            for ynode in f(cnode):
+                yield ynode
+
+    def iterate_all_nodes(self, node=None):
+        '''Generate to iterate over all nodes, expanded or not.
+        '''
+        if not node:
+            node = self.root
+        yield node
+        f = self.iterate_all_nodes
+        for cnode in node.nodes:
+            for ynode in f(cnode):
                 yield ynode
 
     #
     # Private
     #
-    def on_root_label(self, instance, value):
+    def on_root_options(self, instance, value):
         if not self.root:
             return
-        self.root['widget'].text = value
-
-    def on_size(self, instance, value):
-        self._trigger_layout()
-
-    def on_root_options(self, instance, value):
         for key, value in value.iteritems():
-            setattr(self.root['widget'], key, value)
+            setattr(self.root, key, value)
 
-    def _trigger_layout(self):
+    def _trigger_layout(self, *largs):
         Clock.unschedule(self._do_layout)
         Clock.schedule_once(self._do_layout)
 
@@ -178,32 +291,36 @@ class TreeView(Widget):
         self._do_layout_node(self.root, 0, self.top)
         # now iterate for calculating minimum size
         min_width = min_height = 0
-        for node in self.iterate_node(self.root):
-            widget = node['widget']
-            min_width = max(min_width, widget.width + 24 + node['level'] * 24)
-            min_height += widget.height
+        for node in self.iterate_open_nodes(self.root):
+            min_width = max(min_width, node.width + self.indent_level +
+                            node.level * self.indent_level)
+            min_height += node.height
         self._minimum_size = (min_width, min_height)
 
     def _do_open_node(self, node):
-        widget = node['widget']
-        self.add_widget(widget)
-        height = widget.height
-        widget.is_leaf = not bool(len(node['nodes']))
-        if not widget.is_open:
-            return height
-        for cnode in node['nodes']:
+        if self.hide_root and node is self.root:
+            height = 0
+        else:
+            self.add_widget(node)
+            height = node.height
+            if not node.is_open:
+                return height
+        for cnode in node.nodes:
             height += self._do_open_node(cnode)
         return height
 
     def _do_layout_node(self, node, level, y):
-        widget = node['widget']
-        node['level'] = level
-        widget.x = self.x + 24 + level * 24
-        widget.top = y
-        y -= widget.height
-        if not widget.is_open:
-            return y
-        for cnode in node['nodes']:
+        if self.hide_root and node is self.root:
+            level -= 1
+        else:
+            node.x = self.x + self.indent_start + level * self.indent_level
+            node.top = y
+            if node.size_hint_x:
+                node.width = (self.width - (node.x - self.x)) * node.size_hint_x
+            y -= node.height
+            if not node.is_open:
+                return y
+        for cnode in node.nodes:
             y = self._do_layout_node(cnode, level + 1, y)
         return y
 
@@ -212,11 +329,11 @@ class TreeView(Widget):
         if not node:
             return
         # toggle node or selection ?
-        widget = node['widget']
-        if widget.x - 24 <= touch.x < widget.x:
+        if node.x - self.indent_start <= touch.x < node.x:
             self.toggle_node(node)
-        elif widget.x <= touch.x:
+        elif node.x <= touch.x:
             self.select_node(node)
+            node.dispatch('on_touch_down', touch)
         return True
 
     #
@@ -231,6 +348,34 @@ class TreeView(Widget):
     #
     # Properties
     #
+    indent_level = NumericProperty(16)
+    '''Width used for identation of each level, except the first level.
+
+    Computation of spacing for eaching level of tree is::
+
+        :data:`indent_start` + level * :data:`indent_level`
+
+    :data:`indent_level` is a :class:`~kivy.properties.NumericProperty`,
+    default to 16.
+    '''
+
+    indent_start = NumericProperty(24)
+    '''Indentation width of the level 0 / root node. This is mostly the initial
+    size to put an tree icon (collapsed / expanded). See :data:`indent_level`
+    for more information about the computation of level indentation.
+
+    :data:`indent_start` is a :class:`~kivy.properties.NumericProperty`,
+    default to 24.
+    '''
+
+    hide_root = BooleanProperty(False)
+    '''Use this property to show/hide the initial root node. If True, the root
+    node will be always considerate as an open node
+
+    :data:`hide_root` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False.
+    '''
+
     def get_selected_node(self):
         return self._selected_node
 
@@ -278,13 +423,12 @@ if __name__ == '__main__':
     class TestApp(App):
 
         def build(self):
-            tv = TreeView()
+            tv = TreeView(hide_root=True)
             add = tv.add_node
-            root = add(TreeViewLabel(text='Element 0'))
+            root = add(TreeViewLabel(text='Level 1, entry 1', is_open=True))
             for x in xrange(5):
                 add(TreeViewLabel(text='Element %d' % x), root)
-            root2 = add(TreeViewLabel(text='Element childs 1', is_open=False),
-                        root)
+            root2 = add(TreeViewLabel(text='Level 1, entry 2', is_open=False))
             for x in xrange(24):
                 add(TreeViewLabel(text='Element %d' % x), root2)
             for x in xrange(5):

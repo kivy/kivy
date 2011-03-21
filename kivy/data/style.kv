@@ -77,9 +77,7 @@
 			rgb: (0, 0, 0)
 
 
-<TreeViewLabel>:
-    width: self.texture_size[0]
-    height: max(self.texture_size[1], 24)
+<TreeViewNode>:
     canvas.before:
         Color:
             rgba: .1, .1, .1, int(self.is_selected)
@@ -98,5 +96,7 @@
         Line:
             points: [self.parent.x, self.y, self.parent.right, self.y] if self.parent else []
 
-<TreeView>:
-    #size: self.minimum_size
+<TreeViewLabel>:
+    width: self.texture_size[0]
+    height: max(self.texture_size[1], 24)
+	text_size: self.size
