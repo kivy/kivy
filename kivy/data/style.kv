@@ -96,7 +96,20 @@
         Line:
             points: [self.parent.x, self.y, self.parent.right, self.y] if self.parent else []
 
+
 <TreeViewLabel>:
     width: self.texture_size[0]
     height: max(self.texture_size[1], 24)
 	text_size: self.size
+
+
+<StencilView>:
+	canvas.before:
+		StencilPush
+		Rectangle:
+			pos: self.pos
+			size: self.size
+		StencilUse
+
+	canvas.after:
+		StencilPop
