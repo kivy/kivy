@@ -1,18 +1,19 @@
 '''
-ScrollView widget
+Scroll View
+===========
+
+A ScrollView provides a scrollable/pannable viewport which is clipped to the
+ScrollView's bounding box.
 '''
 
 __all__ = ('ScrollView', )
 
-from kivy.uix.stencil import StencilView
+from kivy.uix.stencilview import StencilView
 from kivy.uix.scatter import ScatterPlane
 
 
 class ScrollView(StencilView):
-    '''
-    ScrollView:
-        A ScrollView provides a scrollable/pannable viewport
-        which is clipped to the ScrollView's bounding box.
+    '''ScrollView class. See module documentation for more informations.
     '''
 
     def __init__(self, **kwargs):
