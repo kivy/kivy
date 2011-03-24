@@ -37,7 +37,7 @@ class WidgetTestCase(unittest.TestCase):
         self.assertEqual(wid.y, 60)
         self.assertEqual(wid.pos, [50, 60])
         wid.pos = (0, 0)
-        self.assertEqual(wid.pos, (0, 0))
+        self.assertEqual(wid.pos, [0, 0])
         self.assertEqual(wid.x, 0)
         self.assertEqual(wid.y, 0)
 
@@ -50,7 +50,7 @@ class WidgetTestCase(unittest.TestCase):
         self.assertEqual(wid.height, 60)
         self.assertEqual(wid.size, [50, 60])
         wid.size = (100, 100)
-        self.assertEqual(wid.size, (100, 100))
+        self.assertEqual(wid.size, [100, 100])
         self.assertEqual(wid.width, 100)
         self.assertEqual(wid.height, 100)
 
