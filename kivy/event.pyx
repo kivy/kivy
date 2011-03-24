@@ -69,6 +69,11 @@ cdef class EventDispatcher(object):
         if event_type in self.event_stack:
             del self.event_stack[event_type]
 
+    def is_event_type(self, str event_type):
+        '''Return True if the event_type is already registered
+        '''
+        return event_type in self.event_stack
+
     def bind(self, **kwargs):
         '''Bind an event type or a property to a callback
 
