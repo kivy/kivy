@@ -177,7 +177,13 @@ class ScrollView(StencilView):
         if mode == 'unknown':
             touch.ungrab(self)
             self._touch = None
+            # correctly calculate the position of the touch inside the
+            # scrollview
+            touch.push()
+            touch.apply_transform_2d(self.to_widget)
+            touch.apply_transform_2d(self.to_parent)
             super(ScrollView, self).on_touch_down(touch)
+            touch.pop()
             return
 
     def _do_touch_up(self, touch, *largs):
