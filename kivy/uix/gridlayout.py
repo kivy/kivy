@@ -110,6 +110,8 @@ default to False.
             return None
         if self.rows and not self.cols:
             return None
+        if not self.cols and not self.rows:
+            return None
         return self.rows * self.cols
 
     def on_children(self, instance, value):
@@ -123,6 +125,8 @@ default to False.
     def update_minimum_size(self, *largs):
         current_cols = self.cols
         current_rows = self.rows
+        if not self.cols and not self.rows:
+            return None
         if current_cols is None:
             current_cols = 1 + (len(self.children) / current_rows)
         elif current_rows is None:
