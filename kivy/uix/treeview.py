@@ -153,6 +153,13 @@ class TreeViewNode(object):
     :data:`level` is a :class:`~kivy.properties.NumericProperty`, default to -1.
     '''
 
+    color_selected = ListProperty([.1, .1, .1, 1.])
+    '''Background color of the node when the node is selected.
+
+    :data:`color_selected` is a :class:`~kivy.properties.ListProperty`, default
+    to [.1, .1, .1, 1]
+    '''
+
 
 class TreeViewLabel(Label, TreeViewNode):
     '''Combine :class:`~kivy.uix.label.Label` and :class:`TreeViewNode` to

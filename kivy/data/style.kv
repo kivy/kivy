@@ -80,7 +80,7 @@
 <TreeViewNode>:
     canvas.before:
         Color:
-            rgba: .1, .1, .1, int(self.is_selected)
+            rgba: self.color_selected if self.is_selected else (0, 0, 0, 0)
         Rectangle:
             pos: [self.parent.x, self.y] if self.parent else [0, 0]
             size: [self.parent.width, self.height] if self.parent else [1, 1]
