@@ -451,6 +451,7 @@ _eval_globals['center'] = _eval_center
 def custom_callback(*largs, **kwargs):
     element, key, value, idmap = largs[0]
     locals().update(idmap)
+    args = largs[1:]
     exec value
 
 
@@ -722,6 +723,8 @@ class BuilderBase(object):
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):
+            if not element.is_event_type(key):
+                key = key[3:]
             element.bind(**{key: curry(custom_callback, (
                 element, key, value, idmap))})
 
