@@ -220,7 +220,11 @@ class Animation(EventDispatcher):
     def _calculate(self, a, b, t):
         _calculate = self._calculate
         if isinstance(a, ListType) or isinstance(a, TupleType):
-            return type(a)([_calculate(a[x], b[x], t) for x in xrange(len(a))])
+            if isinstance(a, ListType):
+                tp = list
+            else:
+                tp = tuple
+            return tp([_calculate(a[x], b[x], t) for x in xrange(len(a))])
         elif isinstance(a, DictType):
             d = {}
             for x in a.iterkeys():
