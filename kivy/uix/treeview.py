@@ -182,6 +182,7 @@ class TreeView(Widget):
             setattr(tvlabel, key, value)
         self._root = self.add_node(tvlabel, None)
         self.bind(
+            pos=self._trigger_layout,
             size=self._trigger_layout,
             indent_level=self._trigger_layout,
             indent_start=self._trigger_layout)
