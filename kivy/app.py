@@ -134,11 +134,11 @@ class App(EventDispatcher):
             root = self.build()
             if root:
                 self.root = root
-        self.dispatch('on_start')
         if self.root:
-            runTouchApp(self.root)
-        else:
-            runTouchApp()
+            from kivy.core.window import Window
+            Window.add_widget(self.root)
+        self.dispatch('on_start')
+        runTouchApp()
         self.dispatch('on_stop')
 
     def stop(self, *largs):
