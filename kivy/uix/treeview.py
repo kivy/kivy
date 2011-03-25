@@ -90,15 +90,12 @@ class TreeViewNode(object):
             raise TreeViewException('You cannot use directly TreeViewNode.')
         super(TreeViewNode, self).__init__(**kwargs)
 
-    def get_is_leaf(self):
-        return not bool(len(self.nodes))
-
-    is_leaf = AliasProperty(get_is_leaf, None, bind=('nodes', ))
+    is_leaf = BooleanProperty(True)
     '''Boolean to indicate if this node is a leaf or not, used to adjust
     graphical representation.
 
-    :data:`is_leaf` is a :class:`~kivy.properties.AliasProperty`, default to
-    False, and read-only.
+    :data:`is_leaf` is a :class:`~kivy.properties.BooleanProperty`, default to
+    True, and automatically set to False when child is added.
     '''
 
     is_open = BooleanProperty(False)
@@ -112,6 +109,14 @@ class TreeViewNode(object):
 
     :data:`is_open` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
+    '''
+
+    is_loaded = BooleanProperty(False)
+    '''Boolean to indicate if this node is already loaded or not. This property
+    is used only if the :class:`TreeView` use asynchronous loading.
+
+    :data:`is_loaded` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False
     '''
 
     is_selected = BooleanProperty(False)
@@ -204,6 +209,7 @@ class TreeView(Widget):
         if parent is None and self._root:
             parent = self._root
         if parent:
+            parent.is_leaf = False
             parent.nodes.append(node)
             node.level = parent.level + 1
         node.bind(size=self._trigger_layout)
@@ -231,6 +237,8 @@ class TreeView(Widget):
         '''
         node.is_open = not node.is_open
         if node.is_open:
+            if self.load_func and not node.is_loaded:
+                self._do_node_load(node)
             self.dispatch('on_node_expand', node)
         else:
             self.dispatch('on_node_collapse', node)
@@ -281,6 +289,24 @@ class TreeView(Widget):
     #
     # Private
     #
+    def on_load_func(self, instance, value):
+        if value:
+            Clock.schedule_once(self._do_initial_load)
+
+    def _do_initial_load(self, *largs):
+        if not self.load_func:
+            return
+        self._do_node_load(None)
+
+    def _do_node_load(self, node):
+        gen = self.load_func(self, node)
+        if node:
+            node.is_loaded = True
+        if not gen:
+            return
+        for cnode in gen:
+            self.add_node(cnode, node)
+
     def on_root_options(self, instance, value):
         if not self.root:
             return
@@ -423,6 +449,21 @@ class TreeView(Widget):
 
     :data:`root_options` is a :class:`~kivy.properties.ObjectProperty`, default
     to {}.
+    '''
+
+    load_func = ObjectProperty(None)
+    '''Callback to use for asynchronous loading. If set, the asynchronous will
+    be automatically done. The callback must act as a Python generator function
+    : use yield to send data back to the treeview.
+
+    The callback should be in the format::
+
+        def callback(treeview, node):
+            for name in ('Item 1', 'Item 2'):
+                yield TreeViewLabel(text=name)
+
+    :data:`load_func` is a :class:`~kivy.properties.ObjectProperty`, default to
+    None.
     '''
 
 if __name__ == '__main__':
