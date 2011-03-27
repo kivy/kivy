@@ -17,9 +17,9 @@
 			border: (16, 16, 16, 16)
 			pos: self.pos
 			size: self.size
-			source: 'data/images/button.png' if self.state == 'normal' else 'data/images/button_pressed.png'
+			source: self.background_normal if self.state == 'normal' else self.background_down
 		Color:
-			rgb: (1, 1 ,1)
+			rgba: self.color
 		Rectangle:
 			texture: self.texture
 			size: self.texture_size
