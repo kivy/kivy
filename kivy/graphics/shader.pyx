@@ -75,6 +75,15 @@ cdef class Shader:
         glUseProgram(self.program)
         for k,v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
+        # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call
+        # glFlush or glFinish or glGetIntegerv(GL_CURRENT_PROGRAM, ...), it seem
+        # that the pipeline is broken, and we have glitch issue. In order to
+        # prevent that on possible other hardware, i've (mathieu) prefered to
+        # include a glFlush here. However, it could be nice to know exactly what
+        # is going on. Even the glGetIntegerv() is not working here. Broken
+        # driver on virtualbox / win7 ????
+        # FIXME maybe include that instruction for glew usage only.
+        glFlush()
 
     cdef void stop(self):
         '''Stop using the shader
