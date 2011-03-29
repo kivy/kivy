@@ -15,7 +15,7 @@ class VideoPlayer(App):
             filename = argv[1]
         else:
             curdir = dirname(__file__)
-            filename = join(curdir, 'bigbuckbunny_trailer.m4v')
+            filename = join(curdir, 'softboy.avi')
         video = Video(source=filename, play=True)
         scatter = Scatter()
         video.bind(texture_size=scatter.setter('size'))
