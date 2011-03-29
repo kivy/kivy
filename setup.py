@@ -1,5 +1,5 @@
 from fnmatch import filter as fnfilter
-from sys import platform, argv, modules
+from sys import platform, argv
 from os.path import join, dirname, realpath, sep, exists
 from os import walk, environ
 from distutils.core import setup
