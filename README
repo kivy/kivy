@@ -34,10 +34,10 @@ An offline version in PDF format is also available.
 Kivy ships with a bunch of examples that can be found in the examples/ folder.
 
 
-About 1.0 alpha
+About 1.0 beta
 ---------------
 
-This is alpha, so keep in mind that it might not work as intended at all times.
+This is beta, so keep in mind that it might not work as intended at all times.
 You can post bug reports and feature requests on our Google Project page:
 
   http://code.google.com/p/kivy/issues/list
