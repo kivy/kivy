@@ -34,7 +34,7 @@ class ShowcaseApp(App):
 
         tree.bind(selected_node=self.on_select_node)
         n = create_tree('Buttons')
-        attach_node('Options buttons', n)
+        attach_node('Standard buttons', n)
         attach_node('Options buttons', n)
         n = create_tree('Sliders')
         attach_node('Horizontal sliders', n)
