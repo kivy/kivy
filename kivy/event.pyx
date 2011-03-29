@@ -70,7 +70,9 @@ cdef class EventDispatcher(object):
             del self.event_stack[event_type]
 
     def is_event_type(self, str event_type):
-        '''Return True if the event_type is already registered
+        '''Return True if the event_type is already registered.
+
+        .. versionadded:: 1.0.4
         '''
         return event_type in self.event_stack
 

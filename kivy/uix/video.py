@@ -83,6 +83,8 @@ class Video(Image):
     options = ObjectProperty({})
     '''Options to pass at Video core object creation.
 
+    .. versionadded:: 1.0.4
+
     :data:`options` is a :class:`kivy.properties.ObjectProperty`, default to {}.
     '''
 

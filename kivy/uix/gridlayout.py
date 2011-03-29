@@ -2,6 +2,8 @@
 Grid layout
 ===========
 
+.. versionadded:: 1.0.4
+
 Arrange widgets in a matrix
 
 Example of a GridLayout::

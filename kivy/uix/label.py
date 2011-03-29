@@ -97,6 +97,8 @@ class Label(Widget):
     '''By default, the label is not contraint to any bounding box.
     You can set the size constraint of the label creation with this property.
 
+    .. versionadded:: 1.0.4
+
     For example, whatever is your current widget size, if you want your label to
     be created in a box with width=200 and unlimited height::
 
