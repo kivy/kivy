@@ -1,31 +1,26 @@
 from kivy.uix.button import Button
-from kivy.uix.widget import Widget
+from kivy.uix.stencilview import StencilView
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.app import App
 from kivy.core.window import Window
-from kivy.graphics import Color, Rectangle, StencilCanvas
+from kivy.graphics import Color, Rectangle
 from random import random as r
 from functools import partial
 
 
-
-class StencilTestWidget(Widget):
+class StencilTestWidget(StencilView):
     '''Drag to define stencil area
     '''
     def __init__(self, **kwargs):
-        self.canvas = StencilCanvas()
         super(StencilTestWidget, self).__init__(**kwargs)
-        with self.canvas.stencil:
-            Color(1,1,1)
-            self.stencil_area = Rectangle(pos=(0,0), size=Window.size)
 
     def on_touch_down(self, touch):
-        self.stencil_area.pos = touch.pos
-        self.stencil_area.size = (1,1)
+        self.pos = touch.pos
+        self.size = (1,1)
 
     def on_touch_move(self, touch):
-        self.stencil_area.size = (touch.x-touch.ox, touch.y-touch.oy)
+        self.size = (touch.x-touch.ox, touch.y-touch.oy)
 
 
 class StencilCanvasApp(App):
@@ -39,8 +34,8 @@ class StencilCanvasApp(App):
                                r() * wid.height + wid.y), size=(10,10))
 
     def reset_stencil(self, wid, *largs):
-        wid.stencil_area.pos = (0,0)
-        wid.stencil_area.size = Window.size
+        wid.pos = (0,0)
+        wid.size = Window.size
 
     def reset_rects(self, label, wid, *largs):
         label.text = '0'
