@@ -102,6 +102,8 @@ control + a     Select all the content
 
 __all__ = ('TextInput', )
 
+import sys
+
 from kivy.utils import boundary
 from kivy.clock import Clock
 from kivy.cache import Cache
@@ -766,9 +768,14 @@ class TextInput(Widget):
     def _window_on_key_down(self, window, key, scancode=None, unicode=None,
                             modifiers=None):
         from kivy.core.clipboard import Clipboard
-        modifiers = window.modifiers
+
+        is_osx = sys.platform == 'darwin'
+        # Keycodes on OSX:
+        ctrl, cmd = 64, 1024
+
         if unicode and not key in (self.interesting_keys.keys() + [27]):
-            if 'ctrl' in modifiers:
+            # This allows *either* ctrl *or* cmd, but not both.
+            if modifiers == ctrl or (is_osx and modifiers == cmd):
                 if key == ord('x'): # cut selection
                     Clipboard.put(self.selection_text, 'text/plain')
                     self.delete_selection()
