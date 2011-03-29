@@ -1,5 +1,6 @@
 import glob
 import random
+from os.path import join, dirname
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.uix.scatter import Scatter
@@ -11,7 +12,8 @@ class Picture(Image):
 
 class PicturesApp(App):
     def build(self):
-        for filename in glob.glob('images/*'):
+        curdir = dirname(__file__)
+        for filename in glob.glob(join(curdir, 'images', '*')):
             picture = Picture(source=filename)
             self.add_picture(picture)
 
