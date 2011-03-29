@@ -616,9 +616,10 @@ cdef class RenderContext(Canvas):
 
     cdef void pop_state(self, str name):
         stack = self.state_stacks[name]
-        stack.pop()
-        self.set_state(name, stack[-1])
-        self.flag_update()
+        oldvalue = stack.pop()
+        if oldvalue != stack[-1]:
+            self.set_state(name, stack[-1])
+            self.flag_update()
 
     cdef void pop_states(self, list names):
         cdef str name
@@ -639,6 +640,9 @@ cdef class RenderContext(Canvas):
 
     cdef void enter(self):
         self._shader.use()
+
+    cdef void leave(self):
+        self._shader.stop()
 
     cdef void apply(self):
         cdef list keys = self.state_stacks.keys()
@@ -678,6 +682,8 @@ cdef pushActiveContext(RenderContext c):
 
 cdef popActiveContext():
     global CONTEXT_STACK, ACTIVE_CONTEXT
+    if ACTIVE_CONTEXT:
+        ACTIVE_CONTEXT.leave()
     ACTIVE_CONTEXT = CONTEXT_STACK.pop()
     if ACTIVE_CONTEXT:
         ACTIVE_CONTEXT.enter()
