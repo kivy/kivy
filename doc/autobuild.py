@@ -30,7 +30,6 @@ import kivy.core.clipboard
 import kivy.core.gl
 import kivy.core.image
 import kivy.core.spelling
-import kivy.core.svg
 import kivy.core.text
 import kivy.core.video
 import kivy.core.window

@@ -19,9 +19,9 @@ To make it work, the :class:`ScrollView` will check for scrolling gesture first.
 The scrolling gesture is defined by :
 
     - a minimum distance to travel (:data:`ScrollView.scroll_distance`), default
-    to 20 pixels.
+      to 20 pixels.
     - a maximum time period (:data:`ScrollView.scroll_timeout`), default to 250
-    milliseconds.
+      milliseconds.
 
 That mean if you are travelling the :data:`~ScrollView.scroll_distance` before
 the :data:`~ScrollView.scroll_timeout`, the :class:`ScrollView` will start to

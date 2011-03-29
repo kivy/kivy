@@ -24,13 +24,14 @@ Another example using two different widgets and some spacing::
 
 .. note::
 
-The `size_hint` represent the size available after substracting all the
-fixed size. For example, if you have 3 widgets (width is 200px,
-50%, 50%), and if the layout have a width of 600px :
+    The `size_hint` represent the size available after substracting all the
+    fixed size. For example, if you have 3 widgets (width is 200px,
+    50%, 50%), and if the layout have a width of 600px :
 
-- the first widget width will be 200px
-- the second widget width will be 300px
-- the third widget width will be 300px
+    - the first widget width will be 200px
+    - the second widget width will be 300px
+    - the third widget width will be 300px
+
 '''
 
 __all__ = ('GridLayout', 'GridLayoutException')
