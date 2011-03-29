@@ -320,7 +320,9 @@ cdef class VertexInstruction(Instruction):
 
 
 cdef class Callback(Instruction):
-    '''A Callback is an instruction that will be called when the drawing
+    '''.. versionadded:: 1.0.4
+    
+    A Callback is an instruction that will be called when the drawing
     operation is performed. When adding instructions to a canvas, you can do
     this::
 
@@ -374,6 +376,8 @@ cdef class Callback(Instruction):
         '''Inform the parent canvas that we'd like it to update on the next
         frame. This is useful when you need to trigger a redraw due to some
         value having changed for example.
+
+        .. versionadded:: 1.0.4
         '''
         self.flag_update()
 
