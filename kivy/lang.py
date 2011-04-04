@@ -39,9 +39,9 @@ The language consists of several constructs that you can use:
 Syntax of a kv File
 -------------------
 
-A Kivy language file must have the .kv filename extension.
+A Kivy language file must have ``.kv`` as filename extension.
 
-The content of the file must always start with the kivy header, where `version`
+The content of the file must always start with the Kivy header, where `version`
 must be replaced with the Kivy language version you're using. For now, use
 1.0::
 
