@@ -33,6 +33,7 @@ import kivy.core.spelling
 import kivy.core.text
 import kivy.core.video
 import kivy.core.window
+import kivy.ext
 import kivy.graphics
 import kivy.animation
 from kivy.factory import Factory

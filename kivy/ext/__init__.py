@@ -1,24 +1,68 @@
 '''
-Kivy Extension Importer
-~~~~~~~~~~~~~~~~~~~~~~~
+Kivy Extension Support
+======================
 
-Import extensions!
+Sometimes your application requires functionality that is beyond the scope of
+what Kivy can deliver. In those cases it is necessary to resort to external
+software libraries. Given the richness of the Python ecosystem, there is already
+a great number of software libraries that you can simply import and use right
+away.
+
+For some third-party libraries, it's not as easy as that though. Some libraries
+require special *wrappers* being written for them to be compatible with Kivy.
+Some libraries might even need to be patched so that they can be used (e.g. if
+they open their own OpenGL context to draw in and don't support proper offscreen
+rendering). In those occasions it is often possible to patch the library in
+question and to provide a Python wrapper around it that is compatible with Kivy.
+Sticking with this example, you can't just use the wrapper with a 'normal'
+installation of the library because the patch would be missing.
+
+That is where Kivy extensions come in handy. A Kivy extension represents a
+single third-party library that is provided in a way so that it can simply be
+downloaded as a single file, put in a special directory and then offers the
+functionality of the wrapped library to Kivy applications.
+These extensions will not pollute the global Python environment (as they might
+be unusable on their own after potential patches have been applied) because they
+reside in special directories for Kivy that are not accessed by Python by
+default.
+
+Kivy extensions are provided as ``*.kex`` files. They are really just zip files,
+but you must not unzip them yourself. Kivy will do that for you as soon as it's
+appropriate to do so.
+
+.. warning::
+
+    Again, do not try to unzip ``*.kex`` files on your own. While unzipping will
+    work, Kivy will not be able to load the extension and will simply ignore it.
+
+With Kivy's extension system, your application can use specially packaged
+third-party libraries in a backwards compatible way (by specifying the version
+that you require) even if the actual third-party library does not guarantee
+backwards-compatibility. There will be no breakage if newer versions are
+installed (as a properly suited old version will still be used). For more
+information about that behaviour, consider the documentation of the
+:func:`~kivy.ext.load` function.
+
+If you want to provide an extension on your own, there is a helper script that
+sets up the initial extension folder structure that Kivy requires for
+extensions. It can be found at kivy/tools/extensions/make-kivyext.py
 '''
 
 import sys
 import imp
 from glob import glob
-from os import listdir, mkdir, sep
+from os import listdir, mkdir, sep, environ
 from os.path import join, isdir, exists
 from zipfile import ZipFile
 from shutil import move
 
-from kivy import kivy_userexts_dir, kivy_exts_dir
 from kivy.logger import Logger
 
+if not 'KIVY_DOC' in environ:
+    from kivy import kivy_userexts_dir, kivy_exts_dir
 
-# The paths where extensions can be put as a .zip file by the user
-EXTENSION_PATHS = [kivy_exts_dir, kivy_userexts_dir]
+    # The paths where extensions can be put as a .zip file by the user
+    EXTENSION_PATHS = [kivy_exts_dir, kivy_userexts_dir]
 
 NEED_UNZIP = True
 
@@ -27,9 +71,11 @@ NEED_UNZIP = True
 def load(extname, version):
     '''Use this function to tell Kivy to load a specific version of the given
     Extension. This is different from kivy's require() in that it will always
-    use the exact version you specify, even if a newer (major) version is
-    available. This is because we cannot make the same backwards-compatibility
-    guarantee that we make with Kivy for third-party extensions.
+    use the exact same major version you specify, even if a newer (major)
+    version is available. This is because we cannot make the same
+    backwards-compatibility guarantee that we make with Kivy for third-party
+    extensions. You will still get fixes and optimizations that don't break
+    backwards compatibility via minor version upgrades of the extension.
 
     The function will then return the loaded module as a Python module object
     and you can bind it to a name of your choosing. This prevents clashes with
@@ -62,7 +108,7 @@ def load(extname, version):
     #
     global NEED_UNZIP
     if NEED_UNZIP:
-        _unzip_extensions()
+        unzip_extensions()
         NEED_UNZIP = False
 
     # Find the one path that best satisfies the specified criteria, i.e. same
@@ -112,9 +158,47 @@ def _is_valid_ext_name(name):
     return (extname, (major, minor))
 
 
-def _unzip_extensions():
-    '''Unzips Kivy extensions. Internal usage only; Don't use it yourself.
-    Called by kivy/__init__.py
+def unzip_extensions():
+    '''Unzips Kivy extensions. Internal usage only; Don't use it yourself unless
+    you know what you're doing and really want to trigger installation of new
+    extensions.
+
+    For your file to be recognized as an extension, it has to fulfil a few
+    requirements:
+
+     * We require that the file has the ``*.kex`` extension to make the
+       distinction between a Kivy extension and an ordinary zip file clear.
+
+     * We require that the ``*.kex`` extension files be put into any of the
+       directories listed in EXTENSION_PATHS which is normally
+       ~/.kivy/extensions and extensions/ inside kivy's base dirextory. We do
+       not look for extensions on sys.path or elsewhere in the system.
+
+     * We require that the Kivy extension is zipped in a way so that Python's
+       zipfile module can extract it properly.
+
+     * We require that the extension internally obeys the common Kivy extension
+       format, which looks like this::
+
+            |-- myextension/
+                |-- README
+                |-- __init__.py
+                |-- data/
+
+       The ``__init__.py`` file is the main entrypoint to the extension. All
+       names that should be usable when the extension is loaded need to be
+       exported (i.e. made available) in the namespace of that file.
+
+       How the extension accesses the code of the library that it wraps (be it
+       pure Python or binary code) is up to the extension. For example there
+       could be another Python module adjacent to the ``__init__.py`` file from
+       which the ``__init__.py`` file imports the usable names that it wants to
+       expose.
+
+     * We require that the version of the extension be specified in the
+       ``setup.py`` file that is created by the Kivy extension wizard and that
+       the version specification format as explained in :func:`~kivy.ext.load`
+       be used.
     '''
     Logger.debug('Searching for new extension in %s' % EXTENSION_PATHS)
 
@@ -124,7 +208,7 @@ def _unzip_extensions():
             files = []
         else:
             files = listdir(epath)
-        for zipfn in glob(join(epath, '*.zip')):
+        for zipfn in glob(join(epath, '*.kex')):
             # ZipFile only became a context manager in python 2.7...
             # with ZipFile(zipfn, 'r') as zipf:
             fail = is_invalid = False
