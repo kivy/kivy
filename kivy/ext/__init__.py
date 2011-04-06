@@ -20,23 +20,6 @@ from kivy.logger import Logger
 # The paths where extensions can be put as a .zip file by the user
 EXTENSION_PATHS = [kivy_exts_dir, kivy_userexts_dir]
 
-# def _compatibility_check(v1, v2):
-#     '''Internal use only.
-#     Checks compatibility between two extension versions. If you want to know
-#     what we defined as 'compatible' in this context, check the documentation of
-#     the load() function.
-#
-#     Checks if v2 is backwards compatible to v1, i.e. v2 must have the same major
-#     version number and the same or a higher minor version number.
-#     '''
-#     maj1, min1 = v1
-#     maj2, min2 = v2
-#     if maj1 != maj2:
-#         return False
-#     if min1 < min2:
-#         return False
-#     return True
-
 
 # XXX platform check?
 def load(extname, version):
@@ -217,54 +200,4 @@ def _unzip_extensions():
             if not isdir(consumed_dir):
                 mkdir(consumed_dir)
             move(zipfn, consumed_dir)
-
-
-# def _setup_extension_importer():
-#     '''Internal function to set up the ExtensionImporter.
-#     Do not use it.
-#     '''
-#     sys.meta_path.append(ExtensionImporter())
-# 
-# 
-# class ExtensionImporter(object):
-#     def find_module(self, fullname, path=None):
-#         Logger.trace('ExtensionImporter.find_module():', fullname, path)
-# 
-#         # We only want to import something that is a Kivy extension:
-#         if not fullname.startswith('kivy.ext.'):
-#             return None
-# 
-#         # XXX: Should we make sure that if extroot has already been imported, it won't
-#         # try to import any kivy.ex.$extroot.* again?
-#         extroot = fullname.split('.')[2]
-# 
-#         try:
-#             Logger.trace('Trying to find', `extroot`, 'in', EXTENSION_PATHS)
-#             file, pathname, desc = imp.find_module(extroot, EXTENSION_PATHS)
-#         except ImportError:
-#             return None
-# 
-#         return ExtensionLoader(extroot, file, pathname, desc)
-# 
-# 
-# class ExtensionLoader(object):
-#     def __init__(self, extroot, file, pathname, desc):
-#         self.extroot = extroot
-#         self.file = file
-#         self.pathname = pathname
-#         self.desc = desc
-#         Logger.trace('Found:', '\n\t', self.file, '\n\t', self.pathname, '\n\t',
-#             self.desc)
-# 
-#     def load_module(self, fullname):
-#         Logger.trace('ExtensionImporter.load_module():', fullname)
-# 
-#         try:
-#             mod = imp.load_module(self.extroot, self.file, self.pathname, self.desc)
-#         finally:
-#             if self.file:
-#                 self.file.close()
-# 
-#         sys.modules[fullname] = mod
-#         return mod
 
