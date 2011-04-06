@@ -201,6 +201,8 @@ kivy_base_dir = dirname(sys.modules[__name__].__file__)
 kivy_libs_dir = join(kivy_base_dir, 'lib')
 #: Kivy modules directory
 kivy_modules_dir = join(kivy_base_dir, 'modules')
+#: Kivy extension directory
+kivy_exts_dir = join(kivy_base_dir, 'extensions')
 #: Kivy data directory
 kivy_data_dir = join(kivy_base_dir, 'data')
 #: Kivy glsl shader directory
@@ -227,16 +229,22 @@ if basename(sys.argv[0]) in ('sphinx-build', ):
 if basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
     environ['KIVY_UNITTEST'] = '1'
 if not 'KIVY_DOC_INCLUDE' in environ:
-
     # Configuration management
     user_home_dir = expanduser('~')
     kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
+
     if not exists(kivy_home_dir):
         mkdir(kivy_home_dir)
+
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
     if not exists(kivy_usermodules_dir):
         mkdir(kivy_usermodules_dir)
+
+    kivy_userexts_dir = join(kivy_home_dir, 'extensions')
+    if not exists(kivy_userexts_dir):
+        mkdir(kivy_userexts_dir)
+
     icon_dir = join(kivy_home_dir, 'icon')
     if not exists(icon_dir):
         copytree(join(kivy_data_dir, 'logo'), icon_dir)
@@ -247,6 +255,10 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     # Set level of logger
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
+
+    # Unzip new Kivy extensions
+    from kivy.ext import _unzip_extensions
+    _unzip_extensions()
 
     # Can be overrided in command line
     if 'KIVY_UNITTEST' not in environ:
