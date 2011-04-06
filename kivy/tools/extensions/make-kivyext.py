@@ -48,14 +48,21 @@ so::
 
     python setup.py create_package
 
+That will turn your current Kivy extension development folder into a *.kex Kivy
+extension file that you can just drop in one of the extensions/ directories
+supported by Kivy.
 """
-from setuptools import setup
+from distutils.core import setup
 from distutils.cmd import Command
-
-from subprocess import call
 
 import %(extname)s
 long_desc = %(extname)s.__doc__
+
+
+import os
+from os.path import join
+from shutil import copy
+from subprocess import call
 
 
 class PackageBuild(Command):
@@ -68,6 +75,13 @@ class PackageBuild(Command):
         call(['python', 'setup.py', 'install', '--root', 'output/', '--install-lib',
               '/', '--install-platlib', '/', '--install-data', '/%(extname)s/data',
               'bdist', '--formats=zip'])
+        files = os.listdir('dist')
+        if not os.path.isdir('kexfiles'):
+            os.mkdir('kexfiles')
+        for file in files:
+            # Simply copy & replace...
+            copy(join('dist', file), join('kexfiles', file[:-3] + "kex"))
+        print 'The extension files are now available in kexfiles/'
 
     def initialize_options(self):
         pass
@@ -88,12 +102,8 @@ setup(
     author_email='%(email)s',
     description='<enter short description here>',
     long_description=long_desc,
-    zip_safe=False,
-    platforms='any',
+    packages=['%(extname)s'],
     cmdclass=cmdclass,
-    install_requires=[
-        # 'Kivy'
-    ],
     classifiers=[
         # Add your own classifiers here
         'Development Status :: 4 - Beta',
