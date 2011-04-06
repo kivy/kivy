@@ -43,13 +43,19 @@ SETUP_PY_TEMPLATE = u'''\
 %(name)s
 %(namedecor)s
 
-Description goes here...
+To create a Kivy *.kex extension file for this extension, run this file like
+so::
+
+    python setup.py create_package
 
 """
 from setuptools import setup
 from distutils.cmd import Command
 
 from subprocess import call
+
+import %(extname)s
+long_desc = %(extname)s.__doc__
 
 
 class PackageBuild(Command):
@@ -79,9 +85,9 @@ setup(
     url='<enter URL here>',
     license='<specify license here>',
     author='%(author)s',
-    author_email='your-email-here@example.com',
+    author_email='%(email)s',
     description='<enter short description here>',
-    long_description=__doc__,
+    long_description=long_desc,
     zip_safe=False,
     platforms='any',
     cmdclass=cmdclass,
@@ -143,10 +149,11 @@ def guess_package(name):
 
 class Extension(object):
 
-    def __init__(self, name, shortname, author, output_folder):
+    def __init__(self, name, shortname, author, email, output_folder):
         self.name = name
         self.shortname = shortname
         self.author = author
+        self.email = email
         self.output_folder = output_folder
 
     def make_folder(self):
@@ -164,10 +171,6 @@ class Extension(object):
                 year=datetime.utcnow().year,
                 name=self.author,
             ))
-        with open(os.path.join(self.output_folder, self.shortname,
-                'README'), 'w') as f:
-            f.write(self.shortname + '\n' + decor
-                    + '\n\nDescription goes here\n')
         with open(os.path.join(self.output_folder, 'setup.py'), 'w') as f:
             f.write(SETUP_PY_TEMPLATE % dict(
                 name=self.name,
@@ -175,6 +178,7 @@ class Extension(object):
                 urlname=quote(self.name),
                 author=self.author,
                 extname=self.shortname,
+                email=self.email,
             ))
 
 
@@ -189,6 +193,7 @@ def main():
     name = prompt('Extension Name (human readable)')
     shortname = prompt('Extension Name (for filesystem)', guess_package(name))
     author = prompt('Author', default=getpass.getuser())
+    email = prompt('EMail', default='')
 
     output_folder = len(sys.argv) == 2 and sys.argv[1] or shortname + '-dev'
     while 1:
@@ -202,7 +207,7 @@ def main():
             break
     output_folder = os.path.abspath(folder)
 
-    ext = Extension(name, shortname, author, output_folder)
+    ext = Extension(name, shortname, author, email, output_folder)
     ext.make_folder()
     ext.create_files()
     msg = '''

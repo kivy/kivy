@@ -181,7 +181,6 @@ def unzip_extensions():
        format, which looks like this::
 
             |-- myextension/
-                |-- README
                 |-- __init__.py
                 |-- data/
 
