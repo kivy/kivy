@@ -256,10 +256,6 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
 
-    # Unzip new Kivy extensions
-    from kivy.ext import _unzip_extensions
-    _unzip_extensions()
-
     # Can be overrided in command line
     if 'KIVY_UNITTEST' not in environ:
 

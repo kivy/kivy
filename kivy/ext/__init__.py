@@ -20,6 +20,8 @@ from kivy.logger import Logger
 # The paths where extensions can be put as a .zip file by the user
 EXTENSION_PATHS = [kivy_exts_dir, kivy_userexts_dir]
 
+NEED_UNZIP = True
+
 
 # XXX platform check?
 def load(extname, version):
@@ -57,6 +59,12 @@ def load(extname, version):
             by default the latest version will be choosen.
             The two ints major and minor can both be in range(0, infinity).
     '''
+    #
+    global NEED_UNZIP
+    if NEED_UNZIP:
+        _unzip_extensions()
+        NEED_UNZIP = False
+
     # Find the one path that best satisfies the specified criteria, i.e. same
     # extension name, same major version number, maximum available minor version
     # number but at least the same as the specified minor version number.
@@ -80,7 +88,7 @@ def load(extname, version):
                           "('%s', %s)" % (extname, version))
 
     file, pathname, desc = imp.find_module(extname, searchpath)
-    msg = 'Extension found for' + str(extname) + ':\n\t' + str(file) + \
+    msg = 'Extension found for ' + repr(extname) + ':\n\t' + str(file) + \
           '\n\t' + str(pathname) + '\n\t' + str(desc)
     Logger.debug(msg)
 
@@ -108,6 +116,8 @@ def _unzip_extensions():
     '''Unzips Kivy extensions. Internal usage only; Don't use it yourself.
     Called by kivy/__init__.py
     '''
+    Logger.debug('Searching for new extension in %s' % EXTENSION_PATHS)
+
     for epath in EXTENSION_PATHS:
         if not isdir(epath):
             mkdir(epath)

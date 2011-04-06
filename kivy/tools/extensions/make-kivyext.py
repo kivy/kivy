@@ -178,17 +178,6 @@ class Extension(object):
             ))
 
 
-# def is_valid_ext_name(name):
-#     try:
-#         extname, version = name.split('_')
-#         major, minor = version.split('.')
-#         major, minor = int(major), int(minor)
-#     except Exception, e:
-#         print "The name '%s' is not a valid extension name." % name
-#         return False
-#     return (extname, (major, minor))
-
-
 def main():
     if len(sys.argv) not in (1, 2):
         print 'usage: make-kivyext.py [output-folder]'
