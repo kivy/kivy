@@ -172,18 +172,18 @@ class TreeViewNode(object):
     False.
     '''
 
-    odd_color = ListProperty([.13, .13, .13, 1.])
+    odd_color = ListProperty([1., 1., 1., .0])
     '''Background color of odd nodes when the node is not selected.
 
     :data:`bg_color` is a :class:`~kivy.properties.ListProperty`, default
-    to [.13, .13, .13, 1].
+    to [1., 1., 1., 0.].
     '''
 
-    even_color = ListProperty([.15, .15, .15, 1.])
+    even_color = ListProperty([0.5, 0.5, 0.5, 0.1])
     '''Background color of odd nodes when the node is not selected.
 
     :data:`bg_color` is a :class:`~kivy.properties.ListProperty`, default
-    to [.15, .15, .15, 1].
+    to [.5, .5, .5, .1].
     '''
 
 
