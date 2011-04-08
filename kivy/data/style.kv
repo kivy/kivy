@@ -80,7 +80,7 @@
 <TreeViewNode>:
     canvas.before:
         Color:
-            rgba: self.color_selected if self.is_selected else (0, 0, 0, 0)
+            rgba: self.color_selected if self.is_selected else self.odd_color if self._odd else self.even_color
         Rectangle:
             pos: [self.parent.x, self.y] if self.parent else [0, 0]
             size: [self.parent.width, self.height] if self.parent else [1, 1]
@@ -100,7 +100,7 @@
 <TreeViewLabel>:
     width: self.texture_size[0]
     height: max(self.texture_size[1], 24)
-	text_size: self.size
+    text_size: self.size
 
 
 <StencilView>:

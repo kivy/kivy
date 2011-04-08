@@ -158,12 +158,34 @@ class TreeViewNode(object):
     :data:`level` is a :class:`~kivy.properties.NumericProperty`, default to -1.
     '''
 
-    color_selected = ListProperty([.1, .1, .1, 1.])
+    color_selected = ListProperty([.3, .3, .3, 1.])
     '''Background color of the node when the node is selected.
 
-    :data:`color_selected` is a :class:`~kivy.properties.ListProperty`, default
+    :data:`color_selected` is a :class:`~kivy.properties.ListProperty`, defaults
     to [.1, .1, .1, 1]
     '''
+
+    odd = BooleanProperty(False)
+    '''
+    This property is set by the TreeView widget automatically. Read-only.
+    :data:`odd` is a :class:`~kivy.properties.BooleanProperty`, defaults to
+    False.
+    '''
+
+    odd_color = ListProperty([.13, .13, .13, 1.])
+    '''Background color of odd nodes when the node is not selected.
+
+    :data:`bg_color` is a :class:`~kivy.properties.ListProperty`, default
+    to [.13, .13, .13, 1].
+    '''
+
+    even_color = ListProperty([.15, .15, .15, 1.])
+    '''Background color of odd nodes when the node is not selected.
+
+    :data:`bg_color` is a :class:`~kivy.properties.ListProperty`, default
+    to [.15, .15, .15, 1].
+    '''
+
 
 
 class TreeViewLabel(Label, TreeViewNode):
@@ -325,7 +347,10 @@ class TreeView(Widget):
         self._do_layout_node(self.root, 0, self.top)
         # now iterate for calculating minimum size
         min_width = min_height = 0
+        count = 0
         for node in self.iterate_open_nodes(self.root):
+            node.odd = False if count % 2 else True
+            count += 1
             min_width = max(min_width, node.width + self.indent_level +
                             node.level * self.indent_level)
             min_height += node.height
@@ -465,6 +490,7 @@ class TreeView(Widget):
     :data:`load_func` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
     '''
+
 
 if __name__ == '__main__':
     from kivy.app import App
