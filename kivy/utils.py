@@ -289,7 +289,10 @@ class QueryDict(dict):
         try:
             return self.__getitem__(attr)
         except KeyError:
-            return super(QueryDict, self).__getattr__(attr)
+            try:
+                return super(QueryDict, self).__getattr__(attr)
+            except AttributeError:
+                raise KeyError(attr)
 
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
