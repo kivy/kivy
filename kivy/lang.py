@@ -170,9 +170,9 @@ more interesting like::
     Button:
         text: 'Plop world' if self.state == 'normal' else 'Release me!'
 
-The Button text changes with the state of the button. By default, the button text
-will be 'Plop world', but when the button is being pressed, the text will change to
-'Release me!'.
+The Button text changes with the state of the button. By default, the button
+text will be 'Plop world', but when the button is being pressed, the text will
+change to 'Release me!'.
 
 
 Graphical Instructions
@@ -239,9 +239,11 @@ __all__ = ('Builder', 'BuilderBase', 'Parser')
 import re
 from os.path import join
 from copy import copy
+from types import ClassType
+from functools import partial
 from kivy.factory import Factory
 from kivy.logger import Logger
-from kivy.utils import OrderedDict, curry
+from kivy.utils import OrderedDict, QueryDict
 from kivy import kivy_data_dir
 
 trace = Logger.trace
@@ -477,7 +479,7 @@ def create_handler(element, key, value, idmap):
     kw = re.findall('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)', tmp)
     if not kw:
         # look like no reference, just pass it
-        return eval(value, _eval_globals)
+        return eval(value, _eval_globals, idmap)
 
     # create an handler
     idmap = copy(idmap)
@@ -496,7 +498,8 @@ def create_handler(element, key, value, idmap):
         if len(k) != 2:
             continue
         f = idmap[k[0]]
-        f.bind(**{k[1]: call_fn})
+        if hasattr(f, 'bind'):
+            f.bind(**{k[1]: call_fn})
 
     return eval(value, _eval_globals, idmap)
 
@@ -557,6 +560,7 @@ class BuilderBase(object):
     def __init__(self):
         super(BuilderBase, self).__init__()
         self.rules = []
+        self.templates = {}
         self.idmap = {}
         self.gidmap = {}
         self.idmaps = []
@@ -570,6 +574,12 @@ class BuilderBase(object):
     def add_rule(self, rule, defs):
         trace('Builder: adding rule %s' % str(rule))
         self.rules.append((rule, defs))
+
+    def add_template(self, name, cls, defs):
+        trace('Builder: adding template %s' % str(name))
+        if name in self.templates:
+            raise Exception('The template <%s> already exist' % name)
+        self.templates[name] = (cls, defs)
 
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder.
@@ -617,7 +627,6 @@ class BuilderBase(object):
         trace('Builder: Found %d matches for %s' % (len(matches), widget))
         if not matches:
             return
-        #self._push_ids()
         have_root = 'root' in self.idmap
         if not have_root:
             self.idmap['root'] = widget
@@ -625,7 +634,21 @@ class BuilderBase(object):
             self.build_item(widget, defs, is_template=True)
         if not have_root:
             del self.idmap['root']
-        #self._pop_ids()
+
+    def template(self, name, ctx):
+        '''Create a specialized template using a specific context
+        '''
+        if not name in self.templates:
+            raise Exception('Unknown <%s> template name' % name)
+        root, defs = self.templates[name]
+        rootwidget = Factory.get(root)
+        widget = ClassType(name, (rootwidget, ), {})()
+        self.idmap['root'] = widget
+        self.idmap['ctx'] = QueryDict(ctx)
+        self.build_item(widget, defs, is_template=True)
+        del self.idmap['root']
+        del self.idmap['ctx']
+        return widget
 
 
     #
@@ -644,6 +667,8 @@ class BuilderBase(object):
         for item, params in objects:
             if item.startswith('<'):
                 self.build_rule(item, params)
+            elif item.startswith('['):
+                self.build_template(item, params)
             else:
                 if root is not None:
                     raise ParserError(params['__ctx__'], params['__line__'],
@@ -739,7 +764,7 @@ class BuilderBase(object):
         if key.startswith('on_'):
             if not element.is_event_type(key):
                 key = key[3:]
-            element.bind(**{key: curry(custom_callback, (
+            element.bind(**{key: partial(custom_callback, (
                 element, key, value, idmap))})
 
         else:
@@ -785,6 +810,18 @@ class BuilderBase(object):
             else:
                 crule = BuilderRuleName(rule)
             self.add_rule(crule, params)
+
+    def build_template(self, item, params):
+        trace('Builder: build template for %s' % item)
+        if item[0] != '[' or item[-1] != ']':
+            raise ParserError(params['__ctx__'], params['__line__'],
+                'Invalid template (must be inside [])')
+        item_content = item[1:-1]
+        if not '@' in item_content:
+            raise ParserError(params['__ctx__'], params['__line__'],
+                'Invalid template name (missing @)')
+        template_name, template_root_cls = item_content.split('@')
+        self.add_template(template_name, template_root_cls, params)
 
 
 #: Main instance of a :class:`BuilderBase`.
