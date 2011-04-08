@@ -734,7 +734,8 @@ class BuilderBase(object):
 
         self._pop_ids()
         if is_template:
-            self.build_attributes()
+            if item is self.idmap['root']:
+                self.build_attributes()
         return widget
 
     def build_attributes(self):
@@ -762,6 +763,7 @@ class BuilderBase(object):
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):
+            trace('Builder: create custom callback for ' + key)
             if not element.is_event_type(key):
                 key = key[3:]
             element.bind(**{key: partial(custom_callback, (
