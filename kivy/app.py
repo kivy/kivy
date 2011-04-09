@@ -97,7 +97,7 @@ class App(EventDispatcher):
         '''
         pass
 
-    def load_kv(self,directory=None):
+    def load_kv(self, directory = None):
         '''If the application have never been built, try to find the kv of the
         application in the same directory as the application class.
 
@@ -134,7 +134,7 @@ class App(EventDispatcher):
         if root:
             self.root = root
 
-    def run(self,directory = None):
+    def run(self, directory = None):
         '''Launches the app in standalone mode.
         '''
         if not self.built:
