@@ -512,7 +512,7 @@ class WindowBase(EventDispatcher):
 
     def request_keyboard(self, callback):
         '''.. versionadded:: 1.0.4
-        
+
         Internal method for widget, to request the keyboard. This method is
         not intented to be used by end-user, however, if you want to use the
         real-keyboard (not virtual keyboard), you don't want to share it with
@@ -527,7 +527,7 @@ class WindowBase(EventDispatcher):
 
     def release_keyboard(self):
         '''.. versionadded:: 1.0.4
-        
+
         Internal method for widget, to release the real-keyboard. Check
         :func:`request_keyboard` to understand how it works.
         '''
