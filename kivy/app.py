@@ -86,7 +86,7 @@ class App(EventDispatcher):
         '''
         pass
 
-    def load_kv(self, directory = None):
+    def load_kv(self, directory=None):
         '''This method is invoked the first time the app is being run if no
         widget tree has been constructed before for this app.
         This method then looks for a matching kv file in the same directory as
