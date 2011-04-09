@@ -2,6 +2,8 @@
 Text Input
 ==========
 
+.. versionadded:: 1.0.4
+
 The :class:`TextInput` element displays a box of editable plain text.
 
 This widget support by default nice features such as :
@@ -100,6 +102,8 @@ control + a     Select all the content
 
 __all__ = ('TextInput', )
 
+import sys
+
 from kivy.utils import boundary
 from kivy.clock import Clock
 from kivy.cache import Cache
@@ -117,9 +121,15 @@ FL_IS_NEWLINE = 0x01
 
 class TextInput(Widget):
     '''TextInput class, see module documentation for more information.
+
+    :Events:
+        `on_text_validate`
+            Fired only in multiline=False mode, when the user hit 'enter'. This
+            will also unfocus the textinput.
     '''
 
     def __init__(self, **kwargs):
+        self._win = None
         self._cursor_blink_time = Clock.get_time()
         self._cursor = [0, 0]
         self._selection = False
@@ -149,6 +159,8 @@ class TextInput(Widget):
             303: 'shift_L',
             304: 'shift_R'}
 
+        self.register_event_type('on_text_validate')
+
         super(TextInput, self).__init__(**kwargs)
 
         self.bind(font_size=self._trigger_refresh_line_options,
@@ -162,6 +174,9 @@ class TextInput(Widget):
 
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()
+
+    def on_text_validate(self):
+        pass
 
     def cursor_index(self):
         '''Return the cursor index in the text/value.
@@ -395,7 +410,9 @@ class TextInput(Widget):
     # Private
     #
     def on_focus(self, instance, value):
-        win = self.get_root_window()
+        win = self._win
+        if not win:
+            self._win = win = self.get_root_window()
         if value:
             win.request_keyboard(self._keyboard_released)
             win.bind(on_key_down=self._window_on_key_down,
@@ -407,6 +424,7 @@ class TextInput(Widget):
                      on_key_up=self._window_on_key_up)
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
+            self._win = None
 
     def _keyboard_released(self):
         # Callback called when the real keyboard is taken by someone else
@@ -466,7 +484,8 @@ class TextInput(Widget):
     def _refresh_text(self, text):
         # Refresh all the lines from a new text.
         # By using cache in internal functions, this method should be fast.
-        self._lines, self._lines_flags = self._split_smart(text)
+        _lines, self._lines_flags = self._split_smart(text)
+        self._lines = _lines
         self._lines_labels = [self._create_line_label(x) for x in self._lines]
         self._lines_rects = [Rectangle(texture=x, size=x.size) \
                              for x in self._lines_labels]
@@ -745,6 +764,9 @@ class TextInput(Widget):
         elif internal_action == 'enter':
             if self.multiline:
                 self.insert_text('\n')
+            else:
+                self.dispatch('on_text_validate')
+                self.focus = False
         elif internal_action == 'escape':
             self.focus = False
         if internal_action != 'escape':
@@ -759,9 +781,14 @@ class TextInput(Widget):
     def _window_on_key_down(self, window, key, scancode=None, unicode=None,
                             modifiers=None):
         from kivy.core.clipboard import Clipboard
-        modifiers = window.modifiers
+
+        is_osx = sys.platform == 'darwin'
+        # Keycodes on OSX:
+        ctrl, cmd = 64, 1024
+
         if unicode and not key in (self.interesting_keys.keys() + [27]):
-            if 'ctrl' in modifiers:
+            # This allows *either* ctrl *or* cmd, but not both.
+            if modifiers == ctrl or (is_osx and modifiers == cmd):
                 if key == ord('x'): # cut selection
                     Clipboard.put(self.selection_text, 'text/plain')
                     self.delete_selection()

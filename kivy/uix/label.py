@@ -24,6 +24,7 @@ from kivy.utils import curry
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
+from kivy.resources import resource_find
 from kivy.properties import StringProperty, OptionProperty, \
         NumericProperty, BooleanProperty, ReferenceListProperty, \
         ListProperty, ObjectProperty
@@ -56,6 +57,9 @@ class Label(Widget):
                 self._label.text = value
             elif name == 'text_size':
                 self._label.usersize = value
+            elif name == 'font_name':
+                rvalue = resource_find(value)
+                self._label.options['font_name'] = rvalue if rvalue else value
             else:
                 self._label.options[name] = value
         Clock.unschedule(self.texture_update)
@@ -92,6 +96,8 @@ class Label(Widget):
     text_size = ListProperty([None, None])
     '''By default, the label is not contraint to any bounding box.
     You can set the size constraint of the label creation with this property.
+
+    .. versionadded:: 1.0.4
 
     For example, whatever is your current widget size, if you want your label to
     be created in a box with width=200 and unlimited height::

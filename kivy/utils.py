@@ -8,7 +8,7 @@ __all__ = ('intersection', 'difference', 'curry', 'strtotuple',
            'get_color_from_hex', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
-           'interpolate', 'OrderedDict')
+           'interpolate', 'OrderedDict', 'QueryDict')
 
 from re import match, split
 from UserDict import DictMixin
@@ -269,4 +269,31 @@ class OrderedDict(dict, DictMixin):
 
     def __ne__(self, other):
         return not self == other
+
+
+class QueryDict(dict):
+    '''QueryDict is a dict() that can be queried with dot.
+
+    .. versionadded:: 1.0.4
+
+    ::
+
+        d = QueryDict()
+        # create a key named toto, with the value 1
+        d.toto = 1
+        # it's the same as
+        d['toto'] = 1
+    '''
+
+    def __getattr__(self, attr):
+        try:
+            return self.__getitem__(attr)
+        except KeyError:
+            try:
+                return super(QueryDict, self).__getattr__(attr)
+            except AttributeError:
+                raise KeyError(attr)
+
+    def __setattr__(self, attr, value):
+        self.__setitem__(attr, value)
 

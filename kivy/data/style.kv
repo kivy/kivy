@@ -3,7 +3,7 @@
 <Label>:
 	canvas:
 		Color:
-			rgb: 1, 1, 1
+			rgba: self.color
 		Rectangle:
 			texture: self.texture
 			size: self.texture_size
@@ -17,9 +17,9 @@
 			border: (16, 16, 16, 16)
 			pos: self.pos
 			size: self.size
-			source: 'data/images/button.png' if self.state == 'normal' else 'data/images/button_pressed.png'
+			source: self.background_normal if self.state == 'normal' else self.background_down
 		Color:
-			rgb: (1, 1 ,1)
+			rgba: self.color
 		Rectangle:
 			texture: self.texture
 			size: self.texture_size
@@ -75,3 +75,41 @@
 			size: 1, -self.line_height
 		Color:
 			rgb: (0, 0, 0)
+
+
+<TreeViewNode>:
+    canvas.before:
+        Color:
+            rgba: self.color_selected if self.is_selected else self.odd_color if self.odd else self.even_color
+        Rectangle:
+            pos: [self.parent.x, self.y] if self.parent else [0, 0]
+            size: [self.parent.width, self.height] if self.parent else [1, 1]
+        Color:
+            rgba: 1, 1, 1, int(not self.is_leaf)
+        Rectangle:
+            source: 'data/images/tree_%s.png' % ('opened' if self.is_open else 'closed')
+            size: 16, 16
+            pos: self.x - 20, self.center[1] - 8
+    canvas.after:
+        Color:
+            rgba: .5, .5, .5, .2
+        Line:
+            points: [self.parent.x, self.y, self.parent.right, self.y] if self.parent else []
+
+
+<TreeViewLabel>:
+    width: self.texture_size[0]
+    height: max(self.texture_size[1], 24)
+    text_size: self.size
+
+
+<StencilView>:
+	canvas.before:
+		StencilPush
+		Rectangle:
+			pos: self.pos
+			size: self.size
+		StencilUse
+
+	canvas.after:
+		StencilPop

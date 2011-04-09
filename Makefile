@@ -5,6 +5,9 @@ KIVY_DIR = kivy/
 build:
 	$(PYTHON) setup.py build_ext --inplace
 
+force:
+	$(PYTHON) setup.py build_ext --inplace -f
+
 mesabuild:
 	$(PYTHON) setup.py build_ext --inplace --define __MESAGL__
 

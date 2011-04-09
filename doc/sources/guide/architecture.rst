@@ -9,6 +9,8 @@ everything works together.
 If you just look at the code, chances are you will get a rough idea
 already, but since this approach certainly is daunting for most users,
 this section explains the basic ideas of the implementation in more detail.
+You can skip this section and refer to it later, but we suggest at least
+skimming it for a rough overview.
 
 Kivy consists of several building blocks that we will explain in the
 following.
@@ -195,22 +197,19 @@ implementation of the respective event handler. This goes all the way up
 to the base Widget class, which -- in its touch event handlers -- does
 nothing but pass the touches to its children::
 
-    def on_touch_down(self, touch): # This is the same for move/up
+    # This is analogous for move/up:
+    def on_touch_down(self, touch):
         for child in reversed(self.children[:]):
             if child.dispatch('on_touch_down', touch):
                 return True
 
-This really is much easier than it first seems. Let's take a look at a
-simple example. If you want to implement a line drawing program, you will
-want to know when a touch starts, moves and ends. You keep track of the
-touch's positions and draw a line through those points::
+This really is much easier than it first seems. An example of how this can
+be used to create nice applications quickly will be given in the following
+section.
 
-    TODO PAINTER WIDGET
-
-As you can see, this widget does not really care where the touch occurred.
 Often times you will want to restrict the *area* on the screen that a
 widget watches for touches. You can use a widget's collide_point() method
-to achieve this. You simply pass it the touches position and it returns
+to achieve this. You simply pass it the touch's position and it returns
 True if the touch is within the 'watched area' or False otherwise. By
 default, this checks the rectangular region on the screen that's described
 by the widget's pos (for position; x & y) and size (width & height), but

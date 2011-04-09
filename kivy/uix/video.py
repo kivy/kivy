@@ -23,10 +23,11 @@ the video is loaded. The video is loaded when the texture is created. ::
 
 __all__ = ('Video', )
 
+from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
-from kivy.properties import BooleanProperty, NumericProperty
+from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty
 
 
 class Video(Image):
@@ -79,19 +80,34 @@ class Video(Image):
     1.
     '''
 
+    options = ObjectProperty({})
+    '''Options to pass at Video core object creation.
+
+    .. versionadded:: 1.0.4
+
+    :data:`options` is a :class:`kivy.properties.ObjectProperty`, default to {}.
+    '''
+
     def __init__(self, **kwargs):
         self._video = None
         super(Video, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
+        self._trigger_video_load()
+
+    def _trigger_video_load(self, *largs):
+        Clock.unschedule(self._do_video_load)
+        Clock.schedule_once(self._do_video_load)
+
+    def _do_video_load(self, *largs):
         if self._video:
             self._video.stop()
-        if not value:
+        if not self.source:
             self._video = None
             self.texture = None
         else:
-            filename = resource_find(value)
-            self._video = CoreVideo(filename=filename)
+            filename = resource_find(self.source)
+            self._video = CoreVideo(filename=filename, **self.options)
             self._video.bind(on_load=self._on_video_frame,
                              on_frame=self._on_video_frame,
                              on_eos=self._on_eos)

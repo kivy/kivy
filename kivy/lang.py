@@ -1,66 +1,72 @@
 '''
-Kivy language
+Kivy Language
 =============
 
-Kivy language is a language dedicated for describing user interface and
-interactions. You could compare this language to QML of Qt
-(http://qt.nokia.com), but we are including new concept like the rules
-definitions, templating and so on.
+The Kivy language is a language dedicated to describing user interface and
+interactions. You could compare this language to Qt's QML
+(http://qt.nokia.com), but we included new concepts such as rule definitions
+(which are somewhat akin to what you may know from CSS), templating and so on.
+
 
 Overview
 --------
 
-The language permit you to create:
+The language consists of several constructs that you can use:
 
-    Rule
-        The rule is like CSS rules. You create a rule to match a specific class
-        or widget in your tree. You can automatically create interactions or
-        adding graphicals instructions to a specific widget (like all the
-        widgets with the attribute cls=test).
+    Rules
+        A rule is similar to a CSS rule. A rule applies to specific widgets (or
+        classes thereof) in your widget tree and modifies them in a certain way.
+        You can use rules to specify interactive behaviour or use them to add
+        graphical representations of the widgets they apply to.
+        You can target a specific class of widgets (similar to CSS' concept of a
+        *class*) by using the ``cls`` attribute (e.g. ``cls=MyTestWidget``).
 
-    Root widget
-        You can use the language to create your user interface. A kv file can
-        contain only one root widget.
+    A Root Widget
+        You can use the language to create your entire user interface.
+        A kv file must contain only one root widget at most.
 
-    Template
-        This will be used to create part of your application, like the list
-        content. If you want to design the look of an entry in a list (icon in
-        the left, text in the right), you will use Template for that.
+    Templates
+        Reserved for future use.
+        Templates will be used to populate parts of your application, such as a
+        list's content. If you want to design the look of an entry in a list
+        (icon on the left, text on the right), you will use a template for that.
 
-        For the moment, templating are not yet designed in the language, we are
-        still working on it. Check the issue #17
-        (https://github.com/tito/kivy/issues#issue/17)
+        For the moment, templating is not yet designed in the language; we are
+        working on it. We track the progress of the implementation in issue #17
+        (https://github.com/tito/kivy/issues#issue/17).
 
 
-Syntax of a kv file
+Syntax of a kv File
 -------------------
 
-A kivy language file must be ended by the .kv extension.
+A Kivy language file must have ``.kv`` as filename extension.
 
-The content of the file must always start with the kivy header, where `version`
-must be replaced with the kivy language version you're using. For now, use
+The content of the file must always start with the Kivy header, where `version`
+must be replaced with the Kivy language version you're using. For now, use
 1.0::
 
     #:kivy `version`
 
     `content`
 
-The `content` can contain rules, root widget and template::
+The `content` can contain rule definitions, a root widget and templates::
 
-    # syntax of a rule
+    # Syntax of a rule definition. Note that several Rules can share the same
+    # definition (as in CSS). Note the braces; They are part of the definition.
     <Rule1,Rule2>:
         .. definitions ..
 
     <Rule3>:
         .. definitions ..
 
-    # syntax for creating a root widget
+    # Syntax for creating a root widget
     RootClassName:
         .. definitions ..
 
-Whatever is it's an rule, root widget or template, the definition should look
-like this::
+Regardless of whether it's a rule, root widget or template you're defining,
+the definition should look like this::
 
+    # With the braces it's a rule; Without them it's a root widget.
     <ClassName>:
         prop1: value1
         prop2: value2
@@ -74,21 +80,20 @@ like this::
         AnotherClass:
             prop3: value1
 
-`prop1` and `prop2` are the properties of `ClassName` and `prop3` is the
-property of `AnotherClass`. If the property doesn't exist in the class, an
-:class:`~kivy.properties.ObjectProperty` will be automatically created and added
-to the instance.
+Here `prop1` and `prop2` are the properties of `ClassName` and `prop3` is the
+property of `AnotherClass`. If the widget doesn't have a property with the given
+name, an :class:`~kivy.properties.ObjectProperty` will be automatically created
+and added to the instance.
 
-`AnotherClass` will be created and added as a child of `ClassName` instance.
+`AnotherClass` will be created and added as a child of the `ClassName` instance.
 
 - The indentation is important, and must be 4 spaces. Tabs are not allowed.
-- The value of a property must be single line. (we may change this in a future
-version.)
-- The `canvas` property is special: you can put graphics class inside it to
-create your graphical representation of the current class.
+- The value of a property must be given on a single line (for now at least).
+- The `canvas` property is special: You can put graphics instructions in it
+  to create a graphical representation of the current class.
 
 
-Here is an example of a kv file that contain a root widget::
+Here is a simple example of a kv file that contains a root widget::
 
     #:kivy 1.0
 
@@ -96,21 +101,21 @@ Here is an example of a kv file that contain a root widget::
         text: 'Hello world'
 
 
-Value expression and reserved keyword
--------------------------------------
+Value Expressions and Reserved Keywords
+---------------------------------------
 
-The value is a python expression. This expression can be static or dynamic,
-that's mean the value can use the values of other properties using reserved
-keywords.
+When you specify a property's value, the value is evaluated as a python
+expression. This expression can be static or dynamic, which means that
+the value can use the values of other properties using reserved keywords.
 
     self
-        The keyword self reference the "current widget instance"::
+        The keyword self references the "current widget instance"::
 
             Button:
                 text: 'My state is %s' % self.state
 
     root
-        This keyword is available only in rules definition, and represent the
+        This keyword is available only in rule definitions, and represents the
         root widget of the rule (the first instance of the rule)::
 
             <Widget>:
@@ -118,56 +123,63 @@ keywords.
                 Button:
                     text: root.custom
 
-Also, if a class definition contain an id, you can use it as a keyword::
+Furthermore, if a class definition contains an id, you can use it as a keyword::
 
     <Widget>:
         Button:
             id: 'btn1'
         Button:
-            text: 'The state of btn1 is %s' % btn1.state
+            text: 'The state of the other button is %s' % btn1.state
 
-Please note that the id will be not available in the Widget instance: the `id`
+Please note that the `id` will not be available in the widget instance; The `id`
 attribute will be not used.
 
 
-
-Relation between values and properties
+Relation Between Values and Properties
 --------------------------------------
 
-When you use kv language, we are doing magical stuff to automatically get things
-work. You must know that :doc:`api-kivy.properties` implement the observer
-pattern: you can bind your own function to be called when the value of a
-property change.
+When you use the Kivy language, you might notice that we do some work behind the
+scenes to automatically make things work properly. You should know that
+:doc:`api-kivy.properties` implement the *observer* software design pattern:
+That means that you can bind your own function to be called when the value of a
+property changes (i.e. you passively `observe` the property for potential
+changes).
 
-Kv language detect properties in your `value`, and create callback to
-automatically update the property from your expression.
+The Kivy language detects properties in your `value` expression and will create
+create callbacks to automatically update the property via your expression when
+changes occur.
 
-Simple example of using a property::
+Here's a simple example that demonstrates this behaviour::
 
     Button:
         text: str(self.state)
 
-In this example, we are detecting `self.state` as a dynamic value. Since the
-:data:`~kivy.uix.button.Button.state` of the button can change at every moment,
-we are binding this value expression to the state property of the Button.
-Everytime the button state changed, the text property will be updated.
+In this example, the parser detects that `self.state` is a dynamic value (a
+property). The :data:`~kivy.uix.button.Button.state` property of the button
+can change at any moment (when the user touches it).
+We now want this button to display its own state as text, even as the state
+changes. To do this, we use the state property of the Button and use it in the
+value expression for the button's `text` property, which controls what text is
+displayed on the button (We also convert the state to a string representation).
+Now, whenever the button state changes, the text property will be updated
+automatically.
 
-Since the value is a python expression, you could do something more interesting
-like::
+Remember: The value is a python expression! That means that you can do something
+more interesting like::
 
     Button:
         text: 'Plop world' if self.state == 'normal' else 'Release me!'
 
-The Button text change with the state of the button. By default, the button text
-will be 'Plop world', and when the button is pressed, the text will change to
-'Release me!'
+The Button text changes with the state of the button. By default, the button
+text will be 'Plop world', but when the button is being pressed, the text will
+change to 'Release me!'.
 
 
-Graphical instructions
+Graphical Instructions
 ----------------------
 
-The graphical instructions is a special part of the kv language. This concern
-the 'canvas' property definition::
+The graphical instructions are a special part of the Kivy language. This
+concerns the 'canvas' property definition::
 
     Widget:
         canvas:
@@ -177,16 +189,17 @@ the 'canvas' property definition::
                 size: self.size
                 pos: self.pos
 
-All the classes added inside the canvas property are inherith from the
+All the classes added inside the canvas property must be derived from the
 :class:`~kivy.graphics.Instruction` class. You cannot put any Widget class
-inside the canvas property.
+inside the canvas property (as that would not make sense because a widget is not
+a graphics instruction).
 
-If you want to do theming, you'll have the same problem as CSS: you don't know
-which rule have been executed before. For our case, the rule are executed in
-processing order.
+If you want to do theming, you'll have the same question as in CSS: You don't
+know which rules have been executed before. In our case, the rules are executed
+in processing order (i.e. top-down).
 
-If you want to change of a Button is rendered, you can create your own kv, and
-put something like this::
+If you want to change how Buttons are rendered, you can create your own kv file
+and put something like this::
 
     <Button>
         canvas:
@@ -200,8 +213,8 @@ put something like this::
                 size: self.texture_size
                 texture: self.texture
 
-It will result a button with a red background, and the label texture in the
-bottom left.... in addition to all the precedent rules.
+This will result in buttons having a red background, with the label in the
+bottom left, in addition to all the preceding rules.
 You can clear all the previous instructions by using the `Clear` command::
 
     <Button>
@@ -217,8 +230,8 @@ You can clear all the previous instructions by using the `Clear` command::
                 size: self.texture_size
                 texture: self.texture
 
-Then, only your rules will be taken.
-
+Then, only your rules that follow the `Clear` command will be taken into
+consideration.
 '''
 
 __all__ = ('Builder', 'BuilderBase', 'Parser')
@@ -226,9 +239,11 @@ __all__ = ('Builder', 'BuilderBase', 'Parser')
 import re
 from os.path import join
 from copy import copy
+from types import ClassType
+from functools import partial
 from kivy.factory import Factory
 from kivy.logger import Logger
-from kivy.utils import OrderedDict, curry
+from kivy.utils import OrderedDict, QueryDict
 from kivy import kivy_data_dir
 
 trace = Logger.trace
@@ -255,7 +270,7 @@ class ParserError(Exception):
 
 
 class Parser(object):
-    '''Create a Parser object to parse a Kivy file or Kivy content.
+    '''Create a Parser object to parse a Kivy language file or Kivy content.
     '''
 
     CLASS_RANGE = range(ord('A'), ord('Z') + 1)
@@ -270,11 +285,11 @@ class Parser(object):
             content = self.load_resource(filename)
         if content is None:
             raise ValueError('No content passed. Use filename or '
-                             'content attribute')
+                             'content attribute.')
         self.parse(content)
 
     def parse(self, content):
-        '''Parse the content of a Parser file, and return a list
+        '''Parse the contents of a Parser file and return a list
         of root objects.
         '''
         # Read and parse the lines of the file
@@ -307,9 +322,9 @@ class Parser(object):
 
     def parse_version(self, line):
         '''Parse the version line.
-        The version line is always #:kivy <version>
+        The version line is always the first line, unindented and has the
+        format: #:kivy <version>
         '''
-
         ln, content = line
 
         if not content.startswith('#:kivy '):
@@ -319,14 +334,14 @@ class Parser(object):
 
         version = content[6:].strip()
         if version != '1.0':
-            raise ParserError(self, ln, 'Only Kivy 1.0 are supported'
+            raise ParserError(self, ln, 'Only Kivy language 1.0 is supported'
                           ' (<%s> found)' % version)
         trace('Parser: Kivy version is %s' % version)
 
     def strip_comments(self, lines):
-        '''Remove all comments from lines inplace.
+        '''Remove all comments from all lines in-place.
            Comments need to be on a single line and not at the end of a line.
-           I.e., a line's first non-whitespace character needs to be a #.
+           I.e., a comment line's first non-whitespace character must be a #.
         '''
         for ln, line in lines[:]:
             stripped = line.strip()
@@ -336,7 +351,7 @@ class Parser(object):
                 lines.remove((ln, line))
 
     def parse_level(self, level, lines):
-        '''Parse the current level (level * 4) indentation
+        '''Parse the current level (level * 4) indentation.
         '''
         indent = 4 * level
         objects = []
@@ -358,7 +373,8 @@ class Parser(object):
 
             if count % 4 != 0:
                 raise ParserError(self, ln,
-                               'Invalid indentation, must be a multiple of 4')
+                               'Invalid indentation, '
+                               'must be a multiple of 4 spaces')
             content = content.strip()
 
             # Level finished
@@ -404,7 +420,7 @@ class Parser(object):
                     else:
                         current_property = name
 
-            # Two more level ?
+            # Two more levels?
             elif count == indent + 8:
                 if current_property not in ('canvas', 'canvas.after',
                                             'canvas.before'):
@@ -417,10 +433,10 @@ class Parser(object):
                 lines = _lines
                 i = 0
 
-            # Too much indent, invalid
+            # Too much indentation, invalid
             else:
                 raise ParserError(self, ln,
-                               'Invalid indentation (too much level)')
+                               'Invalid indentation (too many levels)')
 
             # Check the next line
             i += 1
@@ -451,6 +467,7 @@ _eval_globals['center'] = _eval_center
 def custom_callback(*largs, **kwargs):
     element, key, value, idmap = largs[0]
     locals().update(idmap)
+    args = largs[1:]
     exec value
 
 
@@ -462,7 +479,7 @@ def create_handler(element, key, value, idmap):
     kw = re.findall('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)', tmp)
     if not kw:
         # look like no reference, just pass it
-        return eval(value, _eval_globals)
+        return eval(value, _eval_globals, idmap)
 
     # create an handler
     idmap = copy(idmap)
@@ -481,7 +498,8 @@ def create_handler(element, key, value, idmap):
         if len(k) != 2:
             continue
         f = idmap[k[0]]
-        f.bind(**{k[1]: call_fn})
+        if hasattr(f, 'bind'):
+            f.bind(**{k[1]: call_fn})
 
     return eval(value, _eval_globals, idmap)
 
@@ -514,29 +532,35 @@ class BuilderRuleName(BuilderRule):
 
     parents = {}
 
+    def get_bases(self, cls):
+        for base in cls.__bases__:
+            if base.__name__ == 'object':
+                break
+            yield base
+            if base.__name__ == 'Widget':
+                break
+            for cbase in self.get_bases(base):
+                yield cbase
+
     def match(self, widget):
         parents = BuilderRuleName.parents
         cls = widget.__class__
         if not cls in parents:
-            classes = []
-            parent = [cls]
-            while parent and len(parent):
-                classes.append(parent[0].__name__.lower())
-                if parent[0].__name__ == 'Widget':
-                    break
-                parent = parent[0].__bases__
+            classes = [x.__name__.lower() for x in \
+                       [cls] + list(self.get_bases(cls))]
             parents[cls] = classes
         return self.key in parents[cls]
 
 
 class BuilderBase(object):
-    '''Kv object are able to load Kv file or string, return the root object of
-    the file, and inject rules in the rules database.
+    '''Kv objects are able to load a Kivy language file or string, return the
+    root object of it and inject rules into the rule database.
     '''
 
     def __init__(self):
         super(BuilderBase, self).__init__()
         self.rules = []
+        self.templates = {}
         self.idmap = {}
         self.gidmap = {}
         self.idmaps = []
@@ -548,16 +572,22 @@ class BuilderBase(object):
         self.listwidget = []
 
     def add_rule(self, rule, defs):
-        trace('Builder: add rule %s' % str(rule))
+        trace('Builder: adding rule %s' % str(rule))
         self.rules.append((rule, defs))
 
+    def add_template(self, name, cls, defs):
+        trace('Builder: adding template %s' % str(name))
+        if name in self.templates:
+            raise Exception('The template <%s> already exist' % name)
+        self.templates[name] = (cls, defs)
+
     def load_file(self, filename, **kwargs):
-        '''Insert a file into the Language Builder
+        '''Insert a file into the language builder.
 
         :parameters:
             `rulesonly`: bool, default to False
                 If True, the Builder will raise an exception if you have a root
-                widget inside the definition
+                widget inside the definition.
         '''
         trace('Builder: load file %s' % filename)
         with open(filename, 'r') as fd:
@@ -570,7 +600,7 @@ class BuilderBase(object):
         :parameters:
             `rulesonly`: bool, default to False
                 If True, the Builder will raise an exception if you have a root
-                widget inside the definition
+                widget inside the definition.
         '''
         kwargs.setdefault('rulesonly', False)
         parser = Parser(content=string)
@@ -582,7 +612,7 @@ class BuilderBase(object):
         return root
 
     def match(self, widget):
-        '''Return the list of the rules matching the widget
+        '''Return a list of all rules matching the widget.
         '''
         matches = []
         for rule, defs in self.rules:
@@ -597,7 +627,6 @@ class BuilderBase(object):
         trace('Builder: Found %d matches for %s' % (len(matches), widget))
         if not matches:
             return
-        #self._push_ids()
         have_root = 'root' in self.idmap
         if not have_root:
             self.idmap['root'] = widget
@@ -605,7 +634,21 @@ class BuilderBase(object):
             self.build_item(widget, defs, is_template=True)
         if not have_root:
             del self.idmap['root']
-        #self._pop_ids()
+
+    def template(self, name, ctx):
+        '''Create a specialized template using a specific context
+        '''
+        if not name in self.templates:
+            raise Exception('Unknown <%s> template name' % name)
+        root, defs = self.templates[name]
+        rootwidget = Factory.get(root)
+        widget = ClassType(name, (rootwidget, ), {})()
+        self.idmap['root'] = widget
+        self.idmap['ctx'] = QueryDict(ctx)
+        self.build_item(widget, defs, is_template=True)
+        del self.idmap['root']
+        del self.idmap['ctx']
+        return widget
 
 
     #
@@ -624,10 +667,12 @@ class BuilderBase(object):
         for item, params in objects:
             if item.startswith('<'):
                 self.build_rule(item, params)
+            elif item.startswith('['):
+                self.build_template(item, params)
             else:
                 if root is not None:
                     raise ParserError(params['__ctx__'], params['__line__'],
-                                   'Only one root object is allowed')
+                                   'Only one root widget is allowed')
                 root = self.build_item(item, params)
                 self.build_attributes()
                 self.apply(root)
@@ -646,7 +691,7 @@ class BuilderBase(object):
             trace('Builder: build item %s' % item)
             if item.startswith('<'):
                 raise ParserError(params['__ctx__'], params['__line__'],
-                               'Rules are not accepted inside Widget')
+                               'Rules are not accepted inside widgets')
             no_apply = False
             if item.startswith('+'):
                 item = item[1:]
@@ -689,7 +734,8 @@ class BuilderBase(object):
 
         self._pop_ids()
         if is_template:
-            self.build_attributes()
+            if item is self.idmap['root']:
+                self.build_attributes()
         return widget
 
     def build_attributes(self):
@@ -717,7 +763,10 @@ class BuilderBase(object):
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):
-            element.bind(**{key: curry(custom_callback, (
+            trace('Builder: create custom callback for ' + key)
+            if not element.is_event_type(key):
+                key = key[3:]
+            element.bind(**{key: partial(custom_callback, (
                 element, key, value, idmap))})
 
         else:
@@ -763,6 +812,18 @@ class BuilderBase(object):
             else:
                 crule = BuilderRuleName(rule)
             self.add_rule(crule, params)
+
+    def build_template(self, item, params):
+        trace('Builder: build template for %s' % item)
+        if item[0] != '[' or item[-1] != ']':
+            raise ParserError(params['__ctx__'], params['__line__'],
+                'Invalid template (must be inside [])')
+        item_content = item[1:-1]
+        if not '@' in item_content:
+            raise ParserError(params['__ctx__'], params['__line__'],
+                'Invalid template name (missing @)')
+        template_name, template_root_cls = item_content.split('@')
+        self.add_template(template_name, template_root_cls, params)
 
 
 #: Main instance of a :class:`BuilderBase`.

@@ -1,43 +1,108 @@
+import sys
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.slider import Slider
+from kivy.uix.textinput import TextInput
+from kivy.uix.treeview import TreeView, TreeViewLabel
 
 
 class ShowcaseApp(App):
 
-    def build(self):
-        root = BoxLayout(orientation='vertical', padding=20, spacing=20)
+    def on_select_node(self, instance, value):
+        self.content.clear_widgets()
+        try:
+            w = getattr(self, 'show_%s' %
+                        value.text.lower().replace(' ', '_'))()
+            self.content.add_widget(w)
+        except Exception, e:
+            print e
 
-        # button layout
+    def build(self):
+        root = BoxLayout(orientation='horizontal', padding=20, spacing=20)
+        tree = TreeView(size_hint=(None, 1), width=200, hide_root=True,
+                        indent_level=0)
+
+        def create_tree(text):
+            return tree.add_node(TreeViewLabel(
+                text=text, is_open=True, no_selection=True))
+
+        def attach_node(text, n):
+            tree.add_node(TreeViewLabel(text=text), n)
+
+        tree.bind(selected_node=self.on_select_node)
+        n = create_tree('Buttons')
+        attach_node('Standard buttons', n)
+        attach_node('Options buttons', n)
+        n = create_tree('Sliders')
+        attach_node('Horizontal sliders', n)
+        attach_node('Vertical sliders', n)
+        n = create_tree('Textinput')
+        attach_node('Monoline textinput', n)
+        attach_node('Multiline textinput', n)
+        n = create_tree('TreeView')
+        attach_node('Standard treeview', n)
+        attach_node('Treeview without root', n)
+        root.add_widget(tree)
+        self.content = content = BoxLayout()
+        root.add_widget(content)
+        return root
+
+    def show_standard_buttons(self):
         col = BoxLayout(spacing=10)
-        root.add_widget(col)
         col.add_widget(Button(text='Hello world'))
         col.add_widget(Button(text='Hello world', state='down'))
+        return col
 
-        # toggle button
+    def show_options_buttons(self):
         col = BoxLayout(spacing=10)
-        root.add_widget(col)
         col.add_widget(ToggleButton(text='Option 1', group='t1'))
         col.add_widget(ToggleButton(text='Option 2', group='t1'))
         col.add_widget(ToggleButton(text='Option 3', group='t1'))
+        return col
 
-        # sliders
+    def show_horizontal_sliders(self):
+        col = BoxLayout(orientation='vertical', spacing=10)
+        col.add_widget(Slider())
+        col.add_widget(Slider(value=50))
+        return col
+
+    def show_vertical_sliders(self):
         col = BoxLayout(spacing=10)
-        root.add_widget(col)
+        col.add_widget(Slider(orientation='vertical'))
+        col.add_widget(Slider(orientation='vertical', value=50))
+        return col
 
-        vbox = BoxLayout(orientation='vertical', spacing=10)
-        col.add_widget(vbox)
-        vbox.add_widget(Slider())
-        vbox.add_widget(Slider(value=50))
+    def show_multiline_textinput(self):
+        col = AnchorLayout()
+        col.add_widget(TextInput(size_hint=(None, None), size=(200, 100)))
+        return col
 
-        hbox = BoxLayout(spacing=10)
-        col.add_widget(hbox)
-        hbox.add_widget(Slider(orientation='vertical'))
-        hbox.add_widget(Slider(orientation='vertical', value=50))
+    def show_monoline_textinput(self):
+        col = AnchorLayout()
+        col.add_widget(TextInput(size_hint=(None, None), size=(200, 32),
+                                 multiline=False))
+        return col
 
-        return root
+    def show_standard_treeview(self):
+        return self.populate_treeview(TreeView())
+
+    def show_treeview_without_root(self):
+        return self.populate_treeview(TreeView(hide_root=True))
+
+    def populate_treeview(self, tv):
+        n = tv.add_node(TreeViewLabel(text='Item 1'))
+        for x in xrange(3):
+            tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
+        n = tv.add_node(TreeViewLabel(text='Item 2', is_open=True))
+        for x in xrange(3):
+            tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
+        n = tv.add_node(TreeViewLabel(text='Item 3'))
+        for x in xrange(3):
+            tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
+        return tv
 
 
 if __name__ == '__main__':

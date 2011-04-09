@@ -106,8 +106,9 @@ cdef tuple hsv_to_rgb(float h, float s, float v):
     if i == 5: return v, p, q
     # Cannot get here
 
+
 cdef class Color(ContextInstruction):
-    '''Instruction to set the color state for any vetices being drawn after it
+    '''Instruction to set the color state for any vertices being drawn after it
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)

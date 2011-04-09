@@ -1,0 +1,20 @@
+Widget:
+	canvas:
+
+		StencilPush
+
+		# create a rectangle mask, from pos 100, 100, with a 100, 100 size.
+		Rectangle:
+			pos: 100, 100
+			size: 100, 100
+
+		StencilUse
+
+		# we want to show a big green rectangle, however, the previous stencil
+		# mask will crop us :)
+		Color:
+			rgb: 0, 1, 0
+		Rectangle:
+			size: 900, 900
+
+		StencilPop

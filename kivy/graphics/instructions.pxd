@@ -92,6 +92,7 @@ cdef class RenderContext(Canvas):
     cdef void pop_state(self, str name)
     cdef void pop_states(self, list names)
     cdef void enter(self)
+    cdef void leave(self)
     cdef void apply(self)
     cpdef draw(self)
 

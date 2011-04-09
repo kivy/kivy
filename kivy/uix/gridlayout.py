@@ -2,6 +2,8 @@
 Grid layout
 ===========
 
+.. versionadded:: 1.0.4
+
 Arrange widgets in a matrix
 
 Example of a GridLayout::
@@ -22,13 +24,14 @@ Another example using two different widgets and some spacing::
 
 .. note::
 
-The `size_hint` represent the size available after substracting all the
-fixed size. For example, if you have 3 widgets (width is 200px,
-50%, 50%), and if the layout have a width of 600px :
+    The `size_hint` represent the size available after substracting all the
+    fixed size. For example, if you have 3 widgets (width is 200px,
+    50%, 50%), and if the layout have a width of 600px :
 
-- the first widget width will be 200px
-- the second widget width will be 300px
-- the third widget width will be 300px
+    - the first widget width will be 200px
+    - the second widget width will be 300px
+    - the third widget width will be 300px
+
 '''
 
 __all__ = ('GridLayout', 'GridLayoutException')
@@ -110,6 +113,8 @@ default to False.
             return None
         if self.rows and not self.cols:
             return None
+        if not self.cols and not self.rows:
+            return None
         return self.rows * self.cols
 
     def on_children(self, instance, value):
@@ -123,6 +128,8 @@ default to False.
     def update_minimum_size(self, *largs):
         current_cols = self.cols
         current_rows = self.rows
+        if not self.cols and not self.rows:
+            return None
         if current_cols is None:
             current_cols = 1 + (len(self.children) / current_rows)
         elif current_rows is None:
