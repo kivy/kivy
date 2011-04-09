@@ -5,8 +5,10 @@ Language tests
 
 import unittest
 
+
 class TestClass(object):
     obj = None
+
 
 class LangTestCase(unittest.TestCase):
 
