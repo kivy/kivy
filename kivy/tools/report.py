@@ -18,6 +18,7 @@ import kivy
 
 report = []
 
+
 def title(t):
     report.append('')
     report.append('=' * 80)
@@ -36,7 +37,8 @@ report.append('Python Version  : %s' % sys.version)
 report.append('Python API      : %s' % sys.api_version)
 report.append('Kivy Version    : %s' % kivy.__version__)
 report.append('Install path    : %s' % os.path.dirname(kivy.__file__))
-report.append('Install date    : %s' % time.ctime(os.path.getctime(kivy.__file__)))
+report.append('Install date    : %s' %
+    time.ctime(os.path.getctime(kivy.__file__)))
 
 title('OpenGL')
 from kivy.core import gl
@@ -67,6 +69,8 @@ report.append('Video  = %s' % Video)
 report.append('Window = %s' % Window)
 
 title('Libraries')
+
+
 def testimport(libname):
     try:
         l = __import__(libname)
@@ -122,7 +126,8 @@ print
 print
 
 try:
-    reply = raw_input('Do you accept to send report to paste.pocoo.org (Y/n) : ')
+    reply = raw_input(
+      'Do you accept to send report to paste.pocoo.org (Y/n) : ')
 except EOFError:
     sys.exit(0)
 
