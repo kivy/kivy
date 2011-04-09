@@ -187,7 +187,6 @@ class TreeViewNode(object):
     '''
 
 
-
 class TreeViewLabel(Label, TreeViewNode):
     '''Combine :class:`~kivy.uix.label.Label` and :class:`TreeViewNode` to
     create a :class:`TreeViewLabel`, that can be used as a text node in the
