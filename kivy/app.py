@@ -97,8 +97,8 @@ class App(EventDispatcher):
         '''
         pass
 
-    def load_kv(self):
-        '''If the application have never been built, try to found the kv of the
+    def load_kv(self,directory=None):
+        '''If the application have never been built, try to find the kv of the
         application in the same directory as the application class.
 
         For example, if you have a file named main.py that contains::
@@ -106,7 +106,7 @@ class App(EventDispatcher):
             class ShowcaseApp(App):
                 pass
 
-        The :func:`load_kv` will search for a filename named `showcase.kv` in
+        The :func:`load_kv` will search for a file named `showcase.kv` in
         the directory of the main.py. The name of the kv file is the lower name
         of the class, without the App at the end if exist.
 
@@ -122,7 +122,8 @@ class App(EventDispatcher):
         documentation for more information about how to create kv files. If your
         kv file return a root widget, it will be set in self.root
         '''
-        directory = dirname(getfile(self.__class__))
+        if directory is None:
+            directory = dirname(getfile(self.__class__))
         clsname = self.__class__.__name__
         if clsname.endswith('App'):
             clsname = clsname[:-3]
@@ -133,11 +134,11 @@ class App(EventDispatcher):
         if root:
             self.root = root
 
-    def run(self):
+    def run(self,directory = None):
         '''Launches the app in standalone mode.
         '''
         if not self.built:
-            self.load_kv()
+            self.load_kv(directory)
             root = self.build()
             if root:
                 self.root = root
