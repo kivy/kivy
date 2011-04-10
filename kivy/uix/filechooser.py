@@ -82,7 +82,13 @@ class FileChooserController(FloatLayout):
 
     def open_entry(self, entry):
         if isdir(entry.path):
-            self.path = join(self.path, entry.path)
+            try:
+                # Property that changes our current directory, so it may fail if
+                # we don't have reading permissions or similar
+                self.path = join(self.path, entry.path)
+            except OSError, e:
+                Logger.exception(e)
+                entry.locked = True
 
     def _apply_filter(self, files):
         if not self.filter:
@@ -127,7 +133,6 @@ class FileChooserController(FloatLayout):
         # Add the files
         if parent:
             parent.entries = []
-        n = 0
         for file in self.files:
             file = normpath(join(path, file))
             def get_nice_size():
@@ -151,7 +156,13 @@ class FileChooserController(FloatLayout):
     def entry_subselect(self, entry):
         if not isdir(entry.path):
             return
-        for subentry in self._add_files(entry.path, entry):
+        try:
+            subentries = self._add_files(entry.path, entry)
+        except OSError, e:
+            Logger.exception(e)
+            entry.locked = True
+            return
+        for subentry in subentries:
             self.dispatch('on_subentry_to_entry', subentry, entry)
 
     def close_subselection(self, entry):

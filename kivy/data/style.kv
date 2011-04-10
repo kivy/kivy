@@ -118,7 +118,7 @@
 <FileChooserListView>:
     on_entry_added: treeview.add_node(args[1])
     on_entries_cleared: treeview.root.nodes = []
-    on_subentry_to_entry: treeview.add_node(args[1], args[2])
+    on_subentry_to_entry: not args[2].locked and treeview.add_node(args[1], args[2])
     on_remove_subentry: args[2].nodes = []
     BoxLayout:
         orientation: 'vertical'
@@ -158,14 +158,16 @@
 
 
 [FileEntry@FloatLayout+TreeViewNode]:
+    locked: False
+    entries: []
     orientation: 'horizontal'
     size_hint_y: None
     height: 24
     path: ctx.path
     controller: ctx.controller
     # Don't allow expansion of the ../ node
-    is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep)
-    on_touch_down: args[1].is_double_tap and ctx.controller.open_entry(self)
+    is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
+    on_touch_down: args[1].is_double_tap and not self.locked and ctx.controller.open_entry(self)
     BoxLayout:
         pos: root.pos
         Label:
