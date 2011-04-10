@@ -113,3 +113,68 @@
 
 	canvas.after:
 		StencilPop
+
+
+<FileChooserListView>:
+    on_entry_added: treeview.add_node(args[1])
+    on_entries_cleared: treeview.root.nodes = []
+    on_subentry_to_entry: treeview.add_node(args[1], args[2])
+    on_remove_subentry: args[2].nodes = []
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            orientation: 'horizontal'
+            Label:
+                text: 'Name'
+                text_size: self.size
+                halign: 'left'
+                bold: True
+            Label:
+                text: 'Size'
+                text_size: self.size
+                size_hint_x: None
+                width: 200
+                halign: 'right'
+                bold: True
+        ScrollView:
+            id: scrollview
+            do_scroll_x: False
+            Scatter:
+                do_rotation: False
+                do_scale: False
+                do_translation: False
+                size: treeview.size
+                size_hint_y: None
+                TreeView:
+                    id: treeview
+                    hide_root: True
+                    size_hint_y: None
+                    width: scrollview.width
+                    height: self._minimum_size[1]
+                    on_node_expand: root.entry_subselect(args[1])
+                    on_node_collapse: root.close_subselection(args[1])
+
+
+[FileEntry@FloatLayout+TreeViewNode]:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: 24
+    path: ctx.path
+    controller: ctx.controller
+    # Don't allow expansion of the ../ node
+    is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep)
+    on_touch_down: ctx.controller.path = join(ctx.controller.path, ctx.path) if args[1].is_double_tap and ctx.isdir else ctx.controller.path
+    BoxLayout:
+        pos: root.pos
+        Label:
+            text_size: self.size
+            halign: 'left'
+            text: unicode(ctx.name)
+        Label:
+            text_size: self.size
+            size_hint_x: None
+            width: 200
+            halign: 'right'
+            text: unicode(ctx.get_nice_size())
