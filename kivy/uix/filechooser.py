@@ -80,6 +80,10 @@ class FileChooserController(FloatLayout):
     def on_remove_subentry(self, subentry, entry):
         pass
 
+    def open_entry(self, entry):
+        if isdir(entry.path):
+            self.path = join(self.path, entry.path)
+
     def _apply_filter(self, files):
         if not self.filter:
             return files

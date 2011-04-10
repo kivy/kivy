@@ -165,7 +165,7 @@
     controller: ctx.controller
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep)
-    on_touch_down: ctx.controller.path = join(ctx.controller.path, ctx.path) if args[1].is_double_tap and ctx.isdir else ctx.controller.path
+    on_touch_down: args[1].is_double_tap and ctx.controller.open_entry(self)
     BoxLayout:
         pos: root.pos
         Label:
