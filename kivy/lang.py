@@ -640,9 +640,12 @@ class BuilderBase(object):
         '''
         if not name in self.templates:
             raise Exception('Unknown <%s> template name' % name)
-        root, defs = self.templates[name]
-        rootwidget = Factory.get(root)
-        widget = ClassType(name, (rootwidget, ), {})()
+        baseclasses, defs = self.templates[name]
+        rootwidgets = []
+        for basecls in baseclasses.split('+'):
+            rootwidgets.append(Factory.get(basecls))
+        cls = ClassType(name, tuple(rootwidgets), {})
+        widget = cls()
         self.idmap['root'] = widget
         self.idmap['ctx'] = QueryDict(ctx)
         self.build_item(widget, defs, is_template=True)
