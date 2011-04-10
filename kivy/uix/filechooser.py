@@ -16,13 +16,28 @@ from kivy.uix.label import Label
 from kivy.uix.treeview import TreeViewNode
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import StringProperty, ListProperty
+from kivy.properties import StringProperty, ListProperty, BooleanProperty
 
 
+from sys import platform
 from os import getcwdu, listdir
 from os.path import basename, getsize, isdir, join, sep, normpath, dirname, \
                     samefile
 from fnmatch import filter as fnfilter
+
+
+def is_hidden_unix(fn):
+    return fn.startswith('.')
+
+
+def is_hidden_win(fn):
+    # TODO Test this on windows
+    # Import that module here as it's not available on non-windows machines.
+    # See http://bit.ly/i9klJE except that the attributes are defined in
+    # win32file not win32com (bug on page).
+    from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesEx
+    attribs = GetFileAttributesEx(fn)
+    return attribs[0] & FILE_ATTRIBUTE_HIDDEN
 
 
 class FileChooserController(FloatLayout):
@@ -55,12 +70,26 @@ class FileChooserController(FloatLayout):
     filter.
     '''
 
+    show_hidden = BooleanProperty(False)
+    '''
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    Determines whether hidden files and folders should be shown.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_entry_added')
         self.register_event_type('on_entries_cleared')
         self.register_event_type('on_subentry_to_entry')
         self.register_event_type('on_remove_subentry')
         super(FileChooserController, self).__init__(**kwargs)
+
+        if platform in ('darwin', 'linux2'):
+            self.is_hidden = is_hidden_unix
+        elif platform == 'win32':
+            self.is_hidden = is_hidden_win
+        else:
+            raise NotImplementedError('Only available for Linux, OSX and Win')
+
         self.bind(path=self._trigger_update,
                   filter=self._trigger_update)
         self._trigger_update()
@@ -134,10 +163,14 @@ class FileChooserController(FloatLayout):
         if parent:
             parent.entries = []
         for file in self.files:
+            if not self.show_hidden and self.is_hidden(file):
+                continue
             file = normpath(join(path, file))
+
             def get_nice_size():
                 # Use a closure for lazy-loading here
                 return self.get_nice_size(file)
+
             ctx = {'name': basename(file),
                    'get_nice_size': get_nice_size,
                    'path': file,
