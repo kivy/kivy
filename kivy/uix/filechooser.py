@@ -31,7 +31,6 @@ def is_hidden_unix(fn):
 
 
 def is_hidden_win(fn):
-    # TODO Test this on windows
     # Import that module here as it's not available on non-windows machines.
     # See http://bit.ly/i9klJE except that the attributes are defined in
     # win32file not win32com (bug on page).
