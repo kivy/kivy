@@ -90,7 +90,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             return False
         # trying to get if we currently have other touch than us
         # discard touches generated from kinetic
-        touches = kivy.base.getCurrentMotionEventes()
+        touches = kivy.base.EventLoop.touches
         for touch in touches:
             # discard all kinetic touch
             if touch.__class__.__name__ == 'KineticMotionEvent':

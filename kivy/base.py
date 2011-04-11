@@ -5,7 +5,7 @@ Event loop management
 '''
 
 __all__ = (
-    'EventLoop',
+    'EventLoop', 'EventLoopBase',
     'ExceptionManager', 'ExceptionHandler',
     'runTouchApp', 'stopTouchApp',
 )
