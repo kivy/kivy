@@ -2,6 +2,13 @@
 Stack Layout
 ============
 
+.. versionadded:: 1.0.5
+
+.. warning:
+
+    This is experimental and subject to change as long as this warning notice is
+    present.
+
 Arrange widgets in a vertical or horizontal mode, as much as the layout can.
 '''
 
@@ -64,12 +71,15 @@ class StackLayout(Layout):
         orientation = self.orientation
         padding = self.padding
         padding2 = padding * 2
+        spacing = self.spacing
+        spacing2 = spacing * 2
 
         x = self.x + padding
         y = self.top - padding
         lw = self.width - padding2
         lh = 0
         lc = []
+        height = 0
 
         if orientation == 'vertical' or True:
             for c in reversed(self.children):
@@ -79,15 +89,17 @@ class StackLayout(Layout):
                 # is the widget fit in the line ?
                 if lw - c.width >= 0:
                     lc.append(c)
-                    lw -= c.width
+                    lw -= c.width + spacing
                     lh = max(lh, c.height)
                     continue
 
                 # push the line
                 y -= lh
+                height += lh + spacing
                 for c2 in lc:
                     reposition_child(c2, pos=(x, y))
-                    x += c2.width
+                    x += c2.width + spacing
+                y -= spacing
                 lc = [c]
                 lh = c.height
                 lw = self.width - padding2 - c.width
@@ -95,6 +107,8 @@ class StackLayout(Layout):
 
             if lc:
                 y -= lh
+                height += lh
                 for c2 in lc:
                     reposition_child(c2, pos=(x, y))
-                    x += c2.width
+                    x += c2.width + spacing
+            self.height = height
