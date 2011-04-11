@@ -190,7 +190,7 @@ class Widget(EventDispatcher):
         prop.link(self, name)
         prop.link_deps(self, name)
         self.__properties[name] = prop
-        setattr(self, name, prop)
+        setattr(self.__class__, name, prop)
 
 
     #
@@ -633,4 +633,3 @@ class Widget(EventDispatcher):
     for the graphical representation of the widget.
     Check :class:`~kivy.graphics.Canvas` for more information about the usage.
     '''
-
