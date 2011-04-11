@@ -39,7 +39,7 @@ class Label(Widget):
 
         # bind all the property for recreating the texture
         d = ('text', 'font_size', 'font_name', 'bold', 'italic', 'halign',
-             'valign', 'padding_x', 'padding_y', 'text_size')
+             'valign', 'padding_x', 'padding_y', 'text_size', 'shorten')
         dkw = {}
         for x in d:
             dkw[x] = curry(self._trigger_texture_update, x)
@@ -236,5 +236,12 @@ class Label(Widget):
         The texture size is set after the texture property. So if you listen on
         the change to :data:`texture`, the property texture_size will be not yet
         updated. Use self.texture.size instead.
+    '''
+
+    shorten = BooleanProperty(False)
+    '''
+    Indicate whether the label should attempt to shorten its textual contents as
+    much as possible if a `text_size` is given. Setting this to True without an
+    appropriately set `text_size` will lead unexpected results.
     '''
 
