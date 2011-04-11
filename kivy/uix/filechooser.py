@@ -115,7 +115,7 @@ class FileChooserController(FloatLayout):
         pass
 
     def select_entry(self, entry):
-        entry.selected = True
+        entry.selected = not entry.selected
 
     def open_entry(self, entry):
         if isdir(entry.path):

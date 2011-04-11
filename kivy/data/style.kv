@@ -216,7 +216,7 @@
     #controller: ctx.controller
     selected: False
 
-    on_touch_down: not self.locked and self.collide_point(*args[1].pos) and (args[1].is_double_tap and ctx.controller.open_entry(self)) or ctx.controller.select_entry(self)
+    on_touch_down: not self.locked and self.collide_point(*args[1].pos) and ((args[1].is_double_tap and ctx.controller.open_entry(self)) or ctx.controller.select_entry(self))
 
     size: (100, 100)
     size_hint: None, None
