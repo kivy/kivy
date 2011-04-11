@@ -126,11 +126,16 @@
             size_hint_y: None
             height: 30
             orientation: 'horizontal'
+            Widget:
+                # Just for spacing
+                width: 10
+                size_hint_x: None
             Label:
                 text: 'Name'
                 text_size: self.size
                 halign: 'left'
                 bold: True
+                font_name: 'data/fonts/DroidSans-Bold.ttf'
             Label:
                 text: 'Size'
                 text_size: self.size
@@ -138,6 +143,11 @@
                 width: 200
                 halign: 'right'
                 bold: True
+                font_name: 'data/fonts/DroidSans-Bold.ttf'
+            Widget:
+                # Just for spacing
+                width: 10
+                size_hint_x: None
         ScrollView:
             id: scrollview
             do_scroll_x: False

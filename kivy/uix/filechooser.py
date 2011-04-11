@@ -34,6 +34,8 @@ def is_hidden_win(fn):
     # Import that module here as it's not available on non-windows machines.
     # See http://bit.ly/i9klJE except that the attributes are defined in
     # win32file not win32com (bug on page).
+    # Note: For some reason this doesn't work after a os.chdir(), no matter to
+    #       what directory you change from where. Windows weirdness.
     from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesEx
     attribs = GetFileAttributesEx(fn)
     return attribs[0] & FILE_ATTRIBUTE_HIDDEN
