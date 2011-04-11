@@ -120,12 +120,16 @@ class FileChooserController(FloatLayout):
     def open_entry(self, entry):
         if isdir(entry.path):
             try:
-                # Property that changes our current directory, so it may fail if
-                # we don't have reading permissions or similar
-                self.path = join(self.path, entry.path)
+                # Just check if we can list the directory. This is also what
+                # _add_file does, so if it fails here, it would also fail later
+                # on. Do the check here to prevent setting path to an invalid
+                # directory that we cannot list.
+                listdir(unicode(entry.path))
             except OSError, e:
                 Logger.exception(e)
                 entry.locked = True
+            else:
+                self.path = join(self.path, entry.path)
 
     def _apply_filter(self, files):
         if not self.filter:
@@ -223,6 +227,6 @@ if __name__ == '__main__':
     from kivy.app import App
     class FileChooserApp(App):
         def build(self):
-            #return FileChooserListView()
+            return FileChooserListView()
             return FileChooserIconView()
     FileChooserApp().run()
