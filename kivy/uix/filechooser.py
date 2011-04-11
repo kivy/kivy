@@ -2,6 +2,8 @@
 FileChooser
 ===========
 
+.. versionadded:: 1.0.5
+
 .. warning:
 
     This is experimental and subject to change as long as this warning notice is
@@ -42,6 +44,8 @@ def is_hidden_win(fn):
 
 
 class FileChooserController(FloatLayout):
+    _ENTRY_TEMPLATE = None
+
     path = StringProperty(u'/')
     '''
     :class:`~kivy.properties.StringProperty`, defaults to current working
@@ -110,6 +114,9 @@ class FileChooserController(FloatLayout):
     def on_remove_subentry(self, subentry, entry):
         pass
 
+    def select_entry(self, entry):
+        entry.selected = True
+
     def open_entry(self, entry):
         if isdir(entry.path):
             try:
@@ -151,9 +158,9 @@ class FileChooserController(FloatLayout):
         is_root = samefile(self.path, u'/')
         if not is_root:
             back = '..' + sep
-            pardir = Builder.template('FileEntry', dict(name=back, size='',
-                path=back, controller=self, isdir=True, parent=None, sep=sep,
-                get_nice_size=lambda: ''))
+            pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
+                size='', path=back, controller=self, isdir=True, parent=None,
+                sep=sep, get_nice_size=lambda: ''))
             self.dispatch('on_entry_added', pardir)
         self._add_files(self.path)
 
@@ -179,7 +186,7 @@ class FileChooserController(FloatLayout):
                    'isdir': isdir(file),
                    'parent': parent,
                    'sep': sep}
-            entry = Builder.template('FileEntry', ctx)
+            entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
             if not parent:
                 self.dispatch('on_entry_added', entry, parent)
             else:
@@ -205,12 +212,17 @@ class FileChooserController(FloatLayout):
 
 
 class FileChooserListView(FileChooserController):
-    pass
+    _ENTRY_TEMPLATE = 'FileListEntry'
+
+
+class FileChooserIconView(FileChooserController):
+    _ENTRY_TEMPLATE = 'FileIconEntry'
 
 
 if __name__ == '__main__':
     from kivy.app import App
     class FileChooserApp(App):
         def build(self):
-            return FileChooserListView()
+            #return FileChooserListView()
+            return FileChooserIconView()
     FileChooserApp().run()
