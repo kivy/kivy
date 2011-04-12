@@ -905,6 +905,12 @@ class BuilderBase(object):
                 continue
             yield key, value
 
+    def _is_reserved_key(self, key):
+        if key.startswith('on_'):
+            return True
+        if key in ('id', 'children', 'canvas', 'canvas.before', 'canvas.after'):
+            return True
+
     def build_item(self, item, params, is_rule=False):
         self._push_ids()
         is_template = False
@@ -946,9 +952,12 @@ class BuilderBase(object):
             widget = cls(**ctx)
         else:
             self.idmap['self'] = widget
+            is_reserved_key = self._is_reserved_key
             # first loop, create unknown attribute
             for key, value in self._iterate(params):
                 value, ln, ctx = value
+                if is_reserved_key(key):
+                    continue
                 if hasattr(widget, key):
                     continue
                 widget.create_property(key)
