@@ -30,7 +30,7 @@ from fnmatch import filter as fnfilter
 
 
 def is_hidden_unix(fn):
-    return fn.startswith('.')
+    return basename(fn).startswith('.')
 
 
 def is_hidden_win(fn):
