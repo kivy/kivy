@@ -185,7 +185,7 @@ default to False.
 
     def _trigger_layout(self, *largs):
         Clock.unschedule(self._do_layout)
-        Clock.schedule_once(self._do_layout)
+        Clock.schedule_once(self._do_layout, -1)
 
     def _do_layout(self, *largs):
         if self.cols is None and self.rows is None:

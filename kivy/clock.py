@@ -22,6 +22,31 @@ You can add new event like this::
 .. note::
 
     If the callback return False, the schedule will be removed.
+
+Schedule before frame
+---------------------
+
+.. versionadded:: 1.0.5
+
+Sometime, you want to schedule a callback to be called BEFORE the next frame.
+Starting from 1.0.5, you can use a timeout of -1 for doing that::
+
+    Clock.schedule_once(my_callback, 0) # call after the next frame
+    Clock.schedule_once(my_callback, -1) # call before the next frame
+
+The :class:`Clock` will execute all the callback with a timeout of -1 before
+the next frame. Even if you add new callback with -1. Clock have a limit of
+iteration for thoses callback, defaulted to 10.
+
+If you schedule a layout that reschedule a layout that reschedule a layout...
+more than 10 times, it will leave his loop, send a warning on the console, and
+will continue after next frame. This is implemented to prevent infinite layout
+in case of a bug.
+
+If you want to increase that limit, you can do::
+
+    from kivy.clock import Clock
+    Clock.max_iteration = 20
 '''
 
 __all__ = ('Clock', 'ClockBase')
@@ -30,6 +55,7 @@ from os import environ
 from time import time, sleep
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
+from kivy.logger import Logger
 
 
 class _Event(object):
@@ -78,7 +104,7 @@ class ClockBase(object):
     '''
     __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
                  '_start_tick', '_fps_counter', '_rfps_counter', '_events',
-                 '_max_fps')
+                 '_max_fps', 'max_iteration')
 
     def __init__(self):
         self._dt = 0.0001
@@ -90,6 +116,12 @@ class ClockBase(object):
         self._last_fps_tick = None
         self._events = []
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
+
+        #: .. versionadded:: 1.0.5
+        #: When a schedule_once is used with -1, you can add a limit on how much
+        #: iteration will be allowed. That is here to prevent too much relayout.
+        # XXX Adjust this value.
+        self.max_iteration = 10
 
     @property
     def frametime(self):
@@ -133,6 +165,7 @@ class ClockBase(object):
     def tick_draw(self):
         '''Tick the drawing counter
         '''
+        self._process_events_before_frame()
         self._rfps_counter += 1
 
     def get_fps(self):
@@ -158,7 +191,13 @@ class ClockBase(object):
         return self._last_tick - self._start_tick
 
     def schedule_once(self, callback, timeout=0):
-        '''Schedule an event in <timeout> seconds'''
+        '''Schedule an event in <timeout> seconds.
+        
+        .. note::
+            .. versionadded:: 1.0.5
+            If the timeout is -1, the callback will be called before the next
+            frame (at :func:`tick_draw`).
+        '''
         event = _Event(False, callback, timeout, self._last_tick)
         self._events.append(event)
         return event
@@ -179,6 +218,32 @@ class ClockBase(object):
                 # event may be already removed by the callback
                 if event in self._events:
                     self._events.remove(event)
+
+    def _process_events_before_frame(self):
+        found = True
+        count = self.max_iteration
+        while found:
+            count -= 1
+            if count < 0:
+                Logger.critical('Clock: Warning, too much iteration done before'
+                                ' the next frame. Check your code, or increase '
+                                'the Clock.max_iteration attribute')
+
+            # search event that have timeout = -1
+            found = False
+            for event in self._events[:]:
+                if event.timeout != -1:
+                    continue
+                found = True
+
+                if event.tick(self._last_tick) is False:
+                    # event may be already removed by the callback
+                    if event in self._events:
+                        self._events.remove(event)
+
+        if count != self.max_iteration - 1:
+            i = self.max_iteration - count + 1
+            Logger.trace('Clock: we done %d iteration before the frame' % i)
 
 
 if 'KIVY_DOC_INCLUDE' in environ:

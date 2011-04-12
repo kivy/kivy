@@ -504,7 +504,7 @@ class TextInput(Widget):
 
     def _trigger_update_graphics(self, *largs):
         Clock.unschedule(self._update_graphics)
-        Clock.schedule_once(self._update_graphics)
+        Clock.schedule_once(self._update_graphics, -1)
 
     def _update_graphics(self, *largs):
         # Update all the graphics according to the current internal values.

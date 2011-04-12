@@ -56,7 +56,7 @@ class Layout(Widget):
 
     def _trigger_minimum_size(self, *largs):
         Clock.unschedule(self.update_minimum_size)
-        Clock.schedule_once(self.update_minimum_size)
+        Clock.schedule_once(self.update_minimum_size, -1)
 
     def _get_minimum_size(self):
         return self._minimum_size
