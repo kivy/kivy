@@ -75,6 +75,12 @@ class FileChooserController(FloatLayout):
       [!seq]	| matches any character not in seq
     '''
 
+    filter_dirs = BooleanProperty(False)
+    '''
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    Indicate whether filter should also apply to directories.
+    '''
+
     sort_func = ObjectProperty(alphanumeric_folders_first)
     '''
     :class:`~kivy.properties.ObjectProperty`.
@@ -150,7 +156,11 @@ class FileChooserController(FloatLayout):
     def _apply_filter(self, files):
         if not self.filter:
             return files
-        return fnfilter(files, self.filter)
+        filtered = fnfilter(files, self.filter)
+        if not self.filter_dirs:
+            dirs = [f for f in files if isdir(f)]
+            return dirs + filtered
+        return filtered
 
     def get_nice_size(self, fn):
         '''
@@ -188,10 +198,10 @@ class FileChooserController(FloatLayout):
         # Make sure we're using unicode in case of non-ascii chars in filenames.
         # listdir() returns unicode if you pass it unicode.
         files = listdir(unicode(path))
-        # Apply filename filters
-        files = self._apply_filter(files)
         # In the following, use fully qualified filenames
         files = [normpath(join(path, f)) for f in files]
+        # Apply filename filters
+        files = self._apply_filter(files)
         # Sort the list of files
         files = self.sort_func(files)
         # Add the files
