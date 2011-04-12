@@ -331,7 +331,7 @@ class Widget(EventDispatcher):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
         widget.parent = self
-        self.children = [widget] + self.children
+        self.children.insert(0, widget)
         self.canvas.add(widget.canvas)
 
     def remove_widget(self, widget):
@@ -349,7 +349,6 @@ class Widget(EventDispatcher):
         if widget not in self.children:
             return
         self.children.remove(widget)
-        self.children = self.children[:]
         self.canvas.remove(widget.canvas)
         widget.parent = None
 
