@@ -779,13 +779,16 @@ class BuilderBase(object):
         if not have_root:
             del self.idmap['root']
 
-    def template(self, name, **ctx):
+    def template(self, *args, **ctx):
         '''Create a specialized template using a specific context.
         .. versionadded:: 1.0.5
 
         With template, you can construct custom widget from a kv lang definition
         by giving them a context. Check :ref:`Template usage <template_usage>`.
         '''
+        # Prevent naming clash with whatever the user might be putting into the
+        # ctx as key.
+        name = args[0]
         if not name in self.templates:
             raise Exception('Unknown <%s> template name' % name)
         baseclasses, defs = self.templates[name]
