@@ -63,7 +63,7 @@ class Label(Widget):
             else:
                 self._label.options[name] = value
         Clock.unschedule(self.texture_update)
-        Clock.schedule_once(self.texture_update)
+        Clock.schedule_once(self.texture_update, -1)
 
     def texture_update(self, *largs):
         '''Force texture recreation with the current Label properties.

@@ -97,7 +97,7 @@ class Video(Image):
 
     def _trigger_video_load(self, *largs):
         Clock.unschedule(self._do_video_load)
-        Clock.schedule_once(self._do_video_load)
+        Clock.schedule_once(self._do_video_load, -1)
 
     def _do_video_load(self, *largs):
         if self._video:

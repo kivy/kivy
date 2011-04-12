@@ -85,7 +85,7 @@ class BoxLayout(Layout):
 
     def _trigger_layout(self, *largs):
         Clock.unschedule(self._do_layout)
-        Clock.schedule_once(self._do_layout)
+        Clock.schedule_once(self._do_layout, -1)
 
     def update_minimum_size(self, *largs):
         '''Calculates the minimum size of the layout.
