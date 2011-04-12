@@ -18,7 +18,8 @@ from kivy.uix.label import Label
 from kivy.uix.treeview import TreeViewNode
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import StringProperty, ListProperty, BooleanProperty
+from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
+                            ObjectProperty
 
 
 from sys import platform
@@ -41,6 +42,11 @@ def is_hidden_win(fn):
     from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesEx
     attribs = GetFileAttributesEx(fn)
     return attribs[0] & FILE_ATTRIBUTE_HIDDEN
+
+
+def alphanumeric_folders_first(files):
+    return sorted(f for f in files if isdir(f)) + \
+           sorted(f for f in files if not isdir(f))
 
 
 class FileChooserController(FloatLayout):
@@ -66,6 +72,14 @@ class FileChooserController(FloatLayout):
       ?	        | matches any single character
       [seq]	| matches any character in seq
       [!seq]	| matches any character not in seq
+    '''
+
+    sort_func = ObjectProperty(alphanumeric_folders_first)
+    '''
+    :class:`~kivy.properties.ObjectProperty`.
+    Provide a function to be called with a list of filenames as only argument.
+    Return a list of filenames in such a manner that the new list is sorted and
+    represents in which order files are supposed to be displayed in the view.
     '''
 
     files = ListProperty([])
@@ -169,15 +183,21 @@ class FileChooserController(FloatLayout):
         self._add_files(self.path)
 
     def _add_files(self, path, parent=None):
-        # Make sure we're using unicode in case of non-ascii chars in filenames
-        self.files = self._apply_filter(listdir(unicode(path)))
+        # Make sure we're using unicode in case of non-ascii chars in filenames.
+        # listdir() returns unicode if you pass it unicode.
+        files = listdir(unicode(path))
+        # Apply filename filters
+        files = self._apply_filter(files)
+        # In the following, use fully qualified filenames
+        files = [normpath(join(path, f)) for f in files]
+        # Sort the list of files
+        files = self.sort_func(files)
         # Add the files
         if parent:
             parent.entries = []
-        for file in self.files:
+        for file in files:
             if not self.show_hidden and self.is_hidden(file):
                 continue
-            file = normpath(join(path, file))
 
             def get_nice_size():
                 # Use a closure for lazy-loading here
@@ -195,6 +215,7 @@ class FileChooserController(FloatLayout):
                 self.dispatch('on_entry_added', entry, parent)
             else:
                 parent.entries.append(entry)
+        self.files = files
         if parent:
             return parent.entries
 
@@ -227,6 +248,6 @@ if __name__ == '__main__':
     from kivy.app import App
     class FileChooserApp(App):
         def build(self):
-            return FileChooserListView()
+            #return FileChooserListView()
             return FileChooserIconView()
     FileChooserApp().run()
