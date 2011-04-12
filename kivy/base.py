@@ -13,7 +13,6 @@ __all__ = (
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
-from kivy.input import MotionEventFactory, kivy_postproc_modules
 
 # private vars
 EventLoop = None
@@ -276,6 +275,8 @@ class EventLoopBase(object):
 
         # don't loop if we don't have listeners !
         if len(self.event_listeners) == 0:
+            Logger.error('Base: No event listeners have been created')
+            Logger.error('Base: Application will leave')
             self.exit()
             return False
 
@@ -339,6 +340,8 @@ def runTouchApp(widget=None, slave=False):
             in another toolkit. (like Qt, check kivy-designed)
 
     '''
+
+    from kivy.input import MotionEventFactory, kivy_postproc_modules
 
     # Ok, we got one widget, and we are not in slave mode
     # so, user don't create the window, let's create it for him !
