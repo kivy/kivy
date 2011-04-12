@@ -11,6 +11,7 @@ FileChooser
 """
 
 
+from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.uix.widget import Widget
@@ -114,7 +115,8 @@ class FileChooserController(FloatLayout):
         self._trigger_update()
 
     def _trigger_update(self, *args):
-        self._update_files()
+        Clock.unschedule(self._update_files)
+        Clock.schedule_once(self._update_files)
 
     def on_entry_added(self, node, parent=None):
         pass
@@ -248,6 +250,9 @@ if __name__ == '__main__':
     from kivy.app import App
     class FileChooserApp(App):
         def build(self):
-            #return FileChooserListView()
-            return FileChooserIconView()
+            pos = (100, 100)
+            size_hint = (None, None)
+            size = (300, 400)
+            return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
+            #return FileChooserIconView(pos=pos, size=size, size_hint=size_hint)
     FileChooserApp().run()

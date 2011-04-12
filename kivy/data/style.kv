@@ -121,6 +121,9 @@
     on_subentry_to_entry: not args[2].locked and treeview.add_node(args[1], args[2])
     on_remove_subentry: args[2].nodes = []
     BoxLayout:
+        pos: root.pos
+        size: root.size
+        size_hint: None, None
         orientation: 'vertical'
         BoxLayout:
             size_hint_y: None
@@ -195,6 +198,9 @@
     on_entries_cleared: stacklayout.clear_widgets()
     ScrollView:
         id: scrollview
+        pos: root.pos
+        size: root.size
+        size_hint: None, None
         do_scroll_x: False
         Scatter:
             do_rotation: False
