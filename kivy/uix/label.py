@@ -20,7 +20,7 @@ Snippet ::
 
 __all__ = ('Label', )
 
-from kivy.utils import curry
+from functools import partial
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
@@ -42,7 +42,7 @@ class Label(Widget):
              'valign', 'padding_x', 'padding_y', 'text_size', 'shorten')
         dkw = {}
         for x in d:
-            dkw[x] = curry(self._trigger_texture_update, x)
+            dkw[x] = partial(self._trigger_texture_update, x)
         self.bind(**dkw)
 
         dkw = dict(zip(d, [getattr(self, x) for x in d]))

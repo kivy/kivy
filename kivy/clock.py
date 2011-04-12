@@ -62,15 +62,30 @@ class _Event(object):
 
     def __init__(self, loop, callback, timeout, starttime):
         self.loop = loop
-        self.callback = WeakMethod(callback)
+        self.weak_callback = None
+        self.callback = callback
         self.timeout = timeout
         self._last_dt = starttime
         self._dt = 0.
 
+    def get_callback(self):
+        callback = self.callback
+        if callback is not None:
+            return callback
+        callback = self.weak_callback
+        if callback.is_dead():
+            return None
+        return callback()
+
     def do(self, dt):
-        if self.callback.is_dead():
+        callback = self.get_callback()
+        if callback is None:
             return False
-        self.callback()(dt)
+        self.callback(dt)
+
+    def release(self):
+        self.weak_callback = WeakMethod(self.callback)
+        self.callback = None
 
     def tick(self, curtime):
         # timeout happen ?
@@ -81,10 +96,13 @@ class _Event(object):
         self._dt = curtime - self._last_dt
         self._last_dt = curtime
 
-        # call the callback
-        if self.callback.is_dead():
+        # get the callback
+        callback = self.get_callback()
+        if callback is None:
             return False
-        ret = self.callback()(self._dt)
+
+        # call the callback
+        ret = callback(self._dt)
 
         # if it's a once event, don't care about the result
         # just remove the event
@@ -97,6 +115,9 @@ class _Event(object):
             return False
 
         return True
+
+    def __repr__(self):
+        return '<kivy.clock._Event callback=%r>' % self.get_callback()
 
 
 class ClockBase(object):
@@ -114,7 +135,7 @@ class ClockBase(object):
         self._fps_counter = 0
         self._rfps_counter = 0
         self._last_fps_tick = None
-        self._events = []
+        self._events = {}
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
         #: .. versionadded:: 1.0.5
@@ -132,6 +153,10 @@ class ClockBase(object):
     def tick(self):
         '''Advance clock to the next step. Must be called every frame.
         The default clock have the tick() function called by Kivy'''
+
+        self._release_references()
+        if self._fps_counter % 100 == 0:
+            self._remove_empty()
 
         # do we need to sleep ?
         if self._max_fps > 0:
@@ -199,29 +224,60 @@ class ClockBase(object):
             frame (at :func:`tick_draw`).
         '''
         event = _Event(False, callback, timeout, self._last_tick)
-        self._events.append(event)
+        cid = id(callback)
+        events = self._events
+        if not cid in events:
+            events[cid] = []
+        events[cid].append(event)
         return event
 
     def schedule_interval(self, callback, timeout):
         '''Schedule a event to be call every <timeout> seconds'''
         event = _Event(True, callback, timeout, self._last_tick)
-        self._events.append(event)
+        cid = id(callback)
+        events = self._events
+        if not cid in events:
+            events[cid] = []
+        events[cid].append(event)
         return event
 
     def unschedule(self, callback):
         '''Remove a previous schedule event'''
-        self._events = [x for x in self._events if x.callback() != callback]
+        # mark as unschedule
+        cid = id(callback)
+        events = self._events
+        if cid in events:
+            for event in events[cid]:
+                if event.get_callback() is callback:
+                    events[cid].remove(event)
+
+    def _release_references(self):
+        # call that function to release all the direct reference to any callback
+        # and replace it with a weakref
+        events = self._events
+        for cid in events:
+            [x.release() for x in events[cid] if x.callback is None]
+
+    def _remove_empty(self):
+        # remove empty entry in the event list
+        events = self._events
+        for cid in events.keys()[:]:
+            if not events[cid]:
+                del events[cid]
 
     def _process_events(self):
-        for event in self._events[:]:
-            if event.tick(self._last_tick) is False:
-                # event may be already removed by the callback
-                if event in self._events:
-                    self._events.remove(event)
+        events = self._events
+        for cid in events.keys()[:]:
+            for event in events[cid][:]:
+                if event.tick(self._last_tick) is False:
+                    # event may be already removed by the callback
+                    if event in events[cid]:
+                        events[cid].remove(event)
 
     def _process_events_before_frame(self):
         found = True
         count = self.max_iteration
+        events = self._events
         while found:
             count -= 1
             if count < 0:
@@ -231,15 +287,15 @@ class ClockBase(object):
 
             # search event that have timeout = -1
             found = False
-            for event in self._events[:]:
-                if event.timeout != -1:
-                    continue
-                found = True
-
-                if event.tick(self._last_tick) is False:
-                    # event may be already removed by the callback
-                    if event in self._events:
-                        self._events.remove(event)
+            for cid in events.keys()[:]:
+                for event in events[cid][:]:
+                    if event.timeout != -1:
+                        continue
+                    found = True
+                    if event.tick(self._last_tick) is False:
+                        # event may be already removed by the callback
+                        if event in events[cid]:
+                            events[cid].remove(event)
 
         if count != self.max_iteration - 1:
             i = self.max_iteration - count + 1
