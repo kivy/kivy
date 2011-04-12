@@ -706,11 +706,14 @@ def create_handler(element, key, value, idmap):
     # bind every key.value
     for x in kw:
         k = x.split('.')
-        if len(k) != 2:
-            continue
         f = idmap[k[0]]
-        if hasattr(f, 'bind'):
-            f.bind(**{k[1]: call_fn})
+        try:
+            for x in k[1:-1]:
+                f = getattr(f, x)
+            if hasattr(f, 'bind'):
+                f.bind(**{k[-1]: call_fn})
+        except AttributeError:
+            continue
 
     return eval(value, _eval_globals, idmap)
 
