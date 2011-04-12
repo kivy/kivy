@@ -26,8 +26,9 @@ Logger can be controled in the Kivy configuration.
 import logging
 import os
 import sys
-import random
 import kivy
+from random import randint
+from functools import partial
 
 __all__ = ('Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory')
 
@@ -77,7 +78,7 @@ class FileHandler(logging.Handler):
         by lot and lot of log files.
         You've a chance of 1 on 20 to fire a purge log.
         '''
-        if random.randint(0, 20) != 0:
+        if randint(0, 20) != 0:
             return
 
         # Use config ?
@@ -233,8 +234,7 @@ if 'nosetests' not in sys.argv:
 Logger = logging.getLogger('Kivy')
 Logger.logfile_activated = False
 
-from kivy.utils import curry
-Logger.trace = curry(Logger.log, logging.TRACE)
+Logger.trace = partial(Logger.log, logging.TRACE)
 
 #: Kivy history handler
 LoggerHistory = HistoryHandler
