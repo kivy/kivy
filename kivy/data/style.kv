@@ -173,13 +173,18 @@
     entries: []
     path: ctx.path
     controller: ctx.controller
+    # FIXME: is_selected is actually a read_only treeview property. In this
+    # case, however, we're doing this because treeview only has single-selection
+    # hardcoded in it. The fix to this would be to update treeview to allow
+    # multiple selection.
+    is_selected: self.path in ctx.controller.selection
 
     orientation: 'horizontal'
     size_hint_y: None
     height: 24
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
-    on_touch_down: args[1].is_double_tap and not self.locked and ctx.controller.open_entry(self)
+    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller.entry_touched(self, args[1])
     BoxLayout:
         pos: root.pos
         Label:
@@ -217,15 +222,12 @@
 
 [FileIconEntry@Widget]:
     locked: False
-    #entries: []
     path: ctx.path
-    #controller: ctx.controller
-    selected: False
-
-    on_touch_down: not self.locked and self.collide_point(*args[1].pos) and ((args[1].is_double_tap and ctx.controller.open_entry(self)) or ctx.controller.select_entry(self))
-
+    selected: self.path in ctx.controller.selection
     size: (100, 100)
     size_hint: None, None
+
+    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller.entry_touched(self, args[1])
 
     canvas:
         Color:

@@ -102,11 +102,24 @@ class FileChooserController(FloatLayout):
     Determines whether hidden files and folders should be shown.
     '''
 
+    selection = ListProperty([])
+    '''
+    Read-only :class:`~kivy.properties.ListProperty`.
+    The list of files that are currently selected.
+    '''
+
+    multiselect = BooleanProperty(False)
+    '''
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    Determines whether user is able to select multiple files.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_entry_added')
         self.register_event_type('on_entries_cleared')
         self.register_event_type('on_subentry_to_entry')
         self.register_event_type('on_remove_subentry')
+        self.register_event_type('on_submit')
         super(FileChooserController, self).__init__(**kwargs)
 
         if platform in ('darwin', 'linux2'):
@@ -136,22 +149,37 @@ class FileChooserController(FloatLayout):
     def on_remove_subentry(self, subentry, entry):
         pass
 
-    def select_entry(self, entry):
-        entry.selected = not entry.selected
+    def on_submit(self, selected):
+        self.selection = []
+
+    def entry_touched(self, entry, touch):
+        if self.multiselect:
+            if isdir(entry.path) and touch.is_double_tap:
+                self.open_entry(entry)
+            else:
+                if entry.path in self.selection:
+                    self.selection.remove(entry.path)
+                else:
+                    self.selection.append(entry.path)
+        else:
+            if isdir(entry.path):
+                self.open_entry(entry)
+            else:
+                self.dispatch('on_submit', [entry.path])
 
     def open_entry(self, entry):
-        if isdir(entry.path):
-            try:
-                # Just check if we can list the directory. This is also what
-                # _add_file does, so if it fails here, it would also fail later
-                # on. Do the check here to prevent setting path to an invalid
-                # directory that we cannot list.
-                listdir(unicode(entry.path))
-            except OSError, e:
-                Logger.exception(e)
-                entry.locked = True
-            else:
-                self.path = join(self.path, entry.path)
+        try:
+            # Just check if we can list the directory. This is also what
+            # _add_file does, so if it fails here, it would also fail later
+            # on. Do the check here to prevent setting path to an invalid
+            # directory that we cannot list.
+            listdir(unicode(entry.path))
+        except OSError, e:
+            #Logger.exception(e)
+            entry.locked = True
+        else:
+            self.path = join(self.path, entry.path)
+            self.selection = []
 
     def _apply_filter(self, files):
         if not self.filter:
@@ -172,7 +200,7 @@ class FileChooserController(FloatLayout):
         try:
             size = getsize(fn)
         except OSError, e:
-            Logger.exception(e)
+            #Logger.exception(e)
             return '--'
 
         for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
@@ -237,7 +265,7 @@ class FileChooserController(FloatLayout):
         try:
             subentries = self._add_files(entry.path, entry)
         except OSError, e:
-            Logger.exception(e)
+            #Logger.exception(e)
             entry.locked = True
             return
         for subentry in subentries:
@@ -263,6 +291,6 @@ if __name__ == '__main__':
             pos = (100, 100)
             size_hint = (None, None)
             size = (300, 400)
-            return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
-            #return FileChooserIconView(pos=pos, size=size, size_hint=size_hint)
+            #return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
+            return FileChooserIconView(pos=pos, size=size, size_hint=size_hint)
     FileChooserApp().run()
