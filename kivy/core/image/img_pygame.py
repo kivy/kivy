@@ -26,7 +26,7 @@ class ImageLoaderPygame(ImageLoaderBase):
         if pygame.image.get_extended() == 0:
             return ('bmp', )
         # retrieve from http://www.pygame.org/docs/ref/image.html
-        return ('jpg', 'png', 'gif', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
+        return ('jpg', 'jpeg', 'png', 'gif', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
                'pbm', 'ppm', 'xpm')
 
     def load(self, filename):

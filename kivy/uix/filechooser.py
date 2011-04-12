@@ -26,8 +26,8 @@ from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
 from sys import platform
 from os import getcwdu, listdir
 from os.path import basename, getsize, isdir, join, sep, normpath, dirname, \
-                    samefile
-from fnmatch import filter as fnfilter
+                    samefile, expanduser
+from fnmatch import fnmatch
 
 
 def is_hidden_unix(fn):
@@ -60,12 +60,12 @@ class FileChooserController(FloatLayout):
     this controller should look at.
     '''
 
-    filter = StringProperty('')
+    filters = ListProperty([])
     '''
-    :class:`~kivy.properties.StringProperty`, defaults to '', equal to '*'.
-    The filter is applied the files in the directory, e.g. '*.png'.
-    The filter is not reset when the path changes, you need to do that yourself
-    if you want that. You can use the following patterns:
+    :class:`~kivy.properties.ListProperty`, defaults to [], equal to '*'.
+    The filters to be applied to the files in the directory, e.g. ['*.png'].
+    The filters are not reset when the path changes, you need to do that
+    yourself if you want that. You can use the following patterns:
 
       Pattern	| Meaning
       ----------+---------------------------------
@@ -78,7 +78,7 @@ class FileChooserController(FloatLayout):
     filter_dirs = BooleanProperty(False)
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
-    Indicate whether filter should also apply to directories.
+    Indicate whether filters should also apply to directories.
     '''
 
     sort_func = ObjectProperty(alphanumeric_folders_first)
@@ -93,7 +93,7 @@ class FileChooserController(FloatLayout):
     '''
     Read-only :class:`~kivy.properties.ListProperty`.
     The list of files in the directory specified by path after applying the
-    filter.
+    filters.
     '''
 
     show_hidden = BooleanProperty(False)
@@ -130,7 +130,7 @@ class FileChooserController(FloatLayout):
             raise NotImplementedError('Only available for Linux, OSX and Win')
 
         self.bind(path=self._trigger_update,
-                  filter=self._trigger_update)
+                  filters=self._trigger_update)
         self._trigger_update()
 
     def _trigger_update(self, *args):
@@ -149,7 +149,7 @@ class FileChooserController(FloatLayout):
     def on_remove_subentry(self, subentry, entry):
         pass
 
-    def on_submit(self, selected):
+    def on_submit(self, selected, touch=None):
         self.selection = []
 
     def entry_touched(self, entry, touch):
@@ -165,7 +165,7 @@ class FileChooserController(FloatLayout):
             if isdir(entry.path):
                 self.open_entry(entry)
             else:
-                self.dispatch('on_submit', [entry.path])
+                self.dispatch('on_submit', [entry.path], touch)
 
     def open_entry(self, entry):
         try:
@@ -181,14 +181,16 @@ class FileChooserController(FloatLayout):
             self.path = join(self.path, entry.path)
             self.selection = []
 
-    def _apply_filter(self, files):
-        if not self.filter:
+    def _apply_filters(self, files):
+        if not self.filters:
             return files
-        filtered = fnfilter(files, self.filter)
+        filtered = []
+        for filter in self.filters:
+            filtered.extend([fn for fn in files if fnmatch(fn, filter)])
         if not self.filter_dirs:
-            dirs = [f for f in files if isdir(f)]
-            return dirs + filtered
-        return filtered
+            dirs = [fn for fn in files if isdir(fn)]
+            filtered.extend(dirs)
+        return list(set(filtered))
 
     def get_nice_size(self, fn):
         '''
@@ -213,7 +215,7 @@ class FileChooserController(FloatLayout):
         self.dispatch('on_entries_cleared')
 
         # Add the components that are always needed
-        is_root = samefile(self.path, u'/')
+        is_root = samefile(expanduser(self.path), u'/')
         if not is_root:
             back = '..' + sep
             pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
@@ -223,13 +225,14 @@ class FileChooserController(FloatLayout):
         self._add_files(self.path)
 
     def _add_files(self, path, parent=None):
+        path = expanduser(path)
         # Make sure we're using unicode in case of non-ascii chars in filenames.
         # listdir() returns unicode if you pass it unicode.
         files = listdir(unicode(path))
         # In the following, use fully qualified filenames
         files = [normpath(join(path, f)) for f in files]
         # Apply filename filters
-        files = self._apply_filter(files)
+        files = self._apply_filters(files)
         # Sort the list of files
         files = self.sort_func(files)
         # Add the files
