@@ -376,11 +376,45 @@ When you are creating a context:
                 # root.prop1 is a property, the context will not update the
                 # context
 
+Lang Directives
+---------------
+
+You can use directive to control part of the lang files. Directive is done with
+a comment line starting with::
+
+    #:<directivename> <options>
+
+import <package>
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.0.5
+
+Syntax::
+
+    #:import <alias> <package>
+
+You can import a package by writing::
+
+    #:import os os
+
+    <Rule>:
+        Button:
+            text: os.getcwd()
+
+Or more complex::
+
+    #:import ut kivy.utils
+
+    <Rule>:
+        canvas:
+            Color:
+                rgba: ut.get_random_color()
 '''
 
 __all__ = ('Builder', 'BuilderBase', 'Parser')
 
 import re
+import sys
 from os.path import join
 from copy import copy
 from types import ClassType
@@ -391,6 +425,7 @@ from kivy.utils import OrderedDict, QueryDict
 from kivy import kivy_data_dir
 
 trace = Logger.trace
+global_idmap = {}
 
 
 class ParserError(Exception):
@@ -423,6 +458,7 @@ class Parser(object):
         super(Parser, self).__init__()
         self.sourcecode = []
         self.objects = []
+        self.directives = []
         content = kwargs.get('content', None)
         self.filename = filename = kwargs.get('filename', None)
         if filename:
@@ -431,6 +467,32 @@ class Parser(object):
             raise ValueError('No content passed. Use filename or '
                              'content attribute.')
         self.parse(content)
+
+    def execute_directives(self):
+        for ln, cmd in self.directives:
+            cmd = cmd.strip()
+            Logger.trace('Parser: got directive <%s>' % cmd)
+            if cmd.startswith('kivy '):
+                # FIXME move the version checking here
+                continue
+            elif cmd.startswith('import '):
+                package = cmd[7:].strip()
+                l = package.split(' ')
+                if len(l) != 2:
+                    raise ParserError(self, ln, 'Invalid import syntax')
+                alias, package = l
+                try:
+                    if package not in sys.modules:
+                        mod = __import__(package)
+                    else:
+                        mod = sys.modules[package]
+                    global_idmap[alias] = mod
+                except ImportError:
+                    Logger.exception('')
+                    raise ParserError(self, ln, 'Unable to import package %r' %
+                                     package)
+            else:
+                raise ParserError(self, ln, 'Unknown directive')
 
     def parse(self, content):
         '''Parse the contents of a Parser file and return a list
@@ -452,6 +514,9 @@ class Parser(object):
 
         # Strip all comments
         self.strip_comments(lines)
+
+        # Execute directives
+        self.execute_directives()
 
         # Get object from the first level
         objects, remaining_lines = self.parse_level(0, lines)
@@ -489,6 +554,8 @@ class Parser(object):
         '''
         for ln, line in lines[:]:
             stripped = line.strip()
+            if stripped.startswith('#:'):
+                self.directives.append((ln, stripped[2:]))
             if stripped.startswith('#'):
                 lines.remove((ln, line))
             if not stripped:
@@ -816,7 +883,7 @@ class BuilderBase(object):
         self.idmap = self.idmaps.pop()
 
     def build(self, objects):
-        self.idmap = {}
+        self.idmap = copy(global_idmap)
         root = None
         for item, params in objects:
             if item.startswith('<'):
