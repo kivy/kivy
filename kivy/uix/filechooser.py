@@ -26,7 +26,7 @@ from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
 from sys import platform
 from os import getcwdu, listdir
 from os.path import basename, getsize, isdir, join, sep, normpath, dirname, \
-                    samefile
+                    samefile, expanduser
 from fnmatch import filter as fnfilter
 
 
@@ -213,7 +213,7 @@ class FileChooserController(FloatLayout):
         self.dispatch('on_entries_cleared')
 
         # Add the components that are always needed
-        is_root = samefile(self.path, u'/')
+        is_root = samefile(expanduser(self.path), u'/')
         if not is_root:
             back = '..' + sep
             pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
@@ -223,6 +223,7 @@ class FileChooserController(FloatLayout):
         self._add_files(self.path)
 
     def _add_files(self, path, parent=None):
+        path = expanduser(path)
         # Make sure we're using unicode in case of non-ascii chars in filenames.
         # listdir() returns unicode if you pass it unicode.
         files = listdir(unicode(path))
