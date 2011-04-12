@@ -235,9 +235,10 @@ class FileChooserController(FloatLayout):
         # Add the files
         if parent:
             parent.entries = []
+        is_hidden = self.is_hidden
+        if not self.show_hidden:
+            files = [x for x in files if not is_hidden(x)]
         for file in files:
-            if not self.show_hidden and self.is_hidden(file):
-                continue
 
             def get_nice_size():
                 # Use a closure for lazy-loading here
@@ -255,6 +256,7 @@ class FileChooserController(FloatLayout):
                 self.dispatch('on_entry_added', entry, parent)
             else:
                 parent.entries.append(entry)
+
         self.files = files
         if parent:
             return parent.entries
@@ -286,7 +288,9 @@ class FileChooserIconView(FileChooserController):
 
 if __name__ == '__main__':
     from kivy.app import App
+
     class FileChooserApp(App):
+
         def build(self):
             pos = (100, 100)
             size_hint = (None, None)
