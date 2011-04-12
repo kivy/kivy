@@ -44,6 +44,7 @@ And in your kivy language file, you can do ::
 __all__ = ('Image', 'AsyncImage')
 
 from kivy.uix.widget import Widget
+from kivy.cache import Cache
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
@@ -130,8 +131,12 @@ class Image(Widget):
             self.texture = None
         else:
             filename = resource_find(value)
-            image = CoreImage(filename)
-            self.texture = image.texture
+            texture = Cache.get('kv.texture', filename)
+            if not texture:
+                image = CoreImage(filename)
+                texture = image.texture
+                Cache.append('kv.texture', filename, texture)
+            self.texture = texture
 
     def on_texture(self, instance, value):
         if value is not None:
