@@ -149,7 +149,7 @@ class FileChooserController(FloatLayout):
     def on_remove_subentry(self, subentry, entry):
         pass
 
-    def on_submit(self, selected):
+    def on_submit(self, selected, touch=None):
         self.selection = []
 
     def entry_touched(self, entry, touch):
@@ -165,7 +165,7 @@ class FileChooserController(FloatLayout):
             if isdir(entry.path):
                 self.open_entry(entry)
             else:
-                self.dispatch('on_submit', [entry.path])
+                self.dispatch('on_submit', [entry.path], touch)
 
     def open_entry(self, entry):
         try:
