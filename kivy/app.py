@@ -136,7 +136,7 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-        if directory = None:
+        if directory is None:
             directory = dirname(getfile(self.__class__))
         clsname = self.__class__.__name__
         if clsname.endswith('App'):
