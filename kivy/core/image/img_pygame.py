@@ -32,7 +32,10 @@ class ImageLoaderPygame(ImageLoaderBase):
     def load(self, filename):
         Logger.debug('Image: Load <%s>' % filename)
         try:
-            im = pygame.image.load(filename)
+            try:
+                im = pygame.image.load(filename)
+            except UnicodeEncodeError:
+                im = pygame.image.load(filename.encode('utf8'))
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise

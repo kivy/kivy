@@ -143,7 +143,12 @@ class FileHandler(logging.Handler):
         if FileHandler.fd in (None, False):
             return
 
-        FileHandler.fd.write('[%-18s] %s\n' % (record.levelname, record.msg))
+        FileHandler.fd.write('[%-18s] ' % record.levelname)
+        try:
+            FileHandler.fd.write(record.msg)
+        except UnicodeEncodeError:
+            FileHandler.fd.write(record.msg.encode('utf8'))
+        FileHandler.fd.write('\n')
         FileHandler.fd.flush()
 
     def emit(self, message):
