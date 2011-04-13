@@ -217,14 +217,14 @@ class ClockBase(object):
 
     def schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds.
-        
+
         .. note::
             .. versionadded:: 1.0.5
             If the timeout is -1, the callback will be called before the next
             frame (at :func:`tick_draw`).
         '''
         event = _Event(False, callback, timeout, self._last_tick)
-        cid = id(callback)
+        cid = callback.__name__
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -234,7 +234,7 @@ class ClockBase(object):
     def schedule_interval(self, callback, timeout):
         '''Schedule a event to be call every <timeout> seconds'''
         event = _Event(True, callback, timeout, self._last_tick)
-        cid = id(callback)
+        cid = callback.__name__
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -244,10 +244,10 @@ class ClockBase(object):
     def unschedule(self, callback):
         '''Remove a previous schedule event'''
         # mark as unschedule
-        cid = id(callback)
+        cid = callback.__name__
         events = self._events
         if cid in events:
-            for event in events[cid]:
+            for event in events[cid][:]:
                 if event.get_callback() is callback:
                     events[cid].remove(event)
 
