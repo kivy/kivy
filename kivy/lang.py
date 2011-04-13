@@ -26,8 +26,7 @@ The language consists of several constructs that you can use:
         A kv file must contain only one root widget at most.
 
     Templates
-        .. versionadded:: 1.0.5
-
+        *(introduced in version 1.0.5.)*
         Templates will be used to populate parts of your application, such as a
         list's content. If you want to design the look of an entry in a list
         (icon on the left, text on the right), you will use a template for that.
