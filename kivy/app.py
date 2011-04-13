@@ -107,7 +107,7 @@ class App(EventDispatcher):
         '''
         pass
 
-    def load_kv(self):
+    def load_kv(self, directory = None):
         '''This method is invoked the first time the app is being run if no
         widget tree has been constructed before for this app.
         This method then looks for a matching kv file in the same directory as
@@ -136,7 +136,8 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-        directory = dirname(getfile(self.__class__))
+        if directory = None:
+            directory = dirname(getfile(self.__class__))
         clsname = self.__class__.__name__
         if clsname.endswith('App'):
             clsname = clsname[:-3]
@@ -165,7 +166,7 @@ class App(EventDispatcher):
         '''Launches the app in standalone mode.
         '''
         if not self.built:
-            self.load_kv()
+            self.load_kv(directory)
             root = self.build()
             if root:
                 self.root = root
