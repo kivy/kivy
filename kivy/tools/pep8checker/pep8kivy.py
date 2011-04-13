@@ -53,7 +53,8 @@ if __name__ == '__main__':
     errors = 0
     pep8.process_options([''])
     exclude_dirs = ['/lib', '/coverage', '/pep8', '/doc']
-    exclude_files = ['kivy/gesture.py', 'osx/build.py', 'win32/build.py']
+    exclude_files = ['kivy/gesture.py', 'osx/build.py', 'win32/build.py',
+                     'kivy/tools/stub-gl-debug.py']
     for target in targets:
         if os.path.isdir(target):
             if htmlmode:
