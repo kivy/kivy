@@ -58,6 +58,18 @@ from kivy.config import Config
 from kivy.logger import Logger
 
 
+def _hash(cb):
+    try:
+        return cb.__name__
+    except:
+        # if a callback with partial is used... use func
+        try:
+            return cb.func.__name__
+        except:
+            # nothing work, use default hash.
+            return 'default'
+
+
 class _Event(object):
 
     def __init__(self, loop, callback, timeout, starttime):
@@ -224,7 +236,7 @@ class ClockBase(object):
             frame (at :func:`tick_draw`).
         '''
         event = _Event(False, callback, timeout, self._last_tick)
-        cid = callback.__name__
+        cid = _hash(callback)
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -234,7 +246,7 @@ class ClockBase(object):
     def schedule_interval(self, callback, timeout):
         '''Schedule a event to be call every <timeout> seconds'''
         event = _Event(True, callback, timeout, self._last_tick)
-        cid = callback.__name__
+        cid = _hash(callback)
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -244,7 +256,7 @@ class ClockBase(object):
     def unschedule(self, callback):
         '''Remove a previous schedule event'''
         # mark as unschedule
-        cid = callback.__name__
+        cid = _hash(callback)
         events = self._events
         if cid in events:
             for event in events[cid][:]:
