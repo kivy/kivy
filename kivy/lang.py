@@ -315,7 +315,7 @@ put many Image that will react to on_touch_down::
  root.create_image()
 
             Image:
-                source: 'data/video.png'
+                nput: 'data/video.png'
                 size: self.texture_size
                 size_hint: None, None
                 on_touch_down: self.collide_point(*args[1].pos) and\
@@ -470,7 +470,7 @@ class Parser(object):
     def execute_directives(self):
         for ln, cmd in self.directives:
             cmd = cmd.strip()
-            Logger.trace('Parser: got directive <%s>' % cmd)
+            trace('Parser: got directive <%s>' % cmd)
             if cmd.startswith('kivy '):
                 # FIXME move the version checking here
                 continue
@@ -775,13 +775,16 @@ class BuilderBase(object):
         self.rules = []
         self.templates = {}
         self.idmap = {}
-        self.gidmap = {}
         self.idmaps = []
+        self.gidmaps = []
+        self.gidmap = {}
 
         # List of all the setattr needed to be done after creating the tree
+        self.listsets = []
         self.listset = []
         # List of all widget created during the tree, and then apply the style
         # for each of them.
+        self.listwidgets = []
         self.listwidget = []
 
     def add_rule(self, rule, defs):
@@ -866,11 +869,14 @@ class BuilderBase(object):
             rootwidgets.append(Factory.get(basecls))
         cls = ClassType(name, tuple(rootwidgets), {})
         widget = cls()
+        self._push_widgets()
+        self._push_ids()
+        self.idmap = copy(global_idmap)
         self.idmap['root'] = widget
         self.idmap['ctx'] = QueryDict(ctx)
         self.build_item(widget, defs, is_rule=True)
-        del self.idmap['root']
-        del self.idmap['ctx']
+        self._pop_ids()
+        self._pop_widgets()
         return widget
 
 
@@ -883,6 +889,19 @@ class BuilderBase(object):
 
     def _pop_ids(self):
         self.idmap = self.idmaps.pop()
+
+    def _push_widgets(self):
+        self.gidmaps.append(self.gidmap)
+        self.gidmap = {}
+        self.listsets.append(self.listset)
+        self.listset = []
+        self.listwidgets.append(self.listwidget)
+        self.listwidget = []
+
+    def _pop_widgets(self):
+        self.listwidget = self.listwidgets.pop()
+        self.listset = self.listsets.pop()
+        self.gidmap = self.gidmaps.pop()
 
     def build(self, objects):
         self.idmap = copy(global_idmap)
@@ -933,6 +952,7 @@ class BuilderBase(object):
             cls = Factory.get(item)
             if Factory.is_template(item):
                 is_template = True
+                self._push_widgets()
             else:
                 widget = cls(__no_builder=True)
                 if not no_apply:
@@ -988,8 +1008,10 @@ class BuilderBase(object):
 
         self._pop_ids()
         if is_rule:
-            if item is self.idmap['root']:
-                self.build_attributes()
+            self.build_attributes()
+        if is_template:
+            self._pop_widgets()
+
         return widget
 
     def build_attributes(self):
