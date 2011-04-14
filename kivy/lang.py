@@ -843,6 +843,7 @@ class BuilderBase(object):
         trace('Builder: Found %d matches for %s' % (len(matches), widget))
         if not matches:
             return
+        self._push_widgets()
         have_root = 'root' in self.idmap
         if not have_root:
             self.idmap['root'] = widget
@@ -850,6 +851,7 @@ class BuilderBase(object):
             self.build_item(widget, defs, is_rule=True)
         if not have_root:
             del self.idmap['root']
+        self._pop_widgets()
 
     def template(self, *args, **ctx):
         '''Create a specialized template using a specific context.
