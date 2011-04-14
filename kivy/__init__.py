@@ -42,6 +42,16 @@ from kivy.logger import Logger, LOG_LEVELS
 __kivy_post_configuration = []
 
 
+if sys.platform == 'darwin' and sys.maxint < 9223372036854775807:
+    r ='''Unsupported Python version detected!:
+    On Mac OS X Kivy requires a 64 bit version of Python. We strongly advise you to
+    use the version of Python that is provided by Apple (and neither ports, fink
+    nor homebrew unless you know what you're doing).
+    See http://kivy.org/docs/installation/installation-macosx.html for details.
+    '''
+    Logger.critical(r)
+
+
 def require(version):
     '''Require can be used to check the minimum version required to run a Kivy
     application. For example, you can start your application like this::
