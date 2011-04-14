@@ -92,6 +92,7 @@ default to False.
 '''
 
     def __init__(self, **kwargs):
+        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(GridLayout, self).__init__(**kwargs)
 
         self.bind(
@@ -182,10 +183,6 @@ default to False.
         self.row_heights = rows
 
         self.minimum_size = (width, height)
-
-    def _trigger_layout(self, *largs):
-        Clock.unschedule(self._do_layout)
-        Clock.schedule_once(self._do_layout)
 
     def _do_layout(self, *largs):
         if self.cols is None and self.rows is None:

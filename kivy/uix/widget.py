@@ -190,7 +190,7 @@ class Widget(EventDispatcher):
         prop.link(self, name)
         prop.link_deps(self, name)
         self.__properties[name] = prop
-        setattr(self, name, prop)
+        setattr(self.__class__, name, prop)
 
 
     #
@@ -331,7 +331,7 @@ class Widget(EventDispatcher):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
         widget.parent = self
-        self.children = [widget] + self.children
+        self.children.insert(0, widget)
         self.canvas.add(widget.canvas)
 
     def remove_widget(self, widget):
@@ -349,7 +349,6 @@ class Widget(EventDispatcher):
         if widget not in self.children:
             return
         self.children.remove(widget)
-        self.children = self.children[:]
         self.canvas.remove(widget.canvas)
         widget.parent = None
 
@@ -633,4 +632,3 @@ class Widget(EventDispatcher):
     for the graphical representation of the widget.
     Check :class:`~kivy.graphics.Canvas` for more information about the usage.
     '''
-

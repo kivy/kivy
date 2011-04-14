@@ -26,7 +26,7 @@ The language consists of several constructs that you can use:
         A kv file must contain only one root widget at most.
 
     Templates
-        Reserved for future use.
+        *(introduced in version 1.0.5.)*
         Templates will be used to populate parts of your application, such as a
         list's content. If you want to design the look of an entry in a list
         (icon on the left, text on the right), you will use a template for that.
@@ -61,6 +61,10 @@ The `content` can contain rule definitions, a root widget and templates::
 
     # Syntax for creating a root widget
     RootClassName:
+        .. definitions ..
+
+    # Syntax for create a template
+    [TemplateName@BaseClass1,BaseClass2]:
         .. definitions ..
 
 Regardless of whether it's a rule, root widget or template you're defining,
@@ -170,9 +174,9 @@ more interesting like::
     Button:
         text: 'Plop world' if self.state == 'normal' else 'Release me!'
 
-The Button text changes with the state of the button. By default, the button text
-will be 'Plop world', but when the button is being pressed, the text will change to
-'Release me!'.
+The Button text changes with the state of the button. By default, the button
+text will be 'Plop world', but when the button is being pressed, the text will
+change to 'Release me!'.
 
 
 Graphical Instructions
@@ -232,19 +236,195 @@ You can clear all the previous instructions by using the `Clear` command::
 
 Then, only your rules that follow the `Clear` command will be taken into
 consideration.
+
+
+.. _template_usage:
+
+Templates
+---------
+
+.. versionadded:: 1.0.5
+
+Syntax of template
+~~~~~~~~~~~~~~~~~~
+
+Using a template in Kivy require 2 things :
+
+    #. a context to pass for the context (will be ctx inside template)
+    #. a kv definition of the template
+
+Syntax of a template::
+
+    # With only one base class
+    [ClassName@BaseClass]:
+        .. definitions ..
+
+    # With more than one base class
+    [ClassName@BaseClass1,BaseClass2]:
+        .. definitions ..
+
+For example, for a list, you'll need to create a entry with a image on the left,
+and a label on the right. You can create a template for making that definition
+more easy to use.
+So, we'll create a template that require 2 entry in the context: a image
+filename and a title ::
+
+    [IconItem@BoxLayout]:
+        Image:
+            source: ctx.image
+        Label:
+            text: ctx.title
+
+Then in Python, you can create instanciate the template with ::
+
+    from kivy.lang import Builder
+
+    # create a template with hello world + an image
+    icon1 = Builder.template('IconItem', {
+        'title': 'Hello world',
+        'image': 'myimage.png'})
+
+    # create a second template with another information
+    icon2 = Builder.template('IconItem', {
+        'title': 'Another hello world',
+        'image': 'myimage2.png'})
+    # and use icon1 and icon2 as other widget.
+
+
+Template example
+~~~~~~~~~~~~~~~~
+
+Most of time, when you are creating screen into kv lang, you have lot of
+redefinition. In our example, we'll create a Toolbar, based on a BoxLayout, and
+put many Image that will react to on_touch_down::
+
+    <MyToolbar>:
+        BoxLayout:
+            Image:
+                source: 'data/text.png'
+                size: self.texture_size
+                size_hint: None, None
+                on_touch_down: self.collide_point(*args[1].pos) and\
+ root.create_text()
+
+            Image:
+                source: 'data/image.png'
+                size: self.texture_size
+                size_hint: None, None
+                on_touch_down: self.collide_point(*args[1].pos) and\
+ root.create_image()
+
+            Image:
+                nput: 'data/video.png'
+                size: self.texture_size
+                size_hint: None, None
+                on_touch_down: self.collide_point(*args[1].pos) and\
+ root.create_video()
+
+We can see that the side and size_hint attribute are exactly the same.
+More than that, the callback in on_touch_down and the image are changing.
+Theses can be the variable part of the template that we can put into a context.
+Let's try to create a template for the Image::
+
+    [ToolbarButton@Image]:
+
+        # This is the same as before
+        source: 'data/%s.png' % ctx.image
+        size: self.texture_size
+        size_hint: None, None
+
+        # Now, we are using the ctx for the variable part of the template
+        on_touch_down: self.collide_point(*args[1].pos) and self.callback()
+
+The template can be used directly in the MyToolbar rule::
+
+    <MyToolbar>:
+        BoxLayout:
+            ToolbarButton:
+                image: 'text'
+                callback: root.create_text
+            ToolbarButton:
+                image: 'image'
+                callback: root.create_image
+            ToolbarButton:
+                image: 'video'
+                callback: root.create_video
+
+That's all :)
+
+
+Template limitations
+~~~~~~~~~~~~~~~~~~~~
+
+When you are creating a context:
+
+    #. you cannot use references other than "root"::
+
+        <MyRule>:
+            Widget:
+                id: mywidget
+                value: 'bleh'
+            Template:
+                ctxkey: mywidget.value # << fail, this reference mywidget id
+
+    #. all the dynamic part will be not understood::
+
+        <MyRule>:
+            Template:
+                ctxkey: 'value 1' if root.prop1 else 'value2' # << even if
+                # root.prop1 is a property, the context will not update the
+                # context
+
+Lang Directives
+---------------
+
+You can use directive to control part of the lang files. Directive is done with
+a comment line starting with::
+
+    #:<directivename> <options>
+
+import <package>
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.0.5
+
+Syntax::
+
+    #:import <alias> <package>
+
+You can import a package by writing::
+
+    #:import os os
+
+    <Rule>:
+        Button:
+            text: os.getcwd()
+
+Or more complex::
+
+    #:import ut kivy.utils
+
+    <Rule>:
+        canvas:
+            Color:
+                rgba: ut.get_random_color()
 '''
 
 __all__ = ('Builder', 'BuilderBase', 'Parser')
 
 import re
+import sys
 from os.path import join
 from copy import copy
+from types import ClassType
+from functools import partial
 from kivy.factory import Factory
 from kivy.logger import Logger
-from kivy.utils import OrderedDict, curry
+from kivy.utils import OrderedDict, QueryDict
 from kivy import kivy_data_dir
 
 trace = Logger.trace
+global_idmap = {}
 
 
 class ParserError(Exception):
@@ -277,6 +457,7 @@ class Parser(object):
         super(Parser, self).__init__()
         self.sourcecode = []
         self.objects = []
+        self.directives = []
         content = kwargs.get('content', None)
         self.filename = filename = kwargs.get('filename', None)
         if filename:
@@ -285,6 +466,32 @@ class Parser(object):
             raise ValueError('No content passed. Use filename or '
                              'content attribute.')
         self.parse(content)
+
+    def execute_directives(self):
+        for ln, cmd in self.directives:
+            cmd = cmd.strip()
+            trace('Parser: got directive <%s>' % cmd)
+            if cmd.startswith('kivy '):
+                # FIXME move the version checking here
+                continue
+            elif cmd.startswith('import '):
+                package = cmd[7:].strip()
+                l = package.split(' ')
+                if len(l) != 2:
+                    raise ParserError(self, ln, 'Invalid import syntax')
+                alias, package = l
+                try:
+                    if package not in sys.modules:
+                        mod = __import__(package)
+                    else:
+                        mod = sys.modules[package]
+                    global_idmap[alias] = mod
+                except ImportError:
+                    Logger.exception('')
+                    raise ParserError(self, ln, 'Unable to import package %r' %
+                                     package)
+            else:
+                raise ParserError(self, ln, 'Unknown directive')
 
     def parse(self, content):
         '''Parse the contents of a Parser file and return a list
@@ -306,6 +513,9 @@ class Parser(object):
 
         # Strip all comments
         self.strip_comments(lines)
+
+        # Execute directives
+        self.execute_directives()
 
         # Get object from the first level
         objects, remaining_lines = self.parse_level(0, lines)
@@ -343,6 +553,8 @@ class Parser(object):
         '''
         for ln, line in lines[:]:
             stripped = line.strip()
+            if stripped.startswith('#:'):
+                self.directives.append((ln, stripped[2:]))
             if stripped.startswith('#'):
                 lines.remove((ln, line))
             if not stripped:
@@ -477,7 +689,7 @@ def create_handler(element, key, value, idmap):
     kw = re.findall('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)', tmp)
     if not kw:
         # look like no reference, just pass it
-        return eval(value, _eval_globals)
+        return eval(value, _eval_globals, idmap)
 
     # create an handler
     idmap = copy(idmap)
@@ -493,10 +705,14 @@ def create_handler(element, key, value, idmap):
     # bind every key.value
     for x in kw:
         k = x.split('.')
-        if len(k) != 2:
-            continue
         f = idmap[k[0]]
-        f.bind(**{k[1]: call_fn})
+        try:
+            for x in k[1:-1]:
+                f = getattr(f, x)
+            if hasattr(f, 'bind'):
+                f.bind(**{k[-1]: call_fn})
+        except AttributeError:
+            continue
 
     return eval(value, _eval_globals, idmap)
 
@@ -557,19 +773,29 @@ class BuilderBase(object):
     def __init__(self):
         super(BuilderBase, self).__init__()
         self.rules = []
+        self.templates = {}
         self.idmap = {}
-        self.gidmap = {}
         self.idmaps = []
+        self.gidmaps = []
+        self.gidmap = {}
 
         # List of all the setattr needed to be done after creating the tree
+        self.listsets = []
         self.listset = []
         # List of all widget created during the tree, and then apply the style
         # for each of them.
+        self.listwidgets = []
         self.listwidget = []
 
     def add_rule(self, rule, defs):
         trace('Builder: adding rule %s' % str(rule))
         self.rules.append((rule, defs))
+
+    def add_template(self, name, cls, defs):
+        trace('Builder: adding template %s' % str(name))
+        if name in self.templates:
+            raise Exception('The template <%s> already exist' % name)
+        self.templates[name] = (cls, defs)
 
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder.
@@ -617,15 +843,41 @@ class BuilderBase(object):
         trace('Builder: Found %d matches for %s' % (len(matches), widget))
         if not matches:
             return
-        #self._push_ids()
         have_root = 'root' in self.idmap
         if not have_root:
             self.idmap['root'] = widget
         for defs in matches:
-            self.build_item(widget, defs, is_template=True)
+            self.build_item(widget, defs, is_rule=True)
         if not have_root:
             del self.idmap['root']
-        #self._pop_ids()
+
+    def template(self, *args, **ctx):
+        '''Create a specialized template using a specific context.
+        .. versionadded:: 1.0.5
+
+        With template, you can construct custom widget from a kv lang definition
+        by giving them a context. Check :ref:`Template usage <template_usage>`.
+        '''
+        # Prevent naming clash with whatever the user might be putting into the
+        # ctx as key.
+        name = args[0]
+        if not name in self.templates:
+            raise Exception('Unknown <%s> template name' % name)
+        baseclasses, defs = self.templates[name]
+        rootwidgets = []
+        for basecls in baseclasses.split('+'):
+            rootwidgets.append(Factory.get(basecls))
+        cls = ClassType(name, tuple(rootwidgets), {})
+        widget = cls()
+        self._push_widgets()
+        self._push_ids()
+        self.idmap = copy(global_idmap)
+        self.idmap['root'] = widget
+        self.idmap['ctx'] = QueryDict(ctx)
+        self.build_item(widget, defs, is_rule=True)
+        self._pop_ids()
+        self._pop_widgets()
+        return widget
 
 
     #
@@ -638,12 +890,27 @@ class BuilderBase(object):
     def _pop_ids(self):
         self.idmap = self.idmaps.pop()
 
+    def _push_widgets(self):
+        self.gidmaps.append(self.gidmap)
+        self.gidmap = {}
+        self.listsets.append(self.listset)
+        self.listset = []
+        self.listwidgets.append(self.listwidget)
+        self.listwidget = []
+
+    def _pop_widgets(self):
+        self.listwidget = self.listwidgets.pop()
+        self.listset = self.listsets.pop()
+        self.gidmap = self.gidmaps.pop()
+
     def build(self, objects):
-        self.idmap = {}
+        self.idmap = copy(global_idmap)
         root = None
         for item, params in objects:
             if item.startswith('<'):
                 self.build_rule(item, params)
+            elif item.startswith('['):
+                self.build_template(item, params)
             else:
                 if root is not None:
                     raise ParserError(params['__ctx__'], params['__line__'],
@@ -659,10 +926,17 @@ class BuilderBase(object):
                 continue
             yield key, value
 
-    def build_item(self, item, params, is_template=False):
-        self._push_ids()
+    def _is_reserved_key(self, key):
+        if key.startswith('on_'):
+            return True
+        if key in ('id', 'children', 'canvas', 'canvas.before', 'canvas.after'):
+            return True
 
-        if is_template is False:
+    def build_item(self, item, params, is_rule=False):
+        self._push_ids()
+        is_template = False
+
+        if is_rule is False:
             trace('Builder: build item %s' % item)
             if item.startswith('<'):
                 raise ParserError(params['__ctx__'], params['__line__'],
@@ -671,45 +945,73 @@ class BuilderBase(object):
             if item.startswith('+'):
                 item = item[1:]
                 no_apply = True
-            widget = Factory.get(item)(__no_builder=True)
-            if not no_apply:
-                self.listwidget.append(widget)
+
+            # we are checking is the widget is a template or not
+            # if yes, no child is allowed, and all the properties are used to
+            # construct the context for the template.
+            cls = Factory.get(item)
+            if Factory.is_template(item):
+                is_template = True
+                self._push_widgets()
+            else:
+                widget = cls(__no_builder=True)
+                if not no_apply:
+                    self.listwidget.append(widget)
         else:
             widget = item
-        self.idmap['self'] = widget
 
-        # first loop, create unknown attribute
-        for key, value in self._iterate(params):
-            value, ln, ctx = value
-            if hasattr(widget, key):
-                continue
-            widget.create_property(key)
+        if is_template:
+            # checking reserved keyword
+            ctx = {}
+            for key, value in self._iterate(params):
+                if key == 'children':
+                    raise ParserError(params['__ctx__'], params['__line__'],
+                           'Children in template are forbidden')
+                if key in ('canvas.before', 'canvas', 'canvas.after'):
+                    raise ParserError(params['__ctx__'], params['__line__'],
+                           'Canvas instruction in template are forbidden')
+                ctx[key] = eval(value[0], _eval_globals, self.idmap)
+            widget = cls(**ctx)
+        else:
+            self.idmap['self'] = widget
+            is_reserved_key = self._is_reserved_key
+            # first loop, create unknown attribute
+            for key, value in self._iterate(params):
+                value, ln, ctx = value
+                if is_reserved_key(key):
+                    continue
+                if hasattr(widget, key):
+                    continue
+                widget.create_property(key)
 
-        # second loop, create the tree + canvas
-        for key, value in self._iterate(params):
-            value, ln, ctx = value
-            if key == 'children':
-                for citem, cparams, in value:
-                    child = self.build_item(citem, cparams)
-                    widget.add_widget(child)
-            elif key == 'canvas':
-                with widget.canvas:
-                    self.build_canvas(widget.canvas, item, value)
-            elif key == 'canvas.before':
-                with widget.canvas.before:
-                    self.build_canvas(widget.canvas.before, item, value)
-            elif key == 'canvas.after':
-                with widget.canvas.after:
-                    self.build_canvas(widget.canvas.after, item, value)
-            elif key == 'id':
-                self.gidmap[value] = widget
-            else:
-                self.listset.append((ctx, ln, widget, key, value,
-                                        copy(self.idmap)))
+            # second loop, create the tree + canvas
+            for key, value in self._iterate(params):
+                value, ln, ctx = value
+                if key == 'children':
+                    for citem, cparams, in value:
+                        child = self.build_item(citem, cparams)
+                        widget.add_widget(child)
+                elif key == 'canvas':
+                    with widget.canvas:
+                        self.build_canvas(widget.canvas, item, value)
+                elif key == 'canvas.before':
+                    with widget.canvas.before:
+                        self.build_canvas(widget.canvas.before, item, value)
+                elif key == 'canvas.after':
+                    with widget.canvas.after:
+                        self.build_canvas(widget.canvas.after, item, value)
+                elif key == 'id':
+                    self.gidmap[value] = widget
+                else:
+                    self.listset.append((ctx, ln, widget, key, value,
+                                            copy(self.idmap)))
 
         self._pop_ids()
-        if is_template:
+        if is_rule:
             self.build_attributes()
+        if is_template:
+            self._pop_widgets()
+
         return widget
 
     def build_attributes(self):
@@ -737,9 +1039,10 @@ class BuilderBase(object):
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):
+            trace('Builder: create custom callback for ' + key)
             if not element.is_event_type(key):
                 key = key[3:]
-            element.bind(**{key: curry(custom_callback, (
+            element.bind(**{key: partial(custom_callback, (
                 element, key, value, idmap))})
 
         else:
@@ -785,6 +1088,21 @@ class BuilderBase(object):
             else:
                 crule = BuilderRuleName(rule)
             self.add_rule(crule, params)
+
+    def build_template(self, item, params):
+        trace('Builder: build template for %s' % item)
+        if item[0] != '[' or item[-1] != ']':
+            raise ParserError(params['__ctx__'], params['__line__'],
+                'Invalid template (must be inside [])')
+        item_content = item[1:-1]
+        if not '@' in item_content:
+            raise ParserError(params['__ctx__'], params['__line__'],
+                'Invalid template name (missing @)')
+        template_name, template_root_cls = item_content.split('@')
+        self.add_template(template_name, template_root_cls, params)
+        Factory.register(template_name,
+                         cls=partial(self.template, template_name),
+                         is_template=True)
 
 
 #: Main instance of a :class:`BuilderBase`.

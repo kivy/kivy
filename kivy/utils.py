@@ -4,7 +4,7 @@ Utils
 
 '''
 
-__all__ = ('intersection', 'difference', 'curry', 'strtotuple',
+__all__ = ('intersection', 'difference', 'strtotuple',
            'get_color_from_hex', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
@@ -27,16 +27,6 @@ def intersection(set1, set2):
 def difference(set1, set2):
     '''Return difference between 2 list'''
     return filter(lambda s: s not in set2, set1)
-
-
-def curry(fn, *cargs, **ckwargs):
-    '''Change the function signature to pass new variable.'''
-
-    def call_fn(*fargs, **fkwargs):
-        d = ckwargs.copy()
-        d.update(fkwargs)
-        return fn(*(cargs + fargs), **d)
-    return call_fn
 
 
 def interpolate(value_from, value_to, step=10):
@@ -289,7 +279,10 @@ class QueryDict(dict):
         try:
             return self.__getitem__(attr)
         except KeyError:
-            return super(QueryDict, self).__getattr__(attr)
+            try:
+                return super(QueryDict, self).__getattr__(attr)
+            except AttributeError:
+                raise KeyError(attr)
 
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)

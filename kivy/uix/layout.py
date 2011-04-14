@@ -51,12 +51,10 @@ class Layout(Widget):
             raise Exception('The Layout class cannot be used.')
         kwargs.setdefault('size', (1, 1))
         self._minimum_size = (0, 0)
+        self._trigger_minimum_size = Clock.create_trigger(
+            self.update_minimum_size, -1)
         self.bind(children=self._trigger_minimum_size)
         super(Layout, self).__init__(**kwargs)
-
-    def _trigger_minimum_size(self, *largs):
-        Clock.unschedule(self.update_minimum_size)
-        Clock.schedule_once(self.update_minimum_size)
 
     def _get_minimum_size(self):
         return self._minimum_size

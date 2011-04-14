@@ -121,6 +121,11 @@ FL_IS_NEWLINE = 0x01
 
 class TextInput(Widget):
     '''TextInput class, see module documentation for more information.
+
+    :Events:
+        `on_text_validate`
+            Fired only in multiline=False mode, when the user hit 'enter'. This
+            will also unfocus the textinput.
     '''
 
     def __init__(self, **kwargs):
@@ -154,6 +159,8 @@ class TextInput(Widget):
             303: 'shift_L',
             304: 'shift_R'}
 
+        self.register_event_type('on_text_validate')
+
         super(TextInput, self).__init__(**kwargs)
 
         self.bind(font_size=self._trigger_refresh_line_options,
@@ -167,6 +174,9 @@ class TextInput(Widget):
 
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()
+
+    def on_text_validate(self):
+        pass
 
     def cursor_index(self):
         '''Return the cursor index in the text/value.
@@ -494,7 +504,7 @@ class TextInput(Widget):
 
     def _trigger_update_graphics(self, *largs):
         Clock.unschedule(self._update_graphics)
-        Clock.schedule_once(self._update_graphics)
+        Clock.schedule_once(self._update_graphics, -1)
 
     def _update_graphics(self, *largs):
         # Update all the graphics according to the current internal values.
@@ -754,6 +764,9 @@ class TextInput(Widget):
         elif internal_action == 'enter':
             if self.multiline:
                 self.insert_text('\n')
+            else:
+                self.dispatch('on_text_validate')
+                self.focus = False
         elif internal_action == 'escape':
             self.focus = False
         if internal_action != 'escape':

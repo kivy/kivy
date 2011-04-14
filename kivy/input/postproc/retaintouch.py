@@ -42,7 +42,7 @@ class InputPostprocRetainTouch(object):
         for etype, touch in events[:]:
             if not touch.is_touch:
                 continue
-            if etype == 'begin':
+            if etype == 'end':
                 events.remove((etype, touch))
                 if touch.uid in self._links:
                     selection = self._links[touch.uid]
@@ -63,7 +63,7 @@ class InputPostprocRetainTouch(object):
                     events.append((etype, selection))
                 else:
                     pass
-            elif etype == 'end':
+            elif etype == 'begin':
                 # new touch, found the nearest one
                 selection = None
                 selection_distance = 99999

@@ -5,15 +5,38 @@ Language tests
 
 import unittest
 
-class TestClass(object):
+
+class BaseClass(object):
+    # base class needed for builder
+    def __init__(self, **kwargs):
+        super(BaseClass, self).__init__()
+        self.children = []
+        self.parent = None
+
+    def add_widget(self, widget):
+        self.children.append(widget)
+        widget.parent = self
+
+    def create_property(self, name):
+        pass
+
+
+class TestClass(BaseClass):
     obj = None
+
+
+class TestClass2(BaseClass):
+    obj = None
+
 
 class LangTestCase(unittest.TestCase):
 
     def import_builder(self):
         from kivy.factory import Factory
-        from kivy.lang import Builder
+        from kivy.lang import BuilderBase
+        Builder = BuilderBase()
         Factory.register('TestClass', cls=TestClass)
+        Factory.register('TestClass2', cls=TestClass2)
         return Builder
 
     def test_loading_failed_1(self):
@@ -42,3 +65,72 @@ class LangTestCase(unittest.TestCase):
         Builder.apply(wid)
         self.assertEqual(wid.obj, (0.5, 0.5, 0.5))
 
+    def test_references(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+<TestClass>:
+    textinput: textinput
+    TestClass2:
+        id: textinput
+        ''')
+        wid = TestClass()
+        Builder.apply(wid)
+
+        self.assertTrue(hasattr(wid, 'textinput'))
+        self.assertTrue(getattr(wid, 'textinput') is not None)
+
+    def test_references_with_template(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+[Item@TestClass]:
+    title: ctx.title
+<TestClass>:
+    textinput: textinput
+    Item:
+        title: 'bleh'
+    TestClass2:
+        id: textinput
+        ''')
+        wid = TestClass()
+        Builder.apply(wid)
+
+        self.assertTrue(hasattr(wid, 'textinput'))
+        self.assertTrue(getattr(wid, 'textinput') is not None)
+
+    def test_references_with_template_case_2(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+[Item@TestClass]:
+    title: ctx.title
+<TestClass>:
+    textinput: textinput
+    TestClass2:
+        id: textinput
+        Item:
+            title: 'bleh'
+        ''')
+        wid = TestClass()
+        Builder.apply(wid)
+
+        self.assertTrue(hasattr(wid, 'textinput'))
+        self.assertTrue(getattr(wid, 'textinput') is not None)
+
+    def test_references_with_template_case_3(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+[Item@TestClass]:
+    title: ctx.title
+<TestClass>:
+    textinput: textinput
+    TestClass2:
+        Item:
+            title: 'bleh'
+        TestClass2:
+            TestClass2:
+                id: textinput
+        ''')
+        wid = TestClass()
+        Builder.apply(wid)
+
+        self.assertTrue(hasattr(wid, 'textinput'))
+        self.assertTrue(getattr(wid, 'textinput') is not None)

@@ -158,11 +158,32 @@ class TreeViewNode(object):
     :data:`level` is a :class:`~kivy.properties.NumericProperty`, default to -1.
     '''
 
-    color_selected = ListProperty([.1, .1, .1, 1.])
+    color_selected = ListProperty([.3, .3, .3, 1.])
     '''Background color of the node when the node is selected.
 
-    :data:`color_selected` is a :class:`~kivy.properties.ListProperty`, default
+    :data:`color_selected` is a :class:`~kivy.properties.ListProperty`, defaults
     to [.1, .1, .1, 1]
+    '''
+
+    odd = BooleanProperty(False)
+    '''
+    This property is set by the TreeView widget automatically. Read-only.
+    :data:`odd` is a :class:`~kivy.properties.BooleanProperty`, defaults to
+    False.
+    '''
+
+    odd_color = ListProperty([1., 1., 1., .0])
+    '''Background color of odd nodes when the node is not selected.
+
+    :data:`bg_color` is a :class:`~kivy.properties.ListProperty`, default
+    to [1., 1., 1., 0.].
+    '''
+
+    even_color = ListProperty([0.5, 0.5, 0.5, 0.1])
+    '''Background color of odd nodes when the node is not selected.
+
+    :data:`bg_color` is a :class:`~kivy.properties.ListProperty`, default
+    to [.5, .5, .5, .1].
     '''
 
 
@@ -188,6 +209,7 @@ class TreeView(Widget):
     def __init__(self, **kwargs):
         self.register_event_type('on_node_expand')
         self.register_event_type('on_node_collapse')
+        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(TreeView, self).__init__(**kwargs)
         tvlabel = TreeViewLabel(text='Root', is_open=True, level=0)
         for key, value in self.root_options.iteritems():
@@ -313,10 +335,6 @@ class TreeView(Widget):
         for key, value in value.iteritems():
             setattr(self.root, key, value)
 
-    def _trigger_layout(self, *largs):
-        Clock.unschedule(self._do_layout)
-        Clock.schedule_once(self._do_layout)
-
     def _do_layout(self, *largs):
         self.clear_widgets()
         # display only the one who are is_open
@@ -325,7 +343,10 @@ class TreeView(Widget):
         self._do_layout_node(self.root, 0, self.top)
         # now iterate for calculating minimum size
         min_width = min_height = 0
+        count = 0
         for node in self.iterate_open_nodes(self.root):
+            node.odd = False if count % 2 else True
+            count += 1
             min_width = max(min_width, node.width + self.indent_level +
                             node.level * self.indent_level)
             min_height += node.height
@@ -465,6 +486,7 @@ class TreeView(Widget):
     :data:`load_func` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
     '''
+
 
 if __name__ == '__main__':
     from kivy.app import App

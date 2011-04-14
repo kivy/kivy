@@ -142,6 +142,8 @@ def kivy_usage():
         -a, --auto-fullscreen
             Force run in 'auto' fullscreen (no resolution change) mode.
             Uses your display's resolution. This is most likely what you want.
+        -c, --config section:key[:value]
+            Set a custom [section] key=value in the configuration object
         -f, --fullscreen
             Force running in fullscreen mode.
         -k, --fake-fullscreen
@@ -264,10 +266,10 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         sys.argv = sys.argv[:1]
 
         try:
-            opts, args = getopt(sys_argv[1:], 'hp:fkawFem:snr:d',
+            opts, args = getopt(sys_argv[1:], 'hp:fkawFem:snr:dc:',
                 ['help', 'fullscreen', 'windowed', 'fps', 'event',
                  'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
-                 'display=', 'size=', 'rotate=', 'debug'])
+                 'display=', 'size=', 'rotate=', 'config=', 'debug'])
 
         except GetoptError, err:
             Logger.error('Core: %s' % str(err))
@@ -291,6 +293,17 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.set('input', pid, args)
         elif opt in ('-a', '--auto-fullscreen'):
             Config.set('graphics', 'fullscreen', 'auto')
+        elif opt in ('-c', '--config'):
+            l = arg.split(':', 2)
+            if len(l) == 2:
+                Config.set(l[0], l[1], '')
+            elif len(l) == 3:
+                Config.set(l[0], l[1], l[2])
+            else:
+                raise Exception('Invalid --config value')
+            if l[0] == 'kivy' and l[1] == 'log_level':
+                level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
+                Logger.setLevel(level=level)
         elif opt in ('-k', '--fake-fullscreen'):
             Config.set('graphics', 'fullscreen', 'fake')
         elif opt in ('-f', '--fullscreen'):
@@ -305,7 +318,8 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.set('graphics', 'display', str(arg))
         elif opt in ('-m', '--module'):
             if str(arg) == 'list':
-                kivy_modules.usage_list()
+                from kivy.modules import Modules
+                Modules.usage_list()
                 sys.exit(0)
             args = arg.split(':', 1)
             if len(args) == 1:

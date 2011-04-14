@@ -20,7 +20,7 @@ Snippet ::
 
 __all__ = ('Label', )
 
-from kivy.utils import curry
+from functools import partial
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
@@ -35,14 +35,15 @@ class Label(Widget):
     '''
 
     def __init__(self, **kwargs):
+        self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture
         d = ('text', 'font_size', 'font_name', 'bold', 'italic', 'halign',
-             'valign', 'padding_x', 'padding_y', 'text_size')
+             'valign', 'padding_x', 'padding_y', 'text_size', 'shorten')
         dkw = {}
         for x in d:
-            dkw[x] = curry(self._trigger_texture_update, x)
+            dkw[x] = partial(self._trigger_texture_update, x)
         self.bind(**dkw)
 
         dkw = dict(zip(d, [getattr(self, x) for x in d]))
@@ -62,8 +63,7 @@ class Label(Widget):
                 self._label.options['font_name'] = rvalue if rvalue else value
             else:
                 self._label.options[name] = value
-        Clock.unschedule(self.texture_update)
-        Clock.schedule_once(self.texture_update)
+        self._trigger_texture()
 
     def texture_update(self, *largs):
         '''Force texture recreation with the current Label properties.
@@ -236,5 +236,12 @@ class Label(Widget):
         The texture size is set after the texture property. So if you listen on
         the change to :data:`texture`, the property texture_size will be not yet
         updated. Use self.texture.size instead.
+    '''
+
+    shorten = BooleanProperty(False)
+    '''
+    Indicate whether the label should attempt to shorten its textual contents as
+    much as possible if a `text_size` is given. Setting this to True without an
+    appropriately set `text_size` will lead unexpected results.
     '''
 

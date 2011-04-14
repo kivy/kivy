@@ -36,15 +36,29 @@ class FactoryBase(object):
         super(FactoryBase, self).__init__()
         self.classes = {}
 
-    def register(self, classname, cls=None, module=None):
+    def is_template(self, classname):
+        '''Return True is the classname is a template from
+        :class:`~kivy.lang.Builder`.
+
+        .. versionadded:: 1.0.5
+        '''
+        if classname in self.classes:
+            return self.classes[classname]['is_template']
+        else:
+            return False
+
+    def register(self, classname, cls=None, module=None, is_template=False):
         '''Register a new classname refering to a real class or
-           class definition in a module.
+        class definition in a module.
+
+        :data:`is_template` have been added in 1.0.5.
         '''
         if cls is None and module is None:
             raise ValueError('You must specify either cls= or module=')
         self.classes[classname] = {
             'module': module,
-            'cls': cls}
+            'cls': cls,
+            'is_template': is_template}
 
     def __getattr__(self, name):
         classes = self.classes

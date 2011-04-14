@@ -150,4 +150,4 @@ if not 'KIVY_DOC' in os.environ:
     Modules.add_path(kivy.kivy_usermodules_dir)
 
 if __name__ == '__main__':
-    print Module.list()
+    print Modules.list()
