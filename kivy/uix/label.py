@@ -35,6 +35,7 @@ class Label(Widget):
     '''
 
     def __init__(self, **kwargs):
+        self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture
@@ -62,8 +63,7 @@ class Label(Widget):
                 self._label.options['font_name'] = rvalue if rvalue else value
             else:
                 self._label.options[name] = value
-        Clock.unschedule(self.texture_update)
-        Clock.schedule_once(self.texture_update, -1)
+        self._trigger_texture()
 
     def texture_update(self, *largs):
         '''Force texture recreation with the current Label properties.

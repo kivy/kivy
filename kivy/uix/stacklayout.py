@@ -48,6 +48,7 @@ class StackLayout(Layout):
     def __init__(self, **kwargs):
         kwargs.setdefault('size', (1, 1))
         self._minimum_size = (0, 0)
+        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(StackLayout, self).__init__(**kwargs)
         self.bind(
             children = self._trigger_layout,
@@ -58,10 +59,6 @@ class StackLayout(Layout):
     def update_minimum_size(self, *largs):
         self._do_layout()
         super(StackLayout, self).update_minimum_size(*largs)
-
-    def _trigger_layout(self, *largs):
-        Clock.unschedule(self._do_layout)
-        Clock.schedule_once(self._do_layout)
 
     def _do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop
