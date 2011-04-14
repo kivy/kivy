@@ -120,6 +120,7 @@ class ClockEvent(object):
         # if the event is not yet triggered, do it !
         if not self._is_triggered:
             self._is_triggered = True
+            self._is_done = False
             events = self.clock._events
             cid = self.cid
             if not cid in events:
@@ -327,12 +328,13 @@ class ClockBase(object):
         events = self._events
         if isinstance(callback, ClockEvent):
             # already done, nothing to schedule
-            if callback.is_done():
+            if callback.is_done:
                 return
             cid = callback.cid
-            for event in events[cid][:]:
-                if event is callback:
-                    events[cid].remove(event)
+            if cid in events:
+                for event in events[cid][:]:
+                    if event is callback:
+                        events[cid].remove(event)
         else:
             cid = _hash(callback)
             if cid in events:
@@ -345,7 +347,7 @@ class ClockBase(object):
         # and replace it with a weakref
         events = self._events
         for cid in events:
-            [x.release() for x in events[cid] if x.callback is None]
+            [x.release() for x in events[cid] if x.callback is not None]
 
     def _remove_empty(self):
         # remove empty entry in the event list
