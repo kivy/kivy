@@ -47,9 +47,37 @@ If you want to increase that limit, you can do::
 
     from kivy.clock import Clock
     Clock.max_iteration = 20
+
+Triggered Events
+----------------
+
+.. versionadded:: 1.0.5
+
+A triggered event is a Event than can be started when it will be triggered.
+Before triggered events, you might done this approach in your code::
+
+    def callback(self):
+        print 'my callback is called'
+
+    def trigger_callback(self, *largs):
+        Clock.unschedule(self.callback)
+        Clock.schedule_once(self.callback)
+
+With triggered event, you don't need anymore of trigger_callback. You can do::
+
+    trigger_callback = Clock.create_trigger(self.callback)
+
+And same as the previous approach, as soon as you'll call the
+`trigger_callback()`, it will correctly schedule the call of the callback in the
+next frame.
+
+.. note::
+
+    :func:`Clock.create_trigger` use internally schedule_once. You can use the
+    same parameters.
 '''
 
-__all__ = ('Clock', 'ClockBase')
+__all__ = ('Clock', 'ClockBase', 'ClockEvent')
 
 from os import environ
 from time import time, sleep
@@ -70,15 +98,35 @@ def _hash(cb):
             return 'default'
 
 
-class _Event(object):
+class ClockEvent(object):
 
-    def __init__(self, loop, callback, timeout, starttime):
+    def __init__(self, clock, loop, callback, timeout, starttime, cid):
+        self.clock = clock
+        self.cid = cid
         self.loop = loop
         self.weak_callback = None
         self.callback = callback
         self.timeout = timeout
+        self._is_done = False
+        self._is_triggered = False
         self._last_dt = starttime
         self._dt = 0.
+
+    def __call__(self, *largs):
+        # if the event is done, retrigger
+        if self._is_done:
+            self._is_done = False
+            self._is_triggered = False
+        # if the event is not yet triggered, do it !
+        if not self._is_triggered:
+            self._is_triggered = True
+            events = self.clock._events
+            cid = self.cid
+            if not cid in events:
+                events[cid] = []
+            events[cid].append(self)
+            # update starttime
+            self._last_dt = self.clock._last_tick
 
     def get_callback(self):
         callback = self.callback
@@ -88,6 +136,14 @@ class _Event(object):
         if callback.is_dead():
             return None
         return callback()
+
+    @property
+    def is_done(self):
+        return self._is_done
+
+    @property
+    def is_triggered(self):
+        return self._is_triggered
 
     def do(self, dt):
         callback = self.get_callback()
@@ -111,6 +167,7 @@ class _Event(object):
         # get the callback
         callback = self.get_callback()
         if callback is None:
+            self._is_done = True
             return False
 
         # call the callback
@@ -119,17 +176,19 @@ class _Event(object):
         # if it's a once event, don't care about the result
         # just remove the event
         if not self.loop:
+            self._is_done = True
             return False
 
         # if the user returns False explicitly,
         # remove the event
         if ret is False:
+            self._is_done = True
             return False
 
         return True
 
     def __repr__(self):
-        return '<kivy.clock._Event callback=%r>' % self.get_callback()
+        return '<ClockEvent callback=%r>' % self.get_callback()
 
 
 class ClockBase(object):
@@ -227,6 +286,15 @@ class ClockBase(object):
         '''Get time in seconds from the application start'''
         return self._last_tick - self._start_tick
 
+    def create_trigger(self, callback, timeout=0):
+        '''Create a Trigger event. Check module information for more
+        information.
+
+        .. versionadded:: 1.0.5
+        '''
+        cid = _hash(callback)
+        return ClockEvent(self, False, callback, timeout, 0, cid)
+
     def schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds.
 
@@ -235,8 +303,8 @@ class ClockBase(object):
             If the timeout is -1, the callback will be called before the next
             frame (at :func:`tick_draw`).
         '''
-        event = _Event(False, callback, timeout, self._last_tick)
         cid = _hash(callback)
+        event = ClockEvent(self, False, callback, timeout, self._last_tick, cid)
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -245,8 +313,8 @@ class ClockBase(object):
 
     def schedule_interval(self, callback, timeout):
         '''Schedule a event to be call every <timeout> seconds'''
-        event = _Event(True, callback, timeout, self._last_tick)
         cid = _hash(callback)
+        event = ClockEvent(self, True, callback, timeout, self._last_tick, cid)
         events = self._events
         if not cid in events:
             events[cid] = []
@@ -254,14 +322,23 @@ class ClockBase(object):
         return event
 
     def unschedule(self, callback):
-        '''Remove a previous schedule event'''
-        # mark as unschedule
-        cid = _hash(callback)
+        '''Remove a previous schedule event.
+        '''
         events = self._events
-        if cid in events:
+        if isinstance(callback, ClockEvent):
+            # already done, nothing to schedule
+            if callback.is_done():
+                return
+            cid = callback.cid
             for event in events[cid][:]:
-                if event.get_callback() is callback:
+                if event is callback:
                     events[cid].remove(event)
+        else:
+            cid = _hash(callback)
+            if cid in events:
+                for event in events[cid][:]:
+                    if event.get_callback() is callback:
+                        events[cid].remove(event)
 
     def _release_references(self):
         # call that function to release all the direct reference to any callback
