@@ -107,20 +107,14 @@ class ClockEvent(object):
         self.weak_callback = None
         self.callback = callback
         self.timeout = timeout
-        self._is_done = False
         self._is_triggered = False
         self._last_dt = starttime
         self._dt = 0.
 
     def __call__(self, *largs):
-        # if the event is done, retrigger
-        if self._is_done:
-            self._is_done = False
-            self._is_triggered = False
         # if the event is not yet triggered, do it !
-        if not self._is_triggered:
+        if self._is_triggered is False:
             self._is_triggered = True
-            self._is_done = False
             events = self.clock._events
             cid = self.cid
             if not cid in events:
@@ -128,6 +122,7 @@ class ClockEvent(object):
             events[cid].append(self)
             # update starttime
             self._last_dt = self.clock._last_tick
+            return True
 
     def get_callback(self):
         callback = self.callback
@@ -139,10 +134,6 @@ class ClockEvent(object):
         return callback()
 
     @property
-    def is_done(self):
-        return self._is_done
-
-    @property
     def is_triggered(self):
         return self._is_triggered
 
@@ -150,7 +141,7 @@ class ClockEvent(object):
         callback = self.get_callback()
         if callback is None:
             return False
-        self.callback(dt)
+        callback(dt)
 
     def release(self):
         self.weak_callback = WeakMethod(self.callback)
@@ -168,7 +159,7 @@ class ClockEvent(object):
         # get the callback
         callback = self.get_callback()
         if callback is None:
-            self._is_done = True
+            self._is_triggered = False
             return False
 
         # call the callback
@@ -177,13 +168,13 @@ class ClockEvent(object):
         # if it's a once event, don't care about the result
         # just remove the event
         if not self.loop:
-            self._is_done = True
+            self._is_triggered = False
             return False
 
         # if the user returns False explicitly,
         # remove the event
         if ret is False:
-            self._is_done = True
+            self._is_triggered = False
             return False
 
         return True
