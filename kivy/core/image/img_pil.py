@@ -20,10 +20,10 @@ class ImageLoaderPIL(ImageLoaderBase):
     def extensions():
         '''Return accepted extension for this loader'''
         # See http://www.pythonware.com/library/pil/handbook/index.htm
-        return ('bmp', 'bufr', 'cur', 'dcx', 'eps', 'fits', 'fl', 'fpx', 'gbr',
+        return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
                 'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
-                'jpeg', 'jpg', 'mcidas', 'mic', 'mpeg', 'msp', 'palm', 'pcd',
-                'pcx', 'pdf', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
+                'jpeg', 'jpg', 'mcidas', 'mic', 'mpeg', 'msp', 'pcd',
+                'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
                 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
 
     def load(self, filename):

@@ -187,7 +187,6 @@ class TreeViewNode(object):
     '''
 
 
-
 class TreeViewLabel(Label, TreeViewNode):
     '''Combine :class:`~kivy.uix.label.Label` and :class:`TreeViewNode` to
     create a :class:`TreeViewLabel`, that can be used as a text node in the
@@ -210,6 +209,7 @@ class TreeView(Widget):
     def __init__(self, **kwargs):
         self.register_event_type('on_node_expand')
         self.register_event_type('on_node_collapse')
+        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(TreeView, self).__init__(**kwargs)
         tvlabel = TreeViewLabel(text='Root', is_open=True, level=0)
         for key, value in self.root_options.iteritems():
@@ -334,10 +334,6 @@ class TreeView(Widget):
             return
         for key, value in value.iteritems():
             setattr(self.root, key, value)
-
-    def _trigger_layout(self, *largs):
-        Clock.unschedule(self._do_layout)
-        Clock.schedule_once(self._do_layout, -1)
 
     def _do_layout(self, *largs):
         self.clear_widgets()
