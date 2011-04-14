@@ -348,13 +348,14 @@ class Scatter(Widget):
         new_line = Vector(*touch.pos) - anchor
 
         angle = radians(new_line.angle(old_line)) * self.do_rotation
-        scale = new_line.length() / old_line.length()
-        new_scale = scale * self.scale
-        if new_scale < self.scale_min or new_scale > self.scale_max:
-            scale = 1.0
-
         self.apply_transform(Matrix().rotate(angle, 0, 0, 1), anchor=anchor)
-        self.apply_transform(Matrix().scale(scale, scale, scale), anchor=anchor)
+
+        if self.do_scale:
+            scale = new_line.length() / old_line.length()
+            new_scale = scale * self.scale
+            if new_scale < self.scale_min or new_scale > self.scale_max:
+                scale = 1.0
+            self.apply_transform(Matrix().scale(scale, scale, scale), anchor=anchor)
 
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y
