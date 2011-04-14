@@ -40,6 +40,11 @@ cdef class Matrix:
         [ 0.000000 0.000000 1.000000 0.000000 ]
         [ 0.000000 0.000000 0.000000 1.000000 ]]
 
+        [ 0   1   2   3]
+        [ 4   5   6   7]
+        [ 8   9  10  11]
+        [12  13  14  15]
+
     '''
 
     def __cinit__(self):
@@ -97,17 +102,11 @@ cdef class Matrix:
         return self
 
     cpdef Matrix scale(Matrix self, double x, double y, double z):
-        '''Scale the matrix
+        '''Scale the matrix current Matrix (inplace).
         '''
         with nogil:
             self.mat[ 0] *= x;
-            self.mat[ 1] *= x;
-            self.mat[ 2] *= x;
-            self.mat[ 4] *= y;
             self.mat[ 5] *= y;
-            self.mat[ 6] *= y;
-            self.mat[ 8] *= z;
-            self.mat[ 9] *= z;
             self.mat[10] *= z;
         return self
 
@@ -222,7 +221,11 @@ cdef class Matrix:
         return mr
 
     cpdef Matrix multiply(Matrix mb, Matrix ma):
-        '''Return a new matrix of self * arg
+        '''Multiply the given matrix with self (from the left).
+        I.e., we premultiply the given matrix to the current matrix and return
+        the result (not inplace)::
+
+            m.multiply(n) -> n * m
         '''
         cdef Matrix mr = Matrix()
         cdef double *a = ma.mat, *b = mb.mat, *r = mr.mat
