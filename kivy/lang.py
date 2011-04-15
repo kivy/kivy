@@ -992,11 +992,12 @@ class BuilderBase(object):
                 if key == 'children':
                     for citem, cparams, in value:
                         child = self.build_item(citem, cparams)
-                        root = self.idmap['root']
-                        if isinstance(child, root.__class__):
-                            raise ParserError(ctx, ln, 'Recursion detected! '
-                                'You cannot add a widget in a rule that would '
-                                'affect the widget itself.')
+                        root = self.idmap.get('root')
+                        if root is not None:
+                            if isinstance(child, root.__class__):
+                                raise ParserError(ctx, ln, 'Recursion detected!'
+                                    ' You cannot add a widget in a rule that'
+                                    ' would affect the widget itself.')
                         widget.add_widget(child)
                 elif key == 'canvas':
                     with widget.canvas:
