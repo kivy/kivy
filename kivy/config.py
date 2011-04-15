@@ -143,16 +143,17 @@ Available configuration tokens
 
 __all__ = ('Config', 'KivyConfigParser')
 
+from shutil import copy2
 from ConfigParser import ConfigParser
 from sys import platform
-from os import environ
+from os import environ, listdir
 from os.path import exists, join
-from kivy import kivy_home_dir, kivy_config_fn
+from kivy import kivy_home_dir, kivy_config_fn, kivy_data_dir
 from kivy.logger import Logger
 from kivy.utils import OrderedDict
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 2
+KIVY_CONFIG_VERSION = 3
 
 #: Kivy configuration object
 Config = None
@@ -300,6 +301,16 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.remove_option('graphics', 'vsync')
             Config.set('graphics', 'maxfps', '60')
 
+        elif version == 2:
+            logo_dir = join(kivy_data_dir, 'logo')
+            dest_dir = join(kivy_home_dir, 'icon')
+            for logo in listdir(logo_dir):
+                copy2(join(logo_dir, logo), dest_dir)
+            logo_size = 32
+            if platform == 'darwin':
+                logo_size = 512
+            Config.set('kivy', 'window_icon', \
+                join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' % logo_size))
         #
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
