@@ -8,7 +8,6 @@ VideoCapture Camera: Implement CameraBase with VideoCapture
 
 __all__ = ('CameraVideoCapture', )
 
-import kivy
 from . import CameraBase
 
 try:
@@ -24,7 +23,7 @@ class CameraVideoCapture(CameraBase):
     def __init__(self, **kwargs):
         self._device = None
         super(CameraVideoCapture, self).__init__(**kwargs)
-        self._format = 'rgb'
+        self._format = 'bgr'
 
     def init_camera(self):
         # create the device
@@ -41,7 +40,8 @@ class CameraVideoCapture(CameraBase):
             # first update, resize if necessary
             self.size = camera_width, camera_height
             # and create texture
-            self._texture = kivy.Texture.create(size=self.size, colorfmt='bgr')
+            from kivy.graphics.texture import Texture
+            self._texture = Texture.create(size=self.size, colorfmt='rgb')
             self.dispatch('on_load')
 
         # update buffer
