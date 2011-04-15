@@ -122,6 +122,16 @@ cdef class InstructionGroup(Instruction):
         c.rremove(self)
         self.flag_update()
 
+    def indexof(self, Instruction c):
+        cdef int i
+        for i in xrange(len(self.children)):
+            if self.children[i] is c:
+                return i
+        return -1
+
+    def length(self):
+        return len(self.children)
+
     cpdef clear(self):
         '''Remove all the :class:`Instruction`s.
         '''

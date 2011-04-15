@@ -315,12 +315,15 @@ class Widget(EventDispatcher):
     #
     # Tree management
     #
-    def add_widget(self, widget):
+    def add_widget(self, widget, index=0):
         '''Add a new widget as a child of this widget.
 
         :Parameters:
             `widget`: :class:`Widget`
                 Widget to add to our list of children.
+            `index`: int, default to 0
+                .. versionadded:: 1.0.5
+                Index to insert the widget in the list
 
         >>> root = Widget()
         >>> root.add_widget(Button())
@@ -331,8 +334,25 @@ class Widget(EventDispatcher):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
         widget.parent = self
-        self.children.insert(0, widget)
-        self.canvas.add(widget.canvas)
+        if index == 0 or len(self.children) == 0:
+            self.children.insert(0, widget)
+            self.canvas.add(widget.canvas)
+        else:
+            canvas = self.canvas
+            children = self.children
+            if index >= len(children):
+                index = len(children)
+                next_index = 0
+            else:
+                next_child = children[index]
+                next_index = canvas.indexof(next_child.canvas)
+                if next_index == -1:
+                    next_index = canvas.length()
+                else:
+                    next_index += 1
+
+            children.insert(index, widget)
+            canvas.insert(next_index, widget.canvas)
 
     def remove_widget(self, widget):
         '''Remove a widget from the children of this widget.
