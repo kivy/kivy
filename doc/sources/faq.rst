@@ -188,3 +188,12 @@ using it. In the kivy directory, do::
 
     make force
 
+Pip installation failed
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Installing Kivy using Pip is not currently supported. Because Pip force the
+usage of setuptools, setuptools hack build_ext to use pyrex for generating .c,
+and they are no clean solution to hack against both weird behaviors to use
+Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709.html)
+
+Solution: use `easy_install`, as our documentation said.
