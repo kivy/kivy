@@ -170,3 +170,21 @@ Here's a checklist:
       thought through what you're asking, that might not be received well.
 
 Good luck! :-)
+
+Common issues
+-------------
+
+undefined symbol: glGenerateMipmap
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You might have a too old graphics card. Update your graphics drivers to the
+latest available version, and retry.
+
+ImportError: No module named event
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use Kivy from our development version, you must compile it before
+using it. In the kivy directory, do::
+
+    make force
+
