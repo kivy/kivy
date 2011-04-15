@@ -322,7 +322,7 @@ class Widget(EventDispatcher):
             `widget`: :class:`Widget`
                 Widget to add to our list of children.
             `index`: int, default to 0
-                .. versionadded:: 1.0.5
+                *(this attribute have been added in 1.0.5)*
                 Index to insert the widget in the list
 
         >>> root = Widget()
