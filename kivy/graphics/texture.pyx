@@ -28,7 +28,7 @@ cdef extern from "stdlib.h":
 
 # XXX move missing symbol in c_opengl
 # utilities
-AVAILABLE_GL_EXTENSIONS = ''
+AVAILABLE_GL_EXTENSIONS = []
 def hasGLExtension( specifier ):
     '''Given a string specifier, check for extension being available
     '''
@@ -159,16 +159,17 @@ cdef inline int _gl_format_size(GLuint x):
 cdef inline int has_bgr():
     global _has_bgr
     if _has_bgr == -1:
-        Logger.warning('Texture: BGR/BGRA format is not supported by'
-                       'your graphic card')
-        Logger.warning('Texture: Software conversion will be done to'
-                       'RGB/RGBA')
         _has_bgr = int(hasGLExtension('GL_EXT_bgra'))
+        if not _has_bgr:
+            Logger.warning('Texture: BGR/BGRA format is not supported by'
+                           'your graphic card')
+            Logger.warning('Texture: Software conversion will be done to'
+                           'RGB/RGBA')
     return _has_bgr
 
 cdef inline int _is_gl_format_supported(str x):
     if x in ('bgr', 'bgra'):
-        return not has_bgr()
+        return has_bgr()
     return 1
 
 cdef inline str _convert_gl_format(str x):
@@ -581,9 +582,9 @@ cdef class Texture:
         bufferfmt = _buffer_fmt_to_gl(bufferfmt)
 
         # need conversion ?
-        cdef bytes data, pdata
+        cdef bytes data
         data = pbuffer
-        pdata, colorfmt = _convert_buffer(data, colorfmt)
+        data, colorfmt = _convert_buffer(data, colorfmt)
 
         # prepare nogil
         cdef int glfmt = _color_fmt_to_gl(colorfmt)
