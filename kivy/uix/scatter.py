@@ -101,7 +101,6 @@ class Scatter(Widget):
     (:data:`do_translation_x` + :data:`do_translation_y`)
     '''
 
-
     do_rotation = BooleanProperty(True)
     '''Allow rotation
 
@@ -247,6 +246,7 @@ class Scatter(Widget):
 
     def __init__(self, **kwargs):
         self._touches = []
+        self._last_touch_pos = {}
         super(Scatter, self).__init__(**kwargs)
 
     def on_transform(self, instance, value):
@@ -264,34 +264,34 @@ class Scatter(Widget):
         p = self.transform_inv.transform_point(x, y, 0)
         return (p[0], p[1])
 
-    def apply_angle_scale_trans(self, angle, scale, trans, point=Vector(0, 0)):
-        '''Update matrix transformation by adding new angle,
-           scale and translate.
+   # def apply_angle_scale_trans(self, angle, scale, trans, point=Vector(0, 0)):
+   #     '''Update matrix transformation by adding new angle,
+   #        scale and translate.
 
-        :Parameters:
-            `angle` : float
-                Rotation angle to add
-            `scale` : float
-                Scaling value to add
-            `trans` : Vector
-                Vector translation to add
-            `point` : Vector, default to (0, 0)
-                Point to apply transformation
-        '''
-        old_scale = self.scale
-        new_scale = old_scale * scale
-        if new_scale < self.scale_min or old_scale > self.scale_max:
-            scale = 1.
+   #     :Parameters:
+   #         `angle` : float
+   #             Rotation angle to add
+   #         `scale` : float
+   #             Scaling value to add
+   #         `trans` : Vector
+   #             Vector translation to add
+   #         `point` : Vector, default to (0, 0)
+   #             Point to apply transformation
+   #     '''
+   #     old_scale = self.scale
+   #     new_scale = old_scale * scale
+   #     if new_scale < self.scale_min or old_scale > self.scale_max:
+   #         scale = 1.
 
-        t = Matrix().translate(
-            trans[0] * self.do_translation_x,
-            trans[1] * self.do_translation_y,
-            0)
-        t = t.multiply(Matrix().translate(point[0], point[1], 0))
-        t = t.multiply(Matrix().rotate(angle, 0, 0, 1))
-        t = t.multiply(Matrix().scale(scale, scale, scale))
-        t = t.multiply(Matrix().translate(-point[0], -point[1], 0))
-        self.apply_transform(t)
+   #     t = Matrix().translate(
+   #         trans[0] * self.do_translation_x,
+   #         trans[1] * self.do_translation_y,
+   #         0)
+   #     t = t.multiply(Matrix().translate(point[0], point[1], 0))
+   #     t = t.multiply(Matrix().rotate(angle, 0, 0, 1))
+   #     t = t.multiply(Matrix().scale(scale, scale, scale))
+   #     t = t.multiply(Matrix().translate(-point[0], -point[1], 0))
+   #     self.apply_transform(t)
 
     def apply_transform(self, trans, post_multiply=False, anchor=(0, 0)):
         '''
@@ -320,14 +320,16 @@ class Scatter(Widget):
         # just do a simple one finger drag
         if len(self._touches) == 1:
             # _last_touch_pos has last pos in correct parent space,
-            # just liek incoming touch
-            dx = touch.dx * self.do_translation_x
-            dy = touch.dy * self.do_translation_y
+            # just like incoming touch
+            dx = (touch.x - self._last_touch_pos[touch][0]) \
+                    * self.do_translation_x
+            dy = (touch.y - self._last_touch_pos[touch][1]) \
+                    * self.do_translation_y
             self.apply_transform(Matrix().translate(dx, dy, 0))
             return
 
         # we have more than one touch...
-        points = [Vector(t.px, t.py) for t in self._touches]
+        points = [Vector(self._last_touch_pos[t]) for t in self._touches]
 
         # we only want to transform if the touch is part of the two touches
         # furthest apart! So first we find anchor, the point to transform
@@ -346,13 +348,14 @@ class Scatter(Widget):
         new_line = Vector(*touch.pos) - anchor
 
         angle = radians(new_line.angle(old_line)) * self.do_rotation
-        scale = new_line.length() / old_line.length()
-        new_scale = scale * self.scale
-        if new_scale < self.scale_min or new_scale > self.scale_max:
-            scale = 1.0
-
         self.apply_transform(Matrix().rotate(angle, 0, 0, 1), anchor=anchor)
-        self.apply_transform(Matrix().scale(scale, scale, scale), anchor=anchor)
+
+        if self.do_scale:
+            scale = new_line.length() / old_line.length()
+            new_scale = scale * self.scale
+            if new_scale < self.scale_min or new_scale > self.scale_max:
+                scale = 1.0
+            self.apply_transform(Matrix().scale(scale, scale, scale), anchor=anchor)
 
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y
@@ -378,6 +381,7 @@ class Scatter(Widget):
         # grab the touch so we get all it later move events for sure
         touch.grab(self)
         self._touches.append(touch)
+        self._last_touch_pos[touch] = touch.pos
 
         return True
 
@@ -395,8 +399,9 @@ class Scatter(Widget):
         # rotate/scale/translate
         if touch in self._touches and touch.grab_current == self:
             self.transform_with_touch(touch)
+            self._last_touch_pos[touch] = touch.pos
 
-        # stop porpagating if its within our bounds
+        # stop propagating if its within our bounds
         if self.collide_point(x, y):
             return True
 
@@ -414,9 +419,10 @@ class Scatter(Widget):
         # remove it from our saved touches
         if touch in self._touches and touch.grab_state:
             touch.ungrab(self)
+            del self._last_touch_pos[touch]
             self._touches.remove(touch)
 
-        # stop porpagating if its within our bounds
+        # stop propagating if its within our bounds
         if self.collide_point(x, y):
             return True
 

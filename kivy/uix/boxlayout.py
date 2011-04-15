@@ -69,12 +69,13 @@ class BoxLayout(Layout):
 
     def __init__(self, **kwargs):
         kwargs.setdefault('size', (1, 1))
+        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         self._minimum_size = (0, 0)
         super(BoxLayout, self).__init__(**kwargs)
         self.bind(
-            spacing = self.update_minimum_size,
-            padding = self.update_minimum_size,
-            orientation = self.update_minimum_size)
+            spacing = self._trigger_minimum_size,
+            padding = self._trigger_minimum_size,
+            orientation = self._trigger_minimum_size)
         self.bind(
             spacing = self._trigger_layout,
             padding = self._trigger_layout,
@@ -82,10 +83,6 @@ class BoxLayout(Layout):
             orientation = self._trigger_layout,
             size = self._trigger_layout,
             pos = self._trigger_layout)
-
-    def _trigger_layout(self, *largs):
-        Clock.unschedule(self._do_layout)
-        Clock.schedule_once(self._do_layout)
 
     def update_minimum_size(self, *largs):
         '''Calculates the minimum size of the layout.
@@ -130,7 +127,10 @@ class BoxLayout(Layout):
                     if shh is not None:
                         height += _h
 
-        self.minimum_size = (width, height)
+        before = self.minimum_size
+        if before[0] != width or before[1] != height:
+            self.minimum_size = (width, height)
+            self._trigger_layout()
 
     def _do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop

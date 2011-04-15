@@ -2,45 +2,54 @@
 Widget class
 ============
 
-The :class:`Widget` class is base class required to create a Widget.
-Our widget class is designed for:
+The :class:`Widget` class is the base class required to create a Widget.
+Our widget class is designed with a couple of principles in mind:
 
-    Event managed
-        The widget interaction is build on top of event. If a property change,
-        the widget will do something. If nothing change in the widget, nothing
-        will be done. That's the main goal of the
+    Event Driven
+        The widget interaction is build on top of events that occur.
+        If a property changes, the widget can do something. If nothing changes
+        in the widget, nothing will be done. That's the main goal of the
         :class:`~kivy.properties.Property` class.
 
-    Seperate widget and graphical representation
-        We don't have a `draw()` method. The idea is to let you the possibility
-        to create your own graphical representation outside the widget class.
-        And you'll use all the available properties to do that.
-        Every widget have his own :class:`~kivy.graphics.Canvas`.
+    Separate the widget and its graphical representation
+        Widgets don't have a `draw()` method. This is done on purpose: The idea
+        is to allow you to create your own graphical representation outside the
+        widget class.
+        Obviously you can still use all the available properties to do that, so
+        that your representation properly reflects the widget's current state.
+        Every widget has its own :class:`~kivy.graphics.Canvas` that you can use
+        to draw. This separation allows Kivy to run your application in a very
+        efficient manner.
 
-    Bounding box / Collision
-        Since the graphical representation is seperated, the position and size
-        of the widget represent his bounding box. You can check if a point is
-        inside the widget with :func:`Widget.collide_point`, or if a widget is
-        colliding another widget with :func:`Widget.collide_widget`.
+    Bounding Box / Collision
+        Often you want to know if a certain point is within the bounds of your
+        widget. An example would be a button widget where you want to only
+        trigger an action when the button itself is actually touched.
+        For this, you can use the :func:`Widget.collide_point` method, which
+        will return True if the point you pass it is inside the axis-aligned
+        bounding box defined by the widgets position and size.
+        If a simple AABB is not sufficient, you can override the method to
+        perform the collision checks with more complex shapes (e.g. a polygon).
+        You can also check if a widget collides with another widget with
+        :func:`Widget.collide_widget`.
 
+Using Properties
+----------------
 
-Usage of properties
--------------------
+When you read the documentation, all properties are described in the format::
 
-When you read the documentation, every property are described in the format::
-
-    <name> is a <property class>, default to <default value>
+    <name> is a <property class>, defaults to <default value>
 
 For example::
 
     :data:`Widget.pos` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`Widget.x`, :data:`Widget.y`) properties.
 
-If you want to know when a the pos attribute change (meaning when the widget
-move), you can bind your own function like this::
+If you want to be notified when the pos attribute changes (i.e. when the
+widget moves), you can bind your own function (callback) like this::
 
     def callback_pos(instance, value):
-        print 'the widget', instance, 'have moved to', value
+        print 'The widget', instance, 'moved to', value
 
     wid = Widget()
     wid.bind(pos=callback_pos)
@@ -67,15 +76,15 @@ class WidgetException(Exception):
 
 
 class Widget(EventDispatcher):
-    '''Widget class. See module documentation for more informations.
+    '''Widget class. See module documentation for more information.
 
     :Events:
         `on_touch_down`:
             Fired when a new touch appear
         `on_touch_move`:
             Fired when an existing touch is moved
-        `on_touch_down`:
-            Fired when an existing touch disapear
+        `on_touch_up`:
+            Fired when an existing touch disappears
     '''
 
     # UID counter
@@ -167,7 +176,7 @@ class Widget(EventDispatcher):
             `name`: string
                 Name of the property
 
-        The class of the property cannot be specified, it will be always an
+        The class of the property cannot be specified, it will always be an
         :class:`~kivy.properties.ObjectProperty` class. The default value of the
         property will be None, until you set a new value.
 
@@ -181,23 +190,24 @@ class Widget(EventDispatcher):
         prop.link(self, name)
         prop.link_deps(self, name)
         self.__properties[name] = prop
-        setattr(self, name, prop)
+        setattr(self.__class__, name, prop)
 
 
     #
     # Collision
     #
     def collide_point(self, x, y):
-        '''Check if a point (x, y) is inside the widget bounding box.
+        '''Check if a point (x, y) is inside the widget's axis aligned bounding
+        box.
 
         :Parameters:
             `x`: numeric
-                X position of the point
+                X position of the point (in window coordinates)
             `y`: numeric
-                Y position of the point
+                Y position of the point (in window coordinates)
 
         :Returns:
-            bool, True if the point is inside the bounding box
+            bool, True if the point is inside the bounding box.
 
         >>> Widget(pos=(10, 10), size=(50, 50)).collide_point(40, 40)
         True
@@ -205,15 +215,15 @@ class Widget(EventDispatcher):
         return self.x <= x <= self.right and self.y <= y <= self.top
 
     def collide_widget(self, wid):
-        '''Check if widget (bounding box) is colliding with our widget bounding
-        box.
+        '''Check if the other widget collides with this widget.
+        Performs an axis-aligned bounding box intersection test by default.
 
         :Parameters:
             `wid`: :class:`Widget` class
-                Widget to collide to.
+                Widget to collide with.
 
         :Returns:
-            bool, True if the widget is colliding us.
+            bool, True if the other widget collides with this widget.
 
         >>> wid = Widget(size=(50, 50))
         >>> wid2 = Widget(size=(50, 50), pos=(25, 25))
@@ -238,14 +248,14 @@ class Widget(EventDispatcher):
     # Default event handlers
     #
     def on_touch_down(self, touch):
-        '''Receive a touch down event
+        '''Receive a touch down event.
 
         :Parameters:
             `touch`: :class:`~kivy.input.motionevent.MotionEvent` class
                 Touch received
 
         :Returns:
-            bool. If True, the dispatching will stop.
+            bool. If True, the dispatching of the touch will stop.
         '''
         for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
@@ -274,12 +284,12 @@ class Widget(EventDispatcher):
     # Events
     #
     def bind(self, **kwargs):
-        '''Bind properties or event to handler.
+        '''Bind properties or events to a handler.
 
-        Example of usage::
+        Example usage::
 
             def my_x_callback(obj, value):
-                print 'on object', obj', 'x changed to', value
+                print 'on object', obj, 'x changed to', value
             def my_width_callback(obj, value):
                 print 'on object', obj, 'width changed to', value
             self.bind(x=my_x_callback, width=my_width_callback)
@@ -291,7 +301,7 @@ class Widget(EventDispatcher):
             self.__properties[key].bind(self, value)
 
     def unbind(self, **kwargs):
-        '''Unbind properties or event from handler
+        '''Unbind properties or events from their handler.
 
         See :func:`bind()` for more information.
         '''
@@ -306,11 +316,11 @@ class Widget(EventDispatcher):
     # Tree management
     #
     def add_widget(self, widget):
-        '''Add a new widget as a child of current widget
+        '''Add a new widget as a child of this widget.
 
         :Parameters:
             `widget`: :class:`Widget`
-                Widget to add in our children list.
+                Widget to add to our list of children.
 
         >>> root = Widget()
         >>> root.add_widget(Button())
@@ -321,15 +331,15 @@ class Widget(EventDispatcher):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
         widget.parent = self
-        self.children = [widget] + self.children
+        self.children.insert(0, widget)
         self.canvas.add(widget.canvas)
 
     def remove_widget(self, widget):
-        '''Remove a widget from the children of current widget
+        '''Remove a widget from the children of this widget.
 
         :Parameters:
             `widget`: :class:`Widget`
-                Widget to add in our children list.
+                Widget to remove from our children list.
 
         >>> root = Widget()
         >>> button = Button()
@@ -339,19 +349,18 @@ class Widget(EventDispatcher):
         if widget not in self.children:
             return
         self.children.remove(widget)
-        self.children = self.children[:]
         self.canvas.remove(widget.canvas)
         widget.parent = None
 
     def clear_widgets(self):
-        '''Remove all widgets added to the widget.
+        '''Remove all widgets added to this widget.
         '''
         remove_widget = self.remove_widget
         for child in self.children[:]:
             remove_widget(child)
 
     def get_root_window(self):
-        '''Return the root window
+        '''Return the root window.
 
         :Returns:
             Instance of the root window. Can be
@@ -362,10 +371,10 @@ class Widget(EventDispatcher):
             return self.parent.get_root_window()
 
     def get_parent_window(self):
-        '''Return the parent window
+        '''Return the parent window.
 
         :Returns:
-            Instance of the root window. Can be
+            Instance of the parent window. Can be
             :class:`~kivy.core.window.WindowBase` or
             :class:`Widget`
         '''
@@ -373,13 +382,15 @@ class Widget(EventDispatcher):
             return self.parent.get_parent_window()
 
     def to_widget(self, x, y, relative=False):
-        '''Return the coordinate from window to local widget'''
+        '''Convert the given coordinate from window to local widget
+        coordinates.
+        '''
         if self.parent:
             x, y = self.parent.to_widget(x, y)
         return self.to_local(x, y, relative=relative)
 
     def to_window(self, x, y, initial=True, relative=False):
-        '''Transform local coordinate to window coordinate'''
+        '''Transform local coordinates to window coordinates.'''
         if not initial:
             x, y = self.to_parent(x, y, relative=relative)
         if self.parent:
@@ -387,24 +398,24 @@ class Widget(EventDispatcher):
         return (x, y)
 
     def to_parent(self, x, y, relative=False):
-        '''Transform local coordinate to parent coordinate
+        '''Transform local coordinates to parent coordinates.
 
         :Parameters:
             `relative`: bool, default to False
-                Change to True is you want to translate relative position from
-                widget to his parent.
+                Change to True if you want to translate relative positions from
+                widget to its parent.
         '''
         if relative:
             return (x + self.x, y + self.y)
         return (x, y)
 
     def to_local(self, x, y, relative=False):
-        '''Transform parent coordinate to local coordinate
+        '''Transform parent coordinates to local coordinates.
 
         :Parameters:
             `relative`: bool, default to False
-                Change to True is you want to translate a coordinate to a
-                relative coordinate from widget.
+                Change to True if you want to translate coordinates to
+                relative widget coordinates.
         '''
         if relative:
             return (x - self.x, y - self.y)
@@ -531,18 +542,18 @@ class Widget(EventDispatcher):
     '''
 
     id = StringProperty(None, allownone=True)
-    '''Uniq identifier of the widget in the tree.
+    '''Unique identifier of the widget in the tree.
 
     :data:`id` is a :class:`~kivy.properties.StringProperty`, default to None.
 
     .. warning::
 
         If the :data:`id` is already used in the tree, an exception will
-        occur.
+        be raised.
     '''
 
     children = ListProperty([])
-    '''Children list
+    '''List of children of this widget
 
     :data:`children` is a :class:`~kivy.properties.ListProperty` instance,
     default to an empty list.
@@ -553,7 +564,7 @@ class Widget(EventDispatcher):
     '''
 
     parent = ObjectProperty(None, allownone=True)
-    '''Parent of the widget
+    '''Parent of this widget
 
     :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance,
     default to None.
@@ -563,12 +574,13 @@ class Widget(EventDispatcher):
     '''
 
     size_hint_x = NumericProperty(1, allownone=True)
-    '''X size hint. It represent how much space the widget should use in the X
-    axis from his parent. Only :class:`~kivy.uix.layout.Layout` and
-    :class:`~kivy.core.window.Window` are using the hint.
+    '''X size hint. It represents how much space the widget should use in the
+    direction of the X axis, relative to its parent's width.
+    Only :class:`~kivy.uix.layout.Layout` and
+    :class:`~kivy.core.window.Window` make use of the hint.
 
-    Value is in percent, 1. will mean the full size of his parent, aka 100%. 0.5
-    will represent 50%.
+    The value is in percent as a float from 0. to 1., where 1. means the full
+    size of his parent, i.e. 100%. 0.5 represents 50%.
 
     :data:`size_hint_x` is a :class:`~kivy.properties.NumericProperty`, default
     to 1.
@@ -593,18 +605,18 @@ class Widget(EventDispatcher):
     '''
 
     pos_hint = ObjectProperty({})
-    '''Position hint. This property permit you to set the position of the widget
-    inside his parent layout, in percent.
+    '''Position hint. This property allows you to set the position of the widget
+    inside its parent layout, in percent (similar to size_hint).
 
     For example, if you want to set the top of the widget to be at 90% height of
-    his parent layout, you can write:
+    its parent layout, you can write:
 
         widget = Widget(pos_hint={'top': 0.9})
 
     The keys 'x', 'right', 'center_x', will use the parent width.
     The keys 'y', 'top', 'center_y', will use the parent height.
 
-    Check :doc:`api-kivy.uix.floatlayout` for more informations.
+    Check :doc:`api-kivy.uix.floatlayout` for further reference.
 
     Position hint is only used in :class:`~kivy.uix.floatlayout.FloatLayout` and
     :class:`~kivy.core.window.Window`.
@@ -616,7 +628,7 @@ class Widget(EventDispatcher):
     canvas = None
     '''Canvas of the widget.
 
-    The canvas is a graphics object that contain all the drawing instruction.
-    Check :class:`~kivy.graphics.Canvas` for more information about usage.
+    The canvas is a graphics object that contains all the drawing instructions
+    for the graphical representation of the widget.
+    Check :class:`~kivy.graphics.Canvas` for more information about the usage.
     '''
-

@@ -214,7 +214,6 @@ setup(
         'kivy.core.image',
         'kivy.core.gl',
         'kivy.core.spelling',
-        'kivy.core.svg',
         'kivy.core.text',
         'kivy.core.video',
         'kivy.core.window',

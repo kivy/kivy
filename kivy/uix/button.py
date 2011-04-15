@@ -32,7 +32,7 @@ to the :data:`Button.state` property ::
 __all__ = ('Button', )
 
 from kivy.uix.label import Label
-from kivy.properties import OptionProperty
+from kivy.properties import OptionProperty, StringProperty
 
 
 class Button(Label):
@@ -51,6 +51,26 @@ class Button(Label):
     By default, the state of the button is 'normal'.
 
     :data:`state` is an :class:`~kivy.properties.OptionProperty`.
+    '''
+
+    background_normal = StringProperty('data/images/button.png')
+    '''Background image of the button used for default graphical representation,
+    when the button is not pressed.
+
+    .. versionadded:: 1.0.4
+
+    :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
+    default to 'data/images/button.png'
+    '''
+
+    background_down = StringProperty('data/images/button_pressed.png')
+    '''Background image of the button used for default graphical representation,
+    when the button is pressed.
+
+    .. versionadded:: 1.0.4
+
+    :data:`background_down` is an :class:`~kivy.properties.StringProperty`,
+    default to 'data/images/button_pressed.png'
     '''
 
     def __init__(self, **kwargs):

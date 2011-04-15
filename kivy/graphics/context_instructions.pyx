@@ -34,7 +34,7 @@ cdef object get_default_texture():
     return DEFAULT_TEXTURE
 
 # register Image cache
-Cache.register('kv.texture', timeout=60)
+Cache.register('kv.texture', limit=1000, timeout=60)
 
 # ensure that our resources are cleaned
 def gl_init_resources():
@@ -106,8 +106,9 @@ cdef tuple hsv_to_rgb(float h, float s, float v):
     if i == 5: return v, p, q
     # Cannot get here
 
+
 cdef class Color(ContextInstruction):
-    '''Instruction to set the color state for any vetices being drawn after it
+    '''Instruction to set the color state for any vertices being drawn after it
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
@@ -273,7 +274,7 @@ cdef class MatrixInstruction(ContextInstruction):
         cdef RenderContext context = self.get_context()
         cdef Matrix mvm
         mvm = context.get_state('modelview_mat')
-        context.set_state('modelview_mat', self.matrix.multiply(mvm))
+        context.set_state('modelview_mat', mvm.multiply(self.matrix))
 
     property matrix:
         ''' Matrix property. Numpy matrix from transformation module

@@ -2,25 +2,34 @@
 Properties
 ==========
 
-The properties classes are used for creating :class:`~kivy.uix.widget.Widget`.
-Theses classes are supporting:
+The *Properties* classes are used when you create a
+:class:`~kivy.uix.widget.Widget`.
 
-    Value checker
+.. warning::
+        Kivy's Properties are **not to be confused** with Python's
+        properties (i.e. the ``@property`` decorator and the <property> type).
+
+Kivy's property classes support:
+
+    Value Checking / Validation
         When you assign a new value to a property, the value is checked to pass
-        some contraints implemented in class. For example, an
-        :class:`OptionProperty` will check that your value is inside a list of
-        possibilities, :class:`NumericProperty` will check that your value is an
-        int or double, etc.
+        some constraints implemented in the class. I.e., validation is
+        performed. For example, an :class:`OptionProperty` will make sure that
+        the value is in a predefined list of possibilities.
+        A :class:`NumericProperty` will check that your value is a numeric type,
+        i.e. int, float, etc.
+        This prevents many errors early on.
 
-    Observer pattern
-        You can bind your own function to the change of a :class:`Property`. If
-        you want to be called when the :class:`~kivy.uix.widget.Widget.pos`
-        property change, you can :class:`~kivy.uix.widget.Widget.bind` a
-        function to it.
+    Observer Pattern
+        You can specify what should happen when a property's value changes.
+        You can bind your own function as a callback to changes of a
+        :class:`Property`. If, for example, you want a piece of code to be
+        called when a widget's :class:`~kivy.uix.widget.Widget.pos` property
+        changes, you can :class:`~kivy.uix.widget.Widget.bind` a function to it.
 
-    Better memory management
+    Better Memory Management
         The same instance of a property is shared across multiple widget
-        instance. The value storage is independant of the Widget.
+        instances. The value storage is independent of the Widget.
 
 '''
 
@@ -31,14 +40,15 @@ Theses classes are supporting:
 __all__ = ('NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
-           'NumericProperty', 'Property')
+           'Property')
+
 
 cdef class Property:
-    '''Base class for build more complex property.
-    
-    This class handle all the basics setter and getter, None handling,
-    observers list, and storage initialisation. This class should not be
-    directly instanciated.
+    '''Base class for building more complex properties.
+
+    This class handles all the basic setters and getters, None type handling,
+    the observer list and storage initialisation. This class should not be
+    directly instantiated.
     '''
 
     cdef str _name
@@ -66,23 +76,23 @@ cdef class Property:
         storage['observers'] = []
 
     cpdef link(self, object obj, str name):
-        '''Link the instance with his real name.
+        '''Link the instance with its real name.
 
         .. warning::
 
             Internal usage only.
 
-        When a widget definition use a :class:`Property` class, the creation of
-        the property happen, but the instance don't know anything about his name
-        in the widget class ::
+        When a widget is defined and uses a :class:`Property` class, the
+        creation of the property object happens, but the instance doesn't know
+        anything about its name in the widget class::
 
             class MyWidget(Widget):
                 uid = NumericProperty(0)
 
-        On this example, the uid will be a NumericProperty() instance, but the
-        property instance don't know his name. That's why :func:`link` is used
+        In this example, the uid will be a NumericProperty() instance, but the
+        property instance doesn't know its name. That's why :func:`link` is used
         in Widget.__new__. The link function is also used to create the storage
-        of the property for this specific widget instance.
+        space of the property for this specific widget instance.
         '''
         d = dict()
         self._name = name
@@ -148,8 +158,11 @@ cdef class Property:
     #
 
     cdef check(self, obj, x):
-        '''Check if the value is correct or not, depending the settings of the
-        property class.
+        '''Check if the value is correct or not, depending on the settings of
+        the property class.
+
+        :Returns:
+            bool, True if the value correctly validates.
         '''
         if x is None:
             if not self.storage[obj.__uid]['allownone']:
@@ -158,8 +171,8 @@ cdef class Property:
                 return True
 
     cdef convert(self, obj, x):
-        '''Convert the initial value to a correct value.
-        Can be used for multiple type of argument, and simplify into only one.
+        '''Convert the initial value to a correctly validating value.
+        Can be used for multiple types of argument, and simplify into only one.
         '''
         return x
 
@@ -173,9 +186,9 @@ cdef class Property:
 
 
 cdef class NumericProperty(Property):
-    '''Property that represent a numeric value
+    '''Property that represents a numeric value
 
-    The NumericProperty accept only int or float.
+    The NumericProperty accepts only int or float.
 
     >>> Widget.x = 42
     >>> print Widget.x
@@ -186,17 +199,17 @@ cdef class NumericProperty(Property):
         File "properties.pyx", line 93, in kivy.properties.Property.__set__
         File "properties.pyx", line 111, in kivy.properties.Property.set
         File "properties.pyx", line 159, in kivy.properties.NumericProperty.check
-        ValueError: NumericProperty accept only int/float
+        ValueError: NumericProperty accepts only int/float
     '''
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
         if type(value) not in (int, float):
-            raise ValueError('NumericProperty accept only int/float')
+            raise ValueError('NumericProperty<%s> accepts only int/float' % self.name)
 
 
 cdef class StringProperty(Property):
-    '''Property that represent a string value.
+    '''Property that represents a string value.
 
     Only string or unicode are accepted.
     '''
@@ -204,7 +217,9 @@ cdef class StringProperty(Property):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, basestring):
-            raise ValueError('StringProperty accept only str/unicode')
+            raise ValueError('StringProperty<%s> accepts only str/unicode' %
+                             self.name)
+
 
 class ObservableList(list):
     # Internal class to observe changes inside a native python list.
@@ -244,9 +259,10 @@ class ObservableList(list):
         prop.dispatch(self.obj)
 
     def __add__(self, *largs):
-        list.__add__(self, *largs)
+        cdef object result = list.__add__(self, *largs)
         cdef Property prop = self.prop
         prop.dispatch(self.obj)
+        return result
 
     def append(self, *largs):
         list.append(self, *largs)
@@ -278,10 +294,11 @@ class ObservableList(list):
         cdef Property prop = self.prop
         prop.dispatch(self.obj)
 
-cdef class ListProperty(Property):
-    '''Property that represent a list.
 
-    Only list are allowed, tuple or any other classes are forbidden.
+cdef class ListProperty(Property):
+    '''Property that represents a list.
+
+    Only lists are allowed, tuple or any other classes are forbidden.
 
     .. warning::
 
@@ -298,15 +315,15 @@ cdef class ListProperty(Property):
         if Property.check(self, obj, value):
             return True
         if type(value) is not ObservableList:
-            raise ValueError('ListProperty accept only ObservableList'
-                            ' (should never happen.)')
+            raise ValueError('ListProperty<%s> accepts only ObservableList'
+                             ' (should never happen.)' % self.name)
 
     cpdef set(self, obj, value):
         value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
 
 cdef class ObjectProperty(Property):
-    '''Property that represent an Python object.
+    '''Property that represents a Python object.
 
     .. warning::
 
@@ -316,20 +333,21 @@ cdef class ObjectProperty(Property):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, object):
-            raise ValueError('ObjectProperty accept only object')
+            raise ValueError('ObjectProperty<%s> accepts only Python objects' %
+                            self.name)
 
 cdef class BooleanProperty(Property):
-    '''Property that represent only boolean
+    '''Property that represents only boolean
     '''
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, object):
-            raise ValueError('BooleanProperty accept only bool')
+            raise ValueError('BooleanProperty<%s> accepts only bool' % self.name)
 
 cdef class BoundedNumericProperty(Property):
-    '''Property that represent a numeric value, with the possibility of assign
-    minimum bound and/or maximum bound.
+    '''Property that represents a numeric value within a minimum bound and/or
+    maximum bound (i.e. a numeric range).
 
     :Parameters:
         `min`: numeric
@@ -377,23 +395,26 @@ cdef class BoundedNumericProperty(Property):
         if s['use_min']:
             _min = s['min']
             if _min and value < _min:
-                raise ValueError('Value is below the minimum bound (%d)' % _min)
+                raise ValueError('BoundedNumericProperty<%s> is below the '
+                                 'minimum bound (%d)' % (self.name, _min))
         if s['use_max']:
             _max = s['max']
             if _max and value > _max:
-                raise ValueError('Value is below the maximum bound (%d)' % _max)
+                raise ValueError('BoundedNumericProperty<%s> is above the '
+                                 'maximum bound (%d)' % (self.name, _max))
         return True
 
 
 cdef class OptionProperty(Property):
-    '''Property that represent a string from a specific list.
+    '''Property that represents a string from a predefined list of valid
+    options.
 
-    If the string set in the property are not from the list passed at the
-    creation, you will have an exception.
+    If the string set in the property is not in the list of valid options
+    (passed at property creation time), a ValueError exception will be raised.
 
     :Parameters:
         `options`: list (not tuple.)
-            List of available options
+            List of valid options
     '''
     cdef list options
 
@@ -411,17 +432,21 @@ cdef class OptionProperty(Property):
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
-        if value not in self.storage[obj.__uid]['options']:
-            raise ValueError('Value is not in available options')
+        valid_options = self.storage[obj.__uid]['options']
+        if value not in valid_options:
+            raise ValueError('OptionProperty<%s> have an invalid option %r. '
+                             'Must be one of: %s' % (self.name,
+                             value, valid_options))
 
 
 cdef class ReferenceListProperty(Property):
-    '''Property that allow to create tuple of other properties.
+    '''Property that allows to create a tuple of other properties.
 
-    For example, if `x` and `y` are :class:`NumericProperty`, we can create a
+    For example, if `x` and `y` are :class:`NumericProperty`s, we can create a
     :class:`ReferenceListProperty` for the `pos`. If you change the value of
-    `pos`, it will automaticly change the values of `x` and `y`. If you read the
-    value of `pos`, it will return a tuple with the value of `x` and `y`.
+    `pos`, it will automatically change the values of `x` and `y` accordingly.
+    If you read the value of `pos`, it will return a tuple with the values of
+    `x` and `y`.
     '''
     cdef list properties
 
@@ -442,7 +467,6 @@ cdef class ReferenceListProperty(Property):
         Property.link_deps(self, obj, name)
         for prop in self.properties:
             prop.bind(obj, self.trigger_change)
-        self.trigger_change(obj, None)
 
     cpdef unlink(self, obj):
         for prop in self.properties:
@@ -451,29 +475,32 @@ cdef class ReferenceListProperty(Property):
 
     cpdef trigger_change(self, obj, value):
         s = self.storage[obj.__uid]
-        p = s['properties']
         if s['stop_event']:
             return
+        p = s['properties']
         s['value'] = [p[x].get(obj) for x in xrange(len(p))]
         self.dispatch(obj)
 
     cdef convert(self, obj, value):
         if not isinstance(value, (list, tuple)):
-            raise ValueError('Value must be a list or tuple')
-        return <list>value
+            raise ValueError('ReferenceListProperty<%s> must be a list or a '
+                             'tuple' % self.name)
+        return list(value)
 
     cdef check(self, obj, value):
         if len(value) != len(self.storage[obj.__uid]['properties']):
-            raise ValueError('Value must have the same size as beginning')
+            raise ValueError('ReferenceListProperty<%s> value length is '
+                             'immutable' % self.name)
 
-    cpdef set(self, obj, value):
+    cpdef set(self, obj, _value):
         cdef int idx
+        cdef list value
         storage = self.storage[obj.__uid]
-        value = self.convert(obj, value)
+        value = self.convert(obj, _value)
         if self.compare_value(storage['value'], value):
             return False
         self.check(obj, value)
-        # prevent dependice loop
+        # prevent dependency loop
         storage['stop_event'] = 1
         props = storage['properties']
         for idx in xrange(len(props)):
@@ -485,15 +512,19 @@ cdef class ReferenceListProperty(Property):
         self.dispatch(obj)
         return True
 
-
+    cpdef get(self, obj):
+        s = self.storage[obj.__uid]
+        p = s['properties']
+        s['value'] = [p[x].get(obj) for x in xrange(len(p))]
+        return s['value']
 
 cdef class AliasProperty(Property):
     '''Create a property with a custom getter and setter.
 
-    If you don't found a Property class that fit to your needs, you can still
-    create Python getter and setter, and create a property with both of them.
+    If you didn't find a Property class that fits to your needs, you can still
+    create Python getters and setters and create a property with both of them.
 
-    Exemple from the kivy/uix/widget.py ::
+    Example from kivy/uix/widget.py ::
 
         def get_right(self):
             return self.x + self.width
@@ -541,6 +572,7 @@ cdef class AliasProperty(Property):
         Property.unlink(self, obj)
 
     cpdef trigger_change(self, obj, value):
+        self.storage[obj.__uid]['value'] = self.get(obj)
         self.dispatch(obj)
 
     cdef check(self, obj, value):
@@ -551,5 +583,6 @@ cdef class AliasProperty(Property):
 
     cpdef set(self, obj, value):
         if self.storage[obj.__uid]['setter'](obj, value):
+            self.storage[obj.__uid]['value'] = self.get(obj)
             self.dispatch(obj)
 

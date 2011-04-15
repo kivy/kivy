@@ -48,6 +48,11 @@ class LabelBase(object):
             Horizontal text alignement inside bounding box
         `valign`: str, default to "bottom"
             Vertical text alignement inside bounding box
+        `shorten`: bool, defaults to False
+            Indicate whether the label should attempt to shorten its textual
+            contents as much as possible if a `size` is given.
+            Setting this to True without an appropriately set size will lead
+            unexpected results.
     '''
 
     __slots__ = ('options', 'texture', '_label', 'usersize')
@@ -65,6 +70,7 @@ class LabelBase(object):
         kwargs.setdefault('padding', None)
         kwargs.setdefault('padding_x', None)
         kwargs.setdefault('padding_y', None)
+        kwargs.setdefault('shorten', False)
 
         padding = kwargs.get('padding', None)
         if not kwargs.get('padding_x', None):
@@ -122,6 +128,28 @@ class LabelBase(object):
     def _render_end(self):
         pass
 
+    def shorten(self, text):
+        # Just a tiny shortcut
+        textwidth = lambda txt: self.get_extents(txt)[0]
+        mid = len(text)/2
+        begin = text[:mid].strip()
+        end = text[mid:].strip()
+        steps = 1
+        middle = '...'
+        width = textwidth(begin+end) + textwidth(middle)
+        last_width = width
+        while width > self.usersize[0]:
+            begin = text[:mid - steps].strip()
+            end = text[mid + steps:].strip()
+            steps += 1
+            width = textwidth(begin+end) + textwidth(middle)
+            if width == last_width:
+                # No more shortening possible. This is the best we can
+                # do. :-( -- Prevent infinite while loop.
+                break
+            last_width = width
+        return begin + middle + end
+
     def render(self, real=False):
         '''Return a tuple(width, height) to create the image
         with the user constraints.
@@ -163,16 +191,21 @@ class LabelBase(object):
 
             if not real:
                 # verify that each glyph have size
-                glyphs = list(set(self.text))
+                glyphs = list(set(self.text)) + ['.']
                 for glyph in glyphs:
                     if not glyph in cache:
                         cache[glyph] = self.get_extents(glyph)
+
+            # Shorten the text that we actually display
+            text = self.text
+            if self.options['shorten'] and self.get_extents(text)[0] > uw:
+                text = self.shorten(text)
 
             # first, split lines
             glyphs = []
             lines = []
             lw = lh = 0
-            for word in re.split(r'( |\n)', self.text):
+            for word in re.split(r'( |\n)', text):
 
                 # calculate the word width
                 ww, wh = 0, 0
@@ -192,7 +225,6 @@ class LabelBase(object):
 
                 # is the word fit on the line ?
                 if (word == '\n' or x + ww > uw) and lw != 0:
-
                     # no, push actuals glyph
                     lines.append(((lw, lh), glyphs))
                     glyphs = []

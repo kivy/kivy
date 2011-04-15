@@ -220,10 +220,21 @@ class Animation(EventDispatcher):
     def _calculate(self, a, b, t):
         _calculate = self._calculate
         if isinstance(a, ListType) or isinstance(a, TupleType):
-            return type(a)([_calculate(a[x], b[x], t) for x in xrange(len(a))])
+            if isinstance(a, ListType):
+                tp = list
+            else:
+                tp = tuple
+            return tp([_calculate(a[x], b[x], t) for x in xrange(len(a))])
         elif isinstance(a, DictType):
-            return dict(zip(a.keys(),
-                            [_calculate(a[x], b[x], t) for x in a.iterkeys()]))
+            d = {}
+            for x in a.iterkeys():
+                if not x in b.keys():
+                    # User requested to animate only part of the dict.
+                    # Copy the rest
+                    d[x] = a[x]
+                else:
+                    d[x] = _calculate(a[x], b[x], t)
+            return d
         else:
             return (a * (1. - t)) + (b * t)
 

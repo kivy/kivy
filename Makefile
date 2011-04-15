@@ -2,11 +2,17 @@ PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
 
+build:
+	$(PYTHON) setup.py build_ext --inplace
+
+force:
+	$(PYTHON) setup.py build_ext --inplace -f
+
 mesabuild:
 	$(PYTHON) setup.py build_ext --inplace --define __MESAGL__
 
-build:
-	$(PYTHON) setup.py build_ext --inplace
+pdf:
+	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
 
 style:
 	$(PYTHON) $(CHECKSCRIPT) $(KIVY_DIR)
@@ -15,6 +21,8 @@ stylereport:
 	$(PYTHON) $(CHECKSCRIPT) -html $(KIVY_DIR)
 
 hook:
+	# Install pre-commit git hook to check your changes for styleguide
+	# consistency.
 	cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
 	chmod +x .git/hooks/pre-commit
 
