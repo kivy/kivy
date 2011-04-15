@@ -67,6 +67,27 @@ class App(EventDispatcher):
             Fired when the application stops.
     '''
 
+    title = None
+    '''.. versionadded:: 1.0.5
+    
+    Title of your application. You can set by doing::
+
+        class MyApp(App):
+            title = 'Custom title'
+
+    '''
+
+    icon = None
+    '''.. versionadded:: 1.0.5
+    
+    Icon of your application. You can set by doing::
+
+        class MyApp(App):
+            icon = 'customicon.png'
+
+    The icon can be located in the same directory as your main file.
+    '''
+
     def __init__(self, **kwargs):
         super(App, self).__init__()
         self.register_event_type('on_start')
@@ -126,6 +147,20 @@ class App(EventDispatcher):
         if root:
             self.root = root
 
+    def get_application_name(self):
+        if self.title is not None:
+            return self.title
+        clsname = self.__class__.__name__
+        if clsname.endswith('App'):
+            clsname = clsname[:-3]
+        return clsname
+
+    def get_application_icon(self):
+        from kivy.resources import resource_find
+        if self.icon is not None:
+            return resource_find(self.icon)
+        return None
+
     def run(self):
         '''Launches the app in standalone mode.
         '''
@@ -137,6 +172,17 @@ class App(EventDispatcher):
         if self.root:
             from kivy.core.window import Window
             Window.add_widget(self.root)
+
+        # Check if the window is already created
+        from kivy.base import EventLoop
+        window = EventLoop.window
+        if window:
+            window.set_title(self.get_application_name())
+            icon = self.get_application_icon()
+            if icon:
+                window.set_icon(icon)
+
+        # Run !
         self.dispatch('on_start')
         runTouchApp()
         self.dispatch('on_stop')

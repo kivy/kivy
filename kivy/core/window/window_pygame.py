@@ -82,12 +82,7 @@ class WindowPygame(WindowBase):
 
         # set window icon before calling set_mode
         filename_icon = Config.get('kivy', 'window_icon')
-        if exists(filename_icon):
-            try:
-                icon = pygame.image.load(filename_icon)
-                pygame.display.set_icon(icon)
-            except:
-                Logger.exception('WinPygame: error while loading icon')
+        self.set_icon(filename_icon)
 
         # init ourself size + setmode
         # before calling on_resize
@@ -121,6 +116,18 @@ class WindowPygame(WindowBase):
     def close(self):
         pygame.display.quit()
         self.dispatch('on_close')
+
+    def set_title(self, title):
+        pygame.display.set_caption(title)
+
+    def set_icon(self, filename):
+        try:
+            if not exists(filename):
+                return False
+            icon = pygame.image.load(filename)
+            pygame.display.set_icon(icon)
+        except:
+            Logger.exception('WinPygame: unable to set icon')
 
     def screenshot(self, *largs, **kwargs):
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
