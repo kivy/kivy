@@ -29,7 +29,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.5'
+__version__ = '1.0.6-dev'
 
 import sys
 from shutil import copytree
@@ -44,9 +44,9 @@ __kivy_post_configuration = []
 
 if sys.platform == 'darwin' and sys.maxint < 9223372036854775807:
     r ='''Unsupported Python version detected!:
-    On Mac OS X Kivy requires a 64 bit version of Python. We strongly advise you to
-    use the version of Python that is provided by Apple (and neither ports, fink
-    nor homebrew unless you know what you're doing).
+    On Mac OS X Kivy requires a 64 bit version of Python. We strongly advise you
+    to use the version of Python that is provided by Apple (and neither ports,
+    fink nor homebrew unless you know what you're doing).
     See http://kivy.org/docs/installation/installation-macosx.html for details.
     '''
     Logger.critical(r)
