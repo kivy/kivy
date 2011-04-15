@@ -108,7 +108,48 @@ cdef tuple hsv_to_rgb(float h, float s, float v):
 
 
 cdef class Color(ContextInstruction):
-    '''Instruction to set the color state for any vertices being drawn after it
+    '''Instruction to set the color state for any vertices being drawn after it.
+    All the values passed are between 0 and 1, not 0 and 255.
+
+    In Python, you can do::
+
+        from kivy.graphics import Color
+
+        # create red color
+        c = Color(1, 0, 0)
+        # create blue color
+        c = Color(0, 1, 0)
+        # create blue color with 50% alpha
+        c = Color(0, 1, 0, .5)
+
+        # using hsv mode
+        c = Color(0, 1, 1, mode='hsv')
+        # using hsv mode + alpha
+        c = Color(0, 1, 1, .2, mode='hsv')
+
+    In kv lang::
+
+        <Rule>:
+            canvas:
+                # red color
+                Color:
+                    rgb: 1, 0, 0
+                # blue color
+                Color:
+                    rgb: 0, 1, 0
+                # blue color with 50% alpha
+                Color:
+                    rgba: 0, 1, 0, .5
+
+                # using hsv mode
+                Color:
+                    hsv: 0, 1, 1
+
+                # using hsv mode + alpha
+                Color:
+                    hsv: 0, 1, 1
+                    a: .5
+
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
