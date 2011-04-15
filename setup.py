@@ -15,13 +15,16 @@ import kivy
 # installed for c extensions.
 cmdclass = {}
 
-# add build rules for portable packages to cmdclass
-if platform == 'win32':
-    from kivy.tools.packaging.win32.build import WindowsPortableBuild
-    cmdclass['build_portable'] = WindowsPortableBuild
-elif platform == 'darwin':
-    from kivy.tools.packaging.osx.build import OSXPortableBuild
-    cmdclass['build_portable'] = OSXPortableBuild
+try:
+    # add build rules for portable packages to cmdclass
+    if platform == 'win32':
+        from kivy.tools.packaging.win32.build import WindowsPortableBuild
+        cmdclass['build_portable'] = WindowsPortableBuild
+    elif platform == 'darwin':
+        from kivy.tools.packaging.osx.build import OSXPortableBuild
+        cmdclass['build_portable'] = OSXPortableBuild
+except ImportError:
+    print 'User distribution detected, avoid portable command.'
 
 from kivy.tools.packaging.factory import FactoryBuild
 cmdclass['build_factory'] = FactoryBuild
@@ -160,18 +163,6 @@ if True:
             extra_link_args=extra_link_args))
 
 
-    #poly2try extension
-    """
-    ext_modules.append(Extension('kivy.c_ext.p2t', [
-     'kivy/lib/poly2tri/src/p2t.pyx',
-     'kivy/lib/poly2tri/poly2tri/common/shapes.cc',
-     'kivy/lib/poly2tri/poly2tri/sweep/advancing_front.cc',
-     'kivy/lib/poly2tri/poly2tri/sweep/cdt.cc',
-     'kivy/lib/poly2tri/poly2tri/sweep/sweep.cc',
-     'kivy/lib/poly2tri/poly2tri/sweep/sweep_context.cc'
-    ], language="c++"))
-    """
-
 #setup datafiles to be included in the disytibution, liek examples...
 #extracts all examples files except sandbox
 data_file_prefix = 'share/kivy-'
@@ -226,8 +217,6 @@ setup(
         'kivy.modules',
         'kivy.tools',
         'kivy.tools.packaging',
-        'kivy.tools.packaging.win32',
-        'kivy.tools.packaging.osx',
         'kivy.uix',
     ],
     package_dir={'kivy': 'kivy'},
