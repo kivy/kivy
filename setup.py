@@ -235,7 +235,7 @@ setup(
         'tools/packaging/osx/kivy.sh']},
     data_files=examples.items(),
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: MacOS X',
         'Environment :: Win32 (MS Windows)',
         'Environment :: X11 Applications',
