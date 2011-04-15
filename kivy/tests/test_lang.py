@@ -29,6 +29,10 @@ class TestClass2(BaseClass):
     obj = None
 
 
+class TestClass3(BaseClass):
+    obj = None
+
+
 class LangTestCase(unittest.TestCase):
 
     def import_builder(self):
@@ -37,6 +41,7 @@ class LangTestCase(unittest.TestCase):
         Builder = BuilderBase()
         Factory.register('TestClass', cls=TestClass)
         Factory.register('TestClass2', cls=TestClass2)
+        Factory.register('TestClass3', cls=TestClass3)
         return Builder
 
     def test_loading_failed_1(self):
@@ -82,7 +87,7 @@ class LangTestCase(unittest.TestCase):
     def test_references_with_template(self):
         Builder = self.import_builder()
         Builder.load_string('''
-[Item@TestClass]:
+[Item@TestClass3]:
     title: ctx.title
 <TestClass>:
     textinput: textinput
@@ -100,7 +105,7 @@ class LangTestCase(unittest.TestCase):
     def test_references_with_template_case_2(self):
         Builder = self.import_builder()
         Builder.load_string('''
-[Item@TestClass]:
+[Item@TestClass3]:
     title: ctx.title
 <TestClass>:
     textinput: textinput
@@ -118,7 +123,7 @@ class LangTestCase(unittest.TestCase):
     def test_references_with_template_case_3(self):
         Builder = self.import_builder()
         Builder.load_string('''
-[Item@TestClass]:
+[Item@TestClass3]:
     title: ctx.title
 <TestClass>:
     textinput: textinput
