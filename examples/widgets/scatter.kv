@@ -1,0 +1,51 @@
+#:kivy 1.0
+
+<MyScatter>:
+    canvas:
+        Color:
+            hsv: 0, 1, .5
+        Rectangle:
+            size: self.size
+
+    canvas.after:
+        Color:
+            hsv: .1, 1, .5
+            a: .2
+        Rectangle:
+            pos: self.pos
+            size: self.bbox[1]
+
+        Color:
+            rgb: 0, 1, 0
+        Line:
+            points: [self.x, self.top, self.right, self.top]
+        Line:
+            points: [self.x, self.y, self.x, self.top]
+        Line:
+            points: [self.center_x, self.y, self.center_x, self.top]
+        Line:
+            points: [self.x, self.center_y, self.right, self.center_y]
+
+        Line:
+            points: [self.center[0], self.center[1], self.right, self.top]
+
+
+    BoxLayout:
+        size: root.size
+        orientation: 'vertical'
+        Label:
+            text: 'Position\n' + str(root.pos)
+            text_size: (root.width, None)
+        Label:
+            text: 'Center\n' + str(root.center)
+            text_size: (root.width, None)
+        Label:
+            text: 'Bounding Box\n' + str(root.bbox)
+            text_size: (root.width, None)
+        Label:
+            text: 'Top\n' + str(root.top)
+            text_size: (root.width, None)
+        Label:
+            text: 'Right\n' + str(root.right)
+            text_size: (root.width, None)
+
