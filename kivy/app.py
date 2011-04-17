@@ -69,7 +69,7 @@ class App(EventDispatcher):
 
     title = None
     '''.. versionadded:: 1.0.5
-    
+
     Title of your application. You can set by doing::
 
         class MyApp(App):
@@ -79,7 +79,7 @@ class App(EventDispatcher):
 
     icon = None
     '''.. versionadded:: 1.0.5
-    
+
     Icon of your application. You can set by doing::
 
         class MyApp(App):
@@ -107,7 +107,7 @@ class App(EventDispatcher):
         '''
         pass
 
-    def load_kv(self, directory = None):
+    def load_kv(self):
         '''This method is invoked the first time the app is being run if no
         widget tree has been constructed before for this app.
         This method then looks for a matching kv file in the same directory as
@@ -136,8 +136,7 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-        if directory is None:
-            directory = dirname(getfile(self.__class__))
+        directory = dirname(getfile(self.__class__))
         clsname = self.__class__.__name__
         if clsname.endswith('App'):
             clsname = clsname[:-3]
@@ -166,7 +165,7 @@ class App(EventDispatcher):
         '''Launches the app in standalone mode.
         '''
         if not self.built:
-            self.load_kv(directory)
+            self.load_kv()
             root = self.build()
             if root:
                 self.root = root
