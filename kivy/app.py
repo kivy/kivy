@@ -95,6 +95,8 @@ class App(EventDispatcher):
         self.options = kwargs
         self.use_default_uxl = kwargs.get('use_default_uxl', True)
         self.built = False
+        self.kv_directory = kwargs.get('kv_directory',
+            dirname(getfile(self.__class__)))
 
         #: Root widget set by the :func:`build` method or by the
         #: :func:`load_kv` method if the kv file contains a root widget.
@@ -136,11 +138,10 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-        directory = dirname(getfile(self.__class__))
         clsname = self.__class__.__name__
         if clsname.endswith('App'):
             clsname = clsname[:-3]
-        filename = join(directory, '%s.kv' % clsname.lower())
+        filename = join(self.kv_directory, '%s.kv' % clsname.lower())
         if not exists(filename):
             return
         root = Builder.load_file(filename)
