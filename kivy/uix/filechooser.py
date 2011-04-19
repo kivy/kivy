@@ -216,7 +216,7 @@ class FileChooserController(FloatLayout):
 
         # Add the components that are always needed
         if platform == 'win32':
-            is_root = splitdrive()[1] in (sep, altsep)
+            is_root = splitdrive(self.path)[1] in (sep, altsep)
         elif platform in ('darwin', 'linux2'):
             is_root = normpath(expanduser(self.path)) == sep
         else:
