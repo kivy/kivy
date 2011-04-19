@@ -470,7 +470,8 @@ class Parser(object):
     def execute_directives(self):
         for ln, cmd in self.directives:
             cmd = cmd.strip()
-            trace('Parser: got directive <%s>' % cmd)
+            if __debug__:
+                trace('Parser: got directive <%s>' % cmd)
             if cmd.startswith('kivy '):
                 # FIXME move the version checking here
                 continue
@@ -505,7 +506,8 @@ class Parser(object):
         lines = zip(range(num_lines), lines)
         self.sourcecode = lines[:]
 
-        trace('Parser: parsing %d lines' % num_lines)
+        if __debug__:
+            trace('Parser: parsing %d lines' % num_lines)
 
         # Ensure the version
         if self.filename:
@@ -544,7 +546,8 @@ class Parser(object):
         if version != '1.0':
             raise ParserError(self, ln, 'Only Kivy language 1.0 is supported'
                           ' (<%s> found)' % version)
-        trace('Parser: Kivy version is %s' % version)
+        if __debug__:
+            trace('Parser: Kivy version is %s' % version)
 
     def strip_comments(self, lines):
         '''Remove all comments from all lines in-place.
@@ -656,7 +659,8 @@ class Parser(object):
     def load_resource(self, filename):
         '''Load an external resource
         '''
-        trace('Parser: load external <%s>' % filename)
+        if __debug__:
+            trace('Parser: load external <%s>' % filename)
         with open(filename, 'r') as fd:
             return fd.read()
 
@@ -697,9 +701,12 @@ def create_handler(element, key, value, idmap):
     c_value = compile(value, '<string>', 'eval')
 
     def call_fn(sender, _value):
-        #trace('Builder: call_fn %s, key=%s, value=%s' % (element, key, value))
+        if __debug__:
+            trace('Builder: call_fn %s, key=%s, value=%s' % (
+                element, key, value))
         e_value = eval(c_value, _eval_globals, idmap)
-        #trace('Builder: call_fn => value=%s' % str(e_value))
+        if __debug__:
+            trace('Builder: call_fn => value=%s' % str(e_value))
         setattr(element, key, e_value)
 
     # bind every key.value
@@ -788,11 +795,13 @@ class BuilderBase(object):
         self.listwidget = []
 
     def add_rule(self, rule, defs):
-        trace('Builder: adding rule %s' % str(rule))
+        if __debug__:
+            trace('Builder: adding rule %s' % str(rule))
         self.rules.append((rule, defs))
 
     def add_template(self, name, cls, defs):
-        trace('Builder: adding template %s' % str(name))
+        if __debug__:
+            trace('Builder: adding template %s' % str(name))
         if name in self.templates:
             raise Exception('The template <%s> already exist' % name)
         self.templates[name] = (cls, defs)
@@ -805,7 +814,8 @@ class BuilderBase(object):
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
         '''
-        trace('Builder: load file %s' % filename)
+        if __debug__:
+            trace('Builder: load file %s' % filename)
         with open(filename, 'r') as fd:
             kwargs['filename'] = filename
             return self.load_string(fd.read(), **kwargs)
@@ -840,7 +850,8 @@ class BuilderBase(object):
         '''Apply all the Kivy rules matching the widget on the widget.
         '''
         matches = self.match(widget)
-        trace('Builder: Found %d matches for %s' % (len(matches), widget))
+        if __debug__:
+            trace('Builder: Found %d matches for %s' % (len(matches), widget))
         if not matches:
             return
         self._push_widgets()
@@ -939,7 +950,8 @@ class BuilderBase(object):
         is_template = False
 
         if is_rule is False:
-            trace('Builder: build item %s' % item)
+            if __debug__:
+                trace('Builder: build item %s' % item)
             if item.startswith('<'):
                 raise ParserError(params['__ctx__'], params['__line__'],
                                'Rules are not accepted inside widgets')
@@ -1047,7 +1059,8 @@ class BuilderBase(object):
 
     def build_handler(self, element, key, value, idmap, is_widget):
         if key.startswith('on_'):
-            trace('Builder: create custom callback for ' + key)
+            if __debug__:
+                trace('Builder: create custom callback for ' + key)
             if not element.is_event_type(key):
                 key = key[3:]
             element.bind(**{key: partial(custom_callback, (
@@ -1055,13 +1068,15 @@ class BuilderBase(object):
 
         else:
             value = create_handler(element, key, value, idmap)
-            trace('Builder: set %s=%s for %s' % (key, value, element))
+            if __debug__:
+                trace('Builder: set %s=%s for %s' % (key, value, element))
             if is_widget and not hasattr(element, key):
                     element.create_property(key)
             setattr(element, key, value)
 
     def build_canvas(self, canvas, item, elements):
-        trace('Builder: build canvas for %s' % item)
+        if __debug__:
+            trace('Builder: build canvas for %s' % item)
         for name, params in elements:
             if name == 'Clear':
                 canvas.clear()
@@ -1079,7 +1094,8 @@ class BuilderBase(object):
                     raise
 
     def build_rule(self, item, params):
-        trace('Builder: build rule for %s' % item)
+        if __debug__:
+            trace('Builder: build rule for %s' % item)
         if item[0] != '<' or item[-1] != '>':
             raise ParserError(params['__ctx__'], params['__line__'],
                            'Invalid rule (must be inside <>)')
@@ -1098,7 +1114,8 @@ class BuilderBase(object):
             self.add_rule(crule, params)
 
     def build_template(self, item, params):
-        trace('Builder: build template for %s' % item)
+        if __debug__:
+            trace('Builder: build template for %s' % item)
         if item[0] != '[' or item[-1] != ']':
             raise ParserError(params['__ctx__'], params['__line__'],
                 'Invalid template (must be inside [])')
