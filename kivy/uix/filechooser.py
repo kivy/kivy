@@ -26,7 +26,7 @@ from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
 from sys import platform
 from os import getcwdu, listdir
 from os.path import basename, getsize, isdir, join, sep, normpath, dirname, \
-                    samefile, expanduser
+                    samefile, expanduser, altsep
 from fnmatch import fnmatch
 
 
@@ -215,7 +215,14 @@ class FileChooserController(FloatLayout):
         self.dispatch('on_entries_cleared')
 
         # Add the components that are always needed
-        is_root = samefile(expanduser(self.path), u'/')
+        if platform == 'win32':
+            is_root = splitdrive()[1] in (sep, altsep)
+        elif platform in ('darwin', 'linux2'):
+            is_root = samefile(expanduser(self.path), sep)
+        else:
+            # Unknown file system; Just always add the .. entry but also log
+            Logger.warning('Filechooser: Unsupported OS: %r' % platform)
+            is_root = False
         if not is_root:
             back = '..' + sep
             pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
