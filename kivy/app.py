@@ -52,6 +52,7 @@ The relation between main.py and test.kv is explained in :func:`App.load_kv`.
 from inspect import getfile
 from os.path import dirname, join, exists
 from kivy.base import runTouchApp, stopTouchApp
+from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 
@@ -65,11 +66,17 @@ class App(EventDispatcher):
             :func:`~kivy.base.runTouchApp` call.
         `on_stop`:
             Fired when the application stops.
+
+    :Parameters:
+        `kv_directory`: <path>, default to None
+            If a kv_directory is set, it will be used to get the initial kv
+            file. By default, the file is searched in the same directory as the
+            current App definition file.
     '''
 
     title = None
     '''.. versionadded:: 1.0.5
-    
+
     Title of your application. You can set by doing::
 
         class MyApp(App):
@@ -79,7 +86,7 @@ class App(EventDispatcher):
 
     icon = None
     '''.. versionadded:: 1.0.5
-    
+
     Icon of your application. You can set by doing::
 
         class MyApp(App):
@@ -136,16 +143,19 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-        directory = dirname(getfile(self.__class__))
+        kv_directory = self.options.get('kv_directory',
+            dirname(getfile(self.__class__)))
         clsname = self.__class__.__name__
         if clsname.endswith('App'):
             clsname = clsname[:-3]
-        filename = join(directory, '%s.kv' % clsname.lower())
+        filename = join(kv_directory, '%s.kv' % clsname.lower())
         if not exists(filename):
-            return
+            Logger.debug('App: kv <%s> not found' % filename)
+            return False
         root = Builder.load_file(filename)
         if root:
             self.root = root
+        return True
 
     def get_application_name(self):
         if self.title is not None:
