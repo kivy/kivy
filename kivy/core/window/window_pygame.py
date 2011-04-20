@@ -222,8 +222,11 @@ class WindowPygame(WindowBase):
                 Clock.unschedule(cb)
                 Clock.schedule_once(cb, .1)
 
+            elif event.type == pygame.VIDEOEXPOSE:
+                self.canvas.ask_update()
+
             # ignored event
-            elif event.type in (pygame.ACTIVEEVENT, pygame.VIDEOEXPOSE):
+            elif event.type == pygame.ACTIVEEVENT:
                 pass
 
             # unhandled event !

@@ -68,7 +68,7 @@ cdef class Instruction:
 
     property needs_redraw:
         def __get__(self):
-            return bool(self.flags | GI_NEEDS_UPDATE)
+            return bool(self.flags & GI_NEEDS_UPDATE)
 
 
 cdef class InstructionGroup(Instruction):
