@@ -13,6 +13,7 @@ from kivy.config import Config
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
+from kivy.clock import Clock
 
 try:
     import pygame
@@ -32,7 +33,8 @@ class WindowPygame(WindowBase):
             os.environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
 
         # init some opengl, same as before.
-        self.flags = pygame.HWSURFACE | pygame.OPENGL | pygame.DOUBLEBUF
+        self.flags = pygame.HWSURFACE | pygame.OPENGL | \
+                     pygame.DOUBLEBUF | pygame.RESIZABLE
 
         pygame.display.init()
 
@@ -82,12 +84,7 @@ class WindowPygame(WindowBase):
 
         # set window icon before calling set_mode
         filename_icon = Config.get('kivy', 'window_icon')
-        if exists(filename_icon):
-            try:
-                icon = pygame.image.load(filename_icon)
-                pygame.display.set_icon(icon)
-            except:
-                Logger.exception('WinPygame: error while loading icon')
+        self.set_icon(filename_icon)
 
         # init ourself size + setmode
         # before calling on_resize
@@ -129,6 +126,18 @@ class WindowPygame(WindowBase):
     def close(self):
         pygame.display.quit()
         self.dispatch('on_close')
+
+    def set_title(self, title):
+        pygame.display.set_caption(title)
+
+    def set_icon(self, filename):
+        try:
+            if not exists(filename):
+                return False
+            icon = pygame.image.load(filename)
+            pygame.display.set_icon(icon)
+        except:
+            Logger.exception('WinPygame: unable to set icon')
 
     def screenshot(self, *largs, **kwargs):
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
@@ -215,10 +224,17 @@ class WindowPygame(WindowBase):
 
             # video resize
             elif event.type == pygame.VIDEORESIZE:
-                pass
+                self._size = event.size
+                # don't use trigger here, we want to delay the resize event
+                cb = self._do_resize
+                Clock.unschedule(cb)
+                Clock.schedule_once(cb, .1)
+
+            elif event.type == pygame.VIDEOEXPOSE:
+                self.canvas.ask_update()
 
             # ignored event
-            elif event.type in (pygame.ACTIVEEVENT, pygame.VIDEOEXPOSE):
+            elif event.type == pygame.ACTIVEEVENT:
                 pass
 
             '''
@@ -226,6 +242,11 @@ class WindowPygame(WindowBase):
             else:
                 Logger.debug('WinPygame: Unhandled event %s' % str(event))
             '''
+
+    def _do_resize(self, dt):
+        Logger.debug('Window: Resize window to %s' % str(self._size))
+        self._pygame_set_mode(self._size)
+        self.dispatch('on_resize', *self._size)
 
     def mainloop(self):
         # don't known why, but pygame required a resize event

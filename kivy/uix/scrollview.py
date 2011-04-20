@@ -152,10 +152,10 @@ class ScrollView(StencilView):
     #
     # Private
     #
-    def add_widget(self, widget):
+    def add_widget(self, widget, index=0):
         if self._viewport:
             raise Exception('ScrollView accept only one widget')
-        super(ScrollView, self).add_widget(widget)
+        super(ScrollView, self).add_widget(widget, index)
         self._viewport = widget
         widget.bind(size=self.update_from_scroll)
         self.update_from_scroll()

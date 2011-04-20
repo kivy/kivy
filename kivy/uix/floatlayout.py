@@ -106,11 +106,11 @@ class FloatLayout(Layout):
                 elif key == 'center_y':
                     c.center_y = y + value * h
 
-    def add_widget(self, widget):
+    def add_widget(self, widget, index=0):
         widget.bind(
             pos_hint = self._trigger_layout,
             size_hint = self._trigger_layout)
-        return super(Layout, self).add_widget(widget)
+        return super(Layout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(

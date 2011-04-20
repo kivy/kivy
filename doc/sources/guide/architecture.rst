@@ -199,7 +199,7 @@ nothing but pass the touches to its children::
 
     # This is analogous for move/up:
     def on_touch_down(self, touch):
-        for child in reversed(self.children[:]):
+        for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
 

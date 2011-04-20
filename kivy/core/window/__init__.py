@@ -310,6 +310,20 @@ class WindowBase(EventDispatcher):
             glClearColor(*cc)
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
+    def set_title(self, title):
+        '''Set the window title.
+
+        .. versionadded:: 1.0.5
+        '''
+        pass
+
+    def set_icon(self, filename):
+        '''Set the icon of the window
+
+        .. versionadded:: 1.0.5
+        '''
+        pass
+
     def to_widget(self, x, y, initial=True, relative=False):
         return (x, y)
 

@@ -11,7 +11,7 @@ cdef class Buffer:
         self.block_count = 0
         self.l_free = NULL
 
-    def __del__(self):
+    def __dealloc__(self):
         if self.data != NULL:
             free(self.data)
             self.data = NULL

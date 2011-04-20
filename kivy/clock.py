@@ -330,7 +330,7 @@ class ClockBase(object):
             cid = _hash(callback)
             if cid in events:
                 for event in events[cid][:]:
-                    if event.get_callback() is callback:
+                    if event.get_callback() == callback:
                         events[cid].remove(event)
 
     def _release_references(self):
@@ -381,7 +381,8 @@ class ClockBase(object):
 
         if count != self.max_iteration - 1:
             i = self.max_iteration - count + 1
-            Logger.trace('Clock: we done %d iteration before the frame' % i)
+            if __debug__:
+                Logger.trace('Clock: we done %d iteration before the frame' % i)
 
 
 if 'KIVY_DOC_INCLUDE' in environ:

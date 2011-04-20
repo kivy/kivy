@@ -244,6 +244,36 @@ class Scatter(Widget):
         return True
     y = AliasProperty(_get_y, _set_y, bind=('bbox', ))
 
+    def get_right(self):
+        return self.x + self.bbox[1][0]
+
+    def set_right(self, value):
+        self.x = value - self.bbox[1][0]
+
+    right = AliasProperty(get_right, set_right, bind=('x', 'width'))
+
+    def get_top(self):
+        return self.y + self.bbox[1][1]
+
+    def set_top(self, value):
+        self.y = value - self.bbox[1][1]
+
+    top = AliasProperty(get_top, set_top, bind=('y', 'height'))
+
+    def get_center_x(self):
+        return self.x + self.bbox[1][0] / 2.
+
+    def set_center_x(self, value):
+        self.x = value - self.bbox[1][0] / 2.
+    center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
+
+    def get_center_y(self):
+        return self.y + self.bbox[1][1] / 2.
+
+    def set_center_y(self, value):
+        self.y = value - self.bbox[1][1] / 2.
+    center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
+
     def __init__(self, **kwargs):
         self._touches = []
         self._last_touch_pos = {}
@@ -263,35 +293,6 @@ class Scatter(Widget):
     def to_local(self, x, y, **k):
         p = self.transform_inv.transform_point(x, y, 0)
         return (p[0], p[1])
-
-   # def apply_angle_scale_trans(self, angle, scale, trans, point=Vector(0, 0)):
-   #     '''Update matrix transformation by adding new angle,
-   #        scale and translate.
-
-   #     :Parameters:
-   #         `angle` : float
-   #             Rotation angle to add
-   #         `scale` : float
-   #             Scaling value to add
-   #         `trans` : Vector
-   #             Vector translation to add
-   #         `point` : Vector, default to (0, 0)
-   #             Point to apply transformation
-   #     '''
-   #     old_scale = self.scale
-   #     new_scale = old_scale * scale
-   #     if new_scale < self.scale_min or old_scale > self.scale_max:
-   #         scale = 1.
-
-   #     t = Matrix().translate(
-   #         trans[0] * self.do_translation_x,
-   #         trans[1] * self.do_translation_y,
-   #         0)
-   #     t = t.multiply(Matrix().translate(point[0], point[1], 0))
-   #     t = t.multiply(Matrix().rotate(angle, 0, 0, 1))
-   #     t = t.multiply(Matrix().scale(scale, scale, scale))
-   #     t = t.multiply(Matrix().translate(-point[0], -point[1], 0))
-   #     self.apply_transform(t)
 
     def apply_transform(self, trans, post_multiply=False, anchor=(0, 0)):
         '''
@@ -355,7 +356,8 @@ class Scatter(Widget):
             new_scale = scale * self.scale
             if new_scale < self.scale_min or new_scale > self.scale_max:
                 scale = 1.0
-            self.apply_transform(Matrix().scale(scale, scale, scale), anchor=anchor)
+            self.apply_transform(Matrix().scale(scale, scale, scale),
+                                 anchor=anchor)
 
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y

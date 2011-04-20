@@ -123,6 +123,17 @@ cdef class Fbo(RenderContext):
 
         self.create_fbo()
 
+    def __dealloc__(self):
+        # XXX Cython doc said "not call other class method"
+        # So just call the minimum
+        cdef GLuint n
+        if self._buffer_id != -1:
+            n = self._buffer_id
+            glDeleteFramebuffers(1, &n)
+        if self._depthbuffer_id != -1:
+            n = self._depthbuffer_id
+            glDeleteRenderbuffers(1, &n)
+
     cdef void delete_fbo(self):
         # care on this case, if the deletion happen in another thread than main
         # thread, we are lost :)

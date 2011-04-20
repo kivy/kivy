@@ -271,13 +271,13 @@ class MotionEvent(object):
                 touch.grab(self)
 
             def on_touch_move(self, touch):
-                if touch.grab_current == self:
+                if touch.grab_current is self:
                     # i receive my grabbed touch
                 else:
                     # it's a normal touch
 
             def on_touch_up(self, touch):
-                if touch.grab_current == self:
+                if touch.grab_current is self:
                     # i receive my grabbed touch, i must ungrab it !
                     touch.ungrab(self)
                 else:

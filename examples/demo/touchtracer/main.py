@@ -73,6 +73,8 @@ class Touchdebug(Widget):
 
 
 class TouchdebugApp(App):
+    title = 'Touchtracer'
+    icon = 'icon.png'
     def build(self):
         return Touchdebug()
 

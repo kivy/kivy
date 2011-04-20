@@ -8,6 +8,8 @@ Core class for acquiring the camera, and convert the input to a
 
 __all__ = ('CameraBase', 'Camera')
 
+import sys
+
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
@@ -126,9 +128,15 @@ class CameraBase(EventDispatcher):
     def on_load(self):
         pass
 
-# Load the appropriate provider
-Camera = core_select_lib('camera', (
-    ('gstreamer', 'camera_gstreamer', 'CameraGStreamer'),
-    ('opencv', 'camera_opencv', 'CameraOpenCV'),
-    ('videocapture', 'camera_videocapture', 'CameraVideoCapture'),
-))
+# Load the appropriate providers
+providers = ()
+
+if sys.platform != 'darwin':
+    providers += (('gstreamer', 'camera_gstreamer', 'CameraGStreamer'),)
+if sys.platform == 'win32':
+    providers += (('videocapture', 'camera_videocapture', 'CameraVideoCapture'),)
+
+providers += (('opencv', 'camera_opencv', 'CameraOpenCV'),)
+
+
+Camera = core_select_lib('camera', (providers))

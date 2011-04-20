@@ -29,7 +29,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.5-dev'
+__version__ = '1.0.6-dev'
 
 import sys
 from shutil import copytree
@@ -44,9 +44,9 @@ __kivy_post_configuration = []
 
 if sys.platform == 'darwin' and sys.maxint < 9223372036854775807:
     r ='''Unsupported Python version detected!:
-    On Mac OS X Kivy requires a 64 bit version of Python. We strongly advise you to
-    use the version of Python that is provided by Apple (and neither ports, fink
-    nor homebrew unless you know what you're doing).
+    On Mac OS X Kivy requires a 64 bit version of Python. We strongly advise you
+    to use the version of Python that is provided by Apple (and neither ports,
+    fink nor homebrew unless you know what you're doing).
     See http://kivy.org/docs/installation/installation-macosx.html for details.
     '''
     Logger.critical(r)
@@ -213,6 +213,8 @@ kivy_base_dir = dirname(sys.modules[__name__].__file__)
 kivy_libs_dir = join(kivy_base_dir, 'lib')
 #: Kivy modules directory
 kivy_modules_dir = join(kivy_base_dir, 'modules')
+#: Kivy extension directory
+kivy_exts_dir = join(kivy_base_dir, 'extensions')
 #: Kivy data directory
 kivy_data_dir = join(kivy_base_dir, 'data')
 #: Kivy glsl shader directory
@@ -239,7 +241,6 @@ if basename(sys.argv[0]) in ('sphinx-build', ):
 if basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
     environ['KIVY_UNITTEST'] = '1'
 if not 'KIVY_DOC_INCLUDE' in environ:
-
     # Configuration management
     user_home_dir = expanduser('~')
     try:
@@ -250,11 +251,18 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         pass
     kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
+
     if not exists(kivy_home_dir):
         mkdir(kivy_home_dir)
+
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
     if not exists(kivy_usermodules_dir):
         mkdir(kivy_usermodules_dir)
+
+    kivy_userexts_dir = join(kivy_home_dir, 'extensions')
+    if not exists(kivy_userexts_dir):
+        mkdir(kivy_userexts_dir)
+
     icon_dir = join(kivy_home_dir, 'icon')
     if not exists(icon_dir):
         copytree(join(kivy_data_dir, 'logo'), icon_dir)
