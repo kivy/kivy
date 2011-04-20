@@ -372,10 +372,7 @@ cdef class Texture:
         self._colorfmt      = colorfmt
         self.update_tex_coords()
 
-    def __del__(self):
-        self.release()
-
-    cdef release(self):
+    def __dealloc__(self):
         # Add texture deletion outside GC call.
         # This case happen if some texture have been not deleted
         # before application exit...

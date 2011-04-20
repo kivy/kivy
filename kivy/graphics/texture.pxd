@@ -18,7 +18,6 @@ cdef class Texture:
     cdef float _uvh
 
     cdef update_tex_coords(self)
-    cdef release(self)
 
     cpdef flip_vertical(self)
     cpdef get_region(self, x, y, width, height)
