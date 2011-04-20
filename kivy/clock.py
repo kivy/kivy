@@ -330,7 +330,7 @@ class ClockBase(object):
             cid = _hash(callback)
             if cid in events:
                 for event in events[cid][:]:
-                    if event.get_callback() is callback:
+                    if event.get_callback() == callback:
                         events[cid].remove(event)
 
     def _release_references(self):
