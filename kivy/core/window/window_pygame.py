@@ -220,7 +220,7 @@ class WindowPygame(WindowBase):
                 # don't use trigger here, we want to delay the resize event
                 cb = self._do_resize
                 Clock.unschedule(cb)
-                Clock.schedule_once(cb._do_resize, .1)
+                Clock.schedule_once(cb, .1)
 
             # ignored event
             elif event.type in (pygame.ACTIVEEVENT, pygame.VIDEOEXPOSE):
