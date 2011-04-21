@@ -32,7 +32,7 @@ __all__ = (
 __version__ = '1.0.6-dev'
 
 import sys
-from shutil import copytree
+import shutil
 from getopt import getopt, GetoptError
 from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
@@ -265,7 +265,10 @@ if not 'KIVY_DOC_INCLUDE' in environ:
 
     icon_dir = join(kivy_home_dir, 'icon')
     if not exists(icon_dir):
-        copytree(join(kivy_data_dir, 'logo'), icon_dir)
+        try:
+            shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
+        except shutil.Error, e:
+            Logger.exception('Error when copying logo directory')
 
     # configuration
     from kivy.config import Config
