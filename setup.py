@@ -224,6 +224,7 @@ setup(
         'data/*.kv',
         'data/fonts/*.ttf',
         'data/images/*.png',
+        'data/images/*.jpg',
         'data/logo/*.png',
         'data/glsl/*.png',
         'data/glsl/*.vs',
