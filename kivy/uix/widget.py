@@ -89,6 +89,7 @@ class Widget(EventDispatcher):
 
     # UID counter
     __widget_uid = 0
+    __cache_properties = {}
 
     def __new__(__cls__, *largs, **kwargs):
         self = super(Widget, __cls__).__new__(__cls__)
@@ -100,23 +101,27 @@ class Widget(EventDispatcher):
         Widget.__widget_uid += 1
         self.__dict__['__uid'] = Widget.__widget_uid
 
+        cp = Widget.__cache_properties
+        if __cls__ not in cp:
+            attrs_found = cp[__cls__] = {}
+            attrs = dir(__cls__)
+            for k in attrs:
+                attr = getattr(__cls__, k)
+                if isinstance(attr, Property):
+                    if k in Widget_forbidden_properties:
+                        raise Exception(
+                            'The property <%s> have a forbidden name' % k)
+                    attrs_found[k] = attr
+        else:
+            attrs_found = cp[__cls__]
+
         # First loop, link all the properties storage to our instance
-        attrs_found = {}
-        attrs = dir(__cls__)
-        for k in attrs:
-            attr = getattr(__cls__, k)
-            if isinstance(attr, Property):
-                if k in Widget_forbidden_properties:
-                    raise Exception(
-                        'The property <%s> have a forbidden name' % k)
-                attr.link(self, k)
-                attrs_found[k] = attr
+        for k, attr in attrs_found.iteritems():
+            attr.link(self, k)
 
         # Second loop, resolve all the reference
-        for k in attrs:
-            attr = getattr(__cls__, k)
-            if isinstance(attr, Property):
-                attr.link_deps(self, k)
+        for k, attr in attrs_found.iteritems():
+            attr.link_deps(self, k)
 
         self.__properties = attrs_found
 
