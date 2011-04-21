@@ -1,27 +1,57 @@
 #:kivy 1.0
-Widget:
-    id: background
-    size_hint: (1,1)
+#:import kivy kivy
+#:import win kivy.core.window
+
+FloatLayout:
     canvas:
         Color:
-            rgb: (.4,.4,.4)
+            rgb: 1, 1, 1
         Rectangle:
+            source: 'data/images/background.jpg'
             size: self.size
+
+    BoxLayout:
+        padding: 10
+        spacing: 10
+        size_hint: 1, None
+        pos_hint: {'top': 1}
+        height: 24
+        Image:
+            size_hint: None, None
+            size: 24, 24
+            source: 'data/logo/kivy-icon-32.png'
+        Label:
+            height: 24
+            text_size: self.size
+            color: (1, 1, 1, .8)
+            text: 'Kivy %s - Pictures' % kivy.__version__
+
 
 
 <Picture>:
-    size: 400, 400/self.image_ratio
-    canvas:
-        Color:
-            rgba: 1,1,1,1
-        BorderImage:
-            source: 'shadow32.png'
-            border: (36,36,36,36)
-            size:(self.width+72, self.height+72)
-            pos: (-36,-36)
-        Rectangle:
-            size: self.size
-            texture: self.texture
+    # each time a picture is created, the image can delay the loading
+    # as soon as the image is loaded, ensure that the center is changed
+    # to the center of the screen.
+    on_size: self.center = win.Window.center
+    size: image.size
+    size_hint: None, None
+
+    Image:
+        id: image
+        source: root.source
+
+        # create initial image to be 400 pixels width
+        size: 400, 400 / self.image_ratio
+
+        # add shadow background
+        canvas.before:
+            Color:
+                rgba: 1,1,1,1
+            BorderImage:
+                source: 'shadow32.png'
+                border: (36,36,36,36)
+                size:(self.width+72, self.height+72)
+                pos: (-36,-36)
 
 
 
