@@ -245,8 +245,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     user_home_dir = expanduser('~')
     try:
         import android
-        if user_home_dir == '/data':
-            user_home_dir = '/sdcard'
+        user_home_dir = environ['ANDROID_APP_PATH']
     except ImportError:
         pass
     kivy_home_dir = join(user_home_dir, '.kivy')
