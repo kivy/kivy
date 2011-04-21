@@ -143,7 +143,7 @@ Available configuration tokens
 
 __all__ = ('Config', 'KivyConfigParser')
 
-from shutil import copy2
+from shutil import copyfile
 from ConfigParser import ConfigParser
 from sys import platform
 from os import environ, listdir
@@ -305,7 +305,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             logo_dir = join(kivy_data_dir, 'logo')
             dest_dir = join(kivy_home_dir, 'icon')
             for logo in listdir(logo_dir):
-                copy2(join(logo_dir, logo), dest_dir)
+                copyfile(join(logo_dir, logo), join(dest_dir, logo))
             logo_size = 32
             if platform == 'darwin':
                 logo_size = 512
