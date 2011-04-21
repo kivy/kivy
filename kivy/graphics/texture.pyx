@@ -284,9 +284,7 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
             free(data)
             data = NULL
             if mipmap:
-                glEnable(target)
                 glGenerateMipmap(target)
-                glDisable(target)
         else:
             dataerr = 1
 
@@ -469,14 +467,6 @@ cdef class Texture:
         '''Bind the texture to current opengl state'''
         glBindTexture(self._target, self._id)
 
-    cpdef enable(self):
-        '''Do the appropriate glEnable()'''
-        glEnable(self._target)
-
-    cpdef disable(self):
-        '''Do the appropriate glDisable()'''
-        glDisable(self._target)
-
     property min_filter:
         '''Get/set the min filter texture. Available values:
 
@@ -594,11 +584,9 @@ cdef class Texture:
 
         with nogil:
             glBindTexture(target, self._id)
-            glEnable(target)
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
             glFlush()
-            glDisable(target)
 
     property size:
         def __get__(self):

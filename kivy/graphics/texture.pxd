@@ -22,6 +22,4 @@ cdef class Texture:
     cpdef flip_vertical(self)
     cpdef get_region(self, x, y, width, height)
     cpdef bind(self)
-    cpdef enable(self)
-    cpdef disable(self)
 
