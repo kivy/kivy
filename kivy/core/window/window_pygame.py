@@ -21,6 +21,10 @@ except:
     Logger.warning('WinPygame: Pygame is not installed !')
     raise
 
+try:
+    import android
+except ImportError:
+    android = None
 
 class WindowPygame(WindowBase):
 
@@ -116,12 +120,9 @@ class WindowPygame(WindowBase):
         self.rotation = params['rotation']
 
         # if we are on android platform, automaticly create hooks
-        try:
-            import android
+        if android:
             from kivy.support import install_android
             install_android()
-        except ImportError:
-            pass
 
     def close(self):
         pygame.display.quit()
@@ -303,3 +304,15 @@ class WindowPygame(WindowBase):
             self._modifiers.append('alt')
         if mods & (pygame.KMOD_CTRL | pygame.KMOD_LCTRL):
             self._modifiers.append('ctrl')
+
+    def request_keyboard(self, callback):
+        if super(WindowPygame, self).request_keyboard(callback):
+            if android:
+                android.show_keyboard()
+            return True
+
+    def release_keyboard(self):
+        if super(WindowPygame, self).release_keyboard():
+            if android:
+                android.hide_keyboard()
+            return True
