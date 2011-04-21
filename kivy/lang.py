@@ -968,7 +968,11 @@ class BuilderBase(object):
                 is_template = True
                 self._push_widgets()
             else:
-                widget = cls(__no_builder=True)
+                try:
+                    widget = cls(__no_builder=True)
+                except Exception, e:
+                    raise ParserError(params['__ctx__'], params['__line__'],
+                                      str(e))
                 if not no_apply:
                     self.listwidget.append(widget)
         else:
