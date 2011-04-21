@@ -1,6 +1,9 @@
-import sys
+import kivy
+kivy.require('1.0.6')
+
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
@@ -8,6 +11,8 @@ from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewLabel
 
+class Showcase(FloatLayout):
+    pass
 
 class ShowcaseApp(App):
 
@@ -48,7 +53,9 @@ class ShowcaseApp(App):
         root.add_widget(tree)
         self.content = content = BoxLayout()
         root.add_widget(content)
-        return root
+        sc = Showcase()
+        sc.content.add_widget(root)
+        return sc
 
     def show_standard_buttons(self):
         col = BoxLayout(spacing=10)
@@ -105,5 +112,5 @@ class ShowcaseApp(App):
         return tv
 
 
-if __name__ == '__main__':
+if __name__ in ('__main__', '__android__'):
     ShowcaseApp().run()

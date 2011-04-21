@@ -108,7 +108,7 @@ cdef class Shader:
         #Logger.debug('Shader: -> (gl:%d) %s' % (glGetError(), str(value)))
 
         if val_type == Matrix:
-            self.upload_uniform_matrix(name, value)
+            self.upload_uniform_matrix(loc, value)
         elif val_type == int:
             glUniform1i(loc, value)
         elif val_type == float:
@@ -134,8 +134,7 @@ cdef class Shader:
         else:
             raise Exception('for <%s>, type not handled <%s>' % (name, val_type))
 
-    cdef void upload_uniform_matrix(self, str name, Matrix value):
-        cdef int loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
+    cdef void upload_uniform_matrix(self, int loc, Matrix value):
         cdef GLfloat mat[16]
         for x in xrange(16):
             mat[x] = <GLfloat>value.mat[x]
