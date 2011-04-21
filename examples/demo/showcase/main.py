@@ -13,18 +13,25 @@ from kivy.uix.scatter import Scatter
 from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewLabel
 
+
 class Showcase(FloatLayout):
     pass
+
 
 class KivyImageScatter(Scatter):
     pass
 
+
 class ButtonsScatter(Scatter):
     pass
+
 
 class ShowcaseApp(App):
 
     def on_select_node(self, instance, value):
+        # ensure that any keybaord is released
+        self.content.get_parent_window().release_keyboard()
+
         self.content.clear_widgets()
         try:
             w = getattr(self, 'show_%s' %
