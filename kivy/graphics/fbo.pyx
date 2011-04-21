@@ -70,7 +70,7 @@ cdef class Fbo(RenderContext):
         `push_viewport`: bool, default to True
             If True, the OpenGL viewport will be set to the framebuffer size,
             and will be automatically restored when the framebuffer released.
-        `with_depthbuffer`: bool, default to True
+        `with_depthbuffer`: bool, default to False
             If True, the framebuffer will be allocated with a Z buffer.
         `texture`: :class:`~kivy.graphics.texture.Texture`, default to None
             If None, a default texture will be created.
@@ -110,7 +110,7 @@ cdef class Fbo(RenderContext):
         kwargs.setdefault('clear_color', (0, 0, 0, 0))
         kwargs.setdefault('size', (1024, 1024))
         kwargs.setdefault('push_viewport', True)
-        kwargs.setdefault('with_depthbuffer', True)
+        kwargs.setdefault('with_depthbuffer', False)
 
         self._buffer_id             = -1
         self._depthbuffer_id        = -1
