@@ -63,13 +63,13 @@ that using Kivy. Make sure that you have read and understood
 Initial Structure
 ~~~~~~~~~~~~~~~~~
 
-Let's start by writing the very basic code structure that we need.
-By the way, all the different pieces of code that are used in this section are
-also available in the ``examples/firstwidget`` directory that comes with Kivy,
+Let's start by writing the very basic code structure that we need.  By the way,
+all the different pieces of code that are used in this section are also
+available in the ``examples/guide/firstwidget`` directory that comes with Kivy,
 so you don't need to copy & paste it all the time.
 Here is the basic code skeleton that we will need:
 
-.. include:: ../../../examples/firstwidget/1_skeleton.py
+.. include:: ../../../examples/guide/firstwidget/1_skeleton.py
    :literal:
 
 
@@ -101,7 +101,7 @@ Adding Behaviour
 Let's now add some actual behaviour to the widget, i.e. make it react to user
 input. Change the code like so:
 
-.. include:: ../../../examples/firstwidget/2_print_touch.py
+.. include:: ../../../examples/guide/firstwidget/2_print_touch.py
    :literal:
 
 
@@ -116,7 +116,7 @@ have a visual representation.
 Now that's not really an overwhelming user experience. Let's add some code
 that actually draws something into our window:
 
-.. include:: ../../../examples/firstwidget/3_draw_ellipse.py
+.. include:: ../../../examples/guide/firstwidget/3_draw_ellipse.py
    :literal:
 
 If you run your code with these modifications, you will see that every time
@@ -153,7 +153,7 @@ How does it work?
 That was easy, wasn't it?
 It gets better! Update the code to look like this:
 
-.. include:: ../../../examples/firstwidget/4_draw_line.py
+.. include:: ../../../examples/guide/firstwidget/4_draw_line.py
    :literal:
 
 This is what has changed:
@@ -203,7 +203,7 @@ So far so good. This isn't exactly beautiful yet, though. It looks a bit
 like spaghetti bolognese. What about we give each touch its own color?
 Great, let's do it:
 
-.. include:: ../../../examples/firstwidget/5_random_colors.py
+.. include:: ../../../examples/guide/firstwidget/5_random_colors.py
    :literal:
 
 Here are the changes:
@@ -272,7 +272,7 @@ We'll go with the second option here so that you see how you can build up
 your application's widget tree in your app class's :meth:`~kivy.app.App.build`
 method. We'll also change to the HSV color space (see preceding note):
 
-.. include:: ../../../examples/firstwidget/6_button.py
+.. include:: ../../../examples/guide/firstwidget/6_button.py
    :literal:
 
 Here's what happens:

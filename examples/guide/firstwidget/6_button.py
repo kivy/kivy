@@ -6,6 +6,7 @@ from kivy.graphics import Color, Ellipse, Line
 
 
 class MyPaintWidget(Widget):
+
     def on_touch_down(self, touch):
         userdata = touch.ud
         userdata['color'] = c = (random(), 1, 1)
@@ -20,6 +21,7 @@ class MyPaintWidget(Widget):
 
 
 class MyPaintApp(App):
+
     def build(self):
         parent = Widget()
         painter = MyPaintWidget()
