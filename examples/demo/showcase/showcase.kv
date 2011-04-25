@@ -32,3 +32,20 @@
         FloatLayout:
             id: content
 
+<KivyImageScatter>:
+    Image:
+        source: 'data/logo/kivy-icon-512.png'
+
+<ButtonsScatter>:
+    canvas:
+        Color:
+            rgba: .5, .5, .5, .5
+        Rectangle:
+            size: self.size
+    BoxLayout:
+        size: root.size
+        padding: 40
+        Button:
+            text: 'Hello'
+        Button:
+            text: 'World'

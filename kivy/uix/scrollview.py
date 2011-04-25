@@ -67,14 +67,8 @@ __all__ = ('ScrollView', )
 from functools import partial
 from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
-from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty
 from kivy.vector import Vector
-
-
-class ScrollViewContent(FloatLayout):
-    # Internal class, the user should not be aware about that.
-    pass
 
 
 class ScrollView(StencilView):

@@ -26,7 +26,8 @@ The base code for creating an application looks like this:
         def build(self):
             return Button(text='Hello World')
 
-    MyApp().run()
+    if __name__ in ('__android__', '__main__'):
+        MyApp().run()
 
 Save it as `main.py`.
 

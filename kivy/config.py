@@ -256,7 +256,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             # default graphics parameters
             Config.setdefault('graphics', 'display', '-1')
             Config.setdefault('graphics', 'fullscreen', 'no')
-            Config.setdefault('graphics', 'height', '480')
+            Config.setdefault('graphics', 'height', '600')
             Config.setdefault('graphics', 'left', '0')
             Config.setdefault('graphics', 'maxfps', '0')
             Config.setdefault('graphics', 'multisamples', '2')
@@ -265,7 +265,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.setdefault('graphics', 'show_cursor', '1')
             Config.setdefault('graphics', 'top', '0')
             Config.setdefault('graphics', 'vsync', '1')
-            Config.setdefault('graphics', 'width', '640')
+            Config.setdefault('graphics', 'width', '800')
 
             # input configuration
             Config.setdefault('input', 'default', 'tuio,0.0.0.0:3333')

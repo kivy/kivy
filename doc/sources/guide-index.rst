@@ -7,5 +7,6 @@ Programming Guide
     guide/quickstart
     guide/architecture
     guide/firstwidget
+    guide/designwithkv
     guide/platform
 
