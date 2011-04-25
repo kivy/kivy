@@ -107,24 +107,24 @@ cdef class Shader:
             return
         #Logger.debug('Shader: -> (gl:%d) %s' % (glGetError(), str(value)))
 
-        if val_type == Matrix:
+        if val_type is Matrix:
             self.upload_uniform_matrix(loc, value)
-        elif val_type == int:
+        elif val_type is int:
             glUniform1i(loc, value)
-        elif val_type == float:
+        elif val_type is float:
             glUniform1f(loc, value)
-        elif val_type in (list, tuple):
+        elif val_type is list or val_type is tuple:
             #must have been a list, tuple, or other sequnce and be a vector uniform
             val_type = type(value[0])
             vec_size = len(value)
-            if val_type == float:
+            if val_type is float:
                 if vec_size == 2:
                     glUniform2f(loc, value[0], value[1])
                 elif vec_size == 3:
                     glUniform3f(loc, value[0], value[1], value[2])
                 elif vec_size == 4:
                     glUniform4f(loc, value[0], value[1], value[2], value[3])
-            elif val_type == int:
+            elif val_type is int:
                 if vec_size == 2:
                     glUniform2i(loc, value[0], value[1])
                 elif vec_size == 3:
