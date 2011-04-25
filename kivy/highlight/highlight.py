@@ -13,7 +13,7 @@ class KivyLexer(RegexLexer):
     tokens = {
         'root': [
             (r'#:.*?$', Comment.Preproc),
-            (r'#.*?$', Comment.Single),
+            (r'#.*?$', using(PythonLexer)),
             (r'\s+', Text),
             (r'<.+>', Name.Namespace),
             (r'(\[)(\s*)(.*?)(\s*)(@)',
@@ -25,7 +25,10 @@ class KivyLexer(RegexLexer):
                 bygroups(Name.Attribute, Text, Punctuation, Text,
                 using(PythonLexer)))],
         'classList': [
-            (r',', Punctuation),
+            (r'(,)(\s*)([A-Z][A-Za-z0-9]*)',
+                bygroups(Punctuation, Text, Name.Class)),
+            (r'(\+)(\s*)([A-Z][A-Za-z0-9]*)',
+                bygroups(Operator, Text, Name.Class)),
             (r'\s+', Text),
             (r'[A-Z][A-Za-z0-9]*', Name.Class),
             (r'\]', Punctuation, '#pop')]}
