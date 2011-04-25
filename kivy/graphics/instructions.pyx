@@ -374,9 +374,6 @@ cdef class Callback(Instruction):
         regarding that, please contact us.
 
     '''
-    cdef object func
-    cdef int _reset_context
-
     def __init__(self, arg, **kwargs):
         Instruction.__init__(self, **kwargs)
         self.func = arg
@@ -394,6 +391,7 @@ cdef class Callback(Instruction):
     cdef void apply(self):
         cdef RenderContext context
         cdef Shader shader
+        cdef int i
 
         if self.func(self):
             self.flag_update_done()
@@ -417,7 +415,7 @@ cdef class Callback(Instruction):
 
             # force binding again all our textures.
             context = getActiveContext()
-            shader = context.shader
+            shader = context._shader
             context.enter()
             shader.bind_attrib_locations()
             for index, texture in context.bind_texture.iteritems():
@@ -571,6 +569,7 @@ cdef class RenderContext(Canvas):
     - The state stack (color, texture, matrix...)
     '''
     def __init__(self, *args, **kwargs):
+        cdef str key
         self.bind_texture = dict()
         Canvas.__init__(self, **kwargs)
         vs_src = kwargs.get('vs', None)
@@ -649,7 +648,7 @@ cdef class RenderContext(Canvas):
         #    return
         self.bind_texture[index] = texture
         glActiveTexture(GL_TEXTURE0 + index)
-        glBindTexture(texture.target, texture.id)
+        glBindTexture(texture._target, texture._id)
         self.flag_update()
 
     cdef void enter(self):

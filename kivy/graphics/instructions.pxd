@@ -9,11 +9,16 @@ cdef class RenderContext
 from vbo cimport *
 from context_instructions cimport *
 from compiler cimport *
+from shader cimport *
+from texture cimport Texture
+
+cdef class Instruction
+cdef class InstructionGroup(Instruction)
 
 cdef class Instruction:
     cdef int flags
     cdef str group
-    cdef Instruction parent
+    cdef InstructionGroup parent
 
     cdef void apply(self)
     cdef void flag_update(self, int do_parent=?)
@@ -57,6 +62,12 @@ cdef class VertexInstruction(Instruction):
 
     cdef void build(self)
 
+cdef class Callback(Instruction):
+    cdef Shader _shader
+    cdef object func
+    cdef int _reset_context
+    cdef void apply(self)
+    cdef void enter(self)
 
 
 
@@ -74,8 +85,6 @@ cdef class Canvas(CanvasBase):
     cpdef draw(self)
 
 
-from shader cimport *
-from texture cimport Texture
 cdef class RenderContext(Canvas):
     cdef Shader _shader
     cdef dict state_stacks

@@ -99,7 +99,9 @@ cdef class Shader:
         '''
         cdef int vec_size, loc
         val_type = type(value)
-        loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
+        loc = self.uniform_locations.get(name, -1)
+        if loc == -1:
+            loc = self.get_uniform_loc(name)
 
         #Logger.debug('Shader: uploading uniform %s (loc=%d)' % (name, loc))
         if loc == -1:
