@@ -71,6 +71,8 @@ from instructions cimport Instruction
 
 cdef int _stencil_level = -1
 cdef int _stencil_in_push = 0
+cdef int _stencil_table[8]
+_stencil_table[:] = [1, 3, 7, 15, 31, 63, 127, 255]
 
 cdef class StencilPush(Instruction):
     '''Push the stencil stack. See module documentation for more information.
@@ -112,7 +114,7 @@ cdef class StencilPop(Instruction):
             return
         # reset for previous
         glColorMask(1, 1, 1, 1)
-        cdef int mask = (1 << _stencil_level)
+        cdef int mask = _stencil_table[_stencil_level]
         glStencilFunc(GL_EQUAL, mask, mask)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 
@@ -124,7 +126,7 @@ cdef class StencilUse(Instruction):
     cdef void apply(self):
         global _stencil_in_push
         _stencil_in_push = 0
-        cdef int mask = (1 << _stencil_level)
+        cdef int mask = _stencil_table[_stencil_level]
         glColorMask(1, 1, 1, 1)
         glStencilFunc(GL_EQUAL, mask, mask)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
