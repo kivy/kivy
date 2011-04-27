@@ -41,7 +41,15 @@ def install_android():
         print 'Android lib is missing, cannot install android hooks'
         return
 
+    from kivy.clock import Clock
+
     print '==========+> Android install hooks'
+
+    # Init the library
+    android.init()
+
+    # Check if android must be paused or not
+    # If pause is asked, just leave the app.
 
     def android_check_pause(*largs):
         if not android.check_pause():
@@ -50,6 +58,4 @@ def install_android():
         stopTouchApp()
         #android.wait_for_resume()
 
-    from kivy.clock import Clock
     Clock.schedule_interval(android_check_pause, 0)
-
