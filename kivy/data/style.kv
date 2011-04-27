@@ -7,7 +7,7 @@
         Rectangle:
             texture: self.texture
             size: self.texture_size
-            pos: int(self.center[0] - self.texture_size[0] / 2.), int(self.center[1] - self.texture_size[1] / 2.)
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
 <Button,ToggleButton>:
     canvas:
@@ -89,7 +89,7 @@
         Rectangle:
             source: 'data/images/tree_%s.png' % ('opened' if self.is_open else 'closed')
             size: 16, 16
-            pos: self.x - 20, self.center[1] - 8
+            pos: self.x - 20, self.center_y - 8
     canvas.after:
         Color:
             rgba: .5, .5, .5, .2

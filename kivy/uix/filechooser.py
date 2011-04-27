@@ -1,4 +1,4 @@
-"""
+'''
 FileChooser
 ===========
 
@@ -8,24 +8,18 @@ FileChooser
 
     This is experimental and subject to change as long as this warning notice is
     present.
-"""
+'''
 
 
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.logger import Logger
-from kivy.uix.widget import Widget
-from kivy.uix.label import Label
-from kivy.uix.treeview import TreeViewNode
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
                             ObjectProperty
-
-
 from sys import platform
-from os import getcwdu, listdir
-from os.path import basename, getsize, isdir, join, sep, normpath, dirname, \
+from os import listdir
+from os.path import basename, getsize, isdir, join, sep, normpath, \
                     expanduser, altsep, splitdrive
 from fnmatch import fnmatch
 

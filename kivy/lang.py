@@ -981,14 +981,21 @@ class BuilderBase(object):
         if is_template:
             # checking reserved keyword
             ctx = {}
+            template_id = None
             for key, value in self._iterate(params):
+                if key == 'id':
+                    template_id = value[0]
+                    continue
                 if key == 'children':
                     raise ParserError(params['__ctx__'], params['__line__'],
                            'Children in template are forbidden')
                 if key in ('canvas.before', 'canvas', 'canvas.after'):
                     raise ParserError(params['__ctx__'], params['__line__'],
                            'Canvas instruction in template are forbidden')
-                ctx[key] = eval(value[0], _eval_globals, self.idmap)
+                try:
+                    ctx[key] = eval(value[0], _eval_globals, self.idmap)
+                except Exception, e:
+                    raise ParserError(params['__ctx__'], params['__line__'], e)
             widget = cls(**ctx)
         else:
             self.idmap['self'] = widget
@@ -1031,10 +1038,12 @@ class BuilderBase(object):
                                             copy(self.idmap)))
 
         self._pop_ids()
-        if is_rule:
-            self.build_attributes()
         if is_template:
             self._pop_widgets()
+            if template_id:
+                self.gidmap[template_id] = widget
+        if is_rule:
+            self.build_attributes()
 
         return widget
 
