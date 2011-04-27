@@ -12,6 +12,8 @@ from compiler cimport *
 from shader cimport *
 from texture cimport Texture
 
+cdef void reset_gl_context()
+
 cdef class Instruction
 cdef class InstructionGroup(Instruction)
 

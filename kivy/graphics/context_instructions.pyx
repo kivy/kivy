@@ -41,6 +41,7 @@ def gl_init_resources():
     global DEFAULT_TEXTURE
     DEFAULT_TEXTURE = None
     Cache.remove('kv.texture')
+    reset_gl_context()
 
 cdef class LineWidth(ContextInstruction):
     '''Instruction to set the line width of the drawing context

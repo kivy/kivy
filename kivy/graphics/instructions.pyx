@@ -23,6 +23,19 @@ IF USE_OPENGL_DEBUG == 1:
 from kivy.logger import Logger
 
 
+cdef int _need_reset_gl = 1
+cdef int _active_texture = -1
+
+cdef void reset_gl_context():
+    global _need_reset_gl, _active_texture
+    _need_reset_gl = 0
+    _active_texture = 0
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glActiveTexture(GL_TEXTURE0)
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
+
 cdef class Instruction:
     '''Represents the smallest instruction available. This class is for internal
     usage only, don't use it directly.
@@ -322,10 +335,6 @@ cdef class VertexInstruction(Instruction):
         if self.flags & GI_NEEDS_UPDATE:
             self.build()
             self.flag_update_done()
-
-        # TODO: REMOVE THIS UGLY THING §!!!!!!!!!!!!!
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         self.batch.draw()
 
 
@@ -420,6 +429,8 @@ cdef class Callback(Instruction):
             shader.bind_attrib_locations()
             for index, texture in context.bind_texture.iteritems():
                 context.set_texture(index, texture)
+
+            reset_gl_context()
 
     cdef void enter(self):
         self._shader.use()
@@ -646,8 +657,11 @@ cdef class RenderContext(Canvas):
         #if index in self.bind_texture and \
         #   self.bind_texture[index] is texture:
         #    return
+        global _active_texture
         self.bind_texture[index] = texture
-        glActiveTexture(GL_TEXTURE0 + index)
+        if _active_texture != index:
+            _active_texture = index
+            glActiveTexture(GL_TEXTURE0 + index)
         glBindTexture(texture._target, texture._id)
         self.flag_update()
 
@@ -660,6 +674,8 @@ cdef class RenderContext(Canvas):
     cdef void apply(self):
         cdef list keys = self.state_stacks.keys()
         pushActiveContext(self)
+        if _need_reset_gl:
+            reset_gl_context()
         self.push_states(keys)
         Canvas.apply(self)
         self.pop_states(keys)
