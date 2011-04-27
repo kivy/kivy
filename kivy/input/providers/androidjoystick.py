@@ -61,7 +61,7 @@ class AndroidMotionEventProvider(MotionEventProvider):
             x = joy.get_axis(0) * 32768. / w
             y = 1. - (joy.get_axis(1) * 32768. / h)
             pressure = joy.get_axis(2)
-            radius = joy.get_axis(1)
+            radius = joy.get_axis(3)
 
             # new touche ?
             if pressed and jid not in touches:
@@ -73,6 +73,11 @@ class AndroidMotionEventProvider(MotionEventProvider):
             # update touch
             elif pressed:
                 touch = touches[jid]
+                # avoid same touch position
+                if touch.sx == x and touch.sy == y \
+                   and touch.pressure == pressure:
+                    #print 'avoid moving.', touch.uid, x, y, pressure, radius
+                    continue
                 touch.move([x, y, pressure, radius])
                 dispatch_fn('update', touch)
             # disapear
