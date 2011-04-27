@@ -22,6 +22,7 @@ tools available in your PATH:
 
     * Java
     * Python 2.7 (not 2.6.)
+    * Jinja2 (python module)
     * Apache ant
     * Android SDK
 
