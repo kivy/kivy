@@ -8,9 +8,11 @@ from distutils.extension import Extension
 try:
     # check for cython
     from Cython.Distutils import build_ext
+    have_cython = True
 except ImportError:
     print '\nCython is missing, its required for compiling kivy !\n\n'
-    raise
+    have_cython = False
+    from distutils.command.build_ext import build_ext
 
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
@@ -104,6 +106,10 @@ for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
         pxd_files.append(join(root, filename))
     for filename in fnfilter(filenames, '*.pyx'):
         pyx_files.append(join(root, filename))
+
+if not have_cython:
+    pyx_files = pyx_files = ['%s.c' % x[:-4] for x in pyx_files]
+    pxd_files = []
 
 # add cython core extension modules if cython is available
 
