@@ -260,13 +260,13 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
                       colorfmt=colorfmt, mipmap=mipmap)
 
     texture.bind()
-    texture.wrap = 'clamp_to_edge'
+    texture.set_wrap('clamp_to_edge')
     if mipmap:
-        texture.min_filter  = 'linear_mipmap_nearest'
-        texture.mag_filter  = 'linear'
+        texture.set_min_filter('linear_mipmap_nearest')
+        texture.set_mag_filter('linear')
     else:
-        texture.min_filter  = 'linear'
-        texture.mag_filter  = 'linear'
+        texture.set_min_filter('linear')
+        texture.set_mag_filter('linear')
 
     # ok, allocate memory for initial texture
     cdef int glfmt = _color_fmt_to_gl(colorfmt)
@@ -284,9 +284,7 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
             free(data)
             data = NULL
             if mipmap:
-                glEnable(target)
                 glGenerateMipmap(target)
-                glDisable(target)
         else:
             dataerr = 1
 
@@ -469,13 +467,21 @@ cdef class Texture:
         '''Bind the texture to current opengl state'''
         glBindTexture(self._target, self._id)
 
-    cpdef enable(self):
-        '''Do the appropriate glEnable()'''
-        glEnable(self._target)
+    cdef set_min_filter(self, str x):
+        cdef GLuint _value = _str_to_gl_texture_min_filter(x)
+        glTexParameteri(self.target, GL_TEXTURE_MIN_FILTER, _value)
+        self._min_filter = x
 
-    cpdef disable(self):
-        '''Do the appropriate glDisable()'''
-        glDisable(self._target)
+    cdef set_mag_filter(self, str x):
+        cdef GLuint _value = _str_to_gl_texture_mag_filter(x)
+        glTexParameteri(self.target, GL_TEXTURE_MAG_FILTER, _value)
+        self._mag_filter = x
+
+    cdef set_wrap(self, str x):
+        cdef GLuint _value = _str_to_gl_texture_wrap(x)
+        glTexParameteri(self.target, GL_TEXTURE_WRAP_S, _value)
+        glTexParameteri(self.target, GL_TEXTURE_WRAP_T, _value)
+        self._wrap = x
 
     property min_filter:
         '''Get/set the min filter texture. Available values:
@@ -497,9 +503,7 @@ cdef class Texture:
             if x == self._min_filter:
                 return
             self.bind()
-            _value = _str_to_gl_texture_min_filter(x)
-            glTexParameteri(self.target, GL_TEXTURE_MIN_FILTER, _value)
-            self._min_filter = x
+            self.set_min_filter(x)
 
     property mag_filter:
         '''Get/set the mag filter texture. Available values:
@@ -513,13 +517,10 @@ cdef class Texture:
         def __get__(self):
             return self._mag_filter
         def __set__(self, x):
-            cdef GLuint _value
             if x == self._mag_filter:
                 return
             self.bind()
-            _value = _str_to_gl_texture_mag_filter(x)
-            glTexParameteri(self.target, GL_TEXTURE_MAG_FILTER, _value)
-            self._mag_filter = x
+            self.set_mag_filter(x)
 
     property wrap:
         '''Get/set the wrap texture. Available values:
@@ -534,14 +535,10 @@ cdef class Texture:
         def __get__(self):
             return self._wrap
         def __set__(self, wrap):
-            cdef GLuint _value
             if wrap == self._wrap:
                 return
             self.bind()
-            _value = _str_to_gl_texture_wrap(wrap)
-            glTexParameteri(self.target, GL_TEXTURE_WRAP_S, _value)
-            glTexParameteri(self.target, GL_TEXTURE_WRAP_T, _value)
-            self._wrap = wrap
+            self.set_wrap(wrap)
 
     def blit_data(self, im, pos=None):
         '''Replace a whole texture with a image data'''
@@ -594,11 +591,8 @@ cdef class Texture:
 
         with nogil:
             glBindTexture(target, self._id)
-            glEnable(target)
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
             glFlush()
-            glDisable(target)
 
     property size:
         def __get__(self):
