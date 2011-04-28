@@ -95,6 +95,17 @@ class Image(Widget):
     read-only.
     '''
 
+    color = ListProperty([1, 1, 1, 1])
+    '''Image color, in the format (r, g, b, a). This attribute can be used for
+    'tint' an image. Be careful, if the source image is not gray/white, the
+    color will not really work as expected.
+
+    .. versionadded:: 1.0.6
+
+    :data:`color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
+    1, 1].
+    '''
+
     def get_norm_image_size(self):
         if not self.texture:
             return self.size
