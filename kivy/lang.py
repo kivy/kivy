@@ -408,6 +408,26 @@ Or more complex::
         canvas:
             Color:
                 rgba: ut.get_random_color()
+
+set <key> <expr>
+~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.0.6
+
+Syntax::
+
+    #:set <key> <expr>
+
+Set a key that will be available anywhere in the kv. For example::
+
+    #:set my_color (.4, .3, .4)
+    #:set my_color_hl (.5, .4, .5)
+
+    <Rule>:
+        state: 'normal'
+        canvas:
+            Color:
+                rgb: my_color if self.state == 'normal' else my_color_hl
 '''
 
 __all__ = ('Builder', 'BuilderBase', 'Parser')
@@ -475,6 +495,19 @@ class Parser(object):
             if cmd.startswith('kivy '):
                 # FIXME move the version checking here
                 continue
+            elif cmd.startswith('set '):
+                try:
+                    name, value = cmd[4:].strip().split(' ', 1)
+                except:
+                    Logger.exception('')
+                    raise ParserError(self, ln, 'Invalid directive syntax')
+                try:
+                    value = eval(value)
+                except:
+                    Logger.exception('')
+                    raise ParserError(self, ln, 'Invalid value')
+                global_idmap[name] = value
+
             elif cmd.startswith('import '):
                 package = cmd[7:].strip()
                 l = package.split(' ')
