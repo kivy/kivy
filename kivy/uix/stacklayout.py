@@ -37,12 +37,17 @@ class StackLayout(Layout):
     0.
     '''
 
-    orientation = OptionProperty('vertical', options=(
-        'horizontal', 'vertical'))
+    orientation = OptionProperty('lr-tb', options=(
+        'lr-tb', 'tb-lr'))
     '''Orientation of the layout.
 
     :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
+    to 'lr-tb'. Support only 'lr-tb' and 'tb-lr' for the moment.
+
+    .. note::
+
+        lr mean Left to Right.
+        tb mean Top to Bottom.
     '''
 
     def __init__(self, **kwargs):
@@ -63,6 +68,12 @@ class StackLayout(Layout):
     def _do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop
         reposition_child = self.reposition_child
+        '''
+        print '_do_layout===='
+        def reposition_child(*l, **kw):
+            print 'reposition_child', l, kw
+            self.reposition_child(*l, **kw)
+        '''
         selfx, selfy = self.pos
         selfw, selfh = self.size
         orientation = self.orientation
@@ -71,14 +82,15 @@ class StackLayout(Layout):
         spacing = self.spacing
         spacing2 = spacing * 2
 
-        x = self.x + padding
-        y = self.top - padding
-        lw = self.width - padding2
-        lh = 0
         lc = []
         height = 0
+        width = 0
 
-        if orientation == 'vertical' or True:
+        if orientation == 'lr-tb':
+            x = self.x + padding
+            y = self.top - padding
+            lw = self.width - padding2
+            lh = 0
             for c in reversed(self.children):
                 if c.size_hint_x:
                     c.width = c.size_hint_x * (selfw - padding2)
@@ -109,3 +121,39 @@ class StackLayout(Layout):
                     reposition_child(c2, pos=(x, y))
                     x += c2.width + spacing
             self.height = height
+
+        elif orientation == 'tb-lr':
+            x = self.right - padding
+            y = self.y + padding
+            lw = 0
+            lh = self.height - padding2
+            for c in reversed(self.children):
+                if c.size_hint_y:
+                    c.height = c.size_hint_y * (selfh - padding2)
+
+                # is the widget fit in the column ?
+                if lh - c.height >= 0:
+                    lc.append(c)
+                    lh -= c.height + spacing
+                    lw = max(lw, c.width)
+                    continue
+
+                # push the line
+                x -= lw
+                width += lw + spacing
+                for c2 in lc:
+                    reposition_child(c2, pos=(x, y))
+                    y += c2.height + spacing
+                x -= spacing
+                lc = [c]
+                lw = c.width
+                lh = self.height - padding2 - c.height
+                y = self.y + padding
+
+            if lc:
+                x -= lw
+                width += lw
+                for c2 in lc:
+                    reposition_child(c2, pos=(x, y))
+                    y += c2.height + spacing
+            self.width = width
