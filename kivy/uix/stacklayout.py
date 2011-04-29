@@ -83,8 +83,8 @@ class StackLayout(Layout):
         spacing2 = spacing * 2
 
         lc = []
-        height = 0
-        width = 0
+        height = padding2
+        width = padding2
 
         if orientation == 'lr-tb':
             x = self.x + padding
@@ -116,7 +116,7 @@ class StackLayout(Layout):
 
             if lc:
                 y -= lh
-                height += lh
+                height += lh + padding
                 for c2 in lc:
                     reposition_child(c2, pos=(x, y))
                     x += c2.width + spacing

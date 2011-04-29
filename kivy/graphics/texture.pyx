@@ -43,6 +43,7 @@ def hasGLExtension( specifier ):
 cdef GLuint GL_BGR = 0x80E0
 cdef GLuint GL_BGRA = 0x80E1
 
+cdef object _texture_release_trigger = None
 cdef list _texture_release_list = []
 cdef int _has_bgr = -1
 cdef int _has_texture_nv = -1
@@ -376,6 +377,8 @@ cdef class Texture:
         # before application exit...
         if _texture_release_list is not None:
             _texture_release_list.append(self._id)
+            if _texture_release_trigger is not None:
+                _texture_release_trigger()
 
     property mipmap:
         '''Return True if the texture have mipmap enabled (readonly)'''
@@ -644,5 +647,5 @@ def _texture_release(*largs):
 if 'KIVY_DOC_INCLUDE' not in environ:
     # install tick to release texture every 200ms
     from kivy.clock import Clock
-    Clock.schedule_interval(_texture_release, 0.2)
+    _texture_release_trigger = Clock.create_trigger(_texture_release)
 
