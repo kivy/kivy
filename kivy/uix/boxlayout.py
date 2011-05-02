@@ -77,6 +77,7 @@ class BoxLayout(Layout):
             padding = self._trigger_minimum_size,
             orientation = self._trigger_minimum_size)
         self.bind(
+            minimum_size = self._trigger_layout,
             spacing = self._trigger_layout,
             padding = self._trigger_layout,
             children = self._trigger_layout,
@@ -127,10 +128,7 @@ class BoxLayout(Layout):
                     if shh is not None:
                         height += _h
 
-        before = self.minimum_size
-        if before[0] != width or before[1] != height:
-            self.minimum_size = (width, height)
-            self._trigger_layout()
+        self.minimum_size = (width, height)
 
     def _do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop
