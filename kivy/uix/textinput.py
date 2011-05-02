@@ -788,7 +788,7 @@ class TextInput(Widget):
 
         if unicode and not key in (self.interesting_keys.keys() + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
-            if modifiers == ctrl or (is_osx and modifiers == cmd):
+            if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
                 if key == ord('x'): # cut selection
                     Clipboard.put(self.selection_text, 'text/plain')
                     self.delete_selection()
