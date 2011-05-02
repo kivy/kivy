@@ -37,10 +37,10 @@ Kivy's property classes support:
 #cython: embedsignature=True
 
 
-__all__ = ('NumericProperty', 'StringProperty', 'ListProperty',
+__all__ = ('Property',
+           'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
-           'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
-           'Property')
+           'OptionProperty', 'ReferenceListProperty', 'AliasProperty')
 
 
 cdef class Property:
@@ -49,6 +49,30 @@ cdef class Property:
     This class handles all the basic setters and getters, None type handling,
     the observer list and storage initialisation. This class should not be
     directly instantiated.
+
+    By default, a :class:`Property` always take a default value::
+
+        class MyObject(Widget):
+
+            hello = Property('Hello world')
+
+    The default value must be a value that agreed about the Property type. For
+    example, you can't set a list to a :class:`StringProperty`, because the
+    StringProperty will check the default value.
+
+    None is a special case: you can set the default value of a Property to None,
+    but you can't set None to a property afterwise.
+    If you really want to do that, you must declare the Property with
+    `allownone=True`::
+
+        class MyObject(Widget):
+
+            hello = ObjectProperty(None, allownone=True)
+
+        # then later
+        a = MyObject()
+        a.hello = 'bleh' # working
+        a.hello = None # working too, because allownone is True.
     '''
 
     cdef str _name
