@@ -2,25 +2,54 @@
 Logger object
 =============
 
-Differents level are available :
-    - debug
-    - info
-    - warning
-    - error
-    - critical
+Differents level are available : trace, debug, info, warning, error, critical.
 
 Examples of usage::
 
     from kivy.logger import Logger
-    Logger.notice('This is a notice')
-    Logger.debug('This is a notice')
+
+    Logger.info('title: This is a info')
+    Logger.debug('title: This is a debug')
 
     try:
         raise Exception('bleh')
     except Exception, e:
         Logger.exception(e)
 
-Logger can be controled in the Kivy configuration.
+The message passed to the logger is splited to the first :. The left part is
+used as a title, and the right part is used as a message. This way, you can
+"categorize" your message easily::
+
+    Logger.info('Application: This is a test')
+
+    # will appear as
+
+    [INFO   ] [Application ] This is a test
+
+Logger configuration
+--------------------
+
+Logger can be controled in the Kivy configuration file::
+
+    [kivy]
+    log_level = info
+    log_enable = 1
+    log_dir = logs
+    log_name = kivy_%y-%m-%d_%_.txt
+
+More information about the allowed values is described in :mod:`kivy.config`
+module.
+
+Logger history
+--------------
+
+Even if the logger is not enabled, you can still have the history of latest 100
+messages::
+
+    from kivy.logger import LoggerHistory
+
+    print LoggerHistory.history
+
 '''
 
 import logging
@@ -40,6 +69,8 @@ BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 RESET_SEQ = "\033[0m"
 COLOR_SEQ = "\033[1;%dm"
 BOLD_SEQ = "\033[1m"
+
+previous_stderr = sys.stderr
 
 
 def formatter_message(message, use_color=True):
@@ -170,12 +201,12 @@ class FileHandler(logging.Handler):
         self._write_message(message)
 
 
-class HistoryHandler(logging.Handler):
+class LoggerHistory(logging.Handler):
 
     history = []
 
     def emit(self, message):
-        HistoryHandler.history = [message] + HistoryHandler.history[:100]
+        LoggerHistory.history = [message] + LoggerHistory.history[:100]
 
 
 class ColoredFormatter(logging.Formatter):
@@ -207,7 +238,22 @@ class ColoredFormatter(logging.Formatter):
         return logging.Formatter.format(self, record)
 
 
+class ConsoleHandler(logging.StreamHandler):
+
+    def filter(self, record):
+        try:
+            msg = record.msg
+            k = msg.split(':', 1)
+            if k[0] == 'stderr' and len(k) == 2:
+                previous_stderr.write(k[1] + '\n')
+                return False
+        except:
+            pass
+        return True
+
+
 class ColoredLogger(logging.Logger):
+
     use_color = True
     if os.name == 'nt':
         use_color = False
@@ -219,18 +265,39 @@ class ColoredLogger(logging.Logger):
         logging.Logger.__init__(self, name, logging.DEBUG)
         color_formatter = ColoredFormatter(self.COLOR_FORMAT,
                                            use_color=self.use_color)
-        console = logging.StreamHandler()
+        console = ConsoleHandler()
         console.setFormatter(color_formatter)
+
+        self.addHandler(LoggerHistory())
+        self.addHandler(FileHandler())
 
         # Use the custom handler instead of streaming one.
         if hasattr(sys, '_kivy_logging_handler'):
             self.addHandler(getattr(sys, '_kivy_logging_handler'))
         else:
             self.addHandler(console)
-        self.addHandler(HistoryHandler())
-        self.addHandler(FileHandler())
         return
 
+
+class LogFile(object):
+
+    def __init__(self, channel, func):
+        self.buffer = ''
+        self.func = func
+        self.channel = channel
+
+    def write(self, s):
+        s = self.buffer + s
+        self.flush()
+        f = self.func
+        channel = self.channel
+        lines = s.split('\n')
+        for l in lines[:-1]:
+            f('%s: %s' % (channel, l))
+        self.buffer = lines[-1]
+
+    def flush(self):
+        return
 
 if 'nosetests' not in sys.argv:
     logging.setLoggerClass(ColoredLogger)
@@ -238,9 +305,11 @@ if 'nosetests' not in sys.argv:
 #: Kivy default logger instance
 Logger = logging.getLogger('Kivy')
 Logger.logfile_activated = False
-
 Logger.trace = partial(Logger.log, logging.TRACE)
 
+# install stderr handlers
+sys.stderr = LogFile('stderr', Logger.warning)
+
 #: Kivy history handler
-LoggerHistory = HistoryHandler
+LoggerHistory = LoggerHistory
 

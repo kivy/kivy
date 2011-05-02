@@ -15,6 +15,24 @@ to install anything "system" wide. Just unzip & run:
 Start a Kivy Application
 ------------------------
 
+Send-to method
+~~~~~~~~~~~~~~
+
+You can launch a .py file with our Python using the Send-to menu:
+
+    #. Create a shortcut of the kivy.bat
+    #. Open the explorer, and to go the address 'shell:sendto'
+    #. Move the kivy.bat's shortcut to this directory
+    #. (optional) rename it to Kivy <kivy-version>
+
+Then, you can execute application by doing:
+
+    #. Right click on the .py file
+    #. Select Send-to > Kivy <version>
+
+Double-click method
+~~~~~~~~~~~~~~~~~~~
+
 There are some simple steps that you need to do once in order to be able
 to launch any kivy application by just double-clicking it:
 

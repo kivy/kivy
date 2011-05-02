@@ -35,6 +35,8 @@ if 'KIVY_DOC' not in environ:
         # [major-number].[minor-number], optionally followed by a release
         # number or other vendor-specific information.
         try:
+            if version.startswith('OpenGL ES '):
+                version = version[10:]
             majorminor = version.split()[0]
             major, minor = majorminor.split('.')[0:2]
             major, minor = int(major), int(minor)

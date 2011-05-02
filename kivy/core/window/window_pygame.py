@@ -218,10 +218,12 @@ class WindowPygame(WindowBase):
 
                 # don't dispatch more key if down event is accepted
                 if self.dispatch('on_key_down', event.key,
-                                    event.scancode, event.unicode, event.mod):
+                                 event.scancode, event.unicode,
+                                 self.modifiers):
                     continue
                 self.dispatch('on_keyboard', event.key,
-                                    event.scancode, event.unicode, event.mod)
+                              event.scancode, event.unicode,
+                              self.modifiers)
 
             # video resize
             elif event.type == pygame.VIDEORESIZE:
@@ -304,6 +306,8 @@ class WindowPygame(WindowBase):
             self._modifiers.append('alt')
         if mods & (pygame.KMOD_CTRL | pygame.KMOD_LCTRL):
             self._modifiers.append('ctrl')
+        if mods & (pygame.KMOD_META | pygame.KMOD_LMETA):
+            self._modifiers.append('meta')
 
     def request_keyboard(self, callback):
         if super(WindowPygame, self).request_keyboard(callback):

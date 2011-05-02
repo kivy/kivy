@@ -23,20 +23,37 @@ from os.path import basename, getsize, isdir, join, sep, normpath, \
                     expanduser, altsep, splitdrive
 from fnmatch import fnmatch
 
+_have_win32file = False
+if platform == 'win32':
+    # Import that module here as it's not available on non-windows machines.
+    # See http://bit.ly/i9klJE except that the attributes are defined in
+    # win32file not win32com (bug on page).
+    # Note: For some reason this doesn't work after a os.chdir(), no matter to
+    #       what directory you change from where. Windows weirdness.
+    try:
+        from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesEx, error
+        _have_win32file = True
+    except ImportError:
+        Logger.error('filechooser: win32file module is missing')
+        Logger.error('filechooser: we cant check if a file is hidden or not')
+        pass
+
 
 def is_hidden_unix(fn):
     return basename(fn).startswith('.')
 
 
 def is_hidden_win(fn):
-    # Import that module here as it's not available on non-windows machines.
-    # See http://bit.ly/i9klJE except that the attributes are defined in
-    # win32file not win32com (bug on page).
-    # Note: For some reason this doesn't work after a os.chdir(), no matter to
-    #       what directory you change from where. Windows weirdness.
-    from win32file import FILE_ATTRIBUTE_HIDDEN, GetFileAttributesEx
-    attribs = GetFileAttributesEx(fn)
-    return attribs[0] & FILE_ATTRIBUTE_HIDDEN
+    if not _have_win32file:
+        return False
+    try:
+        return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
+    except error, e:
+        # This error can occured when a file is already accessed by someone
+        # else. So don't return to True, because we have lot of chances to not
+        # being able to do anything with it.
+        Logger.exception('unable to access to <%s>' % fn)
+        return True
 
 
 def alphanumeric_folders_first(files):
@@ -223,7 +240,10 @@ class FileChooserController(FloatLayout):
                 size='', path=back, controller=self, isdir=True, parent=None,
                 sep=sep, get_nice_size=lambda: ''))
             self.dispatch('on_entry_added', pardir)
-        self._add_files(self.path)
+        try:
+            self._add_files(self.path)
+        except OSError, e:
+            Logger.exception('Unable to open directory <%s>' % self.path)
 
     def _add_files(self, path, parent=None):
         path = expanduser(path)

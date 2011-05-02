@@ -19,23 +19,10 @@ from kivy.event import EventDispatcher
 class WindowBase(EventDispatcher):
     '''WindowBase is a abstract window widget, for any window implementation.
 
-    .. warning::
-
-        The parameters are not working in normal case. Because at import, Kivy
-        create a default OpenGL window, to add the ability to use OpenGL
-        directives, texture creation.. before creating Window.
-        If you don't like this behavior, you can include before the very first
-        import of Kivy ::
-
-            import os
-            os.environ['KIVY_SHADOW'] = '0'
-
-        This will forbid Kivy to create the default window !
-
-
     :Parameters:
-        `fullscreen`: bool
-            Make window as fullscreen
+        `fullscreen`: str, one of ('0', '1', 'auto', 'fake')
+            Make window as fullscreen, check config documentation for more
+            explaination about the values.
         `width`: int
             Width of window
         `height`: int
