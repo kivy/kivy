@@ -19,7 +19,6 @@ import sys
 import re
 from glob import glob
 
-os.environ['KIVY_SHADOW_WINDOW'] = '0'
 import kivy
 
 # force loading of kivy modules
