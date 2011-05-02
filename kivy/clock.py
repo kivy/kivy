@@ -162,19 +162,21 @@ class ClockEvent(object):
             self._is_triggered = False
             return False
 
+        # if it's a trigger, allow to retrigger inside the callback
+        if not self.loop:
+            self._is_triggered = False
+
         # call the callback
         ret = callback(self._dt)
 
         # if it's a once event, don't care about the result
         # just remove the event
         if not self.loop:
-            self._is_triggered = False
             return False
 
         # if the user returns False explicitly,
         # remove the event
         if ret is False:
-            self._is_triggered = False
             return False
 
         return True
