@@ -240,7 +240,10 @@ class FileChooserController(FloatLayout):
                 size='', path=back, controller=self, isdir=True, parent=None,
                 sep=sep, get_nice_size=lambda: ''))
             self.dispatch('on_entry_added', pardir)
-        self._add_files(self.path)
+        try:
+            self._add_files(self.path)
+        except OSError, e:
+            Logger.exception('Unable to open directory <%s>' % self.path)
 
     def _add_files(self, path, parent=None):
         path = expanduser(path)
