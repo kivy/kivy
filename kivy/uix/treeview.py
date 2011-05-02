@@ -223,6 +223,14 @@ class TreeView(Widget):
         self._trigger_layout()
 
     def add_node(self, node, parent=None):
+        '''Add a new node in the tree.
+
+        :Parameters:
+            `node`: instance of a :class:`TreeViewNode`
+                Node to add into the tree
+            `parent`: instance of a :class:`TreeViewNode`, default to None
+                Parent node to attach the new node
+        '''
         # check if the widget is "ok" for a node
         if not isinstance(node, TreeViewNode):
             raise TreeViewException(
