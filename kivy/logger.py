@@ -270,12 +270,21 @@ class LogFile(object):
 
     def write(self, s):
         s = self.buffer + s
+        self.flush()
         f = self.func
         channel = self.channel
         lines = s.split('\n')
         for l in lines[:-1]:
             f('%s: %s' % (channel, l))
         self.buffer = lines[-1]
+
+    def flush(self):
+        lines = self.buffer.split('\n')
+        f = self.func
+        channel = self.channel
+        for l in lines:
+            f('%s: %s' % (channel, l))
+        self.buffer = ''
 
 if 'nosetests' not in sys.argv:
     logging.setLoggerClass(ColoredLogger)
