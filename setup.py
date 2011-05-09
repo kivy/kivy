@@ -151,10 +151,21 @@ if True:
         return OrigExtension(*args, **kwargs)
 
     # simple extensions
+    sdl_libraries = ['SDL']
+    sdl_includes = ['/usr/include/SDL']
     for pyx in (x for x in pyx_files if not 'graphics' in x):
         pxd = [x for x in pxd_files if not 'graphics' in x]
         module_name = get_modulename_from_file(pyx)
-        ext_modules.append(Extension(module_name, [pyx] + pxd))
+        la = libraries
+        lb = include_dirs
+        if pyx.endswith('sdl.pyx'):
+            la += sdl_libraries
+            lb += sdl_includes
+        ext_modules.append(Extension(
+            module_name, [pyx] + pxd,
+            libraries=la,
+            include_dirs=lb,
+            extra_link_args=extra_link_args))
 
     # opengl aware modules
     for pyx in (x for x in pyx_files if 'graphics' in x):
