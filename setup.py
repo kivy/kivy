@@ -42,6 +42,7 @@ cmdclass['build_factory'] = FactoryBuild
 c_options = {
     'use_opengl_es2': True,
     'use_opengl_debug': False,
+    'use_opengl_profiling': True,
     'use_glew': False,
     'use_mesagl': False}
 

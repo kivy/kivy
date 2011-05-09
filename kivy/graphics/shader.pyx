@@ -22,6 +22,8 @@ from os.path import join
 from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
+IF USE_OPENGL_PROFILING == 1:
+    from c_opengl_profiling cimport *
 from kivy.graphics.vertex cimport vertex_attr_t
 from kivy.graphics.vbo cimport vbo_vertex_attr_list, vbo_vertex_attr_count
 from kivy.graphics.transformation cimport Matrix

@@ -19,6 +19,8 @@ from kivy.logger import Logger
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
+IF USE_OPENGL_PROFILING == 1:
+    from c_opengl_profiling cimport *
 
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
@@ -375,7 +377,7 @@ cdef class Texture:
         # Add texture deletion outside GC call.
         # This case happen if some texture have been not deleted
         # before application exit...
-        if _texture_release_list is not None:
+        if _texture_release_list is not None and type(self) is Texture:
             _texture_release_list.append(self._id)
             if _texture_release_trigger is not None:
                 _texture_release_trigger()
@@ -631,6 +633,11 @@ cdef class TextureRegion(Texture):
         self._uvh = (height / <float>origin._height) * origin._uvh
         self.update_tex_coords()
 
+    def __str__(self):
+        return '<TextureRegion id=%d size=(%d, %d)>' % (
+            self._id, self.width, self.height)
+
+
 # Releasing texture through GC is problematic
 # GC can happen in a middle of glBegin/glEnd
 # So, to prevent that, call the _texture_release
@@ -639,7 +646,9 @@ def _texture_release(*largs):
     cdef GLuint texture_id
     if not _texture_release_list:
         return
-    Logger.trace('Texture: releasing %d textures' % len(_texture_release_list))
+    Logger.trace('Texture: releasing %d textures (%s)' % (
+        len(_texture_release_list), str(_texture_release_list)))
+    print 'release', _texture_release_list
     for texture_id in _texture_release_list:
         glDeleteTextures(1, &texture_id)
     del _texture_release_list[:]

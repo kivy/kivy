@@ -282,7 +282,7 @@ class LabelBase(object):
             texture = Texture.create(size=self.size, colorfmt='luminance_alpha')
             texture.flip_vertical()
         elif self.width > texture.width or self.height > texture.height:
-            texture = Texture.create(size=self.size)
+            texture = Texture.create(size=self.size, colorfmt='luminance_alpha')
             texture.flip_vertical()
         else:
             texture = texture.get_region(

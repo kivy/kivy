@@ -20,6 +20,8 @@ include "opcodes.pxi"
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
+IF USE_OPENGL_PROFILING == 1:
+    from c_opengl_profiling cimport *
 from kivy.logger import Logger
 
 

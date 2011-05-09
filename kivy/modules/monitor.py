@@ -11,6 +11,8 @@ Monitor module is a toolbar that show activity of your current application :
 
 from kivy.uix.label import Label
 from kivy.graphics import Rectangle, Color
+from kivy.graphics.c_opengl_profiling import \
+        is_profiling_activated, gpu_buffer_usage, gpu_texture_usage
 from kivy.clock import Clock
 from kivy.input.postproc import kivy_postproc_modules
 from functools import partial
@@ -18,9 +20,22 @@ from functools import partial
 _statsinput = 0
 _maxinput = -1
 
+def format_to_human(size):
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size < 1024.0:
+            return "%1.0f %s" % (size, unit)
+        size /= 1024.0
 
 def update_fps(ctx, *largs):
-    ctx.label.text = 'FPS: %f' % Clock.get_fps()
+    label = 'FPS: %f' % Clock.get_fps()
+    if is_profiling_activated():
+        usage = gpu_texture_usage()
+        label += ' | Texture: %s (%d)' % (
+            format_to_human(usage['total']), usage['count'])
+        usage = gpu_buffer_usage()
+        label += ' | Buffer: %s (%d)' % (
+            format_to_human(usage['total']), usage['count'])
+    ctx.label.text = label
     ctx.rectangle.texture = ctx.label.texture
     ctx.rectangle.size = ctx.label.texture_size
 
