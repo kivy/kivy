@@ -152,7 +152,12 @@ if True:
 
     # simple extensions
     sdl_libraries = ['SDL']
-    sdl_includes = ['/usr/include/SDL']
+    if platform == 'darwin':
+        # Paths as per homebrew (modified formula to use hg checkout)
+        sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
+        extra_link_args += ['-L', '/usr/local/Cellar/sdl/HEAD/lib']
+    else:
+        sdl_includes = ['/usr/include/SDL']
     for pyx in (x for x in pyx_files if not 'graphics' in x):
         pxd = [x for x in pxd_files if not 'graphics' in x]
         module_name = get_modulename_from_file(pyx)
