@@ -42,6 +42,7 @@ __all__ = ('Property',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty')
 
+from weakref import ref
 
 cdef class Property:
     '''Base class for building more complex properties.
@@ -244,79 +245,71 @@ cdef class StringProperty(Property):
             raise ValueError('StringProperty<%s> accepts only str/unicode' %
                              self.name)
 
+cdef observable_list_dispatch(object self):
+    cdef Property prop = self.prop
+    obj = self.obj()
+    if obj is not None:
+        prop.dispatch(obj)
 
 class ObservableList(list):
     # Internal class to observe changes inside a native python list.
     def __init__(self, *largs):
         self.prop = largs[0]
-        self.obj = largs[1]
+        self.obj = ref(largs[1])
         super(ObservableList, self).__init__(*largs[2:])
 
     def __setitem__(self, key, value):
         list.__setitem__(self, key, value)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def __delitem__(self, key):
         list.__delitem__(self, key)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def __setslice__(self, *largs):
         list.__setslice__(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def __delslice__(self, *largs):
         list.__delslice__(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def __iadd__(self, *largs):
         list.__iadd__(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def __imul__(self, *largs):
         list.__imul__(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def __add__(self, *largs):
         cdef object result = list.__add__(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
         return result
 
     def append(self, *largs):
         list.append(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def remove(self, *largs):
         list.remove(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def insert(self, *largs):
         list.insert(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def pop(self, *largs):
         list.pop(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def extend(self, *largs):
         list.extend(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
     def sort(self, *largs):
         list.sort(self, *largs)
-        cdef Property prop = self.prop
-        prop.dispatch(self.obj)
+        observable_list_dispatch(self)
 
 
 cdef class ListProperty(Property):
