@@ -43,9 +43,6 @@ cdef void glTexImage2D(cgl.GLenum target, cgl.GLint level, cgl.GLint
     cdef int texid, size
     texid = _texture_bind[target]
     size = width * height * _gl_buffer_size[type] * _gl_color_size[format]
-    if texid not in _texture_memory:
-        print 'glTexImage2D()', texid, size
-        #import traceback; traceback.print_stack()
     _texture_memory[texid] = size
     cgl.glTexImage2D(target, level, internalformat, width, height, border,
                      format, type, pixels)
@@ -54,7 +51,6 @@ cdef void glDeleteTextures(cgl.GLsizei n, cgl.GLuint* textures) with gil:
     cdef int i, texid
     for i in xrange(n):
         texid = textures[i]
-        print 'glDeleteTextures()', texid
         _texture_memory.pop(texid, None)
     cgl.glDeleteTextures(n, textures)
 

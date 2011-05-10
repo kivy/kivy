@@ -42,6 +42,8 @@ __all__ = ('Property',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty')
 
+from weakref import ref
+
 cdef class Property:
     '''Base class for building more complex properties.
 
@@ -244,13 +246,15 @@ cdef class StringProperty(Property):
 
 cdef observable_list_dispatch(object self):
     cdef Property prop = self.prop
-    prop.dispatch(self.obj)
+    obj = self.obj()
+    if obj is not None:
+        prop.dispatch(obj)
 
 class ObservableList(list):
     # Internal class to observe changes inside a native python list.
     def __init__(self, *largs):
         self.prop = largs[0]
-        self.obj = largs[1]
+        self.obj = ref(largs[1])
         super(ObservableList, self).__init__(*largs[2:])
 
     def __setitem__(self, key, value):

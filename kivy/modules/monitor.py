@@ -16,6 +16,7 @@ from kivy.graphics.c_opengl_profiling import \
 from kivy.clock import Clock
 from kivy.input.postproc import kivy_postproc_modules
 from functools import partial
+import gc
 
 _statsinput = 0
 _maxinput = -1
@@ -35,6 +36,7 @@ def update_fps(ctx, *largs):
         usage = gpu_buffer_usage()
         label += ' | Buffer: %s (%d)' % (
             format_to_human(usage['total']), usage['count'])
+    label += ' | Garbage: %d' % len(gc.garbage)
     ctx.label.text = label
     ctx.rectangle.texture = ctx.label.texture
     ctx.rectangle.size = ctx.label.texture_size
