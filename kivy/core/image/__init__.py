@@ -283,6 +283,7 @@ def load(filename):
 core_register_libs('image', (
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
+    ('osxcoreimage', 'img_osxcoreimage'),
 ))
 
 # resolve binding.
