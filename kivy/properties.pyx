@@ -29,7 +29,7 @@ Kivy's property classes support:
 
     Better Memory Management
         The same instance of a property is shared across multiple widget
-        instances. The value storage is independent of the Widget.
+        instances.
 
 '''
 
@@ -41,8 +41,6 @@ __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty')
-
-from weakref import ref
 
 cdef class Property:
     '''Base class for building more complex properties.
@@ -79,13 +77,11 @@ cdef class Property:
     cdef str _name
     cdef int allownone
     cdef object defaultvalue
-    cdef dict storage
 
     def __cinit__(self):
         self._name = ''
         self.allownone = 0
         self.defaultvalue = None
-        self.storage = {}
 
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
@@ -122,32 +118,33 @@ cdef class Property:
         d = dict()
         self._name = name
         self.init_storage(d)
-        self.storage[obj.__uid] = d
+        obj.__storage[name] = d
 
     cpdef link_deps(self, object obj, str name):
         pass
 
+    """
     cpdef unlink(self, obj):
         '''Destroy the storage of a widget
         '''
-        if obj in self.storage:
-            del self.storage[obj.__uid]
+        if self._name in obj.__storage:
+            del obj.__storage[self._name]
+    """
 
     cpdef bind(self, obj, observer):
         '''Add a new observer to be called only when the value is changed
         '''
-        observers = self.storage[obj.__uid]['observers']
+        observers = obj.__storage[self._name]['observers']
         if not observer in observers:
             observers.append(observer)
 
     cpdef unbind(self, obj, observer):
         '''Remove the observer from our widget observer list
         '''
-        if obj.__uid not in self.storage:
-            return
-        observers = self.storage[obj.__uid]['observers']
-        if observer in observers:
-            observers.remove(observer)
+        observers = obj.__storage[self._name]['observers']
+        for obj in observers[:]:
+            if observer in observers:
+                observers.remove(obj)
 
     def __set__(self, obj, val):
         self.set(obj, val)
@@ -164,7 +161,7 @@ cdef class Property:
         '''Set a new value for the property
         '''
         value = self.convert(obj, value)
-        d = self.storage[obj.__uid]
+        d = obj.__storage[self._name]
         realvalue = d['value']
         if self.compare_value(realvalue, value):
             return False
@@ -176,7 +173,7 @@ cdef class Property:
     cpdef get(self, obj):
         '''Return the value of the property
         '''
-        return self.storage[obj.__uid]['value']
+        return obj.__storage[self._name]['value']
 
     #
     # Private part
@@ -190,7 +187,7 @@ cdef class Property:
             bool, True if the value correctly validates.
         '''
         if x is None:
-            if not self.storage[obj.__uid]['allownone']:
+            if not obj.__storage[self._name]['allownone']:
                 raise ValueError('None is not allowed')
             else:
                 return True
@@ -204,8 +201,8 @@ cdef class Property:
     cdef dispatch(self, obj):
         '''Dispatch the value change to all observers
         '''
-        observers = self.storage[obj.__uid]['observers']
-        value = self.storage[obj.__uid]['value']
+        observers = obj.__storage[self._name]['observers']
+        value = obj.__storage[self._name]['value']
         for observer in observers:
             observer(obj, value)
 
@@ -247,15 +244,13 @@ cdef class StringProperty(Property):
 
 cdef observable_list_dispatch(object self):
     cdef Property prop = self.prop
-    obj = self.obj()
-    if obj is not None:
-        prop.dispatch(obj)
+    prop.dispatch(self.obj)
 
 class ObservableList(list):
     # Internal class to observe changes inside a native python list.
     def __init__(self, *largs):
         self.prop = largs[0]
-        self.obj = ref(largs[1])
+        self.obj = largs[1]
         super(ObservableList, self).__init__(*largs[2:])
 
     def __setitem__(self, key, value):
@@ -325,7 +320,7 @@ cdef class ListProperty(Property):
     '''
     cpdef link(self, object obj, str name):
         Property.link(self, obj, name)
-        storage = self.storage[obj.__uid]
+        storage = obj.__storage[self._name]
         storage['value'] = ObservableList(self, obj, storage['value'])
 
     cdef check(self, obj, value):
@@ -449,7 +444,7 @@ cdef class OptionProperty(Property):
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
-        valid_options = self.storage[obj.__uid]['options']
+        valid_options = obj.__storage[self._name]['options']
         if value not in valid_options:
             raise ValueError('OptionProperty<%s> have an invalid option %r. '
                              'Must be one of: %s' % (self.name,
@@ -485,13 +480,15 @@ cdef class ReferenceListProperty(Property):
         for prop in self.properties:
             prop.bind(obj, self.trigger_change)
 
+    """
     cpdef unlink(self, obj):
         for prop in self.properties:
             prop.unbind(obj, self.trigger_change)
         Property.unlink(self, obj)
+    """
 
     cpdef trigger_change(self, obj, value):
-        s = self.storage[obj.__uid]
+        s = obj.__storage[self._name]
         if s['stop_event']:
             return
         p = s['properties']
@@ -505,14 +502,14 @@ cdef class ReferenceListProperty(Property):
         return list(value)
 
     cdef check(self, obj, value):
-        if len(value) != len(self.storage[obj.__uid]['properties']):
+        if len(value) != len(obj.__storage[self._name]['properties']):
             raise ValueError('ReferenceListProperty<%s> value length is '
                              'immutable' % self.name)
 
     cpdef set(self, obj, _value):
         cdef int idx
         cdef list value
-        storage = self.storage[obj.__uid]
+        storage = obj.__storage[self._name]
         value = self.convert(obj, _value)
         if self.compare_value(storage['value'], value):
             return False
@@ -530,7 +527,7 @@ cdef class ReferenceListProperty(Property):
         return True
 
     cpdef get(self, obj):
-        s = self.storage[obj.__uid]
+        s = obj.__storage[self._name]
         p = s['properties']
         s['value'] = [p[x].get(obj) for x in xrange(len(p))]
         return s['value']
@@ -582,24 +579,26 @@ cdef class AliasProperty(Property):
             oprop = getattr(obj.__class__, prop)
             oprop.bind(obj, self.trigger_change)
 
+    """
     cpdef unlink(self, obj):
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
             oprop.unbind(obj, self.trigger_change)
         Property.unlink(self, obj)
+    """
 
     cpdef trigger_change(self, obj, value):
-        self.storage[obj.__uid]['value'] = self.get(obj)
+        obj.__storage[self._name]['value'] = self.get(obj)
         self.dispatch(obj)
 
     cdef check(self, obj, value):
         return True
 
     cpdef get(self, obj):
-        return self.storage[obj.__uid]['getter'](obj)
+        return obj.__storage[self._name]['getter'](obj)
 
     cpdef set(self, obj, value):
-        if self.storage[obj.__uid]['setter'](obj, value):
-            self.storage[obj.__uid]['value'] = self.get(obj)
+        if obj.__storage[self._name]['setter'](obj, value):
+            obj.__storage[self._name]['value'] = self.get(obj)
             self.dispatch(obj)
 
