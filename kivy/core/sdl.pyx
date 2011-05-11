@@ -1,3 +1,6 @@
+cdef extern from "Python.h":
+    object PyUnicode_FromString(char *s) 
+
 cdef extern from "SDL.h":
     ctypedef void *SDL_Window
     ctypedef void *SDL_GLContext
@@ -33,12 +36,16 @@ cdef extern from "SDL.h":
         unsigned char repeat
         SDL_Keysym keysym
 
+    ctypedef struct SDL_TextInputEvent:
+        unsigned char *text
+
     ctypedef struct SDL_Event:
         unsigned int type
         SDL_MouseMotionEvent motion
         SDL_MouseButtonEvent button
         SDL_WindowEvent window
         SDL_KeyboardEvent key
+        SDL_TextInputEvent text
 
     # Events
     int SDL_QUIT
@@ -49,6 +56,7 @@ cdef extern from "SDL.h":
     int SDL_MOUSEMOTION
     int SDL_MOUSEBUTTONDOWN
     int SDL_MOUSEBUTTONUP
+    int SDL_TEXTINPUT
 
     # GL Attribute
     int SDL_GL_DEPTH_SIZE
@@ -176,6 +184,9 @@ def poll():
         unicode = event.key.keysym.unicode
         key = event.key.keysym.sym
         return (action, mod, key, scancode, unicode)
+    elif event.type == SDL_TEXTINPUT:
+        s = PyUnicode_FromString(<char *>event.text.text)
+        return ('textinput', s)
     else:
         print 'receive unknown sdl event', event.type
 
@@ -183,6 +194,5 @@ def poll():
 
 
 def flip():
-    #SDL_GL_SwapWindow(win)
-    SDL_Flip(surface)
+    SDL_GL_SwapWindow(win)
 

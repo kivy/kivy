@@ -194,6 +194,9 @@ class WindowSDL(WindowBase):
                               scancode, unicode,
                               self.modifiers)
 
+            elif action == 'textinput':
+                self.dispatch('on_keyboard', None, None, args[0],
+                              self.modifiers)
         #    # video resize
         #    elif event.type == pygame.VIDEORESIZE:
         #        self._size = event.size
