@@ -267,4 +267,4 @@ class WindowSDL(WindowBase):
             stopTouchApp()
             self.close()  #not sure what to do here
             return True
-        super(WindowPygame, self).on_keyboard(key, scancode, unicode, modifier)
+        super(WindowSDL, self).on_keyboard(key, scancode, unicode, modifier)
