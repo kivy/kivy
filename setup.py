@@ -158,7 +158,6 @@ if True:
 
     # simple extensions
     sdl_libraries = ['SDL']
-    extra_includes = []
     extra_compile_args = []
     if platform == 'darwin':
         # Paths as per homebrew (modified formula to use hg checkout)
@@ -171,18 +170,14 @@ if True:
         extra_link_args += ['-framework', 'CoreGraphics']
         extra_link_args += ['-framework', 'QuartzCore']
         extra_link_args += ['-framework', 'ImageIO']
-        extra_includes = ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk/usr/include/']
-        extra_includes += ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk/System/Library/Frameworks/CoreFoundation.framework/Headers/']
-        extra_includes += ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk/System/Library/Frameworks/CoreGraphics.framework/Headers/']
         extra_compile_args += ['-isysroot', '/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk']
     else:
         sdl_include = ['/usr/include/SDL']
-        extra_includes = []
     for pyx in (x for x in pyx_files if not 'graphics' in x):
         pxd = [x for x in pxd_files if not 'graphics' in x]
         module_name = get_modulename_from_file(pyx)
         la = libraries
-        lb = include_dirs + extra_includes
+        lb = include_dirs
         if pyx.endswith('sdl.pyx') or pyx.endswith('sdl.c'):
             la += sdl_libraries
             lb += sdl_include
