@@ -43,7 +43,16 @@ c_options = {
     'use_opengl_es2': True,
     'use_opengl_debug': False,
     'use_glew': False,
+    'use_sdl': False,
     'use_mesagl': False}
+
+# now check if environ is changing the default values
+for key in c_options.keys():
+    ukey = key.upper()
+    if ukey in environ:
+        value = bool(int(environ[ukey]))
+        print 'Environ change %s -> %s' % (key, value)
+        c_options[key] = value
 
 # Detect which opengl version headers to use
 if platform == 'win32':
@@ -151,36 +160,45 @@ if True:
         return OrigExtension(*args, **kwargs)
 
     # simple extensions
-    sdl_libraries = ['SDL']
-    if platform == 'darwin':
-        # Paths as per homebrew (modified formula to use hg checkout)
-        sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
-        extra_link_args += ['-L', '/usr/local/Cellar/sdl/HEAD/lib']
-    else:
-        sdl_includes = ['/usr/include/SDL']
-    for pyx in (x for x in pyx_files if not 'graphics' in x):
-        pxd = [x for x in pxd_files if not 'graphics' in x]
-        module_name = get_modulename_from_file(pyx)
-        la = libraries
-        lb = include_dirs
-        if pyx.endswith('sdl.pyx'):
-            la += sdl_libraries
-            lb += sdl_includes
-        ext_modules.append(Extension(
-            module_name, [pyx] + pxd,
-            libraries=la,
-            include_dirs=lb,
-            extra_link_args=extra_link_args))
+    if c_options['use_sdl']:
+        sdl_libraries = ['SDL']
+        sdl_includes = []
+        sdl_extra_link_args = []
+        if platform == 'darwin':
+            # Paths as per homebrew (modified formula to use hg checkout)
+            sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
+            sdl_extra_link_args += ['-L', '/usr/local/Cellar/sdl/HEAD/lib']
+        else:
+            sdl_includes = ['/usr/local/include/SDL']
+            sdl_extra_link_args += ['-L', '/usr/local/lib/']
 
-    # opengl aware modules
-    for pyx in (x for x in pyx_files if 'graphics' in x):
-        pxd = [x for x in pxd_files if 'graphics' in x]
+    pxd_core = [x for x in pxd_files if not 'graphics' in x]
+    pxd_graphics = [x for x in pxd_files if 'graphics' in x]
+
+    for pyx in pyx_files:
         module_name = get_modulename_from_file(pyx)
+        ext_files = [pyx]
+        ext_libraries = libraries[:]
+        ext_include_dirs = include_dirs[:]
+        ext_extra_link_args = extra_link_args[:]
+
+        if pyx.endswith('sdl.pyx'):
+            if c_options['use_sdl'] is False:
+                continue
+            ext_libraries += sdl_libraries
+            ext_include_dirs += sdl_includes
+            ext_extra_link_args += sdl_extra_link_args
+        elif 'graphics' in pyx:
+            ext_files += pxd_graphics
+        else:
+            ext_files += pxd_core
+
         ext_modules.append(Extension(
-            module_name, [pyx] + pxd,
-            libraries=libraries,
-            include_dirs=include_dirs,
-            extra_link_args=extra_link_args))
+            module_name,
+            ext_files,
+            libraries=ext_libraries,
+            include_dirs=ext_include_dirs,
+            extra_link_args=ext_extra_link_args))
 
 
 #setup datafiles to be included in the disytibution, liek examples...
