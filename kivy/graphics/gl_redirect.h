@@ -48,7 +48,7 @@
 // In the webserver / unittest / buildbot case, we are compiling and running
 // kivy in an headless env, without proper GL support.
 // This is a hack to prevent to link with wrong symbol. :(
-#ifdef __USE_MESAGL
+#if __USE_MESAGL == 1
 #	define glBlendEquationSeparate
 #	define glDepthRangef glDepthRange
 #	define glClearDepthf glClearDepth

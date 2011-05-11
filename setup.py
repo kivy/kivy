@@ -159,6 +159,7 @@ if True:
     # simple extensions
     sdl_libraries = ['SDL']
     extra_includes = []
+    extra_compile_args = []
     if platform == 'darwin':
         # Paths as per homebrew (modified formula to use hg checkout)
         sdl_include = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
@@ -169,7 +170,11 @@ if True:
         extra_link_args += ['-framework', 'AudioToolbox']
         extra_link_args += ['-framework', 'CoreGraphics']
         extra_link_args += ['-framework', 'QuartzCore']
+        extra_link_args += ['-framework', 'ImageIO']
         extra_includes = ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk/usr/include/']
+        extra_includes += ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk/System/Library/Frameworks/CoreFoundation.framework/Headers/']
+        extra_includes += ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk/System/Library/Frameworks/CoreGraphics.framework/Headers/']
+        extra_compile_args += ['-isysroot', '/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk']
     else:
         sdl_include = ['/usr/include/SDL']
         extra_includes = []
@@ -185,6 +190,7 @@ if True:
             module_name, [pyx] + pxd,
             libraries=la,
             include_dirs=lb,
+            extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args))
 
     # opengl aware modules
@@ -195,6 +201,7 @@ if True:
             module_name, [pyx] + pxd,
             libraries=libraries,
             include_dirs=include_dirs,
+            extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args))
 
 
