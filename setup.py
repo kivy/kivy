@@ -8,9 +8,11 @@ from distutils.extension import Extension
 try:
     # check for cython
     from Cython.Distutils import build_ext
+    have_cython = True
 except ImportError:
     print '\nCython is missing, its required for compiling kivy !\n\n'
-    raise
+    have_cython = False
+    from distutils.command.build_ext import build_ext
 
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
@@ -105,6 +107,10 @@ for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
     for filename in fnfilter(filenames, '*.pyx'):
         pyx_files.append(join(root, filename))
 
+if not have_cython:
+    pyx_files = pyx_files = ['%s.c' % x[:-4] for x in pyx_files]
+    pxd_files = []
+
 # add cython core extension modules if cython is available
 
 if True:
@@ -115,12 +121,12 @@ if True:
         libraries.append('opengl32')
     elif platform == 'darwin':
         # On OSX, it's not -lGL, but -framework OpenGL...
-        extra_link_args = ['-framework', 'OpenGL']
+        extra_link_args = ['-framework', 'OpenGLES']
     elif platform.startswith('freebsd'):
         include_dirs += ['/usr/local/include']
         extra_link_args += ['-L', '/usr/local/lib']
     else:
-        libraries.append('GL')
+        libraries.append('GLESv2')
 
     if c_options['use_glew']:
         if platform == 'win32':
@@ -142,30 +148,39 @@ if True:
     def Extension(*args, **kwargs):
         # Small hack to only compile for x86_64 on OSX.
         # Is there a better way to do this?
-        if platform == 'darwin':
-            extra_args = ['-arch', 'x86_64']
-            kwargs['extra_compile_args'] = extra_args + \
-                kwargs.get('extra_compile_args', [])
-            kwargs['extra_link_args'] = extra_args + \
-                kwargs.get('extra_link_args', [])
+        #if platform == 'darwin':
+        #    extra_args = ['-arch', 'x86_64']
+        #    kwargs['extra_compile_args'] = extra_args + \
+        #        kwargs.get('extra_compile_args', [])
+        #    kwargs['extra_link_args'] = extra_args + \
+        #        kwargs.get('extra_link_args', [])
         return OrigExtension(*args, **kwargs)
 
     # simple extensions
     sdl_libraries = ['SDL']
+    extra_includes = []
     if platform == 'darwin':
         # Paths as per homebrew (modified formula to use hg checkout)
-        sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
-        extra_link_args += ['-L', '/usr/local/Cellar/sdl/HEAD/lib']
+        sdl_include = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
+        #extra_link_args += ['-L', '/usr/local/Cellar/sdl/HEAD/lib']
+        extra_link_args += ['-L', '/Users/dennda/dev/sdl-1.3/Xcode-iPhoneOS/SDL/build/SDLiPhoneOS.build/Debug-iphoneos/libSDL.build/Objects-normal/armv7']
+        extra_link_args += ['-framework', 'Foundation']
+        extra_link_args += ['-framework', 'UIKit']
+        extra_link_args += ['-framework', 'AudioToolbox']
+        extra_link_args += ['-framework', 'CoreGraphics']
+        extra_link_args += ['-framework', 'QuartzCore']
+        extra_includes = ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk/usr/include/']
     else:
-        sdl_includes = ['/usr/include/SDL']
+        sdl_include = ['/usr/include/SDL']
+        extra_includes = []
     for pyx in (x for x in pyx_files if not 'graphics' in x):
         pxd = [x for x in pxd_files if not 'graphics' in x]
         module_name = get_modulename_from_file(pyx)
         la = libraries
-        lb = include_dirs
-        if pyx.endswith('sdl.pyx'):
+        lb = include_dirs + extra_includes
+        if pyx.endswith('sdl.pyx') or pyx.endswith('sdl.c'):
             la += sdl_libraries
-            lb += sdl_includes
+            lb += sdl_include
         ext_modules.append(Extension(
             module_name, [pyx] + pxd,
             libraries=la,
