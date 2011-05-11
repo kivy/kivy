@@ -5,8 +5,7 @@ PIL: PIL image loader
 __all__ = ('ImageLoaderOSXCoreImage', )
 
 try:
-    #from PIL import Image
-    pass
+    from kivy.core.image import osxcoreimage
 except:
     raise
 
@@ -28,6 +27,9 @@ class ImageLoaderOSXCoreImage(ImageLoaderBase):
                 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
 
     def load(self, filename):
+        print 'before'
+        print osxcoreimage.load_raw_image_data('/Users/dennda/blobs1.png')
+        print 'after'
         return ImageData(64, 64, 'rgb', '\xff'*64*64*3)
 
 # register
