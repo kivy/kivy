@@ -19,6 +19,7 @@ class KivyLexer(RegexLexer):
             (r'(\[)(\s*)(.*?)(\s*)(@)',
                 bygroups(Punctuation, Text, Name.Class, Text, Operator),
                 'classList'),
+            (r'[A-Za-z][A-Za-z0-9]*$', Name.Attribute),
             (r'(.*?)(\s*)(:)(\s*)$',
                 bygroups(Name.Class, Text, Punctuation, Text)),
             (r'(.*?)(\s*)(:)(\s*)(.*?)$',
