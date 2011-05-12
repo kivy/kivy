@@ -45,7 +45,17 @@ c_options = {
     'use_opengl_es2': True,
     'use_opengl_debug': False,
     'use_glew': False,
+    'use_sdl': False,
+    'use_ios': True,
     'use_mesagl': False}
+
+# now check if environ is changing the default values
+for key in c_options.keys():
+    ukey = key.upper()
+    if ukey in environ:
+        value = bool(int(environ[ukey]))
+        print 'Environ change %s -> %s' % (key, value)
+        c_options[key] = value
 
 # Detect which opengl version headers to use
 if platform == 'win32':
@@ -157,47 +167,61 @@ if True:
         return OrigExtension(*args, **kwargs)
 
     # simple extensions
-    sdl_libraries = ['SDL']
-    extra_compile_args = []
-    if platform == 'darwin':
-        # Paths as per homebrew (modified formula to use hg checkout)
-        sdl_include = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
-        #extra_link_args += ['-L', '/usr/local/Cellar/sdl/HEAD/lib']
-        extra_link_args += ['-L', '/Users/dennda/dev/sdl-1.3/Xcode-iPhoneOS/SDL/build/SDLiPhoneOS.build/Debug-iphoneos/libSDL.build/Objects-normal/armv7']
-        extra_link_args += ['-framework', 'Foundation']
-        extra_link_args += ['-framework', 'UIKit']
-        extra_link_args += ['-framework', 'AudioToolbox']
-        extra_link_args += ['-framework', 'CoreGraphics']
-        extra_link_args += ['-framework', 'QuartzCore']
-        extra_link_args += ['-framework', 'ImageIO']
-        extra_compile_args += ['-isysroot', '/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk']
-    else:
-        sdl_include = ['/usr/include/SDL']
-    for pyx in (x for x in pyx_files if not 'graphics' in x):
-        pxd = [x for x in pxd_files if not 'graphics' in x]
-        module_name = get_modulename_from_file(pyx)
-        la = libraries
-        lb = include_dirs
-        if pyx.endswith('sdl.pyx') or pyx.endswith('sdl.c'):
-            la += sdl_libraries
-            lb += sdl_include
-        ext_modules.append(Extension(
-            module_name, [pyx] + pxd,
-            libraries=la,
-            include_dirs=lb,
-            extra_compile_args=extra_compile_args,
-            extra_link_args=extra_link_args))
+    if c_options['use_sdl']:
+        sdl_libraries = ['SDL']
+        sdl_includes = []
+        sdl_extra_link_args = []
+        if platform == 'darwin':
+            # Paths as per homebrew (modified formula to use hg checkout)
+            sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
+            sdl_extra_link_args += ['-L', '/usr/local/Cellar/sdl/HEAD/lib']
+        else:
+            sdl_includes = ['/usr/local/include/SDL']
+            sdl_extra_link_args += ['-L', '/usr/local/lib/']
 
-    # opengl aware modules
-    for pyx in (x for x in pyx_files if 'graphics' in x):
-        pxd = [x for x in pxd_files if 'graphics' in x]
+    pxd_core = [x for x in pxd_files if not 'graphics' in x]
+    pxd_graphics = [x for x in pxd_files if 'graphics' in x]
+
+    for pyx in pyx_files:
         module_name = get_modulename_from_file(pyx)
+        ext_files = [pyx]
+        ext_libraries = libraries[:]
+        ext_include_dirs = include_dirs[:]
+        ext_extra_link_args = extra_link_args[:]
+        ext_extra_compile_args = []
+
+        if c_options['use_ios']:
+            ext_include_dirs += ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk/usr/include/']
+
+        if pyx.endswith('sdl.pyx') or pyx.endswith('sdl.c'):
+            if c_options['use_sdl'] is False:
+                continue
+            ext_libraries += sdl_libraries
+            ext_include_dirs += sdl_includes
+            ext_extra_link_args += sdl_extra_link_args
+        elif pyx.endswith('osxcoreimage.pyx') or pyx.endswith('osxcoreimage.c'):
+            if c_options['use_ios'] is False:
+                continue
+            ext_extra_link_args += ['-L', '/Users/dennda/dev/sdl-1.3/Xcode-iPhoneOS/SDL/build/SDLiPhoneOS.build/Debug-iphoneos/libSDL.build/Objects-normal/armv7']
+            ext_extra_link_args += ['-framework', 'Foundation']
+            ext_extra_link_args += ['-framework', 'UIKit']
+            ext_extra_link_args += ['-framework', 'AudioToolbox']
+            ext_extra_link_args += ['-framework', 'CoreGraphics']
+            ext_extra_link_args += ['-framework', 'QuartzCore']
+            ext_extra_link_args += ['-framework', 'ImageIO']
+            ext_extra_compile_args += ['-isysroot', '/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk']
+        elif 'graphics' in pyx:
+            ext_files += pxd_graphics
+        else:
+            ext_files += pxd_core
+
         ext_modules.append(Extension(
-            module_name, [pyx] + pxd,
-            libraries=libraries,
-            include_dirs=include_dirs,
-            extra_compile_args=extra_compile_args,
-            extra_link_args=extra_link_args))
+            module_name,
+            ext_files,
+            libraries=ext_libraries,
+            include_dirs=ext_include_dirs,
+            extra_compile_args=ext_extra_compile_args,
+            extra_link_args=ext_extra_link_args))
 
 
 #setup datafiles to be included in the disytibution, liek examples...

@@ -6,6 +6,9 @@ __all__ = ('WindowSDL', )
 
 from kivy.core.window import WindowBase
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
+from kivy.config import Config
+import os
+import sys
 
 try:
     from kivy.core import sdl
@@ -18,37 +21,11 @@ class WindowSDL(WindowBase):
 
     def create_window(self):
         params = self.params
-        w, h = params['width'], params['height']
-        self._size = w, h
-
-        sdl.setup_window(w, h)
-
-        super(WindowSDL, self).create_window()
-
-
-        return
 
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
         if not 'SDL_VIDEO_FULLSCREEN_HEAD' in os.environ and displayidx != -1:
             os.environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
-
-        # init some opengl, same as before.
-        self.flags = pygame.HWSURFACE | pygame.OPENGL | \
-                     pygame.DOUBLEBUF | pygame.RESIZABLE
-
-        pygame.display.init()
-
-        multisamples = Config.getint('graphics', 'multisamples')
-
-        if multisamples > 0:
-            pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
-            pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES,
-                multisamples)
-        pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 16)
-        pygame.display.gl_set_attribute(pygame.GL_STENCIL_SIZE, 1)
-        pygame.display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
-        pygame.display.set_caption('kivy')
 
         if params['position'] == 'auto':
             self._pos = None
@@ -58,10 +35,12 @@ class WindowSDL(WindowBase):
             raise ValueError('position token in configuration accept only '
                              '"auto" or "custom"')
 
+        use_fake = False
+        use_fullscreen = False
         self._fullscreenmode = params['fullscreen']
         if self._fullscreenmode == 'fake':
             Logger.debug('WinPygame: Set window to fake fullscreen mode')
-            self.flags |= pygame.NOFRAME
+            use_fake = True
             # if no position set, in fake mode, we always need to set the
             # position. so replace 0, 0.
             if self._pos is None:
@@ -70,7 +49,7 @@ class WindowSDL(WindowBase):
 
         elif self._fullscreenmode:
             Logger.debug('WinPygame: Set window to fullscreen mode')
-            self.flags |= pygame.FULLSCREEN
+            use_fullscreen = True
 
         elif self._pos is not None:
             os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
@@ -78,6 +57,7 @@ class WindowSDL(WindowBase):
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
 
+        '''
         # prepare keyboard
         repeat_delay = int(Config.get('kivy', 'keyboard_repeat_delay'))
         repeat_rate = float(Config.get('kivy', 'keyboard_repeat_rate'))
@@ -86,32 +66,23 @@ class WindowSDL(WindowBase):
         # set window icon before calling set_mode
         filename_icon = Config.get('kivy', 'window_icon')
         self.set_icon(filename_icon)
+        '''
 
         # init ourself size + setmode
         # before calling on_resize
         self._size = params['width'], params['height']
 
-        # try to use mode with multisamples
-        try:
-            self._pygame_set_mode()
-        except pygame.error:
-            if multisamples:
-                Logger.warning('WinPygame: Video: failed (multisamples=%d)' %
-                               multisamples)
-                Logger.warning('WinPygame: trying without antialiasing')
-                pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 0)
-                pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 0)
-                multisamples = 0
-                self._pygame_set_mode()
-            else:
-                Logger.warning('WinPygame: Video setup failed :-(')
-                raise
+        # setup !
+        w, h = self._size
+        sdl.setup_window(w, h, use_fake, use_fullscreen)
 
-        super(WindowPygame, self).create_window()
+        super(WindowSDL, self).create_window()
 
+        '''
         # set mouse visibility
         pygame.mouse.set_visible(
             Config.getboolean('graphics', 'show_cursor'))
+        '''
 
         # set rotation
         self.rotation = params['rotation']
@@ -163,70 +134,69 @@ class WindowSDL(WindowBase):
         sdl.flip()
         super(WindowSDL, self).flip()
 
-    def toggle_fullscreen(self):
-        return
-        if self.flags & pygame.FULLSCREEN:
-            self.flags &= ~pygame.FULLSCREEN
-        else:
-            self.flags |= pygame.FULLSCREEN
-        self._pygame_set_mode()
-
     def _mainloop(self):
         EventLoop.idle()
+
         while True:
-            if not sdl.poll():
+            event = sdl.poll()
+            if event is False:
+                break
+            if event is None:
+                continue
+
+            print 'sdl receive', event
+            action, args = event[0], event[1:]
+            if action == 'quit':
                 EventLoop.quit = True
                 self.close()
                 break
 
-        #for event in pygame.event.get():
+            if action == 'mousemotion':
+                x, y = args
+                self.dispatch('on_mouse_move', x, y, self.modifiers)
 
-        #    # kill application (SIG_TERM)
-        #    if event.type == pygame.QUIT:
-        #        EventLoop.quit = True
-        #        self.close()
+            elif action in ('mousebuttondown', 'mousebuttonup'):
+                x, y, button = args
+                btn = 'left'
+                if button == 3:
+                    btn = 'right'
+                elif button == 2:
+                    btn = 'middle'
+                eventname = 'on_mouse_down'
+                if action == 'mousebuttonup':
+                    eventname = 'on_mouse_up'
+                self.dispatch(eventname, x, y, btn, self.modifiers)
 
-        #    # mouse move
-        #    elif event.type == pygame.MOUSEMOTION:
-        #        # don't dispatch motion if no button are pressed
-        #        if event.buttons == (0, 0, 0):
-        #            continue
-        #        x, y = event.pos
-        #        self.dispatch('on_mouse_move', x, y, self.modifiers)
+            # video resize
+            elif action == 'windowresized':
+                self._size = args
+                # don't use trigger here, we want to delay the resize event
+                cb = self._do_resize
+                Clock.unschedule(cb)
+                Clock.schedule_once(cb, .1)
 
-        #    # mouse action
-        #    elif event.type in (pygame.MOUSEBUTTONDOWN,
-        #                        pygame.MOUSEBUTTONUP):
-        #        self._pygame_update_modifiers()
-        #        x, y = event.pos
-        #        btn = 'left'
-        #        if event.button == 3:
-        #            btn = 'right'
-        #        elif event.button == 2:
-        #            btn = 'middle'
-        #        eventname = 'on_mouse_down'
-        #        if event.type == pygame.MOUSEBUTTONUP:
-        #            eventname = 'on_mouse_up'
-        #        self.dispatch(eventname, x, y, btn, self.modifiers)
+            elif action == 'windowresized':
+                 self.canvas.ask_update()
 
-        #    # keyboard action
-        #    elif event.type in (pygame.KEYDOWN, pygame.KEYUP):
-        #        self._pygame_update_modifiers(event.mod)
-        #        # atm, don't handle keyup
-        #        if event.type == pygame.KEYUP:
-        #            self.dispatch('on_key_up', event.key,
-        #                event.scancode)
-        #            continue
+            elif action in ('keydown', 'keyup'):
+                mod, key, scancode, unicode = args
+                self._pygame_update_modifiers(mod)
+                if action == 'keyup':
+                    self.dispatch('on_key_up', key, scancode)
+                    continue
 
-        #        # don't dispatch more key if down event is accepted
-        #        if self.dispatch('on_key_down', event.key,
-        #                         event.scancode, event.unicode,
-        #                         self.modifiers):
-        #            continue
-        #        self.dispatch('on_keyboard', event.key,
-        #                      event.scancode, event.unicode,
-        #                      self.modifiers)
+                # don't dispatch more key if down event is accepted
+                if self.dispatch('on_key_down', key,
+                                 scancode, unicode,
+                                 self.modifiers):
+                    continue
+                self.dispatch('on_keyboard', key,
+                              scancode, unicode,
+                              self.modifiers)
 
+            elif action == 'textinput':
+                self.dispatch('on_keyboard', None, None, args[0],
+                              self.modifiers)
         #    # video resize
         #    elif event.type == pygame.VIDEORESIZE:
         #        self._size = event.size
@@ -247,9 +217,8 @@ class WindowSDL(WindowBase):
         #        Logger.debug('WinPygame: Unhandled event %s' % str(event))
 
     def _do_resize(self, dt):
-        return
         Logger.debug('Window: Resize window to %s' % str(self._size))
-        self._pygame_set_mode(self._size)
+        sdl.resize_window(*self._size)
         self.dispatch('on_resize', *self._size)
 
     def mainloop(self):
@@ -272,26 +241,9 @@ class WindowSDL(WindowBase):
         # force deletion of window
         sdl.teardown_window()
 
-    def _set_size(self, size):
-        if super(WindowSDL, self)._set_size(size):
-            #self._pygame_set_mode()
-            return True
-    size = property(WindowBase._get_size, _set_size)
-
     #
     # Pygame wrapper
     #
-    def _pygame_set_mode(self, size=None):
-        return
-        if size is None:
-            size = self.size
-        if self._fullscreenmode == 'auto':
-            pygame.display.set_mode((0, 0), self.flags)
-            info = pygame.display.Info()
-            self._size = (info.current_w, info.current_h)
-        else:
-            pygame.display.set_mode(size, self.flags)
-
     def _pygame_update_modifiers(self, mods=None):
         return
         # Available mod, from dir(pygame)
@@ -309,3 +261,13 @@ class WindowSDL(WindowBase):
             self._modifiers.append('ctrl')
         if mods & (pygame.KMOD_META | pygame.KMOD_LMETA):
             self._modifiers.append('meta')
+
+    def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
+        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
+        # TODO If just CMD+w is pressed, only the window should be closed.
+        is_osx = sys.platform == 'darwin'
+        if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
+            stopTouchApp()
+            self.close()  #not sure what to do here
+            return True
+        super(WindowSDL, self).on_keyboard(key, scancode, unicode, modifier)
