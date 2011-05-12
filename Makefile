@@ -1,8 +1,9 @@
 PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
+HOSTPYTHON = ../python-for-iphone/Python-2.6.5/hostpython
 
-.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean 
+.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean
 
 build:
 	$(PYTHON) setup.py build_ext --inplace
@@ -12,6 +13,17 @@ force:
 
 mesabuild:
 	$(PYTHON) setup.py build_ext --inplace --define __MESAGL__
+
+ios:
+	-mkdir extralibs
+	-ln -s ../python-for-iphone/Python-2.6.5/python
+
+	echo "First build ========================================"
+	-$(HOSTPYTHON) setup.py build
+	echo "cythoning =========================================="
+	find . -name *.pyx -exec cython {} \;
+	echo "Second build ======================================="
+	$(HOSTPYTHON) setup.py build
 
 pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
