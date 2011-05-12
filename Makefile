@@ -18,12 +18,20 @@ ios:
 	-mkdir extralibs
 	-ln -s ../python-for-iphone/Python-2.6.5/python
 
+	-rm -rdf iosbuild/
+	mkdir iosbuild
+
 	echo "First build ========================================"
 	-$(HOSTPYTHON) setup.py build
 	echo "cythoning =========================================="
 	find . -name *.pyx -exec cython {} \;
 	echo "Second build ======================================="
-	$(HOSTPYTHON) setup.py build
+	$(HOSTPYTHON) setup.py install -O2 --root iosbuild
+	# Strip away the large stuff
+	find iosbuild/ | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
+	-rm -rdf "../python-for-iphone/Python-2.6.5/_install/lib/python2.6/site-packages/kivy"
+	# Copy to python for iOS installation
+	cp -R "iosbuild/usr/local/lib/python2.6/site-packages/kivy" "../python-for-iphone/Python-2.6.5/_install/lib/python2.6/site-packages"
 
 pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
