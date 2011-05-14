@@ -28,9 +28,13 @@ class ImageLoaderOSXCoreImage(ImageLoaderBase):
 
     def load(self, filename):
         print 'before'
-        print osxcoreimage.load_raw_image_data('/Users/dennda/blobs1.png')
+        ret = osxcoreimage.load_raw_image_data(filename)
+        if ret is None:
+            Logger.warning('Image: Unable to load image <%s>' % filename)
+            raise Exception('Unable to load image')
+        w, h, imgtype, data = ret
         print 'after'
-        return ImageData(64, 64, 'rgb', '\xff'*64*64*3)
+        return ImageData(w, h, imgtype, data)
 
 # register
 ImageLoader.register(ImageLoaderOSXCoreImage)

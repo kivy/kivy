@@ -3,6 +3,9 @@ from libcpp cimport bool
 ctypedef unsigned long size_t
 ctypedef signed long CFIndex
 
+cdef extern from "Python.h":
+    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+
 
 cdef extern from "CoreFoundation/CFBase.h":
     ctypedef void *CFAllocatorRef
@@ -46,7 +49,7 @@ cdef extern from "CoreGraphics/CGImage.h":
     # guessing these, because of no wifi:
     int CGImageGetWidth(CGImageRef)
     int CGImageGetHeight(CGImageRef)
-    bool CGImageGetAlphaInfo(CGImageRef)
+    int CGImageGetAlphaInfo(CGImageRef)
     int kCGImageAlphaNone
 
 
@@ -66,15 +69,34 @@ def load_raw_image_data(bytes _url):
     # or maybe: UIImage* uiImage = [UIImage imageWithContentsOfFile:fullPath];
     # see iphone3d book
     myImageSourceRef = CGImageSourceCreateWithURL(url, NULL)
+    if myImageSourceRef == NULL:
+        return None
 
     cdef CGImageRef myImageRef
     myImageRef = CGImageSourceCreateImageAtIndex (myImageSourceRef, 0, NULL)
+    if myImageRef == NULL:
+        return None
 
-    cdef bool hasAlpha = CGImageGetAlphaInfo(myImageRef) != kCGImageAlphaNone
+    cdef int width = CGImageGetWidth(myImageRef)
+    cdef int height = CGImageGetHeight(myImageRef)
+    cdef int hasAlpha = CGImageGetAlphaInfo(myImageRef) != kCGImageAlphaNone
+
+    # correctly detect the image type !!!
+    imgtype = 'rgb'
+    typesize = 3
+    if hasAlpha > 0:
+        imgtype = 'rgba'
+        typesize = 4
 
     cdef CFDataRef data
     data = CGDataProviderCopyData(CGImageGetDataProvider(myImageRef))
-    return <bytes> CFDataGetBytePtr(data)
+
+    r_data = PyString_FromStringAndSize(<char *>CFDataGetBytePtr(data),
+                    width * height * typesize)
+
+    # XXX clean image object
+
+    return (width, height, imgtype, r_data)
 
 #
 # bool hasAlpha = CGImageGetAlphaInfo(cgImage) != kCGImageAlphaNone; CGColorSpaceRef colorSpace = CGImageGetColorSpace(cgImage); switch (CGColorSpaceGetModel(colorSpace)) {

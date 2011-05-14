@@ -1,5 +1,5 @@
 cdef extern from "Python.h":
-    object PyUnicode_FromString(char *s) 
+    object PyUnicode_FromString(char *s)
 
 cdef extern from "SDL.h":
     ctypedef void *SDL_Window
@@ -60,9 +60,14 @@ cdef extern from "SDL.h":
 
     # GL Attribute
     int SDL_GL_DEPTH_SIZE
+    int SDL_GL_RED_SIZE
+    int SDL_GL_BLUE_SIZE
+    int SDL_GL_GREEN_SIZE
     int SDL_GL_ALPHA_SIZE
     int SDL_GL_STENCIL_SIZE
     int SDL_GL_DOUBLEBUFFER
+    int SDL_GL_CONTEXT_MAJOR_VERSION
+    int SDL_GL_RETAINED_BACKING
 
     # Init flags
     int SDL_INIT_VIDEO
@@ -103,40 +108,59 @@ cdef extern from "SDL.h":
 
     int SDL_PollEvent(SDL_Event *)
 
+    char *SDL_GetError()
+
 
 cdef SDL_Window *win = NULL
 cdef SDL_GLContext ctx = NULL
-cdef SDL_Surface *surface = NULL
 cdef int win_flags = 0
 
 
-def setup_window(width, height, use_fake, use_fullscreen):
-    global win, ctx, surface, win_flags
+def die():
+    raise RuntimeError(<bytes> SDL_GetError())
 
+
+def setup_window(width, height, use_fake, use_fullscreen):
+    global win, ctx, win_flags
+
+    win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS
+    '''
     win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN
     if use_fake:
         win_flags |= SDL_WINDOW_BORDERLESS
     if use_fullscreen:
         win_flags |= SDL_WINDOW_FULLSCREEN
+    '''
 
     if SDL_Init(SDL_INIT_VIDEO) < 0:
-        raise RuntimeError("Unable to initialize SDL video")
+        die()
 
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1)
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
+    #SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
+    #SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
+    #SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1)
+    #SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
+    #SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
+    #SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
+    #SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
+    #SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 1)
 
-    win = SDL_CreateWindow("kivy", 0, 0, width, height, win_flags)
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0);
+    #SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+
+    win = SDL_CreateWindow(NULL, 0, 0, 768, 1024, win_flags)
     if not win:
-        raise RuntimeError("Unable to create SDL window")
+        die()
 
     ctx = SDL_GL_CreateContext(win)
 
-    # XXX?
-    SDL_GL_SetSwapInterval(1)
-
-    surface = SDL_GetWindowSurface(win)
 
 def resize_window(w, h):
     cdef SDL_DisplayMode mode
@@ -144,6 +168,7 @@ def resize_window(w, h):
     mode.w = w
     mode.h = h
     SDL_SetWindowDisplayMode(win, &mode)
+
 
 def set_window_title(str title):
     SDL_SetWindowTitle(win, <bytes>title)
@@ -156,6 +181,7 @@ def teardown_window():
 
 
 def poll():
+    print 'polling'
     cdef SDL_Event event
     if SDL_PollEvent(&event) == 0:
         return False

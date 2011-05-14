@@ -82,6 +82,8 @@ def require(version):
 
     '''
 
+    print 'version:', version
+    #import pdb; pdb.set_trace()
     def parse_version(version):
         # check for tag
         tag = None
@@ -93,11 +95,15 @@ def require(version):
             elif len(l) == 3:
                 version, tag, tagrev = l
             else:
+                print 'got:', l
                 raise Exception('Revision format must be X.Y.Z[-tag]')
 
         # check x y z
-        l = version.split('.')
+        splitter = str('.')
+        print 'splitter', type(splitter)
+        l = version.split(splitter)
         if len(l) != 3:
+            print 'we have:', repr(l), repr(version), type(version)
             raise Exception('Revision format must be X.Y.Z[-tag]')
         return [int(x) for x in l], tag, tagrev
 
@@ -242,7 +248,7 @@ if basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
     environ['KIVY_UNITTEST'] = '1'
 if not 'KIVY_DOC_INCLUDE' in environ:
     # Configuration management
-    user_home_dir = expanduser('~')
+    user_home_dir = join(expanduser('~'), 'Documents')
     kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
 

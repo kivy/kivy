@@ -166,7 +166,6 @@ if True:
         #        kwargs.get('extra_link_args', [])
         return OrigExtension(*args, **kwargs)
 
-    # simple extensions
     if c_options['use_sdl']:
         sdl_libraries = ['SDL']
         sdl_includes = []
@@ -174,7 +173,13 @@ if True:
         if platform == 'darwin':
             # Paths as per homebrew (modified formula to use hg checkout)
             sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
-            sdl_extra_link_args += ['-L', '/usr/local/Cellar/sdl/HEAD/lib']
+            sdl_extra_link_args += ['-L', '/Users/dennda/dev/sdl-1.3/Xcode-iPhoneOS/SDL/build/SDLiPhoneOS.build/Debug-iphoneos/libSDL.build/Objects-normal/armv7']
+            sdl_extra_link_args += ['-framework', 'Foundation']
+            sdl_extra_link_args += ['-framework', 'UIKit']
+            sdl_extra_link_args += ['-framework', 'AudioToolbox']
+            sdl_extra_link_args += ['-framework', 'CoreGraphics']
+            sdl_extra_link_args += ['-framework', 'QuartzCore']
+            sdl_extra_link_args += ['-framework', 'ImageIO']
         else:
             sdl_includes = ['/usr/local/include/SDL']
             sdl_extra_link_args += ['-L', '/usr/local/lib/']
@@ -202,7 +207,6 @@ if True:
         elif pyx.endswith('osxcoreimage.pyx') or pyx.endswith('osxcoreimage.c'):
             if c_options['use_ios'] is False:
                 continue
-            ext_extra_link_args += ['-L', '/Users/dennda/dev/sdl-1.3/Xcode-iPhoneOS/SDL/build/SDLiPhoneOS.build/Debug-iphoneos/libSDL.build/Objects-normal/armv7']
             ext_extra_link_args += ['-framework', 'Foundation']
             ext_extra_link_args += ['-framework', 'UIKit']
             ext_extra_link_args += ['-framework', 'AudioToolbox']

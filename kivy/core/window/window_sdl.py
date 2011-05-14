@@ -4,6 +4,7 @@ SDL Window: Windowing provider directly based on our own wrapped version of SDL
 
 __all__ = ('WindowSDL', )
 
+from kivy.logger import Logger
 from kivy.core.window import WindowBase
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.config import Config
@@ -131,6 +132,7 @@ class WindowSDL(WindowBase):
         super(WindowPygame, self).on_keyboard(key, scancode, unicode, modifier)
 
     def flip(self):
+        print 'flipping'
         sdl.flip()
         super(WindowSDL, self).flip()
 
