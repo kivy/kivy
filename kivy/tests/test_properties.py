@@ -56,6 +56,16 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 1)
         self.assertEqual(observe_called, 1)
 
+    def test_objectcheck(self):
+        from kivy.properties import ObjectProperty
+
+        a = ObjectProperty(False)
+        a.link(wid, 'a')
+        a.link_deps(wid, 'a')
+        self.assertEqual(a.get(wid), False)
+        a.set(wid, True)
+        self.assertEqual(a.get(wid), True)
+
     def test_stringcheck(self):
         from kivy.properties import StringProperty
 

@@ -1,10 +1,25 @@
-export KIVY_PORTABLE_ROOT=$1
+# Script to initialize the complete dev environment
+# for Kivy. Use that when you want to develop :)
+#
+# This will give you an access to :
+# - Python binaries (python, easy_install)
+# - Cython binaries (cython)
+# - A correct pythonpath (Kivy)
+# - Gstreamer binaries (gst-inspect, ...)
+#
+# Usage: source /path/to/kivyenv.sh
+#
+
+# Get root directory of portable installation
+tmp=$(dirname $BASH_SOURCE)
+export KIVY_PORTABLE_ROOT=$(cd $tmp; pwd)
 
 if [ ! -d $KIVY_PORTABLE_ROOT ]; then
-	echo "Usage: kivyenv.sh <root directory of portable package>"
+	echo "Usage: source /path/to/kivyenv.sh"
 	exit 1
 fi
 
+# bootstrapping
 echo bootstrapping Kivy @ $KIVY_PORTABLE_ROOT
 
 if [ "X$KIVY_PATHS_INITIALIZED" != "X1" ]; then
@@ -24,7 +39,9 @@ export PATH=$KIVY_PORTABLE_ROOT:$KIVY_PORTABLE_ROOT/Python:$KIVY_PORTABLE_ROOT/g
 echo PATH is $PATH
 echo ----------------------------------
 
-export PYTHONPATH=$KIVY_PORTABLE_ROOT/kivy:$PYTHONPATH
+echo 'Convert to windows path:' $KIVY_PORTABLE_ROOT
+KIVY_PORTABLE_ROOT_PY=$(python -c 'import os, sys; print os.path.realpath(sys.argv[1])' $KIVY_PORTABLE_ROOT/kivy)
+export PYTHONPATH=$KIVY_PORTABLE_ROOT_PY\;$PYTHONPATH
 echo PYTHONPATH is $PYTHONPATH
 
 export KIVY_PATHS_INITIALIZED=1

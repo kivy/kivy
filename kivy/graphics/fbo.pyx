@@ -70,7 +70,7 @@ cdef class Fbo(RenderContext):
         `push_viewport`: bool, default to True
             If True, the OpenGL viewport will be set to the framebuffer size,
             and will be automatically restored when the framebuffer released.
-        `with_depthbuffer`: bool, default to True
+        `with_depthbuffer`: bool, default to False
             If True, the framebuffer will be allocated with a Z buffer.
         `texture`: :class:`~kivy.graphics.texture.Texture`, default to None
             If None, a default texture will be created.
@@ -110,7 +110,7 @@ cdef class Fbo(RenderContext):
         kwargs.setdefault('clear_color', (0, 0, 0, 0))
         kwargs.setdefault('size', (1024, 1024))
         kwargs.setdefault('push_viewport', True)
-        kwargs.setdefault('with_depthbuffer', True)
+        kwargs.setdefault('with_depthbuffer', False)
 
         self._buffer_id             = -1
         self._depthbuffer_id        = -1
@@ -122,6 +122,17 @@ cdef class Fbo(RenderContext):
         self._texture               = kwargs.get('texture', None)
 
         self.create_fbo()
+
+    def __dealloc__(self):
+        # XXX Cython doc said "not call other class method"
+        # So just call the minimum
+        cdef GLuint n
+        if self._buffer_id != -1:
+            n = self._buffer_id
+            glDeleteFramebuffers(1, &n)
+        if self._depthbuffer_id != -1:
+            n = self._depthbuffer_id
+            glDeleteRenderbuffers(1, &n)
 
     cdef void delete_fbo(self):
         # care on this case, if the deletion happen in another thread than main

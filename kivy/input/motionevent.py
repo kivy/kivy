@@ -8,7 +8,7 @@ event. This class define all the properties and methods needed to handle 2D and
 
 .. note::
     You never create the :class:`MotionEvent` yourself, this is the role of the
-    :ref:`~kivy.input.providers`.
+    :mod:`~kivy.input.providers`.
 
 Motion Event and Touch
 ----------------------
@@ -271,13 +271,13 @@ class MotionEvent(object):
                 touch.grab(self)
 
             def on_touch_move(self, touch):
-                if touch.grab_current == self:
+                if touch.grab_current is self:
                     # i receive my grabbed touch
                 else:
                     # it's a normal touch
 
             def on_touch_up(self, touch):
-                if touch.grab_current == self:
+                if touch.grab_current is self:
                     # i receive my grabbed touch, i must ungrab it !
                     touch.ungrab(self)
                 else:
@@ -365,8 +365,9 @@ class MotionEvent(object):
         '''
         self.x, self.y = transform(self.x, self.y)
         self.px, self.py = transform(self.px, self.py)
-        self.dx, self.dy = transform(self.dx, self.dy)
         self.ox, self.oy = transform(self.ox, self.oy)
+        self.dx = self.x - self.px
+        self.dy = self.y - self.py
 
     def copy_to(self, to):
         '''Copy some attribute to another touch object.'''

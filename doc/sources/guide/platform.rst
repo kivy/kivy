@@ -1,6 +1,6 @@
-Running on mobile platform
---------------------------
+Running on Mobile Platforms
+---------------------------
 
 .. toctree::
 
-    android.rst
+    android

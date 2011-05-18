@@ -16,7 +16,7 @@ cdef class Shader:
     cdef void stop(self)
     cdef void set_uniform(self, str name, value)
     cdef void upload_uniform(self, str name, value)
-    cdef void upload_uniform_matrix(self, str name, Matrix value)
+    cdef void upload_uniform_matrix(self, int loc, Matrix value)
     cdef int get_uniform_loc(self, str name)
     cdef void bind_attrib_locations(self)
     cdef void build(self)

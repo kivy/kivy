@@ -1,9 +1,13 @@
+import kivy
+kivy.require('1.0.6')
+
 from kivy.app import App
-from kivy.uix.widget import Widget
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.graphics import Color, Rectangle, Point
 from random import random
 from math import sqrt
+
 
 def calculate_points(x1, y1, x2, y2, steps=5):
     dx = x2 - x1
@@ -21,7 +25,8 @@ def calculate_points(x1, y1, x2, y2, steps=5):
     return o
 
 
-class Touchdebug(Widget):
+class Touchtracer(FloatLayout):
+
     def on_touch_down(self, touch):
         win = self.get_parent_window()
         ud = touch.ud
@@ -32,10 +37,9 @@ class Touchdebug(Widget):
                 Rectangle(pos=(touch.x, 0), size=(1, win.height), group=g),
                 Rectangle(pos=(0, touch.y), size=(win.width, 1), group=g),
                 Point(points=(touch.x, touch.y), source='particle.png',
-                      pointsize=5, group=g)
-            )
+                      pointsize=5, group=g))
 
-        ud['label'] = Label()
+        ud['label'] = Label(size_hint=(None, None))
         self.update_touch_label(ud['label'], touch)
         self.add_widget(ud['label'])
 
@@ -62,19 +66,18 @@ class Touchdebug(Widget):
 
     def update_touch_label(self, label, touch):
         label.text = 'ID: %s\nPos: (%d, %d)\nClass: %s' % (
-            touch.id,
-            touch.x,
-            touch.y,
-            touch.__class__.__name__
-        )
+            touch.id, touch.x, touch.y, touch.__class__.__name__)
         label.texture_update()
         label.pos = touch.pos
         label.size = label.texture_size[0] + 20, label.texture_size[1] + 20
 
 
-class TouchdebugApp(App):
-    def build(self):
-        return Touchdebug()
+class TouchtracerApp(App):
+    title = 'Touchtracer'
+    icon = 'icon.png'
 
-if __name__ in  ('__main__', '__android__'):
-    TouchdebugApp().run()
+    def build(self):
+        return Touchtracer()
+
+if __name__ in ('__main__', '__android__'):
+    TouchtracerApp().run()

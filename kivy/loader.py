@@ -76,8 +76,7 @@ class LoaderBase(object):
         self._client = []
         self._running = False
         self._start_wanted = False
-
-        Clock.schedule_interval(self._update, 1 / 25.)
+        self._trigger_update = Clock.create_trigger(self._update)
 
     def __del__(self):
         try:
@@ -131,6 +130,7 @@ class LoaderBase(object):
             data = post_callback(data)
 
         self._q_done.append((filename, data))
+        self._trigger_update()
 
     def _load_local(self, filename):
         '''(internal) Loading a local file'''
@@ -222,6 +222,7 @@ class LoaderBase(object):
             self._q_load.append((filename, load_callback, post_callback))
             Cache.append('kivy.loader', filename, False)
             self._start_wanted = True
+            self._trigger_update()
         else:
             # already queued for loading
             pass

@@ -143,16 +143,17 @@ Available configuration tokens
 
 __all__ = ('Config', 'KivyConfigParser')
 
+from shutil import copyfile
 from ConfigParser import ConfigParser
 from sys import platform
-from os import environ
+from os import environ, listdir
 from os.path import exists, join
-from kivy import kivy_home_dir, kivy_config_fn
+from kivy import kivy_home_dir, kivy_config_fn, kivy_data_dir
 from kivy.logger import Logger
 from kivy.utils import OrderedDict
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 2
+KIVY_CONFIG_VERSION = 3
 
 #: Kivy configuration object
 Config = None
@@ -255,7 +256,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             # default graphics parameters
             Config.setdefault('graphics', 'display', '-1')
             Config.setdefault('graphics', 'fullscreen', 'no')
-            Config.setdefault('graphics', 'height', '480')
+            Config.setdefault('graphics', 'height', '600')
             Config.setdefault('graphics', 'left', '0')
             Config.setdefault('graphics', 'maxfps', '0')
             Config.setdefault('graphics', 'multisamples', '2')
@@ -264,7 +265,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.setdefault('graphics', 'show_cursor', '1')
             Config.setdefault('graphics', 'top', '0')
             Config.setdefault('graphics', 'vsync', '1')
-            Config.setdefault('graphics', 'width', '640')
+            Config.setdefault('graphics', 'width', '800')
 
             # input configuration
             Config.setdefault('input', 'default', 'tuio,0.0.0.0:3333')
@@ -300,6 +301,16 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.remove_option('graphics', 'vsync')
             Config.set('graphics', 'maxfps', '60')
 
+        elif version == 2:
+            logo_dir = join(kivy_data_dir, 'logo')
+            dest_dir = join(kivy_home_dir, 'icon')
+            for logo in listdir(logo_dir):
+                copyfile(join(logo_dir, logo), join(dest_dir, logo))
+            logo_size = 32
+            if platform == 'darwin':
+                logo_size = 512
+            Config.set('kivy', 'window_icon', \
+                join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' % logo_size))
         #
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

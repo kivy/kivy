@@ -18,11 +18,11 @@ cdef class Texture:
     cdef float _uvh
 
     cdef update_tex_coords(self)
-    cdef release(self)
+    cdef set_min_filter(self, str x)
+    cdef set_mag_filter(self, str x)
+    cdef set_wrap(self, str x)
 
     cpdef flip_vertical(self)
     cpdef get_region(self, x, y, width, height)
     cpdef bind(self)
-    cpdef enable(self)
-    cpdef disable(self)
 

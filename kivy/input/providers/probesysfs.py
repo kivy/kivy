@@ -5,8 +5,8 @@ Auto Create Input Provider Config Entry for Available MT Hardware (linux only).
 Thanks to Marc Tardif for the probing code, taken from scan-for-mt-device.
 
 The device discovery is done by this provider. However, the reading of input can
-be made by 2 other providers: hidinput or mtdev. mtdev is used prior to
-hidinput. For more information about mtdev, check
+be made by other providers like: hidinput, mtdev, linuxwacom. mtdev is used
+prior to other providers. For more information about mtdev, check
 :py:class:`~kivy.input.providers.mtdev`.
 
 Here is an example of auto creation ::
@@ -23,8 +23,17 @@ Here is an example of auto creation ::
     %(name)s = probesysfs,
         provider=hidinput,param=min_pressure=1,param=max_pressure=99
 
-ProbeSysfs module will enumerate hardware from /sys/class/input device, and
-configure hardware with ABS_MT_POSITION_X capability.
+    # you can also match your wacom touchscreen
+    touch = probesysfs,match=E3 Finger,provider=linuxwacom,
+        select_all=1,param=mode=touch
+    # and your wacom pen
+    pen = probesysfs,match=E3 Pen,provider=linuxwacom,
+        select_all=1,param=mode=pen
+
+By default, ProbeSysfs module will enumerate hardware from /sys/class/input
+device, and configure hardware with ABS_MT_POSITION_X capability. But for
+example, wacom screen doesn't support this capability. You can prevent this
+behavior by putting select_all=1 in your config line.
 '''
 
 __all__ = ('ProbeSysfsHardwareProbe', )
@@ -47,6 +56,8 @@ else:
 
     # See linux/input.h
     ABS_MT_POSITION_X = 0x35
+
+    _cache_input = None
 
     class Input(object):
 
@@ -84,9 +95,11 @@ else:
         return int(output)
 
     def get_inputs(path):
-        event_glob = os.path.join(path, "event*")
-        for event_path in glob(event_glob):
-            yield Input(event_path)
+        global _cache_input
+        if _cache_input is None:
+            event_glob = os.path.join(path, "event*")
+            _cache_input = [Input(x) for x in glob(event_glob)]
+        return _cache_input
 
     def read_line(path):
         f = open(path)
@@ -108,6 +121,8 @@ else:
             self.provider = 'mtdev'
             self.match = None
             self.input_path = '/sys/class/input'
+            self.select_all = False
+            self.use_regex = False
             self.args = []
 
             args = args.split(',')
@@ -126,6 +141,10 @@ else:
                     self.match = value
                 elif key == 'provider':
                     self.provider = value
+                elif key == 'use_regex':
+                    self.use_regex = bool(value)
+                elif key == 'select_all':
+                    self.select_all = bool(value)
                 elif key == 'param':
                     self.args.append(value)
                 else:
@@ -136,17 +155,25 @@ else:
 
         def probe(self):
             inputs = get_inputs(self.input_path)
-            inputs = [x for x in inputs if x.has_capability(ABS_MT_POSITION_X)]
+            if not self.select_all:
+                inputs = [x for x in inputs if \
+                          x.has_capability(ABS_MT_POSITION_X)]
             for device in inputs:
-                Logger.info('ProbeSysfs: found device: %s at %s' % (
+                Logger.debug('ProbeSysfs: found device: %s at %s' % (
                                  device.name, device.device))
 
                 # must ignore ?
                 if self.match:
-                    if not match(self.match, device.name, IGNORECASE):
-                        Logger.warning('ProbeSysfs: device not match the'
-                                       ' rule in config, ignoring.')
-                        continue
+                    if self.use_regex:
+                        if not match(self.match, device.name, IGNORECASE):
+                            Logger.debug('ProbeSysfs: device not match the'
+                                         ' rule in config, ignoring.')
+                            continue
+                    else:
+                        if self.match not in device.name:
+                            continue
+
+                Logger.info('ProbeSysfs: device match: %s' % device.device)
 
                 d = device.device
                 devicename = self.device % dict(name=d.split(sep)[-1])
