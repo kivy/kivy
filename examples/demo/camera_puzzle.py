@@ -65,7 +65,7 @@ class Puzzle(Camera):
 class PuzzleApp(App):
     def build(self):
         root = Widget()
-        puzzle = Puzzle()
+        puzzle = Puzzle(resolution=(640, 480), play=True)
         slider = Slider(min=100, max=200, step=10, size=(800, 50))
         slider.bind(value=partial(self.on_value, puzzle))
 

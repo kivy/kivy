@@ -19,7 +19,6 @@ import sys
 import re
 from glob import glob
 
-os.environ['KIVY_SHADOW_WINDOW'] = '0'
 import kivy
 
 # force loading of kivy modules
@@ -30,10 +29,10 @@ import kivy.core.clipboard
 import kivy.core.gl
 import kivy.core.image
 import kivy.core.spelling
-import kivy.core.svg
 import kivy.core.text
 import kivy.core.video
 import kivy.core.window
+import kivy.ext
 import kivy.graphics
 import kivy.animation
 from kivy.factory import Factory

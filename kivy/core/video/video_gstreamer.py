@@ -63,7 +63,6 @@ def _gst_new_pad(obj, dbin, pad, *largs):
             dbin.link(obj._colorspace)
         elif c.startswith('audio'):
             dbin.link(obj._volumesink)
-            obj._volumesink.set_property('volume', obj._volume)
     except:
         pass
 
@@ -85,7 +84,7 @@ class VideoGStreamer(VideoBase):
     __slots__ = ('_pipeline', '_decoder', '_videosink', '_colorspace',
                  '_videosize', '_buffer_lock', '_audiosink', '_volumesink',
                  '_is_audio', '_is_video', '_do_load', '_pipeline_canplay',
-                 '_discoverer', '_discoverer_sid')
+                 '_discoverer', '_discoverer_sid', '_colorfmt')
 
     def __init__(self, **kwargs):
         self._pipeline = None
@@ -97,6 +96,7 @@ class VideoGStreamer(VideoBase):
         self._is_audio = None
         self._is_video = None
         self._do_load = None
+        self._colorfmt = kwargs.get('colorfmt', None)
         self._pipeline_canplay = False
         self._buffer_lock = Lock()
         self._videosize = (0, 0)
@@ -183,12 +183,14 @@ class VideoGStreamer(VideoBase):
         self._colorspace = gst.element_factory_make('ffmpegcolorspace')
 
         # will extract video/audio
-        caps_str = 'video/x-raw-rgb,red_mask=(int)0xff0000,' + \
-                    'green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff'
-        caps = gst.Caps(caps_str)
         self._videosink = gst.element_factory_make('appsink', 'videosink')
         self._videosink.set_property('emit-signals', True)
-        self._videosink.set_property('caps', caps)
+        if not self._colorfmt:
+            self._colorfmt = 'rgb'
+            caps_str = ('video/x-raw-rgb,red_mask=(int)0xff0000,'
+                        'green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff')
+            caps = gst.Caps(caps_str)
+            self._videosink.set_property('caps', caps)
         self._videosink.set_property('drop', True)
         #self._videosink.set_property('render-delay', 1000000000)
         #self._videosink.set_property('max-lateness', 1000000000)
@@ -196,7 +198,6 @@ class VideoGStreamer(VideoBase):
                                 partial(_gst_new_buffer, ref(self)))
         self._audiosink = gst.element_factory_make('autoaudiosink', 'audiosink')
         self._volumesink = gst.element_factory_make('volume', 'volume')
-        self._volumesink.set_property('volume', self._volume)
 
         # connect colorspace -> appsink
         if self._is_video:
@@ -253,13 +254,13 @@ class VideoGStreamer(VideoBase):
         if self._audiosink is not None:
             self._volume = self._volumesink.get_property('volume')
         else:
-            self._volume = 0.00000001
+            self._volume = 1.
         return self._volume
 
     def _set_volume(self, volume):
-        self._volume = max(volume, .0000001)
         if self._audiosink is not None:
-            self._volumesink.set_property('volume', self._volume)
+            self._volumesink.set_property('volume', volume)
+            self._volume = max(volume, .0000001)
 
     def _update(self, dt):
         if self._do_load:
@@ -272,18 +273,15 @@ class VideoGStreamer(VideoBase):
 
         # get size information first to create the texture
         if self._texture is None:
-            try:
-                for i in self._decoder.src_pads():
-                    cap = i.get_caps()[0]
-                    is_video_struct = cap.get_name().startswith('video')
-                    if is_video_struct and 'width' in cap.keys():
-                        self._videosize = (cap['width'], cap['height'])
-                        self._texture = Texture.create(
-                            size=self._videosize, colorfmt='rgb')
-                        self._texture.flip_vertical()
-                        self.dispatch('on_load')
-            except:
-                pass # can be resyn error
+            for i in self._decoder.src_pads():
+                cap = i.get_caps()[0]
+                structure_name = cap.get_name()
+                if structure_name.startswith('video') and 'width' in cap.keys():
+                    self._videosize = (cap['width'], cap['height'])
+                    self._texture = Texture.create(
+                        size=self._videosize, colorfmt=self._colorfmt)
+                    self._texture.flip_vertical()
+                    self.dispatch('on_load')
 
         # no texture again ?
         if self._texture is None:
@@ -298,8 +296,8 @@ class VideoGStreamer(VideoBase):
         # update needed ?
         with self._buffer_lock:
             if self._buffer is not None:
-                self._texture.blit_buffer(self._buffer.data,
-                                          size=self._videosize,
-                                          colorfmt='rgb')
+                self._texture.blit_buffer(
+                    self._buffer.data, size=self._videosize,
+                    colorfmt=self._colorfmt)
                 self._buffer = None
                 self.dispatch('on_frame')

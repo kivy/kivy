@@ -255,12 +255,16 @@ else:
                 return (value - vmin) / float(vmax - vmin)
 
             # open the input
-            fd = open(input_fn, 'rb')
+            try:
+                fd = open(input_fn, 'rb')
+            except IOError:
+                Logger.exception('Unable to open %s' % input_fn)
+                return
 
             # get the controler name (EVIOCGNAME)
             device_name = fcntl.ioctl(fd, EVIOCGNAME + (256 << 16),
                                         " " * 256).split('\x00')[0]
-            Logger.info('LinuxWacomMotionEvent: using <%s>' % device_name)
+            Logger.info('LinuxWacom: using <%s>' % device_name)
 
             # get abs infos
             bit = fcntl.ioctl(fd, EVIOCGBIT + (EV_MAX << 16), ' ' * sz_l)
@@ -287,19 +291,19 @@ else:
                     if y == ABS_X:
                         range_min_position_x = drs('min_position_x', abs_min)
                         range_max_position_x = drs('max_position_x', abs_max)
-                        Logger.info('LinuxWacomMotionEvent: ' +
+                        Logger.info('LinuxWacom: ' +
                             '<%s> range position X is %d - %d' % (
                             device_name, abs_min, abs_max))
                     elif y == ABS_Y:
                         range_min_position_y = drs('min_position_y', abs_min)
                         range_max_position_y = drs('max_position_y', abs_max)
-                        Logger.info('LinuxWacomMotionEvent: ' +
+                        Logger.info('LinuxWacom: ' +
                             '<%s> range position Y is %d - %d' % (
                             device_name, abs_min, abs_max))
                     elif y == ABS_PRESSURE:
                         range_min_pressure = drs('min_pressure', abs_min)
                         range_max_pressure = drs('max_pressure', abs_max)
-                        Logger.info('LinuxWacomMotionEvent: ' +
+                        Logger.info('LinuxWacom: ' +
                             '<%s> range pressure is %d - %d' % (
                             device_name, abs_min, abs_max))
 

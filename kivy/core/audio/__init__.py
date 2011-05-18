@@ -67,9 +67,10 @@ class Sound(EventDispatcher):
     __slots__ = ('_filename', '_volume', '_status')
 
     def __init__(self, **kwargs):
-        super(Sound, self).__init__(**kwargs)
         kwargs.setdefault('filename', None)
         kwargs.setdefault('volume', 1.)
+
+        super(Sound, self).__init__()
 
         self.register_event_type('on_play')
         self.register_event_type('on_stop')

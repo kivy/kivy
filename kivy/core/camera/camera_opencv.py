@@ -6,7 +6,7 @@ OpenCV Camera: Implement CameraBase with OpenCV
 # TODO: make usage of thread or multiprocess
 #
 
-__all__ = ('CameraOpenCV', )
+__all__ = ('CameraOpenCV')
 
 from kivy.logger import Logger
 from kivy.graphics.texture import Texture
@@ -15,8 +15,23 @@ from . import CameraBase
 try:
     import opencv as cv
     import opencv.highgui as hg
-except:
-    raise
+except ImportError:
+    import cv
+
+    class Hg(object):
+        '''
+        On OSX, not only are the import names different, but also the API differs.
+        There is no module called 'highgui' but the names are directly available
+        in the 'cv' module and some of them even have a different name.
+        Therefore we use this proxy object.
+        '''
+        def __getattr__(self, attr):
+            if attr.startswith('cv'):
+                attr = attr[2:]
+            got = getattr(cv, attr)
+            return got
+
+    hg = Hg()
 
 
 class CameraOpenCV(CameraBase):
@@ -31,37 +46,18 @@ class CameraOpenCV(CameraBase):
         # create the device
         self._device = hg.cvCreateCameraCapture(self._index)
 
-        try:
-            # try first to set resolution
-            cv.hg(self._device, cv.CV_CAP_PROP_FRAME_WIDTH,
-                              self.resolution[0])
-            cv.hg(self._device, cv.CV_CAP_PROP_FRAME_HEIGHT,
-                              self.resolution[1])
+        # Set preferred resolution
+        cv.SetCaptureProperty(self._device, cv.CV_CAP_PROP_FRAME_WIDTH,
+                                self.resolution[0])
+        cv.SetCaptureProperty(self._device, cv.CV_CAP_PROP_FRAME_HEIGHT,
+                                self.resolution[1])
 
-            # and get frame to check if it's ok
-            frame = hg.cvQueryFrame(self._device)
-            if not int(frame.width) == self.resolution[0]:
-                raise Exception('OpenCV: Resolution not supported')
-
-        except:
-            # error while setting resolution
-            # fallback on default one
-            w = int(hg.cvGetCaptureProperty(self._device,
-                    hg.CV_CAP_PROP_FRAME_WIDTH))
-            h = int(hg.cvGetCaptureProperty(self._device,
-                    hg.CV_CAP_PROP_FRAME_HEIGHT))
-            frame = hg.cvQueryFrame(self._device)
-            Logger.warning(
-                'OpenCV: Camera resolution %s impossible! Defaulting to %s.' %
-                (self.resolution, (w, h)))
-
-            # set resolution to default one
-            self._resolution = (w, h)
-
-        # create texture !
-        self._texture = Texture.create(*self._resolution)
-        self._texture.flip_vertical()
-        self.dispatch('on_load')
+        # and get frame to check if it's ok
+        frame = hg.cvQueryFrame(self._device)
+        # Just set the resolution to the frame we just got, but don't use
+        # self.resolution for that as that would cause an infinite recursion
+        # with self.init_camera (but slowly as we'd have to always get a frame).
+        self._resolution = (int(frame.width), int(frame.height))
 
         if not self.stopped:
             self.start()
@@ -69,10 +65,20 @@ class CameraOpenCV(CameraBase):
     def _update(self, dt):
         if self.stopped:
             return
+        if self._texture is None:
+            # Create the texture
+            self._texture = Texture.create(self._resolution)
+            self._texture.flip_vertical()
+            self.dispatch('on_load')
         try:
             frame = hg.cvQueryFrame(self._device)
             self._format = 'bgr'
-            self._buffer = frame.imageData
+            try:
+                self._buffer = frame.imageData
+            except AttributeError:
+                # On OSX there is no imageData attribute but a tostring()
+                # method.
+                self._buffer = frame.tostring()
             self._copy_to_gpu()
         except:
             Logger.exception('OpenCV: Couldn\'t get image from Camera')

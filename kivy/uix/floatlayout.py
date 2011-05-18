@@ -49,15 +49,12 @@ class FloatLayout(Layout):
     def __init__(self, **kwargs):
         kwargs.setdefault('size', (1, 1))
         self._minimum_size = (0, 0)
+        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(FloatLayout, self).__init__(**kwargs)
         self.bind(
             children = self._trigger_layout,
             pos = self._trigger_layout,
             size = self._trigger_layout)
-
-    def _trigger_layout(self, *largs):
-        Clock.unschedule(self._do_layout)
-        Clock.schedule_once(self._do_layout)
 
     def update_minimum_size(self, *largs):
         '''Calculates the minimum size of the layout.
@@ -109,4 +106,14 @@ class FloatLayout(Layout):
                 elif key == 'center_y':
                     c.center_y = y + value * h
 
+    def add_widget(self, widget, index=0):
+        widget.bind(
+            pos = self._trigger_layout,
+            pos_hint = self._trigger_layout)
+        return super(Layout, self).add_widget(widget, index)
 
+    def remove_widget(self, widget):
+        widget.unbind(
+            pos = self._trigger_layout,
+            pos_hint = self._trigger_layout)
+        return super(Layout, self).remove_widget(widget)

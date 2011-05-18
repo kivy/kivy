@@ -78,19 +78,19 @@ else:
 
         def _event_type(self):
             if self.flags & TOUCHEVENTF_MOVE:
-                return 'begin'
-            if self.flags & TOUCHEVENTF_DOWN:
                 return 'update'
+            if self.flags & TOUCHEVENTF_DOWN:
+                return 'begin'
             if self.flags & TOUCHEVENTF_UP:
                 return 'end'
         event_type = property(_event_type)
 
     class RECT(Structure):
         _fields_ = [
-            ('left', ULONG),
-            ('top', ULONG),
-            ('right', ULONG),
-            ('bottom', ULONG)]
+            ('left', LONG),
+            ('top', LONG),
+            ('right', LONG),
+            ('bottom', LONG)]
 
         x = property(lambda self: self.left)
         y = property(lambda self: self.top)

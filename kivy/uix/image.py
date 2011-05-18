@@ -44,6 +44,7 @@ And in your kivy language file, you can do ::
 __all__ = ('Image', 'AsyncImage')
 
 from kivy.uix.widget import Widget
+from kivy.cache import Cache
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
@@ -94,6 +95,17 @@ class Image(Widget):
     read-only.
     '''
 
+    color = ListProperty([1, 1, 1, 1])
+    '''Image color, in the format (r, g, b, a). This attribute can be used for
+    'tint' an image. Be careful, if the source image is not gray/white, the
+    color will not really work as expected.
+
+    .. versionadded:: 1.0.6
+
+    :data:`color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
+    1, 1].
+    '''
+
     def get_norm_image_size(self):
         if not self.texture:
             return self.size
@@ -102,7 +114,7 @@ class Image(Widget):
         tw, th = self.texture.size
 
         # ensure that the width is always maximized to the containter width
-        iw = w if tw < w else w
+        iw = w if tw < w else tw
         # calculate the appropriate height
         ih = iw / ratio
         # if the height is too higher, take the height of the container
@@ -130,8 +142,12 @@ class Image(Widget):
             self.texture = None
         else:
             filename = resource_find(value)
-            image = CoreImage(filename)
-            self.texture = image.texture
+            texture = Cache.get('kv.texture', filename)
+            if not texture:
+                image = CoreImage(filename)
+                texture = image.texture
+                Cache.append('kv.texture', filename, texture)
+            self.texture = texture
 
     def on_texture(self, instance, value):
         if value is not None:

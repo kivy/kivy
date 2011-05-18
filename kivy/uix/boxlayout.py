@@ -26,7 +26,7 @@ layout, and the second should be 30%. ::
 
     The `size_hint` represent the size available after substracting all the
     fixed size. For example, if you have 3 widgets (width is 200px,
-    50%, 50%), and if the layout have a width of 600px :
+    50%, 50%), and if the layout have a width of 800px :
 
     - the first widget width will be 200px
     - the second widget width will be 300px
@@ -36,7 +36,6 @@ layout, and the second should be 30%. ::
 
 __all__ = ('BoxLayout', )
 
-import kivy
 from kivy.clock import Clock
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty
@@ -70,6 +69,7 @@ class BoxLayout(Layout):
 
     def __init__(self, **kwargs):
         kwargs.setdefault('size', (1, 1))
+        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         self._minimum_size = (0, 0)
         super(BoxLayout, self).__init__(**kwargs)
         self.bind(
@@ -77,16 +77,13 @@ class BoxLayout(Layout):
             padding = self._trigger_minimum_size,
             orientation = self._trigger_minimum_size)
         self.bind(
+            minimum_size = self._trigger_layout,
             spacing = self._trigger_layout,
             padding = self._trigger_layout,
             children = self._trigger_layout,
             orientation = self._trigger_layout,
             size = self._trigger_layout,
             pos = self._trigger_layout)
-
-    def _trigger_layout(self, *largs):
-        Clock.unschedule(self._do_layout)
-        Clock.schedule_once(self._do_layout)
 
     def update_minimum_size(self, *largs):
         '''Calculates the minimum size of the layout.
@@ -131,10 +128,7 @@ class BoxLayout(Layout):
                     if shh is not None:
                         height += _h
 
-        before = self.minimum_size
-        if before[0] != width or before[1] != height:
-            self.minimum_size = (width, height)
-            self._trigger_layout()
+        self.minimum_size = (width, height)
 
     def _do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop

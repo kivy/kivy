@@ -26,13 +26,16 @@ class ImageLoaderPygame(ImageLoaderBase):
         if pygame.image.get_extended() == 0:
             return ('bmp', )
         # retrieve from http://www.pygame.org/docs/ref/image.html
-        return ('jpg', 'png', 'gif', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
+        return ('jpg', 'jpeg', 'png', 'gif', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
                'pbm', 'ppm', 'xpm')
 
     def load(self, filename):
         Logger.debug('Image: Load <%s>' % filename)
         try:
-            im = pygame.image.load(filename)
+            try:
+                im = pygame.image.load(filename)
+            except UnicodeEncodeError:
+                im = pygame.image.load(filename.encode('utf8'))
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise

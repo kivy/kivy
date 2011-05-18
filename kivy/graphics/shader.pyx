@@ -75,6 +75,15 @@ cdef class Shader:
         glUseProgram(self.program)
         for k,v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
+        # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call
+        # glFlush or glFinish or glGetIntegerv(GL_CURRENT_PROGRAM, ...), it seem
+        # that the pipeline is broken, and we have glitch issue. In order to
+        # prevent that on possible other hardware, i've (mathieu) prefered to
+        # include a glFlush here. However, it could be nice to know exactly what
+        # is going on. Even the glGetIntegerv() is not working here. Broken
+        # driver on virtualbox / win7 ????
+        # FIXME maybe include that instruction for glew usage only.
+        glFlush()
 
     cdef void stop(self):
         '''Stop using the shader
@@ -90,7 +99,9 @@ cdef class Shader:
         '''
         cdef int vec_size, loc
         val_type = type(value)
-        loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
+        loc = self.uniform_locations.get(name, -1)
+        if loc == -1:
+            loc = self.get_uniform_loc(name)
 
         #Logger.debug('Shader: uploading uniform %s (loc=%d)' % (name, loc))
         if loc == -1:
@@ -98,24 +109,24 @@ cdef class Shader:
             return
         #Logger.debug('Shader: -> (gl:%d) %s' % (glGetError(), str(value)))
 
-        if val_type == Matrix:
-            self.upload_uniform_matrix(name, value)
-        elif val_type == int:
+        if val_type is Matrix:
+            self.upload_uniform_matrix(loc, value)
+        elif val_type is int:
             glUniform1i(loc, value)
-        elif val_type == float:
+        elif val_type is float:
             glUniform1f(loc, value)
-        elif val_type in (list, tuple):
+        elif val_type is list or val_type is tuple:
             #must have been a list, tuple, or other sequnce and be a vector uniform
             val_type = type(value[0])
             vec_size = len(value)
-            if val_type == float:
+            if val_type is float:
                 if vec_size == 2:
                     glUniform2f(loc, value[0], value[1])
                 elif vec_size == 3:
                     glUniform3f(loc, value[0], value[1], value[2])
                 elif vec_size == 4:
                     glUniform4f(loc, value[0], value[1], value[2], value[3])
-            elif val_type == int:
+            elif val_type is int:
                 if vec_size == 2:
                     glUniform2i(loc, value[0], value[1])
                 elif vec_size == 3:
@@ -125,8 +136,7 @@ cdef class Shader:
         else:
             raise Exception('for <%s>, type not handled <%s>' % (name, val_type))
 
-    cdef void upload_uniform_matrix(self, str name, Matrix value):
-        cdef int loc = self.uniform_locations.get(name, self.get_uniform_loc(name))
+    cdef void upload_uniform_matrix(self, int loc, Matrix value):
         cdef GLfloat mat[16]
         for x in xrange(16):
             mat[x] = <GLfloat>value.mat[x]

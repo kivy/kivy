@@ -65,7 +65,7 @@ cdef class Line(VertexInstruction):
         '''Property for getting/settings points of the triangle
 
         .. warning::
-            
+
             This will always reconstruct the whole graphics from the new points
             list. It can be very CPU expensive.
         '''
@@ -510,7 +510,7 @@ cdef class BorderImage(Rectangle):
 
 
 cdef class Ellipse(Rectangle):
-    '''A 2d ellipse.
+    '''A 2D ellipse.
 
     :Parameters:
         `segments`: int, default to 180
