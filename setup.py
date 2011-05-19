@@ -108,7 +108,7 @@ for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
 # add cython core extension modules if cython is available
 
 if True:
-    libraries = []
+    libraries = ['m']
     include_dirs = []
     extra_link_args = []
     if platform == 'win32':
