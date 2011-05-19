@@ -162,4 +162,5 @@ Tablets
 
 - Samsung Galaxy Tab
 - Motorola Xoom
+- Asus EeePad Transformer
 
