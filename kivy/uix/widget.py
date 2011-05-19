@@ -100,6 +100,7 @@ class Widget(EventDispatcher):
         # of doing that without require any python code. :)
         Widget.__widget_uid += 1
         self.__dict__['__uid'] = Widget.__widget_uid
+        self.__dict__['__storage'] = {}
 
         cp = Widget.__cache_properties
         if __cls__ not in cp:
@@ -127,13 +128,6 @@ class Widget(EventDispatcher):
 
         # Then, return the class instance
         return self
-
-    def __del__(self):
-        # The thing here, since the storage of the property is inside the
-        # Property class, we must remove ourself from the storage of each
-        # Property. The usage is faster, the creation / deletion is longer.
-        for attr in self.__properties.itervalues():
-            attr.unlink(self)
 
     def __init__(self, **kwargs):
         super(Widget, self).__init__()
