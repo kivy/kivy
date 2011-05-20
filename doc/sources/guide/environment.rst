@@ -25,6 +25,8 @@ KIVY_USE_DEFAULTCONFIG
 Path control
 ------------
 
+.. versionadded:: 1.0.7
+
 You can control where is located default directory of modules, extensions, and
 kivy datas.
 
