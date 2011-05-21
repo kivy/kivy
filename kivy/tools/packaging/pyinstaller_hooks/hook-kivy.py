@@ -11,26 +11,16 @@ With this hook, everything needed for running kivy is correctly copied.
 Check kivy documentation about how to use theses hook for packaging application.
 '''
 
-from hooks.hookutils import exec_statement
-
-def get_data_dir():
-    return exec_statement('import kivy; print kivy.kivy_data_dir')
-
-def get_modules_dir():
-    return exec_statement('import kivy; print kivy.kivy_modules_dir')
-
-def get_exts_dir():
-    return exec_statement('import kivy; print kivy.kivy_exts_dir')
+import kivy
+from kivy.factory import Factory
 
 def get_modules():
-    return exec_statement('from kivy.factory import Factory;'
-                          'print [x.get(\'module\', None) for x in '
-                          'Factory.classes.values()]')
+    return [x.get('module', None) for x in Factory.classes.itervalues()]
 
 datas = [
-    (get_data_dir(), 'kivy_install'),
-    (get_modules_dir(), 'kivy_install'),
-    (get_exts_dir(), 'kivy_install'),
+    (kivy.kivy_data_dir, 'kivy_install'),
+    (kivy.kivy_modules_dir, 'kivy_install'),
+    (kivy.kivy_exts_dir, 'kivy_install'),
 ]
 
 # extensions
@@ -75,6 +65,6 @@ _kivy_modules = [
     'kivy.core.window.window_pygame',
 ]
 
-hiddenimports = _kivy_modules + eval(get_modules())
+hiddenimports = _kivy_modules + get_modules()
 hiddenimports = list(set(hiddenimports))
 
