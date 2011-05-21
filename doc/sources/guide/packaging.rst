@@ -18,6 +18,16 @@ Requirements
     * Latest Kivy (the whole portable package, not only the github sourcecode)
     * PyInstaller 1.5: http://www.pyinstaller.org/#Downloads
 
+Install and configure PyInstaller
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Decompress the PyInstaller in the Kivy portable package
+#. Double click on the Kivy.bat, a console will be open
+#. Go to the pyinstaller directory, and run only once the Configure.py::
+
+    cd pyinstaller-1.5
+    python Configure.py
+
 Create the spec file
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -25,7 +35,6 @@ For the example, we'll package touchtracer example, using a custom icon. The
 touchtracer is the `kivy/examples/demo/touchtracer/` directory, and the main
 file is named `main.py`
 
-#. Decompress the PyInstaller in the Kivy portable package
 #. Double click on the Kivy.bat, a console will be open
 #. Go to the pyinstaller directory, and create the initial specs::
 
