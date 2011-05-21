@@ -10,6 +10,7 @@ paths.
 __all__ = ('resource_find', 'resource_add_path')
 
 from os.path import join, dirname, exists
+from kivy import kivy_data_dir
 from kivy.logger import Logger
 import sys
 import kivy
@@ -17,7 +18,8 @@ import kivy
 resource_paths = [
     '.',
     dirname(sys.argv[0]),
-    dirname(kivy.__file__)]
+    dirname(kivy.__file__),
+    join(kivy_data_dir, '..')]
 
 
 def resource_find(filename):
