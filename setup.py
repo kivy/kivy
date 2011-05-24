@@ -172,8 +172,9 @@ if True:
         sdl_extra_link_args = []
         if platform == 'darwin':
             # Paths as per homebrew (modified formula to use hg checkout)
-            sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
-            sdl_extra_link_args += ['-L', '/Users/dennda/dev/sdl-1.3/Xcode-iPhoneOS/SDL/build/SDLiPhoneOS.build/Debug-iphoneos/libSDL.build/Objects-normal/armv7']
+            sdl_includes = ['/Users/dennda/dev/sdl-1.3/include']
+            #sdl_extra_link_args += ['-L', '/Users/dennda/dev/sdl-1.3/Xcode-iPhoneOS/SDL/build/SDLiPhoneOS.build/Debug-iphoneos/libSDL.build/Objects-normal/armv7']
+            sdl_extra_link_args += ['-L', '/Users/dennda/dev/sdl-1.3/Xcode-iPhoneOS/SDL/build/Debug-iphoneos/']
             sdl_extra_link_args += ['-framework', 'Foundation']
             sdl_extra_link_args += ['-framework', 'UIKit']
             sdl_extra_link_args += ['-framework', 'AudioToolbox']

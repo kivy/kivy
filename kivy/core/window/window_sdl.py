@@ -54,6 +54,7 @@ class WindowSDL(WindowBase):
 
         elif self._pos is not None:
             os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
+            pass
 
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
@@ -75,7 +76,7 @@ class WindowSDL(WindowBase):
 
         # setup !
         w, h = self._size
-        sdl.setup_window(w, h, use_fake, use_fullscreen)
+        self._size = sdl.setup_window(w, h, use_fake, use_fullscreen)
 
         super(WindowSDL, self).create_window()
 
@@ -93,18 +94,10 @@ class WindowSDL(WindowBase):
         self.dispatch('on_close')
 
     def set_title(self, title):
-        return
-        pygame.display.set_caption(title)
+        sdl.set_window_title(title)
 
     def set_icon(self, filename):
         return
-        try:
-            if not exists(filename):
-                return False
-            icon = pygame.image.load(filename)
-            pygame.display.set_icon(icon)
-        except:
-            Logger.exception('WinPygame: unable to set icon')
 
     def screenshot(self, *largs, **kwargs):
         return
@@ -132,7 +125,6 @@ class WindowSDL(WindowBase):
         super(WindowPygame, self).on_keyboard(key, scancode, unicode, modifier)
 
     def flip(self):
-        print 'flipping'
         sdl.flip()
         super(WindowSDL, self).flip()
 
@@ -146,7 +138,6 @@ class WindowSDL(WindowBase):
             if event is None:
                 continue
 
-            print 'sdl receive', event
             action, args = event[0], event[1:]
             if action == 'quit':
                 EventLoop.quit = True
@@ -227,6 +218,7 @@ class WindowSDL(WindowBase):
         # don't known why, but pygame required a resize event
         # for opengl, before mainloop... window reinit ?
         self.dispatch('on_resize', *self.size)
+        print 'dispatched on_resize, size is', self.size
 
         while not EventLoop.quit and EventLoop.status == 'started':
             try:

@@ -383,11 +383,13 @@ class WindowBase(EventDispatcher):
         from kivy.graphics.transformation import Matrix
 
         width, height = self.system_size
+        print "system size:", self.system_size
         w2 = width / 2.
         h2 = height / 2.
 
         # prepare the viewport
         glViewport(0, 0, width, height)
+        print "GL_VIEWPORT:", width, height
         projection_mat = Matrix()
         projection_mat.view_clip(0.0, width, 0.0, height, -1.0, 1.0, 0)
         self.render_context['projection_mat'] = projection_mat

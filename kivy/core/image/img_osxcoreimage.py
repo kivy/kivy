@@ -27,13 +27,11 @@ class ImageLoaderOSXCoreImage(ImageLoaderBase):
                 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
 
     def load(self, filename):
-        print 'before'
         ret = osxcoreimage.load_raw_image_data(filename)
         if ret is None:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise Exception('Unable to load image')
         w, h, imgtype, data = ret
-        print 'after'
         return ImageData(w, h, imgtype, data)
 
 # register

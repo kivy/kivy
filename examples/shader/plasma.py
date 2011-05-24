@@ -8,11 +8,23 @@ with some adapation.
 This might become a Kivy widget when experimentation will be done.
 '''
 
+print 'SETUP KIVY >>'
+from kivy.logger import Logger
+import logging
+Logger.setLevel(logging.TRACE)
+
+from kivy.config import Config
+Config.remove_option('input', 'default')
+Config.remove_option('input', 'mactouch')
+Config.set('graphics', 'fullscreen', 'auto')
+print 'SETUP KIVY << done'
+
 
 from kivy.clock import Clock
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.core.window import Window
+#Window.clearcolor = None
 from kivy.graphics import RenderContext
 from kivy.properties import StringProperty
 
@@ -37,15 +49,16 @@ uniform float time;
 
 void main(void)
 {
-   float x = gl_FragCoord.x;
-   float y = gl_FragCoord.y;
-   float mov0 = x+y+cos(sin(time)*2.)*100.+sin(x/100.)*1000.;
-   float mov1 = y / resolution.y / 0.2 + time;
-   float mov2 = x / resolution.x / 0.2;
-   float c1 = abs(sin(mov1+time)/2.+mov2/2.-mov1-mov2+time);
-   float c2 = abs(sin(c1+sin(mov0/1000.+time)+sin(y/40.+time)+sin((x+y)/100.)*3.));
-   float c3 = abs(sin(c2+cos(mov1+mov2+c2)+cos(mov2)+sin(x/1000.)));
-   gl_FragColor = vec4( c1,c2,c3,1.0);
+//   float x = gl_FragCoord.x;
+//   float y = gl_FragCoord.y;
+//   float mov0 = x+y+cos(sin(time)*2.)*100.+sin(x/100.)*1000.;
+//   float mov1 = y / resolution.y / 0.2 + time;
+//   float mov2 = x / resolution.x / 0.2;
+//   float c1 = abs(sin(mov1+time)/2.+mov2/2.-mov1-mov2+time);
+//   float c2 = abs(sin(c1+sin(mov0/1000.+time)+sin(y/40.+time)+sin((x+y)/100.)*3.));
+//   float c3 = abs(sin(c2+cos(mov1+mov2+c2)+cos(mov2)+sin(x/1000.)));
+//   gl_FragColor = vec4( c1,c2,c3,1.0);
+   gl_FragColor = vec4(1.0, 1.0, 0., 1.0);
 }
 '''
 
@@ -64,7 +77,7 @@ class ShaderWidget(FloatLayout):
         super(ShaderWidget, self).__init__(**kwargs)
 
         # We'll update our glsl variables in a clock
-        Clock.schedule_interval(self.update_glsl, 1 / 60.)
+        Clock.schedule_interval(self.update_glsl, 1.)
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code
@@ -80,6 +93,7 @@ class ShaderWidget(FloatLayout):
         self.canvas['resolution'] = map(float, self.size)
         # This is needed for the default vertex shader.
         self.canvas['projection_mat'] = Window.render_context['projection_mat']
+        # print self.canvas['projection_mat']
 
 
 class PlasmaApp(App):

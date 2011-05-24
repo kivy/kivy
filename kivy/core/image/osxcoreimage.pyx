@@ -70,11 +70,13 @@ def load_raw_image_data(bytes _url):
     # see iphone3d book
     myImageSourceRef = CGImageSourceCreateWithURL(url, NULL)
     if myImageSourceRef == NULL:
+        print 'myImageSourceRef is NULL'
         return None
 
     cdef CGImageRef myImageRef
     myImageRef = CGImageSourceCreateImageAtIndex (myImageSourceRef, 0, NULL)
     if myImageRef == NULL:
+        print 'myImageRef is NULL'
         return None
 
     cdef int width = CGImageGetWidth(myImageRef)
@@ -96,6 +98,7 @@ def load_raw_image_data(bytes _url):
 
     # XXX clean image object
 
+    print 'Image:', _url, width, height, imgtype
     return (width, height, imgtype, r_data)
 
 #

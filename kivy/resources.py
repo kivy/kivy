@@ -17,6 +17,8 @@ import kivy
 resource_paths = [
     '.',
     dirname(sys.argv[0]),
+    # XXX iOS Hack; do properly. not sure how yet
+    join(dirname(sys.argv[0]), 'YourApp'),
     dirname(kivy.__file__)]
 
 

@@ -51,12 +51,13 @@ cdef extern from "SDL.h":
     int SDL_QUIT
     int SDL_WINDOWEVENT
     int SDL_SYSWMEVENT
-    int SDL_KEYDOWN,
-    int SDL_KEYUP,
+    int SDL_KEYDOWN
+    int SDL_KEYUP
     int SDL_MOUSEMOTION
     int SDL_MOUSEBUTTONDOWN
     int SDL_MOUSEBUTTONUP
     int SDL_TEXTINPUT
+    int SDL_FINGERMOTION
 
     # GL Attribute
     int SDL_GL_DEPTH_SIZE
@@ -67,7 +68,9 @@ cdef extern from "SDL.h":
     int SDL_GL_STENCIL_SIZE
     int SDL_GL_DOUBLEBUFFER
     int SDL_GL_CONTEXT_MAJOR_VERSION
+    int SDL_GL_CONTEXT_MINOR_VERSION
     int SDL_GL_RETAINED_BACKING
+    int SDL_GL_ACCELERATED_VISUAL
 
     # Init flags
     int SDL_INIT_VIDEO
@@ -84,8 +87,11 @@ cdef extern from "SDL.h":
     int SDL_WINDOW_BORDERLESS
     int SDL_WINDOW_RESIZABLE
     int SDL_WINDOW_FULLSCREEN
+    int SDL_WINDOW_INPUT_FOCUS
+    int SDL_WINDOW_INPUT_GRABBED
+    int SDL_WINDOW_MOUSE_FOCUS
 
-    # Window event
+    ## Window event
     int SDL_WINDOWEVENT_EXPOSED
     int SDL_WINDOWEVENT_RESIZED
 
@@ -99,6 +105,8 @@ cdef extern from "SDL.h":
     int SDL_GetWindowDisplayMode(SDL_Window *, SDL_DisplayMode *)
     int SDL_SetWindowDisplayMode(SDL_Window *, SDL_DisplayMode *)
     void SDL_GL_SwapWindow(SDL_Window *)
+    void SDL_GL_SwapBuffers()
+    int SDL_GL_MakeCurrent(SDL_Window* window, SDL_GLContext context)
 
     int SDL_GL_SetSwapInterval(int)
     int SDL_Flip(SDL_Surface *)
@@ -107,12 +115,16 @@ cdef extern from "SDL.h":
     void SDL_GL_DeleteContext(SDL_GLContext)
 
     int SDL_PollEvent(SDL_Event *)
+    void SDL_PumpEvents()
+    int SDL_EventState(unsigned int, int)
 
     char *SDL_GetError()
 
 
 cdef SDL_Window *win = NULL
 cdef SDL_GLContext ctx = NULL
+cdef SDL_Surface *surface = NULL
+
 cdef int win_flags = 0
 
 
@@ -120,10 +132,39 @@ def die():
     raise RuntimeError(<bytes> SDL_GetError())
 
 
+#def init_video():
+#    return SDL_Init(SDL_INIT_VIDEO)
+#
+#
+#def create_window():
+#    global win
+#    win = SDL_CreateWindow(NULL, 0, 0, 320, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN)
+#    assert win != NULL
+#
+#
+#def create_context():
+#    global ctx
+#    ctx = SDL_GL_CreateContext(win)
+#
+#
+#def poll_events():
+#    cdef SDL_Event event
+#    while SDL_PollEvent(&event):
+#        print event.type,
+#
+#
+#def swap():
+#    assert win != NULL
+#    SDL_GL_SwapWindow(win)
+#
+#def get_error():
+#    print <bytes> SDL_GetError()
+
+
 def setup_window(width, height, use_fake, use_fullscreen):
     global win, ctx, win_flags
 
-    win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS
+    win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE
     '''
     win_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN
     if use_fake:
@@ -136,7 +177,7 @@ def setup_window(width, height, use_fake, use_fullscreen):
         die()
 
     #SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-    #SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
+    ##SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
     #SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1)
     #SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
     #SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
@@ -150,16 +191,24 @@ def setup_window(width, height, use_fake, use_fullscreen):
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0);
-    #SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-
-    win = SDL_CreateWindow(NULL, 0, 0, 768, 1024, win_flags)
+    win = SDL_CreateWindow(NULL, 0, 0, width, height, win_flags)
     if not win:
         die()
 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetSwapInterval(1);
+
     ctx = SDL_GL_CreateContext(win)
+    assert ctx != NULL
+    SDL_GL_SetSwapInterval(1);
+    #surface = SDL_GetWindowSurface(win)
+    cdef SDL_DisplayMode mode
+    SDL_GetWindowDisplayMode(win, &mode)
+    return mode.w, mode.h
 
 
 def resize_window(w, h):
@@ -168,6 +217,8 @@ def resize_window(w, h):
     mode.w = w
     mode.h = h
     SDL_SetWindowDisplayMode(win, &mode)
+    SDL_GetWindowDisplayMode(win, &mode)
+    print 'SDL resized window size to', mode.w, mode.h
 
 
 def set_window_title(str title):
@@ -181,8 +232,8 @@ def teardown_window():
 
 
 def poll():
-    print 'polling'
     cdef SDL_Event event
+
     if SDL_PollEvent(&event) == 0:
         return False
 
@@ -214,11 +265,11 @@ def poll():
         s = PyUnicode_FromString(<char *>event.text.text)
         return ('textinput', s)
     else:
-        print 'receive unknown sdl event', event.type
-
-
+        #print 'receive unknown sdl event', event.type
+        pass
 
 
 def flip():
     SDL_GL_SwapWindow(win)
+    #SDL_GL_SwapBuffers()
 

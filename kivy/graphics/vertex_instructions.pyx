@@ -482,7 +482,7 @@ cdef class BorderImage(Rectangle):
             hs[0], vs[1], ths[0], tvs[1], #v11
             hs[1], vs[1], ths[1], tvs[1], #v12
             hs[2], vs[1], ths[2], tvs[1], #v13
-            hs[2], vs[2], ths[2], tvs[2], #v14 
+            hs[2], vs[2], ths[2], tvs[2], #v14
             hs[1], vs[2], ths[1], tvs[2]] #v15
 
         cdef int *indices = [

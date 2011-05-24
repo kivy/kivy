@@ -231,6 +231,7 @@ cdef class Shader:
             return -1
 
         Logger.info('Shader: %s compiled successfully' % ctype)
+        print <bytes> source
         return shader
 
     cdef str get_shader_log(self, shader):
