@@ -43,7 +43,7 @@ c_options = {
     'use_opengl_es2': True,
     'use_opengl_debug': False,
     'use_glew': False,
-    'use_sdl': False,
+    'use_sdl': True,
     'use_mesagl': False}
 
 # now check if environ is changing the default values
@@ -167,10 +167,10 @@ if True:
         if platform == 'darwin':
             # Paths as per homebrew (modified formula to use hg checkout)
             sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
-            sdl_extra_link_args += ['-L', '/usr/local/Cellar/sdl/HEAD/lib']
+            sdl_extra_link_args += ['-L/usr/local/Cellar/sdl/HEAD/lib']
         else:
             sdl_includes = ['/usr/local/include/SDL']
-            sdl_extra_link_args += ['-L', '/usr/local/lib/']
+            sdl_extra_link_args += ['-L/usr/local/lib/']
 
     pxd_core = [x for x in pxd_files if not 'graphics' in x]
     pxd_graphics = [x for x in pxd_files if 'graphics' in x]
