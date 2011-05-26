@@ -180,6 +180,7 @@ if True:
         ext_files = [pyx]
         ext_libraries = libraries[:]
         ext_include_dirs = include_dirs[:]
+        ext_extra_compile_args = []
         ext_extra_link_args = extra_link_args[:]
 
         if pyx.endswith('sdl.pyx'):
@@ -188,6 +189,15 @@ if True:
             ext_libraries += sdl_libraries
             ext_include_dirs += sdl_includes
             ext_extra_link_args += sdl_extra_link_args
+
+        elif pyx.endswith('osxcoreimage.pyx'):
+            if platform != 'darwin':
+                continue
+            ext_extra_link_args += ['-framework', 'Cocoa']
+            ext_extra_link_args += ['-framework', 'Foundation']
+            ext_extra_link_args += ['-framework', 'QuartzCore']
+            ext_extra_compile_args += ['-isysroot', '/Developer/SDKs/MacOSX10.6.sdk']
+
         elif 'graphics' in pyx:
             ext_files += pxd_graphics
         else:
@@ -197,6 +207,7 @@ if True:
             module_name,
             ext_files,
             libraries=ext_libraries,
+            extra_compile_args=ext_extra_compile_args,
             include_dirs=ext_include_dirs,
             extra_link_args=ext_extra_link_args))
 
