@@ -11,6 +11,7 @@ class Widget(object):
     def __init__(self, **kwargs):
         super(Widget, self).__init__(**kwargs)
         self.__dict__['__uid'] = 1
+        self.__dict__['__storage'] = {}
 
 
 wid = Widget()
