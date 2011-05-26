@@ -107,7 +107,7 @@ ext_modules = []
 # list all files to compile
 pyx_files = []
 pxd_files = []
-kivy_libs_dir = realpath(kivy.kivy_libs_dir)
+kivy_libs_dir = realpath(join(kivy.kivy_base_dir, 'libs'))
 for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
     # ignore lib directory
     if realpath(root).startswith(kivy_libs_dir):
@@ -124,7 +124,7 @@ if not have_cython:
 # add cython core extension modules if cython is available
 
 if True:
-    libraries = []
+    libraries = ['m']
     include_dirs = []
     extra_link_args = []
     if platform == 'win32':
@@ -183,7 +183,7 @@ if True:
             sdl_extra_link_args += ['-framework', 'ImageIO']
         else:
             sdl_includes = ['/usr/local/include/SDL']
-            sdl_extra_link_args += ['-L', '/usr/local/lib/']
+            sdl_extra_link_args += ['-L/usr/local/lib/']
 
     pxd_core = [x for x in pxd_files if not 'graphics' in x]
     pxd_graphics = [x for x in pxd_files if 'graphics' in x]
@@ -193,6 +193,7 @@ if True:
         ext_files = [pyx]
         ext_libraries = libraries[:]
         ext_include_dirs = include_dirs[:]
+        ext_extra_compile_args = []
         ext_extra_link_args = extra_link_args[:]
         ext_extra_compile_args = []
 
@@ -205,6 +206,7 @@ if True:
             ext_libraries += sdl_libraries
             ext_include_dirs += sdl_includes
             ext_extra_link_args += sdl_extra_link_args
+
         elif pyx.endswith('osxcoreimage.pyx') or pyx.endswith('osxcoreimage.c'):
             if c_options['use_ios'] is False:
                 continue
@@ -215,6 +217,7 @@ if True:
             ext_extra_link_args += ['-framework', 'QuartzCore']
             ext_extra_link_args += ['-framework', 'ImageIO']
             ext_extra_compile_args += ['-isysroot', '/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk']
+
         elif 'graphics' in pyx:
             ext_files += pxd_graphics
         else:
@@ -224,6 +227,7 @@ if True:
             module_name,
             ext_files,
             libraries=ext_libraries,
+            extra_compile_args=ext_extra_compile_args,
             include_dirs=ext_include_dirs,
             extra_compile_args=ext_extra_compile_args,
             extra_link_args=ext_extra_link_args))
@@ -274,6 +278,7 @@ setup(
         'kivy.core.text',
         'kivy.core.video',
         'kivy.core.window',
+        'kivy.ext',
         'kivy.graphics',
         'kivy.input',
         'kivy.input.postproc',

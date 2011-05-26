@@ -47,7 +47,7 @@ cdef class EventDispatcher(object):
             def on_swipe_callback(*largs):
                 print 'my swipe is called', largs
             w = MyWidget()
-            w.dispatch_event('on_swipe')
+            w.dispatch('on_swipe')
         '''
 
         if not event_type.startswith('on_'):

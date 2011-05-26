@@ -138,6 +138,7 @@ class WindowSDL(WindowBase):
             if event is None:
                 continue
 
+            print 'sdl received', event
             action, args = event[0], event[1:]
             if action == 'quit':
                 EventLoop.quit = True

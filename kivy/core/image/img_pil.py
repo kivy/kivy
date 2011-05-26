@@ -7,7 +7,10 @@ __all__ = ('ImageLoaderPIL', )
 try:
     from PIL import Image
 except:
-    raise
+    try:
+        import Image
+    except:
+        raise
 
 from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader

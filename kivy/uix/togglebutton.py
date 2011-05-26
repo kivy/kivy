@@ -43,7 +43,7 @@ class ToggleButton(Button):
     def on_group(self, *largs):
         groups = ToggleButton.__groups
         if self._previous_group:
-            groups.remove(self)
+            groups[self._previous_group].remove(self)
         group = self._previous_group = self.group
         if not group in groups:
             groups[group] = []
