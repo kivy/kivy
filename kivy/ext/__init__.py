@@ -203,7 +203,10 @@ def unzip_extensions():
 
     for epath in EXTENSION_PATHS:
         if not isdir(epath):
-            mkdir(epath)
+            try:
+                mkdir(epath)
+            except OSError:
+                continue
             files = []
         else:
             files = listdir(epath)
