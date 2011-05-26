@@ -52,7 +52,7 @@ import sys
 import imp
 from glob import glob
 from os import listdir, mkdir, sep, environ
-from os.path import join, isdir, exists
+from os.path import join, isdir, exists, dirname
 from zipfile import ZipFile
 from shutil import move
 
@@ -67,8 +67,8 @@ if not 'KIVY_DOC' in environ:
 NEED_UNZIP = True
 
 
-# XXX platform check?
 def load(extname, version):
+    # XXX platform check?
     '''Use this function to tell Kivy to load a specific version of the given
     Extension. This is different from kivy's require() in that it will always
     use the exact same major version you specify, even if a newer (major)
@@ -238,48 +238,32 @@ def unzip_extensions():
                               "extracted manually, just moving the zip.")
                 already_unzipped = True
 
-            members = zipf.namelist()
-
-            def get_root_member(zipf):
-                root = None
-                multiple = False
-                for m1 in members:
-                    for m2 in members:
-                        if not m2.startswith(m1):
-                            break
-                    else:
-                        if root != None:
-                            multiple = True
-                        root = m1
-                if not root or multiple:
-                    # There either is no root or there is more than one root.
-                    # We require only one root, so the extension is malformed.
-                    Logger.warn("Malformed extension '%s'! Skipping it." % extname)
-                    return
-                # return root name without the trailing slash
-                return root[:-1]
-
-            root = get_root_member(zipf)
-            if not root:
-                # Skip this extension as we told the user
-                continue
+            # Filter the namelist of zipfile to take only the members that start
+            # with the extension name (MyExt/...)
+            members = [x for x in zipf.namelist() \
+                       if x.startswith(extname + '/')]
 
             if not already_unzipped:
                 # Unzip the extension
                 try:
+                    cache_directories = []
                     mkdir(join(epath, extdir))
-                    # I know that there is zipf.extract() and zipf.extractall(), but on
-                    # OSX, Python 2.6 is the default and in that version, both methods
-                    # have a bug. Fixed in 2.7 only. So use this workaround until apple
-                    # upgrades its python. See http://bugs.python.org/issue4710
+                    # I know that there is zipf.extract() and zipf.extractall(),
+                    # but on OSX, Python 2.6 is the default and in that version,
+                    # both methods have a bug. Fixed in 2.7 only. So use this
+                    # workaround until apple upgrades its python. See
+                    # http://bugs.python.org/issue4710
                     for member in members:
-                        # In zipfiles, folders always end with '/' regardless of the OS
+                        # In zipfiles, folders always end with '/' regardless
+                        # of the OS
                         mempath = join(epath, extdir, member)
-                        if member.endswith('/') and not exists(mempath):
-                            mkdir(join(epath, extdir, member[:-1]))
-                        else:
-                            with open(join(epath, extdir, member), 'wb') as memberfd:
-                                memberfd.write(zipf.read(member))
+                        directory = dirname(mempath)
+                        if not directory in cache_directories:
+                            cache_directories.append(directory)
+                            if not exists(directory):
+                                mkdir(join(epath, extdir, directory))
+                        with open(join(epath, extdir, member), 'wb') as fd:
+                            fd.write(zipf.read(member))
                 except Exception, e:
                     # Catch any error, e.g. non-writable directory, etc.
                     Logger.error("Failed installing extension " + \
