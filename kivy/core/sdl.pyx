@@ -1,5 +1,5 @@
 cdef extern from "Python.h":
-    object PyUnicode_FromString(char *s) 
+    object PyUnicode_FromString(char *s)
 
 cdef extern from "SDL.h":
     ctypedef void *SDL_Window
@@ -136,7 +136,6 @@ def setup_window(width, height, use_fake, use_fullscreen):
     # XXX?
     SDL_GL_SetSwapInterval(1)
 
-    surface = SDL_GetWindowSurface(win)
 
 def resize_window(w, h):
     cdef SDL_DisplayMode mode
