@@ -257,6 +257,7 @@ setup(
         'kivy.core.text',
         'kivy.core.video',
         'kivy.core.window',
+        'kivy.ext',
         'kivy.graphics',
         'kivy.input',
         'kivy.input.postproc',
