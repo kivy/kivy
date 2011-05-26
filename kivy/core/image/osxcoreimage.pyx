@@ -44,6 +44,9 @@ cdef extern from "ApplicationServices/ApplicationServices.h":
 
     ctypedef void *CGContextRef
 
+    void CGContextTranslateCTM(CGContextRef, float, float)
+    void CGContextScaleCTM (CGContextRef, float, float)
+
     ctypedef struct CGPoint:
         float x
         float y
@@ -197,6 +200,11 @@ def load_image_data(bytes _url):
                                                          # the docs they use
                                                          # first
                                                          kCGImageAlphaNoneSkipFirst)
+
+    # This is necessary as the image would be vertically flipped otherwise
+    CGContextTranslateCTM(myBitmapContext, 0, height)
+    CGContextScaleCTM(myBitmapContext, 1, -1)
+
     CGContextSetBlendMode(myBitmapContext, kCGBlendModeCopy)
     CGContextDrawImage(myBitmapContext, rect, myImageRef)
     #CGContextRelease(myBitmapContext)
