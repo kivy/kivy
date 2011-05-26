@@ -23,9 +23,9 @@ See http://kivy.org for more information.
 __all__ = (
     'require',
     'kivy_configure', 'kivy_register_post_configuration',
-    'kivy_options', 'kivy_base_dir', 'kivy_libs_dir',
+    'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
-    'kivy_providers_dir', 'kivy_icons_dir', 'kivy_home_dir',
+    'kivy_icons_dir', 'kivy_home_dir',
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
@@ -188,7 +188,6 @@ kivy_options = {
     'audio': ('pygame', 'gstreamer', ),
     'image': ('osxcoreimage', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
-    'svg': ('squirtle', ),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': ('pygame', 'dummy'), }
 
@@ -209,18 +208,17 @@ for option in kivy_options:
 # Extract all needed path in kivy
 #: Kivy directory
 kivy_base_dir = dirname(sys.modules[__name__].__file__)
-#: Kivy external libraries directory
-kivy_libs_dir = join(kivy_base_dir, 'lib')
 #: Kivy modules directory
-kivy_modules_dir = join(kivy_base_dir, 'modules')
+kivy_modules_dir = environ.get('KIVY_MODULES_DIR',
+                               join(kivy_base_dir, 'modules'))
 #: Kivy extension directory
-kivy_exts_dir = join(kivy_base_dir, 'extensions')
+kivy_exts_dir = environ.get('KIVY_EXTS_DIR',
+                            join(kivy_base_dir, 'extensions'))
 #: Kivy data directory
-kivy_data_dir = join(kivy_base_dir, 'data')
+kivy_data_dir = environ.get('KIVY_DATA_DIR',
+                            join(kivy_base_dir, 'data'))
 #: Kivy glsl shader directory
 kivy_shader_dir = join(kivy_data_dir, 'glsl')
-#: Kivy input provider directory
-kivy_providers_dir = join(kivy_base_dir, 'input', 'providers')
 #: Kivy icons config path (don't remove the last '')
 kivy_icons_dir = join(kivy_data_dir, 'icons', '')
 #: Kivy user-home storage directory
@@ -229,9 +227,6 @@ kivy_home_dir = None
 kivy_config_fn = None
 #: Kivy user modules directory
 kivy_usermodules_dir = None
-
-# Add libs to pythonpath
-sys.path = [kivy_libs_dir] + sys.path
 
 # Don't go further if we generate documentation
 if basename(sys.argv[0]) in ('sphinx-build', 'autobuild.py'):
@@ -279,7 +274,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         sys.argv = sys.argv[:1]
 
         try:
-            opts, args = getopt(sys_argv[1:], 'hp:fkawFem:snr:dc:',
+            opts, args = getopt(sys_argv[1:], 'hp:fkawFem:sr:dc:',
                 ['help', 'fullscreen', 'windowed', 'fps', 'event',
                  'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
                  'display=', 'size=', 'rotate=', 'config=', 'debug'])
@@ -342,8 +337,6 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             need_save = True
         elif opt in ('-r', '--rotation'):
             Config.set('graphics', 'rotation', arg)
-        elif opt in ('-n', ):
-            kivy_options['shadow_window'] = False
         elif opt in ('-d', '--debug'):
             level = LOG_LEVELS.get('debug')
             Logger.setLevel(level=level)

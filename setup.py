@@ -104,7 +104,7 @@ ext_modules = []
 # list all files to compile
 pyx_files = []
 pxd_files = []
-kivy_libs_dir = realpath(kivy.kivy_libs_dir)
+kivy_libs_dir = realpath(join(kivy.kivy_base_dir, 'libs'))
 for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
     # ignore lib directory
     if realpath(root).startswith(kivy_libs_dir):
@@ -117,7 +117,7 @@ for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
 # add cython core extension modules if cython is available
 
 if True:
-    libraries = []
+    libraries = ['m']
     include_dirs = []
     extra_link_args = []
     if platform == 'win32':

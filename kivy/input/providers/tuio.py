@@ -11,7 +11,7 @@ refer to http://tuio.org -- The specification should be of special interest.
 __all__ = ('TuioMotionEventProvider', 'Tuio2dCurMotionEvent',
            'Tuio2dObjMotionEvent')
 
-import osc
+from kivy.lib import osc
 from collections import deque
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory

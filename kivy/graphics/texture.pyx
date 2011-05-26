@@ -594,6 +594,7 @@ cdef class Texture:
 
         with nogil:
             glBindTexture(target, self._id)
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
             glFlush()
 
