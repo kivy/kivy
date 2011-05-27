@@ -47,6 +47,9 @@ class Label(Widget):
         self.bind(**dkw)
 
         dkw = dict(zip(d, [getattr(self, x) for x in d]))
+        font_name = resource_find(self.font_name)
+        if font_name:
+            dkw['font_name'] = font_name
         self._label = CoreLabel(**dkw)
 
         # force the texture creation
