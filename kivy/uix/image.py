@@ -114,7 +114,7 @@ class Image(Widget):
         tw, th = self.texture.size
 
         # ensure that the width is always maximized to the containter width
-        iw = w if tw < w else w
+        iw = w if tw < w else tw
         # calculate the appropriate height
         ih = iw / ratio
         # if the height is too higher, take the height of the container

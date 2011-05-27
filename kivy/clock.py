@@ -339,7 +339,7 @@ class ClockBase(object):
         # call that function to release all the direct reference to any callback
         # and replace it with a weakref
         events = self._events
-        for cid in events:
+        for cid in events.keys()[:]:
             [x.release() for x in events[cid] if x.callback is not None]
 
     def _remove_empty(self):

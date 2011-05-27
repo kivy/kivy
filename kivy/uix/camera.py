@@ -107,7 +107,7 @@ class Camera(Image):
         if not self._camera:
             return
         if value:
-            self._camera.play()
+            self._camera.start()
         else:
             self._camera.stop()
 

@@ -512,20 +512,32 @@ cdef class BorderImage(Rectangle):
 cdef class Ellipse(Rectangle):
     '''A 2D ellipse.
 
+    .. versionadded:: 1.0.7 added angle_start + angle_end
+
     :Parameters:
         `segments`: int, default to 180
             Define how much segment is needed for drawing the ellipse.
             The drawing will be smoother if you have lot of segment.
+        `angle_start`: int default to 0
+            Specifies the starting angle, in degrees, of the disk portion
+        `angle_end`: int default to 360
+            Specifies the ending angle, in degrees, of the disk portion
     '''
     cdef int _segments
+    cdef float _angle_start
+    cdef float _angle_end
 
     def __init__(self, *args, **kwargs):
         Rectangle.__init__(self, **kwargs)
+        self.batch.set_mode('triangle_fan')
         self._segments = kwargs.get('segments', 180)
+        self._angle_start = kwargs.get('angle_start', 0)
+        self._angle_end = kwargs.get('angle_end', 360)
 
     cdef void build(self):
         cdef list tc = self.tex_coords
-        cdef int i
+        cdef int i, angle_dir
+        cdef float angle_start, angle_end, angle_range
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
         cdef vertex_t *vertices = NULL
         cdef int *indices = NULL
@@ -539,40 +551,53 @@ cdef class Ellipse(Rectangle):
         rx = 0.5 * self.w
         ry = 0.5 * self.h
 
-        vertices = <vertex_t *>malloc((count + 1) * sizeof(vertex_t))
+        vertices = <vertex_t *>malloc((count + 2) * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <int *>malloc(3 * count * sizeof(int))
+        indices = <int *>malloc((count + 2) * sizeof(int))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
 
-        for i in xrange(count):
-            # rad = deg * (pi / 180), where pi/180 = 0.0174...
-            angle = i * 360.0/self._segments *0.017453292519943295
-            x = (self.x+rx)+ (rx*cos(angle))
-            y = (self.y+ry)+ (ry*sin(angle))
+        # calculate the start/end angle in radians, and adapt the range
+        if self.angle_end > self.angle_start:
+            angle_dir = 1
+        else:
+            angle_dir = -1
+        # rad = deg * (pi / 180), where pi/180 = 0.0174...
+        angle_start = (self._angle_start % 361) * 0.017453292519943295
+        angle_end = (self._angle_end % 361) * 0.017453292519943295
+        if angle_end > angle_start:
+            angle_range = angle_end - angle_start
+        else:
+            angle_range = angle_start - angle_end
+        angle_range = angle_range / self._segments
+
+        # add start vertice in the middle
+        x = self.x + rx
+        y = self.y + ry
+        ttx = ((x - self.x) / self.w) * tw + tx
+        tty = ((y - self.y) / self.h) * th + ty
+        vertices[0].x = self.x + rx
+        vertices[0].y = self.y + ry
+        vertices[0].s0 = ttx
+        vertices[0].t0 = tty
+        indices[0] = 0
+
+        for i in xrange(1, count + 2):
+            angle = angle_start + (angle_dir * (i - 1) * angle_range)
+            x = (self.x+rx)+ (rx*sin(angle))
+            y = (self.y+ry)+ (ry*cos(angle))
             ttx = ((x-self.x)/self.w)*tw + tx
             tty = ((y-self.y)/self.h)*th + ty
             vertices[i].x = x
             vertices[i].y = y
             vertices[i].s0 = ttx
             vertices[i].t0 = tty
-            indices[i * 3] = i
-            indices[i * 3 + 1] = count
-            indices[i * 3 + 2] = (i + 1) % count
+            indices[i] = i
 
-        #add last verte in the middle
-        x, y = self.x+rx, self.y+ry
-        ttx = ((x-self.x)/self.w)*tw + tx
-        tty = ((y-self.y)/self.h)*th + ty
-        vertices[count].x = x
-        vertices[count].y = y
-        vertices[count].s0 = ttx
-        vertices[count].t0 = tty
-
-        self.batch.set_data(vertices, count + 1, indices, count * 3)
+        self.batch.set_data(vertices, count + 2, indices, count + 2)
 
         free(vertices)
         free(indices)
@@ -585,3 +610,22 @@ cdef class Ellipse(Rectangle):
         def __set__(self, value):
             self._segments = value
             self.flag_update()
+
+    property angle_start:
+        '''Angle start of the ellipse in degrees, default to 0
+        '''
+        def __get__(self):
+            return self._angle_start
+        def __set__(self, value):
+            self._angle_start = value
+            self.flag_update()
+
+    property angle_end:
+        '''Angle end of the ellipse in degrees, default to 360
+        '''
+        def __get__(self):
+            return self._angle_end
+        def __set__(self, value):
+            self._angle_end = value
+            self.flag_update()
+

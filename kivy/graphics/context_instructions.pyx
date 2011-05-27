@@ -172,51 +172,71 @@ cdef class Color(ContextInstruction):
                 self.set_state('color', [1.0, 1.0, 1.0, 1.0])
 
     property rgba:
+        '''RGBA color, list of 4 values in 0-1 range
+        '''
         def __get__(self):
             return self.context_state['color']
         def __set__(self, rgba):
             self.set_state('color', map(float,rgba))
     property rgb:
+        '''RGB color, list of 3 values in 0-1 range, alpha will be 1.
+        '''
         def __get__(self):
             return self.rgba[:-1]
         def __set__(self, rgb):
             self.rgba = (rgb[0], rgb[1], rgb[2], 1.0)
     property r:
+        '''Red component, between 0-1
+        '''
         def __get__(self):
             return self.rgba[0]
         def __set__(self, r):
             self.rgba = [r, self.g, self.b, self.a]
     property g:
+        '''Green component, between 0-1
+        '''
         def __get__(self):
             return self.rgba[1]
         def __set__(self, g):
             self.rgba = [self.r, g, self.b, self.a]
     property b:
+        '''Blue component, between 0-1
+        '''
         def __get__(self):
             return self.rgba[2]
         def __set__(self, b):
             self.rgba = [self.r, self.g, b, self.a]
     property a:
+        '''Alpha component, between 0-1
+        '''
         def __get__(self):
             return self.rgba[3]
         def __set__(self, a):
             self.rgba = [self.r, self.g, self.b, a]
     property hsv:
+        '''HSV color, list of 3 values in 0-1 range, alpha will be 1.
+        '''
         def __get__(self):
-            return rgb_to_hsv(self.r, self.h, self.b)
+            return rgb_to_hsv(self.r, self.g, self.b)
         def __set__(self, x):
             self.rgb = hsv_to_rgb(x[0], x[1], x[2])
     property h:
+        '''Hue component, between 0-1
+        '''
         def __get__(self):
             return self.hsv[0]
         def __set__(self, x):
             self.hsv = [x, self.s, self.v]
     property s:
+        '''Saturation component, between 0-1
+        '''
         def __get__(self):
             return self.hsv[1]
         def __set__(self, x):
             self.hsv = [self.h, x, self.v]
     property v:
+        '''Value component, between 0-1
+        '''
         def __get__(self):
             return self.hsv[2]
         def __set__(self, x):
