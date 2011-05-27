@@ -26,6 +26,11 @@ class LabelBase(object):
     .. warning::
         The core text label can't be changed at runtime, you must recreate one.
 
+    .. versionadded::
+        In 1.0.7, the valign is now respected. This wasn't the case before. You
+        might have issue in your application if you never think about that
+        before.
+
     :Parameters:
         `font_size`: int, default to 12
             Font size of the text
@@ -95,6 +100,7 @@ class LabelBase(object):
         super(LabelBase, self).__init__()
 
         self._text = None
+        self._internal_height = 0
 
         self.usersize = kwargs.get('size')
         self.options = kwargs
@@ -165,6 +171,14 @@ class LabelBase(object):
         x, y = 0, 0
         if real:
             self._render_begin()
+            halign = self.options['halign']
+            valign = self.options['valign']
+            if valign == 'bottom':
+                y = self.height - self._internal_height
+            elif valign == 'middle':
+                y = int((self.height - self._internal_height) / 2)
+        else:
+            self._internal_height = 0
 
         # no width specified, faster method
         if uw is None:
@@ -172,15 +186,16 @@ class LabelBase(object):
                 lw, lh = self.get_extents(line)
                 if real:
                     x = 0
-                    if self.options['halign'] == 'center':
+                    if halign == 'center':
                         x = int((self.width - lw) / 2.)
-                    elif self.options['halign'] == 'right':
+                    elif halign == 'right':
                         x = int(self.width - lw)
                     self._render_text(line, x, y)
                     y += int(lh)
                 else:
                     w = max(w, int(lw))
-                    h += int(lh)
+                    self._internal_height += int(lh)
+            h = self._internal_height if uh is None else uh
 
         # constraint
         else:
@@ -247,16 +262,16 @@ class LabelBase(object):
                 lines.append(((lw, lh), glyphs))
 
             if not real:
-                h = sum([size[1] for size, glyphs in lines])
+                self._internal_height = sum([size[1] for size, glyphs in lines])
+                h = self._internal_height if uh is None else uh
                 w = uw
             else:
                 # really render now.
-                y = 0
                 for size, glyphs in lines:
                     x = 0
-                    if self.options['halign'] == 'center':
+                    if halign == 'center':
                         x = int((self.width - size[0]) / 2.)
-                    elif self.options['halign'] == 'right':
+                    elif halign == 'right':
                         x = int(self.width - size[0])
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
