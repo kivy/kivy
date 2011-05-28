@@ -528,7 +528,7 @@ def glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset
 
 def glCreateProgram():
     cdef GLuint id
-    id = c_opengl.CreateProgram()
+    id = c_opengl.glCreateProgram()
     return id
 
 def glCreateShader(GLenum type):
