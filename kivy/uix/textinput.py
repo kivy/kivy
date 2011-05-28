@@ -118,6 +118,9 @@ Cache.register('textinput.label', timeout=60.)
 
 FL_IS_NEWLINE = 0x01
 
+# late binding
+Clipboard = None
+
 
 class TextInput(Widget):
     '''TextInput class, see module documentation for more information.
@@ -788,7 +791,9 @@ class TextInput(Widget):
 
     def _window_on_key_down(self, window, key, scancode=None, unicode=None,
                             modifiers=None):
-        from kivy.core.clipboard import Clipboard
+        global Clipboard
+        if Clipboard is None:
+            from kivy.core.clipboard import Clipboard
 
         is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:

@@ -55,6 +55,7 @@ from kivy.base import runTouchApp, stopTouchApp
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
+from kivy.resources import resource_find
 
 
 class App(EventDispatcher):
@@ -166,7 +167,6 @@ class App(EventDispatcher):
         return clsname
 
     def get_application_icon(self):
-        from kivy.resources import resource_find
         if self.icon is not None:
             return resource_find(self.icon)
         return None

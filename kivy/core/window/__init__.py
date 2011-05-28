@@ -8,13 +8,15 @@ creation. Don't try to create more than one.
 
 __all__ = ('WindowBase', 'Window')
 
+from os.path import join, exists
+from os import getcwd
+
 from kivy.core import core_select_lib
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.base import EventLoop
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
-
 
 class WindowBase(EventDispatcher):
     '''WindowBase is a abstract window widget, for any window implementation.
@@ -462,8 +464,6 @@ class WindowBase(EventDispatcher):
     def screenshot(self, name='screenshot%(counter)04d.jpg'):
         '''Save the actual displayed image in a file
         '''
-        from os.path import join, exists
-        from os import getcwd
         i = 0
         path = None
         while True:
