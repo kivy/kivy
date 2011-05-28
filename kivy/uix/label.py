@@ -74,10 +74,13 @@ class Label(Widget):
         After this function call, the :data:`texture` and :data`texture_size`
         will be updated in this order.
         '''
-        self._label.refresh()
         self.texture = None
-        self.texture = self._label.texture
-        self.texture_size = list(self.texture.size)
+        if self._label.text.strip() == '':
+            self.texture_size = (0, 0)
+        else:
+            self._label.refresh()
+            self.texture = self._label.texture
+            self.texture_size = list(self.texture.size)
 
     #
     # Properties
