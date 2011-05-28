@@ -79,8 +79,10 @@ class Label(Widget):
             self.texture_size = (0, 0)
         else:
             self._label.refresh()
-            self.texture = self._label.texture
-            self.texture_size = list(self.texture.size)
+            texture = self._label.texture
+            if texture is not None:
+                self.texture = self._label.texture
+                self.texture_size = list(self.texture.size)
 
     #
     # Properties

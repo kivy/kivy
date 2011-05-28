@@ -4,6 +4,10 @@ Text
 
 Abstraction of text creation. Depending of the selected backend, the text
 rendering can be more or less accurate.
+
+.. versionadded::
+    Starting to 1.0.7, the :class:`LabelBase` don't generate any texture is the
+    text have a width <= 1.
 '''
 
 __all__ = ('LabelBase', 'Label')
@@ -291,13 +295,26 @@ class LabelBase(object):
         data = self._render_end()
         assert(data)
 
+        # if data width is too tiny, just create texture, don't really render!
+        if data.width <= 1:
+            if self.texture:
+                self.texture = None
+            return
+
         # create texture is necessary
         texture = self.texture
         if texture is None:
-            texture = Texture.create(size=self.size, colorfmt='luminance_alpha')
+            if data is None:
+                texture = Texture.create(size=self.size,
+                                         colorfmt='luminance_alpha')
+            else:
+                texture = Texture.create_from_data(data)
             texture.flip_vertical()
         elif self.width > texture.width or self.height > texture.height:
-            texture = Texture.create(size=self.size)
+            if data is None:
+                texture = Texture.create(size=self.size)
+            else:
+                texture = Texture.create_from_data(data)
             texture.flip_vertical()
         else:
             texture = texture.get_region(
@@ -308,7 +325,7 @@ class LabelBase(object):
         # update texture
         # If the text is 1px width, usually, the data is black.
         # Don't blit that kind of data, otherwise, you have a little black bar.
-        if data.width > 1:
+        if data is not None and data.width > 1:
             texture.blit_data(data)
 
     def refresh(self):
