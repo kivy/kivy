@@ -209,7 +209,7 @@ cdef inline _convert_buffer(bytes data, str fmt):
 
 
 cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
-                     rectangle, int mipmap):
+                     rectangle, int mipmap, int allocate):
     cdef GLuint target = GL_TEXTURE_2D
     cdef int texture_width, texture_height
     cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
@@ -276,22 +276,25 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
     cdef void *data = NULL
     cdef int dataerr = 0
 
-    with nogil:
-        data = calloc(1, datasize)
-        if data != NULL:
-            glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
-                         glfmt, glbufferfmt, data)
-            glFlush()
-            free(data)
-            data = NULL
-            if mipmap:
-                glGenerateMipmap(target)
-        else:
-            dataerr = 1
+    if allocate:
+        texture._is_allocated = 1
+        with nogil:
+            data = calloc(1, datasize)
+            if data != NULL:
+                glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
+                             glfmt, glbufferfmt, data)
+                glFlush()
+                free(data)
+                data = NULL
+                if mipmap:
+                    glGenerateMipmap(target)
+            else:
+                dataerr = 1
 
-    if dataerr:
-        raise Exception('Unable to allocate memory for texture (size is %s)' %
-                        datasize)
+        if dataerr:
+            texture._is_allocated = 0
+            raise Exception('Unable to allocate memory for texture (size is %s)' %
+                            datasize)
 
     if rectangle:
         texture.uvsize = (width, height)
@@ -331,14 +334,24 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, rectangle=False, mi
         colorfmt = 'rgba'
     if bufferfmt is None:
         bufferfmt = 'ubyte'
-    return _texture_create(width, height, colorfmt, bufferfmt, rectangle, mipmap)
+    return _texture_create(width, height, colorfmt, bufferfmt, rectangle,
+                           mipmap, 1)
 
 
 def texture_create_from_data(im, rectangle=True, mipmap=False):
     '''Create a texture from an ImageData class'''
 
-    texture = _texture_create(im.width, im.height, im.fmt, 'ubyte',
-                             rectangle, mipmap)
+    cdef int width = im.width
+    cdef int height = im.height
+    cdef int allocate = 1
+
+    # optimization, if the texture is power of 2, don't allocate in
+    # _texture_create, but allocate in blit_data => only 1 upload
+    if _is_pow2(width) and _is_pow2(height):
+        allocate = 0
+
+    texture = _texture_create(width, height, im.fmt, 'ubyte',
+                             rectangle, mipmap, allocate)
     if texture is None:
         return None
 
@@ -363,6 +376,7 @@ cdef class Texture:
         self._wrap          = None
         self._min_filter    = None
         self._mag_filter    = None
+        self._is_allocated  = 0
         self._uvx           = 0.
         self._uvy           = 0.
         self._uvw           = 1.
@@ -591,11 +605,15 @@ cdef class Texture:
         cdef int h = size[1]
         cdef char *cdata = <char *>data
         cdef int glbufferfmt = bufferfmt
+        cdef int is_allocated = self._is_allocated
 
         with nogil:
             glBindTexture(target, self._id)
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-            glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
+            if is_allocated:
+                glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
+            else:
+                glTexImage2D(target, 0, glfmt, w, h, 0, glfmt, glbufferfmt, cdata)
             glFlush()
 
     property size:
@@ -616,6 +634,7 @@ cdef class TextureRegion(Texture):
 
     def __init__(self, int x, int y, int width, int height, Texture origin):
         Texture.__init__(self, width, height, origin.target, origin.id)
+        self._is_allocated = 1
         self.x = x
         self.y = y
         self.owner = origin

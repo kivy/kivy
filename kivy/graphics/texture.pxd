@@ -16,6 +16,7 @@ cdef class Texture:
     cdef float _uvy
     cdef float _uvw
     cdef float _uvh
+    cdef int _is_allocated
 
     cdef update_tex_coords(self)
     cdef set_min_filter(self, str x)
