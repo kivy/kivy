@@ -31,10 +31,6 @@ The language consists of several constructs that you can use:
         list's content. If you want to design the look of an entry in a list
         (icon on the left, text on the right), you will use a template for that.
 
-        For the moment, templating is not yet designed in the language; we are
-        working on it. We track the progress of the implementation in issue #17
-        (https://github.com/tito/kivy/issues#issue/17).
-
 
 Syntax of a kv File
 -------------------

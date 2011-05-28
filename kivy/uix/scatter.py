@@ -38,7 +38,7 @@ parent. The scatter will be on top as soon as you touch it.
 Scale limitation
 ----------------
 
-We are using 32 bits matrix, in double representation. That's mean, we have
+We are using 32 bits matrix, in double representation. That mean, we have
 limitation for scaling. You cannot do infite scale down/up with our
 implementation. Generally, you don't hit the minimum scale (because you don't
 see it on the screen), but the maximum scale : 9.99506983235e+19 (2^66)
