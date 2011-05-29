@@ -747,6 +747,8 @@ def create_handler(element, key, value, idmap):
                 f = getattr(f, x)
             if hasattr(f, 'bind'):
                 f.bind(**{k[-1]: call_fn})
+        except KeyError:
+            continue
         except AttributeError:
             continue
 
