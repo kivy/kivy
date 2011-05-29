@@ -17,7 +17,7 @@ The base code for creating an application looks like this:
 .. sourcecode:: python
 
     import kivy
-    kivy.require('1.0.0')
+    kivy.require('1.0.6') # replace with your current kivy version !
 
     from kivy.app import App
     from kivy.uix.button import Button
