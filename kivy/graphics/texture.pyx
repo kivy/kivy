@@ -207,6 +207,16 @@ cdef inline _convert_buffer(bytes data, str fmt):
                             str(format))
     return ret_buffer, ret_format
 
+cdef inline void _gl_prepare_pixels_upload(int width) nogil:
+    if not (width & 0x7):
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 8)
+    elif not (width & 0x3):
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
+    elif not (width & 0x1):
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 2)
+    else:
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
 
 cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
                      rectangle, int mipmap, int allocate):
@@ -271,19 +281,30 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
 
     # ok, allocate memory for initial texture
     cdef int glfmt = _color_fmt_to_gl(colorfmt)
+    cdef int iglbufferfmt = glbufferfmt
     cdef int datasize = texture_width * texture_height * \
             _gl_format_size(glfmt) * _buffer_type_to_gl_size(bufferfmt)
     cdef void *data = NULL
     cdef int dataerr = 0
+
+    '''
+    if glfmt == GL_RGB:
+        iglbufferfmt = GL_UNSIGNED_SHORT_5_6_5
+    elif glfmt == GL_RGBA:
+        iglbufferfmt = GL_UNSIGNED_SHORT_4_4_4_4
+    '''
 
     if allocate:
         texture._is_allocated = 1
         with nogil:
             data = calloc(1, datasize)
             if data != NULL:
+                _gl_prepare_pixels_upload(texture_width)
                 glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
-                             glfmt, glbufferfmt, data)
-                glFlush()
+                             glfmt, iglbufferfmt, data)
+                # disable the flush call. it was used for a bug in ati, but i'm
+                # not sure at 100%. :) (mathieu)
+                #glFlush()
                 free(data)
                 data = NULL
                 if mipmap:
@@ -609,12 +630,14 @@ cdef class Texture:
 
         with nogil:
             glBindTexture(target, self._id)
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+            _gl_prepare_pixels_upload(w)
             if is_allocated:
                 glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
             else:
                 glTexImage2D(target, 0, glfmt, w, h, 0, glfmt, glbufferfmt, cdata)
-            glFlush()
+                # disable the flush call. it was used for a bug in ati, but i'm
+                # not sure at 100%. :) (mathieu)
+                #glFlush()
 
     property size:
         def __get__(self):
