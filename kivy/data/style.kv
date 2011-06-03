@@ -258,3 +258,18 @@
             color: (0.8, ) * 4
             halign: 'center'
 
+
+# Switch widget
+<Switch>:
+    active_norm_pos: max(0., min(1., (int(self.active) + self.touch_distance / 41)))
+    canvas:
+        Color:
+            rgb: 1, 1, 1
+        Rectangle:
+            source: 'data/images/switch-background.png'
+            size: 83, 32
+            pos: self.center_x - 41, self.center_y - 16
+        Rectangle:
+            source: 'data/images/switch-button.png'
+            size: 43, 32
+            pos: self.center_x - 41 + self.active_norm_pos * 41, self.center_y - 16

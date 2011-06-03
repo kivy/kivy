@@ -12,6 +12,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewLabel
+from kivy.uix.switch import Switch
 
 
 class Showcase(FloatLayout):
@@ -68,6 +69,8 @@ class ShowcaseApp(App):
         n = create_tree('TreeView')
         attach_node('Standard treeview', n)
         attach_node('Treeview without root', n)
+        n = create_tree('Switch')
+        attach_node('Active switch', n)
         root.add_widget(tree)
         self.content = content = BoxLayout()
         root.add_widget(content)
@@ -122,6 +125,11 @@ class ShowcaseApp(App):
         col = AnchorLayout()
         col.add_widget(TextInput(size_hint=(None, None), size=(200, 32),
                                  multiline=False))
+        return col
+
+    def show_active_switch(self):
+        col = AnchorLayout()
+        col.add_widget(Switch(active=True))
         return col
 
     def show_standard_treeview(self):
