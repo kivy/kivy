@@ -4,6 +4,9 @@ Text Input
 
 .. versionadded:: 1.0.4
 
+.. image:: images/textinput-mono.jpg
+.. image:: images/textinput-multi.jpg
+
 The :class:`TextInput` element displays a box of editable plain text.
 
 This widget support by default nice features such as :

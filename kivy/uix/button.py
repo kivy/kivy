@@ -2,6 +2,8 @@
 Button
 ======
 
+.. image:: images/button.jpg
+
 The button is a :class:`~kivy.uix.label.Label` with an action associated to it
 that is triggered when the button is pressed (or released after a click/touch).
 To configure the button, you can use the same properties that you can use for

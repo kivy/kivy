@@ -2,6 +2,8 @@
 Slider
 ======
 
+.. image:: images/slider.jpg
+
 The slider is a widget that look like a scrollbar, and support
 horizontal/vertical orientation, minimum/maximum value, and a default value.
 
