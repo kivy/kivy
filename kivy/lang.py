@@ -406,7 +406,7 @@ Or more complex::
                 rgba: ut.get_random_color()
 
 set <key> <expr>
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. versionadded:: 1.0.6
 
