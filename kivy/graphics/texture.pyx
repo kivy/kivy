@@ -175,7 +175,7 @@ cdef inline int has_npot_support():
         _has_npot_support = int(hasGLExtension('GL_ARB_texture_non_power_of_two'))
         if not _has_npot_support:
             _has_npot_support = int(hasGLExtension('OES_texture_npot'))
-        if not _has_npot_support:
+        if _has_npot_support:
             Logger.info('Texture: NPOT texture are supported natively')
         else:
             Logger.warning('Texture: NPOT texture are not supported natively')
