@@ -46,6 +46,7 @@ cdef GLuint GL_BGRA = 0x80E1
 cdef object _texture_release_trigger = None
 cdef list _texture_release_list = []
 cdef int _has_bgr = -1
+cdef int _has_npot_support = -1
 cdef int _has_texture_nv = -1
 cdef int _has_texture_arb = -1
 
@@ -168,6 +169,19 @@ cdef inline int has_bgr():
                            'RGB/RGBA')
     return _has_bgr
 
+cdef inline int has_npot_support():
+    global _has_npot_support
+    if _has_npot_support == -1:
+        _has_npot_support = int(hasGLExtension('GL_ARB_texture_non_power_of_two'))
+        if not _has_npot_support:
+            _has_npot_support = int(hasGLExtension('OES_texture_npot'))
+        if not _has_npot_support:
+            Logger.info('Texture: NPOT texture are supported natively')
+        else:
+            Logger.warning('Texture: NPOT texture are not supported natively')
+    return _has_npot_support
+
+
 cdef inline int _is_gl_format_supported(str x):
     if x in ('bgr', 'bgra'):
         return has_bgr()
@@ -223,6 +237,7 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
     cdef GLuint target = GL_TEXTURE_2D
     cdef int texture_width, texture_height
     cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
+    cdef int npot_support = has_npot_support()
 
     if rectangle:
         rectangle = 0
@@ -254,7 +269,7 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
             if rectangle:
                 mipmap = 0
 
-    if rectangle:
+    if rectangle or npot_support:
         texture_width = width
         texture_height = height
     else:
