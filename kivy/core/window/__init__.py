@@ -18,6 +18,7 @@ from kivy.base import EventLoop
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 
+
 class WindowBase(EventDispatcher):
     '''WindowBase is a abstract window widget, for any window implementation.
 
@@ -275,8 +276,8 @@ class WindowBase(EventDispatcher):
 
     def add_widget(self, widget):
         '''Add a widget on window'''
-        self.children.append(widget)
         widget.parent = self
+        self.children.insert(0, widget)
         self.canvas.add(widget.canvas)
         self.update_childsize([widget])
 
