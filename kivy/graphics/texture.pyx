@@ -1,11 +1,121 @@
 #cython: embedsignature=True
 
 '''
-Texture management
-==================
+Texture
+=======
 
-OpenGL texture can be a pain to manage ourself, except if you know perfectly all
-the OpenGL API :).
+:class:`Texture` is a class to handle OpenGL texture. Depending of the hardware,
+some OpenGL capabilities might not be available (BGRA support, NPOT support,
+etc.)
+
+You cannot instanciate the class yourself. You must use the function
+:func:`Texture.create` to create a new texture::
+
+    texture = Texture.create(size=(640, 480))
+
+When you are creating a texture, you must be aware of the default color format
+and buffer format:
+
+    - the color/pixel format (:data:`Texture.colorfmt`), that can be one of
+      'rgb', 'rgba', 'luminance', 'luminance_alpha', 'bgr', 'bgra'. The default
+      value is 'rgb'
+    - the buffer format is how a color component is stored into memory. This can
+      be one of 'ubyte', 'ushort', 'uint', 'byte', 'short', 'int', 'float'. The
+      default value and the most commonly used is 'ubyte'.
+
+So, if you want to create an RGBA texture::
+
+    texture = Texture.create(size=(640, 480), colorfmt='rgba')
+
+You can use your texture in almost all vertex instructions with the
+:data:`kivy.graphics.VertexIntruction.texture` parameter. If you want to use
+your texture in kv lang, you can save it in an
+:class:`~kivy.properties.ObjectProperty` inside your widget.
+
+
+Blitting custom data
+--------------------
+
+You can create your own data and blit it on the texture using
+:func:`Texture.blit_data`::
+
+    # create a 64x64 texture, default to rgb / ubyte
+    texture = Texture.create(size=(64, 64))
+
+    # create 64x64 rgb tab, and fill with value from 0 to 255
+    # we'll have a gradient from black to white
+    size = 64 * 64 * 3
+    buf = [int(x * 255 / size) for x in xrange(size)]
+
+    # then, convert the array to a ubyte string
+    buf = ''.join(map(chr, buf))
+
+    # then blit the buffer
+    texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
+
+    # that's all ! you can use it in your graphics now :)
+    # if self is a widget, you can do that
+    with self.canvas:
+        Rectangle(texture=texture, pos=self.pos, size=(64, 64))
+
+
+BGR/BGRA support
+----------------
+
+The first time you'll try to create a BGR or BGRA texture, we are checking if
+your hardware support BGR / BGRA texture by checking the extension
+'GL_EXT_bgra'.
+
+If the extension is not found, a conversion to RGB / RGBA will be done in
+software.
+
+
+NPOT texture
+------------
+
+.. versionadded:: 1.0.7
+
+    If hardware can support NPOT, no POT are created.
+
+As OpenGL documentation said, a texture must be power-of-two sized. That's mean
+your width and height can be one of 64, 32, 256... but not 3, 68, 42. NPOT mean
+non-power-of-two. OpenGL ES 2 support NPOT texture natively, but with some
+drawbacks. Another type of NPOT texture are also called rectangle texture.
+POT, NPOT and texture have their own pro/cons.
+
+================= ============= ============= =================================
+    Features           POT           NPOT                Rectangle
+----------------- ------------- ------------- ---------------------------------
+OpenGL Target     GL_TEXTURE_2D GL_TEXTURE_2D GL_TEXTURE_RECTANGLE_(NV|ARB|EXT)
+Texture coords    0-1 range     0-1 range     width-height range
+Mipmapping        Supported     Partially     No
+Wrap mode         Supported     Supported     No
+================= ============= ============= =================================
+
+If you are creating a NPOT texture, we first are checking if your hardware is
+capable of it by checking the extensions GL_ARB_texture_non_power_of_two or
+OES_texture_npot. If none of theses are availables, we are creating the nearest
+POT texture that can contain your NPOT texture. The :func:`Texture.create` will
+return a :class:`TextureRegion` instead.
+
+
+Texture atlas
+-------------
+
+We are calling texture atlas a texture that contain many images in it.
+If you want to seperate the original texture into many single one, you don't
+need to. You can get a region of the original texture. That will return you the
+original texture with custom texture coordinates::
+
+    # for example, load a 128x128 image that contain 4 64x64 images
+    from kivy.core.image import Image
+    texture = Image('mycombinedimage.png').texture
+
+    bottomleft = texture.get_region(0, 0, 64, 64)
+    bottomright = texture.get_region(0, 64, 64, 64)
+    topleft = texture.get_region(0, 64, 64, 64)
+    topright = texture.get_region(64, 64, 64, 64)
+
 '''
 
 __all__ = ('Texture', 'TextureRegion')
@@ -535,6 +645,14 @@ cdef class Texture:
         glTexParameteri(self.target, GL_TEXTURE_WRAP_S, _value)
         glTexParameteri(self.target, GL_TEXTURE_WRAP_T, _value)
         self._wrap = x
+
+    property colorfmt:
+        '''Return the color format used in this texture.
+
+        .. versionadded:: 1.0.7
+        '''
+        def __get__(self):
+            return self._colorfmt
 
     property min_filter:
         '''Get/set the min filter texture. Available values:
