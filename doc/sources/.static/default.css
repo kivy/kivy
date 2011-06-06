@@ -474,6 +474,12 @@ ul.fakelist {
     margin-top: 0 !important;
 }
 
+img.align-right {
+	float: right;
+	margin-left: 10px;
+}
+
+
 /* "Footnotes" heading */
 p.rubric {
     margin-top: 30px;

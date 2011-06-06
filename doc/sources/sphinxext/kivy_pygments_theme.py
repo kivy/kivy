@@ -16,7 +16,7 @@ class KivyStyle(Style):
         Error:                     "#FF0000 border:#FF0000", # class: 'err'
         Other:                     "#FF0000",                # class 'x'
 
-        Comment:                   "italic #aaa385", # class: 'c'
+        Comment:                   "italic #666385", # class: 'c'
         Comment.Preproc:           "noitalic",       # class: 'cp'
 
         Keyword:                   "bold #000000",   # class: 'k'
