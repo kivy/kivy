@@ -187,7 +187,6 @@ class Popup(FloatLayout):
         return True
 
     def on__anim_alpha(self, instance, value):
-        print value
         if value == 0 and self._window is not None:
             self._window.remove_widget(self)
             self._window = None
