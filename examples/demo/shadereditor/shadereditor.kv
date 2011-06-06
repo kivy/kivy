@@ -1,0 +1,36 @@
+#:kivy 1.0
+
+<ShaderEditor>:
+    viewer: viewer
+
+    BoxLayout:
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: None
+            width: 350
+
+            Label:
+                text: 'Fragment Shader'
+                size_hint_y: None
+                height: self.texture_size[1] + 10
+            TextInput:
+                text: root.fs
+                on_text: root.fs = args[1]
+
+            Label:
+                text: 'Vertex Shader'
+                size_hint_y: None
+                height: self.texture_size[1] + 10
+            TextInput:
+                text: root.vs
+                on_text: root.vs = args[1]
+
+        ShaderViewer:
+            id: viewer
+            canvas:
+                Color:
+                    rgb: 1, 1, 1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+                    source: 'data/logo/kivy-icon-512.png'

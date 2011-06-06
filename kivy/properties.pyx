@@ -40,7 +40,8 @@ Kivy's property classes support:
 __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
-           'OptionProperty', 'ReferenceListProperty', 'AliasProperty')
+           'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
+           'DictProperty')
 
 cdef class Property:
     '''Base class for building more complex properties.
@@ -242,7 +243,7 @@ cdef class StringProperty(Property):
             raise ValueError('StringProperty<%s> accepts only str/unicode' %
                              self.name)
 
-cdef observable_list_dispatch(object self):
+cdef inline void observable_list_dispatch(object self):
     cdef Property prop = self.prop
     prop.dispatch(self.obj)
 
@@ -311,12 +312,6 @@ cdef class ListProperty(Property):
     '''Property that represents a list.
 
     Only lists are allowed, tuple or any other classes are forbidden.
-
-    .. warning::
-
-        To mark the property as changed, you must reassign a new list each
-        time you want to add or remove an object. Don't rely on append(),
-        remove() and pop() functions.
     '''
     cpdef link(self, object obj, str name):
         Property.link(self, obj, name)
@@ -333,6 +328,73 @@ cdef class ListProperty(Property):
     cpdef set(self, obj, value):
         value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
+
+cdef inline void observable_dict_dispatch(object self):
+    cdef Property prop = self.prop
+    prop.dispatch(self.obj)
+
+class ObservableDict(dict):
+    # Internal class to observe changes inside a native python dict.
+    def __init__(self, *largs):
+        self.prop = largs[0]
+        self.obj = largs[1]
+        super(ObservableDict, self).__init__(*largs[2:])
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+        observable_dict_dispatch(self)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        observable_dict_dispatch(self)
+
+    def clear(self, *largs):
+        dict.append(self, *largs)
+        observable_dict_dispatch(self)
+
+    def remove(self, *largs):
+        dict.remove(self, *largs)
+        observable_dict_dispatch(self)
+
+    def pop(self, *largs):
+        dict.pop(self, *largs)
+        observable_dict_dispatch(self)
+
+    def popitem(self, *largs):
+        dict.popitem(self, *largs)
+        observable_dict_dispatch(self)
+
+    def setdefault(self, *largs):
+        dict.setdefault(self, *largs)
+        observable_dict_dispatch(self)
+
+    def update(self, *largs):
+        dict.update(self, *largs)
+        observable_dict_dispatch(self)
+
+
+
+cdef class DictProperty(Property):
+    '''Property that represents a dict.
+
+    Only dict are allowed, any other classes are forbidden.
+    '''
+    cpdef link(self, object obj, str name):
+        Property.link(self, obj, name)
+        storage = obj.__storage[self._name]
+        storage['value'] = ObservableDict(self, obj, storage['value'])
+
+    cdef check(self, obj, value):
+        if Property.check(self, obj, value):
+            return True
+        if type(value) is not ObservableDict:
+            raise ValueError('DictProperty<%s> accepts only ObservableDict'
+                             ' (should never happen.)' % self.name)
+
+    cpdef set(self, obj, value):
+        value = ObservableDict(self, obj, value)
+        Property.set(self, obj, value)
+
 
 cdef class ObjectProperty(Property):
     '''Property that represents a Python object.

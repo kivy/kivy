@@ -31,10 +31,6 @@ The language consists of several constructs that you can use:
         list's content. If you want to design the look of an entry in a list
         (icon on the left, text on the right), you will use a template for that.
 
-        For the moment, templating is not yet designed in the language; we are
-        working on it. We track the progress of the implementation in issue #17
-        (https://github.com/tito/kivy/issues#issue/17).
-
 
 Syntax of a kv File
 -------------------
@@ -410,7 +406,7 @@ Or more complex::
                 rgba: ut.get_random_color()
 
 set <key> <expr>
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. versionadded:: 1.0.6
 
@@ -751,6 +747,8 @@ def create_handler(element, key, value, idmap):
                 f = getattr(f, x)
             if hasattr(f, 'bind'):
                 f.bind(**{k[-1]: call_fn})
+        except KeyError:
+            continue
         except AttributeError:
             continue
 

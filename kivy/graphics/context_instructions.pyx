@@ -35,12 +35,14 @@ cdef object get_default_texture():
 
 # register Image cache
 Cache.register('kv.texture', limit=1000, timeout=60)
+Cache.register('kv.shader', limit=1000, timeout=60)
 
 # ensure that our resources are cleaned
 def gl_init_resources():
     global DEFAULT_TEXTURE
     DEFAULT_TEXTURE = None
     Cache.remove('kv.texture')
+    Cache.remove('kv.shader')
     reset_gl_context()
 
 cdef class LineWidth(ContextInstruction):

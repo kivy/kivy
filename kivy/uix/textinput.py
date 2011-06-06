@@ -4,6 +4,9 @@ Text Input
 
 .. versionadded:: 1.0.4
 
+.. image:: images/textinput-mono.jpg
+.. image:: images/textinput-multi.jpg
+
 The :class:`TextInput` element displays a box of editable plain text.
 
 This widget support by default nice features such as :
@@ -117,6 +120,9 @@ from kivy.properties import StringProperty, NumericProperty, \
 Cache.register('textinput.label', timeout=60.)
 
 FL_IS_NEWLINE = 0x01
+
+# late binding
+Clipboard = None
 
 
 class TextInput(Widget):
@@ -487,9 +493,14 @@ class TextInput(Widget):
         _lines, self._lines_flags = self._split_smart(text)
         self._lines = _lines
         self._lines_labels = [self._create_line_label(x) for x in self._lines]
-        self._lines_rects = [Rectangle(texture=x, size=x.size) \
+        self._lines_rects = [Rectangle(texture=x, size=( \
+                             x.size if x else (0, 0))) \
                              for x in self._lines_labels]
-        self.line_height = self._lines_labels[0].height
+        line_label = self._lines_labels[0]
+        if line_label is None:
+            self.line_height = max(1, self.font_size + self.padding_y)
+        else:
+            self.line_height = line_label.height
         self._line_spacing = 2
         # now, if the text change, maybe the cursor is not as the same place as
         # before. so, try to set the cursor on the good place
@@ -538,6 +549,9 @@ class TextInput(Widget):
         for line_num, value in enumerate(self._lines):
             if miny <= y <= maxy + dy:
                 texture = labels[line_num]
+                if not texture:
+                    y -= dy
+                    continue
                 size = list(texture.size)
                 texc = texture.tex_coords[:]
 
@@ -780,7 +794,9 @@ class TextInput(Widget):
 
     def _window_on_key_down(self, window, key, scancode=None, unicode=None,
                             modifiers=None):
-        from kivy.core.clipboard import Clipboard
+        global Clipboard
+        if Clipboard is None:
+            from kivy.core.clipboard import Clipboard
 
         is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:

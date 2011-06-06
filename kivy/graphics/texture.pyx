@@ -1,11 +1,121 @@
 #cython: embedsignature=True
 
 '''
-Texture management
-==================
+Texture
+=======
 
-OpenGL texture can be a pain to manage ourself, except if you know perfectly all
-the OpenGL API :).
+:class:`Texture` is a class to handle OpenGL texture. Depending of the hardware,
+some OpenGL capabilities might not be available (BGRA support, NPOT support,
+etc.)
+
+You cannot instanciate the class yourself. You must use the function
+:func:`Texture.create` to create a new texture::
+
+    texture = Texture.create(size=(640, 480))
+
+When you are creating a texture, you must be aware of the default color format
+and buffer format:
+
+    - the color/pixel format (:data:`Texture.colorfmt`), that can be one of
+      'rgb', 'rgba', 'luminance', 'luminance_alpha', 'bgr', 'bgra'. The default
+      value is 'rgb'
+    - the buffer format is how a color component is stored into memory. This can
+      be one of 'ubyte', 'ushort', 'uint', 'byte', 'short', 'int', 'float'. The
+      default value and the most commonly used is 'ubyte'.
+
+So, if you want to create an RGBA texture::
+
+    texture = Texture.create(size=(640, 480), colorfmt='rgba')
+
+You can use your texture in almost all vertex instructions with the
+:data:`kivy.graphics.VertexIntruction.texture` parameter. If you want to use
+your texture in kv lang, you can save it in an
+:class:`~kivy.properties.ObjectProperty` inside your widget.
+
+
+Blitting custom data
+--------------------
+
+You can create your own data and blit it on the texture using
+:func:`Texture.blit_data`::
+
+    # create a 64x64 texture, default to rgb / ubyte
+    texture = Texture.create(size=(64, 64))
+
+    # create 64x64 rgb tab, and fill with value from 0 to 255
+    # we'll have a gradient from black to white
+    size = 64 * 64 * 3
+    buf = [int(x * 255 / size) for x in xrange(size)]
+
+    # then, convert the array to a ubyte string
+    buf = ''.join(map(chr, buf))
+
+    # then blit the buffer
+    texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
+
+    # that's all ! you can use it in your graphics now :)
+    # if self is a widget, you can do that
+    with self.canvas:
+        Rectangle(texture=texture, pos=self.pos, size=(64, 64))
+
+
+BGR/BGRA support
+----------------
+
+The first time you'll try to create a BGR or BGRA texture, we are checking if
+your hardware support BGR / BGRA texture by checking the extension
+'GL_EXT_bgra'.
+
+If the extension is not found, a conversion to RGB / RGBA will be done in
+software.
+
+
+NPOT texture
+------------
+
+.. versionadded:: 1.0.7
+
+    If hardware can support NPOT, no POT are created.
+
+As OpenGL documentation said, a texture must be power-of-two sized. That's mean
+your width and height can be one of 64, 32, 256... but not 3, 68, 42. NPOT mean
+non-power-of-two. OpenGL ES 2 support NPOT texture natively, but with some
+drawbacks. Another type of NPOT texture are also called rectangle texture.
+POT, NPOT and texture have their own pro/cons.
+
+================= ============= ============= =================================
+    Features           POT           NPOT                Rectangle
+----------------- ------------- ------------- ---------------------------------
+OpenGL Target     GL_TEXTURE_2D GL_TEXTURE_2D GL_TEXTURE_RECTANGLE_(NV|ARB|EXT)
+Texture coords    0-1 range     0-1 range     width-height range
+Mipmapping        Supported     Partially     No
+Wrap mode         Supported     Supported     No
+================= ============= ============= =================================
+
+If you are creating a NPOT texture, we first are checking if your hardware is
+capable of it by checking the extensions GL_ARB_texture_non_power_of_two or
+OES_texture_npot. If none of theses are availables, we are creating the nearest
+POT texture that can contain your NPOT texture. The :func:`Texture.create` will
+return a :class:`TextureRegion` instead.
+
+
+Texture atlas
+-------------
+
+We are calling texture atlas a texture that contain many images in it.
+If you want to seperate the original texture into many single one, you don't
+need to. You can get a region of the original texture. That will return you the
+original texture with custom texture coordinates::
+
+    # for example, load a 128x128 image that contain 4 64x64 images
+    from kivy.core.image import Image
+    texture = Image('mycombinedimage.png').texture
+
+    bottomleft = texture.get_region(0, 0, 64, 64)
+    bottomright = texture.get_region(0, 64, 64, 64)
+    topleft = texture.get_region(0, 64, 64, 64)
+    topright = texture.get_region(64, 64, 64, 64)
+
 '''
 
 __all__ = ('Texture', 'TextureRegion')
@@ -46,6 +156,7 @@ cdef GLuint GL_BGRA = 0x80E1
 cdef object _texture_release_trigger = None
 cdef list _texture_release_list = []
 cdef int _has_bgr = -1
+cdef int _has_npot_support = -1
 cdef int _has_texture_nv = -1
 cdef int _has_texture_arb = -1
 
@@ -168,6 +279,19 @@ cdef inline int has_bgr():
                            'RGB/RGBA')
     return _has_bgr
 
+cdef inline int has_npot_support():
+    global _has_npot_support
+    if _has_npot_support == -1:
+        _has_npot_support = int(hasGLExtension('GL_ARB_texture_non_power_of_two'))
+        if not _has_npot_support:
+            _has_npot_support = int(hasGLExtension('OES_texture_npot'))
+        if _has_npot_support:
+            Logger.info('Texture: NPOT texture are supported natively')
+        else:
+            Logger.warning('Texture: NPOT texture are not supported natively')
+    return _has_npot_support
+
+
 cdef inline int _is_gl_format_supported(str x):
     if x in ('bgr', 'bgra'):
         return has_bgr()
@@ -207,12 +331,23 @@ cdef inline _convert_buffer(bytes data, str fmt):
                             str(format))
     return ret_buffer, ret_format
 
+cdef inline void _gl_prepare_pixels_upload(int width) nogil:
+    if not (width & 0x7):
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 8)
+    elif not (width & 0x3):
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
+    elif not (width & 0x1):
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 2)
+    else:
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
 
 cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
-                     rectangle, int mipmap):
+                     rectangle, int mipmap, int allocate):
     cdef GLuint target = GL_TEXTURE_2D
     cdef int texture_width, texture_height
     cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
+    cdef int npot_support = has_npot_support()
 
     if rectangle:
         rectangle = 0
@@ -244,7 +379,7 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
             if rectangle:
                 mipmap = 0
 
-    if rectangle:
+    if rectangle or npot_support:
         texture_width = width
         texture_height = height
     else:
@@ -271,27 +406,41 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
 
     # ok, allocate memory for initial texture
     cdef int glfmt = _color_fmt_to_gl(colorfmt)
+    cdef int iglbufferfmt = glbufferfmt
     cdef int datasize = texture_width * texture_height * \
             _gl_format_size(glfmt) * _buffer_type_to_gl_size(bufferfmt)
     cdef void *data = NULL
     cdef int dataerr = 0
 
-    with nogil:
-        data = calloc(1, datasize)
-        if data != NULL:
-            glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
-                         glfmt, glbufferfmt, data)
-            glFlush()
-            free(data)
-            data = NULL
-            if mipmap:
-                glGenerateMipmap(target)
-        else:
-            dataerr = 1
+    '''
+    if glfmt == GL_RGB:
+        iglbufferfmt = GL_UNSIGNED_SHORT_5_6_5
+    elif glfmt == GL_RGBA:
+        iglbufferfmt = GL_UNSIGNED_SHORT_4_4_4_4
+    '''
 
-    if dataerr:
-        raise Exception('Unable to allocate memory for texture (size is %s)' %
-                        datasize)
+    if allocate:
+        texture._is_allocated = 1
+        with nogil:
+            data = calloc(1, datasize)
+            if data != NULL:
+                _gl_prepare_pixels_upload(texture_width)
+                glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
+                             glfmt, iglbufferfmt, data)
+                # disable the flush call. it was used for a bug in ati, but i'm
+                # not sure at 100%. :) (mathieu)
+                #glFlush()
+                free(data)
+                data = NULL
+                if mipmap:
+                    glGenerateMipmap(target)
+            else:
+                dataerr = 1
+
+        if dataerr:
+            texture._is_allocated = 0
+            raise Exception('Unable to allocate memory for texture (size is %s)' %
+                            datasize)
 
     if rectangle:
         texture.uvsize = (width, height)
@@ -331,14 +480,24 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, rectangle=False, mi
         colorfmt = 'rgba'
     if bufferfmt is None:
         bufferfmt = 'ubyte'
-    return _texture_create(width, height, colorfmt, bufferfmt, rectangle, mipmap)
+    return _texture_create(width, height, colorfmt, bufferfmt, rectangle,
+                           mipmap, 1)
 
 
 def texture_create_from_data(im, rectangle=True, mipmap=False):
     '''Create a texture from an ImageData class'''
 
-    texture = _texture_create(im.width, im.height, im.fmt, 'ubyte',
-                             rectangle, mipmap)
+    cdef int width = im.width
+    cdef int height = im.height
+    cdef int allocate = 1
+
+    # optimization, if the texture is power of 2, don't allocate in
+    # _texture_create, but allocate in blit_data => only 1 upload
+    if _is_pow2(width) and _is_pow2(height):
+        allocate = 0
+
+    texture = _texture_create(width, height, im.fmt, 'ubyte',
+                             rectangle, mipmap, allocate)
     if texture is None:
         return None
 
@@ -363,6 +522,7 @@ cdef class Texture:
         self._wrap          = None
         self._min_filter    = None
         self._mag_filter    = None
+        self._is_allocated  = 0
         self._uvx           = 0.
         self._uvy           = 0.
         self._uvw           = 1.
@@ -486,6 +646,14 @@ cdef class Texture:
         glTexParameteri(self.target, GL_TEXTURE_WRAP_T, _value)
         self._wrap = x
 
+    property colorfmt:
+        '''Return the color format used in this texture.
+
+        .. versionadded:: 1.0.7
+        '''
+        def __get__(self):
+            return self._colorfmt
+
     property min_filter:
         '''Get/set the min filter texture. Available values:
 
@@ -591,12 +759,18 @@ cdef class Texture:
         cdef int h = size[1]
         cdef char *cdata = <char *>data
         cdef int glbufferfmt = bufferfmt
+        cdef int is_allocated = self._is_allocated
 
         with nogil:
             glBindTexture(target, self._id)
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-            glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
-            glFlush()
+            _gl_prepare_pixels_upload(w)
+            if is_allocated:
+                glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
+            else:
+                glTexImage2D(target, 0, glfmt, w, h, 0, glfmt, glbufferfmt, cdata)
+                # disable the flush call. it was used for a bug in ati, but i'm
+                # not sure at 100%. :) (mathieu)
+                #glFlush()
 
     property size:
         def __get__(self):
@@ -616,6 +790,7 @@ cdef class TextureRegion(Texture):
 
     def __init__(self, int x, int y, int width, int height, Texture origin):
         Texture.__init__(self, width, height, origin.target, origin.id)
+        self._is_allocated = 1
         self.x = x
         self.y = y
         self.owner = origin

@@ -26,6 +26,10 @@ try:
 except ImportError:
     android = None
 
+# late binding
+glReadPixels = GL_RGB = GL_UNSIGNED_BYTE = None
+
+
 class WindowPygame(WindowBase):
 
     def create_window(self):
@@ -141,10 +145,12 @@ class WindowPygame(WindowBase):
             Logger.exception('WinPygame: unable to set icon')
 
     def screenshot(self, *largs, **kwargs):
+        global glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
         if filename is None:
             return None
-        from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        if glReadPixels is None:
+            from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
         width, height = self.size
         data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
         data = str(buffer(data))

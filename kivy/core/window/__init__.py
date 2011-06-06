@@ -8,6 +8,9 @@ creation. Don't try to create more than one.
 
 __all__ = ('WindowBase', 'Window')
 
+from os.path import join, exists
+from os import getcwd
+
 from kivy.core import core_select_lib
 from kivy.config import Config
 from kivy.logger import Logger
@@ -273,8 +276,8 @@ class WindowBase(EventDispatcher):
 
     def add_widget(self, widget):
         '''Add a widget on window'''
-        self.children.append(widget)
         widget.parent = self
+        self.children.insert(0, widget)
         self.canvas.add(widget.canvas)
         self.update_childsize([widget])
 
@@ -462,8 +465,6 @@ class WindowBase(EventDispatcher):
     def screenshot(self, name='screenshot%(counter)04d.jpg'):
         '''Save the actual displayed image in a file
         '''
-        from os.path import join, exists
-        from os import getcwd
         i = 0
         path = None
         while True:

@@ -474,6 +474,17 @@ ul.fakelist {
     margin-top: 0 !important;
 }
 
+img.align-right {
+	float: right;
+	margin-left: 10px;
+}
+
+img.align-center {
+	display: block;
+	margin: 0 auto;
+}
+
+
 /* "Footnotes" heading */
 p.rubric {
     margin-top: 30px;
@@ -617,7 +628,7 @@ dd {
 
 dt:target,
 .highlight {
-    background-color: #fbe54e;
+    /** background-color: #fbe54e; TEMPORARY REMOVE THIS, CAUSE WITH RIGHT ALIGN IMAGE, WE ARE SEEING THE COLOR **/
 	border-top-left-radius: 15px;
 	border-bottom-right-radius: 15px;
 	-moz-border-radius-topleft: 15px;

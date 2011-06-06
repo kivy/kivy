@@ -24,6 +24,8 @@ from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
 from kivy.input.motionevent import MotionEvent
 
+# late binding
+Color = Ellipse = None
 
 class MouseMotionEvent(MotionEvent):
 
@@ -37,9 +39,11 @@ class MouseMotionEvent(MotionEvent):
     # Create automatically touch on the surface.
     #
     def update_graphics(self, win):
+        global Color, Ellipse
         de = self.ud.get('_drawelement', None)
         if de is None:
-            from kivy.graphics import Color, Ellipse
+            if Color is None:
+                from kivy.graphics import Color, Ellipse
             with win.canvas.after:
                 de = (
                     Color(.8, .2, .2, .7),
