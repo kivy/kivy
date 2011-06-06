@@ -13,6 +13,7 @@ except:
     raise
 
 pygame_cache = {}
+pygame_cache_order = []
 
 # init pygame font
 pygame.font.init()
@@ -25,8 +26,8 @@ class LabelPygame(LabelBase):
             in ('font_size', 'font_name', 'bold', 'italic')])
 
     def _get_font(self):
-        id = self._get_font_id()
-        if id not in pygame_cache:
+        fontid = self._get_font_id()
+        if fontid not in pygame_cache:
             # try first the file if it's a filename
             fontobject = None
             fontname = self.options['font_name']
@@ -47,9 +48,15 @@ class LabelPygame(LabelBase):
                 # fontobject
                 fontobject = pygame.font.Font(font,
                                 int(self.options['font_size'] * 1.333))
-            pygame_cache[id] = fontobject
+            pygame_cache[fontid] = fontobject
+            pygame_cache_order.append(fontid)
 
-        return pygame_cache[id]
+        # to prevent too much file open, limit the number of opened fonts to 64
+        while len(pygame_cache_order) > 64:
+            popid = pygame_cache_order.pop(0)
+            del pygame_cache[popid]
+
+        return pygame_cache[fontid]
 
     def get_extents(self, text):
         font = self._get_font()
