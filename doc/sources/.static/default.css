@@ -623,7 +623,7 @@ dd {
 
 dt:target,
 .highlight {
-    background-color: #fbe54e;
+    /** background-color: #fbe54e; TEMPORARY REMOVE THIS, CAUSE WITH RIGHT ALIGN IMAGE, WE ARE SEEING THE COLOR **/
 	border-top-left-radius: 15px;
 	border-bottom-right-radius: 15px;
 	-moz-border-radius-topleft: 15px;

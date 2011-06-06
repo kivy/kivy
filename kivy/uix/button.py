@@ -3,6 +3,7 @@ Button
 ======
 
 .. image:: images/button.jpg
+    :align: right
 
 The button is a :class:`~kivy.uix.label.Label` with an action associated to it
 that is triggered when the button is pressed (or released after a click/touch).

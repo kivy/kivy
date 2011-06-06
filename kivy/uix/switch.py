@@ -5,7 +5,10 @@ Switch
 .. versionadded:: 1.0.7
 
 .. image:: images/switch-on.jpg
+    :align: right
+
 .. image:: images/switch-off.jpg
+    :align: right
 
 The switch is a boolean widget that can be active or inactive. You can swipe to
 the left or right to activate or deactivate it::
