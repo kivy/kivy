@@ -479,6 +479,11 @@ img.align-right {
 	margin-left: 10px;
 }
 
+img.align-center {
+	display: block;
+	margin: 0 auto;
+}
+
 
 /* "Footnotes" heading */
 p.rubric {

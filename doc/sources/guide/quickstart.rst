@@ -57,6 +57,9 @@ To run the application, follow the instructions for your operating system:
 A window should open, showing a sole button (with the label 'Hello World') that
 covers the entire window's area. That's all there is to it.
 
+.. image:: images/quickstart.jpg
+    :align: center
+
 So what does that code do?
 
  #. First, we import Kivy, and check if the current installed version will be
