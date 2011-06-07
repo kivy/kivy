@@ -54,6 +54,8 @@ class FloatLayout(Layout):
         self.bind(
             children = self._trigger_layout,
             pos = self._trigger_layout,
+            pos_hint = self._trigger_layout,
+            size_hint = self._trigger_layout,
             size = self._trigger_layout)
 
     def update_minimum_size(self, *largs):
@@ -108,12 +110,16 @@ class FloatLayout(Layout):
 
     def add_widget(self, widget, index=0):
         widget.bind(
+            size = self._trigger_layout,
+            size_hint = self._trigger_layout,
             pos = self._trigger_layout,
             pos_hint = self._trigger_layout)
         return super(Layout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
+            size = self._trigger_layout,
+            size_hint = self._trigger_layout,
             pos = self._trigger_layout,
             pos_hint = self._trigger_layout)
         return super(Layout, self).remove_widget(widget)
