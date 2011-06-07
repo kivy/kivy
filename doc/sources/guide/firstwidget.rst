@@ -119,6 +119,9 @@ that actually draws something into our window:
 .. include:: ../../../examples/guide/firstwidget/3_draw_ellipse.py
    :literal:
 
+.. image:: images/guide-3.jpg
+    :align: center
+
 If you run your code with these modifications, you will see that every time
 you touch, there will be a small yellow circle drawn where you touched.
 How does it work?
@@ -155,6 +158,9 @@ It gets better! Update the code to look like this:
 
 .. include:: ../../../examples/guide/firstwidget/4_draw_line.py
    :literal:
+
+.. image:: images/guide-4.jpg
+    :align: center
 
 This is what has changed:
     * Line 3: We now not only import the
@@ -205,6 +211,9 @@ Great, let's do it:
 
 .. include:: ../../../examples/guide/firstwidget/5_random_colors.py
    :literal:
+
+.. image:: images/guide-5.jpg
+    :align: center
 
 Here are the changes:
 
@@ -274,6 +283,9 @@ method. We'll also change to the HSV color space (see preceding note):
 
 .. include:: ../../../examples/guide/firstwidget/6_button.py
    :literal:
+
+.. image:: images/guide-6.jpg
+    :align: center
 
 Here's what happens:
 

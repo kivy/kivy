@@ -12,6 +12,9 @@ from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewLabel
+from kivy.uix.switch import Switch
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 
 
 class Showcase(FloatLayout):
@@ -68,6 +71,9 @@ class ShowcaseApp(App):
         n = create_tree('TreeView')
         attach_node('Standard treeview', n)
         attach_node('Treeview without root', n)
+        n = create_tree('Others')
+        attach_node('Popup', n)
+        attach_node('Switch', n)
         root.add_widget(tree)
         self.content = content = BoxLayout()
         root.add_widget(content)
@@ -122,6 +128,28 @@ class ShowcaseApp(App):
         col = AnchorLayout()
         col.add_widget(TextInput(size_hint=(None, None), size=(200, 32),
                                  multiline=False))
+        return col
+
+    def show_switch(self):
+        col = AnchorLayout()
+        col.add_widget(Switch(active=True))
+        return col
+
+    def show_popup(self):
+        btnclose = Button(text='Close this popup', size_hint_y=None, height=50)
+        content = BoxLayout(orientation='vertical')
+        content.add_widget(Label(text='Hello world'))
+        content.add_widget(btnclose)
+        popup = Popup(content=content, title='Modal popup example',
+                      size_hint=(None, None), size=(300, 300),
+                      auto_dismiss=False)
+        btnclose.bind(on_release=popup.dismiss)
+        button = Button(text='Open popup', size_hint=(None, None),
+                        size=(150, 70))
+        button.bind(on_release=popup.open)
+        popup.open()
+        col = AnchorLayout()
+        col.add_widget(button)
         return col
 
     def show_standard_treeview(self):

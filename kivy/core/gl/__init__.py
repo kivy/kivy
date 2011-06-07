@@ -26,8 +26,16 @@ if 'KIVY_DOC' not in environ:
     def print_gl_version():
         version = str(glGetString(GL_VERSION))
         Logger.info('GL: OpenGL version <%s>' % version)
-        Logger.info('GL: OpenGL vendor <%s>' % str(glGetString(GL_VENDOR)))
-        Logger.info('GL: OpenGL renderer <%s>' % str(glGetString(GL_RENDERER)))
+        Logger.info('GL: OpenGL vendor <%s>' % str(
+            glGetString(GL_VENDOR)))
+        Logger.info('GL: OpenGL renderer <%s>' % str(
+            glGetString(GL_RENDERER)))
+        Logger.info('GL: Shading version <%s>' % str(
+            glGetString(GL_SHADING_LANGUAGE_VERSION)))
+        Logger.info('GL: Texture max size <%s>' % str(
+            glGetIntegerv(GL_MAX_TEXTURE_SIZE)[0]))
+        Logger.info('GL: Texture max units <%s>' % str(
+            glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS)[0]))
 
         # As per http://www.opengl.org/resources/faq/technical/extensions.htm
         # the format for the string is:
