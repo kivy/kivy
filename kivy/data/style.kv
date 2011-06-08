@@ -316,3 +316,156 @@
 
         BoxLayout:
             id: container
+
+
+# =============================================================================
+# Settings
+# =============================================================================
+
+<SettingSpacer>:
+    size_hint_y: None
+    height: 5
+    canvas:
+        Color:
+            rgb: .2, .2, .2
+        Rectangle:
+            pos: self.x, self.center_y
+            size: self.width, 1
+
+<SettingItem>:
+    size_hint_x: .25
+    content: content
+    canvas:
+        Color:
+            rgba: 47 / 255., 167 / 255., 212 / 255., self.selected_alpha
+        Rectangle:
+            pos: self.x, self.y + 1
+            size: self.size
+        Color:
+            rgb: .2, .2, .2
+        Rectangle:
+            pos: self.x, self.y - 2
+            size: self.width, 1
+
+    BoxLayout:
+        pos: root.pos
+
+        FloatLayout:
+            id: labellayout
+            orientation: 'vertical'
+            Label:
+                pos_hint: {'y': .5, 'x': 0}
+                text: root.title
+                text_size: self.width - 32, None
+                size_hint_y: None
+                height: self.texture_size[1]
+            Label:
+                pos_hint: {'top': .5, 'x': 0}
+                text: root.desc if root.desc else ''
+                text_size: self.width - 32, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                font_size: 10
+                color: (.7, .7, .7, 1) if root.selected_alpha < 0.5 else (.3, .3, .3, 1)
+
+        BoxLayout:
+            id: content
+            size_hint_x: None
+            width: 150
+
+<SettingBoolean>:
+    Switch:
+        text: 'Boolean'
+        pos: root.pos
+        active: bool(root.values.index(root.value)) if root.value in root.values else False
+        on_active: root.value = root.values[int(args[1])]
+
+<SettingNumeric>:
+    Label:
+        text: str(root.value)
+        pos: root.pos
+
+<SettingOptions>:
+    Label:
+        text: str(root.value)
+        pos: root.pos
+
+<SettingTitle>:
+    text_size: self.width - 32, None
+    color: (.9, .9, .9, 1)
+    canvas:
+        Color:
+            rgba: .15, .15, .15, .5
+        Rectangle:
+            pos: self.x, self.y + 2
+            size: self.width, self.height - 2
+        Color:
+            rgb: .2, .2, .2
+        Rectangle:
+            pos: self.x, self.y - 2
+            size: self.width, 1
+
+<SettingSidebarLabel>:
+    size_hint: 1, None
+    text_size: self.width - 32, None
+    height: max(48, self.texture_size[1] + 8)
+    canvas.before:
+        Color:
+            rgba: 47 / 255., 167 / 255., 212 / 255., int(self.selected)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<SettingsPanel>:
+    spacing: 5
+    padding: 5
+    row_default_height: 48
+    row_force_default: True
+
+    Label:
+        text: root.title
+        text_size: self.width - 32, None
+        color: (.5, .5, .5, 1)
+
+        canvas.after:
+            Color:
+                rgb: .2, .2, .2
+            Rectangle:
+                pos: self.x, self.y - 2
+                size: self.width, 1
+
+<Settings>:
+    content: content
+    menu: menu
+
+    FloatLayout:
+        size_hint_x: None
+        width: 200
+        GridLayout:
+            pos: root.pos
+            cols: 1
+            id: menu
+            orientation: 'vertical'
+            padding: 5
+
+            canvas.after:
+                Color:
+                    rgb: .2, .2, .2
+                Rectangle:
+                    pos: self.right - 1, self.y
+                    size: 1, self.height
+
+        Button:
+            text: 'Close'
+            size_hint: None, None
+            width: 180
+            height: 50
+            pos: root.x + 10, root.y + 10
+            on_release: root.dispatch('on_close')
+
+    ScrollView:
+        do_scroll_x: False
+        BoxLayout:
+            size_hint_y: None
+            id: content
+            orientation: 'vertical'
