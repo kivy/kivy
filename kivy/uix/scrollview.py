@@ -205,11 +205,26 @@ class ScrollView(StencilView):
             return
         uid = self._get_uid()
         mode = touch.ud[uid]['mode']
-        distance = Vector(touch.pos).distance(touch.opos)
-        if distance > self.scroll_distance:
-            touch.ud[uid]['mode'] = mode = 'scroll'
+
+        # seperate the distance to both X and Y axis.
+        # if a distance is reach, but on the inverse axis, stop scroll mode !
+        if mode == 'unknown':
+            distance = abs(touch.ox - touch.x)
+            if distance > self.scroll_distance:
+                if not self.do_scroll_x:
+                    self._change_touch_mode()
+                    return
+                mode = 'scroll'
+
+            distance = abs(touch.oy - touch.y)
+            if distance > self.scroll_distance:
+                if not self.do_scroll_y:
+                    self._change_touch_mode()
+                    return
+                mode = 'scroll'
 
         if mode == 'scroll':
+            touch.ud[uid]['mode'] = mode
             dx = touch.ox - touch.x
             dy = touch.oy - touch.y
             sx, sy = self.convert_distance_to_scroll(dx, dy)
@@ -219,19 +234,25 @@ class ScrollView(StencilView):
                 self.scroll_y = touch.ud[uid]['sy'] + sy
 
     def on_touch_up(self, touch):
-        if touch.grab_current is not self:
+        # Warning: usually, we are checking if grab_current is ourself first. On
+        # this case, we might need to call on_touch_down. If we call it inside
+        # the on_touch_up + grab state, any widget that grab the touch will be
+        # never ungrabed, cause their on_touch_up will be never called.
+        # base.py: the me.grab_list[:] => it's a copy, and we are already
+        # iterate on it.
+        if self in [x() for x in touch.grab_list]:
+            touch.ungrab(self)
+            self._touch = None
+            uid = self._get_uid()
+            mode = touch.ud[uid]['mode']
+            if mode == 'unknown':
+                # we must do the click at least..
+                super(ScrollView, self).on_touch_down(touch)
+                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+        else:
             if self._touch is not touch:
                 return super(ScrollView, self).on_touch_up(touch)
             return
-        touch.ungrab(self)
-        self._touch = None
-        uid = self._get_uid()
-        mode = touch.ud[uid]['mode']
-        if mode == 'unknown':
-            # we must do the click at least..
-            super(ScrollView, self).on_touch_down(touch)
-            Clock.schedule_once(partial(self._do_touch_up, touch), .1)
-        return True
 
 
 
