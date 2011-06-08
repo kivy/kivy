@@ -92,7 +92,11 @@ class Switch(Widget):
         if touch.grab_current is not self:
             return
         touch.ungrab(self)
-        self.active = self.active_norm_pos > 0.5
+        # depending of the distance, activate by norm pos or invert
+        if abs(touch.ox - touch.x) < 5:
+            self.active = not self.active
+        else:
+            self.active = self.active_norm_pos > 0.5
         Animation(active_norm_pos=int(self.active), t='out_quad',
                   d=.2).start(self)
         self.touch_control = None
