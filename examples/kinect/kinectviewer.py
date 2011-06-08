@@ -1,4 +1,5 @@
 import freenect
+from time import sleep
 from threading import Thread
 from collections import deque
 from kivy.app import App
@@ -94,26 +95,32 @@ void main (void) {
 
 
 class KinectDepth(Thread):
+
     def __init__(self, *largs, **kwargs):
         super(KinectDepth, self).__init__(*largs, **kwargs)
         self.daemon = True
         self.queue = deque()
         self.quit = False
+        self.index = 0
 
     def run(self):
         q = self.queue
         while not self.quit:
-            depths = freenect.sync_get_depth()
+            depths = freenect.sync_get_depth(index=self.index)
             if depths is None:
+                sleep(2)
                 continue
             q.appendleft(depths)
 
     def pop(self):
         return self.queue.pop()
 
+
 class KinectViewer(Widget):
 
     depth_range = NumericProperty(1.)
+
+    index = NumericProperty(0)
 
     def __init__(self, **kwargs):
         # change the default canvas to RenderContext, we can change the shader
@@ -140,6 +147,9 @@ class KinectViewer(Widget):
         # add a little clock to update our glsl
         Clock.schedule_interval(self.update_transformation, 0)
 
+    def on_index(self, instance, value):
+        self.kinect.index = value
+
     def update_transformation(self, *largs):
         # update projection mat and uvsize
         self.canvas['projection_mat'] = Window.render_context['projection_mat']
@@ -151,37 +161,61 @@ class KinectViewer(Widget):
         f = value[0].astype('ushort') * 32
         self.texture.blit_buffer(
             f.tostring(), colorfmt='luminance', bufferfmt='ushort')
+        self.canvas.ask_update()
 
 
 class KinectViewerApp(App):
+
     def build(self):
         root = BoxLayout(orientation='vertical')
 
-        viewer = KinectViewer()
+        self.viewer = viewer = KinectViewer(
+            index=self.config.getint('kinect', 'index'))
         root.add_widget(viewer)
 
         toolbar = BoxLayout(size_hint=(1, None), height=50)
         root.add_widget(toolbar)
 
         slider = Slider(min=1., max=10., value=1.)
+
         def update_depth_range(instance, value):
             viewer.depth_range = value
+
         slider.bind(value=update_depth_range)
         toolbar.add_widget(slider)
 
-        button = Button(text='Use RGB shader')
-        def use_rgb(*l):
-            viewer.canvas.shader.fs = rgb_kinect
-        button.bind(on_press=use_rgb)
-        toolbar.add_widget(button)
-
-        button = Button(text='Use HSV shader')
-        def use_hsv(*l):
-            viewer.canvas.shader.fs = hsv_kinect
-        button.bind(on_press=use_hsv)
-        toolbar.add_widget(button)
-
         return root
+
+    def build_config(self, config):
+        config.add_section('kinect')
+        config.set('kinect', 'index', '0')
+        config.add_section('shader')
+        config.set('shader', 'theme', 'rgb')
+
+    def build_settings(self, settings):
+        settings.add_json_panel('Kinect Viewer', self.config, data='''[
+            { "type": "title", "title": "Kinect" },
+            { "type": "numeric", "title": "Index",
+              "desc": "Kinect index, from 0 to X",
+              "section": "kinect", "key": "index" },
+            { "type": "title", "title": "Shaders" },
+            { "type": "options", "title": "Theme",
+              "desc": "Shader to use for a specific visualization",
+              "section": "shader", "key": "theme",
+              "options": ["rgb", "hsv"]}
+        ]''')
+
+    def on_config_change(self, config, section, key, value):
+        if config is not self.config:
+            return
+        token = (section, key)
+        if token == ('kinect', 'index'):
+            self.viewer.index = int(value)
+        elif token == ('shader', 'theme'):
+            if value == 'rgb':
+                self.viewer.canvas.shader.fs = rgb_kinect
+            elif value == 'hsv':
+                self.viewer.canvas.shader.fs = hsv_kinect
 
 if __name__ == '__main__':
     KinectViewerApp().run()
