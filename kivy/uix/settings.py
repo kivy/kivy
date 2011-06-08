@@ -11,10 +11,10 @@ left, and the selected panel on the right.
 .. image:: images/settings_kivy.jpg
     :align: center
 
-A :class:`SettingsPanel` is designed to control a ConfigParser instance. The
-panel can be automatically contructed from a JSON definitions files: you put the
-settings you want with a title, description, type, section/key in the config
-parser... and that's done !
+A :class:`SettingsPanel` is designed to control a
+:class:`~kivy.config.ConfigParser` instance. The panel can be automatically
+contructed from a JSON definitions files: you put the settings you want with a
+title, description, type, section/key in the config parser... and that's done !
 
 The settings are also integrated with the :class:`~kivy.app.App` class, if a key
 is pressed, it will show your app settings on the screen, including the Kivy
@@ -28,12 +28,17 @@ Create panel from JSON
 
 To create a panel, you need 2 things:
 
-    * a ConfigParser instance with default values
+    * a :class:`~kivy.config.ConfigParser` instance with default values
     * a JSON file
 
-This is your duty to create and handle the ConfigParser yourself. The panel will
-read the values from the ConfigParser instance, ensure you have default values
-for every section / key in your JSON file !
+.. warning::
+
+    The ConfigParser required came from the :class:`kivy.config.ConfigParser`,
+    not the default ConfigParser from Python libraries.
+
+This is your duty to create and handle the :class:`~kivy.config.ConfigParser`
+yourself. The panel will read the values from the ConfigParser instance, ensure
+you have default values for every section / key in your JSON file !
 
 The JSON settings file is a list containing dictionnaries with informations in
 it. It can look like this::
@@ -74,14 +79,14 @@ to "Windows".
 
 Here is an example about how to use the previous JSON::
 
-    from ConfigParser import ConfigParser
+    from kivy.config import ConfigParser
 
     config = ConfigParser()
     config.read('myconfig.ini')
 
     s = Settings()
-    s.create_panel_from_json('My custom panel', config, 'settings_custom.json')
-    s.create_panel_from_json('Another panel', config, 'settings_test2.json')
+    s.add_json_panel('My custom panel', config, 'settings_custom.json')
+    s.add_json_panel('Another panel', config, 'settings_test2.json')
 
     # then use the s as a widget...
 
@@ -94,12 +99,13 @@ __all__ = ('Settings', 'SettingsPanel',
            'SettingOptions')
 
 import json
-from kivy.uix.label import Label
+from kivy.config import ConfigParser
 from kivy.animation import Animation
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
@@ -131,7 +137,7 @@ class SettingSidebarLabel(Label):
         panel = panel.get_panel_by_uid(self.panel_uid)
         if not panel:
             return
-        panel.select(panel)
+        self.panel.select(panel)
 
 
 class SettingItem(FloatLayout):
@@ -169,21 +175,24 @@ class SettingItem(FloatLayout):
     '''
 
     section = StringProperty(None)
-    '''Section of the token inside the ConfigParser instance.
+    '''Section of the token inside the :class:`~kivy.config.ConfigParser`
+    instance.
 
     :data:`section` is a :class:`~kivy.properties.StringProperty`, default to
     None.
     '''
 
     key = StringProperty(None)
-    '''Key of the token inside the :data:`section` in the ConfigParser instance.
+    '''Key of the token inside the :data:`section` in the
+    :class:`~kivy.config.ConfigParser` instance.
 
     :data:`key` is a :class:`~kivy.properties.StringProperty`, default to None.
     '''
 
     value = ObjectProperty(None)
-    '''Value of the token, according to the ConfigParser instance. Any change to
-    the value will trigger an `on_change` event on the panel.
+    '''Value of the token, according to the :class:`~kivy.config.ConfigParser`
+    instance. Any change to the value will trigger a
+    :meth:`Settings.on_config_change` event.
 
     :data:`value` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
@@ -247,13 +256,8 @@ class SettingItem(FloatLayout):
         if not self.section or not self.key:
             return
         # get current value in config
-        config = self.panel.config
-        if not config:
-            return
-        current = config.get(self.section, self.key)
-        if current != value:
-            config.set(self.section, self.key, str(value))
-            config.write()
+        panel = self.panel
+        panel.set_value(self.section, self.key, str(value))
 
 
 class SettingBoolean(SettingItem):
@@ -418,12 +422,24 @@ class SettingsPanel(GridLayout):
     '''
 
     config = ObjectProperty(None, allownone=True)
-    '''Instance to a ConfigParser object.
+    '''Instance to a :class:`kivy.config.ConfigParser` object.
+    '''
+
+    settings = ObjectProperty(None)
+    '''Instance to a :class:`Settings` object, that will be used to fire the
+    `on_config_change` event.
     '''
 
     def __init__(self, **kwargs):
         kwargs.setdefault('cols', 1)
         super(SettingsPanel, self).__init__(**kwargs)
+
+    def on_config(self, instance, value):
+        if value is None:
+            return
+        if not isinstance(value, ConfigParser):
+            raise Exception('Invalid config object, you must use a'
+                            'kivy.config.ConfigParser, not another one !')
 
     def get_value(self, section, key):
         '''Return the value of the section/key from the :data:`config`
@@ -438,12 +454,27 @@ class SettingsPanel(GridLayout):
             return
         return config.get(section, key)
 
+    def set_value(self, section, key, value):
+        current = self.get_value(section, key)
+        if current == value:
+            return
+        config = self.config
+        if config:
+            config.set(section, key, value)
+            config.write()
+        settings = self.settings
+        if settings:
+            settings.dispatch('on_config_change',
+                              config, section, key, value)
+
 
 class Settings(BoxLayout):
     '''Settings UI. Check documentation for more information about the usage of
     this class.
 
     :Events:
+        `on_config_change`: ConfigParser instance, section, key, value
+            Fired when a section/key/value of a ConfigParser have changed
         `on_close`
             Fired when the button Close have been hit.
     '''
@@ -474,6 +505,7 @@ class Settings(BoxLayout):
         self._panels = {}
         self._initialized = False
         self.register_event_type('on_close')
+        self.register_event_type('on_config_change')
         super(Settings, self).__init__(**kwargs)
         self.register_type('bool', SettingBoolean)
         self.register_type('numeric', SettingNumeric)
@@ -491,23 +523,31 @@ class Settings(BoxLayout):
     def on_close(self):
         pass
 
+    def on_config_change(self, config, section, key, value):
+        pass
+
     def register_type(self, tp, cls):
         '''Register a new type that can be used in the json definition.
         '''
         self._types[tp] = cls
 
-    def create_panel_from_json(self, title, config, filename):
+    def add_json_panel(self, title, config, filename=None, data=None):
         '''Create and add a new :class:`SettingsPanel` using the configuration
         `config`, with the JSON definition `filename`.
 
         Check the :ref:`settings_json` section in the documentation for more
         information about JSON format, and the usage of this function.
         '''
-        with open(filename, 'r') as fd:
-            data = json.loads(fd.read())
+        if filename is None and data is None:
+            raise Exception('You must specify at least on of filename or data')
+        if filename is not None:
+            with open(filename, 'r') as fd:
+                data = json.loads(fd.read())
+        else:
+            data = json.loads(data)
         if type(data) != list:
             raise ValueError('The first element must be a list')
-        panel = SettingsPanel(title=title, config=config)
+        panel = SettingsPanel(title=title, settings=self, config=config)
         self.add_widget(panel)
 
         for setting in data:
@@ -528,6 +568,16 @@ class Settings(BoxLayout):
             panel.add_widget(instance)
 
         return panel
+
+    def add_kivy_panel(self):
+        '''Add a panel for configuring Kivy. This panel act directly on the kivy
+        configuration. Feel free to include or exclude it in your configuration.
+        '''
+        from kivy import kivy_data_dir
+        from kivy.config import Config
+        from os.path import join
+        panel = self.add_json_panel('Kivy', Config,
+            join(kivy_data_dir, 'settings_kivy.json'))
 
     def add_widget(self, widget, index=0):
         if self._initialized:
@@ -578,19 +628,22 @@ class Settings(BoxLayout):
         self.selection.selected = True
         self.content.add_widget(panel)
 
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            super(Settings, self).on_touch_down(touch)
+            return True
+
 if __name__ == '__main__':
     from kivy.app import App
-    from kivy import kivy_data_dir
-    from os.path import join
-    from kivy.config import Config
 
     class SettingsApp(App):
 
         def build(self):
             s = Settings()
-            s.create_panel_from_json('Kivy', Config,
-                                     join(kivy_data_dir, 'settings_kivy.json'))
+            s.add_kivy_panel()
+            s.bind(on_close=self.stop)
             return s
+
     SettingsApp().run()
 
 
