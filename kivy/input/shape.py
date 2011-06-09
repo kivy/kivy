@@ -19,6 +19,10 @@ class ShapeRect(Shape):
 
     def __init__(self):
         super(ShapeRect, self).__init__()
+
+        #: Width fo the rect
         self.width = 0
+
+        #: Height of the rect
         self.height = 0
 
