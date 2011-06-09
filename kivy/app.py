@@ -65,7 +65,7 @@ is able to handle a INI file automatically. You add your section/key/value in
 the :meth:`App.build_config` method by using the `config` parameters (instance
 of :class:`~kivy.config.ConfigParser`::
 
-    class TestApp(self):
+    class TestApp(App):
         def build_config(self, config):
             config.setdefaults('section1', {
                 'key1': 'value1',
@@ -83,7 +83,7 @@ config filename "test.ini" with the content::
 The "test.ini" will be automatically loaded at runtime, and you can access to
 the configuration in your :meth:`App.build` method::
 
-    class TestApp(self):
+    class TestApp(App):
         def build_config(self, config):
             config.setdefaults('section1', {
                 'key1': 'value1',
@@ -94,7 +94,7 @@ the configuration in your :meth:`App.build` method::
             config = self.config
             return Label(text='key1 is %s and key2 is %d' % (
                 config.get('section1', 'key1'),
-                config.getint('section1', 'key2'))
+                config.getint('section1', 'key2')))
 
 Create a settings panel
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,7 +135,7 @@ could create a JSON like this::
 Then, we can create a panel using this JSON to create automatically all the
 options, and link them to our :data:`App.config` ConfigParser instance::
 
-    class TestApp(self):
+    class TestApp(App):
         # ...
         def build_settings(self, settings):
             jsondata = """... put the json data here ..."""
@@ -164,7 +164,7 @@ user, in order to adapt or reload your UI. You can overload the
 One last note, the Kivy configuration panel is added by default in the settings
 instance. If you don't want it, you can declare your Application like this::
 
-    class TestApp(self):
+    class TestApp(App):
         use_kivy_settings = False
         # ...
 
@@ -351,7 +351,7 @@ class App(EventDispatcher):
     def load_config(self):
         '''(internal) This function is used for returning a ConfigParser with
         the application configuration. It's doing 3 things:
-            
+
             #. Create an instance of a ConfigParser
             #. Load the default configuration by calling
                :meth:`build_config`, then
