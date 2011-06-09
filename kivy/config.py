@@ -141,16 +141,16 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted arguments.
 '''
 
-__all__ = ('Config', 'KivyConfigParser')
+__all__ = ('Config', 'ConfigParser')
 
 from shutil import copyfile
-from ConfigParser import ConfigParser
+from ConfigParser import ConfigParser as PythonConfigParser
 from sys import platform
 from os import environ, listdir
 from os.path import exists, join
 from kivy import kivy_home_dir, kivy_config_fn, kivy_data_dir
 from kivy.logger import Logger
-from kivy.utils import OrderedDict
+from kivy.utils import OrderedDict, QueryDict
 
 # Version number of current configuration format
 KIVY_CONFIG_VERSION = 3
@@ -159,14 +159,34 @@ KIVY_CONFIG_VERSION = 3
 Config = None
 
 
-class KivyConfigParser(ConfigParser):
+class ConfigParser(PythonConfigParser):
     '''Enhanced ConfigParser class, that support the possibility of add default
     sections and default values.
+
+    .. versionadded:: 1.0.7
     '''
 
     def __init__(self):
-        ConfigParser.__init__(self)
+        PythonConfigParser.__init__(self)
         self._sections = OrderedDict()
+        self.filename = None
+
+    def read(self, filename):
+        '''Read only one filename. In contrary of the original ConfigParser of
+        Python, this one is able to read only one file at time. The latest
+        readed file will be used for the :meth:`write` method.
+        '''
+        if type(filename) not in (str, unicode):
+            raise Exception('Only one filename is accepted (str or unicode)')
+        self.filename = filename
+        PythonConfigParser.read(self, filename)
+
+    def setdefaults(self, section, keyvalues):
+        '''Set lot of key/values in one section at the same time
+        '''
+        self.adddefaultsection(section)
+        for key, value in keyvalues.iteritems():
+            self.setdefault(section, key, value)
 
     def setdefault(self, section, option, value):
         '''Set the default value on a particular option
@@ -192,14 +212,21 @@ class KivyConfigParser(ConfigParser):
         self.add_section(section)
 
     def write(self):
-        '''Write the configuration to the default kivy file
+        '''Write the configuration to the latest opened file with :meth:`read`
+        method.
+
+        Return True if the write have succeded.
         '''
-        with open(kivy_config_fn, 'w') as fd:
-            fd.write('# Kivy configuration\n')
-            fd.write('# Check kivy.config documentation for more'
-                     'informations about theses sections and tokens.\n')
-            fd.write('\n')
-            ConfigParser.write(self, fd)
+        if self.filename is None:
+            return False
+        try:
+            with open(self.filename, 'w') as fd:
+                PythonConfigParser.write(self, fd)
+        except IOError:
+            Logger.exception('Unable to write the config <%s>' % self.filename)
+            return False
+        return True
+
 
 if not 'KIVY_DOC_INCLUDE' in environ:
 
@@ -209,7 +236,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     #
 
     # Create default configuration
-    Config = KivyConfigParser()
+    Config = ConfigParser()
 
     # Read config file if exist
     if exists(kivy_config_fn) and not 'KIVY_USE_DEFAULTCONFIG' in environ:
