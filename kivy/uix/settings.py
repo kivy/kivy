@@ -602,7 +602,7 @@ class Settings(BoxLayout):
         return self._panels[uid][0]
 
     def unselect(self):
-        '''Unselect the current selection if exist.'
+        '''Unselect the current selection if exist.
         '''
         if not self.selection:
             return
