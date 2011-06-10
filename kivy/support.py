@@ -42,11 +42,13 @@ def install_android():
         return
 
     from kivy.clock import Clock
+    import pygame
 
     print '==========+> Android install hooks'
 
     # Init the library
     android.init()
+    android.map_key(android.KEYCODE_MENU, pygame.K_MENU)
 
     # Check if android must be paused or not
     # If pause is asked, just leave the app.
