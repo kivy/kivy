@@ -177,7 +177,7 @@ if True:
 #extracts all examples files except sandbox
 data_file_prefix = 'share/kivy-'
 examples = {}
-examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg',
+examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg', 'json',
                         'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv')
 for root, subFolders, files in walk('examples'):
     if 'sandbox' in root:
@@ -233,6 +233,7 @@ setup(
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
         'data/*.kv',
+        'data/*.json',
         'data/fonts/*.ttf',
         'data/images/*.png',
         'data/images/*.jpg',
