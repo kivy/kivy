@@ -380,7 +380,7 @@
         active: bool(root.values.index(root.value)) if root.value in root.values else False
         on_active: root.value = root.values[int(args[1])]
 
-<SettingNumeric>:
+<SettingString>:
     Label:
         text: str(root.value)
         pos: root.pos

@@ -70,6 +70,7 @@ class:
     bool           :class:`SettingBoolean`
     numeric        :class:`SettingNumeric`
     options        :class:`SettingOptions`
+    string         :class:`SettingString`
     ============== =================================================
 
 That's mean, the first element is a type "title": it will create an instance of
@@ -282,9 +283,9 @@ class SettingBoolean(SettingItem):
     '''
 
 
-class SettingNumeric(SettingItem):
-    '''Implementation of a numeric setting in top of :class:`SettingItem`.
-    The numeric setting is showed in a Label, but when you click on it, a Popup
+class SettingString(SettingItem):
+    '''Implementation of a string setting in top of :class:`SettingItem`.
+    The string setting is showed in a Label, but when you click on it, a Popup
     window will open with a textinput, available to set a custom value.
     '''
 
@@ -311,9 +312,8 @@ class SettingNumeric(SettingItem):
     def _validate(self, instance):
         self.popup.dismiss()
         self.popup = None
-        try:
-            value = int(self.textinput.text)
-        except ValueError:
+        value = self.textinput.text.strip()
+        if value == '':
             return
         self.value = value
 
@@ -347,6 +347,22 @@ class SettingNumeric(SettingItem):
 
         # all done, open the popup !
         popup.open()
+
+
+class SettingNumeric(SettingString):
+    '''Implementation of a numeric setting in top of :class:`SettingString`.
+    The numeric setting is showed in a Label, but when you click on it, a Popup
+    window will open with a textinput, available to set a custom value.
+    '''
+
+    def _validate(self, instance):
+        self.popup.dismiss()
+        self.popup = None
+        try:
+            value = int(self.textinput.text)
+        except ValueError:
+            return
+        self.value = value
 
 
 class SettingOptions(SettingItem):
@@ -507,6 +523,7 @@ class Settings(BoxLayout):
         self.register_event_type('on_close')
         self.register_event_type('on_config_change')
         super(Settings, self).__init__(**kwargs)
+        self.register_type('string', SettingString)
         self.register_type('bool', SettingBoolean)
         self.register_type('numeric', SettingNumeric)
         self.register_type('options', SettingOptions)
