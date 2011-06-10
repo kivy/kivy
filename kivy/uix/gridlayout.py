@@ -250,9 +250,9 @@ class GridLayout(Layout):
 
         # update minimum size from the dicts
         # FIXME index might be outside the bounds ?
-        for index, value in self.cols_minimum.itervalues():
+        for index, value in self.cols_minimum.iteritems():
             cols[index] = value
-        for index, value in self.rows_minimum.itervalues():
+        for index, value in self.rows_minimum.iteritems():
             rows[index] = value
 
         # calculate minimum size for each columns and rows
@@ -327,7 +327,7 @@ class GridLayout(Layout):
         # resolve size for each column
         if self.col_force_default:
             cols = [self.col_default_width] * len(self._cols)
-            for index, value in self.cols_minimum.itervalues():
+            for index, value in self.cols_minimum.iteritems():
                 cols[index] = value
         else:
             cols = self._cols[:]
@@ -348,7 +348,7 @@ class GridLayout(Layout):
         # same algo for rows
         if self.row_force_default:
             rows = [self.row_default_height] * len(self._rows)
-            for index, value in self.rows_minimum.itervalues():
+            for index, value in self.rows_minimum.iteritems():
                 rows[index] = value
         else:
             rows = self._rows[:]
