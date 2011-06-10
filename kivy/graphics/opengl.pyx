@@ -443,6 +443,9 @@ IF USE_OPENGL_ES2:
     _GL_GET_SIZE[GL_NUM_SHADER_BINARY_FORMATS] = 1
     _GL_GET_SIZE[GL_SHADER_BINARY_FORMATS] = GL_NUM_SHADER_BINARY_FORMATS
 
+def gl_RegisterGetSize(int constid, int size):
+    _GL_GET_SIZE[constid] = size
+
 def glActiveTexture(GLenum texture):
     c_opengl.glActiveTexture(texture)
 
