@@ -61,6 +61,8 @@ class FloatLayout(Layout):
     def update_minimum_size(self, *largs):
         '''Calculates the minimum size of the layout.
         '''
+        self.minimum_size = (0, 0)
+        return
         width = height = 0
 
         for w in self.children:

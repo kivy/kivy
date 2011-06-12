@@ -650,8 +650,11 @@ cdef class AliasProperty(Property):
     """
 
     cpdef trigger_change(self, obj, value):
-        obj.__storage[self._name]['value'] = self.get(obj)
-        self.dispatch(obj)
+        cvalue = obj.__storage[self._name]['value']
+        dvalue = self.get(obj)
+        if cvalue != dvalue:
+            obj.__storage[self._name]['value'] = dvalue
+            self.dispatch(obj)
 
     cdef check(self, obj, value):
         return True

@@ -364,10 +364,11 @@ class ClockBase(object):
         events = self._events
         while found:
             count -= 1
-            if count < 0:
+            if count == -1:
                 Logger.critical('Clock: Warning, too much iteration done before'
-                                ' the next frame. Check your code, or increase '
-                                'the Clock.max_iteration attribute')
+                                ' the next frame. Check your code, or increase'
+                                ' the Clock.max_iteration attribute')
+                break
 
             # search event that have timeout = -1
             found = False
@@ -380,11 +381,6 @@ class ClockBase(object):
                         # event may be already removed by the callback
                         if event in events[cid]:
                             events[cid].remove(event)
-
-        if count != self.max_iteration - 1:
-            i = self.max_iteration - count + 1
-            if __debug__:
-                Logger.trace('Clock: we done %d iteration before the frame' % i)
 
 
 if 'KIVY_DOC_INCLUDE' in environ:
