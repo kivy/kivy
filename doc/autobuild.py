@@ -9,7 +9,6 @@ Be careful if you change anything in !
 ignore_list = (
     'kivy.factory_registers',
     'kivy.graphics.buffer',
-    'kivy.graphics.shader',
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
 )
@@ -34,6 +33,7 @@ import kivy.core.video
 import kivy.core.window
 import kivy.ext
 import kivy.graphics
+import kivy.graphics.shader
 import kivy.animation
 from kivy.factory import Factory
 

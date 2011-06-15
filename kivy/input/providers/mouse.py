@@ -27,6 +27,7 @@ from kivy.input.motionevent import MotionEvent
 # late binding
 Color = Ellipse = None
 
+
 class MouseMotionEvent(MotionEvent):
 
     def depack(self, args):
@@ -82,11 +83,21 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def start(self):
         '''Start the mouse provider'''
-        pass
+        if not EventLoop.window:
+            return
+        EventLoop.window.bind(
+            on_mouse_move=self.on_mouse_motion,
+            on_mouse_down=self.on_mouse_press,
+            on_mouse_up=self.on_mouse_release)
 
     def stop(self):
         '''Stop the mouse provider'''
-        pass
+        if not EventLoop.window:
+            return
+        EventLoop.window.unbind(
+            on_mouse_move=self.on_mouse_motion,
+            on_mouse_down=self.on_mouse_press,
+            on_mouse_up=self.on_mouse_release)
 
     def test_activity(self):
         if not self.disable_on_activity:
@@ -175,12 +186,6 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''
-        if not EventLoop.window:
-            return
-        EventLoop.window.bind(
-            on_mouse_move=self.on_mouse_motion,
-            on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release)
         try:
             while True:
                 event = self.waiting_event.popleft()
