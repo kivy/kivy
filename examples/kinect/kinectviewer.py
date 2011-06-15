@@ -4,14 +4,14 @@ from threading import Thread
 from collections import deque
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, StringProperty
 from kivy.graphics import RenderContext, Color, Rectangle
 from kivy.graphics.texture import Texture
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.uix.slider import Slider
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
+
 
 fragment_header = '''
 #ifdef GL_ES
@@ -27,23 +27,10 @@ uniform sampler2D texture0;
 
 /* custom input */
 uniform float depth_range;
+uniform vec2 size;
 '''
 
-rgb_kinect = fragment_header + '''
-void main (void) {
-    float value = texture2D(texture0, tex_coord0).r;
-    value = mod(value * depth_range, 1.);
-    vec3 col = vec3(0., 0., 0.);
-    if ( value <= 0.33 )
-        col.r = clamp(value, 0., 0.33) * 3.;
-    if ( value <= 0.66 )
-        col.g = clamp(value - 0.33, 0., 0.33) * 3.;
-    col.b = clamp(value - 0.66, 0., 0.33) * 3.;
-    gl_FragColor = vec4(col, 1.);
-}
-'''
-
-hsv_kinect = fragment_header + '''
+hsv_func = '''
 vec3 HSVtoRGB(vec3 color) {
     float f,p,q,t, hueRound;
     int hueIndex;
@@ -84,7 +71,69 @@ vec3 HSVtoRGB(vec3 color) {
     }
     return result;
 }
+'''
 
+rgb_kinect = fragment_header + '''
+void main (void) {
+    float value = texture2D(texture0, tex_coord0).r;
+    value = mod(value * depth_range, 1.);
+    vec3 col = vec3(0., 0., 0.);
+    if ( value <= 0.33 )
+        col.r = clamp(value, 0., 0.33) * 3.;
+    if ( value <= 0.66 )
+        col.g = clamp(value - 0.33, 0., 0.33) * 3.;
+    col.b = clamp(value - 0.66, 0., 0.33) * 3.;
+    gl_FragColor = vec4(col, 1.);
+}
+'''
+
+points_kinect = fragment_header + hsv_func + '''
+void main (void) {
+    // threshold used to reduce the depth (better result)
+    const int th = 5;
+
+    // size of a square
+    int square = floor(depth_range);
+
+    // number of square on the display
+    vec2 count = size / square;
+
+    // current position of the square
+    vec2 pos = floor(tex_coord0.xy * count) / count;
+
+    // texture step to pass to another square
+    vec2 step = 1 / count;
+
+    // texture step to pass to another pixel
+    vec2 pxstep = 1 / size;
+
+    // center of the square
+    vec2 center = pos + step / 2.;
+
+    // calculate average of every pixels in the square
+    float s = 0, x, y;
+    for (x = 0; x < square; x++) {
+        for (y = 0; y < square; y++) {
+            s += texture2D(texture0, pos + pxstep * vec2(x,y)).r;
+        }
+    }
+    float v = s / (square * square);
+
+    // threshold the value
+    float dr = th / 10.;
+    v = min(v, dr) / dr;
+
+    // calculate the distance between the center of the square and current pixel
+    // display the pixel only if the distance is inside the circle
+    float vdist = length(abs(tex_coord0 - center) * size / square);
+    float value = 1 - v;
+    if ( vdist < value ) {
+        vec3 col = HSVtoRGB(vec3(value, 1., 1.));
+        gl_FragColor = vec4(col, 1);
+    }
+}
+'''
+hsv_kinect = fragment_header + hsv_func + '''
 void main (void) {
     float value = texture2D(texture0, tex_coord0).r;
     value = mod(value * depth_range, 1.);
@@ -118,7 +167,9 @@ class KinectDepth(Thread):
 
 class KinectViewer(Widget):
 
-    depth_range = NumericProperty(1.)
+    depth_range = NumericProperty(7.7)
+
+    shader = StringProperty("rgb")
 
     index = NumericProperty(0)
 
@@ -150,10 +201,19 @@ class KinectViewer(Widget):
     def on_index(self, instance, value):
         self.kinect.index = value
 
+    def on_shader(self, instance, value):
+        if value == 'rgb':
+            self.canvas.shader.fs = rgb_kinect
+        elif value == 'hsv':
+            self.canvas.shader.fs = hsv_kinect
+        elif value == 'points':
+            self.canvas.shader.fs = points_kinect
+
     def update_transformation(self, *largs):
         # update projection mat and uvsize
         self.canvas['projection_mat'] = Window.render_context['projection_mat']
         self.canvas['depth_range'] = self.depth_range
+        self.canvas['size'] = map(float, self.size)
         try:
             value = self.kinect.pop()
         except:
@@ -170,13 +230,14 @@ class KinectViewerApp(App):
         root = BoxLayout(orientation='vertical')
 
         self.viewer = viewer = KinectViewer(
-            index=self.config.getint('kinect', 'index'))
+            index=self.config.getint('kinect', 'index'),
+            shader=self.config.get('shader', 'theme'))
         root.add_widget(viewer)
 
         toolbar = BoxLayout(size_hint=(1, None), height=50)
         root.add_widget(toolbar)
 
-        slider = Slider(min=1., max=10., value=1.)
+        slider = Slider(min=1., max=32., value=1.)
 
         def update_depth_range(instance, value):
             viewer.depth_range = value
@@ -202,7 +263,7 @@ class KinectViewerApp(App):
             { "type": "options", "title": "Theme",
               "desc": "Shader to use for a specific visualization",
               "section": "shader", "key": "theme",
-              "options": ["rgb", "hsv"]}
+              "options": ["rgb", "hsv", "points"]}
         ]''')
 
     def on_config_change(self, config, section, key, value):
@@ -215,7 +276,7 @@ class KinectViewerApp(App):
             if value == 'rgb':
                 self.viewer.canvas.shader.fs = rgb_kinect
             elif value == 'hsv':
-                self.viewer.canvas.shader.fs = hsv_kinect
+                self.viewer.shader = value
 
 if __name__ == '__main__':
     KinectViewerApp().run()
