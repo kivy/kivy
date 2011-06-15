@@ -95,9 +95,9 @@ cdef class Shader:
     '''Create a vertex or fragment shader
 
     :Parameters:
-        `vs` : string
+        `vs`: string, default to None
             source code for vertex shader
-        `fs` : string
+        `fs`: string, default to None
             source code for fragment shader
     '''
     def __cinit__(self):
@@ -299,6 +299,11 @@ cdef class Shader:
     #
 
     property vs:
+        '''Vertex shader source code.
+
+        If you set a new vertex shader source code, it will be automatically
+        compiled and replace the current one.
+        '''
         def __get__(self):
             return self.vert_src
         def __set__(self, object source):
@@ -308,6 +313,11 @@ cdef class Shader:
             self.build_vertex()
 
     property fs:
+        '''Fragment shader source code.
+
+        If you set a new fragment shader source code, it will be automatically
+        compiled and replace the current one.
+        '''
         def __get__(self):
             return self.frag_src
         def __set__(self, object source):
@@ -317,5 +327,7 @@ cdef class Shader:
             self.build_fragment()
 
     property success:
+        '''Indicate if shader is ok for usage or not.
+        '''
         def __get__(self):
             return self._success
