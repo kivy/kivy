@@ -199,10 +199,11 @@ class ScrollView(StencilView):
         return True
 
     def on_touch_move(self, touch):
+        if self._touch is not touch:
+            super(ScrollView, self).on_touch_move(touch)
+            return self._get_uid() in touch.ud
         if touch.grab_current is not self:
-            if self._touch is not touch:
-                return super(ScrollView, self).on_touch_move(touch)
-            return
+            return True
         uid = self._get_uid()
         mode = touch.ud[uid]['mode']
 
@@ -233,6 +234,8 @@ class ScrollView(StencilView):
             if self.do_scroll_y:
                 self.scroll_y = touch.ud[uid]['sy'] + sy
 
+        return True
+
     def on_touch_up(self, touch):
         # Warning: usually, we are checking if grab_current is ourself first. On
         # this case, we might need to call on_touch_down. If we call it inside
@@ -251,8 +254,8 @@ class ScrollView(StencilView):
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
         else:
             if self._touch is not touch:
-                return super(ScrollView, self).on_touch_up(touch)
-            return
+                super(ScrollView, self).on_touch_up(touch)
+        return self._get_uid() in touch.ud
 
 
 
