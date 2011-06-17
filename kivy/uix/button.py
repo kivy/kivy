@@ -102,8 +102,9 @@ class Button(Label):
         return self in touch.ud
 
     def on_touch_up(self, touch):
-        if not self in touch.ud:
-            return False
+        if touch.grab_current is not self:
+            return
+        assert(self in touch.ud)
         touch.ungrab(self)
         self._do_release()
         self.dispatch('on_release')
