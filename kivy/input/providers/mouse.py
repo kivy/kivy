@@ -136,6 +136,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         if cur.id not in self.touches:
             return
         del self.touches[cur.id]
+        cur.update_time_end()
         self.waiting_event.append(('end', cur))
         cur.clear_graphics(EventLoop.window)
 

@@ -68,7 +68,6 @@ from functools import partial
 from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty
-from kivy.vector import Vector
 
 
 class ScrollView(StencilView):
@@ -78,6 +77,7 @@ class ScrollView(StencilView):
     def __init__(self, **kwargs):
         self._viewport = None
         self._touch = False
+        self._tdx = self._tdy = self._ts = self._tsn = 0
         super(ScrollView, self).__init__(**kwargs)
         self.bind(scroll_x=self.update_from_scroll,
                   scroll_y=self.update_from_scroll,
@@ -183,6 +183,60 @@ class ScrollView(StencilView):
     def _do_touch_up(self, touch, *largs):
         super(ScrollView, self).on_touch_up(touch)
 
+    def _do_animation(self, touch):
+        uid = self._get_uid()
+        ud = touch.ud[uid]
+        dt = touch.time_end - ud['time']
+        if dt > self.scroll_timeout / 1000.:
+            self._tdx = self._tdy = self._ts = 0
+            return
+        dt = ud['dt']
+        dx = touch.dx
+        dy = touch.dy
+        '''
+        if dx < self.scroll_distance and dy < self.scroll_distance:
+            self._ts = 0
+            return
+        '''
+        self._sx = ud['sx']
+        self._sy = ud['sy']
+        self._tdx = dx / dt
+        self._tdy = dy / dt
+        self._ts = self._tsn = touch.time_update
+        Clock.unschedule(self._update_animation)
+        Clock.schedule_interval(self._update_animation, 0)
+
+    def _update_animation(self, dt):
+        if self._touch is not None or self._ts == 0:
+            return False
+        self._tsn += dt
+        global_dt = self._tsn - self._ts
+        divider = 2 ** (global_dt * 6)
+        dx = self._tdx / divider
+        dy = self._tdy / divider
+        test_dx = abs(dx) < 10
+        test_dy = abs(dy) < 10
+        if (self.do_scroll_x and not self.do_scroll_y and test_dx) or\
+           (self.do_scroll_y and not self.do_scroll_x and test_dy) or\
+           (self.do_scroll_x and self.do_scroll_y and test_dx and test_dy):
+            self._ts = 0
+            return False
+        dx *= dt
+        dy *= dt
+        '''
+        print 'move by %.3f %.3f | dt=%.3f, divider=%.3f, tdXY=(%.3f, %.3f)' % (
+            dx, dy, global_dt, divider, self._tdx, self._tdy)
+        '''
+        sx, sy = self.convert_distance_to_scroll(dx, dy)
+        ssx = self.scroll_x
+        ssy = self.scroll_y
+        if self.do_scroll_x:
+            self.scroll_x -= sx
+        if self.do_scroll_y:
+            self.scroll_y -= sy
+        if ssx == self.scroll_x and ssy == self.scroll_y:
+            return False
+
     def on_touch_down(self, touch):
         if self._touch:
             return super(ScrollView, self).on_touch_down(touch)
@@ -191,10 +245,12 @@ class ScrollView(StencilView):
         self._touch = touch
         uid = self._get_uid()
         touch.grab(self)
-        touch.ud[uid] = {}
-        touch.ud[uid]['mode'] = 'unknown'
-        touch.ud[uid]['sx'] = self.scroll_x
-        touch.ud[uid]['sy'] = self.scroll_y
+        touch.ud[uid] = {
+            'mode': 'unknown',
+            'sx': self.scroll_x,
+            'sy': self.scroll_y,
+            'dt': None,
+            'time': touch.time_start}
         Clock.schedule_once(self._change_touch_mode, self.scroll_timeout/1000.)
         return True
 
@@ -205,7 +261,8 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return True
         uid = self._get_uid()
-        mode = touch.ud[uid]['mode']
+        ud = touch.ud[uid]
+        mode = ud['mode']
 
         # seperate the distance to both X and Y axis.
         # if a distance is reach, but on the inverse axis, stop scroll mode !
@@ -225,14 +282,16 @@ class ScrollView(StencilView):
                 mode = 'scroll'
 
         if mode == 'scroll':
-            touch.ud[uid]['mode'] = mode
+            ud['mode'] = mode
             dx = touch.ox - touch.x
             dy = touch.oy - touch.y
             sx, sy = self.convert_distance_to_scroll(dx, dy)
             if self.do_scroll_x:
-                self.scroll_x = touch.ud[uid]['sx'] + sx
+                self.scroll_x = ud['sx'] + sx
             if self.do_scroll_y:
-                self.scroll_y = touch.ud[uid]['sy'] + sy
+                self.scroll_y = ud['sy'] + sy
+            ud['dt'] = touch.time_update - ud['time']
+            ud['time'] = touch.time_update
 
         return True
 
@@ -252,6 +311,8 @@ class ScrollView(StencilView):
                 # we must do the click at least..
                 super(ScrollView, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+            else:
+                self._do_animation(touch)
         else:
             if self._touch is not touch:
                 super(ScrollView, self).on_touch_up(touch)
