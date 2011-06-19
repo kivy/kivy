@@ -193,15 +193,12 @@ class ScrollView(StencilView):
         dt = ud['dt']
         dx = touch.dx
         dy = touch.dy
-        '''
-        if dx < self.scroll_distance and dy < self.scroll_distance:
-            self._ts = 0
-            return
-        '''
         self._sx = ud['sx']
         self._sy = ud['sy']
-        self._tdx = dx / dt
-        self._tdy = dy / dt
+        self._tdx = dx = dx / dt
+        self._tdy = dy = dy / dt
+        if abs(dx) < 10 and abs(dy) < 10:
+            return
         self._ts = self._tsn = touch.time_update
         Clock.unschedule(self._update_animation)
         Clock.schedule_interval(self._update_animation, 0)
@@ -211,7 +208,7 @@ class ScrollView(StencilView):
             return False
         self._tsn += dt
         global_dt = self._tsn - self._ts
-        divider = 2 ** (global_dt * 6)
+        divider = 2 ** (global_dt * self.scroll_friction)
         dx = self._tdx / divider
         dy = self._tdy / divider
         test_dx = abs(dx) < 10
@@ -311,7 +308,7 @@ class ScrollView(StencilView):
                 # we must do the click at least..
                 super(ScrollView, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
-            else:
+            elif self.auto_scroll:
                 self._do_animation(touch)
         else:
             if self._touch is not touch:
@@ -323,6 +320,34 @@ class ScrollView(StencilView):
     #
     # Properties
     #
+    auto_scroll = BooleanProperty(True)
+    '''Automatic scrolling is the movement activated after a swipe. When you
+    release a touch, it will start to move the list, according to the lastest
+    touch movement.
+    If you don't want that behavior, just set the auto_scroll to False.
+
+    :data:`auto_scroll` is a :class:`~kivy.properties.BooleanProperty`, default
+    to True
+    '''
+
+    scroll_friction = NumericProperty(1.)
+    '''Friction is a factor for reducing the scrolling when the list is not
+    moved by a touch. When you do a swipe, the movement speed is calculated, and
+    is used to move automatically the list when you touch up. The speed is
+    reducing from this equation::
+        
+        2 ^ (t * f)
+        # t is the time from the touch up
+        # f is the friction
+
+    By default, the friction factor is 1, it will reduce the speed by a factor
+    or 2 each seconds. If you set the friction to 0, the list speed will never
+    stop. If you set to a bigger value, the list movement will stop faster.
+
+    :data:`scroll_friction` is a :class:`~kivy.properties.NumericProperty`,
+    default to 1.
+    '''
+
     scroll_distance = NumericProperty(20)
     '''Distance to move before scrolling the :class:`ScrollView`, in pixels. As
     soon as the distance have been traveled, the :class:`ScrollView` will start
