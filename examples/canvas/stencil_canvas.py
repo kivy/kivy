@@ -1,10 +1,22 @@
-from kivy.uix.button import Button
-from kivy.uix.stencilview import StencilView
-from kivy.uix.label import Label
-from kivy.uix.boxlayout import BoxLayout
+'''
+Stencil demo
+============
+
+This is a test of the stencil graphics instruction inside the stencil view
+widget. When you use a stencil, every draw outside the bounding box of the
+stencil view will be avoid. All the graphics will draw only in the stencil view.
+
+You can "draw" a stencil view by touch & draw. The touch down will set the
+position, and the drag will set the size.
+'''
+
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.graphics import Color, Rectangle
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.stencilview import StencilView
 from random import random as r
 from functools import partial
 
