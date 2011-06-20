@@ -19,6 +19,9 @@ except:
 
 
 class WindowSDL(WindowBase):
+    def __init__(self, **kwargs):
+        super(WindowSDL, self).__init__(**kwargs)
+        self._mousedown = False
 
     def create_window(self):
         params = self.params
@@ -152,7 +155,7 @@ class WindowSDL(WindowBase):
                 self.close()
                 break
 
-            if action == 'mousemotion':
+            if action == 'mousemotion' and self._mousedown:
                 x, y = args
                 self.dispatch('on_mouse_move', x, y, self.modifiers)
 
@@ -166,6 +169,7 @@ class WindowSDL(WindowBase):
                 eventname = 'on_mouse_down'
                 if action == 'mousebuttonup':
                     eventname = 'on_mouse_up'
+                self._mousedown = not self._mousedown
                 self.dispatch(eventname, x, y, btn, self.modifiers)
 
             # video resize
