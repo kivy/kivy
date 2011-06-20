@@ -8,6 +8,7 @@ Programming Guide
     guide/architecture
     guide/firstwidget
     guide/widgettree
+    guide/events
     guide/designwithkv
     guide/platform
 
