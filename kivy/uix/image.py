@@ -153,7 +153,7 @@ class Image(Widget):
                   mipmap=self.texture_update)
         self.texture_update()
 
-    def texture_update(self):
+    def texture_update(self, *largs):
         if not self.source:
             self.texture = None
         else:
