@@ -45,11 +45,10 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                '_texture_rectangle', '_texture_mipmap')
+                '_mipmap')
 
     def __init__(self, filename, **kwargs):
-        self._texture_rectangle = kwargs.get('texture_rectangle', True)
-        self._texture_mipmap = kwargs.get('texture_mipmap', False)
+        self._mipmap = kwargs.get('mipmap', False)
         self.keep_data = kwargs.get('keep_data', False)
         self.filename = filename
         self._texture = None
@@ -85,8 +84,7 @@ class ImageLoaderBase(object):
             if self._data is None:
                 return None
             self._texture = Texture.create_from_data(
-                self._data, rectangle=self._texture_rectangle,
-                mipmap=self._texture_mipmap)
+                self._data, mipmap=self._mipmap)
             if not self.keep_data:
                 self._data.release_data()
         return self._texture
@@ -118,6 +116,10 @@ class ImageLoader(object):
 class Image(EventDispatcher):
     '''Load an image, and store the size and texture.
 
+    .. versionadded::
+        In 1.0.7, mipmap attribute have been added, texture_mipmap and
+        texture_rectangle have been deleted.
+
     :Parameters:
         `arg` : can be str or Texture or Image object
             A string is interpreted as a path to the image to be loaded.
@@ -130,23 +132,19 @@ class Image(EventDispatcher):
             Opacity of the image
         `scale` : float, default to 1.0
             Scale of the image
-        `texture_rectangle` : bool, default to True
-            Use rectangle texture is available (if false, will use the nearest
-            power of 2 size for texture)
-        `texture_mipmap` : bool, default to False
+        `mipmap` : bool, default to False
             Create mipmap for the texture
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
-                       '_texture_rectangle', '_texture_mipmap')
+                       '_mipmap')
 
     def __init__(self, arg, **kwargs):
         kwargs.setdefault('keep_data', False)
 
         super(Image, self).__init__()
 
-        self._texture_rectangle = kwargs.get('texture_rectangle', True)
-        self._texture_mipmap = kwargs.get('texture_mipmap', False)
+        self._mipmap = kwargs.get('mipmap', False)
         self._keep_data = kwargs.get('keep_data')
         self._size = [0, 0]
         self._image = None
@@ -202,8 +200,7 @@ class Image(EventDispatcher):
         self._filename = value
         self.image = ImageLoader.load(
                 self._filename, keep_data=self._keep_data,
-                texture_rectangle=self._texture_rectangle,
-                texture_mipmap=self._texture_mipmap)
+                mipmap=self._mipmap)
 
     filename = property(_get_filename, _set_filename,
             doc='Get/set the filename of image')

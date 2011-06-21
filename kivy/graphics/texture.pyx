@@ -116,6 +116,34 @@ original texture with custom texture coordinates::
     topleft = texture.get_region(0, 64, 64, 64)
     topright = texture.get_region(64, 64, 64, 64)
 
+
+.. _mipmap:
+
+Mipmapping
+----------
+
+.. versionadded:: 1.0.7
+
+Mipmapping is an OpenGL technique for enhancing the rendering of large texture
+to small surface. Without mipmapping, you might seen pixels when you are
+rendering to small surface.
+The idea is to precalculate subtexture and apply some image filter, as linear
+filter. Then, when you rendering a small surface, instead of using the biggest
+texture, it will use a lower filtered texture. The result can look better with
+that way.
+
+To make that happen, you need to specify mipmap=True when you're creating a
+texture. Some widget already give you the possibility to create mipmapped
+texture like :class:`~kivy.uix.label.Label` or :class:`~kivy.uix.image.Image`.
+
+From the OpenGL Wiki : "So a 64x16 2D texture can have 5 mip-maps: 32x8, 16x4,
+8x2, 4x1, 2x1, and 1x1". Check http://www.opengl.org/wiki/Texture for more
+informations.
+
+.. note:: As the table in previous section said, if your texture is NPOT,
+we are actually creating the nearest POT texture and generate mipmap on it. This
+might change in the future.
+
 '''
 
 __all__ = ('Texture', 'TextureRegion')
@@ -342,44 +370,21 @@ cdef inline void _gl_prepare_pixels_upload(int width) nogil:
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
 
-cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
-                     rectangle, int mipmap, int allocate):
+cdef _texture_create(int width, int height, str colorfmt, str bufferfmt,
+                     int mipmap, int allocate):
     cdef GLuint target = GL_TEXTURE_2D
     cdef int texture_width, texture_height
     cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
-    cdef int npot_support = has_npot_support()
+    cdef int make_npot = 0
 
-    if rectangle:
-        rectangle = 0
-        if not _is_pow2(width) or not _is_pow2(height):
-            # Adapt this part to make it work.
-            # It cannot work for OpenGL ES 2.0,
-            # but for standard computer, we can gain lot of memory
-            '''
-            try:
-                if Texture._has_texture_nv is None:
-                    Texture._has_texture_nv = glInitTextureRectangleNV()
-                if Texture._has_texture_nv:
-                    target = GL_TEXTURE_RECTANGLE_NV
-                    rectangle = 1
-            except Exception:
-                pass
+    # check if it's a pot or not
+    if not _is_pow2(width) or not _is_pow2(height):
+        make_npot = 1
+    # in case of mipmap is asked for npot texture, make it pot compatible
+    if mipmap:
+        make_npot = 0
 
-            try:
-                if Texture._has_texture_arb is None:
-                    Texture._has_texture_arb = glInitTextureRectangleARB()
-                if not rectangle and Texture._has_texture_arb:
-                    target = GL_TEXTURE_RECTANGLE_ARB
-                    rectangle = 1
-            except Exception:
-                pass
-            '''
-
-            # Can't do mipmap with rectangle texture
-            if rectangle:
-                mipmap = 0
-
-    if rectangle or npot_support:
+    if make_npot and has_npot_support():
         texture_width = width
         texture_height = height
     else:
@@ -442,16 +447,12 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt, int
             raise Exception('Unable to allocate memory for texture (size is %s)' %
                             datasize)
 
-    if rectangle:
-        texture.uvsize = (width, height)
-
-
     if texture_width == width and texture_height == height:
         return texture
 
     return texture.get_region(0, 0, width, height)
 
-def texture_create(size=None, colorfmt=None, bufferfmt=None, rectangle=False, mipmap=False):
+def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
     '''Create a texture based on size.
 
     :Parameters:
@@ -463,11 +464,6 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, rectangle=False, mi
         `bufferfmt': str, default to 'ubyte'
             Internal buffer format of the texture. Can be 'ubyte', 'ushort',
             'uint', 'bute', 'short', 'int', 'float'
-        `rectangle`: bool, default to False
-            If True, it will use special opengl command for creating a rectangle
-            texture. It's not available on OpenGL ES, but can be used for
-            desktop. If we are on OpenGL ES platform, this parameter will be
-            ignored.
         `mipmap`: bool, default to False
             If True, it will automatically generate mipmap texture.
     '''
@@ -480,11 +476,10 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, rectangle=False, mi
         colorfmt = 'rgba'
     if bufferfmt is None:
         bufferfmt = 'ubyte'
-    return _texture_create(width, height, colorfmt, bufferfmt, rectangle,
-                           mipmap, 1)
+    return _texture_create(width, height, colorfmt, bufferfmt, mipmap, 1)
 
 
-def texture_create_from_data(im, rectangle=True, mipmap=False):
+def texture_create_from_data(im, mipmap=False):
     '''Create a texture from an ImageData class'''
 
     cdef int width = im.width
@@ -496,8 +491,7 @@ def texture_create_from_data(im, rectangle=True, mipmap=False):
     if _is_pow2(width) and _is_pow2(height):
         allocate = 0
 
-    texture = _texture_create(width, height, im.fmt, 'ubyte',
-                             rectangle, mipmap, allocate)
+    texture = _texture_create(width, height, im.fmt, 'ubyte', mipmap, allocate)
     if texture is None:
         return None
 
@@ -513,7 +507,8 @@ cdef class Texture:
     create_from_data = staticmethod(texture_create_from_data)
 
 
-    def __init__(self, width, height, target, texid, colorfmt='rgb', mipmap=False, rectangle=False):
+    def __init__(self, width, height, target, texid, colorfmt='rgb',
+                 mipmap=False):
         self._width         = width
         self._height        = height
         self._target        = target
@@ -527,7 +522,6 @@ cdef class Texture:
         self._uvy           = 0.
         self._uvw           = 1.
         self._uvh           = 1.
-        self._rectangle     = rectangle
         self._colorfmt      = colorfmt
         self.update_tex_coords()
 
@@ -544,11 +538,6 @@ cdef class Texture:
         '''Return True if the texture have mipmap enabled (readonly)'''
         def __get__(self):
             return self._mipmap
-
-    property rectangle:
-        '''Return True if the texture is a rectangle texture (readonly)'''
-        def __get__(self):
-            return self._rectangle
 
     property id:
         '''Return the OpenGL ID of the texture (readonly)'''
@@ -768,9 +757,11 @@ cdef class Texture:
                 glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
             else:
                 glTexImage2D(target, 0, glfmt, w, h, 0, glfmt, glbufferfmt, cdata)
-                # disable the flush call. it was used for a bug in ati, but i'm
-                # not sure at 100%. :) (mathieu)
-                #glFlush()
+            if self._mipmap:
+                glGenerateMipmap(target)
+            # disable the flush call. it was used for a bug in ati, but i'm
+            # not sure at 100%. :) (mathieu)
+            #glFlush()
 
     property size:
         def __get__(self):
@@ -791,6 +782,7 @@ cdef class TextureRegion(Texture):
     def __init__(self, int x, int y, int width, int height, Texture origin):
         Texture.__init__(self, width, height, origin.target, origin.id)
         self._is_allocated = 1
+        self._mipmap = origin._mipmap
         self.x = x
         self.y = y
         self.owner = origin
@@ -806,6 +798,10 @@ cdef class TextureRegion(Texture):
         self._uvw = (width / <float>origin._width) * origin._uvw
         self._uvh = (height / <float>origin._height) * origin._uvh
         self.update_tex_coords()
+
+    def __str__(self):
+        return '<TextureRegion id=%d size=(%d, %d)>' % (
+            self._id, self.width, self.height)
 
 # Releasing texture through GC is problematic
 # GC can happen in a middle of glBegin/glEnd
