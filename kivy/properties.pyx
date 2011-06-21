@@ -144,7 +144,7 @@ cdef class Property:
         '''
         observers = obj.__storage[self._name]['observers']
         for obj in observers[:]:
-            if observer in observers:
+            if obj is observer:
                 observers.remove(obj)
 
     def __set__(self, obj, val):
@@ -202,8 +202,9 @@ cdef class Property:
     cdef dispatch(self, obj):
         '''Dispatch the value change to all observers
         '''
-        observers = obj.__storage[self._name]['observers']
-        value = obj.__storage[self._name]['value']
+        cdef dict storage = obj.__storage[self._name]
+        observers = storage['observers']
+        value = storage['value']
         for observer in observers:
             observer(obj, value)
 
