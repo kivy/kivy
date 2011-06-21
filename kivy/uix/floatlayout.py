@@ -82,6 +82,9 @@ class FloatLayout(Layout):
         self.minimum_size = (width, height)
 
     def _do_layout(self, *largs):
+        # optimization, until the size is 1, 1, don't do layout
+        if self.size == [1, 1]:
+            return
         # optimize layout by preventing looking at the same attribute in a loop
         w, h = self.size
         x, y = self.pos
