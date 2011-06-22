@@ -92,6 +92,9 @@ class Video(Image):
         self._video = None
         super(Video, self).__init__(**kwargs)
 
+    def texture_update(self, *largs):
+        pass
+
     def on_source(self, instance, value):
         self._trigger_video_load()
 
