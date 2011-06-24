@@ -78,6 +78,30 @@ The -1 is mostly used when you are already is a scheduled event, and if you
 want to schedule a call BEFORE the next frame is happening.
 
 
+Trigger events
+~~~~~~~~~~~~~~
+
+If you want to have schedule a call only "one time" for the next frame, the
+trigger events is for you. Before, triggering can be achieve with::
+
+    Clock.unschedule(my_callback)
+    Clock.schedule_once(my_callback, 0)
+
+That way of doing trigger is expensive, because you'll always call unschedule
+whatever if the event is already scheduled or not. In addition, it need to
+iterate into the weakref list of the Clock to found your callback, and remove
+it. Don't do that. Use trigger::
+
+    trigger = Clock.create_trigger(my_callback)
+    # later
+    trigger()
+
+Each time you'll call trigger, it will schedule a call of your callback, only
+one. If the schedule was already done, it will be ignored.
+
+
+
+
 Widget events
 -------------
 
