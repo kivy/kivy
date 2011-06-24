@@ -191,6 +191,9 @@ class ScrollView(StencilView):
             self._tdx = self._tdy = self._ts = 0
             return
         dt = ud['dt']
+        if dt == 0:
+            self._tdx = self._tdy = self._ts = 0
+            return
         dx = touch.dx
         dy = touch.dy
         self._sx = ud['sx']
