@@ -5,6 +5,7 @@ Programming Guide
     :maxdepth: 2
 
     guide/quickstart
+    guide/readingdoc
     guide/architecture
     guide/firstwidget
     guide/widgettree
