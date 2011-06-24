@@ -1,4 +1,6 @@
 '''
+.. _motionevent:
+
 Motion Event
 ============
 

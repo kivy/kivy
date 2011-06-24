@@ -10,6 +10,7 @@ Programming Guide
     guide/firstwidget
     guide/widgettree
     guide/events
+    guide/inputs
     guide/designwithkv
     guide/platform
 
