@@ -135,3 +135,82 @@ implementation::
 
         # return the result (depending what you want.)
         return ret
+
+
+Touch shapes
+~~~~~~~~~~~~
+
+If the touch have a shape, it will be reflected in the 'shape' property. Right now, only a :class:`~kivy.input.shape.ShapeRect` could be exposed::
+
+    from kivy.input.shape import ShapeRect
+
+    def on_touch_move(self, touch):
+        if isinstance(touch.shape, ShapeRect):
+            print 'My touch have a rectangle shape of size', \
+                (touch.shape.width, touch.shape.height)
+        # ...
+
+Double tap
+~~~~~~~~~~
+
+The double tap is the action of tapping twice in within a time and a distance.
+It's calculated by the doubletap post-processing module. You can test if the
+current touch is one of a double tap or not::
+
+    def on_touch_down(self, touch):
+        if touch.is_double_tap:
+            print 'Touch is a double tap !'
+            print ' - interval is', touch.double_tap_time
+            print ' - distance between previous is', touch.double_tap_distance
+        # ...
+
+
+Grabbing touches
+~~~~~~~~~~~~~~~~
+
+It can happen that your parent dispatch to you a touch in on_touch_down but not
+in on_touch_move and on_touch_up. They might have severals reasons, like the
+touch movement is outside the bounding box of your parent, and the parent think
+that you don't need to know about it.
+
+But you might want to do an action when the touch is going up. If you have
+started something at the down event, like playing a sound, how can you do to
+have the touch up ? Grabbing is made for that.
+
+When you grab a touch, you will always receive the move and up event. But they are some limitations to that:
+
+    - You will receive the event at least twice: one time from your parent (the
+      normal thing), and one time by the window (grab).
+    - You might receive an event with a grab touch, but not from you: it can be
+      because the parent have sent the touch to the children, while it was in
+      grabbed state.
+    - The touch coordinate is not translated to your widget space. BBecause the
+      touch is coming directly from the Window. It's your job to convert the
+      coordinate to your local space.
+
+Here is an example about how to use it::
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+
+            # if the touch is colliding to our widget, let's grab it.
+            touch.grab(self)
+
+            # and accept the touch.
+            return True
+
+    def on_touch_up(self, touch):
+        # here, you don't check if the touch is colliding or things like that.
+        # you just need to check if it's a grabbed touch event
+        if touch.grab_current is self:
+
+            # ok, the current touch is dispatched for us.
+            # do something interesting here
+            print 'Hello world!'
+
+            # don't forget to ungrab ourself, or you might have counter effects
+            touch.ungrab(self)
+
+            # and accept the last up
+            return True
+
