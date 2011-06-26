@@ -4,6 +4,7 @@ from os.path import join, dirname, realpath, sep, exists
 from os import walk, environ
 from distutils.core import setup
 from distutils.extension import Extension
+from subprocess import call
 
 try:
     # check for cython
@@ -102,6 +103,7 @@ cmdclass['build_ext'] = KivyBuildExt
 ext_modules = []
 
 # list all files to compile
+objc_files = []
 pyx_files = []
 pxd_files = []
 kivy_libs_dir = realpath(join(kivy.kivy_base_dir, 'libs'))
@@ -113,6 +115,10 @@ for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
         pxd_files.append(join(root, filename))
     for filename in fnfilter(filenames, '*.pyx'):
         pyx_files.append(join(root, filename))
+    if platform == 'darwin':
+        # Otherwise, ignore these
+        for filename in fnfilter(filenames, '*.m'):
+            objc_files.append(join(root, filename))
 
 # add cython core extension modules if cython is available
 
@@ -175,6 +181,30 @@ if True:
     pxd_core = [x for x in pxd_files if not 'graphics' in x]
     pxd_graphics = [x for x in pxd_files if 'graphics' in x]
 
+    framework_links = {'appletext': ('Foundation', 'Cocoa')}
+    for objc in objc_files:
+        out = objc.replace(".m", ".o")
+        fn = objc.split(sep)[-1].replace(".m", "")
+        frameworks = [fw for fw in framework_links[fn]]
+        f = []
+        for fw in frameworks:
+            # We must not pass "-framework Foo" to call(),
+            # but "-framework", "Foo"...
+            f.append('-framework')
+            f.append(fw)
+        frameworks = f
+        # We want to do imports/includes in the objc header files as that
+        # prevents us from wrapping all that stuff in Cython. However, since
+        # Cython also includes everything that we include in the header (e.g.
+        # objc code) we get errors. Therefore we add an #ifdef around the
+        # imports that we don't want to end up in Cython. (We can't just move
+        # the import to the .m file as then we might not be able to fully
+        # declare a symbol in the header.)
+        flag = ['-D', 'KIVY_OBJC_PRECOMPILE=1']
+        print "Compiling ", objc, "to", out, "with:", frameworks
+        # Example: gcc nslogger.m -framework Foundation -framework Cocoa -dynamiclib -o nslogger.o
+        call(['gcc', objc] + flag + frameworks + ['-dynamiclib', '-o', out])
+
     for pyx in pyx_files:
         module_name = get_modulename_from_file(pyx)
         ext_files = [pyx]
@@ -189,6 +219,9 @@ if True:
             ext_libraries += sdl_libraries
             ext_include_dirs += sdl_includes
             ext_extra_link_args += sdl_extra_link_args
+
+        elif pyx.endswith('appletext.pyx'):
+            ext_extra_link_args += ['kivy/core/text/appletext.o']
 
         elif pyx.endswith('osxcoreimage.pyx'):
             if platform != 'darwin':
