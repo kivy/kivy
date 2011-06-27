@@ -201,9 +201,10 @@ if True:
         # the import to the .m file as then we might not be able to fully
         # declare a symbol in the header.)
         flag = ['-D', 'KIVY_OBJC_PRECOMPILE=1']
-        print "Compiling ", objc, "to", out, "with:", frameworks
         # Example: clang nslogger.m -framework Foundation -framework Cocoa -dynamiclib -o nslogger.o
-        call(['clang', objc] + flag + frameworks + ['-dynamiclib', '-o', out])
+        call_arg = ['clang', objc] + flag + frameworks + ['-dynamiclib', '-o', out]
+        print " ".join(call_arg)
+        call(call_arg)
 
     for pyx in pyx_files:
         module_name = get_modulename_from_file(pyx)
