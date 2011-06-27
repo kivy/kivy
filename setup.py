@@ -202,8 +202,8 @@ if True:
         # declare a symbol in the header.)
         flag = ['-D', 'KIVY_OBJC_PRECOMPILE=1']
         print "Compiling ", objc, "to", out, "with:", frameworks
-        # Example: gcc nslogger.m -framework Foundation -framework Cocoa -dynamiclib -o nslogger.o
-        call(['gcc', objc] + flag + frameworks + ['-dynamiclib', '-o', out])
+        # Example: clang nslogger.m -framework Foundation -framework Cocoa -dynamiclib -o nslogger.o
+        call(['clang', objc] + flag + frameworks + ['-dynamiclib', '-o', out])
 
     for pyx in pyx_files:
         module_name = get_modulename_from_file(pyx)
