@@ -156,7 +156,17 @@ class ShowcaseApp(App):
         return self.populate_treeview(TreeView())
 
     def show_treeview_without_root(self):
-        return self.populate_treeview(TreeView(hide_root=True))
+        # test with removing a node
+        col = BoxLayout(orientation='vertical')
+        tv = self.populate_treeview(TreeView(hide_root=True))
+        col.add_widget(tv)
+        btn = Button(text='Remove one node', size_hint_y=None, height=50)
+        def remove_node(*l):
+            if not tv.root.is_leaf:
+                tv.remove_node(tv.root.nodes[0])
+        btn.bind(on_release=remove_node)
+        col.add_widget(btn)
+        return col
 
     def populate_treeview(self, tv):
         n = tv.add_node(TreeViewLabel(text='Item 1'))
