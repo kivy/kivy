@@ -240,7 +240,8 @@ class WindowBase(EventDispatcher):
         self._clearcolor = value
 
     clearcolor = property(_get_clearcolor, _set_clearcolor,
-        doc='''Color used to clear window::
+        doc='''
+        Color used to clear window::
 
             from kivy.core.window import Window
 
@@ -249,7 +250,6 @@ class WindowBase(EventDispatcher):
 
             # don't clear background at all
             Window.clearcolor = None
-
         ''')
 
     # make some property read-only

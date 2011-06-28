@@ -140,9 +140,11 @@ From the OpenGL Wiki : "So a 64x16 2D texture can have 5 mip-maps: 32x8, 16x4,
 8x2, 4x1, 2x1, and 1x1". Check http://www.opengl.org/wiki/Texture for more
 informations.
 
-.. note:: As the table in previous section said, if your texture is NPOT,
-we are actually creating the nearest POT texture and generate mipmap on it. This
-might change in the future.
+.. note::
+
+    As the table in previous section said, if your texture is NPOT, we are
+    actually creating the nearest POT texture and generate mipmap on it. This
+    might change in the future.
 
 '''
 
@@ -466,6 +468,7 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
             'uint', 'bute', 'short', 'int', 'float'
         `mipmap`: bool, default to False
             If True, it will automatically generate mipmap texture.
+
     '''
     cdef int width, height
     if size is None:

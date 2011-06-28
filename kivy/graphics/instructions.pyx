@@ -85,7 +85,7 @@ cdef class Instruction:
 
 
 cdef class InstructionGroup(Instruction):
-    '''Group of :class:`Instruction`s. Adds the possibility of adding and
+    '''Group of :class:`Instruction`. Adds the possibility of adding and
     removing graphics instruction.
     '''
     def __init__(self, **kwargs):
@@ -146,7 +146,7 @@ cdef class InstructionGroup(Instruction):
         return len(self.children)
 
     cpdef clear(self):
-        '''Remove all the :class:`Instruction`s.
+        '''Remove all the :class:`Instruction`.
         '''
         cdef Instruction c
         for c in self.children[:]:
@@ -155,7 +155,7 @@ cdef class InstructionGroup(Instruction):
             self.remove(c)
 
     cpdef remove_group(self, str groupname):
-        '''Remove all :class:`Instruction`s with a specific group name.
+        '''Remove all :class:`Instruction` with a specific group name.
         '''
         cdef Instruction c
         for c in self.children[:]:
@@ -165,7 +165,7 @@ cdef class InstructionGroup(Instruction):
                 self.remove(c)
 
     cpdef get_group(self, str groupname):
-        '''Return an iterable with all the :class:`Instruction`s with a specific
+        '''Return an iterable with all the :class:`Instruction` with a specific
         group name.
         '''
         cdef Instruction c
