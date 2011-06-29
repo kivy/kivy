@@ -3,13 +3,14 @@ cdef extern from "ApplicationServices/ApplicationServices.h":
         float width
         float height
 
+
 cdef extern from "appletext.h":
     CGSize getStringExtents(char *_string, char *_font, int size)
 
 
 cdef char* toCharPtr(string):
-    string.encode('UTF-8')
-    return <char*> string
+    bstring = string.encode('UTF-8')
+    return <char*> bstring
 
 
 def get_extents(string, font, size):
