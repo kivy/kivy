@@ -51,10 +51,10 @@ extensions. It can be found at kivy/tools/extensions/make-kivyext.py
 import sys
 import imp
 from glob import glob
-from os import listdir, mkdir, sep, environ, remove
+from os import listdir, mkdir, sep, environ
 from os.path import join, isdir, exists, dirname
 from zipfile import ZipFile
-from shutil import copy
+from shutil import move
 
 from kivy.logger import Logger
 
@@ -284,6 +284,4 @@ def unzip_extensions():
             consumed_dir = join(epath, '_consumed_zips')
             if not isdir(consumed_dir):
                 mkdir(consumed_dir)
-            
-            copy(zipfn, consumed_dir)
-            remove(zipfn)
+            move(zipfn, consumed_dir)
