@@ -404,9 +404,9 @@ cdef class Rotate(Transform):
 
         >>> rotationobject.set(90, 0, 0, 1)
         '''
-        self._angle = radians(angle)
+        self._angle = angle
         self._axis = (ax, ay, az)
-        self.matrix = Matrix().rotate(self._angle, ax, ay, az)
+        self.matrix = Matrix().rotate(radians(self._angle), ax, ay, az)
 
     property angle:
         '''Property for getting/settings the angle of the rotation
