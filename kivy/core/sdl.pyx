@@ -186,8 +186,11 @@ def poll():
     elif event.type == SDL_TEXTINPUT:
         s = PyUnicode_FromString(<char *>event.text.text)
         return ('textinput', s)
+    elif event.type in range(0x700, 0x800 + 3):
+        # Silence a couple of SDL MT events
+        pass
     else:
-        print 'receive unknown sdl event', event.type
+        print 'Received unknown SDL event:', str(hex(event.type))
 
 
 
