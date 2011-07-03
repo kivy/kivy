@@ -1005,7 +1005,7 @@ class BuilderBase(object):
                     widget = cls(__no_builder=True)
                 except Exception, e:
                     raise ParserError(params['__ctx__'], params['__line__'],
-                                      str(e))
+                                      repr(e))
                 if not no_apply:
                     self.listwidget.append(widget)
         else:
