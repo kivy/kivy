@@ -13,3 +13,4 @@ CGSize getStringExtents(char *_string, char *_font, int size) {
     [pool drain];
     return CGSizeMake(exts.width, exts.height);
 }
+

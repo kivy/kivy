@@ -7,6 +7,7 @@ ctypedef signed long CFIndex
 
 cdef extern from "stdlib.h":
     void* calloc(size_t, size_t)
+    size_t strlen(char *s)
 
 
 cdef extern from "Python.h":
@@ -14,13 +15,68 @@ cdef extern from "Python.h":
 
 
 cdef extern from "ApplicationServices/ApplicationServices.h":
+    ctypedef void *CFDictionaryRef
+    ctypedef void *CGContextRef
+    ctypedef void *CFStringRef
+
+    ctypedef void *CFAttributedStringRef
+    ctypedef void *CTLineRef
+    CFStringRef kCTFontAttributeName
+    CFStringRef kCTForegroundColorAttributeName
+
+    CFAttributedStringRef CFAttributedStringCreate (
+       void*,
+       CFStringRef,
+       CFDictionaryRef
+    )
+
+    CTLineRef CTLineCreateWithAttributedString(CFAttributedStringRef)
+    void CGContextSetTextPosition(CGContextRef, float, float)
+
+    ctypedef void *CGImageRef
+    ctypedef void *CGColorRef
+    ctypedef void *CGColorSpaceRef
+    CGColorSpaceRef CGImageGetColorSpace(CGImageRef image)
+    CGColorSpaceRef CGColorSpaceCreateDeviceRGB()
+
+    CGColorRef CGColorCreate(CGColorSpaceRef, float*)
+
+    ctypedef struct CGPoint:
+       float x
+       float y
+
+    ctypedef enum CGTextDrawingMode:
+        kCGTextFill,
+        kCGTextStroke,
+        kCGTextFillStroke,
+        kCGTextInvisible,
+        kCGTextFillClip,
+        kCGTextStrokeClip,
+        kCGTextFillStrokeClip,
+        kCGTextClip
+
+    ctypedef enum CGTextEncoding:
+        kCGEncodingFontSpecific,
+        kCGEncodingMacRoman
+
+    CGPoint CGContextGetTextPosition(CGContextRef)
+    void CGContextSetTextDrawingMode(CGContextRef, CGTextDrawingMode)
+    void CGContextShowText(CGContextRef, char*, size_t)
+    void CGContextShowTextAtPoint(CGContextRef, float, float, char*, size_t)
+    void CGContextSelectFont(CGContextRef, char*, float, CGTextEncoding)
+    cdef CGTextEncoding kCGEncodingMacRoman
+    void CGContextSetRGBFillColor(CGContextRef, float, float, float, float)
+    void * CGBitmapContextGetData(CGContextRef)
+    size_t CGBitmapContextGetHeight(CGContextRef)
+    size_t CGBitmapContextGetWidth(CGContextRef)
+
+    ctypedef void *CFTypeRef
     ctypedef void *CFDataRef
     # XXX
     # char or int?
     unsigned char * CFDataGetBytePtr(CFDataRef)
     ctypedef void *CGDataProviderRef
     CFDataRef CGDataProviderCopyData(CGDataProviderRef)
-    ctypedef void *CGImageRef
     CGDataProviderRef CGImageGetDataProvider(CGImageRef)
     # guessing these, because of no wifi:
     size_t CGImageGetWidth(CGImageRef)
@@ -36,13 +92,7 @@ cdef extern from "ApplicationServices/ApplicationServices.h":
     int kCGImageAlphaPremultipliedFirst
     int kCGBitmapByteOrder32Host
 
-    ctypedef void *CGColorSpaceRef
-    CGColorSpaceRef CGImageGetColorSpace(CGImageRef image)
 
-
-    CGColorSpaceRef CGColorSpaceCreateDeviceRGB()
-
-    ctypedef void *CGContextRef
 
     void CGContextTranslateCTM(CGContextRef, float, float)
     void CGContextScaleCTM (CGContextRef, float, float)
@@ -71,110 +121,63 @@ cdef extern from "ApplicationServices/ApplicationServices.h":
        unsigned int bitmapInfo
     )
 
-    #void CGContextSetBlendMode (CGContextRef, int)
     void CGContextDrawImage(CGContextRef, CGRect, CGImageRef)
 
     int kCGBlendModeCopy
     void CGContextSetBlendMode(CGContextRef, int)
 
 
-cdef extern from "CoreFoundation/CFBase.h":
     ctypedef void *CFAllocatorRef
 
+    ctypedef signed long CFIndex
 
-#cdef extern from "CoreFoundation/CFData.h":
+    CFStringRef CFStringCreateWithCString (
+       CFAllocatorRef,
+       char*,
+       CFIndex
+    )
 
-#cdef extern from "CoreGraphics/CGDataProvider.h":
-#cdef extern from "QuartzCore/QuartzCore.h":
+    ctypedef void *CTFontRef
+    CTFontRef CTFontCreateWithName(CFStringRef, float, void*)
 
+    void CTLineDraw(CTLineRef, CGContextRef)
 
-cdef extern from "CoreFoundation/CFURL.h":
     ctypedef void *CFURLRef
-    # Not in the snippet, but I deem necessary:
-    #
-    # CFURLRef CFURLCreateFromFileSystemRepresentation (
-    #    CFAllocatorRef allocator,
-    #    const UInt8 *buffer,
-    #    CFIndex bufLen,
-    #    Boolean isDirectory
-    # );
     CFURLRef CFURLCreateFromFileSystemRepresentation(CFAllocatorRef,
                                                      unsigned char *,
                                                      CFIndex,
                                                      # XXX CORRECT?
                                                      bool)
 
+    ctypedef struct CFDictionaryKeyCallBacks:
+        pass
 
-cdef extern from "CoreFoundation/CFDictionary.h":
-    ctypedef void *CFDictionaryRef
+    ctypedef struct CFDictionaryValueCallBacks:
+        pass
+
+    CFDictionaryRef CFDictionaryCreate (
+       CFAllocatorRef,
+       void**,
+       void**,
+       CFIndex,
+       CFDictionaryKeyCallBacks*,
+       CFDictionaryValueCallBacks*
+    )
+
+    ctypedef CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks
+    ctypedef CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks
+    void CGContextSetAllowsAntialiasing(CGContextRef, bool)
+    void CGContextSetShouldAntialias(CGContextRef, bool)
+    void CGContextSetAllowsFontSmoothing(CGContextRef, bool)
+    void CGContextSetShouldSmoothFonts(CGContextRef, bool)
 
 
-#cdef extern from "CoreGraphics/CGImage.h":
-#cdef extern from "QuartzCore/QuartzCore.h":
-
-#cdef extern from "ImageIO/CGImageSource.h":
 cdef extern from "QuartzCore/QuartzCore.h":
     ctypedef void *CGImageSourceRef
     CGImageSourceRef CGImageSourceCreateWithURL(CFURLRef,
                                                 CFDictionaryRef)
     CGImageRef CGImageSourceCreateImageAtIndex(CGImageSourceRef,
                                                size_t, CFDictionaryRef)
-
-
-def load_raw_image_data(bytes _url):
-    raise RuntimeError("wrong function")
-    cdef CFURLRef url
-    url = CFURLCreateFromFileSystemRepresentation(NULL, <bytes> _url, len(_url), 0)
-
-    cdef CGImageSourceRef myImageSourceRef
-    # or maybe: UIImage* uiImage = [UIImage imageWithContentsOfFile:fullPath];
-    # see iphone3d book
-    myImageSourceRef = CGImageSourceCreateWithURL(url, NULL)
-    if myImageSourceRef == NULL:
-        print 'myImageSourceRef is NULL'
-        return None
-
-    cdef CGImageRef myImageRef
-    myImageRef = CGImageSourceCreateImageAtIndex(myImageSourceRef, 0, NULL)
-    if myImageRef == NULL:
-        print 'myImageRef is NULL'
-        return None
-
-    cdef int width = CGImageGetWidth(myImageRef)
-    cdef int height = CGImageGetHeight(myImageRef)
-    cdef int alphainfo = CGImageGetAlphaInfo(myImageRef)
-    #cdef int hasAlpha = alphainfo not in (kCGImageAlphaNone,
-    #                                      kCGImageAlphaNoneSkipLast,
-    #                                      kCGImageAlphaNoneSkipFirst)
-    cdef int bits = CGImageGetBitsPerPixel(myImageRef)
-    print 'bits:', bits, '=='*80
-
-    typesize = 4
-    imgtype = 'rgba'
-    if alphainfo == kCGImageAlphaNoneSkipFirst:
-        imgtype = 'argb'
-        typesize = 4
-        raise RuntimeError("fork")
-    elif alphainfo == kCGImageAlphaNoneSkipLast:
-        imgtype = 'rgba'
-        typesize = 4
-
-    # correctly detect the image type !!!
-    #imgtype = 'rgb'
-    #typesize = 3
-    #if hasAlpha > 0:
-    #    imgtype = 'rgba'
-    #    typesize = 4
-
-    cdef CFDataRef data
-    data = CGDataProviderCopyData(CGImageGetDataProvider(myImageRef))
-
-    r_data = PyString_FromStringAndSize(<char *>CFDataGetBytePtr(data),
-                                        width * height * typesize)
-
-    # XXX clean image object
-
-    return (width, height, imgtype, r_data)
 
 
 def load_image_data(bytes _url):
@@ -187,29 +190,19 @@ def load_image_data(bytes _url):
     cdef size_t width = CGImageGetWidth(myImageRef)
     cdef size_t height = CGImageGetHeight(myImageRef)
     cdef CGRect rect = CGRectMake(0, 0, width, height)
-    cdef void * myData = calloc(width * 4, height)
     cdef CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB()
-    cdef CGContextRef myBitmapContext = CGBitmapContextCreate(myData,
-                                                         width, height, 8,
-                                                         width*4, space,
-                                                         # endianness:  kCGBitmapByteOrder32Little = (2 << 12)
-                                                         #(2 << 12) | kCGImageAlphaPremultipliedLast)
-                                                         kCGBitmapByteOrder32Host
-                                                         |
-                                                         # XXX first or last? in
-                                                         # the docs they use
-                                                         # first
-                                                         kCGImageAlphaNoneSkipFirst)
+    cdef CGContextRef ctx = _create_context(width, height)
 
     # This is necessary as the image would be vertically flipped otherwise
-    CGContextTranslateCTM(myBitmapContext, 0, height)
-    CGContextScaleCTM(myBitmapContext, 1, -1)
+    CGContextTranslateCTM(ctx, 0, height)
+    CGContextScaleCTM(ctx, 1, -1)
 
-    CGContextSetBlendMode(myBitmapContext, kCGBlendModeCopy)
-    CGContextDrawImage(myBitmapContext, rect, myImageRef)
-    #CGContextRelease(myBitmapContext)
+#    CGContextSetBlendMode(ctx, kCGBlendModeCopy)
+    CGContextDrawImage(ctx, rect, myImageRef)
+#    CGContextRelease(ctx)
 
-    r_data = PyString_FromStringAndSize(<char *> myData, width * height * 4)
+    r_data = PyString_FromStringAndSize(<char *> CGBitmapContextGetData(ctx),
+                                        width * height * 4)
 
     # XXX
     # kivy doesn't like to process 'bgra' data. we swap manually to 'rgba'.
@@ -222,18 +215,60 @@ def load_image_data(bytes _url):
     return (width, height, imgtype, r_data)
 
 
-#
-# bool hasAlpha = CGImageGetAlphaInfo(cgImage) != kCGImageAlphaNone; CGColorSpaceRef colorSpace = CGImageGetColorSpace(cgImage); switch (CGColorSpaceGetModel(colorSpace)) {
-# case kCGColorSpaceModelMonochrome: description.Format =
-# hasAlpha ? TextureFormatGrayAlpha : TextureFormatGray; break;
-# case kCGColorSpaceModelRGB: description.Format =
-# Texture Formats and Types
-# |    189
-# }
-# hasAlpha ? TextureFormatRgba : TextureFormatRgb; break;
-# default: assert(!"Unsupported color space."); break;
-# } description.BitsPerComponent = CGImageGetBitsPerComponent(cgImage);
-# return description;
-#
-#
+cdef char* toCharPtr(string):
+    bstring = string.encode('UTF-8')
+    return <char*> bstring
 
+
+cdef class Label:
+
+    cdef CGContextRef ctx
+    cdef bytes font
+    cdef int pointsize
+
+    def __init__(self, int w, int h, bytes font, int pointsize):
+        self.ctx = _create_context(w, h)
+        self.font = <bytes> font
+        self.pointsize = pointsize
+
+    def draw_at_pos(self, txt, x, y):
+        CGContextSelectFont(self.ctx, self.font, self.pointsize,
+            kCGEncodingMacRoman)
+        CGContextSetTextDrawingMode(self.ctx, kCGTextFill)
+
+        CGContextSetRGBFillColor(self.ctx, 1, 1, 1, 1)
+#        cdef char* text = toCharPtr(unicode(txt))
+        CGContextShowTextAtPoint(self.ctx, x, y, txt, len(txt))
+
+    def get_image_data(self):
+        cdef void *data = CGBitmapContextGetData(self.ctx)
+        cdef int w = CGBitmapContextGetWidth(self.ctx)
+        cdef int h = CGBitmapContextGetHeight(self.ctx)
+#        CGContextRelease(self.ctx)
+
+        r_data = PyString_FromStringAndSize(<char *> data, w * h * 4)
+
+        # XXX
+        # kivy doesn't like to process 'bgra' data. we swap manually to 'rgba'.
+        # would be better to fix this in texture.pyx
+        a = array('b', r_data)
+        a[0::4], a[2::4] = a[2::4], a[0::4]
+        r_data = a.tostring()
+        imgtype = 'rgba'
+
+        return (w, h, imgtype, r_data)
+
+
+cdef CGContextRef _create_context(int w, int h):
+    cdef CGRect rect = CGRectMake(0., 0., w, h)
+    cdef void *data = calloc(w * 4, h)
+    cdef CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB()
+    cdef CGContextRef ctx = CGBitmapContextCreate(data, w, h, 8, w*4, space,
+                        kCGBitmapByteOrder32Host | kCGImageAlphaPremultipliedFirst)
+
+    CGContextSetBlendMode(ctx, kCGBlendModeCopy)
+    CGContextSetAllowsAntialiasing(ctx, True)
+    CGContextSetAllowsFontSmoothing(ctx, True)
+    CGContextSetShouldSmoothFonts(ctx, True)
+    CGContextSetShouldAntialias(ctx, True)
+    return ctx
