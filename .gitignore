@@ -1,6 +1,7 @@
 .noseids
 Kivy.egg-info
 *.so
+*.o
 *.pyc
 *.pyo
 *~
@@ -12,6 +13,9 @@ doc/build
 doc/sources/api-*.rst
 kivy/*.c
 kivy/graphics/*.c
+kivy/core/image/*.c
+kivy/core/text/*.c
+kivy/core/*.c
 kivy/graphics/config.h
 kivy/graphics/config.pxi
 kivy/tests/build
