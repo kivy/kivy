@@ -151,6 +151,7 @@ informations.
 __all__ = ('Texture', 'TextureRegion')
 
 include "config.pxi"
+include "common.pxi"
 
 from os import environ
 from array import array
@@ -159,12 +160,6 @@ from kivy.logger import Logger
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
-
-cdef extern from "stdlib.h":
-    ctypedef unsigned long size_t
-    void free(void *ptr) nogil
-    void *calloc(size_t nmemb, size_t size) nogil
-    void *malloc(size_t size) nogil
 
 # XXX move missing symbol in c_opengl
 # utilities
@@ -182,6 +177,9 @@ def hasGLExtension( specifier ):
 # compatibility layer
 cdef GLuint GL_BGR = 0x80E0
 cdef GLuint GL_BGRA = 0x80E1
+cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1
+cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2
+cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
 
 cdef object _texture_release_trigger = None
 cdef list _texture_release_list = []
@@ -212,6 +210,9 @@ cdef dict _gl_color_fmt = {
     'bgr': GL_BGR,
     'luminance': GL_LUMINANCE,
     'luminance_alpha': GL_LUMINANCE_ALPHA,
+    's3tc_dxt1': GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+    's3tc_dxt3': GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
+    's3tc_dxt5': GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
 }
 
 cdef inline int _color_fmt_to_gl(str x):
@@ -220,6 +221,9 @@ cdef inline int _color_fmt_to_gl(str x):
         return _gl_color_fmt[x]
     except KeyError:
         raise Exception('Unknown <%s> color format' % x)
+
+cdef inline int _is_compressed_fmt(str x):
+    return x.startswith('s3tc_dxt')
 
 cdef dict _gl_buffer_fmt = {
     'ubyte': GL_UNSIGNED_BYTE,
@@ -296,6 +300,10 @@ cdef inline int _gl_format_size(GLuint x):
         return 2
     elif x == GL_LUMINANCE:
         return 1
+    elif x in (GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+            GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
+            GL_COMPRESSED_RGBA_S3TC_DXT5_EXT):
+        return 4
     raise Exception('Unsupported format size <%s>' % str(format))
 
 cdef inline int has_bgr():
@@ -745,6 +753,7 @@ cdef class Texture:
 
         # prepare nogil
         cdef int glfmt = _color_fmt_to_gl(colorfmt)
+        cdef int datasize = len(pbuffer)
         cdef int x = pos[0]
         cdef int y = pos[1]
         cdef int w = size[0]
@@ -752,13 +761,18 @@ cdef class Texture:
         cdef char *cdata = <char *>data
         cdef int glbufferfmt = bufferfmt
         cdef int is_allocated = self._is_allocated
+        cdef int is_compressed = _is_compressed_fmt(colorfmt)
 
         with nogil:
             glBindTexture(target, self._id)
-            _gl_prepare_pixels_upload(w)
-            if is_allocated:
+            if is_compressed:
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                glCompressedTexImage2D(target, 0, glfmt, w, h, 0, datasize, cdata)
+            elif is_allocated:
+                _gl_prepare_pixels_upload(w)
                 glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
             else:
+                _gl_prepare_pixels_upload(w)
                 glTexImage2D(target, 0, glfmt, w, h, 0, glfmt, glbufferfmt, cdata)
             if self._mipmap:
                 glGenerateMipmap(target)

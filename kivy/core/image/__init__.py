@@ -28,7 +28,8 @@ class ImageData(object):
     '''
 
     __slots__ = ('width', 'height', 'fmt', 'data')
-    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra')
+    _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra',
+            's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5')
 
     def __init__(self, width, height, fmt, data):
         assert fmt in ImageData._supported_fmts
