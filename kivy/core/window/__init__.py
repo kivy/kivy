@@ -274,12 +274,20 @@ class WindowBase(EventDispatcher):
         '''Rotated window center'''
         return self.width / 2., self.height / 2.
 
+    def _update_childsize(self, instance, value):
+        self.update_childsize([instance])
+
     def add_widget(self, widget):
         '''Add a widget on window'''
         widget.parent = self
         self.children.insert(0, widget)
         self.canvas.add(widget.canvas)
         self.update_childsize([widget])
+        widget.bind(
+            pos_hint=self._update_childsize,
+            size_hint=self._update_childsize,
+            size=self._update_childsize,
+            pos=self._update_childsize)
 
     def remove_widget(self, widget):
         '''Remove a widget from window
@@ -289,6 +297,11 @@ class WindowBase(EventDispatcher):
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
+        widget.unbind(
+            pos_hint=self._update_childsize,
+            size_hint=self._update_childsize,
+            size=self._update_childsize,
+            pos=self._update_childsize)
 
     def clear(self):
         '''Clear the window with background color'''

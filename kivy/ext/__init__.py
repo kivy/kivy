@@ -213,17 +213,22 @@ def unzip_extensions():
         for zipfn in glob(join(epath, '*.kex')):
             # ZipFile only became a context manager in python 2.7...
             # with ZipFile(zipfn, 'r') as zipf:
-            fail = is_invalid = False
+            # fail = is_invalid = False
             try:
                 zipf = ZipFile(zipfn)
                 # /path/to/MyExt-1.0.linux-x86_64.zip
+                # /path/to/MyExt-1.0.macos-10.6-x86_64.zip
                 extname = zipfn.rsplit(sep)[-1][:-4]
                 # MyExt-1.0.linux-x86_64
-                extname = '.'.join(extname.split('.')[:-1])
-                # MyExt-1.0
-                extname, version = extname.split('-')
+                # MyExt-1.0.macosx-10.6-x86_64
+                t = extname.split('-')
+                extname = t[0]
+                version = '-'.join(t[1:])
+                version = '.'.join(version.split('.')[:2])
+                
                 extdir = extname + '_' + version
-                is_invalid = not _is_valid_ext_name(extdir)
+
+                # is_invalid = not _is_valid_ext_name(extdir)
             except IOError:
                 Logger.warn("Malformed zipfile '%s'! Skipping it." % zipfn)
                 continue
@@ -280,4 +285,3 @@ def unzip_extensions():
             if not isdir(consumed_dir):
                 mkdir(consumed_dir)
             move(zipfn, consumed_dir)
-

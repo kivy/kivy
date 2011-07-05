@@ -151,13 +151,16 @@ class Image(Widget):
         super(Image, self).__init__(**kwargs)
         self.bind(source=self.texture_update,
                   mipmap=self.texture_update)
-        self.texture_update()
+        if self.source is not None:
+            self.texture_update()
 
     def texture_update(self, *largs):
         if not self.source:
             self.texture = None
         else:
             filename = resource_find(self.source)
+            if filename is None:
+                return
             mipmap = self.mipmap
             uid = '%s|%s' % (filename, mipmap)
             texture = Cache.get('kv.texture', uid)
@@ -179,14 +182,17 @@ class AsyncImage(Image):
     def __init__(self, **kwargs):
         self._coreimage = None
         super(AsyncImage, self).__init__(**kwargs)
+        self.unbind(source=self.texture_update,
+                    mipmap=self.texture_update)
 
     def on_source(self, instance, value):
         if not value:
             self.texture = None
             self._coreimage = None
         else:
-            filename = resource_find(value)
-            self._coreimage = image = Loader.image(filename)
+            if not self.is_uri(value):
+                value = resource_find(value)
+            self._coreimage = image = Loader.image(value)
             image.bind(on_load=self.on_source_load)
             self.texture = image.texture
 
@@ -195,4 +201,8 @@ class AsyncImage(Image):
         if not image:
             return
         self.texture = image.texture
+
+    def is_uri(self, filename):
+        proto = filename.split('://', 1)[0]
+        return proto in ('http', 'https', 'ftp')
 

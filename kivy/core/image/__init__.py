@@ -33,9 +33,17 @@ class ImageData(object):
 
     def __init__(self, width, height, fmt, data):
         assert fmt in ImageData._supported_fmts
+
+        #: Image width in pixels
         self.width = int(width)
+
+        #: Image height in pixels
         self.height = int(height)
+
+        #: Decoded image format
         self.fmt = fmt
+
+        #: Data bytes. Can be None if the data have been released
         self.data = data
 
     def release_data(self):

@@ -88,7 +88,7 @@ class LoaderBase(object):
     def loading_image(self):
         '''Image used for loading (readonly)'''
         if not self._loading_image:
-            loading_png_fn = join(kivy_data_dir, 'images', 'loading-0.png')
+            loading_png_fn = join(kivy_data_dir, 'images', 'image-loading.png')
             self._loading_image = ImageLoader.load(filename=loading_png_fn)
         return self._loading_image
 
@@ -96,7 +96,7 @@ class LoaderBase(object):
     def error_image(self):
         '''Image used for error (readonly)'''
         if not self._error_image:
-            error_png_fn = join(kivy_data_dir, 'error.png')
+            error_png_fn = join(kivy_data_dir, 'images', 'image-missing.png')
             self._error_image = ImageLoader.load(filename=error_png_fn)
         return self._error_image
 
@@ -194,7 +194,7 @@ class LoaderBase(object):
                 client.dispatch('on_load')
                 self._client.remove((c_filename, client))
 
-    def image(self, filename, load_callback=None, post_callback=None):
+    def image(self, filename, load_callback=None, post_callback=None, **kwargs):
         '''Load a image using loader. A Proxy image is returned
         with a loading image ::
 
@@ -211,10 +211,10 @@ class LoaderBase(object):
             # found image
             return ProxyImage(data,
                     loading_image=self.loading_image,
-                    loaded=True)
+                    loaded=True, **kwargs)
 
         client = ProxyImage(self.loading_image,
-                    loading_image=self.loading_image)
+                    loading_image=self.loading_image, **kwargs)
         self._client.append((filename, client))
 
         if data is None:
