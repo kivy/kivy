@@ -40,13 +40,13 @@ cdef class Line(VertexInstruction):
         cdef int i, count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
-        cdef int *indices = NULL
+        cdef unsigned short *indices = NULL
 
         vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <int *>malloc(count * sizeof(int))
+        indices = <unsigned short *>malloc(count * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
@@ -100,13 +100,13 @@ cdef class Point(VertexInstruction):
         cdef list p = self.points
         cdef list tc = self._tex_coords
         cdef vertex_t *vertices = NULL
-        cdef int *indices = NULL
+        cdef unsigned short *indices = NULL
 
         vertices = <vertex_t *>malloc(count * 4 * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <int *>malloc(count * 6 * sizeof(int))
+        indices = <unsigned short *>malloc(count * 6 * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
@@ -160,7 +160,7 @@ cdef class Point(VertexInstruction):
         cdef int iv, count = <int>(len(self._points) * 0.5)
         cdef list tc = self._tex_coords
         cdef vertex_t vertices[4]
-        cdef int indices[6]
+        cdef unsigned short indices[6]
 
         self._points.append(x)
         self._points.append(y)
@@ -234,7 +234,7 @@ cdef class Triangle(VertexInstruction):
     cdef void build(self):
         cdef list vc, tc
         cdef vertex_t vertices[3]
-        cdef int *indices = [0, 1, 2]
+        cdef unsigned short *indices = [0, 1, 2]
 
         vc = self.points;
         tc = self._tex_coords
@@ -282,7 +282,7 @@ cdef class Quad(VertexInstruction):
     cdef void build(self):
         cdef list vc, tc
         cdef vertex_t vertices[4]
-        cdef int *indices = [0, 1, 2, 2, 3, 0]
+        cdef unsigned short *indices = [0, 1, 2, 2, 3, 0]
 
         vc = self.points
         tc = self._tex_coords
@@ -336,7 +336,7 @@ cdef class Rectangle(VertexInstruction):
         cdef float x, y, w, h
         cdef list tc = self._tex_coords
         cdef vertex_t vertices[4]
-        cdef int *indices = [0, 1, 2, 2, 3, 0]
+        cdef unsigned short *indices = [0, 1, 2, 2, 3, 0]
 
         x, y = self.x, self.y
         w, h = self.w, self.h
@@ -485,7 +485,7 @@ cdef class BorderImage(Rectangle):
             hs[2], vs[2], ths[2], tvs[2], #v14
             hs[1], vs[2], ths[1], tvs[2]] #v15
 
-        cdef int *indices = [
+        cdef unsigned short *indices = [
              0,  1, 12,    12, 11,  0,  # bottom left
              1,  2, 13,    13, 12,  1,  # bottom middle
              2,  3,  4,     4, 13,  2,  # bottom right
@@ -540,7 +540,7 @@ cdef class Ellipse(Rectangle):
         cdef float angle_start, angle_end, angle_range
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
         cdef vertex_t *vertices = NULL
-        cdef int *indices = NULL
+        cdef unsigned short *indices = NULL
         cdef int count = self._segments
 
         tx = tc[0]
@@ -555,7 +555,7 @@ cdef class Ellipse(Rectangle):
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <int *>malloc((count + 2) * sizeof(int))
+        indices = <unsigned short *>malloc((count + 2) * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')

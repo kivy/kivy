@@ -67,7 +67,7 @@ cdef class Buffer:
             self.l_free[i] = i
         self.i_free = 0
 
-    cdef void add(self, void *blocks, int *indices, int count):
+    cdef void add(self, void *blocks, unsigned short *indices, int count):
         '''Add a list of block inside our buffer
         '''
         cdef int i, block
@@ -92,7 +92,7 @@ cdef class Buffer:
             if indices != NULL:
                 indices[i] = block
 
-    cdef void remove(self, int *indices, int count):
+    cdef void remove(self, unsigned short *indices, int count):
         '''Remove block from our list
         '''
         cdef int i
