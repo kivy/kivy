@@ -13,8 +13,8 @@ cdef extern from "Python.h":
     object PyString_FromStringAndSize(char *s, Py_ssize_t len)
 
 
-#cdef extern from "CoreGraphics/CGDataProvider.h":
-cdef extern from "ApplicationServices/ApplicationServices.h":
+cdef extern from "CoreGraphics/CGDataProvider.h":
+#cdef extern from "ApplicationServices/ApplicationServices.h":
     ctypedef void *CFDataRef
     # XXX
     # char or int?
@@ -122,8 +122,8 @@ cdef extern from "CoreGraphics/CGImage.h":
     int kCGImageAlphaNone
 
 
-#cdef extern from "ImageIO/CGImageSource.h":
-cdef extern from "QuartzCore/QuartzCore.h":
+cdef extern from "ImageIO/CGImageSource.h":
+#cdef extern from "QuartzCore/QuartzCore.h":
     ctypedef void *CGImageSourceRef
     CGImageSourceRef CGImageSourceCreateWithURL(CFURLRef,
                                                 CFDictionaryRef)

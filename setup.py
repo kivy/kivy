@@ -229,7 +229,6 @@ if True:
             libraries=ext_libraries,
             extra_compile_args=ext_extra_compile_args,
             include_dirs=ext_include_dirs,
-            extra_compile_args=ext_extra_compile_args,
             extra_link_args=ext_extra_link_args))
 
 
