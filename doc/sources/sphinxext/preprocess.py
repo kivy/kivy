@@ -33,7 +33,7 @@ def is_cython_extension(what, obj):
             return False
         return True
     # test for python method in cython class
-    if what == 'method' and obj.__class__ == types.BuiltinFunctionType:
+    if what in ('method', 'function') and obj.__class__ == types.BuiltinFunctionType:
         if not re.match('^([a-zA-Z_][a-zA-Z0-9_]*)\((.*)\)', doc):
             return False
         return True
