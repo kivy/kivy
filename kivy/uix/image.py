@@ -153,6 +153,7 @@ class Image(Widget):
                   mipmap=self.texture_update)
         if self.source is not None:
             self.texture_update()
+        self._coreimg = None
 
     def texture_update(self, *largs):
         if not self.source:
@@ -163,16 +164,27 @@ class Image(Widget):
                 return
             mipmap = self.mipmap
             uid = '%s|%s' % (filename, mipmap)
-            texture = Cache.get('kv.texture', uid)
-            if not texture:
-                image = CoreImage(filename, mipmap=mipmap)
-                texture = image.texture
-                Cache.append('kv.texture', uid, texture)
-            self.texture = texture
+            #texture = Cache.get('kv.texture', uid)  Caching handled in
+            #core image itself needed for animating sequences ... bad???
+            #if not texture:
+            self._coreimage = CoreImage(filename, mipmap=mipmap)
+            self._coreimage.bind(on_texture_changed = self._on_tex_change)
+            #texture = self._coreimage.texture
+            #Cache.append('kv.texture', uid, texture)  #
+            self.texture = self._coreimage.texture#texture
+
+    def reset_anim(self, allowanim = True, frame_delay = .22):
+        if self._coreimage:
+            self._coreimage.anim_frame_delay = frame_delay
+            self._coreimage.reset_anim(allowanim)
 
     def on_texture(self, instance, value):
         if value is not None:
             self.texture_size = list(value.size)
+
+    def _on_tex_change(self, *largs):
+    # update texture from core image
+        self.texture = self._coreimage.texture
 
 
 class AsyncImage(Image):
@@ -192,7 +204,7 @@ class AsyncImage(Image):
         else:
             if not self.is_uri(value):
                 value = resource_find(value)
-            self._coreimage = image = Loader.image(value)
+            self._coreimage = image = Loader.image(filename)
             image.bind(on_load=self.on_source_load)
             self.texture = image.texture
 
@@ -205,4 +217,7 @@ class AsyncImage(Image):
     def is_uri(self, filename):
         proto = filename.split('://', 1)[0]
         return proto in ('http', 'https', 'ftp')
+
+    def _on_tex_change(self, *largs):
+        self.texture = self._coreimage.texture
 

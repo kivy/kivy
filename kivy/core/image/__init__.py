@@ -14,7 +14,9 @@ memory for further access.
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
 from kivy.event import EventDispatcher
-from kivy.core import core_register_libs
+from kivy.core  import core_register_libs
+from kivy.cache import Cache
+from kivy.clock import Clock
 
 # late binding
 Texture = TextureRegion = None
@@ -56,11 +58,11 @@ class ImageLoaderBase(object):
                 '_mipmap')
 
     def __init__(self, filename, **kwargs):
-        self._mipmap = kwargs.get('mipmap', False)
+        self._mipmap   = kwargs.get('mipmap', False)
         self.keep_data = kwargs.get('keep_data', False)
-        self.filename = filename
-        self._texture = None
-        self._data = self.load(filename)
+        self.filename  = filename
+        self._texture  = None
+        self._data     = self.load(filename) # returns a array of type ImageData (sequenc of images)
 
     def load(self, filename):
         '''Load an image'''
@@ -70,19 +72,19 @@ class ImageLoaderBase(object):
     def width(self):
         '''Image width
         '''
-        return self._data.width
+        return self._data[0].width
 
     @property
     def height(self):
         '''Image height
         '''
-        return self._data.height
+        return self._data[0].height
 
     @property
     def size(self):
         '''Image size (width, height)
         '''
-        return (self._data.width, self._data.height)
+        return (self._data[0].width, self._data[0].height)
 
     @property
     def texture(self):
@@ -92,9 +94,9 @@ class ImageLoaderBase(object):
             if self._data is None:
                 return None
             self._texture = Texture.create_from_data(
-                self._data, mipmap=self._mipmap)
+                self._data[0], mipmap=self._mipmap)
             if not self.keep_data:
-                self._data.release_data()
+                self._data[0].release_data()
         return self._texture
 
 
@@ -158,6 +160,17 @@ class Image(EventDispatcher):
         self._image = None
         self._filename = None
         self._texture = None
+        self.anim_frame_delay = .2
+        #^- lower means faster animation
+        self._anim_possible = False
+        #^- indicates more than one image if true
+        self._anim_counter = 0
+        #^- animation counter starts with 0
+        self._iteration_done = False
+        #^- indicator of images having been loded in cache
+
+        self.register_event_type('on_texture_changed')
+        #^- fire a event on animation of sequenced img's
 
         if isinstance(arg, Image):
             for attr in Image.copy_attributes:
@@ -171,6 +184,91 @@ class Image(EventDispatcher):
             self.filename = arg
         else:
             raise Exception('Unable to load image type %s' % str(type(arg)))
+
+        self._img_iterate()
+        # called after image is loaded/cached
+
+    #---Animated Gif, zip imgs (001.ext, 002.ext...  in order of name )
+    def _anim(self, *largs ):
+        uid = '%s|%s|%s' % ( self._filename,
+            self._mipmap, self._anim_counter)
+        _tex = Cache.get('kv.texture', uid)
+        if _tex:
+            # <-if not last frame
+            self._texture = _tex
+            self._anim_counter += 1
+            self.dispatch('on_texture_changed')
+            # ^-fire a texture update(to be handled bu widget/s)
+        else:
+            # <-Restart animation from first Frame
+            self._anim_counter = 0
+            self._anim()
+
+    #-------------------------------------------------------------------
+    def reset_anim (self, allow_anim):
+        # <- reset animation
+        Clock.unschedule(self._anim)
+        # <-stop animation
+        if allow_anim and self._anim_possible:
+            Clock.schedule_interval(
+                self._anim,
+                # <-function to animate
+                self.anim_frame_delay)
+                # <-frame delay .20secs by default
+    #-------------------------------------------------------------------
+
+    #-------------------------------------------------------------------#
+    def _img_iterate(self, *largs):
+    # Purpose: check if image has sequences then animate
+        self._iteration_done = True
+        imgcount = count = 0
+        try:
+            imgcount = len(self.image._data)
+            # ^- length of sequence
+        except:
+            # <- this is raised when image is none and in cache
+            pass
+        uid = '%s|%s|%s' % ( self.filename, self._mipmap, count )
+        _texture = Cache.get('kv.texture', uid)
+        # ^-get texture for first image
+        if not _texture:
+            # -----if texture is not in cache
+            while count < imgcount:
+                # <-append the sequence of images to cache
+                _texture  = Texture.create_from_data(
+                        self.image._data[count], mipmap=self._mipmap)
+                if not self.image.keep_data:
+                    self.image._data[count].release_data()
+                    # ^-release excess memory
+                Cache.append('kv.texture', uid, _texture)
+                # ^-Cache texture
+                count += 1
+                uid = '%s|%s|%s' % ( self.filename, self._mipmap, count)
+        else:
+            # <-texture already in cache for first image
+            self._texture = _texture
+            # ^-assign texture for non sequenced cached images
+            self._size = self.texture.size
+            uid = '%s|%s|%s' % ( self.filename, self._mipmap, 1)
+            # ^-check if image has sequence in cache
+            _texture = Cache.get('kv.texture', uid)
+            # ^-get texture for second image
+            if _texture:
+                imgcount = 2
+                # ^-enable animation (cached sequence img)
+        if imgcount > 1:
+            self._anim_possible = True
+            # image sequence, animate
+            self.reset_anim( True )
+            self._texture = _texture
+        if self.image: self.image._texture = self._texture = _texture
+        # ^-image loaded for the first time
+        _texture = None
+    #------------------------------------------------------------------
+
+    def on_texture_changed(self, *largs):
+        pass
+    #-------------------------------------------------------------------
 
     @staticmethod
     def load(filename, **kwargs):
@@ -206,9 +304,19 @@ class Image(EventDispatcher):
         if value == self._filename:
             return
         self._filename = value
-        self.image = ImageLoader.load(
-                self._filename, keep_data=self._keep_data,
-                mipmap=self._mipmap)
+        uid = '%s|%s|%s' % ( self.filename, self._mipmap, 0 )
+        _texture = Cache.get('kv.texture', uid)
+        if _texture:
+            #if image in cache
+            _texture = None
+            pass
+            # ^-img_iterate is going to be called after this in init
+        else:
+            # if image not already in cache then load
+            _texture = None
+            self.image = ImageLoader.load(
+                    self._filename, keep_data=self._keep_data,
+                    mipmap=self._mipmap)
 
     filename = property(_get_filename, _set_filename,
             doc='Get/set the filename of image')
@@ -235,7 +343,9 @@ class Image(EventDispatcher):
     def texture(self):
         '''Texture of the image'''
         if self.image:
-            return self.image.texture
+            if not self._iteration_done:
+                self._img_iterate()
+            #return self.image.texture
         return self._texture
 
     def read_pixel(self, x, y):
@@ -254,9 +364,9 @@ class Image(EventDispatcher):
             `y` : int
                 Local y coordinate of the pixel in question.
         '''
-        data = self.image._data
+        data = self.image._data[0]
 
-        # can't use this fonction without ImageData
+        # can't use this function without ImageData
         if data.data is None:
             raise EOFError('Image data is missing, make sure that image is'
                            'loaded with keep_data=True keyword.')

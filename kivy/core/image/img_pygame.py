@@ -26,8 +26,9 @@ class ImageLoaderPygame(ImageLoaderBase):
         if pygame.image.get_extended() == 0:
             return ('bmp', )
         # retrieve from http://www.pygame.org/docs/ref/image.html
-        return ('jpg', 'jpeg', 'png', 'gif', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
+        return ('jpg', 'jpeg', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
                'pbm', 'ppm', 'xpm')
+        #remove 'png', 'gif',  so that pil can handle these images (sequences)
 
     def load(self, filename):
         Logger.debug('Image: Load <%s>' % filename)
@@ -61,9 +62,12 @@ class ImageLoaderPygame(ImageLoaderBase):
         # update internals
         self.filename = filename
         data = pygame.image.tostring(im, fmt.upper(), True)
-        return ImageData(im.get_width(), im.get_height(),
-            fmt, data)
-
+        img_data = []
+        # ^img_pygame and img_pil now return array of ImageData class
+        #*****CHANGE***** for Image sequences(gifs, .zip)...
+        img_data.append(ImageData(im.get_width(), im.get_height(),
+            fmt, data))
+        return img_data
 
 # register
 ImageLoader.register(ImageLoaderPygame)
