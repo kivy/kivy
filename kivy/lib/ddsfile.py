@@ -174,6 +174,7 @@ class DDSFile(object):
         self.meta = meta = QueryDict()
         self.count = 0
         self.images = []
+        self.images_size = []
         for field, index in DDSFile.fields:
             meta[field] = 0
         if filename:
@@ -259,6 +260,7 @@ class DDSFile(object):
         w = meta.width
         h = meta.height
         images = self.images
+        images_size = self.images_size
         for i in xrange(self.count):
             if dxt in (0, 1, 2, 3):
                 size = align_value(block * w, 4) * h
@@ -267,6 +269,7 @@ class DDSFile(object):
             image, data = data[:size], data[size:]
             if len(image) < size:
                 raise DDSException('Truncated image for mipmap %d' % i)
+            images_size.append((w, h))
             images.append(image)
             if w == 1 and h == 1:
                 break

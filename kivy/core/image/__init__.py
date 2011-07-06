@@ -27,28 +27,78 @@ class ImageData(object):
         Only RGB and RGBA format are allowed.
     '''
 
-    __slots__ = ('width', 'height', 'fmt', 'data')
+    __slots__ = ('fmt', 'mipmaps')
     _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra',
             's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5')
 
     def __init__(self, width, height, fmt, data):
         assert fmt in ImageData._supported_fmts
 
-        #: Image width in pixels
-        self.width = int(width)
-
-        #: Image height in pixels
-        self.height = int(height)
-
         #: Decoded image format
         self.fmt = fmt
 
-        #: Data bytes. Can be None if the data have been released
-        self.data = data
+        #: Data for each mipmap.
+        self.mipmaps = {}
+        self.add_mipmap(0, width, height, data)
 
     def release_data(self):
-        self.data = None
+        mm = self.mipmaps
+        for item in mm.itervalues():
+            item[2] = None
 
+    @property
+    def width(self):
+        '''Image width in pixels.
+        (If the image is mipmapped, it will use the level 0)
+        '''
+        return self.mipmaps[0][0]
+
+    @property
+    def height(self):
+        '''Image height in pixels.
+        (If the image is mipmapped, it will use the level 0)
+        '''
+        return self.mipmaps[0][1]
+
+    @property
+    def data(self):
+        '''Image data.
+        (If the image is mipmapped, it will use the level 0)
+        '''
+        return self.mipmaps[0][2]
+
+    @property
+    def size(self):
+        '''Image (width, height) in pixels.
+        (If the image is mipmapped, it will use the level 0)
+        '''
+        mm = self.mipmaps[0]
+        return mm[0], mm[1]
+
+    @property
+    def have_mipmap(self):
+        return len(self.mipmaps) > 1
+
+    def __repr__(self):
+        return '<ImageData width=%d height=%d fmt=%s with %d images>' % (
+                self.width, self.height, self.fmt, len(self.mipmaps))
+
+    def add_mipmap(self, level, width, height, data):
+        self.mipmaps[level] = [int(width), int(height), data]
+
+    def get_mipmap(self, level):
+        if level == 0:
+            return (self.width, self.height, self.data)
+        assert(level < len(self.mipmaps))
+        return self.mipmaps[level]
+
+    def iterate_mipmaps(self):
+        mm = self.mipmaps
+        for x in xrange(len(mm)):
+            item = mm.get(x, None)
+            if item is None:
+                raise Exception('Invalid mipmap level, found empty one')
+            yield x, item[0], item[1], item[2]
 
 class ImageLoaderBase(object):
     '''Base to implement an image loader.'''

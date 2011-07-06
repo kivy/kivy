@@ -17,14 +17,22 @@ class ImageLoaderDDS(ImageLoaderBase):
     def load(self, filename):
         Logger.debug('Image: Load <%s>' % filename)
         try:
-            im = DDSFile(filename=filename)
+            dds = DDSFile(filename=filename)
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
 
         self.filename = filename
-        width, height = im.size
-        return ImageData(width, height, im.dxt, im.images[0])
+        width, height = dds.size
+        im = ImageData(width, height, dds.dxt, dds.images[0])
+        if len(dds.images) > 1:
+            images = dds.images
+            images_size = dds.images_size
+            for index in xrange(1, len(dds.images)):
+                w, h = images_size[index]
+                data = images[index]
+                im.add_mipmap(index, w, h, data)
+        return im
 
 # register
 ImageLoader.register(ImageLoaderDDS)
