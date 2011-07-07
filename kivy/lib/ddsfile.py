@@ -171,6 +171,7 @@ class DDSFile(object):
     def __init__(self, filename=None):
         super(DDSFile, self).__init__()
         self._dxt = 0
+        self._fmt = None
         self.meta = meta = QueryDict()
         self.count = 0
         self.images = []
@@ -216,6 +217,7 @@ class DDSFile(object):
         if not check_flags(meta.caps1, DDSCAPS_TEXTURE):
             raise DDSException('Not a DDS texture')
 
+        self.count = 1
         if check_flags(meta.flags, DDSD_MIPMAPCOUNT):
             if not check_flags(meta.caps1, DDSCAPS_COMPLEX | DDSCAPS_MIPMAP):
                 raise DDSException('Invalid mipmap without flags')
@@ -304,6 +306,76 @@ class DDSFile(object):
             fd.write(pack('I' * 31, *header))
             for image in self.images:
                 fd.write(image)
+
+    def add_image(self, level, bpp, fmt, width, height, data):
+        assert(bpp == 32)
+        assert(fmt in ('rgb', 'rgba', 'dxt1', 'dxt2', 'dxt3', 'dxt4', 'dxt5'))
+        assert(width > 0)
+        assert(height > 0)
+        assert(level >= 0)
+
+        meta = self.meta
+        images = self.images
+        if len(images) == 0:
+            assert(level == 0)
+
+            # first image, set defaults !
+            for k in meta.iterkeys():
+                meta[k] = 0
+
+            self._fmt = fmt
+            meta.size = calcsize('I' * 31)
+            meta.pf_size = calcsize('I' * 8)
+            meta.pf_flags = 0
+            meta.flags = DDSD_CAPS | DDSD_PIXELFORMAT | DDSD_WIDTH | DDSD_HEIGHT
+            meta.width = width
+            meta.height = height
+            meta.caps1 = DDSCAPS_TEXTURE
+
+            meta.flags |= DDSD_LINEARSIZE
+            meta.pitchOrLinearSize = len(data)
+
+            meta.pf_rgbBitCount = 32
+            meta.pf_rBitMask = 0x00ff0000
+            meta.pf_gBitMask = 0x0000ff00
+            meta.pf_bBitMask = 0x000000ff
+            meta.pf_aBitMask = 0xff000000
+
+            if fmt in ('rgb', 'rgba'):
+                assert(True)
+                assert(bpp == 32)
+                meta.pf_flags |= DDPF_RGB
+                meta.pf_rgbBitCount = 32
+                meta.pf_rBitMask = 0x00ff0000
+                meta.pf_gBitMask = 0x0000ff00
+                meta.pf_bBitMask = 0x000000ff
+                meta.pf_aBitMask = 0x00000000
+                if fmt == 'rgba':
+                    meta.pf_flags |= DDPF_ALPHAPIXELS
+                    meta.pf_aBitMask = 0xff000000
+            else:
+                meta.pf_flags |= DDPF_FOURCC
+                if fmt == 'dxt1':
+                    meta.pf_fourcc = DDS_DXT1
+                elif fmt == 'dxt2':
+                    meta.pf_fourcc = DDS_DXT2
+                elif fmt == 'dxt3':
+                    meta.pf_fourcc = DDS_DXT3
+                elif fmt == 'dxt4':
+                    meta.pf_fourcc = DDS_DXT4
+                elif fmt == 'dxt5':
+                    meta.pf_fourcc = DDS_DXT5
+
+            images.append(data)
+        else:
+            assert(level == len(images))
+            assert(fmt == self._fmt)
+
+            images.append(data)
+
+            meta.flags |= DDSD_MIPMAPCOUNT
+            meta.caps1 |= DDSCAPS_COMPLEX | DDSCAPS_MIPMAP
+            meta.mipmapCount = len(images)
 
     def __repr__(self):
         return '<DDSFile filename=%r size=%r dxt=%r len(images)=%r>' % (
