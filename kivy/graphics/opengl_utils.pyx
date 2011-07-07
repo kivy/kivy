@@ -28,25 +28,25 @@ cdef tuple _gl_texture_fmts = (
 
 cpdef list gl_get_extensions():
     '''Return a list of OpenGL extensions available. All the names in the list
-    have the `GL_` stripped at the start if exist.
+    have the `GL_` stripped at the start if exist, and are in lowercase.
 
     >>> print gl_get_extensions()
-    ['ARB_blend_func_extended', 'ARB_color_buffer_float', 'ARB_compatibility',
-     'ARB_copy_buffer'... ]
+    ['arb_blend_func_extended', 'arb_color_buffer_float', 'arb_compatibility',
+     'arb_copy_buffer'... ]
 
     '''
     global _gl_extensions
     cdef bytes extensions
     if not _gl_extensions:
         extensions = <char *>c_opengl.glGetString(c_opengl.GL_EXTENSIONS)
-        _gl_extensions[:] = [x[3:] if x[:3] == 'GL_' else x\
+        _gl_extensions[:] = [x[3:].lower() if x[:3] == 'GL_' else x.lower()\
                 for x in extensions.split()]
     return _gl_extensions
 
 
 cpdef int gl_has_extension(str name):
     '''Check if an OpenGL extension is available. If the name start with `GL_`,
-    it will be stripped for the test.
+    it will be stripped for the test, and converted to lowercase.
 
         >>> gl_has_extension('NV_get_tex_image')
         False
@@ -54,6 +54,7 @@ cpdef int gl_has_extension(str name):
         True
 
     '''
+    name = name.lower()
     if name.startswith('GL_'):
         name = name[3:]
     return name in gl_get_extensions()
@@ -113,6 +114,8 @@ cpdef int gl_has_capability(int cap):
         value = gl_has_extension('S3_s3tc')
         if not value:
             value = gl_has_extension('EXT_texture_compression_s3tc')
+        if not value:
+            value = gl_has_extension('OES_texture_compression_s3tc')
 
     elif cap == GLCAP_DXT1:
         # DXT1 is included inside S3TC, but not the inverse.
