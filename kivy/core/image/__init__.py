@@ -21,10 +21,8 @@ Texture = TextureRegion = None
 
 
 class ImageData(object):
-    '''Container for data image : width, height, fmt and data.
-
-    .. warning::
-        Only RGB and RGBA format are allowed.
+    '''Container for image and mipmap images.
+    The container will always have at least the mipmap level 0.
     '''
 
     __slots__ = ('fmt', 'mipmaps')
@@ -34,7 +32,7 @@ class ImageData(object):
     def __init__(self, width, height, fmt, data):
         assert fmt in ImageData._supported_fmts
 
-        #: Decoded image format
+        #: Decoded image format, one of a available texture format
         self.fmt = fmt
 
         #: Data for each mipmap.
@@ -84,21 +82,34 @@ class ImageData(object):
                 self.width, self.height, self.fmt, len(self.mipmaps))
 
     def add_mipmap(self, level, width, height, data):
+        '''Add a image for a specific mipmap level.
+
+        .. versionadded:: 1.0.7
+        '''
         self.mipmaps[level] = [int(width), int(height), data]
 
     def get_mipmap(self, level):
+        '''Get the mipmap image at a specific level if exist
+
+        .. versionadded:: 1.0.7
+        '''
         if level == 0:
             return (self.width, self.height, self.data)
         assert(level < len(self.mipmaps))
         return self.mipmaps[level]
 
     def iterate_mipmaps(self):
+        '''Iterate over all mipmap images available
+
+        .. versionadded:: 1.0.7
+        '''
         mm = self.mipmaps
         for x in xrange(len(mm)):
             item = mm.get(x, None)
             if item is None:
                 raise Exception('Invalid mipmap level, found empty one')
             yield x, item[0], item[1], item[2]
+
 
 class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
