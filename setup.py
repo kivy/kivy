@@ -193,12 +193,14 @@ if True:
         ext_files = [pyx]
         ext_libraries = libraries[:]
         ext_include_dirs = include_dirs[:]
-        ext_extra_compile_args = []
         ext_extra_link_args = extra_link_args[:]
         ext_extra_compile_args = []
 
         if c_options['use_ios']:
-            ext_include_dirs += ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk/usr/include/']
+            isysroot = ['-isysroot', '/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk']
+            ext_include_dirs += ['/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk/usr/include/']
+            ext_extra_compile_args += isysroot
+            ext_extra_link_args += isysroot
 
         if pyx.endswith('sdl.pyx') or pyx.endswith('sdl.c'):
             if c_options['use_sdl'] is False:
@@ -216,7 +218,6 @@ if True:
             ext_extra_link_args += ['-framework', 'CoreGraphics']
             ext_extra_link_args += ['-framework', 'QuartzCore']
             ext_extra_link_args += ['-framework', 'ImageIO']
-            ext_extra_compile_args += ['-isysroot', '/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS4.3.sdk']
 
         elif 'graphics' in pyx:
             ext_files += pxd_graphics
