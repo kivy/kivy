@@ -20,7 +20,7 @@ Here is a global scheme to respect :
     - :class:`StencilPush` : push a new stencil layer
     - any drawing that happening here will be used as a mask
     - :class:`StencilUse` : now draw the next instructions and use the stencil
-    for masking them
+      for masking them
     - :class:`StencilPop` : pop the current stencil layer.
 
 Limitations
@@ -28,7 +28,7 @@ Limitations
 
 - The stencil is activated as soon as you're doing a StencilPush
 - The stencil is deactivated as soon as you've correctly pop all the stencils
-layers
+  layers
 - You must not play with stencil yourself between a StencilPush / StencilPop
 - You can push again the stencil after a StencilUse / before the StencilPop
 - You can push up to 8 layers of stencils.

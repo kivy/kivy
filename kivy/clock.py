@@ -75,6 +75,7 @@ next frame.
 
     :func:`Clock.create_trigger` use internally schedule_once. You can use the
     same parameters.
+
 '''
 
 __all__ = ('Clock', 'ClockBase', 'ClockEvent')

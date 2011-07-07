@@ -62,6 +62,8 @@ class LabelBase(object):
             contents as much as possible if a `size` is given.
             Setting this to True without an appropriately set size will lead
             unexpected results.
+        `mipmap` : bool, default to False
+            Create mipmap for the texture
     '''
 
     __slots__ = ('options', 'texture', '_label', 'usersize')
@@ -80,6 +82,7 @@ class LabelBase(object):
         kwargs.setdefault('padding_x', None)
         kwargs.setdefault('padding_y', None)
         kwargs.setdefault('shorten', False)
+        kwargs.setdefault('mipmap', False)
 
         padding = kwargs.get('padding', None)
         if not kwargs.get('padding_x', None):
@@ -170,13 +173,14 @@ class LabelBase(object):
           * if user set a width, blit per glyph
         '''
 
+        options = self.options
         uw, uh = self.usersize
         w, h = 0, 0
         x, y = 0, 0
         if real:
             self._render_begin()
-            halign = self.options['halign']
-            valign = self.options['valign']
+            halign = options['halign']
+            valign = options['valign']
             if valign == 'bottom':
                 y = self.height - self._internal_height
             elif valign == 'middle':
@@ -217,7 +221,7 @@ class LabelBase(object):
 
             # Shorten the text that we actually display
             text = self.text
-            if self.options['shorten'] and self.get_extents(text)[0] > uw:
+            if options['shorten'] and self.get_extents(text)[0] > uw:
                 text = self.shorten(text)
 
             # first, split lines
@@ -303,6 +307,7 @@ class LabelBase(object):
 
         # create texture is necessary
         texture = self.texture
+        mipmap = options['mipmap']
         if texture is None:
             if data is None:
                 try:
@@ -310,15 +315,17 @@ class LabelBase(object):
                     colorfmt = 'rgba'
                 except ImportError:
                     colorfmt = 'luminance_alpha'
-                texture = Texture.create(size=self.size, colorfmt=colorfmt)
+                texture = Texture.create(
+                        size=self.size, colorfmt=colorfmt,
+                        mipmap=mipmap)
             else:
-                texture = Texture.create_from_data(data)
+                texture = Texture.create_from_data(data, mipmap=mipmap)
             texture.flip_vertical()
         elif self.width > texture.width or self.height > texture.height:
             if data is None:
-                texture = Texture.create(size=self.size)
+                texture = Texture.create(size=self.size, mipmap=mipmap)
             else:
-                texture = Texture.create_from_data(data)
+                texture = Texture.create_from_data(data, mipmap=mipmap)
             texture.flip_vertical()
         else:
             texture = texture.get_region(

@@ -593,8 +593,8 @@ class Settings(BoxLayout):
         from kivy import kivy_data_dir
         from kivy.config import Config
         from os.path import join
-        panel = self.add_json_panel('Kivy', Config,
-            join(kivy_data_dir, 'settings_kivy.json'))
+        self.add_json_panel('Kivy', Config,
+                join(kivy_data_dir, 'settings_kivy.json'))
 
     def add_widget(self, widget, index=0):
         if self._initialized:
@@ -662,5 +662,4 @@ if __name__ == '__main__':
             return s
 
     SettingsApp().run()
-
 

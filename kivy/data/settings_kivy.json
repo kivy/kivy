@@ -25,6 +25,14 @@
 		"section": "graphics",
 		"key": "show_cursor"
 	},
+    {
+        "type": "options",
+        "title": "Rotation",
+        "desc": "Rotation of the window",
+        "section": "graphics",
+        "key": "rotation",
+        "options": ["0", "90", "180", "270"]
+    },
 
 	{
 		"type": "title",

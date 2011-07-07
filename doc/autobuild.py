@@ -11,6 +11,7 @@ ignore_list = (
     'kivy.graphics.buffer',
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
+    'kivy.lib.osc'
 )
 
 import os
@@ -127,10 +128,22 @@ Examples
 template_examples_ref = \
 '''# :ref:`Jump directly to Examples <example-reference%d>`'''
 
+def extract_summary_line(doc):
+    if doc is None:
+        return
+    for line in doc.split('\n'):
+        line = line.strip()
+        # don't take empty line
+        if len(line) < 1:
+            continue
+        # ref mark
+        if line.startswith('.. _'):
+            continue
+        return line
+
 for package in packages:
-    try:
-        summary = [x for x in sys.modules[package].__doc__.split("\n") if len(x) > 1][0]
-    except:
+    summary = extract_summary_line(sys.modules[package].__doc__)
+    if summary is None:
         summary = 'NO DOCUMENTATION (package %s)' % package
     t = template.replace('$SUMMARY', summary)
     t = t.replace('$PACKAGE', package)
@@ -161,10 +174,9 @@ m = modules.keys()
 m.sort()
 refid = 0
 for module in m:
-    try:
-        summary = [x for x in sys.modules[module].__doc__.split("\n") if len(x) > 1][0]
-    except:
-        summary = 'NO DOCUMENTATION (module %s)' % module
+    summary = extract_summary_line(sys.modules[module].__doc__)
+    if summary is None:
+        summary = 'NO DOCUMENTATION (module %s)' % package
 
     # search examples
     example_output = []

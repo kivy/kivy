@@ -86,7 +86,7 @@ cdef class VBO:
     cdef void unbind(self):
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-    cdef void add_vertex_data(self, void *v, int* indices, int count):
+    cdef void add_vertex_data(self, void *v, unsigned short* indices, int count):
         self.need_upload = 1
         self.data.add(v, indices, count)
 
@@ -94,7 +94,7 @@ cdef class VBO:
         self.need_upload = 1
         self.data.update(index, v, count)
 
-    cdef void remove_vertex_data(self, int* indices, int count):
+    cdef void remove_vertex_data(self, unsigned short* indices, int count):
         self.data.remove(indices, count)
 
 
@@ -107,16 +107,16 @@ cdef class VertexBatch:
 
     def __init__(self, **kwargs):
         self.vbo = kwargs.get('vbo', VBO())
-        self.vbo_index = Buffer(sizeof(int)) #index of every vertex in the vbo
-        self.elements = Buffer(sizeof(int)) #indices translated to vbo indices
+        self.vbo_index = Buffer(sizeof(unsigned short)) #index of every vertex in the vbo
+        self.elements = Buffer(sizeof(unsigned short)) #indices translated to vbo indices
 
         self.set_data(NULL, 0, NULL, 0)
         self.set_mode(kwargs.get('mode', None))
 
     cdef void set_data(self, vertex_t *vertices, int vertices_count,
-                       int *indices, int indices_count):
+                       unsigned short *indices, int indices_count):
         # clear old vertices from vbo and then reset index buffer
-        self.vbo.remove_vertex_data(<int*>self.vbo_index.pointer(),
+        self.vbo.remove_vertex_data(<unsigned short*>self.vbo_index.pointer(),
                                     self.vbo_index.count())
         self.vbo_index.clear()
 
@@ -128,9 +128,9 @@ cdef class VertexBatch:
         self.append_data(vertices, vertices_count, indices, indices_count)
 
     cdef void append_data(self, vertex_t *vertices, int vertices_count,
-                          int *indices, int indices_count):
+                          unsigned short *indices, int indices_count):
         # add vertex data to vbo and get index for every vertex added
-        cdef int *vi = <int *>malloc(sizeof(int) * vertices_count)
+        cdef unsigned short *vi = <unsigned short *>malloc(sizeof(unsigned short) * vertices_count)
         if vi == NULL:
             raise MemoryError('vertex index allocation')
         self.vbo.add_vertex_data(vertices, vi, vertices_count)
@@ -141,7 +141,7 @@ cdef class VertexBatch:
         # TODO: remove buffer usage in this case, the memory is always one big
         # block. no need to use add() everytime we need to reconstruct the list.
         cdef int local_index
-        cdef int * vbi = <int*>self.vbo_index.pointer()
+        cdef unsigned short *vbi = <unsigned short*>self.vbo_index.pointer()
         for i in xrange(indices_count):
             local_index = indices[i]
             self.elements.add(&vbi[local_index], NULL, 1)
@@ -149,7 +149,7 @@ cdef class VertexBatch:
     cdef void draw(self):
         self.vbo.bind()
         glDrawElements(self.mode, self.elements.count(),
-                       GL_UNSIGNED_INT, self.elements.pointer())
+                       GL_UNSIGNED_SHORT, self.elements.pointer())
         self.vbo.unbind()
 
     cdef void set_mode(self, str mode):

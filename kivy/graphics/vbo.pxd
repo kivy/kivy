@@ -19,9 +19,9 @@ cdef class VBO:
     cdef void update_buffer(self)
     cdef void bind(self)
     cdef void unbind(self)
-    cdef void add_vertex_data(self, void *v, int* indices, int count)
+    cdef void add_vertex_data(self, void *v, unsigned short* indices, int count)
     cdef void update_vertex_data(self, int index, vertex_t* v, int count)
-    cdef void remove_vertex_data(self, int* indices, int count)
+    cdef void remove_vertex_data(self, unsigned short* indices, int count)
 
 
 cdef class VertexBatch:
@@ -32,12 +32,12 @@ cdef class VertexBatch:
 
     cdef vertex_t *vertices
     cdef int vertices_count
-    cdef int *indices
+    cdef unsigned short *indices
     cdef int indices_count
 
     cdef void set_data(self, vertex_t *vertices, int vertices_count,
-                       int *indices, int indices_count)
+                       unsigned short *indices, int indices_count)
     cdef void append_data(self, vertex_t *vertices, int vertices_count,
-                          int *indices, int indices_count)
+                          unsigned short *indices, int indices_count)
     cdef void draw(self)
     cdef void set_mode(self, str mode)

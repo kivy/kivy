@@ -152,6 +152,16 @@ class TreeViewNode(object):
     :data:`nodes` is a :class:`~kivy.properties.ListProperty`, default to [].
     '''
 
+    parent_node = ObjectProperty(None, allownone=True)
+    '''Parent node. This attribute is needed because :data:`parent` can be None
+    when the node is not displayed.
+
+    .. versionadded:: 1.0.7
+
+    :data:`parent_node` is a :class:`~kivy.properties.ObjectProperty`, default
+    to None.
+    '''
+
     level = NumericProperty(-1)
     '''Level of the node.
 
@@ -241,10 +251,34 @@ class TreeView(Widget):
         if parent:
             parent.is_leaf = False
             parent.nodes.append(node)
+            node.parent_node = parent
             node.level = parent.level + 1
         node.bind(size=self._trigger_layout)
         self._trigger_layout()
         return node
+
+    def remove_node(self, node):
+        '''Remove a node in a tree.
+
+        .. versionadded:: 1.0.7
+
+        :Parameters:
+            `node`: instance of a :class:`TreeViewNode`
+                Node to remove from the tree
+        '''
+        # check if the widget is "ok" for a node
+        if not isinstance(node, TreeViewNode):
+            raise TreeViewException(
+                'The node must be a subclass of TreeViewNode')
+        parent = node.parent_node
+        if parent is not None:
+            nodes = parent.nodes
+            if node in nodes:
+                nodes.remove(node)
+            parent.is_leaf = not bool(len(nodes))
+            node.parent_node = None
+            node.unbind(size=self._trigger_layout)
+            self._trigger_layout()
 
     def on_node_expand(self, node):
         pass

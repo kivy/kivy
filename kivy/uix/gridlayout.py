@@ -31,12 +31,12 @@ The size of each column is determined by the maximum width needed to display the
 whole column in 3 steps (same for rows)
 
     - The initial size of a column is determined by the
-    :data:`GridLayout.col_default_width` value. It can be customized per column
-    by using :data:`GridLayout.cols_minimum`.
-    - Then, it use the maximum size_hint_x of each widget of the column.
-    If no widget have size_hint_x, it will use the maximum width of all widgets.
+      :data:`GridLayout.col_default_width` value. It can be customized per
+      column by using :data:`GridLayout.cols_minimum`.
+    - Then, it use the maximum size_hint_x of each widget of the column.  If no
+      widget have size_hint_x, it will use the maximum width of all widgets.
     - You can avoid to use the widget `size_hint_x` and `width` if you set
-    :data:`GridLayout.col_force_default` to True.
+      :data:`GridLayout.col_force_default` to True.
 
 Usage of GridLayout
 -------------------

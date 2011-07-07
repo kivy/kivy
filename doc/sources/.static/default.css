@@ -854,6 +854,17 @@ table.field-list td.field-body dd {
 	color: #444444;
 }
 
+div.footerlinks {
+    padding: 5px;
+	border-top: 1px dotted #acaaa0;
+}
+div.footerlinks table {
+    width: 100%;
+}
+div.footerlinks table td.rightlink {
+    text-align: right;
+}
+
 /* :::: PRINT :::: */
 @media print {
     div.document,

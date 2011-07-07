@@ -7,8 +7,8 @@ cdef class Buffer:
 
     cdef void clear(self)
     cdef void grow(self, int block_count)
-    cdef void add(self, void *blocks, int *indices, int count)
-    cdef void remove(self, int *indices, int count)
+    cdef void add(self, void *blocks, unsigned short *indices, int count)
+    cdef void remove(self, unsigned short *indices, int count)
     cdef int count(self)
     cdef int size(self)
     cdef void *pointer(self)
