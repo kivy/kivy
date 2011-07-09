@@ -126,14 +126,6 @@ cdef class Property:
     cpdef link_deps(self, object obj, str name):
         pass
 
-    """
-    cpdef unlink(self, obj):
-        '''Destroy the storage of a widget
-        '''
-        if self._name in obj.__storage:
-            del obj.__storage[self._name]
-    """
-
     cpdef bind(self, obj, observer):
         '''Add a new observer to be called only when the value is changed
         '''
@@ -547,13 +539,6 @@ cdef class ReferenceListProperty(Property):
         for prop in self.properties:
             prop.bind(obj, self.trigger_change)
 
-    """
-    cpdef unlink(self, obj):
-        for prop in self.properties:
-            prop.unbind(obj, self.trigger_change)
-        Property.unlink(self, obj)
-    """
-
     cpdef trigger_change(self, obj, value):
         s = obj.__storage[self._name]
         if s['stop_event']:
@@ -645,14 +630,6 @@ cdef class AliasProperty(Property):
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
             oprop.bind(obj, self.trigger_change)
-
-    """
-    cpdef unlink(self, obj):
-        for prop in self.bind_objects:
-            oprop = getattr(obj.__class__, prop)
-            oprop.unbind(obj, self.trigger_change)
-        Property.unlink(self, obj)
-    """
 
     cpdef trigger_change(self, obj, value):
         cvalue = obj.__storage[self._name]['value']
