@@ -40,7 +40,6 @@ def is_cython_extension(what, obj):
 
 def callback_docstring(app, what, name, obj, options, lines):
     if what == 'module':
-        return
         # remove empty lines
         while len(lines):
             line = lines[0].strip()
