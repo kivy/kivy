@@ -405,6 +405,14 @@ Or more complex::
             Color:
                 rgba: ut.get_random_color()
 
+.. versionadded:: 1.0.7
+
+You can directly import class from a module::
+
+    #: import Animation kivy.animation.Animation
+    <Rule>:
+        on_prop: Animation(x=.5).start(self)
+
 set <key> <expr>
 ~~~~~~~~~~~~~~~~
 
@@ -516,9 +524,15 @@ class Parser(object):
                 alias, package = l
                 try:
                     if package not in sys.modules:
-                        mod = __import__(package)
+                        try:
+                            mod = __import__(package)
+                        except ImportError:
+                            mod = __import__('.'.join(package.split('.')[:-1]))
                     else:
                         mod = sys.modules[package]
+                    # resolve the whole thing
+                    for part in package.split('.')[1:]:
+                        mod = getattr(mod, part)
                     global_idmap[alias] = mod
                 except ImportError:
                     Logger.exception('')
