@@ -14,7 +14,7 @@ memory for further access.
 __all__ = ('Image', 'ImageLoader', 'ImageData')
 
 from kivy.event import EventDispatcher
-from kivy.core  import core_register_libs
+from kivy.core import core_register_libs
 from kivy.cache import Cache
 from kivy.clock import Clock
 
@@ -120,11 +120,11 @@ class ImageLoaderBase(object):
                 '_mipmap')
 
     def __init__(self, filename, **kwargs):
-        self._mipmap   = kwargs.get('mipmap', False)
+        self._mipmap = kwargs.get('mipmap', False)
         self.keep_data = kwargs.get('keep_data', False)
-        self.filename  = filename
-        self._texture  = None
-        self._data     = self.load(filename) # returns a array of type ImageData (sequenc of images)
+        self.filename = filename
+        self._texture = None
+        self._data = self.load(filename)
 
     def load(self, filename):
         '''Load an image'''
@@ -146,7 +146,7 @@ class ImageLoaderBase(object):
     def size(self):
         '''Image size (width, height)
         '''
-        return (self._data[0].width, self._data[0].height)
+        return (self._data.width[0], self._data[0].height)
 
     @property
     def texture(self):
@@ -225,7 +225,7 @@ class Image(EventDispatcher):
         self.anim_frame_delay = .2
         #^- lower means faster animation
         self._anim_possible = False
-        #^- indicates more than one image if true
+        #^- indicates more than one image in sequence if True
         self._anim_counter = 0
         #^- animation counter starts with 0
         self._iteration_done = False
@@ -248,7 +248,7 @@ class Image(EventDispatcher):
             raise Exception('Unable to load image type %s' % str(type(arg)))
 
         self._img_iterate()
-        # called after image is loaded/cached
+        # check if the image hase sequences for animation in it
 
     #---Animated Gif, zip imgs (001.ext, 002.ext...  in order of name )
     def _anim(self, *largs ):
@@ -260,7 +260,7 @@ class Image(EventDispatcher):
             self._texture = _tex
             self._anim_counter += 1
             self.dispatch('on_texture_changed')
-            # ^-fire a texture update(to be handled bu widget/s)
+            # ^-fire a texture update(to be handled by widget/s)
         else:
             # <-Restart animation from first Frame
             self._anim_counter = 0
@@ -274,9 +274,9 @@ class Image(EventDispatcher):
         if allow_anim and self._anim_possible:
             Clock.schedule_interval(
                 self._anim,
-                # <-function to animate
+                # ^-function to animate
                 self.anim_frame_delay)
-                # <-frame delay .20secs by default
+                # ^-frame delay .20secs by default too slow??
     #-------------------------------------------------------------------
 
     #-------------------------------------------------------------------#
@@ -292,7 +292,7 @@ class Image(EventDispatcher):
             pass
         uid = '%s|%s|%s' % ( self.filename, self._mipmap, count )
         _texture = Cache.get('kv.texture', uid)
-        # ^-get texture for first image
+        # ^-get texture for first image from cache
         if not _texture:
             # -----if texture is not in cache
             while count < imgcount:
@@ -314,7 +314,7 @@ class Image(EventDispatcher):
             uid = '%s|%s|%s' % ( self.filename, self._mipmap, 1)
             # ^-check if image has sequence in cache
             _texture = Cache.get('kv.texture', uid)
-            # ^-get texture for second image
+            # ^-get texture for second image in sequence
             if _texture:
                 imgcount = 2
                 # ^-enable animation (cached sequence img)
@@ -372,7 +372,6 @@ class Image(EventDispatcher):
             #if image in cache
             _texture = None
             pass
-            # ^-img_iterate is going to be called after this in init
         else:
             # if image not already in cache then load
             _texture = None
@@ -428,7 +427,7 @@ class Image(EventDispatcher):
         '''
         data = self.image._data[0]
 
-        # can't use this function without ImageData
+        # can't use this fonction without ImageData
         if data.data is None:
             raise EOFError('Image data is missing, make sure that image is'
                            'loaded with keep_data=True keyword.')

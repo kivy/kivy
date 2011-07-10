@@ -21,7 +21,7 @@ class ImageSequence:
     def __init__(self, im):
         self.im = im
 
-    def img_correct( self, _img_tmp ):
+    def img_correct(self, _img_tmp):
         # image loader work only with rgb/rgba image
         if _img_tmp.mode.lower() not in ('rgb', 'rgba'):
             try:
@@ -35,21 +35,20 @@ class ImageSequence:
             # image are not in the good direction, flip !
         _img_tmp = _img_tmp.transpose(Image.FLIP_TOP_BOTTOM)
         return _img_tmp
-    
-    def _img_array_from_zip(self, _filename):                    
+
+    def _img_array_from_zip(self, _filename):
         """
-        Read images from an zip file.  
+        Read images from an zip file.
         Returns a list/array of typ ImageData
         """
         # Read all images inside
-        z = zipfile.ZipFile (_filename,'r')
-
+        z = zipfile.ZipFile(_filename, 'r')
         image_data = []
-        for item in z.namelist ():
+        for item in z.namelist():
             try:
-                tmpfile = z.read (item)
-                img_tmp = Image.open( (SIO.StringIO (tmpfile)))
-                image_data.append (ImageData(img_tmp.size[0], img_tmp.size[1],
+                tmpfile = z.read(item)
+                img_tmp = Image.open((SIO.StringIO(tmpfile)))
+                image_data.append(ImageData(img_tmp.size[0], img_tmp.size[1],
                                 img_tmp.mode.lower(), img_tmp.tostring()))
             except:
                 Logger.warning('Image: Unable to load image <%s>' % _filename)
@@ -60,10 +59,9 @@ class ImageSequence:
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-
-    def _img_array( self):
+    def _img_array(self):
         """
-        Read images from an animated file.  
+        Read images from an animated file.
         Returns a list/array of typ ImageData
         """
         # Check Numpy
@@ -81,25 +79,23 @@ class ImageSequence:
                 tmp = pilIm.convert() # Make without palette
                 a = np.asarray(tmp)
                 if len(a.shape)==0:
-                    raise MemoryError("Too little memory to convert PIL image to array")
+                    raise MemoryError("Too little memory to
+                                convert PIL image to array")
                 # Store, and next
                 images.append(a)
                 pilIm.seek(pilIm.tell()+1)
         except EOFError:
             pass
-
         # Convert to normal PIL images if needed
         image_data = []
         for im in images:
-            img_tmp = Image.fromarray(im) 
+            img_tmp = Image.fromarray(im)
             img_tmp = self.img_correct(img_tmp)
-            image_data.append (ImageData(img_tmp.size[0], img_tmp.size[1],
+            image_data.append(ImageData(img_tmp.size[0], img_tmp.size[1],
                                 img_tmp.mode.lower(), img_tmp.tostring()))
-
         # Done
         return image_data
 #-----------------------------------------------------------------------------
-
 
 class ImageLoaderPIL(ImageLoaderBase):
     '''Image loader based on PIL library'''
@@ -113,9 +109,7 @@ class ImageLoaderPIL(ImageLoaderBase):
                 'jpeg', 'jpg', 'mcidas', 'mic', 'mpeg', 'msp', 'pcd',
                 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
                 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv', 'zip')
-                #  addition of .zip image sequences maybe this shouldn't
-                #be here but a seprate zip_sequence class??)
-
+                #  addition of .zip image sequences
     def load(self, filename):
         Logger.debug('Image: Load <%s>' % filename)
         ext = filename.split('.')[-1].lower()
@@ -124,8 +118,9 @@ class ImageLoaderPIL(ImageLoaderBase):
             # update internals
             self.filename = filename
             img_sq = ImageSequence(None)
-            return  img_sq._img_array_from_zip( filename)
-            # ^-returns a arrayof type ImageData of len 1 if not a sequence image
+            return  img_sq._img_array_from_zip(filename)
+            # ^-returns a array of type ImageData
+            #of len 1 if not a sequence image
         else:
             try:
                 im = Image.open(filename)
@@ -136,8 +131,7 @@ class ImageLoaderPIL(ImageLoaderBase):
             # ^-sequence image class ^^
             # update internals
             self.filename = filename
-            return  img_sq._img_array( )
+            return  img_sq._img_array()
             # ^-returns a arrayof type ImageData len 1 if not a sequence image
-
 # register
 ImageLoader.register(ImageLoaderPIL)
