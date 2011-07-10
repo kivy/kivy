@@ -766,8 +766,8 @@ def create_handler(element, key, value, idmap):
     # bind every key.value
     for x in kw:
         k = x.split('.')
-        f = idmap[k[0]]
         try:
+            f = idmap[k[0]]
             for x in k[1:-1]:
                 f = getattr(f, x)
             if hasattr(f, 'bind'):
