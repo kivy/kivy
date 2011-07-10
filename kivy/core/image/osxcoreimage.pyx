@@ -264,7 +264,7 @@ cdef CGContextRef _create_context(int w, int h):
     cdef void *data = calloc(w * 4, h)
     cdef CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB()
     cdef CGContextRef ctx = CGBitmapContextCreate(data, w, h, 8, w*4, space,
-                        kCGBitmapByteOrder32Host | kCGImageAlphaPremultipliedFirst)
+                        kCGBitmapByteOrder32Host | kCGImageAlphaNoneSkipFirst)
 
     CGContextSetBlendMode(ctx, kCGBlendModeCopy)
     CGContextSetAllowsAntialiasing(ctx, True)
