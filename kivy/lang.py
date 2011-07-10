@@ -671,16 +671,20 @@ class Parser(object):
 
             # Two more levels?
             elif count == indent + 8:
-                if current_property not in ('canvas', 'canvas.after',
-                                            'canvas.before'):
-                    raise ParserError(self, ln,
-                                   'Invalid indentation, only allowed '
-                                   'for canvas')
-                _objects, _lines = self.parse_level(level + 2, lines[i:])
-                current_object[current_property] = (_objects, ln, self)
-                current_property = None
-                lines = _lines
-                i = 0
+                if current_property in (
+                        'canvas', 'canvas.after', 'canvas.before'):
+                    _objects, _lines = self.parse_level(level + 2, lines[i:])
+                    current_object[current_property] = (_objects, ln, self)
+                    current_property = None
+                    lines = _lines
+                    i = 0
+                else:
+                    if current_property in current_object:
+                        info = current_object[current_property]
+                        info = (info[0] + '\n' + content, info[1], info[2])
+                    else:
+                        info = (content, ln, self)
+                    current_object[current_property] = info
 
             # Too much indentation, invalid
             else:
