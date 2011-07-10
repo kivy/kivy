@@ -33,14 +33,13 @@ def is_cython_extension(what, obj):
             return False
         return True
     # test for python method in cython class
-    if what == 'method' and obj.__class__ == types.BuiltinFunctionType:
+    if what in ('method', 'function') and obj.__class__ == types.BuiltinFunctionType:
         if not re.match('^([a-zA-Z_][a-zA-Z0-9_]*)\((.*)\)', doc):
             return False
         return True
 
 def callback_docstring(app, what, name, obj, options, lines):
     if what == 'module':
-        return
         # remove empty lines
         while len(lines):
             line = lines[0].strip()

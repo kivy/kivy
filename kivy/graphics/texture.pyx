@@ -151,6 +151,8 @@ informations.
 __all__ = ('Texture', 'TextureRegion')
 
 include "config.pxi"
+include "common.pxi"
+include "opengl_utils_def.pxi"
 
 from os import environ
 from array import array
@@ -159,36 +161,44 @@ from kivy.logger import Logger
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
-
-cdef extern from "stdlib.h":
-    ctypedef unsigned long size_t
-    void free(void *ptr) nogil
-    void *calloc(size_t nmemb, size_t size) nogil
-    void *malloc(size_t size) nogil
-
-# XXX move missing symbol in c_opengl
-# utilities
-AVAILABLE_GL_EXTENSIONS = []
-def hasGLExtension( specifier ):
-    '''Given a string specifier, check for extension being available
-    '''
-    global AVAILABLE_GL_EXTENSIONS
-    cdef bytes extensions
-    if not AVAILABLE_GL_EXTENSIONS:
-        extensions = <char *>glGetString( GL_EXTENSIONS )
-        AVAILABLE_GL_EXTENSIONS[:] = extensions.split()
-    return specifier in AVAILABLE_GL_EXTENSIONS
+from opengl_utils cimport *
 
 # compatibility layer
 cdef GLuint GL_BGR = 0x80E0
 cdef GLuint GL_BGRA = 0x80E1
+cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1
+cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2
+cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
 
 cdef object _texture_release_trigger = None
 cdef list _texture_release_list = []
-cdef int _has_bgr = -1
-cdef int _has_npot_support = -1
-cdef int _has_texture_nv = -1
-cdef int _has_texture_arb = -1
+
+cdef dict _gl_color_fmt = {
+    'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
+    'luminance': GL_LUMINANCE, 'luminance_alpha': GL_LUMINANCE_ALPHA,
+    's3tc_dxt1': GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+    's3tc_dxt3': GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
+    's3tc_dxt5': GL_COMPRESSED_RGBA_S3TC_DXT5_EXT }
+
+cdef dict _gl_buffer_fmt = {
+    'ubyte': GL_UNSIGNED_BYTE, 'ushort': GL_UNSIGNED_SHORT,
+    'uint': GL_UNSIGNED_INT, 'byte': GL_BYTE,
+    'short': GL_SHORT, 'int': GL_INT, 'float': GL_FLOAT }
+
+cdef dict _gl_buffer_size = {
+    'ubyte': sizeof(GLubyte), 'ushort': sizeof(GLushort),
+    'uint': sizeof(GLuint), 'byte': sizeof(GLbyte),
+    'short': sizeof(GLshort), 'int': sizeof(GLint),
+    'float': sizeof(GLfloat) }
+
+cdef dict _gl_texture_min_filter = {
+    'nearest': GL_NEAREST, 'linear': GL_LINEAR,
+    'nearest_mipmap_nearest': GL_NEAREST_MIPMAP_NEAREST,
+    'nearest_mipmap_linear': GL_NEAREST_MIPMAP_LINEAR,
+    'linear_mipmap_nearest': GL_LINEAR_MIPMAP_NEAREST,
+    'linear_mipmap_linear': GL_LINEAR_MIPMAP_LINEAR }
+
+
 
 cdef inline int _nearest_pow2(int v):
     # From http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
@@ -201,77 +211,61 @@ cdef inline int _nearest_pow2(int v):
     v |= v >> 16
     return v + 1
 
+
 cdef inline int _is_pow2(int v):
     # http://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
     return (v & (v - 1)) == 0
 
-cdef dict _gl_color_fmt = {
-    'rgba': GL_RGBA,
-    'bgra': GL_BGRA,
-    'rgb': GL_RGB,
-    'bgr': GL_BGR,
-    'luminance': GL_LUMINANCE,
-    'luminance_alpha': GL_LUMINANCE_ALPHA,
-}
 
 cdef inline int _color_fmt_to_gl(str x):
+    '''Return the GL numeric value from a color string format
+    '''
     x = x.lower()
     try:
         return _gl_color_fmt[x]
     except KeyError:
         raise Exception('Unknown <%s> color format' % x)
 
-cdef dict _gl_buffer_fmt = {
-    'ubyte': GL_UNSIGNED_BYTE,
-    'ushort': GL_UNSIGNED_SHORT,
-    'uint': GL_UNSIGNED_INT,
-    'byte': GL_BYTE,
-    'short': GL_SHORT,
-    'int': GL_INT,
-    'float': GL_FLOAT
-}
+
+cdef inline int _is_compressed_fmt(str x):
+    '''Return 1 if the color string format is a compressed one
+    '''
+    return x.startswith('s3tc_dxt')
+
 
 cdef inline int _buffer_fmt_to_gl(str x):
+    '''Return the GL numeric value from a buffer string format
+    '''
     x = x.lower()
     try:
         return _gl_buffer_fmt[x]
     except KeyError:
         raise Exception('Unknown <%s> buffer format' % x)
 
-cdef dict _gl_buffer_size = {
-    'ubyte': sizeof(GLubyte),
-    'ushort': sizeof(GLushort),
-    'uint': sizeof(GLuint),
-    'byte': sizeof(GLbyte),
-    'short': sizeof(GLshort),
-    'int': sizeof(GLint),
-    'float': sizeof(GLfloat)
-}
 
 cdef inline int _buffer_type_to_gl_size(str x):
+    '''Return the size of a buffer string format in bytes
+    '''
     x = x.lower()
     try:
         return _gl_buffer_size[x]
     except KeyError:
         raise Exception('Unknown <%s> format' % x)
 
-cdef dict _gl_texture_min_filter = {
-    'nearest': GL_NEAREST,
-    'linear': GL_LINEAR,
-    'nearest_mipmap_nearest': GL_NEAREST_MIPMAP_NEAREST,
-    'nearest_mipmap_linear': GL_NEAREST_MIPMAP_LINEAR,
-    'linear_mipmap_nearest': GL_LINEAR_MIPMAP_NEAREST,
-    'linear_mipmap_linear': GL_LINEAR_MIPMAP_LINEAR,
-}
 
 cdef inline GLuint _str_to_gl_texture_min_filter(str x):
+    '''Return the GL numeric value from a texture min filter string
+    '''
     x = x.lower()
     try:
         return _gl_texture_min_filter[x]
     except KeyError:
         raise Exception('Unknown <%s> texture min filter' % x)
 
+
 cdef inline GLuint _str_to_gl_texture_mag_filter(str x):
+    '''Return the GL numeric value from a texture mag filter string
+    '''
     x = x.lower()
     if x == 'nearest':
         return GL_NEAREST
@@ -279,7 +273,10 @@ cdef inline GLuint _str_to_gl_texture_mag_filter(str x):
         return GL_LINEAR
     raise Exception('Unknown <%s> texture mag filter' % x)
 
+
 cdef inline GLuint _str_to_gl_texture_wrap(str x):
+    '''Return the GL numeric value from a texture wrap string
+    '''
     if x == 'clamp_to_edge':
         return GL_CLAMP_TO_EDGE
     elif x == 'repeat':
@@ -287,7 +284,10 @@ cdef inline GLuint _str_to_gl_texture_wrap(str x):
     elif x == 'mirrored_repeat':
         return GL_MIRRORED_REPEAT
 
+
 cdef inline int _gl_format_size(GLuint x):
+    '''Return the GL numeric value from a texture wrap string
+    '''
     if x in (GL_RGB, GL_BGR):
         return 3
     elif x in (GL_RGBA, GL_BGRA):
@@ -296,36 +296,22 @@ cdef inline int _gl_format_size(GLuint x):
         return 2
     elif x == GL_LUMINANCE:
         return 1
+    elif x in (GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+            GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
+            GL_COMPRESSED_RGBA_S3TC_DXT5_EXT):
+        return 4
     raise Exception('Unsupported format size <%s>' % str(format))
-
-cdef inline int has_bgr():
-    global _has_bgr
-    if _has_bgr == -1:
-        _has_bgr = int(hasGLExtension('GL_EXT_bgra'))
-        if not _has_bgr:
-            Logger.warning('Texture: BGR/BGRA format is not supported by'
-                           'your graphic card')
-            Logger.warning('Texture: Software conversion will be done to'
-                           'RGB/RGBA')
-    return _has_bgr
-
-cdef inline int has_npot_support():
-    global _has_npot_support
-    if _has_npot_support == -1:
-        _has_npot_support = int(hasGLExtension('GL_ARB_texture_non_power_of_two'))
-        if not _has_npot_support:
-            _has_npot_support = int(hasGLExtension('OES_texture_npot'))
-        if _has_npot_support:
-            Logger.info('Texture: NPOT texture are supported natively')
-        else:
-            Logger.warning('Texture: NPOT texture are not supported natively')
-    return _has_npot_support
 
 
 cdef inline int _is_gl_format_supported(str x):
     if x in ('bgr', 'bgra'):
-        return has_bgr()
+        return gl_has_capability(GLCAP_BGRA)
+    elif x == 's3tc_dxt1':
+        return gl_has_capability(GLCAP_DXT1)
+    elif x.startswith('s3tc_dxt'):
+        return gl_has_capability(GLCAP_S3TC)
     return 1
+
 
 cdef inline str _convert_gl_format(str x):
     if x == 'bgr':
@@ -334,34 +320,46 @@ cdef inline str _convert_gl_format(str x):
         return 'rgba'
     return x
 
+
 cdef inline _convert_buffer(bytes data, str fmt):
     cdef bytes ret_buffer
     cdef str ret_format
 
-    # check if format is supported by user
+    # if native support of this format is available, use it
+    if gl_has_texture_native_format(fmt):
+        return data, fmt
+
+    # no native support, can we at least convert it ?
+    if not gl_has_texture_conversion(fmt):
+        raise Exception('Unimplemented texture conversion for %s' % fmt)
+
+    # do appropriate conversion, since we accepted it
     ret_format = fmt
     ret_buffer = data
 
-    # BGR / BGRA conversion not supported by hardware ?
-    if not _is_gl_format_supported(fmt):
-        if fmt == 'bgr':
-            ret_format = 'rgb'
-            a = array('b', data)
-            a[0::3], a[2::3] = a[2::3], a[0::3]
-            ret_buffer = a.tostring()
-        elif fmt == 'bgra':
-            ret_format = 'rgba'
-            a = array('b', data)
-            a[0::4], a[2::4] = a[2::4], a[0::4]
-            ret_buffer = a.tostring()
-        else:
-            Logger.critical('Texture: non implemented'
-                            '%s texture conversion' % fmt)
-            raise Exception('Unimplemented texture conversion for %s' %
-                            str(format))
+    # BGR -> RGB
+    if fmt == 'bgr':
+        ret_format = 'rgb'
+        a = array('b', data)
+        a[0::3], a[2::3] = a[2::3], a[0::3]
+        ret_buffer = a.tostring()
+
+    # BGRA -> RGBA
+    elif fmt == 'bgra':
+        ret_format = 'rgba'
+        a = array('b', data)
+        a[0::4], a[2::4] = a[2::4], a[0::4]
+        ret_buffer = a.tostring()
+
+    else:
+        assert False, 'Non implemented texture conversion !' % fmt
+
     return ret_buffer, ret_format
 
+
 cdef inline void _gl_prepare_pixels_upload(int width) nogil:
+    '''Set the best pixel alignement for the current width
+    '''
     if not (width & 0x7):
         glPixelStorei(GL_UNPACK_ALIGNMENT, 8)
     elif not (width & 0x3):
@@ -374,34 +372,45 @@ cdef inline void _gl_prepare_pixels_upload(int width) nogil:
 
 cdef _texture_create(int width, int height, str colorfmt, str bufferfmt,
                      int mipmap, int allocate):
+    '''Create the OpenGL texture.
+    '''
     cdef GLuint target = GL_TEXTURE_2D
+    cdef GLuint texid
+    cdef Texture texture
     cdef int texture_width, texture_height
     cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
     cdef int make_npot = 0
+    cdef int glfmt, iglbufferfmt, datasize, dataerr = 0
+    cdef void *data = NULL
 
     # check if it's a pot or not
     if not _is_pow2(width) or not _is_pow2(height):
         make_npot = 1
+
     # in case of mipmap is asked for npot texture, make it pot compatible
     if mipmap:
         make_npot = 0
 
-    if make_npot and has_npot_support():
+    # depending if npot is available, use the real size or pot size
+    if make_npot and gl_has_capability(GLCAP_NPOT):
         texture_width = width
         texture_height = height
     else:
         texture_width = _nearest_pow2(width)
         texture_height = _nearest_pow2(height)
 
-    cdef GLuint texid
+    # generate the texture
     glGenTextures(1, &texid)
 
+    # if the color format is not supported, create the texture with the future
+    # color format.
     if not _is_gl_format_supported(colorfmt):
         colorfmt = _convert_gl_format(colorfmt)
 
-    cdef Texture texture = Texture(texture_width, texture_height, target, texid,
+    texture = Texture(texture_width, texture_height, target, texid,
                       colorfmt=colorfmt, mipmap=mipmap)
 
+    # set default parameter for this texture
     texture.bind()
     texture.set_wrap('clamp_to_edge')
     if mipmap:
@@ -411,34 +420,33 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt,
         texture.set_min_filter('linear')
         texture.set_mag_filter('linear')
 
-    # ok, allocate memory for initial texture
-    cdef int glfmt = _color_fmt_to_gl(colorfmt)
-    cdef int iglbufferfmt = glbufferfmt
-    cdef int datasize = texture_width * texture_height * \
-            _gl_format_size(glfmt) * _buffer_type_to_gl_size(bufferfmt)
-    cdef void *data = NULL
-    cdef int dataerr = 0
-
-    '''
-    if glfmt == GL_RGB:
-        iglbufferfmt = GL_UNSIGNED_SHORT_5_6_5
-    elif glfmt == GL_RGBA:
-        iglbufferfmt = GL_UNSIGNED_SHORT_4_4_4_4
-    '''
-
+    # if allocation if wanted, do it now
     if allocate:
+
+        # prepare information needed for nogil
+        glfmt = _color_fmt_to_gl(colorfmt)
+        iglbufferfmt = glbufferfmt
+        datasize = texture_width * texture_height * \
+                _gl_format_size(glfmt) * _buffer_type_to_gl_size(bufferfmt)
+
+        # act as we have been able to allocate the texture
         texture._is_allocated = 1
+
+        # do the rest outside the Python GIL
         with nogil:
             data = calloc(1, datasize)
             if data != NULL:
+                # ensure pixel upload is correct
                 _gl_prepare_pixels_upload(texture_width)
+
+                # do the initial upload with fake data
                 glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
                              glfmt, iglbufferfmt, data)
-                # disable the flush call. it was used for a bug in ati, but i'm
-                # not sure at 100%. :) (mathieu)
-                #glFlush()
+
+                # free the data !
                 free(data)
-                data = NULL
+
+                # create mipmap if needed
                 if mipmap:
                     glGenerateMipmap(target)
             else:
@@ -449,10 +457,14 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt,
             raise Exception('Unable to allocate memory for texture (size is %s)' %
                             datasize)
 
+    # if the texture size is the same as initial size, return the texture
+    # unmodified
     if texture_width == width and texture_height == height:
         return texture
 
+    # otherwise, return a region of that texture
     return texture.get_region(0, 0, width, height)
+
 
 def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
     '''Create a texture based on size.
@@ -470,10 +482,8 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
             If True, it will automatically generate mipmap texture.
 
     '''
-    cdef int width, height
-    if size is None:
-        width = height = 128
-    else:
+    cdef int width = 128, height = 128
+    if size is not None:
         width, height = size
     if colorfmt is None:
         colorfmt = 'rgba'
@@ -483,7 +493,8 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
 
 
 def texture_create_from_data(im, mipmap=False):
-    '''Create a texture from an ImageData class'''
+    '''Create a texture from an ImageData class
+    '''
 
     cdef int width = im.width
     cdef int height = im.height
@@ -494,6 +505,10 @@ def texture_create_from_data(im, mipmap=False):
     if _is_pow2(width) and _is_pow2(height):
         allocate = 0
 
+    # if imagedata have more than one image, activate mipmap
+    if im.have_mipmap:
+        mipmap = True
+
     texture = _texture_create(width, height, im.fmt, 'ubyte', mipmap, allocate)
     if texture is None:
         return None
@@ -502,13 +517,13 @@ def texture_create_from_data(im, mipmap=False):
 
     return texture
 
+
 cdef class Texture:
     '''Handle a OpenGL texture. This class can be used to create simple texture
     or complex texture based on ImageData.'''
 
     create = staticmethod(texture_create)
     create_from_data = staticmethod(texture_create_from_data)
-
 
     def __init__(self, width, height, target, texid, colorfmt='rgb',
                  mipmap=False):
@@ -536,66 +551,6 @@ cdef class Texture:
             _texture_release_list.append(self._id)
             if _texture_release_trigger is not None:
                 _texture_release_trigger()
-
-    property mipmap:
-        '''Return True if the texture have mipmap enabled (readonly)'''
-        def __get__(self):
-            return self._mipmap
-
-    property id:
-        '''Return the OpenGL ID of the texture (readonly)'''
-        def __get__(self):
-            return self._id
-
-    property target:
-        '''Return the OpenGL target of the texture (readonly)'''
-        def __get__(self):
-            return self._target
-
-    property width:
-        '''Return the width of the texture (readonly)'''
-        def __get__(self):
-            return self._width
-
-    property height:
-        '''Return the height of the texture (readonly)'''
-        def __get__(self):
-            return self._height
-
-    property tex_coords:
-        '''Return the list of tex_coords (opengl)'''
-        def __get__(self):
-            return (
-                self._tex_coords[0],
-                self._tex_coords[1],
-                self._tex_coords[2],
-                self._tex_coords[3],
-                self._tex_coords[4],
-                self._tex_coords[5],
-                self._tex_coords[6],
-                self._tex_coords[7],
-            )
-
-    property uvpos:
-        '''Get/set the UV position inside texture
-        '''
-        def __get__(self):
-            return (self._uvx, self._uvy)
-        def __set__(self, x):
-            self._uvx, self._uvy = x
-            self.update_tex_coords()
-
-    property uvsize:
-        '''Get/set the UV size inside texture.
-
-        .. warning::
-            The size can be negative is the texture is flipped.
-        '''
-        def __get__(self):
-            return (self._uvw, self._uvh)
-        def __set__(self, x):
-            self._uvw, self._uvh = x
-            self.update_tex_coords()
 
     cdef update_tex_coords(self):
         self._tex_coords[0] = self._uvx
@@ -638,8 +593,170 @@ cdef class Texture:
         glTexParameteri(self.target, GL_TEXTURE_WRAP_T, _value)
         self._wrap = x
 
+
+    def blit_data(self, im, pos=None):
+        '''Replace a whole texture with a image data
+        '''
+        blit = self.blit_buffer
+
+        # depending if imagedata have mipmap, think different.
+        if not im.have_mipmap:
+            blit(im.data, size=im.size, colorfmt=im.fmt, pos=pos)
+        else:
+            # upload each level
+            for level, width, height, data in im.iterate_mipmaps():
+                blit(data, size=(width, height),
+                     colorfmt=im.fmt, pos=pos,
+                     mipmap_level=level, mipmap_generation=False)
+
+    def blit_buffer(self, pbuffer, size=None, colorfmt=None,
+                    pos=None, bufferfmt=None, mipmap_level=0,
+                    mipmap_generation=True):
+        '''Blit a buffer into a texture.
+
+        :Parameters:
+            `pbuffer` : str
+                Image data
+            `size` : tuple, default to texture size
+                Size of the image (width, height)
+            `colorfmt` : str, default to 'rgb'
+                Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra',
+                'luminance', 'luminance_alpha'
+            `pos` : tuple, default to (0, 0)
+                Position to blit in the texture
+            `bufferfmt` : str, default to 'ubyte'
+                Type of the data buffer, can be one of 'ubyte', 'ushort',
+                'uint', 'byte', 'short', 'int', 'float'
+            `mipmap_level`: int, default to 0
+                .. versionadded:: 1.0.7
+                Indicate which mipmap level we are going to update
+            `mipmap_generation`: bool, default to False
+                .. versionadded:: 1.0.7
+                Indicate if we need to regenerate mipmap from level 0
+        '''
+        cdef GLuint target = self.target
+        cdef int tid = self._id
+        if colorfmt is None:
+            colorfmt = 'rgb'
+        if bufferfmt is None:
+            bufferfmt = 'ubyte'
+        if pos is None:
+            pos = (0, 0)
+        if size is None:
+            size = self.size
+        bufferfmt = _buffer_fmt_to_gl(bufferfmt)
+
+        # need conversion ?
+        cdef bytes data
+        data = pbuffer
+        data, colorfmt = _convert_buffer(data, colorfmt)
+
+        # prepare nogil
+        cdef int glfmt = _color_fmt_to_gl(colorfmt)
+        cdef int datasize = len(pbuffer)
+        cdef int x = pos[0]
+        cdef int y = pos[1]
+        cdef int w = size[0]
+        cdef int h = size[1]
+        cdef char *cdata = <char *>data
+        cdef int glbufferfmt = bufferfmt
+        cdef int is_allocated = self._is_allocated
+        cdef int is_compressed = _is_compressed_fmt(colorfmt)
+        cdef int _mipmap_generation = mipmap_generation and self._mipmap
+        cdef int _mipmap_level = mipmap_level
+
+        with nogil:
+            glBindTexture(target, self._id)
+            if is_compressed:
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0, datasize, cdata)
+            elif is_allocated:
+                _gl_prepare_pixels_upload(w)
+                glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt, glbufferfmt, cdata)
+            else:
+                _gl_prepare_pixels_upload(w)
+                glTexImage2D(target, _mipmap_level, glfmt, w, h, 0, glfmt, glbufferfmt, cdata)
+            if _mipmap_generation:
+                glGenerateMipmap(target)
+
+    def __str__(self):
+        return '<Texture id=%d size=(%d, %d)>' % (
+            self._id, self.width, self.height)
+
+    property size:
+        '''Return the (width, height) of the texture (readonly)
+        '''
+        def __get__(self):
+            return (self.width, self.height)
+
+    property mipmap:
+        '''Return True if the texture have mipmap enabled (readonly)
+        '''
+        def __get__(self):
+            return self._mipmap
+
+    property id:
+        '''Return the OpenGL ID of the texture (readonly)
+        '''
+        def __get__(self):
+            return self._id
+
+    property target:
+        '''Return the OpenGL target of the texture (readonly)
+        '''
+        def __get__(self):
+            return self._target
+
+    property width:
+        '''Return the width of the texture (readonly)
+        '''
+        def __get__(self):
+            return self._width
+
+    property height:
+        '''Return the height of the texture (readonly)
+        '''
+        def __get__(self):
+            return self._height
+
+    property tex_coords:
+        '''Return the list of tex_coords (opengl)
+        '''
+        def __get__(self):
+            return (
+                self._tex_coords[0],
+                self._tex_coords[1],
+                self._tex_coords[2],
+                self._tex_coords[3],
+                self._tex_coords[4],
+                self._tex_coords[5],
+                self._tex_coords[6],
+                self._tex_coords[7],
+            )
+
+    property uvpos:
+        '''Get/set the UV position inside texture
+        '''
+        def __get__(self):
+            return (self._uvx, self._uvy)
+        def __set__(self, x):
+            self._uvx, self._uvy = x
+            self.update_tex_coords()
+
+    property uvsize:
+        '''Get/set the UV size inside texture.
+
+        .. warning::
+            The size can be negative is the texture is flipped.
+        '''
+        def __get__(self):
+            return (self._uvw, self._uvh)
+        def __set__(self, x):
+            self._uvw, self._uvh = x
+            self.update_tex_coords()
+
     property colorfmt:
-        '''Return the color format used in this texture.
+        '''Return the color format used in this texture. (readonly)
 
         .. versionadded:: 1.0.7
         '''
@@ -702,77 +819,6 @@ cdef class Texture:
                 return
             self.bind()
             self.set_wrap(wrap)
-
-    def blit_data(self, im, pos=None):
-        '''Replace a whole texture with a image data'''
-        self.blit_buffer(im.data, size=(im.width, im.height),
-                         colorfmt=im.fmt, pos=pos)
-
-    def blit_buffer(self, pbuffer, size=None, colorfmt=None,
-                    pos=None, bufferfmt=None):
-        '''Blit a buffer into a texture.
-
-        :Parameters:
-            `pbuffer` : str
-                Image data
-            `size` : tuple, default to texture size
-                Size of the image (width, height)
-            `colorfmt` : str, default to 'rgb'
-                Image format, can be one of 'rgb', 'rgba', 'bgr', 'bgra',
-                'luminance', 'luminance_alpha'
-            `pos` : tuple, default to (0, 0)
-                Position to blit in the texture
-            `bufferfmt` : str, default to 'ubyte'
-                Type of the data buffer, can be one of 'ubyte', 'ushort',
-                'uint', 'byte', 'short', 'int', 'float'
-        '''
-        cdef GLuint target = self.target
-        cdef int tid = self._id
-        if colorfmt is None:
-            colorfmt = 'rgb'
-        if bufferfmt is None:
-            bufferfmt = 'ubyte'
-        if pos is None:
-            pos = (0, 0)
-        if size is None:
-            size = self.size
-        bufferfmt = _buffer_fmt_to_gl(bufferfmt)
-
-        # need conversion ?
-        cdef bytes data
-        data = pbuffer
-        data, colorfmt = _convert_buffer(data, colorfmt)
-
-        # prepare nogil
-        cdef int glfmt = _color_fmt_to_gl(colorfmt)
-        cdef int x = pos[0]
-        cdef int y = pos[1]
-        cdef int w = size[0]
-        cdef int h = size[1]
-        cdef char *cdata = <char *>data
-        cdef int glbufferfmt = bufferfmt
-        cdef int is_allocated = self._is_allocated
-
-        with nogil:
-            glBindTexture(target, self._id)
-            _gl_prepare_pixels_upload(w)
-            if is_allocated:
-                glTexSubImage2D(target, 0, x, y, w, h, glfmt, glbufferfmt, cdata)
-            else:
-                glTexImage2D(target, 0, glfmt, w, h, 0, glfmt, glbufferfmt, cdata)
-            if self._mipmap:
-                glGenerateMipmap(target)
-            # disable the flush call. it was used for a bug in ati, but i'm
-            # not sure at 100%. :) (mathieu)
-            #glFlush()
-
-    property size:
-        def __get__(self):
-            return (self.width, self.height)
-
-    def __str__(self):
-        return '<Texture id=%d size=(%d, %d)>' % (
-            self._id, self.width, self.height)
 
 cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2

@@ -467,7 +467,11 @@ class Parser(object):
     '''Create a Parser object to parse a Kivy language file or Kivy content.
     '''
 
+    PROP_ALLOWED = ('canvas.before', 'canvas.after')
     CLASS_RANGE = range(ord('A'), ord('Z') + 1)
+    PROP_RANGE = range(ord('A'), ord('Z') + 1) + \
+                 range(ord('a'), ord('z') + 1) + \
+                 range(ord('0'), ord('9') + 1) + [ord('_')]
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
@@ -654,6 +658,9 @@ class Parser(object):
 
                 # It's a property
                 else:
+                    if name not in Parser.PROP_ALLOWED:
+                        if False in [ord(z) in Parser.PROP_RANGE for z in name]:
+                            raise ParserError(self, ln, 'Invalid property name')
                     if len(x) == 1:
                         raise ParserError(self, ln, 'Syntax error')
                     value = x[1].strip()
@@ -1178,24 +1185,3 @@ class BuilderBase(object):
 Builder = BuilderBase()
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
-
-if __name__ == '__main__':
-    content = '''#:Kv 1.0
-
-ColorScheme:
-    id: cs
-    backgroundcolor: #927836
-
-Layout:
-    pos: 100, 100
-    size: 867, 567
-
-    canvas:
-        Color:
-            rgb: cs.backgroundcolor
-        Rectangle:
-            pos: self.pos
-            size: self.size
-'''
-
-    Builder.load(content=content)

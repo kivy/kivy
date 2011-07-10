@@ -43,6 +43,8 @@ __all__ = ('Property',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
            'DictProperty')
 
+from weakref import ref
+
 cdef class Property:
     '''Base class for building more complex properties.
 
@@ -123,14 +125,6 @@ cdef class Property:
 
     cpdef link_deps(self, object obj, str name):
         pass
-
-    """
-    cpdef unlink(self, obj):
-        '''Destroy the storage of a widget
-        '''
-        if self._name in obj.__storage:
-            del obj.__storage[self._name]
-    """
 
     cpdef bind(self, obj, observer):
         '''Add a new observer to be called only when the value is changed
@@ -246,13 +240,15 @@ cdef class StringProperty(Property):
 
 cdef inline void observable_list_dispatch(object self):
     cdef Property prop = self.prop
-    prop.dispatch(self.obj)
+    obj = self.obj()
+    if obj is not None:
+        prop.dispatch(obj)
 
 class ObservableList(list):
     # Internal class to observe changes inside a native python list.
     def __init__(self, *largs):
         self.prop = largs[0]
-        self.obj = largs[1]
+        self.obj = ref(largs[1])
         super(ObservableList, self).__init__(*largs[2:])
 
     def __setitem__(self, key, value):
@@ -543,13 +539,6 @@ cdef class ReferenceListProperty(Property):
         for prop in self.properties:
             prop.bind(obj, self.trigger_change)
 
-    """
-    cpdef unlink(self, obj):
-        for prop in self.properties:
-            prop.unbind(obj, self.trigger_change)
-        Property.unlink(self, obj)
-    """
-
     cpdef trigger_change(self, obj, value):
         s = obj.__storage[self._name]
         if s['stop_event']:
@@ -641,14 +630,6 @@ cdef class AliasProperty(Property):
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
             oprop.bind(obj, self.trigger_change)
-
-    """
-    cpdef unlink(self, obj):
-        for prop in self.bind_objects:
-            oprop = getattr(obj.__class__, prop)
-            oprop.unbind(obj, self.trigger_change)
-        Property.unlink(self, obj)
-    """
 
     cpdef trigger_change(self, obj, value):
         cvalue = obj.__storage[self._name]['value']
