@@ -276,14 +276,13 @@ Then in Python, you can create instanciate the template with ::
     from kivy.lang import Builder
 
     # create a template with hello world + an image
-    icon1 = Builder.template('IconItem', {
-        'title': 'Hello world',
-        'image': 'myimage.png'})
+    # the context values should be passed as kwargs to the Builder.template function
+    icon1 = Builder.template('IconItem', title='Hello world', image='myimage.png')
 
     # create a second template with another information
-    icon2 = Builder.template('IconItem', {
-        'title': 'Another hello world',
-        'image': 'myimage2.png'})
+    ctx = {'title': 'Another hello world',
+           'image': 'myimage2.png'}
+    icon2 = Builder.template('IconItem', **ctx)
     # and use icon1 and icon2 as other widget.
 
 
