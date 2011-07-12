@@ -40,7 +40,10 @@ Kivy's property classes support:
 __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
-           'OptionProperty', 'ReferenceListProperty', 'AliasProperty')
+           'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
+           'DictProperty')
+
+from weakref import ref
 
 cdef class Property:
     '''Base class for building more complex properties.
@@ -123,14 +126,6 @@ cdef class Property:
     cpdef link_deps(self, object obj, str name):
         pass
 
-    """
-    cpdef unlink(self, obj):
-        '''Destroy the storage of a widget
-        '''
-        if self._name in obj.__storage:
-            del obj.__storage[self._name]
-    """
-
     cpdef bind(self, obj, observer):
         '''Add a new observer to be called only when the value is changed
         '''
@@ -143,7 +138,7 @@ cdef class Property:
         '''
         observers = obj.__storage[self._name]['observers']
         for obj in observers[:]:
-            if observer in observers:
+            if obj is observer:
                 observers.remove(obj)
 
     def __set__(self, obj, val):
@@ -201,8 +196,9 @@ cdef class Property:
     cdef dispatch(self, obj):
         '''Dispatch the value change to all observers
         '''
-        observers = obj.__storage[self._name]['observers']
-        value = obj.__storage[self._name]['value']
+        cdef dict storage = obj.__storage[self._name]
+        observers = storage['observers']
+        value = storage['value']
         for observer in observers:
             observer(obj, value)
 
@@ -242,15 +238,17 @@ cdef class StringProperty(Property):
             raise ValueError('StringProperty<%s> accepts only str/unicode' %
                              self.name)
 
-cdef observable_list_dispatch(object self):
+cdef inline void observable_list_dispatch(object self):
     cdef Property prop = self.prop
-    prop.dispatch(self.obj)
+    obj = self.obj()
+    if obj is not None:
+        prop.dispatch(obj)
 
 class ObservableList(list):
     # Internal class to observe changes inside a native python list.
     def __init__(self, *largs):
         self.prop = largs[0]
-        self.obj = largs[1]
+        self.obj = ref(largs[1])
         super(ObservableList, self).__init__(*largs[2:])
 
     def __setitem__(self, key, value):
@@ -311,12 +309,6 @@ cdef class ListProperty(Property):
     '''Property that represents a list.
 
     Only lists are allowed, tuple or any other classes are forbidden.
-
-    .. warning::
-
-        To mark the property as changed, you must reassign a new list each
-        time you want to add or remove an object. Don't rely on append(),
-        remove() and pop() functions.
     '''
     cpdef link(self, object obj, str name):
         Property.link(self, obj, name)
@@ -333,6 +325,73 @@ cdef class ListProperty(Property):
     cpdef set(self, obj, value):
         value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
+
+cdef inline void observable_dict_dispatch(object self):
+    cdef Property prop = self.prop
+    prop.dispatch(self.obj)
+
+class ObservableDict(dict):
+    # Internal class to observe changes inside a native python dict.
+    def __init__(self, *largs):
+        self.prop = largs[0]
+        self.obj = largs[1]
+        super(ObservableDict, self).__init__(*largs[2:])
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+        observable_dict_dispatch(self)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        observable_dict_dispatch(self)
+
+    def clear(self, *largs):
+        dict.append(self, *largs)
+        observable_dict_dispatch(self)
+
+    def remove(self, *largs):
+        dict.remove(self, *largs)
+        observable_dict_dispatch(self)
+
+    def pop(self, *largs):
+        dict.pop(self, *largs)
+        observable_dict_dispatch(self)
+
+    def popitem(self, *largs):
+        dict.popitem(self, *largs)
+        observable_dict_dispatch(self)
+
+    def setdefault(self, *largs):
+        dict.setdefault(self, *largs)
+        observable_dict_dispatch(self)
+
+    def update(self, *largs):
+        dict.update(self, *largs)
+        observable_dict_dispatch(self)
+
+
+
+cdef class DictProperty(Property):
+    '''Property that represents a dict.
+
+    Only dict are allowed, any other classes are forbidden.
+    '''
+    cpdef link(self, object obj, str name):
+        Property.link(self, obj, name)
+        storage = obj.__storage[self._name]
+        storage['value'] = ObservableDict(self, obj, storage['value'])
+
+    cdef check(self, obj, value):
+        if Property.check(self, obj, value):
+            return True
+        if type(value) is not ObservableDict:
+            raise ValueError('DictProperty<%s> accepts only ObservableDict'
+                             ' (should never happen.)' % self.name)
+
+    cpdef set(self, obj, value):
+        value = ObservableDict(self, obj, value)
+        Property.set(self, obj, value)
+
 
 cdef class ObjectProperty(Property):
     '''Property that represents a Python object.
@@ -480,13 +539,6 @@ cdef class ReferenceListProperty(Property):
         for prop in self.properties:
             prop.bind(obj, self.trigger_change)
 
-    """
-    cpdef unlink(self, obj):
-        for prop in self.properties:
-            prop.unbind(obj, self.trigger_change)
-        Property.unlink(self, obj)
-    """
-
     cpdef trigger_change(self, obj, value):
         s = obj.__storage[self._name]
         if s['stop_event']:
@@ -579,17 +631,12 @@ cdef class AliasProperty(Property):
             oprop = getattr(obj.__class__, prop)
             oprop.bind(obj, self.trigger_change)
 
-    """
-    cpdef unlink(self, obj):
-        for prop in self.bind_objects:
-            oprop = getattr(obj.__class__, prop)
-            oprop.unbind(obj, self.trigger_change)
-        Property.unlink(self, obj)
-    """
-
     cpdef trigger_change(self, obj, value):
-        obj.__storage[self._name]['value'] = self.get(obj)
-        self.dispatch(obj)
+        cvalue = obj.__storage[self._name]['value']
+        dvalue = self.get(obj)
+        if cvalue != dvalue:
+            obj.__storage[self._name]['value'] = dvalue
+            self.dispatch(obj)
 
     cdef check(self, obj, value):
         return True

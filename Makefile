@@ -16,6 +16,9 @@ mesabuild:
 pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
 
+html:
+	$(MAKE) -C doc html
+
 style:
 	$(PYTHON) $(CHECKSCRIPT) $(KIVY_DIR)
 

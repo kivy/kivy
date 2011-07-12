@@ -11,7 +11,8 @@ class ScrollViewApp(App):
         layout = GridLayout(cols=1, spacing=10, size_hint=(None, None),
                             width=500)
         for i in range(30):
-            btn = Button(text=str(i), height=40, width=500)
+            btn = Button(text=str(i), size=(480, 40),
+                         size_hint=(None, None))
             layout.add_widget(btn)
 
         root = ScrollView(size_hint=(None, None))

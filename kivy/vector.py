@@ -104,13 +104,13 @@ class Vector(list):
         self[0] = x
 
     x = property(_get_x, _set_x)
-    ''':data:`x` property is an alpha to the first element in the list::
+    ''':data:`x` represent the first element in the list.
 
-        >>> v = Vector(12, 23)
-        >>> v[0]
-        12
-        >>> v.x
-        12
+    >>> v = Vector(12, 23)
+    >>> v[0]
+    12
+    >>> v.x
+    12
     '''
 
     def _get_y(self):
@@ -120,13 +120,13 @@ class Vector(list):
         self[1] = y
 
     y = property(_get_y, _set_y)
-    ''':data:`y` property is an alpha to the first element in the list::
+    ''':data:`y` represent the second element in the list.
 
-        >>> v = Vector(12, 23)
-        >>> v[1]
-        23
-        >>> v.y
-        23
+    >>> v = Vector(12, 23)
+    >>> v[1]
+    23
+    >>> v.y
+    23
 
     '''
 
@@ -211,50 +211,47 @@ class Vector(list):
         return self
 
     def length(self):
-        '''Returns the length of a vector::
+        '''Returns the length of a vector.
 
-            >>> Vector(10, 10).length()
-            14.142135623730951
-
-            >>> pos = (10, 10)
-            >>> Vector(pos).length()
-            14.142135623730951
+        >>> Vector(10, 10).length()
+        14.142135623730951
+        >>> pos = (10, 10)
+        >>> Vector(pos).length()
+        14.142135623730951
 
         '''
         return math.sqrt(self[0] ** 2 + self[1] ** 2)
 
     def length2(self):
-        '''Returns the length of a vector squared::
+        '''Returns the length of a vector squared.
 
-            >>> Vector(10, 10).length2()
-            200
-
-            >>> pos = (10, 10)
-            >>> Vector(pos).length2()
-            200
+        >>> Vector(10, 10).length2()
+        200
+        >>> pos = (10, 10)
+        >>> Vector(pos).length2()
+        200
 
         '''
         return self[0] ** 2 + self[1] ** 2
 
     def distance(self, to):
-        '''Returns the distance between two points::
+        '''Returns the distance between two points.
 
-            >>> Vector(10, 10).distance((5, 10))
-            5.
-
-            >>> a = (90, 33)
-            >>> b = (76, 34)
-            >>> Vector(a).distance(b)
-            14.035668847618199
+        >>> Vector(10, 10).distance((5, 10))
+        5.
+        >>> a = (90, 33)
+        >>> b = (76, 34)
+        >>> Vector(a).distance(b)
+        14.035668847618199
 
         '''
         return math.sqrt((self[0] - to[0]) ** 2 + (self[1] - to[1]) ** 2)
 
     def distance2(self, to):
-        '''Returns the distance between two points squared::
+        '''Returns the distance between two points squared.
 
-            >>> Vector(10, 10).distance2((5, 10))
-            25
+        >>> Vector(10, 10).distance2((5, 10))
+        25
 
         '''
         return (self[0] - to[0]) ** 2 + (self[1] - to[1]) ** 2
@@ -263,11 +260,11 @@ class Vector(list):
         '''Returns a new vector that has the same direction as vec,
         but has a length of one.
 
-            >>> v = Vector(88, 33).normalize()
-            >>> v
-            [0.93632917756904444, 0.3511234415883917]
-            >>> v.length()
-            1.0
+        >>> v = Vector(88, 33).normalize()
+        >>> v
+        [0.93632917756904444, 0.3511234415883917]
+        >>> v.length()
+        1.0
 
         '''
         if self[0] == 0. and self[1] == 0.:
@@ -275,23 +272,22 @@ class Vector(list):
         return self / self.length()
 
     def dot(self, a):
-        '''Computes the dot product of a and b::
+        '''Computes the dot product of a and b.
 
-            >>> Vector(2, 4).dot((2, 2))
-            12
+        >>> Vector(2, 4).dot((2, 2))
+        12
 
         '''
         return self[0] * a[0] + self[1] * a[1]
 
     def angle(self, a):
         '''Computes the angle between a and b, and return the angle in
-        degrees::
+        degrees.
 
-            >>> Vector(100, 0).angle((0, 100))
-            -90.0
-
-            >>> Vector(87, 23).angle((-77, 10))
-            -157.7920283010705
+        >>> Vector(100, 0).angle((0, 100))
+        -90.0
+        >>> Vector(87, 23).angle((-77, 10))
+        -157.7920283010705
 
         '''
         angle = -(180/math.pi) * math.atan2(
@@ -300,12 +296,12 @@ class Vector(list):
         return angle
 
     def rotate(self, angle):
-        '''Rotate the vector with an angle in degrees::
+        '''Rotate the vector with an angle in degrees.
 
-            >>> v = Vector(100, 0)
-            >>> v.rotate(45)
-            >>> v
-            [70.710678118654755, 70.710678118654741]
+        >>> v = Vector(100, 0)
+        >>> v.rotate(45)
+        >>> v
+        [70.710678118654755, 70.710678118654741]
 
         '''
         angle = math.radians(angle)
@@ -316,14 +312,14 @@ class Vector(list):
     def line_intersection(v1, v2, v3, v4):
         '''
         Finds the intersection point between the lines (1)v1->v2 and (2)v3->v4
-        and returns it as a vector object::
+        and returns it as a vector object.
 
-            >>> a = (98, 28)
-            >>> b = (72, 33)
-            >>> c = (10, -5)
-            >>> d = (20, 88)
-            >>> Vector.line_intersection(a, b, c, d)
-            [15.25931928687196, 43.911669367909241]
+        >>> a = (98, 28)
+        >>> b = (72, 33)
+        >>> c = (10, -5)
+        >>> d = (20, 88)
+        >>> Vector.line_intersection(a, b, c, d)
+        [15.25931928687196, 43.911669367909241]
 
         .. warning::
 
@@ -348,14 +344,14 @@ class Vector(list):
 
     @staticmethod
     def in_bbox(point, a, b):
-        '''Return a true if `point` is in bbox defined by `a` and `b`::
+        '''Return a true if `point` is in bbox defined by `a` and `b`.
 
-            >>> bmin = (0, 0)
-            >>> bmax = (100, 100)
-            >>> Vector.in_bbox((50, 50), bmin, bmax)
-            True
-            >>> Vector.in_bbox((647, -10), bmin, bmax)
-            False
+        >>> bmin = (0, 0)
+        >>> bmax = (100, 100)
+        >>> Vector.in_bbox((50, 50), bmin, bmax)
+        True
+        >>> Vector.in_bbox((647, -10), bmin, bmax)
+        False
 
         '''
         return ((point[0] <= a[0] and point[0] >= b[0] or

@@ -11,6 +11,26 @@ shader, and the creation of the program in OpenGL.
 
     Write a more complete documentation about shader.
 
+Header inclusion
+----------------
+
+.. versionadded:: 1.0.7
+
+When you are creating a Shader, Kivy will always include default parameters. If
+you don't want to rewrite it each time you want to customize / write a new
+shader, you can add the "$HEADER$" token, and it will be replaced by the
+corresponding shader header.
+
+Here is the header for Fragment Shader:
+
+.. include:: ../kivy/data/glsl/header.fs
+    :literal:
+
+And the header for Vertex Shader:
+
+.. include:: ../kivy/data/glsl/header.vs
+    :literal:
+
 '''
 
 __all__ = ('Shader', )
@@ -26,26 +46,87 @@ from kivy.graphics.vertex cimport vertex_attr_t
 from kivy.graphics.vbo cimport vbo_vertex_attr_list, vbo_vertex_attr_count
 from kivy.graphics.transformation cimport Matrix
 from kivy.logger import Logger
-from kivy.clock import Clock
+from kivy.cache import Cache
 from kivy import kivy_shader_dir
 
+cdef str header_vs = open(join(kivy_shader_dir, 'header.vs')).read()
+cdef str header_fs = open(join(kivy_shader_dir, 'header.fs')).read()
 cdef str default_vs = open(join(kivy_shader_dir, 'default.vs')).read()
 cdef str default_fs = open(join(kivy_shader_dir, 'default.fs')).read()
+
+cdef class ShaderSource:
+
+    def __cinit__(self, shadertype):
+        self.shader = -1
+        self.shadertype = shadertype
+
+    cdef set_source(self, char *source):
+        cdef GLint success
+        cdef GLuint error, shader
+        cdef str ctype, cacheid
+
+        # XXX to ensure that shader is ok, read error state right now.
+        glGetError()
+
+        # create and compile
+        shader = glCreateShader(self.shadertype)
+        glShaderSource(shader, 1, <char**> &source, NULL)
+        glCompileShader(shader)
+
+        # show any messages
+        ctype = 'vertex' if self.shadertype == GL_VERTEX_SHADER else 'fragment'
+        self.process_message('%s shader' % ctype, self.get_shader_log(shader))
+
+        # ensure compilation is ok
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success)
+
+        if success == GL_FALSE:
+            error = glGetError()
+            Logger.error('Shader: <%s> failed to compile (gl:%d)' % (
+                ctype, error))
+            glDeleteShader(shader)
+            return
+
+        Logger.info('Shader: %s compiled successfully' % ctype)
+        self.shader = shader
+
+    def __dealloc__(self):
+        if self.shader != -1:
+            glDeleteShader(self.shader)
+
+    cdef int is_compiled(self):
+        if self.shader != -1:
+            return 1
+        return 0
+
+    cdef void process_message(self, str ctype, str message):
+        message = message.strip()
+        if message:
+            Logger.info('Shader: %s: <%s>' % (ctype, message))
+
+    cdef str get_shader_log(self, int shader):
+        '''Return the shader log
+        '''
+        cdef char msg[2048]
+        msg[0] = '\0'
+        glGetShaderInfoLog(shader, 2048, NULL, msg)
+        return msg
+
 
 cdef class Shader:
     '''Create a vertex or fragment shader
 
     :Parameters:
-        `vs` : string
+        `vs`: string, default to None
             source code for vertex shader
-        `fs` : string
+        `fs`: string, default to None
             source code for fragment shader
     '''
     def __cinit__(self):
         self._success = 0
         self.program = -1
-        self.vertex_shader = -1
-        self.fragment_shader = -1
+        self.vertex_shader = None
+        self.fragment_shader = None
         self.uniform_locations = dict()
         self.uniform_values = dict()
 
@@ -58,14 +139,12 @@ cdef class Shader:
     def __dealloc__(self):
         if self.program == -1:
             return
-        if self.vertex_shader != -1:
-            glDetachShader(self.program, self.vertex_shader)
-            glDeleteShader(self.vertex_shader)
-            self.vertex_shader = -1
-        if self.fragment_shader != -1:
-            glDetachShader(self.program, self.fragment_shader)
-            glDeleteShader(self.fragment_shader)
-            self.fragment_shader = -1
+        if self.vertex_shader is not None:
+            glDetachShader(self.program, self.vertex_shader.shader)
+            self.vertex_shader = None
+        if self.fragment_shader is not None:
+            glDetachShader(self.program, self.fragment_shader.shader)
+            self.fragment_shader = None
         glDeleteProgram(self.program)
         self.program = -1
 
@@ -164,26 +243,30 @@ cdef class Shader:
         self.build_fragment()
 
     cdef void build_vertex(self):
-        if self.vertex_shader != -1:
-            glDetachShader(self.program, self.vertex_shader)
-            glDeleteShader(self.vertex_shader)
-            self.vertex_shader = -1
+        if self.vertex_shader is not None:
+            glDetachShader(self.program, self.vertex_shader.shader)
+            self.vertex_shader = None
         self.vertex_shader = self.compile_shader(self.vert_src, GL_VERTEX_SHADER)
-        glAttachShader(self.program, self.vertex_shader)
+        if self.vertex_shader is not None:
+            glAttachShader(self.program, self.vertex_shader.shader)
         self.link_program()
 
     cdef void build_fragment(self):
-        if self.fragment_shader != -1:
-            glDetachShader(self.program, self.fragment_shader)
-            glDeleteShader(self.fragment_shader)
-            self.fragment_shader = -1
+        if self.fragment_shader is not None:
+            glDetachShader(self.program, self.fragment_shader.shader)
+            self.fragment_shader = None
         self.fragment_shader = self.compile_shader(self.frag_src, GL_FRAGMENT_SHADER)
-        glAttachShader(self.program, self.fragment_shader)
+        if self.fragment_shader is not None:
+            glAttachShader(self.program, self.fragment_shader.shader)
         self.link_program()
 
     cdef void link_program(self):
-        if self.vertex_shader == -1 or self.fragment_shader == -1:
+        if self.vertex_shader is None or self.fragment_shader is None:
             return
+
+        # XXX to ensure that shader is ok, read error state right now.
+        glGetError()
+
         glLinkProgram(self.program)
         self.process_message('program', self.get_program_log(self.program))
         self.uniform_locations = dict()
@@ -200,46 +283,26 @@ cdef class Shader:
         glGetProgramiv(self.program, GL_LINK_STATUS, &result)
         return 1 if result == GL_TRUE else 0
 
-    cdef GLuint compile_shader(self, char* source, shadertype):
-        cdef GLint success
-        cdef GLuint shader
-        cdef str ctype
+    cdef ShaderSource compile_shader(self, char* source, int shadertype):
+        cdef ShaderSource shader
+        cdef str ctype, cacheid
 
         ctype = 'vertex' if shadertype == GL_VERTEX_SHADER else 'fragment'
 
-        # XXX to ensure that shader is ok, read error state right now.
-        glGetError()
+        # try to check if the shader exist in the Cache first
+        cacheid = '%s|%s' % (ctype, source)
+        shader = Cache.get('kv.shader', cacheid)
+        if shader is not None:
+            return shader
 
-        # create and compile
-        shader = glCreateShader(shadertype)
-        glShaderSource(shader, 1, <char**> &source, NULL)
-        glCompileShader(shader)
-
-        # show any messages
-        self.process_message('%s shader' % ctype, self.get_shader_log(shader))
-
-        # ensure compilation is ok
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &success)
-        cdef GLuint error
-
-        if success == GL_FALSE:
+        shader = ShaderSource(shadertype)
+        shader.set_source(source)
+        if shader.is_compiled() == 0:
             self._success = 0
-            error = glGetError()
-            Logger.error('Shader: <%s> failed to compile (gl:%d)' % (
-                ctype, error))
-            glDeleteShader(shader)
-            return -1
+            return None
 
-        Logger.info('Shader: %s compiled successfully' % ctype)
+        Cache.append('kv.shader', cacheid, shader)
         return shader
-
-    cdef str get_shader_log(self, shader):
-        '''Return the shader log'''
-        cdef char msg[2048]
-        msg[0] = '\0'
-        glGetShaderInfoLog(shader, 2048, NULL, msg)
-        return msg
-
 
     cdef str get_program_log(self, shader):
         '''Return the program log'''
@@ -258,23 +321,37 @@ cdef class Shader:
     #
 
     property vs:
+        '''Vertex shader source code.
+
+        If you set a new vertex shader source code, it will be automatically
+        compiled and replace the current one.
+        '''
         def __get__(self):
             return self.vert_src
         def __set__(self, object source):
             if source is None:
                 source = default_vs
+            source = source.replace('$HEADER$', header_vs)
             self.vert_src = source
             self.build_vertex()
 
     property fs:
+        '''Fragment shader source code.
+
+        If you set a new fragment shader source code, it will be automatically
+        compiled and replace the current one.
+        '''
         def __get__(self):
             return self.frag_src
         def __set__(self, object source):
             if source is None:
                 source = default_fs
+            source = source.replace('$HEADER$', header_fs)
             self.frag_src = source
             self.build_fragment()
 
     property success:
+        '''Indicate if shader is ok for usage or not.
+        '''
         def __get__(self):
             return self._success

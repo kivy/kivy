@@ -2,6 +2,9 @@
 Button
 ======
 
+.. image:: images/button.jpg
+    :align: right
+
 The button is a :class:`~kivy.uix.label.Label` with an action associated to it
 that is triggered when the button is pressed (or released after a click/touch).
 To configure the button, you can use the same properties that you can use for
@@ -99,8 +102,9 @@ class Button(Label):
         return self in touch.ud
 
     def on_touch_up(self, touch):
-        if not self in touch.ud:
-            return False
+        if touch.grab_current is not self:
+            return
+        assert(self in touch.ud)
         touch.ungrab(self)
         self._do_release()
         self.dispatch('on_release')

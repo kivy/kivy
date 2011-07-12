@@ -40,13 +40,17 @@ class Label(Widget):
 
         # bind all the property for recreating the texture
         d = ('text', 'font_size', 'font_name', 'bold', 'italic', 'halign',
-             'valign', 'padding_x', 'padding_y', 'text_size', 'shorten')
+             'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
+             'mipmap')
         dkw = {}
         for x in d:
             dkw[x] = partial(self._trigger_texture_update, x)
         self.bind(**dkw)
 
         dkw = dict(zip(d, [getattr(self, x) for x in d]))
+        font_name = resource_find(self.font_name)
+        if font_name:
+            dkw['font_name'] = font_name
         self._label = CoreLabel(**dkw)
 
         # force the texture creation
@@ -71,10 +75,15 @@ class Label(Widget):
         After this function call, the :data:`texture` and :data`texture_size`
         will be updated in this order.
         '''
-        self._label.refresh()
         self.texture = None
-        self.texture = self._label.texture
-        self.texture_size = list(self.texture.size)
+        if self._label.text.strip() == '':
+            self.texture_size = (0, 0)
+        else:
+            self._label.refresh()
+            texture = self._label.texture
+            if texture is not None:
+                self.texture = self._label.texture
+                self.texture_size = list(self.texture.size)
 
     #
     # Properties
@@ -236,6 +245,16 @@ class Label(Widget):
         The texture size is set after the texture property. So if you listen on
         the change to :data:`texture`, the property texture_size will be not yet
         updated. Use self.texture.size instead.
+    '''
+
+    mipmap = BooleanProperty(False)
+    '''Indicate if you want OpenGL mipmapping to be apply on the texture or not.
+    Read :ref:`mipmap` for more informations.
+
+    .. versionadded:: 1.0.7
+
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False.
     '''
 
     shorten = BooleanProperty(False)

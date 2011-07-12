@@ -6,7 +6,7 @@
 Designing with Kivy language
 ============================
 
-Let's start with a little example. First, the Python file:
+Let's start with a little example. First, the Python file named `main.py`:
 
 .. include:: ../../../examples/guide/designwithkv/main.py
    :literal:
@@ -23,7 +23,8 @@ content of the label with a nex text.
 If you execute that application without kv, it will work... but nothing will be
 showed on the screen. That's normal: `Controller` class have no widget in it,
 it's just a Layout. We can now create a kv file and create the UI around the
-`Controller` class:
+`Controller` class in a file named `controller.kv`. The relation between the
+previous file and the kv is described in the :class:`kivy.app.App` class.
 
 .. include:: ../../../examples/guide/designwithkv/controller.kv
     :literal:

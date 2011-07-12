@@ -8,6 +8,9 @@ creation. Don't try to create more than one.
 
 __all__ = ('WindowBase', 'Window')
 
+from os.path import join, exists
+from os import getcwd
+
 from kivy.core import core_select_lib
 from kivy.config import Config
 from kivy.logger import Logger
@@ -237,7 +240,8 @@ class WindowBase(EventDispatcher):
         self._clearcolor = value
 
     clearcolor = property(_get_clearcolor, _set_clearcolor,
-        doc='''Color used to clear window::
+        doc='''
+        Color used to clear window::
 
             from kivy.core.window import Window
 
@@ -246,7 +250,6 @@ class WindowBase(EventDispatcher):
 
             # don't clear background at all
             Window.clearcolor = None
-
         ''')
 
     # make some property read-only
@@ -271,12 +274,20 @@ class WindowBase(EventDispatcher):
         '''Rotated window center'''
         return self.width / 2., self.height / 2.
 
+    def _update_childsize(self, instance, value):
+        self.update_childsize([instance])
+
     def add_widget(self, widget):
         '''Add a widget on window'''
-        self.children.append(widget)
         widget.parent = self
+        self.children.insert(0, widget)
         self.canvas.add(widget.canvas)
         self.update_childsize([widget])
+        widget.bind(
+            pos_hint=self._update_childsize,
+            size_hint=self._update_childsize,
+            size=self._update_childsize,
+            pos=self._update_childsize)
 
     def remove_widget(self, widget):
         '''Remove a widget from window
@@ -286,6 +297,11 @@ class WindowBase(EventDispatcher):
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
+        widget.unbind(
+            pos_hint=self._update_childsize,
+            size_hint=self._update_childsize,
+            size=self._update_childsize,
+            pos=self._update_childsize)
 
     def clear(self):
         '''Clear the window with background color'''
@@ -381,37 +397,37 @@ class WindowBase(EventDispatcher):
     def update_viewport(self):
         from kivy.graphics.opengl import glViewport
         from kivy.graphics.transformation import Matrix
+        from math import radians
 
-        width, height = self.system_size
-        w2 = width / 2.
-        h2 = height / 2.
+        w, h = self.system_size
+        w2, h2 = w / 2., h / 2.
+        r = radians(self.rotation)
 
         # prepare the viewport
-        glViewport(0, 0, width, height)
+        glViewport(0, 0, w, h)
+
+        # do projection matrix
         projection_mat = Matrix()
-        projection_mat.view_clip(0.0, width, 0.0, height, -1.0, 1.0, 0)
+        projection_mat.view_clip(0.0, w, 0.0, h, -1.0, 1.0, 0)
         self.render_context['projection_mat'] = projection_mat
 
-        # use the rotated size.
-        # XXX FIXME fix rotation
-        '''
-        width, height = self.size
-        w2 = width / 2.
-        h2 = height / 2.
-        glTranslatef(-w2, -h2, -500)
+        # do modelview matrix
+        modelview_mat = Matrix().translate(w2, h2, 0)
+        modelview_mat = modelview_mat.multiply(Matrix().rotate(r, 0, 0, 1))
 
-        # set the model view
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-        glTranslatef(w2, h2, 0)
-        glRotatef(self._rotation, 0, 0, 1)
-        glTranslatef(-w2, -h2, 0)
-        '''
+        w, h = self.size
+        w2, h2 = w / 2., h / 2.
+        modelview_mat = modelview_mat.multiply(Matrix().translate(-w2, -h2, 0))
+        self.render_context['modelview_mat'] = modelview_mat
 
+        # redraw canvas
+        self.canvas.ask_update()
+
+        # and update childs
         self.update_childsize()
 
     def update_childsize(self, childs=None):
-        width, height = self.system_size
+        width, height = self.size
         if childs is None:
             childs = self.children
         for w in childs:
@@ -462,8 +478,6 @@ class WindowBase(EventDispatcher):
     def screenshot(self, name='screenshot%(counter)04d.jpg'):
         '''Save the actual displayed image in a file
         '''
-        from os.path import join, exists
-        from os import getcwd
         i = 0
         path = None
         while True:

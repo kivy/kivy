@@ -192,6 +192,24 @@
       {%- endif %}{% endif %}
           <div class="body">
             {% block body %} {% endblock %}
+            <div class="footerlinks">
+            {%- if prev or next %}
+            <table>
+                <tr>
+                    <td class="leftlink">
+                  {%- if prev %}
+                  <a href="{{ prev.link|e }}" title="{{ _('previous chapter') }}">&laquo; {{ prev.title }}</a></li>
+                  {%- endif %}
+                  </td>
+                  <td class="rightlink">
+                  {%- if next %}
+                  <a href="{{ next.link|e }}" title="{{ _('next chapter') }}">{{ next.title }} &raquo;</a>
+                  {%- endif %}
+                      </td>
+                  </tr>
+              </table>
+              {%- endif %}
+              </div>
           </div>
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
         </div>

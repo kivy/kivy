@@ -31,10 +31,6 @@ The language consists of several constructs that you can use:
         list's content. If you want to design the look of an entry in a list
         (icon on the left, text on the right), you will use a template for that.
 
-        For the moment, templating is not yet designed in the language; we are
-        working on it. We track the progress of the implementation in issue #17
-        (https://github.com/tito/kivy/issues#issue/17).
-
 
 Syntax of a kv File
 -------------------
@@ -280,14 +276,13 @@ Then in Python, you can create instanciate the template with ::
     from kivy.lang import Builder
 
     # create a template with hello world + an image
-    icon1 = Builder.template('IconItem', {
-        'title': 'Hello world',
-        'image': 'myimage.png'})
+    # the context values should be passed as kwargs to the Builder.template function
+    icon1 = Builder.template('IconItem', title='Hello world', image='myimage.png')
 
     # create a second template with another information
-    icon2 = Builder.template('IconItem', {
-        'title': 'Another hello world',
-        'image': 'myimage2.png'})
+    ctx = {'title': 'Another hello world',
+           'image': 'myimage2.png'}
+    icon2 = Builder.template('IconItem', **ctx)
     # and use icon1 and icon2 as other widget.
 
 
@@ -409,8 +404,16 @@ Or more complex::
             Color:
                 rgba: ut.get_random_color()
 
+.. versionadded:: 1.0.7
+
+You can directly import class from a module::
+
+    #: import Animation kivy.animation.Animation
+    <Rule>:
+        on_prop: Animation(x=.5).start(self)
+
 set <key> <expr>
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. versionadded:: 1.0.6
 
@@ -471,7 +474,11 @@ class Parser(object):
     '''Create a Parser object to parse a Kivy language file or Kivy content.
     '''
 
+    PROP_ALLOWED = ('canvas.before', 'canvas.after')
     CLASS_RANGE = range(ord('A'), ord('Z') + 1)
+    PROP_RANGE = range(ord('A'), ord('Z') + 1) + \
+                 range(ord('a'), ord('z') + 1) + \
+                 range(ord('0'), ord('9') + 1) + [ord('_')]
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
@@ -516,9 +523,15 @@ class Parser(object):
                 alias, package = l
                 try:
                     if package not in sys.modules:
-                        mod = __import__(package)
+                        try:
+                            mod = __import__(package)
+                        except ImportError:
+                            mod = __import__('.'.join(package.split('.')[:-1]))
                     else:
                         mod = sys.modules[package]
+                    # resolve the whole thing
+                    for part in package.split('.')[1:]:
+                        mod = getattr(mod, part)
                     global_idmap[alias] = mod
                 except ImportError:
                     Logger.exception('')
@@ -658,6 +671,9 @@ class Parser(object):
 
                 # It's a property
                 else:
+                    if name not in Parser.PROP_ALLOWED:
+                        if False in [ord(z) in Parser.PROP_RANGE for z in name]:
+                            raise ParserError(self, ln, 'Invalid property name')
                     if len(x) == 1:
                         raise ParserError(self, ln, 'Syntax error')
                     value = x[1].strip()
@@ -668,16 +684,20 @@ class Parser(object):
 
             # Two more levels?
             elif count == indent + 8:
-                if current_property not in ('canvas', 'canvas.after',
-                                            'canvas.before'):
-                    raise ParserError(self, ln,
-                                   'Invalid indentation, only allowed '
-                                   'for canvas')
-                _objects, _lines = self.parse_level(level + 2, lines[i:])
-                current_object[current_property] = (_objects, ln, self)
-                current_property = None
-                lines = _lines
-                i = 0
+                if current_property in (
+                        'canvas', 'canvas.after', 'canvas.before'):
+                    _objects, _lines = self.parse_level(level + 2, lines[i:])
+                    current_object[current_property] = (_objects, ln, self)
+                    current_property = None
+                    lines = _lines
+                    i = 0
+                else:
+                    if current_property in current_object:
+                        info = current_object[current_property]
+                        info = (info[0] + '\n' + content, info[1], info[2])
+                    else:
+                        info = (content, ln, self)
+                    current_object[current_property] = info
 
             # Too much indentation, invalid
             else:
@@ -745,12 +765,14 @@ def create_handler(element, key, value, idmap):
     # bind every key.value
     for x in kw:
         k = x.split('.')
-        f = idmap[k[0]]
         try:
+            f = idmap[k[0]]
             for x in k[1:-1]:
                 f = getattr(f, x)
             if hasattr(f, 'bind'):
                 f.bind(**{k[-1]: call_fn})
+        except KeyError:
+            continue
         except AttributeError:
             continue
 
@@ -1180,24 +1202,3 @@ class BuilderBase(object):
 Builder = BuilderBase()
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
-
-if __name__ == '__main__':
-    content = '''#:Kv 1.0
-
-ColorScheme:
-    id: cs
-    backgroundcolor: #927836
-
-Layout:
-    pos: 100, 100
-    size: 867, 567
-
-    canvas:
-        Color:
-            rgb: cs.backgroundcolor
-        Rectangle:
-            pos: self.pos
-            size: self.size
-'''
-
-    Builder.load(content=content)

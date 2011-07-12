@@ -21,6 +21,9 @@ except:
     Logger.warning('WinPygame: Pygame is not installed !')
     raise
 
+# late binding
+glReadPixels = GL_RGB = GL_UNSIGNED_BYTE = None
+
 
 class WindowPygame(WindowBase):
 
@@ -34,7 +37,13 @@ class WindowPygame(WindowBase):
 
         # init some opengl, same as before.
         self.flags = pygame.HWSURFACE | pygame.OPENGL | \
-                     pygame.DOUBLEBUF | pygame.RESIZABLE
+                     pygame.DOUBLEBUF
+
+        # right now, activate resizable window only on linux.
+        # on window / macosx, the opengl context is lost, and we need to
+        # reconstruct everything. Check #168 for a state of the work.
+        if sys.platform == 'linux2':
+            self.flags |= pygame.RESIZABLE
 
         pygame.display.init()
 
@@ -132,10 +141,12 @@ class WindowPygame(WindowBase):
             Logger.exception('WinPygame: unable to set icon')
 
     def screenshot(self, *largs, **kwargs):
+        global glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
         if filename is None:
             return None
-        from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        if glReadPixels is None:
+            from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
         width, height = self.size
         data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
         data = str(buffer(data))

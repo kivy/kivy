@@ -54,11 +54,15 @@ class FloatLayout(Layout):
         self.bind(
             children = self._trigger_layout,
             pos = self._trigger_layout,
+            pos_hint = self._trigger_layout,
+            size_hint = self._trigger_layout,
             size = self._trigger_layout)
 
     def update_minimum_size(self, *largs):
         '''Calculates the minimum size of the layout.
         '''
+        self.minimum_size = (0, 0)
+        return
         width = height = 0
 
         for w in self.children:
@@ -78,6 +82,9 @@ class FloatLayout(Layout):
         self.minimum_size = (width, height)
 
     def _do_layout(self, *largs):
+        # optimization, until the size is 1, 1, don't do layout
+        if self.size == [1, 1]:
+            return
         # optimize layout by preventing looking at the same attribute in a loop
         w, h = self.size
         x, y = self.pos
@@ -108,12 +115,16 @@ class FloatLayout(Layout):
 
     def add_widget(self, widget, index=0):
         widget.bind(
+            size = self._trigger_layout,
+            size_hint = self._trigger_layout,
             pos = self._trigger_layout,
             pos_hint = self._trigger_layout)
         return super(Layout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
+            size = self._trigger_layout,
+            size_hint = self._trigger_layout,
             pos = self._trigger_layout,
             pos_hint = self._trigger_layout)
         return super(Layout, self).remove_widget(widget)
