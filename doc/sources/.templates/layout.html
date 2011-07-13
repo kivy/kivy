@@ -68,6 +68,9 @@
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+		  <ul>
+			  <li>&raquo; <a href="http://kivy.org/docs/pdf/Kivy-latest.pdf">Download in PDF</a></li>
+		  </ul>
           {%- block sidebartoc %}
 		  <h3><a href="{{ pathto(master_doc) }}">{{ _('Table Of Contents') }}</a></h3>
 		  {{ toc }}
