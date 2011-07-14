@@ -170,7 +170,6 @@ class Image(Widget):
                   mipmap=self.texture_update)
         if self.source is not None:
             self.texture_update()
-        self._coreimg = None
 
     def texture_update(self, *largs):
         if not self.source:
@@ -180,27 +179,30 @@ class Image(Widget):
             if filename is None:
                 return
             mipmap = self.mipmap
-            uid = '%s|%s' % (filename, mipmap)
-            #texture = Cache.get('kv.texture', uid)  Caching handled in
-            #core image itself needed for animating sequences ... bad???
-            #if not texture:
+            #call on_tex_change when coreimage.on_texture_chagnged is called
+            try:
+                self._coreimage.unbind(on_texture_changed, self.on_tex_changed)
+            except:
+                pass
             self._coreimage = CoreImage(filename, mipmap=mipmap)
             self._coreimage.bind(on_texture_changed = self._on_tex_change)
-            #texture = self._coreimage.texture
-            #Cache.append('kv.texture', uid, texture)  #
-            self.texture = self._coreimage.texture#texture
+            self.texture = self._coreimage.texture
 
-    def reset_anim(self, allowanim = True, frame_delay = .22):
+    def anim_reset(self, allowanim = True, anim_delay = .22):
+        '''  reset animation of sequenced Images
+             anim_reset(True/False, delay in secs)
+             Enable/Disable animation of sequenced images
+        '''
         if self._coreimage:
-            self._coreimage.anim_frame_delay = frame_delay
-            self._coreimage.reset_anim(allowanim)
+            self._coreimage.anim_delay = anim_delay
+            self._coreimage.anim_reset(allowanim)
 
     def on_texture(self, instance, value):
         if value is not None:
             self.texture_size = list(value.size)
 
     def _on_tex_change(self, *largs):
-    # update texture from core image
+        # update texture from core image
         self.texture = self._coreimage.texture
 
 
@@ -221,8 +223,9 @@ class AsyncImage(Image):
         else:
             if not self.is_uri(value):
                 value = resource_find(value)
-            self._coreimage = image = Loader.image(filename)
+            self._coreimage = image = Loader.image(value)
             image.bind(on_load=self.on_source_load)
+            image.bind(on_texture_changed = self._on_tex_change)
             self.texture = image.texture
 
     def on_source_load(self, value):
@@ -237,4 +240,3 @@ class AsyncImage(Image):
 
     def _on_tex_change(self, *largs):
         self.texture = self._coreimage.texture
-

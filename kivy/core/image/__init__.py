@@ -146,7 +146,7 @@ class ImageLoaderBase(object):
     def size(self):
         '''Image size (width, height)
         '''
-        return (self._data.width[0], self._data[0].height)
+        return (self._data[0].width, self._data[0].height)
 
     @property
     def texture(self):
@@ -222,17 +222,15 @@ class Image(EventDispatcher):
         self._image = None
         self._filename = None
         self._texture = None
-        self.anim_frame_delay = .2
-        #^- lower means faster animation
-        self._anim_possible = False
-        #^- indicates more than one image in sequence if True
+        #: Delay betwean each animation frame. Lower means faster animation
+        self.anim_delay = .2
+        #indicates more than one image in sequence if True
+        self._anim_available = False
         self._anim_counter = 0
-        #^- animation counter starts with 0
+        # indicator of images having been loded in cache
         self._iteration_done = False
-        #^- indicator of images having been loded in cache
-
+        #fire a event on animation of sequenced img's
         self.register_event_type('on_texture_changed')
-        #^- fire a event on animation of sequenced img's
 
         if isinstance(arg, Image):
             for attr in Image.copy_attributes:
@@ -247,87 +245,84 @@ class Image(EventDispatcher):
         else:
             raise Exception('Unable to load image type %s' % str(type(arg)))
 
-        self._img_iterate()
         # check if the image hase sequences for animation in it
+        self._img_iterate()
 
-    #---Animated Gif, zip imgs (001.ext, 002.ext...  in order of name )
+    #-------------------------------------------------------------------
     def _anim(self, *largs ):
+        #Animated Gif, zip imgs (001.ext, 002.ext...  in order of name )
         uid = '%s|%s|%s' % ( self._filename,
             self._mipmap, self._anim_counter)
         _tex = Cache.get('kv.texture', uid)
         if _tex:
-            # <-if not last frame
+            # if not last frame
             self._texture = _tex
             self._anim_counter += 1
+            # fire a texture update(to be handled by widget/s)
             self.dispatch('on_texture_changed')
-            # ^-fire a texture update(to be handled by widget/s)
         else:
-            # <-Restart animation from first Frame
+            # Restart animation from first Frame
             self._anim_counter = 0
             self._anim()
 
     #-------------------------------------------------------------------
-    def reset_anim (self, allow_anim):
-        # <- reset animation
+    #: reset animation, anim_reset(True/False) Start/Stop
+    def anim_reset(self, allow_anim):
         Clock.unschedule(self._anim)
-        # <-stop animation
-        if allow_anim and self._anim_possible:
+        # stop animation
+        if allow_anim and self._anim_available:
             Clock.schedule_interval(
+                # function to animate
                 self._anim,
-                # ^-function to animate
-                self.anim_frame_delay)
-                # ^-frame delay .20secs by default too slow??
+                # frame delay .20secs by default too slow??
+                self.anim_delay)
     #-------------------------------------------------------------------
 
-    #-------------------------------------------------------------------#
+    #-------------------------------------------------------------------
     def _img_iterate(self, *largs):
-    # Purpose: check if image has sequences then animate
+        # Purpose: check if image has sequences then animate
         self._iteration_done = True
         imgcount = count = 0
-        try:
+        if self.image:
             imgcount = len(self.image._data)
-            # ^- length of sequence
-        except:
-            # <- this is raised when image is none and in cache
-            pass
+        # get texture for first image from cache
         uid = '%s|%s|%s' % ( self.filename, self._mipmap, count )
         _texture = Cache.get('kv.texture', uid)
-        # ^-get texture for first image from cache
         if not _texture:
-            # -----if texture is not in cache
+            # if texture is not in cache
             while count < imgcount:
-                # <-append the sequence of images to cache
+                # append the sequence of images to cache
                 _texture  = Texture.create_from_data(
                         self.image._data[count], mipmap=self._mipmap)
                 if not self.image.keep_data:
+                    # release excess memory
                     self.image._data[count].release_data()
-                    # ^-release excess memory
+                # Cache texture
                 Cache.append('kv.texture', uid, _texture)
-                # ^-Cache texture
                 count += 1
                 uid = '%s|%s|%s' % ( self.filename, self._mipmap, count)
         else:
-            # <-texture already in cache for first image
+            # texture already in cache for first image
+            # assign texture for non sequenced cached images
             self._texture = _texture
-            # ^-assign texture for non sequenced cached images
             self._size = self.texture.size
+            # check if image has sequence in cache
             uid = '%s|%s|%s' % ( self.filename, self._mipmap, 1)
-            # ^-check if image has sequence in cache
+            # get texture for second image in sequence
             _texture = Cache.get('kv.texture', uid)
-            # ^-get texture for second image in sequence
             if _texture:
+                # enable animation (cached sequence img)
                 imgcount = 2
-                # ^-enable animation (cached sequence img)
         if imgcount > 1:
-            self._anim_possible = True
+            self._anim_available = True
             # image sequence, animate
-            self.reset_anim( True )
+            self.anim_reset(True)
             self._texture = _texture
+        # image loaded for the first time
         if self.image: self.image._texture = self._texture = _texture
-        # ^-image loaded for the first time
         _texture = None
     #------------------------------------------------------------------
-
+    #: Event: on_texture_changed() load next frame in sequence in texture
     def on_texture_changed(self, *largs):
         pass
     #-------------------------------------------------------------------
