@@ -99,12 +99,6 @@ cdef class VBO:
 
 
 cdef class VertexBatch:
-    def __cinit__(self, **kwargs):
-        self.vertices_count = 0
-        self.vertices = NULL
-        self.indices_count = 0
-        self.indices = NULL
-
     def __init__(self, **kwargs):
         self.vbo = kwargs.get('vbo', VBO())
         self.vbo_index = Buffer(sizeof(unsigned short)) #index of every vertex in the vbo
@@ -170,3 +164,6 @@ cdef class VertexBatch:
             self.mode = GL_TRIANGLE_FAN
         else:
             self.mode = GL_TRIANGLES
+
+    cdef int count(self):
+        return self.elements.count()

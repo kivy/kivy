@@ -116,6 +116,17 @@ class Image(Widget):
     1, 1].
     '''
 
+    allow_stretch = BooleanProperty(False)
+    '''If True, the normalized image size will be maximized to fit in the image
+    box. Otherwise, if the box is too higher, the image will be not strech more
+    that 1:1 pixels
+
+    .. versionadded:: 1.0.7
+
+    :data:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False
+    '''
+
     def get_norm_image_size(self):
         if not self.texture:
             return self.size
@@ -124,20 +135,26 @@ class Image(Widget):
         tw, th = self.texture.size
 
         # ensure that the width is always maximized to the containter width
-        iw = w if tw < w else tw
+        if self.allow_stretch:
+            iw = w
+        else:
+            iw = min(w, tw)
         # calculate the appropriate height
         ih = iw / ratio
         # if the height is too higher, take the height of the container
         # and calculate appropriate width. no need to test further. :)
         if ih > h:
-            ih = h
+            if self.allow_stretch:
+                ih = h
+            else:
+                ih = min(h, th)
             iw = ih * ratio
 
         return iw, ih
 
 
     norm_image_size = AliasProperty(get_norm_image_size, None, bind=(
-        'texture', 'size', 'image_ratio'))
+        'texture', 'size', 'image_ratio', 'allow_stretch'))
     '''Normalized image size withing the widget box.
 
     This size will be always fitted to the widget size, and preserve the image

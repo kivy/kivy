@@ -30,14 +30,10 @@ cdef class VertexBatch:
     cdef Buffer vbo_index
     cdef GLuint mode
 
-    cdef vertex_t *vertices
-    cdef int vertices_count
-    cdef unsigned short *indices
-    cdef int indices_count
-
     cdef void set_data(self, vertex_t *vertices, int vertices_count,
                        unsigned short *indices, int indices_count)
     cdef void append_data(self, vertex_t *vertices, int vertices_count,
                           unsigned short *indices, int indices_count)
     cdef void draw(self)
     cdef void set_mode(self, str mode)
+    cdef int count(self)

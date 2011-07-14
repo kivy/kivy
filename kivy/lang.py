@@ -276,14 +276,13 @@ Then in Python, you can create instanciate the template with ::
     from kivy.lang import Builder
 
     # create a template with hello world + an image
-    icon1 = Builder.template('IconItem', {
-        'title': 'Hello world',
-        'image': 'myimage.png'})
+    # the context values should be passed as kwargs to the Builder.template function
+    icon1 = Builder.template('IconItem', title='Hello world', image='myimage.png')
 
     # create a second template with another information
-    icon2 = Builder.template('IconItem', {
-        'title': 'Another hello world',
-        'image': 'myimage2.png'})
+    ctx = {'title': 'Another hello world',
+           'image': 'myimage2.png'}
+    icon2 = Builder.template('IconItem', **ctx)
     # and use icon1 and icon2 as other widget.
 
 
@@ -405,6 +404,14 @@ Or more complex::
             Color:
                 rgba: ut.get_random_color()
 
+.. versionadded:: 1.0.7
+
+You can directly import class from a module::
+
+    #: import Animation kivy.animation.Animation
+    <Rule>:
+        on_prop: Animation(x=.5).start(self)
+
 set <key> <expr>
 ~~~~~~~~~~~~~~~~
 
@@ -516,7 +523,13 @@ class Parser(object):
                 alias, package = l
                 try:
                     if package not in sys.modules:
-                        mod = __import__(package)
+                        try:
+                            mod = __import__(package)
+                        except ImportError:
+                            mod = __import__('.'.join(package.split('.')[:-1]))
+                        # resolve the whole thing
+                        for part in package.split('.')[1:]:
+                            mod = getattr(mod, part)
                     else:
                         mod = sys.modules[package]
                     global_idmap[alias] = mod
@@ -671,16 +684,20 @@ class Parser(object):
 
             # Two more levels?
             elif count == indent + 8:
-                if current_property not in ('canvas', 'canvas.after',
-                                            'canvas.before'):
-                    raise ParserError(self, ln,
-                                   'Invalid indentation, only allowed '
-                                   'for canvas')
-                _objects, _lines = self.parse_level(level + 2, lines[i:])
-                current_object[current_property] = (_objects, ln, self)
-                current_property = None
-                lines = _lines
-                i = 0
+                if current_property in (
+                        'canvas', 'canvas.after', 'canvas.before'):
+                    _objects, _lines = self.parse_level(level + 2, lines[i:])
+                    current_object[current_property] = (_objects, ln, self)
+                    current_property = None
+                    lines = _lines
+                    i = 0
+                else:
+                    if current_property in current_object:
+                        info = current_object[current_property]
+                        info = (info[0] + '\n' + content, info[1], info[2])
+                    else:
+                        info = (content, ln, self)
+                    current_object[current_property] = info
 
             # Too much indentation, invalid
             else:
@@ -748,8 +765,8 @@ def create_handler(element, key, value, idmap):
     # bind every key.value
     for x in kw:
         k = x.split('.')
-        f = idmap[k[0]]
         try:
+            f = idmap[k[0]]
             for x in k[1:-1]:
                 f = getattr(f, x)
             if hasattr(f, 'bind'):
