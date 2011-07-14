@@ -8,7 +8,7 @@ This module include all the classes for drawing simple vertex object.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point')
+           'Point', 'GraphicException')
 
 
 include "config.pxi"
@@ -21,6 +21,10 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
+
+class GraphicException(Exception):
+    '''Exception fired when a graphic error is fired.
+    '''
 
 cdef class Line(VertexInstruction):
     '''A 2d line.
@@ -84,6 +88,14 @@ cdef class Point(VertexInstruction):
             List of points in the format (x1, y1, x2, y2...)
         `pointsize`: float, default to 1.
             Size of the point (1. mean the real size will be 2)
+
+    .. warning::
+
+        Starting from version 1.0.7, vertex instruction have a limit of 65535
+        vertices (indices of vertex to be accurate).
+        2 entry in the list (x + y) will be converted to 4 vertices. So the
+        limit inside Point() class is 2^15-2.
+
     '''
     cdef list _points
     cdef float _pointsize
@@ -162,6 +174,9 @@ cdef class Point(VertexInstruction):
         cdef vertex_t vertices[4]
         cdef unsigned short indices[6]
 
+        if len(self._points) > 2**15 - 2:
+            raise GraphicException('Cannot add elements (limit is 2^15-2)')
+
         self._points.append(x)
         self._points.append(y)
 
@@ -202,6 +217,9 @@ cdef class Point(VertexInstruction):
         def __set__(self, points):
             if self._points == points:
                 return
+            cdef list _points = list(points)
+            if len(_points) > 2**15-2:
+                raise GraphicException('Too many elements (limit is 2^15-2)')
             self._points = list(points)
             self.flag_update()
 

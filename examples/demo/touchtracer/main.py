@@ -4,12 +4,12 @@ kivy.require('1.0.6')
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
-from kivy.graphics import Color, Rectangle, Point
+from kivy.graphics import Color, Rectangle, Point, GraphicException
 from random import random
 from math import sqrt
 
 
-def calculate_points(x1, y1, x2, y2, steps=5):
+def calculate_points(x1, y1, x2, y2, steps=1):
     dx = x2 - x1
     dy = y2 - y1
     dist = sqrt(dx * dx + dy * dy)
@@ -52,9 +52,12 @@ class Touchtracer(FloatLayout):
         oldx, oldy = points[-2], points[-1]
         points = calculate_points(oldx, oldy, touch.x, touch.y)
         if points:
-            lp = ud['lines'][2].add_point
-            for idx in xrange(0, len(points), 2):
-                lp(points[idx], points[idx+1])
+            try:
+                lp = ud['lines'][2].add_point
+                for idx in xrange(0, len(points), 2):
+                    lp(points[idx], points[idx+1])
+            except GraphicException:
+                pass
 
         ud['label'].pos = touch.pos
         self.update_touch_label(ud['label'], touch)

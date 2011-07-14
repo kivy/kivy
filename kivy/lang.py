@@ -527,11 +527,11 @@ class Parser(object):
                             mod = __import__(package)
                         except ImportError:
                             mod = __import__('.'.join(package.split('.')[:-1]))
+                        # resolve the whole thing
+                        for part in package.split('.')[1:]:
+                            mod = getattr(mod, part)
                     else:
                         mod = sys.modules[package]
-                    # resolve the whole thing
-                    for part in package.split('.')[1:]:
-                        mod = getattr(mod, part)
                     global_idmap[alias] = mod
                 except ImportError:
                     Logger.exception('')
