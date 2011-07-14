@@ -56,7 +56,7 @@ class ImageSequence:
             try:
                 tmpfile = z.read(item)
                 img_tmp = Image.open((SIO.StringIO(tmpfile)))
-                self.img_correct(img_tmp)
+                img_tmp = self.img_correct(img_tmp)
                 image_data.append(ImageData(img_tmp.size[0], img_tmp.size[1],
                                 img_tmp.mode.lower(), img_tmp.tostring()))
             except:
