@@ -25,12 +25,9 @@ class ImageLoaderPygame(ImageLoaderBase):
         # By default it can only load uncompressed BMP image
         if pygame.image.get_extended() == 0:
             return ('bmp', )
-        # retrieve from http://www.pygame.org/docs/ref/image.html
-        #return ('jpg', 'jpeg', 'png', 'gif', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
-        #       'pbm', 'ppm', 'xpm')
         #Note to self:try to learn to use loader preferences instead-
-        #of this- remove gif and png support from pygame
-        return ('jpg', 'jpeg', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
+        #of this- remove gif support from pygame
+        return ('jpg', 'jpeg', 'png', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
                'pbm', 'ppm', 'xpm')
 
     def load(self, filename):
