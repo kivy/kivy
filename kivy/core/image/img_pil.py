@@ -12,9 +12,11 @@ except:
 from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
 import zipfile
-#####  focus on trying to remove these
-import numpy as np
-import cStringIO as SIO
+try:
+    import cStringIO as SIO
+except ImportError:
+    import StringIO as SIO
+
 
 class ImageSequence:
     """ Class ImageSequence: handle images with sequences
@@ -54,6 +56,7 @@ class ImageSequence:
             try:
                 tmpfile = z.read(item)
                 img_tmp = Image.open((SIO.StringIO(tmpfile)))
+                self.img_correct(img_tmp)
                 image_data.append(ImageData(img_tmp.size[0], img_tmp.size[1],
                                 img_tmp.mode.lower(), img_tmp.tostring()))
             except:
@@ -71,39 +74,23 @@ class ImageSequence:
         Read images from an animated file.
         Returns a list/array of typ ImageData
         """
-        # Check Numpy
-        if np is None:
-            raise RuntimeError("Need Numpy to read animated gif files.")
-
         pilIm = self.im
         pilIm.seek(0)
 
         # Read all images inside
-        images = []
+        image_data = []
         try:
             while True:
-                # Get image as numpy array
-                tmp = pilIm.convert() # Make without palette
-                a = np.asarray(tmp)
-                if len(a.shape)==0:
-                    raise MemoryError("Too little memory to convert \
-                        PIL image to array")
-                # Store, and next
-                images.append(a)
+                img_tmp = pilIm
+                img_tmp = self.img_correct(img_tmp)
+                image_data.append(ImageData(img_tmp.size[0], img_tmp.size[1],
+                                img_tmp.mode.lower(), img_tmp.tostring()))
                 pilIm.seek(pilIm.tell()+1)
         except EOFError:
             pass
-        # Convert to normal PIL images if needed
-        image_data = []
-        for im in images:
-            img_tmp = Image.fromarray(im)
-            img_tmp = self.img_correct(img_tmp)
-            image_data.append(ImageData(img_tmp.size[0], img_tmp.size[1],
-                                img_tmp.mode.lower(), img_tmp.tostring()))
         # Done
         return image_data
 #-----------------------------------------------------------------------------
-
 
 class ImageLoaderPIL(ImageLoaderBase):
     '''Image loader based on PIL library'''
