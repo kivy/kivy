@@ -11,6 +11,26 @@ shader, and the creation of the program in OpenGL.
 
     Write a more complete documentation about shader.
 
+Header inclusion
+----------------
+
+.. versionadded:: 1.0.7
+
+When you are creating a Shader, Kivy will always include default parameters. If
+you don't want to rewrite it each time you want to customize / write a new
+shader, you can add the "$HEADER$" token, and it will be replaced by the
+corresponding shader header.
+
+Here is the header for Fragment Shader:
+
+.. include:: ../kivy/data/glsl/header.fs
+    :literal:
+
+And the header for Vertex Shader:
+
+.. include:: ../kivy/data/glsl/header.vs
+    :literal:
+
 '''
 
 __all__ = ('Shader', )
@@ -29,6 +49,8 @@ from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import kivy_shader_dir
 
+cdef str header_vs = open(join(kivy_shader_dir, 'header.vs')).read()
+cdef str header_fs = open(join(kivy_shader_dir, 'header.fs')).read()
 cdef str default_vs = open(join(kivy_shader_dir, 'default.vs')).read()
 cdef str default_fs = open(join(kivy_shader_dir, 'default.fs')).read()
 
@@ -309,6 +331,7 @@ cdef class Shader:
         def __set__(self, object source):
             if source is None:
                 source = default_vs
+            source = source.replace('$HEADER$', header_vs)
             self.vert_src = source
             self.build_vertex()
 
@@ -323,6 +346,7 @@ cdef class Shader:
         def __set__(self, object source):
             if source is None:
                 source = default_fs
+            source = source.replace('$HEADER$', header_fs)
             self.frag_src = source
             self.build_fragment()
 

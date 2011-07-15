@@ -42,7 +42,13 @@ class WindowPygame(WindowBase):
 
         # init some opengl, same as before.
         self.flags = pygame.HWSURFACE | pygame.OPENGL | \
-                     pygame.DOUBLEBUF | pygame.RESIZABLE
+                     pygame.DOUBLEBUF
+
+        # right now, activate resizable window only on linux.
+        # on window / macosx, the opengl context is lost, and we need to
+        # reconstruct everything. Check #168 for a state of the work.
+        if sys.platform == 'linux2':
+            self.flags |= pygame.RESIZABLE
 
         pygame.display.init()
 
