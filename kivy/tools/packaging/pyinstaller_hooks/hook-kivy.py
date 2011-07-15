@@ -25,6 +25,13 @@ datas = [
 
 # extensions
 _kivy_modules = [
+    # pygame
+    'pygame.event',
+    'pygame.video',
+    'pygame.image',
+    'pygame.display',
+    'pygame',
+
     # external modules
     'kivy.lib.osc',
     'kivy.lib.osc.OSC',
@@ -40,6 +47,7 @@ _kivy_modules = [
     'kivy.graphics.fbo',
     'kivy.graphics.instructions',
     'kivy.graphics.opengl',
+    'kivy.graphics.opengl_utils',
     'kivy.graphics.shader',
     'kivy.graphics.stenctil_instructions',
     'kivy.graphics.texture',
