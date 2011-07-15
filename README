@@ -34,13 +34,8 @@ An offline version in PDF format is also available.
 Kivy ships with a bunch of examples that can be found in the examples/ folder.
 
 
-About 1.0 beta
----------------
-
-This is beta, so keep in mind that it might not work as intended at all times.
-You can post bug reports and feature requests on our Google Project page:
-
-  http://code.google.com/p/kivy/issues/list
+Support
+-------
 
 If you need assistance, you can ask for help on our mailing list:
 
@@ -56,13 +51,6 @@ We also have an IRC channel (expect responses mostly in the day hours of CET):
 Other Python/MT resources
 -------------------------
 
-pymt.eu
-^^^^^^^
-
-Experimental Python toolkit for multitouch development.
-Now deprecated in favour of Kivy.
-See http://kivy.org/docs/faq.html#how-is-kivy-related-to-pymt
-
 movid.org
 ^^^^^^^^^
 
@@ -76,8 +64,8 @@ THE resource and research community for open source multi touch and other
 natural user interfaces.
 
 
-License
--------
+Licenses
+--------
 
 - Kivy is licensed under the terms of the LGPL 3, check the COPYING file.
 - The provided fonts DroidSans.ttf and DroidSansMono.ttf are licensed under
