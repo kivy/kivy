@@ -29,7 +29,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.7-dev'
+__version__ = '1.0.7'
 
 import sys
 import shutil
@@ -300,8 +300,9 @@ if not 'KIVY_DOC_INCLUDE' in environ:
                 Config.set('input', pid, args)
             except ValueError:
                 # when we are doing an executable on macosx with pyinstaller,
-                # they are passing information with -p. so it will conflict with our current
-                # -p option. since the format is not the same, just avoid it.
+                # they are passing information with -p. so it will conflict with
+                # our current -p option. since the format is not the same, just
+                # avoid it.
                 pass
         elif opt in ('-a', '--auto-fullscreen'):
             Config.set('graphics', 'fullscreen', 'auto')
