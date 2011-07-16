@@ -322,13 +322,13 @@ class Image(EventDispatcher):
 
         Usage:
 
-        Image.anim_reset(True) start/reset animation
-        Image.anim_reset(False) sop animation
+        image.anim_reset(True) start/reset animation
+        image.anim_reset(False) sop animation
 
         To change animation speed follow these 2 steps:
 
-        Image.anim_delay = 0.05
-        Image.anim_reset(True)
+        image.anim_delay = 0.05
+        image.anim_reset(True)
         '''
         # stop animation
         Clock.unschedule(self._anim)
@@ -336,7 +336,7 @@ class Image(EventDispatcher):
             Clock.schedule_interval(
                 # function to animate
                 self._anim,
-                # frame delay .25secs by default too slow??
+                # frame delay .25secs by default
                 self.anim_delay)
 
     def _img_iterate(self, *largs):
@@ -385,6 +385,9 @@ class Image(EventDispatcher):
     def on_texture_changed(self, *largs):
         '''Event: on_texture_changed()
         Fired when texture for sequenced images changes to next frame
+
+        should be overloaded,bound in widget
+        look at Image Widget for more details
         '''
         pass
 

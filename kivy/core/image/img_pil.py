@@ -14,8 +14,17 @@ from . import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageSequence:
-    """ImageSequence: store Image sequences in cache
-    """
+    '''ImageSequence: Image sequences in array
+
+    NOTE:
+        gif animation has a lot of Issues(transparency/color depths... etc).
+        In order to keep simple what is implimented here is what is natively
+        supported by pil
+
+        As a general rule try to use gifs that have no transparency
+        gif's with transparency will work but be ready for some
+        artifacts for now.
+    '''
 
     def __init__(self, im):
         self.im = im
@@ -38,18 +47,9 @@ class ImageSequence:
         return _img_tmp
 
     def _img_array(self):
-        """Read images from an animated file.
+        '''Read images from an animated file.
         Returns a list/array of typ ImageData
-
-        NOTE:
-        gif animation has a lot of Issues(transparency/color depths... etc).
-        In order to keep simple what is implimented here is what is natively
-        supported by pil
-
-        As a general rule try to use gifs that have no transparency
-        gif's with transparency will work but be ready for some
-        artifacts for now.
-        """
+        '''
         pilIm = self.im
         pilIm.seek(0)
 
