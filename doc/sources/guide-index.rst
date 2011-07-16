@@ -14,4 +14,5 @@ Programming Guide
     guide/inputs
     guide/designwithkv
     guide/platform
+    guide/packaging
 

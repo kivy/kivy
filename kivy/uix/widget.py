@@ -155,7 +155,7 @@ class Widget(EventDispatcher):
 
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():
-            if hasattr(self, key):
+            if key in properties:
                 setattr(self, key, value)
 
         # Apply all the styles

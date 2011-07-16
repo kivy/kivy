@@ -26,8 +26,6 @@ Example
 If you open a command line and go to the directory (or add it to your PATH) 
 You can run the following:
 
-kivy -m kivy.tools.demo  <-- will run a simple kivy demo from teh kivy.tools module
-
 kivy test.py -w  <-- will run test.py as a python script with kivy ready to use
 
 
@@ -57,8 +55,8 @@ Install Kivy as a standard python module
 ========================================
 
 Please refer to the install instructions in the complete README :
-* inside the kivy folder inside this one
-* or the wiki at http://kivy.org/wiki
+* Inside the kivy folder inside this one
+* Kivy documentation at http://kivy.org/docs/
 
 
 Install development environment inside your current shell

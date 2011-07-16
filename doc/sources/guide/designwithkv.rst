@@ -1,4 +1,4 @@
-.. _designwithkv::
+.. _designwithkv:
 
 .. highlight:: python
     :linenothreshold: 3

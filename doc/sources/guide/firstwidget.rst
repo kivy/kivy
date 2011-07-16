@@ -1,6 +1,5 @@
 .. _firstwidget:
 
-
 .. highlight:: python
    :linenothreshold: 3
 
@@ -267,11 +266,11 @@ application.
 Luckily, we can do better. Let us add a *Clear* button that erases all the
 lines and circles that have been drawn so far.
 There are two options now:
-    * We could either create the button as a child of
-      our widget. That would imply that if you create more than one widget,
-      every widget gets its own button.
-      If you're not careful, this will also allow users to draw on top of
-      the button, which might not be what you want.
+
+    * We could either create the button as a child of our widget. That would
+      imply that if you create more than one widget, every widget gets its own
+      button. If you're not careful, this will also allow users to draw on top
+      of the button, which might not be what you want.
     * Or we set up the button only once, initially, in our app class and
       when it's pressed we clear the widget.
 
