@@ -198,8 +198,7 @@ class Image(Widget):
         anim_reset(True, .1) to start/reset animation with
         slightly faster speed than default.
 
-        anim_delay is in seconds
-        As a referance '.25' seconds = (1/.25) 4 fps
+        anim_delay is in seconds default '.25'
         '''
         if self._coreimage:
             self._coreimage.anim_delay = anim_delay

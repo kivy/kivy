@@ -327,7 +327,7 @@ class Image(EventDispatcher):
 
         To change animation speed follow these 2 steps:
 
-        Image.anim_delay = 0.05 #0.05 secs = (1/.05) = 20fps?
+        Image.anim_delay = 0.05
         Image.anim_reset(True)
         '''
         # stop animation
