@@ -47,7 +47,7 @@ class ImageSequence:
         supported by pil
 
         As a general rule try to use gifs that have no transparency
-        gif's with transparencymight work but be ready for some
+        gif's with transparency will work but be ready for some
         artifacts for now.
         """
         pilIm = self.im
