@@ -16,12 +16,12 @@ from . import ImageLoaderBase, ImageData, ImageLoader
 class ImageSequence:
     """ImageSequence: store Image sequences in cache
     """
+
     def __init__(self, im):
         self.im = im
 
     def img_correct(self, _img_tmp):
-        '''Convert image to the correct format
-           and orientation.
+        '''Convert image to the correct format and orientation.
         '''
         # image loader work only with rgb/rgba image
         if _img_tmp.mode.lower() not in ('rgb', 'rgba'):
@@ -39,7 +39,16 @@ class ImageSequence:
 
     def _img_array(self):
         """Read images from an animated file.
-           Returns a list/array of typ ImageData
+        Returns a list/array of typ ImageData
+
+        NOTE:
+        gif animation has a lot of Issues(transparency/color depths... etc).
+        In order to keep simple what is implimented here is what is natively
+        supported by pil
+
+        As a general rule try to use gifs that have no transparency
+        gif's with transparencymight work but be ready for some
+        artifacts for now.
         """
         pilIm = self.im
         pilIm.seek(0)
