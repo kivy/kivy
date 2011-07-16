@@ -191,10 +191,13 @@ class Image(Widget):
     def anim_reset(self, allowanim = True, anim_delay = .25):
         '''Enable/Disable animation of sequenced images
 
-        Call:anim_reset(False) to stop animation
-             anim_reset(True) to start/reset animation with default speed
-             anim_reset(True, .1) to start/reset animation with
-             slightly faster speed than default.
+        Usage:
+
+        anim_reset(False)to stop animation
+        anim_reset(True) to start/reset animation with default speed
+        anim_reset(True, .1) to start/reset animation with
+        slightly faster speed than default.
+
         anim_delay is in seconds
         As a referance '.25' seconds = (1/.25) 4 fps
         '''

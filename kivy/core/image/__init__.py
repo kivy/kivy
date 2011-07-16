@@ -15,8 +15,14 @@ __all__ = ('Image', 'ImageLoader', 'ImageData')
 
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
+from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy.clock import Clock
+import zipfile
+try:
+    import cStringIO as SIO
+except ImportError:
+    import StringIO as SIO
 
 # late binding
 Texture = TextureRegion = None
@@ -167,6 +173,49 @@ class ImageLoader(object):
     loaders = []
 
     @staticmethod
+    def zip_loader(_filename, **kwargs):
+        """Read images from an zip file.
+
+        Returns an Image with a list/array of type ImageData
+        stored in Image._data
+        """
+        # Read all images inside
+        z = zipfile.ZipFile(_filename, 'r')
+        image_data = []
+        #for each file in zip
+        for zfilename in z.namelist():
+            try:
+                #read file and store it in mem with fileIO struct around it
+                tmpfile = SIO.StringIO(z.read(zfilename))
+                ext = zfilename.split('.')[-1].lower()
+                im = None
+                for loader in ImageLoader.loaders:
+                    if ext not in loader.extensions():
+                        continue
+                    im = loader(tmpfile, **kwargs)
+                    break
+                if im is not None:
+                    #append ImageData to local variable before it's overwritten
+                    image_data.append(im._data[0])
+                #else: if not image file skip to next
+            except:
+                Logger.warning('Image: Unable to load image' +
+                    '<%s> in zip <%s> trying to continue'
+                    % (zfilename,_filename))
+                #raise# return the data read till now
+                #this should Ideally handle truncated zips
+        z.close()
+        try:
+            if len(image_data):
+                pass
+        except:
+            raise Exception('no images in zip <%s>' % _filename)
+        #replace Image.Data with the array of all the images in the zip
+        im._data = image_data
+        # Done
+        return im
+
+    @staticmethod
     def register(defcls):
         ImageLoader.loaders.append(defcls)
 
@@ -174,15 +223,18 @@ class ImageLoader(object):
     def load(filename, **kwargs):
         # extract extensions
         ext = filename.split('.')[-1].lower()
-        im = None
-        for loader in ImageLoader.loaders:
-            if ext not in loader.extensions():
-                continue
-            im = loader(filename, **kwargs)
-            break
-        if im is None:
-            raise Exception('Unknown extension <%s>, no loader found.' % ext)
-        return im
+        if ext == 'zip':
+            return ImageLoader.zip_loader(filename)
+        else:
+            im = None
+            for loader in ImageLoader.loaders:
+                if ext not in loader.extensions():
+                    continue
+                im = loader(filename, **kwargs)
+                break
+            if im is None:
+                raise Exception('Unknown extension <%s>, no loader found.' % ext)
+            return im
 
 
 class Image(EventDispatcher):
@@ -267,6 +319,16 @@ class Image(EventDispatcher):
     def anim_reset(self, allow_anim):
         '''Reset animation: anim_reset(True/False)
         Start or Stop animatin of sequenced images
+
+        Usage:
+
+        Image.anim_reset(True) start/reset animation
+        Image.anim_reset(False) sop animation
+
+        To change animation speed follow these 2 steps:
+
+        Image.anim_delay = 0.05 #0.05 secs = (1/.05) = 20fps?
+        Image.anim_reset(True)
         '''
         # stop animation
         Clock.unschedule(self._anim)
@@ -274,7 +336,7 @@ class Image(EventDispatcher):
             Clock.schedule_interval(
                 # function to animate
                 self._anim,
-                # frame delay .20secs by default too slow??
+                # frame delay .25secs by default too slow??
                 self.anim_delay)
 
     def _img_iterate(self, *largs):

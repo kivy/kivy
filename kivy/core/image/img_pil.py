@@ -11,15 +11,10 @@ except:
 
 from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
-import zipfile
-try:
-    import cStringIO as SIO
-except ImportError:
-    import StringIO as SIO
 
 
 class ImageSequence:
-    """ImageSequence: handle images with sequences and animate them
+    """ImageSequence: store Image sequences in cache
     """
     def __init__(self, im):
         self.im = im
@@ -41,28 +36,6 @@ class ImageSequence:
             # image are not in the good direction, flip !
         _img_tmp = _img_tmp.transpose(Image.FLIP_TOP_BOTTOM)
         return _img_tmp
-
-    def _img_array_from_zip(self, _filename):
-        """Read images from an zip file.
-           Returns a list/array of type ImageData
-        """
-        # Read all images inside
-        z = zipfile.ZipFile(_filename, 'r')
-        image_data = []
-        for item in z.namelist():
-            try:
-                tmpfile = z.read(item)
-                img_tmp = Image.open((SIO.StringIO(tmpfile)))
-                img_tmp = self.img_correct(img_tmp)
-                image_data.append(ImageData(img_tmp.size[0], img_tmp.size[1],
-                                img_tmp.mode.lower(), img_tmp.tostring()))
-            except:
-                Logger.warning('Image: Unable to load image <%s>' % _filename)
-                #raise# return the data read till now
-                #this should Ideally handle truncated zips
-        z.close()
-        # Done
-        return image_data
 
     def _img_array(self):
         """Read images from an animated file.
@@ -97,31 +70,21 @@ class ImageLoaderPIL(ImageLoaderBase):
                 'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
                 'jpeg', 'jpg', 'mcidas', 'mic', 'mpeg', 'msp', 'pcd',
                 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
-                'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv', 'zip')
-                #  addition of .zip image sequences
+                'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
+
     def load(self, filename):
         Logger.debug('Image: Load <%s>' % filename)
-        # handle zip's differently
-        ext = filename.split('.')[-1].lower()
-        if ext == 'zip':
-            # update internals
-            self.filename = filename
-            img_sq = ImageSequence(None)
-            # returns a array of type ImageData
-            # of len 1 if not a sequence image
-            return  img_sq._img_array_from_zip(filename)
-        else:
-            try:
-                im = Image.open(filename)
-            except:
-                Logger.warning('Image: Unable to load image <%s>' % filename)
-                raise
-            # sequence image class
-            img_sq = ImageSequence(im)
-            # update internals
-            self.filename = filename
-            # returns a arrayof type ImageData len 1 if not a sequence image
-            return  img_sq._img_array()
+        try:
+            im = Image.open(filename)
+        except:
+            Logger.warning('Image: Unable to load image <%s>' % filename)
+            raise
+        # sequence image class
+        img_sq = ImageSequence(im)
+        # update internals
+        self.filename = filename
+        # returns a arrayof type ImageData len 1 if not a sequence image
+        return  img_sq._img_array()
 
 # register
 ImageLoader.register(ImageLoaderPIL)
