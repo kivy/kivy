@@ -188,10 +188,15 @@ class Image(Widget):
             self._coreimage.bind(on_texture_changed = self._on_tex_change)
             self.texture = self._coreimage.texture
 
-    def anim_reset(self, allowanim = True, anim_delay = .22):
-        '''  reset animation of sequenced Images
-             anim_reset(True/False, delay in secs)
-             Enable/Disable animation of sequenced images
+    def anim_reset(self, allowanim = True, anim_delay = .25):
+        '''Enable/Disable animation of sequenced images
+
+        Call:anim_reset(False) to stop animation
+             anim_reset(True) to start/reset animation with default speed
+             anim_reset(True, .1) to start/reset animation with
+             slightly faster speed than default.
+        anim_delay is in seconds
+        As a referance '.25' seconds = (1/.25) 4 fps
         '''
         if self._coreimage:
             self._coreimage.anim_delay = anim_delay

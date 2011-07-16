@@ -227,9 +227,9 @@ class Image(EventDispatcher):
         #indicates more than one image in sequence if True
         self._anim_available = False
         self._anim_counter = 0
-        # indicator of images having been loded in cache
+        #indicator of images having been loded in cache
         self._iteration_done = False
-        #fire a event on animation of sequenced img's
+        #this event should be fired on animation of sequenced img's
         self.register_event_type('on_texture_changed')
 
         if isinstance(arg, Image):
@@ -248,9 +248,8 @@ class Image(EventDispatcher):
         # check if the image hase sequences for animation in it
         self._img_iterate()
 
-    #-------------------------------------------------------------------
     def _anim(self, *largs ):
-        #Animated Gif, zip imgs (001.ext, 002.ext...  in order of name )
+        #called on every interval of clock as set by anim_reset
         uid = '%s|%s|%s' % ( self._filename,
             self._mipmap, self._anim_counter)
         _tex = Cache.get('kv.texture', uid)
@@ -265,20 +264,19 @@ class Image(EventDispatcher):
             self._anim_counter = 0
             self._anim()
 
-    #-------------------------------------------------------------------
-    #: reset animation, anim_reset(True/False) Start/Stop
     def anim_reset(self, allow_anim):
-        Clock.unschedule(self._anim)
+        '''Reset animation: anim_reset(True/False)
+        Start or Stop animatin of sequenced images
+        '''
         # stop animation
+        Clock.unschedule(self._anim)
         if allow_anim and self._anim_available:
             Clock.schedule_interval(
                 # function to animate
                 self._anim,
                 # frame delay .20secs by default too slow??
                 self.anim_delay)
-    #-------------------------------------------------------------------
 
-    #-------------------------------------------------------------------
     def _img_iterate(self, *largs):
         # Purpose: check if image has sequences then animate
         self._iteration_done = True
@@ -321,11 +319,12 @@ class Image(EventDispatcher):
         # image loaded for the first time
         if self.image: self.image._texture = self._texture = _texture
         _texture = None
-    #------------------------------------------------------------------
-    #: Event: on_texture_changed() load next frame in sequence in texture
+
     def on_texture_changed(self, *largs):
+        '''Event: on_texture_changed()
+        Fired when texture for sequenced images changes to next frame
+        '''
         pass
-    #-------------------------------------------------------------------
 
     @staticmethod
     def load(filename, **kwargs):

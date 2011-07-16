@@ -19,15 +19,15 @@ except ImportError:
 
 
 class ImageSequence:
-    """ Class ImageSequence: handle images with sequences
+    """ImageSequence: handle images with sequences and animate them
     """
-
     def __init__(self, im):
         self.im = im
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
     def img_correct(self, _img_tmp):
+        '''Convert image to the correct format
+           and orientation.
+        '''
         # image loader work only with rgb/rgba image
         if _img_tmp.mode.lower() not in ('rgb', 'rgba'):
             try:
@@ -41,13 +41,10 @@ class ImageSequence:
             # image are not in the good direction, flip !
         _img_tmp = _img_tmp.transpose(Image.FLIP_TOP_BOTTOM)
         return _img_tmp
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
     def _img_array_from_zip(self, _filename):
-        """
-        Read images from an zip file.
-        Returns a list/array of typ ImageData
+        """Read images from an zip file.
+           Returns a list/array of type ImageData
         """
         # Read all images inside
         z = zipfile.ZipFile(_filename, 'r')
@@ -66,13 +63,10 @@ class ImageSequence:
         z.close()
         # Done
         return image_data
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
     def _img_array(self):
-        """
-        Read images from an animated file.
-        Returns a list/array of typ ImageData
+        """Read images from an animated file.
+           Returns a list/array of typ ImageData
         """
         pilIm = self.im
         pilIm.seek(0)
@@ -90,7 +84,7 @@ class ImageSequence:
             pass
         # Done
         return image_data
-#-----------------------------------------------------------------------------
+
 
 class ImageLoaderPIL(ImageLoaderBase):
     '''Image loader based on PIL library'''
