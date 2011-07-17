@@ -117,12 +117,13 @@ cdef class EventDispatcher(object):
         '''Dispatch an event across all the handler added in bind().
         As soon as a handler return True, the dispatching stop
         '''
-        for value in self.event_stack[event_type]:
+        cdef list event_stack = self.event_stack[event_type]
+        cdef object remove = event_stack.remove
+        for value in event_stack[:]:
             handler = value()
             if handler is None:
                 # handler have gone, must be removed
-                # XXX FIXME event stack change while iterating
-                self.event_stack[event_type].remove(value)
+                remove(value)
                 continue
             if handler(self, *largs):
                 return True
