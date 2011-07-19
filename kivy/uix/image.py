@@ -127,6 +127,19 @@ class Image(Widget):
     default to False
     '''
 
+    keep_ratio = BooleanProperty(True)
+    '''If False along with allow_stretch being True, the normalized image
+    size will be maximized to fit in the image box disregarding the image
+    ratio.
+    Otherwise, if the box is too high, the image will be not strech more
+    than 1:1 pixels
+
+    .. versionadded:: 1.0.7
+
+    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True
+    '''
+
     def get_norm_image_size(self):
         if not self.texture:
             return self.size
@@ -136,6 +149,8 @@ class Image(Widget):
 
         # ensure that the width is always maximized to the containter width
         if self.allow_stretch:
+            if not self.keep_ratio:
+                return w, h
             iw = w
         else:
             iw = min(w, tw)
@@ -179,17 +194,38 @@ class Image(Widget):
             if filename is None:
                 return
             mipmap = self.mipmap
-            uid = '%s|%s' % (filename, mipmap)
-            texture = Cache.get('kv.texture', uid)
-            if not texture:
-                image = CoreImage(filename, mipmap=mipmap)
-                texture = image.texture
-                Cache.append('kv.texture', uid, texture)
-            self.texture = texture
+            #call on_tex_change when coreimage.on_texture_chagnged is called
+            try:
+                self._coreimage.unbind(on_texture_changed, self.on_tex_changed)
+            except:
+                pass
+            self._coreimage = CoreImage(filename, mipmap=mipmap)
+            self._coreimage.bind(on_texture_changed = self._on_tex_change)
+            self.texture = self._coreimage.texture
+
+    def anim_reset(self, allowanim = True, anim_delay = .25):
+        '''Enable/Disable animation of sequenced images
+
+        Usage:
+
+        anim_reset(False)to stop animation
+        anim_reset(True) to start/reset animation with default speed
+        anim_reset(True, .1) to start/reset animation with
+        slightly faster speed than default.
+
+        anim_delay is in seconds default '.25'
+        '''
+        if self._coreimage:
+            self._coreimage.anim_delay = anim_delay
+            self._coreimage.anim_reset(allowanim)
 
     def on_texture(self, instance, value):
         if value is not None:
             self.texture_size = list(value.size)
+
+    def _on_tex_change(self, *largs):
+        # update texture from core image
+        self.texture = self._coreimage.texture
 
 
 class AsyncImage(Image):
@@ -211,6 +247,7 @@ class AsyncImage(Image):
                 value = resource_find(value)
             self._coreimage = image = Loader.image(value)
             image.bind(on_load=self.on_source_load)
+            image.bind(on_texture_changed = self._on_tex_change)
             self.texture = image.texture
 
     def on_source_load(self, value):
@@ -223,3 +260,5 @@ class AsyncImage(Image):
         proto = filename.split('://', 1)[0]
         return proto in ('http', 'https', 'ftp')
 
+    def _on_tex_change(self, *largs):
+        self.texture = self._coreimage.texture
