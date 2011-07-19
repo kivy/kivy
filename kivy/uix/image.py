@@ -134,7 +134,7 @@ class Image(Widget):
     Otherwise, if the box is too high, the image will be not strech more
     than 1:1 pixels
 
-    .. versionadded:: 1.0.7
+    .. versionadded:: 1.0.8
 
     :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`,
     default to True
