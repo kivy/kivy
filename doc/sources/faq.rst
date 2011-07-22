@@ -197,3 +197,14 @@ and they are no clean solution to hack against both weird behaviors to use
 Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709.html)
 
 Solution: use `easy_install`, as our documentation said.
+
+Fatal Python error: (pygame parachute) Segmentation Fault
+---------------------------------------------------------
+
+Most of time, this issue is due to an usage of old graphics driver. Install the
+latest graphics driver available for your graphics card, and it could be ok.
+
+If not, please report a detailled issue to github, by following the
+:ref:`contribute` document, in the section `Reporting an Issue`. This is very
+important for us because that kind of error can be very hard to debug. Give us
+all the informations you can give about your environment and execution.
