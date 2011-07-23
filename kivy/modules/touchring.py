@@ -1,6 +1,6 @@
 '''
-Touchring module
-================
+Touchring
+=========
 
 Show ring around every touch on the table. You can use this module for checking
 if you don't have any calibration trouble with touches.

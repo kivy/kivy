@@ -4,7 +4,7 @@ FileChooser
 
 .. versionadded:: 1.0.5
 
-.. warning:
+.. warning::
 
     This is experimental and subject to change as long as this warning notice is
     present.
@@ -62,6 +62,10 @@ def alphanumeric_folders_first(files):
 
 
 class FileChooserController(FloatLayout):
+    '''Base for implementing a FileChooser. Don't use that class directly,
+    prefer to use one implementation like :class:`FileChooserListView` or
+    :class:`FileChooserIconView`.
+    '''
     _ENTRY_TEMPLATE = None
 
     path = StringProperty(u'/')
@@ -303,10 +307,14 @@ class FileChooserController(FloatLayout):
 
 
 class FileChooserListView(FileChooserController):
+    '''Implementation of :class:`FileChooserController` using a list view
+    '''
     _ENTRY_TEMPLATE = 'FileListEntry'
 
 
 class FileChooserIconView(FileChooserController):
+    '''Implementation of :class:`FileChooserController` using an icon view
+    '''
     _ENTRY_TEMPLATE = 'FileIconEntry'
 
 

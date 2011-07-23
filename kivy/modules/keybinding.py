@@ -2,9 +2,10 @@
 Keybinding
 ==========
 
-Activate this module to map some keys to useful functions
+This module force the mapping of some keys to functions:
 
-- F12: screenshot
+* F11: Rotate the Window from 0, 90, 180, 270
+* F12: Take a screenshot
 
 '''
 
