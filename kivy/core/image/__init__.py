@@ -174,11 +174,13 @@ class ImageLoader(object):
 
     @staticmethod
     def zip_loader(_filename, **kwargs):
-        """Read images from an zip file.
+        '''Read images from an zip file.
+        .. versionadded::
+	   1.0.8
 
         Returns an Image with a list/array of type ImageData
         stored in Image._data
-        """
+        '''
         # Read all images inside
         z = zipfile.ZipFile(_filename, 'r')
         image_data = []
@@ -200,7 +202,7 @@ class ImageLoader(object):
                 #else: if not image file skip to next
             except:
                 Logger.warning('Image: Unable to load image' +
-                    '<%s> in zip <%s> trying to continue'
+                    '<%s> in zip <%s> trying to continue...'
                     % (zfilename,_filename))
                 #raise# return the data read till now
                 #this should Ideally handle truncated zips
@@ -319,16 +321,20 @@ class Image(EventDispatcher):
     def anim_reset(self, allow_anim):
         '''Reset animation: anim_reset(True/False)
         Start or Stop animatin of sequenced images
+	.. versionadded::
+            In 1.0.8
+	:Parameters:
+	    allow_anim: BooleanProperty
 
-        Usage:
+	Usage:
 
-        image.anim_reset(True) start/reset animation
-        image.anim_reset(False) sop animation
+            image.anim_reset(True) start/reset animation
+            image.anim_reset(False) sop animation
 
         To change animation speed follow these 2 steps:
 
-        image.anim_delay = 0.05
-        image.anim_reset(True)
+            image.anim_delay = 0.05
+            image.anim_reset(True)
         '''
         # stop animation
         Clock.unschedule(self._anim)

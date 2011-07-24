@@ -17,12 +17,12 @@ class ImageSequence:
     '''ImageSequence: Image sequences in array
 
     NOTE:
-        gif animation has a lot of Issues(transparency/color depths... etc).
-        In order to keep simple what is implimented here is what is natively
-        supported by pil
+        gif animation has a lot of issues(transparency/color depths... etc).
+        In order to keep it simple; what is implimented here is what is 
+	natively supported by pil.
 
-        As a general rule try to use gifs that have no transparency
-        gif's with transparency will work but be ready for some
+        As a general rule, try to use gifs that have no transparency.
+        Gif's with transparency will work but be ready for some
         artifacts for now.
     '''
 
@@ -92,7 +92,7 @@ class ImageLoaderPIL(ImageLoaderBase):
         img_sq = ImageSequence(im)
         # update internals
         self.filename = filename
-        # returns a arrayof type ImageData len 1 if not a sequence image
+        # returns an array of type ImageData len 1 if not a sequence image
         return  img_sq._img_array()
 
 # register

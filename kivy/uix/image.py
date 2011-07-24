@@ -131,7 +131,7 @@ class Image(Widget):
     '''If False along with allow_stretch being True, the normalized image
     size will be maximized to fit in the image box disregarding the image
     ratio.
-    Otherwise, if the box is too high, the image will be not strech more
+    Otherwise, if the box is too high, the image will not be streched more
     than 1:1 pixels
 
     .. versionadded:: 1.0.8
@@ -208,8 +208,8 @@ class Image(Widget):
 
         Usage:
 
-        anim_reset(False)to stop animation
-        anim_reset(True) to start/reset animation with default speed
+        anim_reset(False) to stop animation
+        anim_reset(True)  to start/reset animation with default speed
         anim_reset(True, .1) to start/reset animation with
         slightly faster speed than default.
 
