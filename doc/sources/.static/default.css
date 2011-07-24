@@ -315,12 +315,7 @@ dd {
 dt:target,
 .highlight {
     /** background-color: #fbe54e; TEMPORARY REMOVE THIS, CAUSE WITH RIGHT ALIGN IMAGE, WE ARE SEEING THE COLOR **/
-	border-top-left-radius: 15px;
-	border-bottom-right-radius: 15px;
-	-moz-border-radius-topleft: 15px;
-	-moz-border-radius-bottomright: 15px;
-	-webkit-border-radius-topleft: 15px;
-	-webkit-border-radius-topright: 15px;
+	background-color: #23cc23 !important;
 }
 
 dl.glossary dt {
@@ -553,4 +548,46 @@ table.field-list th.field-name {
 
 .footerlinks .rightlink {
 	text-align: right;
+}
+
+/** Image link
+ */
+img.align-right {
+	float: right;
+	margin: 0 0 20px 20px;
+}
+
+img.align-center {
+	text-align: center;
+	margin: 20px auto;
+	display: block;
+}
+
+/** Api enhance navigation
+ */
+.bodyshortcut {
+	font-size: 10px;
+	margin-top: -10px;
+}
+
+dl.class > dt.hover,
+dl.data > dt.hover,
+dl.function > dt.hover,
+dl.method > dt.hover,
+dl.attribute > dt.hover,
+dl.exception > dt.hover {
+	background-color: #f0f0f0 !important;
+}
+
+#api-toggle-desc,
+#api-toggle-all {
+	font-size: 13px;
+	float: right;
+	margin-top: 10px;
+	margin-left: 20px;
+	cursor: pointer;
+}
+
+dl.api-level dt {
+	cursor: pointer;
 }
