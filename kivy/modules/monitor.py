@@ -4,8 +4,8 @@ Monitor module
 
 Monitor module is a toolbar that show activity of your current application :
 
-    * FPS
-    * Graph of input event
+* FPS
+* Graph of input event
 
 '''
 

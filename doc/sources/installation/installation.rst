@@ -41,7 +41,7 @@ you an overview about the things Kivy uses internally.
 Stable Version
 --------------
 
-The latest stable version can be found on Kivy's website at http://kivy.org/#downloads
+The latest stable version can be found on Kivy's website at http://kivy.org/#download
 Please refer to the installation instructions for your specific platform:
 
 .. toctree::

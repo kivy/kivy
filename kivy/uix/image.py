@@ -127,6 +127,19 @@ class Image(Widget):
     default to False
     '''
 
+    keep_ratio = BooleanProperty(True)
+    '''If False along with allow_stretch being True, the normalized image
+    size will be maximized to fit in the image box disregarding the image
+    ratio.
+    Otherwise, if the box is too high, the image will be not strech more
+    than 1:1 pixels
+
+    .. versionadded:: 1.0.8
+
+    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True
+    '''
+
     def get_norm_image_size(self):
         if not self.texture:
             return self.size
@@ -136,6 +149,8 @@ class Image(Widget):
 
         # ensure that the width is always maximized to the containter width
         if self.allow_stretch:
+            if not self.keep_ratio:
+                return w, h
             iw = w
         else:
             iw = min(w, tw)

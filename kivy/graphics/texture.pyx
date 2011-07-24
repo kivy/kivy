@@ -614,6 +614,8 @@ cdef class Texture:
                     mipmap_generation=True):
         '''Blit a buffer into a texture.
 
+        .. versionadded:: 1.0.7 added mipmap_level + mipmap_generation
+
         :Parameters:
             `pbuffer` : str
                 Image data
@@ -628,10 +630,8 @@ cdef class Texture:
                 Type of the data buffer, can be one of 'ubyte', 'ushort',
                 'uint', 'byte', 'short', 'int', 'float'
             `mipmap_level`: int, default to 0
-                .. versionadded:: 1.0.7
                 Indicate which mipmap level we are going to update
             `mipmap_generation`: bool, default to False
-                .. versionadded:: 1.0.7
                 Indicate if we need to regenerate mipmap from level 0
         '''
         cdef GLuint target = self.target
