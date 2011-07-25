@@ -7,6 +7,48 @@ There are a number of questions that repeatedly need to be answered.
 The following document tries to answer some of them.
 
 
+Fatal Python error: (pygame parachute) Segmentation Fault
+---------------------------------------------------------
+
+Most of time, this issue is due to an usage of old graphics driver. Install the
+latest graphics driver available for your graphics card, and it could be ok.
+
+If not, please report a detailled issue to github, by following the
+:ref:`contribute` document, in the section `Reporting an Issue`. This is very
+important for us because that kind of error can be very hard to debug. Give us
+all the informations you can give about your environment and execution.
+
+Technical FAQ
+=============
+
+undefined symbol: glGenerateMipmap
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You might have a too old graphics card. Update your graphics drivers to the
+latest available version, and retry.
+
+ImportError: No module named event
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use Kivy from our development version, you must compile it before
+using it. In the kivy directory, do::
+
+    make force
+
+Pip installation failed
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Installing Kivy using Pip is not currently supported. Because Pip force the
+usage of setuptools, setuptools hack build_ext to use pyrex for generating .c,
+and they are no clean solution to hack against both weird behaviors to use
+Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709.html)
+
+Solution: use `easy_install`, as our documentation said.
+
+
+Project FAQ
+===========
+
 Why do you use Python? Isn't it slow?
 -------------------------------------
 
@@ -171,40 +213,3 @@ Here's a checklist:
 
 Good luck! :-)
 
-Common issues
--------------
-
-undefined symbol: glGenerateMipmap
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You might have a too old graphics card. Update your graphics drivers to the
-latest available version, and retry.
-
-ImportError: No module named event
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you use Kivy from our development version, you must compile it before
-using it. In the kivy directory, do::
-
-    make force
-
-Pip installation failed
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Installing Kivy using Pip is not currently supported. Because Pip force the
-usage of setuptools, setuptools hack build_ext to use pyrex for generating .c,
-and they are no clean solution to hack against both weird behaviors to use
-Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709.html)
-
-Solution: use `easy_install`, as our documentation said.
-
-Fatal Python error: (pygame parachute) Segmentation Fault
----------------------------------------------------------
-
-Most of time, this issue is due to an usage of old graphics driver. Install the
-latest graphics driver available for your graphics card, and it could be ok.
-
-If not, please report a detailled issue to github, by following the
-:ref:`contribute` document, in the section `Reporting an Issue`. This is very
-important for us because that kind of error can be very hard to debug. Give us
-all the informations you can give about your environment and execution.
