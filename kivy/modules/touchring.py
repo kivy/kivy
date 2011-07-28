@@ -4,6 +4,16 @@ Touchring module
 
 Show ring around every touch on the table. You can use this module for checking
 if you don't have any calibration trouble with touches.
+    
+Parameters: 
+- image=path_to_image : load this image as pointer instead of the default ring
+- scale=float         : scale pointer image by this factor
+- alpha=[0.0-1.0]     : opacity of the pointer
+    
+EXAMPLE from config.ini:
+
+[modules]
+touchring = image=mypointer.png,scale=.3,alpha=.7
 '''
 
 import os
