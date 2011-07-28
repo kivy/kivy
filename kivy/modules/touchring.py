@@ -4,19 +4,32 @@ Touchring
 
 Show ring around every touch on the table. You can use this module for checking
 if you don't have any calibration trouble with touches.
-    
-Parameters: 
-- image=path_to_image : load this image as pointer instead of the default ring
-- scale=float         : scale pointer image by this factor
-- alpha=[0.0-1.0]     : opacity of the pointer
-    
-EXAMPLE from config.ini:
 
-[modules]
-touchring = image=mypointer.png,scale=.3,alpha=.7
+Configuration
+-------------
+
+:Parameters:
+    `image`: str, default to '<kivy>/data/images/ring.png'
+        Filename of the image to use.
+    `scale`: float, default to 1.
+        Scale of the image.
+    `alpha`: float, default to 1.
+        Opacity of the image
+
+Example
+-------
+
+In your configuration (`~/.kivy/config.ini`), you can write something like
+this::
+
+    [modules]
+    touchring = image=mypointer.png,scale=.3,alpha=.7
+
 '''
 
-import os
+__all__ = ('start', 'stop')
+
+from os.path import join
 from kivy import kivy_data_dir
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
@@ -53,13 +66,13 @@ def _touch_up(win, touch):
 
 
 def start(win, ctx):
-    global pointer_image, pointer_scale ,pointer_alpha
-    if not 'KIVY_DOC' in os.environ:
-        pointer_fn = ctx.config.get('image', os.path.join(kivy_data_dir, 'images', 'ring.png'))
-        pointer_scale = float(ctx.config.get('scale', 1.0))
-        pointer_alpha = float(ctx.config.get('alpha', 1.0))
-        pointer_image = Image(pointer_fn)
-
+    # XXX use ctx !
+    global pointer_image, pointer_scale, pointer_alpha
+    pointer_fn = ctx.config.get('image',
+            join(kivy_data_dir, 'images', 'ring.png'))
+    pointer_scale = float(ctx.config.get('scale', 1.0))
+    pointer_alpha = float(ctx.config.get('alpha', 1.0))
+    pointer_image = Image(pointer_fn)
     win.bind(on_touch_down=_touch_down,
              on_touch_move=_touch_move,
              on_touch_up=_touch_up)
