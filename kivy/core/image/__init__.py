@@ -175,8 +175,7 @@ class ImageLoader(object):
     @staticmethod
     def zip_loader(_filename, **kwargs):
         '''Read images from an zip file.
-        .. versionadded::
-	   1.0.8
+        .. versionadded:: 1.0.8
 
         Returns an Image with a list/array of type ImageData
         stored in Image._data
@@ -277,7 +276,7 @@ class Image(EventDispatcher):
         self._filename = None
         self._texture = None
         #: Delay betwean each animation frame. Lower means faster animation
-        self.anim_delay = .2
+        self.anim_delay = .25
         #indicates more than one image in sequence if True
         self._anim_available = False
         self._anim_counter = 0
@@ -321,10 +320,9 @@ class Image(EventDispatcher):
     def anim_reset(self, allow_anim):
         '''Reset animation: anim_reset(True/False)
         Start or Stop animatin of sequenced images
-	.. versionadded::
-            In 1.0.8
+	.. versionadded:: 1.0.8
 	:Parameters:
-	    allow_anim: BooleanProperty
+	:data:'allow_anim' is a :class:'~kivy.properties.BooleanProperty' 
 
 	Usage:
 
@@ -333,7 +331,7 @@ class Image(EventDispatcher):
 
         To change animation speed follow these 2 steps:
 
-            image.anim_delay = 0.05
+            image.anim_delay = 0.05 #(20fps)
             image.anim_reset(True)
         '''
         # stop animation
@@ -392,6 +390,8 @@ class Image(EventDispatcher):
         '''Event: on_texture_changed()
         Fired when texture for sequenced images changes to next frame
 
+	.. versionadded:: 1.0.8
+	
         should be overloaded,bound in widget
         look at Image Widget for more details
         '''

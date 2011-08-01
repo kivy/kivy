@@ -205,15 +205,18 @@ class Image(Widget):
 
     def anim_reset(self, allowanim = True, anim_delay = .25):
         '''Enable/Disable animation of sequenced images
+        .. versionadded:: 1.0.8
 
         Usage:
 
         anim_reset(False) to stop animation
         anim_reset(True)  to start/reset animation with default speed
         anim_reset(True, .1) to start/reset animation with
-        slightly faster speed than default.
+        slightly faster speed (10 fps) than default(4 fps).
 
-        anim_delay is in seconds default '.25'
+        :data:'allowanim' is a :class:'~kivy.properties.BooleanProperty',
+        default to True
+        :data:`anim_delay` is in seconds default to '.25' i.e. 4 fps
         '''
         if self._coreimage:
             self._coreimage.anim_delay = anim_delay

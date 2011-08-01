@@ -14,7 +14,8 @@ from . import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageSequence:
-    '''ImageSequence: Image sequences in array
+    '''ImageSequence: Handle Image sequences like gifs, ...
+    .. versionadded:: 1.0.8
 
     NOTE:
         gif animation has a lot of issues(transparency/color depths... etc).
@@ -29,7 +30,7 @@ class ImageSequence:
     def __init__(self, im):
         self.im = im
 
-    def img_correct(self, _img_tmp):
+    def _img_correct(self, _img_tmp):
         '''Convert image to the correct format and orientation.
         '''
         # image loader work only with rgb/rgba image
@@ -58,7 +59,7 @@ class ImageSequence:
         try:
             while True:
                 img_tmp = pilIm
-                img_tmp = self.img_correct(img_tmp)
+                img_tmp = self._img_correct(img_tmp)
                 image_data.append(ImageData(img_tmp.size[0], img_tmp.size[1],
                                 img_tmp.mode.lower(), img_tmp.tostring()))
                 pilIm.seek(pilIm.tell()+1)
