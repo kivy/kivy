@@ -135,8 +135,13 @@ class WindowPygame(WindowBase):
         try:
             if not exists(filename):
                 return False
-            icon = pygame.image.load(filename)
-            pygame.display.set_icon(icon)
+            try:
+                im = pygame.image.load(filename)
+            except UnicodeEncodeError:
+                im = pygame.image.load(filename.encode('utf8'))
+            if im is None:
+                raise Exception('Unable to load window icon (not found)')
+            pygame.display.set_icon(im)
         except:
             Logger.exception('WinPygame: unable to set icon')
 
