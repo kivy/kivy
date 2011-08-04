@@ -853,9 +853,6 @@ cdef class TextureRegion(Texture):
             self._id, self.width, self.height)
 
 # Releasing texture through GC is problematic
-# GC can happen in a middle of glBegin/glEnd
-# So, to prevent that, call the _texture_release
-# at flip time.
 def _texture_release(*largs):
     cdef GLuint texture_id
     if not _texture_release_list:
@@ -866,7 +863,6 @@ def _texture_release(*largs):
     del _texture_release_list[:]
 
 if 'KIVY_DOC_INCLUDE' not in environ:
-    # install tick to release texture every 200ms
     from kivy.clock import Clock
     _texture_release_trigger = Clock.create_trigger(_texture_release)
 
