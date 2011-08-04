@@ -127,6 +127,7 @@ class Video(Image):
                 self._video.stop()
                 self._video.position = 0.
                 self._video.eos = False
+            self.eos = False
             self._video.play()
         else:
             self._video.stop()
@@ -138,6 +139,7 @@ class Video(Image):
         self.canvas.ask_update()
 
     def _on_eos(self, *largs):
+        self.play = False
         self.eos = True
 
     def on_volume(self, instance, value):
