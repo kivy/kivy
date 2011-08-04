@@ -254,7 +254,7 @@ class AsyncImage(Image):
             self.texture = image.texture
 
     def on_source_load(self, value):
-        image = self._coreimage
+        image = self._coreimage.image
         if not image:
             return
         self.texture = image.texture
