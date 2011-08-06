@@ -184,7 +184,7 @@ kivy_options = {
     'shadow_window': True,
     'window': ('pygame', 'sdl'),
     'text': ('pil', 'cairo', 'pygame', 'appletext'),
-    'video': ('gstreamer', 'pyglet'),
+    'video': ('quicktime', 'gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', ),
     'image': ('osxcoreimage', 'dds', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),

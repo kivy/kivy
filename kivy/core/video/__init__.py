@@ -145,7 +145,7 @@ class VideoBase(EventDispatcher):
             self.stop()
             self.play()
 
-    def _update(self):
+    def _update(self, dt):
         '''Update the video content to texture.
         '''
         pass
@@ -173,6 +173,7 @@ class VideoBase(EventDispatcher):
 
 # Load the appropriate provider
 Video = core_select_lib('video', (
+    ('quicktime', 'video_quicktime', 'VideoQuickTime'),
     ('gstreamer', 'video_gstreamer', 'VideoGStreamer'),
     ('pyglet', 'video_pyglet', 'VideoPyglet'),
 ))
