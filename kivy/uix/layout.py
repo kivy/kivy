@@ -7,8 +7,9 @@ The :class:`Layout` class itself cannot be used directly. You must use one of:
 
 - Anchor layout : :class:`kivy.uix.anchorlayout.AnchorLayout`
 - Box layout : :class:`kivy.uix.boxlayout.BoxLayout`
+- Float layout : :class:`kivy.uix.floatlayout.FloatLayout`
 - Grid layout : :class:`kivy.uix.gridlayout.GridLayout`
-- Screen layout : :class:`kivy.uix.screenlayout.ScreenLayout`
+- Stack layout : :class:`kivy.uix.stacklayout.StackLayout`
 
 Understanding `size_hint` property in `Widget`
 ----------------------------------------------

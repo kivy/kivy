@@ -25,6 +25,9 @@ def install_gobject_iteration():
 
     # schedule the iteration each frame
     def _gobject_iteration(*largs):
-        if context.pending():
+        # XXX we need to loop over context here, otherwise, we might have a lag.
+        loop = 0
+        while context.pending() and loop < 10:
             context.iteration(False)
+            loop += 1
     Clock.schedule_interval(_gobject_iteration, 0)

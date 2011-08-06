@@ -265,8 +265,8 @@ else:
                 while self._running:
                     try:
                         parameters = self._q_load.pop()
-                        sleep(0.1)
                     except:
+                        sleep(0.1)
                         continue
                     self.worker.do(self._load, parameters)
 
@@ -283,17 +283,18 @@ else:
 
             def start(self):
                 super(LoaderClock, self).start()
-                Clock.schedule_interval(self.run, 0.0001)
+                Clock.schedule_interval(self.run, 0)
 
             def stop(self):
                 super(LoaderClock, self).stop()
                 Clock.unschedule(self.run)
 
             def run(self, *largs):
-                try:
-                    parameters = self._q_load.pop()
-                except IndexError:
-                    return
+                while self._running:
+                    try:
+                        parameters = self._q_load.pop()
+                    except IndexError:
+                        return
                 self._load(parameters)
 
         Loader = LoaderClock()
