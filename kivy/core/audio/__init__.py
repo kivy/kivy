@@ -47,7 +47,7 @@ class SoundLoader:
         for classobj in SoundLoader._classes:
             if ext in classobj.extensions():
                 return classobj(filename=filename)
-        Logger.warning('Audio: Unable to found a loader for <%s>' %
+        Logger.warning('Audio: Unable to find a loader for <%s>' %
                        filename)
         return None
 
@@ -166,5 +166,6 @@ audio_libs = []
 if sys.platform not in ('win32', 'cygwin'):
     audio_libs += [('gstreamer', 'audio_gstreamer')]
 audio_libs += [('pygame', 'audio_pygame')]
+audio_libs += [('cocoa', 'audio_cocoa')]
 
 core_register_libs('audio', audio_libs)
