@@ -66,6 +66,7 @@ cdef extern from "ApplicationServices/ApplicationServices.h":
     void CGContextSelectFont(CGContextRef, char*, float, CGTextEncoding)
     cdef CGTextEncoding kCGEncodingMacRoman
     void CGContextSetRGBFillColor(CGContextRef, float, float, float, float)
+    void CGContextSetRGBStrokeColor(CGContextRef, float, float, float, float)
     void * CGBitmapContextGetData(CGContextRef)
     size_t CGBitmapContextGetHeight(CGContextRef)
     size_t CGBitmapContextGetWidth(CGContextRef)
@@ -171,6 +172,9 @@ cdef extern from "ApplicationServices/ApplicationServices.h":
     void CGContextSetAllowsFontSmoothing(CGContextRef, bool)
     void CGContextSetShouldSmoothFonts(CGContextRef, bool)
 
+    void CGContextSetInterpolationQuality(CGContextRef c, int)
+
+
 
 cdef extern from "QuartzCore/QuartzCore.h":
     ctypedef void *CGImageSourceRef
@@ -264,11 +268,13 @@ cdef CGContextRef _create_context(int w, int h):
     cdef void *data = calloc(w * 4, h)
     cdef CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB()
     cdef CGContextRef ctx = CGBitmapContextCreate(data, w, h, 8, w*4, space,
-                        kCGBitmapByteOrder32Host | kCGImageAlphaNoneSkipFirst)
+                        kCGBitmapByteOrder32Host |
+                        kCGImageAlphaPremultipliedFirst)
 
     CGContextSetBlendMode(ctx, kCGBlendModeCopy)
     CGContextSetAllowsAntialiasing(ctx, True)
     CGContextSetAllowsFontSmoothing(ctx, True)
     CGContextSetShouldSmoothFonts(ctx, True)
     CGContextSetShouldAntialias(ctx, True)
+    CGContextSetInterpolationQuality(ctx, 3)
     return ctx
