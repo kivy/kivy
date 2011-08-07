@@ -176,7 +176,10 @@ class TextInput(Widget):
                   padding_y=self._trigger_refresh_text,
                   tab_width=self._trigger_refresh_text,
                   font_size=self._trigger_refresh_text,
-                  font_name=self._trigger_refresh_text)
+                  font_name=self._trigger_refresh_text,
+                  size=self._trigger_refresh_text)
+
+        self.bind(pos=self._trigger_update_graphics)
 
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()

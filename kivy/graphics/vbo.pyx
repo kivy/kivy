@@ -13,6 +13,7 @@ __all__ = ('VBO', 'VertexBatch')
 include "config.pxi"
 include "common.pxi"
 
+from os import environ
 from buffer cimport Buffer
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -27,6 +28,10 @@ vattr[1] = ['vTexCoords0', 1, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 #vertex_attr_list[2] = ['vTexCoords1', 2, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 #vertex_attr_list[3] = ['vTexCoords2', 3, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 #vertex_attr_list[4] = ['vColor', 4, 2, GL_FLOAT, sizeof(GLfloat) * 4, 0]
+
+cdef object _vbo_release_trigger = None
+cdef list _vbo_release_list = []
+
 
 cdef int vbo_vertex_attr_count():
     '''Return the number of vertex attributes used in VBO
@@ -49,7 +54,11 @@ cdef class VBO:
         glGenBuffers(1, &self.id)
 
     def __dealloc__(self):
-        glDeleteBuffers(1, &self.id)
+        # Add texture deletion outside GC call.
+        if _vbo_release_list is not None:
+            _vbo_release_list.append(self.id)
+            if _vbo_release_trigger is not None:
+                _vbo_release_trigger()
 
     def __init__(self, **kwargs):
         self.data = Buffer(sizeof(vertex_t))
@@ -167,3 +176,17 @@ cdef class VertexBatch:
 
     cdef int count(self):
         return self.elements.count()
+
+# Releasing vbo through GC is problematic. Same as any GL deletion.
+def _vbo_release(*largs):
+    cdef GLuint vbo_id
+    if not _vbo_release_list:
+        return
+    Logger.trace('VBO: releasing %d vbos' % len(_vbo_release_list))
+    for vbo_id in _vbo_release_list:
+        glDeleteBuffers(1, &vbo_id)
+    del _vbo_release_list[:]
+
+if 'KIVY_DOC_INCLUDE' not in environ:
+    from kivy.clock import Clock
+    _vbo_release_trigger = Clock.create_trigger(_vbo_release)
