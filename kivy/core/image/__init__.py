@@ -351,6 +351,7 @@ core_register_libs('image', (
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
+    ('pyobjcquartz', 'img_pyobjcquartz'),
     ('osxcoreimage', 'img_osxcoreimage'),
 ))
 
