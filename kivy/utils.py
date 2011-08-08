@@ -10,6 +10,7 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'deprecated', 'SafeList',
            'interpolate', 'OrderedDict', 'QueryDict')
 
+from sys import platform
 from re import match, split
 from UserDict import DictMixin
 
@@ -286,4 +287,66 @@ class QueryDict(dict):
 
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
+
+
+if platform == 'darwin':
+    try:
+        from array import array
+
+        # Taken from the PyObjC Examples, with adjustments
+        import objc
+
+        from Quartz import *
+        import Quartz
+
+        # We need to ensure that the raster data stays alive until we clean up
+        # the context, store it here.
+        _rasterDataForContext = {}
+
+        def create_quartz_context(width, height):
+            # Minimum bytes per row is 4 bytes per sample * number of samples.
+            bytesPerRow = width*4
+
+            # Allocate the data for the raster. The total amount of data is bytesPerRow
+            # times the number of rows. The function 'calloc' is used so that the
+            # memory is initialized to 0.
+            try:
+                rasterData = objc.allocateBuffer(int(bytesPerRow * height))
+            except  MemoryError:
+                return None
+
+            cs = CGColorSpaceCreateDeviceRGB()
+
+            ctx = CGBitmapContextCreate(rasterData, width, height, 8, bytesPerRow,
+                    cs, kCGBitmapByteOrder32Host | kCGImageAlphaPremultipliedFirst)
+            if ctx is None:
+                return None
+            CGContextSetAllowsAntialiasing(ctx, True)
+            #CGContextSetAllowsFontSmoothing(ctx, True)
+            CGContextSetShouldSmoothFonts(ctx, True)
+            CGContextSetShouldAntialias(ctx, True)
+            CGContextSetInterpolationQuality(ctx, 3)
+
+            _rasterDataForContext[ctx] = rasterData
+
+            # Clear the context bits so they are transparent.
+            CGContextClearRect(ctx, CGRectMake(0, 0, width, height))
+
+            return ctx
+
+        def get_context_bitmap_data(ctx):
+            w = CGBitmapContextGetWidth(ctx)
+            h = CGBitmapContextGetHeight(ctx)
+            r_data = CGBitmapContextGetData(ctx)
+            # kivy doesn't like to process 'bgra' data. we swap manually to 'rgba'.
+            # would be better to fix this in texture.pyx
+            # XXX
+            r_data = "".join(r_data.as_tuple(w * h * 4))
+            a = array('b', r_data)
+            a[0::4], a[2::4] = a[2::4], a[0::4]
+            data = a.tostring()
+            imgtype = 'rgba'
+            return (w, h, imgtype, data)
+    except:
+        pass
 
