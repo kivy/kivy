@@ -11,13 +11,13 @@ except:
 class LabelAppleText(LabelBase):
 
     def get_extents(self, txt):
-        size = self.options['font_size']
-        return appletext.get_extents(txt, "Helvetica", 13.5)
+        size = self.options['font_size'] * 1.333
+        return appletext.get_extents(txt, "Helvetica", size)
 
     def _render_begin(self):
         w, h = self._size
         self._label = osxcoreimage.Label(w, h, "Helvetica", #self.options['font_name'],
-                                         13.5)#self.options['font_size'])
+                                         self.options['font_size'] * 1.333)
 
     def _render_text(self, text, x, y):
         self._label.draw_at_pos(text, x, y)

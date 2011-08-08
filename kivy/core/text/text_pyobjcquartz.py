@@ -16,8 +16,7 @@ class LabelPyObjCQuartz(LabelBase):
         self.font = None
 
     def get_extents(self, txt):
-        size = self.options['font_size']
-        size = 14
+        size = self.options['font_size'] * 1.333
         s = NSString.stringWithUTF8String_(str(txt))
         font_name = NSString.stringWithUTF8String_("Helvetica")
         font = NSFont.fontWithName_size_(font_name, size)
@@ -31,7 +30,7 @@ class LabelPyObjCQuartz(LabelBase):
 
     def _render_text(self, text, x, y):
         #CGContextSelectFont(self.ctx, self.options['font_name'], self.options['font_size'],
-        CGContextSelectFont(self.ctx, 'Helvetica', 14,# self.options['font_size'],
+        CGContextSelectFont(self.ctx, 'Helvetica', self.options['font_size'] * 1.333,
             kCGEncodingMacRoman)
         CGContextSetTextDrawingMode(self.ctx, kCGTextFill)
 
