@@ -146,6 +146,7 @@ class TextInput(Widget):
         self.selection_to = None
         self._lines_flags = []
         self._lines_labels = []
+        self._lines_rects = []
         self._line_spacing = 0
         self._label_cached = None
         self._line_options = None
