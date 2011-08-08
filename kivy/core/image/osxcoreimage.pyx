@@ -173,7 +173,7 @@ cdef extern from "ApplicationServices/ApplicationServices.h":
     void CGContextSetShouldSmoothFonts(CGContextRef, bool)
 
     void CGContextSetInterpolationQuality(CGContextRef c, int)
-
+    void CGContextClearRect(CGContextRef, CGRect)
 
 
 cdef extern from "QuartzCore/QuartzCore.h":
@@ -271,6 +271,7 @@ cdef CGContextRef _create_context(int w, int h):
                         kCGBitmapByteOrder32Host |
                         kCGImageAlphaPremultipliedFirst)
 
+    CGContextClearRect(ctx, CGRectMake(0, 0, w, h))
     CGContextSetBlendMode(ctx, kCGBlendModeCopy)
     CGContextSetAllowsAntialiasing(ctx, True)
     CGContextSetAllowsFontSmoothing(ctx, True)
