@@ -414,5 +414,6 @@ Label = core_select_lib('text', (
     ('pygame', 'text_pygame', 'LabelPygame'),
     ('cairo', 'text_cairo', 'LabelCairo'),
     ('pil', 'text_pil', 'LabelPIL'),
+    ('pyobjcquartz', 'text_pyobjcquartz', 'LabelPyObjCQuartz'),
     ('appletext', 'text_appletext', 'LabelAppleText'),
 ))
