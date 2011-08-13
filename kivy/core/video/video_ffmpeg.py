@@ -2,6 +2,8 @@
 FFmpeg video abstraction
 ========================
 
+.. versionadded:: 1.0.8
+
 This abstraction require ffmpeg python extensions. We made a special extension
 that is used for android platform, but can also be used on x86 platform. The
 project is available at::
