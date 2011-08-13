@@ -182,7 +182,7 @@ Logger.info('Kivy v%s' % (__version__))
 kivy_options = {
     'window': ('pygame', ),
     'text': ('pil', 'cairo', 'pygame'),
-    'video': ('gstreamer', 'pyglet'),
+    'video': ('ffmpeg', 'gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', ),
     'image': ('dds', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
