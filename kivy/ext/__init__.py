@@ -1,6 +1,6 @@
 '''
-Kivy Extension Support
-======================
+Extension Support
+=================
 
 Sometimes your application requires functionality that is beyond the scope of
 what Kivy can deliver. In those cases it is necessary to resort to external

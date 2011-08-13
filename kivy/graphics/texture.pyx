@@ -614,6 +614,8 @@ cdef class Texture:
                     mipmap_generation=True):
         '''Blit a buffer into a texture.
 
+        .. versionadded:: 1.0.7 added mipmap_level + mipmap_generation
+
         :Parameters:
             `pbuffer` : str
                 Image data
@@ -628,10 +630,8 @@ cdef class Texture:
                 Type of the data buffer, can be one of 'ubyte', 'ushort',
                 'uint', 'byte', 'short', 'int', 'float'
             `mipmap_level`: int, default to 0
-                .. versionadded:: 1.0.7
                 Indicate which mipmap level we are going to update
             `mipmap_generation`: bool, default to False
-                .. versionadded:: 1.0.7
                 Indicate if we need to regenerate mipmap from level 0
         '''
         cdef GLuint target = self.target
@@ -853,9 +853,6 @@ cdef class TextureRegion(Texture):
             self._id, self.width, self.height)
 
 # Releasing texture through GC is problematic
-# GC can happen in a middle of glBegin/glEnd
-# So, to prevent that, call the _texture_release
-# at flip time.
 def _texture_release(*largs):
     cdef GLuint texture_id
     if not _texture_release_list:
@@ -866,7 +863,6 @@ def _texture_release(*largs):
     del _texture_release_list[:]
 
 if 'KIVY_DOC_INCLUDE' not in environ:
-    # install tick to release texture every 200ms
     from kivy.clock import Clock
     _texture_release_trigger = Clock.create_trigger(_texture_release)
 
