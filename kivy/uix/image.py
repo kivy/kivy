@@ -44,11 +44,10 @@ And in your kivy language file, you can do ::
 __all__ = ('Image', 'AsyncImage')
 
 from kivy.uix.widget import Widget
-from kivy.cache import Cache
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-        AliasProperty, BooleanProperty
+        AliasProperty, BooleanProperty, NumericProperty
 from kivy.loader import Loader
 
 
@@ -140,6 +139,16 @@ class Image(Widget):
     default to True
     '''
 
+    anim_delay = NumericProperty(.25)
+    '''Delay of animation if the image is sequenced (like gif.).
+    If the anim_delay is set to -1, the animation will be stopped.
+
+    .. versionadded:: 1.0.8
+
+    :data:`anim_delay` is a :class:`~kivy.properties.NumericProperty`, default
+    to .25 (4 FPS)
+    '''
+
     def get_norm_image_size(self):
         if not self.texture:
             return self.size
@@ -180,6 +189,7 @@ class Image(Widget):
     '''
 
     def __init__(self, **kwargs):
+        self._coreimage = None
         super(Image, self).__init__(**kwargs)
         self.bind(source=self.texture_update,
                   mipmap=self.texture_update)
@@ -194,33 +204,19 @@ class Image(Widget):
             if filename is None:
                 return
             mipmap = self.mipmap
-            #call on_tex_change when coreimage.on_texture_chagnged is called
-            try:
-                self._coreimage.unbind(on_texture_changed, self.on_tex_changed)
-            except:
-                pass
-            self._coreimage = CoreImage(filename, mipmap=mipmap)
-            self._coreimage.bind(on_texture_changed = self._on_tex_change)
-            self.texture = self._coreimage.texture
+            if self._coreimage is not None:
+                self._coreimage.unbind(on_texture=self.on_tex_changed)
+            self._coreimage = ci = CoreImage(filename, mipmap=mipmap)
+            ci.anim_delay = self.anim_delay
+            ci.bind(on_texture=self._on_tex_change)
+            self.texture = ci.texture
 
-    def anim_reset(self, allowanim = True, anim_delay = .25):
-        '''Enable/Disable animation of sequenced images
-        .. versionadded:: 1.0.8
-
-        Usage:
-
-        anim_reset(False) to stop animation
-        anim_reset(True)  to start/reset animation with default speed
-        anim_reset(True, .1) to start/reset animation with
-        slightly faster speed (10 fps) than default(4 fps).
-
-        :data:'allowanim' is a :class:'~kivy.properties.BooleanProperty',
-        default to True
-        :data:`anim_delay` is in seconds default to '.25' i.e. 4 fps
-        '''
-        if self._coreimage:
-            self._coreimage.anim_delay = anim_delay
-            self._coreimage.anim_reset(allowanim)
+    def on_anim_delay(self, instance, value):
+        if self._coreimage is None:
+            return
+        self._coreimage.anim_delay = value
+        if value < 0:
+            self.anim_reset(False)
 
     def on_texture(self, instance, value):
         if value is not None:
@@ -250,7 +246,7 @@ class AsyncImage(Image):
                 value = resource_find(value)
             self._coreimage = image = Loader.image(value)
             image.bind(on_load=self.on_source_load)
-            image.bind(on_texture_changed = self._on_tex_change)
+            image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
 
     def on_source_load(self, value):

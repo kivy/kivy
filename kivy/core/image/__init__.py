@@ -175,10 +175,11 @@ class ImageLoader(object):
     @staticmethod
     def zip_loader(_filename, **kwargs):
         '''Read images from an zip file.
+
         .. versionadded:: 1.0.8
 
-        Returns an Image with a list/array of type ImageData
-        stored in Image._data
+        Returns an Image with a list/array of type ImageData stored in
+        Image._data
         '''
         # Read all images inside
         z = zipfile.ZipFile(_filename, 'r')
@@ -224,6 +225,10 @@ class ImageLoader(object):
     def load(filename, **kwargs):
         # extract extensions
         ext = filename.split('.')[-1].lower()
+
+        # special case. When we are trying to load a "zip" file with image, we
+        # will use the special zip_loader in ImageLoader. This might return a
+        # sequence of images contained in the zip.
         if ext == 'zip':
             return ImageLoader.zip_loader(filename)
         else:
@@ -245,6 +250,11 @@ class Image(EventDispatcher):
         In 1.0.7, mipmap attribute have been added, texture_mipmap and
         texture_rectangle have been deleted.
 
+    .. versionadded::
+        In 1.0.8, Image widget might change itself the texture. A new event
+        'on_texture' have been introduced. New methods for handling sequenced
+        animation too.
+
     :Parameters:
         `arg` : can be str or Texture or Image object
             A string is interpreted as a path to the image to be loaded.
@@ -259,31 +269,31 @@ class Image(EventDispatcher):
             Scale of the image
         `mipmap` : bool, default to False
             Create mipmap for the texture
+        `anim_delay`: float, default to .25
+            Delay in seconds between each animation frame. Lower means faster
+            animation.
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
                        '_mipmap')
 
     def __init__(self, arg, **kwargs):
-        kwargs.setdefault('keep_data', False)
-
         super(Image, self).__init__()
 
         self._mipmap = kwargs.get('mipmap', False)
-        self._keep_data = kwargs.get('keep_data')
+        self._keep_data = kwargs.get('keep_data', False)
         self._size = [0, 0]
         self._image = None
         self._filename = None
         self._texture = None
-        #: Delay betwean each animation frame. Lower means faster animation
-        self.anim_delay = .25
-        #indicates more than one image in sequence if True
         self._anim_available = False
-        self._anim_counter = 0
-        #indicator of images having been loded in cache
+        self._anim_index = 0
+        self._anim_delay = 0
+        self.anim_delay = kwargs.get('anim_delay', .25)
+        # indicator of images having been loded in cache
         self._iteration_done = False
-        #this event should be fired on animation of sequenced img's
-        self.register_event_type('on_texture_changed')
+        # this event should be fired on animation of sequenced img's
+        self.register_event_type('on_texture')
 
         if isinstance(arg, Image):
             for attr in Image.copy_attributes:
@@ -301,47 +311,82 @@ class Image(EventDispatcher):
         # check if the image hase sequences for animation in it
         self._img_iterate()
 
-    def _anim(self, *largs ):
-        #called on every interval of clock as set by anim_reset
-        uid = '%s|%s|%s' % ( self._filename,
-            self._mipmap, self._anim_counter)
+    def _anim(self, *largs):
+        # called on every interval of clock as set by anim_reset
+        uid = '%s|%s|%s' % (self._filename, self._mipmap, self._anim_index)
         _tex = Cache.get('kv.texture', uid)
         if _tex:
             # if not last frame
             self._texture = _tex
-            self._anim_counter += 1
+            self._anim_index += 1
             # fire a texture update(to be handled by widget/s)
-            self.dispatch('on_texture_changed')
+            self.dispatch('on_texture')
         else:
             # Restart animation from first Frame
-            self._anim_counter = 0
+            self._anim_index = 0
             self._anim()
 
     def anim_reset(self, allow_anim):
-        '''Reset animation: anim_reset(True/False)
-        Start or Stop animatin of sequenced images
-	.. versionadded:: 1.0.8
-	:Parameters:
-	:data:'allow_anim' is a :class:'~kivy.properties.BooleanProperty' 
+        '''Reset an animation if available.
 
-	Usage:
+        .. versionadded:: 1.0.8
 
-            image.anim_reset(True) start/reset animation
-            image.anim_reset(False) sop animation
+        :Parameters:
+            `allow_anim`: bool
+                Indicate if the animation should restart playing or not.
 
-        To change animation speed follow these 2 steps:
+        Usage::
 
-            image.anim_delay = 0.05 #(20fps)
+            # start/reset animation
             image.anim_reset(True)
+
+            # or stop the animation
+            image.anim_reset(False)
+
+        You can change the animation speed in live::
+
+            # Set to 20 FPS
+            image.anim_delay = 1 / 20.
+
         '''
         # stop animation
         Clock.unschedule(self._anim)
         if allow_anim and self._anim_available:
-            Clock.schedule_interval(
-                # function to animate
-                self._anim,
-                # frame delay .25secs by default
-                self.anim_delay)
+            Clock.schedule_interval(self._anim, self.anim_delay)
+
+    def _get_anim_delay(self):
+        return self._anim_delay
+
+    def _set_anim_delay(self, x):
+        if self._anim_delay == x:
+            return
+        self._anim_delay = x
+        if self._anim_available:
+            Clock.unschedule(self._anim)
+            if self._anim_delay >= 0:
+                Clock.schedule_interval(self._anim, self._anim_delay)
+
+    anim_delay = property(_get_anim_delay, _set_anim_delay)
+    '''Delay betwean each animation frame. Lower means faster animation.
+
+    .. versionadded:: 1.0.8
+    '''
+    
+    @property
+    def anim_available(self):
+        '''Return True if this Image instance have animation available.
+
+        .. versionadded:: 1.0.8
+        '''
+        return self._anim_available
+
+    @property
+    def anim_index(self):
+        '''Return the index number of the image currently in the texture
+
+        .. versionadded:: 1.0.8
+        '''
+        return self._anim_index
 
     def _img_iterate(self, *largs):
         # Purpose: check if image has sequences then animate
@@ -383,17 +428,14 @@ class Image(EventDispatcher):
             self.anim_reset(True)
             self._texture = _texture
         # image loaded for the first time
-        if self.image: self.image._texture = self._texture = _texture
-        _texture = None
+        if self.image:
+            self.image._texture = self._texture = _texture
 
-    def on_texture_changed(self, *largs):
-        '''Event: on_texture_changed()
-        Fired when texture for sequenced images changes to next frame
+    def on_texture(self, *largs):
+        '''This event is fired when the texture reference or content have been
+        changed. It's actually used for sequenced images.
 
-	.. versionadded:: 1.0.8
-	
-        should be overloaded,bound in widget
-        look at Image Widget for more details
+        .. versionadded:: 1.0.8
         '''
         pass
 
@@ -471,7 +513,6 @@ class Image(EventDispatcher):
         if self.image:
             if not self._iteration_done:
                 self._img_iterate()
-            #return self.image.texture
         return self._texture
 
     def read_pixel(self, x, y):
