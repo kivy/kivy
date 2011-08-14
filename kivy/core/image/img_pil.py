@@ -13,6 +13,62 @@ from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
 
 
+class ImageSequence:
+    '''ImageSequence: Handle Image sequences like gifs, ...
+    .. versionadded:: 1.0.8
+
+    NOTE:
+        gif animation has a lot of issues(transparency/color depths... etc).
+        In order to keep it simple; what is implimented here is what is 
+	natively supported by pil.
+
+        As a general rule, try to use gifs that have no transparency.
+        Gif's with transparency will work but be ready for some
+        artifacts for now.
+    '''
+
+    def __init__(self, im):
+        self.im = im
+
+    def _img_correct(self, _img_tmp):
+        '''Convert image to the correct format and orientation.
+        '''
+        # image loader work only with rgb/rgba image
+        if _img_tmp.mode.lower() not in ('rgb', 'rgba'):
+            try:
+                imc = _img_tmp.convert('RGBA')
+            except:
+                Logger.warning(
+                    'Image: Unable to convert image to rgba (was %s)' %
+                    (_img_tmp.mode.lower()))
+                raise
+            _img_tmp = imc
+            # image are not in the good direction, flip !
+        _img_tmp = _img_tmp.transpose(Image.FLIP_TOP_BOTTOM)
+        return _img_tmp
+
+    def _img_array(self):
+        '''Read images from an animated file.
+        Returns a list/array of typ ImageData
+        '''
+        pilIm = self.im
+        pilIm.seek(0)
+
+        # Read all images inside
+        image_data = []
+        try:
+            while True:
+                img_tmp = pilIm
+                img_tmp = self._img_correct(img_tmp)
+                image_data.append(ImageData(img_tmp.size[0], img_tmp.size[1],
+                                img_tmp.mode.lower(), img_tmp.tostring()))
+                pilIm.seek(pilIm.tell()+1)
+        except EOFError:
+            pass
+        # Done
+        return image_data
+
+
 class ImageLoaderPIL(ImageLoaderBase):
     '''Image loader based on PIL library'''
 
@@ -33,26 +89,12 @@ class ImageLoaderPIL(ImageLoaderBase):
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
-
-        # image loader work only with rgb/rgba image
-        if im.mode.lower() not in ('rgb', 'rgba'):
-            try:
-                imc = im.convert('RGBA')
-            except:
-                Logger.warning(
-                    'Image: Unable to convert image <%s> to rgba (was %s)' %
-                    (filename, im.mode.lower()))
-                raise
-            im = imc
-
-        # image are not in the good direction, flip !
-        im = im.transpose(Image.FLIP_TOP_BOTTOM)
-
+        # sequence image class
+        img_sq = ImageSequence(im)
         # update internals
         self.filename = filename
-
-        return ImageData(im.size[0], im.size[1],
-            im.mode.lower(), im.tostring())
+        # returns an array of type ImageData len 1 if not a sequence image
+        return  img_sq._img_array()
 
 # register
 ImageLoader.register(ImageLoaderPIL)

@@ -131,7 +131,7 @@ class Image(Widget):
     '''If False along with allow_stretch being True, the normalized image
     size will be maximized to fit in the image box disregarding the image
     ratio.
-    Otherwise, if the box is too high, the image will be not strech more
+    Otherwise, if the box is too high, the image will not be streched more
     than 1:1 pixels
 
     .. versionadded:: 1.0.8
@@ -194,17 +194,41 @@ class Image(Widget):
             if filename is None:
                 return
             mipmap = self.mipmap
-            uid = '%s|%s' % (filename, mipmap)
-            texture = Cache.get('kv.texture', uid)
-            if not texture:
-                image = CoreImage(filename, mipmap=mipmap)
-                texture = image.texture
-                Cache.append('kv.texture', uid, texture)
-            self.texture = texture
+            #call on_tex_change when coreimage.on_texture_chagnged is called
+            try:
+                self._coreimage.unbind(on_texture_changed, self.on_tex_changed)
+            except:
+                pass
+            self._coreimage = CoreImage(filename, mipmap=mipmap)
+            self._coreimage.bind(on_texture_changed = self._on_tex_change)
+            self.texture = self._coreimage.texture
+
+    def anim_reset(self, allowanim = True, anim_delay = .25):
+        '''Enable/Disable animation of sequenced images
+        .. versionadded:: 1.0.8
+
+        Usage:
+
+        anim_reset(False) to stop animation
+        anim_reset(True)  to start/reset animation with default speed
+        anim_reset(True, .1) to start/reset animation with
+        slightly faster speed (10 fps) than default(4 fps).
+
+        :data:'allowanim' is a :class:'~kivy.properties.BooleanProperty',
+        default to True
+        :data:`anim_delay` is in seconds default to '.25' i.e. 4 fps
+        '''
+        if self._coreimage:
+            self._coreimage.anim_delay = anim_delay
+            self._coreimage.anim_reset(allowanim)
 
     def on_texture(self, instance, value):
         if value is not None:
             self.texture_size = list(value.size)
+
+    def _on_tex_change(self, *largs):
+        # update texture from core image
+        self.texture = self._coreimage.texture
 
 
 class AsyncImage(Image):
@@ -226,10 +250,11 @@ class AsyncImage(Image):
                 value = resource_find(value)
             self._coreimage = image = Loader.image(value)
             image.bind(on_load=self.on_source_load)
+            image.bind(on_texture_changed = self._on_tex_change)
             self.texture = image.texture
 
     def on_source_load(self, value):
-        image = self._coreimage
+        image = self._coreimage.image
         if not image:
             return
         self.texture = image.texture
@@ -238,3 +263,5 @@ class AsyncImage(Image):
         proto = filename.split('://', 1)[0]
         return proto in ('http', 'https', 'ftp')
 
+    def _on_tex_change(self, *largs):
+        self.texture = self._coreimage.texture
