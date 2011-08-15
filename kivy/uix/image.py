@@ -205,9 +205,9 @@ class Image(Widget):
                 return
             mipmap = self.mipmap
             if self._coreimage is not None:
-                self._coreimage.unbind(on_texture=self.on_tex_changed)
-            self._coreimage = ci = CoreImage(filename, mipmap=mipmap)
-            ci.anim_delay = self.anim_delay
+                self._coreimage.unbind(on_texture=self._on_tex_change)
+            self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
+                    anim_delay=self.anim_delay)
             ci.bind(on_texture=self._on_tex_change)
             self.texture = ci.texture
 
