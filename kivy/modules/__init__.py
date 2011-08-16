@@ -2,7 +2,65 @@
 Modules
 =======
 
-UI module you can plug on any running Kivy apps.
+Modules are classes that can be loaded when a Kivy application is starting. The
+loading of modules are managed inside the config file. For example, we have few
+modules like:
+
+    * touchring: Draw a circle around each touch
+    * monitor: Add a red topbar that indicate the FPS and little graph about
+      activity input.
+    * keybinding: Bind some keys to action, like screenshot.
+
+Modules are automatically searched accross Kivy path and User path:
+
+    * `PATH_TO_KIVY/kivy/modules`
+    * `HOME/.kivy/mods`
+
+Activate module in config
+-------------------------
+
+To activate a module, you can edit your configuration file (in your
+`HOME/.kivy/config.ini`)::
+
+    [modules]
+    # uncomment to activate
+    touchring =
+    # monitor =
+    # keybinding =
+
+Only the name of the module followed by a = is sufficient to activate the
+module.
+
+Activate module in Python
+-------------------------
+
+Before starting your application, preferably at the start of your import, you
+can do something like this::
+
+    import kivy
+    kivy.require('1.0.8')
+
+    # here, activate touchring module
+    from kivy.config import Config
+    Config.set('modules', 'touchring', '')
+
+
+Create my own module
+--------------------
+
+Create a file in your `HOME/.kivy/mods`, and create 2 functions::
+
+    def start(win, ctx):
+        pass
+
+    def stop(win, ctx):
+        pass
+
+Start/stop are functions that will be called for every window opened in Kivy.
+When you are starting a module, to use global variables to store the module
+state. Use the `ctx` variable as a dictionnary. This context is unique for each
+instance / start() call of the module, and will be passed to stop() too.
+
 '''
 
 __all__ = ('Modules', )
