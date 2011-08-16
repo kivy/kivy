@@ -220,6 +220,7 @@ setup(
         'kivy.lib',
         'kivy.lib.osc',
         'kivy.modules',
+        'kivy.network',
         'kivy.tools',
         'kivy.tools.packaging',
         'kivy.uix',
