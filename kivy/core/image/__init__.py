@@ -458,8 +458,7 @@ class Image(EventDispatcher):
     def _set_image(self, image):
         self._image = image
         if image:
-            self._size[0] = self.image.width
-            self._size[1] = self.image.height
+            self._size = (self.image.width, self.image.height)
 
     image = property(_get_image, _set_image,
             doc='Get/set the data image object')
