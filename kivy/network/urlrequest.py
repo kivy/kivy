@@ -144,7 +144,7 @@ class UrlRequest(Thread):
             path += '#' + parse.fragment
 
         # send request
-        req.request('GET', path, body, headers)
+        req.request('GET', path, body, headers or {})
 
         # read header
         resp = req.getresponse()
