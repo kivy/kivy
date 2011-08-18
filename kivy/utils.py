@@ -287,3 +287,28 @@ class QueryDict(dict):
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
 
+def format_bytes_to_human(size, precision=2):
+    '''Format a bytes number to human size (B, KB, MB...)
+
+    .. versionadded:: 1.0.8
+
+    :Parameters:
+        `size`: int
+            Number that represent a bytes number
+        `precision`: int
+            Precision after the comma
+
+    Examples::
+
+        >>> format_bytes_to_human(6463)
+        '6.31 KB'
+        >>> format_bytes_to_human(646368746541)
+        '601.98 GB'
+
+    '''
+    size = int(size)
+    fmt = '%%1.%df %%s' % precision
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size < 1024.0:
+            return fmt % (size, unit)
+        size /= 1024.0
