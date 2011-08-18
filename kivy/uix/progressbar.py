@@ -3,6 +3,7 @@ Progress Bar
 ============
 
 .. image:: images/progressbar.jpg
+    :align: right
 
 The progress bar is a widget to show progression information. This widget is
 implemented only for horizontal progress bar. Vertical mode is not available at
