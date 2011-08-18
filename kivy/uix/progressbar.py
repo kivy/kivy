@@ -29,6 +29,10 @@ from kivy.properties import NumericProperty, AliasProperty
 
 
 class ProgressBar(Widget):
+    '''Class for creating a Progress bar widget.
+
+    Check module documentation for more details.
+    '''
 
     value = NumericProperty(0.)
     '''Current value used for the slider.
