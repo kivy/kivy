@@ -33,7 +33,7 @@ Example of fetching twitter trends::
             print trend['name'],
         print '!'
 
-    req = UrlRequest('http://api.twitter.com/1/trends.json', 
+    req = UrlRequest('http://api.twitter.com/1/trends.json',
             got_twitter_trends)
 
 Example of Posting data (adapted from httplib example)::
@@ -44,7 +44,8 @@ Example of Posting data (adapted from httplib example)::
         print 'Our bug is posted !'
         print result
 
-    params = urllib.urlencode({'@number': 12524, '@type': 'issue', '@action': 'show'})
+    params = urllib.urlencode({'@number': 12524, '@type': 'issue',
+        '@action': 'show'})
     headers = {'Content-type': 'application/x-www-form-urlencoded',
               'Accept': 'text/plain'}
     req = UrlRequest('bugs.python.org', on_success=bug_posted, body=params,
@@ -67,23 +68,44 @@ class UrlRequest(Thread):
     :Parameters:
         `url`: str
             Complete url string to call.
-        `on_success`: func or meth, default to None
+        `on_success`: callback(request, result)
             Callback function to call when the result have been fetched
-        `on_error`: func or meth, default to None
+        `on_error`: callback(request, error)
             Callback function to call when an error happen
+        `on_progress`: callback(request, current_size, total_size)
+            Callback function that will be called to report progression of the
+            download. `total_size` might be -1 if no Content-Length have been
+            reported in the http response.
+            This callback will be called after each `chunk_size` read.
+        `req_body`: str, default to None
+            Data to sent in the request. If it's not None, a POST will be done
+            instead of a GET
+        `req_headers`: dict, default to None
+            Custom headers to add for the request
+        `chunk_size`: int, default to 8192
+            Size of each chunk to read, used only when `on_progress` callback
+            have been set. If you decrease it too much, a lot of on_progress
+            will be fired, and will slow down your download. If you want to have
+            the maximum download speed, increase chunk_size, or don't use
+            on_progress.
     '''
 
-    def __init__(self, url, on_success=None, on_error=None, req_body=None,
-            req_headers=None):
+    def __init__(self, url, on_success=None, on_error=None, on_progress=None,
+            req_body=None, req_headers=None, chunk_size=8192):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
         self.daemon = True
         self.on_success = on_success
         self.on_error = on_error
+        self.on_progress = on_progress
         self._result = None
         self._error = None
         self._is_finished = False
+        self._resp_status = None
+        self._resp_headers = None
+        self._resp_length = -1
+        self._chunk_size = chunk_size
 
         #: Url of the request
         self.url = url
@@ -96,29 +118,31 @@ class UrlRequest(Thread):
 
         self.start()
 
-
     def run(self):
         q = self._queue.appendleft
         url = self.url
         req_body = self.req_body
         req_headers = self.req_headers
-        result = e = None
+        resp = result = e = None
 
         try:
-            result, resp = self._fetch_url(url, req_body, req_headers)
+            result, resp = self._fetch_url(url, req_body, req_headers, q)
             result = self.decode_result(result, resp)
         except Exception, e:
             pass
 
         if e is not None:
-            q(('error', e))
+            q(('error', resp, e))
         else:
-            q(('success', result))
+            q(('success', resp, result))
 
         self._trigger_result()
 
-    def _fetch_url(self, url, body, headers):
+    def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
+        trigger = self._trigger_result
+        chunk_size = self._chunk_size
+        report_progress = self.on_progress is not None
 
         # parse url
         parse = urlparse(url)
@@ -150,7 +174,27 @@ class UrlRequest(Thread):
         resp = req.getresponse()
 
         # read content
-        result = resp.read()
+        if report_progress:
+            bytes_so_far = 0
+            result = ''
+            try:
+                total_size = int(resp.getheader('content-length'))
+            except:
+                total_size = -1
+            # before starting the download, send a fake progress to permit the
+            # user to initialize his ui
+            q(('progress', resp, (bytes_so_far, total_size)))
+            while 1:
+                chunk = resp.read(chunk_size)
+                if not chunk:
+                    break
+                bytes_so_far += len(chunk)
+                result += chunk
+                # report progress to user
+                q(('progress', resp, (bytes_so_far, total_size)))
+                trigger()
+        else:
+            result = resp.read()
         req.close()
 
         # return everything
@@ -185,19 +229,34 @@ class UrlRequest(Thread):
         return result
 
     def _dispatch_result(self, dt):
-        # Read the result pushed on the queue, and dispatch to the client
-        result, data = self._queue.pop()
-        self._is_finished = True
-        if result == 'success':
-            self._result = data
-            if self.on_success:
-                self.on_success(self, data)
-        elif result == 'error':
-            self._error = data
-            if self.on_error:
-                self.on_error(self, data)
-        else:
-            assert(0)
+        while True:
+            # Read the result pushed on the queue, and dispatch to the client
+            try:
+                result, resp, data = self._queue.pop()
+            except IndexError:
+                return
+            if resp:
+                # XXX usage of dict can be dangerous if multiple headers are set
+                # even if it's invalid. But it look like it's ok ?
+                # http://stackoverflow.com/questions/2454494/..
+                # ..urllib2-multiple-set-cookie-headers-in-response
+                self._resp_headers = dict(resp.getheaders())
+                self._resp_status = resp.status
+            if result == 'success':
+                self._is_finished = True
+                self._result = data
+                if self.on_success:
+                    self.on_success(self, data)
+            elif result == 'error':
+                self._is_finished = True
+                self._error = data
+                if self.on_error:
+                    self.on_error(self, data)
+            elif result == 'progress':
+                if self.on_progress:
+                    self.on_progress(self, data[0], data[1])
+            else:
+                assert(0)
 
     @property
     def is_finished(self):
@@ -214,13 +273,32 @@ class UrlRequest(Thread):
         return self._result
 
     @property
+    def resp_headers(self):
+        '''If the request have been done, return a dictionnary containing the
+        headers of the response. Otherwise, it will return None
+        '''
+        return self._resp_headers
+
+    @property
+    def resp_status(self):
+        '''Return the status code of the response if the request have been done,
+        otherwise, return None
+        '''
+        return self._resp_status
+
+    @property
     def error(self):
         '''Return the error of the request.
         This value is not undeterminate until the request is finished.
         '''
         return self._error
 
-
+    @property
+    def chunk_size(self):
+        '''Return the size of a chunk, used only in "progress" mode (when
+        on_progress callback is set.)
+        '''
+        return self._chunk_size
 
 
 if __name__ == '__main__':
@@ -231,17 +309,17 @@ if __name__ == '__main__':
     def on_success(req, result):
         pprint('Got the result:')
         pprint(result)
+
     def on_error(req, error):
         pprint('Got an error:')
         pprint(error)
 
-
-    req = UrlRequest('http://api.twitter.com/1/trends.json', 
+    req = UrlRequest('http://api.twitter.com/1/trends.json',
             on_success, on_error)
     while not req.is_finished:
         sleep(1)
         Clock.tick()
-        
+
     print 'result =', req.result
     print 'error =', req.error
 
