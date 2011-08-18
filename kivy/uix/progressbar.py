@@ -2,6 +2,8 @@
 Progress Bar
 ============
 
+.. versionadded:: 1.0.8
+
 .. image:: images/progressbar.jpg
     :align: right
 
