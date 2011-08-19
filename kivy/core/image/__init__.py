@@ -24,8 +24,13 @@ try:
 except ImportError:
     import StringIO as SIO
 
+
 # late binding
 Texture = TextureRegion = None
+
+
+# register image caching only for keep_data=True
+Cache.register('kv.image', timeout=60)
 
 
 class ImageData(object):
@@ -203,7 +208,7 @@ class ImageLoader(object):
             except:
                 Logger.warning('Image: Unable to load image' +
                     '<%s> in zip <%s> trying to continue...'
-                    % (zfilename,_filename))
+                    % (zfilename, _filename))
                 #raise# return the data read till now
                 #this should Ideally handle truncated zips
         z.close()
@@ -239,7 +244,7 @@ class ImageLoader(object):
                 im = loader(filename, **kwargs)
                 break
             if im is None:
-                raise Exception('Unknown extension <%s>, no loader found.' % ext)
+                raise Exception('Unknown <%s> type, no loader found.' % ext)
             return im
 
 
@@ -371,7 +376,7 @@ class Image(EventDispatcher):
 
     .. versionadded:: 1.0.8
     '''
-    
+
     @property
     def anim_available(self):
         '''Return True if this Image instance have animation available.
@@ -395,13 +400,13 @@ class Image(EventDispatcher):
         if self.image:
             imgcount = len(self.image._data)
         # get texture for first image from cache
-        uid = '%s|%s|%s' % ( self.filename, self._mipmap, count )
+        uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
         _texture = Cache.get('kv.texture', uid)
         if not _texture:
             # if texture is not in cache
             while count < imgcount:
                 # append the sequence of images to cache
-                _texture  = Texture.create_from_data(
+                _texture= Texture.create_from_data(
                         self.image._data[count], mipmap=self._mipmap)
                 if not self.image.keep_data:
                     # release excess memory
@@ -409,19 +414,20 @@ class Image(EventDispatcher):
                 # Cache texture
                 Cache.append('kv.texture', uid, _texture)
                 count += 1
-                uid = '%s|%s|%s' % ( self.filename, self._mipmap, count)
+                uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
         else:
             # texture already in cache for first image
             # assign texture for non sequenced cached images
             self._texture = _texture
             self._size = self.texture.size
             # check if image has sequence in cache
-            uid = '%s|%s|%s' % ( self.filename, self._mipmap, 1)
+            uid = '%s|%s|%s' % (self.filename, self._mipmap, 1)
             # get texture for second image in sequence
-            _texture = Cache.get('kv.texture', uid)
-            if _texture:
+            _texture_next = Cache.get('kv.texture', uid)
+            if _texture_next:
                 # enable animation (cached sequence img)
                 imgcount = 2
+                _texture = _texture_next
         if imgcount > 1:
             self._anim_available = True
             # image sequence, animate
@@ -467,23 +473,38 @@ class Image(EventDispatcher):
         return self._filename
 
     def _set_filename(self, value):
-        if value is None:
-            return
-        if value == self._filename:
+        if value is None or value == self._filename:
             return
         self._filename = value
-        uid = '%s|%s|%s' % ( self.filename, self._mipmap, 0 )
-        _texture = Cache.get('kv.texture', uid)
-        if _texture:
-            #if image in cache
-            _texture = None
-            pass
+
+        # construct uid as a key for Cache
+        uid = '%s|%s|%s' % (self.filename, self._mipmap, 0)
+        keep_data = self._keep_data
+
+        # in case of Image have been asked with keep_data
+        # check the kv.image cache instead of texture.
+        if keep_data:
+            image = Cache.get('kv.image', uid)
+            if image:
+                # we found an image, yeah ! but reset the texture now.
+                self.image = image
+                self._texture = None
+                self._img_iterate()
+                return
         else:
-            # if image not already in cache then load
-            _texture = None
-            self.image = ImageLoader.load(
-                    self._filename, keep_data=self._keep_data,
-                    mipmap=self._mipmap)
+            # if we already got a texture, it will be automatically reloaded.
+            _texture = Cache.get('kv.texture', uid)
+            if _texture:
+                return
+
+        # if image not already in cache then load
+        self.image = ImageLoader.load(
+                self._filename, keep_data=self._keep_data,
+                mipmap=self._mipmap)
+
+        # put the image into the cache if needed
+        if keep_data:
+            Cache.append('kv.image', uid, self.image)
 
     filename = property(_get_filename, _set_filename,
             doc='Get/set the filename of image')
