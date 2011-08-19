@@ -14,7 +14,7 @@ cdef class Color(ContextInstruction):
 
 cdef class BindTexture(ContextInstruction):
     cdef int _index
-    cdef str _source
+    cdef bytes _source
     cdef Texture _texture
     cdef void apply(self)
 
