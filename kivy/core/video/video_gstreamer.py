@@ -178,6 +178,7 @@ class VideoGStreamer(VideoBase):
         if self._filename.split(':')[0] in ('http', 'https', 'file'):
             # network decoder
             self._decoder = gst.element_factory_make('uridecodebin', 'decoder')
+            self._decoder.set_property('use-buffering', True)
             self._decoder.set_property('uri', self._filename)
             self._decoder.connect('pad-added', partial(_gst_new_pad, ref(self)))
             self._pipeline.add(self._decoder)
