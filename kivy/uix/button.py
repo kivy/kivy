@@ -35,7 +35,7 @@ to the :data:`Button.state` property ::
 __all__ = ('Button', )
 
 from kivy.uix.label import Label
-from kivy.properties import OptionProperty, StringProperty
+from kivy.properties import OptionProperty, StringProperty, ListProperty
 
 
 class Button(Label):
@@ -54,6 +54,15 @@ class Button(Label):
     By default, the state of the button is 'normal'.
 
     :data:`state` is an :class:`~kivy.properties.OptionProperty`.
+    '''
+
+    background_color = ListProperty([1, 1, 1, 1])
+    '''Background color, in the format (r, g, b, a).
+
+    .. versionadded:: 1.0.8
+
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [1, 1, 1, 1].
     '''
 
     background_normal = StringProperty('data/images/button.png')

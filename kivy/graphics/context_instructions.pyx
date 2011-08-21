@@ -295,7 +295,7 @@ cdef class BindTexture(ContextInstruction):
             return self._source
         def __set__(self, bytes filename):
             Logger.trace('BindTexture: setting source: <%s>' % filename)
-            self._source = resource_find(filename)
+            self._source = <bytes>resource_find(filename)
             if self._source:
                 tex = Cache.get('kv.texture', filename)
                 if not tex:

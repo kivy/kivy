@@ -109,7 +109,9 @@ class Video(Image):
             self._video = None
             self.texture = None
         else:
-            filename = resource_find(self.source)
+            filename = self.source
+            if filename.split(':')[0] not in ('http', 'https', 'file'):
+                filename = resource_find(filename)
             self._video = CoreVideo(filename=filename, **self.options)
             self._video.bind(on_load=self._on_video_frame,
                              on_frame=self._on_video_frame,

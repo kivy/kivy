@@ -12,7 +12,7 @@
 <Button,ToggleButton>:
     canvas:
         Color:
-            rgb: (1, 1, 1)
+            rgba: self.background_color
         BorderImage:
             border: (16, 16, 16, 16)
             pos: self.pos
@@ -39,6 +39,21 @@
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
             size: (32, 32)
             source: 'data/images/slider_cursor.png'
+
+<ProgressBar>:
+	canvas:
+		Color:
+			rgb: 1, 1, 1
+		BorderImage:
+			border: (12, 12, 12, 12)
+			pos: self.x, self.center_y - 12
+			size: self.width, 24
+			source: 'data/images/progressbar_background.png'
+		BorderImage:
+			border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
+			pos: self.x, self.center_y - 12
+			size: self.width * (self.value / float(self.max)), 24
+			source: 'data/images/progressbar.png'
 
 <Scatter>:
     canvas.before:

@@ -180,11 +180,9 @@ Logger.info('Kivy v%s' % (__version__))
 
 #: Global settings options for kivy
 kivy_options = {
-    'use_accelerate': True,
-    'shadow_window': True,
     'window': ('pygame', 'sdl'),
     'text': ('pil', 'cairo', 'pygame', 'pyobjcquartz', 'appletext'),
-    'video': ('quicktime', 'gstreamer', 'pyglet'),
+    'video': ('ffmpeg', 'quicktime', 'gstreamer', 'pyglet'),
     'audio': ('cocoa', 'pygame', 'gstreamer', ),
     'image': ('pyobjcquartz', 'osxcoreimage', 'dds', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
