@@ -57,7 +57,14 @@ Example of Posting data (adapted from httplib example)::
 from collections import deque
 from threading import Thread
 from json import loads
-from httplib import HTTPConnection, HTTPSConnection
+from httplib import HTTPConnection
+
+try:
+    from httplib import HTTPSConnection
+except ImportError:
+    # on android platform, this is not available yet.
+    HTTPSConnection = None
+
 from urlparse import urlparse
 from kivy.clock import Clock
 
@@ -208,7 +215,7 @@ class UrlRequest(Thread):
         '''
         if scheme == 'http':
             return HTTPConnection
-        elif scheme == 'https':
+        elif scheme == 'https' and HTTPSConnection is not None:
             return HTTPSConnection
         else:
             raise Exception('No class for scheme %s' % scheme)
