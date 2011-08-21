@@ -51,7 +51,7 @@ We made that branch to be able to:
 
 Currently, Kivy is not fully supported on Android. We are missing:
 
-    - Video providers
+    - *Video providers* (done in 1.0.8 version)
     - Camera providers
     - Audio (can use RenPySound) providers
     - Keyboard mapping for main button

@@ -44,11 +44,10 @@ And in your kivy language file, you can do ::
 __all__ = ('Image', 'AsyncImage')
 
 from kivy.uix.widget import Widget
-from kivy.cache import Cache
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-        AliasProperty, BooleanProperty
+        AliasProperty, BooleanProperty, NumericProperty
 from kivy.loader import Loader
 
 
@@ -131,13 +130,23 @@ class Image(Widget):
     '''If False along with allow_stretch being True, the normalized image
     size will be maximized to fit in the image box disregarding the image
     ratio.
-    Otherwise, if the box is too high, the image will be not strech more
+    Otherwise, if the box is too high, the image will not be streched more
     than 1:1 pixels
 
     .. versionadded:: 1.0.8
 
     :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`,
     default to True
+    '''
+
+    anim_delay = NumericProperty(.25)
+    '''Delay of animation if the image is sequenced (like gif.).
+    If the anim_delay is set to -1, the animation will be stopped.
+
+    .. versionadded:: 1.0.8
+
+    :data:`anim_delay` is a :class:`~kivy.properties.NumericProperty`, default
+    to .25 (4 FPS)
     '''
 
     def get_norm_image_size(self):
@@ -180,6 +189,7 @@ class Image(Widget):
     '''
 
     def __init__(self, **kwargs):
+        self._coreimage = None
         super(Image, self).__init__(**kwargs)
         self.bind(source=self.texture_update,
                   mipmap=self.texture_update)
@@ -194,17 +204,27 @@ class Image(Widget):
             if filename is None:
                 return
             mipmap = self.mipmap
-            uid = '%s|%s' % (filename, mipmap)
-            texture = Cache.get('kv.texture', uid)
-            if not texture:
-                image = CoreImage(filename, mipmap=mipmap)
-                texture = image.texture
-                Cache.append('kv.texture', uid, texture)
-            self.texture = texture
+            if self._coreimage is not None:
+                self._coreimage.unbind(on_texture=self._on_tex_change)
+            self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
+                    anim_delay=self.anim_delay)
+            ci.bind(on_texture=self._on_tex_change)
+            self.texture = ci.texture
+
+    def on_anim_delay(self, instance, value):
+        if self._coreimage is None:
+            return
+        self._coreimage.anim_delay = value
+        if value < 0:
+            self.anim_reset(False)
 
     def on_texture(self, instance, value):
         if value is not None:
             self.texture_size = list(value.size)
+
+    def _on_tex_change(self, *largs):
+        # update texture from core image
+        self.texture = self._coreimage.texture
 
 
 class AsyncImage(Image):
@@ -226,10 +246,11 @@ class AsyncImage(Image):
                 value = resource_find(value)
             self._coreimage = image = Loader.image(value)
             image.bind(on_load=self.on_source_load)
+            image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
 
     def on_source_load(self, value):
-        image = self._coreimage
+        image = self._coreimage.image
         if not image:
             return
         self.texture = image.texture
@@ -238,3 +259,5 @@ class AsyncImage(Image):
         proto = filename.split('://', 1)[0]
         return proto in ('http', 'https', 'ftp')
 
+    def _on_tex_change(self, *largs):
+        self.texture = self._coreimage.texture

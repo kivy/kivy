@@ -62,6 +62,10 @@ def _gst_new_pad(obj, dbin, pad, *largs):
         if c.startswith('video'):
             dbin.link(obj._colorspace)
         elif c.startswith('audio'):
+            if obj._is_audio is False:
+                obj._is_audio = True
+                obj._pipeline.add(obj._audiosink, obj._volumesink)
+                gst.element_link_many(obj._volumesink, obj._audiosink)
             dbin.link(obj._volumesink)
     except:
         pass
@@ -142,15 +146,23 @@ class VideoGStreamer(VideoBase):
         self._pipeline_canplay = False
         self._state = ''
 
+    def _is_remote(self, fn):
+        return fn.split(':')[0] in ('http', 'https')
+
     def load(self):
         # ensure that nothing is loaded before.
         self.unload()
 
         # discover the media
-        self._discoverer = discoverer.Discoverer(self._filename)
-        self._discoverer_sid = self._discoverer.connect('discovered',
-                       partial(_discovered, ref(self)))
-        self._discoverer.discover()
+        if self._is_remote(self._filename):
+            self._is_audio = False
+            self._is_video = True
+            self._do_load = True
+        else:
+            self._discoverer = discoverer.Discoverer(self._filename)
+            self._discoverer_sid = self._discoverer.connect('discovered',
+                           partial(_discovered, ref(self)))
+            self._discoverer.discover()
 
     def _really_load(self):
         # create the pipeline
@@ -166,6 +178,7 @@ class VideoGStreamer(VideoBase):
         if self._filename.split(':')[0] in ('http', 'https', 'file'):
             # network decoder
             self._decoder = gst.element_factory_make('uridecodebin', 'decoder')
+            self._decoder.set_property('use-buffering', True)
             self._decoder.set_property('uri', self._filename)
             self._decoder.connect('pad-added', partial(_gst_new_pad, ref(self)))
             self._pipeline.add(self._decoder)
@@ -273,15 +286,20 @@ class VideoGStreamer(VideoBase):
 
         # get size information first to create the texture
         if self._texture is None:
-            for i in self._decoder.src_pads():
-                cap = i.get_caps()[0]
-                structure_name = cap.get_name()
-                if structure_name.startswith('video') and 'width' in cap.keys():
-                    self._videosize = (cap['width'], cap['height'])
-                    self._texture = Texture.create(
-                        size=self._videosize, colorfmt=self._colorfmt)
-                    self._texture.flip_vertical()
-                    self.dispatch('on_load')
+            try:
+                for i in self._decoder.src_pads():
+                    cap = i.get_caps()[0]
+                    structure_name = cap.get_name()
+                    if structure_name.startswith('video') and \
+                            'width' in cap.keys():
+                        self._videosize = (cap['width'], cap['height'])
+                        self._texture = Texture.create(
+                            size=self._videosize, colorfmt=self._colorfmt)
+                        self._texture.flip_vertical()
+                        self.dispatch('on_load')
+            except TypeError:
+                # mostly resync, we'll redo it later.
+                pass
 
         # no texture again ?
         if self._texture is None:
@@ -289,9 +307,15 @@ class VideoGStreamer(VideoBase):
 
         # ok, we got a texture, user want play ?
         if self._wantplay and self._pipeline_canplay:
-            self._pipeline.set_state(gst.STATE_PLAYING)
-            self._state = 'playing'
+            self._pipeline.set_state(gst.STATE_READY)
+            self._state = 'ready'
             self._wantplay = False
+
+        if self._state == 'ready':
+            state = self._pipeline.get_state(0)
+            if state[1] == gst.STATE_READY:
+                self._pipeline.set_state(gst.STATE_PLAYING)
+                self._state = 'playing'
 
         # update needed ?
         with self._buffer_lock:

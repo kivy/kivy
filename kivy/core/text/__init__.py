@@ -35,6 +35,9 @@ class LabelBase(object):
         might have issue in your application if you never think about that
         before.
 
+    .. versionadded::
+        In 1.0.8, `size` have been deprecated and replaced with `text_size`
+
     :Parameters:
         `font_size`: int, default to 12
             Font size of the text
@@ -44,7 +47,7 @@ class LabelBase(object):
             Activate "bold" text style
         `italic`: bool, default to False
             Activate "italic" text style
-        `size`: list, default to (None, None)
+        `text_size`: list, default to (None, None)
             Add constraint to render the text (inside a bounding box)
             If no size is given, the label size will be set to the text size.
         `padding`: int, default to None
@@ -66,7 +69,7 @@ class LabelBase(object):
             Create mipmap for the texture
     '''
 
-    __slots__ = ('options', 'texture', '_label', 'usersize')
+    __slots__ = ('options', 'texture', '_label', '_text_size')
 
     _cache_glyphs = {}
 
@@ -75,7 +78,6 @@ class LabelBase(object):
         kwargs.setdefault('font_name', DEFAULT_FONT)
         kwargs.setdefault('bold', False)
         kwargs.setdefault('italic', False)
-        kwargs.setdefault('size', (None, None))
         kwargs.setdefault('halign', 'left')
         kwargs.setdefault('valign', 'bottom')
         kwargs.setdefault('padding', None)
@@ -100,16 +102,21 @@ class LabelBase(object):
             else:
                 kwargs['padding_y'] = 0
 
-        uw, uh = kwargs['size']
+        self._text_size = (None, None)
+        if 'text_size' in kwargs:
+            self._text_size = kwargs['text_size']
+        elif 'size' in kwargs:
+            self._text_size = kwargs['size']
+
+        uw, uh = self._text_size
         if uw is not None:
-            kwargs['size'] = uw - kwargs['padding_x'] * 2, uh
+            self._text_size = uw - kwargs['padding_x'] * 2, uh
 
         super(LabelBase, self).__init__()
 
         self._text = None
         self._internal_height = 0
 
-        self.usersize = kwargs.get('size')
         self.options = kwargs
         self.texture = None
 
@@ -151,7 +158,7 @@ class LabelBase(object):
         middle = '...'
         width = textwidth(begin+end) + textwidth(middle)
         last_width = width
-        while width > self.usersize[0]:
+        while width > self.text_size[0]:
             begin = text[:mid - steps].strip()
             end = text[mid + steps:].strip()
             steps += 1
@@ -174,7 +181,7 @@ class LabelBase(object):
         '''
 
         options = self.options
-        uw, uh = self.usersize
+        uw, uh = self.text_size
         w, h = 0, 0
         x, y = 0, 0
         if real:
@@ -413,6 +420,18 @@ class LabelBase(object):
         '''Return an uniq id for all font parameters'''
         return str([self.options[x] for x in (
             'font_size', 'font_name', 'bold', 'italic')])
+
+    def _get_text_size(self):
+        return self._text_size
+
+    def _set_text_size(self, x):
+        self._text_size = x
+
+    text_size = property(_get_text_size, _set_text_size,
+        doc='''Get/set the (width, height) of the contrained rendering box''')
+
+    usersize = property(_get_text_size, _set_text_size,
+        doc='''(deprecated) Use text_size instead.''')
 
 # Load the appropriate provider
 Label = core_select_lib('text', (

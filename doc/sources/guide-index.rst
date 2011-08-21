@@ -7,6 +7,7 @@ Programming Guide
     guide/quickstart
     guide/readingdoc
     guide/environment
+    guide/config
     guide/architecture
     guide/firstwidget
     guide/widgettree
