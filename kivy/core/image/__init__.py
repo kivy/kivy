@@ -327,6 +327,9 @@ class Image(EventDispatcher):
             # fire a texture update(to be handled by widget/s)
             self.dispatch('on_texture')
         else:
+            # Prevent infinite looping in case we set manually an image
+            if self._anim_index == 0:
+                return False
             # Restart animation from first Frame
             self._anim_index = 0
             self._anim()
@@ -463,6 +466,8 @@ class Image(EventDispatcher):
 
     def _set_image(self, image):
         self._image = image
+        if hasattr(image, 'filename'):
+            self._filename = image.filename
         if image:
             self._size = (self.image.width, self.image.height)
 
