@@ -104,7 +104,7 @@ cdef class Bezier(VertexInstruction):
         cdef int i, count = self._segments
         cdef float l
         cdef list p = self.points
-        cdef tuple P, Q, R, S, T, U, A, B, C, D
+        cdef list P, Q, R, S, T, U, A, B, C, D
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
 
@@ -121,14 +121,14 @@ cdef class Bezier(VertexInstruction):
         for i in xrange(count):
             l = i / (1.0 * self._segments)
 
-            P = (A[0] + (B[0] - A[0]) * l, A[1] + (B[1] - A[1]) * l)
-            Q = (B[0] + (C[0] - B[0]) * l, B[1] + (C[1] - B[1]) * l)
-            R = (C[0] + (D[0] - C[0]) * l, C[1] + (D[1] - C[1]) * l)
+            P = [A[0] + (B[0] - A[0]) * l, A[1] + (B[1] - A[1]) * l]
+            Q = [B[0] + (C[0] - B[0]) * l, B[1] + (C[1] - B[1]) * l]
+            R = [C[0] + (D[0] - C[0]) * l, C[1] + (D[1] - C[1]) * l]
 
-            S = (P[0] + (Q[0] - P[0]) * l, P[1] + (Q[1] - P[1]) * l)
-            T = (Q[0] + (R[0] - Q[0]) * l, Q[1] + (R[1] - Q[1]) * l)
+            S = [P[0] + (Q[0] - P[0]) * l, P[1] + (Q[1] - P[1]) * l]
+            T = [Q[0] + (R[0] - Q[0]) * l, Q[1] + (R[1] - Q[1]) * l]
 
-            U = (S[0] + (T[0] - S[0]) * l, S[1] + (T[1] - S[1]) * l)
+            U = [S[0] + (T[0] - S[0]) * l, S[1] + (T[1] - S[1]) * l]
 
             vertices[i].x = U[0]
             vertices[i].y = U[1]
