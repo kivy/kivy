@@ -1,4 +1,4 @@
-#, to build a cubic bezier curve.cython: embedsignature=True
+#cython: embedsignature=True
 
 '''
 Vertex Instructions
@@ -85,7 +85,7 @@ cdef class Bezier(VertexInstruction):
 
     :Parameters:
         `points`: list
-            List of points in the format ((x1, y1), (x2, y2)...)
+            List of points in the format (x1, y1, x2, y2...)
             only the 4 first points are used, to build a cubic bezier curve.
         `segments`: int, default to 180
             Define how much segment is needed for drawing the ellipse.
@@ -104,7 +104,8 @@ cdef class Bezier(VertexInstruction):
         cdef int i, count = self._segments
         cdef float l
         cdef list p = self.points
-        cdef list P, Q, R, S, T, U, A, B, C, D
+        cdef list P, Q, R, S, T, U
+        cdef tuple A, B, C, D
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
 
@@ -117,7 +118,7 @@ cdef class Bezier(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
-        A, B, C, D = self.points[:4]
+        A, B, C, D = zip(self.points[:8:2], self.points[1:8:2])
         for i in xrange(count):
             l = i / (1.0 * self._segments)
 
