@@ -96,7 +96,7 @@ cdef class Bezier(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
-        self.points = kwargs.get('points', [])
+        self.points = kwargs.get('points', [0, 0, 0, 0, 0, 0, 0, 0])
         self._segments = kwargs.get('segments', 10)
         self.batch.set_mode('line_strip')
 
@@ -106,6 +106,8 @@ cdef class Bezier(VertexInstruction):
         cdef list p = self.points
         cdef list P, Q, R, S, T, U
         cdef tuple A, B, C, D
+        cdef double Ax, Ay, Bx, By, Cx, Cy, Dx, Dy
+        cdef double Px, Py, Qx, Qy, Rx, Ry, Sx, Sy, Tx, Ty, Ux, Uy
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
 
@@ -118,21 +120,27 @@ cdef class Bezier(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
-        A, B, C, D = zip(self.points[:8:2], self.points[1:8:2])
+        Ax, Ay, Bx, By, Cx, Cy, Dx, Dy = p
         for i in xrange(count):
             l = i / (1.0 * self._segments)
 
-            P = [A[0] + (B[0] - A[0]) * l, A[1] + (B[1] - A[1]) * l]
-            Q = [B[0] + (C[0] - B[0]) * l, B[1] + (C[1] - B[1]) * l]
-            R = [C[0] + (D[0] - C[0]) * l, C[1] + (D[1] - C[1]) * l]
+            Px = Ax + (Bx - Ax) * l
+            Py = Ay + (By - Ay) * l
+            Qx = Bx + (Cx - Bx) * l
+            Qy = By + (Cy - By) * l
+            Rx = Cx + (Dx - Cx) * l
+            Ry = Cy + (Dy - Cy) * l
 
-            S = [P[0] + (Q[0] - P[0]) * l, P[1] + (Q[1] - P[1]) * l]
-            T = [Q[0] + (R[0] - Q[0]) * l, Q[1] + (R[1] - Q[1]) * l]
+            Sx = Px + (Qx - Px) * l
+            Sy = Py + (Qy - Py) * l
+            Tx = Qx + (Rx - Qx) * l
+            Ty = Qy + (Ry - Qy) * l
 
-            U = [S[0] + (T[0] - S[0]) * l, S[1] + (T[1] - S[1]) * l]
+            Ux = Sx + (Tx - Sx) * l
+            Uy = Sy + (Ty - Sy) * l
 
-            vertices[i].x = U[0]
-            vertices[i].y = U[1]
+            vertices[i].x = Ux
+            vertices[i].y = Uy
             indices[i] = i
 
         self.batch.set_data(vertices, count, indices, count)
@@ -151,9 +159,22 @@ cdef class Bezier(VertexInstruction):
         def __get__(self):
             return self._points
         def __set__(self, points):
+            if len(points) != 8:
+                raise GraphicException(
+                    'Implementation support only 4 points (8 values) in points')
             self._points = list(points)
             self.flag_update()
 
+    property segments:
+        '''Property for getting/setting the number of segments of the curve
+        '''
+        def __get__(self):
+            return self._segments
+        def __set__(self, value):
+            if value <= 1:
+                raise GraphicException('Invalid segments value, must be >= 2')
+            self._segments = value
+            self.flag_update()
 
 cdef class Point(VertexInstruction):
     '''A 2d line.
