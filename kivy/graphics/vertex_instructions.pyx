@@ -86,7 +86,6 @@ cdef class Bezier(VertexInstruction):
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
-            only the 4 first points are used, to build a cubic bezier curve.
         `segments`: int, default to 180
             Define how much segment is needed for drawing the ellipse.
             The drawing will be smoother if you have lot of segment.
@@ -101,41 +100,37 @@ cdef class Bezier(VertexInstruction):
         self.batch.set_mode('line_strip')
 
     cdef void build(self):
-        cdef int i, count = self._segments
+        cdef int x, i, j
         cdef float l
-        cdef list p = self.points
-        cdef list P, Q, R, S, T, U
-        cdef tuple A, B, C, D
+        cdef list T
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
 
-        vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
+        vertices = <vertex_t *>malloc(self._segments * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <unsigned short *>malloc(count * sizeof(unsigned short))
+        indices = <unsigned short *>malloc(self._segments * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
 
-        A, B, C, D = zip(self.points[:8:2], self.points[1:8:2])
-        for i in xrange(count):
-            l = i / (1.0 * self._segments)
+        for x in xrange(self._segments):
+            l = x / (1.0 * self._segments)
 
-            P = [A[0] + (B[0] - A[0]) * l, A[1] + (B[1] - A[1]) * l]
-            Q = [B[0] + (C[0] - B[0]) * l, B[1] + (C[1] - B[1]) * l]
-            R = [C[0] + (D[0] - C[0]) * l, C[1] + (D[1] - C[1]) * l]
+            T = [zip(self.points[::2], self.points[1::2]),]
+            for i in range(1, len(self.points)/2):
+                T.append([])
+                for j in xrange(len(self.points)/2 - i):
+                    T[i].append([
+                        T[i-1][j][0] + (T[i-1][j+1][0] - T[i-1][j][0]) * l,
+                        T[i-1][j][1] + (T[i-1][j+1][1] - T[i-1][j][1]) * l])
 
-            S = [P[0] + (Q[0] - P[0]) * l, P[1] + (Q[1] - P[1]) * l]
-            T = [Q[0] + (R[0] - Q[0]) * l, Q[1] + (R[1] - Q[1]) * l]
+            vertices[x].x = T[-1][0][0]
+            vertices[x].y = T[-1][0][1]
+            indices[x] = x
 
-            U = [S[0] + (T[0] - S[0]) * l, S[1] + (T[1] - S[1]) * l]
-
-            vertices[i].x = U[0]
-            vertices[i].y = U[1]
-            indices[i] = i
-
-        self.batch.set_data(vertices, count, indices, count)
+        self.batch.set_data(vertices, self._segments, indices, self._segments)
 
         free(vertices)
         free(indices)

@@ -7,11 +7,18 @@ from kivy.graphics import Color, Line, Bezier, Ellipse, Line
 class BezierTest(Widget):
     def __init__(self, *args, **kwargs):
         super(BezierTest, self).__init__(*args, **kwargs)
-        print self.width, self.height
         self.d = 10
         self.points = [
                 0, 0,
-                self.width, 0,
+                0.1 * self.width, 0.2 * self.height,
+                0.2 * self.width, 0.3 * self.height,
+                0.3 * self.width, 0.3 * self.height,
+                0.4 * self.width, 0.4 * self.height,
+                0.5 * self.width, 0.5 * self.height,
+                0.6 * self.width, 0.6 * self.height,
+                0.7 * self.width, 0.6 * self.height,
+                0.8 * self.width, 0.7 * self.height,
+                0.9 * self.width, 0.8 * self.height,
                 self.width, self.height,
                 0, self.height]
 
@@ -31,13 +38,8 @@ class BezierTest(Widget):
                         pos=(p[0] - self.d/2, p[1] - self.d/2),
                         size=(self.d, self.d))
 
-            Line(points=(
-                    self.points[0], self.points[1],
-                    self.points[2], self.points[3]))
-
-            Line(points=(
-                    self.points[4], self.points[5],
-                    self.points[6], self.points[7]))
+            Color(1.0, 0.0, 1.0)
+            Line(points=self.points)
 
 
     def on_touch_down(self, touch):
