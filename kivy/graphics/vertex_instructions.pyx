@@ -8,7 +8,7 @@ This module include all the classes for drawing simple vertex object.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'GraphicException')
+           'Point', 'GraphicException', 'Bezier')
 
 
 include "config.pxi"
@@ -58,6 +58,81 @@ cdef class Line(VertexInstruction):
         for i in xrange(count):
             vertices[i].x = p[i * 2]
             vertices[i].y = p[i * 2 + 1]
+            indices[i] = i
+
+        self.batch.set_data(vertices, count, indices, count)
+
+        free(vertices)
+        free(indices)
+
+    property points:
+        '''Property for getting/settings points of the triangle
+
+        .. warning::
+
+            This will always reconstruct the whole graphics from the new points
+            list. It can be very CPU expensive.
+        '''
+        def __get__(self):
+            return self._points
+        def __set__(self, points):
+            self._points = list(points)
+            self.flag_update()
+
+
+cdef class Bezier(VertexInstruction):
+    '''A 2d Bezier curve.
+
+    :Parameters:
+        `points`: list
+            List of points in the format (x1, y1, x2, y2...)
+            only the 4 first points are used, to build a cubic bezier curve.
+        `segments`: int, default to 180
+            Define how much segment is needed for drawing the ellipse.
+            The drawing will be smoother if you have lot of segment.
+    '''
+    cdef list _points
+    cdef int _segments
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self.points = kwargs.get('points', [])
+        self._segments = kwargs.get('segments', 10)
+        self.batch.set_mode('line_strip')
+
+    cdef void build(self):
+        cdef int i, count = self._segments
+        cdef float l
+        cdef list p = self.points
+        cdef list P, Q, R, S, T, U
+        cdef tuple A, B, C, D
+        cdef vertex_t *vertices = NULL
+        cdef unsigned short *indices = NULL
+
+        vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError('vertices')
+
+        indices = <unsigned short *>malloc(count * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        A, B, C, D = zip(self.points[:8:2], self.points[1:8:2])
+        for i in xrange(count):
+            l = i / (1.0 * self._segments)
+
+            P = [A[0] + (B[0] - A[0]) * l, A[1] + (B[1] - A[1]) * l]
+            Q = [B[0] + (C[0] - B[0]) * l, B[1] + (C[1] - B[1]) * l]
+            R = [C[0] + (D[0] - C[0]) * l, C[1] + (D[1] - C[1]) * l]
+
+            S = [P[0] + (Q[0] - P[0]) * l, P[1] + (Q[1] - P[1]) * l]
+            T = [Q[0] + (R[0] - Q[0]) * l, Q[1] + (R[1] - Q[1]) * l]
+
+            U = [S[0] + (T[0] - S[0]) * l, S[1] + (T[1] - S[1]) * l]
+
+            vertices[i].x = U[0]
+            vertices[i].y = U[1]
             indices[i] = i
 
         self.batch.set_data(vertices, count, indices, count)
