@@ -132,14 +132,21 @@ cdef class Bezier(VertexInstruction):
         for x in xrange(self._segments):
             l = x / (1.0 * self._segments)
 
+            # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
+            # as the list is in the form of (x1, y1, x2, y2...) iteration is
+            # done on each item and the current item (xn or yn) in the list is
+            # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
+            # placed at n+2. each iteration makes the list one item shorter
             for i in range(1, len(self.points)):
                 for j in xrange(len(self.points) - 2*i):
                     T[j] = T[j] + (T[j+2] - T[j]) * l
 
+            # we got the coordinates of the point in T[0] and T[1]
             vertices[x].x = T[0]
             vertices[x].y = T[1]
             indices[x] = x
 
+        # add one last point to join the curve to the end
         vertices[x+1].x = self.points[-2]
         vertices[x+1].y = self.points[-1]
         indices[x+1] = x + 1
