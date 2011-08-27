@@ -83,6 +83,8 @@ cdef class Line(VertexInstruction):
 cdef class Bezier(VertexInstruction):
     '''A 2d Bezier curve.
 
+    .. versionadded:: 1.0.8
+
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
