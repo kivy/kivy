@@ -86,64 +86,73 @@ cdef class Bezier(VertexInstruction):
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
-            only the 4 first points are used, to build a cubic bezier curve.
         `segments`: int, default to 180
             Define how much segment is needed for drawing the ellipse.
             The drawing will be smoother if you have lot of segment.
+        `loop`: bool, default to False
+            Set the bezier curve to join last point to first.
+
+    #TODO: refactoring:
+        a) find interface common to all splines (given control points and
+        perhaps tangents, what's the position on the spline for parameter t),
+
+        b) make that a superclass Spline, c) create BezierSpline subclass that
+        does the computation
     '''
     cdef list _points
     cdef int _segments
+    cdef bint _loop
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [0, 0, 0, 0, 0, 0, 0, 0])
         self._segments = kwargs.get('segments', 10)
+        self._loop = kwargs.get('loop', False)
+        if self._loop:
+            self.points.extend(self.points[:2])
         self.batch.set_mode('line_strip')
 
     cdef void build(self):
-        cdef int i, count = self._segments
+        cdef int x, i, j
         cdef float l
-        cdef list p = self.points
-        cdef list P, Q, R, S, T, U
-        cdef tuple A, B, C, D
-        cdef double Ax, Ay, Bx, By, Cx, Cy, Dx, Dy
-        cdef double Px, Py, Qx, Qy, Rx, Ry, Sx, Sy, Tx, Ty, Ux, Uy
+        cdef list T = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
 
-        vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
+        vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <unsigned short *>malloc(count * sizeof(unsigned short))
+        indices = <unsigned short *>malloc(
+                (self._segments + 1) * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
 
-        Ax, Ay, Bx, By, Cx, Cy, Dx, Dy = p
-        for i in xrange(count):
-            l = i / (1.0 * self._segments)
+        for x in xrange(self._segments):
+            l = x / (1.0 * self._segments)
 
-            Px = Ax + (Bx - Ax) * l
-            Py = Ay + (By - Ay) * l
-            Qx = Bx + (Cx - Bx) * l
-            Qy = By + (Cy - By) * l
-            Rx = Cx + (Dx - Cx) * l
-            Ry = Cy + (Dy - Cy) * l
+            # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
+            # as the list is in the form of (x1, y1, x2, y2...) iteration is
+            # done on each item and the current item (xn or yn) in the list is
+            # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
+            # placed at n+2. each iteration makes the list one item shorter
+            for i in range(1, len(self.points)):
+                for j in xrange(len(self.points) - 2*i):
+                    T[j] = T[j] + (T[j+2] - T[j]) * l
 
-            Sx = Px + (Qx - Px) * l
-            Sy = Py + (Qy - Py) * l
-            Tx = Qx + (Rx - Qx) * l
-            Ty = Qy + (Ry - Qy) * l
+            # we got the coordinates of the point in T[0] and T[1]
+            vertices[x].x = T[0]
+            vertices[x].y = T[1]
+            indices[x] = x
 
-            Ux = Sx + (Tx - Sx) * l
-            Uy = Sy + (Ty - Sy) * l
+        # add one last point to join the curve to the end
+        vertices[x+1].x = self.points[-2]
+        vertices[x+1].y = self.points[-1]
+        indices[x+1] = x + 1
 
-            vertices[i].x = Ux
-            vertices[i].y = Uy
-            indices[i] = i
-
-        self.batch.set_data(vertices, count, indices, count)
+        self.batch.set_data(vertices, self._segments + 1, indices,
+                self._segments + 1)
 
         free(vertices)
         free(indices)
@@ -159,9 +168,6 @@ cdef class Bezier(VertexInstruction):
         def __get__(self):
             return self._points
         def __set__(self, points):
-            if len(points) != 8:
-                raise GraphicException(
-                    'Implementation support only 4 points (8 values) in points')
             self._points = list(points)
             self.flag_update()
 
