@@ -36,6 +36,10 @@ import kivy.ext
 import kivy.graphics
 import kivy.graphics.shader
 import kivy.animation
+import kivy.modules.keybinding
+import kivy.modules.monitor
+import kivy.modules.touchring
+import kivy.network.urlrequest
 from kivy.factory import Factory
 
 # force loading of all classes from factory

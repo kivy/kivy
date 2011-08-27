@@ -359,6 +359,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     # If no configuration exist, write the default one.
     if not exists(kivy_config_fn) or need_save:
         try:
+            Config.filename = kivy_config_fn
             Config.write()
         except Exception, e:
             Logger.exception('Core: Error while saving default config file')

@@ -88,7 +88,7 @@ class LoaderBase(object):
     def loading_image(self):
         '''Image used for loading (readonly)'''
         if not self._loading_image:
-            loading_png_fn = join(kivy_data_dir, 'images', 'image-loading.png')
+            loading_png_fn = join(kivy_data_dir, 'images', 'image-loading.gif')
             self._loading_image = ImageLoader.load(filename=loading_png_fn)
         return self._loading_image
 
@@ -134,7 +134,9 @@ class LoaderBase(object):
 
     def _load_local(self, filename):
         '''(internal) Loading a local file'''
-        return ImageLoader.load(filename)
+        # With recent changes to CoreImage, we must keep data otherwise,
+        # we might be unable to recreate the texture afterwise.
+        return ImageLoader.load(filename, keep_data=True)
 
     def _load_urllib(self, filename):
         '''(internal) Loading a network file. First download it, save it to a
@@ -208,7 +210,7 @@ class LoaderBase(object):
         '''
         data = Cache.get('kivy.loader', filename)
         if data not in (None, False):
-            # found image
+            # found image, if data is not here, need to reload.
             return ProxyImage(data,
                     loading_image=self.loading_image,
                     loaded=True, **kwargs)
@@ -265,8 +267,8 @@ else:
                 while self._running:
                     try:
                         parameters = self._q_load.pop()
-                        sleep(0.1)
                     except:
+                        sleep(0.1)
                         continue
                     self.worker.do(self._load, parameters)
 
@@ -283,17 +285,18 @@ else:
 
             def start(self):
                 super(LoaderClock, self).start()
-                Clock.schedule_interval(self.run, 0.0001)
+                Clock.schedule_interval(self.run, 0)
 
             def stop(self):
                 super(LoaderClock, self).stop()
                 Clock.unschedule(self.run)
 
             def run(self, *largs):
-                try:
-                    parameters = self._q_load.pop()
-                except IndexError:
-                    return
+                while self._running:
+                    try:
+                        parameters = self._q_load.pop()
+                    except IndexError:
+                        return
                 self._load(parameters)
 
         Loader = LoaderClock()

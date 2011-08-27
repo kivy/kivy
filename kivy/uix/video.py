@@ -109,7 +109,9 @@ class Video(Image):
             self._video = None
             self.texture = None
         else:
-            filename = resource_find(self.source)
+            filename = self.source
+            if filename.split(':')[0] not in ('http', 'https', 'file'):
+                filename = resource_find(filename)
             self._video = CoreVideo(filename=filename, **self.options)
             self._video.bind(on_load=self._on_video_frame,
                              on_frame=self._on_video_frame,
@@ -127,6 +129,7 @@ class Video(Image):
                 self._video.stop()
                 self._video.position = 0.
                 self._video.eos = False
+            self.eos = False
             self._video.play()
         else:
             self._video.stop()
@@ -138,6 +141,7 @@ class Video(Image):
         self.canvas.ask_update()
 
     def _on_eos(self, *largs):
+        self.play = False
         self.eos = True
 
     def on_volume(self, instance, value):

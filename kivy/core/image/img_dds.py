@@ -32,7 +32,7 @@ class ImageLoaderDDS(ImageLoaderBase):
                 w, h = images_size[index]
                 data = images[index]
                 im.add_mipmap(index, w, h, data)
-        return im
+        return [im]
 
 # register
 ImageLoader.register(ImageLoaderDDS)

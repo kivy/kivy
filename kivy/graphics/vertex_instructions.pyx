@@ -105,7 +105,7 @@ cdef class Bezier(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
-        self.points = kwargs.get('points', [])
+        self.points = kwargs.get('points', [0, 0, 0, 0, 0, 0, 0, 0])
         self._segments = kwargs.get('segments', 10)
         self._loop = kwargs.get('loop', False)
         if self._loop:
@@ -171,6 +171,16 @@ cdef class Bezier(VertexInstruction):
             self._points = list(points)
             self.flag_update()
 
+    property segments:
+        '''Property for getting/setting the number of segments of the curve
+        '''
+        def __get__(self):
+            return self._segments
+        def __set__(self, value):
+            if value <= 1:
+                raise GraphicException('Invalid segments value, must be >= 2')
+            self._segments = value
+            self.flag_update()
 
 cdef class Point(VertexInstruction):
     '''A 2d line.

@@ -178,6 +178,10 @@ class Popup(FloatLayout):
         Animation(_anim_alpha=0., d=self._anim_duration).start(self)
         return self
 
+    def on_size(self, instance, value):
+        if self._window:
+            self.center = self._window.center
+
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             if self.auto_dismiss:

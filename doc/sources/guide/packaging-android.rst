@@ -30,6 +30,7 @@ Inside the package, you have a tool named build.py. This is the script that will
                --icon <path to an icon to use>
                --orientation <landscape|portrait>
                --permission <android permission like VIBRATE> (multiple allowed)
+               --with-ffmpeg
                <debug|install|release>
 
 The last argument stand for:
@@ -52,6 +53,19 @@ Then in later time, you can install directly to your android device by doing::
     adb install -r bin/KivyTouchtracer-1.0.6-debug.apk
 
 Or you can use the `install` method instead of `debug`.
+
+Video support
+~~~~~~~~~~~~~
+
+.. versionadded:: 1.0.8
+
+By default, the produced APK don't contain any libraries for video support. You
+can add ffmpeg library on your build to activate it. The default ffmpeg
+compiled is the "minimal support", and will increase the APK size of ~8MB.
+
+The option to add on the build.py command line is `--with-ffmpeg`::
+
+    python build.py --with-ffmpeg --dir ....
 
 Release on the market
 ~~~~~~~~~~~~~~~~~~~~~

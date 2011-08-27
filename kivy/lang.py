@@ -276,8 +276,10 @@ Then in Python, you can create instanciate the template with ::
     from kivy.lang import Builder
 
     # create a template with hello world + an image
-    # the context values should be passed as kwargs to the Builder.template function
-    icon1 = Builder.template('IconItem', title='Hello world', image='myimage.png')
+    # the context values should be passed as kwargs to the Builder.template
+    # function
+    icon1 = Builder.template('IconItem', title='Hello world',
+        image='myimage.png')
 
     # create a second template with another information
     ctx = {'title': 'Another hello world',
@@ -849,17 +851,20 @@ class BuilderBase(object):
         self.listwidgets = []
         self.listwidget = []
 
+        # rules and templates will be associated to current loaded file
+        self._current_filename = None
+
     def add_rule(self, rule, defs):
         if __debug__:
             trace('Builder: adding rule %s' % str(rule))
-        self.rules.append((rule, defs))
+        self.rules.append((rule, defs, self._current_filename))
 
     def add_template(self, name, cls, defs):
         if __debug__:
             trace('Builder: adding template %s' % str(name))
         if name in self.templates:
             raise Exception('The template <%s> already exist' % name)
-        self.templates[name] = (cls, defs)
+        self.templates[name] = (cls, defs, self._current_filename)
 
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder.
@@ -875,6 +880,25 @@ class BuilderBase(object):
             kwargs['filename'] = filename
             return self.load_string(fd.read(), **kwargs)
 
+    def unload_file(self, filename):
+        '''Unload all rules associated to a previously imported file.
+
+        .. versionadded:: 1.0.8
+
+        .. warning::
+
+            This will not remove rule or template already applied/used on
+            current widget. It will act only for the next widget creation or
+            template invocation.
+        '''
+        # remove rules and templates
+        self.rules = [x for x in self.rules if x[2] != filename]
+        templates = {}
+        for x, y in self.templates.iteritems():
+            if y[2] != filename:
+                templates[x] = y
+        self.templates = templates
+
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder
 
@@ -884,19 +908,23 @@ class BuilderBase(object):
                 widget inside the definition.
         '''
         kwargs.setdefault('rulesonly', False)
-        parser = Parser(content=string)
-        root = self.build(parser.objects)
-        if kwargs['rulesonly'] and root:
-            filename = kwargs.get('rulesonly', '<string>')
-            raise Exception('The file <%s> contain also non-rules '
-                            'directives' % filename)
+        self._current_filename = kwargs.get('filename', None)
+        try:
+            parser = Parser(content=string)
+            root = self.build(parser.objects)
+            if kwargs['rulesonly'] and root:
+                filename = kwargs.get('rulesonly', '<string>')
+                raise Exception('The file <%s> contain also non-rules '
+                                'directives' % filename)
+        finally:
+            self._current_filename = None
         return root
 
     def match(self, widget):
         '''Return a list of all rules matching the widget.
         '''
         matches = []
-        for rule, defs in self.rules:
+        for rule, defs, fn in self.rules:
             if rule.match(widget):
                 matches.append(defs)
         return matches
@@ -931,7 +959,7 @@ class BuilderBase(object):
         name = args[0]
         if not name in self.templates:
             raise Exception('Unknown <%s> template name' % name)
-        baseclasses, defs = self.templates[name]
+        baseclasses, defs, fn = self.templates[name]
         rootwidgets = []
         for basecls in baseclasses.split('+'):
             rootwidgets.append(Factory.get(basecls))

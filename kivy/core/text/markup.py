@@ -124,7 +124,7 @@ class MarkupLabel(MarkupLabelBase):
 
     def render_label(self, real, label, args):
         x, y, w, h, lw, lh, nl = args
-        uw, uh = self.usersize
+        uw, uh = self.text_size
 
         # precalculate id/name
         if not self.fontid in self._cache_glyphs:
