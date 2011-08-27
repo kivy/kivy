@@ -89,28 +89,42 @@ cdef class Bezier(VertexInstruction):
         `segments`: int, default to 180
             Define how much segment is needed for drawing the ellipse.
             The drawing will be smoother if you have lot of segment.
+        `loop`: bool, default to False
+            Set the bezier curve to join last point to first.
+
+    #TODO: refactoring:
+        a) find interface common to all splines (given control points and
+        perhaps tangents, what's the position on the spline for parameter t),
+
+        b) make that a superclass Spline, c) create BezierSpline subclass that
+        does the computation
     '''
     cdef list _points
     cdef int _segments
+    cdef bint _loop
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [])
         self._segments = kwargs.get('segments', 10)
+        self._loop = kwargs.get('loop', False)
+        if self._loop:
+            self.points.extend(self.points[:2])
         self.batch.set_mode('line_strip')
 
     cdef void build(self):
         cdef int x, i, j
         cdef float l
-        cdef list T
+        cdef list T = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
 
-        vertices = <vertex_t *>malloc(self._segments * sizeof(vertex_t))
+        vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <unsigned short *>malloc(self._segments * sizeof(unsigned short))
+        indices = <unsigned short *>malloc(
+                (self._segments + 1) * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
@@ -118,19 +132,20 @@ cdef class Bezier(VertexInstruction):
         for x in xrange(self._segments):
             l = x / (1.0 * self._segments)
 
-            T = [zip(self.points[::2], self.points[1::2]),]
-            for i in range(1, len(self.points)/2):
-                T.append([])
-                for j in xrange(len(self.points)/2 - i):
-                    T[i].append([
-                        T[i-1][j][0] + (T[i-1][j+1][0] - T[i-1][j][0]) * l,
-                        T[i-1][j][1] + (T[i-1][j+1][1] - T[i-1][j][1]) * l])
+            for i in range(1, len(self.points)):
+                for j in xrange(len(self.points) - 2*i):
+                    T[j] = T[j] + (T[j+2] - T[j]) * l
 
-            vertices[x].x = T[-1][0][0]
-            vertices[x].y = T[-1][0][1]
+            vertices[x].x = T[0]
+            vertices[x].y = T[1]
             indices[x] = x
 
-        self.batch.set_data(vertices, self._segments, indices, self._segments)
+        vertices[x+1].x = self.points[-2]
+        vertices[x+1].y = self.points[-1]
+        indices[x+1] = x + 1
+
+        self.batch.set_data(vertices, self._segments + 1, indices,
+                self._segments + 1)
 
         free(vertices)
         free(indices)

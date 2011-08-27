@@ -5,23 +5,11 @@ from kivy.uix.widget import Widget
 from kivy.graphics import Color, Line, Bezier, Ellipse, Line
 
 class BezierTest(Widget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, points=[], loop=False, *args, **kwargs):
         super(BezierTest, self).__init__(*args, **kwargs)
         self.d = 10
-        self.points = [
-                0, 0,
-                0.1 * self.width, 0.2 * self.height,
-                0.2 * self.width, 0.3 * self.height,
-                0.3 * self.width, 0.3 * self.height,
-                0.4 * self.width, 0.4 * self.height,
-                0.5 * self.width, 0.5 * self.height,
-                0.6 * self.width, 0.6 * self.height,
-                0.7 * self.width, 0.6 * self.height,
-                0.8 * self.width, 0.7 * self.height,
-                0.9 * self.width, 0.8 * self.height,
-                self.width, self.height,
-                0, self.height]
-
+        self.points = points
+        self.loop = loop
         self.current_point = None
         self.update()
 
@@ -30,7 +18,7 @@ class BezierTest(Widget):
         with self.canvas:
             Color(1.0, 0.0, 0.0)
 
-            Bezier(points=self.points, segments=100)
+            Bezier(points=self.points, segments=150, loop=self.loop)
 
             Color(1.0, 1.0, 1.0)
             for p in zip(self.points[::2], self.points[1::2]):
@@ -39,27 +27,25 @@ class BezierTest(Widget):
                         size=(self.d, self.d))
 
             Color(1.0, 0.0, 1.0)
-            Line(points=self.points)
+            Line(points=self.points+self.points[:2])
 
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
-
-
             for i, p in enumerate(zip(self.points[::2], self.points[1::2])):
                 if (
                         abs(touch.pos[0] - self.pos[0] - p[0]) < self.d and
                         abs(touch.pos[1] - self.pos[1] - p[1]) < self.d):
                     self.current_point = i + 1
                     return True
-            super(BezierTest, self).on_touch_down(touch)
+            return super(BezierTest, self).on_touch_down(touch)
 
     def on_touch_up(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
             if self.current_point:
                 self.current_point = None
                 return True
-            super(BezierTest, self).on_touch_up(touch)
+            return super(BezierTest, self).on_touch_up(touch)
 
     def on_touch_move(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
@@ -68,13 +54,26 @@ class BezierTest(Widget):
                 self.points[(self.current_point - 1) * 2 + 1] = touch.pos[1] - self.pos[1]
                 self.update()
                 return True
-            super(BezierTest, self).on_touch_move(touch)
+            return super(BezierTest, self).on_touch_move(touch)
 
 
 class Main(App):
     def build(self):
         layout = FloatLayout()
-        layout.add_widget(BezierTest())
+        layout.add_widget(BezierTest(points=[
+            0, 0,
+            0.1 * 100, 0.2 * 100,
+            0.2 * 100, 0.3 * 100,
+            0.3 * 100, 0.3 * 100,
+            0.4 * 100, 0.4 * 100,
+            0.5 * 100, 0.5 * 100,
+            0.6 * 100, 0.6 * 100,
+            0.7 * 100, 0.6 * 100,
+            0.8 * 100, 0.7 * 100,
+            0.9 * 100, 0.8 * 100,
+            100, 100,
+            0, 100], loop=True))
+
         return layout
 
 if __name__ == '__main__':
