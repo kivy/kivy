@@ -212,10 +212,7 @@ class ImageLoader(object):
                 #raise# return the data read till now
                 #this should Ideally handle truncated zips
         z.close()
-        try:
-            if len(image_data):
-                pass
-        except:
+        if len(image_data) == 0:
             raise Exception('no images in zip <%s>' % _filename)
         #replace Image.Data with the array of all the images in the zip
         im._data = image_data
