@@ -500,10 +500,11 @@ class Image(EventDispatcher):
                 return
 
         # if image not already in cache then load
+        tmpfilename = self._filename
         self.image = ImageLoader.load(
                 self._filename, keep_data=self._keep_data,
                 mipmap=self._mipmap)
-
+        self._filename = tmpfilename
         # put the image into the cache if needed
         if keep_data:
             Cache.append('kv.image', uid, self.image)
