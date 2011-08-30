@@ -20,6 +20,7 @@ except:
 from threading import Lock
 from . import VideoBase
 from kivy.graphics.texture import Texture
+from kivy.logger import Logger
 from gst.extend import discoverer
 from functools import partial
 from weakref import ref
@@ -88,7 +89,8 @@ class VideoGStreamer(VideoBase):
     __slots__ = ('_pipeline', '_decoder', '_videosink', '_colorspace',
                  '_videosize', '_buffer_lock', '_audiosink', '_volumesink',
                  '_is_audio', '_is_video', '_do_load', '_pipeline_canplay',
-                 '_discoverer', '_discoverer_sid', '_colorfmt')
+                 '_discoverer', '_discoverer_sid', '_colorfmt',
+                 '_exception_position')
 
     def __init__(self, **kwargs):
         self._pipeline = None
@@ -104,6 +106,7 @@ class VideoGStreamer(VideoBase):
         self._pipeline_canplay = False
         self._buffer_lock = Lock()
         self._videosize = (0, 0)
+        self._exception_position = False
         super(VideoGStreamer, self).__init__(**kwargs)
 
     def _do_eos(self):
@@ -252,8 +255,20 @@ class VideoGStreamer(VideoBase):
             # Using FORMAT_DEFAULT result to have different information in
             # duration and position. Unexplained right now.
             return self._videosink.query_position(gst.FORMAT_BYTES)[0] / 10e9
-        except Exception, e:
-            return 0
+        except Exception:
+            # Sometime, video query failed when asking FORMAT_BYTES.
+            # so retry with FORMAT_TIME, even if it's laggy
+            try:
+                vs = self._videosink
+                bduration = vs.query_duration(gst.FORMAT_TIME)[0]
+                bposition = vs.query_position(gst.FORMAT_TIME)[0]
+                return bposition / float(bduration)
+            except Exception:
+                if not self._exception_position:
+                    Logger.warning(
+                        'Failed to query position in video %s' % self._filename)
+                    self._exception_position = True
+                return 0
 
     def _get_duration(self):
         if self._videosink is None:
