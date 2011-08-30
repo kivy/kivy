@@ -254,15 +254,19 @@ class VideoGStreamer(VideoBase):
             # But query_duration failed with FORMAT_BYTES.
             # Using FORMAT_DEFAULT result to have different information in
             # duration and position. Unexplained right now.
-            return self._videosink.query_position(gst.FORMAT_BYTES)[0] / 10e9
+
+            # Even more weird, we ask for BYTES, but it can return TIME...
+            value, fmt = self._videosink.query_position(gst.FORMAT_BYTES)
+            if fmt is gst.FORMAT_BYTES:
+                return value / 10e9
+            elif fmt is gst.FORMAT_TIME:
+                return value / 10e8
         except Exception:
             # Sometime, video query failed when asking FORMAT_BYTES.
             # so retry with FORMAT_TIME, even if it's laggy
             try:
-                vs = self._videosink
-                bduration = vs.query_duration(gst.FORMAT_TIME)[0]
-                bposition = vs.query_position(gst.FORMAT_TIME)[0]
-                return bposition / float(bduration)
+                value, fmt = self._videosink.query_position(gst.FORMAT_TIME)
+                return value / 10e8
             except Exception:
                 if not self._exception_position:
                     Logger.warning(
@@ -274,7 +278,7 @@ class VideoGStreamer(VideoBase):
         if self._videosink is None:
             return 0
         try:
-            return self._videosink.query_duration(gst.FORMAT_TIME)[0] / 10e9
+            return self._videosink.query_duration(gst.FORMAT_TIME)[0] / 10e8
         except:
             return 0
 
