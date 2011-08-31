@@ -85,6 +85,7 @@ class EventLoopBase(object):
         self.status = 'idle'
         self.input_providers = []
         self.event_listeners = []
+        self.stop_callbacks = []
         self.window = None
         self.me_list = []
 
@@ -128,6 +129,18 @@ class EventLoopBase(object):
         if listener in self.event_listeners:
             self.event_listeners.remove(listener)
 
+    def add_stop_callback(self, callback):
+        '''Add a callback to be called when the EventLoop stops
+        '''
+        if not callback in self.stop_callbacks:
+            self.stop_callbacks.append(callback)
+
+    def remove_stop_callback(self, callback):
+        '''Remove teh callback from the list of callbacks to
+        be called when the EventLoop stops'''
+        if callback in self.stop_callbacks:
+            self.stop_callbacks.remove(callback)
+
     def start(self):
         '''Must be call only one time before run().
         This start all configured input providers.'''
@@ -144,13 +157,19 @@ class EventLoopBase(object):
         self.status = 'closed'
 
     def stop(self):
-        '''Stop all input providers'''
+        '''Stop all input providers and call callbacks registered using
+        EventLoop.add_stop_callback()'''
         #stop in reverse order that we started them!! (liek push pop),
         #very important becasue e.g. wm_touch and WM_PEN both store
         #old window proc and teh restore, if order is messed big problem
         #happens, crashing badly without error
         for provider in reversed(self.input_providers):
             provider.stop()
+
+        #call all the callbacks registered for when EventLoop closes
+        for callback in self.stop_callbacks:
+            callback()
+
         self.status = 'stopped'
 
     def add_postproc_module(self, mod):
