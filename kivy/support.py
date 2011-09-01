@@ -65,25 +65,26 @@ def install_twisted_reactor(*args, **kwargs):
     #now we can import twisted reactor as usual
     from twisted.internet import reactor
     from kivy.base import EventLoop
+    from kivy.core.window import Window
     from kivy.clock import Clock
     from kivy.logger import Logger
+    import thread, threading
 
     #hook up rector to our reactor wake function
     def reactor_wake(twisted_loop_next):
         '''called whenever twisted needs to do work
         '''
-
-        def call_twisted(*args):
-            Logger.trace("Entering Twisted event loop")
-            twisted_loop_next()
-        Clock.schedule_once(call_twisted, -1)
+        twisted_loop_next()
     reactor.interleave(reactor_wake, *args, **kwargs)
 
     #make sure twisted reactor is shutdown if eventloop exists
     def reactor_stop(*args):
-        '''will shutdown the twisted reactor main loop'''
-        from twisted.internet import reactor
-        Logger.debug("Shutting down twisted reactor")
-        reactor._mainLoopShutdown()
+        '''will shutdown the twisted reactor main loop
+        '''
+        if not reactor._stopped:
+            Logger.debug("Shutting down twisted reactor" )
+            reactor.stop()
+        if threading.current_thread() != reactor.workerThread:
+            thread.exit()
     EventLoop.add_stop_callback(reactor_stop)
 
