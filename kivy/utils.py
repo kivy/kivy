@@ -4,11 +4,11 @@ Utils
 
 '''
 
-__all__ = ('intersection', 'difference', 'curry', 'strtotuple',
+__all__ = ('intersection', 'difference', 'strtotuple',
            'get_color_from_hex', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
-           'interpolate', 'OrderedDict')
+           'interpolate', 'OrderedDict', 'QueryDict')
 
 from re import match, split
 from UserDict import DictMixin
@@ -27,16 +27,6 @@ def intersection(set1, set2):
 def difference(set1, set2):
     '''Return difference between 2 list'''
     return filter(lambda s: s not in set2, set1)
-
-
-def curry(fn, *cargs, **ckwargs):
-    '''Change the function signature to pass new variable.'''
-
-    def call_fn(*fargs, **fkwargs):
-        d = ckwargs.copy()
-        d.update(fkwargs)
-        return fn(*(cargs + fargs), **d)
-    return call_fn
 
 
 def interpolate(value_from, value_to, step=10):
@@ -270,3 +260,55 @@ class OrderedDict(dict, DictMixin):
     def __ne__(self, other):
         return not self == other
 
+
+class QueryDict(dict):
+    '''QueryDict is a dict() that can be queried with dot.
+
+    .. versionadded:: 1.0.4
+
+    ::
+
+        d = QueryDict()
+        # create a key named toto, with the value 1
+        d.toto = 1
+        # it's the same as
+        d['toto'] = 1
+    '''
+
+    def __getattr__(self, attr):
+        try:
+            return self.__getitem__(attr)
+        except KeyError:
+            try:
+                return super(QueryDict, self).__getattr__(attr)
+            except AttributeError:
+                raise KeyError(attr)
+
+    def __setattr__(self, attr, value):
+        self.__setitem__(attr, value)
+
+def format_bytes_to_human(size, precision=2):
+    '''Format a bytes number to human size (B, KB, MB...)
+
+    .. versionadded:: 1.0.8
+
+    :Parameters:
+        `size`: int
+            Number that represent a bytes number
+        `precision`: int
+            Precision after the comma
+
+    Examples::
+
+        >>> format_bytes_to_human(6463)
+        '6.31 KB'
+        >>> format_bytes_to_human(646368746541)
+        '601.98 GB'
+
+    '''
+    size = int(size)
+    fmt = '%%1.%df %%s' % precision
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size < 1024.0:
+            return fmt % (size, unit)
+        size /= 1024.0

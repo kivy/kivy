@@ -2,6 +2,16 @@
 Extension for enhancing sphinx documentation generation for cython module
 '''
 
+import re
+import types
+from sphinx.ext.autodoc import MethodDocumenter
+
+class CythonMethodDocumenter(MethodDocumenter):
+    # XXX i don't understand the impact of having a priority more than the
+    # attribute or instance method but the things is, if it's a cython module,
+    # the attribute will be prefer over method.
+    priority = 12
+
 def is_cython_extension(what, obj):
     # try to check if the first line of the doc is a signature
     doc = obj.__doc__
@@ -11,20 +21,30 @@ def is_cython_extension(what, obj):
     if not len(doc):
         return False
     doc = doc[0]
-    if not '(' in doc or doc[-1] != ')':
-        return False
 
-    # check more if it's an extension
-    if what == 'attribute' and hasattr(obj, '__objclass__') and \
-       hasattr(obj.__objclass__, '__pyx_vtable__'):
+    # test for cython cpdef
+    if what in ('attribute', 'method') and hasattr(obj, '__objclass__'):
+        if not re.match('^([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)\((.*)\)', doc):
+            return False
         return True
+    # test for cython class
     if what == 'class' and hasattr(obj, '__pyx_vtable__'):
+        if not re.match('^([a-zA-Z_][a-zA-Z0-9_]*)\((.*)\)', doc):
+            return False
+        return True
+    # test for python method in cython class
+    if what in ('method', 'function') and obj.__class__ == types.BuiltinFunctionType:
+        if not re.match('^([a-zA-Z_][a-zA-Z0-9_]*)\((.*)\)', doc):
+            return False
         return True
 
 def callback_docstring(app, what, name, obj, options, lines):
     if what == 'module':
         # remove empty lines
-        while len(lines) and lines[0].strip() == '':
+        while len(lines):
+            line = lines[0].strip()
+            if not line.startswith('.. _') and line != '':
+                break
             lines.pop(0)
 
         # if we still have lines, remove the title
@@ -37,13 +57,37 @@ def callback_docstring(app, what, name, obj, options, lines):
 
     elif is_cython_extension(what, obj):
         lines.pop(0)
-        for idx in xrange(len(lines)):
-            line = lines[idx]
-            if line.startswith('    '):
-                lines[idx] = line[4:]
+        line = lines.pop(0)
+
+        # trick to realign the first line to the second one.
+        # FIXME: fail if we finishing with ::
+        if line is not None and len(lines):
+            l = len(lines[0]) - len(lines[0].lstrip())
+        else:
+            l = 0
+        lines.insert(0, ' ' * l + line)
+
+        # calculate the minimum space available
+        min_space = 999
+        for line in lines:
+            if not line.strip():
+                continue
+            min_space = min(min_space, len(line) - len(line.lstrip()))
+
+        # remove that kind of space now.
+        if min_space > 0:
+            spaces = ' ' * min_space
+            for idx, line in enumerate(lines):
+                if not line.strip():
+                    continue
+                if not line.startswith(spaces):
+                    continue
+                lines[idx] = line[min_space:]
 
 def callback_signature(app, what, name, obj, options, signature,
                        return_annotation):
+    # remove the first 'self' argument, because python autodoc don't
+    # add it for python method class. So do the same for cython class.
     if is_cython_extension(what, obj):
         try:
             doc = obj.__doc__.split('\n').pop(0)
@@ -51,10 +95,13 @@ def callback_signature(app, what, name, obj, options, signature,
             doc = doc.replace('(self, ', '(')
             doc = doc.replace('(self)', '( )')
             return (doc, None)
+        except AttributeError:
+            pass
         except IndexError:
             pass
 
 def setup(app):
+    app.add_autodocumenter(CythonMethodDocumenter)
     app.connect('autodoc-process-docstring', callback_docstring)
     app.connect('autodoc-process-signature', callback_signature)
 

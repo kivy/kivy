@@ -11,6 +11,7 @@ class Widget(object):
     def __init__(self, **kwargs):
         super(Widget, self).__init__(**kwargs)
         self.__dict__['__uid'] = 1
+        self.__dict__['__storage'] = {}
 
 
 wid = Widget()
@@ -55,6 +56,16 @@ class PropertiesTestCase(unittest.TestCase):
         a.set(wid, 1)
         self.assertEqual(a.get(wid), 1)
         self.assertEqual(observe_called, 1)
+
+    def test_objectcheck(self):
+        from kivy.properties import ObjectProperty
+
+        a = ObjectProperty(False)
+        a.link(wid, 'a')
+        a.link_deps(wid, 'a')
+        self.assertEqual(a.get(wid), False)
+        a.set(wid, True)
+        self.assertEqual(a.get(wid), True)
 
     def test_stringcheck(self):
         from kivy.properties import StringProperty
@@ -199,5 +210,42 @@ class PropertiesTestCase(unittest.TestCase):
 
         self.assertEqual(observe_called, 0)
         x.set(wid, 99)
+        self.assertEqual(observe_called, 1)
+
+    def test_dict(self):
+        from kivy.properties import DictProperty
+
+        x = DictProperty({})
+        x.link(wid, 'x')
+        x.link_deps(wid, 'x')
+
+        # test observer
+        global observe_called
+        observe_called = 0
+
+        def observe(obj, value):
+            global observe_called
+            observe_called = 1
+
+        x.bind(wid, observe)
+
+        observe_called = 0
+        x.get(wid)['toto'] = 1
+        self.assertEqual(observe_called, 1)
+
+        observe_called = 0
+        x.get(wid)['toto'] = 2
+        self.assertEqual(observe_called, 1)
+
+        observe_called = 0
+        x.get(wid)['youupi'] = 2
+        self.assertEqual(observe_called, 1)
+
+        observe_called = 0
+        del x.get(wid)['toto']
+        self.assertEqual(observe_called, 1)
+
+        observe_called = 0
+        x.get(wid).update({'bleh': 5})
         self.assertEqual(observe_called, 1)
 

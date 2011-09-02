@@ -36,5 +36,17 @@ ECHO ##################################
 :runkivy
 
 ECHO done bootstraping kivy...have fun!\n
+IF (%1)==() GOTO SHELL
 ECHO running "python.exe %*" \n
 python.exe  %*
+IF %errorlevel% NEQ 0 (PAUSE)
+GOTO END
+:SHELL
+ECHO.
+ECHO -----------------------------------------------------------------------
+ECHO - Running a shell, you can browse kivyexamples and launch apps with: -
+ECHO - python app.py -
+ECHO -----------------------------------------------------------------------
+ECHO.
+cmd
+:END

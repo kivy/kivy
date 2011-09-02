@@ -20,10 +20,11 @@ Snippet ::
 
 __all__ = ('Label', )
 
-from kivy.utils import curry
+from functools import partial
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.text import Label as CoreLabel
+from kivy.resources import resource_find
 from kivy.properties import StringProperty, OptionProperty, \
         NumericProperty, BooleanProperty, ReferenceListProperty, \
         ListProperty, ObjectProperty
@@ -34,17 +35,22 @@ class Label(Widget):
     '''
 
     def __init__(self, **kwargs):
+        self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
         super(Label, self).__init__(**kwargs)
 
         # bind all the property for recreating the texture
         d = ('text', 'font_size', 'font_name', 'bold', 'italic', 'halign',
-             'valign', 'padding_x', 'padding_y', 'text_size')
+             'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
+             'mipmap')
         dkw = {}
         for x in d:
-            dkw[x] = curry(self._trigger_texture_update, x)
+            dkw[x] = partial(self._trigger_texture_update, x)
         self.bind(**dkw)
 
         dkw = dict(zip(d, [getattr(self, x) for x in d]))
+        font_name = resource_find(self.font_name)
+        if font_name:
+            dkw['font_name'] = font_name
         self._label = CoreLabel(**dkw)
 
         # force the texture creation
@@ -56,10 +62,12 @@ class Label(Widget):
                 self._label.text = value
             elif name == 'text_size':
                 self._label.usersize = value
+            elif name == 'font_name':
+                rvalue = resource_find(value)
+                self._label.options['font_name'] = rvalue if rvalue else value
             else:
                 self._label.options[name] = value
-        Clock.unschedule(self.texture_update)
-        Clock.schedule_once(self.texture_update)
+        self._trigger_texture()
 
     def texture_update(self, *largs):
         '''Force texture recreation with the current Label properties.
@@ -67,10 +75,15 @@ class Label(Widget):
         After this function call, the :data:`texture` and :data`texture_size`
         will be updated in this order.
         '''
-        self._label.refresh()
         self.texture = None
-        self.texture = self._label.texture
-        self.texture_size = list(self.texture.size)
+        if self._label.text.strip() == '':
+            self.texture_size = (0, 0)
+        else:
+            self._label.refresh()
+            texture = self._label.texture
+            if texture is not None:
+                self.texture = self._label.texture
+                self.texture_size = list(self.texture.size)
 
     #
     # Properties
@@ -92,6 +105,8 @@ class Label(Widget):
     text_size = ListProperty([None, None])
     '''By default, the label is not contraint to any bounding box.
     You can set the size constraint of the label creation with this property.
+
+    .. versionadded:: 1.0.4
 
     For example, whatever is your current widget size, if you want your label to
     be created in a box with width=200 and unlimited height::
@@ -230,5 +245,22 @@ class Label(Widget):
         The texture size is set after the texture property. So if you listen on
         the change to :data:`texture`, the property texture_size will be not yet
         updated. Use self.texture.size instead.
+    '''
+
+    mipmap = BooleanProperty(False)
+    '''Indicate if you want OpenGL mipmapping to be apply on the texture or not.
+    Read :ref:`mipmap` for more informations.
+
+    .. versionadded:: 1.0.7
+
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False.
+    '''
+
+    shorten = BooleanProperty(False)
+    '''
+    Indicate whether the label should attempt to shorten its textual contents as
+    much as possible if a `text_size` is given. Setting this to True without an
+    appropriately set `text_size` will lead unexpected results.
     '''
 

@@ -6,7 +6,7 @@ Quickstart
 This page explains how to create a simple Kivy *"Hello world"* program.
 This assumes you already have Kivy installed. If you do not, head over to the
 :ref:`installation` section. We also assume basic `Python <http://docs.python.org/tutorial/>`_
-2.x knowledge.
+2.x knowledge throughout the rest of this documentation.
 
 
 Create an application
@@ -17,7 +17,7 @@ The base code for creating an application looks like this:
 .. sourcecode:: python
 
     import kivy
-    kivy.require('1.0.0')
+    kivy.require('1.0.6') # replace with your current kivy version !
 
     from kivy.app import App
     from kivy.uix.button import Button
@@ -26,11 +26,12 @@ The base code for creating an application looks like this:
         def build(self):
             return Button(text='Hello World')
 
-    MyApp().run()
+    if __name__ in ('__android__', '__main__'):
+        MyApp().run()
 
 Save it as `main.py`.
 
-Now, to run your application, depending of your platform, you can :
+To run the application, follow the instructions for your operating system:
 
     Linux
         Follow the instructions for :ref:`running Kivy application on Linux <linux-run-app>`::
@@ -44,17 +45,20 @@ Now, to run your application, depending of your platform, you can :
             # or
             C:\appdir>kivy.bat main.py
 
-    MacOSX
+    Mac OS X
         Follow the instructions for :ref:`running Kivy application on MacOSX <macosx-run-app>`::
 
             $ kivy main.py
 
     Android
-        You application need some complementary files to be able to run on Android.
-        See :doc:`android` for more informations.
+        Your application needs some complementary files to be able to run on Android.
+        See :doc:`android` for further reference.
 
 A window should open, showing a sole button (with the label 'Hello World') that
 covers the entire window's area. That's all there is to it.
+
+.. image:: images/quickstart.jpg
+    :align: center
 
 So what does that code do?
 

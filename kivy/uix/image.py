@@ -47,7 +47,7 @@ from kivy.uix.widget import Widget
 from kivy.core.image import Image as CoreImage
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
-        AliasProperty
+        AliasProperty, BooleanProperty, NumericProperty
 from kivy.loader import Loader
 
 
@@ -87,11 +87,66 @@ class Image(Widget):
             return self.texture.width / float(self.texture.height)
         return 1.
 
+    mipmap = BooleanProperty(False)
+    '''Indicate if you want OpenGL mipmapping to be apply on the texture or not.
+    Read :ref:`mipmap` for more informations.
+
+    .. versionadded:: 1.0.7
+
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False.
+    '''
+
     image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
     '''Ratio of the image (width / float(height)
 
     :data:`image_ratio` is a :class:`~kivy.properties.AliasProperty`, and is
     read-only.
+    '''
+
+    color = ListProperty([1, 1, 1, 1])
+    '''Image color, in the format (r, g, b, a). This attribute can be used for
+    'tint' an image. Be careful, if the source image is not gray/white, the
+    color will not really work as expected.
+
+    .. versionadded:: 1.0.6
+
+    :data:`color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
+    1, 1].
+    '''
+
+    allow_stretch = BooleanProperty(False)
+    '''If True, the normalized image size will be maximized to fit in the image
+    box. Otherwise, if the box is too higher, the image will be not strech more
+    that 1:1 pixels
+
+    .. versionadded:: 1.0.7
+
+    :data:`allow_stretch` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False
+    '''
+
+    keep_ratio = BooleanProperty(True)
+    '''If False along with allow_stretch being True, the normalized image
+    size will be maximized to fit in the image box disregarding the image
+    ratio.
+    Otherwise, if the box is too high, the image will not be streched more
+    than 1:1 pixels
+
+    .. versionadded:: 1.0.8
+
+    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True
+    '''
+
+    anim_delay = NumericProperty(.25)
+    '''Delay of animation if the image is sequenced (like gif.).
+    If the anim_delay is set to -1, the animation will be stopped.
+
+    .. versionadded:: 1.0.8
+
+    :data:`anim_delay` is a :class:`~kivy.properties.NumericProperty`, default
+    to .25 (4 FPS)
     '''
 
     def get_norm_image_size(self):
@@ -100,27 +155,30 @@ class Image(Widget):
         ratio = self.image_ratio
         w, h = self.size
         tw, th = self.texture.size
-        iw, ih = 0, 0
-        # cases if the image is lower than the widget
-        if iw < w and ih < h:
-            if iw < w:
-                iw = w
-                ih = iw / ratio
-            elif ih < h:
-                ih = h
-                iw = ih * ratio
-        # cases if the image is bigger than the widget
-        if iw > w:
+
+        # ensure that the width is always maximized to the containter width
+        if self.allow_stretch:
+            if not self.keep_ratio:
+                return w, h
             iw = w
-            ih = iw * ratio
+        else:
+            iw = min(w, tw)
+        # calculate the appropriate height
+        ih = iw / ratio
+        # if the height is too higher, take the height of the container
+        # and calculate appropriate width. no need to test further. :)
         if ih > h:
-            ih = h
-            iw = ih / ratio
+            if self.allow_stretch:
+                ih = h
+            else:
+                ih = min(h, th)
+            iw = ih * ratio
+
         return iw, ih
 
 
     norm_image_size = AliasProperty(get_norm_image_size, None, bind=(
-        'texture', 'size', 'image_ratio'))
+        'texture', 'size', 'image_ratio', 'allow_stretch'))
     '''Normalized image size withing the widget box.
 
     This size will be always fitted to the widget size, and preserve the image
@@ -130,17 +188,43 @@ class Image(Widget):
     read-only.
     '''
 
-    def on_source(self, instance, value):
-        if not value:
+    def __init__(self, **kwargs):
+        self._coreimage = None
+        super(Image, self).__init__(**kwargs)
+        self.bind(source=self.texture_update,
+                  mipmap=self.texture_update)
+        if self.source is not None:
+            self.texture_update()
+
+    def texture_update(self, *largs):
+        if not self.source:
             self.texture = None
         else:
-            filename = resource_find(value)
-            image = CoreImage(filename)
-            self.texture = image.texture
+            filename = resource_find(self.source)
+            if filename is None:
+                return
+            mipmap = self.mipmap
+            if self._coreimage is not None:
+                self._coreimage.unbind(on_texture=self._on_tex_change)
+            self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
+                    anim_delay=self.anim_delay)
+            ci.bind(on_texture=self._on_tex_change)
+            self.texture = ci.texture
+
+    def on_anim_delay(self, instance, value):
+        if self._coreimage is None:
+            return
+        self._coreimage.anim_delay = value
+        if value < 0:
+            self.anim_reset(False)
 
     def on_texture(self, instance, value):
         if value is not None:
             self.texture_size = list(value.size)
+
+    def _on_tex_change(self, *largs):
+        # update texture from core image
+        self.texture = self._coreimage.texture
 
 
 class AsyncImage(Image):
@@ -150,20 +234,30 @@ class AsyncImage(Image):
     def __init__(self, **kwargs):
         self._coreimage = None
         super(AsyncImage, self).__init__(**kwargs)
+        self.unbind(source=self.texture_update,
+                    mipmap=self.texture_update)
 
     def on_source(self, instance, value):
         if not value:
             self.texture = None
             self._coreimage = None
         else:
-            filename = resource_find(value)
-            self._coreimage = image = Loader.image(filename)
+            if not self.is_uri(value):
+                value = resource_find(value)
+            self._coreimage = image = Loader.image(value)
             image.bind(on_load=self.on_source_load)
+            image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
 
     def on_source_load(self, value):
-        image = self._coreimage
+        image = self._coreimage.image
         if not image:
             return
         self.texture = image.texture
 
+    def is_uri(self, filename):
+        proto = filename.split('://', 1)[0]
+        return proto in ('http', 'https', 'ftp')
+
+    def _on_tex_change(self, *largs):
+        self.texture = self._coreimage.texture

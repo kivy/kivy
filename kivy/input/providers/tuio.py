@@ -1,12 +1,17 @@
 '''
-TUIO input provider implementation
-==================================
+TUIO Input Provider
+===================
+
+TUIO is a de facto standard network protocol for the transmission of touch and
+fiducial information between a server and a client.
+To learn more about TUIO (which is itself based on the OSC protocol), please
+refer to http://tuio.org -- The specification should be of special interest.
 '''
 
 __all__ = ('TuioMotionEventProvider', 'Tuio2dCurMotionEvent',
            'Tuio2dObjMotionEvent')
 
-import osc
+from kivy.lib import osc
 from collections import deque
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
@@ -16,35 +21,48 @@ from kivy.logger import Logger
 
 
 class TuioMotionEventProvider(MotionEventProvider):
-    '''Tuio provider listen to a socket, and handle part of OSC message
+    '''The TUIO provider listens to a socket and handles some of the incoming
+    OSC messages:
 
         * /tuio/2Dcur
         * /tuio/2Dobj
 
-    Tuio provider can be configured with the `[`input`]` configuration ::
+    The TUIO provider can be configured in the configuration file in the
+    ``[input]`` section::
 
         [input]
         # name = tuio,<ip>:<port>
         multitouchtable = tuio,192.168.0.1:3333
 
-    You can easily handle new tuio path by extending the providers like this ::
+    You can easily extend the provider to handle new TUIO paths like so::
 
-        # Create a class to handle the new touch type
+        # Create a class to handle the new TUIO type/path
+        # Replace NEWPATH with the pathname you want to handle
         class TuioNEWPATHMotionEvent(MotionEvent):
             def __init__(self, id, args):
                 super(TuioNEWPATHMotionEvent, self).__init__(id, args)
 
             def depack(self, args):
-                # Write here the depack function of args.
-                # for a simple x, y, value, you can do this :
+                # In this method, implement 'unpacking' for the received
+                # arguments. you basically translate from TUIO args to Kivy
+                # MotionEvent variables. If all you receive are x and y
+                # values, you can do it like this:
                 if len(args) == 2:
                     self.sx, self.sy = args
                     self.profile = ('pos', )
                 self.sy = 1 - self.sy
                 super(TuioNEWPATHMotionEvent, self).depack(args)
 
-        # Register it to tuio touch provider
+        # Register it with the TUIO MotionEvent provider.
+        # You obviously need to replace the PATH placeholders appropriately.
         TuioMotionEventProvider.register('/tuio/PATH', TuioNEWPATHMotionEvent)
+
+    .. note::
+
+        The class name is of no technical importance. Your class will be
+        associated with the path that you pass to the ``register()``
+        function. To keep things simple, you should name your class after the
+        path that it handles, though.
     '''
 
     __handlers__ = {}
@@ -79,7 +97,7 @@ class TuioMotionEventProvider(MotionEventProvider):
 
     @staticmethod
     def unregister(oscpath, classname):
-        '''Unregister a new path to handle in tuio provider'''
+        '''Unregister a path to stop handling it in the tuio provider'''
         if oscpath in TuioMotionEventProvider.__handlers__:
             del TuioMotionEventProvider.__handlers__[oscpath]
 
@@ -102,7 +120,7 @@ class TuioMotionEventProvider(MotionEventProvider):
         osc.dontListen(self.oscid)
 
     def update(self, dispatch_fn):
-        '''Update the tuio provider (pop event from the queue)'''
+        '''Update the tuio provider (pop events from the queue)'''
 
         # deque osc queue
         osc.readQueue(self.oscid)
@@ -161,18 +179,19 @@ class TuioMotionEventProvider(MotionEventProvider):
 
 
 class TuioMotionEvent(MotionEvent):
-    '''Abstraction for TUIO touch.
+    '''Abstraction for TUIO touches/fiducials.
 
-    Depending of the tracker, the TuioMotionEvent object support
-    multiple profiles as :
+    Depending on the tracking software you use (e.g. Movid, CCV, etc.) and its
+    TUIO implementation, the TuioMotionEvent object will support multiple
+    profiles such as:
 
-        * fiducial : name markerid, property .fid
-        * position : name pos, property .x, .y
-        * angle : name angle, property .a
-        * velocity vector : name mov, property .X, .Y
-        * rotation velocity : name rot, property .A
-        * motion acceleration : name motacc, property .m
-        * rotation acceleration : name rotacc, property .r
+        * Fiducial ID: profile name 'markerid', attribute ``.fid``
+        * Position: profile name 'pos', attributes ``.x``, ``.y``
+        * Angle: profile name 'angle', attribute ``.a``
+        * Velocity vector: profile name 'mov', attributes ``.X``, ``.Y``
+        * Rotation velocity: profile name 'rot', attribute ``.A``
+        * Motion acceleration: profile name 'motacc', attribute ``.m``
+        * Rotation acceleration: profile name 'rotacc', attribute ``.r``
     '''
     __attrs__ = ('a', 'b', 'c', 'X', 'Y', 'Z', 'A', 'B', 'C', 'm', 'r')
 
@@ -257,6 +276,7 @@ class Tuio2dObjMotionEvent(TuioMotionEvent):
                 self.shape.height = height
         self.sy = 1 - self.sy
         super(Tuio2dObjMotionEvent, self).depack(args)
+
 
 # registers
 TuioMotionEventProvider.register('/tuio/2Dcur', Tuio2dCurMotionEvent)

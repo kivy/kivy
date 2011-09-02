@@ -2,6 +2,9 @@
 Button
 ======
 
+.. image:: images/button.jpg
+    :align: right
+
 The button is a :class:`~kivy.uix.label.Label` with an action associated to it
 that is triggered when the button is pressed (or released after a click/touch).
 To configure the button, you can use the same properties that you can use for
@@ -32,7 +35,7 @@ to the :data:`Button.state` property ::
 __all__ = ('Button', )
 
 from kivy.uix.label import Label
-from kivy.properties import OptionProperty
+from kivy.properties import OptionProperty, StringProperty, ListProperty
 
 
 class Button(Label):
@@ -51,6 +54,35 @@ class Button(Label):
     By default, the state of the button is 'normal'.
 
     :data:`state` is an :class:`~kivy.properties.OptionProperty`.
+    '''
+
+    background_color = ListProperty([1, 1, 1, 1])
+    '''Background color, in the format (r, g, b, a).
+
+    .. versionadded:: 1.0.8
+
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [1, 1, 1, 1].
+    '''
+
+    background_normal = StringProperty('data/images/button.png')
+    '''Background image of the button used for default graphical representation,
+    when the button is not pressed.
+
+    .. versionadded:: 1.0.4
+
+    :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
+    default to 'data/images/button.png'
+    '''
+
+    background_down = StringProperty('data/images/button_pressed.png')
+    '''Background image of the button used for default graphical representation,
+    when the button is pressed.
+
+    .. versionadded:: 1.0.4
+
+    :data:`background_down` is an :class:`~kivy.properties.StringProperty`,
+    default to 'data/images/button_pressed.png'
     '''
 
     def __init__(self, **kwargs):
@@ -79,8 +111,9 @@ class Button(Label):
         return self in touch.ud
 
     def on_touch_up(self, touch):
-        if not self in touch.ud:
-            return False
+        if touch.grab_current is not self:
+            return
+        assert(self in touch.ud)
         touch.ungrab(self)
         self._do_release()
         self.dispatch('on_release')

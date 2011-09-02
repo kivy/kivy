@@ -1,67 +1,84 @@
-Android platform
-================
+.. _android:
 
-We want to thanks Renpy Tom for beeing able to run pygame on android,
-with his `Pygame Subset for Android <http://renpy.org/pygame/>`_ project.
+Kivy on Android
+===============
 
-The changes made from his project are :
+Requirements for android application
+------------------------------------
 
-- Support of multitouch event
-- OpenGL ES 2.0 surface
-- Include more Python modules
-- Removing main() function and use __main__ hack.
-- Various enhancements on the build system for Kivy
-
-Introduction to the Kivy Launcher
----------------------------------
-
-The Kivy launcher is an application to run any kivy examples stored on your
-sdcard from android. Check the :doc:`installation-android`.
-
-Your application must be saved into::
-
-    /sdcard/kivy/<yourapplication>
-
-Your application directory must contain::
-
-    main.py # <-- Your main application file
-    android.txt # <-- Some indication for running your application
-
-The `main.py` is the same as your original code. If you want to support android,
-you must change the __main__ line to::
+As soon as you want to do an application for android platform, you must have a
+file named `main.py` in for root directory of your application, and handling
+the android platform in the `__name__` test::
 
     if __name__ in ('__main__', '__android__'):
         YourApp().run()
 
-The `android.txt` can contain::
+Create an APK
+-------------
 
-    title=<Application Title>
-    author=<Your Name>
-    orientation=<portrait|landscape>
+The whole process is described in the :ref:`packaging_android` documentation.
 
-Status of the project
+
+Debugging your application on android platform
+----------------------------------------------
+
+Android SDK ship a tool named adb. Connect your device, and run::
+
+    adb logcat
+
+You'll see all the log, but also your stdout/stderr, Kivy logger.
+
+
+Status of the Project
 ---------------------
 
-Missing providers:
+This project is a derivated work of Pygame Subset for Android, made by Tom
+Rothamel. His work is available at::
 
-- Video
-- Camera
-- Audio (can use RenPySound)
+	https://code.launchpad.net/~pgs4a-developer/pgs4a/mainline
 
-Missing features:
+This project code is available at::
 
-- Keyboard mapping for main button
-- Keyboard support in future TextInput widget
-- Ability to hook app on sleep/wakeup
-- Ability for an application to have a settings screen
+	https://code.launchpad.net/~tito-bankiz/pgs4a/kivy
 
-Working devices
----------------
+We made that branch to be able to:
+
+	- integrate Kivy android-support branch in the build
+	- create opengl es 2 surface with stencil buffer
+	- enable multitouch event
+	- custom start.pyx to launch kivy application
+	- default activation of WRITE_EXTERNAL_STORAGE permission
+
+Currently, Kivy is not fully supported on Android. We are missing:
+
+    - *Video providers* (done in 1.0.8 version)
+    - Camera providers
+    - Audio (can use RenPySound) providers
+    - Keyboard mapping for main button
+    - Ability to hook app on sleep/wakeup
+
+Tested Devices
+--------------
+
+These Android devices have been confirmed working with Kivy. If your
+device is not on the list, that does not mean that it is not supported.
+If that is the case, please try running Kivy and if it succeeds let us
+know so that we can update this list. Note, however, that your device has
+to support at least OpenGL 2.0 ES.
+
+Phones
+~~~~~~
 
 - Motorola Droid 1
 - Motorola Droid 2
-- Samsung Galaxy Tab
 - HTC Desire
 - HTC Desire Z
 - Xperia 10 (custom ROM 2.1 + GLES 2.0 support)
+
+Tablets
+~~~~~~~
+
+- Samsung Galaxy Tab
+- Motorola Xoom
+- Asus EeePad Transformer
 

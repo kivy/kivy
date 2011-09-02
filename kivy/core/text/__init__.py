@@ -4,6 +4,10 @@ Text
 
 Abstraction of text creation. Depending of the selected backend, the text
 rendering can be more or less accurate.
+
+.. versionadded::
+    Starting to 1.0.7, the :class:`LabelBase` don't generate any texture is the
+    text have a width <= 1.
 '''
 
 __all__ = ('LabelBase', 'Label')
@@ -26,6 +30,14 @@ class LabelBase(object):
     .. warning::
         The core text label can't be changed at runtime, you must recreate one.
 
+    .. versionadded::
+        In 1.0.7, the valign is now respected. This wasn't the case before. You
+        might have issue in your application if you never think about that
+        before.
+
+    .. versionadded::
+        In 1.0.8, `size` have been deprecated and replaced with `text_size`
+
     :Parameters:
         `font_size`: int, default to 12
             Font size of the text
@@ -35,7 +47,7 @@ class LabelBase(object):
             Activate "bold" text style
         `italic`: bool, default to False
             Activate "italic" text style
-        `size`: list, default to (None, None)
+        `text_size`: list, default to (None, None)
             Add constraint to render the text (inside a bounding box)
             If no size is given, the label size will be set to the text size.
         `padding`: int, default to None
@@ -48,9 +60,16 @@ class LabelBase(object):
             Horizontal text alignement inside bounding box
         `valign`: str, default to "bottom"
             Vertical text alignement inside bounding box
+        `shorten`: bool, defaults to False
+            Indicate whether the label should attempt to shorten its textual
+            contents as much as possible if a `size` is given.
+            Setting this to True without an appropriately set size will lead
+            unexpected results.
+        `mipmap` : bool, default to False
+            Create mipmap for the texture
     '''
 
-    __slots__ = ('options', 'texture', '_label', 'usersize')
+    __slots__ = ('options', 'texture', '_label', '_text_size')
 
     _cache_glyphs = {}
 
@@ -59,12 +78,13 @@ class LabelBase(object):
         kwargs.setdefault('font_name', DEFAULT_FONT)
         kwargs.setdefault('bold', False)
         kwargs.setdefault('italic', False)
-        kwargs.setdefault('size', (None, None))
         kwargs.setdefault('halign', 'left')
         kwargs.setdefault('valign', 'bottom')
         kwargs.setdefault('padding', None)
         kwargs.setdefault('padding_x', None)
         kwargs.setdefault('padding_y', None)
+        kwargs.setdefault('shorten', False)
+        kwargs.setdefault('mipmap', False)
 
         padding = kwargs.get('padding', None)
         if not kwargs.get('padding_x', None):
@@ -82,15 +102,21 @@ class LabelBase(object):
             else:
                 kwargs['padding_y'] = 0
 
-        uw, uh = kwargs['size']
+        self._text_size = (None, None)
+        if 'text_size' in kwargs:
+            self._text_size = kwargs['text_size']
+        elif 'size' in kwargs:
+            self._text_size = kwargs['size']
+
+        uw, uh = self._text_size
         if uw is not None:
-            kwargs['size'] = uw - kwargs['padding_x'] * 2, uh
+            self._text_size = uw - kwargs['padding_x'] * 2, uh
 
         super(LabelBase, self).__init__()
 
         self._text = None
+        self._internal_height = 0
 
-        self.usersize = kwargs.get('size')
         self.options = kwargs
         self.texture = None
 
@@ -122,6 +148,28 @@ class LabelBase(object):
     def _render_end(self):
         pass
 
+    def shorten(self, text):
+        # Just a tiny shortcut
+        textwidth = lambda txt: self.get_extents(txt)[0]
+        mid = len(text)/2
+        begin = text[:mid].strip()
+        end = text[mid:].strip()
+        steps = 1
+        middle = '...'
+        width = textwidth(begin+end) + textwidth(middle)
+        last_width = width
+        while width > self.text_size[0]:
+            begin = text[:mid - steps].strip()
+            end = text[mid + steps:].strip()
+            steps += 1
+            width = textwidth(begin+end) + textwidth(middle)
+            if width == last_width:
+                # No more shortening possible. This is the best we can
+                # do. :-( -- Prevent infinite while loop.
+                break
+            last_width = width
+        return begin + middle + end
+
     def render(self, real=False):
         '''Return a tuple(width, height) to create the image
         with the user constraints.
@@ -132,11 +180,20 @@ class LabelBase(object):
           * if user set a width, blit per glyph
         '''
 
-        uw, uh = self.usersize
+        options = self.options
+        uw, uh = self.text_size
         w, h = 0, 0
         x, y = 0, 0
         if real:
             self._render_begin()
+            halign = options['halign']
+            valign = options['valign']
+            if valign == 'bottom':
+                y = self.height - self._internal_height
+            elif valign == 'middle':
+                y = int((self.height - self._internal_height) / 2)
+        else:
+            self._internal_height = 0
 
         # no width specified, faster method
         if uw is None:
@@ -144,15 +201,16 @@ class LabelBase(object):
                 lw, lh = self.get_extents(line)
                 if real:
                     x = 0
-                    if self.options['halign'] == 'center':
+                    if halign == 'center':
                         x = int((self.width - lw) / 2.)
-                    elif self.options['halign'] == 'right':
+                    elif halign == 'right':
                         x = int(self.width - lw)
                     self._render_text(line, x, y)
                     y += int(lh)
                 else:
                     w = max(w, int(lw))
-                    h += int(lh)
+                    self._internal_height += int(lh)
+            h = self._internal_height if uh is None else uh
 
         # constraint
         else:
@@ -163,16 +221,21 @@ class LabelBase(object):
 
             if not real:
                 # verify that each glyph have size
-                glyphs = list(set(self.text))
+                glyphs = list(set(self.text)) + ['.']
                 for glyph in glyphs:
                     if not glyph in cache:
                         cache[glyph] = self.get_extents(glyph)
+
+            # Shorten the text that we actually display
+            text = self.text
+            if options['shorten'] and self.get_extents(text)[0] > uw:
+                text = self.shorten(text)
 
             # first, split lines
             glyphs = []
             lines = []
             lw = lh = 0
-            for word in re.split(r'( |\n)', self.text):
+            for word in re.split(r'( |\n)', text):
 
                 # calculate the word width
                 ww, wh = 0, 0
@@ -192,7 +255,6 @@ class LabelBase(object):
 
                 # is the word fit on the line ?
                 if (word == '\n' or x + ww > uw) and lw != 0:
-
                     # no, push actuals glyph
                     lines.append(((lw, lh), glyphs))
                     glyphs = []
@@ -215,16 +277,16 @@ class LabelBase(object):
                 lines.append(((lw, lh), glyphs))
 
             if not real:
-                h = sum([size[1] for size, glyphs in lines])
+                self._internal_height = sum([size[1] for size, glyphs in lines])
+                h = self._internal_height if uh is None else uh
                 w = uw
             else:
                 # really render now.
-                y = 0
                 for size, glyphs in lines:
                     x = 0
-                    if self.options['halign'] == 'center':
+                    if halign == 'center':
                         x = int((self.width - size[0]) / 2.)
-                    elif self.options['halign'] == 'right':
+                    elif halign == 'right':
                         x = int(self.width - size[0])
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
@@ -244,24 +306,48 @@ class LabelBase(object):
         data = self._render_end()
         assert(data)
 
+        # if data width is too tiny, just create texture, don't really render!
+        if data.width <= 1:
+            if self.texture:
+                self.texture = None
+            return
+
         # create texture is necessary
         texture = self.texture
+        mipmap = options['mipmap']
         if texture is None:
-            texture = Texture.create(size=self.size, colorfmt='luminance_alpha')
+            if data is None:
+                texture = Texture.create(
+                    size=self.size, colorfmt='luminance_alpha',
+                    mipmap=mipmap)
+            else:
+                texture = Texture.create_from_data(data, mipmap=mipmap)
             texture.flip_vertical()
-        elif self.width > texture.width or self.height > texture.height:
-            texture = Texture.create(size=self.size)
+        elif self.width != texture.width or self.height != texture.height:
+            if data is None:
+                texture = Texture.create(size=self.size, mipmap=mipmap)
+            else:
+                texture = Texture.create_from_data(data, mipmap=mipmap)
             texture.flip_vertical()
+        '''
+        # Avoid that for the moment.
+        # The thing is, as soon as we got a region, the blitting is not going in
+        # the right position cause of previous flip_vertical
+        # In addition, as soon as we have a region, we are not testing from the
+        # original texture. Mean we'll have region of region of region.
+        # Take more time to implement a fix for it, if it's needed.
         else:
+            print 'get region ??', self, self.width, self.height
             texture = texture.get_region(
                 0, 0, self.width, self.height)
+        '''
 
         self.texture = texture
 
         # update texture
         # If the text is 1px width, usually, the data is black.
         # Don't blit that kind of data, otherwise, you have a little black bar.
-        if data.width > 1:
+        if data is not None and data.width > 1:
             texture.blit_data(data)
 
     def refresh(self):
@@ -329,6 +415,18 @@ class LabelBase(object):
         '''Return an uniq id for all font parameters'''
         return str([self.options[x] for x in (
             'font_size', 'font_name', 'bold', 'italic')])
+
+    def _get_text_size(self):
+        return self._text_size
+
+    def _set_text_size(self, x):
+        self._text_size = x
+
+    text_size = property(_get_text_size, _set_text_size,
+        doc='''Get/set the (width, height) of the contrained rendering box''')
+
+    usersize = property(_get_text_size, _set_text_size,
+        doc='''(deprecated) Use text_size instead.''')
 
 # Load the appropriate provider
 Label = core_select_lib('text', (

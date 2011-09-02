@@ -34,13 +34,16 @@ cdef object get_default_texture():
     return DEFAULT_TEXTURE
 
 # register Image cache
-Cache.register('kv.texture', timeout=60)
+Cache.register('kv.texture', limit=1000, timeout=60)
+Cache.register('kv.shader', limit=1000, timeout=60)
 
 # ensure that our resources are cleaned
 def gl_init_resources():
     global DEFAULT_TEXTURE
     DEFAULT_TEXTURE = None
     Cache.remove('kv.texture')
+    Cache.remove('kv.shader')
+    reset_gl_context()
 
 cdef class LineWidth(ContextInstruction):
     '''Instruction to set the line width of the drawing context
@@ -106,8 +109,50 @@ cdef tuple hsv_to_rgb(float h, float s, float v):
     if i == 5: return v, p, q
     # Cannot get here
 
+
 cdef class Color(ContextInstruction):
-    '''Instruction to set the color state for any vetices being drawn after it
+    '''Instruction to set the color state for any vertices being drawn after it.
+    All the values passed are between 0 and 1, not 0 and 255.
+
+    In Python, you can do::
+
+        from kivy.graphics import Color
+
+        # create red color
+        c = Color(1, 0, 0)
+        # create blue color
+        c = Color(0, 1, 0)
+        # create blue color with 50% alpha
+        c = Color(0, 1, 0, .5)
+
+        # using hsv mode
+        c = Color(0, 1, 1, mode='hsv')
+        # using hsv mode + alpha
+        c = Color(0, 1, 1, .2, mode='hsv')
+
+    In kv lang::
+
+        <Rule>:
+            canvas:
+                # red color
+                Color:
+                    rgb: 1, 0, 0
+                # blue color
+                Color:
+                    rgb: 0, 1, 0
+                # blue color with 50% alpha
+                Color:
+                    rgba: 0, 1, 0, .5
+
+                # using hsv mode
+                Color:
+                    hsv: 0, 1, 1
+
+                # using hsv mode + alpha
+                Color:
+                    hsv: 0, 1, 1
+                    a: .5
+
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
@@ -129,51 +174,71 @@ cdef class Color(ContextInstruction):
                 self.set_state('color', [1.0, 1.0, 1.0, 1.0])
 
     property rgba:
+        '''RGBA color, list of 4 values in 0-1 range
+        '''
         def __get__(self):
             return self.context_state['color']
         def __set__(self, rgba):
             self.set_state('color', map(float,rgba))
     property rgb:
+        '''RGB color, list of 3 values in 0-1 range, alpha will be 1.
+        '''
         def __get__(self):
             return self.rgba[:-1]
         def __set__(self, rgb):
             self.rgba = (rgb[0], rgb[1], rgb[2], 1.0)
     property r:
+        '''Red component, between 0-1
+        '''
         def __get__(self):
             return self.rgba[0]
         def __set__(self, r):
             self.rgba = [r, self.g, self.b, self.a]
     property g:
+        '''Green component, between 0-1
+        '''
         def __get__(self):
             return self.rgba[1]
         def __set__(self, g):
             self.rgba = [self.r, g, self.b, self.a]
     property b:
+        '''Blue component, between 0-1
+        '''
         def __get__(self):
             return self.rgba[2]
         def __set__(self, b):
             self.rgba = [self.r, self.g, b, self.a]
     property a:
+        '''Alpha component, between 0-1
+        '''
         def __get__(self):
             return self.rgba[3]
         def __set__(self, a):
             self.rgba = [self.r, self.g, self.b, a]
     property hsv:
+        '''HSV color, list of 3 values in 0-1 range, alpha will be 1.
+        '''
         def __get__(self):
-            return rgb_to_hsv(self.r, self.h, self.b)
+            return rgb_to_hsv(self.r, self.g, self.b)
         def __set__(self, x):
             self.rgb = hsv_to_rgb(x[0], x[1], x[2])
     property h:
+        '''Hue component, between 0-1
+        '''
         def __get__(self):
             return self.hsv[0]
         def __set__(self, x):
             self.hsv = [x, self.s, self.v]
     property s:
+        '''Saturation component, between 0-1
+        '''
         def __get__(self):
             return self.hsv[1]
         def __set__(self, x):
             self.hsv = [self.h, x, self.v]
     property v:
+        '''Value component, between 0-1
+        '''
         def __get__(self):
             return self.hsv[2]
         def __set__(self, x):
@@ -200,9 +265,11 @@ cdef class BindTexture(ContextInstruction):
         if self.source is None:
             self.texture = kwargs.get('texture', None)
 
+        self.index = kwargs.get('index', 0)
+
     cdef void apply(self):
         cdef RenderContext context = self.get_context()
-        context.set_texture(0, self._texture)
+        context.set_texture(self._index, self._texture)
 
     property texture:
         def __get__(self):
@@ -212,6 +279,15 @@ cdef class BindTexture(ContextInstruction):
                 texture = get_default_texture()
             self._texture = texture
 
+    property index:
+        def __get__(self):
+            return self._index
+        def __set__(self, int index):
+            if self._index == index:
+                return
+            self._index = index
+            self.flag_update()
+
     property source:
         '''Set/get the source (filename) to load for texture.
         '''
@@ -219,7 +295,7 @@ cdef class BindTexture(ContextInstruction):
             return self._source
         def __set__(self, bytes filename):
             Logger.trace('BindTexture: setting source: <%s>' % filename)
-            self._source = resource_find(filename)
+            self._source = <bytes>resource_find(filename)
             if self._source:
                 tex = Cache.get('kv.texture', filename)
                 if not tex:
@@ -262,7 +338,7 @@ cdef class MatrixInstruction(ContextInstruction):
         cdef RenderContext context = self.get_context()
         cdef Matrix mvm
         mvm = context.get_state('modelview_mat')
-        context.set_state('modelview_mat', self.matrix.multiply(mvm))
+        context.set_state('modelview_mat', mvm.multiply(self.matrix))
 
     property matrix:
         ''' Matrix property. Numpy matrix from transformation module
@@ -328,9 +404,9 @@ cdef class Rotate(Transform):
 
         >>> rotationobject.set(90, 0, 0, 1)
         '''
-        self._angle = radians(angle)
+        self._angle = angle
         self._axis = (ax, ay, az)
-        self.matrix = Matrix().rotate(self._angle, ax, ay, az)
+        self.matrix = Matrix().rotate(radians(self._angle), ax, ay, az)
 
     property angle:
         '''Property for getting/settings the angle of the rotation

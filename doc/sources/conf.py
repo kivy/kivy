@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'Kivy'
-copyright = '2010, kivy-dev'
+copyright = '2010, The Kivy Authors'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -84,7 +84,7 @@ today_fmt = '%B %d, %Y'
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'kivy_pygments_theme.KivyStyle'
 
 
 # Options for HTML output
@@ -104,7 +104,7 @@ html_style = 'default.css'
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
-html_logo = 'kivy-logo.png'
+html_logo = 'logo_kivy.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -168,16 +168,24 @@ htmlhelp_basename = 'Kivydoc'
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
   ('index', 'Kivy.tex', 'Kivy Documentation',
-   'kivy-dev', 'manual'),
+   'The Kivy Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
 #latex_logo = None
 
+latex_elements = {
+    'fontpkg':      r'\usepackage{mathpazo}',
+    'papersize':    'a4paper',
+    'pointsize':    '10pt',
+    'preamble':     r'\usepackage{kivystyle}'
+}
+latex_additional_files = ['kivystyle.sty', 'logo.pdf']
+
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-#latex_use_parts = False
+latex_use_parts = True
 
 # Additional stuff for the LaTeX preamble.
 #latex_preamble = ''

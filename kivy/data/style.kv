@@ -1,56 +1,493 @@
+#:kivy 1.0
+
 <Label>:
-	canvas:
-		Color:
-			rgb: 1, 1, 1
-		Rectangle:
-			texture: self.texture
-			size: self.texture_size
-			pos: int(self.center[0] - self.texture_size[0] / 2.), int(self.center[1] - self.texture_size[1] / 2.)
+    canvas:
+        Color:
+            rgba: self.color
+        Rectangle:
+            texture: self.texture
+            size: self.texture_size
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
 <Button,ToggleButton>:
-	canvas:
-		Color:
-			rgb: (1, 1, 1)
-		BorderImage:
-			border: (16, 16, 16, 16)
-			pos: self.pos
-			size: self.size
-			source: 'data/images/button.png' if self.state == 'normal' else 'data/images/button_pressed.png'
-		Color:
-			rgb: (1, 1 ,1)
-		Rectangle:
-			texture: self.texture
-			size: self.texture_size
-			pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+    canvas:
+        Color:
+            rgba: self.background_color
+        BorderImage:
+            border: (16, 16, 16, 16)
+            pos: self.pos
+            size: self.size
+            source: self.background_normal if self.state == 'normal' else self.background_down
+        Color:
+            rgba: self.color
+        Rectangle:
+            texture: self.texture
+            size: self.texture_size
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
 
 <Slider>:
     canvas:
         Color:
             rgb: 1, 1, 1
-		BorderImage:
-			border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
-			pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
-			size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
-			source: 'data/images/slider%s_background.png' % self.orientation[0]
-		Image:
-			pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
-			size: (32, 32)
-			source: 'data/images/slider_cursor.png'
+        BorderImage:
+            border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
+            pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
+            size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
+            source: 'data/images/slider%s_background.png' % self.orientation[0]
+        Image:
+            pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
+            size: (32, 32)
+            source: 'data/images/slider_cursor.png'
 
-<Scatter>:
-	canvas.before:
-		PushMatrix
-		MatrixInstruction:
-			matrix: self.transform
-	canvas.after:
-		PopMatrix
-
-<Image,AsyncImage>:
+<ProgressBar>:
 	canvas:
 		Color:
-			rgb: (1, 1, 1)
-		Rectangle:
-			texture: self.texture
-			size: self.norm_image_size
-			pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
+			rgb: 1, 1, 1
+		BorderImage:
+			border: (12, 12, 12, 12)
+			pos: self.x, self.center_y - 12
+			size: self.width, 24
+			source: 'data/images/progressbar_background.png'
+		BorderImage:
+			border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
+			pos: self.x, self.center_y - 12
+			size: self.width * (self.value / float(self.max)), 24
+			source: 'data/images/progressbar.png'
+
+<Scatter>:
+    canvas.before:
+        PushMatrix
+        MatrixInstruction:
+            matrix: self.transform
+    canvas.after:
+        PopMatrix
+
+<Image,AsyncImage>:
+    canvas:
+        Color:
+            rgba: self.color
+        Rectangle:
+            texture: self.texture
+            size: self.norm_image_size
+            pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
+
+<TextInput>:
+    padding_x: 6
+    padding_y: 6
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1)
+        BorderImage:
+            border: (16, 16, 16, 16)
+            pos: self.pos
+            size: self.size
+            source: 'data/images/textinput.png' if not self.focus else 'data/images/textinput_active.png'
+        Color:
+            rgba: (1, 0, 0, 1 if self.focus and not self.cursor_blink else 0)
+        Rectangle:
+            pos: map(int, self.cursor_pos)
+            size: 1, -self.line_height
+        Color:
+            rgb: (0, 0, 0)
+
+
+<TreeViewNode>:
+    canvas.before:
+        Color:
+            rgba: self.color_selected if self.is_selected else self.odd_color if self.odd else self.even_color
+        Rectangle:
+            pos: [self.parent.x, self.y] if self.parent else [0, 0]
+            size: [self.parent.width, self.height] if self.parent else [1, 1]
+        Color:
+            rgba: 1, 1, 1, int(not self.is_leaf)
+        Rectangle:
+            source: 'data/images/tree_%s.png' % ('opened' if self.is_open else 'closed')
+            size: 16, 16
+            pos: self.x - 20, self.center_y - 8
+    canvas.after:
+        Color:
+            rgba: .5, .5, .5, .2
+        Line:
+            points: [self.parent.x, self.y, self.parent.right, self.y] if self.parent else []
+
+
+<TreeViewLabel>:
+    width: self.texture_size[0]
+    height: max(self.texture_size[1], 24)
+    text_size: self.width, None
+
+
+<StencilView>:
+    canvas.before:
+        StencilPush
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilUse
+
+    canvas.after:
+        StencilPop
+
+
+<FileChooserListView>:
+    on_entry_added: treeview.add_node(args[1])
+    on_entries_cleared: treeview.root.nodes = []
+    on_subentry_to_entry: not args[2].locked and treeview.add_node(args[1], args[2])
+    on_remove_subentry: args[2].nodes = []
+    BoxLayout:
+        pos: root.pos
+        size: root.size
+        size_hint: None, None
+        orientation: 'vertical'
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            orientation: 'horizontal'
+            Widget:
+                # Just for spacing
+                width: 10
+                size_hint_x: None
+            Label:
+                text: 'Name'
+                text_size: self.size
+                halign: 'left'
+                bold: True
+                font_name: 'data/fonts/DroidSans-Bold.ttf'
+            Label:
+                text: 'Size'
+                text_size: self.size
+                size_hint_x: None
+                halign: 'right'
+                bold: True
+                font_name: 'data/fonts/DroidSans-Bold.ttf'
+            Widget:
+                # Just for spacing
+                width: 10
+                size_hint_x: None
+        ScrollView:
+            id: scrollview
+            do_scroll_x: False
+            Scatter:
+                do_rotation: False
+                do_scale: False
+                do_translation: False
+                size: treeview.size
+                size_hint_y: None
+                TreeView:
+                    id: treeview
+                    hide_root: True
+                    size_hint_y: None
+                    width: scrollview.width
+                    height: self._minimum_size[1]
+                    on_node_expand: root.entry_subselect(args[1])
+                    on_node_collapse: root.close_subselection(args[1])
+
+[FileListEntry@FloatLayout+TreeViewNode]:
+    locked: False
+    entries: []
+    path: ctx.path
+    controller: ctx.controller
+    # FIXME: is_selected is actually a read_only treeview property. In this
+    # case, however, we're doing this because treeview only has single-selection
+    # hardcoded in it. The fix to this would be to update treeview to allow
+    # multiple selection.
+    is_selected: self.path in ctx.controller.selection
+
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: 24
+    # Don't allow expansion of the ../ node
+    is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
+    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller.entry_touched(self, args[1])
+    BoxLayout:
+        pos: root.pos
+        Label:
+            text_size: self.size
+            halign: 'left'
+            text: unicode(ctx.name)
+        Label:
+            text_size: self.size
+            size_hint_x: None
+            halign: 'right'
+            text: unicode(ctx.get_nice_size())
+
+
+<FileChooserIconView>:
+    on_entry_added: stacklayout.add_widget(args[1])
+    on_entries_cleared: stacklayout.clear_widgets()
+    ScrollView:
+        id: scrollview
+        pos: root.pos
+        size: root.size
+        size_hint: None, None
+        do_scroll_x: False
+        Scatter:
+            do_rotation: False
+            do_scale: False
+            do_translation: False
+            size: stacklayout.size
+            size_hint_y: None
+            StackLayout:
+                id: stacklayout
+                width: scrollview.width
+                size_hint_y: None
+                spacing: 10
+                padding: 10
+
+[FileIconEntry@Widget]:
+    locked: False
+    path: ctx.path
+    selected: self.path in ctx.controller.selection
+    size: (100, 100)
+    size_hint: None, None
+
+    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller.entry_touched(self, args[1])
+
+    canvas:
+        Color:
+            rgba: 1, 1, 1, 1 if self.selected else 0
+        BorderImage:
+            border: (8, ) * 4
+            pos: root.pos
+            size: root.size
+            source: 'data/images/filechooser_selected.png'
+
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+        Widget:
+            height: 20
+        Image:
+            size: (64, ) * 2
+            source: 'data/images/filechooser_%s.png' % ('folder' if ctx.isdir else 'file')
+        Label:
+            text: unicode(ctx.name)
+            text_size: (root.width, self.height)
+            halign: 'center'
+            shorten: True
+        Label:
+            text: unicode(ctx.get_nice_size())
+            font_size: 8
+            color: (0.8, ) * 4
+            halign: 'center'
+
+
+# Switch widget
+<Switch>:
+    active_norm_pos: max(0., min(1., (int(self.active) + self.touch_distance / 41)))
+    canvas:
+        Color:
+            rgb: 1, 1, 1
+        Rectangle:
+            source: 'data/images/switch-background.png'
+            size: 83, 32
+            pos: self.center_x - 41, self.center_y - 16
+        Rectangle:
+            source: 'data/images/switch-button.png'
+            size: 43, 32
+            pos: self.center_x - 41 + self.active_norm_pos * 41, self.center_y - 16
+
+# Popup widget
+<Popup>:
+    _container: container
+    canvas:
+        Color:
+            rgba: 0, 0, 0, self._anim_alpha * .7
+        Rectangle:
+            size: self._window.size if self._window else (0, 0)
+
+        Color:
+            rgb: 1, 1, 1
+        BorderImage:
+            source: 'data/images/popup-background.png'
+            border: 16, 16, 16, 16
+            pos: self.pos
+            size: self.size
+
+    GridLayout:
+        padding: 12
+        cols: 1
+        size_hint: None, None
+        pos: root.pos
+        size: root.size
+
+        Label:
+            text: root.title
+            size_hint_y: None
+            height: self.texture_size[1] + 16
+            text_size: self.width - 16, None
+
+        Widget:
+            size_hint_y: None
+            height: 4
+            canvas:
+                Color:
+                    rgb: 47 / 255., 167 / 255., 212 / 255.
+                Rectangle:
+                    pos: self.x, self.y + 1
+                    size: self.width, 2
+
+        BoxLayout:
+            id: container
+
+
+# =============================================================================
+# Settings
+# =============================================================================
+
+<SettingSpacer>:
+    size_hint_y: None
+    height: 5
+    canvas:
+        Color:
+            rgb: .2, .2, .2
+        Rectangle:
+            pos: self.x, self.center_y
+            size: self.width, 1
+
+<SettingItem>:
+    size_hint_x: .25
+    content: content
+    canvas:
+        Color:
+            rgba: 47 / 255., 167 / 255., 212 / 255., self.selected_alpha
+        Rectangle:
+            pos: self.x, self.y + 1
+            size: self.size
+        Color:
+            rgb: .2, .2, .2
+        Rectangle:
+            pos: self.x, self.y - 2
+            size: self.width, 1
+
+    BoxLayout:
+        pos: root.pos
+
+        FloatLayout:
+            id: labellayout
+            orientation: 'vertical'
+            Label:
+                pos_hint: {'y': .5, 'x': 0}
+                text: root.title
+                text_size: self.width - 32, None
+                size_hint_y: None
+                height: self.texture_size[1]
+            Label:
+                pos_hint: {'top': .5, 'x': 0}
+                text: root.desc if root.desc else ''
+                text_size: self.width - 32, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                font_size: 10
+                color: (.7, .7, .7, 1) if root.selected_alpha < 0.5 else (.3, .3, .3, 1)
+
+        BoxLayout:
+            id: content
+            size_hint_x: None
+            width: 150
+
+<SettingBoolean>:
+    Switch:
+        text: 'Boolean'
+        pos: root.pos
+        active: bool(root.values.index(root.value)) if root.value in root.values else False
+        on_active: root.value = root.values[int(args[1])]
+
+<SettingString>:
+    Label:
+        text: str(root.value)
+        pos: root.pos
+
+<SettingOptions>:
+    Label:
+        text: str(root.value)
+        pos: root.pos
+
+<SettingTitle>:
+    text_size: self.width - 32, None
+    color: (.9, .9, .9, 1)
+    canvas:
+        Color:
+            rgba: .15, .15, .15, .5
+        Rectangle:
+            pos: self.x, self.y + 2
+            size: self.width, self.height - 2
+        Color:
+            rgb: .2, .2, .2
+        Rectangle:
+            pos: self.x, self.y - 2
+            size: self.width, 1
+
+<SettingSidebarLabel>:
+    size_hint: 1, None
+    text_size: self.width - 32, None
+    height: max(48, self.texture_size[1] + 8)
+    canvas.before:
+        Color:
+            rgba: 47 / 255., 167 / 255., 212 / 255., int(self.selected)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<SettingsPanel>:
+    spacing: 5
+    padding: 5
+    row_default_height: 48
+    row_force_default: True
+
+    Label:
+        text: root.title
+        text_size: self.width - 32, None
+        color: (.5, .5, .5, 1)
+
+        canvas.after:
+            Color:
+                rgb: .2, .2, .2
+            Rectangle:
+                pos: self.x, self.y - 2
+                size: self.width, 1
+
+<Settings>:
+    content: content
+    menu: menu
+
+    canvas:
+        Color:
+            rgb: 0, 0, 0
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    FloatLayout:
+        size_hint_x: None
+        width: 200
+        GridLayout:
+            pos: root.pos
+            cols: 1
+            id: menu
+            orientation: 'vertical'
+            padding: 5
+
+            canvas.after:
+                Color:
+                    rgb: .2, .2, .2
+                Rectangle:
+                    pos: self.right - 1, self.y
+                    size: 1, self.height
+
+        Button:
+            text: 'Close'
+            size_hint: None, None
+            width: 180
+            height: 50
+            pos: root.x + 10, root.y + 10
+            on_release: root.dispatch('on_close')
+
+    ScrollView:
+        do_scroll_x: False
+        BoxLayout:
+            size_hint_y: None
+            id: content
+            orientation: 'vertical'

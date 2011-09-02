@@ -8,6 +8,9 @@ creation. Don't try to create more than one.
 
 __all__ = ('WindowBase', 'Window')
 
+from os.path import join, exists
+from os import getcwd
+
 from kivy.core import core_select_lib
 from kivy.config import Config
 from kivy.logger import Logger
@@ -19,23 +22,10 @@ from kivy.event import EventDispatcher
 class WindowBase(EventDispatcher):
     '''WindowBase is a abstract window widget, for any window implementation.
 
-    .. warning::
-
-        The parameters are not working in normal case. Because at import, Kivy
-        create a default OpenGL window, to add the ability to use OpenGL
-        directives, texture creation.. before creating Window.
-        If you don't like this behavior, you can include before the very first
-        import of Kivy ::
-
-            import os
-            os.environ['KIVY_SHADOW'] = '0'
-
-        This will forbid Kivy to create the default window !
-
-
     :Parameters:
-        `fullscreen`: bool
-            Make window as fullscreen
+        `fullscreen`: str, one of ('0', '1', 'auto', 'fake')
+            Make window as fullscreen, check config documentation for more
+            explaination about the values.
         `width`: int
             Width of window
         `height`: int
@@ -49,7 +39,7 @@ class WindowBase(EventDispatcher):
             Fired when a new touch appear
         `on_touch_move`:
             Fired when an existing touch is moved
-        `on_touch_down`:
+        `on_touch_up`:
             Fired when an existing touch disapear
         `on_draw`:
             Fired when the :class:`Window` is beeing drawed
@@ -88,6 +78,7 @@ class WindowBase(EventDispatcher):
         super(WindowBase, self).__init__()
 
         # init privates
+        self._keyboard_callback = None
         self._modifiers = []
         self._size = (0, 0)
         self._rotation = 0
@@ -249,7 +240,8 @@ class WindowBase(EventDispatcher):
         self._clearcolor = value
 
     clearcolor = property(_get_clearcolor, _set_clearcolor,
-        doc='''Color used to clear window::
+        doc='''
+        Color used to clear window::
 
             from kivy.core.window import Window
 
@@ -258,7 +250,6 @@ class WindowBase(EventDispatcher):
 
             # don't clear background at all
             Window.clearcolor = None
-
         ''')
 
     # make some property read-only
@@ -283,12 +274,20 @@ class WindowBase(EventDispatcher):
         '''Rotated window center'''
         return self.width / 2., self.height / 2.
 
+    def _update_childsize(self, instance, value):
+        self.update_childsize([instance])
+
     def add_widget(self, widget):
         '''Add a widget on window'''
-        self.children.append(widget)
         widget.parent = self
+        self.children.insert(0, widget)
         self.canvas.add(widget.canvas)
         self.update_childsize([widget])
+        widget.bind(
+            pos_hint=self._update_childsize,
+            size_hint=self._update_childsize,
+            size=self._update_childsize,
+            pos=self._update_childsize)
 
     def remove_widget(self, widget):
         '''Remove a widget from window
@@ -298,6 +297,11 @@ class WindowBase(EventDispatcher):
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
+        widget.unbind(
+            pos_hint=self._update_childsize,
+            size_hint=self._update_childsize,
+            size=self._update_childsize,
+            pos=self._update_childsize)
 
     def clear(self):
         '''Clear the window with background color'''
@@ -308,6 +312,20 @@ class WindowBase(EventDispatcher):
         if cc is not None:
             glClearColor(*cc)
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+    def set_title(self, title):
+        '''Set the window title.
+
+        .. versionadded:: 1.0.5
+        '''
+        pass
+
+    def set_icon(self, filename):
+        '''Set the icon of the window
+
+        .. versionadded:: 1.0.5
+        '''
+        pass
 
     def to_widget(self, x, y, initial=True, relative=False):
         return (x, y)
@@ -379,37 +397,37 @@ class WindowBase(EventDispatcher):
     def update_viewport(self):
         from kivy.graphics.opengl import glViewport
         from kivy.graphics.transformation import Matrix
+        from math import radians
 
-        width, height = self.system_size
-        w2 = width / 2.
-        h2 = height / 2.
+        w, h = self.system_size
+        w2, h2 = w / 2., h / 2.
+        r = radians(self.rotation)
 
         # prepare the viewport
-        glViewport(0, 0, width, height)
+        glViewport(0, 0, w, h)
+
+        # do projection matrix
         projection_mat = Matrix()
-        projection_mat.view_clip(0.0, width, 0.0, height, -1.0, 1.0, 0)
+        projection_mat.view_clip(0.0, w, 0.0, h, -1.0, 1.0, 0)
         self.render_context['projection_mat'] = projection_mat
 
-        # use the rotated size.
-        # XXX FIXME fix rotation
-        '''
-        width, height = self.size
-        w2 = width / 2.
-        h2 = height / 2.
-        glTranslatef(-w2, -h2, -500)
+        # do modelview matrix
+        modelview_mat = Matrix().translate(w2, h2, 0)
+        modelview_mat = modelview_mat.multiply(Matrix().rotate(r, 0, 0, 1))
 
-        # set the model view
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-        glTranslatef(w2, h2, 0)
-        glRotatef(self._rotation, 0, 0, 1)
-        glTranslatef(-w2, -h2, 0)
-        '''
+        w, h = self.size
+        w2, h2 = w / 2., h / 2.
+        modelview_mat = modelview_mat.multiply(Matrix().translate(-w2, -h2, 0))
+        self.render_context['modelview_mat'] = modelview_mat
 
+        # redraw canvas
+        self.canvas.ask_update()
+
+        # and update childs
         self.update_childsize()
 
     def update_childsize(self, childs=None):
-        width, height = self.system_size
+        width, height = self.size
         if childs is None:
             childs = self.children
         for w in childs:
@@ -460,8 +478,6 @@ class WindowBase(EventDispatcher):
     def screenshot(self, name='screenshot%(counter)04d.jpg'):
         '''Save the actual displayed image in a file
         '''
-        from os.path import join, exists
-        from os import getcwd
         i = 0
         path = None
         while True:
@@ -508,6 +524,34 @@ class WindowBase(EventDispatcher):
     def on_key_up(self, key, scancode=None, unicode=None):
         '''Event called when a key is up (same arguments as on_keyboard)'''
         pass
+
+    def request_keyboard(self, callback):
+        '''.. versionadded:: 1.0.4
+
+        Internal method for widget, to request the keyboard. This method is
+        not intented to be used by end-user, however, if you want to use the
+        real-keyboard (not virtual keyboard), you don't want to share it with
+        another widget.
+
+        A widget can request the keyboard, indicating a callback to call
+        when the keyboard will be released (or taken by another widget).
+        '''
+        self.release_keyboard()
+        self._keyboard_callback = callback
+        return True
+
+    def release_keyboard(self):
+        '''.. versionadded:: 1.0.4
+
+        Internal method for widget, to release the real-keyboard. Check
+        :func:`request_keyboard` to understand how it works.
+        '''
+        if self._keyboard_callback:
+            # this way will prevent possible recursion.
+            callback = self._keyboard_callback
+            self._keyboard_callback = None
+            callback()
+            return True
 
 
 #: Instance of a :class:`WindowBase` implementation

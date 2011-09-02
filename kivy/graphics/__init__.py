@@ -28,17 +28,10 @@ creating a widget, you can create all the instructions needed for drawing. If
 The instructions :class:`Color` and :class:`Rectangle` are automaticly added to
 the canvas object, and will be used when the window drawing will happen.
 
-
-Compilation
------------
-
-.. todo::
-
-    Write more about the compilation.
-
 '''
 
 from kivy.graphics.instructions import *
 from kivy.graphics.context_instructions import *
 from kivy.graphics.vertex_instructions import *
+from kivy.graphics.stencil_instructions import *
 from kivy.graphics.fbo import Fbo

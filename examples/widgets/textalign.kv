@@ -1,0 +1,41 @@
+#:kivy 1.0
+
+<BoundedLabel>:
+    canvas.before:
+        Color:
+            rgb: 1, 0, 0
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<Selector>:
+    Label:
+        pos_hint: {'top': 1}
+        size_hint_y: None
+        height: 50
+        font_size: 16
+        text: 'Demonstration of text valign and halign'
+    BoxLayout:
+        size_hint_y: None
+        height: 50
+        ToggleButton:
+            halign: 'center'
+            group: 'case'
+            text: 'label.text_size =\n(None, None)'
+            on_release: root.app.select(0)
+            state: 'down'
+        ToggleButton:
+            halign: 'center'
+            group: 'case'
+            text: 'label.text_size =\n(label.width, None)'
+            on_release: root.app.select(1)
+        ToggleButton:
+            halign: 'center'
+            group: 'case'
+            text: 'label.text_size =\n(None, label.height)'
+            on_release: root.app.select(2)
+        ToggleButton:
+            halign: 'center'
+            group: 'case'
+            text: 'label.text_size =\n(label.width, label.height)'
+            on_release: root.app.select(3)

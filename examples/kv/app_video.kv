@@ -7,13 +7,8 @@ BoxLayout:
 	Video:
 		id: myvideo
 		source: '/home/tito/code/pymt/examples/apps/videoplayer/softboy.avi'
-		canvas:
-			Color:
-				rgb: (1, 1, 1)
-			Rectangle:
-				pos: self.pos
-				texture: self.texture
-				size: self.size
+		allow_stretch: True
+		on_eos: self.play = True; print 'woot we ar elooping!'
 
 	BoxLayout:
 		size_hint_y: None
@@ -26,7 +21,7 @@ BoxLayout:
 		Slider:
 			value: myvideo.position
 			max: myvideo.duration
-			on_value: print arg[0]
+			on_value: print args[1]
 
 	BoxLayout:
 		size_hint_y: None
@@ -36,10 +31,12 @@ BoxLayout:
 		ToggleButton:
 			group: 'video'
 			text: 'Play'
+			state: 'down' if myvideo.play else 'normal'
 			on_press: myvideo.play = True
 
 		ToggleButton:
 			group: 'video'
 			text: 'Stop'
+			state: 'down' if not myvideo.play else 'normal'
 			on_press: myvideo.play = False
 

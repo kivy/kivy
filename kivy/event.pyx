@@ -47,7 +47,7 @@ cdef class EventDispatcher(object):
             def on_swipe_callback(*largs):
                 print 'my swipe is called', largs
             w = MyWidget()
-            w.dispatch_event('on_swipe')
+            w.dispatch('on_swipe')
         '''
 
         if not event_type.startswith('on_'):
@@ -69,6 +69,13 @@ cdef class EventDispatcher(object):
         if event_type in self.event_stack:
             del self.event_stack[event_type]
 
+    def is_event_type(self, str event_type):
+        '''Return True if the event_type is already registered.
+
+        .. versionadded:: 1.0.4
+        '''
+        return event_type in self.event_stack
+
     def bind(self, **kwargs):
         '''Bind an event type or a property to a callback
 
@@ -76,7 +83,7 @@ cdef class EventDispatcher(object):
 
             # With properties
             def my_x_callback(obj, value):
-                print 'on object', obj', 'x changed to', value
+                print 'on object', obj, 'x changed to', value
             def my_width_callback(obj, value):
                 print 'on object', obj, 'width changed to', value
             self.bind(x=my_x_callback, width=my_width_callback)
@@ -110,12 +117,13 @@ cdef class EventDispatcher(object):
         '''Dispatch an event across all the handler added in bind().
         As soon as a handler return True, the dispatching stop
         '''
-        for value in self.event_stack[event_type]:
+        cdef list event_stack = self.event_stack[event_type]
+        cdef object remove = event_stack.remove
+        for value in event_stack[:]:
             handler = value()
             if handler is None:
                 # handler have gone, must be removed
-                # XXX FIXME event stack change while iterating
-                self.event_stack[event_type].remove(value)
+                remove(value)
                 continue
             if handler(self, *largs):
                 return True

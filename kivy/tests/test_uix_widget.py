@@ -38,6 +38,81 @@ class UIXWidgetTestCase(GraphicUnitTest):
         filename = join(dirname(__file__), 'test_button.png')
         r(Image(source=filename))
 
+    def test_add_widget_index_0(self):
+        from kivy.uix.widget import Widget
+        from kivy.uix.button import Button
+        r = self.render
+        root = Widget()
+        a = Button(text='Hello')
+        b = Button(text='World', pos=(50, 10))
+        c = Button(text='Kivy', pos=(10, 50))
+        root.add_widget(a)
+        root.add_widget(b)
+        root.add_widget(c, 0)
+        r(root)
+
+    def test_add_widget_index_1(self):
+        from kivy.uix.widget import Widget
+        from kivy.uix.button import Button
+        r = self.render
+        root = Widget()
+        a = Button(text='Hello')
+        b = Button(text='World', pos=(50, 10))
+        c = Button(text='Kivy', pos=(10, 50))
+        root.add_widget(a)
+        root.add_widget(b)
+        root.add_widget(c, 1)
+        r(root)
+
+    def test_add_widget_index_2(self):
+        from kivy.uix.widget import Widget
+        from kivy.uix.button import Button
+        r = self.render
+        root = Widget()
+        a = Button(text='Hello')
+        b = Button(text='World', pos=(50, 10))
+        c = Button(text='Kivy', pos=(10, 50))
+        root.add_widget(a)
+        root.add_widget(b)
+        root.add_widget(c, 2)
+        r(root)
+        
+    def test_widget_root_from_code_with_kv(self):
+        from kivy.lang import Builder
+        from kivy.factory import Factory
+        from kivy.properties import ObjectProperty, StringProperty
+        from kivy.uix.floatlayout import FloatLayout
+        
+        Builder.load_string("""
+<MyWidget>:
+    Label:
+        text: root.title
+        
+<BaseWidget>:
+    CallerWidget:
+""")
+        
+        class CallerWidget(FloatLayout):
+            def __init__(self, **kwargs):
+                super(CallerWidget, self).__init__(**kwargs)
+                self.add_widget(MyWidget(title="Hello World"))
+            
+        class NestedWidget(FloatLayout):
+            title = StringProperty('aa')
+            
+        class MyWidget(NestedWidget):
+            pass
+        
+        class BaseWidget(FloatLayout):
+            pass
+        
+        Factory.register('MyWidget', cls=MyWidget)
+        Factory.register('CallerWidget', cls=CallerWidget)
+
+        r = self.render
+        root = BaseWidget()
+        r(root)
+
     '''
     def test_default_label(self):
         from kivy.uix.label import Label

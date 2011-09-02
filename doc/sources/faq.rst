@@ -7,6 +7,50 @@ There are a number of questions that repeatedly need to be answered.
 The following document tries to answer some of them.
 
 
+
+Technical FAQ
+=============
+
+Fatal Python error: (pygame parachute) Segmentation Fault
+---------------------------------------------------------
+
+Most of time, this issue is due to an usage of old graphics driver. Install the
+latest graphics driver available for your graphics card, and it could be ok.
+
+If not, please report a detailled issue to github, by following the
+:ref:`contribute` document, in the section `Reporting an Issue`. This is very
+important for us because that kind of error can be very hard to debug. Give us
+all the informations you can give about your environment and execution.
+
+
+undefined symbol: glGenerateMipmap
+----------------------------------
+
+You might have a too old graphics card. Update your graphics drivers to the
+latest available version, and retry.
+
+ImportError: No module named event
+----------------------------------
+
+If you use Kivy from our development version, you must compile it before
+using it. In the kivy directory, do::
+
+    make force
+
+Pip installation failed
+-----------------------
+
+Installing Kivy using Pip is not currently supported. Because Pip force the
+usage of setuptools, setuptools hack build_ext to use pyrex for generating .c,
+and they are no clean solution to hack against both weird behaviors to use
+Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709.html)
+
+Solution: use `easy_install`, as our documentation said.
+
+
+Project FAQ
+===========
+
 Why do you use Python? Isn't it slow?
 -------------------------------------
 
@@ -131,11 +175,43 @@ Does the Kivy project participate in Google's Summer of Code 2011?
 
 Since Google announced that there will be a GSoC 2011 we have had many
 potential students ask whether we would participate.
-The clear answer is: We don't know, but we hope so.
-We will most likely apply and then hopefully get chosen as one of the
-mentoring organizations.
+The clear answer is: Indeed. :-)
+The NUIGroup has applied as an umbrella organization and luckily
+got chosen as one of the mentoring organizations. Given enough slots
+for NUIGroup, slots will be dedicated to Kivy. That also depends on the
+overall quality of the student proposals (i.e. if there is only one
+Kivy student proposal with a bad quality, Kivy will not get a slot).
 If you want to participate as a student and want to maximize your
 chances of being accepted, start talking to us today and try fixing
 some smaller (or larger, if you can ;-) problems to get used to our
 workflow. If we know you can work well with us, that'd be a big plus.
+
+See: http://wiki.nuigroup.com/Google_Summer_of_Code_2011
+
+Here's a checklist:
+
+    * Make sure to read through the website and at least skim the
+      documentation.
+    * Look at the source code.
+    * Read our contribution guidelines.
+    * Pick an idea that you think is interesting from the ideas list (see
+      link above) or come up with your own idea.
+    * Do some research **yourself**. GSoC is not about us teaching you
+      something and you getting paid for that. It is about you trying to
+      achieve agreed upon goals by yourself with our support. The main
+      driving force in this should be, obviously, yourself, though.
+      Many students come up and ask what they should do. Well, we don't
+      know because we know neither your interests nor your skills. Show us
+      you're serious about it and take initiative.
+    * Write a draft proposal about what you want to do. Include what you
+      understand the current state is (very roughly), what you would like
+      to improve and how, etc.
+    * Discuss that proposal with us in a timely manner. Get feedback.
+    * Be patient! Especially on IRC. We will try to get to you if we're
+      available. If not, send an email and just wait. Most questions are
+      already answered in the docs or somewhere else and can be found with
+      some research. If your questions don't reflect that you've actually
+      thought through what you're asking, that might not be received well.
+
+Good luck! :-)
 

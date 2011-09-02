@@ -7,8 +7,9 @@ The :class:`Layout` class itself cannot be used directly. You must use one of:
 
 - Anchor layout : :class:`kivy.uix.anchorlayout.AnchorLayout`
 - Box layout : :class:`kivy.uix.boxlayout.BoxLayout`
+- Float layout : :class:`kivy.uix.floatlayout.FloatLayout`
 - Grid layout : :class:`kivy.uix.gridlayout.GridLayout`
-- Screen layout : :class:`kivy.uix.screenlayout.ScreenLayout`
+- Stack layout : :class:`kivy.uix.stacklayout.StackLayout`
 
 Understanding `size_hint` property in `Widget`
 ----------------------------------------------
@@ -36,6 +37,7 @@ of his parent, you can write: ::
 
 __all__ = ('Layout', )
 
+from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.properties import AliasProperty
 
@@ -50,18 +52,22 @@ class Layout(Widget):
             raise Exception('The Layout class cannot be used.')
         kwargs.setdefault('size', (1, 1))
         self._minimum_size = (0, 0)
-        self.bind(children=self.update_minimum_size)
+        self._trigger_minimum_size = Clock.create_trigger(
+            self.update_minimum_size, -1)
+        self.bind(children=self._trigger_minimum_size)
         super(Layout, self).__init__(**kwargs)
 
     def _get_minimum_size(self):
         return self._minimum_size
 
     def _set_minimum_size(self, size):
+        ret = self._minimum_size != size
         self._minimum_size = size
         if self.width < size[0]:
             self.width = size[0]
         if self.height < size[1]:
             self.height = size[1]
+        return ret
     minimum_size = AliasProperty(_get_minimum_size, _set_minimum_size)
     '''Minimum size required by the layout. This property is used by
     :class:`Layout` to perfom his layout calculations. If the widgets size
@@ -80,4 +86,16 @@ class Layout(Widget):
 
     def update_minimum_size(self, instance, *largs):
         self.minimum_size = self.size
+
+    def add_widget(self, widget, index=0):
+        widget.bind(
+            size = self._trigger_minimum_size,
+            size_hint = self._trigger_minimum_size)
+        return super(Layout, self).add_widget(widget, index)
+
+    def remove_widget(self, widget):
+        widget.unbind(
+            size = self._trigger_minimum_size,
+            size_hint = self._trigger_minimum_size)
+        return super(Layout, self).remove_widget(widget)
 

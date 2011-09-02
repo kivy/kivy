@@ -141,31 +141,52 @@ Available configuration tokens
     Check the specific module's documentation for a list of accepted arguments.
 '''
 
-__all__ = ('Config', 'KivyConfigParser')
+__all__ = ('Config', 'ConfigParser')
 
-from ConfigParser import ConfigParser
+from shutil import copyfile
+from ConfigParser import ConfigParser as PythonConfigParser
 from sys import platform
-from os import environ
+from os import environ, listdir
 from os.path import exists, join
-from kivy import kivy_home_dir, kivy_config_fn
+from kivy import kivy_home_dir, kivy_config_fn, kivy_data_dir
 from kivy.logger import Logger
-from kivy.utils import OrderedDict
+from kivy.utils import OrderedDict, QueryDict
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 2
+KIVY_CONFIG_VERSION = 3
 
 #: Kivy configuration object
 Config = None
 
 
-class KivyConfigParser(ConfigParser):
+class ConfigParser(PythonConfigParser):
     '''Enhanced ConfigParser class, that support the possibility of add default
     sections and default values.
+
+    .. versionadded:: 1.0.7
     '''
 
     def __init__(self):
-        ConfigParser.__init__(self)
+        PythonConfigParser.__init__(self)
         self._sections = OrderedDict()
+        self.filename = None
+
+    def read(self, filename):
+        '''Read only one filename. In contrary of the original ConfigParser of
+        Python, this one is able to read only one file at time. The latest
+        readed file will be used for the :meth:`write` method.
+        '''
+        if type(filename) not in (str, unicode):
+            raise Exception('Only one filename is accepted (str or unicode)')
+        self.filename = filename
+        PythonConfigParser.read(self, filename)
+
+    def setdefaults(self, section, keyvalues):
+        '''Set lot of key/values in one section at the same time
+        '''
+        self.adddefaultsection(section)
+        for key, value in keyvalues.iteritems():
+            self.setdefault(section, key, value)
 
     def setdefault(self, section, option, value):
         '''Set the default value on a particular option
@@ -191,14 +212,21 @@ class KivyConfigParser(ConfigParser):
         self.add_section(section)
 
     def write(self):
-        '''Write the configuration to the default kivy file
+        '''Write the configuration to the latest opened file with :meth:`read`
+        method.
+
+        Return True if the write have succeded.
         '''
-        with open(kivy_config_fn, 'w') as fd:
-            fd.write('# Kivy configuration\n')
-            fd.write('# Check kivy.config documentation for more'
-                     'informations about theses sections and tokens.\n')
-            fd.write('\n')
-            ConfigParser.write(self, fd)
+        if self.filename is None:
+            return False
+        try:
+            with open(self.filename, 'w') as fd:
+                PythonConfigParser.write(self, fd)
+        except IOError:
+            Logger.exception('Unable to write the config <%s>' % self.filename)
+            return False
+        return True
+
 
 if not 'KIVY_DOC_INCLUDE' in environ:
 
@@ -208,7 +236,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     #
 
     # Create default configuration
-    Config = KivyConfigParser()
+    Config = ConfigParser()
 
     # Read config file if exist
     if exists(kivy_config_fn) and not 'KIVY_USE_DEFAULTCONFIG' in environ:
@@ -255,7 +283,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             # default graphics parameters
             Config.setdefault('graphics', 'display', '-1')
             Config.setdefault('graphics', 'fullscreen', 'no')
-            Config.setdefault('graphics', 'height', '480')
+            Config.setdefault('graphics', 'height', '600')
             Config.setdefault('graphics', 'left', '0')
             Config.setdefault('graphics', 'maxfps', '0')
             Config.setdefault('graphics', 'multisamples', '2')
@@ -264,7 +292,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.setdefault('graphics', 'show_cursor', '1')
             Config.setdefault('graphics', 'top', '0')
             Config.setdefault('graphics', 'vsync', '1')
-            Config.setdefault('graphics', 'width', '640')
+            Config.setdefault('graphics', 'width', '800')
 
             # input configuration
             Config.setdefault('input', 'default', 'tuio,0.0.0.0:3333')
@@ -300,6 +328,16 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.remove_option('graphics', 'vsync')
             Config.set('graphics', 'maxfps', '60')
 
+        elif version == 2:
+            logo_dir = join(kivy_data_dir, 'logo')
+            dest_dir = join(kivy_home_dir, 'icon')
+            for logo in listdir(logo_dir):
+                copyfile(join(logo_dir, logo), join(dest_dir, logo))
+            logo_size = 32
+            if platform == 'darwin':
+                logo_size = 512
+            Config.set('kivy', 'window_icon', \
+                join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' % logo_size))
         #
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
@@ -321,6 +359,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     # If no configuration exist, write the default one.
     if not exists(kivy_config_fn) or need_save:
         try:
+            Config.filename = kivy_config_fn
             Config.write()
         except Exception, e:
             Logger.exception('Core: Error while saving default config file')

@@ -1,4 +1,6 @@
 '''
+.. _motionevent:
+
 Motion Event
 ============
 
@@ -8,7 +10,7 @@ event. This class define all the properties and methods needed to handle 2D and
 
 .. note::
     You never create the :class:`MotionEvent` yourself, this is the role of the
-    :ref:`~kivy.input.providers`.
+    :mod:`~kivy.input.providers`.
 
 Motion Event and Touch
 ----------------------
@@ -78,7 +80,7 @@ __all__ = ('MotionEvent', )
 import weakref
 from inspect import isroutine
 from copy import copy
-from kivy.clock import Clock
+from time import time
 from kivy.vector import Vector
 
 
@@ -235,7 +237,13 @@ class MotionEvent(object):
         self.dz = None
 
         #: Initial time of the touch creation
-        self.time_start = Clock.get_time()
+        self.time_start = time()
+
+        #: Time of the last update
+        self.time_update = self.time_start
+
+        #: Time of the end event (last touch usage)
+        self.time_end = -1
 
         #: Indicate if the touch is a double tap or not
         self.is_double_tap = False
@@ -271,13 +279,13 @@ class MotionEvent(object):
                 touch.grab(self)
 
             def on_touch_move(self, touch):
-                if touch.grab_current == self:
+                if touch.grab_current is self:
                     # i receive my grabbed touch
                 else:
                     # it's a normal touch
 
             def on_touch_up(self, touch):
-                if touch.grab_current == self:
+                if touch.grab_current is self:
                     # i receive my grabbed touch, i must ungrab it !
                     touch.ungrab(self)
                 else:
@@ -311,6 +319,7 @@ class MotionEvent(object):
         self.psx = self.sx
         self.psy = self.sy
         self.psz = self.sz
+        self.time_update = time()
         self.depack(args)
 
     def scale_for_screen(self, w, h, p=None, rotation=0):
@@ -365,8 +374,9 @@ class MotionEvent(object):
         '''
         self.x, self.y = transform(self.x, self.y)
         self.px, self.py = transform(self.px, self.py)
-        self.dx, self.dy = transform(self.dx, self.dy)
         self.ox, self.oy = transform(self.ox, self.oy)
+        self.dx = self.x - self.px
+        self.dy = self.y - self.py
 
     def copy_to(self, to):
         '''Copy some attribute to another touch object.'''
@@ -377,6 +387,9 @@ class MotionEvent(object):
         '''Return the distance between the current touch and another touch.
         '''
         return Vector(self.pos).distance(other_touch.pos)
+
+    def update_time_end(self):
+        self.time_end = time()
 
     # facilities
     @property

@@ -6,8 +6,6 @@
 
 #if __USE_GLEW
 #	include <GL/glew.h>
-#	define glClearDepthf glClearDepth
-#	define glDepthRangef glDepthRange
 #	define GL_FIXED                          		0x140C
 #	define GL_MAX_VERTEX_UNIFORM_VECTORS       		0x8DFB
 #	define GL_MAX_VARYING_VECTORS              		0x8DFC
@@ -38,6 +36,7 @@
 #		ifdef __APPLE__
 #			include <OpenGL/gl.h>
 #		else
+#			define GL_GLEXT_PROTOTYPES
 #			include <GL/gl.h>
 #			include <GL/glext.h>
 #		endif

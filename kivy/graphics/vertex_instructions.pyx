@@ -8,7 +8,7 @@ This module include all the classes for drawing simple vertex object.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point')
+           'Point', 'GraphicException', 'Bezier')
 
 
 include "config.pxi"
@@ -21,6 +21,10 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
+
+class GraphicException(Exception):
+    '''Exception fired when a graphic error is fired.
+    '''
 
 cdef class Line(VertexInstruction):
     '''A 2d line.
@@ -40,13 +44,13 @@ cdef class Line(VertexInstruction):
         cdef int i, count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
-        cdef int *indices = NULL
+        cdef unsigned short *indices = NULL
 
         vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <int *>malloc(count * sizeof(int))
+        indices = <unsigned short *>malloc(count * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
@@ -65,7 +69,7 @@ cdef class Line(VertexInstruction):
         '''Property for getting/settings points of the triangle
 
         .. warning::
-            
+
             This will always reconstruct the whole graphics from the new points
             list. It can be very CPU expensive.
         '''
@@ -76,6 +80,110 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
 
+cdef class Bezier(VertexInstruction):
+    '''A 2d Bezier curve.
+
+    .. versionadded:: 1.0.8
+
+    :Parameters:
+        `points`: list
+            List of points in the format (x1, y1, x2, y2...)
+        `segments`: int, default to 180
+            Define how much segment is needed for drawing the ellipse.
+            The drawing will be smoother if you have lot of segment.
+        `loop`: bool, default to False
+            Set the bezier curve to join last point to first.
+
+    #TODO: refactoring:
+        a) find interface common to all splines (given control points and
+        perhaps tangents, what's the position on the spline for parameter t),
+
+        b) make that a superclass Spline, c) create BezierSpline subclass that
+        does the computation
+    '''
+    cdef list _points
+    cdef int _segments
+    cdef bint _loop
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self.points = kwargs.get('points', [0, 0, 0, 0, 0, 0, 0, 0])
+        self._segments = kwargs.get('segments', 10)
+        self._loop = kwargs.get('loop', False)
+        if self._loop:
+            self.points.extend(self.points[:2])
+        self.batch.set_mode('line_strip')
+
+    cdef void build(self):
+        cdef int x, i, j
+        cdef float l
+        cdef list T = self.points
+        cdef vertex_t *vertices = NULL
+        cdef unsigned short *indices = NULL
+
+        vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError('vertices')
+
+        indices = <unsigned short *>malloc(
+                (self._segments + 1) * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        for x in xrange(self._segments):
+            l = x / (1.0 * self._segments)
+
+            # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
+            # as the list is in the form of (x1, y1, x2, y2...) iteration is
+            # done on each item and the current item (xn or yn) in the list is
+            # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
+            # placed at n+2. each iteration makes the list one item shorter
+            for i in range(1, len(self.points)):
+                for j in xrange(len(self.points) - 2*i):
+                    T[j] = T[j] + (T[j+2] - T[j]) * l
+
+            # we got the coordinates of the point in T[0] and T[1]
+            vertices[x].x = T[0]
+            vertices[x].y = T[1]
+            indices[x] = x
+
+        # add one last point to join the curve to the end
+        vertices[x+1].x = self.points[-2]
+        vertices[x+1].y = self.points[-1]
+        indices[x+1] = x + 1
+
+        self.batch.set_data(vertices, self._segments + 1, indices,
+                self._segments + 1)
+
+        free(vertices)
+        free(indices)
+
+    property points:
+        '''Property for getting/settings points of the triangle
+
+        .. warning::
+
+            This will always reconstruct the whole graphics from the new points
+            list. It can be very CPU expensive.
+        '''
+        def __get__(self):
+            return self._points
+        def __set__(self, points):
+            self._points = list(points)
+            self.flag_update()
+
+    property segments:
+        '''Property for getting/setting the number of segments of the curve
+        '''
+        def __get__(self):
+            return self._segments
+        def __set__(self, value):
+            if value <= 1:
+                raise GraphicException('Invalid segments value, must be >= 2')
+            self._segments = value
+            self.flag_update()
+
 cdef class Point(VertexInstruction):
     '''A 2d line.
 
@@ -84,6 +192,14 @@ cdef class Point(VertexInstruction):
             List of points in the format (x1, y1, x2, y2...)
         `pointsize`: float, default to 1.
             Size of the point (1. mean the real size will be 2)
+
+    .. warning::
+
+        Starting from version 1.0.7, vertex instruction have a limit of 65535
+        vertices (indices of vertex to be accurate).
+        2 entry in the list (x + y) will be converted to 4 vertices. So the
+        limit inside Point() class is 2^15-2.
+
     '''
     cdef list _points
     cdef float _pointsize
@@ -100,13 +216,13 @@ cdef class Point(VertexInstruction):
         cdef list p = self.points
         cdef list tc = self._tex_coords
         cdef vertex_t *vertices = NULL
-        cdef int *indices = NULL
+        cdef unsigned short *indices = NULL
 
         vertices = <vertex_t *>malloc(count * 4 * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <int *>malloc(count * 6 * sizeof(int))
+        indices = <unsigned short *>malloc(count * 6 * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
@@ -160,7 +276,10 @@ cdef class Point(VertexInstruction):
         cdef int iv, count = <int>(len(self._points) * 0.5)
         cdef list tc = self._tex_coords
         cdef vertex_t vertices[4]
-        cdef int indices[6]
+        cdef unsigned short indices[6]
+
+        if len(self._points) > 2**15 - 2:
+            raise GraphicException('Cannot add elements (limit is 2^15-2)')
 
         self._points.append(x)
         self._points.append(y)
@@ -202,6 +321,9 @@ cdef class Point(VertexInstruction):
         def __set__(self, points):
             if self._points == points:
                 return
+            cdef list _points = list(points)
+            if len(_points) > 2**15-2:
+                raise GraphicException('Too many elements (limit is 2^15-2)')
             self._points = list(points)
             self.flag_update()
 
@@ -234,7 +356,7 @@ cdef class Triangle(VertexInstruction):
     cdef void build(self):
         cdef list vc, tc
         cdef vertex_t vertices[3]
-        cdef int *indices = [0, 1, 2]
+        cdef unsigned short *indices = [0, 1, 2]
 
         vc = self.points;
         tc = self._tex_coords
@@ -282,7 +404,7 @@ cdef class Quad(VertexInstruction):
     cdef void build(self):
         cdef list vc, tc
         cdef vertex_t vertices[4]
-        cdef int *indices = [0, 1, 2, 2, 3, 0]
+        cdef unsigned short *indices = [0, 1, 2, 2, 3, 0]
 
         vc = self.points
         tc = self._tex_coords
@@ -336,7 +458,7 @@ cdef class Rectangle(VertexInstruction):
         cdef float x, y, w, h
         cdef list tc = self._tex_coords
         cdef vertex_t vertices[4]
-        cdef int *indices = [0, 1, 2, 2, 3, 0]
+        cdef unsigned short *indices = [0, 1, 2, 2, 3, 0]
 
         x, y = self.x, self.y
         w, h = self.w, self.h
@@ -485,7 +607,7 @@ cdef class BorderImage(Rectangle):
             hs[2], vs[2], ths[2], tvs[2], #v14 
             hs[1], vs[2], ths[1], tvs[2]] #v15
 
-        cdef int *indices = [
+        cdef unsigned short *indices = [
              0,  1, 12,    12, 11,  0,  # bottom left
              1,  2, 13,    13, 12,  1,  # bottom middle
              2,  3,  4,     4, 13,  2,  # bottom right
@@ -510,25 +632,37 @@ cdef class BorderImage(Rectangle):
 
 
 cdef class Ellipse(Rectangle):
-    '''A 2d ellipse.
+    '''A 2D ellipse.
+
+    .. versionadded:: 1.0.7 added angle_start + angle_end
 
     :Parameters:
         `segments`: int, default to 180
             Define how much segment is needed for drawing the ellipse.
             The drawing will be smoother if you have lot of segment.
+        `angle_start`: int default to 0
+            Specifies the starting angle, in degrees, of the disk portion
+        `angle_end`: int default to 360
+            Specifies the ending angle, in degrees, of the disk portion
     '''
     cdef int _segments
+    cdef float _angle_start
+    cdef float _angle_end
 
     def __init__(self, *args, **kwargs):
         Rectangle.__init__(self, **kwargs)
+        self.batch.set_mode('triangle_fan')
         self._segments = kwargs.get('segments', 180)
+        self._angle_start = kwargs.get('angle_start', 0)
+        self._angle_end = kwargs.get('angle_end', 360)
 
     cdef void build(self):
         cdef list tc = self.tex_coords
-        cdef int i
+        cdef int i, angle_dir
+        cdef float angle_start, angle_end, angle_range
         cdef float x, y, angle, rx, ry, ttx, tty, tx, ty, tw, th
         cdef vertex_t *vertices = NULL
-        cdef int *indices = NULL
+        cdef unsigned short *indices = NULL
         cdef int count = self._segments
 
         tx = tc[0]
@@ -539,40 +673,53 @@ cdef class Ellipse(Rectangle):
         rx = 0.5 * self.w
         ry = 0.5 * self.h
 
-        vertices = <vertex_t *>malloc((count + 1) * sizeof(vertex_t))
+        vertices = <vertex_t *>malloc((count + 2) * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <int *>malloc(3 * count * sizeof(int))
+        indices = <unsigned short *>malloc((count + 2) * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
 
-        for i in xrange(count):
-            # rad = deg * (pi / 180), where pi/180 = 0.0174...
-            angle = i * 360.0/self._segments *0.017453292519943295
-            x = (self.x+rx)+ (rx*cos(angle))
-            y = (self.y+ry)+ (ry*sin(angle))
+        # calculate the start/end angle in radians, and adapt the range
+        if self.angle_end > self.angle_start:
+            angle_dir = 1
+        else:
+            angle_dir = -1
+        # rad = deg * (pi / 180), where pi/180 = 0.0174...
+        angle_start = (self._angle_start % 361) * 0.017453292519943295
+        angle_end = (self._angle_end % 361) * 0.017453292519943295
+        if angle_end > angle_start:
+            angle_range = angle_end - angle_start
+        else:
+            angle_range = angle_start - angle_end
+        angle_range = angle_range / self._segments
+
+        # add start vertice in the middle
+        x = self.x + rx
+        y = self.y + ry
+        ttx = ((x - self.x) / self.w) * tw + tx
+        tty = ((y - self.y) / self.h) * th + ty
+        vertices[0].x = self.x + rx
+        vertices[0].y = self.y + ry
+        vertices[0].s0 = ttx
+        vertices[0].t0 = tty
+        indices[0] = 0
+
+        for i in xrange(1, count + 2):
+            angle = angle_start + (angle_dir * (i - 1) * angle_range)
+            x = (self.x+rx)+ (rx*sin(angle))
+            y = (self.y+ry)+ (ry*cos(angle))
             ttx = ((x-self.x)/self.w)*tw + tx
             tty = ((y-self.y)/self.h)*th + ty
             vertices[i].x = x
             vertices[i].y = y
             vertices[i].s0 = ttx
             vertices[i].t0 = tty
-            indices[i * 3] = i
-            indices[i * 3 + 1] = count
-            indices[i * 3 + 2] = (i + 1) % count
+            indices[i] = i
 
-        #add last verte in the middle
-        x, y = self.x+rx, self.y+ry
-        ttx = ((x-self.x)/self.w)*tw + tx
-        tty = ((y-self.y)/self.h)*th + ty
-        vertices[count].x = x
-        vertices[count].y = y
-        vertices[count].s0 = ttx
-        vertices[count].t0 = tty
-
-        self.batch.set_data(vertices, count + 1, indices, count * 3)
+        self.batch.set_data(vertices, count + 2, indices, count + 2)
 
         free(vertices)
         free(indices)
@@ -585,3 +732,22 @@ cdef class Ellipse(Rectangle):
         def __set__(self, value):
             self._segments = value
             self.flag_update()
+
+    property angle_start:
+        '''Angle start of the ellipse in degrees, default to 0
+        '''
+        def __get__(self):
+            return self._angle_start
+        def __set__(self, value):
+            self._angle_start = value
+            self.flag_update()
+
+    property angle_end:
+        '''Angle end of the ellipse in degrees, default to 360
+        '''
+        def __get__(self):
+            return self._angle_end
+        def __set__(self, value):
+            self._angle_end = value
+            self.flag_update()
+

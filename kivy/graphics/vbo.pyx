@@ -13,6 +13,7 @@ __all__ = ('VBO', 'VertexBatch')
 include "config.pxi"
 include "common.pxi"
 
+from os import environ
 from buffer cimport Buffer
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -27,6 +28,10 @@ vattr[1] = ['vTexCoords0', 1, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 #vertex_attr_list[2] = ['vTexCoords1', 2, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 #vertex_attr_list[3] = ['vTexCoords2', 3, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 #vertex_attr_list[4] = ['vColor', 4, 2, GL_FLOAT, sizeof(GLfloat) * 4, 0]
+
+cdef object _vbo_release_trigger = None
+cdef list _vbo_release_list = []
+
 
 cdef int vbo_vertex_attr_count():
     '''Return the number of vertex attributes used in VBO
@@ -49,7 +54,11 @@ cdef class VBO:
         glGenBuffers(1, &self.id)
 
     def __dealloc__(self):
-        glDeleteBuffers(1, &self.id)
+        # Add texture deletion outside GC call.
+        if _vbo_release_list is not None:
+            _vbo_release_list.append(self.id)
+            if _vbo_release_trigger is not None:
+                _vbo_release_trigger()
 
     def __init__(self, **kwargs):
         self.data = Buffer(sizeof(vertex_t))
@@ -86,7 +95,7 @@ cdef class VBO:
     cdef void unbind(self):
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-    cdef void add_vertex_data(self, void *v, int* indices, int count):
+    cdef void add_vertex_data(self, void *v, unsigned short* indices, int count):
         self.need_upload = 1
         self.data.add(v, indices, count)
 
@@ -94,29 +103,23 @@ cdef class VBO:
         self.need_upload = 1
         self.data.update(index, v, count)
 
-    cdef void remove_vertex_data(self, int* indices, int count):
+    cdef void remove_vertex_data(self, unsigned short* indices, int count):
         self.data.remove(indices, count)
 
 
 cdef class VertexBatch:
-    def __cinit__(self, **kwargs):
-        self.vertices_count = 0
-        self.vertices = NULL
-        self.indices_count = 0
-        self.indices = NULL
-
     def __init__(self, **kwargs):
         self.vbo = kwargs.get('vbo', VBO())
-        self.vbo_index = Buffer(sizeof(int)) #index of every vertex in the vbo
-        self.elements = Buffer(sizeof(int)) #indices translated to vbo indices
+        self.vbo_index = Buffer(sizeof(unsigned short)) #index of every vertex in the vbo
+        self.elements = Buffer(sizeof(unsigned short)) #indices translated to vbo indices
 
         self.set_data(NULL, 0, NULL, 0)
         self.set_mode(kwargs.get('mode', None))
 
     cdef void set_data(self, vertex_t *vertices, int vertices_count,
-                       int *indices, int indices_count):
+                       unsigned short *indices, int indices_count):
         # clear old vertices from vbo and then reset index buffer
-        self.vbo.remove_vertex_data(<int*>self.vbo_index.pointer(),
+        self.vbo.remove_vertex_data(<unsigned short*>self.vbo_index.pointer(),
                                     self.vbo_index.count())
         self.vbo_index.clear()
 
@@ -128,9 +131,9 @@ cdef class VertexBatch:
         self.append_data(vertices, vertices_count, indices, indices_count)
 
     cdef void append_data(self, vertex_t *vertices, int vertices_count,
-                          int *indices, int indices_count):
+                          unsigned short *indices, int indices_count):
         # add vertex data to vbo and get index for every vertex added
-        cdef int *vi = <int *>malloc(sizeof(int) * vertices_count)
+        cdef unsigned short *vi = <unsigned short *>malloc(sizeof(unsigned short) * vertices_count)
         if vi == NULL:
             raise MemoryError('vertex index allocation')
         self.vbo.add_vertex_data(vertices, vi, vertices_count)
@@ -141,7 +144,7 @@ cdef class VertexBatch:
         # TODO: remove buffer usage in this case, the memory is always one big
         # block. no need to use add() everytime we need to reconstruct the list.
         cdef int local_index
-        cdef int * vbi = <int*>self.vbo_index.pointer()
+        cdef unsigned short *vbi = <unsigned short*>self.vbo_index.pointer()
         for i in xrange(indices_count):
             local_index = indices[i]
             self.elements.add(&vbi[local_index], NULL, 1)
@@ -149,7 +152,7 @@ cdef class VertexBatch:
     cdef void draw(self):
         self.vbo.bind()
         glDrawElements(self.mode, self.elements.count(),
-                       GL_UNSIGNED_INT, self.elements.pointer())
+                       GL_UNSIGNED_SHORT, self.elements.pointer())
         self.vbo.unbind()
 
     cdef void set_mode(self, str mode):
@@ -170,3 +173,20 @@ cdef class VertexBatch:
             self.mode = GL_TRIANGLE_FAN
         else:
             self.mode = GL_TRIANGLES
+
+    cdef int count(self):
+        return self.elements.count()
+
+# Releasing vbo through GC is problematic. Same as any GL deletion.
+def _vbo_release(*largs):
+    cdef GLuint vbo_id
+    if not _vbo_release_list:
+        return
+    Logger.trace('VBO: releasing %d vbos' % len(_vbo_release_list))
+    for vbo_id in _vbo_release_list:
+        glDeleteBuffers(1, &vbo_id)
+    del _vbo_release_list[:]
+
+if 'KIVY_DOC_INCLUDE' not in environ:
+    from kivy.clock import Clock
+    _vbo_release_trigger = Clock.create_trigger(_vbo_release)

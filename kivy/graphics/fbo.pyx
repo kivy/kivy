@@ -46,6 +46,7 @@ __all__ = ('Fbo', )
 include "config.pxi"
 include "opcodes.pxi"
 
+from os import environ
 from kivy import Logger
 from kivy.graphics.texture cimport Texture
 from kivy.graphics.transformation cimport Matrix
@@ -56,6 +57,9 @@ IF USE_OPENGL_DEBUG == 1:
 from instructions cimport RenderContext, Canvas
 
 cdef list fbo_stack = [0]
+cdef object _fbo_release_trigger = None
+cdef list _fbo_release_list = []
+
 
 
 cdef class Fbo(RenderContext):
@@ -70,7 +74,7 @@ cdef class Fbo(RenderContext):
         `push_viewport`: bool, default to True
             If True, the OpenGL viewport will be set to the framebuffer size,
             and will be automatically restored when the framebuffer released.
-        `with_depthbuffer`: bool, default to True
+        `with_depthbuffer`: bool, default to False
             If True, the framebuffer will be allocated with a Z buffer.
         `texture`: :class:`~kivy.graphics.texture.Texture`, default to None
             If None, a default texture will be created.
@@ -110,7 +114,7 @@ cdef class Fbo(RenderContext):
         kwargs.setdefault('clear_color', (0, 0, 0, 0))
         kwargs.setdefault('size', (1024, 1024))
         kwargs.setdefault('push_viewport', True)
-        kwargs.setdefault('with_depthbuffer', True)
+        kwargs.setdefault('with_depthbuffer', False)
 
         self._buffer_id             = -1
         self._depthbuffer_id        = -1
@@ -123,17 +127,23 @@ cdef class Fbo(RenderContext):
 
         self.create_fbo()
 
+    def __dealloc__(self):
+        # add fbo deletion outside gc call.
+        if _fbo_release_list is not None:
+            _fbo_release_list.append((self._buffer_id, self._depthbuffer_id))
+            if _fbo_release_trigger is not None:
+                _fbo_release_trigger()
+
     cdef void delete_fbo(self):
-        # care on this case, if the deletion happen in another thread than main
-        # thread, we are lost :)
         self._texture = None
         self._depthbuffer_attached = 0
-        if self._buffer_id != -1:
-            glDeleteFramebuffers(1, &self._buffer_id)
-            self._buffer_id = -1
-        if self._depthbuffer_id != -1:
-            glDeleteRenderbuffers(1, &self._depthbuffer_id)
-            self._depthbuffer_id = -1
+        # delete in asynchronous way the framebuffers
+        if _fbo_release_list is not None:
+            _fbo_release_list.append((self._buffer_id, self._depthbuffer_id))
+            if _fbo_release_trigger is not None:
+                _fbo_release_trigger()
+        self._buffer_id = -1
+        self._depthbuffer_id = -1
 
     cdef void create_fbo(self):
         cdef GLuint f_id
@@ -286,3 +296,21 @@ cdef class Fbo(RenderContext):
         '''
         def __get__(self):
             return self._texture
+
+# Releasing fbo through GC is problematic. Same as any GL deletion.
+def _fbo_release(*largs):
+    cdef GLuint fbo_id, render_id
+    if not _fbo_release_list:
+        return
+    Logger.trace('FBO: releasing %d fbos' % len(_fbo_release_list))
+    for l in _fbo_release_list:
+        fbo_id, render_id = l
+        if fbo_id != -1:
+            glDeleteFramebuffers(1, &fbo_id)
+        if render_id != -1:
+            glDeleteRenderbuffers(1, &render_id)
+    del _fbo_release_list[:]
+
+if 'KIVY_DOC_INCLUDE' not in environ:
+    from kivy.clock import Clock
+    _fbo_release_trigger = Clock.create_trigger(_fbo_release)
