@@ -34,7 +34,7 @@ def install_gobject_iteration():
 
 
 
-def install_twisted_reactor(*args, **kwargs):
+def install_twisted_reactor(**kwargs):
     '''Installs a threaded twisted reactor, which will schedule one
     reactor iteration before the next frame only when twisted needs
     to do some work.
@@ -64,18 +64,29 @@ def install_twisted_reactor(*args, **kwargs):
 
     #now we can import twisted reactor as usual
     from twisted.internet import reactor
+    from collections import deque
     from kivy.base import EventLoop
-    from kivy.core.window import Window
-    from kivy.clock import Clock
     from kivy.logger import Logger
+    from kivy.clock import Clock
     import thread, threading
 
-    #hook up rector to our reactor wake function
+    #will hold callbacks to twisted callbacks
+    q = deque()
+
+    #twisted will call the wake function when it needsto do work
     def reactor_wake(twisted_loop_next):
-        '''called whenever twisted needs to do work
-        '''
-        twisted_loop_next()
-    reactor.interleave(reactor_wake, *args, **kwargs)
+            q.append(twisted_loop_next)
+
+    # called every frame, to process the reactors work in main thread
+    def reactor_work(*args):
+        while len(q):
+            q.popleft()()
+
+    #start the reactor, by telling twisted how to wake, and process
+    def reactor_start(*args):
+        reactor.interleave(reactor_wake, **kwargs)
+        reactor.addSystemEventTrigger('after', 'shutdown', )
+        Clock.schedule_interval(reactor_work, 0)
 
     #make sure twisted reactor is shutdown if eventloop exists
     def reactor_stop(*args):
@@ -83,8 +94,12 @@ def install_twisted_reactor(*args, **kwargs):
         '''
         if not reactor._stopped:
             Logger.debug("Shutting down twisted reactor" )
-            reactor.stop()
+            #reactor.stop()
         if threading.current_thread() != reactor.workerThread:
+            Logger.debug("Shutting down twisted thread" )
             thread.exit()
-    EventLoop.add_stop_callback(reactor_stop)
+
+    #start and stop teh reactor along with kivy EventLoop
+    EventLoop.bind(on_start=reactor_start)
+    EventLoop.bind(on_stop=reactor_stop)
 
