@@ -55,13 +55,16 @@ class ImageLoaderGIF(ImageLoaderBase):
             raise
 
         img_data = []
-        if self.Debug:
-            Logger.warning('Debug: Image info:')
-            im.print_info()
+        #if self.Debug:
+        #    Logger.warning('Debug: Image info:')
+        im.print_info()
         for img in im.images:
             pixel_map = []
             for pixel in img.pixels:
-                (r, g, b) = im.pallete[pixel]
+                if img.local_color_table_flag:
+                    (r, g, b) = img.pallete[pixel]
+                else:
+                    (r, g, b) = im.pallete[pixel]
                 pixel_map.append(b)
                 pixel_map.append(g)
                 pixel_map.append(r)
@@ -175,6 +178,8 @@ class ImageDescriptor(object):
     '''A class that represents a single image'''
 
     def __init__( self, parent, header=None ):
+
+        self.parent = parent
         # this will be set when needed
         self.codesize = 0
 
@@ -211,12 +216,24 @@ class ImageDescriptor(object):
         self.flags = get_bits( header[4] )
 
         self.local_color_table_flag = self.flags[7]
-        assert self.local_color_table_flag == False, \
-            "Local color tables not implemented" # TODO
+        #assert self.local_color_table_flag == False, \
+        #    "Local color tables not implemented" # TODO
         self.interlace_flag = self.flags[6]
         self.sort_flag = self.flags[5]
         #-- flags 4 and 3 are reserved
-        self.local_color_table_size =  2 ** (pack_bits(self.flags[:2]) + 1)
+        self.local_color_table_size =  2 ** (pack_bits(self.flags[:3]) + 1)
+        if self.local_color_table_flag:
+	    print 'local_color_table_size: %d' % self.local_color_table_size
+	    print  'global_color_table_size: %d' % self.parent.global_color_table_size
+	    self.parent.global_color_table_size = self.local_color_table_size
+            size = (self.local_color_table_size) * 3
+            self.pallete = self.parent.get_color_table(size)
+            #print self.pallete
+            self.parent.pallete = self.pallete
+        print self.local_color_table_flag
+        #else:
+            # generate a greyscale pallete
+        #    self.pallete = [(x, x, x) for x in range(256)]
 
 
     def get_header(self):
@@ -373,7 +390,9 @@ class GifDecoder( Gif ):
         index = 0
 
         codesize = initial_codesize + 1
+        print 'codesize: %d' %codesize
         clearcode, end_of_info = color_table_size, color_table_size + 1
+        print 'clearcode %d, end_of_info: %d' % (clearcode, end_of_info)
         bits = self.string_to_bits(input)
 
         def pop(size):
@@ -398,6 +417,7 @@ class GifDecoder( Gif ):
 
         # read first code, append to output
         code = self.bits_to_int(pop(codesize))
+        print 'code : %d' % code
         output = [ord(string_table[code])]
 
         old = string_table[code]
