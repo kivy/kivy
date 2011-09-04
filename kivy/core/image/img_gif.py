@@ -44,7 +44,7 @@ class ImageLoaderGIF(ImageLoaderBase):
         return ('gif', )
 
     def load(self, filename):
-        
+
         Logger.debug('Image: Load <%s>' % filename)
         try:
             try:
@@ -66,6 +66,10 @@ class ImageLoaderGIF(ImageLoaderBase):
                     (r, g, b) = img.pallete[pixel]
                 else:
                     (r, g, b) = im.pallete[pixel]
+                a = 1
+                if img.transparent_color > 0 and img.transparent_color == pixel :
+                    a=0
+                #pixel_map.append(a)
                 pixel_map.append(b)
                 pixel_map.append(g)
                 pixel_map.append(r)
@@ -170,7 +174,7 @@ class Gif(object):
         print "Background color: %d" % self.background_color
         print "Aspect ratio info: %d" % self.aspect_ratio
 
-    def new_image( self, header=None ):
+    def new_image( self, header=None):
         '''adds a new image descriptor'''
         image = ImageDescriptor(self, header)
         self.images.append(image)
@@ -203,6 +207,7 @@ class ImageDescriptor(object):
         self.interlace_flag = False
         self.sort_flag = False
         self.local_color_table_size = 0
+        self.transparent_color = 0
         self.pallete = []
 
         if header:
@@ -220,7 +225,7 @@ class ImageDescriptor(object):
 
         self.local_color_table_flag = self.flags[7]
         #assert self.local_color_table_flag == False, \
-        #    "Local color tables not implemented" # TODO
+        #    "Local color tables not implemented" # TODO: seems done :)
         self.interlace_flag = self.flags[6]
         self.sort_flag = self.flags[5]
         #-- flags 4 and 3 are reserved
@@ -297,6 +302,7 @@ class GifDecoder( Gif ):
             self.pallete = [(x, x, x) for x in range(256)]
 
         # blocks
+        image = None
         while True:
             try:
                 nextbyte = self.pops('<B')[0]
@@ -307,6 +313,7 @@ class GifDecoder( Gif ):
             if nextbyte == Gif.IMAGE_SEPARATOR:
                 descriptor = self.pops(Gif.FMT_IMGDESC)
                 image = self.new_image(descriptor)
+                image.transparent_color = trans_color
                 image.codesize = self.pops('<B')[0]
                 image.lzwcode = ''
 
@@ -332,7 +339,20 @@ class GifDecoder( Gif ):
             # Gif trailer
             elif nextbyte == Gif.GIF_TRAILER:
                 return
-
+            elif nextbyte == Gif.LABEL_GRAPHIC_CONTROL:
+                if Debug: print 'LABEL_GRAPHIC_CONTROL'
+                nextbyte = self.pops('<B')[0]
+                if Debug: print 'block size:%d' %nextbyte
+                nextbyte = self.pops('<B')[0]
+                if Debug: print 'fields:%d' %nextbyte
+                nextbyte = self.pops('<B')[0]
+                if Debug: print nextbyte
+                nextbyte = self.pops('<B')[0]
+                if Debug: print nextbyte
+                nextbyte = self.pops('<B')[0]
+                trans_color = nextbyte
+                if Debug: print 'transparent color index :%d' %trans_color
+                pass
             # "No Idea What Is This"
             else:
                 pass
@@ -387,7 +407,7 @@ class GifDecoder( Gif ):
         return pallete
 
     def lzw_decode(self, input, initial_codesize, color_table_size):
-        '''Decodes a lzw stream from input import 
+        '''Decodes a lzw stream from input import
         Returns list of ints (pixel values)'''
         string_table = {}
         output = []
@@ -395,9 +415,10 @@ class GifDecoder( Gif ):
         index = 0
 
         codesize = initial_codesize + 1
-        print 'codesize: %d' %codesize
         clearcode, end_of_info = color_table_size, color_table_size + 1
-        print 'clearcode %d, end_of_info: %d' % (clearcode, end_of_info)
+        if Debug:
+            print 'codesize: %d' %codesize
+            print 'clearcode %d, end_of_info: %d' % (clearcode, end_of_info)
         bits = self.string_to_bits(input)
 
         def pop(size):
@@ -422,7 +443,8 @@ class GifDecoder( Gif ):
 
         # read first code, append to output
         code = self.bits_to_int(pop(codesize))
-        print 'code : %d' % code
+        if Debug:
+            print 'code : %d' % code
         output = [ord(string_table[code])]
 
         old = string_table[code]
