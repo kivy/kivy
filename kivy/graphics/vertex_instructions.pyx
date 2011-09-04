@@ -688,13 +688,9 @@ cdef class Ellipse(Rectangle):
         else:
             angle_dir = -1
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
-        angle_start = (self._angle_start % 361) * 0.017453292519943295
-        angle_end = (self._angle_end % 361) * 0.017453292519943295
-        if angle_end > angle_start:
-            angle_range = angle_end - angle_start
-        else:
-            angle_range = angle_start - angle_end
-        angle_range = angle_range / self._segments
+        angle_start = self._angle_start * 0.017453292519943295
+        angle_end = self._angle_end * 0.017453292519943295
+        angle_range = abs(angle_end - angle_start) / self._segments
 
         # add start vertice in the middle
         x = self.x + rx
