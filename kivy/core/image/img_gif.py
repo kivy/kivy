@@ -32,8 +32,8 @@ KNOWN_FORMATS = ('GIF87a', 'GIF89a')
 
 from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
-from PIL import Image
 
+Debug = True
 
 class ImageLoaderGIF(ImageLoaderBase):
     '''Image loader for gif'''
@@ -44,6 +44,7 @@ class ImageLoaderGIF(ImageLoaderBase):
         return ('gif', )
 
     def load(self, filename):
+        
         Logger.debug('Image: Load <%s>' % filename)
         try:
             try:
@@ -55,9 +56,9 @@ class ImageLoaderGIF(ImageLoaderBase):
             raise
 
         img_data = []
-        #if self.Debug:
-        #    Logger.warning('Debug: Image info:')
-        im.print_info()
+        if Debug:
+            Logger.warning('Debug: Image info:')
+            im.print_info()
         for img in im.images:
             pixel_map = []
             for pixel in img.pixels:
@@ -68,6 +69,8 @@ class ImageLoaderGIF(ImageLoaderBase):
                 pixel_map.append(b)
                 pixel_map.append(g)
                 pixel_map.append(r)
+                #[].insert is too slow here, so reverse later
+            #flip image
             pixel_map.reverse()
             pixel_map = ''.join(map(chr, pixel_map))
             img_data.append(ImageData(img.width, img.height, 'rgb', pixel_map))
@@ -223,14 +226,16 @@ class ImageDescriptor(object):
         #-- flags 4 and 3 are reserved
         self.local_color_table_size =  2 ** (pack_bits(self.flags[:3]) + 1)
         if self.local_color_table_flag:
-	    print 'local_color_table_size: %d' % self.local_color_table_size
-	    print  'global_color_table_size: %d' % self.parent.global_color_table_size
-	    self.parent.global_color_table_size = self.local_color_table_size
+            if Debug:
+                print 'local_color_table_size: %d' % self.local_color_table_size
+                print  'global_color_table_size: %d' % self.parent.global_color_table_size
+            self.parent.global_color_table_size = self.local_color_table_size
             size = (self.local_color_table_size) * 3
             self.pallete = self.parent.get_color_table(size)
             #print self.pallete
             self.parent.pallete = self.pallete
-        print self.local_color_table_flag
+        if Debug:
+            print self.local_color_table_flag
         #else:
             # generate a greyscale pallete
         #    self.pallete = [(x, x, x) for x in range(256)]
