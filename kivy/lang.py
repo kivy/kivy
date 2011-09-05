@@ -893,8 +893,11 @@ class BuilderBase(object):
         '''
         # remove rules and templates
         self.rules = [x for x in self.rules if x[2] != filename]
-        self.templates = {x: y for x, y in self.templates.iteritems() \
-                if y[2] != filename}
+        templates = {}
+        for x, y in self.templates.iteritems():
+            if y[2] != filename:
+                templates[x] = y
+        self.templates = templates
 
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder
