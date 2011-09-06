@@ -24,6 +24,19 @@
 '''pygif: gif implementation in python
 
 http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pygif.py.htm'''
+
+
+#issues to fix
+#magic pink:
+	#are gif's supposed to use 255,0,255 as transparent color along with
+	#transparent color index? Seems like it.
+#crash on exotic GIF's
+#when left or top >0  Composite on prev images
+	#left alignment FIXED
+	#top alignment is screwed
+	#width is being cut
+	#height is being cut
+
 import struct
 from array import array
 import math
@@ -34,7 +47,6 @@ from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
 
 Debug = True
-import time
 
 class ImageLoaderGIF(ImageLoaderBase):
     '''Image loader for gif'''
@@ -72,17 +84,16 @@ class ImageLoaderGIF(ImageLoaderBase):
             img_width  = img.width
             left = img.left
             top =  img.top
-            
             #reverse top to bottom and left to right
             tmp_top = top
             while img_height > top:
                 i = left
                 img_height -= 1
-                x = (img_height * img_width )
-                rgba_pos = (tmp_top * ls_width * 4 + (left*4))
+                x = (img_height * img_width ) if img.local_color_table_flag else (((img_height - top )* img_width ) - left)
+                rgba_pos = (tmp_top * 4 * ls_width) + (left*4)
                 if Debug:
                     if top > 0 or left > 0 or img.height < ls_height or img_width < ls_width:
-                        print 'top:%d , left %d, cur_img_height: %d cur_img_width: %d width:%d height:%d' % (top, left, img.height, img.width, im.ls_width, im.ls_height)
+                        print 'top:%d , left %d, cur_img_height: %d cur_img_width: %d width:%d height:%d' % (tmp_top, left, img.height, img.width, im.ls_width, im.ls_height)
                         print 'rgba_pos: %d' % rgba_pos
                 tmp_top += 1
                 while i < (img_width):
