@@ -61,7 +61,7 @@ cdef class ShaderSource:
         self.shadertype = shadertype
 
     cdef set_source(self, char *source):
-        cdef GLint success
+        cdef GLint success = 0
         cdef GLuint error, shader
         cdef str ctype, cacheid
 
@@ -279,7 +279,7 @@ cdef class Shader:
         self._success = 1
 
     cdef int is_linked(self):
-        cdef GLint result
+        cdef GLint result = 0
         glGetProgramiv(self.program, GL_LINK_STATUS, &result)
         return 1 if result == GL_TRUE else 0
 
