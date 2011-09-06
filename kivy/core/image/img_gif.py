@@ -24,8 +24,8 @@
 '''pygif: gif implementation in python
 
 http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pygif.py.htm'''
-
 import struct
+from array import array
 import math
 
 KNOWN_FORMATS = ('GIF87a', 'GIF89a')
@@ -34,6 +34,7 @@ from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
 
 Debug = True
+import time
 
 class ImageLoaderGIF(ImageLoaderBase):
     '''Image loader for gif'''
@@ -45,7 +46,7 @@ class ImageLoaderGIF(ImageLoaderBase):
 
     def load(self, filename):
 
-        Logger.debug('Image: Load <%s>' % filename)
+        Logger.debug('Image_GIF: Load <%s>' % filename)
         try:
             try:
                 im = GifDecoder(open(filename, 'rb').read())
@@ -59,25 +60,44 @@ class ImageLoaderGIF(ImageLoaderBase):
         if Debug:
             Logger.warning('Debug: Image info:')
             im.print_info()
+        ls_width = im.ls_width
+        ls_height = im.ls_height
+        pixel_map = array('B', [0]*(ls_width*ls_height*4))
         for img in im.images:
-            pixel_map = []
-            for pixel in img.pixels:
-                if img.local_color_table_flag:
-                    (r, g, b) = img.pallete[pixel]
-                else:
-                    (r, g, b) = im.pallete[pixel]
-                a = 1
-                if img.transparent_color > 0 and img.transparent_color == pixel :
-                    a=0
-                #pixel_map.append(a)
-                pixel_map.append(b)
-                pixel_map.append(g)
-                pixel_map.append(r)
-                #[].insert is too slow here, so reverse later
-            #flip image
-            pixel_map.reverse()
-            pixel_map = ''.join(map(chr, pixel_map))
-            img_data.append(ImageData(img.width, img.height, 'rgb', pixel_map))
+            pallete = img.pallete if img.local_color_table_flag else im.pallete
+            have_transparent_color = img.transparent_color > 0
+            transparent_color = img.transparent_color
+            pixels = img.pixels
+            img_height = img.height
+            img_width  = img.width
+            left = img.left
+            top =  img.top
+            
+            #reverse top to bottom and left to right
+            tmp_top = top
+            while img_height > top:
+                i = left
+                img_height -= 1
+                x = (img_height * img_width )
+                rgba_pos = (tmp_top * ls_width * 4 + (left*4))
+                if Debug:
+                    if top > 0 or left > 0 or img.height < ls_height or img_width < ls_width:
+                        print 'top:%d , left %d, cur_img_height: %d cur_img_width: %d width:%d height:%d' % (top, left, img.height, img.width, im.ls_width, im.ls_height)
+                        print 'rgba_pos: %d' % rgba_pos
+                tmp_top += 1
+                while i < (img_width):
+                    (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = pallete[pixels[x + i]]
+                    if have_transparent_color:
+                        if transparent_color == pixels[x + i]:
+                            pixel_map[rgba_pos + 3] = 0
+                            rgba_pos += 4
+                            i += 1
+                            continue
+                    pixel_map[rgba_pos + 3] = 255
+                    rgba_pos += 4
+                    i += 1
+
+            img_data.append(ImageData(ls_width, ls_height, 'rgba', pixel_map.tostring()))
 
         self.filename = filename
 
@@ -123,7 +143,7 @@ class Gif(object):
         self.pallete = [(x, x, x) for x in range(0, 256)]
         self.images = []
 
-        self.debug_enabled = debug
+        self.debug_enabled = True
 
     def pop( self, length=1 ):
         '''gets the next $len chars from thedatastack import 
@@ -139,16 +159,6 @@ class Gif(object):
         '''pop struct: get size, pop(), unpack()'''
         size = struct.calcsize(format) 
         return struct.unpack( format, self.pop(size) )
-
-    def push( self, newdata ):
-        '''adds $newdata to the data stack'''
-        if self.debug_enabled:
-            print repr(newdata), len(newdata)
-        self.data += newdata
-
-    def pushs( self, format, *vars ):
-        '''push struct: adds a packed struct to the data stack'''
-        self.push(struct.pack(format, *vars))
 
     def pop_bits( self, length ):
         '''return a list of bytes represented as bit lists'''
@@ -224,27 +234,16 @@ class ImageDescriptor(object):
         self.flags = get_bits( header[4] )
 
         self.local_color_table_flag = self.flags[7]
-        #assert self.local_color_table_flag == False, \
-        #    "Local color tables not implemented" # TODO: seems done :)
         self.interlace_flag = self.flags[6]
         self.sort_flag = self.flags[5]
         #-- flags 4 and 3 are reserved
-        self.local_color_table_size =  2 ** (pack_bits(self.flags[:3]) + 1)
+        self.local_color_table_size =  2 ** (pack_bits(self.flags[0:2]) + 1)
         if self.local_color_table_flag:
-            if Debug:
-                print 'local_color_table_size: %d' % self.local_color_table_size
-                print  'global_color_table_size: %d' % self.parent.global_color_table_size
+            if Debug: print 'local color table true'
             self.parent.global_color_table_size = self.local_color_table_size
             size = (self.local_color_table_size) * 3
             self.pallete = self.parent.get_color_table(size)
-            #print self.pallete
             self.parent.pallete = self.pallete
-        if Debug:
-            print self.local_color_table_flag
-        #else:
-            # generate a greyscale pallete
-        #    self.pallete = [(x, x, x) for x in range(256)]
-
 
     def get_header(self):
         '''builds a header dynamically'''
