@@ -68,36 +68,36 @@ def install_twisted_reactor(**kwargs):
     from kivy.base import EventLoop
     from kivy.logger import Logger
     from kivy.clock import Clock
-    import thread, threading
 
     #will hold callbacks to twisted callbacks
     q = deque()
 
     #twisted will call the wake function when it needsto do work
     def reactor_wake(twisted_loop_next):
-            q.append(twisted_loop_next)
+        Logger.trace("Support: twisted wakeup call to schedule task" )
+        q.append(twisted_loop_next)
 
     # called every frame, to process the reactors work in main thread
     def reactor_work(*args):
+        Logger.trace("Support: processing twisted task queue" )
         while len(q):
             q.popleft()()
 
     #start the reactor, by telling twisted how to wake, and process
     def reactor_start(*args):
+        Logger.info("Support: Starting twisted reactor" )
         reactor.interleave(reactor_wake, **kwargs)
-        reactor.addSystemEventTrigger('after', 'shutdown', )
         Clock.schedule_interval(reactor_work, 0)
 
     #make sure twisted reactor is shutdown if eventloop exists
     def reactor_stop(*args):
         '''will shutdown the twisted reactor main loop
         '''
-        if not reactor._stopped:
-            Logger.debug("Shutting down twisted reactor" )
-            #reactor.stop()
-        if threading.current_thread() != reactor.workerThread:
-            Logger.debug("Shutting down twisted thread" )
-            thread.exit()
+        if reactor.threadpool:
+            Logger.info("Support: Stooping twisted threads")
+            reactor.threadpool.stop()
+        Logger.info("Support: Shutting down twisted reactor" )
+        reactor._mainLoopShutdown()
 
     #start and stop teh reactor along with kivy EventLoop
     EventLoop.bind(on_start=reactor_start)
