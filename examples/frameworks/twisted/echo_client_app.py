@@ -30,9 +30,9 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 
-#A simple kivy App, with a textbox to enter messages, and
-#a large label to display all the messages received from
-#the server
+# A simple kivy App, with a textbox to enter messages, and
+# a large label to display all the messages received from
+# the server
 class TwistedClientApp(App):
     connection = None
 
