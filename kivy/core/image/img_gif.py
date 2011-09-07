@@ -27,17 +27,9 @@ http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pyg
 
 
 #issues to fix
-#magic pink:
-	#are gif's supposed to use 255,0,255 as transparent color along with
-	#transparent color index? Seems like it.
+#optimize for speed
+#magic pink: Done :D
 # crash on exotic GIF's
-# local color tables:  Done
-# transparency:  Done
-# when left or top >0  Composite on prev images
-	#left alignment FIXED
-	#top alignment FIXED
-	#width is being FIXED
-	#height is being FIXED
 
 import struct
 from array import array
@@ -94,9 +86,11 @@ class ImageLoaderGIF(ImageLoaderBase):
                 rgba_pos = (tmp_top * ls_width * 4) + (left * 4)
                 tmp_top += 1
                 while i < (img_width+ left):
-                    (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = pallete[pixels[x + i]]
+                    (r, g, b) = pallete[pixels[x + i]]
+                    if (r, g, b) != (255,0,255):
+                        (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = (r, g, b)
                     if have_transparent_color:
-                        if transparent_color == pixels[x + i]:
+                        if transparent_color == pixels[x + i] :
                             pixel_map[rgba_pos + 3] = 0
                             rgba_pos += 4
                             i += 1
