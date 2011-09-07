@@ -30,11 +30,13 @@ http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pyg
 #magic pink:
 	#are gif's supposed to use 255,0,255 as transparent color along with
 	#transparent color index? Seems like it.
-#crash on exotic GIF's
-#when left or top >0  Composite on prev images
+# crash on exotic GIF's
+# local color tables:  Done
+# transparency:  Done
+# when left or top >0  Composite on prev images
 	#left alignment FIXED
 	#top alignment is screwed
-	#width is being cut
+	#width is being FIXED
 	#height is being cut
 
 import struct
@@ -69,34 +71,29 @@ class ImageLoaderGIF(ImageLoaderBase):
             raise
 
         img_data = []
-        if Debug:
-            Logger.warning('Debug: Image info:')
-            im.print_info()
         ls_width = im.ls_width
         ls_height = im.ls_height
         pixel_map = array('B', [0]*(ls_width*ls_height*4))
+
         for img in im.images:
-            pallete = img.pallete if img.local_color_table_flag else im.pallete
+            local_color_table_flag = img.local_color_table_flag
+            pallete = img.pallete if local_color_table_flag else im.pallete
             have_transparent_color = img.transparent_color > 0
             transparent_color = img.transparent_color
             pixels = img.pixels
             img_height = img.height
-            img_width  = img.width
+            img_width = img.width
             left = img.left
-            top =  img.top
+            top = img.top
             #reverse top to bottom and left to right
             tmp_top = top
-            while img_height > top:
+            while img_height > 0:
                 i = left
                 img_height -= 1
-                x = (img_height * img_width ) if img.local_color_table_flag else (((img_height - top )* img_width ) - left)
-                rgba_pos = (tmp_top * 4 * ls_width) + (left*4)
-                if Debug:
-                    if top > 0 or left > 0 or img.height < ls_height or img_width < ls_width:
-                        print 'top:%d , left %d, cur_img_height: %d cur_img_width: %d width:%d height:%d' % (tmp_top, left, img.height, img.width, im.ls_width, im.ls_height)
-                        print 'rgba_pos: %d' % rgba_pos
+                x = (img_height * img_width) - left
+                rgba_pos = (tmp_top * ls_width * 4) + (left * 4)
                 tmp_top += 1
-                while i < (img_width):
+                while i < (img_width+ left):
                     (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = pallete[pixels[x + i]]
                     if have_transparent_color:
                         if transparent_color == pixels[x + i]:
