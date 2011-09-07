@@ -35,9 +35,9 @@ http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pyg
 # transparency:  Done
 # when left or top >0  Composite on prev images
 	#left alignment FIXED
-	#top alignment is screwed
+	#top alignment FIXED
 	#width is being FIXED
-	#height is being cut
+	#height is being FIXED
 
 import struct
 from array import array
@@ -86,7 +86,7 @@ class ImageLoaderGIF(ImageLoaderBase):
             left = img.left
             top = img.top
             #reverse top to bottom and left to right
-            tmp_top = top
+            tmp_top = (ls_height - (img_height+ top))
             while img_height > 0:
                 i = left
                 img_height -= 1
