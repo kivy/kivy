@@ -26,14 +26,16 @@
 http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pygif.py.htm'''
 
 
-#issues to fix
-#optimize for speed
-#magic pink: Done :D
-# crash on exotic GIF's
+#TODO issues to fix
+#handle combine /replace flag Done. Animations are handled even better than PIL :D
+#optimize for speed  #partially done#  a lot of room for improvement
+	# crash on exotic GIF's, ok the code doesn't really crash
+	# its just SLOW.... CRAWLING
 
 import struct
 from array import array
 import math
+import time
 
 KNOWN_FORMATS = ('GIF87a', 'GIF89a')
 
@@ -62,16 +64,20 @@ class ImageLoaderGIF(ImageLoaderBase):
             Logger.warning('Image: Unable to load Image <%s>' % filename)
             raise
 
+        if Debug:
+            print im.print_info()
         img_data = []
         ls_width = im.ls_width
         ls_height = im.ls_height
         pixel_map = array('B', [0]*(ls_width*ls_height*4))
 
         for img in im.images:
-            local_color_table_flag = img.local_color_table_flag
-            pallete = img.pallete if local_color_table_flag else im.pallete
-            have_transparent_color = img.transparent_color > 0
+            pallete = img.pallete if img.local_color_table_flag else im.pallete
+            have_transparent_color = img.transparent_color > -1
             transparent_color = img.transparent_color
+            draw_method_restore_previous =  1 if img.draw_method == 'restore previous' else 0
+            draw_method_restore_background =  1 if img.draw_method == 'restore_background' else 0
+            draw_method_replace =  1 if img.draw_method == 'replace' else 0
             pixels = img.pixels
             img_height = img.height
             img_width = img.width
@@ -79,23 +85,35 @@ class ImageLoaderGIF(ImageLoaderBase):
             top = img.top
             #reverse top to bottom and left to right
             tmp_top = (ls_height - (img_height+ top))
+            img_width_plus_left = (img_width+ left)
             while img_height > 0:
                 i = left
                 img_height -= 1
                 x = (img_height * img_width) - left
                 rgba_pos = (tmp_top * ls_width * 4) + (left * 4)
                 tmp_top += 1
-                while i < (img_width+ left):
+                while i < img_width_plus_left:
                     (r, g, b) = pallete[pixels[x + i]]
+                    # copy only when not magic pink
                     if (r, g, b) != (255,0,255):
-                        (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = (r, g, b)
-                    if have_transparent_color:
-                        if transparent_color == pixels[x + i] :
-                            pixel_map[rgba_pos + 3] = 0
+                        if have_transparent_color:
+                            if transparent_color == pixels[x + i] :
+                                if draw_method_replace:
+                                    (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = (r, g, b)
+                                    pixel_map[rgba_pos + 3] = 0
+                                    rgba_pos += 4
+                                    i += 1
+                                    continue
+                                rgba_pos += 4
+                                i += 1
+                                continue
+                            (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = (r, g, b)
+                            pixel_map[rgba_pos + 3] = 255
                             rgba_pos += 4
                             i += 1
                             continue
-                    pixel_map[rgba_pos + 3] = 255
+                        (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = (r, g, b)
+                        pixel_map[rgba_pos + 3] = 255
                     rgba_pos += 4
                     i += 1
 
@@ -162,15 +180,6 @@ class Gif(object):
         size = struct.calcsize(format) 
         return struct.unpack( format, self.pop(size) )
 
-    def pop_bits( self, length ):
-        '''return a list of bytes represented as bit lists'''
-        bytes = self.pops( '<' + str(length) + 'B' )
-        plain = []
-        for byte in bytes:
-            for bit in get_bits(byte):
-                plain.append(bit)
-        return plain
-
     def print_info( self ):
         '''prints out some useful info (..debug?)'''
 
@@ -219,7 +228,8 @@ class ImageDescriptor(object):
         self.interlace_flag = False
         self.sort_flag = False
         self.local_color_table_size = 0
-        self.transparent_color = 0
+        self.draw_method = 'overwrite'
+        self.transparent_color = -1
         self.pallete = []
 
         if header:
@@ -315,6 +325,8 @@ class GifDecoder( Gif ):
                 descriptor = self.pops(Gif.FMT_IMGDESC)
                 image = self.new_image(descriptor)
                 image.transparent_color = trans_color
+                self.draw_method = drw_method
+                image.draw_method = drw_method
                 image.codesize = self.pops('<B')[0]
                 image.lzwcode = ''
 
@@ -326,7 +338,7 @@ class GifDecoder( Gif ):
                     if blocksize == 0:
                         break   # no more image data
                     lzwdata = self.pop(blocksize)
-                    image.lzwcode += lzwdata
+                    image.lzwcode = ''.join((image.lzwcode, lzwdata))
 
                 if self.debug_enabled:
                     print 'LZW length:', len(image.lzwcode)
@@ -344,12 +356,19 @@ class GifDecoder( Gif ):
                 if Debug: print 'LABEL_GRAPHIC_CONTROL'
                 nextbyte = self.pops('<B')[0]
                 if Debug: print 'block size:%d' %nextbyte
+                drw_bits  = (get_bits(self.pops('<B')[0]))
+                if drw_bits[5:2:-1] == array('B', [0,0,1]):
+                    drw_method = 'replace'
+                elif (drw_bits[5:2:-1]) == array('B', [0,1,0]):
+                    drw_method = 'restore background'
+                else:
+                    drw_method = 'restore previous'
+                if Debug:
+                    print 'draw_method :'+ drw_method
                 nextbyte = self.pops('<B')[0]
                 if Debug: print 'fields:%d' %nextbyte
                 nextbyte = self.pops('<B')[0]
-                if Debug: print nextbyte
-                nextbyte = self.pops('<B')[0]
-                if Debug: print nextbyte
+                if Debug: print 'duration:%d' %nextbyte # delay?
                 nextbyte = self.pops('<B')[0]
                 trans_color = nextbyte
                 if Debug: print 'transparent color index :%d' %trans_color
@@ -373,7 +392,7 @@ class GifDecoder( Gif ):
         while len(bits)>0:
             code = pack_bits(bits[:8])
             bits = bits[8:]
-            string += chr(code)
+            string = ''.join((string, chr(code)))
         return string
 
     def readable(bool_list):
@@ -398,12 +417,13 @@ class GifDecoder( Gif ):
         raw_color_table = self.pops("<%dB" % size)
         pos = 0
         pallete = []
+        pallete_append = pallete.append
 
         while pos + 3 < (size+1):
             red = raw_color_table[pos]
             green = raw_color_table[pos+1]
             blue = raw_color_table[pos+2]
-            pallete.append((red, green, blue))
+            pallete_append((red, green, blue))
             pos += 3
         return pallete
 
@@ -411,7 +431,9 @@ class GifDecoder( Gif ):
         '''Decodes a lzw stream from input import
         Returns list of ints (pixel values)'''
         string_table = {}
-        output = []
+        output = array('B')
+        output_append = output.append
+        output_extend = output.extend
         old = ''
         index = 0
 
@@ -424,9 +446,10 @@ class GifDecoder( Gif ):
 
         def pop(size):
             '''Pops <size> bits from <bits>'''
-            out = []
+            out = array('B')
+            out_append = out.append
             for i in range(size):
-                out.append(bits.pop(0))
+                out_append(bits.pop(0))
             return out
 
         def clear():
@@ -443,25 +466,27 @@ class GifDecoder( Gif ):
         bits = bits[codesize:]
 
         # read first code, append to output
-        code = self.bits_to_int(pop(codesize))
-        if Debug:
-            print 'code : %d' % code
-        output = [ord(string_table[code])]
+        self_bits_to_int = self.bits_to_int
+
+        code = self_bits_to_int(pop(codesize))
+        output_append(ord(string_table[code]))
 
         old = string_table[code]
 
         while len(bits) > 0:
             # read next code
-            code = self.bits_to_int(pop(codesize))
+            #if Debug:
+            #    print 'length to decode :%d' %len(bits)
+            code = self_bits_to_int(pop(codesize))
 
             # special code?
             if code == clearcode:
                 index = clear()
 
                 codesize = initial_codesize + 1
-                code = self.bits_to_int(pop(codesize))
+                code = self_bits_to_int(pop(codesize))
 
-                output.append(ord(string_table[code]))
+                output_append(ord(string_table[code]))
                 old = string_table[code]
                 continue
 
@@ -471,14 +496,14 @@ class GifDecoder( Gif ):
             # code in stringtable?
             if code in string_table:
                 c = string_table[code]
-                string_table[index] = old + c[0]
+                string_table[index] = ''.join((old, c[0]))
             else:
-                c = old + old[0]
+                c = ''.join((old,  old[0]))
                 string_table[code] = c
 
             index += 1
             old = c
-            output += [ord(x) for x in c]
+            output_extend(map(ord, c))
 
             if index == 2 ** codesize:
                 codesize += 1
@@ -496,14 +521,15 @@ class GifDecoder( Gif ):
 def get_bits( flags, reverse=False, bits=8 ):
     '''return a list with $bits items, one for each enabled bit'''
 
-    mybits = [ 1 << x for x in range(bits) ]
+    mybits = [ 1 << x for x in xrange(bits) ]
 
-    ret = []
-    for bit in mybits:
-        ret.append(flags & bit != 0)
-
+    rev_num=1
     if reverse:
-        ret.reverse()
+        rev_num = -1
+    ret = array('B')
+    ret_append = ret.append
+    for bit in mybits[::rev_num]:
+        ret_append(flags & bit != 0)
 
     return ret
 
