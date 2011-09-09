@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+3# -*- coding: utf-8 -*-
 #
 #    this program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -375,10 +375,11 @@ class GifDecoder( Gif ):
 
     def string_to_bits(self, string):
         '''high level string unpacker'''
-        bits = []
-        for byte in string:
-            for bit in get_bits(ord(byte)):
-                bits.append(bit)
+        ordarray = array('B', string)
+        bits = array('B')
+        bits_append = bits.append
+        for byte in ordarray:
+            map (bits_append, get_bits(byte))
         return bits
 
     def bits_to_string(bits):
@@ -463,9 +464,7 @@ class GifDecoder( Gif ):
         # read first code, append to output
         self_bits_to_int = self.bits_to_int
 
-        print codesize
         code = self_bits_to_int(pop(codesize))
-        print code
         output_append(ord(string_table[code]))
 
         old = string_table[code]
@@ -518,7 +517,7 @@ class GifDecoder( Gif ):
 def get_bits( flags, reverse=False, bits=8 ):
     '''return a list with $bits items, one for each enabled bit'''
 
-    mybits = [ 1 << x for x in xrange(bits) ]
+    mybits = (1, 2, 4, 8, 16, 32, 64, 128)[:bits]
 
     rev_num=1
     if reverse:
@@ -527,7 +526,6 @@ def get_bits( flags, reverse=False, bits=8 ):
     ret_append = ret.append
     for bit in mybits[::rev_num]:
         ret_append(flags & bit != 0)
-
     return ret
 
 def pack_bits( bits ):
