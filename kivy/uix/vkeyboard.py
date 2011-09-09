@@ -1,6 +1,7 @@
 '''
 VKeyboard: Virtual keyboard with custom layout support
 '''
+__all__ = ('VKeyboard', )
 
 from kivy.app import App
 from kivy.uix.scatter import Scatter
@@ -10,8 +11,10 @@ from kivy.properties import ObjectProperty, NumericProperty, StringProperty, \
     BooleanProperty, DictProperty, ListProperty 
 from kivy.logger import Logger
 from kivy.graphics import Color, Line, Rectangle, LineWidth
+from kivy.graphics.vertex_instructions import BorderImage
 from kivy.clock import Clock
 from kivy.core.image import Image
+
 
 from os.path import join, split, abspath, splitext#, dirname, exists
 from os import listdir 
@@ -196,9 +199,11 @@ class VKeyboard(Widget):
     * shift_R
 
     '''
-  
+    id = NumericProperty( 0 ) #id of the keyboard (if several)
+    target = ObjectProperty( '' ) #the id of the current widget connected to it
+    callback = ObjectProperty( None ) #the function to call when the keyboard is released
     size_k = ObjectProperty( (700, 200) )
-    scale_k = NumericProperty( 0.8 )
+    scale_k = NumericProperty( 1.0 )
     scale_min = NumericProperty( 0.4 )
     scale_max = NumericProperty( 1.6 )
     #pos = ObjectProperty( (0, 0) )
@@ -334,7 +339,7 @@ class VKeyboard(Widget):
     def refresh(self, k):
         #k : boolean . 
         #True : activates self.refresh_keys_hint()
-        #happens only at launch or in case of a layout change 
+        #True : happens only at launch or in case of a layout change 
         self.clear_widgets()
         self.canvas.clear() 
         if k == True : 
@@ -443,8 +448,8 @@ class VKeyboard(Widget):
         texture = Image( self.style['background_texture_path'] ).texture #transparent 'images/border17.png' plain 'images/border6.png'
         with self.canvas :
                     Color(a, b, c)        
-                    Rectangle(texture = texture, pos = pos, size =(l,h))
-        
+                    #BorderImage(texture = texture, pos = pos, size =(l,h),border = (5,5,5,5))
+                    Rectangle(texture = texture, pos = pos, size =(l,h) )
         #seperate drawing the keys and the fonts to avoid
         #reloading the texture each time
 
@@ -456,8 +461,9 @@ class VKeyboard(Widget):
                 size = key[1]       
                 with self.canvas :
                     Color(d, e, f)        
-                    Rectangle(texture = texture,pos = pos, size =size) 
-        
+                    #BorderImage(texture=texture, pos = pos, size =size, border = (2,2,2,2) ) #source=self.style['key_texture_path']
+                    Rectangle(texture=texture, pos = pos, size =size )
+
         #then draw the text
         #calculate font_size
         font_size = int(l)/46
@@ -514,7 +520,12 @@ class VKeyboard(Widget):
     def send(self,key_data):             
         character, b, c, d = key_data
         #print character
-        self.parent.insert_text(key_data)  
+        target = self.target 
+        
+        if key_data[2] is 'None':
+            target.insert_text(key_data[0])
+        else : 
+            target._key_down(key_data,repeat=False)  
 
     def get_key_at_pos(self,pos):
             x,y = self.get_local_pos(pos)
@@ -687,51 +698,10 @@ class VKeyboard(Widget):
             self.old_scale = 0  
         super(VKeyboard, self).on_touch_up( touch ) 
 
+    def move_to_target(self):
+        '''Slowly go to the target position, slightly under'''
+        target = self.target
+        x,y = target.center
+        print x,y
 
-class TextInputWithKeyboard(Widget):
-    def __init__(self, **kwargs):
-        from kivy.uix.textinput import TextInput
-        super(TextInputWithKeyboard,self).__init__(**kwargs)
-        
-        self.text_input = TextInput(text='', pos = (300,200))
-        self.keyboard = VKeyboard()
-        
-        self.draw(1,1)
-        self.keyboard.bind(on_touch_move = self.draw)    
-        
-        self.add_widget(self.text_input)
-        self.add_widget(self.keyboard)
 
-    def draw(self,a,b):
-        #draw a line between keyb and text input
-        #self.canvas.clear()
-        ti = self.text_input
-        k = self.keyboard
-        with self.canvas : 
-            Color(1., 1., 1.)
-            LineWidth(15.0)
-            if k.y > ti.y :
-                ky = k.y
-                tiy = ti.y + ti.height  
-            else : 
-                ky = k.y + k.get_size()[1]
-                tiy = ti.y
-            points = [ti.x + ti.width/2, tiy, k.x + k.get_size()[0]/2, ky]
-            Line(points=points)
-        #self.canvas.draw()     
-
-    def insert_text(self, key_data):
-        if key_data[2] is 'None':
-            self.text_input.insert_text(key_data[0])
-        else : 
-            self.text_input._key_down(key_data,repeat=False)
-        
-
-class TestApp(App):
-
-    def build(self):
-        self.g = TextInputWithKeyboard(app=self)
-        return self.g 
-
-if __name__ in ('__android__', '__main__'):
-    TestApp().run()
