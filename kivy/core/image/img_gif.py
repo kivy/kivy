@@ -27,9 +27,7 @@ http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pyg
 
 
 #TODO issues to fix
-#handle combine /replace flag Done. Animations are handled even better than PIL :D
 #optimize for speed  #partially done#  a lot of room for improvement
-	# crash on exotic GIF's, ok the code doesn't really crash
 	# its just SLOW.... CRAWLING
 
 import struct
@@ -76,8 +74,7 @@ class ImageLoaderGIF(ImageLoaderBase):
             have_transparent_color = img.transparent_color > -1
             transparent_color = img.transparent_color
             draw_method_restore_previous =  1 if img.draw_method == 'restore previous' else 0
-            draw_method_restore_background =  1 if img.draw_method == 'restore_background' else 0
-            draw_method_replace =  1 if img.draw_method == 'replace' else 0
+            draw_method_replace =  1 if ((img.draw_method == 'replace') or (img.draw_method == 'restore background')) else 0
             pixels = img.pixels
             img_height = img.height
             img_width = img.width
@@ -94,26 +91,25 @@ class ImageLoaderGIF(ImageLoaderBase):
                 tmp_top += 1
                 while i < img_width_plus_left:
                     (r, g, b) = pallete[pixels[x + i]]
-                    # copy only when not magic pink
+                    # when not magic pink
                     if (r, g, b) != (255,0,255):
                         if have_transparent_color:
                             if transparent_color == pixels[x + i] :
                                 if draw_method_replace:
-                                    (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = (r, g, b)
+                                    #transparent pixel draw method replace
                                     pixel_map[rgba_pos + 3] = 0
                                     rgba_pos += 4
                                     i += 1
                                     continue
+                                #transparent pixel draw method combine
                                 rgba_pos += 4
                                 i += 1
                                 continue
-                            (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = (r, g, b)
-                            pixel_map[rgba_pos + 3] = 255
-                            rgba_pos += 4
-                            i += 1
-                            continue
+                           # this pixel isn't transparent
+                        #doesn't have transparent color
                         (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = (r, g, b)
                         pixel_map[rgba_pos + 3] = 255
+                    # if magic pink move to next pixel
                     rgba_pos += 4
                     i += 1
 
@@ -244,12 +240,11 @@ class ImageDescriptor(object):
         self.height = header[3]
 
         self.flags = get_bits( header[4] )
-
         self.local_color_table_flag = self.flags[7]
         self.interlace_flag = self.flags[6]
         self.sort_flag = self.flags[5]
         #-- flags 4 and 3 are reserved
-        self.local_color_table_size =  2 ** (pack_bits(self.flags[0:2]) + 1)
+        self.local_color_table_size =  2 ** (pack_bits(self.flags[:3]) + 1)
         if self.local_color_table_flag:
             if Debug: print 'local color table true'
             self.parent.global_color_table_size = self.local_color_table_size
@@ -357,9 +352,9 @@ class GifDecoder( Gif ):
                 nextbyte = self.pops('<B')[0]
                 if Debug: print 'block size:%d' %nextbyte
                 drw_bits  = (get_bits(self.pops('<B')[0]))
-                if drw_bits[5:2:-1] == array('B', [0,0,1]):
+                if drw_bits[2:5] == array('B', [0,0,1]):
                     drw_method = 'replace'
-                elif (drw_bits[5:2:-1]) == array('B', [0,1,0]):
+                elif (drw_bits[2:5]) == array('B', [0,1,0]):
                     drw_method = 'restore background'
                 else:
                     drw_method = 'restore previous'
@@ -468,7 +463,9 @@ class GifDecoder( Gif ):
         # read first code, append to output
         self_bits_to_int = self.bits_to_int
 
+        print codesize
         code = self_bits_to_int(pop(codesize))
+        print code
         output_append(ord(string_table[code]))
 
         old = string_table[code]
