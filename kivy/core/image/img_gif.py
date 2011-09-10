@@ -40,7 +40,7 @@ KNOWN_FORMATS = ('GIF87a', 'GIF89a')
 from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
 
-Debug = True
+Debug = False
 
 class ImageLoaderGIF(ImageLoaderBase):
     '''Image loader for gif'''
@@ -159,9 +159,10 @@ class Gif(object):
         self.pallete = [(x, x, x) for x in range(0, 256)]
         self.images = []
 
-        self.debug_enabled = True
+        self.debug_enabled = False
+        return
 
-    def pop( self, length=1 ):
+    def pop( self, data, length=1 ):
         '''gets the next $len chars from thedatastack import 
         and increment the pointer'''
 
@@ -169,12 +170,12 @@ class Gif(object):
         end = self.pointer + length
         self.pointer += length
 
-        return self.data[start:end]
+        return data[start:end]
 
-    def pops( self, format ):
+    def pops( self, format, data ):
         '''pop struct: get size, pop(), unpack()'''
         size = struct.calcsize(format) 
-        return struct.unpack( format, self.pop(size) )
+        return struct.unpack( format, self.pop(data, size) )
 
     def print_info( self ):
         '''prints out some useful info (..debug?)'''
@@ -281,7 +282,7 @@ class GifDecoder( Gif ):
 
         #17. Header.
         #18. Logical Screen Descriptor.
-        data = self.pops( Gif.FMT_HEADER )
+        data = self.pops( Gif.FMT_HEADER, self.data )
 
         self.header = data[0]
         self.ls_width = data[1]
@@ -309,62 +310,73 @@ class GifDecoder( Gif ):
 
         # blocks
         image = None
+        self_data = self.data
+        self_pops = self.pops
+        Gif_IMAGE_SEPARATOR = Gif.IMAGE_SEPARATOR
+        Gif_FMT_IMGDESC = Gif.FMT_IMGDESC
+        self_new_image = self.new_image
+        self_pop = self.pop
+        self_debug_enabled = self.debug_enabled
+        self_lzw_decode = self.lzw_decode
+        self_global_color_table_size = self.global_color_table_size
+        Gif_EXTENSION_INTRODUCER = Gif.EXTENSION_INTRODUCER
+        Gif_GIF_TRAILER = Gif.GIF_TRAILER
+        Gif_LABEL_GRAPHIC_CONTROL = Gif.LABEL_GRAPHIC_CONTROL
         while True:
             try:
-                nextbyte = self.pops('<B')[0]
+                nextbyte = self_pops('<B', self_data)[0]
             except:
                 nextbyte = 0x3b # force end
 
             #20. Image Descriptor
-            if nextbyte == Gif.IMAGE_SEPARATOR:
-                descriptor = self.pops(Gif.FMT_IMGDESC)
-                image = self.new_image(descriptor)
+            if nextbyte == Gif_IMAGE_SEPARATOR:
+                descriptor = self_pops(Gif_FMT_IMGDESC, self_data)
+                image = self_new_image(descriptor)
                 image.transparent_color = trans_color
-                self.draw_method = drw_method
                 image.draw_method = drw_method
-                image.codesize = self.pops('<B')[0]
+                image.codesize = self_pops('<B', self_data)[0]
                 image.lzwcode = ''
 
                 while True:
                     try:
-                        blocksize = self.pops('<B')[0]
+                        blocksize = self_pops('<B', self_data)[0]
                     except:
                         break
                     if blocksize == 0:
                         break   # no more image data
-                    lzwdata = self.pop(blocksize)
+                    lzwdata = self_pop(self_data, blocksize)
                     image.lzwcode = ''.join((image.lzwcode, lzwdata))
 
-                if self.debug_enabled:
+                if self_debug_enabled:
                     print 'LZW length:', len(image.lzwcode)
 
-                image.pixels = self.lzw_decode(image.lzwcode, image.codesize, \
-                    self.global_color_table_size)
+                image.pixels = self_lzw_decode(image.lzwcode, image.codesize, \
+                    self_global_color_table_size)
 
             # Extensions
-            elif nextbyte == Gif.EXTENSION_INTRODUCER:
+            elif nextbyte == Gif_EXTENSION_INTRODUCER:
                 pass
             # Gif trailer
-            elif nextbyte == Gif.GIF_TRAILER:
+            elif nextbyte == Gif_GIF_TRAILER:
                 return
-            elif nextbyte == Gif.LABEL_GRAPHIC_CONTROL:
-                if Debug: print 'LABEL_GRAPHIC_CONTROL'
-                nextbyte = self.pops('<B')[0]
-                if Debug: print 'block size:%d' %nextbyte
-                drw_bits  = (get_bits(self.pops('<B')[0]))
+            elif nextbyte == Gif_LABEL_GRAPHIC_CONTROL:
+                if self_debug_enabled: print 'LABEL_GRAPHIC_CONTROL'
+                nextbyte = self_pops('<B', self_data)[0]
+                if self_debug_enabled: print 'block size:%d' %nextbyte
+                drw_bits  = (get_bits(self_pops('<B', self_data)[0]))
                 if drw_bits[2:5] == array('B', [0,0,1]):
                     drw_method = 'replace'
                 elif (drw_bits[2:5]) == array('B', [0,1,0]):
                     drw_method = 'restore background'
                 else:
                     drw_method = 'restore previous'
-                if Debug:
+                if self_debug_enabled:
                     print 'draw_method :'+ drw_method
-                nextbyte = self.pops('<B')[0]
-                if Debug: print 'fields:%d' %nextbyte
-                nextbyte = self.pops('<B')[0]
-                if Debug: print 'duration:%d' %nextbyte # delay?
-                nextbyte = self.pops('<B')[0]
+                nextbyte = self_pops('<B', self_data)[0]
+                if self_debug_enabled: print 'fields:%d' %nextbyte
+                nextbyte = self_pops('<B', self_data)[0]
+                if self_debug_enabled: print 'duration:%d' %nextbyte # delay?
+                nextbyte = self_pops('<B', self_data)[0]
                 trans_color = nextbyte
                 if Debug: print 'transparent color index :%d' %trans_color
                 pass
@@ -410,7 +422,7 @@ class GifDecoder( Gif ):
     def get_color_table( self, size ):
         '''Returns a color table in the format [(r,g,b),(r,g,b), ...]'''
 
-        raw_color_table = self.pops("<%dB" % size)
+        raw_color_table = self.pops("<%dB" % size, self.data)
         pos = 0
         pallete = []
         pallete_append = pallete.append
