@@ -1,4 +1,4 @@
-3# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #
 #    this program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -69,11 +69,15 @@ class ImageLoaderGIF(ImageLoaderBase):
         pixel_map = array('B', [0]*(ls_width*ls_height*4))
 
         for img in im.images:
-            pallete = img.pallete if img.local_color_table_flag else im.pallete
+            pallete = img.pallete if img.local_color_table_flag\
+                else im.pallete
             have_transparent_color = img.transparent_color > -1
             transparent_color = img.transparent_color
-            draw_method_restore_previous =  1 if img.draw_method == 'restore previous' else 0
-            draw_method_replace =  1 if ((img.draw_method == 'replace') or (img.draw_method == 'restore background')) else 0
+            draw_method_restore_previous =  1 \
+                if img.draw_method == 'restore previous' else 0
+            draw_method_replace =  1 \
+                if ((img.draw_method == 'replace') or\
+                    (img.draw_method == 'restore background')) else 0
             pixels = img.pixels
             img_height = img.height
             img_width = img.width
@@ -82,11 +86,13 @@ class ImageLoaderGIF(ImageLoaderBase):
             #reverse top to bottom and left to right
             tmp_top = (ls_height - (img_height+ top))
             img_width_plus_left = (img_width+ left)
+            ls_width_multiply_4 = ls_width * 4
+            left_multiply_4 = left * 4
             while img_height > 0:
                 i = left
                 img_height -= 1
                 x = (img_height * img_width) - left
-                rgba_pos = (tmp_top * ls_width * 4) + (left * 4)
+                rgba_pos = (tmp_top * ls_width_multiply_4) + (left_multiply_4)
                 tmp_top += 1
                 while i < img_width_plus_left:
                     (r, g, b) = pallete[pixels[x + i]]
@@ -106,13 +112,15 @@ class ImageLoaderGIF(ImageLoaderBase):
                                 continue
                            # this pixel isn't transparent
                         #doesn't have transparent color
-                        (pixel_map[rgba_pos], pixel_map[rgba_pos + 1], pixel_map[rgba_pos + 2]) = (r, g, b)
+                        (pixel_map[rgba_pos], pixel_map[rgba_pos + 1],\
+                            pixel_map[rgba_pos + 2]) = (r, g, b)
                         pixel_map[rgba_pos + 3] = 255
                     # if magic pink move to next pixel
                     rgba_pos += 4
                     i += 1
 
-            img_data.append(ImageData(ls_width, ls_height, 'rgba', pixel_map.tostring()))
+            img_data.append(ImageData(ls_width, ls_height, \
+                'rgba', pixel_map.tostring()))
 
         self.filename = filename
 
@@ -120,7 +128,7 @@ class ImageLoaderGIF(ImageLoaderBase):
 
 
 class Gif(object):
-    '''Base class to encoder and decoder'''
+    '''Base class to decoder'''
 
     # struct format strings
 
@@ -162,7 +170,7 @@ class Gif(object):
         return
 
     def pop( self, data, length=1 ):
-        '''gets the next $len chars from thedatastack import 
+        '''gets the next $len chars from the data stack import
         and increment the pointer'''
 
         start = self.pointer
@@ -173,7 +181,7 @@ class Gif(object):
 
     def pops( self, format, data ):
         '''pop struct: get size, pop(), unpack()'''
-        size = struct.calcsize(format) 
+        size = struct.calcsize(format)
         return struct.unpack( format, self.pop(data, size) )
 
     def print_info( self ):
@@ -454,6 +462,10 @@ class GifDecoder( Gif ):
         bits = self.string_to_bits(input)
 
         def pop(size):
+            #NOTE:OPTIMISE THIS, according to pycallgraph
+            #this function takes exponentially more time
+            #for a bigger file size
+            # 7+secs for s 71.8kb file and 72+ secs for 164.2kb file
             '''Pops <size> bits from <bits>'''
             out = array('B')
             out_append = out.append
