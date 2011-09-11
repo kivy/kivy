@@ -184,7 +184,7 @@ kivy_options = {
     'text': ('pil', 'cairo', 'pygame'),
     'video': ('ffmpeg', 'gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', ),
-    'image': ('dds', 'gif', 'pil', 'pygame'),
+    'image': ('dds', 'gif', 'pil', 'pygame' ),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': ('pygame', 'dummy'), }

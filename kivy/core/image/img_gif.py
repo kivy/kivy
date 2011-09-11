@@ -33,7 +33,6 @@ http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pyg
 import struct
 from array import array
 import math
-import time
 
 KNOWN_FORMATS = ('GIF87a', 'GIF89a')
 
@@ -336,6 +335,7 @@ class GifDecoder( Gif ):
                 image.draw_method = drw_method
                 image.codesize = self_pops('<B', self_data)[0]
                 image.lzwcode = ''
+                image_lzwcode = image.lzwcode
 
                 while True:
                     try:
@@ -345,11 +345,12 @@ class GifDecoder( Gif ):
                     if blocksize == 0:
                         break   # no more image data
                     lzwdata = self_pop(self_data, blocksize)
-                    image.lzwcode = ''.join((image.lzwcode, lzwdata))
+                    image_lzwcode = ''.join((image_lzwcode, lzwdata))
 
                 if self_debug_enabled:
-                    print 'LZW length:', len(image.lzwcode)
+                    print 'LZW length:', len(image_lzwcode)
 
+                image.lzwcode = image_lzwcode
                 image.pixels = self_lzw_decode(image.lzwcode, image.codesize, \
                     self_global_color_table_size)
 
@@ -360,9 +361,9 @@ class GifDecoder( Gif ):
             elif nextbyte == Gif_GIF_TRAILER:
                 return
             elif nextbyte == Gif_LABEL_GRAPHIC_CONTROL:
-                if self_debug_enabled: print 'LABEL_GRAPHIC_CONTROL'
+                #if self_debug_enabled: print 'LABEL_GRAPHIC_CONTROL'
                 nextbyte = self_pops('<B', self_data)[0]
-                if self_debug_enabled: print 'block size:%d' %nextbyte
+                #if self_debug_enabled: print 'block size:%d' %nextbyte
                 drw_bits  = (get_bits(self_pops('<B', self_data)[0]))
                 if drw_bits[2:5] == array('B', [0,0,1]):
                     drw_method = 'replace'
@@ -370,15 +371,15 @@ class GifDecoder( Gif ):
                     drw_method = 'restore background'
                 else:
                     drw_method = 'restore previous'
-                if self_debug_enabled:
-                    print 'draw_method :'+ drw_method
+                #if self_debug_enabled:
+                #    print 'draw_method :'+ drw_method
                 nextbyte = self_pops('<B', self_data)[0]
-                if self_debug_enabled: print 'fields:%d' %nextbyte
+                #if self_debug_enabled: print 'fields:%d' %nextbyte
                 nextbyte = self_pops('<B', self_data)[0]
-                if self_debug_enabled: print 'duration:%d' %nextbyte # delay?
+                #if self_debug_enabled: print 'duration:%d' %nextbyte # delay?
                 nextbyte = self_pops('<B', self_data)[0]
                 trans_color = nextbyte
-                if Debug: print 'transparent color index :%d' %trans_color
+                #if Debug: print 'transparent color index :%d' %trans_color
                 pass
             # "No Idea What Is This"
             else:
@@ -456,8 +457,9 @@ class GifDecoder( Gif ):
             '''Pops <size> bits from <bits>'''
             out = array('B')
             out_append = out.append
+            bits_pop = bits.pop
             for i in range(size):
-                out_append(bits.pop(0))
+                out_append(bits_pop(0))
             return out
 
         def clear():
