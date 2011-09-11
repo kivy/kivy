@@ -465,7 +465,8 @@ class GifDecoder( Gif ):
             #NOTE:OPTIMISE THIS, according to pycallgraph
             #this function takes exponentially more time
             #for a bigger file size
-            # 7+secs for s 71.8kb file and 72+ secs for 164.2kb file
+            # 7+secs for opening a (37.7kb and  71.8kb) files
+            # and 72+ secs for (37.7, 164.2kb) files
             '''Pops <size> bits from <bits>'''
             out = array('B')
             out_append = out.append
