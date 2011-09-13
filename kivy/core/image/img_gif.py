@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ #-*- coding: utf-8 -*-
 #
 #    this program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -399,8 +399,10 @@ class GifDecoder( Gif ):
         ordarray = array('B', string)
         bits = array('B')
         bits_append = bits.append
+        #map(lambda byte: map (bits_append, get_bits(byte)), ordarray) slower:(
+        _get_bits = get_bits
         for byte in ordarray:
-            map (bits_append, get_bits(byte))
+            map (bits_append, _get_bits(byte))
         return bits
 
     def bits_to_string(bits):
@@ -460,20 +462,13 @@ class GifDecoder( Gif ):
             print 'codesize: %d' %codesize
             print 'clearcode %d, end_of_info: %d' % (clearcode, end_of_info)
         bits = self.string_to_bits(input)
+        self.bitpointer = 0
 
-        def pop(size):
-            #NOTE:OPTIMISE THIS, according to pycallgraph
-            #this function takes exponentially more time
-            #for a bigger file size
-            # 7+secs for opening a (37.7kb and  71.8kb) files
-            # and 72+ secs for (37.7, 164.2kb) files
-            '''Pops <size> bits from <bits>'''
-            out = array('B')
-            out_append = out.append
-            bits_pop = bits.pop
-            for i in range(size):
-                out_append(bits_pop(0))
-            return out
+        def pop(size, _bits ):
+
+            start = self.bitpointer
+            end = self.bitpointer = start + size
+            return _bits[start: end]
 
         def clear():
             '''Called on clear code'''
@@ -491,23 +486,23 @@ class GifDecoder( Gif ):
         # read first code, append to output
         self_bits_to_int = self.bits_to_int
 
-        code = self_bits_to_int(pop(codesize))
+        code = self_bits_to_int(pop(codesize, bits))
         output_append(ord(string_table[code]))
 
         old = string_table[code]
 
-        while len(bits) > 0:
+        while self.bitpointer < len(bits):
             # read next code
             #if Debug:
             #    print 'length to decode :%d' %len(bits)
-            code = self_bits_to_int(pop(codesize))
+            code = self_bits_to_int(pop(codesize, bits))
 
             # special code?
             if code == clearcode:
                 index = clear()
 
                 codesize = initial_codesize + 1
-                code = self_bits_to_int(pop(codesize))
+                code = self_bits_to_int(pop(codesize, bits))
 
                 output_append(ord(string_table[code]))
                 old = string_table[code]
