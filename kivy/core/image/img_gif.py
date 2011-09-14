@@ -27,9 +27,7 @@ http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pyg
 
 
 #TODO issues to fix
-#optimize for speed  #partially done#  a lot of room for improvement
-	# its just SLOW.... CRAWLING
-
+#optimize for speed  #partially done#  a lot of room for improvementd
 import struct
 from array import array
 import math
@@ -67,11 +65,10 @@ class ImageLoaderGIF(ImageLoaderBase):
         ls_width = im.ls_width
         ls_height = im.ls_height
         pixel_map = array('B', [0]*(ls_width*ls_height*4))
-
         for img in im.images:
             pallete = img.pallete if img.local_color_table_flag\
                 else im.pallete
-            have_transparent_color = img.transparent_color > -1
+            have_transparent_color = img.has_transparent_color
             transparent_color = img.transparent_color
             draw_method_restore_previous =  1 \
                 if img.draw_method == 'restore previous' else 0
@@ -232,8 +229,9 @@ class ImageDescriptor(object):
         self.interlace_flag = False
         self.sort_flag = False
         self.local_color_table_size = 0
-        self.draw_method = 'overwrite'
+        self.draw_method = 'replace'
         self.transparent_color = -1
+        self.has_transparent_color = 0
         self.pallete = []
 
         if header:
@@ -340,6 +338,7 @@ class GifDecoder( Gif ):
                 descriptor = self_pops(Gif_FMT_IMGDESC, self_data)
                 image = self_new_image(descriptor)
                 image.transparent_color = trans_color
+                image.has_transparent_color = has_transparent_color
                 image.draw_method = drw_method
                 image.codesize = self_pops('<B', self_data)[0]
                 image.lzwcode = ''
@@ -373,6 +372,7 @@ class GifDecoder( Gif ):
                 nextbyte = self_pops('<B', self_data)[0]
                 #if self_debug_enabled: print 'block size:%d' %nextbyte
                 drw_bits  = (get_bits(self_pops('<B', self_data)[0]))
+                has_transparent_color = drw_bits[0]
                 if drw_bits[2:5] == array('B', [0,0,1]):
                     drw_method = 'replace'
                 elif (drw_bits[2:5]) == array('B', [0,1,0]):
@@ -421,13 +421,12 @@ class GifDecoder( Gif ):
 
     def bits_to_int(self, bits):
         '''high level bit list packer'''
+        c = 1
         i = 0
-        c = 0
-        bits.reverse()
-        while c < len(bits):
-            if bits[c]:
-                i += 2 ** (len(bits) - c - 1)
-            c += 1
+        for bit in bits:
+            if bit:
+                i+= 2**( c-1)
+            c +=1
         return i
 
     def get_color_table( self, size ):
@@ -465,7 +464,7 @@ class GifDecoder( Gif ):
         self.bitpointer = 0
 
         def pop(size, _bits ):
-
+            ''' return bits '''
             start = self.bitpointer
             end = self.bitpointer = start + size
             return _bits[start: end]
@@ -490,8 +489,9 @@ class GifDecoder( Gif ):
         output_append(ord(string_table[code]))
 
         old = string_table[code]
+        bitlen = len(bits)
 
-        while self.bitpointer < len(bits):
+        while self.bitpointer < bitlen:
             # read next code
             #if Debug:
             #    print 'length to decode :%d' %len(bits)
@@ -527,8 +527,8 @@ class GifDecoder( Gif ):
                 codesize += 1
                 if codesize == 13:
                     codesize = 12
-                    print 'decoding error, missed a clearcode?'
-                    print 'index:', index
+                    #print 'decoding error, missed a clearcode?'
+                    #print 'index:', index
                     #exit()
 
         if self.debug_enabled:
