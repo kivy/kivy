@@ -131,6 +131,7 @@ class Popup(FloatLayout):
     def __init__(self, **kwargs):
         self.register_event_type('on_open')
         self.register_event_type('on_dismiss')
+        self._parent = None
         super(Popup, self).__init__(**kwargs)
 
     def _search_window(self):
@@ -157,6 +158,7 @@ class Popup(FloatLayout):
             Logger.warning('Popup: cannot open popup, no window found.')
             return self
         self._window.add_widget(self)
+        self._window.bind(on_resize=self._align_center)
         self.center = self._window.center
         Animation(_anim_alpha=1., d=self._anim_duration).start(self)
         self.dispatch('on_open')
@@ -179,6 +181,9 @@ class Popup(FloatLayout):
         return self
 
     def on_size(self, instance, value):
+        self._align_center()
+
+    def _align_center(self, *l):
         if self._window:
             self.center = self._window.center
 
@@ -193,6 +198,7 @@ class Popup(FloatLayout):
     def on__anim_alpha(self, instance, value):
         if value == 0 and self._window is not None:
             self._window.remove_widget(self)
+            self._window.unbind(on_resize=self._align_center)
             self._window = None
 
     def on_content(self, instance, value):

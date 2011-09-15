@@ -116,15 +116,18 @@ cdef class VertexBatch:
         self.set_data(NULL, 0, NULL, 0)
         self.set_mode(kwargs.get('mode', None))
 
-    cdef void set_data(self, vertex_t *vertices, int vertices_count,
-                       unsigned short *indices, int indices_count):
+    cdef void clear_data(self):
         # clear old vertices from vbo and then reset index buffer
         self.vbo.remove_vertex_data(<unsigned short*>self.vbo_index.pointer(),
                                     self.vbo_index.count())
         self.vbo_index.clear()
-
-        # clear also our elements
         self.elements.clear()
+
+
+    cdef void set_data(self, vertex_t *vertices, int vertices_count,
+                       unsigned short *indices, int indices_count):
+        #clear old vertices first
+        self.clear_data()
         self.elements.grow(indices_count)
 
         # now append the vertices and indices to vbo

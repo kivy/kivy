@@ -76,8 +76,6 @@ cdef void   glBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size,  G
 cdef GLenum glCheckFramebufferStatus (GLenum target) with gil:
     print "GL glCheckFramebufferStatus( target = ", target, ", )"
     return cgl.glCheckFramebufferStatus ( target)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glClear (GLbitfield mask) with gil:
     print "GL glClear( mask = ", mask, ", )"
     cgl.glClear ( mask)
@@ -132,13 +130,9 @@ cdef void   glCopyTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLin
 cdef GLuint glCreateProgram () with gil:
     print "GL glCreateProgram( )"
     return cgl.glCreateProgram ()
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef GLuint glCreateShader (GLenum type) with gil:
     print "GL glCreateShader( type = ", type, ", )"
     return cgl.glCreateShader ( type)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glCullFace (GLenum mode) with gil:
     print "GL glCullFace( mode = ", mode, ", )"
     cgl.glCullFace ( mode)
@@ -293,8 +287,6 @@ cdef void   glGetAttachedShaders (GLuint program, GLsizei maxcount, GLsizei* cou
 cdef int    glGetAttribLocation (GLuint program,  GLchar* name) with gil:
     print "GL glGetAttribLocation( program = ", program, ", name*=", repr(hex(<long> name)), ", )"
     return cgl.glGetAttribLocation ( program, name)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glGetBooleanv (GLenum pname, GLboolean* params) with gil:
     print "GL glGetBooleanv( pname = ", pname, ", params*=", repr(hex(<long> params)), ", )"
     cgl.glGetBooleanv ( pname, params)
@@ -308,8 +300,6 @@ cdef void   glGetBufferParameteriv (GLenum target, GLenum pname, GLint* params) 
 cdef GLenum glGetError () with gil:
     print "GL glGetError( )"
     return cgl.glGetError ()
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glGetFloatv (GLenum pname, GLfloat* params) with gil:
     print "GL glGetFloatv( pname = ", pname, ", params*=", repr(hex(<long> params)), ", )"
     cgl.glGetFloatv ( pname, params)
@@ -359,8 +349,6 @@ cdef void   glGetShaderSource (GLuint shader, GLsizei bufsize, GLsizei* length, 
 cdef   GLubyte*  glGetString (GLenum name) with gil:
     print "GL glGetString( name = ", name, ", )"
     return cgl.glGetString ( name)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glGetTexParameterfv (GLenum target, GLenum pname, GLfloat* params) with gil:
     print "GL glGetTexParameterfv( target = ", target, ", pname = ", pname, ", params*=", repr(hex(<long> params)), ", )"
     cgl.glGetTexParameterfv ( target, pname, params)
@@ -384,8 +372,6 @@ cdef void   glGetUniformiv (GLuint program, GLint location, GLint* params) with 
 cdef int    glGetUniformLocation (GLuint program,  GLchar* name) with gil:
     print "GL glGetUniformLocation( program = ", program, ", name*=", repr(hex(<long> name)), ", )"
     return cgl.glGetUniformLocation ( program, name)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glGetVertexAttribfv (GLuint index, GLenum pname, GLfloat* params) with gil:
     print "GL glGetVertexAttribfv( index = ", index, ", pname = ", pname, ", params*=", repr(hex(<long> params)), ", )"
     cgl.glGetVertexAttribfv ( index, pname, params)
@@ -409,38 +395,24 @@ cdef void   glHint (GLenum target, GLenum mode) with gil:
 cdef GLboolean  glIsBuffer (GLuint buffer) with gil:
     print "GL glIsBuffer( buffer = ", buffer, ", )"
     return cgl.glIsBuffer ( buffer)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef GLboolean  glIsEnabled (GLenum cap) with gil:
     print "GL glIsEnabled( cap = ", cap, ", )"
     return cgl.glIsEnabled ( cap)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef GLboolean  glIsFramebuffer (GLuint framebuffer) with gil:
     print "GL glIsFramebuffer( framebuffer = ", framebuffer, ", )"
     return cgl.glIsFramebuffer ( framebuffer)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef GLboolean  glIsProgram (GLuint program) with gil:
     print "GL glIsProgram( program = ", program, ", )"
     return cgl.glIsProgram ( program)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef GLboolean  glIsRenderbuffer (GLuint renderbuffer) with gil:
     print "GL glIsRenderbuffer( renderbuffer = ", renderbuffer, ", )"
     return cgl.glIsRenderbuffer ( renderbuffer)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef GLboolean  glIsShader (GLuint shader) with gil:
     print "GL glIsShader( shader = ", shader, ", )"
     return cgl.glIsShader ( shader)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef GLboolean  glIsTexture (GLuint texture) with gil:
     print "GL glIsTexture( texture = ", texture, ", )"
     return cgl.glIsTexture ( texture)
-    ret = glGetError()
-    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void  glLineWidth (GLfloat width) with gil:
     print "GL glLineWidth( width = ", width, ", )"
     cgl.glLineWidth ( width)

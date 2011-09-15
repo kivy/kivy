@@ -375,7 +375,7 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt,
     '''Create the OpenGL texture.
     '''
     cdef GLuint target = GL_TEXTURE_2D
-    cdef GLuint texid
+    cdef GLuint texid = 0
     cdef Texture texture
     cdef int texture_width, texture_height
     cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
