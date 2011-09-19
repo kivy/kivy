@@ -587,9 +587,9 @@ def load(filename):
 # load image loaders
 core_register_libs('image', (
     ('dds', 'img_dds'),
-    ('gif', 'img_gif'),
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
+    ('gif', 'img_gif'),
 ))
 
 # resolve binding.
