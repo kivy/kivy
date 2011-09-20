@@ -66,8 +66,8 @@ class ImageLoaderGIF(ImageLoaderBase):
         ls_height = im.ls_height
         pixel_map = array('B', [0]*(ls_width*ls_height*4))
         for img in im.images:
-            pallete = img.pallete if img.local_color_table_flag\
-                else im.pallete
+            palette = img.palette if img.local_color_table_flag\
+                else im.palette
             have_transparent_color = img.has_transparent_color
             transparent_color = img.transparent_color
             draw_method_restore_previous =  1 \
@@ -92,7 +92,7 @@ class ImageLoaderGIF(ImageLoaderBase):
                 rgba_pos = (tmp_top * ls_width_multiply_4) + (left_multiply_4)
                 tmp_top += 1
                 while i < img_width_plus_left:
-                    (r, g, b) = pallete[pixels[x + i]]
+                    (r, g, b) = palette[pixels[x + i]]
                     # when not magic pink
                     if (r, g, b) != (255,0,255):
                         if have_transparent_color:
@@ -118,6 +118,8 @@ class ImageLoaderGIF(ImageLoaderBase):
 
             img_data.append(ImageData(ls_width, ls_height, \
                 'rgba', pixel_map.tostring()))
+            if draw_method_replace:
+                pixel_map = array('B', [0]*(ls_width*ls_height*4))
 
         self.filename = filename
 
@@ -159,8 +161,8 @@ class Gif(object):
         self.global_color_table_size = 0
         self.background_color = 0
         self.aspect_ratio = 0
-        # greyscale pallete by default
-        self.pallete = [(x, x, x) for x in range(0, 256)]
+        # greyscale palette by default
+        self.palette = [(x, x, x) for x in range(0, 256)]
         self.images = []
 
         self.debug_enabled = False
@@ -232,7 +234,7 @@ class ImageDescriptor(object):
         self.draw_method = 'replace'
         self.transparent_color = -1
         self.has_transparent_color = 0
-        self.pallete = []
+        self.palette = []
 
         if header:
             self.setup_header(header)
@@ -253,10 +255,9 @@ class ImageDescriptor(object):
         self.local_color_table_size =  2 ** (pack_bits(self.flags[:3]) + 1)
         if self.local_color_table_flag:
             if Debug: print 'local color table true'
-            self.parent.global_color_table_size = self.local_color_table_size
-            size = (self.local_color_table_size) * 3
-            self.pallete = self.parent.get_color_table(size)
-            self.parent.pallete = self.pallete
+            #self.parent.global_color_table_size = self.local_color_table_size
+            self.palette = self.parent.get_color_table((self.local_color_table_size) * 3)
+            #self.parent.palette = self.palette
 
     def get_header(self):
         '''builds a header dynamically'''
@@ -266,7 +267,7 @@ class ImageDescriptor(object):
         flags[5] = self.sort_flag
 
         # useless!
-        flags[2], flags[1], flags[0] = get_bits(len(self.pallete), bits=3)
+        flags[2], flags[1], flags[0] = get_bits(len(self.palette), bits=3)
 
         return (self.left, self.top, self.width, self.height, pack_bits(flags))
 
@@ -308,10 +309,10 @@ class GifDecoder( Gif ):
         #19. Global Color Table.
         if self.color_table_flag:
             size = (self.global_color_table_size) * 3
-            self.pallete = self.get_color_table(size)
+            self.palette = self.get_color_table(size)
         else:
-            # generate a greyscale pallete
-            self.pallete = [(x, x, x) for x in range(256)]
+            # generate a greyscale palette
+            self.palette = [(x, x, x) for x in range(256)]
 
         # blocks
         image = None
@@ -323,10 +324,12 @@ class GifDecoder( Gif ):
         self_pop = self.pop
         self_debug_enabled = self.debug_enabled
         self_lzw_decode = self.lzw_decode
-        self_global_color_table_size = self.global_color_table_size
         Gif_EXTENSION_INTRODUCER = Gif.EXTENSION_INTRODUCER
         Gif_GIF_TRAILER = Gif.GIF_TRAILER
         Gif_LABEL_GRAPHIC_CONTROL = Gif.LABEL_GRAPHIC_CONTROL
+        trans_color = 0
+        has_transparent_color = 0
+        drw_method = 'replace'
         while True:
             try:
                 nextbyte = self_pops('<B', self_data)[0]
@@ -343,6 +346,10 @@ class GifDecoder( Gif ):
                 image.codesize = self_pops('<B', self_data)[0]
                 image.lzwcode = ''
                 image_lzwcode = image.lzwcode
+                table_size = image.local_color_table_size\
+                    if image.local_color_table_flag or\
+                    image.codesize > self.global_color_table_size\
+                    else self.global_color_table_size
 
                 while True:
                     try:
@@ -359,7 +366,7 @@ class GifDecoder( Gif ):
 
                 image.lzwcode = image_lzwcode
                 image.pixels = self_lzw_decode(image.lzwcode, image.codesize, \
-                    self_global_color_table_size)
+                    table_size)
 
             # Extensions
             elif nextbyte == Gif_EXTENSION_INTRODUCER:
@@ -434,16 +441,16 @@ class GifDecoder( Gif ):
 
         raw_color_table = self.pops("<%dB" % size, self.data)
         pos = 0
-        pallete = []
-        pallete_append = pallete.append
+        palette = []
+        palette_append = palette.append
 
         while pos + 3 < (size+1):
             red = raw_color_table[pos]
             green = raw_color_table[pos+1]
             blue = raw_color_table[pos+2]
-            pallete_append((red, green, blue))
+            palette_append((red, green, blue))
             pos += 3
-        return pallete
+        return palette
 
     def lzw_decode(self, input, initial_codesize, color_table_size):
         '''Decodes a lzw stream from input import
@@ -493,8 +500,6 @@ class GifDecoder( Gif ):
 
         while self.bitpointer < bitlen:
             # read next code
-            #if Debug:
-            #    print 'length to decode :%d' %len(bits)
             code = self_bits_to_int(pop(codesize, bits))
 
             # special code?
@@ -503,7 +508,6 @@ class GifDecoder( Gif ):
 
                 codesize = initial_codesize + 1
                 code = self_bits_to_int(pop(codesize, bits))
-
                 output_append(ord(string_table[code]))
                 old = string_table[code]
                 continue
