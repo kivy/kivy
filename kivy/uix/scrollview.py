@@ -89,6 +89,14 @@ from kivy.uix.stencilview import StencilView
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty
 
 
+# When we are generating documentation, Config doesn't exist
+_scroll_timeout = _scroll_distance = _scroll_friction = 0
+if Config:
+    _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
+    _scroll_distance = Config.getint('widgets', 'scroll_distance')
+    _scroll_friction = Config.getfloat('widgets', 'scroll_friction')
+
+
 class ScrollView(StencilView):
     '''ScrollView class. See module documentation for more informations.
     '''
@@ -352,8 +360,7 @@ class ScrollView(StencilView):
     to True
     '''
 
-    scroll_friction = NumericProperty(
-            Config.getfloat('widgets', 'scroll_friction'))
+    scroll_friction = NumericProperty(_scroll_friction)
     '''Friction is a factor for reducing the scrolling when the list is not
     moved by a touch. When you do a swipe, the movement speed is calculated, and
     is used to move automatically the list when you touch up. The speed is
@@ -371,8 +378,7 @@ class ScrollView(StencilView):
     default to 1, according to the default value in user configuration.
     '''
 
-    scroll_distance = NumericProperty(
-            Config.getint('widgets', 'scroll_distance'))
+    scroll_distance = NumericProperty(_scroll_distance)
     '''Distance to move before scrolling the :class:`ScrollView`, in pixels. As
     soon as the distance have been traveled, the :class:`ScrollView` will start
     to scroll, and no touch event will go to children.
@@ -382,8 +388,7 @@ class ScrollView(StencilView):
     configuration.
     '''
 
-    scroll_timeout = NumericProperty(
-            Config.getint('widgets', 'scroll_timeout'))
+    scroll_timeout = NumericProperty(_scroll_timeout)
     '''Timeout allowed to trigger the :data:`scroll_distance`, in milliseconds.
     If the timeout is reach, the scrolling will be disabled, and the touch event
     will go to the children.
