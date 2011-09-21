@@ -10,7 +10,6 @@ __all__ = ('WindowBase', 'Window')
 
 from os.path import join, exists
 from os import getcwd
-import platform
 
 from kivy.core import core_select_lib
 from kivy.config import Config
@@ -18,6 +17,7 @@ from kivy.logger import Logger
 from kivy.base import EventLoop
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
+from kivy.utils import platform
 
 from kivy.uix.vkeyboard import VKeyboard
 
@@ -164,7 +164,7 @@ class WindowBase(EventDispatcher):
         EventLoop.set_window(self)
         EventLoop.add_event_listener(self)
 
-        #manage keyboard(s)
+        # manage keyboard(s)
         self.configure_keyboard_provider()
 
         # mark as initialized
@@ -532,41 +532,32 @@ class WindowBase(EventDispatcher):
         pass
 
     def configure_keyboard_provider(self):
-        '''Configure how to provide keyboards (virtual or not)'''
-        #use the device's real keyboard
+        '''Configure how to provide keyboards (virtual or not)
+        '''
+        # use the device's real keyboard
         self.allow_vkeyboard = False
-        #one single vkeyboard shared between all widgets
+        # one single vkeyboard shared between all widgets
         self.single_vkeyboard = True
-        #the single vkeyboard is always sitting at the same position
+        # the single vkeyboard is always sitting at the same position
         self.fullscreen_vkeyboard = False
-        #all the current vkeyboards
+        # all the current vkeyboards
         self.vkeyboards = {}
-        #all the active text inputs that currently need a keyboard (shared or their own)
+        # all the active text inputs that currently need a keyboard (shared or their own)
         self.vkeyboard_targets = []
-        #get current os
-        this_os = platform.system()
-        if this_os not in ['Linux','Win32'] :
-            #try Android
-            android = True
-            try : 
-                import Android
-            except ImportError :
-                android = False
-            if android : 
-                this_os = 'Android'
-            #try ios
+        # get current os
+        this_os = platform()
 
-        #check if an hardware keyboard is available
+        # check if an hardware keyboard is available
         self.allow_vkeyboard = True         
 
-        if this_os in ['Linux','Win32'] :
-            #by default, one shared vkeyboard
+        if this_os in ('linux', 'win', 'macosx'):
+            # by default, one shared vkeyboard
             self.single_vkeyboard = True
             self.fullscreen_vkeyboard = False
-        elif this_os in ['Android', 'IOs'] :
+        elif this_os in ('android', 'ios'):
             self.single_vkeyboard = True
             self.fullscreen_vkeyboard = True
-        else : 
+        else: 
             Logger.info('title: OS was not detected')
             self.single_vkeyboard = True
             self.fullscreen_vkeyboard = False 
@@ -600,51 +591,59 @@ class WindowBase(EventDispatcher):
             return True
     
     def provide_vkeyboard(self, target, callback):    
-        '''Provides a widget a vkeyboard, when the widget is asking for it'''
+        '''Provides a widget a vkeyboard, when the widget is asking for it
+        '''
         vkeyboards = self.vkeyboards 
-        id = len(vkeyboards)
-        #if there is already one keyboard
-        if id > 0 : 
-            if self.single_vkeyboard : 
-                #switch the current keyboard to the new widget
-                self.vkeyboards[0].target = target
-                #execute the callback of the current keyboard
-                self.vkeyboards[0].callback()
-                #store the new callback
-                self.vkeyboards[0].callback = callback
-                #move the keyboard to the new position ?
-                return 
-        #create a new keyboard
+        # if there is already one keyboard
+        if vkeyboards and self.single_vkeyboard:
+            # we already got a vkeyboard, and we need only one on the screen.
+            # reuse the current one.
+            vkeyboard = self.vkeyboards.values()[0]
+            callback = vkeyboard.callback
+
+            # execute the callback of the current callback to release keyboard
+            vkeyboard.callback = None
+            callback()
+
+            # switch the current keyboard to the new widget
+            vkeyboard.target = target
+            vkeyboard.callback = callback
+            return 
+
+        # create a new keyboard
         l, h = self._size
-        if self.fullscreen_vkeyboard :
-            size_k = ( l, l/3.2 )
-        else : 
-            size_k = (600,188)
-            #self.vkeyboards[id].pos = (0,0)
-            #self.vkeyboards[id].refresh(False)
-        self.vkeyboards[id] = VKeyboard(id = id, target = target, callback = callback, size_k = size_k)
+        fullscreen = None
+        if self.fullscreen_vkeyboard:
+            fullscreen = True
+        vkeyboard = VKeyboard(fullscreen=fullscreen,
+            target=target, callback=callback)
+        self.vkeyboards[vkeyboard.uid] = vkeyboard
         self.vkeyboard_targets.append(target)
-        self.add_widget( self.vkeyboards[id] )      
+
+        # XXX do we need to add the vkeyboard to window, or the parent of widget
+        # or not ? We might have conflict here when inner window will be used ?
+        self.add_widget(self.vkeyboards[vkeyboard.uid])
 
     def release_vkeyboard(self, target):
-        '''Remove a vkeyboard from the window'''
+        '''Remove a vkeyboard from the window
+        '''
         vkeyboards = self.vkeyboards
-        #disactivate target
-        if target in self.vkeyboard_targets : 
+        # deactivate target
+        if target in self.vkeyboard_targets: 
             self.vkeyboard_targets.remove(target)
-        #find which keyboard is connected to that target
-        id = ''
-        for i in vkeyboards.keys():
-            if vkeyboards[i].target == target :
-                id = i
-                #release the keyboard from the current target
-                if len( self.vkeyboard_targets ) > 0 : 
-                    vkeyboards[i].target = self.vkeyboard_targets[0]
+
+        # find which keyboard is connected to that target
+        vkeyboard = [x for x in vkeyboards.itervalues() if x.target == target]
+        if vkeyboard:
+            vkeyboard = vkeyboard[0]
+            if vkeyboard.callback:
+                callback = vkeyboard.callback
+                vkeyboard.callback = None
+                callback()
+                vkeyboard.callback = callback
+            del vkeyboards[vkeyboard.uid]
                 
-                callback = vkeyboards[id].callback
-                if callback : callback()
-                
-        #delete keyboard
+        # delete keyboard
         if not ( id == '' or ( self.single_vkeyboard and len( self.vkeyboard_targets ) > 0 ) ):
             self.remove_widget( self.vkeyboards[id] ) 
             del( self.vkeyboards[id] )  
