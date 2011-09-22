@@ -23,6 +23,7 @@ from json import loads
 
 default_layout_path = join(kivy_data_dir, 'keyboards')
 
+
 class VKeyboard(Scatter):
     '''
     VKeyboard is an onscreen keyboard with multitouch support.
@@ -379,6 +380,8 @@ class VKeyboard(Scatter):
 
     def process_key_up(self, touch):
         uid = touch.uid
+        if self.uid not in touch.ud:
+            return
 
         # save pressed key on the touch
         key_data, key = touch.ud[self.uid]['key']
