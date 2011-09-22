@@ -21,6 +21,8 @@ from os import listdir
 from json import loads
 
 
+default_layout_path = join(kivy_data_dir, 'keyboards')
+
 class VKeyboard(Scatter):
     '''
     VKeyboard is an onscreen keyboard with multitouch support.
@@ -42,7 +44,7 @@ class VKeyboard(Scatter):
     target = ObjectProperty(None)
     callback = ObjectProperty(None)
     layout = DictProperty({})
-    layout_path = StringProperty(join(kivy_data_dir, 'keyboards'))
+    layout_path = StringProperty(default_layout_path)
     available_layouts = DictProperty({})
 
     # internal variables
@@ -53,7 +55,6 @@ class VKeyboard(Scatter):
     active_keys = DictProperty({})
     font_size = NumericProperty(15)
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
-    touches = DictProperty({})
 
     # styling
     margin_hint = ListProperty([.05, .06, .05, .06])
@@ -78,21 +79,12 @@ class VKeyboard(Scatter):
         self.bind(have_shift=self._update_mode,
                 have_capslock=self._update_mode)
 
-        # first load available layouts from json files
-        # XXX fix to be able to reload layout when path is changing
-        available_layouts = self.available_layouts
-        layout_path = self.layout_path
-        for fname in listdir(layout_path):
-            basename, extension = splitext(fname)
-            if extension != '.json':
-                continue
-            filename = join(layout_path, fname)
-            with open(filename, 'r') as fd:
-                json_content = fd.read()
-                layout = loads(json_content)
-            available_layouts[basename] = layout
+        # force initial loading of layout path if not done
+        if self.layout_path == default_layout_path:
+            self.on_layout_path(self, self.layout_path)
 
         # ensure we have default layouts
+        available_layouts = self.available_layouts
         if not available_layouts:
             Logger.critical('VKeyboard: unable to load defaults layouts')
 
@@ -118,9 +110,26 @@ class VKeyboard(Scatter):
         self.draw_keys()
 
     def _update_mode(self, instance, value):
+        # update mode according to capslock and shift key
         mode = self.have_capslock != self.have_shift
-        self.mode = 'shift' if mode else 'normal'
-        self.refresh(False)
+        mode = 'shift' if mode else 'normal'
+        if mode != self.mode:
+            self.mode = mode
+            self.refresh(False)
+
+    def on_layout_path(self, instance, value):
+        # first load available layouts from json files
+        # XXX fix to be able to reload layout when path is changing
+        available_layouts = self.available_layouts
+        for fname in listdir(value):
+            basename, extension = splitext(fname)
+            if extension != '.json':
+                continue
+            filename = join(value, fname)
+            with open(filename, 'r') as fd:
+                json_content = fd.read()
+                layout = loads(json_content)
+            available_layouts[basename] = layout
 
     def change_layout(self):
         # XXX implement popup with all available layouts
@@ -253,7 +262,7 @@ class VKeyboard(Scatter):
                 key_nb += 1
 
     def draw_active_keys(self):
-        active_keys = self.active_keys # { touch_uid : (line_nb, index) }
+        active_keys = self.active_keys
         layout_geometry = self.layout_geometry
         self.background_border = (16, 16, 16, 16)
         background = resource_find(self.key_background_down)
@@ -379,15 +388,11 @@ class VKeyboard(Scatter):
             uid = -1
 
         if uid in self.active_keys:
+            self.active_keys.pop(uid, None)
             if special_char in ('shift_L', 'shift_R'):
                 self.have_shift = False
-            if special_char == 'capslock':
-                if self.have_capslock:
-                    self.active_keys[-1] = key
-                else:
-                    self.active_keys.pop(-1, None)
-            else:
-                self.active_keys.pop(uid, None)
+            if special_char == 'capslock' and self.have_capslock:
+                self.active_keys[-1] = key
             self.refresh_active_keys_layer()
 
     def on_touch_down(self, touch):
@@ -398,22 +403,14 @@ class VKeyboard(Scatter):
         x, y = self.to_local(x, y)
         if not self.touch_is_in_margin(x, y):
             self.process_key_on(touch)
-            inmargin = False
-        else:
-            inmargin = True
-
-        self.touches[touch.uid] = (touch, inmargin)
-        if inmargin:
-            super(VKeyboard, self).on_touch_down(touch)
-        else:
             touch.grab(self)
+        else:
+            super(VKeyboard, self).on_touch_down(touch)
         return True
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             self.process_key_up(touch)
-            if touch.uid in self.touches:
-                del self.touches[touch.uid]
         return super(VKeyboard, self).on_touch_up(touch)
 
 
