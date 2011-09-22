@@ -86,8 +86,6 @@ class VKeyboard(Scatter):
             layout=self._trigger_load_layout)
         super(VKeyboard, self).__init__(**kwargs)
 
-        # do proper initial loading
-
         # load all the layouts found in the layout_path directory
         self._load_layouts()
 
@@ -114,7 +112,6 @@ class VKeyboard(Scatter):
         # prepare layout widget
         self.refresh_keys_hint()
         self.refresh_keys()
-        self.draw_keys()
 
     def _update_layout_mode(self, *l):
         # update mode according to capslock and shift key
@@ -162,7 +159,6 @@ class VKeyboard(Scatter):
         if force:
             self.refresh_keys_hint()
         self.refresh_keys()
-        self.draw_keys()
         self.refresh_active_keys_layer()
 
     def refresh_active_keys_layer(self):
@@ -248,6 +244,7 @@ class VKeyboard(Scatter):
                 llg_append((pos, size))
 
         self.layout_geometry = layout_geometry
+        self.draw_keys()
 
     def draw_keys(self):
         layout = self.available_layouts[self.layout]
