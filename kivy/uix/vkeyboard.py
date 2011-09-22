@@ -7,14 +7,13 @@ from kivy import kivy_data_dir
 from kivy.config import Config
 from kivy.uix.scatter import Scatter
 from kivy.uix.label import Label
-from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, NumericProperty, StringProperty, \
     BooleanProperty, DictProperty, OptionProperty, ListProperty
 from kivy.logger import Logger
 from kivy.graphics import Color, BorderImage, Canvas
-from kivy.clock import Clock
 from kivy.core.image import Image
 from kivy.resources import resource_find
+from kivy.clock import Clock
 
 from os.path import join, splitext
 from os import listdir
@@ -43,12 +42,12 @@ class VKeyboard(Scatter):
     '''
     target = ObjectProperty(None)
     callback = ObjectProperty(None)
-    layout = DictProperty({})
+    layout = StringProperty(None)
     layout_path = StringProperty(default_layout_path)
     available_layouts = DictProperty({})
 
     # internal variables
-    mode = OptionProperty('normal', options=('normal', 'shift'))
+    layout_mode = OptionProperty('normal', options=('normal', 'shift'))
     layout_geometry = DictProperty({})
     have_capslock = BooleanProperty(False)
     have_shift = BooleanProperty(False)
@@ -74,14 +73,23 @@ class VKeyboard(Scatter):
         kwargs.setdefault('scale_min', .4)
         kwargs.setdefault('scale_max', 1.6)
         kwargs.setdefault('size', (700, 200))
+        self._trigger_update_layout_mode = Clock.create_trigger(
+            self._update_layout_mode)
+        self._trigger_load_layouts = Clock.create_trigger(
+            self._load_layouts)
+        self._trigger_load_layout = Clock.create_trigger(
+            self._load_layout)
+        self.bind(
+            have_shift=self._trigger_update_layout_mode,
+            have_capslock=self._trigger_update_layout_mode,
+            layout_path=self._trigger_load_layouts,
+            layout=self._trigger_load_layout)
         super(VKeyboard, self).__init__(**kwargs)
 
-        self.bind(have_shift=self._update_mode,
-                have_capslock=self._update_mode)
+        # do proper initial loading
 
-        # force initial loading of layout path if not done
-        if self.layout_path == default_layout_path:
-            self.on_layout_path(self, self.layout_path)
+        # load all the layouts found in the layout_path directory
+        self._load_layouts()
 
         # ensure we have default layouts
         available_layouts = self.available_layouts
@@ -89,15 +97,14 @@ class VKeyboard(Scatter):
             Logger.critical('VKeyboard: unable to load defaults layouts')
 
         # load the default layout from configuration
-        if self.layout == {}:
-            layout_id = Config.get('widgets', 'keyboard_layout')
-            if layout_id not in available_layouts:
-                Logger.error(
-                    'Vkeyboard: <%s> keyboard layout mentionned in '
-                    'conf file was not found, fallback on qwerty' %
-                    layout_id)
-                layout_id = 'qwerty'
-            self.layout = available_layouts[layout_id]
+        if self.layout is None:
+            self.layout = Config.get('widgets', 'keyboard_layout')
+        else:
+            # ensure the current layout is found on the available layout
+            self._trigger_load_layout()
+
+        # update layout mode (shift or normal)
+        self._trigger_update_layout_mode()
 
         # create a top layer to draw active keys on
         with self.canvas:
@@ -109,18 +116,32 @@ class VKeyboard(Scatter):
         self.refresh_keys()
         self.draw_keys()
 
-    def _update_mode(self, instance, value):
+    def _update_layout_mode(self, *l):
         # update mode according to capslock and shift key
         mode = self.have_capslock != self.have_shift
         mode = 'shift' if mode else 'normal'
-        if mode != self.mode:
-            self.mode = mode
+        if mode != self.layout_mode:
+            self.layout_mode = mode
             self.refresh(False)
 
-    def on_layout_path(self, instance, value):
+    def _load_layout(self, *largs):
+        available_layouts = self.available_layouts
+        if not available_layouts:
+            return
+        value = self.layout
+        if value not in available_layouts and value != 'qwerty':
+            Logger.error(
+                'Vkeyboard: <%s> keyboard layout mentionned in '
+                'conf file was not found, fallback on qwerty' %
+                value)
+            self.layout = 'qwerty'
+        self.refresh(True)
+
+    def _load_layouts(self, *largs):
         # first load available layouts from json files
         # XXX fix to be able to reload layout when path is changing
         available_layouts = self.available_layouts
+        value = self.layout_path
         for fname in listdir(value):
             basename, extension = splitext(fname)
             if extension != '.json':
@@ -139,7 +160,6 @@ class VKeyboard(Scatter):
         # recreate the whole widgets and graphics according to selected layout
         self.clear_widgets()
         if force:
-            self.reset_special_keys()
             self.refresh_keys_hint()
         self.refresh_keys()
         self.draw_keys()
@@ -147,10 +167,22 @@ class VKeyboard(Scatter):
 
     def refresh_active_keys_layer(self):
         self.active_keys_layer.clear()
-        self.draw_active_keys()
+
+        active_keys = self.active_keys
+        layout_geometry = self.layout_geometry
+        self.background_border = (16, 16, 16, 16)
+        background = resource_find(self.key_background_down)
+        texture = Image(background, mipmap=True).texture
+
+        with self.active_keys_layer:
+            Color(1, 1, 1)
+            for line_nb, index in active_keys.itervalues():
+                pos, size = layout_geometry['LINE_%d' % line_nb][index]
+                BorderImage(texture=texture, pos=pos, size=size,
+                        border=self.key_border)
 
     def refresh_keys_hint(self):
-        layout = self.layout
+        layout = self.available_layouts[self.layout]
         layout_cols = layout['cols']
         layout_rows = layout['rows']
         layout_geometry = self.layout_geometry
@@ -172,7 +204,7 @@ class VKeyboard(Scatter):
         for line_nb in xrange(1, layout_rows + 1):
             current_y_hint -= uh_hint
             # get line_name
-            line_name = '%s_%d' % (self.mode, line_nb)
+            line_name = '%s_%d' % (self.layout_mode, line_nb)
             line_hint = 'LINE_HINT_%d' % line_nb
             layout_geometry[line_hint] = []
             current_x_hint = ex_hint
@@ -187,7 +219,7 @@ class VKeyboard(Scatter):
         self.layout_geometry = layout_geometry
 
     def refresh_keys(self):
-        layout = self.layout
+        layout = self.available_layouts[self.layout]
         layout_rows = layout['rows']
         layout_geometry = self.layout_geometry
         w, h = self.size
@@ -218,10 +250,10 @@ class VKeyboard(Scatter):
         self.layout_geometry = layout_geometry
 
     def draw_keys(self):
-        layout = self.layout
+        layout = self.available_layouts[self.layout]
         layout_rows = layout['rows']
         layout_geometry = self.layout_geometry
-        mode = self.mode
+        layout_mode = self.layout_mode
 
         # draw background
         w, h = self.size
@@ -254,26 +286,12 @@ class VKeyboard(Scatter):
             key_nb = 0
             for pos, size in layout_geometry['LINE_%d' % line_nb]:
                 # retrieve the relative text
-                text = layout[mode +'_'+ str(line_nb)][key_nb][0]
+                text = layout[layout_mode +'_'+ str(line_nb)][key_nb][0]
                 # print text
                 l = Label(text=text, font_size=font_size, pos=pos, size=size,
                         font_name=self.font_name)
                 self.add_widget(l)
                 key_nb += 1
-
-    def draw_active_keys(self):
-        active_keys = self.active_keys
-        layout_geometry = self.layout_geometry
-        self.background_border = (16, 16, 16, 16)
-        background = resource_find(self.key_background_down)
-        texture = Image(background, mipmap=True).texture
-
-        with self.active_keys_layer:
-            Color(1, 1, 1)
-            for line_nb, index in active_keys.itervalues():
-                pos, size = layout_geometry['LINE_%d' % line_nb][index]
-                BorderImage(texture=texture, pos=pos, size=size,
-                        border=self.key_border)
 
     def send(self, key_data):
         character, b, c, d = key_data
@@ -291,7 +309,7 @@ class VKeyboard(Scatter):
         x_hint = x / w
         # focus on the surface without margins
         layout_geometry = self.layout_geometry
-        layout = self.layout
+        layout = self.available_layouts[self.layout]
         layout_rows = layout['rows']
         mtop, mright, mbottom, mleft = self.margin_hint
 
@@ -319,7 +337,7 @@ class VKeyboard(Scatter):
             return None
 
         # get the full character
-        key = self.layout['%s_%d' % (self.mode, line_nb)][key_index]
+        key = layout['%s_%d' % (self.layout_mode, line_nb)][key_index]
 
         return [key, (line_nb, key_index)]
 
@@ -416,4 +434,5 @@ class VKeyboard(Scatter):
 
 if __name__ == '__main__':
     from kivy.base import runTouchApp
-    runTouchApp(VKeyboard())
+    vk = VKeyboard(layout='azerty')
+    runTouchApp(vk)
