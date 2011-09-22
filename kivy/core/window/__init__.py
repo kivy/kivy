@@ -644,9 +644,11 @@ class WindowBase(EventDispatcher):
             del vkeyboards[vkeyboard.uid]
                 
         # delete keyboard
+        '''
         if not ( id == '' or ( self.single_vkeyboard and len( self.vkeyboard_targets ) > 0 ) ):
             self.remove_widget( self.vkeyboards[id] ) 
             del( self.vkeyboards[id] )  
+        '''
         
 
 #: Instance of a :class:`WindowBase` implementation
