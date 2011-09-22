@@ -48,10 +48,8 @@ class VKeyboard(Scatter):
     # internal variables
     mode = OptionProperty('normal', options=('normal', 'shift'))
     layout_geometry = DictProperty({})
-    caps_lock_key_on = BooleanProperty(False)
-    shift_keyL = ObjectProperty((0, 0))
-    shift_keyR = ObjectProperty((0, 0))
-    caps_lock_key = ObjectProperty((0, 0))
+    have_capslock = BooleanProperty(False)
+    have_shift = BooleanProperty(False)
     active_keys = DictProperty({})
     font_size = NumericProperty(15)
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
@@ -76,6 +74,9 @@ class VKeyboard(Scatter):
         kwargs.setdefault('scale_max', 1.6)
         kwargs.setdefault('size', (700, 200))
         super(VKeyboard, self).__init__(**kwargs)
+
+        self.bind(have_shift=self._update_mode,
+                have_capslock=self._update_mode)
 
         # first load available layouts from json files
         # XXX fix to be able to reload layout when path is changing
@@ -104,7 +105,7 @@ class VKeyboard(Scatter):
                     'conf file was not found, fallback on qwerty' %
                     layout_id)
                 layout_id = 'qwerty'
-            self.layout = available_layouts['qwerty']
+            self.layout = available_layouts[layout_id]
 
         # create a top layer to draw active keys on
         with self.canvas:
@@ -116,21 +117,14 @@ class VKeyboard(Scatter):
         self.refresh_keys()
         self.draw_keys()
 
-    def reset_special_keys(self):
-        self.shift_keyL = (0, 0)
-        self.shift_keyR = (0, 0)
-        self.capslock = (0, 0)
+    def _update_mode(self, instance, value):
+        mode = self.have_capslock != self.have_shift
+        self.mode = 'shift' if mode else 'normal'
+        self.refresh(False)
 
     def change_layout(self):
         # XXX implement popup with all available layouts
         assert(0)
-
-    def switch_mode(self):
-        if self.mode == 'normal':
-            self.mode = 'shift'
-        else:
-            self.mode = 'normal'
-        self.refresh(False)
 
     def refresh(self, force=False):
         # recreate the whole widgets and graphics according to selected layout
@@ -261,16 +255,9 @@ class VKeyboard(Scatter):
     def draw_active_keys(self):
         active_keys = self.active_keys # { touch_uid : (line_nb, index) }
         layout_geometry = self.layout_geometry
-        caps_lock_key = self.caps_lock_key# [layout[mode +'_'+ str(3)][0],(3,0)]
         self.background_border = (16, 16, 16, 16)
         background = resource_find(self.key_background_down)
         texture = Image(background, mipmap=True).texture
-
-        # draw keys with the background and font at once
-        if self.caps_lock_key_on:
-            active_keys[-1] = caps_lock_key
-        else:
-            active_keys.pop(-1, None)
 
         with self.active_keys_layer:
             Color(1, 1, 1)
@@ -283,7 +270,6 @@ class VKeyboard(Scatter):
         character, b, c, d = key_data
         # print character
         target = self.target
-        print 'send key', key_data
         return
 
         if key_data[2] is None:
@@ -357,49 +343,51 @@ class VKeyboard(Scatter):
         key_data = key[0]
         displayed_char, internal, special_char, size = key_data
         line_nb, key_index = key[1]
-        shift = False
+
+        # save pressed key on the touch
+        ud = touch.ud[self.uid] = {}
+        ud['key'] = key
 
         # send info to the bus
         if not special_char in ('shift_L', 'shift_R', 'capslock', 'layout'):
             self.send(key_data)
 
-        self.active_keys[touch.uid] = key[1]  # touch.uid : (line_nb, key_index)
+        uid = touch.uid
 
         # for caps lock or shift only:
         if special_char is not None:
             if special_char == 'capslock':
-                self.caps_lock_key = key[1]
-                if not self.caps_lock_key_on:
-                    self.caps_lock_key_on = True
-                else:
-                    self.caps_lock_key_on = False
-                ak = self.active_keys.values()
-                if self.shift_keyL not in ak and self.shift_keyL not in ak:
-                    self.switch_mode()
-            elif special_char == 'shift_L':
-                self.shift_keyL = key[1]
-                shift = True
-            elif special_char == 'shift_R':
-                self.shift_keyR = key[1]
-                shift = True
+                self.have_capslock = not self.have_capslock
+                uid = -1
+            elif special_char in ('shift_L', 'shift_R'):
+                self.have_shift = True
             elif special_char == 'layout':
                 self.change_layout()
-            if shift and not self.caps_lock_key_on:
-                self.switch_mode()
 
+        # save key as an active key for drawing
+        self.active_keys[uid] = key[1]
         self.refresh_active_keys_layer()
 
     def process_key_up(self, touch):
-        shift_keyL = self.shift_keyL
-        shift_keyR = self.shift_keyR
         uid = touch.uid
 
+        # save pressed key on the touch
+        key_data, key = touch.ud[self.uid]['key']
+        displayed_char, internal, special_char, size = key_data
+
+        if special_char == 'capslock':
+            uid = -1
+
         if uid in self.active_keys:
-            # specific case of the shift_key
-            if (self.active_keys[uid] in [shift_keyL, shift_keyR]) \
-                    and not self.caps_lock_key_on:
-                self.switch_mode()
-            del(self.active_keys[uid])
+            if special_char in ('shift_L', 'shift_R'):
+                self.have_shift = False
+            if special_char == 'capslock':
+                if self.have_capslock:
+                    self.active_keys[-1] = key
+                else:
+                    self.active_keys.pop(-1, None)
+            else:
+                self.active_keys.pop(uid, None)
             self.refresh_active_keys_layer()
 
     def on_touch_down(self, touch):
@@ -417,12 +405,15 @@ class VKeyboard(Scatter):
         self.touches[touch.uid] = (touch, inmargin)
         if inmargin:
             super(VKeyboard, self).on_touch_down(touch)
+        else:
+            touch.grab(self)
         return True
 
     def on_touch_up(self, touch):
-        self.process_key_up(touch)
-        if touch.uid in self.touches:
-            del self.touches[touch.uid]
+        if touch.grab_current is self:
+            self.process_key_up(touch)
+            if touch.uid in self.touches:
+                del self.touches[touch.uid]
         return super(VKeyboard, self).on_touch_up(touch)
 
 
