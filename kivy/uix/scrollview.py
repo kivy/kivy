@@ -60,14 +60,41 @@ scrollview, but the possibility to have an height bigger than the scrollview::
     root.add_widget(layout)
 
 That way, you are able to scroll on the Y axis.
+
+Controlling timeout, distance and trigger
+-----------------------------------------
+
+.. versionadded:: 1.0.8
+
+In your configuration file, you can some default values for this widget::
+
+    [widgets]
+    scroll_timeout = 250
+    scroll_distance = 20
+    scroll_friction = 1.
+
+If you want to reduce the default timeout, you can set::
+
+    [widgets]
+    scroll_timeout = 150
+
 '''
 
 __all__ = ('ScrollView', )
 
 from functools import partial
+from kivy.config import Config
 from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty
+
+
+# When we are generating documentation, Config doesn't exist
+_scroll_timeout = _scroll_distance = _scroll_friction = 0
+if Config:
+    _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
+    _scroll_distance = Config.getint('widgets', 'scroll_distance')
+    _scroll_friction = Config.getfloat('widgets', 'scroll_friction')
 
 
 class ScrollView(StencilView):
@@ -333,12 +360,12 @@ class ScrollView(StencilView):
     to True
     '''
 
-    scroll_friction = NumericProperty(1.)
+    scroll_friction = NumericProperty(_scroll_friction)
     '''Friction is a factor for reducing the scrolling when the list is not
     moved by a touch. When you do a swipe, the movement speed is calculated, and
     is used to move automatically the list when you touch up. The speed is
     reducing from this equation::
-        
+
         2 ^ (t * f)
         # t is the time from the touch up
         # f is the friction
@@ -348,25 +375,27 @@ class ScrollView(StencilView):
     stop. If you set to a bigger value, the list movement will stop faster.
 
     :data:`scroll_friction` is a :class:`~kivy.properties.NumericProperty`,
-    default to 1.
+    default to 1, according to the default value in user configuration.
     '''
 
-    scroll_distance = NumericProperty(20)
+    scroll_distance = NumericProperty(_scroll_distance)
     '''Distance to move before scrolling the :class:`ScrollView`, in pixels. As
     soon as the distance have been traveled, the :class:`ScrollView` will start
     to scroll, and no touch event will go to children.
 
     :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty`,
-    default to 20 (pixels).
+    default to 20 (pixels), according to the default value in user
+    configuration.
     '''
 
-    scroll_timeout = NumericProperty(250)
+    scroll_timeout = NumericProperty(_scroll_timeout)
     '''Timeout allowed to trigger the :data:`scroll_distance`, in milliseconds.
     If the timeout is reach, the scrolling will be disabled, and the touch event
     will go to the children.
 
     :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty`,
-    default to 250 (milliseconds).
+    default to 250 (milliseconds), according to the default value in user
+    configuration.
     '''
 
     scroll_x = NumericProperty(0.)

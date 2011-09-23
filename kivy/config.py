@@ -23,6 +23,13 @@ Change the configuration and save it::
 Available configuration tokens
 ------------------------------
 
+.. versionadded:: 1.0.8
+
+    * `scroll_timeout`, `scroll_distance` and `scroll_friction` have been added
+    * `list_friction`, `list_trigger_distance` and `list_friction_bound` have
+      been removed.
+
+
 :kivy:
 
     `log_level`: (debug, info, warning, error, critical)
@@ -114,17 +121,20 @@ Available configuration tokens
 
 :widgets:
 
-    `list_trigger_distance`: int
-        Maximum distance to trigger the on_touch_down/on_touch_up on child for
-        every :class:`~kivy.uix.list.List` widget. The value is in pixels.
+    `scroll_distance`: int
+        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_distance`
+        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Check the widget documentation for more information.
 
-    `list_friction`: int
-        Friction factor. 1 mean no friction.
+    `scroll_friction`: float
+        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_friction`
+        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Check the widget documentation for more information.
 
-    `list_friction_bound`: int
-        If one side of the list have been hit by the user, you have the
-        possibility to reduce the friction to use. Prefer a value below the
-        `list_friction` token.
+    `scroll_timeout`: int
+        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_timeout`
+        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Check the widget documentation for more information.
 
     `keyboard_type`: (real, virtual)
         Type of the keyboard to use.
@@ -153,7 +163,7 @@ from kivy.logger import Logger
 from kivy.utils import OrderedDict, QueryDict
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 3
+KIVY_CONFIG_VERSION = 4
 
 #: Kivy configuration object
 Config = None
@@ -338,6 +348,18 @@ if not 'KIVY_DOC_INCLUDE' in environ:
                 logo_size = 512
             Config.set('kivy', 'window_icon', \
                 join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' % logo_size))
+
+        elif version == 3:
+            # add token for scrollview
+            Config.setdefault('widgets', 'scroll_timeout', '250')
+            Config.setdefault('widgets', 'scroll_distance', '20')
+            Config.setdefault('widgets', 'scroll_friction', '1.')
+
+            # remove old list_* token
+            Config.remove_option('widgets', 'list_friction')
+            Config.remove_option('widgets', 'list_friction_bound')
+            Config.remove_option('widgets', 'list_trigger_distance')
+
         #
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

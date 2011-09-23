@@ -218,6 +218,11 @@ cdef class Point(VertexInstruction):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
 
+        #if there is no points...nothing to do
+        if count < 1:
+            self.batch.clear_data()
+            return
+
         vertices = <vertex_t *>malloc(count * 4 * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
