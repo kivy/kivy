@@ -1,4 +1,4 @@
- #-*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 #
 #    this program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -64,10 +64,13 @@ class ImageLoaderGIF(ImageLoaderBase):
         img_data = []
         ls_width = im.ls_width
         ls_height = im.ls_height
+        im_global_color_table_size = im.global_color_table_size
+        im_images = im.images
+        im_palette = im.palette
         pixel_map = array('B', [0]*(ls_width*ls_height*4))
-        for img in im.images:
+        for img in im_images:
             palette = img.palette if img.local_color_table_flag\
-                else im.palette
+                else im_palette
             have_transparent_color = img.has_transparent_color
             transparent_color = img.transparent_color
             draw_method_restore_previous =  1 \
@@ -80,11 +83,18 @@ class ImageLoaderGIF(ImageLoaderBase):
             img_width = img.width
             left = img.left
             top = img.top
+            if img_height > ls_height or img_width > ls_width or\
+                top  > ls_height or left  > ls_width:
+                Logger.warning('Image_GIF: decoding error on frame <%s>' % len(img_data))
+                img_height = ls_height
+                img_width = ls_width
+                left = top = 0
             #reverse top to bottom and left to right
-            tmp_top = (ls_height - (img_height+ top))
-            img_width_plus_left = (img_width+ left)
+            tmp_top = (ls_height - (img_height + top))
+            img_width_plus_left = (img_width + left)
             ls_width_multiply_4 = ls_width * 4
             left_multiply_4 = left * 4
+            img_data_append = img_data.append
             while img_height > 0:
                 i = left
                 img_height -= 1
@@ -92,7 +102,14 @@ class ImageLoaderGIF(ImageLoaderBase):
                 rgba_pos = (tmp_top * ls_width_multiply_4) + (left_multiply_4)
                 tmp_top += 1
                 while i < img_width_plus_left:
-                    (r, g, b) = palette[pixels[x + i]]
+                    #this should now display corrupted gif's
+                    #instead of crashing on gif's not decoded properly
+                    try:
+                        (r, g, b) = palette[pixels[x + i]]
+                    except:
+                        rgba_pos += 4
+                        i += 1
+                        continue
                     # when not magic pink
                     if (r, g, b) != (255,0,255):
                         if have_transparent_color:
@@ -116,7 +133,7 @@ class ImageLoaderGIF(ImageLoaderBase):
                     rgba_pos += 4
                     i += 1
 
-            img_data.append(ImageData(ls_width, ls_height, \
+            img_data_append(ImageData(ls_width, ls_height, \
                 'rgba', pixel_map.tostring()))
             if draw_method_replace:
                 pixel_map = array('B', [0]*(ls_width*ls_height*4))
@@ -255,9 +272,7 @@ class ImageDescriptor(object):
         self.local_color_table_size =  2 ** (pack_bits(self.flags[:3]) + 1)
         if self.local_color_table_flag:
             if Debug: print 'local color table true'
-            #self.parent.global_color_table_size = self.local_color_table_size
             self.palette = self.parent.get_color_table((self.local_color_table_size) * 3)
-            #self.parent.palette = self.palette
 
     def get_header(self):
         '''builds a header dynamically'''
@@ -346,9 +361,10 @@ class GifDecoder( Gif ):
                 image.codesize = self_pops('<B', self_data)[0]
                 image.lzwcode = ''
                 image_lzwcode = image.lzwcode
+                ###TODO too many corner casses for gifs:(
                 table_size = image.local_color_table_size\
-                    if image.local_color_table_flag or\
-                    image.codesize > self.global_color_table_size\
+                    if image.local_color_table_flag and \
+                    self.global_color_table_size < image.local_color_table_size\
                     else self.global_color_table_size
 
                 while True:
@@ -406,20 +422,10 @@ class GifDecoder( Gif ):
         ordarray = array('B', string)
         bits = array('B')
         bits_append = bits.append
-        #map(lambda byte: map (bits_append, get_bits(byte)), ordarray) slower:(
         _get_bits = get_bits
         for byte in ordarray:
             map (bits_append, _get_bits(byte))
         return bits
-
-    def bits_to_string(bits):
-        '''high level bit list packer'''
-        string = ''
-        while len(bits)>0:
-            code = pack_bits(bits[:8])
-            bits = bits[8:]
-            string = ''.join((string, chr(code)))
-        return string
 
     def readable(bool_list):
         '''Converts a list of booleans to a readable list of ints
@@ -432,7 +438,7 @@ class GifDecoder( Gif ):
         i = 0
         for bit in bits:
             if bit:
-                i+= 2**( c-1)
+                i+= 2**(c-1)
             c +=1
         return i
 
@@ -462,13 +468,15 @@ class GifDecoder( Gif ):
         old = ''
         index = 0
 
+        bits = self.string_to_bits(input)
+        self.bitpointer = 0
+
         codesize = initial_codesize + 1
         clearcode, end_of_info = color_table_size, color_table_size + 1
+
         if Debug:
             print 'codesize: %d' %codesize
             print 'clearcode %d, end_of_info: %d' % (clearcode, end_of_info)
-        bits = self.string_to_bits(input)
-        self.bitpointer = 0
 
         def pop(size, _bits ):
             ''' return bits '''
@@ -485,16 +493,18 @@ class GifDecoder( Gif ):
             return index
 
         index = clear()
-
         # skip first (clear)code
         bits = bits[codesize:]
-
         # read first code, append to output
         self_bits_to_int = self.bits_to_int
 
         code = self_bits_to_int(pop(codesize, bits))
-        output_append(ord(string_table[code]))
-
+        if code in string_table:
+            output_append(ord(string_table[code]))
+        else:
+            Logger.warning('Image_GIF: decoding error on code <%d> aode size <%d>' %(code, codesize))
+            string_table[code] = string_table[0]
+            output_append(ord(string_table[code]))
         old = string_table[code]
         bitlen = len(bits)
 
@@ -505,10 +515,14 @@ class GifDecoder( Gif ):
             # special code?
             if code == clearcode:
                 index = clear()
-
                 codesize = initial_codesize + 1
                 code = self_bits_to_int(pop(codesize, bits))
-                output_append(ord(string_table[code]))
+                if code in string_table:
+                    output_append(ord(string_table[code]))
+                else:
+                    Logger.warning('Image_GIF: decoding error on code <%d> aode size <%d>' %(code, codesize))
+                    string_table[code] = string_table[0]
+                    output_append(ord(string_table[code]))
                 old = string_table[code]
                 continue
 
@@ -531,9 +545,6 @@ class GifDecoder( Gif ):
                 codesize += 1
                 if codesize == 13:
                     codesize = 12
-                    #print 'decoding error, missed a clearcode?'
-                    #print 'index:', index
-                    #exit()
 
         if self.debug_enabled:
             print 'Output stream len: %d' % len(output)
@@ -543,7 +554,7 @@ class GifDecoder( Gif ):
 def get_bits( flags, reverse=False, bits=8 ):
     '''return a list with $bits items, one for each enabled bit'''
 
-    mybits = (1, 2, 4, 8, 16, 32, 64, 128)[:bits]
+    mybits = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048)[:bits]
 
     rev_num=1
     if reverse:
@@ -561,8 +572,6 @@ def pack_bits( bits ):
     for bit in bits:
         if bit:
             packed += 2 ** level
-        #packed += int(bit) << level
-        #print bit, packed, level
         level += 1
     return packed
 
