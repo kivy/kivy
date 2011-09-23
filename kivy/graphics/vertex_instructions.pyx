@@ -8,7 +8,7 @@ This module include all the classes for drawing simple vertex object.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'GraphicException', 'Bezier')
+           'Point', 'GraphicException', 'Bezier', 'IntermittentLine')
 
 
 include "config.pxi"
@@ -26,6 +26,88 @@ class GraphicException(Exception):
     '''Exception fired when a graphic error is fired.
     '''
 
+cdef class IntermittentLine(VertexInstruction):
+    '''A 2d intermittent line.
+
+    :Parameters:
+        `points`: list
+            List of points in the format (x1, y1, x2, y2...)
+        `length`: float
+            length of a segment
+        `dist`: float
+            distance between two segments
+    '''
+    cdef list _points
+    cdef float dist, length
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self.points = kwargs.get('points', [])
+        self.batch.set_mode('line_strip')
+        self.dist = kwargs.get('dist', 10)
+        self.length = kwargs.get('length', 10)
+
+    cdef void build(self):
+        cdef int l, x, i, j, count = len(self.points) / 2
+        cdef float length = self.length
+        cdef float dist = self.dist
+        cdef list p = self.points
+        cdef vertex_t *vertices = NULL
+        cdef unsigned short *indices = NULL
+
+        l = 0
+        for i in xrange(count / 2):
+            l += int((
+                    (self.points[(i + 1) * 2    ] - self.points[(i) * 2 ]) ** 2 +
+                    (self.points[(i + 1) * 2 + 1] - self.points[(i) * 2 + 1]) ** 2)
+                    **.5 / (length + dist))
+
+        print "l: ", l
+
+        vertices = <vertex_t *>malloc(l * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError('vertices')
+
+        indices = <unsigned short *>malloc(l * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        x = 0
+        for i in xrange(l):
+            for j in xrange(
+                    int((
+                    (self.points[(i + 1) * 2    ] - self.points[(i) * 2 ]) ** 2 +
+                    (self.points[(i + 1) * 2 + 1] - self.points[(i) * 2 + 1]) ** 2)
+                    **.5 / (length + dist))
+                    ):
+                x += 2
+
+                vertices[x].x = (self.points[i+1] - self.points[i]) / (length + dist) * j
+                vertices[x].y = (self.points[i+3] - self.points[i+2]) / (length + dist) * j
+                vertices[x+1].x = (self.points[i+1] - self.points[i]) / (length + dist) * j + length
+                vertices[x+1].y = (self.points[i+3] - self.points[i+2]) / (length + dist) * j + length
+                indices[x] = x
+                indices[x+1] = x + 1
+
+        self.batch.set_data(vertices, count, indices, count)
+
+        free(vertices)
+        free(indices)
+
+    property points:
+        '''Property for getting/settings points of the triangle
+
+        .. warning::
+
+            This will always reconstruct the whole graphics from the new points
+            list. It can be very CPU expensive.
+        '''
+        def __get__(self):
+            return self._points
+        def __set__(self, points):
+            self._points = list(points)
+            self.flag_update()
 cdef class Line(VertexInstruction):
     '''A 2d line.
 
@@ -183,6 +265,7 @@ cdef class Bezier(VertexInstruction):
                 raise GraphicException('Invalid segments value, must be >= 2')
             self._segments = value
             self.flag_update()
+
 
 cdef class Point(VertexInstruction):
     '''A 2d line.
