@@ -33,28 +33,22 @@ cdef class Line(VertexInstruction):
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
-        `length`: float
-            length of a segment (if stippled), default 1
-        `dist`: float
-            distance between two segments, default 0, changing this makes it stippled
+        `dash_length`: float
+            length of a segment (if dashed), default 1
+        `dash_offset`: float
+            offset between the end of a segments and the begining of the
+            next one, default 0, changing this makes it dashed.
     '''
     cdef list _points
-    cdef int dist, length
+    cdef int dash_offset, dash_length
     cdef Texture tex
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [])
         self.batch.set_mode('line_strip')
-        self.dist = kwargs.get('dist', 0)
-        self.length = kwargs.get('length', 1)
-        if self.dist != 0:
-            self.texture = Texture.create(size=(self.length + self.dist, 1))
-            # create a buffer to fill our texture
-            buf = [255 for x in xrange(self.length * 3)] + [0 for x in xrange(self.dist * 3)]
-            buf = ''.join(map(chr, buf))
-            self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-            self.texture.wrap = "repeat"
+        self.dash_length = kwargs.get('dash_length', 1)
+        self.dash_offset = kwargs.get('dash_offset', 0)
 
     cdef void build(self):
         cdef int i, count = len(self.points) / 2
@@ -62,6 +56,14 @@ cdef class Line(VertexInstruction):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
+
+        if self.dash_offset != 0:
+            self.texture = Texture.create(size=(self.dash_length + self.dash_offset, 1))
+            # create a buffer to fill our texture
+            buf = [255 for x in xrange(self.dash_length * 3)] + [0 for x in xrange(self.dash_offset * 3)]
+            buf = ''.join(map(chr, buf))
+            self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
+            self.texture.wrap = "repeat"
 
         vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
         if vertices == NULL:
@@ -74,11 +76,11 @@ cdef class Line(VertexInstruction):
 
         tex_x = 0
         for i in xrange(count):
-            if self.dist != 0 and i > 0:
+            if self.dash_offset != 0 and i > 0:
                 tex_x += (
                         (p[i * 2]     - p[(i - 1) * 2]) ** 2 +
                         (p[i * 2 + 1] - p[(i - 1) * 2 + 1]) ** 2) ** .5 / (
-                                self.length + self.dist)
+                                self.dash_length + self.dash_offset)
                 vertices[i].s0 = tex_x
 
             vertices[i].x = p[i * 2]
@@ -119,10 +121,11 @@ cdef class Bezier(VertexInstruction):
             The drawing will be smoother if you have lot of segment.
         `loop`: bool, default to False
             Set the bezier curve to join last point to first.
-        `length`: float
-            length of a segment (if stippled), default 1
-        `dist`: float
-            distance between two segments, default 0, changing this makes it stippled
+        `dash_length`: float
+            length of a segment (if dashed), default 1
+        `dash_offset`: float
+            distance between the end of a segment and the start of the
+            next one, default 0, changing this makes it dashed.
 
     #TODO: refactoring:
         a) find interface common to all splines (given control points and
@@ -134,7 +137,7 @@ cdef class Bezier(VertexInstruction):
     cdef list _points
     cdef int _segments
     cdef bint _loop
-    cdef int dist, length
+    cdef int dash_offset, dash_length
     cdef Texture tex
 
     def __init__(self, **kwargs):
@@ -145,16 +148,8 @@ cdef class Bezier(VertexInstruction):
         if self._loop:
             self.points.extend(self.points[:2])
         self.batch.set_mode('line_strip')
-        self.length = kwargs.get('length', 1)
-        self.dist = kwargs.get('dist', 0)
-
-        if self.dist != 0:
-            self.texture = Texture.create(size=(self.length + self.dist, 1))
-            # create a buffer to fill our texture
-            buf = [255 for x in xrange(self.length * 3)] + [0 for x in xrange(self.dist * 3)]
-            buf = ''.join(map(chr, buf))
-            self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-            self.texture.wrap = "repeat"
+        self.dash_length = kwargs.get('dash_length', 1)
+        self.dash_offset = kwargs.get('dash_offset', 0)
 
     cdef void build(self):
         cdef int x, i, j
@@ -163,6 +158,16 @@ cdef class Bezier(VertexInstruction):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
+
+        if self.dash_offset != 0:
+            self.texture = Texture.create(size=(self.dash_length + self.dash_offset, 1))
+            # create a buffer to fill our texture
+            buf = [255 for x in xrange(self.dash_length * 3)] + [0 for x in xrange(self.dash_offset * 3)]
+            buf = ''.join(map(chr, buf))
+            self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
+            self.texture.wrap = "repeat"
+        else:
+            self.texture = None
 
         vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
         if vertices == NULL:
@@ -189,11 +194,11 @@ cdef class Bezier(VertexInstruction):
             # we got the coordinates of the point in T[0] and T[1]
             vertices[x].x = T[0]
             vertices[x].y = T[1]
-            if self.dist != 0 and x > 0:
+            if self.dash_offset != 0 and x > 0:
                 tex_x += (
                         (vertices[x].x - vertices[x-1].x) ** 2 +
                         (vertices[x].y - vertices[x-1].y) ** 2) ** .5 / (
-                                self.length + self.dist)
+                                self.dash_length + self.dash_offset)
 
                 vertices[x].s0 = tex_x
 
