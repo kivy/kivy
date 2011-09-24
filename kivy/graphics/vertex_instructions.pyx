@@ -8,7 +8,7 @@ This module include all the classes for drawing simple vertex object.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'GraphicException', 'Bezier', 'IntermittentLine')
+           'Point', 'GraphicException', 'Bezier', 'StippledLine')
 
 
 include "config.pxi"
@@ -21,12 +21,13 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
+from kivy.graphics.texture import Texture
 
 class GraphicException(Exception):
     '''Exception fired when a graphic error is fired.
     '''
 
-cdef class IntermittentLine(VertexInstruction):
+cdef class StippledLine(VertexInstruction):
     '''A 2d intermittent line.
 
     :Parameters:
@@ -38,7 +39,8 @@ cdef class IntermittentLine(VertexInstruction):
             distance between two segments
     '''
     cdef list _points
-    cdef float dist, length
+    cdef int dist, length
+    cdef Texture tex
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -46,49 +48,43 @@ cdef class IntermittentLine(VertexInstruction):
         self.batch.set_mode('line_strip')
         self.dist = kwargs.get('dist', 10)
         self.length = kwargs.get('length', 10)
+        self.texture = Texture.create(size=(self.length + self.dist, 1))
+        # create a buffer to fill our texture
+        buf = [255 for x in xrange(self.length * 3)] + [0 for x in xrange(self.dist * 3)]
+        buf = ''.join(map(chr, buf))
+        self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
+        self.texture.wrap = "repeat"
 
     cdef void build(self):
-        cdef int l, x, i, j, count = len(self.points) / 2
-        cdef float length = self.length
-        cdef float dist = self.dist
+        cdef int i, count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
+        cdef float tex_x
 
-        l = 0
-        for i in xrange(count / 2):
-            l += int((
-                    (self.points[(i + 1) * 2    ] - self.points[(i) * 2 ]) ** 2 +
-                    (self.points[(i + 1) * 2 + 1] - self.points[(i) * 2 + 1]) ** 2)
-                    **.5 / (length + dist))
-
-        print "l: ", l
-
-        vertices = <vertex_t *>malloc(l * sizeof(vertex_t))
+        vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <unsigned short *>malloc(l * sizeof(unsigned short))
+        indices = <unsigned short *>malloc(count * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
 
-        x = 0
-        for i in xrange(l):
-            for j in xrange(
-                    int((
-                    (self.points[(i + 1) * 2    ] - self.points[(i) * 2 ]) ** 2 +
-                    (self.points[(i + 1) * 2 + 1] - self.points[(i) * 2 + 1]) ** 2)
-                    **.5 / (length + dist))
-                    ):
-                x += 2
+        tex_x = 0
+        for i in xrange(count):
+            if i > 0:
+                tex_x += (
+                        (p[i * 2]     - p[(i - 1) * 2]) ** 2 +
+                        (p[i * 2 + 1] - p[(i - 1) * 2 + 1]) ** 2) ** .5 / (
+                                self.length + self.dist)
 
-                vertices[x].x = (self.points[i+1] - self.points[i]) / (length + dist) * j
-                vertices[x].y = (self.points[i+3] - self.points[i+2]) / (length + dist) * j
-                vertices[x+1].x = (self.points[i+1] - self.points[i]) / (length + dist) * j + length
-                vertices[x+1].y = (self.points[i+3] - self.points[i+2]) / (length + dist) * j + length
-                indices[x] = x
-                indices[x+1] = x + 1
+            vertices[i].x = p[i * 2]
+            vertices[i].y = p[i * 2 + 1]
+            vertices[i].s0 = tex_x
+            vertices[i].t0 = 0
+            indices[i] = i
+
 
         self.batch.set_data(vertices, count, indices, count)
 
@@ -108,6 +104,8 @@ cdef class IntermittentLine(VertexInstruction):
         def __set__(self, points):
             self._points = list(points)
             self.flag_update()
+
+
 cdef class Line(VertexInstruction):
     '''A 2d line.
 
@@ -120,7 +118,7 @@ cdef class Line(VertexInstruction):
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [])
-        self.batch.set_mode('line_strip')
+        self.batch.set_mode('line')
 
     cdef void build(self):
         cdef int i, count = len(self.points) / 2
@@ -625,7 +623,7 @@ cdef class BorderImage(Rectangle):
         x = self.x
         y = self.y
         w = self.w
-        h=self.h
+        h = self.h
 
         # width and heigth of texture in pixels, and tex coord space
         cdef float tw, th, tcw, tch
