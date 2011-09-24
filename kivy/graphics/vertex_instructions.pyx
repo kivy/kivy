@@ -8,7 +8,7 @@ This module include all the classes for drawing simple vertex object.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point', 'GraphicException', 'Bezier', 'StippledLine', 'StippledBezier')
+           'Point', 'GraphicException', 'Bezier')
 
 
 include "config.pxi"
@@ -27,104 +27,41 @@ class GraphicException(Exception):
     '''Exception fired when a graphic error is fired.
     '''
 
-cdef class StippledLine(VertexInstruction):
-    '''A 2d intermittent line.
-
-    :Parameters:
-        `points`: list
-            List of points in the format (x1, y1, x2, y2...)
-        `length`: float
-            length of a segment
-        `dist`: float
-            distance between two segments
-    '''
-    cdef list _points
-    cdef int dist, length
-    cdef Texture tex
-
-    def __init__(self, **kwargs):
-        VertexInstruction.__init__(self, **kwargs)
-        self.points = kwargs.get('points', [])
-        self.batch.set_mode('line_strip')
-        self.dist = kwargs.get('dist', 10)
-        self.length = kwargs.get('length', 10)
-        self.texture = Texture.create(size=(self.length + self.dist, 1))
-        # create a buffer to fill our texture
-        buf = [255 for x in xrange(self.length * 3)] + [0 for x in xrange(self.dist * 3)]
-        buf = ''.join(map(chr, buf))
-        self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-        self.texture.wrap = "repeat"
-
-    cdef void build(self):
-        cdef int i, count = len(self.points) / 2
-        cdef list p = self.points
-        cdef vertex_t *vertices = NULL
-        cdef unsigned short *indices = NULL
-        cdef float tex_x
-
-        vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
-        if vertices == NULL:
-            raise MemoryError('vertices')
-
-        indices = <unsigned short *>malloc(count * sizeof(unsigned short))
-        if indices == NULL:
-            free(vertices)
-            raise MemoryError('indices')
-
-        tex_x = 0
-        for i in xrange(count):
-            if i > 0:
-                tex_x += (
-                        (p[i * 2]     - p[(i - 1) * 2]) ** 2 +
-                        (p[i * 2 + 1] - p[(i - 1) * 2 + 1]) ** 2) ** .5 / (
-                                self.length + self.dist)
-
-            vertices[i].x = p[i * 2]
-            vertices[i].y = p[i * 2 + 1]
-            vertices[i].s0 = tex_x
-            vertices[i].t0 = 0
-            indices[i] = i
-
-
-        self.batch.set_data(vertices, count, indices, count)
-
-        free(vertices)
-        free(indices)
-
-    property points:
-        '''Property for getting/settings points of the triangle
-
-        .. warning::
-
-            This will always reconstruct the whole graphics from the new points
-            list. It can be very CPU expensive.
-        '''
-        def __get__(self):
-            return self._points
-        def __set__(self, points):
-            self._points = list(points)
-            self.flag_update()
-
-
 cdef class Line(VertexInstruction):
     '''A 2d line.
 
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
+        `length`: float
+            length of a segment (if stippled), default 1
+        `dist`: float
+            distance between two segments, default 0, changing this makes it stippled
     '''
     cdef list _points
+    cdef int dist, length
+    cdef Texture tex
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [])
         self.batch.set_mode('line_strip')
+        self.dist = kwargs.get('dist', 0)
+        self.length = kwargs.get('length', 1)
+        if self.dist != 0:
+            self.texture = Texture.create(size=(self.length + self.dist, 1))
+            # create a buffer to fill our texture
+            buf = [255 for x in xrange(self.length * 3)] + [0 for x in xrange(self.dist * 3)]
+            buf = ''.join(map(chr, buf))
+            self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
+            self.texture.wrap = "repeat"
 
     cdef void build(self):
         cdef int i, count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
+        cdef float tex_x
 
         vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
         if vertices == NULL:
@@ -135,10 +72,19 @@ cdef class Line(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
+        tex_x = 0
         for i in xrange(count):
+            if self.dist != 0 and i > 0:
+                tex_x += (
+                        (p[i * 2]     - p[(i - 1) * 2]) ** 2 +
+                        (p[i * 2 + 1] - p[(i - 1) * 2 + 1]) ** 2) ** .5 / (
+                                self.length + self.dist)
+                vertices[i].s0 = tex_x
+
             vertices[i].x = p[i * 2]
             vertices[i].y = p[i * 2 + 1]
             indices[i] = i
+
 
         self.batch.set_data(vertices, count, indices, count)
 
@@ -159,133 +105,6 @@ cdef class Line(VertexInstruction):
             self._points = list(points)
             self.flag_update()
 
-
-cdef class StippledBezier(VertexInstruction):
-    '''A 2d Stippled Bezier curve.
-
-    .. versionadded:: 1.0.8
-
-    :Parameters:
-        `points`: list
-            List of points in the format (x1, y1, x2, y2...)
-        `segments`: int, default to 180
-            Define how much segment is needed for drawing the ellipse.
-            The drawing will be smoother if you have lot of segment.
-        `loop`: bool, default to False
-            Set the bezier curve to join last point to first.
-        `length`: float
-            length of a segment
-        `dist`: float
-            distance between two segments
-
-    #TODO: refactoring:
-        a) find interface common to all splines (given control points and
-        perhaps tangents, what's the position on the spline for parameter t),
-
-        b) make that a superclass Spline, c) create BezierSpline subclass that
-        does the computation
-    '''
-    cdef list _points
-    cdef int _segments
-    cdef bint _loop
-    cdef int dist, length
-    cdef Texture tex
-
-    def __init__(self, **kwargs):
-        VertexInstruction.__init__(self, **kwargs)
-        self.points = kwargs.get('points', [0, 0, 0, 0, 0, 0, 0, 0])
-        self._segments = kwargs.get('segments', 10)
-        self._loop = kwargs.get('loop', False)
-        if self._loop:
-            self.points.extend(self.points[:2])
-        self.batch.set_mode('line_strip')
-        self.dist = kwargs.get('dist', 10)
-        self.length = kwargs.get('length', 10)
-        self.texture = Texture.create(size=(self.length + self.dist, 1))
-        # create a buffer to fill our texture
-        buf = [255 for x in xrange(self.length * 3)] + [0 for x in xrange(self.dist * 3)]
-        buf = ''.join(map(chr, buf))
-        self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-        self.texture.wrap = "repeat"
-
-    cdef void build(self):
-        cdef int x, i, j
-        cdef float l
-        cdef list T = self.points
-        cdef vertex_t *vertices = NULL
-        cdef unsigned short *indices = NULL
-        cdef float tex_x
-
-        vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
-        if vertices == NULL:
-            raise MemoryError('vertices')
-
-        indices = <unsigned short *>malloc(
-                (self._segments + 1) * sizeof(unsigned short))
-        if indices == NULL:
-            free(vertices)
-            raise MemoryError('indices')
-
-        tex_x = 0
-        for x in xrange(self._segments):
-            l = x / (1.0 * self._segments)
-            # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
-            # as the list is in the form of (x1, y1, x2, y2...) iteration is
-            # done on each item and the current item (xn or yn) in the list is
-            # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
-            # placed at n+2. each iteration makes the list one item shorter
-            for i in range(1, len(self.points)):
-                for j in xrange(len(self.points) - 2*i):
-                    T[j] = T[j] + (T[j+2] - T[j]) * l
-
-            # we got the coordinates of the point in T[0] and T[1]
-            vertices[x].x = T[0]
-            vertices[x].y = T[1]
-            if x > 0:
-                tex_x += (
-                        (vertices[x].x - vertices[x-1].x) ** 2 +
-                        (vertices[x].y - vertices[x-1].y) ** 2) ** .5 / (
-                                self.length + self.dist)
-
-            vertices[x].s0 = tex_x
-            vertices[x].t0 = 0
-            indices[x] = x
-
-        # add one last point to join the curve to the end
-        vertices[x+1].x = self.points[-2]
-        vertices[x+1].y = self.points[-1]
-        indices[x+1] = x + 1
-
-        self.batch.set_data(vertices, self._segments + 1, indices,
-                self._segments + 1)
-
-        free(vertices)
-        free(indices)
-
-    property points:
-        '''Property for getting/settings points of the triangle
-
-        .. warning::
-
-            This will always reconstruct the whole graphics from the new points
-            list. It can be very CPU expensive.
-        '''
-        def __get__(self):
-            return self._points
-        def __set__(self, points):
-            self._points = list(points)
-            self.flag_update()
-
-    property segments:
-        '''Property for getting/setting the number of segments of the curve
-        '''
-        def __get__(self):
-            return self._segments
-        def __set__(self, value):
-            if value <= 1:
-                raise GraphicException('Invalid segments value, must be >= 2')
-            self._segments = value
-            self.flag_update()
 
 cdef class Bezier(VertexInstruction):
     '''A 2d Bezier curve.
@@ -300,6 +119,10 @@ cdef class Bezier(VertexInstruction):
             The drawing will be smoother if you have lot of segment.
         `loop`: bool, default to False
             Set the bezier curve to join last point to first.
+        `length`: float
+            length of a segment (if stippled), default 1
+        `dist`: float
+            distance between two segments, default 0, changing this makes it stippled
 
     #TODO: refactoring:
         a) find interface common to all splines (given control points and
@@ -311,6 +134,8 @@ cdef class Bezier(VertexInstruction):
     cdef list _points
     cdef int _segments
     cdef bint _loop
+    cdef int dist, length
+    cdef Texture tex
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -320,6 +145,16 @@ cdef class Bezier(VertexInstruction):
         if self._loop:
             self.points.extend(self.points[:2])
         self.batch.set_mode('line_strip')
+        self.length = kwargs.get('length', 1)
+        self.dist = kwargs.get('dist', 0)
+
+        if self.dist != 0:
+            self.texture = Texture.create(size=(self.length + self.dist, 1))
+            # create a buffer to fill our texture
+            buf = [255 for x in xrange(self.length * 3)] + [0 for x in xrange(self.dist * 3)]
+            buf = ''.join(map(chr, buf))
+            self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
+            self.texture.wrap = "repeat"
 
     cdef void build(self):
         cdef int x, i, j
@@ -327,6 +162,7 @@ cdef class Bezier(VertexInstruction):
         cdef list T = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
+        cdef float tex_x
 
         vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
         if vertices == NULL:
@@ -338,9 +174,9 @@ cdef class Bezier(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
+        tex_x = 0
         for x in xrange(self._segments):
             l = x / (1.0 * self._segments)
-
             # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
             # as the list is in the form of (x1, y1, x2, y2...) iteration is
             # done on each item and the current item (xn or yn) in the list is
@@ -353,6 +189,14 @@ cdef class Bezier(VertexInstruction):
             # we got the coordinates of the point in T[0] and T[1]
             vertices[x].x = T[0]
             vertices[x].y = T[1]
+            if self.dist != 0 and x > 0:
+                tex_x += (
+                        (vertices[x].x - vertices[x-1].x) ** 2 +
+                        (vertices[x].y - vertices[x-1].y) ** 2) ** .5 / (
+                                self.length + self.dist)
+
+                vertices[x].s0 = tex_x
+
             indices[x] = x
 
         # add one last point to join the curve to the end
