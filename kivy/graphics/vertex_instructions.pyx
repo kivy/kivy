@@ -40,15 +40,15 @@ cdef class Line(VertexInstruction):
             next one, default 0, changing this makes it dashed.
     '''
     cdef list _points
-    cdef int dash_offset, dash_length
+    cdef int _dash_offset, _dash_length
     cdef Texture tex
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [])
         self.batch.set_mode('line_strip')
-        self.dash_length = kwargs.get('dash_length', 1)
-        self.dash_offset = kwargs.get('dash_offset', 0)
+        self._dash_length = kwargs.get('dash_length', 1)
+        self._dash_offset = kwargs.get('dash_offset', 0)
 
     cdef void build(self):
         cdef int i, count = len(self.points) / 2
@@ -57,10 +57,10 @@ cdef class Line(VertexInstruction):
         cdef unsigned short *indices = NULL
         cdef float tex_x
 
-        if self.dash_offset != 0:
-            self.texture = Texture.create(size=(self.dash_length + self.dash_offset, 1))
+        if self._dash_offset != 0:
+            self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
             # create a buffer to fill our texture
-            buf = [255 for x in xrange(self.dash_length * 3)] + [0 for x in xrange(self.dash_offset * 3)]
+            buf = [255 for x in xrange(self._dash_length * 3)] + [0 for x in xrange(self._dash_offset * 3)]
             buf = ''.join(map(chr, buf))
             self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
             self.texture.wrap = "repeat"
@@ -76,11 +76,11 @@ cdef class Line(VertexInstruction):
 
         tex_x = 0
         for i in xrange(count):
-            if self.dash_offset != 0 and i > 0:
+            if self._dash_offset != 0 and i > 0:
                 tex_x += (
                         (p[i * 2]     - p[(i - 1) * 2]) ** 2 +
                         (p[i * 2 + 1] - p[(i - 1) * 2 + 1]) ** 2) ** .5 / (
-                                self.dash_length + self.dash_offset)
+                                self._dash_length + self._dash_offset)
                 vertices[i].s0 = tex_x
 
             vertices[i].x = p[i * 2]
@@ -105,6 +105,30 @@ cdef class Line(VertexInstruction):
             return self._points
         def __set__(self, points):
             self._points = list(points)
+            self.flag_update()
+
+    property dash_length:
+        '''Property for getting/stting the length of the dashes in the curve
+        '''
+        def __get__(self):
+            return self._dash_length
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_length value, must be >= 0')
+            self._dash_length = value
+            self.flag_update()
+
+    property dash_offset:
+        '''Property for getting/setting the offset between the dashes in the curve
+        '''
+        def __get__(self):
+            return self._dash_offset
+
+        def __set__(self,value):
+            if self.offset < 0:
+                raise GraphicException('Invalid dash_offset value, must be >= 0')
+            self._dash_offset = value
             self.flag_update()
 
 
@@ -137,7 +161,7 @@ cdef class Bezier(VertexInstruction):
     cdef list _points
     cdef int _segments
     cdef bint _loop
-    cdef int dash_offset, dash_length
+    cdef int _dash_offset, _dash_length
     cdef Texture tex
 
     def __init__(self, **kwargs):
@@ -148,8 +172,8 @@ cdef class Bezier(VertexInstruction):
         if self._loop:
             self.points.extend(self.points[:2])
         self.batch.set_mode('line_strip')
-        self.dash_length = kwargs.get('dash_length', 1)
-        self.dash_offset = kwargs.get('dash_offset', 0)
+        self._dash_length = kwargs.get('dash_length', 1)
+        self._dash_offset = kwargs.get('dash_offset', 0)
 
     cdef void build(self):
         cdef int x, i, j
@@ -159,10 +183,10 @@ cdef class Bezier(VertexInstruction):
         cdef unsigned short *indices = NULL
         cdef float tex_x
 
-        if self.dash_offset != 0:
-            self.texture = Texture.create(size=(self.dash_length + self.dash_offset, 1))
+        if self._dash_offset != 0:
+            self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
             # create a buffer to fill our texture
-            buf = [255 for x in xrange(self.dash_length * 3)] + [0 for x in xrange(self.dash_offset * 3)]
+            buf = [255 for x in xrange(self._dash_length * 3)] + [0 for x in xrange(self._dash_offset * 3)]
             buf = ''.join(map(chr, buf))
             self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
             self.texture.wrap = "repeat"
@@ -194,11 +218,11 @@ cdef class Bezier(VertexInstruction):
             # we got the coordinates of the point in T[0] and T[1]
             vertices[x].x = T[0]
             vertices[x].y = T[1]
-            if self.dash_offset != 0 and x > 0:
+            if self._dash_offset != 0 and x > 0:
                 tex_x += (
                         (vertices[x].x - vertices[x-1].x) ** 2 +
                         (vertices[x].y - vertices[x-1].y) ** 2) ** .5 / (
-                                self.dash_length + self.dash_offset)
+                                self._dash_length + self._dash_offset)
 
                 vertices[x].s0 = tex_x
 
@@ -238,6 +262,30 @@ cdef class Bezier(VertexInstruction):
             if value <= 1:
                 raise GraphicException('Invalid segments value, must be >= 2')
             self._segments = value
+            self.flag_update()
+
+    property dash_length:
+        '''Property for getting/stting the length of the dashes in the curve
+        '''
+        def __get__(self):
+            return self._dash_length
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_length value, must be >= 0')
+            self._dash_length = value
+            self.flag_update()
+
+    property dash_offset:
+        '''Property for getting/setting the offset between the dashes in the curve
+        '''
+        def __get__(self):
+            return self._dash_offset
+
+        def __set__(self,value):
+            if self.offset < 0:
+                raise GraphicException('Invalid dash_offset value, must be >= 0')
+            self._dash_offset = value
             self.flag_update()
 
 
