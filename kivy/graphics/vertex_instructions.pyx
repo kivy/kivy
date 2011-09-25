@@ -33,9 +33,9 @@ cdef class Line(VertexInstruction):
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
-        `dash_length`: float
+        `dash_length`: int
             length of a segment (if dashed), default 1
-        `dash_offset`: float
+        `dash_offset`: int
             offset between the end of a segments and the begining of the
             next one, default 0, changing this makes it dashed.
     '''
@@ -58,12 +58,16 @@ cdef class Line(VertexInstruction):
         cdef float tex_x
 
         if self._dash_offset != 0:
-            self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
+            if not self.texture or self.texture.size != (self._dash_length + self._dash_offset, 1):
+                self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
             # create a buffer to fill our texture
             buf = [255 for x in xrange(self._dash_length * 3)] + [0 for x in xrange(self._dash_offset * 3)]
             buf = ''.join(map(chr, buf))
             self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
             self.texture.wrap = "repeat"
+
+        else:
+            self.texture = None
 
         vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
         if vertices == NULL:
@@ -82,11 +86,11 @@ cdef class Line(VertexInstruction):
                         (p[i * 2 + 1] - p[(i - 1) * 2 + 1]) ** 2) ** .5 / (
                                 self._dash_length + self._dash_offset)
                 vertices[i].s0 = tex_x
+                vertices[x].t0 = 0
 
             vertices[i].x = p[i * 2]
             vertices[i].y = p[i * 2 + 1]
             indices[i] = i
-
 
         self.batch.set_data(vertices, count, indices, count)
 
@@ -126,7 +130,7 @@ cdef class Line(VertexInstruction):
             return self._dash_offset
 
         def __set__(self,value):
-            if self.offset < 0:
+            if value < 0:
                 raise GraphicException('Invalid dash_offset value, must be >= 0')
             self._dash_offset = value
             self.flag_update()
@@ -145,9 +149,9 @@ cdef class Bezier(VertexInstruction):
             The drawing will be smoother if you have lot of segment.
         `loop`: bool, default to False
             Set the bezier curve to join last point to first.
-        `dash_length`: float
+        `dash_length`: int
             length of a segment (if dashed), default 1
-        `dash_offset`: float
+        `dash_offset`: int
             distance between the end of a segment and the start of the
             next one, default 0, changing this makes it dashed.
 
@@ -171,9 +175,9 @@ cdef class Bezier(VertexInstruction):
         self._loop = kwargs.get('loop', False)
         if self._loop:
             self.points.extend(self.points[:2])
-        self.batch.set_mode('line_strip')
         self._dash_length = kwargs.get('dash_length', 1)
         self._dash_offset = kwargs.get('dash_offset', 0)
+        self.batch.set_mode('line_strip')
 
     cdef void build(self):
         cdef int x, i, j
@@ -184,12 +188,15 @@ cdef class Bezier(VertexInstruction):
         cdef float tex_x
 
         if self._dash_offset != 0:
-            self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
+            if not self.texture or self.texture.size != (self._dash_length + self._dash_offset, 1):
+                self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
+
             # create a buffer to fill our texture
             buf = [255 for x in xrange(self._dash_length * 3)] + [0 for x in xrange(self._dash_offset * 3)]
             buf = ''.join(map(chr, buf))
             self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
             self.texture.wrap = "repeat"
+
         else:
             self.texture = None
 
@@ -225,15 +232,26 @@ cdef class Bezier(VertexInstruction):
                                 self._dash_length + self._dash_offset)
 
                 vertices[x].s0 = tex_x
+                vertices[x].t0 = 0
 
             indices[x] = x
 
         # add one last point to join the curve to the end
         vertices[x+1].x = self.points[-2]
         vertices[x+1].y = self.points[-1]
+        tex_x += (
+                (vertices[x+1].x - vertices[x].x) ** 2 +
+                (vertices[x+1].y - vertices[x].y) ** 2) ** .5 / (
+                        self._dash_length + self._dash_offset)
+
+        vertices[x+1].s0 = tex_x
+        vertices[x+1].t0 = 0
         indices[x+1] = x + 1
 
-        self.batch.set_data(vertices, self._segments + 1, indices,
+        self.batch.set_data(
+                vertices,
+                self._segments + 1,
+                indices,
                 self._segments + 1)
 
         free(vertices)
@@ -251,6 +269,8 @@ cdef class Bezier(VertexInstruction):
             return self._points
         def __set__(self, points):
             self._points = list(points)
+            if self._loop:
+                self._points.extend(points[:2])
             self.flag_update()
 
     property segments:
@@ -283,7 +303,7 @@ cdef class Bezier(VertexInstruction):
             return self._dash_offset
 
         def __set__(self,value):
-            if self.offset < 0:
+            if value < 0:
                 raise GraphicException('Invalid dash_offset value, must be >= 0')
             self._dash_offset = value
             self.flag_update()
