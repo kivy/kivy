@@ -2,7 +2,8 @@
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.widget import Widget
-from kivy.graphics import Color, Line, Bezier, Ellipse, Line
+from kivy.uix.button import Button
+from kivy.graphics import Color, Bezier, Ellipse, Line, LineWidth
 
 class BezierTest(Widget):
     def __init__(self, points=[], loop=False, *args, **kwargs):
@@ -11,24 +12,51 @@ class BezierTest(Widget):
         self.points = points
         self.loop = loop
         self.current_point = None
-        self.update()
 
-    def update(self):
-        self.canvas.clear()
         with self.canvas:
             Color(1.0, 0.0, 0.0)
 
-            Bezier(points=self.points, segments=150, loop=self.loop)
-
-            Color(1.0, 1.0, 1.0)
-            for p in zip(self.points[::2], self.points[1::2]):
-                Ellipse(
-                        pos=(p[0] - self.d/2, p[1] - self.d/2),
-                        size=(self.d, self.d))
+            self.bezier = Bezier(
+                    points=self.points,
+                    segments=150,
+                    loop=self.loop,
+                    dash_length=100,
+                    dash_offset=10)
 
             Color(1.0, 0.0, 1.0)
-            Line(points=self.points+self.points[:2])
+            self.line = Line(
+                    points=self.points+self.points[:2],
+                    dash_offset=10,
+                    dash_length=100)
 
+        b = Button(text='+', pos=(300, 0))
+        b.bind(on_release=self.inc)
+        self.add_widget(b)
+
+        b = Button(text='-', pos=(400, 0))
+        b.bind(on_release=self.dec)
+        self.add_widget(b)
+
+        b = Button(text='+', pos=(500, 0))
+        b.bind(on_release=self.inc_)
+        self.add_widget(b)
+
+        b = Button(text='-', pos=(600, 0))
+        b.bind(on_release=self.dec_)
+        self.add_widget(b)
+
+
+    def inc(self, _):
+        self.bezier.dash_offset += 1
+
+    def dec(self, _):
+        self.bezier.dash_offset -= 1
+
+    def inc_(self, _):
+        self.line.dash_offset += 1
+
+    def dec_(self, _):
+        self.line.dash_offset -= 1
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
@@ -52,7 +80,8 @@ class BezierTest(Widget):
             if self.current_point:
                 self.points[(self.current_point - 1) * 2] = touch.pos[0] - self.pos[0]
                 self.points[(self.current_point - 1) * 2 + 1] = touch.pos[1] - self.pos[1]
-                self.update()
+                self.bezier.points = self.points
+                self.line.points = self.points + self.points[:2]
                 return True
             return super(BezierTest, self).on_touch_move(touch)
 
