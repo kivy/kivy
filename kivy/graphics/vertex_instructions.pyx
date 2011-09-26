@@ -86,7 +86,7 @@ cdef class Line(VertexInstruction):
                         (p[i * 2 + 1] - p[(i - 1) * 2 + 1]) ** 2) ** .5 / (
                                 self._dash_length + self._dash_offset)
                 vertices[i].s0 = tex_x
-                vertices[x].t0 = 0
+                vertices[i].t0 = 0
 
             vertices[i].x = p[i * 2]
             vertices[i].y = p[i * 2 + 1]
@@ -182,7 +182,7 @@ cdef class Bezier(VertexInstruction):
     cdef void build(self):
         cdef int x, i, j
         cdef float l
-        cdef list T = self.points
+        cdef list T = self.points[:]
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
@@ -218,8 +218,8 @@ cdef class Bezier(VertexInstruction):
             # done on each item and the current item (xn or yn) in the list is
             # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
             # placed at n+2. each iteration makes the list one item shorter
-            for i in range(1, len(self.points)):
-                for j in xrange(len(self.points) - 2*i):
+            for i in range(1, len(T)):
+                for j in xrange(len(T) - 2*i):
                     T[j] = T[j] + (T[j+2] - T[j]) * l
 
             # we got the coordinates of the point in T[0] and T[1]
@@ -237,8 +237,8 @@ cdef class Bezier(VertexInstruction):
             indices[x] = x
 
         # add one last point to join the curve to the end
-        vertices[x+1].x = self.points[-2]
-        vertices[x+1].y = self.points[-1]
+        vertices[x+1].x = T[-2]
+        vertices[x+1].y = T[-1]
         tex_x += (
                 (vertices[x+1].x - vertices[x].x) ** 2 +
                 (vertices[x+1].y - vertices[x].y) ** 2) ** .5 / (
