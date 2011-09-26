@@ -757,11 +757,11 @@ def create_handler(element, key, value, idmap):
 
     def call_fn(sender, _value):
         if __debug__:
-            trace('Builder: call_fn %s, key=%s, value=%s' % (
+            trace('Builder: call_fn %s, key=%s, value=%r' % (
                 element, key, value))
         e_value = eval(c_value, _eval_globals, idmap)
         if __debug__:
-            trace('Builder: call_fn => value=%s' % str(e_value))
+            trace('Builder: call_fn => value=%r' % (e_value, ))
         setattr(element, key, e_value)
 
     # bind every key.value
