@@ -189,8 +189,11 @@ class ImageLoader(object):
         # Read all images inside
         z = zipfile.ZipFile(_filename, 'r')
         image_data = []
+        #sort filename list
+        znamelist = z.namelist()
+        znamelist.sort()
         #for each file in zip
-        for zfilename in z.namelist():
+        for zfilename in znamelist:
             try:
                 #read file and store it in mem with fileIO struct around it
                 tmpfile = SIO.StringIO(z.read(zfilename))
@@ -589,6 +592,7 @@ core_register_libs('image', (
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
+    ('gif', 'img_gif'),
 ))
 
 # resolve binding.
