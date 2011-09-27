@@ -35,13 +35,14 @@ cdef class Line(VertexInstruction):
             List of points in the format (x1, y1, x2, y2...)
         `dash_length`: int
             length of a segment (if dashed), default 1
+            .. versionadded:: 1.0.8
         `dash_offset`: int
             offset between the end of a segments and the begining of the
             next one, default 0, changing this makes it dashed.
+            .. versionadded:: 1.0.8
     '''
     cdef list _points
     cdef int _dash_offset, _dash_length
-    cdef Texture tex
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -166,7 +167,6 @@ cdef class Bezier(VertexInstruction):
     cdef int _segments
     cdef bint _loop
     cdef int _dash_offset, _dash_length
-    cdef Texture tex
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
