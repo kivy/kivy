@@ -23,6 +23,16 @@ IF USE_OPENGL_DEBUG == 1:
 from kivy.logger import Logger
 from kivy.graphics.texture import Texture
 
+cdef extern from "string.h":
+    void *memset(void *s, int c, int n)
+
+cdef extern from "Python.h":
+    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+
+cdef extern from "math.h":
+    double sqrt(double x) nogil
+    double pow(double x, double y) nogil
+
 class GraphicException(Exception):
     '''Exception fired when a graphic error is fired.
     '''
@@ -57,17 +67,21 @@ cdef class Line(VertexInstruction):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
+        cdef char *buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
 
         if self._dash_offset != 0:
             if not self.texture or self.texture.size != (self._dash_length + self._dash_offset, 1):
                 self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
-            # create a buffer to fill our texture
-            buf = [255 for x in xrange(self._dash_length * 3)] + [0 for x in xrange(self._dash_offset * 3)]
-            buf = ''.join(map(chr, buf))
-            self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-            self.texture.wrap = "repeat"
+                self.texture.wrap = "repeat"
 
-        else:
+            # create a buffer to fill our texture
+            memset(buf, 255, self._dash_length * 3)
+            memset(buf + self._dash_length * 3, 0, self._dash_offset * 3)
+            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 3)
+
+            self.texture.blit_buffer(p_str, colorfmt='rgb', bufferfmt='ubyte')
+
+        elif self.texture:
             self.texture = None
 
         vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
@@ -82,10 +96,11 @@ cdef class Line(VertexInstruction):
         tex_x = 0
         for i in xrange(count):
             if self._dash_offset != 0 and i > 0:
-                tex_x += (
-                        (p[i * 2]     - p[(i - 1) * 2]) ** 2 +
-                        (p[i * 2 + 1] - p[(i - 1) * 2 + 1]) ** 2) ** .5 / (
+                tex_x += sqrt(
+                        pow(p[i * 2]     - p[(i - 1) * 2], 2)  +
+                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / (
                                 self._dash_length + self._dash_offset)
+
                 vertices[i].s0 = tex_x
                 vertices[i].t0 = 0
 
@@ -186,18 +201,22 @@ cdef class Bezier(VertexInstruction):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
+        cdef char *buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
 
         if self._dash_offset != 0:
             if not self.texture or self.texture.size != (self._dash_length + self._dash_offset, 1):
                 self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
+                self.texture.wrap = "repeat"
 
             # create a buffer to fill our texture
-            buf = [255 for x in xrange(self._dash_length * 3)] + [0 for x in xrange(self._dash_offset * 3)]
-            buf = ''.join(map(chr, buf))
-            self.texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-            self.texture.wrap = "repeat"
+            memset(buf, 255, self._dash_length * 3)
+            memset(buf + self._dash_length * 3, 0, self._dash_offset * 3)
 
-        else:
+            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 3)
+
+            self.texture.blit_buffer(p_str, colorfmt='rgb', bufferfmt='ubyte')
+
+        elif self.texture:
             self.texture = None
 
         vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
@@ -226,9 +245,9 @@ cdef class Bezier(VertexInstruction):
             vertices[x].x = T[0]
             vertices[x].y = T[1]
             if self._dash_offset != 0 and x > 0:
-                tex_x += (
-                        (vertices[x].x - vertices[x-1].x) ** 2 +
-                        (vertices[x].y - vertices[x-1].y) ** 2) ** .5 / (
+                tex_x += sqrt(
+                        pow(vertices[x].x - vertices[x-1].x, 2) +
+                        pow(vertices[x].y - vertices[x-1].y, 2)) / (
                                 self._dash_length + self._dash_offset)
 
                 vertices[x].s0 = tex_x
@@ -239,9 +258,10 @@ cdef class Bezier(VertexInstruction):
         # add one last point to join the curve to the end
         vertices[x+1].x = T[-2]
         vertices[x+1].y = T[-1]
-        tex_x += (
+
+        tex_x += sqrt(
                 (vertices[x+1].x - vertices[x].x) ** 2 +
-                (vertices[x+1].y - vertices[x].y) ** 2) ** .5 / (
+                (vertices[x+1].y - vertices[x].y) ** 2) / (
                         self._dash_length + self._dash_offset)
 
         vertices[x+1].s0 = tex_x
