@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.widget import Widget
-from kivy.uix.button import Button
-from kivy.graphics import Color, Bezier, Ellipse, Line, LineWidth
+from kivy.uix.slider import Slider
+from kivy.graphics import Color, Bezier, Line
 
-class BezierTest(Widget):
+
+class BezierTest(FloatLayout):
+
     def __init__(self, points=[], loop=False, *args, **kwargs):
         super(BezierTest, self).__init__(*args, **kwargs)
         self.d = 10
@@ -29,34 +30,23 @@ class BezierTest(Widget):
                     dash_offset=10,
                     dash_length=100)
 
-        b = Button(text='+', pos=(300, 0))
-        b.bind(on_release=self.inc)
-        self.add_widget(b)
+        s = Slider(y=0, pos_hint={'x': .3}, size_hint=(.7, None), height=50)
+        s.bind(value=self._set_bezier_dash_offset)
+        self.add_widget(s)
 
-        b = Button(text='-', pos=(400, 0))
-        b.bind(on_release=self.dec)
-        self.add_widget(b)
+        s = Slider(y=50, pos_hint={'x': .3}, size_hint=(.7, None), height=50)
+        s.bind(value=self._set_line_dash_offset)
+        self.add_widget(s)
 
-        b = Button(text='+', pos=(500, 0))
-        b.bind(on_release=self.inc_)
-        self.add_widget(b)
+    def _set_bezier_dash_offset(self, instance, value):
+        # effect to reduce length while increase offset
+        self.bezier.dash_length = 100 - value
+        self.bezier.dash_offset = value
 
-        b = Button(text='-', pos=(600, 0))
-        b.bind(on_release=self.dec_)
-        self.add_widget(b)
-
-
-    def inc(self, _):
-        self.bezier.dash_offset += 1
-
-    def dec(self, _):
-        self.bezier.dash_offset -= 1
-
-    def inc_(self, _):
-        self.line.dash_offset += 1
-
-    def dec_(self, _):
-        self.line.dash_offset -= 1
+    def _set_line_dash_offset(self, instance, value):
+        # effect to reduce length while increase offset
+        self.line.dash_length = 100 - value
+        self.line.dash_offset = value
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
@@ -77,9 +67,10 @@ class BezierTest(Widget):
 
     def on_touch_move(self, touch):
         if self.collide_point(touch.pos[0], touch.pos[1]):
-            if self.current_point:
-                self.points[(self.current_point - 1) * 2] = touch.pos[0] - self.pos[0]
-                self.points[(self.current_point - 1) * 2 + 1] = touch.pos[1] - self.pos[1]
+            c = self.current_point
+            if c:
+                self.points[(c - 1) * 2] = touch.pos[0] - self.pos[0]
+                self.points[(c - 1) * 2 + 1] = touch.pos[1] - self.pos[1]
                 self.bezier.points = self.points
                 self.line.points = self.points + self.points[:2]
                 return True
@@ -87,23 +78,17 @@ class BezierTest(Widget):
 
 
 class Main(App):
-    def build(self):
-        layout = FloatLayout()
-        layout.add_widget(BezierTest(points=[
-            0, 0,
-            0.1 * 100, 0.2 * 100,
-            0.2 * 100, 0.3 * 100,
-            0.3 * 100, 0.3 * 100,
-            0.4 * 100, 0.4 * 100,
-            0.5 * 100, 0.5 * 100,
-            0.6 * 100, 0.6 * 100,
-            0.7 * 100, 0.6 * 100,
-            0.8 * 100, 0.7 * 100,
-            0.9 * 100, 0.8 * 100,
-            100, 100,
-            0, 100], loop=True))
 
-        return layout
+    def build(self):
+        from math import cos, sin, radians
+        x = y = 150
+        l = 100
+        # Pacman !
+        points = [x, y]
+        for i in xrange(45, 360, 45):
+            i = radians(i)
+            points.extend([x + cos(i) * l, y + sin(i) * l])
+        return BezierTest(points=points, loop=True)
 
 if __name__ == '__main__':
     Main().run()
