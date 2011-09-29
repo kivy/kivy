@@ -40,16 +40,17 @@ class GraphicException(Exception):
 cdef class Line(VertexInstruction):
     '''A 2d line.
 
+    .. versionadded:: 1.0.8
+        `dash_offset` and `dash_length` have been added
+
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
         `dash_length`: int
             length of a segment (if dashed), default 1
-            .. versionadded:: 1.0.8
         `dash_offset`: int
             offset between the end of a segments and the begining of the
             next one, default 0, changing this makes it dashed.
-            .. versionadded:: 1.0.8
     '''
     cdef list _points
     cdef int _dash_offset, _dash_length
@@ -67,21 +68,28 @@ cdef class Line(VertexInstruction):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
-        cdef char *buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
+        cdef char *buf = NULL
+        cdef Texture texture = self.texture
 
         if self._dash_offset != 0:
-            if not self.texture or self.texture.size != (self._dash_length + self._dash_offset, 1):
-                self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
-                self.texture.wrap = "repeat"
+            if texture is None or texture._width != \
+                (self._dash_length + self._dash_offset) or \
+                texture._height != 1:
+
+                self.texture = texture = Texture.create(
+                        size=(self._dash_length + self._dash_offset, 1))
+                texture.wrap = 'repeat'
 
             # create a buffer to fill our texture
+            buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
             memset(buf, 255, self._dash_length * 3)
             memset(buf + self._dash_length * 3, 0, self._dash_offset * 3)
             p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 3)
 
             self.texture.blit_buffer(p_str, colorfmt='rgb', bufferfmt='ubyte')
+            free(buf)
 
-        elif self.texture:
+        elif texture is not None:
             self.texture = None
 
         vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
@@ -129,6 +137,8 @@ cdef class Line(VertexInstruction):
 
     property dash_length:
         '''Property for getting/stting the length of the dashes in the curve
+
+        .. versionadded:: 1.0.8
         '''
         def __get__(self):
             return self._dash_length
@@ -141,11 +151,13 @@ cdef class Line(VertexInstruction):
 
     property dash_offset:
         '''Property for getting/setting the offset between the dashes in the curve
+
+        .. versionadded:: 1.0.8
         '''
         def __get__(self):
             return self._dash_offset
 
-        def __set__(self,value):
+        def __set__(self, value):
             if value < 0:
                 raise GraphicException('Invalid dash_offset value, must be >= 0')
             self._dash_offset = value
@@ -170,14 +182,16 @@ cdef class Bezier(VertexInstruction):
         `dash_offset`: int
             distance between the end of a segment and the start of the
             next one, default 0, changing this makes it dashed.
-
-    #TODO: refactoring:
-        a) find interface common to all splines (given control points and
-        perhaps tangents, what's the position on the spline for parameter t),
-
-        b) make that a superclass Spline, c) create BezierSpline subclass that
-        does the computation
     '''
+
+    # TODO: refactoring:
+    #
+    #    a) find interface common to all splines (given control points and
+    #    perhaps tangents, what's the position on the spline for parameter t),
+    #
+    #    b) make that a superclass Spline,
+    #    c) create BezierSpline subclass that does the computation
+
     cdef list _points
     cdef int _segments
     cdef bint _loop
@@ -201,22 +215,29 @@ cdef class Bezier(VertexInstruction):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
-        cdef char *buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
+        cdef char *buf = NULL
+        cdef Texture texture = self.texture
 
         if self._dash_offset != 0:
-            if not self.texture or self.texture.size != (self._dash_length + self._dash_offset, 1):
-                self.texture = Texture.create(size=(self._dash_length + self._dash_offset, 1))
-                self.texture.wrap = "repeat"
+            if texture is None or texture._width != \
+                (self._dash_length + self._dash_offset) or \
+                texture._height != 1:
+
+                self.texture = texture = Texture.create(
+                        size=(self._dash_length + self._dash_offset, 1))
+                texture.wrap = 'repeat'
 
             # create a buffer to fill our texture
+            buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
             memset(buf, 255, self._dash_length * 3)
             memset(buf + self._dash_length * 3, 0, self._dash_offset * 3)
 
             p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 3)
 
-            self.texture.blit_buffer(p_str, colorfmt='rgb', bufferfmt='ubyte')
+            texture.blit_buffer(p_str, colorfmt='rgb', bufferfmt='ubyte')
+            free(buf)
 
-        elif self.texture:
+        elif texture is not None:
             self.texture = None
 
         vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
@@ -322,7 +343,7 @@ cdef class Bezier(VertexInstruction):
         def __get__(self):
             return self._dash_offset
 
-        def __set__(self,value):
+        def __set__(self, value):
             if value < 0:
                 raise GraphicException('Invalid dash_offset value, must be >= 0')
             self._dash_offset = value
