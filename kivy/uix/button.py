@@ -85,6 +85,18 @@ class Button(Label):
     default to 'data/images/button_pressed.png'
     '''
 
+    border = ListProperty([16, 16, 16, 16])
+    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
+    graphics instruction, used itself for :data:`background_normal` and
+    :data:`background_down`. Can be used when using custom background.
+
+    It must be a list of 4 value: (top, right, bottom, left). Read the
+    BorderImage instruction for more information about how to play with it.
+
+    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
+    16, 16, 16)
+    '''
+
     def __init__(self, **kwargs):
         super(Button, self).__init__(**kwargs)
         self.register_event_type('on_press')

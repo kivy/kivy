@@ -14,7 +14,7 @@
         Color:
             rgba: self.background_color
         BorderImage:
-            border: (16, 16, 16, 16)
+            border: self.border
             pos: self.pos
             size: self.size
             source: self.background_normal if self.state == 'normal' else self.background_down
@@ -334,6 +334,57 @@
 
 
 # =============================================================================
+# Accordion widget
+# =============================================================================
+
+[AccordionItemTitle@Label]:
+	text: ctx.title
+	canvas.before:
+		Color:
+            rgb: 1, 1, 1
+		BorderImage:
+			source:
+				ctx.item.background_normal \
+				if ctx.item.collapse \
+				else ctx.item.background_selected
+			pos: self.pos
+			size: self.size
+		PushMatrix
+		Translate:
+			xy: self.center_x, self.center_y
+		Rotate:
+			angle: 90 if ctx.item.orientation == 'horizontal' else 0
+			axis: 0, 0, 1
+		Translate:
+			xy: -self.center_x, -self.center_y
+	canvas.after:
+		PopMatrix
+
+
+<AccordionItem>:
+	container: container
+	container_title: container_title
+
+	BoxLayout:
+		orientation: root.orientation
+		pos: root.pos
+		BoxLayout:
+			size_hint_x: None if root.orientation == 'horizontal' else 1
+			size_hint_y: None if root.orientation == 'vertical' else 1
+			width: root.min_space if root.orientation == 'horizontal' else 100
+			height: root.min_space if root.orientation == 'vertical' else 100
+			id: container_title
+
+		StencilView:
+			id: sv
+
+			BoxLayout:
+				id: container
+				pos: sv.pos
+				size: root.content_size
+
+
+# =============================================================================
 # Settings
 # =============================================================================
 
@@ -491,3 +542,4 @@
             size_hint_y: None
             id: content
             orientation: 'vertical'
+

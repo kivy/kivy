@@ -55,7 +55,7 @@ def callback_docstring(app, what, name, obj, options, lines):
         if len(lines) and lines[0].startswith('=='):
             lines.pop(0)
 
-    elif is_cython_extension(what, obj):
+    elif is_cython_extension(what, obj) and lines:
         lines.pop(0)
         line = lines.pop(0)
 

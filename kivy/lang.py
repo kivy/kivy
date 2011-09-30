@@ -757,11 +757,11 @@ def create_handler(element, key, value, idmap):
 
     def call_fn(sender, _value):
         if __debug__:
-            trace('Builder: call_fn %s, key=%s, value=%s' % (
+            trace('Builder: call_fn %s, key=%s, value=%r' % (
                 element, key, value))
         e_value = eval(c_value, _eval_globals, idmap)
         if __debug__:
-            trace('Builder: call_fn => value=%s' % str(e_value))
+            trace('Builder: call_fn => value=%r' % (e_value, ))
         setattr(element, key, e_value)
 
     # bind every key.value
@@ -893,8 +893,11 @@ class BuilderBase(object):
         '''
         # remove rules and templates
         self.rules = [x for x in self.rules if x[2] != filename]
-        self.templates = {x: y for x, y in self.templates.iteritems() \
-                if y[2] != filename}
+        templates = {}
+        for x, y in self.templates.iteritems():
+            if y[2] != filename:
+                templates[x] = y
+        self.templates = templates
 
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder

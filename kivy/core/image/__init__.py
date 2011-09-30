@@ -189,8 +189,11 @@ class ImageLoader(object):
         # Read all images inside
         z = zipfile.ZipFile(_filename, 'r')
         image_data = []
+        #sort filename list
+        znamelist = z.namelist()
+        znamelist.sort()
         #for each file in zip
-        for zfilename in z.namelist():
+        for zfilename in znamelist:
             try:
                 #read file and store it in mem with fileIO struct around it
                 tmpfile = SIO.StringIO(z.read(zfilename))
@@ -212,10 +215,7 @@ class ImageLoader(object):
                 #raise# return the data read till now
                 #this should Ideally handle truncated zips
         z.close()
-        try:
-            if len(image_data):
-                pass
-        except:
+        if len(image_data) == 0:
             raise Exception('no images in zip <%s>' % _filename)
         #replace Image.Data with the array of all the images in the zip
         im._data = image_data
@@ -503,10 +503,11 @@ class Image(EventDispatcher):
                 return
 
         # if image not already in cache then load
+        tmpfilename = self._filename
         self.image = ImageLoader.load(
                 self._filename, keep_data=self._keep_data,
                 mipmap=self._mipmap)
-
+        self._filename = tmpfilename
         # put the image into the cache if needed
         if keep_data:
             Cache.append('kv.image', uid, self.image)
@@ -593,6 +594,7 @@ core_register_libs('image', (
     ('pil', 'img_pil'),
     ('pyobjcquartz', 'img_pyobjcquartz'),
     ('osxcoreimage', 'img_osxcoreimage'),
+    ('gif', 'img_gif'),
 ))
 
 # resolve binding.

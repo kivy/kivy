@@ -819,8 +819,8 @@ def glGetActiveAttrib(GLuint program, GLuint index):
 
     Unlike the C specification, the value will be the result of call.
     '''
-    cdef GLint size
-    cdef GLenum gl_type
+    cdef GLint size = 0
+    cdef GLenum gl_type = 0
     cdef GLchar *name
     cdef bytes p_name
     name = <GLchar *>malloc(sizeof(GLchar) * 255)
@@ -837,8 +837,8 @@ def glGetActiveUniform(GLuint program, GLuint index):
 
     Unlike the C specification, the value will be the result of call.
     '''
-    cdef GLint size
-    cdef GLenum gl_type
+    cdef GLint size = 0
+    cdef GLenum gl_type = 0
     cdef GLchar *name
     cdef bytes p_name
     name = <GLchar *>malloc(sizeof(GLchar) * 255)
@@ -952,7 +952,7 @@ def glGetProgramiv(GLuint program, GLenum pname):
 
     Unlike the C specification, the value(s) will be the result of the call
     '''
-    cdef GLint params
+    cdef GLint params = 0
     c_opengl.glGetProgramiv(program, pname, &params)
     return params
 
@@ -962,7 +962,7 @@ def glGetProgramInfoLog(GLuint program, GLsizei bufsize):
 
     Unlike the C specification, the source code will be returned as a string.
     '''
-    cdef GLint size
+    cdef GLint size = 0
     cdef GLchar *infolog
     cdef bytes p_infolog
     infolog = <GLchar *>malloc(sizeof(GLchar) * 2048)
@@ -979,7 +979,7 @@ def glGetRenderbufferParameteriv(GLenum target, GLenum pname):
 
     Unlike the C specification, the value will be the result of call.
     '''
-    cdef GLint params
+    cdef GLint params = 0
     c_opengl.glGetRenderbufferParameteriv(target, pname, &params)
     return params
 
@@ -989,7 +989,7 @@ def glGetShaderiv(GLuint shader, GLenum pname):
 
     Unlike the C specification, the value will be the result of call.
     '''
-    cdef GLint params
+    cdef GLint params = 0
     c_opengl.glGetShaderiv(shader, pname, &params)
     return params
 
@@ -999,7 +999,7 @@ def glGetShaderInfoLog(GLuint shader, GLsizei bufsize):
 
     Unlike the C specification, the source code will be returned as a string.
     '''
-    cdef GLint size
+    cdef GLint size = 0
     cdef GLchar *infolog
     cdef bytes p_infolog
     infolog = <GLchar *>malloc(sizeof(GLchar) * 2048)
@@ -1025,7 +1025,7 @@ def glGetShaderSource(GLuint shader):
 
     Unlike the C specification, the source code will be returned as a string.
     '''
-    cdef GLint size
+    cdef GLint size = 0
     cdef GLchar *source
     cdef bytes p_source
     source = <GLchar *>malloc(sizeof(GLchar) * 65535)
@@ -1050,7 +1050,7 @@ def glGetTexParameterfv(GLenum target, GLenum pname):
     '''See: `glGetTexParameterfv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetTexParameterfv.xml>`_
     '''
-    cdef GLfloat params
+    cdef GLfloat params = 0
     c_opengl.glGetTexParameterfv(target, pname, &params)
     return params
 
@@ -1058,7 +1058,7 @@ def glGetTexParameteriv(GLenum target, GLenum pname):
     '''See: `glGetTexParameteriv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetTexParameteriv.xml>`_
     '''
-    cdef GLint params
+    cdef GLint params = 0
     c_opengl.glGetTexParameteriv(target, pname, &params)
     return params
 
@@ -1066,7 +1066,7 @@ def glGetUniformfv(GLuint program, GLint location):
     '''See: `glGetUniformfv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetUniformfv.xml>`_
     '''
-    cdef GLfloat params
+    cdef GLfloat params = 0
     c_opengl.glGetUniformfv(program, location, &params)
     return params
 
@@ -1074,7 +1074,7 @@ def glGetUniformiv(GLuint program, GLint location):
     '''See: `glGetUniformiv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetUniformiv.xml>`_
     '''
-    cdef GLint params
+    cdef GLint params = 0
     c_opengl.glGetUniformiv(program, location, &params)
     return params
 
@@ -1088,7 +1088,7 @@ def glGetVertexAttribfv(GLuint index, GLenum pname):
     '''See: `glGetVertexAttribfv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetVertexAttribfv.xml>`_
     '''
-    cdef GLfloat params
+    cdef GLfloat params = 0
     c_opengl.glGetVertexAttribfv(index, pname, &params)
     return params
 
@@ -1096,7 +1096,7 @@ def glGetVertexAttribiv(GLuint index, GLenum pname):
     '''See: `glGetVertexAttribiv() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetVertexAttribiv.xml>`_
     '''
-    cdef GLint params
+    cdef GLint params = 0
     c_opengl.glGetVertexAttribiv(index, pname, &params)
     return params
 

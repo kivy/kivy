@@ -57,7 +57,14 @@ Example of Posting data (adapted from httplib example)::
 from collections import deque
 from threading import Thread
 from json import loads
-from httplib import HTTPConnection, HTTPSConnection
+from httplib import HTTPConnection
+
+try:
+    from httplib import HTTPSConnection
+except ImportError:
+    # on android platform, this is not available yet.
+    HTTPSConnection = None
+
 from urlparse import urlparse
 from kivy.clock import Clock
 
@@ -88,10 +95,12 @@ class UrlRequest(Thread):
             will be fired, and will slow down your download. If you want to have
             the maximum download speed, increase chunk_size, or don't use
             on_progress.
+        `timeout`: int, default to None
+            If set, blocking operations will timeout after that many seconds.
     '''
 
     def __init__(self, url, on_success=None, on_error=None, on_progress=None,
-            req_body=None, req_headers=None, chunk_size=8192):
+            req_body=None, req_headers=None, chunk_size=8192, timeout=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -106,6 +115,7 @@ class UrlRequest(Thread):
         self._resp_headers = None
         self._resp_length = -1
         self._chunk_size = chunk_size
+        self._timeout = timeout
 
         #: Url of the request
         self.url = url
@@ -143,6 +153,7 @@ class UrlRequest(Thread):
         trigger = self._trigger_result
         chunk_size = self._chunk_size
         report_progress = self.on_progress is not None
+        timeout = self._timeout
 
         # parse url
         parse = urlparse(url)
@@ -158,7 +169,10 @@ class UrlRequest(Thread):
         host = host[0]
 
         # create connection instance
-        req = cls(host, port)
+        args = {}
+        if timeout is not None:
+            args['timeout'] = timeout
+        req = cls(host, port, **args)
 
         # reconstruct path to pass on the request
         path = parse.path
@@ -208,7 +222,7 @@ class UrlRequest(Thread):
         '''
         if scheme == 'http':
             return HTTPConnection
-        elif scheme == 'https':
+        elif scheme == 'https' and HTTPSConnection is not None:
             return HTTPSConnection
         else:
             raise Exception('No class for scheme %s' % scheme)

@@ -311,6 +311,7 @@ setup(
         'data/fonts/*.ttf',
         'data/images/*.png',
         'data/images/*.jpg',
+        'data/images/*.gif',
         'data/logo/*.png',
         'data/glsl/*.png',
         'data/glsl/*.vs',

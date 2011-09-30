@@ -92,8 +92,11 @@ class WindowPygame(WindowBase):
         pygame.key.set_repeat(repeat_delay, int(1000. / repeat_rate))
 
         # set window icon before calling set_mode
-        filename_icon = Config.get('kivy', 'window_icon')
-        self.set_icon(filename_icon)
+        try:
+            filename_icon = Config.get('kivy', 'window_icon')
+            self.set_icon(filename_icon)
+        except:
+            Logger.exception('Window: cannot set icon')
 
         # init ourself size + setmode
         # before calling on_resize

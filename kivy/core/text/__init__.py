@@ -263,7 +263,7 @@ class LabelBase(object):
                     lw = lh = x = 0
 
                     # new line ? don't render
-                    if word == '\n':
+                    if word == '\n' or word == ' ':
                         continue
 
                 # advance the width
