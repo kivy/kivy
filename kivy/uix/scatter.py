@@ -2,15 +2,15 @@
 Scatter
 =======
 
-Scatter is a widget that you can translate, rotate and scale, with two or more
-fingers. This is the famous widget as you can see on many multitouch demo.
+:class:`Scatter` is used to build interactive widgets that can be translated,
+rotated and scaled with two or more fingers on a multitouch system. 
 
 Usage
 -----
 
-By default, the widget itself don't have any graphical representation. The idea
-is to combine Scatter widget with other widget, like
-:class:`~kivy.uix.image.Image` widget::
+By default, the widget doesn't have any graphical representation, it is a 
+container only. The idea is to combine Scatter with another widget, for
+example :class:`~kivy.uix.image.Image` ::
 
     scatter = Scatter()
     image = Image(source='sun.jpg')
@@ -19,31 +19,41 @@ is to combine Scatter widget with other widget, like
 Control interactions
 --------------------
 
-You can also avoid some interaction, like rotation. ::
+By default, all interactions are enabled. You can selectively disable 
+them using the do_ properties. 
+
+Disable rotation ::
 
     scatter = Scatter(do_rotation=False)
 
-Or allow only translation. ::
+Allow only translation ::
 
     scatter = Scatter(do_rotation=False, do_scale=False)
+
+Allow only translation on x axis ::
+
+    scatter = Scatter(do_rotation=False, do_scale=False, 
+                      do_translation_y=False)
+
 
 Automatic bring to front
 ------------------------
 
-If you add and manipulate multiple scatter, you can have trouble if the scatter
-is behind another scatter. We have a property named
-:data:`Scatter.auto_bring_to_front` that remove and re-add the scatter in his
-parent. The scatter will be on top as soon as you touch it.
+If the :data:`Scatter.auto_bring_to_front` property is True, the scatter 
+widget will be removed and re-added to the parent when it is touched 
+(brought to front, above all other widgets). This is useful when you are 
+manipulating several scatter widgets and don't want the active to be 
+partially hidden.
 
 Scale limitation
 ----------------
 
-We are using 32 bits matrix, in double representation. That mean, we have
-limitation for scaling. You cannot do infite scale down/up with our
+We are using a 32-bit matrix in double representation. That means we have
+a limit for scaling, you cannot do infinite scale down/up with our
 implementation. Generally, you don't hit the minimum scale (because you don't
-see it on the screen), but the maximum scale : 9.99506983235e+19 (2^66)
+see it on the screen), but the maximum scale is 9.99506983235e+19 (2^66)
 
-You can also limit the minimum and maximum zoom allowed. ::
+You can also limit the minimum and maximum scale allowed. ::
 
     scatter = Scatter(scale_min=.5, scale_max=3.)
 

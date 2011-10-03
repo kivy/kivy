@@ -2,25 +2,23 @@
 Image
 =====
 
-Use an image as a Widget. ::
+The :class:`Image` widget is used to display an image. ::
 
     wimg = Image(source='mylogo.png')
 
 Asynchronous loading
 --------------------
 
-If you want to load your image in an asynchronous way, you may use the
-:class:`AsyncImage` class. You can use it for loading external images on the
-web. ::
+To load an image asynchronously (for example from an external webserver), use 
+the :class:`AsyncImage` subclass ::
 
-    image = AsyncImage(source='http://mywebsite.com/logo.png')
+    aimg = AsyncImage(source='http://mywebsite.com/logo.png')
 
 Alignement
 ----------
 
 By default, the image is centered and fitted inside the widget bounding box.
-If you don't want that, we suggest you to inherit from :class:`Image`, and
-create your own style.
+If you don't want that, you can inherit from Image and create your own style.
 
 For example, if you want your image to take the same size of your widget, you
 can do ::
@@ -117,8 +115,8 @@ class Image(Widget):
 
     allow_stretch = BooleanProperty(False)
     '''If True, the normalized image size will be maximized to fit in the image
-    box. Otherwise, if the box is too higher, the image will be not strech more
-    that 1:1 pixels
+    box. Otherwise, if the box is too tall, the image will not be streched more
+    than 1:1 pixels
 
     .. versionadded:: 1.0.7
 
@@ -128,9 +126,9 @@ class Image(Widget):
 
     keep_ratio = BooleanProperty(True)
     '''If False along with allow_stretch being True, the normalized image
-    size will be maximized to fit in the image box disregarding the image
-    ratio.
-    Otherwise, if the box is too high, the image will not be streched more
+    size will be maximized to fit in the image box disregarding the aspect
+    ratio of the image.
+    Otherwise, if the box is too tall, the image will not be streched more
     than 1:1 pixels
 
     .. versionadded:: 1.0.8
@@ -140,7 +138,7 @@ class Image(Widget):
     '''
 
     anim_delay = NumericProperty(.25)
-    '''Delay of animation if the image is sequenced (like gif.).
+    '''Delay of animation if the image is sequenced (like animated gif).
     If the anim_delay is set to -1, the animation will be stopped.
 
     .. versionadded:: 1.0.8

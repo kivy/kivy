@@ -4,53 +4,49 @@ Scroll View
 
 .. versionadded:: 1.0.4
 
-A ScrollView provides a scrollable/pannable viewport which is clipped to the
-ScrollView's bounding box.
+The :class:`ScrollView` widget provides a scrollable/pannable viewport that is 
+clipped at the ScrollViews bounding box.
 
 Scrolling behavior
 ------------------
 
-The :class:`ScrollView` accept only one child, and control his position
-according to the scrolling values. That mean the scrollview must deal with touch
-event to know if you want to scroll or of you want to control the child.
-You cannot do both at the same time.
+The ScrollView accepts only one child, and controls a viewport/window to it
+according to the :data:`scroll_x` and :data:`scroll_y` properties. Touches are
+analyzed to determine if the user wants to scroll or control the child - you 
+cannot do both at the same time. To determine if interaction is a scrolling 
+gesture, these properties are used:
 
-To make it work, the :class:`ScrollView` will check for scrolling gesture first.
-The scrolling gesture is defined by :
-
-    - a minimum distance to travel (:data:`ScrollView.scroll_distance`), default
+    - :data:`ScrollView.scroll_distance` a minimum distance to travel, default
       to 20 pixels.
-    - a maximum time period (:data:`ScrollView.scroll_timeout`), default to 250
+    - :data:`ScrollView.scroll_timeout` a maximum time period, default to 250
       milliseconds.
 
-That mean if you are travelling the :data:`~ScrollView.scroll_distance` before
-the :data:`~ScrollView.scroll_timeout`, the :class:`ScrollView` will start to
-translate his content under your touch.
+If a touch travels :data:`~ScrollView.scroll_distance` pixels within the 
+:data:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling 
+gesture and translatation (scroll/pan) will begin. If the timeout occurs, the 
+touch down event is dispatched to the child instead (no translation).
 
-If the timeout occurs, the touch down event is transmitted to the child, and all
-futur touch event will be transmitted too.
+Limiting to X or Y axis
+-----------------------
 
-Control the scrolling
----------------------
-
-By default, the scrollview allow to scroll in the both X and Y axis. You can
-avoid that by forbid the scrolling on one of the axis with
-:data:`ScrollView.do_scroll_x` and :data:`ScrollView.do_scroll_y`
+By default, the ScrollView allows scrolling both the X and Y axis. You can
+explicitly disable scrolling on one of the axis by setting
+:data:`ScrollView.do_scroll_x` or :data:`ScrollView.do_scroll_y` to False.
 
 Managing the content size
 -------------------------
 
-The :class:`ScrollView` are managing the position of his content, not his size.
-It is your responsability to correctly set the size of your content.
-We are honoring the :data:`ScrollView.size_hint` attribute, and because of that,
-you need to carefully manipulate them.
+The ScrollView manages the position of the child content, not the size. You must
+carefully specify the :data:`ScrollView.size_hint` property to get the desired 
+scroll/pan effect. 
 
-By default, size_hint is (1, 1), so the content size will fit your scrollview
-size: you will have nothing to scroll.
+By default, size_hint is (1, 1), so the content size will fit your ScrollView
+exactly (you will have nothing to scroll). You must deactivate at least one of
+the size_hint (x or y) of the child to enable scrolling. 
 
-So, you must deactivate at least one of the size_hint (x or y) to be able to
-scroll. Here is an example for a gridlayout that have the same width of the
-scrollview, but the possibility to have an height bigger than the scrollview::
+To scroll a :class:`GridLayout` on Y-axis/vertically, set the child's width 
+identical to that of the ScrollView (size_hint_x=1, default), and set the 
+size_hint_y property to None ::
 
     layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
     for i in range(30):
@@ -58,8 +54,6 @@ scrollview, but the possibility to have an height bigger than the scrollview::
         layout.add_widget(btn)
     root = ScrollView(size_hint=(None, None), size=(400, 400))
     root.add_widget(layout)
-
-That way, you are able to scroll on the Y axis.
 
 Controlling timeout, distance and trigger
 -----------------------------------------
@@ -136,12 +130,11 @@ class ScrollView(StencilView):
 
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
-        :data:`scroll_x` and :data:`scroll_y`. In case of, theses scroll values
-        will be bounded between 0-1 range.
+        :data:`scroll_x` and :data:`scroll_y`. 
 
-        This method is automatically called if :data:`scroll_x`,
-        :data:`scroll_y`, :data:`pos`, :data:`size` properties changes, or if
-        the size of the content change.
+        This method is automatically called when one of the :data:`scroll_x`,
+        :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or 
+        if the size of the content changes.
         '''
         if not self._viewport:
             return

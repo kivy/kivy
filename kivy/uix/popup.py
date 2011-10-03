@@ -7,14 +7,13 @@ Popup
 .. image:: images/popup.jpg
     :align: right
 
-The :class:`Popup` is a convenient widget to create popup. The created popup are
-modal: they are covering the whole "parent" window. When you are creating a
-Popup, you must at minimum set a :data:`Popup.title` and a
-:data:`Popup.content` widget.
+The :class:`Popup` widget is used to create modal popups. By default, the popup
+will cover the whole "parent" window. When you are creating a Popup, you must at 
+minimum set a :data:`Popup.title` and a :data:`Popup.content` widget.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
-want your popup to be fullscreen, deactivate the size_hint, and use a specific
-size attribute !
+want your popup to be fullscreen, deactivate the size_hint and use a specific
+size attribute.
 
 Examples
 --------
@@ -25,21 +24,19 @@ Example of a simple 400x400 Hello world popup::
         content=Label(text='Hello world'),
         size_hint=(None, None), size=(400, 400))
 
-By default, any click outside the popup will dismiss the popup. If you don't
-want that, you can set the :data:`Popup.auto_dismiss` to False::
+By default, any click outside the popup will dismiss it. If you don't
+want that, you can set :data:`Popup.auto_dismiss` to False::
 
     popup = Popup(title='Test popup', content=Label(text='Hello world'),
                   auto_dismiss=False)
     popup.open()
 
-As soon as the popup is called, if you want to dismiss yourself the popup, call
-the :meth:`Popup.dismiss`::
+To manually dismiss/close the popup, use :meth:`Popup.dismiss`::
 
     popup.dismiss()
 
-The :meth:`Popup.open` and :meth:`Popup.dismiss` are bindable. That's mean you
-can directly bind the function to an action, like an on_press action on a
-Button::
+The :meth:`Popup.open` and :meth:`Popup.dismiss` are bindable. That means you
+can directly bind the function to an action, like an a Button's on_press ::
 
     # create content and assign to the popup
     content = Button(text='Close me!')
@@ -55,9 +52,9 @@ Button::
 Popup events
 ------------
 
-They are 2 events available when the popup is opening: `on_open`, and when the
-popup is closed: `on_dismiss`. Only for the `on_dismiss`, you can prevent to
-close the popup if your callback return explicitly True::
+There are 2 events available: `on_open` when the popup is opening, and 
+`on_dismiss` when it is closed. For `on_dismiss`, you can prevent the
+popup from closing by explictly returning True from your callback ::
 
     def my_callback(instance):
         print 'Popup', instance, 'is beeing dismiss, but i dont want!'
@@ -83,7 +80,7 @@ class Popup(FloatLayout):
         `on_open`:
             Fired when the Popup is opened
         `on_dismiss`:
-            Fired when the Popup is closed. If the callback return True, the
+            Fired when the Popup is closed. If the callback returns True, the
             dismiss will be canceled.
     '''
 
@@ -95,8 +92,8 @@ class Popup(FloatLayout):
     '''
 
     auto_dismiss = BooleanProperty(True)
-    '''Default to True, this property is used to know if you want to
-    automatically dismiss the Popup when the user click outside the Popup.
+    '''Default to True, this property determines if the popup is automatically 
+    dismissed when the user clicks outside it.
 
     :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`, default
     to True.
@@ -150,7 +147,7 @@ class Popup(FloatLayout):
         '''Show the popup window from the :data:`attach_to` widget. If set, it
         will attach to the nearest window. If the widget is not attached to any
         window, the popup will attach to the global
-        :class:`~kivy.core.window.Window` to attach to.
+        :class:`~kivy.core.window.Window`.
         '''
         # search window
         self._window = self._search_window()
