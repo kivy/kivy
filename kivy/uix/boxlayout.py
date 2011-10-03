@@ -4,7 +4,7 @@ Box Layout
 
 Arrange widgets in a vertical or an horizontal box.
 
-Example of a vertical layout: ::
+Example of a vertical layout::
 
     layout = BoxLayout(orientation='vertical')
     btn1 = Button(text='Hello')

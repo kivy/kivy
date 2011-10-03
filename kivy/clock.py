@@ -68,7 +68,7 @@ with :func:`Clock.schedule_once` ::
 
 Before triggered events, you may have used this approach in a widget ::
 
-    def trigger_callback(self):
+    def trigger_callback(self, *largs):
         Clock.unschedule(self.callback)
         Clock.schedule_once(self.callback)
 
@@ -80,11 +80,12 @@ the triggered event than using :func:`Clock.schedule_once` in a function ::
     from kivy.uix.widget import Widget
 
     class Sample(Widget):
-        def __init__(self):
+        def __init__(self, **kwargs):
             self._trigger = Clock.create_trigger(self.cb)
+            super(Sample, self).__init__(**kwargs)
             self.bind(x=self._trigger, y=self._trigger)
 
-        def cb(self):
+        def cb(self, *largs):
             pass
 
 Even if x and y changes within one frame, the callback is only run once.

@@ -16,21 +16,21 @@ Understanding `size_hint` property in `Widget`
 ----------------------------------------------
 
 The :data:`~kivy.uix.Widget.size_hint` is mostly used in Layout. This is the
-size in percent, not in pixels. The format is: ::
+size in percent, not in pixels. The format is::
 
     widget.size_hint = (width_percent, height_percent)
 
 The percent is specified as a floating point number in the range 0-1, ie 0.5
 is 50%, 1 is 100%.
 
-If you want a widget's width to be half of the parent's and their heights to 
-be identical, you can do: ::
+If you want a widget's width to be half of the parent's and their heights to
+be identical, you can do::
 
     widget.size_hint = (0.5, 1.0)
 
 If you don't want to use size_hint for one of width or height, set the value to
-None. For example, to make a widget that is 250px wide and 30% of the parent's 
-height, you can write: ::
+None. For example, to make a widget that is 250px wide and 30% of the parent's
+height, you can write::
 
     widget.size_hint = (None, 0.3)
     widget.width = 250

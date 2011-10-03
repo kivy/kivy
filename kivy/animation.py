@@ -13,7 +13,7 @@ Simple animation
 ----------------
 
 To animate a Widget's x or y position, simply specify the target x/y values
-where you want the widget positioned at the end of the animation: ::
+where you want the widget positioned at the end of the animation::
 
     anim = Animation(x=100, y=100)
     anim.start(widget)
@@ -27,7 +27,7 @@ Multiple properties and transitions
 
 You can animate multiple properties and use built-in or custom transition
 functions using :data:`transition` (or `t=` shortcut). For example,
-to animate the position and size using the 'in_quad' transition: ::
+to animate the position and size using the 'in_quad' transition::
 
     anim = Animation(x=50, size=(80, 80), t='in_quad')
     anim.start(widget)
@@ -40,7 +40,7 @@ Sequential animation
 
 To join animations sequentially, use the '+' operator. The following example
 will animate to x=50 over 1 second, then animate size to (80, 80) over the 
-next two seconds: ::
+next two seconds::
 
     anim = Animation(x=50) + Animation(size=(80, 80), duration=2.)
     anim.start(widget)
@@ -50,7 +50,7 @@ Parallel animation
 
 To join animations in parallel, use the '&' operator. The following example
 will animate position to (80, 10) over 1 second, while in parallel animating
-the first half of size=(800, 800): ::
+the first half of size=(800, 800)::
 
     anim = Animation(pos=(80, 10))
     anim &= Animation(size=(800, 800), duration=2.)
