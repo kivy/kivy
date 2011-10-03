@@ -2,17 +2,19 @@
 Video
 =====
 
-You can play video files using Video widget. Depending of your Video core
-provider, you may be able to play differents formats. For example, pygame video
-provider allow only MPEG1 on Linux and OSX. GStreamer is more versatile, and can
-play many other video format, as MKV, OGV, AVI, MOV, FLV... depending of the
-gstreamer plugins installed.
+The :class:`Video` widget is used to display video files and streams. Depending
+on your Video core provider, platform and plugins you will be able to play 
+different formats. For example, pygame video provider only supports MPEG1 on 
+Linux and OSX. GStreamer is more versatile, and can read many video containers
+and codecs such as MKV, OGV, AVI, MOV, FLV (if the correct gstreamer plugins
+are installed). Our :class:`~kivy.core.video.VideoBase` implementation is used 
+under the hood.
 
-The video loading is also asynchronous. Many properties are not available until
-the video is loaded. The video is loaded when the texture is created. ::
+The video loading is asynchronous - many properties are not available until
+the video is loaded (when the texture is created). ::
 
     def on_position_change(instance, value):
-        print 'The initial position in the video is', value
+        print 'The position in the video is', value
     def on_duration_change(instance, value):
         print 'The duration of the video is', video
     video = Video(source='PandaSneezes.avi')
@@ -35,10 +37,10 @@ class Video(Image):
     '''
 
     play = BooleanProperty(False)
-    '''Boolean indicate if the video is playing.
+    '''Boolean, indicates if the video is playing.
     You can start/stop the video by setting this property. ::
 
-        # start the video playing at creation
+        # start playing the video at creation
         video = Video(source='movie.mkv', play=True)
 
         # create the video, and start later
@@ -51,7 +53,7 @@ class Video(Image):
     '''
 
     eos = BooleanProperty(False)
-    '''Boolean indicate if the video is done playing through the end.
+    '''Boolean, indicates if the video is done playing (reached end of stream).
 
     :data:`eos` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.

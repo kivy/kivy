@@ -2,45 +2,59 @@
 Animation
 =========
 
-These classes are intended to be used on a :class:`~kivy.uix.widget.Widget`.
-If you want to add animations to your application,
-you need to follow two steps:
+:class:`Animation` and :class:`AnimationTransition` are used to animate 
+:class:`~kivy.uix.widget.Widget` properties. You must specify (minimum) a
+property name and target value. To use Animation, follow these steps:
 
-    * First, setup the animation object
-    * Then, use the animation on one or multiple widgets
+    * Setup an Animation object
+    * Use the Animation object on a Widget
 
 Simple animation
 ----------------
 
-You can animate multiple properties at the same time, with custom transition
-function. Here is an example to animate the widget on a custom position and
-size, using 'in_quad' transition ::
+To animate a Widget's x or y position, simply specify the target x/y values
+where you want the widget positioned at the end of the animation: ::
 
-    widget = Widget()
-    animation = Animation(x=50, size=(80, 80), t='in_quad')
-    animation.start(widget)
+    anim = Animation(x=100, y=100)
+    anim.start(widget)
+    
+The animation will last for 1 second unless :data:`duration` is specified. 
+When anim.start() is called, the Widget will move smoothly from the current 
+x/y position to (100, 100).
 
-Note that `t=` is a paramater that can be the string name of a method in
-:class:`AnimationTransition`, or your own animation function.
+Multiple properties and transitions
+-----------------------------------
+
+You can animate multiple properties and use built-in or custom transition
+functions using :data:`transition` (or `t=` shortcut). For example,
+to animate the position and size using the 'in_quad' transition: ::
+
+    anim = Animation(x=50, size=(80, 80), t='in_quad')
+    anim.start(widget)
+
+Note that the `t=` parameter can be the string name of a method in the
+:class:`AnimationTransition` class, or your own animation function.
 
 Sequential animation
 --------------------
 
-Multiple animation can be added. The result will be animated in sequential ::
+To join animations sequentially, use the '+' operator. The following example
+will animate to x=50 over 1 second, then animate size to (80, 80) over the 
+next two seconds: ::
 
-    widget = Widget()
-    animation = Animation(x=50) + Animation(size=(80, 80))
-    animation.start(widget)
+    anim = Animation(x=50) + Animation(size=(80, 80), duration=2.)
+    anim.start(widget)
 
 Parallel animation
 ------------------
 
-You can join one or multiple animation in parallel. This can be used when you
-want to use differents settings for each properties ::
+To join animations in parallel, use the '&' operator. The following example
+will animate position to (80, 10) over 1 second, while in parallel animating
+the first half of size=(800, 800): ::
 
-    widget = Widget()
-    animation = Animation(pos=(80, 10))
-    animation &= Animation(size=(800, 800), duration=2.)
+    anim = Animation(pos=(80, 10))
+    anim &= Animation(size=(800, 800), duration=2.)
+    anim.start(widget)
 
 '''
 
@@ -53,11 +67,11 @@ from kivy.clock import Clock
 
 
 class Animation(EventDispatcher):
-    '''Create an animation definition, that can be used to animate a widget
+    '''Create an animation definition that can be used to animate a Widget
 
     :Parameters:
         `duration` or `d`: float, default to 1.
-            Duration of the animation
+            Duration of the animation, in seconds
         `transition` or `t`: str or func
             Transition function for animate properties. It can be the name of a
             method from :class:`AnimationTransition`
@@ -117,9 +131,8 @@ class Animation(EventDispatcher):
 
         Example ::
 
-            widget = Widget()
-            animation = Animation(x=50)
-            animation.start(widget)
+            anim = Animation(x=50)
+            anim.start(widget)
 
             # and later
             Animation.stop_all(widget, 'x')
@@ -151,7 +164,8 @@ class Animation(EventDispatcher):
             self._unregister()
 
     def stop_property(self, widget, prop):
-        '''Even if a animation is going, remove a property for beeing animated.
+        '''Even if an animation is running, remove a property. It will not be
+        animated further.
         '''
         props = self._widgets.get(widget, None)
         if not props:

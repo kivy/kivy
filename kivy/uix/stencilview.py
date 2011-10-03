@@ -4,16 +4,15 @@ Stencil View
 
 .. versionadded:: 1.0.4
 
-A :class:`StencilView` is a class that limit the drawing of his children widgets
-to his bounding box. Any drawing outside the bounding box of the widget will be
-trashed.
+:class:`StencilView` limits the drawing of child widgets to the StencilView's 
+bounding box. Any drawing outside the bounding box will be clipped (trashed).
 
-The StencilView use the stencil graphics instructions to make it work. It
-provides an efficient way to clip the drawing area of its children.
+The StencilView uses the stencil graphics instructions under the hood. It
+provides an efficient way to clip the drawing area of children.
 
 .. note::
 
-    As the stencil graphics instructions, you cannot stack more than 8
+    As with the stencil graphics instructions, you cannot stack more than 8
     stencil-aware widgets.
 
 '''

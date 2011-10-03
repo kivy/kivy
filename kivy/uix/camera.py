@@ -2,15 +2,15 @@
 Camera
 ======
 
-This widget can be used to capture and display the camera on the screen.
+The :class:`Camera` widget is used to capture and display video from a camera.
 Once the widget is created, the texture inside the widget will be automatically
-updated. ::
+updated. Our :class:`~kivy.core.camera.CameraBase` implementation is used under
+the hood.::
 
     cam = Camera()
 
-The actual implementation use our :class:`~kivy.core.camera.CameraBase`
-implementation. The camera used is the first one found on your system. If you
-want to test another camera, you can select another index. ::
+By default the first camera found on your system is used. To use a different 
+camera, set the index property. ::
 
     cam = Camera(index=1)
 
@@ -38,17 +38,17 @@ class Camera(Image):
     '''Camera class. See module documentation for more informations.
     '''
 
-    play = BooleanProperty(False)
+    play = BooleanProperty(True)
     '''Boolean indicate if the camera is playing.
     You can start/stop the camera by setting this property. ::
 
-        # start the camera playing at creation
-        video = Camera(source='movie.mkv', play=True)
+        # start the camera playing at creation (default)
+        cam = Camera(play=True)
 
         # create the camera, and start later
-        video = Camera(source='movie.mkv')
+        cam = Camera(play=False)
         # and later
-        video.play = True
+        cam.play = True
 
     :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
     True.

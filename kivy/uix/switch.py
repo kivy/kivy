@@ -10,12 +10,12 @@ Switch
 .. image:: images/switch-off.jpg
     :align: right
 
-The switch is a boolean widget that can be active or inactive. You can swipe to
-the left or right to activate or deactivate it::
+The :class:`Switch` widget is active or inactive, like a mechanical light 
+switch. The user can swipe to the left/right to activate/deactivate it::
 
     switch = Switch(active=True)
 
-And attach a callback to listen the activation state::
+To attach a callback that listen to activation state::
 
     def callback(instance, value):
         print 'the switch', instance, 'is', value
@@ -24,11 +24,16 @@ And attach a callback to listen the activation state::
     switch.bind(active=callback)
 
 By default, the representation of the widget is static. The minimum size
-required is 83x32 pixels (according to the background image) and is displayed in
-the center of the widget.
+required is 83x32 pixels (defined by the background image). The image is 
+centered within the widget.
 
-All the widget is active, not only the displayed part. If you swipe to the left
-from anywhere, or from the right, it will work.
+The whole widget is active, not just the part with graphics. As long as you 
+swipe over the widget's bounding box, it will work.
+
+.. note::
+
+    If you want to control the state with a single touch instead of swipe, 
+    use :class:`ToggleButton` instead.
 '''
 
 
@@ -42,21 +47,21 @@ class Switch(Widget):
     '''
 
     active = BooleanProperty(False)
-    '''Indicate if the switch is activated or not.
+    '''Indicate if the switch is active or inactive.
 
     :data:`active` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
     '''
 
     touch_control = ObjectProperty(None, allownone=True)
-    '''(internal) Used to store the current touch that interact with the switch.
+    '''(internal) Contains the touch that currently interacts with the switch.
 
     :data:`touch_control` is a :class:`~kivy.properties.ObjectProperty`, default
     to None.
     '''
 
     touch_distance = NumericProperty(0)
-    '''(internal) Used to store the distance between the initial position of the
+    '''(internal) Contains the distance between the initial position of the
     touch and the current position to determinate if the swipe is from left or
     right.
 
@@ -65,7 +70,7 @@ class Switch(Widget):
     '''
 
     active_norm_pos = NumericProperty(0)
-    '''(internal) Used to store the normalized position of the movable element
+    '''(internal) Contains the normalized position of the movable element
     inside the switch, in the 0-1 range.
 
     :data:`active_norm_pos` is a :class:`~kivy.properties.NumericProperty`,
