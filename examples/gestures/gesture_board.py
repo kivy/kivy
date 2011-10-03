@@ -17,25 +17,6 @@ def simplegesture(name, point_list):
     g.name = name
     return g
 
-class dispatch_before(object):
-    """
-    this is a decorator with arguments
-    """
-    def __init__(self, type_of_touch):
-        self.type_of_touch = type_of_touch
-
-    def __call__(self, f):
-        def wrapped(instance, touch):
-            if instance.collide_point(*touch.pos):
-                for c in instance.children:
-                    if c.dispatch(self.type_of_touch, touch):
-                        return True
-
-                f(instance, touch)
-
-        return wrapped
-
-
 class GestureBoard(FloatLayout):
     def __init__(self, *args, **kwargs):
         self.gdb = GestureDatabase()
@@ -45,7 +26,6 @@ class GestureBoard(FloatLayout):
         self.gdb.add_gesture(circle)
         self.gdb.add_gesture(square)
 
-    @dispatch_before('on_touch_down')
     def on_touch_down(self, touch):
         userdata = touch.ud
         with self.canvas:
@@ -55,7 +35,6 @@ class GestureBoard(FloatLayout):
             userdata['line'] = Line(points=(touch.x, touch.y))
         return True
 
-    @dispatch_before('on_touch_move')
     def on_touch_move(self, touch):
         try:
             touch.ud['line'].points += [touch.x, touch.y]
@@ -63,7 +42,6 @@ class GestureBoard(FloatLayout):
         except (KeyError), e:
             pass
 
-    @dispatch_before('on_touch_up')
     def on_touch_up(self, touch):
         try:
             g = simplegesture(
