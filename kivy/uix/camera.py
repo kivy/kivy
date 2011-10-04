@@ -35,7 +35,7 @@ from kivy.properties import NumericProperty, ListProperty, \
 
 
 class Camera(Image):
-    '''Camera class. See module documentation for more informations.
+    '''Camera class. See module documentation for more information.
     '''
 
     play = BooleanProperty(True)

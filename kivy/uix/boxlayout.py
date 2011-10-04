@@ -2,9 +2,9 @@
 Box Layout
 ==========
 
-Arrange widgets in a vertical or an horizontal box.
+:class:`BoxLayout` arranges children in a vertical or horizontal box.
 
-Example of a vertical layout::
+To position widgets above/below each other, use a vertical BoxLayout::
 
     layout = BoxLayout(orientation='vertical')
     btn1 = Button(text='Hello')
@@ -12,9 +12,9 @@ Example of a vertical layout::
     layout.add_widget(btn1)
     layout.add_widget(btn2)
 
-Example of a horizontal layout, with a border of 10 pixels between
-the layout and all the childrens, and the first button should be 70% of the
-layout, and the second should be 30%. ::
+To position widgets next to each other, use a horizontal BoxLayout. In this 
+example, we use 10 pixel spacing between children; the first button covers 
+70% of the horizontal space, the second covers 30%::
 
     layout = BoxLayout(spacing=10)
     btn1 = Button(text='Hello', size_hint=(.7, 1))
@@ -24,13 +24,16 @@ layout, and the second should be 30%. ::
 
 .. note::
 
-    The `size_hint` represent the size available after substracting all the
-    fixed size. For example, if you have 3 widgets (width is 200px,
-    50%, 50%), and if the layout have a width of 800px :
-
-    - the first widget width will be 200px
-    - the second widget width will be 300px
-    - the third widget width will be 300px
+    The `size_hint` uses the available space after subtracting all the 
+    fixed-size widgets. For example, if you have a layout that is 800px
+    wide, and add three buttons like this:
+    
+    btn1 = Button(text='Hello', size=(200, 100), size_hint=(None, None))
+    btn2 = Button(text='Kivy', size_hint=(.5, 1))
+    btn3 = Button(text='World', size_hint=(.5, 1))
+    
+    The first button will be 200px wide as specified, the second and third 
+    will be 300px each, ie (800-200)*0.5
 
 '''
 
@@ -42,18 +45,18 @@ from kivy.properties import NumericProperty, OptionProperty
 
 
 class BoxLayout(Layout):
-    '''Box layout class. See module documentation for more informations.
+    '''Box layout class. See module documentation for more information.
     '''
 
     spacing = NumericProperty(0)
-    '''Spacing is the space between each children, in pixels.
+    '''Spacing between children, in pixels.
 
     :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
     '''
 
     padding = NumericProperty(0)
-    '''Padding between widget box and children, in pixels.
+    '''Padding between layout box and children, in pixels.
 
     :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
@@ -64,7 +67,7 @@ class BoxLayout(Layout):
     '''Orientation of the layout.
 
     :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'horizontal'. Can take a value of 'vertical' or 'horizontal'.
+    to 'horizontal'. Can be 'vertical' or 'horizontal'.
     '''
 
     def __init__(self, **kwargs):

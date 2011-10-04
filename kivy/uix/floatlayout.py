@@ -43,7 +43,7 @@ from kivy.uix.layout import Layout
 
 
 class FloatLayout(Layout):
-    '''Float layout class. See module documentation for more informations.
+    '''Float layout class. See module documentation for more information.
     '''
 
     def __init__(self, **kwargs):

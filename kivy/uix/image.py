@@ -87,7 +87,7 @@ class Image(Widget):
 
     mipmap = BooleanProperty(False)
     '''Indicate if you want OpenGL mipmapping to be apply on the texture or not.
-    Read :ref:`mipmap` for more informations.
+    Read :ref:`mipmap` for more information.
 
     .. versionadded:: 1.0.7
 
