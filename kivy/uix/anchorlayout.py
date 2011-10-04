@@ -1,4 +1,7 @@
 '''
+Anchor Layout
+=============
+
 :class:`AnchorLayout` aligns children to a border (top, bottom, left, right)
 or center.
 
@@ -17,7 +20,7 @@ from kivy.properties import NumericProperty, OptionProperty
 
 
 class AnchorLayout(Layout):
-    '''Anchor layout class. See module documentation for more informations.
+    '''Anchor layout class. See module documentation for more information.
     '''
 
     padding = NumericProperty(0)

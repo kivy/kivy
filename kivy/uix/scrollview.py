@@ -92,7 +92,7 @@ if Config:
 
 
 class ScrollView(StencilView):
-    '''ScrollView class. See module documentation for more informations.
+    '''ScrollView class. See module documentation for more information.
     '''
 
     def __init__(self, **kwargs):
