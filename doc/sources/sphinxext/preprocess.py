@@ -4,6 +4,8 @@ Extension for enhancing sphinx documentation generation for cython module
 
 import re
 import types
+import sys
+from os.path import dirname, join
 from sphinx.ext.autodoc import MethodDocumenter
 
 class CythonMethodDocumenter(MethodDocumenter):
@@ -101,7 +103,11 @@ def callback_signature(app, what, name, obj, options, signature,
             pass
 
 def setup(app):
+    import kivy
+    sys.path += [join(dirname(kivy.__file__), 'tools', 'highlight', 'pygments')]
+    from lexer_kivy import KivyLexer
+
+    app.add_lexer('kv', KivyLexer())
     app.add_autodocumenter(CythonMethodDocumenter)
     app.connect('autodoc-process-docstring', callback_docstring)
     app.connect('autodoc-process-signature', callback_signature)
-

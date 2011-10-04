@@ -35,6 +35,8 @@ The language consists of several constructs that you can use:
 Syntax of a kv File
 -------------------
 
+.. highlight:: kv
+
 A Kivy language file must have ``.kv`` as filename extension.
 
 The content of the file must always start with the Kivy header, where `version`
@@ -43,25 +45,25 @@ must be replaced with the Kivy language version you're using. For now, use
 
     #:kivy `version`
 
-    `content`
+    # content here
 
 The `content` can contain rule definitions, a root widget and templates::
 
     # Syntax of a rule definition. Note that several Rules can share the same
     # definition (as in CSS). Note the braces; They are part of the definition.
     <Rule1,Rule2>:
-        .. definitions ..
+        # .. definitions ..
 
     <Rule3>:
-        .. definitions ..
+        # .. definitions ..
 
     # Syntax for creating a root widget
     RootClassName:
-        .. definitions ..
+        # .. definitions ..
 
     # Syntax for create a template
     [TemplateName@BaseClass1,BaseClass2]:
-        .. definitions ..
+        # .. definitions ..
 
 Regardless of whether it's a rule, root widget or template you're defining,
 the definition should look like this::
@@ -201,7 +203,7 @@ in processing order (i.e. top-down).
 If you want to change how Buttons are rendered, you can create your own kv file
 and put something like this::
 
-    <Button>
+    <Button>:
         canvas:
             Color:
                 rgb: (1, 0, 0)
@@ -217,7 +219,7 @@ This will result in buttons having a red background, with the label in the
 bottom left, in addition to all the preceding rules.
 You can clear all the previous instructions by using the `Clear` command::
 
-    <Button>
+    <Button>:
         canvas:
             Clear
             Color:
@@ -253,11 +255,11 @@ Syntax of a template::
 
     # With only one base class
     [ClassName@BaseClass]:
-        .. definitions ..
+        # .. definitions ..
 
     # With more than one base class
     [ClassName@BaseClass1,BaseClass2]:
-        .. definitions ..
+        # .. definitions ..
 
 For example, for a list, you'll need to create a entry with a image on the left,
 and a label on the right. You can create a template for making that definition
@@ -270,6 +272,8 @@ filename and a title ::
             source: ctx.image
         Label:
             text: ctx.title
+
+.. highlight:: python
 
 Then in Python, you can create instanciate the template with ::
 
@@ -290,6 +294,8 @@ Then in Python, you can create instanciate the template with ::
 
 Template example
 ~~~~~~~~~~~~~~~~
+
+.. highlight:: kv
 
 Most of time, when you are creating screen into kv lang, you have lot of
 redefinition. In our example, we'll create a Toolbar, based on a BoxLayout, and
