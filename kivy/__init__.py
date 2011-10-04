@@ -11,12 +11,10 @@ library of multi-touch aware widgets and hardware accelerated OpenGL drawing.
 Kivy is designed to let you focus on building custom and highly interactive 
 applications as quickly and easily as possible.
 
-With Kivy's pure Python interface, you can take full advantage of the dynamic
-nature of Python. There are thousands of high-quality, free libraries that
-can be integrated in your application.
-
-At the same time, performance-critical features are implemented in the C
-language to maximize performance.
+With Kivy, you can take full advantage of the dynamic nature of Python. There 
+are thousands of high-quality, free libraries that can be integrated in your 
+application. At the same time, performance-critical parts are implemented 
+in the C language.
 
 See http://kivy.org for more information.
 '''
