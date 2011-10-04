@@ -3,11 +3,11 @@ Toggle button
 =============
 
 The :class:`ToggleButton` widget acts like a checkbox. When you touch/click it,
-the state toggles between 'normal' and 'down' when pressed (opposed to a 
-:class:`Button` that is only 'down' as long as it is pressed).
+the state toggles between 'normal' and 'down' (opposed to a :class:`Button` 
+that is only 'down' as long as it is pressed).
 
-Toggle buttons can also be grouped to make radio buttons (only one button in 
-a group can be in 'down' state). The group name can be a string or any other
+Toggle buttons can also be grouped to make radio buttons - only one button in 
+a group can be in 'down' state. The group name can be a string or any other
 hashable Python object ::
 
     btn1 = ToggleButton(text='Male', group='sex')

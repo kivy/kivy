@@ -4,12 +4,14 @@ Stack Layout
 
 .. versionadded:: 1.0.5
 
+:class:`StackLayout` arranges children vertically or horizontally, as many 
+as the layout can fit.
+
 .. warning:
 
     This is experimental and subject to change as long as this warning notice is
     present.
 
-Arrange widgets in a vertical or horizontal mode, as much as the layout can.
 '''
 
 __all__ = ('StackLayout', )
@@ -20,11 +22,11 @@ from kivy.properties import NumericProperty, OptionProperty
 
 
 class StackLayout(Layout):
-    '''Stack layout class. See module documentation for more informations.
+    '''Stack layout class. See module documentation for more information.
     '''
 
     spacing = NumericProperty(0)
-    '''Spacing is the space between each children, in pixels.
+    '''Spacing between children, in pixels.
 
     :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
@@ -42,7 +44,7 @@ class StackLayout(Layout):
     '''Orientation of the layout.
 
     :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'lr-tb'. Support only 'lr-tb' and 'tb-lr' for the moment.
+    to 'lr-tb'. Only supports 'lr-tb' and 'tb-lr' at the moment.
 
     .. note::
 
