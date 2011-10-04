@@ -26,7 +26,7 @@ will throw an exception.
 Column width and row height
 ---------------------------
 
-The column width/row height is determined by 3 steps:
+The column width/row height are determined in 3 steps:
 
     - The initial size is given by the :data:`col_default_width` and
       :data:`row_default_height` properties. To customize the size of a single
