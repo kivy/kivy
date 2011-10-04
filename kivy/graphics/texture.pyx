@@ -138,7 +138,7 @@ texture like :class:`~kivy.uix.label.Label` or :class:`~kivy.uix.image.Image`.
 
 From the OpenGL Wiki : "So a 64x16 2D texture can have 5 mip-maps: 32x8, 16x4,
 8x2, 4x1, 2x1, and 1x1". Check http://www.opengl.org/wiki/Texture for more
-informations.
+information.
 
 .. note::
 
