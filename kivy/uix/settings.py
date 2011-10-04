@@ -4,21 +4,24 @@ Settings
 
 .. versionadded:: 1.0.7
 
-This module is a complete and extensible set for building Settings interface.
-The interface is divided in 2: a sidebar containing a list of panels on the
-left, and the selected panel on the right.
+This module is a complete and extensible framework for building a Settings 
+interface in your application. The interface consists of a sidebar with a list 
+of panels (on the left) and the selected panel (right).
 
 .. image:: images/settings_kivy.jpg
     :align: center
 
-A :class:`SettingsPanel` is designed to control a
-:class:`~kivy.config.ConfigParser` instance. The panel can be automatically
-contructed from a JSON definitions files: you put the settings you want with a
-title, description, type, section/key in the config parser... and that's done !
+:class:`SettingsPanel` represents a group of configurable options. The
+:data:`SettingsPanel.title` property is used by :class:`Settings` when a panel
+is added - it determines the name of the sidebar button. SettingsPanel controls 
+a :class:`~kivy.config.ConfigParser` instance.
 
-The settings are also integrated with the :class:`~kivy.app.App` class, if a key
-is pressed, it will show your app settings on the screen, including the Kivy
-settings.
+The panel can be automatically constructed from a JSON definition file: you 
+describe the settings you want and corresponding sections/keys in the 
+ConfigParser instance... and you're done!
+
+Settings are also integrated with the :class:`~kivy.app.App` class. Use
+:func:`Settings.add_kivy_panel` to configure the Kivy core settings in a panel.
 
 
 .. _settings_json:
@@ -26,22 +29,23 @@ settings.
 Create panel from JSON
 ----------------------
 
-To create a panel, you need 2 things:
+To create a panel from a JSON-file, you need 2 things:
 
     * a :class:`~kivy.config.ConfigParser` instance with default values
     * a JSON file
 
 .. warning::
 
-    The ConfigParser required came from the :class:`kivy.config.ConfigParser`,
-    not the default ConfigParser from Python libraries.
+    The :class:`kivy.config.ConfigParser` is required, you cannot use the
+    default ConfigParser from Python libraries.
 
-This is your duty to create and handle the :class:`~kivy.config.ConfigParser`
-yourself. The panel will read the values from the ConfigParser instance, ensure
-you have default values for every section / key in your JSON file !
+It is your duty to create and handle the :class:`~kivy.config.ConfigParser`
+object yourself. SettingsPanel will read the values from the associated 
+ConfigParser instance. Make sure you have default values for all sections/keys
+in your JSON file!
 
-The JSON settings file is a list containing dictionnaries with informations in
-it. It can look like this::
+The JSON file contains structured information to describe the available 
+settings. It can look like this::
 
     [
         {
@@ -58,10 +62,10 @@ it. It can look like this::
         }
     ]
 
-Each element in the root list represent a line on the Panel. Only the "type" is
-mandatory: this will create a custom instance of a settings "type" class,
-previously registered, and all the others keys are the properties of that "type"
-class:
+Each element in the root list represents a setting that the user can configure.
+Only the "type" key is mandatory: an instance of the associated class will be 
+created and used for the setting - other keys are assigned to corresponding 
+properties of that class.
 
     ============== =================================================
      Type           Associated class
@@ -73,12 +77,14 @@ class:
     string         :class:`SettingString`
     ============== =================================================
 
-That's mean, the first element is a type "title": it will create an instance of
-:class:`SettingTitle`, then all the others key/value are used to set properties
-inside that instance. The "title": "Windows" will set :data:`SettingTitle.title`
-to "Windows".
+In the JSON example above, the first element is of type "title". It will create 
+a new instance of :class:`SettingTitle` and apply the rest of the key/value 
+pairs to the properties of that class, ie "title": "Windows" sets the 
+:data:`SettingTitle.title` property to "Windows".
 
-Here is an example about how to use the previous JSON::
+To load the JSON example to a :class:`Settings` instance, use the 
+:data:`Settings.add_json_panel` method. It will automatically instantiate 
+:class:`SettingsPanel` and add it to :class:`Settings`::
 
     from kivy.config import ConfigParser
 
@@ -142,34 +148,35 @@ class SettingSidebarLabel(Label):
 
 
 class SettingItem(FloatLayout):
-    '''Represent the most common item in the setting panel. It cannot be used
-    directly, but you can implement a new type using it. This will build a line
-    with a title and description on the left, and the setting on the right.
+    '''Base class for individual settings (within a panel). This class cannot
+    be used directly; it is used for implementing the other setting classes.
+    It builds a row with title/description (left) and setting control (right).
 
-    Take a look at :class:`SettingBoolean`, :class:`SettingNumeric` and
-    :class:`SettingOptions` as an example.
+    Look at :class:`SettingBoolean`, :class:`SettingNumeric` and
+    :class:`SettingOptions` for usage example.
 
     :Events:
         `on_release`
             Fired when the item is touched then released
+
     '''
 
     title = StringProperty('<No title set>')
-    '''Title of the item, default to '<No title set>'.
+    '''Title of the setting, default to '<No title set>'.
 
     :data:`title` is a :class:`~kivy.properties.StringProperty`, default to
     '<No title set>'.
     '''
 
     desc = StringProperty(None, allownone=True)
-    '''Description of the item, that will be showed on the second line.
+    '''Description of the setting, rendered on the line below title.
 
     :data:`desc` is a :class:`~kivy.properties.StringProperty`, default to None.
     '''
 
     disabled = BooleanProperty(False)
-    '''Indicate if the setting is disabled or not. If it's disabled, any touch
-    on the item will be discarded.
+    '''Indicate if this setting is disabled. If True, all touches on the setting 
+    item will be discarded.
 
     :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
@@ -200,14 +207,14 @@ class SettingItem(FloatLayout):
     '''
 
     panel = ObjectProperty(None)
-    '''(internal) Reference to the panel that include the setting. You don't
+    '''(internal) Reference to the SettingsPanel with this setting. You don't
     need to use it.
 
     :data:`panel` is a :class:`~kivy.properties.ObjectProperty`, default to None
     '''
 
     content = ObjectProperty(None)
-    '''(internal) Reference to the widget that will contain the real setting.
+    '''(internal) Reference to the widget that contains the real setting.
     As soon as the content object is set, any further call to add_widget will
     call the content.add_widget. This is automatically set.
 
@@ -216,8 +223,8 @@ class SettingItem(FloatLayout):
     '''
 
     selected_alpha = NumericProperty(0)
-    '''(internal) Numeric value from 0 to 1 used to animate the background when
-    the user will touch the item.
+    '''(internal) Float value from 0 to 1, used to animate the background when
+    the user touches the item.
 
     :data:`selected_alpha` is a :class:`~kivy.properties.NumericProperty`,
     default to 0.
@@ -262,14 +269,14 @@ class SettingItem(FloatLayout):
 
 
 class SettingBoolean(SettingItem):
-    '''Implementation of a boolean setting in top of :class:`SettingItem`. It's
-    represented with a :class:`~kivy.uix.switch.Switch`. You have the
-    possibility to change the boolean value to another with the :data:`values`.
+    '''Implementation of a boolean setting on top of :class:`SettingItem`. It's
+    visualized with a :class:`~kivy.uix.switch.Switch` widget. By default, 
+    0 and 1 are used for values, you can change them by setting :data:`values`.
     '''
 
     values = ListProperty(['0', '1'])
-    '''Values used when the setting is activated or not. If you prefer a setting
-    that write "yes" and "no" on in the ConfigParser instance, you can do::
+    '''Values used to represent the state of the setting. If you use "yes" and 
+    "no" in your ConfigParser instance::
 
         SettingBoolean(..., values=['no', 'yes'])
 
@@ -284,13 +291,14 @@ class SettingBoolean(SettingItem):
 
 
 class SettingString(SettingItem):
-    '''Implementation of a string setting in top of :class:`SettingItem`.
-    The string setting is showed in a Label, but when you click on it, a Popup
-    window will open with a textinput, available to set a custom value.
+    '''Implementation of a string setting on top of :class:`SettingItem`.
+    It's visualized with a :class:`~kivy.uix.label.Label` widget that, when 
+    clicked, will open a :class:`~kivy.uix.popup.Popup` with a 
+    :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom value.
     '''
 
     popup = ObjectProperty(None, allownone=True)
-    '''(internal) Used to store the current popup when it's showed
+    '''(internal) Used to store the current popup when it's shown
 
     :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
@@ -298,7 +306,7 @@ class SettingString(SettingItem):
 
     textinput = ObjectProperty(None)
     '''(internal) Used to store the current textinput from the popup, and listen
-    for any changes.
+    for changes.
 
     :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
@@ -350,9 +358,10 @@ class SettingString(SettingItem):
 
 
 class SettingNumeric(SettingString):
-    '''Implementation of a numeric setting in top of :class:`SettingString`.
-    The numeric setting is showed in a Label, but when you click on it, a Popup
-    window will open with a textinput, available to set a custom value.
+    '''Implementation of a numeric setting on top of :class:`SettingString`.
+    It's visualized with a :class:`~kivy.uix.label.Label` widget that, when 
+    clicked, will open a :class:`~kivy.uix.popup.Popup` with a 
+    :class:`~kivy.uix.textinput.Textinput` so the user can enter a custom value.
     '''
 
     def _validate(self, instance):
@@ -366,9 +375,10 @@ class SettingNumeric(SettingString):
 
 
 class SettingOptions(SettingItem):
-    '''Implementation of an option list in top of :class:`SettingItem`.
-    A label is used on the setting to show the current choice, and when you
-    touch on it, a Popup will open with all the options displayed in list.
+    '''Implementation of an option list on top of :class:`SettingItem`.
+    It's visualized with a :class:`~kivy.uix.label.Label` widget that, when 
+    clicked, will open a :class:`~kivy.uix.popup.Popup` with a 
+    list of options that the user can select from.
     '''
 
     options = ListProperty([])
@@ -379,7 +389,7 @@ class SettingOptions(SettingItem):
     '''
 
     popup = ObjectProperty(None, allownone=True)
-    '''(internal) Used to store the current popup when it's showed
+    '''(internal) Used to store the current popup when it's shown
 
     :data:`popup` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
@@ -421,15 +431,15 @@ class SettingOptions(SettingItem):
 
 
 class SettingTitle(Label):
-    '''A simple title label, used to seperate the panels line into sections.
+    '''A simple title label, used to organize the settings in sections.
     '''
 
     title = Label.text
 
 
 class SettingsPanel(GridLayout):
-    '''This class is used to contruct panel settings, and it's intended to be
-    used inside a :class:`Settings` class.
+    '''This class is used to contruct panel settings, for use with a
+    :class:`Settings` instance or subclass.
     '''
 
     title = StringProperty('Default title')
@@ -438,11 +448,12 @@ class SettingsPanel(GridLayout):
     '''
 
     config = ObjectProperty(None, allownone=True)
-    '''Instance to a :class:`kivy.config.ConfigParser` object.
+    '''A :class:`kivy.config.ConfigParser` instance. See module documentation 
+    for more information.
     '''
 
     settings = ObjectProperty(None)
-    '''Instance to a :class:`Settings` object, that will be used to fire the
+    '''A :class:`Settings` instance that will be used to fire the 
     `on_config_change` event.
     '''
 
@@ -460,7 +471,7 @@ class SettingsPanel(GridLayout):
     def get_value(self, section, key):
         '''Return the value of the section/key from the :data:`config`
         ConfigParser instance. This function is used by :class:`SettingItem` to
-        get their value from their section/key.
+        get the value for a given section/key.
 
         If you don't want to use a ConfigParser instance, you might want to
         derivate this function.
@@ -485,18 +496,18 @@ class SettingsPanel(GridLayout):
 
 
 class Settings(BoxLayout):
-    '''Settings UI. Check documentation for more information about the usage of
-    this class.
+    '''Settings UI. Check module documentation for more information on how to
+    use this class.
 
     :Events:
         `on_config_change`: ConfigParser instance, section, key, value
-            Fired when a section/key/value of a ConfigParser have changed
+            Fired when section/key/value of a ConfigParser changes
         `on_close`
-            Fired when the button Close have been hit.
+            Fired when the Close-button is pressed.
     '''
 
     selection = ObjectProperty(None, allownone=True)
-    '''(internal) Reference the current selected label in the sidebar.
+    '''(internal) Reference to the selected label in the sidebar.
 
     :data:`selection` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
