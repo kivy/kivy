@@ -4,6 +4,8 @@ Extension for enhancing sphinx documentation generation for cython module
 
 import re
 import types
+import sys
+from os.path import dirname, join
 from sphinx.ext.autodoc import MethodDocumenter
 
 class CythonMethodDocumenter(MethodDocumenter):
@@ -55,7 +57,7 @@ def callback_docstring(app, what, name, obj, options, lines):
         if len(lines) and lines[0].startswith('=='):
             lines.pop(0)
 
-    elif is_cython_extension(what, obj):
+    elif is_cython_extension(what, obj) and lines:
         lines.pop(0)
         line = lines.pop(0)
 
@@ -101,7 +103,11 @@ def callback_signature(app, what, name, obj, options, signature,
             pass
 
 def setup(app):
+    import kivy
+    sys.path += [join(dirname(kivy.__file__), 'tools', 'highlight', 'pygments')]
+    from lexer_kivy import KivyLexer
+
+    app.add_lexer('kv', KivyLexer())
     app.add_autodocumenter(CythonMethodDocumenter)
     app.connect('autodoc-process-docstring', callback_docstring)
     app.connect('autodoc-process-signature', callback_signature)
-

@@ -199,7 +199,7 @@ cdef class Fbo(RenderContext):
 
         The bind/release operation are automatically done when you add graphics
         object in it. But if you want to manipulate a Framebuffer yourself, you
-        can use it like this: ::
+        can use it like this::
 
             self.fbo = FBO()
             self.fbo.bind()

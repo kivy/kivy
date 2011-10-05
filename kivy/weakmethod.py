@@ -2,9 +2,9 @@
 Weak Method
 ===========
 
-:class:`WeakMethod` is used in Clock class, to prevent the clock of taking
+:class:`WeakMethod` is used in Clock class to prevent the clock from taking
 memory if the object is deleted. Check examples/core/clock_method.py for more
-informations.
+information.
 
 This WeakMethod class is taken from the recipe
 http://code.activestate.com/recipes/81253/, based on the nicodemus version.

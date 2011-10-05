@@ -2,7 +2,8 @@
 Layout
 ======
 
-Layouts is a way to calculate and assign position of widgets.
+Layouts are used to calculate and assign widget positions.
+
 The :class:`Layout` class itself cannot be used directly. You must use one of:
 
 - Anchor layout : :class:`kivy.uix.anchorlayout.AnchorLayout`
@@ -15,20 +16,21 @@ Understanding `size_hint` property in `Widget`
 ----------------------------------------------
 
 The :data:`~kivy.uix.Widget.size_hint` is mostly used in Layout. This is the
-size, in percent, not in pixels. The format is: ::
+size in percent, not in pixels. The format is::
 
     widget.size_hint = (width_percent, height_percent)
 
-The percent is between the range 0-1: 1 mean 100%.
+The percent is specified as a floating point number in the range 0-1, ie 0.5
+is 50%, 1 is 100%.
 
-So, if you want a widget width to be only the half of the parent, and his height
-to be the same as his parent, you can do: ::
+If you want a widget's width to be half of the parent's and their heights to
+be identical, you can do::
 
     widget.size_hint = (0.5, 1.0)
 
-If you don't want to use size_hint for one of width or height, set his value to
-None. For example, if you want a widget width to be 250px, and his height to 30%
-of his parent, you can write: ::
+If you don't want to use size_hint for one of width or height, set the value to
+None. For example, to make a widget that is 250px wide and 30% of the parent's
+height, you can write::
 
     widget.size_hint = (None, 0.3)
     widget.width = 250
@@ -70,7 +72,7 @@ class Layout(Widget):
         return ret
     minimum_size = AliasProperty(_get_minimum_size, _set_minimum_size)
     '''Minimum size required by the layout. This property is used by
-    :class:`Layout` to perfom his layout calculations. If the widgets size
+    :class:`Layout` to perfom the layout calculations. If the widget's size
     (width or height) is smaller than the minimum size, it will be resized to be
     at least minimum size.
 

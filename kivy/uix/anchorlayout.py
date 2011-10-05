@@ -1,9 +1,15 @@
 '''
-Anchor layout
+Anchor Layout
 =============
 
-This layout align his children to a border or a center: top, left, center,
-right...
+:class:`AnchorLayout` aligns children to a border (top, bottom, left, right)
+or center.
+
+To draw a button in the lower-right corner ::
+
+    layout = AnchorLayout(anchor_x='right', anchor_y='bottom')
+    btn = Button(text='Hello World')
+    layout.add_widget(btn)
 '''
 
 __all__ = ('AnchorLayout', )
@@ -14,7 +20,7 @@ from kivy.properties import NumericProperty, OptionProperty
 
 
 class AnchorLayout(Layout):
-    '''Anchor layout class. See module documentation for more informations.
+    '''Anchor layout class. See module documentation for more information.
     '''
 
     padding = NumericProperty(0)

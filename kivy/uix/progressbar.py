@@ -7,21 +7,18 @@ Progress Bar
 .. image:: images/progressbar.jpg
     :align: right
 
-The progress bar is a widget to show progression information. This widget is
-implemented only for horizontal progress bar. Vertical mode is not available at
-the moment.
+The :class:`ProgressBar` widget is used to visualize progression. Only 
+horizontal mode is supported, vertical mode is not available yet.
 
-The progress bar have no interaction, it's a display-only widget.
+The progress bar cannot be interacted with, it's a display-only widget.
 
-::
+To use it, simply assign a value to indicate the current progress ::
 
     from kivy.uix.progressbar import ProgressBar
-    pb = ProgressBar(max=6534)
+    pb = ProgressBar(max=1000)
 
-    # then later in your code
-    pb.value = 324
-
-    # and it will automatically adjust the graphics.
+    # this will update the graphics automatically (75% done):
+    pb.value = 750
 
 '''
 

@@ -180,6 +180,7 @@ class FileChooserController(FloatLayout):
             if isdir(entry.path):
                 self.open_entry(entry)
             else:
+                self.selection = [entry.path,]
                 self.dispatch('on_submit', [entry.path], touch)
 
     def open_entry(self, entry):

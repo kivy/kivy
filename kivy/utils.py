@@ -8,10 +8,15 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'get_color_from_hex', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
-           'interpolate', 'OrderedDict', 'QueryDict')
+           'interpolate', 'OrderedDict', 'QueryDict',
+           'platform')
 
+from sys import platform as _sys_platform
 from re import match, split
 from UserDict import DictMixin
+
+_platform_android = None
+_platform_ios = None
 
 
 def boundary(value, minvalue, maxvalue):
@@ -287,6 +292,7 @@ class QueryDict(dict):
     def __setattr__(self, attr, value):
         self.__setitem__(attr, value)
 
+
 def format_bytes_to_human(size, precision=2):
     '''Format a bytes number to human size (B, KB, MB...)
 
@@ -312,3 +318,40 @@ def format_bytes_to_human(size, precision=2):
         if size < 1024.0:
             return fmt % (size, unit)
         size /= 1024.0
+
+
+def platform():
+    '''Return the version of the current platform.
+    This will return one of: win, linux, android, macosx, ios, unknown
+
+    .. versionadded:: 1.0.8
+
+    .. warning:: ios is not currently reported.
+    '''
+    global _platform_ios, _platform_android
+
+    if _platform_android is None:
+        try:
+            import android
+            _platform_android = True
+        except ImportError:
+            _platform_android = False
+
+    if _platform_ios is None:
+        # TODO implement ios support here
+        _platform_ios = False
+
+    # On android, _sys_platform return 'linux2', so prefer to check the import
+    # of Android module than trying to rely on _sys_platform.
+    if _platform_android is True:
+        return 'android'
+    elif _platform_ios is True:
+        return 'ios'
+    elif _sys_platform in ('win32', 'cygwin'):
+        return 'win'
+    elif _sys_platform in ('darwin', ):
+        return 'macosx'
+    elif _sys_platform in ('linux2', 'linux3'):
+        return 'linux'
+    return 'unknown'
+

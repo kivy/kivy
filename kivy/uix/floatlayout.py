@@ -5,7 +5,7 @@ Float Layout
 The :class:`FloatLayout` class will just honor the :data:`Widget.pos_hint` and
 :data:`Widget.size_hint` attributes.
 
-For example, if you create a :class:`FloatLayout` with size of (300, 300)::
+For example, if you create a FloatLayout with size of (300, 300)::
 
     layout = FloatLayout(size=(300, 300))
 
@@ -43,7 +43,7 @@ from kivy.uix.layout import Layout
 
 
 class FloatLayout(Layout):
-    '''Float layout class. See module documentation for more informations.
+    '''Float layout class. See module documentation for more information.
     '''
 
     def __init__(self, **kwargs):
