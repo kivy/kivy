@@ -93,6 +93,10 @@ class BoxLayout(Layout):
         space for every child layout's minimum size (cant be too small even if
         size_hint is set).
         '''
+        # XXX This is invalid. Each time a layout is done, the widget is not yet
+        # correctly placed. Since then, if we are using minimum size, it will
+        # just increase infinitely. So minimum size is just not working when
+        # multiple layout are needed to have the final result.
         padding = self.padding
         padding2 = padding * 2
         spacing = self.spacing
@@ -143,13 +147,23 @@ class BoxLayout(Layout):
         # calculate maximum space used by size_hint
         stretch_weight_x = 0.
         stretch_weight_y = 0.
+        minimum_size_x = 0.
+        minimum_size_y = 0.
         for w in self.children:
             stretch_weight_x += w.size_hint[0] or 0.0
             stretch_weight_y += w.size_hint[1] or 0.0
+            minimum_size_x += w.width if w.size_hint_x is None else 0
+            minimum_size_y += w.height if w.size_hint_y is None else 0
+
+
+        if self.height in (390, 360):
+            print 'xxx', self, minimum_size_x, minimum_size_y
+            if self.height == 390:
+                assert(0)
 
         if orientation == 'horizontal':
             x = y = padding
-            stretch_space = max(0.0, selfw - self.minimum_size[0])
+            stretch_space = max(0.0, selfw - minimum_size_x)
             for c in reversed(self.children):
                 shw, shh = c.size_hint
                 c_pos = selfx + x, selfy + y
@@ -157,8 +171,8 @@ class BoxLayout(Layout):
                 if shw:
                     #its sizehint * available space
                     c_size[0] = stretch_space * shw / stretch_weight_x
-                    if isinstance(c, Layout):
-                        c_size[0] += c.minimum_size[0]
+                    #if isinstance(c, Layout):
+                    #    c_size[0] += c.minimum_size[0]
                 if shh:
                     c_size[1] = shh * (selfh - padding2)
                 reposition_child(c, pos=c_pos, size=c_size)
@@ -166,15 +180,15 @@ class BoxLayout(Layout):
 
         if orientation == 'vertical':
             x = y = padding
-            stretch_space = max(0.0, selfh - self.minimum_size[1])
+            stretch_space = max(0.0, selfh - minimum_size_y)
             for c in self.children:
                 shw, shh = c.size_hint
                 c_pos = selfx + x, selfy + y
                 c_size = list(c.size)
                 if shh:
                     c_size[1] = stretch_space * shh / stretch_weight_y
-                    if isinstance(c, Layout):
-                        c_size[1] += c.minimum_size[1]
+                    #if isinstance(c, Layout):
+                    #    c_size[1] += c.minimum_size[1]
                 if shw:
                     c_size[0] = shw * (selfw - padding2)
                 reposition_child(c, pos=c_pos, size=c_size)
