@@ -9,7 +9,7 @@ strings ::
     l = Label(text='Hello world')
 
     # unicode text; can only display glyphs that are available in the font
-    l = Label(test=u'Hello world ' + unichr(2764))
+    l = Label(text=u'Hello world ' + unichr(2764))
 
     # multiline text
     l = Label(text='Multi\\nLine')
@@ -250,7 +250,7 @@ class Label(Widget):
 
     mipmap = BooleanProperty(False)
     '''Indicate if you want OpenGL mipmapping applied to texture or not.
-    Read :ref:`mipmap` for more informations.
+    Read :ref:`mipmap` for more information.
 
     .. versionadded:: 1.0.7
 

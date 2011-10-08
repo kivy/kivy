@@ -997,7 +997,7 @@ class TextInput(Widget):
 
     scroll_y = NumericProperty(0)
     '''Y scrolling value of the viewport. See :data:`scroll_x` for more
-    informations.
+    information.
 
     :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty`, default to
     0.

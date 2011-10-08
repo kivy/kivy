@@ -33,7 +33,7 @@ from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty
 
 
 class Video(Image):
-    '''Video class. See module documentation for more informations.
+    '''Video class. See module documentation for more information.
     '''
 
     play = BooleanProperty(False)
