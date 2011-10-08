@@ -41,7 +41,6 @@ __all__ = ('Layout', )
 
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
-from kivy.properties import AliasProperty
 
 
 class Layout(Widget):
@@ -53,31 +52,8 @@ class Layout(Widget):
         if self.__class__ == Layout:
             raise Exception('The Layout class cannot be used.')
         kwargs.setdefault('size', (1, 1))
-        self._minimum_size = (0, 0)
-        self._trigger_minimum_size = Clock.create_trigger(
-            self.update_minimum_size, -1)
-        self.bind(children=self._trigger_minimum_size)
+        self._trigger_layout = Clock.create_trigger(self.do_layout, -1)
         super(Layout, self).__init__(**kwargs)
-
-    def _get_minimum_size(self):
-        return self._minimum_size
-
-    def _set_minimum_size(self, size):
-        ret = self._minimum_size != size
-        self._minimum_size = size
-        if self.width < size[0]:
-            self.width = size[0]
-        if self.height < size[1]:
-            self.height = size[1]
-        return ret
-    minimum_size = AliasProperty(_get_minimum_size, _set_minimum_size)
-    '''Minimum size required by the layout. This property is used by
-    :class:`Layout` to perfom the layout calculations. If the widget's size
-    (width or height) is smaller than the minimum size, it will be resized to be
-    at least minimum size.
-
-    :data:`minimum_size` is a :class:`~kivy.properties.AliasProperty`.
-    '''
 
     def reposition_child(self, child, **kwargs):
         '''Force the child to be repositioned on the screen. This method is used
@@ -86,18 +62,18 @@ class Layout(Widget):
         for prop in kwargs:
             child.__setattr__(prop, kwargs[prop])
 
-    def update_minimum_size(self, instance, *largs):
-        self.minimum_size = self.size
+    def do_layout(self, *largs):
+        pass
 
     def add_widget(self, widget, index=0):
         widget.bind(
-            size = self._trigger_minimum_size,
-            size_hint = self._trigger_minimum_size)
+            size = self._trigger_layout,
+            size_hint = self._trigger_layout)
         return super(Layout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
-            size = self._trigger_minimum_size,
-            size_hint = self._trigger_minimum_size)
+            size = self._trigger_layout,
+            size_hint = self._trigger_layout)
         return super(Layout, self).remove_widget(widget)
 

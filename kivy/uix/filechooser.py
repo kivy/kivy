@@ -328,6 +328,6 @@ if __name__ == '__main__':
             pos = (100, 100)
             size_hint = (None, None)
             size = (300, 400)
-            #return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
+            return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
             return FileChooserIconView(pos=pos, size=size, size_hint=size_hint)
     FileChooserApp().run()

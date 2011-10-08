@@ -179,7 +179,7 @@ class GridLayout(Layout):
 
     def __init__(self, **kwargs):
         self._cols = self._rows = None
-        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
+        self._trigger_layout = Clock.create_trigger(self.do_layout, -1)
         super(GridLayout, self).__init__(**kwargs)
 
         self.bind(
@@ -304,7 +304,7 @@ class GridLayout(Layout):
         # finally, set the minimum size
         self.minimum_size = (width, height)
 
-    def _do_layout(self, *largs):
+    def do_layout(self, *largs):
         self.update_minimum_size()
         if self._cols is None:
             return
