@@ -77,8 +77,10 @@ Next, let's fix the row height to a specific size::
 __all__ = ('GridLayout', 'GridLayoutException')
 
 from kivy.clock import Clock
+from kivy.logger import Logger
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, BooleanProperty, DictProperty
+from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
+        BoundedNumericProperty
 from math import ceil
 
 
@@ -106,14 +108,22 @@ class GridLayout(Layout):
     0.
     '''
 
-    cols = NumericProperty(None)
+    cols = BoundedNumericProperty(None, min=0, allow_none=True)
     '''Number of columns in the grid
+
+    .. versionadded:: 1.0.8
+        Change from NumericProperty to BoundedNumericProperty. You cannot set a
+        negative value anymore.
 
     :data:`cols` is a :class:`~kivy.properties.NumericProperty`, default to 0.
     '''
 
-    rows = NumericProperty(None)
+    rows = BoundedNumericProperty(None, min=0, allow_none=True)
     '''Number of rows in the grid
+
+    .. versionadded:: 1.0.8
+        Change from NumericProperty to BoundedNumericProperty. You cannot set a
+        negative value anymore.
 
     :data:`rows` is a :class:`~kivy.properties.NumericProperty`, default to 0.
     '''
@@ -176,7 +186,8 @@ class GridLayout(Layout):
 
     def __init__(self, **kwargs):
         self._cols = self._rows = None
-        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
+        self._trigger_layout = Clock.create_trigger(self.do_layout, -1)
+        self._minimum_size = [0, 0]
         super(GridLayout, self).__init__(**kwargs)
 
         self.bind(
@@ -184,7 +195,8 @@ class GridLayout(Layout):
             row_default_height = self._trigger_layout,
             col_force_default = self._trigger_layout,
             row_force_default = self._trigger_layout,
-            minimum_size = self._trigger_layout,
+            cols = self._trigger_layout,
+            rows = self._trigger_layout,
             spacing = self._trigger_layout,
             padding = self._trigger_layout,
             children = self._trigger_layout,
@@ -231,6 +243,8 @@ class GridLayout(Layout):
         # if no cols or rows are set, we can't calculate minimum size.
         # the grid must be contrained at least on one side
         if not current_cols and not current_rows:
+            Logger.warning('%r have no cols or rows set, '
+                'layout are not triggered.' % self)
             return None
         if current_cols is None:
             current_cols = int(ceil(len_children / float(current_rows)))
@@ -267,8 +281,6 @@ class GridLayout(Layout):
                 shh = c.size_hint_y
                 w = c.width
                 h = c.height
-                if isinstance(c, Layout):
-                    w, h = c.minimum_size
 
                 # compute minimum size / maximum stretch needed
                 if shw is None:
@@ -299,9 +311,9 @@ class GridLayout(Layout):
         self._rows_sh = rows_sh
 
         # finally, set the minimum size
-        self.minimum_size = (width, height)
+        self._minimum_size = (width, height)
 
-    def _do_layout(self, *largs):
+    def do_layout(self, *largs):
         self.update_minimum_size()
         if self._cols is None:
             return
@@ -317,7 +329,6 @@ class GridLayout(Layout):
         padding = self.padding
         spacing = self.spacing
         selfx = self.x
-        selfy = self.y
         selfw = self.width
         selfh = self.height
 
@@ -330,7 +341,7 @@ class GridLayout(Layout):
             cols = self._cols[:]
             cols_sh = self._cols_sh
             cols_weigth = sum([x for x in cols_sh if x])
-            strech_w = max(0, selfw - self.minimum_size[0])
+            strech_w = max(0, selfw - self._minimum_size[0])
             for index in xrange(len(cols)):
                 # if the col don't have strech information, nothing to do
                 col_stretch = cols_sh[index]
@@ -351,7 +362,7 @@ class GridLayout(Layout):
             rows = self._rows[:]
             rows_sh = self._rows_sh
             rows_weigth = sum([x for x in rows_sh if x])
-            strech_h = max(0, selfh - self.minimum_size[1])
+            strech_h = max(0, selfh - self._minimum_size[1])
             for index in xrange(len(rows)):
                 # if the row don't have strech information, nothing to do
                 row_stretch = rows_sh[index]

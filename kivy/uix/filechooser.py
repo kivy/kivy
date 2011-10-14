@@ -48,7 +48,7 @@ def is_hidden_win(fn):
         return False
     try:
         return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
-    except error, e:
+    except error:
         # This error can occured when a file is already accessed by someone
         # else. So don't return to True, because we have lot of chances to not
         # being able to do anything with it.
@@ -247,7 +247,7 @@ class FileChooserController(FloatLayout):
             self.dispatch('on_entry_added', pardir)
         try:
             self._add_files(self.path)
-        except OSError, e:
+        except OSError:
             Logger.exception('Unable to open directory <%s>' % self.path)
 
     def _add_files(self, path, parent=None):
@@ -328,6 +328,6 @@ if __name__ == '__main__':
             pos = (100, 100)
             size_hint = (None, None)
             size = (300, 400)
-            #return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
+            return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
             return FileChooserIconView(pos=pos, size=size, size_hint=size_hint)
     FileChooserApp().run()
