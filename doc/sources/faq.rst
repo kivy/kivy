@@ -48,6 +48,32 @@ Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709
 Solution: use `easy_install`, as our documentation said.
 
 
+Android FAQ
+===========
+
+could not extract public data
+-----------------------------
+
+This message error can happen in many cases. Ensure that:
+
+* you have a phone with sdcard
+* you are not currently in a "USB Mass Storage" mode
+* you have the permissions to write on sdcard
+
+In case of USB Mass Storage mode error, and if you don't want to keep
+unplugging the device, set the usb option to Power.
+
+Is it possible to have a kiosk app on android 3.0 ?
+---------------------------------------------------
+
+Thomas Hansen have wrote a detailed answer on kivy-users mailing list:
+
+    https://groups.google.com/d/msg/kivy-users/QKoCekAR1c0/yV-85Y_iAwoJ
+
+Basicaly, you need to root de device, remove the SystemUI package, add some
+line on the xml configuration, and you're done.
+
+
 Project FAQ
 ===========
 
