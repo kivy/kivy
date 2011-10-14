@@ -140,3 +140,11 @@ Documentation contributions generally follow the same workflow as code
 contributions, just a bit more lax. We don't ask you to go through all the
 hassle just to correct a single typo. For more complex contributions, please
 consider following the suggested workflow though.
+
+
+Unit tests contributions
+------------------------
+
+For testing team, we have the document :doc:`contribute-unittest` that
+explain how kivy unit test is working, and how you can create your own. Use the
+same approach as the `Code Workflow` to submit new tests.
