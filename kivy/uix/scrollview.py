@@ -4,7 +4,7 @@ Scroll View
 
 .. versionadded:: 1.0.4
 
-The :class:`ScrollView` widget provides a scrollable/pannable viewport that is 
+The :class:`ScrollView` widget provides a scrollable/pannable viewport that is
 clipped at the ScrollViews bounding box.
 
 Scrolling behavior
@@ -12,8 +12,8 @@ Scrolling behavior
 
 The ScrollView accepts only one child, and controls a viewport/window to it
 according to the :data:`scroll_x` and :data:`scroll_y` properties. Touches are
-analyzed to determine if the user wants to scroll or control the child - you 
-cannot do both at the same time. To determine if interaction is a scrolling 
+analyzed to determine if the user wants to scroll or control the child - you
+cannot do both at the same time. To determine if interaction is a scrolling
 gesture, these properties are used:
 
     - :data:`ScrollView.scroll_distance` a minimum distance to travel, default
@@ -21,9 +21,9 @@ gesture, these properties are used:
     - :data:`ScrollView.scroll_timeout` a maximum time period, default to 250
       milliseconds.
 
-If a touch travels :data:`~ScrollView.scroll_distance` pixels within the 
-:data:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling 
-gesture and translatation (scroll/pan) will begin. If the timeout occurs, the 
+If a touch travels :data:`~ScrollView.scroll_distance` pixels within the
+:data:`~ScrollView.scroll_timeout` period, it is recognized as a scrolling
+gesture and translatation (scroll/pan) will begin. If the timeout occurs, the
 touch down event is dispatched to the child instead (no translation).
 
 Limiting to X or Y axis
@@ -37,15 +37,15 @@ Managing the content size
 -------------------------
 
 The ScrollView manages the position of the child content, not the size. You must
-carefully specify the :data:`ScrollView.size_hint` property to get the desired 
-scroll/pan effect. 
+carefully specify the :data:`ScrollView.size_hint` property to get the desired
+scroll/pan effect.
 
 By default, size_hint is (1, 1), so the content size will fit your ScrollView
 exactly (you will have nothing to scroll). You must deactivate at least one of
-the size_hint (x or y) of the child to enable scrolling. 
+the size_hint (x or y) of the child to enable scrolling.
 
-To scroll a :class:`GridLayout` on Y-axis/vertically, set the child's width 
-identical to that of the ScrollView (size_hint_x=1, default), and set the 
+To scroll a :class:`GridLayout` on Y-axis/vertically, set the child's width
+identical to that of the ScrollView (size_hint_x=1, default), and set the
 size_hint_y property to None ::
 
     layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
@@ -130,10 +130,10 @@ class ScrollView(StencilView):
 
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
-        :data:`scroll_x` and :data:`scroll_y`. 
+        :data:`scroll_x` and :data:`scroll_y`.
 
         This method is automatically called when one of the :data:`scroll_x`,
-        :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or 
+        :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or
         if the size of the content changes.
         '''
         if not self._viewport:
@@ -202,6 +202,15 @@ class ScrollView(StencilView):
 
     def _do_touch_up(self, touch, *largs):
         super(ScrollView, self).on_touch_up(touch)
+        # don't forget about grab event!
+        for x in touch.grab_list[:]:
+            touch.grab_list.remove(x)
+            x = x()
+            if not x:
+                continue
+            touch.grab_current = x
+            super(ScrollView, self).on_touch_up(touch)
+        touch.grab_current = None
 
     def _do_animation(self, touch):
         uid = self._get_uid()
