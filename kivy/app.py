@@ -20,7 +20,7 @@ your app class and return the widget tree you constructed.
 
 Here's an example of very simple application that just shows a button:
 
-.. include:: ../examples/application/app_with_build.py
+.. include:: ../../examples/application/app_with_build.py
    :literal:
 
 The file is also available in the examples folder at
@@ -39,12 +39,12 @@ example as the Button one in a kv file.
 
 Contents of 'test.kv':
 
-.. include:: ../examples/application/test.kv
+.. include:: ../../examples/application/test.kv
    :literal:
 
 Contents of 'main.py':
 
-.. include:: ../examples/application/app_with_kv.py
+.. include:: ../../examples/application/app_with_kv.py
    :literal:
 
 See :file:`kivy/examples/application/app_with_kv.py`.

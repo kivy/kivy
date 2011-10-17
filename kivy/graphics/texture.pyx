@@ -475,7 +475,7 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
         `colorfmt`: str, default to 'rgba'
             Internal color format of the texture. Can be 'rgba' or 'rgb',
             'luminance', 'luminance_alpha'
-        `bufferfmt': str, default to 'ubyte'
+        `bufferfmt`: str, default to 'ubyte'
             Internal buffer format of the texture. Can be 'ubyte', 'ushort',
             'uint', 'bute', 'short', 'int', 'float'
         `mipmap`: bool, default to False
