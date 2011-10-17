@@ -71,6 +71,10 @@ cdef class Line(VertexInstruction):
         cdef char *buf = NULL
         cdef Texture texture = self.texture
 
+        if count < 2:
+            self.batch.clear_data()
+            return
+
         if self._dash_offset != 0:
             if texture is None or texture._width != \
                 (self._dash_length + self._dash_offset) or \
