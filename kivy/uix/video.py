@@ -3,11 +3,11 @@ Video
 =====
 
 The :class:`Video` widget is used to display video files and streams. Depending
-on your Video core provider, platform and plugins you will be able to play 
-different formats. For example, pygame video provider only supports MPEG1 on 
+on your Video core provider, platform and plugins you will be able to play
+different formats. For example, pygame video provider only supports MPEG1 on
 Linux and OSX. GStreamer is more versatile, and can read many video containers
 and codecs such as MKV, OGV, AVI, MOV, FLV (if the correct gstreamer plugins
-are installed). Our :class:`~kivy.core.video.VideoBase` implementation is used 
+are installed). Our :class:`~kivy.core.video.VideoBase` implementation is used
 under the hood.
 
 The video loading is asynchronous - many properties are not available until
@@ -112,7 +112,9 @@ class Video(Image):
             self.texture = None
         else:
             filename = self.source
-            if filename.split(':')[0] not in ('http', 'https', 'file'):
+            # FIXME make it extensible.
+            if filename.split(':')[0] not in (
+                    'http', 'https', 'file', 'udp', 'rtp', 'rtsp'):
                 filename = resource_find(filename)
             self._video = CoreVideo(filename=filename, **self.options)
             self._video.bind(on_load=self._on_video_frame,

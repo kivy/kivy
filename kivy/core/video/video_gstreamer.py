@@ -49,7 +49,9 @@ class VideoGStreamer(VideoBase):
         self._videosink.connect('new-buffer', self._update_buffer)
 
         # playbin, takes care of all, loading, playing, etc.
-        self._playbin = gst.element_factory_make("playbin2", "playbin")
+        # XXX playbin2 have some issue when playing some video or streaming :/
+        #self._playbin = gst.element_factory_make("playbin2", "playbin")
+        self._playbin = gst.element_factory_make("playbin", "playbin")
         self._playbin.set_property('video-sink', self._videosink)
 
         # gstreamer bus, to attach and listen to gst messages
