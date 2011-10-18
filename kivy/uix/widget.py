@@ -482,7 +482,10 @@ class Widget(EventDispatcher):
         .. versionadded:: 1.0.8
         '''
         p = self.__properties
-        return {x: p[x] for x in self.__dict__['__storage'].keys()}
+        ret = {}
+        for x in self.__dict__['__storage'].keys():
+            ret[x] = p[x]
+        return ret
 
     x = NumericProperty(0)
     '''X position of the widget.
