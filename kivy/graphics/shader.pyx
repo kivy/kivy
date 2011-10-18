@@ -23,12 +23,12 @@ corresponding shader header.
 
 Here is the header for Fragment Shader:
 
-.. include:: ../kivy/data/glsl/header.fs
+.. include:: ../../kivy/data/glsl/header.fs
     :literal:
 
 And the header for Vertex Shader:
 
-.. include:: ../kivy/data/glsl/header.vs
+.. include:: ../../kivy/data/glsl/header.vs
     :literal:
 
 '''

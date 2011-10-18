@@ -3,6 +3,11 @@
 Kivy on Android
 ===============
 
+Kivy is able to run on android, but you need a phone with:
+
+* SD Card
+* OpenGL ES 2.0 (Android 2.2 minimum)
+
 Requirements for android application
 ------------------------------------
 
@@ -46,12 +51,12 @@ We made that branch to be able to:
 	- integrate Kivy android-support branch in the build
 	- create opengl es 2 surface with stencil buffer
 	- enable multitouch event
-	- custom start.pyx to launch kivy application
+	- custom python native launcher that run the main.py
 	- default activation of WRITE_EXTERNAL_STORAGE permission
+    - *Video providers* (done in 1.0.8 version using ffmpeg-android)
 
 Currently, Kivy is not fully supported on Android. We are missing:
 
-    - *Video providers* (done in 1.0.8 version)
     - Camera providers
     - Audio (can use RenPySound) providers
     - Keyboard mapping for main button

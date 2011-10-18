@@ -16,9 +16,9 @@ as the layout can fit.
 
 __all__ = ('StackLayout', )
 
-from kivy.clock import Clock
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, OptionProperty
+from kivy.properties import NumericProperty, OptionProperty, \
+    ReferenceListProperty
 
 
 class StackLayout(Layout):
@@ -52,37 +52,46 @@ class StackLayout(Layout):
         tb mean Top to Bottom.
     '''
 
+    minimum_width = NumericProperty(0)
+    '''Minimum width needed to contain all childrens.
+
+    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty`, default
+    to 0.
+    '''
+
+    minimum_height = NumericProperty(0)
+    '''Minimum height needed to contain all childrens.
+
+    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`, default
+    to 0.
+    '''
+
+    minimum_size = ReferenceListProperty(minimum_width, minimum_height)
+    '''Minimum size needed to contain all childrens.
+
+    :data:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:data:`minimum_width`, :data:`minimum_height`) properties.
+    '''
+
     def __init__(self, **kwargs):
-        kwargs.setdefault('size', (1, 1))
-        self._minimum_size = (0, 0)
-        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(StackLayout, self).__init__(**kwargs)
         self.bind(
+            padding = self._trigger_layout,
+            spacing = self._trigger_layout,
             children = self._trigger_layout,
             orientation = self._trigger_layout,
             size = self._trigger_layout,
             pos = self._trigger_layout)
 
-    def update_minimum_size(self, *largs):
-        self._do_layout()
-        super(StackLayout, self).update_minimum_size(*largs)
-
-    def _do_layout(self, *largs):
+    def do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop
         reposition_child = self.reposition_child
-        '''
-        print '_do_layout===='
-        def reposition_child(*l, **kw):
-            print 'reposition_child', l, kw
-            self.reposition_child(*l, **kw)
-        '''
         selfx, selfy = self.pos
         selfw, selfh = self.size
         orientation = self.orientation
         padding = self.padding
         padding2 = padding * 2
         spacing = self.spacing
-        spacing2 = spacing * 2
 
         lc = []
         height = padding2
@@ -122,7 +131,7 @@ class StackLayout(Layout):
                 for c2 in lc:
                     reposition_child(c2, pos=(x, y))
                     x += c2.width + spacing
-            self.height = height
+            self.minimum_height = height
 
         elif orientation == 'tb-lr':
             x = self.right - padding
@@ -158,4 +167,4 @@ class StackLayout(Layout):
                 for c2 in lc:
                     reposition_child(c2, pos=(x, y))
                     y += c2.height + spacing
-            self.width = width
+            self.minimum_width = width

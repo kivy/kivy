@@ -47,7 +47,6 @@ class AnchorLayout(Layout):
     '''
 
     def __init__(self, **kwargs):
-        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(AnchorLayout, self).__init__(**kwargs)
         self.bind(
             padding = self._trigger_layout,
@@ -56,7 +55,7 @@ class AnchorLayout(Layout):
             size = self._trigger_layout,
             pos = self._trigger_layout)
 
-    def _do_layout(self, *largs):
+    def do_layout(self, *largs):
         _x, _y = self.pos
         width = self.width
         height = self.height

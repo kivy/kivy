@@ -20,7 +20,7 @@ Control interactions
 --------------------
 
 By default, all interactions are enabled. You can selectively disable 
-them using the do_ properties. 
+them using the do_{rotation, translation, scale} properties. 
 
 Disable rotation ::
 
