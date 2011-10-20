@@ -624,6 +624,7 @@ class WindowBase(EventDispatcher):
 
             # only after add, do dock mode
             vkeyboard.docked = self.docked_vkeyboard
+            vkeyboard.setup_mode()
             return vkeyboard
 
         else:
