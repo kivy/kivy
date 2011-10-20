@@ -9,6 +9,7 @@ event. This class define all the properties and methods needed to handle 2D and
 3D position, but may have more capabilities.
 
 .. note::
+
     You never create the :class:`MotionEvent` yourself, this is the role of the
     :mod:`~kivy.input.providers`.
 

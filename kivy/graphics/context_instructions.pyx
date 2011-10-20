@@ -5,13 +5,21 @@ Context instructions
 ====================
 
 The context instructions represent non graphics elements like:
-    - Matrix manipulation
-    - Color manipulation
-    - Texture binding
+
+* Matrix manipulation (PushMatrix, PopMatrix, Rotate, Translate, Scale,
+  MatrixInstruction)
+* Color manipulation (Color)
+* Texture binding (BindTexture)
+
+.. versionchanged:: 1.0.8
+    LineWidth instruction have been removed. It wasn't working before, and we
+    actually no implementation working. We need to do more experimentation to
+    get it right. Check the bug `#207
+    <https://github.com/tito/kivy/issues/207>`_ for more informations.
 
 '''
 
-__all__ = ('LineWidth', 'Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
+__all__ = ('Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
            'Rotate', 'Scale', 'Translate', 'MatrixInstruction',
            'gl_init_resources')
 
@@ -44,22 +52,6 @@ def gl_init_resources():
     Cache.remove('kv.texture')
     Cache.remove('kv.shader')
     reset_gl_context()
-
-cdef class LineWidth(ContextInstruction):
-    '''Instruction to set the line width of the drawing context
-    '''
-    def __init__(self, *args, **kwargs):
-        ContextInstruction.__init__(self, **kwargs)
-        if args:
-            self.linewidth = args[0]
-        else:
-            self.linewidth = 1.0
-
-    property linewidth:
-        def __get__(self):
-            return self.context_state['linewidth']
-        def __set__(self, lw):
-            self.set_state('linewidth', lw)
 
 # Taken from colorsys module, and optimized for cython
 # HSV: Hue, Saturation, Value

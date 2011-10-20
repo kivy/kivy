@@ -21,6 +21,17 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
+from kivy.graphics.texture import Texture
+
+cdef extern from "string.h":
+    void *memset(void *s, int c, int n)
+
+cdef extern from "Python.h":
+    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+
+cdef extern from "math.h":
+    double sqrt(double x) nogil
+    double pow(double x, double y) nogil
 
 class GraphicException(Exception):
     '''Exception fired when a graphic error is fired.
@@ -29,22 +40,61 @@ class GraphicException(Exception):
 cdef class Line(VertexInstruction):
     '''A 2d line.
 
+    .. versionadded:: 1.0.8
+        `dash_offset` and `dash_length` have been added
+
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
+        `dash_length`: int
+            length of a segment (if dashed), default 1
+        `dash_offset`: int
+            offset between the end of a segments and the begining of the
+            next one, default 0, changing this makes it dashed.
     '''
     cdef list _points
+    cdef int _dash_offset, _dash_length
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [])
         self.batch.set_mode('line_strip')
+        self._dash_length = kwargs.get('dash_length', 1)
+        self._dash_offset = kwargs.get('dash_offset', 0)
 
     cdef void build(self):
         cdef int i, count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
+        cdef float tex_x
+        cdef char *buf = NULL
+        cdef Texture texture = self.texture
+
+        if count < 2:
+            self.batch.clear_data()
+            return
+
+        if self._dash_offset != 0:
+            if texture is None or texture._width != \
+                (self._dash_length + self._dash_offset) or \
+                texture._height != 1:
+
+                self.texture = texture = Texture.create(
+                        size=(self._dash_length + self._dash_offset, 1))
+                texture.wrap = 'repeat'
+
+            # create a buffer to fill our texture
+            buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
+            memset(buf, 255, self._dash_length * 3)
+            memset(buf + self._dash_length * 3, 0, self._dash_offset * 3)
+            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 3)
+
+            self.texture.blit_buffer(p_str, colorfmt='rgb', bufferfmt='ubyte')
+            free(buf)
+
+        elif texture is not None:
+            self.texture = None
 
         vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
         if vertices == NULL:
@@ -55,7 +105,17 @@ cdef class Line(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
+        tex_x = 0
         for i in xrange(count):
+            if self._dash_offset != 0 and i > 0:
+                tex_x += sqrt(
+                        pow(p[i * 2]     - p[(i - 1) * 2], 2)  +
+                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / (
+                                self._dash_length + self._dash_offset)
+
+                vertices[i].s0 = tex_x
+                vertices[i].t0 = 0
+
             vertices[i].x = p[i * 2]
             vertices[i].y = p[i * 2 + 1]
             indices[i] = i
@@ -79,6 +139,34 @@ cdef class Line(VertexInstruction):
             self._points = list(points)
             self.flag_update()
 
+    property dash_length:
+        '''Property for getting/stting the length of the dashes in the curve
+
+        .. versionadded:: 1.0.8
+        '''
+        def __get__(self):
+            return self._dash_length
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_length value, must be >= 0')
+            self._dash_length = value
+            self.flag_update()
+
+    property dash_offset:
+        '''Property for getting/setting the offset between the dashes in the curve
+
+        .. versionadded:: 1.0.8
+        '''
+        def __get__(self):
+            return self._dash_offset
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_offset value, must be >= 0')
+            self._dash_offset = value
+            self.flag_update()
+
 
 cdef class Bezier(VertexInstruction):
     '''A 2d Bezier curve.
@@ -93,17 +181,25 @@ cdef class Bezier(VertexInstruction):
             The drawing will be smoother if you have lot of segment.
         `loop`: bool, default to False
             Set the bezier curve to join last point to first.
-
-    #TODO: refactoring:
-        a) find interface common to all splines (given control points and
-        perhaps tangents, what's the position on the spline for parameter t),
-
-        b) make that a superclass Spline, c) create BezierSpline subclass that
-        does the computation
+        `dash_length`: int
+            length of a segment (if dashed), default 1
+        `dash_offset`: int
+            distance between the end of a segment and the start of the
+            next one, default 0, changing this makes it dashed.
     '''
+
+    # TODO: refactoring:
+    #
+    #    a) find interface common to all splines (given control points and
+    #    perhaps tangents, what's the position on the spline for parameter t),
+    #
+    #    b) make that a superclass Spline,
+    #    c) create BezierSpline subclass that does the computation
+
     cdef list _points
     cdef int _segments
     cdef bint _loop
+    cdef int _dash_offset, _dash_length
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -112,14 +208,41 @@ cdef class Bezier(VertexInstruction):
         self._loop = kwargs.get('loop', False)
         if self._loop:
             self.points.extend(self.points[:2])
+        self._dash_length = kwargs.get('dash_length', 1)
+        self._dash_offset = kwargs.get('dash_offset', 0)
         self.batch.set_mode('line_strip')
 
     cdef void build(self):
         cdef int x, i, j
         cdef float l
-        cdef list T = self.points
+        cdef list T = self.points[:]
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
+        cdef float tex_x
+        cdef char *buf = NULL
+        cdef Texture texture = self.texture
+
+        if self._dash_offset != 0:
+            if texture is None or texture._width != \
+                (self._dash_length + self._dash_offset) or \
+                texture._height != 1:
+
+                self.texture = texture = Texture.create(
+                        size=(self._dash_length + self._dash_offset, 1))
+                texture.wrap = 'repeat'
+
+            # create a buffer to fill our texture
+            buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
+            memset(buf, 255, self._dash_length * 3)
+            memset(buf + self._dash_length * 3, 0, self._dash_offset * 3)
+
+            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 3)
+
+            texture.blit_buffer(p_str, colorfmt='rgb', bufferfmt='ubyte')
+            free(buf)
+
+        elif texture is not None:
+            self.texture = None
 
         vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
         if vertices == NULL:
@@ -131,29 +254,49 @@ cdef class Bezier(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
+        tex_x = 0
         for x in xrange(self._segments):
             l = x / (1.0 * self._segments)
-
             # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
             # as the list is in the form of (x1, y1, x2, y2...) iteration is
             # done on each item and the current item (xn or yn) in the list is
             # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
             # placed at n+2. each iteration makes the list one item shorter
-            for i in range(1, len(self.points)):
-                for j in xrange(len(self.points) - 2*i):
+            for i in range(1, len(T)):
+                for j in xrange(len(T) - 2*i):
                     T[j] = T[j] + (T[j+2] - T[j]) * l
 
             # we got the coordinates of the point in T[0] and T[1]
             vertices[x].x = T[0]
             vertices[x].y = T[1]
+            if self._dash_offset != 0 and x > 0:
+                tex_x += sqrt(
+                        pow(vertices[x].x - vertices[x-1].x, 2) +
+                        pow(vertices[x].y - vertices[x-1].y, 2)) / (
+                                self._dash_length + self._dash_offset)
+
+                vertices[x].s0 = tex_x
+                vertices[x].t0 = 0
+
             indices[x] = x
 
         # add one last point to join the curve to the end
-        vertices[x+1].x = self.points[-2]
-        vertices[x+1].y = self.points[-1]
+        vertices[x+1].x = T[-2]
+        vertices[x+1].y = T[-1]
+
+        tex_x += sqrt(
+                (vertices[x+1].x - vertices[x].x) ** 2 +
+                (vertices[x+1].y - vertices[x].y) ** 2) / (
+                        self._dash_length + self._dash_offset)
+
+        vertices[x+1].s0 = tex_x
+        vertices[x+1].t0 = 0
         indices[x+1] = x + 1
 
-        self.batch.set_data(vertices, self._segments + 1, indices,
+        self.batch.set_data(
+                vertices,
+                self._segments + 1,
+                indices,
                 self._segments + 1)
 
         free(vertices)
@@ -171,6 +314,8 @@ cdef class Bezier(VertexInstruction):
             return self._points
         def __set__(self, points):
             self._points = list(points)
+            if self._loop:
+                self._points.extend(points[:2])
             self.flag_update()
 
     property segments:
@@ -183,6 +328,31 @@ cdef class Bezier(VertexInstruction):
                 raise GraphicException('Invalid segments value, must be >= 2')
             self._segments = value
             self.flag_update()
+
+    property dash_length:
+        '''Property for getting/stting the length of the dashes in the curve
+        '''
+        def __get__(self):
+            return self._dash_length
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_length value, must be >= 0')
+            self._dash_length = value
+            self.flag_update()
+
+    property dash_offset:
+        '''Property for getting/setting the offset between the dashes in the curve
+        '''
+        def __get__(self):
+            return self._dash_offset
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_offset value, must be >= 0')
+            self._dash_offset = value
+            self.flag_update()
+
 
 cdef class Point(VertexInstruction):
     '''A 2d line.
@@ -542,7 +712,7 @@ cdef class BorderImage(Rectangle):
         x = self.x
         y = self.y
         w = self.w
-        h=self.h
+        h = self.h
 
         # width and heigth of texture in pixels, and tex coord space
         cdef float tw, th, tcw, tch

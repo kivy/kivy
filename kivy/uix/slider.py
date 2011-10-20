@@ -4,15 +4,15 @@ Slider
 
 .. image:: images/slider.jpg
 
-The slider is a widget that look like a scrollbar, and support
-horizontal/vertical orientation, minimum/maximum value, and a default value.
+The :class:`Slider` widget looks like a scrollbar. It supports horizontal and
+vertical orientation, min/max and a default value.
 
-For example, create a slider from -100 to 100, default to 25 ::
+To create a slider from -100 to 100 starting at 25 ::
 
     from kivy.uix.slider import Slider
     s = Slider(min=-100, max=100, value=25)
 
-Or for creating a vertical slider ::
+To create a vertical slider ::
 
     from kivy.uix.slider import Slider
     s = Slider(orientation='vertical')

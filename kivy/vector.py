@@ -86,7 +86,7 @@ import math
 
 
 class Vector(list):
-    '''Vector class. See module documentation for more informations
+    '''Vector class. See module documentation for more information.
     '''
 
     def __init__(self, *largs):

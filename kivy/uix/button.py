@@ -5,14 +5,15 @@ Button
 .. image:: images/button.jpg
     :align: right
 
-The button is a :class:`~kivy.uix.label.Label` with an action associated to it
-that is triggered when the button is pressed (or released after a click/touch).
+:class:`Button` is a :class:`~kivy.uix.label.Label` with associated actions that
+are triggered when the button is pressed (or released after a click/touch).
 To configure the button, you can use the same properties that you can use for
 the Label class::
 
     button = Button(text='Hello world', font_size=14)
 
-Attaching a callback when the button is pressed (clicked/touched) ::
+To attach a callback when the button is pressed (clicked/touched), use 
+:class:`~kivy.uix.widget.Widget.bind` ::
 
     def callback(instance):
         print 'The button <%s> is being pressed' % instance.text
@@ -50,8 +51,9 @@ class Button(Label):
     '''
 
     state = OptionProperty('normal', options=('normal', 'down'))
-    '''State of the button, can be one of 'normal' or 'down'.
-    By default, the state of the button is 'normal'.
+    '''State of the button, must be one of 'normal' or 'down'.
+    The state is 'down' only when the button is currently touched/clicked,
+    otherwise 'normal'.
 
     :data:`state` is an :class:`~kivy.properties.OptionProperty`.
     '''
@@ -83,6 +85,18 @@ class Button(Label):
 
     :data:`background_down` is an :class:`~kivy.properties.StringProperty`,
     default to 'data/images/button_pressed.png'
+    '''
+
+    border = ListProperty([16, 16, 16, 16])
+    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
+    graphics instruction, used itself for :data:`background_normal` and
+    :data:`background_down`. Can be used when using custom background.
+
+    It must be a list of 4 value: (top, right, bottom, left). Read the
+    BorderImage instruction for more information about how to play with it.
+
+    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
+    16, 16, 16)
     '''
 
     def __init__(self, **kwargs):

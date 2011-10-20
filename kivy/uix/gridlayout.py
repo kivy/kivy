@@ -1,51 +1,48 @@
 '''
-Grid layout
+Grid Layout
 ===========
 
 .. versionadded:: 1.0.4
 
-:class:`GridLayout` arrange widgets in a matrix. It take the space available to
-it, divide in columns and rows, and put widget in it. They are many
-possibilities to use the GridLayout.
+:class:`GridLayout` arranges children in a matrix. It takes the available space
+and divides it in columns and rows, then adds widgets to the resulting "cells".
 
 .. versionadded:: 1.0.7
-    The implementation have changed to use widget size_hint for calculate
-    columns/rows size. `uniform_width` and `uniform_height` have been removed,
+    The implementation has changed to use widget size_hint for calculating
+    column/row sizes. `uniform_width` and `uniform_height` have been removed,
     and others properties have added to give you more control.
 
 Background
 ----------
 
-Unlike other toolkit, you cannot place a widget at a specific column/row. Each
-child is assigned to a column/row from the configuration of the layout and their
-index inside the children list.
+Unlike many other toolkits, you cannot explicitly place a widget at a specific
+column/row. Each child is automatically assigned a position, depending on the
+layout configuration and the child's index in the children list.
 
 A GridLayout must always have at least one restriction: :data:`GridLayout.cols`
-or :data:`GridLayout.rows`. If you forgot to specify one of them, the Layout
+or :data:`GridLayout.rows`. If you do not specify a restriction, the Layout
 will throw an exception.
 
-Columns width and row heights
------------------------------
+Column width and row height
+---------------------------
 
-The size of each column is determined by the maximum width needed to display the
-whole column in 3 steps (same for rows)
+The column width/row height are determined in 3 steps:
 
-    - The initial size of a column is determined by the
-      :data:`GridLayout.col_default_width` value. It can be customized per
-      column by using :data:`GridLayout.cols_minimum`.
-    - Then, it use the maximum size_hint_x of each widget of the column.  If no
-      widget have size_hint_x, it will use the maximum width of all widgets.
-    - You can avoid to use the widget `size_hint_x` and `width` if you set
-      :data:`GridLayout.col_force_default` to True.
+    - The initial size is given by the :data:`col_default_width` and
+      :data:`row_default_height` properties. To customize the size of a single
+      column or row, use :data:`cols_minimum` or :data:`rows_minimum`
+    - Then the `size_hint_x`/`size_hint_y` of the child are taken into account.
+      If no widgets have a size hint, the maximum size is used for all children
+    - You can force the default size by setting the :data:`col_force_default` 
+      or :data:`row_force_default` property. This will force the layout to 
+      ignore the `width` and `size_hint` properties of children and use the
+      default size.
 
 Usage of GridLayout
 -------------------
 
-Let's start with basic GridLayout. All the widgets will take an equal space
-within the grid. Remember that by default, size_hint is (1, 1) mean a Widget
-take the full size of his parent. In this example,
-:class:`~kivy.uix.button.Button` want to take the full space of the grid.
-However, you have 2 Button per columns and rows::
+In the example below, all widgets will get an equal size. By default, 
+`size_hint` is (1, 1) so a Widget will take the full size of the parent::
 
     layout = GridLayout(cols=2)
     layout.add_widget(Button(text='Hello 1'))
@@ -55,7 +52,7 @@ However, you have 2 Button per columns and rows::
 
 .. image:: images/gridlayout_1.jpg
 
-Now, let's fix the size of Hello button to 100px instead of using size_hint 1::
+Now, let's fix the size of Hello buttons to 100px instead of using size_hint 1::
 
     layout = GridLayout(cols=2)
     layout.add_widget(Button(text='Hello 1', size_hint_x=None, width=100))
@@ -80,8 +77,10 @@ Next, let's fix the row height to a specific size::
 __all__ = ('GridLayout', 'GridLayoutException')
 
 from kivy.clock import Clock
+from kivy.logger import Logger
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, BooleanProperty, DictProperty
+from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
+        BoundedNumericProperty, ReferenceListProperty
 from math import ceil
 
 
@@ -92,11 +91,11 @@ class GridLayoutException(Exception):
 
 
 class GridLayout(Layout):
-    '''Grid layout class. See module documentation for more informations.
+    '''Grid layout class. See module documentation for more information.
     '''
 
     spacing = NumericProperty(0)
-    '''Spacing is the space between each children, in pixels.
+    '''Spacing between widget box and children, in pixels.
 
     :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
@@ -109,14 +108,22 @@ class GridLayout(Layout):
     0.
     '''
 
-    cols = NumericProperty(None)
+    cols = BoundedNumericProperty(None, min=0, allow_none=True)
     '''Number of columns in the grid
+
+    .. versionadded:: 1.0.8
+        Change from NumericProperty to BoundedNumericProperty. You cannot set a
+        negative value anymore.
 
     :data:`cols` is a :class:`~kivy.properties.NumericProperty`, default to 0.
     '''
 
-    rows = NumericProperty(None)
+    rows = BoundedNumericProperty(None, min=0, allow_none=True)
     '''Number of rows in the grid
+
+    .. versionadded:: 1.0.8
+        Change from NumericProperty to BoundedNumericProperty. You cannot set a
+        negative value anymore.
 
     :data:`rows` is a :class:`~kivy.properties.NumericProperty`, default to 0.
     '''
@@ -140,8 +147,8 @@ class GridLayout(Layout):
     '''
 
     col_force_default = BooleanProperty(False)
-    '''If True, whatever is the width and size_hint_x of the child, the default
-    column width will be used.
+    '''If True, ignore the width and size_hint_x of the child, and use the
+    default column width.
 
     .. versionadded:: 1.0.7
 
@@ -150,8 +157,8 @@ class GridLayout(Layout):
     '''
 
     row_force_default = BooleanProperty(False)
-    '''If True, whatever is the height and size_hint_y of the child, the default
-    row height will be used.
+    '''If True, ignore the height and size_hint_y of the child, and use the
+    default row height.
 
     .. versionadded:: 1.0.7
 
@@ -177,9 +184,36 @@ class GridLayout(Layout):
     to {}
     '''
 
+    minimum_width = NumericProperty(0)
+    '''Minimum width needed to contain all childrens.
+
+    .. versionadded:: 1.0.8
+
+    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty`, default
+    to 0.
+    '''
+
+    minimum_height = NumericProperty(0)
+    '''Minimum height needed to contain all childrens.
+
+    .. versionadded:: 1.0.8
+
+    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`, default
+    to 0.
+    '''
+
+    minimum_size = ReferenceListProperty(minimum_width, minimum_height)
+    '''Minimum size needed to contain all childrens.
+
+    .. versionadded:: 1.0.8
+
+    :data:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:data:`minimum_width`, :data:`minimum_height`) properties.
+    '''
+
     def __init__(self, **kwargs):
         self._cols = self._rows = None
-        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
+        self._trigger_layout = Clock.create_trigger(self.do_layout, -1)
         super(GridLayout, self).__init__(**kwargs)
 
         self.bind(
@@ -187,7 +221,8 @@ class GridLayout(Layout):
             row_default_height = self._trigger_layout,
             col_force_default = self._trigger_layout,
             row_force_default = self._trigger_layout,
-            minimum_size = self._trigger_layout,
+            cols = self._trigger_layout,
+            rows = self._trigger_layout,
             spacing = self._trigger_layout,
             padding = self._trigger_layout,
             children = self._trigger_layout,
@@ -234,6 +269,8 @@ class GridLayout(Layout):
         # if no cols or rows are set, we can't calculate minimum size.
         # the grid must be contrained at least on one side
         if not current_cols and not current_rows:
+            Logger.warning('%r have no cols or rows set, '
+                'layout are not triggered.' % self)
             return None
         if current_cols is None:
             current_cols = int(ceil(len_children / float(current_rows)))
@@ -270,8 +307,6 @@ class GridLayout(Layout):
                 shh = c.size_hint_y
                 w = c.width
                 h = c.height
-                if isinstance(c, Layout):
-                    w, h = c.minimum_size
 
                 # compute minimum size / maximum stretch needed
                 if shw is None:
@@ -304,7 +339,7 @@ class GridLayout(Layout):
         # finally, set the minimum size
         self.minimum_size = (width, height)
 
-    def _do_layout(self, *largs):
+    def do_layout(self, *largs):
         self.update_minimum_size()
         if self._cols is None:
             return
@@ -320,7 +355,6 @@ class GridLayout(Layout):
         padding = self.padding
         spacing = self.spacing
         selfx = self.x
-        selfy = self.y
         selfw = self.width
         selfh = self.height
 
@@ -333,7 +367,7 @@ class GridLayout(Layout):
             cols = self._cols[:]
             cols_sh = self._cols_sh
             cols_weigth = sum([x for x in cols_sh if x])
-            strech_w = max(0, selfw - self.minimum_size[0])
+            strech_w = max(0, selfw - self.minimum_width)
             for index in xrange(len(cols)):
                 # if the col don't have strech information, nothing to do
                 col_stretch = cols_sh[index]
@@ -354,7 +388,7 @@ class GridLayout(Layout):
             rows = self._rows[:]
             rows_sh = self._rows_sh
             rows_weigth = sum([x for x in rows_sh if x])
-            strech_h = max(0, selfh - self.minimum_size[1])
+            strech_h = max(0, selfh - self.minimum_height)
             for index in xrange(len(rows)):
                 # if the row don't have strech information, nothing to do
                 row_stretch = rows_sh[index]

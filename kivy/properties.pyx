@@ -462,15 +462,15 @@ cdef class BoundedNumericProperty(Property):
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
-        s = self.storage['obj']
+        s = obj.__storage[self._name]
         if s['use_min']:
             _min = s['min']
-            if _min and value < _min:
+            if value < _min:
                 raise ValueError('BoundedNumericProperty<%s> is below the '
                                  'minimum bound (%d)' % (self.name, _min))
         if s['use_max']:
             _max = s['max']
-            if _max and value > _max:
+            if value > _max:
                 raise ValueError('BoundedNumericProperty<%s> is above the '
                                  'maximum bound (%d)' % (self.name, _max))
         return True
