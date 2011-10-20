@@ -197,6 +197,8 @@ class ImageLoaderBase(object):
     @property
     def textures(self):
         '''Get the textures list (for mipmapped image or animated image)
+
+        .. versionadded:: 1.0.8
         '''
         if self._textures is None:
             self.populate()
