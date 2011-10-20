@@ -41,11 +41,12 @@ class VKeyboard(Scatter):
     * shift_R
 
     '''
-    target = ObjectProperty(None)
-    callback = ObjectProperty(None)
+    target = ObjectProperty(None, allownone=True)
+    callback = ObjectProperty(None, allownone=True)
     layout = StringProperty(None)
     layout_path = StringProperty(default_layout_path)
     available_layouts = DictProperty({})
+    docked = BooleanProperty(False)
 
     # internal variables
     layout_mode = OptionProperty('normal', options=('normal', 'shift'))
@@ -97,7 +98,7 @@ class VKeyboard(Scatter):
 
         # load the default layout from configuration
         if self.layout is None:
-            self.layout = Config.get('widgets', 'keyboard_layout')
+            self.layout = Config.get('kivy', 'keyboard_layout')
         else:
             # ensure the current layout is found on the available layout
             self._trigger_load_layout()
@@ -149,6 +150,33 @@ class VKeyboard(Scatter):
                 json_content = fd.read()
                 layout = loads(json_content)
             available_layouts[basename] = layout
+
+    def on_docked(self, instance, value):
+        if value:
+            self.setup_dock_mode()
+        else:
+            self.setup_free_mode()
+
+    def setup_dock_mode(self, *largs):
+        self.do_translation = False
+        self.do_rotation = False
+        self.rotation = 0
+        win = self.get_parent_window()
+        scale = win.width / float(self.width)
+        self.scale = scale
+        self.pos = 0, 0
+        win.bind(on_resize=self._update_dock_mode)
+
+    def _update_dock_mode(self, win, *largs):
+        scale = win.width / float(self.width)
+        self.scale = scale
+        self.pos = 0, 0
+
+    def setup_free_mode(self):
+        self.do_translation = True
+        self.do_rotation = True
+        target = self.target
+        self.pos = target.pos
 
     def change_layout(self):
         # XXX implement popup with all available layouts
@@ -296,7 +324,6 @@ class VKeyboard(Scatter):
         # print character
         target = self.target
         print key_data
-        return
 
         if key_data[2] is None:
             target.insert_text(key_data[1])

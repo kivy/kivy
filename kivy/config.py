@@ -49,9 +49,6 @@ Available configuration tokens
         'multi' (one virtual keyboard everytime a widget ask for.)
     `keyboard_layout`: string
         Identifier of the layout to use
-    `keyboard_dock_side`: ('top', 'left', 'right', 'bottom')
-        Keyboard dock side to stick on. It will be used only when the
-        keyboard_mode is set to dock.
 
 :postproc:
 
@@ -374,7 +371,6 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             # add keyboard token
             Config.setdefault('kivy', 'keyboard_mode', '')
             Config.setdefault('kivy', 'keyboard_layout', 'qwerty')
-            Config.setdefault('kivy', 'keyboard_dock_side', 'bottom')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

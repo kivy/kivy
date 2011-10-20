@@ -542,25 +542,25 @@ class WindowBase(EventDispatcher):
         self.single_vkeyboard = True
 
         # the single vkeyboard is always sitting at the same position
-        self.fullscreen_vkeyboard = False
+        self.docked_vkeyboard = False
 
         # all the current vkeyboards
-        self.vkeyboards = {}
-
-        # all the active text inputs that currently need a keyboard (shared or their own)
-        self.vkeyboard_targets = []
+        self._vkeyboards = {}
 
         # depending the os, let's make a better default configuration
         this_os = platform()
         if this_os in ('linux', 'win', 'macosx'):
+            self.allow_vkeyboard = False
             self.single_vkeyboard = True
-            self.fullscreen_vkeyboard = False
+            self.docked_vkeyboard = False
         elif this_os in ('android', 'ios'):
+            self.allow_vkeyboard = True
             self.single_vkeyboard = True
-            self.fullscreen_vkeyboard = True
+            self.docked_vkeyboard = True
         else:
+            self.allow_vkeyboard = True
             self.single_vkeyboard = True
-            self.fullscreen_vkeyboard = False
+            self.docked_vkeyboard = False
 
         # now read the configuration
         mode = Config.get('kivy', 'keyboard_mode')
@@ -573,16 +573,16 @@ class WindowBase(EventDispatcher):
         elif mode == 'dock':
             self.allow_vkeyboard = True
             self.single_vkeyboard = True
-            self.fullscreen_vkeyboard = True
+            self.docked_vkeyboard = True
         elif mode == 'multi':
             self.allow_vkeyboard = True
             self.single_vkeyboard = False
-            self.fullscreen_vkeyboard = False
+            self.docked_vkeyboard = False
 
         Logger.info('Window: virtual keyboard %sallowed, %s, %s' %
                 ('' if self.allow_vkeyboard else 'not ',
                 'single mode' if self.single_vkeyboard else 'multiuser mode',
-                'docked' if self.fullscreen_vkeyboard else 'not docked'))
+                'docked' if self.docked_vkeyboard else 'not docked'))
 
     def request_keyboard(self, callback, target):
         '''.. versionadded:: 1.0.4
@@ -611,22 +611,20 @@ class WindowBase(EventDispatcher):
             if VKeyboard is None:
                 from kivy.uix.vkeyboard import VKeyboard
 
-            if self.single_vkeyboard:
-                key = 'single'
+            key = 'single' if self.single_vkeyboard else target
+            if key not in self._vkeyboards:
+                vkeyboard = VKeyboard()
             else:
-                key = target
-
-            if not key in self._vkeyboards:
-                # no keyboard created, do it now.
-                vkeyboard = VKeyboard(
-                    fullscreen=self.fullscreen_vkeyboard,
-                    target=target, callback=callback)
-            else:
-                # update the new one
                 vkeyboard = self._vkeyboards[key]
-                vkeyboard.target = target
-                vkeyboard.callback = callback
-                vkeyboard.fullscreen_vkeyboard = self.fullscreen_vkeyboard
+
+            vkeyboard.target = target
+            vkeyboard.callback = callback
+            self._vkeyboards[key] = vkeyboard
+            self.add_widget(vkeyboard)
+
+            # only after add, do dock mode
+            vkeyboard.docked = self.docked_vkeyboard
+            return vkeyboard
 
         else:
             self._keyboard_callback = callback
@@ -638,72 +636,24 @@ class WindowBase(EventDispatcher):
         Internal method for widget, to release the real-keyboard. Check
         :func:`request_keyboard` to understand how it works.
         '''
-        if self._keyboard_callback:
+        if self.allow_vkeyboard:
+            key = 'single' if self.single_vkeyboard else target
+            if key not in self._vkeyboards:
+                return
+            vkeyboard = self._vkeyboards[key]
+            callback = vkeyboard.callback
+            if callback:
+                vkeyboard.callback = None
+                callback()
+            vkeyboard.target = None
+            self.remove_widget(vkeyboard)
+        elif self._keyboard_callback:
             # this way will prevent possible recursion.
             callback = self._keyboard_callback
             self._keyboard_callback = None
             callback()
             return True
 
-    def provide_vkeyboard(self, target, callback):
-        '''Provides a widget a vkeyboard, when the widget is asking for it
-        '''
-        vkeyboards = self.vkeyboards
-        # if there is already one keyboard
-        if vkeyboards and self.single_vkeyboard:
-            # we already got a vkeyboard, and we need only one on the screen.
-            # reuse the current one.
-            vkeyboard = self.vkeyboards.values()[0]
-            callback = vkeyboard.callback
-
-            # execute the callback of the current callback to release keyboard
-            vkeyboard.callback = None
-            callback()
-
-            # switch the current keyboard to the new widget
-            vkeyboard.target = target
-            vkeyboard.callback = callback
-            return
-
-        # create a new keyboard
-        l, h = self._size
-        fullscreen = None
-        if self.fullscreen_vkeyboard:
-            fullscreen = True
-        vkeyboard = VKeyboard(fullscreen=fullscreen,
-            target=target, callback=callback)
-        self.vkeyboards[vkeyboard.uid] = vkeyboard
-        self.vkeyboard_targets.append(target)
-
-        # XXX do we need to add the vkeyboard to window, or the parent of widget
-        # or not ? We might have conflict here when inner window will be used ?
-        self.add_widget(self.vkeyboards[vkeyboard.uid])
-
-    def release_vkeyboard(self, target):
-        '''Remove a vkeyboard from the window
-        '''
-        vkeyboards = self.vkeyboards
-        # deactivate target
-        if target in self.vkeyboard_targets:
-            self.vkeyboard_targets.remove(target)
-
-        # find which keyboard is connected to that target
-        vkeyboard = [x for x in vkeyboards.itervalues() if x.target == target]
-        if vkeyboard:
-            vkeyboard = vkeyboard[0]
-            if vkeyboard.callback:
-                callback = vkeyboard.callback
-                vkeyboard.callback = None
-                callback()
-                vkeyboard.callback = callback
-            del vkeyboards[vkeyboard.uid]
-
-        # delete keyboard
-        '''
-        if not ( id == '' or ( self.single_vkeyboard and len( self.vkeyboard_targets ) > 0 ) ):
-            self.remove_widget( self.vkeyboards[id] )
-            del( self.vkeyboards[id] )
-        '''
 
 #: Instance of a :class:`WindowBase` implementation
 Window = core_select_lib('window', (
