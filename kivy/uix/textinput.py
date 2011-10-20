@@ -420,12 +420,16 @@ class TextInput(Widget):
         if not win:
             self._win = win = self.get_root_window()
         if value:
-            win.request_keyboard(self._keyboard_released)
+            instance = win.request_keyboard(self._keyboard_released, self)
+            if instance:
+                # if not instance, it's a system keyboard, do nothing.
+                # otherwise, we have a virtual keyboard !
+                pass
             win.bind(on_key_down=self._window_on_key_down,
                      on_key_up=self._window_on_key_up)
             Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
         else:
-            win.release_keyboard()
+            win.release_keyboard(self)
             win.unbind(on_key_down=self._window_on_key_down,
                      on_key_up=self._window_on_key_up)
             self.cancel_selection()

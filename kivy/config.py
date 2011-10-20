@@ -23,11 +23,13 @@ Change the configuration and save it::
 Available configuration tokens
 ------------------------------
 
-.. versionadded:: 1.0.8
+.. versionchanged:: 1.0.8
 
     * `scroll_timeout`, `scroll_distance` and `scroll_friction` have been added
     * `list_friction`, `list_trigger_distance` and `list_friction_bound` have
       been removed.
+    * `keyboard_type` and `keyboard_layout` have been removed from widget
+    * `keyboard_mode` and `keyboard_layout` have been added to kivy section
 
 
 :kivy:
@@ -40,6 +42,16 @@ Available configuration tokens
         Format string to use for the filename of log file
     `log_enable`: (0, 1)
         Activate file logging
+    `keyboard_mode`: ('', 'system', 'dock', 'multi')
+        Keyboard mode to use. If empty, Kivy will decide for you what is the
+        best for your current platform. Otherwise, you can set one of 'system'
+        (real keyboard), 'dock' (one virtual keyboard docked in a screen side),
+        'multi' (one virtual keyboard everytime a widget ask for.)
+    `keyboard_layout`: string
+        Identifier of the layout to use
+    `keyboard_dock_side`: ('top', 'left', 'right', 'bottom')
+        Keyboard dock side to stick on. It will be used only when the
+        keyboard_mode is set to dock.
 
 :postproc:
 
@@ -136,11 +148,6 @@ Available configuration tokens
         property in :class:`~kivy.uix.scrollview.Scrollview` widget.
         Check the widget documentation for more information.
 
-    `keyboard_type`: (real, virtual)
-        Type of the keyboard to use.
-        If set to `real`, no virtual keyboard will be shown on the screen.
-        You will have to use your hardware keyboard to enter text.
-
 :modules:
 
     You can activate modules with this syntax::
@@ -160,10 +167,10 @@ from os import environ, listdir
 from os.path import exists, join
 from kivy import kivy_home_dir, kivy_config_fn, kivy_data_dir
 from kivy.logger import Logger
-from kivy.utils import OrderedDict, QueryDict
+from kivy.utils import OrderedDict
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 4
+KIVY_CONFIG_VERSION = 5
 
 #: Kivy configuration object
 Config = None
@@ -329,7 +336,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
 
             # default configuration for keyboard repeatition
             Config.setdefault('widgets', 'keyboard_layout', 'qwerty')
-            Config.setdefault('widgets', 'keyboard_type', 'virtual')
+            Config.setdefault('widgets', 'keyboard_type', '')
             Config.setdefault('widgets', 'list_friction', '10')
             Config.setdefault('widgets', 'list_friction_bound', '20')
             Config.setdefault('widgets', 'list_trigger_distance', '5')
@@ -360,7 +367,15 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.remove_option('widgets', 'list_friction_bound')
             Config.remove_option('widgets', 'list_trigger_distance')
 
-        #
+        elif version == 4:
+            Config.remove_option('widgets', 'keyboard_type')
+            Config.remove_option('widgets', 'keyboard_layout')
+
+            # add keyboard token
+            Config.setdefault('kivy', 'keyboard_mode', '')
+            Config.setdefault('kivy', 'keyboard_layout', 'qwerty')
+            Config.setdefault('kivy', 'keyboard_dock_side', 'bottom')
+
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
         #

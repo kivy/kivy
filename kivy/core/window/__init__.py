@@ -19,7 +19,8 @@ from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.utils import platform
 
-from kivy.uix.vkeyboard import VKeyboard
+# late import
+VKeyboard = None
 
 
 class WindowBase(EventDispatcher):
@@ -535,35 +536,62 @@ class WindowBase(EventDispatcher):
         '''Configure how to provide keyboards (virtual or not)
         '''
         # use the device's real keyboard
-        self.allow_vkeyboard = False
+        self.allow_vkeyboard = True
+
         # one single vkeyboard shared between all widgets
         self.single_vkeyboard = True
+
         # the single vkeyboard is always sitting at the same position
         self.fullscreen_vkeyboard = False
+
         # all the current vkeyboards
         self.vkeyboards = {}
+
         # all the active text inputs that currently need a keyboard (shared or their own)
         self.vkeyboard_targets = []
-        # get current os
+
+        # depending the os, let's make a better default configuration
         this_os = platform()
-
-        # check if an hardware keyboard is available
-        self.allow_vkeyboard = True         
-
         if this_os in ('linux', 'win', 'macosx'):
-            # by default, one shared vkeyboard
             self.single_vkeyboard = True
             self.fullscreen_vkeyboard = False
         elif this_os in ('android', 'ios'):
             self.single_vkeyboard = True
             self.fullscreen_vkeyboard = True
-        else: 
-            Logger.info('title: OS was not detected')
+        else:
             self.single_vkeyboard = True
-            self.fullscreen_vkeyboard = False 
+            self.fullscreen_vkeyboard = False
 
-    def request_keyboard(self, callback):
+        # now read the configuration
+        mode = Config.get('kivy', 'keyboard_mode')
+        if mode not in ('', 'system', 'dock', 'multi'):
+            Logger.critical('Window: unknown keyboard mode %r' % mode)
+
+        # adapt mode according to the configuration
+        if mode == 'system':
+            self.allow_vkeyboard = False
+        elif mode == 'dock':
+            self.allow_vkeyboard = True
+            self.single_vkeyboard = True
+            self.fullscreen_vkeyboard = True
+        elif mode == 'multi':
+            self.allow_vkeyboard = True
+            self.single_vkeyboard = False
+            self.fullscreen_vkeyboard = False
+
+        Logger.info('Window: virtual keyboard %sallowed, %s, %s' %
+                ('' if self.allow_vkeyboard else 'not ',
+                'single mode' if self.single_vkeyboard else 'multiuser mode',
+                'docked' if self.fullscreen_vkeyboard else 'not docked'))
+
+    def request_keyboard(self, callback, target):
         '''.. versionadded:: 1.0.4
+
+        .. versionchanged:: 1.0.8
+
+            `target` have been added, and must be the widget source that request
+            the keyboard. If set, the widget must have one method named
+            `on_keyboard_text`, that will be called from the vkeyboard.
 
         Internal method for widget, to request the keyboard. This method is
         not intented to be used by end-user, however, if you want to use the
@@ -573,11 +601,38 @@ class WindowBase(EventDispatcher):
         A widget can request the keyboard, indicating a callback to call
         when the keyboard will be released (or taken by another widget).
         '''
-        self.release_keyboard()
-        self._keyboard_callback = callback
-        return True
+        self.release_keyboard(target)
 
-    def release_keyboard(self):
+        if self.allow_vkeyboard:
+            vkeyboard = None
+
+            # late import
+            global VKeyboard
+            if VKeyboard is None:
+                from kivy.uix.vkeyboard import VKeyboard
+
+            if self.single_vkeyboard:
+                key = 'single'
+            else:
+                key = target
+
+            if not key in self._vkeyboards:
+                # no keyboard created, do it now.
+                vkeyboard = VKeyboard(
+                    fullscreen=self.fullscreen_vkeyboard,
+                    target=target, callback=callback)
+            else:
+                # update the new one
+                vkeyboard = self._vkeyboards[key]
+                vkeyboard.target = target
+                vkeyboard.callback = callback
+                vkeyboard.fullscreen_vkeyboard = self.fullscreen_vkeyboard
+
+        else:
+            self._keyboard_callback = callback
+            return True
+
+    def release_keyboard(self, target=None):
         '''.. versionadded:: 1.0.4
 
         Internal method for widget, to release the real-keyboard. Check
@@ -589,11 +644,11 @@ class WindowBase(EventDispatcher):
             self._keyboard_callback = None
             callback()
             return True
-    
-    def provide_vkeyboard(self, target, callback):    
+
+    def provide_vkeyboard(self, target, callback):
         '''Provides a widget a vkeyboard, when the widget is asking for it
         '''
-        vkeyboards = self.vkeyboards 
+        vkeyboards = self.vkeyboards
         # if there is already one keyboard
         if vkeyboards and self.single_vkeyboard:
             # we already got a vkeyboard, and we need only one on the screen.
@@ -608,7 +663,7 @@ class WindowBase(EventDispatcher):
             # switch the current keyboard to the new widget
             vkeyboard.target = target
             vkeyboard.callback = callback
-            return 
+            return
 
         # create a new keyboard
         l, h = self._size
@@ -629,7 +684,7 @@ class WindowBase(EventDispatcher):
         '''
         vkeyboards = self.vkeyboards
         # deactivate target
-        if target in self.vkeyboard_targets: 
+        if target in self.vkeyboard_targets:
             self.vkeyboard_targets.remove(target)
 
         # find which keyboard is connected to that target
@@ -642,14 +697,13 @@ class WindowBase(EventDispatcher):
                 callback()
                 vkeyboard.callback = callback
             del vkeyboards[vkeyboard.uid]
-                
+
         # delete keyboard
         '''
         if not ( id == '' or ( self.single_vkeyboard and len( self.vkeyboard_targets ) > 0 ) ):
-            self.remove_widget( self.vkeyboards[id] ) 
-            del( self.vkeyboards[id] )  
+            self.remove_widget( self.vkeyboards[id] )
+            del( self.vkeyboards[id] )
         '''
-        
 
 #: Instance of a :class:`WindowBase` implementation
 Window = core_select_lib('window', (

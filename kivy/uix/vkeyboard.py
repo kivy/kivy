@@ -295,6 +295,7 @@ class VKeyboard(Scatter):
         character, b, c, d = key_data
         # print character
         target = self.target
+        print key_data
         return
 
         if key_data[2] is None:
