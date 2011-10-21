@@ -43,6 +43,9 @@ class Keyboard(EventDispatcher):
 
     '''
 
+    #: Keycodes mapping, between str <-> int. Theses keycode are currently taken
+    #: from pygame.key. But when a new provider will be used, it must do the
+    #: translation to theses keycodes too.
     keycodes = {
         # specials keys
         'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 304, 'ctrl': 306,
@@ -52,10 +55,10 @@ class Keyboard(EventDispatcher):
         'screenlock': 145, 'pause': 19,
 
         # a-z keys
-        'q': 97, 'b': 98, 'c': 99, 'q': 100, 'e': 101, 'f': 102, 'g': 103, 'h': 104,
-        'i': 105, 'j': 106, 'k': 107, 'l': 108, 'm': 109, 'n': 110, 'o': 111, 'p': 112,
-        'a': 113, 'r': 114, 's': 115, 't': 116, 'u': 117, 'v': 118, 'z': 119, 'x': 120,
-        'y': 121, 'w': 122,
+        'q': 97, 'b': 98, 'c': 99, 'q': 100, 'e': 101, 'f': 102, 'g': 103,
+        'h': 104, 'i': 105, 'j': 106, 'k': 107, 'l': 108, 'm': 109, 'n': 110,
+        'o': 111, 'p': 112, 'a': 113, 'r': 114, 's': 115, 't': 116, 'u': 117,
+        'v': 118, 'z': 119, 'x': 120, 'y': 121, 'w': 122,
 
         # 0-9 keys
         '0': 48, '1': 49, '2': 50, '3': 51, '4': 52,
@@ -91,9 +94,17 @@ class Keyboard(EventDispatcher):
         self.register_event_type('on_key_down')
         self.register_event_type('on_key_up')
         super(Keyboard, self).__init__()
+
+        #: Window which the keyboard is attached too
         self.window = kwargs.get('window', None)
+
+        #: Callback that will be called when the keyboard is released
         self.callback = kwargs.get('callback', None)
+
+        #: Target that have requested the keyboard
         self.target = kwargs.get('target', None)
+
+        #: VKeyboard widget, if allowed by the configuration
         self.widget = kwargs.get('widget', None)
 
     def on_key_down(self, keycode, text, modifiers):
@@ -103,6 +114,9 @@ class Keyboard(EventDispatcher):
         pass
 
     def release(self):
+        '''Call this method to release the current keyboard.
+        This will ensure that keyboard is not attached to you anymore.
+        '''
         if self.window:
             self.window.release_keyboard(self.target)
 
@@ -115,25 +129,33 @@ class Keyboard(EventDispatcher):
         return self.dispatch('on_key_up', keycode)
 
     def _on_vkeyboard_key_down(self, instance, keycode, text, modifiers):
-        if keycode == None:
+        if keycode is None:
             keycode = text.lower()
         keycode = (self.string_to_keycode(keycode), keycode)
         return self.dispatch('on_key_down', keycode, text, modifiers)
 
     def _on_vkeyboard_key_up(self, instance, keycode, text, modifiers):
-        if keycode == None:
+        if keycode is None:
             keycode = text
         keycode = (self.string_to_keycode(keycode), keycode)
         return self.dispatch('on_key_up', keycode)
 
     def string_to_keycode(self, value):
-        return Keyboard.keycodes.get(value, None)
+        '''Convert a string to a keycode number, according to the
+        :data:`Keyboard.keycodes`. If the value is not found in the keycodes, it
+        will return -1.
+        '''
+        return Keyboard.keycodes.get(value, -1)
 
     def keycode_to_string(self, value):
+        '''Convert a keycode number to a string, according to the
+        :data:`Keyboard.keycodes`. If the value is not found inside the
+        keycodes, it will return ''.
+        '''
         keycodes = Keyboard.keycodes.values()
         if value in keycodes:
             return Keyboard.keycodes.keys()[keycodes.index(value)]
-        return -1
+        return ''
 
 
 class WindowBase(EventDispatcher):
@@ -702,6 +724,14 @@ class WindowBase(EventDispatcher):
                 'single mode' if self.single_vkeyboard else 'multiuser mode',
                 'docked' if self.docked_vkeyboard else 'not docked'))
 
+    def set_vkeyboard_class(self, cls):
+        '''.. versionadded:: 1.0.8
+
+        Set the VKeyboard class to use. If None set, it will use the
+        :class:`kivy.uix.vkeyboard.VKeyboard`.
+        '''
+        self.vkeyboard_cls = cls
+
     def request_keyboard(self, callback, target):
         '''.. versionadded:: 1.0.4
 
@@ -712,6 +742,20 @@ class WindowBase(EventDispatcher):
 
         A widget can request the keyboard, indicating a callback to call
         when the keyboard will be released (or taken by another widget).
+
+        :Parameters:
+            `callback`: func
+                Callback that will be called when the keyboard is closed. It can
+                be because somebody else requested the keyboard, or if the user
+                itself closed it.
+            `target`: Widget
+                Attach the keyboard to the specified target. Ensure you have a
+                target attached if you're using the keyboard in a multi users
+                mode.
+
+        :Return:
+            An instance of :class:`Keyboard`, containing the callback, target,
+            and if configuration allowed it, a VKeyboard instance.
 
         .. versionchanged:: 1.0.8
 
@@ -730,13 +774,14 @@ class WindowBase(EventDispatcher):
 
             # late import
             global VKeyboard
-            if VKeyboard is None:
+            if VKeyboard is None and self.vkeyboard_cls is None:
                 from kivy.uix.vkeyboard import VKeyboard
+                self.vkeyboard_cls = VKeyboard
 
             # if the keyboard doesn't exist, create it.
             key = 'single' if self.single_vkeyboard else target
             if key not in self._keyboards:
-                vkeyboard = VKeyboard()
+                vkeyboard = self.vkeyboard_cls()
                 keyboard = Keyboard(widget=vkeyboard, window=self)
                 vkeyboard.bind(
                     on_key_down=keyboard._on_vkeyboard_key_down,
