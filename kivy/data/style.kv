@@ -41,19 +41,19 @@
             source: 'data/images/slider_cursor.png'
 
 <ProgressBar>:
-	canvas:
-		Color:
-			rgb: 1, 1, 1
-		BorderImage:
-			border: (12, 12, 12, 12)
-			pos: self.x, self.center_y - 12
-			size: self.width, 24
-			source: 'data/images/progressbar_background.png'
-		BorderImage:
-			border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
-			pos: self.x, self.center_y - 12
-			size: self.width * (self.value / float(self.max)), 24
-			source: 'data/images/progressbar.png'
+    canvas:
+        Color:
+            rgb: 1, 1, 1
+        BorderImage:
+            border: (12, 12, 12, 12)
+            pos: self.x, self.center_y - 12
+            size: self.width, 24
+            source: 'data/images/progressbar_background.png'
+        BorderImage:
+            border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
+            pos: self.x, self.center_y - 12
+            size: self.width * (self.value / float(self.max)), 24
+            source: 'data/images/progressbar.png'
 
 <Scatter>:
     canvas.before:
@@ -232,7 +232,7 @@
                 id: stacklayout
                 width: scrollview.width
                 size_hint_y: None
-				height: self.minimum_height
+                height: self.minimum_height
                 spacing: 10
                 padding: 10
 
@@ -339,50 +339,50 @@
 # =============================================================================
 
 [AccordionItemTitle@Label]:
-	text: ctx.title
-	canvas.before:
-		Color:
+    text: ctx.title
+    canvas.before:
+        Color:
             rgb: 1, 1, 1
-		BorderImage:
-			source:
-				ctx.item.background_normal \
-				if ctx.item.collapse \
-				else ctx.item.background_selected
-			pos: self.pos
-			size: self.size
-		PushMatrix
-		Translate:
-			xy: self.center_x, self.center_y
-		Rotate:
-			angle: 90 if ctx.item.orientation == 'horizontal' else 0
-			axis: 0, 0, 1
-		Translate:
-			xy: -self.center_x, -self.center_y
-	canvas.after:
-		PopMatrix
+        BorderImage:
+            source:
+                ctx.item.background_normal \
+                if ctx.item.collapse \
+                else ctx.item.background_selected
+            pos: self.pos
+            size: self.size
+        PushMatrix
+        Translate:
+            xy: self.center_x, self.center_y
+        Rotate:
+            angle: 90 if ctx.item.orientation == 'horizontal' else 0
+            axis: 0, 0, 1
+        Translate:
+            xy: -self.center_x, -self.center_y
+    canvas.after:
+        PopMatrix
 
 
 <AccordionItem>:
-	container: container
-	container_title: container_title
+    container: container
+    container_title: container_title
 
-	BoxLayout:
-		orientation: root.orientation
-		pos: root.pos
-		BoxLayout:
-			size_hint_x: None if root.orientation == 'horizontal' else 1
-			size_hint_y: None if root.orientation == 'vertical' else 1
-			width: root.min_space if root.orientation == 'horizontal' else 100
-			height: root.min_space if root.orientation == 'vertical' else 100
-			id: container_title
+    BoxLayout:
+        orientation: root.orientation
+        pos: root.pos
+        BoxLayout:
+            size_hint_x: None if root.orientation == 'horizontal' else 1
+            size_hint_y: None if root.orientation == 'vertical' else 1
+            width: root.min_space if root.orientation == 'horizontal' else 100
+            height: root.min_space if root.orientation == 'vertical' else 100
+            id: container_title
 
-		StencilView:
-			id: sv
+        StencilView:
+            id: sv
 
-			BoxLayout:
-				id: container
-				pos: sv.pos
-				size: root.content_size
+            BoxLayout:
+                id: container
+                pos: sv.pos
+                size: root.content_size
 
 
 # =============================================================================
@@ -488,6 +488,8 @@
     padding: 5
     row_default_height: 48
     row_force_default: True
+    size_hint_y: None
+    height: self.minimum_height
 
     Label:
         text: root.title
@@ -539,8 +541,14 @@
 
     ScrollView:
         do_scroll_x: False
-        BoxLayout:
-            size_hint_y: None
-            id: content
-            orientation: 'vertical'
-
+        id: sv
+        Scatter:
+            size_hint: None, None
+            size: content.size
+            do_translation: False
+            do_rotation: False
+            do_scale: False
+            StackLayout:
+                id: content
+                height: self.minimum_height
+                width: sv.width
