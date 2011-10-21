@@ -82,12 +82,15 @@ class FileChooserController(FloatLayout):
     The filters are not reset when the path changes, you need to do that
     yourself if you want that. You can use the following patterns:
 
-      Pattern	| Meaning
-      ----------+---------------------------------
-      *	        | matches everything
-      ?	        | matches any single character
-      [seq]	| matches any character in seq
-      [!seq]	| matches any character not in seq
+      ========== =================================
+      Pattern     Meaning
+      ========== =================================
+      \*         matches everything
+      ?          matches any single character
+      [seq]      matches any character in seq
+      [!seq]     matches any character not in seq
+      ========== =================================
+
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -180,7 +183,7 @@ class FileChooserController(FloatLayout):
             if isdir(entry.path):
                 self.open_entry(entry)
             else:
-                self.selection = [entry.path,]
+                self.selection = [entry.path, ]
                 self.dispatch('on_submit', [entry.path], touch)
 
     def open_entry(self, entry):

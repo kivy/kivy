@@ -134,12 +134,37 @@ class ImageLoaderBase(object):
         self._mipmap = kwargs.get('mipmap', False)
         self.keep_data = kwargs.get('keep_data', False)
         self.filename = filename
-        self._texture = None
         self._data = self.load(filename)
+        self._textures = None
 
     def load(self, filename):
         '''Load an image'''
         return None
+
+    def populate(self):
+        self._textures = []
+        Logger.debug('Image: %r, populate to textures (%d)' %
+                (self.filename, len(self._data)))
+
+        for count in xrange(len(self._data)):
+
+            # first, check if a texture with the same name already exist in the
+            # cache
+            uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+            texture = Cache.get('kv.texture', uid)
+
+            # if not create it and append to the cache
+            if texture is None:
+                texture = Texture.create_from_data(
+                        self._data[count], mipmap=self._mipmap)
+                Cache.append('kv.texture', uid, texture)
+
+            # set as our current texture
+            self._textures.append(texture)
+
+            # release data if ask
+            if not self.keep_data:
+                self._data[count].release_data()
 
     @property
     def width(self):
@@ -163,14 +188,21 @@ class ImageLoaderBase(object):
     def texture(self):
         '''Get the image texture (created on the first call)
         '''
-        if self._texture is None:
-            if self._data is None:
-                return None
-            self._texture = Texture.create_from_data(
-                self._data[0], mipmap=self._mipmap)
-            if not self.keep_data:
-                self._data[0].release_data()
-        return self._texture
+        if self._textures is None:
+            self.populate()
+        if self._textures is None:
+            return None
+        return self._textures[0]
+
+    @property
+    def textures(self):
+        '''Get the textures list (for mipmapped image or animated image)
+
+        .. versionadded:: 1.0.8
+        '''
+        if self._textures is None:
+            self.populate()
+        return self._textures
 
 
 class ImageLoader(object):
@@ -317,22 +349,16 @@ class Image(EventDispatcher):
         self._img_iterate()
 
     def _anim(self, *largs):
-        # called on every interval of clock as set by anim_reset
-        uid = '%s|%s|%s' % (self._filename, self._mipmap, self._anim_index)
-        _tex = Cache.get('kv.texture', uid)
-        if _tex:
-            # if not last frame
-            self._texture = _tex
-            self._anim_index += 1
-            # fire a texture update(to be handled by widget/s)
-            self.dispatch('on_texture')
-        else:
-            # Prevent infinite looping in case we set manually an image
-            if self._anim_index == 0:
-                return False
-            # Restart animation from first Frame
+        if not self._image:
+            return
+        textures = self.image.textures
+        if self._anim_index >= len(textures):
+            self.anim_reset(False)
             self._anim_index = 0
-            self._anim()
+        self._texture = self.image.textures[self._anim_index]
+        self.dispatch('on_texture')
+        self._anim_index += 1
+        self._anim_index %= len(self._image.textures)
 
     def anim_reset(self, allow_anim):
         '''Reset an animation if available.
@@ -397,48 +423,14 @@ class Image(EventDispatcher):
         return self._anim_index
 
     def _img_iterate(self, *largs):
-        # Purpose: check if image has sequences then animate
+        if not self.image:
+            return
         self._iteration_done = True
-        imgcount = count = 0
-        if self.image:
-            imgcount = len(self.image._data)
-        # get texture for first image from cache
-        uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
-        _texture = Cache.get('kv.texture', uid)
-        if not _texture:
-            # if texture is not in cache
-            while count < imgcount:
-                # append the sequence of images to cache
-                _texture= Texture.create_from_data(
-                        self.image._data[count], mipmap=self._mipmap)
-                if not self.image.keep_data:
-                    # release excess memory
-                    self.image._data[count].release_data()
-                # Cache texture
-                Cache.append('kv.texture', uid, _texture)
-                count += 1
-                uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
-        else:
-            # texture already in cache for first image
-            # assign texture for non sequenced cached images
-            self._texture = _texture
-            self._size = self.texture.size
-            # check if image has sequence in cache
-            uid = '%s|%s|%s' % (self.filename, self._mipmap, 1)
-            # get texture for second image in sequence
-            _texture_next = Cache.get('kv.texture', uid)
-            if _texture_next:
-                # enable animation (cached sequence img)
-                imgcount = 2
-                _texture = _texture_next
+        imgcount = len(self.image.textures)
         if imgcount > 1:
             self._anim_available = True
-            # image sequence, animate
             self.anim_reset(True)
-            self._texture = _texture
-        # image loaded for the first time
-        if self.image:
-            self.image._texture = self._texture = _texture
+        self._texture = self.image.textures[0]
 
     def on_texture(self, *largs):
         '''This event is fired when the texture reference or content have been
@@ -500,6 +492,7 @@ class Image(EventDispatcher):
             # if we already got a texture, it will be automatically reloaded.
             _texture = Cache.get('kv.texture', uid)
             if _texture:
+                self._texture = _texture
                 return
 
         # if image not already in cache then load
