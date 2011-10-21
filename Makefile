@@ -33,7 +33,7 @@ hook:
 
 test:
 	-rm -rf kivy/tests/build
-	UNITTEST_INTERACTIVE=1 nosetests kivy/tests
+	nosetests kivy/tests
 
 batchtest:
 	-rm -rf kivy/tests/build

@@ -319,12 +319,14 @@ class TreeView(Widget):
 
     def iterate_open_nodes(self, node=None):
         '''Generator to iterate over expanded nodes.
-        Example for get all the node opened::
+        Example for get all the node opened:
+        ::
 
             treeview = TreeView()
             # ... add nodes ...
             for node in treeview.iterate_open_nodes():
                 print node
+
         '''
         if not node:
             node = self.root

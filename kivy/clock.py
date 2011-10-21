@@ -224,9 +224,9 @@ class ClockBase(object):
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
         #: .. versionadded:: 1.0.5
-        #: When a schedule_once is used with -1, you can add a limit on how much
-        #: iteration will be allowed. That is here to prevent too much relayout.
-        # XXX Adjust this value.
+        #:     When a schedule_once is used with -1, you can add a limit on how
+        #:     iteration will be allowed. That is here to prevent too much
+        #:     relayout.
         self.max_iteration = 10
 
     @property
@@ -312,10 +312,11 @@ class ClockBase(object):
     def schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds.
 
-        .. note::
-            .. versionadded:: 1.0.5
+        .. versionchanged:: 1.0.5
+
             If the timeout is -1, the callback will be called before the next
             frame (at :func:`tick_draw`).
+
         '''
         cid = _hash(callback)
         event = ClockEvent(self, False, callback, timeout, self._last_tick, cid)

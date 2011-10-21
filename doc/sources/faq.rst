@@ -1,7 +1,7 @@
 .. _faq:
 
-Frequently Asked Questions
-==========================
+FAQ
+===
 
 There are a number of questions that repeatedly need to be answered.
 The following document tries to answer some of them.
@@ -9,10 +9,10 @@ The following document tries to answer some of them.
 
 
 Technical FAQ
-=============
+-------------
 
 Fatal Python error: (pygame parachute) Segmentation Fault
----------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Most of time, this issue is due to an usage of old graphics driver. Install the
 latest graphics driver available for your graphics card, and it could be ok.
@@ -24,13 +24,13 @@ all the informations you can give about your environment and execution.
 
 
 undefined symbol: glGenerateMipmap
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You might have a too old graphics card. Update your graphics drivers to the
 latest available version, and retry.
 
 ImportError: No module named event
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you use Kivy from our development version, you must compile it before
 using it. In the kivy directory, do::
@@ -38,7 +38,7 @@ using it. In the kivy directory, do::
     make force
 
 Pip installation failed
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Installing Kivy using Pip is not currently supported. Because Pip force the
 usage of setuptools, setuptools hack build_ext to use pyrex for generating .c,
@@ -48,11 +48,37 @@ Cython. (Reference: http://mail.scipy.org/pipermail/nipy-devel/2011-March/005709
 Solution: use `easy_install`, as our documentation said.
 
 
+Android FAQ
+-----------
+
+could not extract public data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This message error can happen in many cases. Ensure that:
+
+* you have a phone with sdcard
+* you are not currently in a "USB Mass Storage" mode
+* you have the permissions to write on sdcard
+
+In case of USB Mass Storage mode error, and if you don't want to keep
+unplugging the device, set the usb option to Power.
+
+Is it possible to have a kiosk app on android 3.0 ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Thomas Hansen have wrote a detailed answer on kivy-users mailing list:
+
+    https://groups.google.com/d/msg/kivy-users/QKoCekAR1c0/yV-85Y_iAwoJ
+
+Basicaly, you need to root de device, remove the SystemUI package, add some
+line on the xml configuration, and you're done.
+
+
 Project FAQ
-===========
+-----------
 
 Why do you use Python? Isn't it slow?
--------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Let us try to give a thorough answer; please bear with us.
 
@@ -109,7 +135,7 @@ some clever optimizations to make your application run smoothly.
 
 
 Does Kivy support Python 3.x?
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 No. Not yet. Python 3 is certainly a good thing; However, it broke
 backwards compatibility (for good reasons) which means that some
@@ -123,7 +149,7 @@ Please note, though, that Python 2.x is still the de facto standard.
 
 
 How is Kivy related to PyMT?
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Our developers are professionals and are pretty savvy in their
 area of expertise. However, before Kivy came around there was (and
@@ -159,7 +185,7 @@ accepted.
 
 
 Do you accept patches?
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, we love patches. In order to ensure a smooth integration of your
 precious changes, however, please make sure to read our contribution
@@ -171,7 +197,7 @@ changes, especially new features.
 
 
 Does the Kivy project participate in Google's Summer of Code 2011?
-------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~---------
 
 Since Google announced that there will be a GSoC 2011 we have had many
 potential students ask whether we would participate.

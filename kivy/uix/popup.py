@@ -163,7 +163,8 @@ class Popup(FloatLayout):
 
     def dismiss(self, *largs, **kwargs):
         '''Close the popup if it's opened. If you really want to close the
-        popup, whatever the on_dismiss event return, you can do like this::
+        popup, whatever the on_dismiss event return, you can do like this:
+        ::
 
             popup = Popup(...)
             popup.dismiss(force=True)

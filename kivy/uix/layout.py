@@ -63,6 +63,12 @@ class Layout(Widget):
             child.__setattr__(prop, kwargs[prop])
 
     def do_layout(self, *largs):
+        '''This function is called when a layout is needed, with by a trigger.
+        If you are doing a new Layout subclass, don't call this function
+        directly, use :prop:`_trigger_layout` instead.
+
+        .. versionadded:: 1.0.8
+        '''
         pass
 
     def add_widget(self, widget, index=0):

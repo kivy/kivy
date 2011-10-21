@@ -465,6 +465,28 @@ class Widget(EventDispatcher):
         '''
         return self.__properties[name].__get__
 
+    def property(self, name):
+        '''Get a property instance from the name.
+
+        .. versionadded:: 1.0.8
+
+        :return: A `~kivy.property.Property` derivated instance corresponding to
+        the name.
+        '''
+        return self.__properties[name]
+
+    def properties(self):
+        '''Return all the properties in that class in a dictionnary of
+        key/property class. Can be used for introspection.
+
+        .. versionadded:: 1.0.8
+        '''
+        p = self.__properties
+        ret = {}
+        for x in self.__dict__['__storage'].keys():
+            ret[x] = p[x]
+        return ret
+
     x = NumericProperty(0)
     '''X position of the widget.
 
