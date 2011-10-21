@@ -25,11 +25,11 @@
         ["*", "*", null, 1],    ["\u23ce", null, "enter", 1.2]
     ],
     "normal_4" : [
-        ["\u21e7", null, "shift_L", 1.5],  ["<", "<", null, 1],    ["w", "w", null, 1],
+        ["\u21e7", null, "shift", 1.5],  ["<", "<", null, 1],    ["w", "w", null, 1],
         ["x", "x", null, 1],
         ["c", "c", null, 1],    ["v", "v", null, 1],    ["b", "b", null, 1],
         ["n", "n", null, 1],    [",", ",", null, 1],    [";", ";", null, 1],
-        [":", ":", null, 1],    ["!", "!", null, 1],    ["\u21e7", null, "shift_R", 2.5]
+        [":", ":", null, 1],    ["!", "!", null, 1],    ["\u21e7", null, "shift", 2.5]
     ],
     "normal_5" : [
         [" ", " ", null, 12], ["\u2b12", null, "layout", 1.5], ["\u2a2f", null, "escape", 1.5]
@@ -56,11 +56,11 @@
         ["\u00b5", "\u00b5", null, 1],    ["\u23ce", null, "enter", 1.2]
     ],
     "shift_4" : [
-        ["\u21e7", null, "shift_L", 1.5],  [">", ">", null, 1],    ["W", "W", null, 1],
+        ["\u21e7", null, "shift", 1.5],  [">", ">", null, 1],    ["W", "W", null, 1],
         ["X", "X", null, 1],    ["C", "C", null, 1],    ["V", "V", null, 1],
         ["B", "B", null, 1],    ["N", "N", null, 1],    ["?", "?", null, 1],
         [".", ".", null, 1],    ["/", "/", null, 1],    ["\u00a7", "\u00a7", null, 1],
-        ["\u21e7", null, "shift_R", 2.5]
+        ["\u21e7", null, "shift", 2.5]
     ],
     "shift_5" : [
         [" ", " ", null, 12], ["\u2b12", null, "layout", 1.5], ["\u2a2f", null, "escape", 1.5]

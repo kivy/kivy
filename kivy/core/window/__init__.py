@@ -23,6 +23,103 @@ from kivy.utils import platform
 VKeyboard = None
 
 
+class Keyboard(EventDispatcher):
+
+    keycodes = {
+        # specials keys
+        'backspace': 8, 'tab': 9, 'enter': 13, 'shift': 304, 'ctrl': 306,
+        'capslock': 301, 'escape': 27, 'spacebar': 32, 'pageup': 280,
+        'pagedown': 281, 'end': 279, 'home': 278, 'left': 276, 'up': 273,
+        'right': 275, 'down': 274, 'insert': 277, 'delete': 127, 'numlock': 300,
+        'screenlock': 145, 'pause': 19,
+
+        # a-z keys
+        'q': 97, 'b': 98, 'c': 99, 'q': 100, 'e': 101, 'f': 102, 'g': 103, 'h': 104,
+        'i': 105, 'j': 106, 'k': 107, 'l': 108, 'm': 109, 'n': 110, 'o': 111, 'p': 112,
+        'a': 113, 'r': 114, 's': 115, 't': 116, 'u': 117, 'v': 118, 'z': 119, 'x': 120,
+        'y': 121, 'w': 122,
+
+        # 0-9 keys
+        '0': 48, '1': 49, '2': 50, '3': 51, '4': 52,
+        '5': 53, '6': 54, '7': 55, '8': 56, '9': 57,
+
+        # numpad
+        'numpad0': 256, 'numpad1': 257, 'numpad2': 258, 'numpad3': 259,
+        'numpad4': 260, 'numpad5': 261, 'numpad6': 262, 'numpad7': 263,
+        'numpad8': 264, 'numpad9': 264, 'numpadmul': 265, 'numpadadd': 266,
+        'numpadsubtract': 267, 'numpaddecimal': 268, 'numpaddivide': 269,
+
+        # F1-15
+        'f1': 282, 'f2': 283, 'f3': 282, 'f4': 285, 'f5': 286, 'f6': 287,
+        'f7': 288, 'f8': 289, 'f9': 290, 'f10': 291, 'f11': 292, 'f12': 293,
+        'f13': 294, 'f14': 295, 'f15': 296,
+
+        # other keys
+        '(': 40, ')': 41,
+        '[': 91, ']': 93,
+        '{': 91, '}': 93,
+        ':': 59, ';': 59,
+        '=': 43, '+': 43,
+        '-': 41, '_': 41,
+        '/': 47, '?': 47,
+        '`': 96, '~': 96,
+        '\\': 92, '|': 92,
+        '"': 34, '\'': 39,
+        ',': 44, '.': 46,
+        '<': 60, '>': 60,
+    }
+
+    def __init__(self, **kwargs):
+        self.register_event_type('on_key_down')
+        self.register_event_type('on_key_up')
+        super(Keyboard, self).__init__()
+        self.window = kwargs.get('window', None)
+        self.callback = kwargs.get('callback', None)
+        self.target = kwargs.get('target', None)
+        self.widget = kwargs.get('widget', None)
+
+    def on_key_down(self, keycode, text, modifiers):
+        pass
+
+    def on_key_up(self, keycode):
+        pass
+
+    def release(self):
+        if self.window:
+            self.window.release_keyboard(self.target)
+
+    def _on_window_key_down(self, instance, keycode, scancode, text, modifiers):
+        keycode = (keycode, self.keycode_to_string(keycode))
+        print keycode, scancode
+        return self.dispatch('on_key_down', keycode, text, modifiers)
+
+    def _on_window_key_up(self, instance, keycode, *largs):
+        keycode = (keycode, self.keycode_to_string(keycode))
+        return self.dispatch('on_key_up', keycode)
+
+    def _on_vkeyboard_key_down(self, instance, keycode, text, modifiers):
+        if keycode == None:
+            keycode = text.lower()
+        keycode = (keycode, self.string_to_keycode(keycode))
+        return self.dispatch('on_key_down', keycode, text, modifiers)
+
+    def _on_vkeyboard_key_up(self, instance, keycode, text, modifiers):
+        if keycode == None:
+            keycode = text
+        keycode = (keycode, self.string_to_keycode(keycode))
+        return self.dispatch('on_key_up', keycode)
+
+    def string_to_keycode(self, value):
+        return Keyboard.keycodes.get(value, None)
+
+    def keycode_to_string(self, value):
+        keycodes = Keyboard.keycodes.values()
+        if value in keycodes:
+            print keycodes.index(value)
+            return Keyboard.keycodes.keys()[keycodes.index(value)]
+        return -1
+
+
 class WindowBase(EventDispatcher):
     '''WindowBase is a abstract window widget, for any window implementation.
 
@@ -82,7 +179,8 @@ class WindowBase(EventDispatcher):
         super(WindowBase, self).__init__()
 
         # init privates
-        self._keyboard_callback = None
+        self._system_keyboard = Keyboard(window=self)
+        self._keyboards = {'system': self._system_keyboard}
         self._modifiers = []
         self._size = (0, 0)
         self._rotation = 0
@@ -107,7 +205,6 @@ class WindowBase(EventDispatcher):
 
         self.children = []
         self.parent = self
-        #self.visible = True
 
         # add view
         if 'view' in kwargs:
@@ -166,7 +263,7 @@ class WindowBase(EventDispatcher):
         EventLoop.add_event_listener(self)
 
         # manage keyboard(s)
-        self.configure_keyboard_provider()
+        self.configure_keyboards()
 
         # mark as initialized
         self.__initialized = True
@@ -528,13 +625,19 @@ class WindowBase(EventDispatcher):
         '''Event called when a key is down (same arguments as on_keyboard)'''
         pass
 
-    def on_key_up(self, key, scancode=None, unicode=None):
+    def on_key_up(self, key, scancode=None, unicode=None, modifier=None):
         '''Event called when a key is up (same arguments as on_keyboard)'''
         pass
 
-    def configure_keyboard_provider(self):
-        '''Configure how to provide keyboards (virtual or not)
-        '''
+    def configure_keyboards(self):
+        # Configure how to provide keyboards (virtual or not)
+
+        # register system keyboard to listening keys from window
+        sk = self._system_keyboard
+        self.bind(
+            on_key_down=sk._on_window_key_down,
+            on_key_up=sk._on_window_key_up)
+
         # use the device's real keyboard
         self.allow_vkeyboard = True
 
@@ -545,7 +648,6 @@ class WindowBase(EventDispatcher):
         self.docked_vkeyboard = False
 
         # all the current vkeyboards
-        self._vkeyboards = {}
 
         # depending the os, let's make a better default configuration
         this_os = platform()
@@ -587,12 +689,6 @@ class WindowBase(EventDispatcher):
     def request_keyboard(self, callback, target):
         '''.. versionadded:: 1.0.4
 
-        .. versionchanged:: 1.0.8
-
-            `target` have been added, and must be the widget source that request
-            the keyboard. If set, the widget must have one method named
-            `on_keyboard_text`, that will be called from the vkeyboard.
-
         Internal method for widget, to request the keyboard. This method is
         not intented to be used by end-user, however, if you want to use the
         real-keyboard (not virtual keyboard), you don't want to share it with
@@ -600,36 +696,58 @@ class WindowBase(EventDispatcher):
 
         A widget can request the keyboard, indicating a callback to call
         when the keyboard will be released (or taken by another widget).
+
+        .. versionchanged:: 1.0.8
+
+            `target` have been added, and must be the widget source that request
+            the keyboard. If set, the widget must have one method named
+            `on_keyboard_text`, that will be called from the vkeyboard.
+
         '''
+
+        # release any previous keyboard attached.
         self.release_keyboard(target)
 
+        # if we can use virtual vkeyboard, activate it.
         if self.allow_vkeyboard:
-            vkeyboard = None
+            keyboard = None
 
             # late import
             global VKeyboard
             if VKeyboard is None:
                 from kivy.uix.vkeyboard import VKeyboard
 
+            # if the keyboard doesn't exist, create it.
             key = 'single' if self.single_vkeyboard else target
-            if key not in self._vkeyboards:
+            if key not in self._keyboards:
                 vkeyboard = VKeyboard()
+                keyboard = Keyboard(widget=vkeyboard, window=self)
+                vkeyboard.bind(
+                    on_key_down=keyboard._on_vkeyboard_key_down,
+                    on_key_up=keyboard._on_vkeyboard_key_up)
+                self._keyboards[key] = keyboard
             else:
-                vkeyboard = self._vkeyboards[key]
+                keyboard = self._keyboards[key]
 
-            vkeyboard.target = target
-            vkeyboard.callback = callback
-            self._vkeyboards[key] = vkeyboard
-            self.add_widget(vkeyboard)
+            # configure vkeyboard
+            keyboard.target = target
+            keyboard.callback = callback
+
+            # add to the window
+            self.add_widget(keyboard.widget)
 
             # only after add, do dock mode
-            vkeyboard.docked = self.docked_vkeyboard
-            vkeyboard.setup_mode()
-            return vkeyboard
+            keyboard.widget.docked = self.docked_vkeyboard
+            keyboard.widget.setup_mode()
+
+            # return it.
+            return keyboard
 
         else:
-            self._keyboard_callback = callback
-            return True
+            # system keyboard, just register the callback.
+            self._system_keyboard.callback = callback
+            self._system_keyboard.target = target
+            return self._system_keyboard
 
     def release_keyboard(self, target=None):
         '''.. versionadded:: 1.0.4
@@ -639,19 +757,21 @@ class WindowBase(EventDispatcher):
         '''
         if self.allow_vkeyboard:
             key = 'single' if self.single_vkeyboard else target
-            if key not in self._vkeyboards:
+            if key not in self._keyboards:
                 return
-            vkeyboard = self._vkeyboards[key]
-            callback = vkeyboard.callback
+            keyboard = self._keyboards[key]
+            callback = keyboard.callback
             if callback:
-                vkeyboard.callback = None
+                keyboard.callback = None
                 callback()
-            vkeyboard.target = None
-            self.remove_widget(vkeyboard)
-        elif self._keyboard_callback:
+            keyboard.target = None
+            self.remove_widget(keyboard.widget)
+            if key != 'single':
+                self._keyboards.remove(key)
+        elif self._system_keyboard.callback:
             # this way will prevent possible recursion.
-            callback = self._keyboard_callback
-            self._keyboard_callback = None
+            callback = self._system_keyboard.callback
+            self._system_keyboard.callback = None
             callback()
             return True
 

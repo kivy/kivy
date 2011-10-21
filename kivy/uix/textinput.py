@@ -146,6 +146,7 @@ class TextInput(Widget):
         self._line_spacing = 0
         self._label_cached = None
         self._line_options = None
+        self._keyboard = None
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -420,18 +421,18 @@ class TextInput(Widget):
         if not win:
             self._win = win = self.get_root_window()
         if value:
-            instance = win.request_keyboard(self._keyboard_released, self)
-            if instance:
-                # if not instance, it's a system keyboard, do nothing.
-                # otherwise, we have a virtual keyboard !
-                pass
-            win.bind(on_key_down=self._window_on_key_down,
-                     on_key_up=self._window_on_key_up)
+            keyboard = win.request_keyboard(self._keyboard_released, self)
+            self._keyboard = keyboard
+            keyboard.bind(
+                on_key_down=self._keyboard_on_key_down,
+                on_key_up=self._keyboard_on_key_up)
             Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
         else:
-            win.release_keyboard(self)
-            win.unbind(on_key_down=self._window_on_key_down,
-                     on_key_up=self._window_on_key_up)
+            keyboard = self._keyboard
+            keyboard.unbind(
+                on_key_down=self._keyboard_on_key_down,
+                on_key_up=self._keyboard_on_key_up)
+            keyboard.release()
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
             self._win = None
@@ -797,8 +798,7 @@ class TextInput(Widget):
         if internal_action in ('shift', 'shift_L', 'shift_R'):
             self._update_selection(True)
 
-    def _window_on_key_down(self, window, key, scancode=None, unicode=None,
-                            modifiers=None):
+    def _keyboard_on_key_down(self, window, keycode, text, modifiers):
         global Clipboard
         if Clipboard is None:
             from kivy.core.clipboard import Clipboard
@@ -806,8 +806,9 @@ class TextInput(Widget):
         is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
+        key, key_str = keycode
 
-        if unicode and not key in (self.interesting_keys.keys() + [27]):
+        if text and not key in (self.interesting_keys.keys() + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
                 if key == ord('x'): # cut selection
@@ -827,7 +828,7 @@ class TextInput(Widget):
             else:
                 if self._selection:
                     self.delete_selection()
-                self.insert_text(unicode)
+                self.insert_text(text)
             #self._recalc_size()
             return
 
@@ -843,8 +844,8 @@ class TextInput(Widget):
             key = (None, None, k, 1)
             self._key_down(key)
 
-    def _window_on_key_up(self, window, key, scancode=None, unicode=None,
-                          modifiers=None):
+    def _keyboard_on_key_up(self, window, keycode):
+        key, key_str = keycode
         k = self.interesting_keys.get(key)
         if k:
             key = (None, None, k, 1)

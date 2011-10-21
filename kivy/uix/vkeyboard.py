@@ -2,6 +2,9 @@
 VKeyboard
 =========
 
+.. image:: images/vkeyboard.jpg
+    :align: right
+
 .. versionadded:: 1.0.8
 
 .. warning::
@@ -79,18 +82,6 @@ class VKeyboard(Scatter):
     VKeyboard is an onscreen keyboard with multitouch support.
     Its layout is entirely customizable and you can switch between available
     layouts using a button in the bottom right of the widget.
-
-    List of internal actions available :
-
-    * backspace
-    * capslock
-    * enter
-    * escape
-    * layout (to display layout list)
-    * shift
-    * shift_L
-    * shift_R
-
     '''
 
     target = ObjectProperty(None, allownone=True)
@@ -251,6 +242,8 @@ class VKeyboard(Scatter):
             have_capslock=self._trigger_update_layout_mode,
             layout_path=self._trigger_load_layouts,
             layout=self._trigger_load_layout)
+        self.register_event_type('on_key_down')
+        self.register_event_type('on_key_up')
         super(VKeyboard, self).__init__(**kwargs)
 
         # load all the layouts found in the layout_path directory
@@ -317,14 +310,33 @@ class VKeyboard(Scatter):
             available_layouts[basename] = layout
 
     def setup_mode(self, *largs):
+        '''Call this method when you want to reajust the keyboard according to
+        his options: :data:`docked` or not, with attached :data:`target` or not:
+
+        * If :data:`docked` is True, it will call :meth:`setup_mode_dock`
+        * If :data:`docked` is False, it will call :meth:`setup_mode_free`
+
+        Fell free to overload theses methods in order to create a new
+        positioning behavior.
+        '''
         if self.docked:
             self.setup_mode_dock()
         else:
             self.setup_mode_free()
 
     def setup_mode_dock(self, *largs):
+        '''Setup the keyboard in dock mode.
+
+        Dock mode will reset the rotation, disable translation, rotation and
+        scale. Scale and position will be automatically adjusted to attach the
+        keyboard in the bottom of the screen.
+
+        .. note:: Don't call this method directly, use :meth:`setup_mode`
+        instead.
+        '''
         self.do_translation = False
         self.do_rotation = False
+        self.do_scale = False
         self.rotation = 0
         win = self.get_parent_window()
         scale = win.width / float(self.width)
@@ -338,8 +350,20 @@ class VKeyboard(Scatter):
         self.pos = 0, 0
 
     def setup_mode_free(self):
+        '''Setup the keyboard in free mode.
+
+        Free mode is designed to let the user control the position and
+        orientation of the keyboard. The only real usage is for multi users
+        environment, but you might found others ways to use it.
+        If a :data:`target` is set, it will place the vkeyboard under the
+        target.
+
+        .. note:: Don't call this method directly, use :meth:`setup_mode`
+        instead.
+        '''
         self.do_translation = True
         self.do_rotation = True
+        self.do_scale = True
         target = self.target
         if not target:
             return
@@ -378,7 +402,9 @@ class VKeyboard(Scatter):
         pass
 
     def refresh(self, force=False):
-        # recreate the whole widgets and graphics according to selected layout
+        '''(internal) Recreate the whole widgets and graphics according to the
+        selected layout.
+        '''
         self.clear_widgets()
         if force:
             self.refresh_keys_hint()
@@ -390,7 +416,6 @@ class VKeyboard(Scatter):
 
         active_keys = self.active_keys
         layout_geometry = self.layout_geometry
-        self.background_border = (16, 16, 16, 16)
         background = resource_find(self.key_background_down)
         texture = Image(background, mipmap=True).texture
 
@@ -514,16 +539,11 @@ class VKeyboard(Scatter):
                 self.add_widget(l)
                 key_nb += 1
 
-    def send(self, key_data):
-        character, b, c, d = key_data
-        # print character
-        target = self.target
-        print key_data
+    def on_key_down(self, *largs):
+        pass
 
-        if key_data[2] is None:
-            target.insert_text(key_data[1])
-        else:
-            target._key_down(key_data, repeat=False)
+    def on_key_up(self, *largs):
+        pass
 
     def get_key_at_pos(self, x, y):
         w, h = self.size
@@ -562,25 +582,17 @@ class VKeyboard(Scatter):
 
         return [key, (line_nb, key_index)]
 
-    def touch_is_in_margin(self, x, y):
-        w, h = self.size
+    def collide_margin(self, x, y):
+        '''Do a collision test, and return True if the (x, y) is inside the
+        vkeyboard margin.
+        '''
         mtop, mright, mbottom, mleft = self.margin_hint
-
-        x_hint = x / w
-        y_hint = y/h
-
+        x_hint = x / self.width
+        y_hint = y / self.height
         if x_hint > mleft and x_hint < 1. - mright \
             and y_hint > mbottom and y_hint < 1. - mtop:
             return False
-        else:
-            return True
-
-    def get_local_pos(self, pos):
-        # return self.to_local(pos[0], pos[1])
-        x, y = pos
-        x_widget = self.x
-        y_widget = self.y
-        return (x - x_widget, y - y_widget)
+        return True
 
     def process_key_on(self, touch):
         x, y = self.to_local(*touch.pos)
@@ -596,21 +608,21 @@ class VKeyboard(Scatter):
         ud = touch.ud[self.uid] = {}
         ud['key'] = key
 
-        # send info to the bus
-        if not special_char in ('shift_L', 'shift_R', 'capslock', 'layout'):
-            self.send(key_data)
-
-        uid = touch.uid
-
         # for caps lock or shift only:
+        uid = touch.uid
         if special_char is not None:
             if special_char == 'capslock':
                 self.have_capslock = not self.have_capslock
                 uid = -1
-            elif special_char in ('shift_L', 'shift_R'):
+            elif special_char == 'shift':
                 self.have_shift = True
             elif special_char == 'layout':
                 self.change_layout()
+
+        # send info to the bus
+        b_keycode = special_char
+        b_modifiers = self._get_modifiers()
+        self.dispatch('on_key_down', b_keycode, internal, b_modifiers)
 
         # save key as an active key for drawing
         self.active_keys[uid] = key[1]
@@ -625,16 +637,29 @@ class VKeyboard(Scatter):
         key_data, key = touch.ud[self.uid]['key']
         displayed_char, internal, special_char, size = key_data
 
+        # send info to the bus
+        b_keycode = special_char
+        b_modifiers = self._get_modifiers()
+        self.dispatch('on_key_up', b_keycode, internal, b_modifiers)
+
         if special_char == 'capslock':
             uid = -1
 
         if uid in self.active_keys:
             self.active_keys.pop(uid, None)
-            if special_char in ('shift_L', 'shift_R'):
+            if special_char == 'shift':
                 self.have_shift = False
             if special_char == 'capslock' and self.have_capslock:
                 self.active_keys[-1] = key
             self.refresh_active_keys_layer()
+
+    def _get_modifiers(self):
+        ret = []
+        if self.have_shift:
+            ret.append('shift')
+        if self.have_capslock:
+            ret.append('capslock')
+        return ret
 
     def on_touch_down(self, touch):
         x, y = touch.pos
@@ -642,7 +667,7 @@ class VKeyboard(Scatter):
             return
 
         x, y = self.to_local(x, y)
-        if not self.touch_is_in_margin(x, y):
+        if not self.collide_margin(x, y):
             self.process_key_on(touch)
             touch.grab(self)
         else:
