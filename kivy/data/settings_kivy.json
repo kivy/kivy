@@ -56,6 +56,27 @@
 
 	{
 		"type": "title",
+		"title": "Keyboard"
+	},
+	{
+		"type": "options",
+		"title": "Keyboard mode",
+		"desc": "Activate the usage of Kivy Virtual Keyboard",
+		"section": "kivy",
+		"key": "keyboard_mode",
+		"options": ["system", "dock", "multi"]
+	},
+	{
+		"type": "options",
+		"title": "Keyboard layout",
+		"desc": "Select a layout for virtual keyboard",
+		"section": "kivy",
+		"key": "keyboard_layout",
+		"options": ["qwerty", "azerty"]
+	},
+
+	{
+		"type": "title",
 		"title": "Input post-processing"
 	},
 	{
