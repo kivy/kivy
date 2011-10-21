@@ -223,6 +223,7 @@ class WindowBase(EventDispatcher):
         self._size = (0, 0)
         self._rotation = 0
         self._clearcolor = [0, 0, 0, 0]
+        self._vkeyboard_cls = None
 
         # event subsystem
         self.register_event_type('on_draw')
@@ -730,7 +731,18 @@ class WindowBase(EventDispatcher):
         Set the VKeyboard class to use. If None set, it will use the
         :class:`kivy.uix.vkeyboard.VKeyboard`.
         '''
-        self.vkeyboard_cls = cls
+        self._vkeyboard_cls = cls
+
+    def release_all_keyboards(self):
+        '''.. versionadded:: 1.0.8
+
+        This will ensure that no virtual keyboard / system keyboard are actually
+        requested. All will be closed.
+        '''
+        for key in self._keyboards.keys()[:]:
+            keyboard = self._keyboards[key]
+            if keyboard:
+                keyboard.release()
 
     def request_keyboard(self, callback, target):
         '''.. versionadded:: 1.0.4
@@ -774,14 +786,14 @@ class WindowBase(EventDispatcher):
 
             # late import
             global VKeyboard
-            if VKeyboard is None and self.vkeyboard_cls is None:
+            if VKeyboard is None and self._vkeyboard_cls is None:
                 from kivy.uix.vkeyboard import VKeyboard
-                self.vkeyboard_cls = VKeyboard
+                self._vkeyboard_cls = VKeyboard
 
             # if the keyboard doesn't exist, create it.
             key = 'single' if self.single_vkeyboard else target
             if key not in self._keyboards:
-                vkeyboard = self.vkeyboard_cls()
+                vkeyboard = self._vkeyboard_cls()
                 keyboard = Keyboard(widget=vkeyboard, window=self)
                 vkeyboard.bind(
                     on_key_down=keyboard._on_vkeyboard_key_down,
@@ -791,8 +803,8 @@ class WindowBase(EventDispatcher):
                 keyboard = self._keyboards[key]
 
             # configure vkeyboard
-            keyboard.target = target
-            keyboard.callback = callback
+            keyboard.target = keyboard.widget.target = target
+            keyboard.callback = keyboard.widget.callback = callback
 
             # add to the window
             self.add_widget(keyboard.widget)
@@ -827,8 +839,8 @@ class WindowBase(EventDispatcher):
                 callback()
             keyboard.target = None
             self.remove_widget(keyboard.widget)
-            if key != 'single':
-                self._keyboards.remove(key)
+            if key != 'single' and key in self._keyboards:
+                del self._keyboards[key]
         elif self._system_keyboard.callback:
             # this way will prevent possible recursion.
             callback = self._system_keyboard.callback
