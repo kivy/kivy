@@ -1,0 +1,9 @@
+<AnimatedButton>:
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1)
+        BorderImage:
+            border: root.border if root.border else (16, 16, 16, 16)
+            pos: self.pos
+            size: self.size
+            texture: self.texture_background 
