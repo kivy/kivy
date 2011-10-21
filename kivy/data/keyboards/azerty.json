@@ -1,6 +1,6 @@
 {
     "title" : "Azerty",
-    "descriPTION" : "A French keyboard without international keys",
+    "description" : "A French keyboard without international keys",
     "cols" : 15,
 	"rows": 5,
     "normal_1" : [

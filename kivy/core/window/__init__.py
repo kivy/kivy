@@ -6,7 +6,7 @@ Core class for create the default Kivy window. Kivy support only one window
 creation. Don't try to create more than one.
 '''
 
-__all__ = ('WindowBase', 'Window')
+__all__ = ('Keyboard', 'WindowBase', 'Window')
 
 from os.path import join, exists
 from os import getcwd
@@ -38,7 +38,7 @@ class Keyboard(EventDispatcher):
     Here is an example about how to request a Keyboard, according to the current
     configuration:
 
-    .. include:: ../../../examples/widgets/keyboardlistener.py
+    .. include:: ../../examples/widgets/keyboardlistener.py
         :literal:
 
     '''

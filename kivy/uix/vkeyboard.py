@@ -14,7 +14,7 @@ VKeyboard
 
 VKeyboard is a onscreen keyboard for Kivy. It's made to be transparent to the
 user. Using that widget directly is highly not recommanded. Read the section
-`Request keyboard` first.
+`Request keyboard`_ first.
 
 Modes
 -----
@@ -34,23 +34,69 @@ During that call, the VKeyboard, implemented in top of scatter, will change the
 behavior of the scatter, and position the keyboard near the target (if target
 and dock mode is set.)
 
+
 Layouts
 -------
 
-Virtual keyboard support many layouts. A layout is a JSON file, saved at
-`<kivy_data_dir>/keyboards/<layoutid>.json`.
+Virtual keyboard are able to load custom layouts. If you create a new layout,
+put the json in :file:`<kivy_data_dir>/keyboards/<layoutid>.json`.
+Then you can load it by setting :data:`VKeyboard.layout` to your layoutid.
+
+The JSON must be structured like this::
+
+    {
+        "title": "Title of your layout",
+        "description": "Description of your layout",
+        "cols": 15,
+        "rows": 5,
+
+        ...
+    }
+
+Then, you need to describe keys in each rows, for a "normal" mode, and "shift"
+mode. The keys must be named `normal_<row>` and `shift_<row>`. Replace `row`
+with the row number.
+Inside each row, you will describe the key. A key is a 4 element list in the
+format::
+
+    [ <text displayed on the keyboard>, <text to put when the key is pressed>,
+      <text that represent the keycode>, <size of cols> ]
+
+Here is some example of keys::
+
+    # f key
+    ["f", "f", "f", 1]
+    # capslock
+    ["\u21B9", "\t", "tab", 1.5]
+
+At the end, you can complete the json::
+
+    {
+        ...
+        "normal_1": [
+            ["`", "`", "`", 1],    ["1", "1", "1", 1],    ["2", "2", "2", 1],
+            ["3", "3", "3", 1],    ["4", "4", "4", 1],    ["5", "5", "5", 1],
+            ["6", "6", "6", 1],    ["7", "7", "7", 1],    ["8", "8", "8", 1],
+            ["9", "9", "9", 1],    ["0", "0", "0", 1],    ["+", "+", "+", 1],
+            ["=", "=", "=", 1],    ["\u232b", null, "backspace", 2]
+        ],
+
+        "shift_1": [ ... ],
+        "normal_2": [ ... ],
+        ...
+    }
 
 
 Request keyboard
 ----------------
 
 The instanciation of the Virtual Keyboard is controlled by the configuration.
-Check `keyboard_mode` and `keyboard_layout` in the Configuration.
+Check `keyboard_mode` and `keyboard_layout` in the :doc:`api-kivy.config`.
 
 If you intend to create a widget that require a keyboard, don't use
 directly the virtual keyboard, but prefer to use the best method available on
-the user platform. Check :meth:`~kivy.core.window.Window.request_keyboard`
-method for more information.
+the user platform. Check :meth:`~kivy.core.window.WindowBase.request_keyboard`
+method in the :doc:`api-kivy.core.window`.
 
 '''
 
@@ -113,7 +159,7 @@ class VKeyboard(Scatter):
     '''Path to read layouts from.
 
     :data:`layout` is a :class:`~kivy.properties.StringProperty`, default to
-    `<kivy_data_dir>/keyboards/`
+    :file:`<kivy_data_dir>/keyboards/`
     '''
 
     available_layouts = DictProperty({})
@@ -170,7 +216,7 @@ class VKeyboard(Scatter):
     '''Filename of the background image.
 
     :data:`background` a :class:`~kivy.properties.StringProperty`, default to
-    `data/images/vkeyboard_background.png`.
+    :file:`data/images/vkeyboard_background.png`.
     '''
 
     key_background_color = ListProperty([1, 1, 1, 1])
@@ -186,14 +232,14 @@ class VKeyboard(Scatter):
     '''Filename of the key background image when no touch are on it.
 
     :data:`key_background_normal` a :class:`~kivy.properties.StringProperty`,
-    default to `data/images/vkeyboard_key_normal.png`.
+    default to :file:`data/images/vkeyboard_key_normal.png`.
     '''
 
     key_background_down = StringProperty('data/images/vkeyboard_key_down.png')
     '''Filename of the key background image one touch is on it.
 
     :data:`key_background_down` a :class:`~kivy.properties.StringProperty`,
-    default to `data/images/vkeyboard_key_down.png`.
+    default to :file:`data/images/vkeyboard_key_down.png`.
     '''
 
     background_border = ListProperty([16, 16, 16, 16])
@@ -331,8 +377,8 @@ class VKeyboard(Scatter):
         scale. Scale and position will be automatically adjusted to attach the
         keyboard in the bottom of the screen.
 
-        .. note:: Don't call this method directly, use :meth:`setup_mode`
-        instead.
+        .. note::
+            Don't call this method directly, use :meth:`setup_mode` instead.
         '''
         self.do_translation = False
         self.do_rotation = False
@@ -358,8 +404,8 @@ class VKeyboard(Scatter):
         If a :data:`target` is set, it will place the vkeyboard under the
         target.
 
-        .. note:: Don't call this method directly, use :meth:`setup_mode`
-        instead.
+        .. note::
+            Don't call this method directly, use :meth:`setup_mode` instead.
         '''
         self.do_translation = True
         self.do_rotation = True
