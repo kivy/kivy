@@ -24,6 +24,24 @@ VKeyboard = None
 
 
 class Keyboard(EventDispatcher):
+    '''Keyboard interface, that is returned by
+    :meth:`WindowBase.request_keyboard`. When you request a keyboard, you'll get
+    an instance of this class. Whatever is the keyboard input (system or virtual
+    keyboard), you'll receive event though this instance.
+
+    :Events:
+        `on_key_down`: keycode, text, modifiers
+            Fired when a new key is down
+        `on_key_up`: keycode
+            Fired when a key is up
+
+    Here is an example about how to request a Keyboard, according to the current
+    configuration:
+
+    .. include:: ../../../examples/widgets/keyboardlistener.py
+        :literal:
+
+    '''
 
     keycodes = {
         # specials keys
@@ -90,7 +108,6 @@ class Keyboard(EventDispatcher):
 
     def _on_window_key_down(self, instance, keycode, scancode, text, modifiers):
         keycode = (keycode, self.keycode_to_string(keycode))
-        print keycode, scancode
         return self.dispatch('on_key_down', keycode, text, modifiers)
 
     def _on_window_key_up(self, instance, keycode, *largs):
@@ -100,13 +117,13 @@ class Keyboard(EventDispatcher):
     def _on_vkeyboard_key_down(self, instance, keycode, text, modifiers):
         if keycode == None:
             keycode = text.lower()
-        keycode = (keycode, self.string_to_keycode(keycode))
+        keycode = (self.string_to_keycode(keycode), keycode)
         return self.dispatch('on_key_down', keycode, text, modifiers)
 
     def _on_vkeyboard_key_up(self, instance, keycode, text, modifiers):
         if keycode == None:
             keycode = text
-        keycode = (keycode, self.string_to_keycode(keycode))
+        keycode = (self.string_to_keycode(keycode), keycode)
         return self.dispatch('on_key_up', keycode)
 
     def string_to_keycode(self, value):
@@ -115,7 +132,6 @@ class Keyboard(EventDispatcher):
     def keycode_to_string(self, value):
         keycodes = Keyboard.keycodes.values()
         if value in keycodes:
-            print keycodes.index(value)
             return Keyboard.keycodes.keys()[keycodes.index(value)]
         return -1
 

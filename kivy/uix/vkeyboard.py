@@ -533,7 +533,6 @@ class VKeyboard(Scatter):
             for pos, size in layout_geometry['LINE_%d' % line_nb]:
                 # retrieve the relative text
                 text = layout[layout_mode +'_'+ str(line_nb)][key_nb][0]
-                # print text
                 l = Label(text=text, font_size=font_size, pos=pos, size=size,
                         font_name=self.font_name)
                 self.add_widget(l)
