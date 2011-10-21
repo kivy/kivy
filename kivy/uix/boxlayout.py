@@ -39,7 +39,6 @@ example, we use 10 pixel spacing between children; the first button covers
 
 __all__ = ('BoxLayout', )
 
-from kivy.clock import Clock
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty
 
