@@ -233,6 +233,7 @@ setup(
         'data/images/*.png',
         'data/images/*.jpg',
         'data/images/*.gif',
+        'data/keyboards/*.json',
         'data/logo/*.png',
         'data/glsl/*.png',
         'data/glsl/*.vs',
