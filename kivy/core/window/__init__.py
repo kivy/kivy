@@ -17,7 +17,6 @@ from kivy.logger import Logger
 from kivy.base import EventLoop
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
-from kivy.utils import platform
 
 # late import
 VKeyboard = None
@@ -678,30 +677,13 @@ class WindowBase(EventDispatcher):
             on_key_up=sk._on_window_key_up)
 
         # use the device's real keyboard
-        self.allow_vkeyboard = True
+        self.allow_vkeyboard = False
 
         # one single vkeyboard shared between all widgets
         self.single_vkeyboard = True
 
         # the single vkeyboard is always sitting at the same position
         self.docked_vkeyboard = False
-
-        # all the current vkeyboards
-
-        # depending the os, let's make a better default configuration
-        this_os = platform()
-        if this_os in ('linux', 'win', 'macosx'):
-            self.allow_vkeyboard = False
-            self.single_vkeyboard = True
-            self.docked_vkeyboard = False
-        elif this_os in ('android', 'ios'):
-            self.allow_vkeyboard = True
-            self.single_vkeyboard = True
-            self.docked_vkeyboard = True
-        else:
-            self.allow_vkeyboard = True
-            self.single_vkeyboard = True
-            self.docked_vkeyboard = False
 
         # now read the configuration
         mode = Config.get('kivy', 'keyboard_mode')
@@ -711,6 +693,8 @@ class WindowBase(EventDispatcher):
         # adapt mode according to the configuration
         if mode == 'system':
             self.allow_vkeyboard = False
+            self.single_vkeyboard = True
+            self.docked_vkeyboard = False
         elif mode == 'dock':
             self.allow_vkeyboard = True
             self.single_vkeyboard = True
