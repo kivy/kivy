@@ -1,0 +1,28 @@
+#:kivy 1.0
+#:import kivy kivy
+
+<AudioBackground>:
+    canvas:
+        Color:
+            rgb: 1, 1, 1
+        Rectangle:
+            source: 'data/images/background.jpg'
+            size: self.size
+
+    BoxLayout:
+        padding: 10
+        spacing: 10
+        size_hint: 1, None
+        pos_hint: {'top': 1}
+        height: 44
+        Image:
+            size_hint: None, None
+            size: 24, 24
+            source: 'data/logo/kivy-icon-24.png'
+        Label:
+            height: 24
+            text_size: self.size
+            color: (1, 1, 1, .8)
+            text: 'Kivy %s - Audio sample' % kivy.__version__
+			valign: 'middle'
+
