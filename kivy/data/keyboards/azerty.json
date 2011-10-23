@@ -1,0 +1,68 @@
+{
+    "title" : "Azerty",
+    "description" : "A French keyboard without international keys",
+    "cols" : 15,
+	"rows": 5,
+    "normal_1" : [
+        ["@", "@", null, 1],    ["&", "&", null, 1],    ["\u00e9", "\u00e9", null, 1],
+        ["'", "'", null, 1],    ["\"", "\"", null, 1],  ["[", "[", null, 1],
+        ["-", "-", null, 1],    ["\u00e8", "\u00e8", null, 1],    ["_", "_", null, 1],
+        ["\u00e7", "\u00e7", null, 1],    ["\u00e0", "\u00e0", null, 1],    ["]", "]", null, 1],
+        ["=", "=", null, 1],    ["\u232b", null, "backspace", 2]
+    ],
+    "normal_2" : [
+        ["\u21B9", "\t", null, 1.5],  ["a", "a", null, 1],    ["z", "z", null, 1],
+        ["e", "e", null, 1],    ["r", "r", null, 1],    ["t", "t", null, 1],
+        ["y", "y", null, 1],    ["u", "u", null, 1],    ["i", "i", null, 1],
+        ["o", "o", null, 1],    ["p", "p", null, 1],    ["^", "^", null, 1],
+        ["$", "$", null, 1],    ["\u23ce", null, "enter", 1.5]
+    ],
+    "normal_3" : [
+        ["\u21ea", null, "capslock", 1.8],  ["q", "q", null, 1],    ["s", "s", null, 1],
+        ["d", "d", null, 1],    ["f", "f", null, 1],    ["g", "g", null, 1],
+        ["h", "h", null, 1],    ["j", "j", null, 1],    ["k", "k", null, 1],
+        ["l", "l", null, 1],    ["m", "m", null, 1],    ["\u00f9", "\u00f9", null, 1],
+        ["*", "*", null, 1],    ["\u23ce", null, "enter", 1.2]
+    ],
+    "normal_4" : [
+        ["\u21e7", null, "shift", 1.5],  ["<", "<", null, 1],    ["w", "w", null, 1],
+        ["x", "x", null, 1],
+        ["c", "c", null, 1],    ["v", "v", null, 1],    ["b", "b", null, 1],
+        ["n", "n", null, 1],    [",", ",", null, 1],    [";", ";", null, 1],
+        [":", ":", null, 1],    ["!", "!", null, 1],    ["\u21e7", null, "shift", 2.5]
+    ],
+    "normal_5" : [
+        [" ", " ", null, 12], ["\u2b12", null, "layout", 1.5], ["\u2a2f", null, "escape", 1.5]
+    ],
+    "shift_1" : [
+        ["|", "|", null, 1],    ["1", "1", null, 1],    ["2", "2", null, 1],
+        ["3", "3", null, 1],    ["4", "4", null, 1],    ["5", "5", null, 1],
+        ["6", "6", null, 1],    ["7", "7", null, 1],    ["8", "8", null, 1],
+        ["9", "9", null, 1],    ["0", "0", null, 1],    ["#", "#", null, 1],
+        ["+", "+", null, 1],    ["\u232b", null, "backspace", 2]
+    ],
+    "shift_2" : [
+        ["\u21B9", "\t", null, 1.5],  ["A", "A", null, 1],    ["Z", "Z", null, 1],
+        ["E", "E", null, 1],    ["R", "R", null, 1],    ["T", "T", null, 1],
+        ["Y", "Y", null, 1],    ["U", "U", null, 1],    ["I", "I", null, 1],
+        ["O", "O", null, 1],    ["P", "P", null, 1],    ["[", "[", null, 1],
+        ["]", "]", null, 1],    ["\u23ce", null, "enter", 1.5]
+    ],
+    "shift_3" : [
+        ["\u21ea", null, "capslock", 1.8],  ["Q", "Q", null, 1],    ["S", "S", null, 1],
+        ["D", "D", null, 1],    ["F", "F", null, 1],    ["G", "G", null, 1],
+        ["H", "H", null, 1],    ["J", "J", null, 1],    ["K", "K", null, 1],
+        ["L", "L", null, 1],    ["M", "M", null, 1],    ["%", "%", null, 1],
+        ["\u00b5", "\u00b5", null, 1],    ["\u23ce", null, "enter", 1.2]
+    ],
+    "shift_4" : [
+        ["\u21e7", null, "shift", 1.5],  [">", ">", null, 1],    ["W", "W", null, 1],
+        ["X", "X", null, 1],    ["C", "C", null, 1],    ["V", "V", null, 1],
+        ["B", "B", null, 1],    ["N", "N", null, 1],    ["?", "?", null, 1],
+        [".", ".", null, 1],    ["/", "/", null, 1],    ["\u00a7", "\u00a7", null, 1],
+        ["\u21e7", null, "shift", 2.5]
+    ],
+    "shift_5" : [
+        [" ", " ", null, 12], ["\u2b12", null, "layout", 1.5], ["\u2a2f", null, "escape", 1.5]
+    ]
+}

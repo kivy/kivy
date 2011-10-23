@@ -222,6 +222,10 @@ class WindowPygame(WindowBase):
                     btn = 'right'
                 elif event.button == 2:
                     btn = 'middle'
+                elif event.button == 4:
+                    btn = 'scrolldown'
+                elif event.button == 5:
+                    btn = 'scrollup'
                 eventname = 'on_mouse_down'
                 if event.type == pygame.MOUSEBUTTONUP:
                     eventname = 'on_mouse_up'

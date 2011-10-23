@@ -55,6 +55,8 @@ providers to know if they are other profiles available.
 Profile name   Description
 -------------- ----------------------------------------------------------------
 angle          2D angle. Use property `a`
+button         Mouse button (left, right, middle, scrollup, scrolldown)
+               Use property `button`
 markerid       Marker or Fiducial ID. Use property `fid`
 pos            2D position. Use properties `x`, `y`
 pos3d          3D position. Use properties `x`, `y`, `z`

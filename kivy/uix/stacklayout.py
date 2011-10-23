@@ -4,7 +4,7 @@ Stack Layout
 
 .. versionadded:: 1.0.5
 
-:class:`StackLayout` arranges children vertically or horizontally, as many 
+:class:`StackLayout` arranges children vertically or horizontally, as many
 as the layout can fit.
 
 .. warning:
@@ -55,6 +55,8 @@ class StackLayout(Layout):
     minimum_width = NumericProperty(0)
     '''Minimum width needed to contain all childrens.
 
+    .. versionadded:: 1.0.8
+
     :data:`minimum_width` is a :class:`kivy.properties.NumericProperty`, default
     to 0.
     '''
@@ -62,12 +64,16 @@ class StackLayout(Layout):
     minimum_height = NumericProperty(0)
     '''Minimum height needed to contain all childrens.
 
-    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`, default
-    to 0.
+    .. versionadded:: 1.0.8
+
+    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`,
+    default to 0.
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
     '''Minimum size needed to contain all childrens.
+
+    .. versionadded:: 1.0.8
 
     :data:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`minimum_width`, :data:`minimum_height`) properties.

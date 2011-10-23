@@ -80,7 +80,7 @@ from kivy.clock import Clock
 from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
-        BoundedNumericProperty
+        BoundedNumericProperty, ReferenceListProperty
 from math import ceil
 
 
@@ -184,10 +184,36 @@ class GridLayout(Layout):
     to {}
     '''
 
+    minimum_width = NumericProperty(0)
+    '''Minimum width needed to contain all childrens.
+
+    .. versionadded:: 1.0.8
+
+    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty`, default
+    to 0.
+    '''
+
+    minimum_height = NumericProperty(0)
+    '''Minimum height needed to contain all childrens.
+
+    .. versionadded:: 1.0.8
+
+    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`, default
+    to 0.
+    '''
+
+    minimum_size = ReferenceListProperty(minimum_width, minimum_height)
+    '''Minimum size needed to contain all childrens.
+
+    .. versionadded:: 1.0.8
+
+    :data:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:data:`minimum_width`, :data:`minimum_height`) properties.
+    '''
+
     def __init__(self, **kwargs):
         self._cols = self._rows = None
         self._trigger_layout = Clock.create_trigger(self.do_layout, -1)
-        self._minimum_size = [0, 0]
         super(GridLayout, self).__init__(**kwargs)
 
         self.bind(
@@ -311,7 +337,7 @@ class GridLayout(Layout):
         self._rows_sh = rows_sh
 
         # finally, set the minimum size
-        self._minimum_size = (width, height)
+        self.minimum_size = (width, height)
 
     def do_layout(self, *largs):
         self.update_minimum_size()
@@ -341,7 +367,7 @@ class GridLayout(Layout):
             cols = self._cols[:]
             cols_sh = self._cols_sh
             cols_weigth = sum([x for x in cols_sh if x])
-            strech_w = max(0, selfw - self._minimum_size[0])
+            strech_w = max(0, selfw - self.minimum_width)
             for index in xrange(len(cols)):
                 # if the col don't have strech information, nothing to do
                 col_stretch = cols_sh[index]
@@ -362,7 +388,7 @@ class GridLayout(Layout):
             rows = self._rows[:]
             rows_sh = self._rows_sh
             rows_weigth = sum([x for x in rows_sh if x])
-            strech_h = max(0, selfh - self._minimum_size[1])
+            strech_h = max(0, selfh - self.minimum_height)
             for index in xrange(len(rows)):
                 # if the row don't have strech information, nothing to do
                 row_stretch = rows_sh[index]

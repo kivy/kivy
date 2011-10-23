@@ -42,8 +42,12 @@ class Touchtracer(FloatLayout):
         ud['label'] = Label(size_hint=(None, None))
         self.update_touch_label(ud['label'], touch)
         self.add_widget(ud['label'])
+        touch.grab(self)
+        return True
 
     def on_touch_move(self, touch):
+        if touch.grab_current is not self:
+            return
         ud = touch.ud
         ud['lines'][0].pos = touch.x, 0
         ud['lines'][1].pos = 0, touch.y
@@ -63,6 +67,9 @@ class Touchtracer(FloatLayout):
         self.update_touch_label(ud['label'], touch)
 
     def on_touch_up(self, touch):
+        if touch.grab_current is not self:
+            return
+        touch.ungrab(self)
         ud = touch.ud
         self.canvas.remove_group(ud['group'])
         self.remove_widget(ud['label'])
