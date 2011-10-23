@@ -480,7 +480,7 @@ def precompile_value(name, value):
         # if we don't detect any string/key in it, we can eval and give the
         # result
         if re.search(lang_key, tmp) is None:
-            return (None, eval(value))
+            return (None, eval(value), value)
 
     # ok, we can compile.
     code = compile(value, '<string>', mode)
@@ -491,7 +491,8 @@ def precompile_value(name, value):
     # detect key.value inside value
     kw = re.findall(lang_keyvalue, tmp)
 
-    return (kw, code)
+    return (kw, code, value)
+
 
 class ParserError(Exception):
 
@@ -781,8 +782,10 @@ def custom_callback(*largs, **kwargs):
     args = largs[1:]
     exec value[1]
 
-def create_handler(element, key, value, idmap):
-    kw, value = value
+
+def create_handler(element, key, vd, idmap):
+    kw = vd[0]
+    value = vd[1]
     assert(kw is not None)
 
     # create an handler
@@ -1114,7 +1117,7 @@ class BuilderBase(object):
                     raise ParserError(params['__ctx__'], params['__line__'],
                            'Canvas instruction in template are forbidden')
                 try:
-                    ctx[key] = eval(value[0][1], _eval_globals, self.idmap)
+                    ctx[key] = eval(value[0][2], _eval_globals, self.idmap)
                 except Exception, e:
                     raise ParserError(params['__ctx__'], params['__line__'], e)
             widget = cls(**ctx)
