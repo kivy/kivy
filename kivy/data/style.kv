@@ -226,8 +226,8 @@
             do_rotation: False
             do_scale: False
             do_translation: False
-            size: stacklayout.size
             size_hint_y: None
+            height: stacklayout.height
             StackLayout:
                 id: stacklayout
                 width: scrollview.width
@@ -240,7 +240,6 @@
     locked: False
     path: ctx.path
     selected: self.path in ctx.controller.selection
-    size: (100, 100)
     size_hint: None, None
 
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller.entry_touched(self, args[1])
@@ -249,30 +248,30 @@
         Color:
             rgba: 1, 1, 1, 1 if self.selected else 0
         BorderImage:
-            border: (8, ) * 4
+            border: 8, 8, 8, 8
             pos: root.pos
             size: root.size
             source: 'data/images/filechooser_selected.png'
 
-    BoxLayout:
-        orientation: 'vertical'
-        size: root.size
-        pos: root.pos
-        Widget:
-            height: 20
-        Image:
-            size: (64, ) * 2
-            source: 'data/images/filechooser_%s.png' % ('folder' if ctx.isdir else 'file')
-        Label:
-            text: unicode(ctx.name)
-            text_size: (root.width, self.height)
-            halign: 'center'
-            shorten: True
-        Label:
-            text: unicode(ctx.get_nice_size())
-            font_size: 8
-            color: (0.8, ) * 4
-            halign: 'center'
+	Image:
+		size: 48, 48
+		source: 'data/images/filechooser_%s.png' % ('folder' if ctx.isdir else 'file')
+		pos: root.x + 24, root.y + 40
+	Label:
+		text: unicode(ctx.name)
+		text_size: (root.width, self.height)
+		halign: 'center'
+		shorten: True
+		size: 100, 16
+		pos: root.x, root.y + 16
+
+	Label:
+		text: unicode(ctx.get_nice_size())
+		font_size: 8
+		color: .8, .8, .8, 1
+		size: 100, 16
+		pos: root.pos
+		halign: 'center'
 
 
 # Switch widget

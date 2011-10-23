@@ -270,17 +270,17 @@ class FileChooserController(FloatLayout):
         is_hidden = self.is_hidden
         if not self.show_hidden:
             files = [x for x in files if not is_hidden(x)]
-        for file in files:
+        for fn in files:
 
             def get_nice_size():
                 # Use a closure for lazy-loading here
-                return self.get_nice_size(file)
+                return self.get_nice_size(fn)
 
-            ctx = {'name': basename(file),
+            ctx = {'name': basename(fn),
                    'get_nice_size': get_nice_size,
-                   'path': file,
+                   'path': fn,
                    'controller': self,
-                   'isdir': isdir(file),
+                   'isdir': isdir(fn),
                    'parent': parent,
                    'sep': sep}
             entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
