@@ -447,16 +447,51 @@ import re
 import sys
 from os.path import join
 from copy import copy
-from types import ClassType
+from types import ClassType, CodeType
 from functools import partial
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.utils import OrderedDict, QueryDict
+from kivy.cache import Cache
 from kivy import kivy_data_dir
 
 trace = Logger.trace
 global_idmap = {}
 
+# register cache for creating new classtype (template)
+Cache.register('kv.lang')
+
+# precompile regexp expression
+lang_str = re.compile('([\'"][^\'"]*[\'"])')
+lang_key = re.compile('([a-zA-Z_]+)')
+lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
+
+
+def precompile_value(name, value):
+    # if it's an id, we don't need to compile, the value is the id.
+    if name == 'id':
+        return value
+    # first, remove all the string from the value
+    tmp = re.sub(lang_str, '', value)
+
+    # detecting how to handle the value according to the key name
+    mode = 'exec' if name.startswith('on_') else 'eval'
+    if mode == 'eval':
+        # if we don't detect any string/key in it, we can eval and give the
+        # result
+        if re.search(lang_key, tmp) is None:
+            return (None, eval(value))
+
+    # ok, we can compile.
+    code = compile(value, '<string>', mode)
+
+    # now, detect obj.prop
+    # first, remove all the string from the value
+    tmp = re.sub(lang_str, '', value)
+    # detect key.value inside value
+    kw = re.findall(lang_keyvalue, tmp)
+
+    return (kw, code)
 
 class ParserError(Exception):
 
@@ -686,6 +721,7 @@ class Parser(object):
                         raise ParserError(self, ln, 'Syntax error')
                     value = x[1].strip()
                     if len(value):
+                        value = precompile_value(name, value)
                         current_object[name] = (value, ln, self)
                     else:
                         current_property = name
@@ -743,29 +779,20 @@ def custom_callback(*largs, **kwargs):
     element, key, value, idmap = largs[0]
     locals().update(idmap)
     args = largs[1:]
-    exec value
-
+    exec value[1]
 
 def create_handler(element, key, value, idmap):
-    # first, remove all the string from the value
-    tmp = re.sub('([\'"][^\'"]*[\'"])', '', value)
-
-    # detect key.value inside value
-    kw = re.findall('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)', tmp)
-    if not kw:
-        # look like no reference, just pass it
-        return eval(value, _eval_globals, idmap)
+    kw, value = value
+    assert(kw is not None)
 
     # create an handler
     idmap = copy(idmap)
-
-    c_value = compile(value, '<string>', 'eval')
 
     def call_fn(sender, _value):
         if __debug__:
             trace('Builder: call_fn %s, key=%s, value=%r' % (
                 element, key, value))
-        e_value = eval(c_value, _eval_globals, idmap)
+        e_value = eval(value, _eval_globals, idmap)
         if __debug__:
             trace('Builder: call_fn => value=%r' % (e_value, ))
         setattr(element, key, e_value)
@@ -966,10 +993,15 @@ class BuilderBase(object):
         if not name in self.templates:
             raise Exception('Unknown <%s> template name' % name)
         baseclasses, defs, fn = self.templates[name]
-        rootwidgets = []
-        for basecls in baseclasses.split('+'):
-            rootwidgets.append(Factory.get(basecls))
-        cls = ClassType(name, tuple(rootwidgets), {})
+        name, baseclasses
+        key = '%s|%s' % (name, baseclasses)
+        cls = Cache.get('kv.lang', key)
+        if cls is None:
+            rootwidgets = []
+            for basecls in baseclasses.split('+'):
+                rootwidgets.append(Factory.get(basecls))
+            cls = ClassType(name, tuple(rootwidgets), {})
+            Cache.append('kv.lang', key, cls)
         widget = cls()
         self._push_widgets()
         self._push_ids()
@@ -1045,7 +1077,7 @@ class BuilderBase(object):
                 raise ParserError(params['__ctx__'], params['__line__'],
                                'Rules are not accepted inside widgets')
             no_apply = False
-            if item.startswith('+'):
+            if item[0] == '+':
                 item = item[1:]
                 no_apply = True
 
@@ -1082,7 +1114,7 @@ class BuilderBase(object):
                     raise ParserError(params['__ctx__'], params['__line__'],
                            'Canvas instruction in template are forbidden')
                 try:
-                    ctx[key] = eval(value[0], _eval_globals, self.idmap)
+                    ctx[key] = eval(value[0][1], _eval_globals, self.idmap)
                 except Exception, e:
                     raise ParserError(params['__ctx__'], params['__line__'], e)
             widget = cls(**ctx)
@@ -1169,7 +1201,10 @@ class BuilderBase(object):
                 element, key, value, idmap))})
 
         else:
-            value = create_handler(element, key, value, idmap)
+            if type(value[1]) is CodeType:
+                value = create_handler(element, key, value, idmap)
+            else:
+                value = value[1]
             if __debug__:
                 trace('Builder: set %s=%s for %s' % (key, value, element))
             if is_widget and not hasattr(element, key):
