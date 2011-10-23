@@ -48,8 +48,6 @@ class ImageLoaderGIF(ImageLoaderBase):
         return ('gif', )
 
     def load(self, filename):
-
-        Logger.debug('Image_GIF: Load <%s>' % filename)
         try:
             try:
                 im = GifDecoder(open(filename, 'rb').read())

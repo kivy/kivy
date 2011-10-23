@@ -15,7 +15,6 @@ class ImageLoaderDDS(ImageLoaderBase):
         return ('dds', )
 
     def load(self, filename):
-        Logger.debug('Image: Load <%s>' % filename)
         try:
             dds = DDSFile(filename=filename)
         except:

@@ -75,7 +75,6 @@ class ImageLoaderPIL(ImageLoaderBase):
             pass
 
     def load(self, filename):
-        Logger.debug('ImagePIL: Load <%s>' % filename)
         try:
             im = PILImage.open(filename)
         except:
