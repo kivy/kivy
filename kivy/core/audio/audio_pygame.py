@@ -5,17 +5,21 @@ AudioPygame: implementation of Sound with Pygame
 __all__ = ('SoundPygame', )
 
 from kivy.clock import Clock
+from kivy.utils import platform
 from . import Sound, SoundLoader
 
 try:
-    import pygame
+    if platform() == 'android':
+        import android_mixer as mixer
+    else:
+        import pygame.mixer as mixer
 except:
     raise
 
 # init pygame sound
-pygame.mixer.pre_init(44100, -16, 2, 1024)
-pygame.mixer.init()
-pygame.mixer.set_num_channels(32)
+mixer.pre_init(44100, -16, 2, 1024)
+mixer.init()
+mixer.set_num_channels(32)
 
 
 class SoundPygame(Sound):
@@ -64,7 +68,7 @@ class SoundPygame(Sound):
         self.unload()
         if self.filename is None:
             return
-        self._data = pygame.mixer.Sound(self.filename)
+        self._data = mixer.Sound(self.filename)
 
     def unload(self):
         self.stop()
