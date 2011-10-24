@@ -343,10 +343,7 @@
         Color:
             rgb: 1, 1, 1
         BorderImage:
-            source:
-                ctx.item.background_normal \
-                if ctx.item.collapse \
-                else ctx.item.background_selected
+            source: ctx.item.background_normal if ctx.item.collapse else ctx.item.background_selected
             pos: self.pos
             size: self.size
         PushMatrix

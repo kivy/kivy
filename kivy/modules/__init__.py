@@ -98,11 +98,14 @@ class ModuleBase:
             sys.path.append(path)
         dirs = os.listdir(path)
         for module in dirs:
-            if module[-3:] != '.py' or module == '__init__.py':
+            name, ext = os.path.splitext(module)
+            # accept only python extensions
+            if ext not in ('.py', '.pyo', '.pyc') or name == '__init__':
                 continue
-            module = module[:-3]
-            self.mods[module] = {'name': module, 'activated': False,
-                                 'context': ModuleContext()}
+            self.mods[name] = {
+                'name': name,
+                'activated': False,
+                'context': ModuleContext()}
 
     def list(self):
         '''Return the list of available modules'''

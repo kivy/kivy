@@ -4,11 +4,14 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty
 
+
 class BoundedLabel(Label):
     pass
 
+
 class Selector(FloatLayout):
     app = ObjectProperty(None)
+
 
 class TextAlignApp(App):
 
@@ -32,6 +35,7 @@ class TextAlignApp(App):
 
         if self.grid:
             self.root.remove_widget(self.grid)
+        grid.bind(minimum_size=grid.setter('size'))
         self.grid = grid
         self.root.add_widget(grid)
 

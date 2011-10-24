@@ -143,8 +143,9 @@ class ImageLoaderBase(object):
 
     def populate(self):
         self._textures = []
-        Logger.debug('Image: %r, populate to textures (%d)' %
-                (self.filename, len(self._data)))
+        if __debug__:
+            Logger.trace('Image: %r, populate to textures (%d)' %
+                    (self.filename, len(self._data)))
 
         for count in xrange(len(self._data)):
 
@@ -210,7 +211,7 @@ class ImageLoader(object):
     loaders = []
 
     @staticmethod
-    def zip_loader(_filename, **kwargs):
+    def zip_loader(filename, **kwargs):
         '''Read images from an zip file.
 
         .. versionadded:: 1.0.8
@@ -218,13 +219,12 @@ class ImageLoader(object):
         Returns an Image with a list/array of type ImageData stored in
         Image._data
         '''
-        # Read all images inside
-        z = zipfile.ZipFile(_filename, 'r')
+        # read all images inside the zip
+        z = zipfile.ZipFile(filename, 'r')
         image_data = []
-        #sort filename list
+        # sort filename list
         znamelist = z.namelist()
         znamelist.sort()
-        #for each file in zip
         for zfilename in znamelist:
             try:
                 #read file and store it in mem with fileIO struct around it
@@ -234,24 +234,24 @@ class ImageLoader(object):
                 for loader in ImageLoader.loaders:
                     if ext not in loader.extensions():
                         continue
+                    Logger.debug('Image%s: Load <%s> from <%s>' %
+                            (loader.__name__[11:], zfilename, filename))
                     im = loader(tmpfile, **kwargs)
                     break
                 if im is not None:
-                    #append ImageData to local variable before it's overwritten
+                    # append ImageData to local variable before it's overwritten
                     image_data.append(im._data[0])
                 #else: if not image file skip to next
             except:
                 Logger.warning('Image: Unable to load image' +
                     '<%s> in zip <%s> trying to continue...'
-                    % (zfilename, _filename))
-                #raise# return the data read till now
-                #this should Ideally handle truncated zips
+                    % (zfilename, filename))
         z.close()
         if len(image_data) == 0:
-            raise Exception('no images in zip <%s>' % _filename)
-        #replace Image.Data with the array of all the images in the zip
+            raise Exception('no images in zip <%s>' % filename)
+        # replace Image.Data with the array of all the images in the zip
         im._data = image_data
-        # Done
+        im.filename = filename
         return im
 
     @staticmethod
@@ -273,6 +273,8 @@ class ImageLoader(object):
             for loader in ImageLoader.loaders:
                 if ext not in loader.extensions():
                     continue
+                Logger.debug('Image%s: Load <%s>' %
+                        (loader.__name__[11:], filename))
                 im = loader(filename, **kwargs)
                 break
             if im is None:
@@ -387,6 +389,7 @@ class Image(EventDispatcher):
         Clock.unschedule(self._anim)
         if allow_anim and self._anim_available:
             Clock.schedule_interval(self._anim, self.anim_delay)
+            self._anim()
 
     def _get_anim_delay(self):
         return self._anim_delay
@@ -423,7 +426,7 @@ class Image(EventDispatcher):
         return self._anim_index
 
     def _img_iterate(self, *largs):
-        if not self.image:
+        if not self.image or self._iteration_done:
             return
         self._iteration_done = True
         imgcount = len(self.image.textures)
@@ -476,18 +479,16 @@ class Image(EventDispatcher):
 
         # construct uid as a key for Cache
         uid = '%s|%s|%s' % (self.filename, self._mipmap, 0)
-        keep_data = self._keep_data
 
         # in case of Image have been asked with keep_data
         # check the kv.image cache instead of texture.
-        if keep_data:
-            image = Cache.get('kv.image', uid)
-            if image:
-                # we found an image, yeah ! but reset the texture now.
-                self.image = image
-                self._texture = None
-                self._img_iterate()
-                return
+        image = Cache.get('kv.image', uid)
+        if image:
+            # we found an image, yeah ! but reset the texture now.
+            self.image = image
+            self._texture = None
+            self._img_iterate()
+            return
         else:
             # if we already got a texture, it will be automatically reloaded.
             _texture = Cache.get('kv.texture', uid)
@@ -501,9 +502,9 @@ class Image(EventDispatcher):
                 self._filename, keep_data=self._keep_data,
                 mipmap=self._mipmap)
         self._filename = tmpfilename
+
         # put the image into the cache if needed
-        if keep_data:
-            Cache.append('kv.image', uid, self.image)
+        Cache.append('kv.image', uid, self.image)
 
     filename = property(_get_filename, _set_filename,
             doc='Get/set the filename of image')

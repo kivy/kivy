@@ -101,9 +101,10 @@ following shortcut to compile (does the same as the last command)::
 
     $ make
 
-If you want to modify the Kivy code itself,
-set up the `PYTHONPATH environment variable <http://docs.python.org/tutorial/modules.html#the-module-search-path>`_
-to point at your clone.
+If you want to modify the Kivy code itself, set up the `PYTHONPATH environment
+variable
+<http://docs.python.org/tutorial/modules.html#the-module-search-path>`_ to
+point at your clone.
 This way you don't have to install (``setup.py install``) after every tiny
 modification. Python will instead import Kivy from your clone.
 
@@ -114,3 +115,26 @@ Or, if you don't want to make any changes to Kivy itself, you can also run
 
 If you want to contribute code (patches, new features) to the Kivy
 code base, please read :ref:`contributing`.
+
+Uninstalling Kivy
+~~~~~~~~~~~~~~~~~
+
+If you are mixing multiple Kivy installation, you might be confused where is
+located each Kivy version. Please note that you might need to do it multiple
+time, if you have multiple kivy version installed into python libraries path.
+To found your current installed version, you can write in command line::
+
+    $ python -c 'import kivy; print kivy.__path__'
+
+Then, remove that directory recursively.
+
+If you have installed Kivy with easy_install on linux, the directory can
+contain a "egg" directory. Remove it as well::
+
+    $ python -c 'import kivy; print kivy.__path__'
+    ['/usr/local/lib/python2.7/dist-packages/Kivy-1.0.7-py2.7-linux-x86_64.egg/kivy']
+    $ sudo rm -rf /usr/local/lib/python2.7/dist-packages/Kivy-1.0.7-py2.7-linux-x86_64.egg
+
+If you have installed with apt-get, do::
+
+    $ sudo apt-get remove --purge python-kivy
