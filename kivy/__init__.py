@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.8-dev'
+__version__ = '1.0.8'
 
 import sys
 import shutil
