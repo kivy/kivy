@@ -1,0 +1,28 @@
+<AnimatedButton>:
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1)
+        BorderImage:
+            border: root.border if root.border else (16, 16, 16, 16)
+            pos: self.pos
+            size: self.size
+            texture: self.texture_background
+
+<gifScatter>
+    size: img.texture_size
+    Image:
+        id: img
+        source: 'data/images/busy-stick-figures-animated.gif'
+
+<zipScatter>
+    size: img.texture_size
+    Image:
+        id: img
+        source: 'data/images/RingGreen.zip'
+        anim_delay: .05
+
+<jpgScatter>
+    size: img.texture_size
+    Image:
+        id: img
+        source: 'data/images/ClickHereButton-animated.zip'
