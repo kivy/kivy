@@ -1,3 +1,0 @@
-title=main
-author=seesaw
-orientation=portrait
