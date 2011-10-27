@@ -1,0 +1,56 @@
+<AnimatedButton>:
+    canvas.before:
+        Color:
+            rgb: (1, 1, 1)
+        BorderImage:
+            border: root.border if root.border else (16, 16, 16, 16)
+            pos: self.pos
+            size: self.size
+            texture: self.texture_background
+
+<gifScatter>
+    on_size: self.center = win.Window.center
+    size: imag.size
+    size_hint: None, None
+    Image:
+        id: imag
+        source: 'data/images/busy-stick-figures-animated.gif'
+        on_touch_down: root.parent.parent.parent.currentObj = self
+
+<zipScatter>
+    on_size: self.center = win.Window.center
+    size: imag.size
+    size_hint: None, None
+    Image:
+        id: imag
+        source: 'data/images/RingGreen.zip'
+        anim_delay: 0.05
+        on_touch_down: root.parent.parent.parent.currentObj = self
+
+<jpgScatter>
+    on_size: self.center = win.Window.center
+    size: imag.size
+    size_hint: None, None
+    Image:
+        id: imag
+        source: 'data/images/ClickHereButton-animated.zip'
+        on_touch_down: root.parent.parent.parent.currentObj = self
+
+<Right_Frame>
+    size_hint: (.2, 1)
+    padding: 10
+    cols: 1
+    Label:
+        halign: 'center'
+        text_size: self.size
+        text: root.currentObj.source if root.currentObj else 'click on a Image to change it\'s properties'
+    Label:
+        id: spdlbl
+        halign: 'center'
+        text_size: self.size
+        text: 'Animation speed: %f FPS' %(1/root.currentObj.anim_delay)  if root.currentObj else 'No Image selected'
+    Slider:
+        min:0
+        max: 100 if root.currentObj else 0
+        value: (1/root.currentObj.anim_delay) if root.currentObj else 0
+        on_value: root.on_value(self, args[1], spdlbl)
