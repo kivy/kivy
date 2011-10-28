@@ -130,12 +130,12 @@ class Widget(EventDispatcher):
         return self
 
     def __init__(self, **kwargs):
-        super(Widget, self).__init__()
-
         # Register touch events
         self.register_event_type('on_touch_down')
         self.register_event_type('on_touch_move')
         self.register_event_type('on_touch_up')
+
+        super(Widget, self).__init__()
 
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
