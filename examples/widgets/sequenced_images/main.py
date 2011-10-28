@@ -7,7 +7,6 @@ from kivy.uix.gridlayout import GridLayout
 from uix.custom_button import AnimatedButton
 from kivy.uix.image import Image
 from kivy.uix.scatter import Scatter
-from kivy.uix.stencilview import StencilView
 from kivy.properties import ObjectProperty
 from kivy.core import window
 
@@ -37,7 +36,7 @@ class Right_Frame(GridLayout):
     def on_value(self, *l):
         if self.currentObj:
             if abs(l[1]) <= 0 :
-                self.currentObj.anim_delay = 0
+                self.currentObj.anim_delay = -1
                 l[2].text = 'Animation speed: %f FPS' %0
             else:
                 self.currentObj.anim_delay = 1/l[1]
@@ -58,15 +57,15 @@ class mainclass(FloatLayout):
         self.sign = .10
 
         #setup Layouts
-        layout       = GridLayout( size_hint = (1, 1), cols = 3, rows = 1)
-        left_frame   = GridLayout( size_hint = (.25, 1), cols = 1)
-        client_frame = StencilView( pos_hint = {'top':0, 'right':0})
+        layout            = GridLayout( size_hint = (1, 1), cols = 3, rows = 1)
+        left_frame        = GridLayout( size_hint = (.25, 1), cols = 1)
+        client_frame      = FloatLayout( size_hint = (1, 1))
         self.right_frame  = Right_Frame()
 
         #setup buttons in left frame
-        but_load_gif     = AnimatedButton(text = 'load gif')
-        but_load_zip_png = AnimatedButton(text = 'load zipped\n png/s')
-        but_load_zip_jpg = AnimatedButton(text = 'load zipped\n jpg/s')
+        but_load_gif     = AnimatedButton(text = 'load gif', halign = 'center')
+        but_load_zip_png = AnimatedButton(text = 'load zipped\n png/s', halign = 'center')
+        but_load_zip_jpg = AnimatedButton(text = 'load zipped\n jpg/s', halign = 'center')
         but_animated     = AnimatedButton(text = 'animated button\n'+\
             'made using\nSequenced Images\n press to animate', halign = 'center',\
             background_normal = 'data/images/button_white.png',\
@@ -77,10 +76,10 @@ class mainclass(FloatLayout):
             background_normal = 'data/images/button_white_animated.zip')
         but_animated_borderless = AnimatedButton(text = 'Borderless',\
             background_normal = 'data/images/info.png',\
-            background_down   = 'data/images/info.zip')
+            background_down   = 'data/images/info.zip', halign = 'center')
         but_animated_bordered = AnimatedButton(text = 'With Border',\
             background_normal = 'data/images/info.png',\
-            background_down   = 'data/images/info.zip')
+            background_down   = 'data/images/info.zip', halign = 'center')
 
         #Handle button press/release
         def load_images(*l):
@@ -96,7 +95,7 @@ class mainclass(FloatLayout):
                 l[0].text = 'load zipped\n jpg/s from cache'
                 sctr = jpgScatter()
 
-            client_frame.add_widget(sctr)
+            client_frame.add_widget(sctr, 1)
 
             #position scatter
             sctr.pos = (240 + self.sign, 200+ self.sign )

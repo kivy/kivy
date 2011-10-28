@@ -1,3 +1,4 @@
+# from ki
 <AnimatedButton>:
     canvas.before:
         Color:
@@ -40,6 +41,12 @@
     size_hint: (.2, 1)
     padding: 10
     cols: 1
+    canvas:
+        Color:
+            rgba: .1,.45,.31,.9
+        Rectangle:
+            pos: self.pos
+            size:self.size
     Label:
         halign: 'center'
         text_size: self.size
