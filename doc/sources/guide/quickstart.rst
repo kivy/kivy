@@ -40,7 +40,7 @@ To run the application, follow the instructions for your operating system:
 
     Windows
         Follow the instructions for :ref:`running Kivy application on Windows <windows-run-app>`::
-            
+
             $ python main.py
             # or
             C:\appdir>kivy.bat main.py

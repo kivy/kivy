@@ -28,11 +28,11 @@ if version >= 508 || !exists("did_python_syn_inits")
   else
     command -nargs=+ HiLink hi def link <args>
   endif
-  
+
     HiLink kivyPreproc      PreProc
     HiLink kivyComment      Comment
     HiLink kivyRule         Function
     HiLink kivyIdent        Statement
-    HiLink kivyAttribute    Label 
+    HiLink kivyAttribute    Label
   delcommand HiLink
 endif
