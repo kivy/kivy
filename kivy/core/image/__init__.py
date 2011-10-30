@@ -317,6 +317,9 @@ class Image(EventDispatcher):
                        '_mipmap')
 
     def __init__(self, arg, **kwargs):
+        # this event should be fired on animation of sequenced img's
+        self.register_event_type('on_texture')
+
         super(Image, self).__init__()
 
         self._mipmap = kwargs.get('mipmap', False)
@@ -331,8 +334,6 @@ class Image(EventDispatcher):
         self.anim_delay = kwargs.get('anim_delay', .25)
         # indicator of images having been loded in cache
         self._iteration_done = False
-        # this event should be fired on animation of sequenced img's
-        self.register_event_type('on_texture')
 
         if isinstance(arg, Image):
             for attr in Image.copy_attributes:

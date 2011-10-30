@@ -213,17 +213,6 @@ class WindowBase(EventDispatcher):
         if self.__initialized and not kwargs.get('force'):
             return
 
-        super(WindowBase, self).__init__()
-
-        # init privates
-        self._system_keyboard = Keyboard(window=self)
-        self._keyboards = {'system': self._system_keyboard}
-        self._modifiers = []
-        self._size = (0, 0)
-        self._rotation = 0
-        self._clearcolor = [0, 0, 0, 0]
-        self._vkeyboard_cls = None
-
         # event subsystem
         self.register_event_type('on_draw')
         self.register_event_type('on_flip')
@@ -240,6 +229,17 @@ class WindowBase(EventDispatcher):
         self.register_event_type('on_keyboard')
         self.register_event_type('on_key_down')
         self.register_event_type('on_key_up')
+
+        super(WindowBase, self).__init__()
+
+        # init privates
+        self._system_keyboard = Keyboard(window=self)
+        self._keyboards = {'system': self._system_keyboard}
+        self._modifiers = []
+        self._size = (0, 0)
+        self._rotation = 0
+        self._clearcolor = [0, 0, 0, 0]
+        self._vkeyboard_cls = None
 
         self.children = []
         self.parent = self
