@@ -9,7 +9,7 @@ The :class:`Image` widget is used to display an image. ::
 Asynchronous loading
 --------------------
 
-To load an image asynchronously (for example from an external webserver), use 
+To load an image asynchronously (for example from an external webserver), use
 the :class:`AsyncImage` subclass ::
 
     aimg = AsyncImage(source='http://mywebsite.com/logo.png')
@@ -214,7 +214,7 @@ class Image(Widget):
             return
         self._coreimage.anim_delay = value
         if value < 0:
-            self.anim_reset(False)
+            self._coreimage.anim_reset(False)
 
     def on_texture(self, instance, value):
         if value is not None:
