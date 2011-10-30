@@ -2,7 +2,7 @@
 Animation
 =========
 
-:class:`Animation` and :class:`AnimationTransition` are used to animate 
+:class:`Animation` and :class:`AnimationTransition` are used to animate
 :class:`~kivy.uix.widget.Widget` properties. You must specify (minimum) a
 property name and target value. To use Animation, follow these steps:
 
@@ -17,9 +17,9 @@ where you want the widget positioned at the end of the animation::
 
     anim = Animation(x=100, y=100)
     anim.start(widget)
-    
-The animation will last for 1 second unless :data:`duration` is specified. 
-When anim.start() is called, the Widget will move smoothly from the current 
+
+The animation will last for 1 second unless :data:`duration` is specified.
+When anim.start() is called, the Widget will move smoothly from the current
 x/y position to (100, 100).
 
 Multiple properties and transitions
@@ -39,7 +39,7 @@ Sequential animation
 --------------------
 
 To join animations sequentially, use the '+' operator. The following example
-will animate to x=50 over 1 second, then animate size to (80, 80) over the 
+will animate to x=50 over 1 second, then animate size to (80, 80) over the
 next two seconds::
 
     anim = Animation(x=50) + Animation(size=(80, 80), duration=2.)
@@ -88,12 +88,12 @@ class Animation(EventDispatcher):
     _instances = set()
 
     def __init__(self, **kw):
-        super(Animation, self).__init__()
-
         # Register events
         self.register_event_type('on_start')
         self.register_event_type('on_progress')
         self.register_event_type('on_complete')
+
+        super(Animation, self).__init__(**kw)
 
         # Initialize
         self._clock_installed = False
@@ -103,7 +103,7 @@ class Animation(EventDispatcher):
             self._transition = getattr(AnimationTransition, self._transition)
         for key in ('d', 't', 'duration', 'transition'):
             kw.pop(key, None)
-        self._properties = kw
+        self._animated_properties = kw
         self._widgets = {}
 
     @property
@@ -119,10 +119,10 @@ class Animation(EventDispatcher):
         return self._transition
 
     @property
-    def properties(self):
+    def animated_animated_properties(self):
         '''Return the properties used to animate
         '''
-        return self._properties
+        return self._animated_properties
 
     @staticmethod
     def stop_all(widget, *largs):
@@ -193,7 +193,7 @@ class Animation(EventDispatcher):
 
         # get current values
         p = d['properties']
-        for key, value in self._properties.iteritems():
+        for key, value in self._animated_properties.iteritems():
             p[key] = (getattr(widget, key), value)
 
         # install clock
