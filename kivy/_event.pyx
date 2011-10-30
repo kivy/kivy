@@ -33,7 +33,7 @@ cdef class EventDispatcher(object):
     cdef dict __event_stack
     cdef dict __properties
 
-    def __cinit__(self, **kwargs):
+    def __cinit__(self, *largs, **kwargs):
         global widget_uid, cache_properties
         cdef dict widget_dict = self.__dict__
         cdef dict cp = cache_properties
@@ -158,7 +158,7 @@ cdef class EventDispatcher(object):
             self.bind(on_press=self.my_press_callback)
         '''
         for key, value in kwargs.iteritems():
-            if key[3:] == 'on_':
+            if key[:3] == 'on_':
                 if key not in self.__event_stack:
                     continue
                 # convert the handler to a weak method
@@ -173,7 +173,7 @@ cdef class EventDispatcher(object):
         Same usage as :func:bind().
         '''
         for key, value in kwargs.iteritems():
-            if key[3:] == 'on_':
+            if key[:3] == 'on_':
                 if key not in self.__event_stack:
                     continue
                 # we need to execute weak method to be able to compare
