@@ -612,6 +612,9 @@ class Parser(object):
         # Get object from the first level
         objects, remaining_lines = self.parse_level(0, lines)
 
+        # Precompile values of all objects
+        self.precompile_objects(objects)
+
         # After parsing, there should be no remaining lines
         # or there's an error we did not catch earlier.
         if remaining_lines:
@@ -619,6 +622,18 @@ class Parser(object):
             raise ParserError(self, ln, 'Invalid data (not parsed)')
 
         self.objects = objects
+
+    def precompile_objects(self, objects):
+        for obj in objects:
+            name, properties = obj
+            for key, value in properties.iteritems():
+                if key in ('__line__', '__ctx__', 'id'):
+                    continue
+                if key in ('children', 'canvas', 'canvas.before',
+                        'canvas.after'):
+                    self.precompile_objects(value[0])
+                    continue
+                value[0] = precompile_value(key, value[0])
 
     def parse_version(self, line):
         '''Parse the version line.
@@ -722,8 +737,7 @@ class Parser(object):
                         raise ParserError(self, ln, 'Syntax error')
                     value = x[1].strip()
                     if len(value):
-                        value = precompile_value(name, value)
-                        current_object[name] = (value, ln, self)
+                        current_object[name] = [value, ln, self]
                     else:
                         current_property = name
 
@@ -732,16 +746,16 @@ class Parser(object):
                 if current_property in (
                         'canvas', 'canvas.after', 'canvas.before'):
                     _objects, _lines = self.parse_level(level + 2, lines[i:])
-                    current_object[current_property] = (_objects, ln, self)
+                    current_object[current_property] = [_objects, ln, self]
                     current_property = None
                     lines = _lines
                     i = 0
                 else:
                     if current_property in current_object:
                         info = current_object[current_property]
-                        info = (info[0] + '\n' + content, info[1], info[2])
+                        info[0] += '\n' + content
                     else:
-                        info = (content, ln, self)
+                        info = [content, ln, self]
                     current_object[current_property] = info
 
             # Too much indentation, invalid

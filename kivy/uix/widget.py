@@ -60,13 +60,11 @@ __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, StringProperty, \
-        AliasProperty, ReferenceListProperty, Property, ObjectProperty, \
+        AliasProperty, ReferenceListProperty, ObjectProperty, \
         ListProperty
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
-
-Widget_forbidden_properties = ('touch_down', 'touch_move', 'touch_up')
 
 
 class WidgetException(Exception):
@@ -85,78 +83,29 @@ class Widget(EventDispatcher):
             Fired when an existing touch is moved
         `on_touch_up`:
             Fired when an existing touch disappears
+
+    .. versionchanged::
+
+        In 1.0.9, everything related to properties have been moved in
+        :class:`~kivy.event.EventDispatcher`. Properties can now be used for
+        contruct simple class, without inherit of :class:`Widget`.
+
     '''
 
-    # UID counter
-    __widget_uid = 0
-    __cache_properties = {}
-
-    def __new__(__cls__, *largs, **kwargs):
-        self = super(Widget, __cls__).__new__(__cls__)
-
-        # XXX for the moment, we need to create a uniq id for properties.
-        # Properties need a identifier to the class instance. hash() and id()
-        # are longer than using a custom __uid. I hope we can figure out a way
-        # of doing that without require any python code. :)
-        Widget.__widget_uid += 1
-        self.__dict__['__uid'] = Widget.__widget_uid
-        self.__dict__['__storage'] = {}
-
-        cp = Widget.__cache_properties
-        if __cls__ not in cp:
-            attrs_found = cp[__cls__] = {}
-            attrs = dir(__cls__)
-            for k in attrs:
-                attr = getattr(__cls__, k)
-                if isinstance(attr, Property):
-                    if k in Widget_forbidden_properties:
-                        raise Exception(
-                            'The property <%s> have a forbidden name' % k)
-                    attrs_found[k] = attr
-        else:
-            attrs_found = cp[__cls__]
-
-        # First loop, link all the properties storage to our instance
-        for k, attr in attrs_found.iteritems():
-            attr.link(self, k)
-
-        # Second loop, resolve all the reference
-        for k, attr in attrs_found.iteritems():
-            attr.link_deps(self, k)
-
-        self.__properties = attrs_found
-
-        # Then, return the class instance
-        return self
-
     def __init__(self, **kwargs):
-        super(Widget, self).__init__()
-
         # Register touch events
         self.register_event_type('on_touch_down')
         self.register_event_type('on_touch_move')
         self.register_event_type('on_touch_up')
 
+        super(Widget, self).__init__()
+
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
-
-        # Auto bind on own handler if exist
-        properties = self.__properties.keys()
-        for func in dir(self):
-            if not func.startswith('on_'):
-                continue
-            name = func[3:]
-            if name in properties:
-                self.bind(**{name: getattr(self, func)})
 
         # Create the default canvas if not exist
         if self.canvas is None:
             self.canvas = Canvas()
-
-        # Apply the existing arguments to our widget
-        for key, value in kwargs.iteritems():
-            if key in properties:
-                setattr(self, key, value)
 
         # Apply all the styles
         if '__no_builder' not in kwargs:
@@ -167,36 +116,6 @@ class Widget(EventDispatcher):
                 Builder.idmap['root'] = current_root
             else:
                 Builder.idmap.pop('root')
-
-    def create_property(self, name):
-        '''Create a new property at runtime.
-
-        .. warning::
-
-            This function is designed for the Kivy language, don't use it in
-            your code. You should declare the property in your class instead of
-            using this method.
-
-        :Parameters:
-            `name`: string
-                Name of the property
-
-        The class of the property cannot be specified, it will always be an
-        :class:`~kivy.properties.ObjectProperty` class. The default value of the
-        property will be None, until you set a new value.
-
-        >>> mywidget = Widget()
-        >>> mywidget.create_property('custom')
-        >>> mywidget.custom = True
-        >>> print mywidget.custom
-        True
-        '''
-        prop = ObjectProperty(None)
-        prop.link(self, name)
-        prop.link_deps(self, name)
-        self.__properties[name] = prop
-        setattr(self.__class__, name, prop)
-
 
     #
     # Collision
@@ -283,38 +202,6 @@ class Widget(EventDispatcher):
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
-
-
-    #
-    # Events
-    #
-    def bind(self, **kwargs):
-        '''Bind properties or events to a handler.
-
-        Example usage::
-
-            def my_x_callback(obj, value):
-                print 'on object', obj, 'x changed to', value
-            def my_width_callback(obj, value):
-                print 'on object', obj, 'width changed to', value
-            self.bind(x=my_x_callback, width=my_width_callback)
-        '''
-        super(Widget, self).bind(**kwargs)
-        for key, value in kwargs.iteritems():
-            if key.startswith('on_'):
-                continue
-            self.__properties[key].bind(self, value)
-
-    def unbind(self, **kwargs):
-        '''Unbind properties or events from their handler.
-
-        See :func:`bind()` for more information.
-        '''
-        super(Widget, self).unbind(**kwargs)
-        for key, value in kwargs.iteritems():
-            if key.startswith('on_'):
-                continue
-            self.__properties[key].unbind(self, value)
 
 
     #
@@ -446,46 +333,6 @@ class Widget(EventDispatcher):
             return (x - self.x, y - self.y)
         return (x, y)
 
-
-    #
-    # Properties
-    #
-    def setter(self, name):
-        '''Return the setter of a property. Useful if you want to directly bind
-        a property to another.
-
-        For example, if you want to position one widget next to you ::
-
-            self.bind(right=nextchild.setter('x'))
-        '''
-        return self.__properties[name].__set__
-
-    def getter(self, name):
-        '''Return the getter of a property.
-        '''
-        return self.__properties[name].__get__
-
-    def property(self, name):
-        '''Get a property instance from the name.
-
-        .. versionadded:: 1.0.8
-
-        :return: A `~kivy.property.Property` derivated instance corresponding to
-        the name.
-        '''
-        return self.__properties[name]
-
-    def properties(self):
-        '''Return all the properties in that class in a dictionnary of
-        key/property class. Can be used for introspection.
-
-        .. versionadded:: 1.0.8
-        '''
-        p = self.__properties
-        ret = {}
-        for x in self.__dict__['__storage'].keys():
-            ret[x] = p[x]
-        return ret
 
     x = NumericProperty(0)
     '''X position of the widget.

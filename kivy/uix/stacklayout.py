@@ -128,7 +128,7 @@ class StackLayout(Layout):
                 y -= spacing
                 lc = [c]
                 lh = c.height
-                lw = self.width - padding2 - c.width
+                lw = self.width - padding2 - c.width - spacing
                 x = self.x + padding
 
             if lc:
@@ -164,7 +164,7 @@ class StackLayout(Layout):
                 x -= spacing
                 lc = [c]
                 lw = c.width
-                lh = self.height - padding2 - c.height
+                lh = self.height - padding2 - c.height - spacing
                 y = self.y + padding
 
             if lc:

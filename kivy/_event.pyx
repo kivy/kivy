@@ -5,10 +5,24 @@ Event dispatcher
 All objects that produce events in Kivy implement :class:`EventDispatcher`,
 providing a consistent interface for registering and manipulating event
 handlers.
+
+
+.. versionchanged:: 1.0.9
+
+    Properties discovering and methods have been moved from
+    :class:`~kivy.uix.widget.Widget` to :class:`EventDispatcher`
+
 '''
+
 __all__ = ('EventDispatcher', )
 
+
 from kivy.weakmethod import WeakMethod
+from kivy.properties import Property, ObjectProperty
+
+cdef tuple forbidden_properties = ('touch_down', 'touch_move', 'touch_up')
+cdef int widget_uid = 0
+cdef dict cache_properties = {}
 
 cdef class EventDispatcher(object):
     '''Generic event dispatcher interface
@@ -16,13 +30,65 @@ cdef class EventDispatcher(object):
     See the module docstring for usage.
     '''
 
-    cdef dict event_stack
+    cdef dict __event_stack
+    cdef dict __properties
 
-    def __cinit__(self):
-        self.event_stack = {}
+    def __cinit__(self, **kwargs):
+        global widget_uid, cache_properties
+        cdef dict widget_dict = self.__dict__
+        cdef dict cp = cache_properties
+        cdef dict attrs_found
+        cdef list attrs
+        self.__event_stack = {}
+        __cls__ = self.__class__
 
-    def __init__(self):
+        # XXX for the moment, we need to create a uniq id for properties.
+        # Properties need a identifier to the class instance. hash() and id()
+        # are longer than using a custom __uid. I hope we can figure out a way
+        # of doing that without require any python code. :)
+        widget_uid += 1
+        widget_dict['__uid'] = widget_uid
+        widget_dict['__storage'] = {}
+
+        if __cls__ not in cp:
+            attrs_found = cp[__cls__] = {}
+            attrs = dir(__cls__)
+            for k in attrs:
+                attr = getattr(__cls__, k)
+                if not isinstance(attr, Property):
+                    continue
+                if k in forbidden_properties:
+                    raise Exception('The property <%s> have a forbidden name' % k)
+                attrs_found[k] = attr
+        else:
+            attrs_found = cp[__cls__]
+
+        # First loop, link all the properties storage to our instance
+        for k, attr in attrs_found.iteritems():
+            attr.link(self, k)
+
+        # Second loop, resolve all the reference
+        for k, attr in attrs_found.iteritems():
+            attr.link_deps(self, k)
+
+        self.__properties = attrs_found
+
+    def __init__(self, **kwargs):
         super(EventDispatcher, self).__init__()
+
+        # Auto bind on own handler if exist
+        properties = self.properties()
+        for func in dir(self):
+            if not func.startswith('on_'):
+                continue
+            name = func[3:]
+            if name in properties:
+                self.bind(**{name: getattr(self, func)})
+
+        # Apply the existing arguments to our widget
+        for key, value in kwargs.iteritems():
+            if key in properties:
+                setattr(self, key, value)
 
     cpdef register_event_type(self, str event_type):
         '''Register an event type with the dispatcher.
@@ -60,21 +126,21 @@ cdef class EventDispatcher(object):
                 event_type, self.__class__.__name__))
 
         # Add the event type to the stack
-        if not event_type in self.event_stack:
-            self.event_stack[event_type] = []
+        if not event_type in self.__event_stack:
+            self.__event_stack[event_type] = []
 
     cpdef unregister_event_types(self, str event_type):
         '''Unregister an event type in the dispatcher
         '''
-        if event_type in self.event_stack:
-            del self.event_stack[event_type]
+        if event_type in self.__event_stack:
+            del self.__event_stack[event_type]
 
     def is_event_type(self, str event_type):
         '''Return True if the event_type is already registered.
 
         .. versionadded:: 1.0.4
         '''
-        return event_type in self.event_stack
+        return event_type in self.__event_stack
 
     def bind(self, **kwargs):
         '''Bind an event type or a property to a callback
@@ -92,32 +158,38 @@ cdef class EventDispatcher(object):
             self.bind(on_press=self.my_press_callback)
         '''
         for key, value in kwargs.iteritems():
-            if key not in self.event_stack:
-                continue
-            # convert the handler to a weak method
-            handler = WeakMethod(value)
-            self.event_stack[key].append(handler)
+            if key[3:] == 'on_':
+                if key not in self.__event_stack:
+                    continue
+                # convert the handler to a weak method
+                handler = WeakMethod(value)
+                self.__event_stack[key].append(handler)
+            else:
+                self.__properties[key].bind(self, value)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
 
-        Same usage as bind().
+        Same usage as :func:bind().
         '''
         for key, value in kwargs.iteritems():
-            if key not in self.event_stack:
-                continue
-            # we need to execute weak method to be able to compare
-            for handler in self.event_stack[key]:
-                if handler() != value:
+            if key[3:] == 'on_':
+                if key not in self.__event_stack:
                     continue
-                self.event_stack[key].remove(handler)
-                break
+                # we need to execute weak method to be able to compare
+                for handler in self.__event_stack[key]:
+                    if handler() != value:
+                        continue
+                    self.__event_stack[key].remove(handler)
+                    break
+            else:
+                self.__properties[key].unbind(self, value)
 
     def dispatch(self, str event_type, *largs):
         '''Dispatch an event across all the handler added in bind().
         As soon as a handler return True, the dispatching stop
         '''
-        cdef list event_stack = self.event_stack[event_type]
+        cdef list event_stack = self.__event_stack[event_type]
         cdef object remove = event_stack.remove
         for value in event_stack[:]:
             handler = value()
@@ -130,4 +202,80 @@ cdef class EventDispatcher(object):
 
         handler = getattr(self, event_type)
         return handler(*largs)
+
+    #
+    # Properties
+    #
+    def setter(self, name):
+        '''Return the setter of a property. Useful if you want to directly bind
+        a property to another.
+
+        .. versionadded:: 1.0.9
+
+        For example, if you want to position one widget next to you ::
+
+            self.bind(right=nextchild.setter('x'))
+        '''
+        return self.__properties[name].__set__
+
+    def getter(self, name):
+        '''Return the getter of a property.
+
+        .. versionadded:: 1.0.9
+        '''
+        return self.__properties[name].__get__
+
+    def property(self, name):
+        '''Get a property instance from the name.
+
+        .. versionadded:: 1.0.9
+
+        :return: A `~kivy.property.Property` derivated instance corresponding to
+        the name.
+        '''
+        return self.__properties[name]
+
+    cpdef dict properties(self):
+        '''Return all the properties in that class in a dictionnary of
+        key/property class. Can be used for introspection.
+
+        .. versionadded:: 1.0.9
+        '''
+        p = self.__properties
+        ret = {}
+        for x in self.__dict__['__storage'].keys():
+            ret[x] = p[x]
+        return ret
+
+    def create_property(self, name):
+        '''Create a new property at runtime.
+
+        .. versionadded:: 1.0.9
+
+        .. warning::
+
+            This function is designed for the Kivy language, don't use it in
+            your code. You should declare the property in your class instead of
+            using this method.
+
+        :Parameters:
+            `name`: string
+                Name of the property
+
+        The class of the property cannot be specified, it will always be an
+        :class:`~kivy.properties.ObjectProperty` class. The default value of the
+        property will be None, until you set a new value.
+
+        >>> mywidget = Widget()
+        >>> mywidget.create_property('custom')
+        >>> mywidget.custom = True
+        >>> print mywidget.custom
+        True
+        '''
+        prop = ObjectProperty(None)
+        prop.link(self, name)
+        prop.link_deps(self, name)
+        self.__properties[name] = prop
+        setattr(self.__class__, name, prop)
+
 
