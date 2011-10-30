@@ -31,20 +31,25 @@ Inside the package, you have a tool named build.py. This is the script that will
                --orientation <landscape|portrait>
                --permission <android permission like VIBRATE> (multiple allowed)
                --with-ffmpeg
-               <debug|install|release>
+               <debug|release> <installd|installr|...>
 
-The last argument stand for:
+Starting 1.0.9, build.py have been updated to use Android SDK rev14, but is
+still compatible with previous version:
 
-- debug: build debug version and save to bin directory
-- install: same as debug + upload on connected device
-- release: build release version and save to bin directory
+- if you pass 2 last argument, it will use Android SDK rev14 (new build system)
+- if you pass only one argument, it will use older Android SDK build system
+
+.. note::
+
+    The Android SDK rev14 usage is available starting Kivy 1.0.9. If you have SDK
+    rev14 installed on your system, you must upgrade Kivy for android as well.
 
 For example, if we imagine that touchtracer demo of Kivy is in the directory
 ~/kivy/examples/demo/touchtracer, you can do::
 
     python build.py --dir ~/kivy/examples/demo/touchtracer \
     --package org.demo.touchtracer \
-	--name "Kivy Touchtracer" --version 1.0.6 debug
+	--name "Kivy Touchtracer" --version 1.0.6 debug installd
 
 The debug binary will be generated in bin/KivyTouchtracer-1.0.6-debug.apk.
 
