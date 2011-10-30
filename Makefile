@@ -2,7 +2,7 @@ PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
 
-.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean 
+.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean
 
 build:
 	$(PYTHON) setup.py build_ext --inplace
