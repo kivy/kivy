@@ -382,7 +382,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         # Pass to the next version
         version += 1
 
-    # Indicate to Config that we've upgrade to the latest version.
+    # Indicate to the Config that we've upgrade to the latest version.
     Config.set('kivy', 'config_version', KIVY_CONFIG_VERSION)
 
     # Now, activate log file
