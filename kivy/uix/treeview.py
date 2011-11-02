@@ -72,7 +72,7 @@ from kivy.clock import Clock
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, \
-        AliasProperty, NumericProperty
+        AliasProperty, NumericProperty, ReferenceListProperty
 
 
 class TreeViewException(Exception):
@@ -394,7 +394,7 @@ class TreeView(Widget):
             min_width = max(min_width, node.width + self.indent_level +
                             node.level * self.indent_level)
             min_height += node.height
-        self._minimum_size = (min_width, min_height)
+        self.minimum_size = (min_width, min_height)
 
     def _do_open_node(self, node):
         if self.hide_root and node is self.root:
@@ -440,13 +440,39 @@ class TreeView(Widget):
     #
     _root = ObjectProperty(None)
 
-    _minimum_size = ListProperty([0, 0])
-
     _selected_node = ObjectProperty(None)
 
     #
     # Properties
     #
+
+    minimum_width = NumericProperty(0)
+    '''Minimum width needed to contain all childrens.
+
+    .. versionadded:: 1.0.9
+
+    :data:`minimum_width` is a :class:`kivy.properties.NumericProperty`, default
+    to 0.
+    '''
+
+    minimum_height = NumericProperty(0)
+    '''Minimum height needed to contain all childrens.
+
+    .. versionadded:: 1.0.9
+
+    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`,
+    default to 0.
+    '''
+
+    minimum_size = ReferenceListProperty(minimum_width, minimum_height)
+    '''Minimum size needed to contain all childrens.
+
+    .. versionadded:: 1.0.9
+
+    :data:`minimum_size` is a :class:`~kivy.properties.ReferenceListProperty` of
+    (:data:`minimum_width`, :data:`minimum_height`) properties.
+    '''
+
     indent_level = NumericProperty(16)
     '''Width used for identation of each level, except the first level.
 
