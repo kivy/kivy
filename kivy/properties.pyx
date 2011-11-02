@@ -475,6 +475,16 @@ cdef class BoundedNumericProperty(Property):
                                  'maximum bound (%d)' % (self.name, _max))
         return True
 
+    property bounds:
+        '''Return min/max of the value
+
+        .. versionadded:: 1.0.9
+        '''
+
+        def __get__(self):
+            return self.min if self.use_min else None, \
+                    self.max if self.use_max else None
+
 
 cdef class OptionProperty(Property):
     '''Property that represents a string from a predefined list of valid
@@ -508,6 +518,15 @@ cdef class OptionProperty(Property):
             raise ValueError('OptionProperty<%s> have an invalid option %r. '
                              'Must be one of: %s' % (self.name,
                              value, valid_options))
+
+    property options:
+        '''Return the options available.
+
+        .. versionadded:: 1.0.9
+        '''
+
+        def __get__(self):
+            return self.options
 
 
 cdef class ReferenceListProperty(Property):
