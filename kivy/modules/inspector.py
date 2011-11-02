@@ -402,26 +402,38 @@ class Inspector(FloatLayout):
             self.content.add_widget(content)
 
     def save_property_numeric(self, widget, key, index, instance, value):
-        if index >= 0:
-            getattr(widget, key)[index] = float(instance.text)
-        else:
-            setattr(widget, key, float(instance.text))
+        try:
+            if index >= 0:
+                getattr(widget, key)[index] = float(instance.text)
+            else:
+                setattr(widget, key, float(instance.text))
+        except:
+            pass
 
     def save_property_text(self, widget, key, index, instance, value):
-        if index >= 0:
-            getattr(widget, key)[index] = instance.text
-        else:
-            setattr(widget, key, instance.text)
+        try:
+            if index >= 0:
+                getattr(widget, key)[index] = instance.text
+            else:
+                setattr(widget, key, instance.text)
+        except:
+            pass
 
     def save_property_boolean(self, widget, key, index, instance, ):
-        value = instance.state == 'down'
-        if index >= 0:
-            getattr(widget, key)[index] = value
-        else:
-            setattr(widget, key, value)
+        try:
+            value = instance.state == 'down'
+            if index >= 0:
+                getattr(widget, key)[index] = value
+            else:
+                setattr(widget, key, value)
+        except:
+            pass
 
     def save_property_option(self, widget, key, instance, *l):
-        setattr(widget, key, instance.text)
+        try:
+            setattr(widget, key, instance.text)
+        except:
+            pass
 
 
 def create_inspector(win, ctx, *l):

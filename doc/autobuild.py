@@ -39,6 +39,7 @@ import kivy.animation
 import kivy.modules.keybinding
 import kivy.modules.monitor
 import kivy.modules.touchring
+import kivy.modules.inspector
 import kivy.network.urlrequest
 from kivy.factory import Factory
 
