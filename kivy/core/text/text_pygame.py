@@ -69,8 +69,11 @@ class LabelPygame(LabelBase):
 
     def _render_text(self, text, x, y):
         font = self._get_font()
-        text = font.render(text, 1, (255, 255, 255))
-        self._pygame_surface.blit(text, (x, y), None, pygame.BLEND_RGBA_ADD)
+        try:
+            text = font.render(text, 1, (255, 255, 255))
+            self._pygame_surface.blit(text, (x, y), None, pygame.BLEND_RGBA_ADD)
+        except pygame.error:
+            pass
 
     def _render_end(self):
         data = ImageData(self._size[0], self._size[1],
