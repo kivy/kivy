@@ -140,7 +140,7 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property dash_length:
-        '''Property for getting/stting the length of the dashes in the curve
+        '''Property for getting/setting the length of the dashes in the curve
 
         .. versionadded:: 1.0.8
         '''
