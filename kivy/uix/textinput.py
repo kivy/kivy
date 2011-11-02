@@ -7,9 +7,9 @@ Text Input
 .. image:: images/textinput-mono.jpg
 .. image:: images/textinput-multi.jpg
 
-The :class:`TextInput` widget provides a box of editable plain text. 
+The :class:`TextInput` widget provides a box of editable plain text.
 
-Unicode, multiline, cursor navigation, selection and clipboard features 
+Unicode, multiline, cursor navigation, selection and clipboard features
 are supported.
 
 .. note::
@@ -17,7 +17,7 @@ are supported.
     Two different coordinate systems are used with TextInput:
 
         - (x, y) Coordinates in pixels, mostly used for rendering on screen
-        - (row, col) Cursor index in characters / lines, used for selection 
+        - (row, col) Cursor index in characters / lines, used for selection
           and cursor movement.
 
 
@@ -29,12 +29,12 @@ To create a multiline textinput ('enter' key adds a new line)::
     from kivy.uix.textinput import TextInput
     textinput = TextInput(text='Hello world')
 
-To create a monoline textinput, set the multiline property to false ('enter' 
+To create a monoline textinput, set the multiline property to false ('enter'
 key will defocus the textinput and emit on_text_validate event) ::
 
     def on_enter(instance, value):
         print 'User pressed enter in', instance
-        
+
     textinput = TextInput(text='Hello world', multiline=False)
     textinput.bind(on_text_validate=on_enter)
 
@@ -46,13 +46,13 @@ To run a callback when the text changes ::
     textinput = TextInput()
     textinput.bind(text=on_text)
 
-You can 'focus' a textinput, meaning that the input box will be highlighted, 
+You can 'focus' a textinput, meaning that the input box will be highlighted,
 and keyboard will be requested ::
 
     textinput = TextInput(focus=True)
 
-The textinput is defocused if the 'escape' key is pressed, or if another 
-widget requests the keyboard. You can bind a callback to focus property to 
+The textinput is defocused if the 'escape' key is pressed, or if another
+widget requests the keyboard. You can bind a callback to focus property to
 get notified of focus changes ::
 
     def on_focus(instance, value):
@@ -69,8 +69,8 @@ Selection
 ---------
 
 The selection is automatically updated when the cursor position changes.
-You can get the currently selected text from the 
-:data:`TextInput.selection_text` property. 
+You can get the currently selected text from the
+:data:`TextInput.selection_text` property.
 
 
 Default shortcuts
@@ -126,7 +126,7 @@ class TextInput(Widget):
 
     :Events:
         `on_text_validate`
-            Fired only in multiline=False mode, when the user hits 'enter'. 
+            Fired only in multiline=False mode, when the user hits 'enter'.
             This will also unfocus the textinput.
     '''
 
@@ -698,6 +698,8 @@ class TextInput(Widget):
 
     def _tokenize(self, text):
         # Tokenize a text string from some delimiters
+        if text is None:
+            return
         delimiters = ' ,\'".;:\n\r\t'
         oldindex = 0
         for index, char in enumerate(text):
@@ -919,7 +921,7 @@ class TextInput(Widget):
     cursor = AliasProperty(_get_cursor, _set_cursor)
     '''Tuple of (row, col) of the current cursor position.
     You can set a new (row, col) if you want to move the cursor. The scrolling
-    area will be automatically updated to ensure that the cursor will be 
+    area will be automatically updated to ensure that the cursor will be
     visible inside the viewport.
 
     :data:`cursor` is a :class:`~kivy.properties.AliasProperty`.
