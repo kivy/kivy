@@ -85,12 +85,12 @@ cdef class Line(VertexInstruction):
                 texture.wrap = 'repeat'
 
             # create a buffer to fill our texture
-            buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
-            memset(buf, 255, self._dash_length * 3)
-            memset(buf + self._dash_length * 3, 0, self._dash_offset * 3)
-            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 3)
+            buf = <char *>malloc(4 * (self._dash_length + self._dash_offset))
+            memset(buf, 255, self._dash_length * 4)
+            memset(buf + self._dash_length * 4, 0, self._dash_offset * 4)
+            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 4)
 
-            self.texture.blit_buffer(p_str, colorfmt='rgb', bufferfmt='ubyte')
+            self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
             free(buf)
 
         elif texture is not None:
@@ -232,13 +232,13 @@ cdef class Bezier(VertexInstruction):
                 texture.wrap = 'repeat'
 
             # create a buffer to fill our texture
-            buf = <char *>malloc(3 * (self._dash_length + self._dash_offset))
-            memset(buf, 255, self._dash_length * 3)
-            memset(buf + self._dash_length * 3, 0, self._dash_offset * 3)
+            buf = <char *>malloc(4 * (self._dash_length + self._dash_offset))
+            memset(buf, 255, self._dash_length * 4)
+            memset(buf + self._dash_length * 4, 0, self._dash_offset * 4)
 
-            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 3)
+            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 4)
 
-            texture.blit_buffer(p_str, colorfmt='rgb', bufferfmt='ubyte')
+            texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
             free(buf)
 
         elif texture is not None:
