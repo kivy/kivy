@@ -174,7 +174,7 @@ Config = None
 
 
 class ConfigParser(PythonConfigParser):
-    '''Enhanced ConfigParser class, that supports possible addition of default
+    '''Enhanced ConfigParser class, that supports addition of default
     sections and default values.
 
     .. versionadded:: 1.0.7
@@ -226,10 +226,10 @@ class ConfigParser(PythonConfigParser):
         self.add_section(section)
 
     def write(self):
-        '''Write the configuration to the latest opened file with :meth:`read`
+        '''Write the configuration to the latest file opened with :meth:`read`
         method.
 
-        Return True if the write has finished successfully.
+        Return True if the write finished successfully.
         '''
         if self.filename is None:
             return False
