@@ -63,10 +63,10 @@ Available configuration tokens
         If the touch moves more than is indicated by retain_distance, it will
         not be retained. Argument should be an int between 0 and 1000.
     `jitter_distance`: int
-        Maximum distance for jittering detection, normalized inside the range 0
+        Maximum distance for jitter detection, normalized inside the range 0
         - 1000
     `jitter_ignore_devices`: string, seperated with comma
-        List of devices to ignore from jittering detection
+        List of devices to ignore from jitter detection
     `ignore`: list of tuples
         List of regions where new touches are ignored.
         This configuration token can be used to resolve hotspot problems
@@ -81,10 +81,10 @@ Available configuration tokens
     `maxfps`: int, default to 60
         Maximum FPS allowed.
     `fullscreen`: (0, 1, fake, auto)
-        Activate fullscreen. If set to `1`, the fullscreen will use a
-        resolution of `width` times `height` pixels.
-        If set to `auto`, the fullscreen will use your current display's
-        resolution instead. This is most likely what you want.
+        Activate fullscreen. If set to `1`, a resolution of `width` 
+        times `height` pixels will be used.
+        If set to `auto`, your current display's resolution will be
+        used instead. This is most likely what you want.
         If you want to place the window in another display,
         use `fake` and adjust `width`, `height`, `top` and `left`.
     `width`: int
@@ -99,7 +99,7 @@ Available configuration tokens
         Show the cursor on the screen
     `position`: (auto, custom)
         Position of the window on your display. If `auto` is used, you have no
-        control about the initial position: `top` and `left` are ignored.
+        control of the initial position: `top` and `left` are ignored.
     `top`: int
         Top position of the :class:`~kivy.core.window.Window`
     `left`: int
@@ -174,7 +174,7 @@ Config = None
 
 
 class ConfigParser(PythonConfigParser):
-    '''Enhanced ConfigParser class, that support the possibility of add default
+    '''Enhanced ConfigParser class, that supports addition of default
     sections and default values.
 
     .. versionadded:: 1.0.7
@@ -186,9 +186,9 @@ class ConfigParser(PythonConfigParser):
         self.filename = None
 
     def read(self, filename):
-        '''Read only one filename. In contrary of the original ConfigParser of
-        Python, this one is able to read only one file at time. The latest
-        readed file will be used for the :meth:`write` method.
+        '''Read only one filename. In contrast to the original ConfigParser of
+        Python, this one is able to read only one file at a time. The latest
+        read file will be used for the :meth:`write` method.
         '''
         if type(filename) not in (str, unicode):
             raise Exception('Only one filename is accepted (str or unicode)')
@@ -196,21 +196,21 @@ class ConfigParser(PythonConfigParser):
         PythonConfigParser.read(self, filename)
 
     def setdefaults(self, section, keyvalues):
-        '''Set lot of key/values in one section at the same time
+        '''Set a lot of keys/values in one section at the same time
         '''
         self.adddefaultsection(section)
         for key, value in keyvalues.iteritems():
             self.setdefault(section, key, value)
 
     def setdefault(self, section, option, value):
-        '''Set the default value on a particular option
+        '''Set the default value of a particular option
         '''
         if self.has_option(section, option):
             return
         self.set(section, option, value)
 
     def getdefault(self, section, option, defaultvalue):
-        '''Get an option. If not found, it will return the defaultvalue
+        '''Get an option. If not found, it will return the default value
         '''
         if not self.has_section(section):
             return defaultvalue
@@ -226,10 +226,10 @@ class ConfigParser(PythonConfigParser):
         self.add_section(section)
 
     def write(self):
-        '''Write the configuration to the latest opened file with :meth:`read`
+        '''Write the configuration to the latest file opened with :meth:`read`
         method.
 
-        Return True if the write have succeded.
+        Return True if the write finished successfully.
         '''
         if self.filename is None:
             return False
@@ -246,7 +246,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
 
     #
     # Read, analyse configuration file
-    # Support upgrade of older config file version
+    # Support upgrade of older config file versions
     #
 
     # Create default configuration
@@ -270,7 +270,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     Config.adddefaultsection('widgets')
     Config.adddefaultsection('modules')
 
-    # Upgrade default configuration until having the current version
+    # Upgrade default configuration until we have the current version
     need_save = False
     if version != KIVY_CONFIG_VERSION:
         Logger.warning('Config: Older configuration version detected'
@@ -382,7 +382,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         # Pass to the next version
         version += 1
 
-    # Said to Config that we've upgrade to latest version.
+    # Indicate to the Config that we've upgrade to the latest version.
     Config.set('kivy', 'config_version', KIVY_CONFIG_VERSION)
 
     # Now, activate log file
