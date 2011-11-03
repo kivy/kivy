@@ -23,7 +23,7 @@ Using Twisted inside Kivy
     usual, unless you specifically want the twisted reactor to handle the
     signals (e.g. SIGINT).
 
- 
+
 
 The kivy examples include a small example for a twisted server and client.
 The server app has a simple twisted server running and log any messages.
@@ -33,7 +33,7 @@ from the twisted docs, which you can find here:
 - http://twistedmatrix.com/documents/current/core/examples/simpleserv.py
 - http://twistedmatrix.com/documents/current/core/examples/simpleclient.py
 
-To try the example run echo_server_app.py first, and then launch 
+To try the example run echo_server_app.py first, and then launch
 echo_client_app.py.  The server will, reply with simple echo messages to
 anything the client app sends, when you hit enter after typing something
 in the textbox.

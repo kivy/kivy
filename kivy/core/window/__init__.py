@@ -17,6 +17,8 @@ from kivy.logger import Logger
 from kivy.base import EventLoop
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
+from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
+        NumericProperty
 
 # late import
 VKeyboard = None
@@ -198,6 +200,141 @@ class WindowBase(EventDispatcher):
     __instance = None
     __initialized = False
 
+    # private properties
+    _size = ListProperty([0, 0])
+    _modifiers = ListProperty([])
+    _rotation = NumericProperty(0)
+    _clearcolor = ListProperty([0, 0, 0, 0])
+
+    children = ListProperty([])
+    '''List of children of this window.
+
+    :data:`children` is a :class:`~kivy.properties.ListProperty` instance,
+    default to an empty list.
+
+    Use :func:`add_widget` and :func:`remove_widget` for manipulate children
+    list. Don't manipulate children list directly until you know what you are
+    doing.
+    '''
+
+    parent = ObjectProperty(None, allownone=True)
+    '''Parent of this window
+
+    :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance,
+    default to None. When created, the parent is set to the window itself.
+    You must take care of it if you are doing recursive check.
+    '''
+
+    def _get_modifiers(self):
+        return self._modifiers
+
+    modifiers = AliasProperty(_get_modifiers, None)
+    '''List of keyboard modifiers currently in action
+    '''
+
+    def _get_size(self):
+        r = self._rotation
+        w, h = self._size
+        if r == 0 or r == 180:
+            return w, h
+        return h, w
+
+    def _set_size(self, size):
+        if super(WindowBase, self)._set_size(size):
+            Logger.debug('Window: Resize window to %s' % str(self.size))
+            self.dispatch('on_resize', *size)
+            return True
+        return False
+
+    size = AliasProperty(_get_size, _set_size)
+    '''Get the rotated size of the window. If :data:`rotation` is set, then the
+    size will change to reflect the rotation.
+    '''
+
+    def _get_clearcolor(self):
+        return self._clearcolor
+
+    def _set_clearcolor(self, value):
+        if value is not None:
+            if type(value) not in (list, tuple):
+                raise Exception('Clearcolor must be a list or tuple')
+            if len(value) != 4:
+                raise Exception('Clearcolor must contain 4 values')
+        self._clearcolor = value
+
+    clearcolor = AliasProperty(_get_clearcolor, _set_clearcolor,
+            bind=('_clearcolor', ))
+    '''Color used to clear window.
+    ::
+        from kivy.core.window import Window
+
+        # red background color
+        Window.clearcolor = (1, 0, 0, 1)
+
+        # don't clear background at all
+        Window.clearcolor = None
+    '''
+
+    # make some property read-only
+    def _get_width(self):
+        r = self._rotation
+        if r == 0 or r == 180:
+            return self._size[0]
+        return self._size[1]
+
+    width = AliasProperty(_get_width, None, bind=('_rotation', '_size'))
+    '''Rotated window width.
+
+    :data:`width` is a :class:`~kivy.properties.AliasProperty`.
+    '''
+
+    def _get_height(self):
+        '''Rotated window height'''
+        r = self._rotation
+        if r == 0 or r == 180:
+            return self._size[1]
+        return self._size[0]
+
+    height = AliasProperty(_get_height, None, bind=('_rotation', '_size'))
+    '''Rotated window height.
+
+    :data:`height` is a :class:`~kivy.properties.AliasProperty`.
+    '''
+
+    def _get_center(self):
+        return self.width / 2., self.height / 2.
+
+    center = AliasProperty(_get_center, None, bind=('width', 'height'))
+    '''Center of the rotated window.
+
+    :data:`center` is a :class:`~kivy.properties.AliasProperty`.
+    '''
+
+    def _get_rotation(self):
+        return self._rotation
+
+    def _set_rotation(self, x):
+        x = int(x % 360)
+        if x == self._rotation:
+            return
+        if x not in (0, 90, 180, 270):
+            raise ValueError('can rotate only 0, 90, 180, 270 degrees')
+        self._rotation = x
+        self.dispatch('on_resize', *self.size)
+        self.dispatch('on_rotate', x)
+
+    rotation = AliasProperty(_get_rotation, _set_rotation, bind=('_rotation', ))
+    '''Get/set the window content rotation. Can be one of 0, 90, 180, 270
+    degrees.
+    '''
+
+    def _get_system_size(self):
+        return self._size
+
+    system_size = AliasProperty(_get_system_size, None, bind=('_size', ))
+    '''Real size of the window, without taking care of the rotation.
+    '''
+
     def __new__(cls, **kwargs):
         if cls.__instance is None:
             cls.__instance = EventDispatcher.__new__(cls)
@@ -235,10 +372,6 @@ class WindowBase(EventDispatcher):
         # init privates
         self._system_keyboard = Keyboard(window=self)
         self._keyboards = {'system': self._system_keyboard}
-        self._modifiers = []
-        self._size = (0, 0)
-        self._rotation = 0
-        self._clearcolor = [0, 0, 0, 0]
         self._vkeyboard_cls = None
 
         self.children = []
@@ -348,73 +481,6 @@ class WindowBase(EventDispatcher):
     def flip(self):
         '''Flip between buffers'''
         pass
-
-    def _get_modifiers(self):
-        return self._modifiers
-    modifiers = property(_get_modifiers)
-
-    def _get_size(self):
-        r = self._rotation
-        w, h = self._size
-        if r == 0 or r == 180:
-            return w, h
-        return h, w
-
-    def _set_size(self, size):
-        if super(WindowBase, self)._set_size(size):
-            Logger.debug('Window: Resize window to %s' % str(self.size))
-            self.dispatch('on_resize', *size)
-            return True
-        return False
-
-    size = property(_get_size, _set_size,
-        doc='''Rotated size of the window''')
-
-    def _get_clearcolor(self):
-        return self._clearcolor
-
-    def _set_clearcolor(self, value):
-        if value is not None:
-            if type(value) not in (list, tuple):
-                raise Exception('Clearcolor must be a list or tuple')
-            if len(value) != 4:
-                raise Exception('Clearcolor must contain 4 values')
-        self._clearcolor = value
-
-    clearcolor = property(_get_clearcolor, _set_clearcolor,
-        doc='''
-        Color used to clear window::
-
-            from kivy.core.window import Window
-
-            # red background color
-            Window.clearcolor = (1, 0, 0, 1)
-
-            # don't clear background at all
-            Window.clearcolor = None
-        ''')
-
-    # make some property read-only
-    @property
-    def width(self):
-        '''Rotated window width'''
-        r = self._rotation
-        if r == 0 or r == 180:
-            return self._size[0]
-        return self._size[1]
-
-    @property
-    def height(self):
-        '''Rotated window height'''
-        r = self._rotation
-        if r == 0 or r == 180:
-            return self._size[1]
-        return self._size[0]
-
-    @property
-    def center(self):
-        '''Rotated window center'''
-        return self.width / 2., self.height / 2.
 
     def _update_childsize(self, instance, value):
         self.update_childsize([instance])
@@ -593,29 +659,6 @@ class WindowBase(EventDispatcher):
                     w.center_x = value * width
                 elif key == 'center_y':
                     w.center_y = value * height
-
-    def _get_rotation(self):
-        return self._rotation
-
-    def _set_rotation(self, x):
-        x = int(x % 360)
-        if x == self._rotation:
-            return
-        if x not in (0, 90, 180, 270):
-            raise ValueError('can rotate only 0,90,180,270 degrees')
-        self._rotation = x
-        self.dispatch('on_resize', *self.size)
-        self.dispatch('on_rotate', x)
-
-    rotation = property(_get_rotation, _set_rotation,
-            'Get/set the window content rotation. Can be one of '
-            '0, 90, 180, 270 degrees.')
-
-    @property
-    def system_size(self):
-        '''Real size of the window, without taking care of the rotation
-        '''
-        return self._size
 
     def screenshot(self, name='screenshot%(counter)04d.jpg'):
         '''Save the actual displayed image in a file
