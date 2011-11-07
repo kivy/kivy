@@ -115,7 +115,7 @@ class ScrollView(StencilView):
         :data:`scroll_x` and :data:`scroll_y`
         '''
         if not self._viewport:
-            return
+            return 0, 0
         vp = self._viewport
         if vp.width > self.width:
             sw = vp.width - self.width
