@@ -11,8 +11,8 @@ Kivy is able to run on android, but you need a phone with:
 Requirements for android application
 ------------------------------------
 
-As soon as you want to do an application for android platform, you must have a
-file named `main.py` in for root directory of your application, and handling
+To create an application for Android platform, you must have a
+file named `main.py` in the root directory of your application, handling
 the android platform in the `__name__` test::
 
     if __name__ in ('__main__', '__android__'):
@@ -31,7 +31,7 @@ Android SDK ship a tool named adb. Connect your device, and run::
 
     adb logcat
 
-You'll see all the log, but also your stdout/stderr, Kivy logger.
+You'll see all the log including your stdout/stderr, Kivy logger.
 
 
 Status of the Project
