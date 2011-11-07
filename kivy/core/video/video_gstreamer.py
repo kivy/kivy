@@ -121,7 +121,7 @@ class VideoGStreamer(VideoBase):
         Logger.debug('gstreamer_video: Load <%s>'% self._filename)
         self._playbin.set_state(gst.STATE_NULL)
         self._playbin.set_property('uri', self._get_uri())
-        self._playbin.set_state(gst.STATE_PLAYING)
+        self._playbin.set_state(gst.STATE_READY)
 
     def stop(self):
         self._state = ''
