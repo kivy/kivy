@@ -41,6 +41,7 @@ import kivy.modules.monitor
 import kivy.modules.touchring
 import kivy.modules.inspector
 import kivy.network.urlrequest
+import kivy.support
 from kivy.factory import Factory
 
 # force loading of all classes from factory

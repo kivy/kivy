@@ -1,8 +1,11 @@
 '''
-Support: activate other framework/toolkit inside our event loop
+Support
+=======
+
+Activate other framework/toolkit inside our event loop
 '''
 
-__all__ = ('install_gobject_iteration', )
+__all__ = ('install_gobject_iteration', 'install_twisted_reactor')
 
 
 def install_gobject_iteration():
@@ -31,7 +34,6 @@ def install_gobject_iteration():
             context.iteration(False)
             loop += 1
     Clock.schedule_interval(_gobject_iteration, 0)
-
 
 
 def install_twisted_reactor(**kwargs):
