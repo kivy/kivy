@@ -8,7 +8,6 @@ from subprocess import call
 
 # If you installed your stuff with MacPorts, just build with :
 # $ export USE_MACPORTS=1 && python setup.py install
-
 USE_MACPORTS = environ.get('USE_MACPORTS')
 
 try:
