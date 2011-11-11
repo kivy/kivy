@@ -28,6 +28,7 @@ class ImageLoaderPIL(ImageLoaderBase):
         Gif's with transparency will work but be ready for some
         artifacts for now.
 
+        In 1.0.9, PDF support have been added.
     '''
 
     @staticmethod
@@ -87,3 +88,4 @@ class ImageLoaderPIL(ImageLoaderBase):
 
 # register
 ImageLoader.register(ImageLoaderPIL)
+

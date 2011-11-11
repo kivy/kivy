@@ -598,6 +598,7 @@ core_register_libs('image', (
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif'),
+    ('pdf', 'img_pdf'),
 ))
 
 # resolve binding.

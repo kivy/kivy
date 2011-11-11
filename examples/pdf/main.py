@@ -26,7 +26,6 @@ class PDFReader(BoxLayout):
         b.bind(on_release=self.next)
         self.add_widget(b)
 
-
     def next(self, *_):
         self.pdf.page += 1
 

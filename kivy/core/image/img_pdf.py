@@ -50,6 +50,7 @@ class ImageLoaderPDF(ImageLoaderBase):
 
     def load(self, filename):
         try:
+            print "load pdf!"
             # first extract the page from the pdf
             pdf = PdfFileReader(filename, 'rb'))
             p2 = pdf.getPage(self.page)
