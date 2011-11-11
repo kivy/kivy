@@ -147,6 +147,14 @@ class Image(Widget):
     to .25 (4 FPS)
     '''
 
+    page = NumericProperty(0)
+    '''Page displayed if the image is a PDF file
+
+    .. versionadded:: 1.0.9
+
+    :data:`page` is a :class:`~kivy.properties.NumericProperty`, default to 0
+    '''
+
     def get_norm_image_size(self):
         if not self.texture:
             return self.size
@@ -224,6 +232,8 @@ class Image(Widget):
         # update texture from core image
         self.texture = self._coreimage.texture
 
+    def on_page(self, instance, value):
+        self._coreimage = image = Loader.image(value, page=self._page)
 
 class AsyncImage(Image):
     '''Asynchronous Image class, see module documentation for more information.

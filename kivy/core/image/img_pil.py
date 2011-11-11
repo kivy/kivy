@@ -15,11 +15,11 @@ from . import ImageLoaderBase, ImageData, ImageLoader
 
 class ImageLoaderPIL(ImageLoaderBase):
     '''Image loader based on PIL library.
-    
+
     .. versionadded::
 
         In 1.0.8, GIF animation have been supported.
-        
+
         Gif animation has a lot of issues(transparency/color depths... etc).
         In order to keep it simple; what is implimented here is what is 
         natively supported by pil.
@@ -27,7 +27,7 @@ class ImageLoaderPIL(ImageLoaderBase):
         As a general rule, try to use gifs that have no transparency.
         Gif's with transparency will work but be ready for some
         artifacts for now.
-    
+
     '''
 
     @staticmethod
@@ -37,7 +37,7 @@ class ImageLoaderPIL(ImageLoaderBase):
         return ('bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
                 'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
                 'jpeg', 'jpg', 'mcidas', 'mic', 'mpeg', 'msp', 'pcd',
-                'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
+                'pcx', 'pdf', 'pixar', 'png', 'ppm', 'psd', 'sgi', 'spider',
                 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
 
     def _img_correct(self, _img_tmp):
