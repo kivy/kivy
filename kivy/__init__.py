@@ -8,12 +8,12 @@ GNU LGPL.
 
 It comes with native support for many multi-touch input devices, a growing
 library of multi-touch aware widgets and hardware accelerated OpenGL drawing.
-Kivy is designed to let you focus on building custom and highly interactive 
+Kivy is designed to let you focus on building custom and highly interactive
 applications as quickly and easily as possible.
 
-With Kivy, you can take full advantage of the dynamic nature of Python. There 
-are thousands of high-quality, free libraries that can be integrated in your 
-application. At the same time, performance-critical parts are implemented 
+With Kivy, you can take full advantage of the dynamic nature of Python. There
+are thousands of high-quality, free libraries that can be integrated in your
+application. At the same time, performance-critical parts are implemented
 in the C language.
 
 See http://kivy.org for more information.
@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.8-dev'
+__version__ = '1.0.9-dev'
 
 import sys
 import shutil
@@ -43,7 +43,7 @@ __kivy_post_configuration = []
 
 if sys.platform == 'darwin' and sys.maxint < 9223372036854775807:
     r ='''Unsupported Python version detected!:
-    Kivy requires a 64 bit version of Python to run on OS X. We strongly advise 
+    Kivy requires a 64 bit version of Python to run on OS X. We strongly advise
     you to use the version of Python that is provided by Apple (don't use ports,
     fink or homebrew unless you know what you're doing).
     See http://kivy.org/docs/installation/installation-macosx.html for details.

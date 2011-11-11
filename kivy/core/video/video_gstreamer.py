@@ -1,6 +1,13 @@
 '''
 VideoGStreamer: implementation of VideoBase with GStreamer
 '''
+#
+# Important notes: you must take care of glib event + python. If you connect()
+# directly an event to a python object method, the object will be ref, and will
+# be never unref.
+# To prevent memory leak, you must connect() to a func, and you might want to
+# pass the referenced object with weakref()
+#
 
 try:
     import pygst
@@ -15,6 +22,8 @@ from os import path
 from threading import Lock
 from kivy.graphics.texture import Texture
 from kivy.logger import Logger
+from functools import partial
+from weakref import ref
 from . import VideoBase
 
 # install the gobject iteration
@@ -22,12 +31,35 @@ from kivy.support import install_gobject_iteration
 install_gobject_iteration()
 
 
-_VIDEO_CAPS = ",".join([
+_VIDEO_CAPS = ','.join([
     'video/x-raw-rgb',
     'red_mask=(int)0xff0000',
     'green_mask=(int)0x00ff00',
-    'blue_mask=(int)0x0000ff'
-])
+    'blue_mask=(int)0x0000ff'])
+
+
+def _gst_new_buffer(obj, appsink):
+    obj = obj()
+    if not obj:
+        return
+    with obj._buffer_lock:
+        obj._buffer = obj._videosink.emit('pull-buffer')
+
+
+def _on_gst_message(bus, message):
+    Logger.trace('gst-bus: %s' % str(message))
+    # log all error messages
+    if message.type == gst.MESSAGE_ERROR:
+        error, debug = map(str, message.parse_error())
+        Logger.error('gstreamer_video: %s'%error)
+        Logger.debug('gstreamer_video: %s'%debug)
+
+
+def _on_gst_eos(obj, *largs):
+    obj = obj()
+    if not obj:
+        return
+    obj._do_eos()
 
 
 class VideoGStreamer(VideoBase):
@@ -41,53 +73,41 @@ class VideoGStreamer(VideoBase):
 
     def _gst_init(self):
         # self._videosink will receive the buffers so we can upload them to GPU
-        self._videosink = gst.element_factory_make("appsink", "videosink")
+        self._videosink = gst.element_factory_make('appsink', 'videosink')
         self._videosink.set_property('caps', gst.Caps(_VIDEO_CAPS))
         self._videosink.set_property('async', True)
         self._videosink.set_property('drop', True)
         self._videosink.set_property('emit-signals', True)
-        self._videosink.connect('new-buffer', self._update_buffer)
+        self._videosink.connect('new-buffer', partial(
+            _gst_new_buffer, ref(self)))
 
         # playbin, takes care of all, loading, playing, etc.
         # XXX playbin2 have some issue when playing some video or streaming :/
-        #self._playbin = gst.element_factory_make("playbin2", "playbin")
-        self._playbin = gst.element_factory_make("playbin", "playbin")
+        #self._playbin = gst.element_factory_make('playbin2', 'playbin')
+        self._playbin = gst.element_factory_make('playbin', 'playbin')
         self._playbin.set_property('video-sink', self._videosink)
 
         # gstreamer bus, to attach and listen to gst messages
         self._bus = self._playbin.get_bus()
         self._bus.add_signal_watch()
-        self._bus.connect("message", self._bus_message)
-        self._bus.connect("message::eos", self._do_eos)
+        self._bus.connect('message', _on_gst_message)
+        self._bus.connect('message::eos', partial(
+            _on_gst_eos, ref(self)))
 
-    def _bus_message(self, bus, message):
-        Logger.trace("gst-bus:%s"%str(message))
-
-        # log all error messages
-        if message.type == gst.MESSAGE_ERROR: 
-            error, debug = map(str, message.parse_error())
-            Logger.error("gstreamer_video: %s"%error)
-            Logger.debug("gstreamer_video: %s"%debug)
-
-    def _update_buffer(self, appsink):
-        # we have a new frame from sgtreamer, do thread safe pull
-        with self._buffer_lock:
-            self._buffer = self._videosink.emit('pull-buffer')
-    
-    def _update_texture(self, buffer):
+    def _update_texture(self, buf):
         # texture will be updated with newest buffer/frame
-        caps = buffer.get_caps()[0]
+        caps = buf.get_caps()[0]
         size = caps['width'], caps['height']
         if not self._texture:
             # texture is not allocated yet, so create it first
             self._texture = Texture.create(size=size, colorfmt='rgb')
             self._texture.flip_vertical()
         # upload texture data to GPU
-        self._texture.blit_buffer(self._buffer.data, size=size, colorfmt='rgb')
+        self._texture.blit_buffer(buf.data, size=size, colorfmt='rgb')
 
     def _update(self, dt):
         with self._buffer_lock:
-            if self._buffer != None:
+            if self._buffer is not None:
                 self._update_texture(self._buffer)
                 self._buffer = None
                 self.dispatch('on_frame')
@@ -98,10 +118,10 @@ class VideoGStreamer(VideoBase):
         self._texture = None
 
     def load(self):
-        Logger.debug("gstreamer_video: Load <%s>"% self._filename)
+        Logger.debug('gstreamer_video: Load <%s>'% self._filename)
         self._playbin.set_state(gst.STATE_NULL)
-        self._playbin.set_property("uri", self._get_uri())
-        self._playbin.set_state(gst.STATE_PLAYING)
+        self._playbin.set_property('uri', self._get_uri())
+        self._playbin.set_state(gst.STATE_READY)
 
     def stop(self):
         self._state = ''
@@ -110,7 +130,7 @@ class VideoGStreamer(VideoBase):
     def play(self):
         self._state = 'playing'
         self._playbin.set_state(gst.STATE_PLAYING)
-    
+
     def seek(self, percent):
         seek_t = percent * self._get_duration() * 10e8
         seek_format = gst.FORMAT_TIME
@@ -123,9 +143,9 @@ class VideoGStreamer(VideoBase):
                 self._buffer = self._videosink.emit('pull-preroll')
 
     def _get_uri(self):
-        if ":" in self.filename:
+        if ':' in self.filename:
             return self.filename
-        return "file://"+path.abspath(self.filename)
+        return 'file://'+path.abspath(self.filename)
 
     def _do_eos(self, *args):
         self.seek(0)
@@ -142,7 +162,7 @@ class VideoGStreamer(VideoBase):
     def _get_duration(self):
         try:
             return self._playbin.query_duration(gst.FORMAT_TIME)[0] / 10e8
-        except: 
+        except:
             return -1
 
     def _get_volume(self):

@@ -5,9 +5,13 @@ Event loop management
 '''
 
 __all__ = (
-    'EventLoop', 'EventLoopBase',
-    'ExceptionManager', 'ExceptionHandler',
-    'runTouchApp', 'stopTouchApp',
+    'EventLoop',
+    'EventLoopBase',
+    'ExceptionHandler',
+    'ExceptionManagerBase',
+    'ExceptionManager',
+    'runTouchApp',
+    'stopTouchApp',
 )
 
 from kivy.config import Config

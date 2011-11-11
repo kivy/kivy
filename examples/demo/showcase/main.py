@@ -15,6 +15,7 @@ from kivy.uix.treeview import TreeView, TreeViewLabel
 from kivy.uix.switch import Switch
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
+from kivy.uix.accordion import Accordion, AccordionItem
 
 
 class Showcase(FloatLayout):
@@ -72,6 +73,7 @@ class ShowcaseApp(App):
         attach_node('Standard treeview', n)
         attach_node('Treeview without root', n)
         n = create_tree('Others')
+        attach_node('Accordion', n)
         attach_node('Popup', n)
         attach_node('Switch', n)
         root.add_widget(tree)
@@ -179,6 +181,16 @@ class ShowcaseApp(App):
         for x in xrange(3):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         return tv
+
+    def show_accordion(self):
+        root = Accordion()
+        for x in xrange(5):
+            item = AccordionItem(title='Title %d' % x)
+            item.add_widget(Label(text='Very big content\n' * 10))
+            root.add_widget(item)
+        col = AnchorLayout()
+        col.add_widget(root)
+        return col
 
 
 if __name__ in ('__main__', '__android__'):

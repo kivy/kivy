@@ -10,19 +10,16 @@
             size: self.size
 
     BoxLayout:
-		on_size: print 'BoxLayout', args
         padding: 10
         spacing: 10
         size_hint: 1, None
         pos_hint: {'top': 1}
         height: 44
         Image:
-			on_pos: print 'BoxLayout::Image', args
             size_hint: None, None
             size: 24, 24
             source: 'data/logo/kivy-icon-24.png'
         Label:
-			on_pos: print 'BoxLayout::Label', args
             height: 24
             text_size: self.size
             color: (1, 1, 1, .8)

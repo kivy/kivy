@@ -99,6 +99,7 @@ class ScrollView(StencilView):
         self._viewport = None
         self._touch = False
         self._tdx = self._tdy = self._ts = self._tsn = 0
+        self._scroll_y_mouse = 0
         super(ScrollView, self).__init__(**kwargs)
         self.bind(scroll_x=self.update_from_scroll,
                   scroll_y=self.update_from_scroll,
@@ -114,7 +115,7 @@ class ScrollView(StencilView):
         :data:`scroll_x` and :data:`scroll_y`
         '''
         if not self._viewport:
-            return
+            return 0, 0
         vp = self._viewport
         if vp.width > self.width:
             sw = vp.width - self.width
@@ -271,6 +272,22 @@ class ScrollView(StencilView):
             return super(ScrollView, self).on_touch_down(touch)
         if not self.collide_point(*touch.pos):
             return
+        # support scrolling !
+        if self._viewport and 'button' in touch.profile and \
+                touch.button.startswith('scroll'):
+            # distance available to move, if no distance, do nothing
+            vp = self._viewport
+            if vp.height > self.height:
+                # let's say we want to move over 40 pixels each scroll
+                d = (vp.height - self.height)
+                d = self.scroll_distance / float(d)
+                if touch.button == 'scrollup':
+                    syd = self.scroll_y - d
+                elif touch.button == 'scrolldown':
+                    syd = self.scroll_y + d
+                self.scroll_y = min(max(syd, 0), 1)
+                return True
+
         self._touch = touch
         uid = self._get_uid()
         touch.grab(self)

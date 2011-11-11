@@ -82,12 +82,15 @@ class FileChooserController(FloatLayout):
     The filters are not reset when the path changes, you need to do that
     yourself if you want that. You can use the following patterns:
 
-      Pattern	| Meaning
-      ----------+---------------------------------
-      *	        | matches everything
-      ?	        | matches any single character
-      [seq]	| matches any character in seq
-      [!seq]	| matches any character not in seq
+      ========== =================================
+      Pattern     Meaning
+      ========== =================================
+      \*         matches everything
+      ?          matches any single character
+      [seq]      matches any character in seq
+      [!seq]     matches any character not in seq
+      ========== =================================
+
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -180,7 +183,7 @@ class FileChooserController(FloatLayout):
             if isdir(entry.path):
                 self.open_entry(entry)
             else:
-                self.selection = [entry.path,]
+                self.selection = [entry.path, ]
                 self.dispatch('on_submit', [entry.path], touch)
 
     def open_entry(self, entry):
@@ -267,17 +270,17 @@ class FileChooserController(FloatLayout):
         is_hidden = self.is_hidden
         if not self.show_hidden:
             files = [x for x in files if not is_hidden(x)]
-        for file in files:
+        for fn in files:
 
             def get_nice_size():
                 # Use a closure for lazy-loading here
-                return self.get_nice_size(file)
+                return self.get_nice_size(fn)
 
-            ctx = {'name': basename(file),
+            ctx = {'name': basename(fn),
                    'get_nice_size': get_nice_size,
-                   'path': file,
+                   'path': fn,
                    'controller': self,
-                   'isdir': isdir(file),
+                   'isdir': isdir(fn),
                    'parent': parent,
                    'sep': sep}
             entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)

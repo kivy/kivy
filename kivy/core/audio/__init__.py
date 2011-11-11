@@ -70,10 +70,10 @@ class Sound(EventDispatcher):
         kwargs.setdefault('filename', None)
         kwargs.setdefault('volume', 1.)
 
-        super(Sound, self).__init__()
-
         self.register_event_type('on_play')
         self.register_event_type('on_stop')
+
+        super(Sound, self).__init__()
 
         self._status = 'stop'
         self._volume = kwargs.get('volume')

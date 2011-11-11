@@ -31,9 +31,11 @@ Color = Ellipse = None
 class MouseMotionEvent(MotionEvent):
 
     def depack(self, args):
-        self.profile = ['pos']
+        self.profile = ['pos', 'button']
         self.is_touch = True
-        self.sx, self.sy = args
+        self.sx, self.sy = args[:2]
+        if len(args) == 3:
+            self.button = args[2]
         super(MouseMotionEvent, self).depack(args)
 
     #
@@ -125,11 +127,11 @@ class MouseMotionEventProvider(MotionEventProvider):
                 return t
         return False
 
-    def create_touch(self, rx, ry, is_double_tap, do_graphics):
+    def create_touch(self, rx, ry, is_double_tap, do_graphics, button):
         self.counter += 1
         id = 'mouse' + str(self.counter)
         self.current_drag = cur = MouseMotionEvent(
-            self.device, id=id, args=[rx, ry])
+            self.device, id=id, args=[rx, ry, button])
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
         if do_graphics:
@@ -172,7 +174,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         else:
             is_double_tap = 'shift' in modifiers
             do_graphics = (button != 'left' or ('ctrl' in modifiers))
-            cur = self.create_touch(rx, ry, is_double_tap, do_graphics)
+            cur = self.create_touch(rx, ry, is_double_tap, do_graphics, button)
             if 'alt' in modifiers:
                 self.alt_touch = cur
                 self.current_drag = None
@@ -183,7 +185,8 @@ class MouseMotionEventProvider(MotionEventProvider):
         rx = x / float(width)
         ry = 1. - y / float(height)
         cur = self.find_touch(rx, ry)
-        if button == 'left' and cur and not ('ctrl' in modifiers):
+        if button in ('left', 'scrollup', 'scrolldown') and cur and not (
+                'ctrl' in modifiers):
             self.remove_touch(cur)
             self.current_drag = None
         if self.alt_touch:

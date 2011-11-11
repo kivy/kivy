@@ -51,7 +51,6 @@ class Layout(Widget):
     def __init__(self, **kwargs):
         if self.__class__ == Layout:
             raise Exception('The Layout class cannot be used.')
-        kwargs.setdefault('size', (1, 1))
         self._trigger_layout = Clock.create_trigger(self.do_layout, -1)
         super(Layout, self).__init__(**kwargs)
 

@@ -31,7 +31,6 @@ class ImageLoaderPygame(ImageLoaderBase):
                'pbm', 'ppm', 'xpm')
 
     def load(self, filename):
-        Logger.debug('Image: Load <%s>' % filename)
         try:
             try:
                 im = pygame.image.load(filename)
