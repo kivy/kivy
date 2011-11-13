@@ -145,7 +145,10 @@ class VideoGStreamer(VideoBase):
 
     def _get_uri(self):
         uri = self.filename
-        if ':' not in uri:
+        if not uri:
+            return
+        if uri.split(':')[0] not in (
+                'http', 'https', 'file', 'udp', 'rtp', 'rtsp'):
             uri = 'file:' + pathname2url(path.realpath(uri))
         return uri
 
