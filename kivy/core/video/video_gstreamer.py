@@ -20,6 +20,7 @@ except:
 
 from os import path
 from threading import Lock
+from urllib import pathname2url
 from kivy.graphics.texture import Texture
 from kivy.logger import Logger
 from functools import partial
@@ -143,9 +144,10 @@ class VideoGStreamer(VideoBase):
                 self._buffer = self._videosink.emit('pull-preroll')
 
     def _get_uri(self):
-        if ':' in self.filename:
-            return self.filename
-        return 'file://'+path.abspath(self.filename)
+        uri = self.filename
+        if ':' not in uri:
+            uri = 'file:' + pathname2url(path.realpath(uri))
+        return uri
 
     def _do_eos(self, *args):
         self.seek(0)
