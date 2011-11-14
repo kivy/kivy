@@ -351,11 +351,11 @@ class Inspector(FloatLayout):
                 dtype = 'list'
 
         if isinstance(prop, NumericProperty) or dtype == 'numeric':
-            content = TextInput(text=str(value), multiline=False)
+            content = TextInput(text=str(value) or '', multiline=False)
             content.bind(text=partial(
                 self.save_property_numeric, widget, key, index))
         elif isinstance(prop, StringProperty) or dtype == 'string':
-            content = TextInput(text=value, multiline=True)
+            content = TextInput(text=value or '', multiline=True)
             content.bind(text=partial(
                 self.save_property_text, widget, key, index))
         elif isinstance(prop, ListProperty) or isinstance(prop,

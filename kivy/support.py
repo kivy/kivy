@@ -1,8 +1,12 @@
 '''
-Support: activate other framework/toolkit inside our event loop
+Support
+=======
+
+Activate other framework/toolkit inside our event loop
 '''
 
-__all__ = ('install_gobject_iteration', 'install_android')
+__all__ = ('install_gobject_iteration', 'install_twisted_reactor',
+    'install_android')
 
 
 def install_gobject_iteration():
