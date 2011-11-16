@@ -89,6 +89,13 @@ class Camera(Image):
                   resolution=self._on_index)
         self._on_index()
 
+    def on_frame(self, *l):
+        # texture needs to know somehow that it has changed
+        # but in this case the texture(refference/address) 
+        # remains the same, so force it to change
+        self.texture = None
+        self.texture = self._camera._texture
+
     def _on_index(self, *largs):
         self._camera = None
         if self.index < 0:
@@ -98,6 +105,7 @@ class Camera(Image):
         self._camera.bind(on_load=self._camera_loaded)
         if self.play:
             self._camera.start()
+            self._camera.bind(on_frame=self.on_frame)
 
     def _camera_loaded(self, *largs):
         self.texture = self._camera.texture
