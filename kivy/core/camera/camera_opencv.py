@@ -9,6 +9,7 @@ OpenCV Camera: Implement CameraBase with OpenCV
 __all__ = ('CameraOpenCV')
 
 from kivy.logger import Logger
+from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from . import CameraBase
 
@@ -58,6 +59,13 @@ class CameraOpenCV(CameraBase):
         # self.resolution for that as that would cause an infinite recursion
         # with self.init_camera (but slowly as we'd have to always get a frame).
         self._resolution = (int(frame.width), int(frame.height))
+
+        #get fps
+        fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
+        if fps <= 0:
+            fps = 30
+        Clock.schedule_interval(self._update, .03)
+
 
         if not self.stopped:
             self.start()

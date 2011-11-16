@@ -10,7 +10,6 @@ __all__ = ('CameraBase', 'Camera')
 
 import sys
 
-from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
 from kivy.core import core_select_lib
@@ -101,8 +100,6 @@ class CameraBase(EventDispatcher):
     def start(self):
         '''Start the camera acquire'''
         self.stopped = False
-        Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, 1. / 30)
 
     def stop(self):
         '''Release the camera'''

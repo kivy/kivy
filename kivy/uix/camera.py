@@ -90,11 +90,7 @@ class Camera(Image):
         self._on_index()
 
     def on_frame(self, *l):
-        # texture needs to know somehow that it has changed
-        # but in this case the texture(refference/address) 
-        # remains the same, so force it to change
-        self.texture = None
-        self.texture = self._camera._texture
+        self.canvas.ask_update()
 
     def _on_index(self, *largs):
         self._camera = None
