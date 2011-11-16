@@ -61,11 +61,9 @@ class CameraOpenCV(CameraBase):
         self._resolution = (int(frame.width), int(frame.height))
 
         #get fps
-        fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
-        if fps <= 0:
-            fps = 30
-        Clock.schedule_interval(self._update, .03)
-
+        self.fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
+        if self.fps <= 0:
+            self.fps = .03
 
         if not self.stopped:
             self.start()
@@ -90,4 +88,13 @@ class CameraOpenCV(CameraBase):
             self._copy_to_gpu()
         except:
             Logger.exception('OpenCV: Couldn\'t get image from Camera')
+
+    def start(self):
+        super(CameraOpenCV, self).start()
+        Clock.unschedule(self._update)
+        Clock.schedule_interval(self._update, self.fps)
+
+    def stop(self):
+        super(CameraOpenCV, self).stop()
+        Clock.unschedule(self._update)
 

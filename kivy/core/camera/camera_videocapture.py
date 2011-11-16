@@ -9,6 +9,7 @@ VideoCapture Camera: Implement CameraBase with VideoCapture
 __all__ = ('CameraVideoCapture', )
 
 from . import CameraBase
+from kivy.clock import Clock
 
 try:
     from VideoCapture import Device
@@ -33,8 +34,7 @@ class CameraVideoCapture(CameraBase):
             self._device.setResolution(self.resolution[0], self.resolution[1])
         except:
             raise Exception('VideoCapture: Resolution not supported')
-        from kivy.clock import Clock
-        Clock.schedule_interval(self._update , .03)
+        self.fps = .03
 
     def _update(self, dt):
         data, camera_width, camera_height = self._device.getBuffer()
@@ -49,3 +49,14 @@ class CameraVideoCapture(CameraBase):
         # update buffer
         self._buffer = data
         self._copy_to_gpu()
+
+    def start(self):
+        super(CameraVideoCapture, self).start()
+        Clock.unschedule(self._update)
+        Clock.schedule_interval(self._update, self.fps)
+
+    def stop(self):
+        super(CameraVideoCapture, self).stop()
+        Clock.unschedule(self._update)
+
+

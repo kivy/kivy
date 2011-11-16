@@ -104,7 +104,6 @@ class CameraBase(EventDispatcher):
     def stop(self):
         '''Release the camera'''
         self.stopped = True
-        Clock.unschedule(self._update)
 
     def _update(self, dt):
         '''Update the camera (internal)'''
