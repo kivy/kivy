@@ -34,7 +34,7 @@ class CameraVideoCapture(CameraBase):
             self._device.setResolution(self.resolution[0], self.resolution[1])
         except:
             raise Exception('VideoCapture: Resolution not supported')
-        self.fps = .03
+        self.fps = 1 / 30
 
     def _update(self, dt):
         data, camera_width, camera_height = self._device.getBuffer()

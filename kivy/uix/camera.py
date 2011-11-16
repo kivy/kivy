@@ -89,7 +89,7 @@ class Camera(Image):
                   resolution=self._on_index)
         self._on_index()
 
-    def on_frame(self, *l):
+    def on_tex(self, *l):
         self.canvas.ask_update()
 
     def _on_index(self, *largs):
@@ -101,7 +101,7 @@ class Camera(Image):
         self._camera.bind(on_load=self._camera_loaded)
         if self.play:
             self._camera.start()
-            self._camera.bind(on_frame=self.on_frame)
+            self._camera.bind(on_texture=self.on_tex)
 
     def _camera_loaded(self, *largs):
         self.texture = self._camera.texture
