@@ -293,8 +293,9 @@ class ObservableList(list):
         observable_list_dispatch(self)
 
     def pop(self, *largs):
-        list.pop(self, *largs)
+        cdef object result = list.pop(self, *largs)
         observable_list_dispatch(self)
+        return result
 
     def extend(self, *largs):
         list.extend(self, *largs)
@@ -354,12 +355,14 @@ class ObservableDict(dict):
         observable_dict_dispatch(self)
 
     def pop(self, *largs):
-        dict.pop(self, *largs)
+        cdef object result = dict.pop(self, *largs)
         observable_dict_dispatch(self)
+        return result
 
     def popitem(self, *largs):
-        dict.popitem(self, *largs)
+        cdef object result = dict.popitem(self, *largs)
         observable_dict_dispatch(self)
+        return result
 
     def setdefault(self, *largs):
         dict.setdefault(self, *largs)
