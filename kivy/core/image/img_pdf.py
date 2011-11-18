@@ -1,35 +1,9 @@
-#-*- coding: utf-8 -*-
-#
-#    this program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
-#
-#    this program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-#
-#   The Graphics Interchange Format(c) is the Copyright property of
-#   CompuServe Incorporated. GIF(sm) is a Service Mark property of
-#   CompuServe Incorporated.
-#
-# The unisys/lzw patent has expired, yes. If anyone puts another patent
-# over this code, you must *burn* this file.
-
-
-#TODO issues to fix
-#optimize for speed  #partially done#  a lot of room for improvementd
-import struct
-from array import array
-import math
+'''
+PDF: PDF image loader
+'''
 
 from kivy.logger import Logger
-from . import ImageLoaderBase, ImageData, ImageLoader
+from kivy.core.image import ImageLoaderBase, ImageLoader
 
 Debug = False
 
@@ -39,9 +13,9 @@ from pyPdf import PdfFileWriter, PdfFileReader
 class ImageLoaderPDF(ImageLoaderBase):
     '''Image loader for PDF'''
 
-    def __init__(self, page=0, **kwargs):
+    def __init__(self, page=0, filename=None, **kwargs):
         self.page = page
-        super(ImageLoaderPDF, self).__init__(**kwargs)
+        super(ImageLoaderPDF, self).__init__(filename, **kwargs)
 
     @staticmethod
     def extensions():
@@ -67,7 +41,6 @@ class ImageLoaderPDF(ImageLoaderBase):
             #blobpng.data
 
             im = PILImage.frombuffer('rgb', len(blobpng.data), blobpng.data)
-            
 
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
@@ -76,3 +49,4 @@ class ImageLoaderPDF(ImageLoaderBase):
         return list(self._img_read(im))
 
 ImageLoader.register(ImageLoaderPDF)
+print "PDF loader registered!"
