@@ -8,7 +8,7 @@ except:
     raise
 
 from kivy.logger import Logger
-from kivy.core.image import ImageLoaderBase, ImageLoader
+from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 Debug = False
 
@@ -53,7 +53,7 @@ class ImageLoaderPDF(ImageLoaderBase):
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
 
-        return list(self._img_read(im))
+        return (ImageData(size[0], size[1], 'rgb', im.tostring()),)
 
 ImageLoader.register(ImageLoaderPDF)
 print "PDF loader registered!"
