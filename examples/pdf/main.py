@@ -9,7 +9,7 @@ from kivy.properties import StringProperty
 class PDFReader(BoxLayout):
     filename = StringProperty('')
 
-    def __init__(self, pdf, **kwargs):
+    def __init__(self, **kwargs):
         super(PDFReader, self).__init__(**kwargs)
         b = Button(text='<')
         b.size_hint = None, None
@@ -17,7 +17,7 @@ class PDFReader(BoxLayout):
         b.bind(on_release=self.prececent)
         self.add_widget(b)
 
-        self.pdf = Image(filename=self.filename)
+        self.pdf = Image(source=self.filename)
         self.add_widget(self.pdf)
 
         b = Button(text='>')
@@ -34,7 +34,7 @@ class PDFReader(BoxLayout):
 
 class MyApp(App):
     def build(self):
-        return PDFReader('evaluation software engeener.pdf')
+        return PDFReader(filename='evaluation software engeener.pdf')
 
 if __name__ == '__main__':
     MyApp().run()
