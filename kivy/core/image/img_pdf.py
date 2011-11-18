@@ -2,6 +2,11 @@
 PDF: PDF image loader
 '''
 
+try:
+    from PIL import Image as PILImage
+except:
+    raise
+
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageLoader
 
@@ -9,11 +14,12 @@ Debug = False
 
 import io
 from pyPdf import PdfFileWriter, PdfFileReader
+import PythonMagick as pm
 
 class ImageLoaderPDF(ImageLoaderBase):
     '''Image loader for PDF'''
 
-    def __init__(self, page=0, filename=None, **kwargs):
+    def __init__(self, filename, page=0, **kwargs):
         self.page = page
         super(ImageLoaderPDF, self).__init__(filename, **kwargs)
 
@@ -28,6 +34,7 @@ class ImageLoaderPDF(ImageLoaderBase):
             # first extract the page from the pdf
             pdf = PdfFileReader(open(filename, 'rb'))
             p2 = pdf.getPage(self.page)
+            size = p2.cropBox[2:]
             w = PdfFileWriter()
             w.addPage(p2)
             f = io.BytesIO()
@@ -36,11 +43,11 @@ class ImageLoaderPDF(ImageLoaderBase):
 
             # then convert the one page pdf filebuffer to an image
             blob = pm.Blob(f.read())
-            blobpng = pm.Blob()
-            pm.Image(blob).write(blobpng,'jpg')
+            blobjpg = pm.Blob()
+            pm.Image(blob).write(blobjpg,'rgb')
             #blobpng.data
 
-            im = PILImage.frombuffer('rgb', len(blobpng.data), blobpng.data)
+            im = PILImage.frombuffer('RGB', size, blobjpg.data)
 
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
