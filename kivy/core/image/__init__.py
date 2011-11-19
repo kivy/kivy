@@ -314,7 +314,7 @@ class Image(EventDispatcher):
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
-                       '_mipmap', 'page')
+                       '_mipmap', '_page')
 
     def __init__(self, arg, **kwargs):
         # this event should be fired on animation of sequenced img's
@@ -474,8 +474,10 @@ class Image(EventDispatcher):
     def _get_page(self):
         return self._page
 
-    def _set_page(self):
-        self._page = page
+    def _set_page(self, page):
+        self.image = ImageLoader.load(self._filename, page=page)
+        self._page = self.image.page
+        self._texture = self.image.texture
 
     page = property(_get_page, _set_page,
             doc='Get/set the displayed page of a pdf')
