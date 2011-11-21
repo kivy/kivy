@@ -237,6 +237,7 @@ class AsyncImage(Image):
 
     def on_source(self, instance, value):
         if not value:
+            self._coreimage.unbind(on_texture=self._on_tex_change)
             self.texture = None
             self._coreimage = None
         else:
@@ -258,4 +259,5 @@ class AsyncImage(Image):
         return proto in ('http', 'https', 'ftp')
 
     def _on_tex_change(self, *largs):
-        self.texture = self._coreimage.texture
+        if self._coreimage:
+            self.texture = self._coreimage.texture
