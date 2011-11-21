@@ -313,9 +313,9 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.setdefault('input', 'mouse', 'mouse')
 
             # activate native input provider in configuration
-            if platform == 'darwin':
-                Config.setdefault('input', 'mactouch', 'mactouch')
-            elif platform == 'win32':
+            # from 1.0.9, don't activate mactouch by default, or app are
+            # unusable.
+            if platform == 'win32':
                 Config.setdefault('input', 'wm_touch', 'wm_touch')
                 Config.setdefault('input', 'wm_pen', 'wm_pen')
             elif platform == 'linux2':

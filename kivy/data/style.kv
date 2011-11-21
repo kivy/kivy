@@ -11,6 +11,7 @@
 
 <Button,ToggleButton>:
     canvas:
+        Clear
         Color:
             rgba: self.background_color
         BorderImage:
@@ -253,25 +254,25 @@
             size: root.size
             source: 'data/images/filechooser_selected.png'
 
-	Image:
-		size: 48, 48
-		source: 'data/images/filechooser_%s.png' % ('folder' if ctx.isdir else 'file')
-		pos: root.x + 24, root.y + 40
-	Label:
-		text: unicode(ctx.name)
-		text_size: (root.width, self.height)
-		halign: 'center'
-		shorten: True
-		size: 100, 16
-		pos: root.x, root.y + 16
+    Image:
+        size: 48, 48
+        source: 'data/images/filechooser_%s.png' % ('folder' if ctx.isdir else 'file')
+        pos: root.x + 24, root.y + 40
+    Label:
+        text: unicode(ctx.name)
+        text_size: (root.width, self.height)
+        halign: 'center'
+        shorten: True
+        size: 100, 16
+        pos: root.x, root.y + 16
 
-	Label:
-		text: unicode(ctx.get_nice_size())
-		font_size: 8
-		color: .8, .8, .8, 1
-		size: 100, 16
-		pos: root.pos
-		halign: 'center'
+    Label:
+        text: unicode(ctx.get_nice_size())
+        font_size: 8
+        color: .8, .8, .8, 1
+        size: 100, 16
+        pos: root.pos
+        halign: 'center'
 
 
 # Switch widget
