@@ -95,6 +95,8 @@ class Video(Image):
         super(Video, self).__init__(**kwargs)
 
     def texture_update(self, *largs):
+        '''This method is a no-op in Video widget.
+        '''
         pass
 
     def on_source(self, instance, value):

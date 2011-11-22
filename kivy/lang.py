@@ -453,7 +453,9 @@ from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.utils import OrderedDict, QueryDict
 from kivy.cache import Cache
-from kivy import kivy_data_dir
+from kivy import kivy_data_dir, require
+from kivy.lib.debug import make_traceback
+
 
 trace = Logger.trace
 global_idmap = {}
@@ -467,7 +469,7 @@ lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 
 
-def precompile_value(name, value):
+def precompile_value(name, value, line=1, parser=None):
     # if it's an id, we don't need to compile, the value is the id.
     if name == 'id':
         return value
@@ -480,10 +482,10 @@ def precompile_value(name, value):
         # if we don't detect any string/key in it, we can eval and give the
         # result
         if re.search(lang_key, tmp) is None:
-            return (None, eval(value), value)
+            return (None, eval(value), value, line + 1, parser)
 
     # ok, we can compile.
-    code = compile(value, '<string>', mode)
+    code = compile(value, parser.filename or '<string>', mode)
 
     # now, detect obj.prop
     # first, remove all the string from the value
@@ -491,7 +493,7 @@ def precompile_value(name, value):
     # detect key.value inside value
     kw = re.findall(lang_keyvalue, tmp)
 
-    return (kw, code, value)
+    return (kw, code, value, line + 1, parser)
 
 
 class ParserError(Exception):
@@ -529,13 +531,10 @@ class Parser(object):
         self.sourcecode = []
         self.objects = []
         self.directives = []
+        self.filename = kwargs.get('filename', None)
         content = kwargs.get('content', None)
-        self.filename = filename = kwargs.get('filename', None)
-        if filename:
-            content = self.load_resource(filename)
         if content is None:
-            raise ValueError('No content passed. Use filename or '
-                             'content attribute.')
+            raise ValueError('No content passed')
         self.parse(content)
 
     def execute_directives(self):
@@ -633,7 +632,7 @@ class Parser(object):
                         'canvas.after'):
                     self.precompile_objects(value[0])
                     continue
-                value[0] = precompile_value(key, value[0])
+                value[0] = precompile_value(key, value[0], value[1], value[2])
 
     def parse_version(self, line):
         '''Parse the version line.
@@ -648,9 +647,9 @@ class Parser(object):
                            '#:kivy <version>')
 
         version = content[6:].strip()
-        if version != '1.0':
-            raise ParserError(self, ln, 'Only Kivy language 1.0 is supported'
-                          ' (<%s> found)' % version)
+        if len(version.split('.')) == 2:
+            version += '.0'
+        require(version)
         if __debug__:
             trace('Parser: Kivy version is %s' % version)
 
@@ -792,9 +791,16 @@ _eval_globals['center'] = _eval_center
 
 def custom_callback(*largs, **kwargs):
     element, key, value, idmap = largs[0]
+    __kvlang__ = value
     locals().update(idmap)
     args = largs[1:]
-    exec value[1]
+    try:
+        exec value[1]
+    except:
+        exc_info = sys.exc_info()
+        traceback = make_traceback(exc_info)
+        exc_type, exc_value, tb = traceback.standard_exc_info
+        raise exc_type, exc_value, tb
 
 
 def create_handler(element, key, vd, idmap):
@@ -960,7 +966,8 @@ class BuilderBase(object):
         kwargs.setdefault('rulesonly', False)
         self._current_filename = kwargs.get('filename', None)
         try:
-            parser = Parser(content=string)
+            parser = Parser(content=string, filename=kwargs.get(
+                'filename', None))
             root = self.build(parser.objects)
             if kwargs['rulesonly'] and root:
                 filename = kwargs.get('rulesonly', '<string>')

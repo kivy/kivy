@@ -160,6 +160,6 @@ class LangTestCase(unittest.TestCase):
         Builder.apply(wid)
         wid.a = 0
 
-        self.assertIn('on_press', wid.binded_func)
+        self.assertTrue('on_press' in wid.binded_func)
         wid.binded_func['on_press']()
         self.assertEquals(wid.a, 1)
