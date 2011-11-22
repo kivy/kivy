@@ -16,6 +16,7 @@ from kivy.uix.switch import Switch
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.accordion import Accordion, AccordionItem
+from kivy.uix.filechooser import FileChooserIconView, FileChooserListView
 
 
 class Showcase(FloatLayout):
@@ -60,22 +61,20 @@ class ShowcaseApp(App):
         n = create_tree('Buttons')
         attach_node('Standard buttons', n)
         attach_node('Options buttons', n)
-        n = create_tree('Sliders')
         attach_node('Horizontal sliders', n)
         attach_node('Vertical sliders', n)
-        n = create_tree('Scatter')
         attach_node('Scatter with image', n)
         attach_node('Scatter with buttons', n)
-        n = create_tree('Textinput')
         attach_node('Monoline textinput', n)
         attach_node('Multiline textinput', n)
-        n = create_tree('TreeView')
         attach_node('Standard treeview', n)
         attach_node('Treeview without root', n)
-        n = create_tree('Others')
         attach_node('Accordion', n)
         attach_node('Popup', n)
         attach_node('Switch', n)
+        n = create_tree('Experimentals')
+        attach_node('Filechooser icon', n)
+        attach_node('Filechooser list', n)
         root.add_widget(tree)
         self.content = content = BoxLayout()
         root.add_widget(content)
@@ -191,6 +190,12 @@ class ShowcaseApp(App):
         col = AnchorLayout()
         col.add_widget(root)
         return col
+
+    def show_filechooser_icon(self):
+        return FileChooserIconView()
+
+    def show_filechooser_list(self):
+        return FileChooserListView()
 
 
 if __name__ in ('__main__', '__android__'):
