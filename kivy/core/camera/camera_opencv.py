@@ -9,6 +9,7 @@ OpenCV Camera: Implement CameraBase with OpenCV
 __all__ = ('CameraOpenCV')
 
 from kivy.logger import Logger
+from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from . import CameraBase
 
@@ -59,6 +60,11 @@ class CameraOpenCV(CameraBase):
         # with self.init_camera (but slowly as we'd have to always get a frame).
         self._resolution = (int(frame.width), int(frame.height))
 
+        #get fps
+        self.fps = cv.GetCaptureProperty(self._device, cv.CV_CAP_PROP_FPS)
+        if self.fps <= 0:
+            self.fps = 1/30
+
         if not self.stopped:
             self.start()
 
@@ -82,4 +88,13 @@ class CameraOpenCV(CameraBase):
             self._copy_to_gpu()
         except:
             Logger.exception('OpenCV: Couldn\'t get image from Camera')
+
+    def start(self):
+        super(CameraOpenCV, self).start()
+        Clock.unschedule(self._update)
+        Clock.schedule_interval(self._update, self.fps)
+
+    def stop(self):
+        super(CameraOpenCV, self).stop()
+        Clock.unschedule(self._update)
 

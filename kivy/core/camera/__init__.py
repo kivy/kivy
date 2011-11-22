@@ -10,7 +10,6 @@ __all__ = ('CameraBase', 'Camera')
 
 import sys
 
-from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
 from kivy.core import core_select_lib
@@ -58,7 +57,7 @@ class CameraBase(EventDispatcher):
         super(CameraBase, self).__init__()
 
         self.register_event_type('on_load')
-        self.register_event_type('on_frame')
+        self.register_event_type('on_texture')
 
         self.init_camera()
 
@@ -101,13 +100,10 @@ class CameraBase(EventDispatcher):
     def start(self):
         '''Start the camera acquire'''
         self.stopped = False
-        Clock.unschedule(self._update)
-        Clock.schedule_interval(self._update, 1. / 30)
 
     def stop(self):
         '''Release the camera'''
         self.stopped = True
-        Clock.unschedule(self._update)
 
     def _update(self, dt):
         '''Update the camera (internal)'''
@@ -120,9 +116,9 @@ class CameraBase(EventDispatcher):
             return
         self._texture.blit_buffer(self._buffer, colorfmt=self._format)
         self._buffer = None
-        self.dispatch('on_frame')
+        self.dispatch('on_texture')
 
-    def on_frame(self):
+    def on_texture(self):
         pass
 
     def on_load(self):
