@@ -201,6 +201,7 @@
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller.entry_touched(self, args[1])
+    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller.entry_released(self, args[1])
     BoxLayout:
         pos: root.pos
         Label:
@@ -244,6 +245,7 @@
     size_hint: None, None
 
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller.entry_touched(self, args[1])
+    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller.entry_released(self, args[1])
 
     canvas:
         Color:

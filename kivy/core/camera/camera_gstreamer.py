@@ -4,7 +4,7 @@ GStreamer Camera: Implement CameraBase with GStreamer
 
 __all__ = ('CameraGStreamer', )
 
-
+from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from . import CameraBase
 
@@ -77,7 +77,9 @@ class CameraGStreamer(CameraBase):
             for x in self._decodebin.src_pads():
                 for cap in x.get_caps():
                     self._texturesize = (cap['width'], cap['height'])
+                    Clock.schedule_once(self._update)
                     return
+        Clock.schedule_once(self._update)
 
     def start(self):
         super(CameraGStreamer, self).start()
