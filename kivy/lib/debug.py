@@ -308,5 +308,8 @@ def _init_ugly_crap():
 # proxies.
 tb_set_next = None
 if tproxy is None:
-    tb_set_next = _init_ugly_crap()
+    try:
+        tb_set_next = _init_ugly_crap()
+    except ImportError:
+        tb_set_next = None
     del _init_ugly_crap
