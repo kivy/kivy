@@ -103,6 +103,8 @@ __all__ = ('TextInput', )
 
 import sys
 
+from functools import partial
+from kivy.logger import Logger
 from kivy.utils import boundary
 from kivy.clock import Clock
 from kivy.cache import Cache
@@ -416,10 +418,20 @@ class TextInput(Widget):
     #
     # Private
     #
-    def on_focus(self, instance, value):
+    def on_focus(self, instance, value, *largs):
         win = self._win
         if not win:
             self._win = win = self.get_root_window()
+        if not win:
+            # we got argument, it could be the previous schedule
+            # cancel focus.
+            if len(largs):
+                Logger.warning('Textinput: '
+                    'Cannot focus the element, unable to get root window')
+                return
+            else:
+                Clock.schedule_once(partial(self.on_focus, self, value), 0)
+            return
         if value:
             keyboard = win.request_keyboard(self._keyboard_released, self)
             self._keyboard = keyboard
