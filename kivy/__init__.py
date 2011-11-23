@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.9-dev'
+__version__ = '1.0.10-dev'
 
 import sys
 import shutil
@@ -175,6 +175,7 @@ def kivy_usage():
 
 
 # Start !
+Logger.setLevel(level=LOG_LEVELS.get('info'))
 Logger.info('Kivy v%s' % (__version__))
 
 #: Global settings options for kivy

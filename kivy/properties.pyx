@@ -183,7 +183,9 @@ cdef class Property:
         '''
         if x is None:
             if not obj.__storage[self._name]['allownone']:
-                raise ValueError('None is not allowed')
+                raise ValueError('None is not allowed for %s.%s' % (
+                    obj.__class__.__name__,
+                    self.name))
             else:
                 return True
 
@@ -206,7 +208,7 @@ cdef class Property:
 cdef class NumericProperty(Property):
     '''Property that represents a numeric value
 
-    The NumericProperty accepts only int or float.
+    The NumericProperty accept only int or float.
 
     >>> Widget.x = 42
     >>> print Widget.x
@@ -217,13 +219,15 @@ cdef class NumericProperty(Property):
         File "properties.pyx", line 93, in kivy.properties.Property.__set__
         File "properties.pyx", line 111, in kivy.properties.Property.set
         File "properties.pyx", line 159, in kivy.properties.NumericProperty.check
-        ValueError: NumericProperty accepts only int/float
+        ValueError: NumericProperty accept only int/float
     '''
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
         if type(value) not in (int, float):
-            raise ValueError('NumericProperty<%s> accepts only int/float' % self.name)
+            raise ValueError('%s.%s accept only int/float' % (
+                obj.__class__.__name__,
+                self.name))
 
 
 cdef class StringProperty(Property):
@@ -235,8 +239,9 @@ cdef class StringProperty(Property):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, basestring):
-            raise ValueError('StringProperty<%s> accepts only str/unicode' %
-                             self.name)
+            raise ValueError('%s.%s accept only str/unicode' % (
+                obj.__class__.__name__,
+                self.name))
 
 cdef inline void observable_list_dispatch(object self):
     cdef Property prop = self.prop
@@ -293,8 +298,9 @@ class ObservableList(list):
         observable_list_dispatch(self)
 
     def pop(self, *largs):
-        list.pop(self, *largs)
+        cdef object result = list.pop(self, *largs)
         observable_list_dispatch(self)
+        return result
 
     def extend(self, *largs):
         list.extend(self, *largs)
@@ -319,8 +325,9 @@ cdef class ListProperty(Property):
         if Property.check(self, obj, value):
             return True
         if type(value) is not ObservableList:
-            raise ValueError('ListProperty<%s> accepts only ObservableList'
-                             ' (should never happen.)' % self.name)
+            raise ValueError('%s.%s accept only ObservableList' % (
+                obj.__class__.__name__,
+                self.name))
 
     cpdef set(self, obj, value):
         value = ObservableList(self, obj, value)
@@ -354,12 +361,14 @@ class ObservableDict(dict):
         observable_dict_dispatch(self)
 
     def pop(self, *largs):
-        dict.pop(self, *largs)
+        cdef object result = dict.pop(self, *largs)
         observable_dict_dispatch(self)
+        return result
 
     def popitem(self, *largs):
-        dict.popitem(self, *largs)
+        cdef object result = dict.popitem(self, *largs)
         observable_dict_dispatch(self)
+        return result
 
     def setdefault(self, *largs):
         dict.setdefault(self, *largs)
@@ -385,8 +394,9 @@ cdef class DictProperty(Property):
         if Property.check(self, obj, value):
             return True
         if type(value) is not ObservableDict:
-            raise ValueError('DictProperty<%s> accepts only ObservableDict'
-                             ' (should never happen.)' % self.name)
+            raise ValueError('%s.%s accept only ObservableDict' % (
+                obj.__class__.__name__,
+                self.name))
 
     cpdef set(self, obj, value):
         value = ObservableDict(self, obj, value)
@@ -404,8 +414,9 @@ cdef class ObjectProperty(Property):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, object):
-            raise ValueError('ObjectProperty<%s> accepts only Python objects' %
-                            self.name)
+            raise ValueError('%s.%s accept only Python object' % (
+                obj.__class__.__name__,
+                self.name))
 
 cdef class BooleanProperty(Property):
     '''Property that represents only boolean
@@ -414,7 +425,9 @@ cdef class BooleanProperty(Property):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, object):
-            raise ValueError('BooleanProperty<%s> accepts only bool' % self.name)
+            raise ValueError('%s.%s accept only bool' % (
+                obj.__class__.__name__,
+                self.name))
 
 cdef class BoundedNumericProperty(Property):
     '''Property that represents a numeric value within a minimum bound and/or
@@ -466,13 +479,15 @@ cdef class BoundedNumericProperty(Property):
         if s['use_min']:
             _min = s['min']
             if value < _min:
-                raise ValueError('BoundedNumericProperty<%s> is below the '
-                                 'minimum bound (%d)' % (self.name, _min))
+                raise ValueError('%s.%s is below the minimum bound (%d)' % (
+                    obj.__class__.__name__,
+                    self.name, _min))
         if s['use_max']:
             _max = s['max']
             if value > _max:
-                raise ValueError('BoundedNumericProperty<%s> is above the '
-                                 'maximum bound (%d)' % (self.name, _max))
+                raise ValueError('%s.%s is above the maximum bound (%d)' % (
+                    obj.__class__.__name__,
+                    self.name, _max))
         return True
 
     property bounds:
@@ -515,8 +530,10 @@ cdef class OptionProperty(Property):
             return True
         valid_options = obj.__storage[self._name]['options']
         if value not in valid_options:
-            raise ValueError('OptionProperty<%s> have an invalid option %r. '
-                             'Must be one of: %s' % (self.name,
+            raise ValueError('%s.%s is set to an invalid option %r. '
+                             'Must be one of: %s' % (
+                             obj.__class__.__name__,
+                             self.name, 
                              value, valid_options))
 
     property options:
@@ -568,14 +585,16 @@ cdef class ReferenceListProperty(Property):
 
     cdef convert(self, obj, value):
         if not isinstance(value, (list, tuple)):
-            raise ValueError('ReferenceListProperty<%s> must be a list or a '
-                             'tuple' % self.name)
+            raise ValueError('%s.%s must be a list or a tuple' % (
+                obj.__class__.__name__,
+                self.name))
         return list(value)
 
     cdef check(self, obj, value):
         if len(value) != len(obj.__storage[self._name]['properties']):
-            raise ValueError('ReferenceListProperty<%s> value length is '
-                             'immutable' % self.name)
+            raise ValueError('%s.%s value length is immutable' % (
+                obj.__class__.__name__,
+                self.name))
 
     cpdef set(self, obj, _value):
         cdef int idx

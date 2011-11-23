@@ -140,6 +140,9 @@ class FileChooserController(FloatLayout):
         self.register_event_type('on_submit')
         super(FileChooserController, self).__init__(**kwargs)
 
+        self._items = []
+        self.bind(selection=self._update_item_selection)
+
         if platform in ('darwin', 'linux2'):
             self.is_hidden = is_hidden_unix
         elif platform == 'win32':
@@ -150,6 +153,10 @@ class FileChooserController(FloatLayout):
         self.bind(path=self._trigger_update,
                   filters=self._trigger_update)
         self._trigger_update()
+
+    def _update_item_selection(self, *args):
+        for item in self._items:
+            item.selected = item.path in self.selection
 
     def _trigger_update(self, *args):
         Clock.unschedule(self._update_files)
@@ -168,9 +175,12 @@ class FileChooserController(FloatLayout):
         pass
 
     def on_submit(self, selected, touch=None):
-        self.selection = []
+        pass
 
     def entry_touched(self, entry, touch):
+        '''(internal) This method must be called by the template when an entry
+        is touched by the user.
+        '''
         if self.multiselect:
             if isdir(entry.path) and touch.is_double_tap:
                 self.open_entry(entry)
@@ -181,10 +191,23 @@ class FileChooserController(FloatLayout):
                     self.selection.append(entry.path)
         else:
             if isdir(entry.path):
-                self.open_entry(entry)
+                pass
             else:
                 self.selection = [entry.path, ]
-                self.dispatch('on_submit', [entry.path], touch)
+
+    def entry_released(self, entry, touch):
+        '''(internal) This method must be called by the template when an entry
+        is touched by the user.
+
+        .. versionadded:: 1.0.10
+        '''
+        if self.multiselect:
+            pass
+        else:
+            if isdir(entry.path):
+                self.open_entry(entry)
+            elif touch.is_double_tap:
+                self.dispatch('on_submit', self.selection, touch)
 
     def open_entry(self, entry):
         try:
@@ -232,6 +255,7 @@ class FileChooserController(FloatLayout):
     def _update_files(self, *args):
         # Clear current files
         self.dispatch('on_entries_cleared')
+        self._items = []
 
         # Add the components that are always needed
         if platform == 'win32':
@@ -247,6 +271,7 @@ class FileChooserController(FloatLayout):
             pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
                 size='', path=back, controller=self, isdir=True, parent=None,
                 sep=sep, get_nice_size=lambda: ''))
+            self._items.append(pardir)
             self.dispatch('on_entry_added', pardir)
         try:
             self._add_files(self.path)

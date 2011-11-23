@@ -252,33 +252,6 @@ class ConsoleHandler(logging.StreamHandler):
         return True
 
 
-class ColoredLogger(logging.Logger):
-
-    use_color = True
-    if os.name == 'nt':
-        use_color = False
-
-    FORMAT = '[%(levelname)-18s] %(message)s'
-    COLOR_FORMAT = formatter_message(FORMAT, use_color)
-
-    def __init__(self, name):
-        logging.Logger.__init__(self, name, logging.DEBUG)
-        color_formatter = ColoredFormatter(self.COLOR_FORMAT,
-                                           use_color=self.use_color)
-        console = ConsoleHandler()
-        console.setFormatter(color_formatter)
-
-        self.addHandler(LoggerHistory())
-        self.addHandler(FileHandler())
-
-        # Use the custom handler instead of streaming one.
-        if hasattr(sys, '_kivy_logging_handler'):
-            self.addHandler(getattr(sys, '_kivy_logging_handler'))
-        else:
-            self.addHandler(console)
-        return
-
-
 class LogFile(object):
 
     def __init__(self, channel, func):
@@ -299,13 +272,25 @@ class LogFile(object):
     def flush(self):
         return
 
-if 'nosetests' not in sys.argv:
-    logging.setLoggerClass(ColoredLogger)
-
 #: Kivy default logger instance
-Logger = logging.getLogger('Kivy')
+Logger = logging.getLogger('kivy')
 Logger.logfile_activated = False
 Logger.trace = partial(Logger.log, logging.TRACE)
+
+# add default kivy logger
+Logger.addHandler(LoggerHistory())
+Logger.addHandler(FileHandler())
+
+# Use the custom handler instead of streaming one.
+if hasattr(sys, '_kivy_logging_handler'):
+    Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
+else:
+    use_color = os.name != 'nt'
+    color_fmt = formatter_message('[%(levelname)-18s] %(message)s', use_color)
+    formatter = ColoredFormatter(color_fmt, use_color=use_color)
+    console = ConsoleHandler()
+    console.setFormatter(formatter)
+    Logger.addHandler(console)
 
 # install stderr handlers
 sys.stderr = LogFile('stderr', Logger.warning)
