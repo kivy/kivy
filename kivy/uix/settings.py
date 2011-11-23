@@ -317,9 +317,15 @@ class SettingString(SettingItem):
             return
         self.bind(on_release=self._create_popup)
 
-    def _validate(self, instance):
-        self.popup.dismiss()
+    def _dismiss(self, *largs):
+        if self.textinput:
+            self.textinput.focus = False
+        if self.popup:
+            self.popup.dismiss()
         self.popup = None
+
+    def _validate(self, instance):
+        self._dismiss()
         value = self.textinput.text.strip()
         if value == '':
             return
@@ -349,7 +355,7 @@ class SettingString(SettingItem):
         btn.bind(on_release=self._validate)
         btnlayout.add_widget(btn)
         btn = Button(text='Cancel')
-        btn.bind(on_release=popup.dismiss)
+        btn.bind(on_release=self._dismiss)
         btnlayout.add_widget(btn)
         content.add_widget(btnlayout)
 
@@ -365,13 +371,11 @@ class SettingNumeric(SettingString):
     '''
 
     def _validate(self, instance):
-        self.popup.dismiss()
-        self.popup = None
+        self._dismiss()
         try:
-            value = int(self.textinput.text)
+            self.value = int(self.textinput.text)
         except ValueError:
             return
-        self.value = value
 
 
 class SettingOptions(SettingItem):
