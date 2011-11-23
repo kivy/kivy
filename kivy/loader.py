@@ -32,6 +32,9 @@ from time import sleep
 from os.path import join
 from os import write, close, unlink, environ
 
+from urllib2 import urlopen
+from tempfile import mkstemp
+
 # Register a cache for loader
 Cache.register('kivy.loader', limit=500, timeout=60)
 
@@ -117,12 +120,12 @@ class LoaderBase(object):
         Will call _load_local() if the file is local,
         or _load_urllib() if the file is on Internet'''
 
-        filename, load_callback, post_callback = parameters
+        filename, load_callback, post_callback, progress_callback = parameters
         proto = filename.split(':', 1)[0]
         if load_callback is not None:
             data = load_callback(filename)
         elif proto in ('http', 'https', 'ftp'):
-            data = self._load_urllib(filename)
+            data = self._load_urllib(filename, progress_callback)
         else:
             data = self._load_local(filename)
 
@@ -136,24 +139,41 @@ class LoaderBase(object):
         '''(internal) Loading a local file'''
         # With recent changes to CoreImage, we must keep data otherwise,
         # we might be unable to recreate the texture afterwise.
-        return ImageLoader.load(filename, keep_data=True)
+        try:
+            im = ImageLoader.load(filename, keep_data=True)
+        except Exception,ex:
+            Logger.warning('Loader: Unable to load image <%s>' % filename)
+            im = self.error_image
+        return im
 
-    def _load_urllib(self, filename):
+
+    def _load_urllib(self, filename, progress_callback):
         '''(internal) Loading a network file. First download it, save it to a
         temporary file, and pass it to _load_local()'''
-        import urllib2
-        import tempfile
         data = None
         try:
             suffix = '.%s' % (filename.split('.')[-1])
-            _out_osfd, _out_filename = tempfile.mkstemp(
+            #if not suffix in ['png', 'jpg', 'jpeg', 'gif']: # sanity check - not every URL has a proper suffix
+            #    suffix = ".png"                             # TODO: use mime type translation table            
+            _out_osfd, _out_filename = mkstemp(
                     prefix='kivyloader', suffix=suffix)
 
             # read from internet
-            fd = urllib2.urlopen(filename)
-            idata = fd.read()
+            blocksize = 4096
+            progress_callback(0)
+            fd = urlopen(filename)
+            idata = fd.read(blocksize)
+            loaded = blocksize
+            while True:
+              bdata = fd.read(blocksize)
+              if not bdata: break
+              loaded += blocksize
+              if progress_callback:
+                  progress_callback(loaded)
+              idata += bdata
             fd.close()
-
+            progress_callback(-1)
+            
             # write to local filename
             write(_out_osfd, idata)
             close(_out_osfd)
@@ -196,7 +216,7 @@ class LoaderBase(object):
                 client.dispatch('on_load')
                 self._client.remove((c_filename, client))
 
-    def image(self, filename, load_callback=None, post_callback=None, **kwargs):
+    def image(self, filename, load_callback=None, post_callback=None, progress_callback=None, **kwargs):
         '''Load a image using loader. A Proxy image is returned with a loading
         image.
         
@@ -222,7 +242,7 @@ class LoaderBase(object):
 
         if data is None:
             # if data is None, this is really the first time
-            self._q_load.append((filename, load_callback, post_callback))
+            self._q_load.append((filename, load_callback, post_callback, progress_callback))
             Cache.append('kivy.loader', filename, False)
             self._start_wanted = True
             self._trigger_update()
