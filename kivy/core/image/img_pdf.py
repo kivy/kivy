@@ -33,15 +33,12 @@ class ImageLoaderPDF(ImageLoaderBase):
             print "load pdf!", self.page
             # first extract the page from the pdf
             pdf = PdfFileReader(open(filename, 'rb'))
-            try:
-                p2 = pdf.getPage(self.page)
-            except IndexError:
-                self.page = 0
-                p2 = pdf.getPage(self.page)
+            p = pdf.getPage(self.page)
+            size = p.mediaBox[2:]
+            print p.trimBox, p.mediaBox, p.cropBox, p.bleedBox, p.artBox
 
-            size = p2.cropBox[2:]
             w = PdfFileWriter()
-            w.addPage(p2)
+            w.addPage(p)
             f = io.BytesIO()
             w.write(f)
             f.seek(0)
@@ -49,15 +46,18 @@ class ImageLoaderPDF(ImageLoaderBase):
             # then convert the one page pdf filebuffer to an image
             blob = pm.Blob(f.read())
             blobrgb = pm.Blob()
-            pm.Image(blob).write(blobrgb,'rgba')
+            pm.Image(blob).write(blobrgb,'rgb')
             #blobpng.data
 
-            im = PILImage.frombuffer('RGBA', size, blobrgb.data, 'raw', 'RGBA', 0 ,0)
+            im = PILImage.frombuffer(
+                    'RGB',
+                    (size[0] * 2, size[1]),
+                    blobrgb.data).resize(size)
 
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
 
-        return (ImageData(size[0], size[1], 'rgba', im.tostring()),)
+        return (ImageData(size[0], size[1], 'rgb', im.tostring()),)
 
 ImageLoader.register(ImageLoaderPDF)
