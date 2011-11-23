@@ -95,11 +95,11 @@ cpdef int gl_has_capability(int cap):
         return value
 
     # ok, never been initialized, do it now.
-    if cap == GLCAP_BGRA:
+    if cap == c_GLCAP_BGRA:
         msg = 'BGRA texture support'
         value = gl_has_extension('EXT_bgra')
 
-    elif cap == GLCAP_NPOT:
+    elif cap == c_GLCAP_NPOT:
         msg = 'NPOT texture support'
         value = gl_has_extension('ARB_texture_non_power_of_two')
         if not value:
@@ -108,7 +108,7 @@ cpdef int gl_has_capability(int cap):
             # motorola droid don't have OES_ but IMG_
             value = gl_has_extension('IMG_texture_npot')
 
-    elif cap == GLCAP_S3TC:
+    elif cap == c_GLCAP_S3TC:
         # S3TC support DXT1, DXT3 and DXT5
         msg = 'S3TC texture support'
         value = gl_has_extension('S3_s3tc')
@@ -117,10 +117,10 @@ cpdef int gl_has_capability(int cap):
         if not value:
             value = gl_has_extension('OES_texture_compression_s3tc')
 
-    elif cap == GLCAP_DXT1:
+    elif cap == c_GLCAP_DXT1:
         # DXT1 is included inside S3TC, but not the inverse.
         msg = 'DXT1 texture support'
-        value = gl_has_capability(GLCAP_S3TC)
+        value = gl_has_capability(c_GLCAP_S3TC)
         if not value:
             value = gl_has_extension('EXT_texture_compression_dxt1')
 
@@ -164,11 +164,11 @@ cpdef int gl_has_texture_native_format(str fmt):
     if fmt in ('rgb', 'rgba', 'luminance', 'luminance_alpha'):
         return 1
     if fmt in ('bgr', 'bgra'):
-        return gl_has_capability(GLCAP_BGRA)
+        return gl_has_capability(c_GLCAP_BGRA)
     if fmt == 's3tc_dxt1':
-        return gl_has_capability(GLCAP_DXT1)
+        return gl_has_capability(c_GLCAP_DXT1)
     if fmt.startswith('s3tc_dxt'):
-        return gl_has_capability(GLCAP_S3TC)
+        return gl_has_capability(c_GLCAP_S3TC)
     return 0
 
 
