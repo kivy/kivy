@@ -48,8 +48,8 @@ Example of Posting data (adapted from httplib example)::
         '@action': 'show'})
     headers = {'Content-type': 'application/x-www-form-urlencoded',
               'Accept': 'text/plain'}
-    req = UrlRequest('bugs.python.org', on_success=bug_posted, body=params,
-            headers=headers)
+    req = UrlRequest('bugs.python.org', on_success=bug_posted, req_body=params,
+            req_headers=headers)
 
 
 '''
