@@ -72,6 +72,9 @@ from kivy.clock import Clock
 class UrlRequest(Thread):
     '''Url request. See module documentation for usage.
 
+    .. versionchanged::
+        Add `method` parameters
+
     :Parameters:
         `url`: str
             Complete url string to call.
@@ -97,10 +100,13 @@ class UrlRequest(Thread):
             on_progress.
         `timeout`: int, default to None
             If set, blocking operations will timeout after that many seconds.
+        `method'`: str, default to 'GET' (or 'POST' if body)
+            HTTP method to use
     '''
 
     def __init__(self, url, on_success=None, on_error=None, on_progress=None,
-            req_body=None, req_headers=None, chunk_size=8192, timeout=None):
+            req_body=None, req_headers=None, chunk_size=8192, timeout=None,
+            method=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -116,6 +122,7 @@ class UrlRequest(Thread):
         self._resp_length = -1
         self._chunk_size = chunk_size
         self._timeout = timeout
+        self._method = method
 
         #: Url of the request
         self.url = url
@@ -182,7 +189,10 @@ class UrlRequest(Thread):
             path += '#' + parse.fragment
 
         # send request
-        req.request('GET', path, body, headers or {})
+        method = self._method
+        if method is None:
+            method = 'GET' if body is None else 'POST'
+        req.request(method, path, body, headers or {})
 
         # read header
         resp = req.getresponse()
