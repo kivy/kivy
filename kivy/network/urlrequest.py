@@ -332,7 +332,8 @@ class UrlRequest(Thread):
 
         .. versionadded:: 1.0.10
         '''
-        while self._dispatch_result(delay) is None:
+        while self.resp_status is None:
+            self._dispatch_result(delay)
             sleep(delay)
 
 
