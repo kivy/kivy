@@ -46,11 +46,11 @@ class ImageLoaderPDF(ImageLoaderBase):
             # then convert the one page pdf filebuffer to an image
             blob = pm.Blob(f.read())
             blobrgb = pm.Blob()
-            pm.Image(blob).write(blobrgb,'rgb')
+            pm.Image(blob).write(blobrgb,'rgba')
             #blobpng.data
 
             im = PILImage.frombuffer(
-                    'RGB',
+                    'RGBA',
                     (size[0] * 2, size[1]),
                     blobrgb.data).resize(size)
 
@@ -58,6 +58,6 @@ class ImageLoaderPDF(ImageLoaderBase):
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise
 
-        return (ImageData(size[0], size[1], 'rgb', im.tostring()),)
+        return (ImageData(size[0], size[1], 'rgba', im.tostring()),)
 
 ImageLoader.register(ImageLoaderPDF)
