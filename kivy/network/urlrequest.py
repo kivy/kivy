@@ -58,6 +58,7 @@ from collections import deque
 from threading import Thread
 from json import loads
 from httplib import HTTPConnection
+from time import sleep
 
 try:
     from httplib import HTTPSConnection
@@ -323,6 +324,16 @@ class UrlRequest(Thread):
         on_progress callback is set.)
         '''
         return self._chunk_size
+
+    def wait(self, delay=0.5):
+        '''If you want a sync request, you can call the wait() method. It will
+        wait for the request to be finished (until :data:`resp_status` is not
+        None)
+
+        .. versionadded:: 1.0.10
+        '''
+        while self._dispatch_result(delay) is None:
+            sleep(delay)
 
 
 if __name__ == '__main__':
