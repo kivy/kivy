@@ -15,11 +15,11 @@ from . import ImageLoaderBase, ImageData, ImageLoader
 
 class ImageLoaderPIL(ImageLoaderBase):
     '''Image loader based on PIL library.
-    
+
     .. versionadded::
 
         In 1.0.8, GIF animation have been supported.
-        
+
         Gif animation has a lot of issues(transparency/color depths... etc).
         In order to keep it simple; what is implimented here is what is 
         natively supported by pil.
@@ -27,7 +27,8 @@ class ImageLoaderPIL(ImageLoaderBase):
         As a general rule, try to use gifs that have no transparency.
         Gif's with transparency will work but be ready for some
         artifacts for now.
-    
+
+        In 1.0.9, PDF support have been added.
     '''
 
     @staticmethod
@@ -87,3 +88,4 @@ class ImageLoaderPIL(ImageLoaderBase):
 
 # register
 ImageLoader.register(ImageLoaderPIL)
+

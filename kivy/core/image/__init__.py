@@ -128,7 +128,7 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                '_mipmap')
+                '_mipmap', 'page')
 
     def __init__(self, filename, **kwargs):
         self._mipmap = kwargs.get('mipmap', False)
@@ -314,7 +314,7 @@ class Image(EventDispatcher):
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
-                       '_mipmap')
+                       '_mipmap', '_page')
 
     def __init__(self, arg, **kwargs):
         # this event should be fired on animation of sequenced img's
@@ -327,6 +327,7 @@ class Image(EventDispatcher):
         self._size = [0, 0]
         self._image = None
         self._filename = None
+        self._page = 0
         self._texture = None
         self._anim_available = False
         self._anim_index = 0
@@ -470,6 +471,18 @@ class Image(EventDispatcher):
     image = property(_get_image, _set_image,
             doc='Get/set the data image object')
 
+    def _get_page(self):
+        return self._page
+
+    def _set_page(self, page):
+        self._page = page
+        self.image = ImageLoader.load(self._filename, page=page)
+        self._texture = self.image.texture
+        self.dispatch('on_texture')
+
+    page = property(_get_page, _set_page,
+            doc='Get/set the displayed page of a pdf')
+
     def _get_filename(self):
         return self._filename
 
@@ -588,6 +601,7 @@ core_register_libs('image', (
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif'),
+    ('pdf', 'img_pdf'),
 ))
 
 # resolve binding.
