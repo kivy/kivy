@@ -27,7 +27,10 @@ class PDFReader(BoxLayout):
         self.add_widget(b)
 
     def next(self, *_):
-        self.pdf.page += 1
+        try:
+            self.pdf.page += 1
+        except:
+            self.pdf.page = 0
 
     def prececent(self, *_):
         self.pdf.page -= 1

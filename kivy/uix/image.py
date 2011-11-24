@@ -234,9 +234,7 @@ class Image(Widget):
 
     def on_page(self, instance, value):
         self._coreimage.page = value
-        #image.bind(on_load=self.on_source_load)
-        #image.bind(on_texture=self._on_tex_change)
-        #self.texture = image.texture
+
 
 class AsyncImage(Image):
     '''Asynchronous Image class, see module documentation for more information.
