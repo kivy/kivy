@@ -475,9 +475,10 @@ class Image(EventDispatcher):
         return self._page
 
     def _set_page(self, page):
+        self._page = page
         self.image = ImageLoader.load(self._filename, page=page)
-        self._page = self.image.page
         self._texture = self.image.texture
+        self.dispatch('on_texture')
 
     page = property(_get_page, _set_page,
             doc='Get/set the displayed page of a pdf')

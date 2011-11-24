@@ -7,9 +7,11 @@ try:
 except:
     raise
 
+from kivy.cache import Cache
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
+from kivy.graphics.texture import Texture, TextureRegion
 Debug = False
 
 import io
@@ -59,5 +61,33 @@ class ImageLoaderPDF(ImageLoaderBase):
             raise
 
         return (ImageData(size[0], size[1], 'rgba', im.tostring()),)
+
+    def populate(self):
+        self._textures = []
+        if __debug__:
+            Logger.trace('Image: %r, populate to textures (%d)' %
+                    (self.filename, len(self._data)))
+
+        # first, check if a texture with the same name already exist in the
+        # cache
+        uid = '%s|%s|%s' % (
+                self.filename,
+                self._mipmap,
+                hasattr(self, 'page') and self.page or 0)
+
+        texture = Cache.get('kv.texture', uid)
+
+        # if not create it and append to the cache
+        if texture is None:
+            texture = Texture.create_from_data(
+                    self._data[0], mipmap=self._mipmap)
+            Cache.append('kv.texture', uid, texture)
+
+        # set as our current texture
+        self._textures.append(texture)
+
+        # release data if ask
+        if not self.keep_data:
+            self._data[0].release_data()
 
 ImageLoader.register(ImageLoaderPDF)
