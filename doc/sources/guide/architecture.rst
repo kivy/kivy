@@ -15,6 +15,8 @@ skimming it for a rough overview.
 Kivy consists of several building blocks that we will explain in the
 following.
 
+.. image:: ../images/architecture.png
+    :align: center
 
 .. _providers:
 
