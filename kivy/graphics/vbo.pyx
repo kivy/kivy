@@ -160,6 +160,7 @@ cdef class VertexBatch:
 
     cdef void set_mode(self, str mode):
         # most common case in top;
+        self.mode_str = mode
         if mode is None:
             self.mode = GL_TRIANGLES
         elif mode == 'points':
@@ -176,6 +177,9 @@ cdef class VertexBatch:
             self.mode = GL_TRIANGLE_FAN
         else:
             self.mode = GL_TRIANGLES
+
+    cdef str get_mode(self):
+        return self.mode_str
 
     cdef int count(self):
         return self.elements.count()

@@ -357,11 +357,35 @@ cdef class Bezier(VertexInstruction):
 cdef class Mesh(VertexInstruction):
     '''A 2d mesh.
 
+    The format of vertices are actually fixed, this might change in a future
+    release. Right now, each vertex is described with 2D coordinates (x, y) and
+    a 2D texture coordinate (u, v).
+
+    In OpenGL ES 2.0 and in our graphics implementation, you cannot have more
+    than 65535 indices.
+
+    A list of vertices is described as::
+
+        vertices = [x1, y1, u1, v1, x2, y2, u2, v2, ...]
+                    |            |  |            |
+                    +---- i1 ----+  +---- i2 ----+
+
+    If you want to draw a triangles, put 3 vertices, then you can make an
+    indices list as:
+
+        indices = [0, 1, 2]
+
+    .. versionadded:: 1.0.10
+
     :Parameters:
         `vertices`: list
-            List of points in the format (x1, y1, x2, y2...)
+            List of vertices in the format (x1, y1, u1, v1, x2, y2, u2, v2...)
         `indices`: list
             List of indices in the format (i1, i2, i3...)
+        `mode`: str
+            Mode of the vbo. Check :data:`mode` for more information. Default to
+            'points'.
+
     '''
     cdef list _vertices
     cdef list _indices
@@ -370,21 +394,25 @@ cdef class Mesh(VertexInstruction):
         VertexInstruction.__init__(self, **kwargs)
         self.vertices = kwargs.get('vertices', [])
         self.indices = kwargs.get('indices', [])
-        self.batch.set_mode('points')
+        self.mode = kwargs.get('mode', 'points')
 
     cdef void build(self):
-        cdef int i, vcount = len(self._vertices) / 2
+        cdef int i, vcount = len(self._vertices) / 4
         cdef int icount = len(self._indices)
         cdef vertex_t *vertices = NULL
-        cdef int *indices = NULL
+        cdef unsigned short *indices = NULL
         cdef list lvertices = self._vertices
         cdef list lindices = self._indices
+
+        if vcount == 0 or icount == 0:
+            self.batch.clear_data()
+            return
 
         vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
         if vertices == NULL:
             raise MemoryError('vertices')
 
-        indices = <int *>malloc(icount * sizeof(int))
+        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
         if indices == NULL:
             free(vertices)
             raise MemoryError('indices')
@@ -404,6 +432,10 @@ cdef class Mesh(VertexInstruction):
         free(indices)
 
     property vertices:
+        '''List of x, y, u, v, ... used to construct the Mesh. Right now, the
+        Mesh instruction doesn't allow you to change the format of the vertices,
+        mean it's only x/y + one texture coordinate.
+        '''
         def __get__(self):
             return self._vertices
         def __set__(self, value):
@@ -411,11 +443,27 @@ cdef class Mesh(VertexInstruction):
             self.flag_update()
 
     property indices:
+        '''Vertex indices used to know which order you wanna do for drawing the
+        mesh.
+        '''
         def __get__(self):
             return self._indices
         def __set__(self, value):
+            if len(value) > 65535:
+                raise GraphicException(
+                    'Cannot upload more than 65535 indices'
+                    '(OpenGL ES 2 limitation)')
             self._indices = list(value)
             self.flag_update()
+
+    property mode:
+        '''VBO Mode used for drawing vertices/indices. Can be one of: 'points',
+        'line_strip', 'line_loop', 'lines', 'triangle_strip', 'triangle_fan'
+        '''
+        def __get__(self):
+            self.batch.get_mode()
+        def __set__(self, mode):
+            self.batch.set_mode(mode)
 
 
 
