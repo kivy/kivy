@@ -297,15 +297,15 @@
     _container: container
     canvas:
         Color:
-            rgba: 0, 0, 0, self._anim_alpha * .7
+            rgba: root.background_color[:3] + [root.background_color[-1] * self._anim_alpha]
         Rectangle:
             size: self._window.size if self._window else (0, 0)
 
         Color:
             rgb: 1, 1, 1
         BorderImage:
-            source: 'data/images/popup-background.png'
-            border: 16, 16, 16, 16
+            source: root.background
+            border: root.border
             pos: self.pos
             size: self.size
 
@@ -327,10 +327,10 @@
             height: 4
             canvas:
                 Color:
-                    rgb: 47 / 255., 167 / 255., 212 / 255.
+                    rgba: root.seperator_color
                 Rectangle:
-                    pos: self.x, self.y + 1
-                    size: self.width, 2
+                    pos: self.x, self.y + root.seperator_height / 2.
+                    size: self.width, root.seperator_height
 
         BoxLayout:
             id: container

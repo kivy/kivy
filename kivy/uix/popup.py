@@ -8,7 +8,7 @@ Popup
     :align: right
 
 The :class:`Popup` widget is used to create modal popups. By default, the popup
-will cover the whole "parent" window. When you are creating a Popup, you must at 
+will cover the whole "parent" window. When you are creating a Popup, you must at
 minimum set a :data:`Popup.title` and a :data:`Popup.content` widget.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
@@ -52,7 +52,7 @@ can directly bind the function to an action, like an a Button's on_press ::
 Popup events
 ------------
 
-There are 2 events available: `on_open` when the popup is opening, and 
+There are 2 events available: `on_open` when the popup is opening, and
 `on_dismiss` when it is closed. For `on_dismiss`, you can prevent the
 popup from closing by explictly returning True from your callback ::
 
@@ -70,7 +70,7 @@ from kivy.logger import Logger
 from kivy.animation import Animation
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, BooleanProperty, ObjectProperty, \
-    NumericProperty
+    NumericProperty, ListProperty
 
 
 class Popup(FloatLayout):
@@ -92,7 +92,7 @@ class Popup(FloatLayout):
     '''
 
     auto_dismiss = BooleanProperty(True)
-    '''Default to True, this property determines if the popup is automatically 
+    '''Default to True, this property determines if the popup is automatically
     dismissed when the user clicks outside it.
 
     :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`, default
@@ -113,6 +113,56 @@ class Popup(FloatLayout):
 
     :data:`content` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
+    '''
+
+    background_color = ListProperty([0, 0, 0, .7])
+    '''Background color, in the format (r, g, b, a).
+
+    .. versionadded:: 1.0.10
+
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [0, 0, 0, .7].
+    '''
+
+    background = StringProperty('data/images/popup-background.png')
+    '''Background image of the popup used for the popup background.
+
+    .. versionadded:: 1.0.10
+
+    :data:`background` is an :class:`~kivy.properties.StringProperty`,
+    default to 'data/images/popup-background.png'
+    '''
+
+    border = ListProperty([16, 16, 16, 16])
+    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
+    graphics instruction, used itself for :data:`background_normal` and
+    :data:`background_down`. Can be used when using custom background.
+
+    .. versionadded:: 1.0.10
+
+    It must be a list of 4 value: (top, right, bottom, left). Read the
+    BorderImage instruction for more information about how to play with it.
+
+    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
+    16, 16, 16)
+    '''
+
+    seperator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
+    '''Color used by the seperator between title and content.
+
+    .. versionadded:: 1.0.10
+
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [47 / 255., 167 / 255., 212 / 255., 1.]
+    '''
+
+    seperator_height = NumericProperty(2)
+    '''Height of the seperator.
+
+    .. versionadded:: 1.0.10
+
+    :data:`seperator_height` is a :class:`~kivy.properties.NumericProperty`,
+    default to 2.
     '''
 
     # Internals properties used for graphical representation.
