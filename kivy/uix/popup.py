@@ -147,8 +147,8 @@ class Popup(FloatLayout):
     16, 16, 16)
     '''
 
-    seperator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
-    '''Color used by the seperator between title and content.
+    separator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
+    '''Color used by the separator between title and content.
 
     .. versionadded:: 1.0.10
 
@@ -156,12 +156,12 @@ class Popup(FloatLayout):
     default to [47 / 255., 167 / 255., 212 / 255., 1.]
     '''
 
-    seperator_height = NumericProperty(2)
-    '''Height of the seperator.
+    separator_height = NumericProperty(2)
+    '''Height of the separator.
 
     .. versionadded:: 1.0.10
 
-    :data:`seperator_height` is a :class:`~kivy.properties.NumericProperty`,
+    :data:`separator_height` is a :class:`~kivy.properties.NumericProperty`,
     default to 2.
     '''
 
