@@ -4,14 +4,16 @@ Providers
 
 '''
 
-import sys
 import os
 
+from kivy.utils import platform as core_platform
 from kivy.logger import Logger
 from kivy.input.providers.tuio import *
 from kivy.input.providers.mouse import *
 
-if sys.platform == 'win32' or 'KIVY_DOC' in os.environ:
+platform = core_platform()
+
+if platform == 'win' or 'KIVY_DOC' in os.environ:
     try:
         from kivy.input.providers.wm_touch import *
         from kivy.input.providers.wm_pen import *
@@ -19,14 +21,14 @@ if sys.platform == 'win32' or 'KIVY_DOC' in os.environ:
         err = 'Input: WM_Touch/WM_Pen not supported by your version of Windows'
         Logger.warning(err)
 
-if sys.platform == 'darwin' or 'KIVY_DOC' in os.environ:
+if platform == 'macosx' or 'KIVY_DOC' in os.environ:
     try:
         from kivy.input.providers.mactouch import *
     except:
         err = 'Input: MacMultitouchSupport is not supported by your system'
         Logger.exception(err)
 
-if sys.platform == 'linux2' or 'KIVY_DOC' in os.environ:
+if platform == 'linux' or 'KIVY_DOC' in os.environ:
     try:
         from kivy.input.providers.probesysfs import *
     except:
@@ -42,6 +44,8 @@ if sys.platform == 'linux2' or 'KIVY_DOC' in os.environ:
     except:
         err = 'Input: HIDInput is not supported by your version of linux'
         Logger.exception(err)
+
+if platform == 'android' or 'KIVY_DOC' in os.environ:
     try:
         from kivy.input.providers.linuxwacom import *
     except:
