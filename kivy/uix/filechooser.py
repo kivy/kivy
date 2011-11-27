@@ -14,17 +14,19 @@ FileChooser
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.logger import Logger
+from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
                             ObjectProperty
-from sys import platform
 from os import listdir
 from os.path import basename, getsize, isdir, join, sep, normpath, \
                     expanduser, altsep, splitdrive
 from fnmatch import fnmatch
 
+platform = core_platform()
+
 _have_win32file = False
-if platform == 'win32':
+if platform == 'win':
     # Import that module here as it's not available on non-windows machines.
     # See http://bit.ly/i9klJE except that the attributes are defined in
     # win32file not win32com (bug on page).
@@ -143,12 +145,13 @@ class FileChooserController(FloatLayout):
         self._items = []
         self.bind(selection=self._update_item_selection)
 
-        if platform in ('darwin', 'linux2'):
+        if platform in ('macosx', 'linux', 'android', 'ios'):
             self.is_hidden = is_hidden_unix
-        elif platform == 'win32':
+        elif platform == 'win':
             self.is_hidden = is_hidden_win
         else:
-            raise NotImplementedError('Only available for Linux, OSX and Win')
+            raise NotImplementedError('Only available for Linux, OSX and Win'
+                    ' (platform is %r)' % platform)
 
         self.bind(path=self._trigger_update,
                   filters=self._trigger_update)
@@ -258,9 +261,9 @@ class FileChooserController(FloatLayout):
         self._items = []
 
         # Add the components that are always needed
-        if platform == 'win32':
+        if platform == 'win':
             is_root = splitdrive(self.path)[1] in (sep, altsep)
-        elif platform in ('darwin', 'linux2'):
+        elif platform in ('macosx', 'linux', 'android', 'ios'):
             is_root = normpath(expanduser(self.path)) == sep
         else:
             # Unknown file system; Just always add the .. entry but also log
