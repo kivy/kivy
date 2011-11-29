@@ -1,7 +1,7 @@
 PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
-HOSTPYTHON = ../python-for-iphone/Python-2.7.1/hostpython
+HOSTPYTHON = ../ios/python-for-iphone/Python-2.7.1/hostpython
 IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean
@@ -17,7 +17,7 @@ mesabuild:
 
 ios:
 	-mkdir extralibs
-	-ln -s ../python-for-iphone/Python-2.7.1/python
+	-ln -s ../ios/python-for-iphone/Python-2.7.1/python
 
 	-rm -rdf iosbuild/
 	mkdir iosbuild
@@ -33,7 +33,7 @@ ios:
 	find iosbuild/ | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
 	-rm -rdf "../python-for-iphone/Python-2.7.1/_install/lib/python2.7/site-packages/kivy"
 	# Copy to python for iOS installation
-	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "../python-for-iphone/Python-2.7.1/_install/lib/python2.7/site-packages"
+	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "../ios/python-for-iphone/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages"
 
 pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
