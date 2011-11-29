@@ -2,19 +2,19 @@
 Camera
 ======
 
-This widget can be used to capture and display the camera on the screen.
+The :class:`Camera` widget is used to capture and display video from a camera.
 Once the widget is created, the texture inside the widget will be automatically
-updated. ::
+updated. Our :class:`~kivy.core.camera.CameraBase` implementation is used under
+the hood::
 
     cam = Camera()
 
-The actual implementation use our :class:`~kivy.core.camera.CameraBase`
-implementation. The camera used is the first one found on your system. If you
-want to test another camera, you can select another index. ::
+By default the first camera found on your system is used. To use a different 
+camera, set the index property::
 
     cam = Camera(index=1)
 
-You can also select the camera resolution. ::
+You can also select the camera resolution::
 
     cam = Camera(resolution=(320, 240))
 
@@ -35,20 +35,20 @@ from kivy.properties import NumericProperty, ListProperty, \
 
 
 class Camera(Image):
-    '''Camera class. See module documentation for more informations.
+    '''Camera class. See module documentation for more information.
     '''
 
-    play = BooleanProperty(False)
+    play = BooleanProperty(True)
     '''Boolean indicate if the camera is playing.
     You can start/stop the camera by setting this property. ::
 
-        # start the camera playing at creation
-        video = Camera(source='movie.mkv', play=True)
+        # start the camera playing at creation (default)
+        cam = Camera(play=True)
 
         # create the camera, and start later
-        video = Camera(source='movie.mkv')
+        cam = Camera(play=False)
         # and later
-        video.play = True
+        cam.play = True
 
     :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
     True.
@@ -89,6 +89,9 @@ class Camera(Image):
                   resolution=self._on_index)
         self._on_index()
 
+    def on_tex(self, *l):
+        self.canvas.ask_update()
+
     def _on_index(self, *largs):
         self._camera = None
         if self.index < 0:
@@ -98,6 +101,7 @@ class Camera(Image):
         self._camera.bind(on_load=self._camera_loaded)
         if self.play:
             self._camera.start()
+            self._camera.bind(on_texture=self.on_tex)
 
     def _camera_loaded(self, *largs):
         self.texture = self._camera.texture

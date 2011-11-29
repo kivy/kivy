@@ -17,7 +17,7 @@ The base code for creating an application looks like this:
 .. sourcecode:: python
 
     import kivy
-    kivy.require('1.0.0')
+    kivy.require('1.0.6') # replace with your current kivy version !
 
     from kivy.app import App
     from kivy.uix.button import Button
@@ -40,7 +40,7 @@ To run the application, follow the instructions for your operating system:
 
     Windows
         Follow the instructions for :ref:`running Kivy application on Windows <windows-run-app>`::
-            
+
             $ python main.py
             # or
             C:\appdir>kivy.bat main.py
@@ -56,6 +56,9 @@ To run the application, follow the instructions for your operating system:
 
 A window should open, showing a sole button (with the label 'Hello World') that
 covers the entire window's area. That's all there is to it.
+
+.. image:: images/quickstart.jpg
+    :align: center
 
 So what does that code do?
 

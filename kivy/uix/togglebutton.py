@@ -2,18 +2,22 @@
 Toggle button
 =============
 
-The toggle button act like a checkbox. When you touch it, his state will be
-'down'. You need to touch it again to make his state to 'up'.
+The :class:`ToggleButton` widget acts like a checkbox. When you touch/click it,
+the state toggles between 'normal' and 'down' (opposed to a :class:`Button` 
+that is only 'down' as long as it is pressed).
 
-The toggle button is also able to handle group. Only one button can be pushed in
-the same group. The group name can be a string, or any hashable Python object.
-::
+Toggle buttons can also be grouped to make radio buttons - only one button in 
+a group can be in 'down' state. The group name can be a string or any other
+hashable Python object ::
 
     btn1 = ToggleButton(text='Male', group='sex')
     btn2 = ToggleButton(text='Female', group='sex')
     btn3 = ToggleButton(text='Mixed', group='sex')
 
-Only one of them could be checked.
+Only one of the buttons can be 'down'/checked at the same time.
+
+To configure the ToggleButton, you can use the same properties that you can use
+for a Button class.
 
 '''
 
@@ -30,8 +34,9 @@ class ToggleButton(Button):
     __groups = {}
 
     group = ObjectProperty(None, allownone=True)
-    '''Group of the button. If None, no group will be used.
-    :data:`group` must be an hashable object, like a string.
+    '''Group of the button. If None, no group will be used (button is 
+    independent). If specified, :data:`group` must be a hashable object, like 
+    a string. Only one button in a group can be in 'down' state.
 
     :data:`group` is a :class:`~kivy.properties.ObjectProperty`
     '''

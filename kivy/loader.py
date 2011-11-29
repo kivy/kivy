@@ -88,7 +88,7 @@ class LoaderBase(object):
     def loading_image(self):
         '''Image used for loading (readonly)'''
         if not self._loading_image:
-            loading_png_fn = join(kivy_data_dir, 'images', 'loading-0.png')
+            loading_png_fn = join(kivy_data_dir, 'images', 'image-loading.gif')
             self._loading_image = ImageLoader.load(filename=loading_png_fn)
         return self._loading_image
 
@@ -96,7 +96,7 @@ class LoaderBase(object):
     def error_image(self):
         '''Image used for error (readonly)'''
         if not self._error_image:
-            error_png_fn = join(kivy_data_dir, 'error.png')
+            error_png_fn = join(kivy_data_dir, 'images', 'image-missing.png')
             self._error_image = ImageLoader.load(filename=error_png_fn)
         return self._error_image
 
@@ -134,7 +134,9 @@ class LoaderBase(object):
 
     def _load_local(self, filename):
         '''(internal) Loading a local file'''
-        return ImageLoader.load(filename)
+        # With recent changes to CoreImage, we must keep data otherwise,
+        # we might be unable to recreate the texture afterwise.
+        return ImageLoader.load(filename, keep_data=True)
 
     def _load_urllib(self, filename):
         '''(internal) Loading a network file. First download it, save it to a
@@ -194,10 +196,11 @@ class LoaderBase(object):
                 client.dispatch('on_load')
                 self._client.remove((c_filename, client))
 
-    def image(self, filename, load_callback=None, post_callback=None):
-        '''Load a image using loader. A Proxy image is returned
-        with a loading image ::
-
+    def image(self, filename, load_callback=None, post_callback=None, **kwargs):
+        '''Load a image using loader. A Proxy image is returned with a loading
+        image.
+        
+        ::
             img = Loader.image(filename)
             # img will be a ProxyImage.
             # You'll use it the same as an Image class.
@@ -208,13 +211,13 @@ class LoaderBase(object):
         '''
         data = Cache.get('kivy.loader', filename)
         if data not in (None, False):
-            # found image
+            # found image, if data is not here, need to reload.
             return ProxyImage(data,
                     loading_image=self.loading_image,
-                    loaded=True)
+                    loaded=True, **kwargs)
 
         client = ProxyImage(self.loading_image,
-                    loading_image=self.loading_image)
+                    loading_image=self.loading_image, **kwargs)
         self._client.append((filename, client))
 
         if data is None:
@@ -265,8 +268,8 @@ else:
                 while self._running:
                     try:
                         parameters = self._q_load.pop()
-                        sleep(0.1)
                     except:
+                        sleep(0.1)
                         continue
                     self.worker.do(self._load, parameters)
 
@@ -283,17 +286,18 @@ else:
 
             def start(self):
                 super(LoaderClock, self).start()
-                Clock.schedule_interval(self.run, 0.0001)
+                Clock.schedule_interval(self.run, 0)
 
             def stop(self):
                 super(LoaderClock, self).stop()
                 Clock.unschedule(self.run)
 
             def run(self, *largs):
-                try:
-                    parameters = self._q_load.pop()
-                except IndexError:
-                    return
+                while self._running:
+                    try:
+                        parameters = self._q_load.pop()
+                    except IndexError:
+                        return
                 self._load(parameters)
 
         Loader = LoaderClock()

@@ -59,7 +59,7 @@ KIVY_TEXT
 KIVY_VIDEO
     Implementation to use for rendering video
 
-    Values: gstreamer, pyglet
+    Values: gstreamer, pyglet, ffmpeg
 
 KIVY_AUDIO
     Implementation to use for playing audio

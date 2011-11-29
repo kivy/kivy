@@ -11,6 +11,26 @@ shader, and the creation of the program in OpenGL.
 
     Write a more complete documentation about shader.
 
+Header inclusion
+----------------
+
+.. versionadded:: 1.0.7
+
+When you are creating a Shader, Kivy will always include default parameters. If
+you don't want to rewrite it each time you want to customize / write a new
+shader, you can add the "$HEADER$" token, and it will be replaced by the
+corresponding shader header.
+
+Here is the header for Fragment Shader:
+
+.. include:: ../../kivy/data/glsl/header.fs
+    :literal:
+
+And the header for Vertex Shader:
+
+.. include:: ../../kivy/data/glsl/header.vs
+    :literal:
+
 '''
 
 __all__ = ('Shader', )
@@ -29,6 +49,8 @@ from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import kivy_shader_dir
 
+cdef str header_vs = open(join(kivy_shader_dir, 'header.vs')).read()
+cdef str header_fs = open(join(kivy_shader_dir, 'header.fs')).read()
 cdef str default_vs = open(join(kivy_shader_dir, 'default.vs')).read()
 cdef str default_fs = open(join(kivy_shader_dir, 'default.fs')).read()
 
@@ -39,7 +61,7 @@ cdef class ShaderSource:
         self.shadertype = shadertype
 
     cdef set_source(self, char *source):
-        cdef GLint success
+        cdef GLint success = 0
         cdef GLuint error, shader
         cdef str ctype, cacheid
 
@@ -95,9 +117,9 @@ cdef class Shader:
     '''Create a vertex or fragment shader
 
     :Parameters:
-        `vs` : string
+        `vs`: string, default to None
             source code for vertex shader
-        `fs` : string
+        `fs`: string, default to None
             source code for fragment shader
     '''
     def __cinit__(self):
@@ -257,7 +279,7 @@ cdef class Shader:
         self._success = 1
 
     cdef int is_linked(self):
-        cdef GLint result
+        cdef GLint result = 0
         glGetProgramiv(self.program, GL_LINK_STATUS, &result)
         return 1 if result == GL_TRUE else 0
 
@@ -299,23 +321,37 @@ cdef class Shader:
     #
 
     property vs:
+        '''Vertex shader source code.
+
+        If you set a new vertex shader source code, it will be automatically
+        compiled and replace the current one.
+        '''
         def __get__(self):
             return self.vert_src
         def __set__(self, object source):
             if source is None:
                 source = default_vs
+            source = source.replace('$HEADER$', header_vs)
             self.vert_src = source
             self.build_vertex()
 
     property fs:
+        '''Fragment shader source code.
+
+        If you set a new fragment shader source code, it will be automatically
+        compiled and replace the current one.
+        '''
         def __get__(self):
             return self.frag_src
         def __set__(self, object source):
             if source is None:
                 source = default_fs
+            source = source.replace('$HEADER$', header_fs)
             self.frag_src = source
             self.build_fragment()
 
     property success:
+        '''Indicate if shader is ok for usage or not.
+        '''
         def __get__(self):
             return self._success

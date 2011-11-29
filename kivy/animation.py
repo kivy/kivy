@@ -2,42 +2,59 @@
 Animation
 =========
 
-These classes are intended to be used on a :class:`~kivy.uix.widget.Widget`.
-If you want to add animations to your application,
-you need to follow two steps:
+:class:`Animation` and :class:`AnimationTransition` are used to animate
+:class:`~kivy.uix.widget.Widget` properties. You must specify (minimum) a
+property name and target value. To use Animation, follow these steps:
 
-    * First, setup the animation object
-    * Then, use the animation on one or multiple widgets
+    * Setup an Animation object
+    * Use the Animation object on a Widget
 
 Simple animation
 ----------------
 
-You can animate multiple properties at the same time, with custom transition
-function. Here is an example to animate the widget on a custom position and
-size, using 'in_quad' transition ::
+To animate a Widget's x or y position, simply specify the target x/y values
+where you want the widget positioned at the end of the animation::
 
-    widget = Widget()
-    animation = Animation(x=50, size=(80, 80), t='in_quad')
-    animation.start(widget)
+    anim = Animation(x=100, y=100)
+    anim.start(widget)
+
+The animation will last for 1 second unless :data:`duration` is specified.
+When anim.start() is called, the Widget will move smoothly from the current
+x/y position to (100, 100).
+
+Multiple properties and transitions
+-----------------------------------
+
+You can animate multiple properties and use built-in or custom transition
+functions using :data:`transition` (or `t=` shortcut). For example,
+to animate the position and size using the 'in_quad' transition::
+
+    anim = Animation(x=50, size=(80, 80), t='in_quad')
+    anim.start(widget)
+
+Note that the `t=` parameter can be the string name of a method in the
+:class:`AnimationTransition` class, or your own animation function.
 
 Sequential animation
 --------------------
 
-Multiple animation can be added. The result will be animated in sequential ::
+To join animations sequentially, use the '+' operator. The following example
+will animate to x=50 over 1 second, then animate size to (80, 80) over the
+next two seconds::
 
-    widget = Widget()
-    animation = Animation(x=50) + Animation(size=(80, 80))
-    animation.start(widget)
+    anim = Animation(x=50) + Animation(size=(80, 80), duration=2.)
+    anim.start(widget)
 
 Parallel animation
 ------------------
 
-You can join one or multiple animation in parallel. This can be used when you
-want to use differents settings for each properties ::
+To join animations in parallel, use the '&' operator. The following example
+will animate position to (80, 10) over 1 second, while in parallel animating
+the first half of size=(800, 800)::
 
-    widget = Widget()
-    animation = Animation(pos=(80, 10))
-    animation &= Animation(size=(800, 800), duration=2.)
+    anim = Animation(pos=(80, 10))
+    anim &= Animation(size=(800, 800), duration=2.)
+    anim.start(widget)
 
 '''
 
@@ -50,13 +67,14 @@ from kivy.clock import Clock
 
 
 class Animation(EventDispatcher):
-    '''Create an animation definition, that can be used to animate a widget
+    '''Create an animation definition that can be used to animate a Widget
 
     :Parameters:
         `duration` or `d`: float, default to 1.
-            Duration of the animation
+            Duration of the animation, in seconds
         `transition` or `t`: str or func
-            Transition function for animate properties
+            Transition function for animate properties. It can be the name of a
+            method from :class:`AnimationTransition`
 
     :Events:
         `on_start`: widget
@@ -70,12 +88,12 @@ class Animation(EventDispatcher):
     _instances = set()
 
     def __init__(self, **kw):
-        super(Animation, self).__init__()
-
         # Register events
         self.register_event_type('on_start')
         self.register_event_type('on_progress')
         self.register_event_type('on_complete')
+
+        super(Animation, self).__init__(**kw)
 
         # Initialize
         self._clock_installed = False
@@ -85,7 +103,7 @@ class Animation(EventDispatcher):
             self._transition = getattr(AnimationTransition, self._transition)
         for key in ('d', 't', 'duration', 'transition'):
             kw.pop(key, None)
-        self._properties = kw
+        self._animated_properties = kw
         self._widgets = {}
 
     @property
@@ -101,10 +119,10 @@ class Animation(EventDispatcher):
         return self._transition
 
     @property
-    def properties(self):
+    def animated_animated_properties(self):
         '''Return the properties used to animate
         '''
-        return self._properties
+        return self._animated_properties
 
     @staticmethod
     def stop_all(widget, *largs):
@@ -113,9 +131,8 @@ class Animation(EventDispatcher):
 
         Example ::
 
-            widget = Widget()
-            animation = Animation(x=50)
-            animation.start(widget)
+            anim = Animation(x=50)
+            anim.start(widget)
 
             # and later
             Animation.stop_all(widget, 'x')
@@ -147,7 +164,8 @@ class Animation(EventDispatcher):
             self._unregister()
 
     def stop_property(self, widget, prop):
-        '''Even if a animation is going, remove a property for beeing animated.
+        '''Even if an animation is running, remove a property. It will not be
+        animated further.
         '''
         props = self._widgets.get(widget, None)
         if not props:
@@ -175,7 +193,7 @@ class Animation(EventDispatcher):
 
         # get current values
         p = d['properties']
-        for key, value in self._properties.iteritems():
+        for key, value in self._animated_properties.iteritems():
             p[key] = (getattr(widget, key), value)
 
         # install clock
@@ -342,22 +360,31 @@ class AnimationTransition(object):
     '''Collection of animation function, to be used with Animation object.
     Easing Functions ported into Kivy from Clutter Project
     http://www.clutter-project.org/docs/clutter/stable/ClutterAlpha.html
+
+    `progress` parameter in each animation functions is between 0-1 range.
     '''
 
     @staticmethod
     def linear(progress):
+        '''.. image:: images/anim_linear.png'''
         return progress
 
     @staticmethod
     def in_quad(progress):
+        '''.. image:: images/anim_in_quad.png
+        '''
         return progress * progress
 
     @staticmethod
     def out_quad(progress):
+        '''.. image:: images/anim_out_quad.png
+        '''
         return -1.0 * progress * (progress - 2.0)
 
     @staticmethod
     def in_out_quad(progress):
+        '''.. image:: images/anim_in_out_quad.png
+        '''
         p = progress * 2
         if p < 1:
             return 0.5 * p * p
@@ -366,15 +393,21 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_cubic(progress):
+        '''.. image:: images/anim_in_cubic.png
+        '''
         return progress * progress * progress
 
     @staticmethod
     def out_cubic(progress):
+        '''.. image:: images/anim_out_cubic.png
+        '''
         p = progress - 1.0
         return p * p * p + 1.0
 
     @staticmethod
     def in_out_cubic(progress):
+        '''.. image:: images/anim_in_out_cubic.png
+        '''
         p = progress * 2
         if p < 1:
             return 0.5 * p * p * p
@@ -383,15 +416,21 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_quart(progress):
+        '''.. image:: images/anim_in_quart.png
+        '''
         return progress * progress * progress * progress
 
     @staticmethod
     def out_quart(progress):
+        '''.. image:: images/anim_out_quart.png
+        '''
         p = progress - 1.0
         return -1.0 * (p * p * p * p - 1.0)
 
     @staticmethod
     def in_out_quart(progress):
+        '''.. image:: images/anim_in_out_quart.png
+        '''
         p = progress * 2
         if p < 1:
             return 0.5 * p * p * p * p
@@ -400,15 +439,21 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_quint(progress):
+        '''.. image:: images/anim_in_quint.png
+        '''
         return progress * progress * progress * progress * progress
 
     @staticmethod
     def out_quint(progress):
+        '''.. image:: images/anim_out_quint.png
+        '''
         p = progress - 1.0
         return p * p * p * p * p + 1.0
 
     @staticmethod
     def in_out_quint(progress):
+        '''.. image:: images/anim_in_out_quint.png
+        '''
         p = progress * 2
         if p < 1:
             return 0.5 * p * p * p * p * p
@@ -417,30 +462,42 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_sine(progress):
+        '''.. image:: images/anim_in_sine.png
+        '''
         return -1.0 * cos(progress * (pi/2.0)) + 1.0
 
     @staticmethod
     def out_sine(progress):
+        '''.. image:: images/anim_out_sine.png
+        '''
         return sin(progress * (pi/2.0))
 
     @staticmethod
     def in_out_sine(progress):
+        '''.. image:: images/anim_in_out_sine.png
+        '''
         return -0.5 * (cos(pi * progress) - 1.0)
 
     @staticmethod
     def in_expo(progress):
+        '''.. image:: images/anim_in_expo.png
+        '''
         if progress == 0:
             return 0.0
         return pow(2, 10 * (progress - 1.0))
 
     @staticmethod
     def out_expo(progress):
+        '''.. image:: images/anim_out_expo.png
+        '''
         if progress == 1.0:
             return 1.0
         return -pow(2, -10 * progress) + 1.0
 
     @staticmethod
     def in_out_expo(progress):
+        '''.. image:: images/anim_in_out_expo.png
+        '''
         if progress == 0:
             return 0.0
         if progress == 1.:
@@ -453,15 +510,21 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_circ(progress):
+        '''.. image:: images/anim_in_circ.png
+        '''
         return -1.0 * (sqrt(1.0 - progress * progress) - 1.0)
 
     @staticmethod
     def out_circ(progress):
+        '''.. image:: images/anim_out_circ.png
+        '''
         p = progress - 1.0
         return sqrt(1.0 - p * p)
 
     @staticmethod
     def in_out_circ(progress):
+        '''.. image:: images/anim_in_out_circ.png
+        '''
         p = progress * 2
         if p < 1:
             return -0.5 * (sqrt(1.0 - p * p) - 1.0)
@@ -470,6 +533,8 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_elastic(progress):
+        '''.. image:: images/anim_in_elastic.png
+        '''
         p = .3
         s = p / 4.0
         q = progress
@@ -480,6 +545,8 @@ class AnimationTransition(object):
 
     @staticmethod
     def out_elastic(progress):
+        '''.. image:: images/anim_out_elastic.png
+        '''
         p = .3
         s = p / 4.0
         q = progress
@@ -489,6 +556,8 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_out_elastic(progress):
+        '''.. image:: images/anim_in_out_elastic.png
+        '''
         p = .3 * 1.5
         s = p / 4.0
         q = progress * 2
@@ -503,15 +572,21 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_back(progress):
+        '''.. image:: images/anim_in_back.png
+        '''
         return progress * progress * ((1.70158 + 1.0) * progress - 1.70158)
 
     @staticmethod
     def out_back(progress):
+        '''.. image:: images/anim_out_back.png
+        '''
         p = progress - 1.0
         return p * p * ((1.70158 + 1) * p + 1.70158) + 1.0
 
     @staticmethod
     def in_out_back(progress):
+        '''.. image:: images/anim_in_out_back.png
+        '''
         p = progress * 2.
         s = 1.70158 * 1.525
         if p < 1:
@@ -540,14 +615,20 @@ class AnimationTransition(object):
 
     @staticmethod
     def in_bounce(progress):
+        '''.. image:: images/anim_in_bounce.png
+        '''
         return AnimationTransition._in_bounce_internal(progress, 1.)
 
     @staticmethod
     def out_bounce(progress):
+        '''.. image:: images/anim_out_bounce.png
+        '''
         return AnimationTransition._out_bounce_internal(progress, 1.)
 
     @staticmethod
     def in_out_bounce(progress):
+        '''.. image:: images/anim_in_out_bounce.png
+        '''
         p = progress * 2.
         if p < 1.:
             return AnimationTransition._in_bounce_internal(p, 1.) * .5

@@ -57,7 +57,7 @@ cdef class Instruction:
         pass
 
     cdef void flag_update(self, int do_parent=1):
-        if do_parent and self.parent:
+        if do_parent == 1 and self.parent is not None:
             self.parent.flag_update()
         self.flags |= GI_NEEDS_UPDATE
 
@@ -81,12 +81,13 @@ cdef class Instruction:
 
     property needs_redraw:
         def __get__(self):
-            return True
-            #return bool(self.flags & GI_NEEDS_UPDATE)
+            if (self.flags & GI_NEEDS_UPDATE) > 0:
+                return True
+            return False
 
 
 cdef class InstructionGroup(Instruction):
-    '''Group of :class:`Instruction`s. Adds the possibility of adding and
+    '''Group of :class:`Instruction`. Adds the possibility of adding and
     removing graphics instruction.
     '''
     def __init__(self, **kwargs):
@@ -100,11 +101,13 @@ cdef class InstructionGroup(Instruction):
 
     cdef void apply(self):
         cdef Instruction c
-        if self.compiler:
+        cdef list children
+        if self.compiler is not None:
             if self.flags & GI_NEEDS_UPDATE:
                 self.build()
-            if self.compiled_children and not (self.flags & GI_NO_APPLY_ONCE):
-                for c in self.compiled_children.children:
+            if self.compiled_children is not None and not (self.flags & GI_NO_APPLY_ONCE):
+                children = self.compiled_children.children
+                for c in children:
                     if c.flags & GI_IGNORE:
                         continue
                     c.apply()
@@ -147,7 +150,7 @@ cdef class InstructionGroup(Instruction):
         return len(self.children)
 
     cpdef clear(self):
-        '''Remove all the :class:`Instruction`s.
+        '''Remove all the :class:`Instruction`.
         '''
         cdef Instruction c
         for c in self.children[:]:
@@ -156,7 +159,7 @@ cdef class InstructionGroup(Instruction):
             self.remove(c)
 
     cpdef remove_group(self, str groupname):
-        '''Remove all :class:`Instruction`s with a specific group name.
+        '''Remove all :class:`Instruction` with a specific group name.
         '''
         cdef Instruction c
         for c in self.children[:]:
@@ -166,7 +169,7 @@ cdef class InstructionGroup(Instruction):
                 self.remove(c)
 
     cpdef get_group(self, str groupname):
-        '''Return an iterable with all the :class:`Instruction`s with a specific
+        '''Return an iterable with all the :class:`Instruction` with a specific
         group name.
         '''
         cdef Instruction c
@@ -443,10 +446,10 @@ cdef class Callback(Instruction):
         def __get__(self):
             return self._reset_context
         def __set__(self, value):
-            value = int(value)
-            if self._reset_context == value:
+            cdef int ivalue = int(value)
+            if self._reset_context == ivalue:
                 return
-            self._reset_context = value
+            self._reset_context = ivalue
             self.flag_update()
 
 

@@ -5,7 +5,7 @@ Float Layout
 The :class:`FloatLayout` class will just honor the :data:`Widget.pos_hint` and
 :data:`Widget.size_hint` attributes.
 
-For example, if you create a :class:`FloatLayout` with size of (300, 300)::
+For example, if you create a FloatLayout with size of (300, 300)::
 
     layout = FloatLayout(size=(300, 300))
 
@@ -43,41 +43,23 @@ from kivy.uix.layout import Layout
 
 
 class FloatLayout(Layout):
-    '''Float layout class. See module documentation for more informations.
+    '''Float layout class. See module documentation for more information.
     '''
 
     def __init__(self, **kwargs):
         kwargs.setdefault('size', (1, 1))
-        self._minimum_size = (0, 0)
-        self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(FloatLayout, self).__init__(**kwargs)
         self.bind(
             children = self._trigger_layout,
             pos = self._trigger_layout,
+            pos_hint = self._trigger_layout,
+            size_hint = self._trigger_layout,
             size = self._trigger_layout)
 
-    def update_minimum_size(self, *largs):
-        '''Calculates the minimum size of the layout.
-        '''
-        width = height = 0
-
-        for w in self.children:
-            shw, shh = w.size_hint
-            if isinstance(w, Layout):
-                _w, _h = w.minimum_size
-                if shw is None:
-                    width = max(_w, width)
-                if shh is not None:
-                    height = max(_h, height)
-            else:
-                if shw is None:
-                    width = max(w.width, width)
-                if shh is None:
-                    height = max(w.height, height)
-
-        self.minimum_size = (width, height)
-
-    def _do_layout(self, *largs):
+    def do_layout(self, *largs):
+        # optimization, until the size is 1, 1, don't do layout
+        if self.size == [1, 1]:
+            return
         # optimize layout by preventing looking at the same attribute in a loop
         w, h = self.size
         x, y = self.pos
@@ -108,12 +90,16 @@ class FloatLayout(Layout):
 
     def add_widget(self, widget, index=0):
         widget.bind(
+            size = self._trigger_layout,
+            size_hint = self._trigger_layout,
             pos = self._trigger_layout,
             pos_hint = self._trigger_layout)
         return super(Layout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
+            size = self._trigger_layout,
+            size_hint = self._trigger_layout,
             pos = self._trigger_layout,
             pos_hint = self._trigger_layout)
         return super(Layout, self).remove_widget(widget)

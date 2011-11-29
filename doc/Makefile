@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = 
+SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 
@@ -10,8 +10,9 @@ PAPER         =
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
+ALLSPHINXOPTSGT = -d build/doctrees_gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sources
 
-.PHONY: help clean html web pickle htmlhelp latex changes linkcheck
+.PHONY: help clean html web pickle htmlhelp latex changes linkcheck gettext
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -30,6 +31,13 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
+
+gettext:
+	mkdir -p build/html build/doctrees_gettext
+	$(SPHINXBUILD) -b gettext $(ALLSPHINXOPTSGT) build/gettext
+	@echo
+	@echo "Build finished. The Gettext pages are in build/gettext."
+
 
 pickle:
 	mkdir -p build/pickle build/doctrees

@@ -5,14 +5,19 @@ Event loop management
 '''
 
 __all__ = (
-    'EventLoop', 'EventLoopBase',
-    'ExceptionManager', 'ExceptionHandler',
-    'runTouchApp', 'stopTouchApp',
+    'EventLoop',
+    'EventLoopBase',
+    'ExceptionHandler',
+    'ExceptionManagerBase',
+    'ExceptionManager',
+    'runTouchApp',
+    'stopTouchApp',
 )
 
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
+from kivy.event import EventDispatcher
 
 # private vars
 EventLoop = None
@@ -73,7 +78,7 @@ class ExceptionManagerBase:
 ExceptionManager = ExceptionManagerBase()
 
 
-class EventLoopBase(object):
+class EventLoopBase(EventDispatcher):
     '''Main event loop. This loop handle update of input + dispatch event
     '''
 
@@ -87,6 +92,9 @@ class EventLoopBase(object):
         self.event_listeners = []
         self.window = None
         self.me_list = []
+        self.register_event_type('on_start')
+        self.register_event_type('on_pause')
+        self.register_event_type('on_stop')
 
     @property
     def touches(self):
@@ -135,6 +143,7 @@ class EventLoopBase(object):
         self.quit = False
         for provider in self.input_providers:
             provider.start()
+        self.dispatch('on_start')
 
     def close(self):
         '''Exit from the main loop, and stop all configured
@@ -144,14 +153,17 @@ class EventLoopBase(object):
         self.status = 'closed'
 
     def stop(self):
-        '''Stop all input providers'''
+        '''Stop all input providers and call callbacks registered using
+        EventLoop.add_stop_callback()'''
         #stop in reverse order that we started them!! (liek push pop),
         #very important becasue e.g. wm_touch and WM_PEN both store
         #old window proc and teh restore, if order is messed big problem
         #happens, crashing badly without error
         for provider in reversed(self.input_providers):
             provider.stop()
+
         self.status = 'stopped'
+        self.dispatch('on_stop')
 
     def add_postproc_module(self, mod):
         '''Add a postproc input module (DoubleTap, RetainTouch are default)'''
@@ -293,6 +305,21 @@ class EventLoopBase(object):
         self.close()
         if self.window:
             self.window.close()
+
+    def on_stop(self):
+        '''Event handler for on_stop, will be fired right
+        after all input providers have been stopped.'''
+        pass
+
+    def on_pause(self):
+        '''Event handler for on_pause, will be fired when
+        the event loop is paused.'''
+        pass
+
+    def on_start(self):
+        '''Event handler for on_start, will be fired right
+        after all input providers have been started.'''
+        pass
 
 #: EventLoop instance
 EventLoop = EventLoopBase()

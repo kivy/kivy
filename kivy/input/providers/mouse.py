@@ -27,21 +27,24 @@ from kivy.input.motionevent import MotionEvent
 # late binding
 Color = Ellipse = None
 
+
 class MouseMotionEvent(MotionEvent):
 
     def depack(self, args):
-        self.profile = ['pos']
+        self.profile = ['pos', 'button']
         self.is_touch = True
-        self.sx, self.sy = args
+        self.sx, self.sy = args[:2]
+        if len(args) == 3:
+            self.button = args[2]
         super(MouseMotionEvent, self).depack(args)
 
     #
     # Create automatically touch on the surface.
     #
-    def update_graphics(self, win):
+    def update_graphics(self, win, create=False):
         global Color, Ellipse
         de = self.ud.get('_drawelement', None)
-        if de is None:
+        if de is None and create:
             if Color is None:
                 from kivy.graphics import Color, Ellipse
             with win.canvas.after:
@@ -49,7 +52,11 @@ class MouseMotionEvent(MotionEvent):
                     Color(.8, .2, .2, .7),
                     Ellipse(size=(20, 20), segments=15))
             self.ud._drawelement = de
-        de[1].pos = self.sx * win.width - 10, self.sy * win.height- 10
+        if de is not None:
+            self.push()
+            self.scale_for_screen(win.system_size[0], win.system_size[1], rotation=win.rotation)
+            de[1].pos = self.x - 10, self.y - 10
+            self.pop()
 
     def clear_graphics(self, win):
         de = self.ud.pop('_drawelement', None)
@@ -82,11 +89,21 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def start(self):
         '''Start the mouse provider'''
-        pass
+        if not EventLoop.window:
+            return
+        EventLoop.window.bind(
+            on_mouse_move=self.on_mouse_motion,
+            on_mouse_down=self.on_mouse_press,
+            on_mouse_up=self.on_mouse_release)
 
     def stop(self):
         '''Stop the mouse provider'''
-        pass
+        if not EventLoop.window:
+            return
+        EventLoop.window.unbind(
+            on_mouse_move=self.on_mouse_motion,
+            on_mouse_down=self.on_mouse_press,
+            on_mouse_up=self.on_mouse_release)
 
     def test_activity(self):
         if not self.disable_on_activity:
@@ -110,14 +127,15 @@ class MouseMotionEventProvider(MotionEventProvider):
                 return t
         return False
 
-    def create_touch(self, rx, ry, is_double_tap):
+    def create_touch(self, rx, ry, is_double_tap, do_graphics, button):
         self.counter += 1
         id = 'mouse' + str(self.counter)
         self.current_drag = cur = MouseMotionEvent(
-            self.device, id=id, args=[rx, ry])
+            self.device, id=id, args=[rx, ry, button])
         cur.is_double_tap = is_double_tap
         self.touches[id] = cur
-        cur.update_graphics(EventLoop.window)
+        if do_graphics:
+            cur.update_graphics(EventLoop.window, True)
         self.waiting_event.append(('begin', cur))
         return cur
 
@@ -125,6 +143,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         if cur.id not in self.touches:
             return
         del self.touches[cur.id]
+        cur.update_time_end()
         self.waiting_event.append(('end', cur))
         cur.clear_graphics(EventLoop.window)
 
@@ -140,7 +159,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         elif self.alt_touch is not None and 'alt' not in modifiers:
             # alt just released ?
             is_double_tap = 'shift' in modifiers
-            cur = self.create_touch(rx, ry, is_double_tap)
+            cur = self.create_touch(rx, ry, is_double_tap, True)
         return True
 
     def on_mouse_press(self, win, x, y, button, modifiers):
@@ -149,12 +168,13 @@ class MouseMotionEventProvider(MotionEventProvider):
         width, height = EventLoop.window.system_size
         rx = x / float(width)
         ry = 1. - y / float(height)
-        newMotionEvent = self.find_touch(rx, ry)
-        if newMotionEvent:
-            self.current_drag = newMotionEvent
+        new_me = self.find_touch(rx, ry)
+        if new_me:
+            self.current_drag = new_me
         else:
             is_double_tap = 'shift' in modifiers
-            cur = self.create_touch(rx, ry, is_double_tap)
+            do_graphics = (button != 'left' or ('ctrl' in modifiers))
+            cur = self.create_touch(rx, ry, is_double_tap, do_graphics, button)
             if 'alt' in modifiers:
                 self.alt_touch = cur
                 self.current_drag = None
@@ -165,7 +185,8 @@ class MouseMotionEventProvider(MotionEventProvider):
         rx = x / float(width)
         ry = 1. - y / float(height)
         cur = self.find_touch(rx, ry)
-        if button == 'left' and cur and not ('ctrl' in modifiers):
+        if button in ('left', 'scrollup', 'scrolldown') and cur and not (
+                'ctrl' in modifiers):
             self.remove_touch(cur)
             self.current_drag = None
         if self.alt_touch:
@@ -175,17 +196,11 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def update(self, dispatch_fn):
         '''Update the mouse provider (pop event from the queue)'''
-        if not EventLoop.window:
-            return
-        EventLoop.window.bind(
-            on_mouse_move=self.on_mouse_motion,
-            on_mouse_down=self.on_mouse_press,
-            on_mouse_up=self.on_mouse_release)
         try:
             while True:
                 event = self.waiting_event.popleft()
                 dispatch_fn(*event)
-        except Exception, e:
+        except IndexError:
             pass
 
 # registers

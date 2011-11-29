@@ -38,6 +38,9 @@ ios:
 pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
 
+html:
+	$(MAKE) -C doc html
+
 style:
 	$(PYTHON) $(CHECKSCRIPT) $(KIVY_DIR)
 
@@ -52,7 +55,7 @@ hook:
 
 test:
 	-rm -rf kivy/tests/build
-	UNITTEST_INTERACTIVE=1 nosetests kivy/tests
+	nosetests kivy/tests
 
 batchtest:
 	-rm -rf kivy/tests/build

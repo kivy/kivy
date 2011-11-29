@@ -49,11 +49,11 @@ class VideoBase(EventDispatcher):
         kwargs.setdefault('async', True)
         kwargs.setdefault('autoplay', False)
 
-        super(VideoBase, self).__init__()
-
         self.register_event_type('on_eos')
         self.register_event_type('on_load')
         self.register_event_type('on_frame')
+
+        super(VideoBase, self).__init__()
 
         self._wantplay = False
         self._buffer = None
@@ -174,6 +174,7 @@ class VideoBase(EventDispatcher):
 # Load the appropriate provider
 Video = core_select_lib('video', (
     ('gstreamer', 'video_gstreamer', 'VideoGStreamer'),
+    ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('pyglet', 'video_pyglet', 'VideoPyglet'),
 ))
 

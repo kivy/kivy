@@ -68,9 +68,16 @@
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+			<h3>Quick search</h3>
+			<form class="search" action="{{ pathto('search') }}" method="get">
+				&nbsp;
+				<input type="hidden" name="check_keywords" value="yes" />
+				<input type="hidden" name="area" value="default" />
+				<input type="text" class="text" name="q" />
+			</form>
           {%- block sidebartoc %}
 		  <h3><a href="{{ pathto(master_doc) }}">{{ _('Table Of Contents') }}</a></h3>
-		  {{ toc }}
+		  {{ toctree() }}
           {%- endblock %}
           {%- block sidebarrel %}
 		  <h3>Related Topics</h3>
@@ -98,6 +105,7 @@
       {%- set titlesuffix = "" %}
     {%- endif %}
     <title>{{ title|striptags }}{{ titlesuffix }}</title>
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300&amp;v2' rel='stylesheet' type='text/css'/>
     <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
     <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
     {%- if not embedded %}
@@ -155,55 +163,66 @@
 
 {%- block relbar1 %}{% endblock %}
 
-	<div id="topbar">
+	<div id="header">
 		<div id="logo">
-			<a href="http://kivy.org/docs/">
+			<a href="http://kivy.org/">
 				<img src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
 			</a>
 		</div>
+		<!--
 		<div id="menu">
 			<ul class="navigation">
-				<li><a href="http://kivy.org/">&laquo; Back to kivy.org</a></li>
+				<li>
+				</li>
 				<li><a href="{{ pathto('index') }}">Home</a></li>
 				<li><a href="{{ pathto('index.html#user-s-guide', 1) }}">User's Guide</a></li>
 				<li><a href="{{ pathto('guide-index') }}">Programming Guide</a></li>
 				<li><a href="{{ pathto('api-index') }}">API Reference</a></li>
 				<li><a href="{{ pathto('faq') }}">FAQ</a></li>
-				<li>
-					<form class="search" action="{{ pathto('search') }}" method="get">
-						&nbsp;
-						<input type="hidden" name="check_keywords" value="yes" />
-						<input type="hidden" name="area" value="default" />
-						<input type="text" class="text" name="q" />
-					</form>
-				</li>
+			    <li><a href="http://kivy.org/docs/pdf/Kivy-latest.pdf">Download in PDF</a></li>
 			</ul>
 		</div>
-		<div id="toggleheader"></div>
+		-->
+		{%- block sidebar1 %}{{ sidebar() }}{% endblock %}
 	</div>
 
-    <div id="wrapper">
-{%- block sidebar1 %}{{ sidebar() }}{% endblock %}
 
 {%- block document %}
+	<div id="content">
+    <div class="wrapper">
       <div class="documentwrapper">
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
         <div class="bodywrapper">
       {%- endif %}{% endif %}
           <div class="body">
             {% block body %} {% endblock %}
+            <div class="footerlinks">
+            {%- if prev or next %}
+            <table>
+                <tr>
+                    <td class="leftlink">
+                  {%- if prev %}
+                  <a href="{{ prev.link|e }}" title="{{ _('previous chapter') }}">&laquo; {{ prev.title }}</a></li>
+                  {%- endif %}
+                  </td>
+                  <td class="rightlink">
+                  {%- if next %}
+                  <a href="{{ next.link|e }}" title="{{ _('next chapter') }}">{{ next.title }} &raquo;</a>
+                  {%- endif %}
+                      </td>
+                  </tr>
+              </table>
+              {%- endif %}
+              </div>
           </div>
       {%- if not embedded %}{% if not theme_nosidebar|tobool %}
         </div>
       {%- endif %}{% endif %}
       </div>
 {%- endblock %}
-
-{%- block sidebar2 %}{% endblock %}
       <div class="clearer"></div>
     </div>
-
-{%- block relbar2 %}{% endblock %}
+	</div>
 
 {%- block footer %}
 	<!--

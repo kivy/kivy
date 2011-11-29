@@ -35,6 +35,8 @@ The language consists of several constructs that you can use:
 Syntax of a kv File
 -------------------
 
+.. highlight:: kv
+
 A Kivy language file must have ``.kv`` as filename extension.
 
 The content of the file must always start with the Kivy header, where `version`
@@ -43,25 +45,25 @@ must be replaced with the Kivy language version you're using. For now, use
 
     #:kivy `version`
 
-    `content`
+    # content here
 
 The `content` can contain rule definitions, a root widget and templates::
 
     # Syntax of a rule definition. Note that several Rules can share the same
     # definition (as in CSS). Note the braces; They are part of the definition.
     <Rule1,Rule2>:
-        .. definitions ..
+        # .. definitions ..
 
     <Rule3>:
-        .. definitions ..
+        # .. definitions ..
 
     # Syntax for creating a root widget
     RootClassName:
-        .. definitions ..
+        # .. definitions ..
 
     # Syntax for create a template
     [TemplateName@BaseClass1,BaseClass2]:
-        .. definitions ..
+        # .. definitions ..
 
 Regardless of whether it's a rule, root widget or template you're defining,
 the definition should look like this::
@@ -201,7 +203,7 @@ in processing order (i.e. top-down).
 If you want to change how Buttons are rendered, you can create your own kv file
 and put something like this::
 
-    <Button>
+    <Button>:
         canvas:
             Color:
                 rgb: (1, 0, 0)
@@ -217,7 +219,7 @@ This will result in buttons having a red background, with the label in the
 bottom left, in addition to all the preceding rules.
 You can clear all the previous instructions by using the `Clear` command::
 
-    <Button>
+    <Button>:
         canvas:
             Clear
             Color:
@@ -253,11 +255,11 @@ Syntax of a template::
 
     # With only one base class
     [ClassName@BaseClass]:
-        .. definitions ..
+        # .. definitions ..
 
     # With more than one base class
     [ClassName@BaseClass1,BaseClass2]:
-        .. definitions ..
+        # .. definitions ..
 
 For example, for a list, you'll need to create a entry with a image on the left,
 and a label on the right. You can create a template for making that definition
@@ -271,24 +273,29 @@ filename and a title ::
         Label:
             text: ctx.title
 
+.. highlight:: python
+
 Then in Python, you can create instanciate the template with ::
 
     from kivy.lang import Builder
 
     # create a template with hello world + an image
-    icon1 = Builder.template('IconItem', {
-        'title': 'Hello world',
-        'image': 'myimage.png'})
+    # the context values should be passed as kwargs to the Builder.template
+    # function
+    icon1 = Builder.template('IconItem', title='Hello world',
+        image='myimage.png')
 
     # create a second template with another information
-    icon2 = Builder.template('IconItem', {
-        'title': 'Another hello world',
-        'image': 'myimage2.png'})
+    ctx = {'title': 'Another hello world',
+           'image': 'myimage2.png'}
+    icon2 = Builder.template('IconItem', **ctx)
     # and use icon1 and icon2 as other widget.
 
 
 Template example
 ~~~~~~~~~~~~~~~~
+
+.. highlight:: kv
 
 Most of time, when you are creating screen into kv lang, you have lot of
 redefinition. In our example, we'll create a Toolbar, based on a BoxLayout, and
@@ -405,8 +412,16 @@ Or more complex::
             Color:
                 rgba: ut.get_random_color()
 
+.. versionadded:: 1.0.7
+
+You can directly import class from a module::
+
+    #: import Animation kivy.animation.Animation
+    <Rule>:
+        on_prop: Animation(x=.5).start(self)
+
 set <key> <expr>
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. versionadded:: 1.0.6
 
@@ -432,15 +447,53 @@ import re
 import sys
 from os.path import join
 from copy import copy
-from types import ClassType
+from types import ClassType, CodeType
 from functools import partial
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.utils import OrderedDict, QueryDict
-from kivy import kivy_data_dir
+from kivy.cache import Cache
+from kivy import kivy_data_dir, require
+from kivy.lib.debug import make_traceback
+
 
 trace = Logger.trace
 global_idmap = {}
+
+# register cache for creating new classtype (template)
+Cache.register('kv.lang')
+
+# precompile regexp expression
+lang_str = re.compile('([\'"][^\'"]*[\'"])')
+lang_key = re.compile('([a-zA-Z_]+)')
+lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
+
+
+def precompile_value(name, value, line=1, parser=None):
+    # if it's an id, we don't need to compile, the value is the id.
+    if name == 'id':
+        return value
+    # first, remove all the string from the value
+    tmp = re.sub(lang_str, '', value)
+
+    # detecting how to handle the value according to the key name
+    mode = 'exec' if name.startswith('on_') else 'eval'
+    if mode == 'eval':
+        # if we don't detect any string/key in it, we can eval and give the
+        # result
+        if re.search(lang_key, tmp) is None:
+            return (None, eval(value), value, line + 1, parser)
+
+    # ok, we can compile.
+    code = compile(value, parser.filename or '<string>', mode)
+
+    # now, detect obj.prop
+    # first, remove all the string from the value
+    tmp = re.sub(lang_str, '', value)
+    # detect key.value inside value
+    kw = re.findall(lang_keyvalue, tmp)
+
+    return (kw, code, value, line + 1, parser)
 
 
 class ParserError(Exception):
@@ -467,20 +520,21 @@ class Parser(object):
     '''Create a Parser object to parse a Kivy language file or Kivy content.
     '''
 
+    PROP_ALLOWED = ('canvas.before', 'canvas.after')
     CLASS_RANGE = range(ord('A'), ord('Z') + 1)
+    PROP_RANGE = range(ord('A'), ord('Z') + 1) + \
+                 range(ord('a'), ord('z') + 1) + \
+                 range(ord('0'), ord('9') + 1) + [ord('_')]
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
         self.sourcecode = []
         self.objects = []
         self.directives = []
+        self.filename = kwargs.get('filename', None)
         content = kwargs.get('content', None)
-        self.filename = filename = kwargs.get('filename', None)
-        if filename:
-            content = self.load_resource(filename)
         if content is None:
-            raise ValueError('No content passed. Use filename or '
-                             'content attribute.')
+            raise ValueError('No content passed')
         self.parse(content)
 
     def execute_directives(self):
@@ -512,7 +566,13 @@ class Parser(object):
                 alias, package = l
                 try:
                     if package not in sys.modules:
-                        mod = __import__(package)
+                        try:
+                            mod = __import__(package)
+                        except ImportError:
+                            mod = __import__('.'.join(package.split('.')[:-1]))
+                        # resolve the whole thing
+                        for part in package.split('.')[1:]:
+                            mod = getattr(mod, part)
                     else:
                         mod = sys.modules[package]
                     global_idmap[alias] = mod
@@ -551,6 +611,9 @@ class Parser(object):
         # Get object from the first level
         objects, remaining_lines = self.parse_level(0, lines)
 
+        # Precompile values of all objects
+        self.precompile_objects(objects)
+
         # After parsing, there should be no remaining lines
         # or there's an error we did not catch earlier.
         if remaining_lines:
@@ -558,6 +621,18 @@ class Parser(object):
             raise ParserError(self, ln, 'Invalid data (not parsed)')
 
         self.objects = objects
+
+    def precompile_objects(self, objects):
+        for obj in objects:
+            name, properties = obj
+            for key, value in properties.iteritems():
+                if key in ('__line__', '__ctx__', 'id'):
+                    continue
+                if key in ('children', 'canvas', 'canvas.before',
+                        'canvas.after'):
+                    self.precompile_objects(value[0])
+                    continue
+                value[0] = precompile_value(key, value[0], value[1], value[2])
 
     def parse_version(self, line):
         '''Parse the version line.
@@ -572,9 +647,9 @@ class Parser(object):
                            '#:kivy <version>')
 
         version = content[6:].strip()
-        if version != '1.0':
-            raise ParserError(self, ln, 'Only Kivy language 1.0 is supported'
-                          ' (<%s> found)' % version)
+        if len(version.split('.')) == 2:
+            version += '.0'
+        require(version)
         if __debug__:
             trace('Parser: Kivy version is %s' % version)
 
@@ -654,26 +729,33 @@ class Parser(object):
 
                 # It's a property
                 else:
+                    if name not in Parser.PROP_ALLOWED:
+                        if False in [ord(z) in Parser.PROP_RANGE for z in name]:
+                            raise ParserError(self, ln, 'Invalid property name')
                     if len(x) == 1:
                         raise ParserError(self, ln, 'Syntax error')
                     value = x[1].strip()
                     if len(value):
-                        current_object[name] = (value, ln, self)
+                        current_object[name] = [value, ln, self]
                     else:
                         current_property = name
 
             # Two more levels?
             elif count == indent + 8:
-                if current_property not in ('canvas', 'canvas.after',
-                                            'canvas.before'):
-                    raise ParserError(self, ln,
-                                   'Invalid indentation, only allowed '
-                                   'for canvas')
-                _objects, _lines = self.parse_level(level + 2, lines[i:])
-                current_object[current_property] = (_objects, ln, self)
-                current_property = None
-                lines = _lines
-                i = 0
+                if current_property in (
+                        'canvas', 'canvas.after', 'canvas.before'):
+                    _objects, _lines = self.parse_level(level + 2, lines[i:])
+                    current_object[current_property] = [_objects, ln, self]
+                    current_property = None
+                    lines = _lines
+                    i = 0
+                else:
+                    if current_property in current_object:
+                        info = current_object[current_property]
+                        info[0] += '\n' + content
+                    else:
+                        info = [content, ln, self]
+                    current_object[current_property] = info
 
             # Too much indentation, invalid
             else:
@@ -709,44 +791,46 @@ _eval_globals['center'] = _eval_center
 
 def custom_callback(*largs, **kwargs):
     element, key, value, idmap = largs[0]
+    __kvlang__ = value
     locals().update(idmap)
     args = largs[1:]
-    exec value
+    try:
+        exec value[1]
+    except:
+        exc_info = sys.exc_info()
+        traceback = make_traceback(exc_info)
+        exc_type, exc_value, tb = traceback.standard_exc_info
+        raise exc_type, exc_value, tb
 
 
-def create_handler(element, key, value, idmap):
-    # first, remove all the string from the value
-    tmp = re.sub('([\'"][^\'"]*[\'"])', '', value)
-
-    # detect key.value inside value
-    kw = re.findall('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)', tmp)
-    if not kw:
-        # look like no reference, just pass it
-        return eval(value, _eval_globals, idmap)
+def create_handler(element, key, vd, idmap):
+    kw = vd[0]
+    value = vd[1]
+    assert(kw is not None)
 
     # create an handler
     idmap = copy(idmap)
 
-    c_value = compile(value, '<string>', 'eval')
-
     def call_fn(sender, _value):
         if __debug__:
-            trace('Builder: call_fn %s, key=%s, value=%s' % (
+            trace('Builder: call_fn %s, key=%s, value=%r' % (
                 element, key, value))
-        e_value = eval(c_value, _eval_globals, idmap)
+        e_value = eval(value, _eval_globals, idmap)
         if __debug__:
-            trace('Builder: call_fn => value=%s' % str(e_value))
+            trace('Builder: call_fn => value=%r' % (e_value, ))
         setattr(element, key, e_value)
 
     # bind every key.value
     for x in kw:
         k = x.split('.')
-        f = idmap[k[0]]
         try:
+            f = idmap[k[0]]
             for x in k[1:-1]:
                 f = getattr(f, x)
             if hasattr(f, 'bind'):
                 f.bind(**{k[-1]: call_fn})
+        except KeyError:
+            continue
         except AttributeError:
             continue
 
@@ -823,17 +907,20 @@ class BuilderBase(object):
         self.listwidgets = []
         self.listwidget = []
 
+        # rules and templates will be associated to current loaded file
+        self._current_filename = None
+
     def add_rule(self, rule, defs):
         if __debug__:
             trace('Builder: adding rule %s' % str(rule))
-        self.rules.append((rule, defs))
+        self.rules.append((rule, defs, self._current_filename))
 
     def add_template(self, name, cls, defs):
         if __debug__:
             trace('Builder: adding template %s' % str(name))
         if name in self.templates:
             raise Exception('The template <%s> already exist' % name)
-        self.templates[name] = (cls, defs)
+        self.templates[name] = (cls, defs, self._current_filename)
 
     def load_file(self, filename, **kwargs):
         '''Insert a file into the language builder.
@@ -849,6 +936,25 @@ class BuilderBase(object):
             kwargs['filename'] = filename
             return self.load_string(fd.read(), **kwargs)
 
+    def unload_file(self, filename):
+        '''Unload all rules associated to a previously imported file.
+
+        .. versionadded:: 1.0.8
+
+        .. warning::
+
+            This will not remove rule or template already applied/used on
+            current widget. It will act only for the next widget creation or
+            template invocation.
+        '''
+        # remove rules and templates
+        self.rules = [x for x in self.rules if x[2] != filename]
+        templates = {}
+        for x, y in self.templates.iteritems():
+            if y[2] != filename:
+                templates[x] = y
+        self.templates = templates
+
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder
 
@@ -858,19 +964,24 @@ class BuilderBase(object):
                 widget inside the definition.
         '''
         kwargs.setdefault('rulesonly', False)
-        parser = Parser(content=string)
-        root = self.build(parser.objects)
-        if kwargs['rulesonly'] and root:
-            filename = kwargs.get('rulesonly', '<string>')
-            raise Exception('The file <%s> contain also non-rules '
-                            'directives' % filename)
+        self._current_filename = kwargs.get('filename', None)
+        try:
+            parser = Parser(content=string, filename=kwargs.get(
+                'filename', None))
+            root = self.build(parser.objects)
+            if kwargs['rulesonly'] and root:
+                filename = kwargs.get('rulesonly', '<string>')
+                raise Exception('The file <%s> contain also non-rules '
+                                'directives' % filename)
+        finally:
+            self._current_filename = None
         return root
 
     def match(self, widget):
         '''Return a list of all rules matching the widget.
         '''
         matches = []
-        for rule, defs in self.rules:
+        for rule, defs, fn in self.rules:
             if rule.match(widget):
                 matches.append(defs)
         return matches
@@ -905,11 +1016,16 @@ class BuilderBase(object):
         name = args[0]
         if not name in self.templates:
             raise Exception('Unknown <%s> template name' % name)
-        baseclasses, defs = self.templates[name]
-        rootwidgets = []
-        for basecls in baseclasses.split('+'):
-            rootwidgets.append(Factory.get(basecls))
-        cls = ClassType(name, tuple(rootwidgets), {})
+        baseclasses, defs, fn = self.templates[name]
+        name, baseclasses
+        key = '%s|%s' % (name, baseclasses)
+        cls = Cache.get('kv.lang', key)
+        if cls is None:
+            rootwidgets = []
+            for basecls in baseclasses.split('+'):
+                rootwidgets.append(Factory.get(basecls))
+            cls = ClassType(name, tuple(rootwidgets), {})
+            Cache.append('kv.lang', key, cls)
         widget = cls()
         self._push_widgets()
         self._push_ids()
@@ -985,7 +1101,7 @@ class BuilderBase(object):
                 raise ParserError(params['__ctx__'], params['__line__'],
                                'Rules are not accepted inside widgets')
             no_apply = False
-            if item.startswith('+'):
+            if item[0] == '+':
                 item = item[1:]
                 no_apply = True
 
@@ -1022,7 +1138,7 @@ class BuilderBase(object):
                     raise ParserError(params['__ctx__'], params['__line__'],
                            'Canvas instruction in template are forbidden')
                 try:
-                    ctx[key] = eval(value[0], _eval_globals, self.idmap)
+                    ctx[key] = eval(value[0][2], _eval_globals, self.idmap)
                 except Exception, e:
                     raise ParserError(params['__ctx__'], params['__line__'], e)
             widget = cls(**ctx)
@@ -1109,7 +1225,10 @@ class BuilderBase(object):
                 element, key, value, idmap))})
 
         else:
-            value = create_handler(element, key, value, idmap)
+            if type(value[1]) is CodeType:
+                value = create_handler(element, key, value, idmap)
+            else:
+                value = value[1]
             if __debug__:
                 trace('Builder: set %s=%s for %s' % (key, value, element))
             if is_widget and not hasattr(element, key):
@@ -1176,24 +1295,3 @@ class BuilderBase(object):
 Builder = BuilderBase()
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 
-
-if __name__ == '__main__':
-    content = '''#:Kv 1.0
-
-ColorScheme:
-    id: cs
-    backgroundcolor: #927836
-
-Layout:
-    pos: 100, 100
-    size: 867, 567
-
-    canvas:
-        Color:
-            rgb: cs.backgroundcolor
-        Rectangle:
-            pos: self.pos
-            size: self.size
-'''
-
-    Builder.load(content=content)

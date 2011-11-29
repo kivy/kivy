@@ -4,41 +4,41 @@ Text Input
 
 .. versionadded:: 1.0.4
 
-The :class:`TextInput` element displays a box of editable plain text.
+.. image:: images/textinput-mono.jpg
+.. image:: images/textinput-multi.jpg
 
-This widget support by default nice features such as :
+The :class:`TextInput` widget provides a box of editable plain text.
 
-    - Unicode text
-    - Multiline editing
-    - Key navigations
-    - Selection by keys or touch
-    - Clipboard support
-
+Unicode, multiline, cursor navigation, selection and clipboard features
+are supported.
 
 .. note::
 
-    The documentation have 2 differents measurement:
+    Two different coordinate systems are used with TextInput:
 
         - (x, y) Coordinates in pixels, mostly used for rendering on screen
-        - (row, col) Index in characters / lines, used for selection and cursor
-          movement.
+        - (row, col) Cursor index in characters / lines, used for selection
+          and cursor movement.
 
 
 Usage example
 -------------
 
-Creation of a multiline textinput::
+To create a multiline textinput ('enter' key adds a new line)::
 
     from kivy.uix.textinput import TextInput
     textinput = TextInput(text='Hello world')
 
+To create a monoline textinput, set the multiline property to false ('enter'
+key will defocus the textinput and emit on_text_validate event) ::
 
-You can create a monoline textinput: the 'enter' key will have no impact. ::
+    def on_enter(instance, value):
+        print 'User pressed enter in', instance
 
     textinput = TextInput(text='Hello world', multiline=False)
+    textinput.bind(on_text_validate=on_enter)
 
-
-Get all the text changes::
+To run a callback when the text changes ::
 
     def on_text(instance, value):
         print 'The widget', instance, 'have:', value
@@ -46,21 +46,20 @@ Get all the text changes::
     textinput = TextInput()
     textinput.bind(text=on_text)
 
-
-You can 'focus' a textinput, mean that the input box will be highlighted, and
-keyboard will be requested ::
+You can 'focus' a textinput, meaning that the input box will be highlighted,
+and keyboard will be requested ::
 
     textinput = TextInput(focus=True)
 
-The textinput can be leaved by escape or if another textinput is requesting the
-real keyboard. That's mean the widget will be 'unfocused'. You attach to focus
-property, and check the current status::
+The textinput is defocused if the 'escape' key is pressed, or if another
+widget requests the keyboard. You can bind a callback to focus property to
+get notified of focus changes ::
 
     def on_focus(instance, value):
         if value:
-            print 'User entered in', instance
+            print 'User focused', instance
         else:
-            print 'User leaved from', instance
+            print 'User defocused', instance
 
     textinput = TextInput()
     textinput.bind(focus=on_focus)
@@ -69,9 +68,9 @@ property, and check the current status::
 Selection
 ---------
 
-Selection of the textinput is automatically managed. You can get the current
-selection with :data:`TextInput.selection_text` property. The selection is
-automatically updated when the cursor position change.
+The selection is automatically updated when the cursor position changes.
+You can get the currently selected text from the
+:data:`TextInput.selection_text` property.
 
 
 Default shortcuts
@@ -104,6 +103,8 @@ __all__ = ('TextInput', )
 
 import sys
 
+from functools import partial
+from kivy.logger import Logger
 from kivy.utils import boundary
 from kivy.clock import Clock
 from kivy.cache import Cache
@@ -127,8 +128,8 @@ class TextInput(Widget):
 
     :Events:
         `on_text_validate`
-            Fired only in multiline=False mode, when the user hit 'enter'. This
-            will also unfocus the textinput.
+            Fired only in multiline=False mode, when the user hits 'enter'.
+            This will also unfocus the textinput.
     '''
 
     def __init__(self, **kwargs):
@@ -143,9 +144,11 @@ class TextInput(Widget):
         self.selection_to = None
         self._lines_flags = []
         self._lines_labels = []
+        self._lines_rects = []
         self._line_spacing = 0
         self._label_cached = None
         self._line_options = None
+        self._keyboard = None
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -173,7 +176,10 @@ class TextInput(Widget):
                   padding_y=self._trigger_refresh_text,
                   tab_width=self._trigger_refresh_text,
                   font_size=self._trigger_refresh_text,
-                  font_name=self._trigger_refresh_text)
+                  font_name=self._trigger_refresh_text,
+                  size=self._trigger_refresh_text)
+
+        self.bind(pos=self._trigger_update_graphics)
 
         self._trigger_refresh_line_options()
         self._trigger_refresh_text()
@@ -268,7 +274,7 @@ class TextInput(Widget):
         self.cursor = self.get_cursor_from_index(cursor_index - 1)
 
     def do_cursor_movement(self, action):
-        '''Do a cursor movement from the current cursor position.
+        '''Move the cursor relative to it's current position.
         Action can be one of :
 
             - cursor_left: move the cursor to the left
@@ -330,7 +336,7 @@ class TextInput(Widget):
     # Selection control
     #
     def cancel_selection(self):
-        '''Cancel current selection if any
+        '''Cancel current selection (if any)
         '''
         self._selection = False
         self._selection_finished = True
@@ -338,7 +344,7 @@ class TextInput(Widget):
         self._trigger_update_graphics()
 
     def delete_selection(self):
-        '''Suppress from the value current selection if any
+        '''Delete the current text selection (if any)
         '''
         if not self._selection:
             return
@@ -353,7 +359,7 @@ class TextInput(Widget):
 
     def _update_selection(self, finished=False):
         '''Update selection text and order of from/to if finished is True.
-        Can be call multiple time until finished=True.
+        Can be called multiple times until finished=True.
         '''
         a, b = self.selection_from, self.selection_to
         if a > b:
@@ -412,19 +418,33 @@ class TextInput(Widget):
     #
     # Private
     #
-    def on_focus(self, instance, value):
+    def on_focus(self, instance, value, *largs):
         win = self._win
         if not win:
             self._win = win = self.get_root_window()
+        if not win:
+            # we got argument, it could be the previous schedule
+            # cancel focus.
+            if len(largs):
+                Logger.warning('Textinput: '
+                    'Cannot focus the element, unable to get root window')
+                return
+            else:
+                Clock.schedule_once(partial(self.on_focus, self, value), 0)
+            return
         if value:
-            win.request_keyboard(self._keyboard_released)
-            win.bind(on_key_down=self._window_on_key_down,
-                     on_key_up=self._window_on_key_up)
+            keyboard = win.request_keyboard(self._keyboard_released, self)
+            self._keyboard = keyboard
+            keyboard.bind(
+                on_key_down=self._keyboard_on_key_down,
+                on_key_up=self._keyboard_on_key_up)
             Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
         else:
-            win.release_keyboard()
-            win.unbind(on_key_down=self._window_on_key_down,
-                     on_key_up=self._window_on_key_up)
+            keyboard = self._keyboard
+            keyboard.unbind(
+                on_key_down=self._keyboard_on_key_down,
+                on_key_up=self._keyboard_on_key_up)
+            keyboard.release()
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
             self._win = None
@@ -690,6 +710,8 @@ class TextInput(Widget):
 
     def _tokenize(self, text):
         # Tokenize a text string from some delimiters
+        if text is None:
+            return
         delimiters = ' ,\'".;:\n\r\t'
         oldindex = 0
         for index, char in enumerate(text):
@@ -765,7 +787,8 @@ class TextInput(Widget):
         elif self._selection and internal_action in ('del', 'backspace'):
             self.delete_selection()
         elif internal_action == 'del':
-            # do backspace only if we have data after our cursor
+            # Move cursor one char to the right. If that was successful,
+            # do a backspace (effectively deleting char right of cursor)
             cursor = self.cursor
             self.do_cursor_movement('cursor_right')
             if cursor != self.cursor:
@@ -789,8 +812,7 @@ class TextInput(Widget):
         if internal_action in ('shift', 'shift_L', 'shift_R'):
             self._update_selection(True)
 
-    def _window_on_key_down(self, window, key, scancode=None, unicode=None,
-                            modifiers=None):
+    def _keyboard_on_key_down(self, window, keycode, text, modifiers):
         global Clipboard
         if Clipboard is None:
             from kivy.core.clipboard import Clipboard
@@ -798,8 +820,9 @@ class TextInput(Widget):
         is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
+        key, key_str = keycode
 
-        if unicode and not key in (self.interesting_keys.keys() + [27]):
+        if text and not key in (self.interesting_keys.keys() + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
                 if key == ord('x'): # cut selection
@@ -819,7 +842,7 @@ class TextInput(Widget):
             else:
                 if self._selection:
                     self.delete_selection()
-                self.insert_text(unicode)
+                self.insert_text(text)
             #self._recalc_size()
             return
 
@@ -835,8 +858,8 @@ class TextInput(Widget):
             key = (None, None, k, 1)
             self._key_down(key)
 
-    def _window_on_key_up(self, window, key, scancode=None, unicode=None,
-                          modifiers=None):
+    def _keyboard_on_key_up(self, window, keycode):
+        key, key_str = keycode
         k = self.interesting_keys.get(key)
         if k:
             key = (None, None, k, 1)
@@ -849,8 +872,8 @@ class TextInput(Widget):
     _lines = ListProperty([])
 
     multiline = BooleanProperty(True)
-    '''If True, the widget will be able to do multiline lines. Without that,
-    "enter" action will not add a new line.
+    '''If True, the widget will be able show multiple lines of text. If false,
+    "enter" action will defocus the textinput instead of adding a new line.
 
     :data:`multiline` is a :class:`~kivy.properties.BooleanProperty`, default to
     True
@@ -909,9 +932,9 @@ class TextInput(Widget):
 
     cursor = AliasProperty(_get_cursor, _set_cursor)
     '''Tuple of (row, col) of the current cursor position.
-    You can set a new (row, col) if you want to move the cursor position.
-    The scrolling area will be automatically updated to always ensure that the
-    cursor will be showed inside the viewport.
+    You can set a new (row, col) if you want to move the cursor. The scrolling
+    area will be automatically updated to ensure that the cursor will be
+    visible inside the viewport.
 
     :data:`cursor` is a :class:`~kivy.properties.AliasProperty`.
     '''
@@ -947,7 +970,7 @@ class TextInput(Widget):
     line_height = NumericProperty(1)
     '''Height of a line. This property is automatically computed from the
     :data:`font_name`, :data:`font_size`. Changing the line_height will have
-    no-impact.
+    no impact.
 
     :data:`line_height` is a :class:`~kivy.properties.NumericProperty`,
     read-only.
@@ -984,8 +1007,8 @@ class TextInput(Widget):
 
     scroll_x = NumericProperty(0)
     '''X scrolling value of the viewport. The scrolling is automatically updated
-    when the cursor is moving or text is changing. But if you are not doing any
-    action, you can still change the scroll_x.
+    when the cursor is moving or text is changing. If you are not doing any
+    action, you can still change the scroll_x and scroll_y properties.
 
     :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
@@ -993,7 +1016,7 @@ class TextInput(Widget):
 
     scroll_y = NumericProperty(0)
     '''Y scrolling value of the viewport. See :data:`scroll_x` for more
-    informations.
+    information.
 
     :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
@@ -1070,9 +1093,9 @@ class TextInput(Widget):
     '''
 
     font_name = StringProperty('fonts/DroidSans.ttf')
-    '''File of the font to use. The path used for the font can be a absolute
-    path, or a relative path that will be search with the
-    :func:`~kivy.resources.resource_find` function.
+    '''Filename of the font to use, the path can be absolute or relative.
+    Relative paths are resolved by the :func:`~kivy.resources.resource_find`
+    function.
 
     .. warning::
 
@@ -1084,7 +1107,7 @@ class TextInput(Widget):
     '''
 
     font_size = NumericProperty(10)
-    '''Font size of the text. The font size is in pixels.
+    '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
     10.

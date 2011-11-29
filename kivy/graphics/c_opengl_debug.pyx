@@ -304,7 +304,8 @@ cdef void   glGetBufferParameteriv (GLenum target, GLenum pname, GLint* params) 
     ret = cgl.glGetError()
     if ret: print "OpenGL Error %d / %x" % (ret, ret)
 cdef GLenum glGetError () with gil:
-    return cgl.glGetError()
+    print "GL glGetError( )"
+    return cgl.glGetError ()
 cdef void   glGetFloatv (GLenum pname, GLfloat* params) with gil:
     print "GL glGetFloatv( pname = ", pname, ", params*=", repr(hex(<long> params)), ", )"
     cgl.glGetFloatv ( pname, params)

@@ -2,10 +2,8 @@
 Clock object
 ============
 
-The :class:`Clock` object allow you to schedule a function call. The scheduling
-can be repetitive or just once.
-
-You can add new event like this::
+The :class:`Clock` object allows you to schedule a function call in the
+future; once or on interval. ::
 
     def my_callback(dt):
         pass
@@ -21,29 +19,30 @@ You can add new event like this::
 
 .. note::
 
-    If the callback return False, the schedule will be removed.
+    If the callback returns False, the schedule will be removed.
 
 Schedule before frame
 ---------------------
 
 .. versionadded:: 1.0.5
 
-Sometime, you want to schedule a callback to be called BEFORE the next frame.
-Starting from 1.0.5, you can use a timeout of -1 for doing that::
+Sometimes you need to schedule a callback BEFORE the next frame. Starting 
+from 1.0.5, you can use a timeout of -1::
 
     Clock.schedule_once(my_callback, 0) # call after the next frame
     Clock.schedule_once(my_callback, -1) # call before the next frame
 
-The :class:`Clock` will execute all the callback with a timeout of -1 before
-the next frame. Even if you add new callback with -1. Clock have a limit of
-iteration for thoses callback, defaulted to 10.
+The Clock will execute all the callbacks with a timeout of -1 before
+the next frame, even if you add a new callback with -1 from a running callback. 
+However, :class:`Clock` has an iteration limit for these callbacks, it defaults 
+to 10.
 
-If you schedule a layout that reschedule a layout that reschedule a layout...
-more than 10 times, it will leave his loop, send a warning on the console, and
-will continue after next frame. This is implemented to prevent infinite layout
-in case of a bug.
+If you schedule a callback that schedules a callback that schedules a .. etc
+more than 10 times, it will leave the loop and send a warning to the console,
+then continue after the next frame. This is implemented to prevent bugs from 
+hanging or crashing the application.
 
-If you want to increase that limit, you can do::
+If you need to increase the limit, set the :data:`max_iteration` property::
 
     from kivy.clock import Clock
     Clock.max_iteration = 20
@@ -53,28 +52,49 @@ Triggered Events
 
 .. versionadded:: 1.0.5
 
-A triggered event is a Event than can be started when it will be triggered.
-Before triggered events, you might done this approach in your code::
+A triggered event is a way to defer a callback exactly like schedule_once(),
+but with some added convenience. The callback will only be scheduled once per 
+frame, even if you call the trigger twice (or more). This is not the case 
+with :func:`Clock.schedule_once` ::
 
-    def callback(self):
-        print 'my callback is called'
+    # will run the callback twice before the next frame
+    Clock.schedule_once(my_callback)
+    Clock.schedule_once(my_callback)
+
+    # will run the callback once before the next frame
+    t = Clock.create_trigger(my_callback)
+    t()
+    t()    
+
+Before triggered events, you may have used this approach in a widget ::
 
     def trigger_callback(self, *largs):
         Clock.unschedule(self.callback)
         Clock.schedule_once(self.callback)
 
-With triggered event, you don't need anymore of trigger_callback. You can do::
+As soon as you call `trigger_callback()`, it will correctly schedule the
+callback once in the next frame. It is more convenient to create and bind to 
+the triggered event than using :func:`Clock.schedule_once` in a function ::
 
-    trigger_callback = Clock.create_trigger(self.callback)
+    from kivy.clock import Clock
+    from kivy.uix.widget import Widget
 
-And same as the previous approach, as soon as you'll call the
-`trigger_callback()`, it will correctly schedule the call of the callback in the
-next frame.
+    class Sample(Widget):
+        def __init__(self, **kwargs):
+            self._trigger = Clock.create_trigger(self.cb)
+            super(Sample, self).__init__(**kwargs)
+            self.bind(x=self._trigger, y=self._trigger)
+
+        def cb(self, *largs):
+            pass
+
+Even if x and y changes within one frame, the callback is only run once.
 
 .. note::
 
-    :func:`Clock.create_trigger` use internally schedule_once. You can use the
-    same parameters.
+    :func:`Clock.create_trigger` also has a timeout parameter that behaves 
+    exactly like :func:`Clock.schedule_once`.
+
 '''
 
 __all__ = ('Clock', 'ClockBase', 'ClockEvent')
@@ -186,7 +206,7 @@ class ClockEvent(object):
 
 
 class ClockBase(object):
-    '''A clock object, that support events
+    '''A clock object with event support
     '''
     __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
                  '_start_tick', '_fps_counter', '_rfps_counter', '_events',
@@ -204,14 +224,14 @@ class ClockBase(object):
         self._max_fps = float(Config.getint('graphics', 'maxfps'))
 
         #: .. versionadded:: 1.0.5
-        #: When a schedule_once is used with -1, you can add a limit on how much
-        #: iteration will be allowed. That is here to prevent too much relayout.
-        # XXX Adjust this value.
+        #:     When a schedule_once is used with -1, you can add a limit on how
+        #:     iteration will be allowed. That is here to prevent too much
+        #:     relayout.
         self.max_iteration = 10
 
     @property
     def frametime(self):
-        '''Time spended between last frame and current frame (in seconds)
+        '''Time spent between last frame and current frame (in seconds)
         '''
         return self._dt
 
@@ -259,16 +279,16 @@ class ClockBase(object):
         self._rfps_counter += 1
 
     def get_fps(self):
-        '''Get the current FPS calculated by the clock
+        '''Get the current average FPS calculated by the clock
         '''
         return self._fps
 
     def get_rfps(self):
         '''Get the current "real" FPS calculated by the clock.
-        This counter reflect the real frame displayed on the screen.
+        This counter reflects the real framerate displayed on the screen.
 
-        In contrary to get_fps(), this function return a counter of the number
-        of frame, not a average of frame per seconds
+        In contrast to get_fps(), this function returns a counter of the number
+        of frames, not an average of frames per second
         '''
         return self._rfps
 
@@ -281,21 +301,22 @@ class ClockBase(object):
         return self._last_tick - self._start_tick
 
     def create_trigger(self, callback, timeout=0):
-        '''Create a Trigger event. Check module information for more
+        '''Create a Trigger event. Check module documentation for more
         information.
 
         .. versionadded:: 1.0.5
         '''
         cid = _hash(callback)
         return ClockEvent(self, False, callback, timeout, 0, cid)
-
+ 
     def schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds.
 
-        .. note::
-            .. versionadded:: 1.0.5
+        .. versionchanged:: 1.0.5
+
             If the timeout is -1, the callback will be called before the next
             frame (at :func:`tick_draw`).
+
         '''
         cid = _hash(callback)
         event = ClockEvent(self, False, callback, timeout, self._last_tick, cid)
@@ -306,7 +327,7 @@ class ClockBase(object):
         return event
 
     def schedule_interval(self, callback, timeout):
-        '''Schedule a event to be call every <timeout> seconds'''
+        '''Schedule an event to be called every <timeout> seconds'''
         cid = _hash(callback)
         event = ClockEvent(self, True, callback, timeout, self._last_tick, cid)
         events = self._events
@@ -316,7 +337,7 @@ class ClockBase(object):
         return event
 
     def unschedule(self, callback):
-        '''Remove a previous schedule event.
+        '''Remove a previously scheduled event.
         '''
         events = self._events
         if isinstance(callback, ClockEvent):
@@ -364,10 +385,11 @@ class ClockBase(object):
         events = self._events
         while found:
             count -= 1
-            if count < 0:
+            if count == -1:
                 Logger.critical('Clock: Warning, too much iteration done before'
-                                ' the next frame. Check your code, or increase '
-                                'the Clock.max_iteration attribute')
+                                ' the next frame. Check your code, or increase'
+                                ' the Clock.max_iteration attribute')
+                break
 
             # search event that have timeout = -1
             found = False
@@ -380,11 +402,6 @@ class ClockBase(object):
                         # event may be already removed by the callback
                         if event in events[cid]:
                             events[cid].remove(event)
-
-        if count != self.max_iteration - 1:
-            i = self.max_iteration - count + 1
-            if __debug__:
-                Logger.trace('Clock: we done %d iteration before the frame' % i)
 
 
 if 'KIVY_DOC_INCLUDE' in environ:

@@ -4,7 +4,7 @@ FileChooser
 
 .. versionadded:: 1.0.5
 
-.. warning:
+.. warning::
 
     This is experimental and subject to change as long as this warning notice is
     present.
@@ -14,17 +14,19 @@ FileChooser
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.logger import Logger
+from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
                             ObjectProperty
-from sys import platform
 from os import listdir
 from os.path import basename, getsize, isdir, join, sep, normpath, \
                     expanduser, altsep, splitdrive
 from fnmatch import fnmatch
 
+platform = core_platform()
+
 _have_win32file = False
-if platform == 'win32':
+if platform == 'win':
     # Import that module here as it's not available on non-windows machines.
     # See http://bit.ly/i9klJE except that the attributes are defined in
     # win32file not win32com (bug on page).
@@ -48,7 +50,7 @@ def is_hidden_win(fn):
         return False
     try:
         return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
-    except error, e:
+    except error:
         # This error can occured when a file is already accessed by someone
         # else. So don't return to True, because we have lot of chances to not
         # being able to do anything with it.
@@ -62,6 +64,10 @@ def alphanumeric_folders_first(files):
 
 
 class FileChooserController(FloatLayout):
+    '''Base for implementing a FileChooser. Don't use that class directly,
+    prefer to use one implementation like :class:`FileChooserListView` or
+    :class:`FileChooserIconView`.
+    '''
     _ENTRY_TEMPLATE = None
 
     path = StringProperty(u'/')
@@ -73,17 +79,20 @@ class FileChooserController(FloatLayout):
 
     filters = ListProperty([])
     '''
-    :class:`~kivy.properties.ListProperty`, defaults to [], equal to '*'.
+    :class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
     The filters to be applied to the files in the directory, e.g. ['*.png'].
     The filters are not reset when the path changes, you need to do that
     yourself if you want that. You can use the following patterns:
 
-      Pattern	| Meaning
-      ----------+---------------------------------
-      *	        | matches everything
-      ?	        | matches any single character
-      [seq]	| matches any character in seq
-      [!seq]	| matches any character not in seq
+      ========== =================================
+      Pattern     Meaning
+      ========== =================================
+      \*         matches everything
+      ?          matches any single character
+      [seq]      matches any character in seq
+      [!seq]     matches any character not in seq
+      ========== =================================
+
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -133,16 +142,24 @@ class FileChooserController(FloatLayout):
         self.register_event_type('on_submit')
         super(FileChooserController, self).__init__(**kwargs)
 
-        if platform in ('darwin', 'linux2'):
+        self._items = []
+        self.bind(selection=self._update_item_selection)
+
+        if platform in ('macosx', 'linux', 'android', 'ios'):
             self.is_hidden = is_hidden_unix
-        elif platform == 'win32':
+        elif platform == 'win':
             self.is_hidden = is_hidden_win
         else:
-            raise NotImplementedError('Only available for Linux, OSX and Win')
+            raise NotImplementedError('Only available for Linux, OSX and Win'
+                    ' (platform is %r)' % platform)
 
         self.bind(path=self._trigger_update,
                   filters=self._trigger_update)
         self._trigger_update()
+
+    def _update_item_selection(self, *args):
+        for item in self._items:
+            item.selected = item.path in self.selection
 
     def _trigger_update(self, *args):
         Clock.unschedule(self._update_files)
@@ -161,9 +178,12 @@ class FileChooserController(FloatLayout):
         pass
 
     def on_submit(self, selected, touch=None):
-        self.selection = []
+        pass
 
     def entry_touched(self, entry, touch):
+        '''(internal) This method must be called by the template when an entry
+        is touched by the user.
+        '''
         if self.multiselect:
             if isdir(entry.path) and touch.is_double_tap:
                 self.open_entry(entry)
@@ -174,9 +194,23 @@ class FileChooserController(FloatLayout):
                     self.selection.append(entry.path)
         else:
             if isdir(entry.path):
-                self.open_entry(entry)
+                pass
             else:
-                self.dispatch('on_submit', [entry.path], touch)
+                self.selection = [entry.path, ]
+
+    def entry_released(self, entry, touch):
+        '''(internal) This method must be called by the template when an entry
+        is touched by the user.
+
+        .. versionadded:: 1.0.10
+        '''
+        if self.multiselect:
+            pass
+        else:
+            if isdir(entry.path):
+                self.open_entry(entry)
+            elif touch.is_double_tap:
+                self.dispatch('on_submit', self.selection, touch)
 
     def open_entry(self, entry):
         try:
@@ -224,11 +258,12 @@ class FileChooserController(FloatLayout):
     def _update_files(self, *args):
         # Clear current files
         self.dispatch('on_entries_cleared')
+        self._items = []
 
         # Add the components that are always needed
-        if platform == 'win32':
+        if platform == 'win':
             is_root = splitdrive(self.path)[1] in (sep, altsep)
-        elif platform in ('darwin', 'linux2'):
+        elif platform in ('macosx', 'linux', 'android', 'ios'):
             is_root = normpath(expanduser(self.path)) == sep
         else:
             # Unknown file system; Just always add the .. entry but also log
@@ -239,10 +274,11 @@ class FileChooserController(FloatLayout):
             pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
                 size='', path=back, controller=self, isdir=True, parent=None,
                 sep=sep, get_nice_size=lambda: ''))
+            self._items.append(pardir)
             self.dispatch('on_entry_added', pardir)
         try:
             self._add_files(self.path)
-        except OSError, e:
+        except OSError:
             Logger.exception('Unable to open directory <%s>' % self.path)
 
     def _add_files(self, path, parent=None):
@@ -262,17 +298,17 @@ class FileChooserController(FloatLayout):
         is_hidden = self.is_hidden
         if not self.show_hidden:
             files = [x for x in files if not is_hidden(x)]
-        for file in files:
+        for fn in files:
 
             def get_nice_size():
                 # Use a closure for lazy-loading here
-                return self.get_nice_size(file)
+                return self.get_nice_size(fn)
 
-            ctx = {'name': basename(file),
+            ctx = {'name': basename(fn),
                    'get_nice_size': get_nice_size,
-                   'path': file,
+                   'path': fn,
                    'controller': self,
-                   'isdir': isdir(file),
+                   'isdir': isdir(fn),
                    'parent': parent,
                    'sep': sep}
             entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
@@ -303,10 +339,14 @@ class FileChooserController(FloatLayout):
 
 
 class FileChooserListView(FileChooserController):
+    '''Implementation of :class:`FileChooserController` using a list view
+    '''
     _ENTRY_TEMPLATE = 'FileListEntry'
 
 
 class FileChooserIconView(FileChooserController):
+    '''Implementation of :class:`FileChooserController` using an icon view
+    '''
     _ENTRY_TEMPLATE = 'FileIconEntry'
 
 
@@ -319,6 +359,6 @@ if __name__ == '__main__':
             pos = (100, 100)
             size_hint = (None, None)
             size = (300, 400)
-            #return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
+            return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
             return FileChooserIconView(pos=pos, size=size, size_hint=size_hint)
     FileChooserApp().run()

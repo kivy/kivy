@@ -11,11 +11,11 @@ by the core abstraction. Always try to use our providers first.
 In case we are missing a feature or method, please let us know by
 opening a new Bug report instead of relying on your library.
 
-    .. warning::
-        These are **not** widgets! These are just abstractions of the respective
-        functionality. For example, you cannot add a core image to your window.
-        You have to use the image **widget** class instead. If you're really
-        looking for widgets, please refer to :mod:`kivy.uix` instead.
+.. warning::
+    These are **not** widgets! These are just abstractions of the respective
+    functionality. For example, you cannot add a core image to your window.
+    You have to use the image **widget** class instead. If you're really
+    looking for widgets, please refer to :mod:`kivy.uix` instead.
 '''
 
 import os

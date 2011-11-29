@@ -9,9 +9,9 @@ Be careful if you change anything in !
 ignore_list = (
     'kivy.factory_registers',
     'kivy.graphics.buffer',
-    'kivy.graphics.shader',
     'kivy.graphics.vbo',
     'kivy.graphics.vertex',
+    'kivy.lib.osc'
 )
 
 import os
@@ -34,7 +34,14 @@ import kivy.core.video
 import kivy.core.window
 import kivy.ext
 import kivy.graphics
+import kivy.graphics.shader
 import kivy.animation
+import kivy.modules.keybinding
+import kivy.modules.monitor
+import kivy.modules.touchring
+import kivy.modules.inspector
+import kivy.network.urlrequest
+import kivy.support
 from kivy.factory import Factory
 
 # force loading of all classes from factory
@@ -127,10 +134,22 @@ Examples
 template_examples_ref = \
 '''# :ref:`Jump directly to Examples <example-reference%d>`'''
 
+def extract_summary_line(doc):
+    if doc is None:
+        return
+    for line in doc.split('\n'):
+        line = line.strip()
+        # don't take empty line
+        if len(line) < 1:
+            continue
+        # ref mark
+        if line.startswith('.. _'):
+            continue
+        return line
+
 for package in packages:
-    try:
-        summary = [x for x in sys.modules[package].__doc__.split("\n") if len(x) > 1][0]
-    except:
+    summary = extract_summary_line(sys.modules[package].__doc__)
+    if summary is None:
         summary = 'NO DOCUMENTATION (package %s)' % package
     t = template.replace('$SUMMARY', summary)
     t = t.replace('$PACKAGE', package)
@@ -161,10 +180,9 @@ m = modules.keys()
 m.sort()
 refid = 0
 for module in m:
-    try:
-        summary = [x for x in sys.modules[module].__doc__.split("\n") if len(x) > 1][0]
-    except:
-        summary = 'NO DOCUMENTATION (module %s)' % module
+    summary = extract_summary_line(sys.modules[module].__doc__)
+    if summary is None:
+        summary = 'NO DOCUMENTATION (module %s)' % package
 
     # search examples
     example_output = []

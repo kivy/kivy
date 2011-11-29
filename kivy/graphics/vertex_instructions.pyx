@@ -8,7 +8,7 @@ This module include all the classes for drawing simple vertex object.
 '''
 
 __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
-           'Point')
+           'Point', 'Mesh', 'GraphicException', 'Bezier')
 
 
 include "config.pxi"
@@ -21,26 +21,80 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
+from kivy.graphics.texture import Texture
+
+cdef extern from "string.h":
+    void *memset(void *s, int c, int n)
+
+cdef extern from "Python.h":
+    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+
+cdef extern from "math.h":
+    double sqrt(double x) nogil
+    double pow(double x, double y) nogil
+
+class GraphicException(Exception):
+    '''Exception fired when a graphic error is fired.
+    '''
 
 cdef class Line(VertexInstruction):
     '''A 2d line.
 
+    .. versionadded:: 1.0.8
+        `dash_offset` and `dash_length` have been added
+
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
+        `dash_length`: int
+            length of a segment (if dashed), default 1
+        `dash_offset`: int
+            offset between the end of a segments and the begining of the
+            next one, default 0, changing this makes it dashed.
     '''
     cdef list _points
+    cdef int _dash_offset, _dash_length
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
         self.points = kwargs.get('points', [])
         self.batch.set_mode('line_strip')
+        self._dash_length = kwargs.get('dash_length', 1)
+        self._dash_offset = kwargs.get('dash_offset', 0)
 
     cdef void build(self):
         cdef int i, count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
+        cdef float tex_x
+        cdef char *buf = NULL
+        cdef Texture texture = self.texture
+
+        if count < 2:
+            self.batch.clear_data()
+            return
+
+        if self._dash_offset != 0:
+            if texture is None or texture._width != \
+                (self._dash_length + self._dash_offset) or \
+                texture._height != 1:
+
+                self.texture = texture = Texture.create(
+                        size=(self._dash_length + self._dash_offset, 1))
+                texture.wrap = 'repeat'
+
+            # create a buffer to fill our texture
+            buf = <char *>malloc(4 * (self._dash_length + self._dash_offset))
+            memset(buf, 255, self._dash_length * 4)
+            memset(buf + self._dash_length * 4, 0, self._dash_offset * 4)
+            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 4)
+
+            self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
+            free(buf)
+
+        elif texture is not None:
+            self.texture = None
 
         vertices = <vertex_t *>malloc(count * sizeof(vertex_t))
         if vertices == NULL:
@@ -51,12 +105,199 @@ cdef class Line(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
+        tex_x = 0
         for i in xrange(count):
+            if self._dash_offset != 0 and i > 0:
+                tex_x += sqrt(
+                        pow(p[i * 2]     - p[(i - 1) * 2], 2)  +
+                        pow(p[i * 2 + 1] - p[(i - 1) * 2 + 1], 2)) / (
+                                self._dash_length + self._dash_offset)
+
+                vertices[i].s0 = tex_x
+                vertices[i].t0 = 0
+
             vertices[i].x = p[i * 2]
             vertices[i].y = p[i * 2 + 1]
             indices[i] = i
 
         self.batch.set_data(vertices, count, indices, count)
+
+        free(vertices)
+        free(indices)
+
+    property points:
+        '''Property for getting/settings points of the line
+
+        .. warning::
+
+            This will always reconstruct the whole graphics from the new points
+            list. It can be very CPU expensive.
+        '''
+        def __get__(self):
+            return self._points
+        def __set__(self, points):
+            self._points = list(points)
+            self.flag_update()
+
+    property dash_length:
+        '''Property for getting/setting the length of the dashes in the curve
+
+        .. versionadded:: 1.0.8
+        '''
+        def __get__(self):
+            return self._dash_length
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_length value, must be >= 0')
+            self._dash_length = value
+            self.flag_update()
+
+    property dash_offset:
+        '''Property for getting/setting the offset between the dashes in the curve
+
+        .. versionadded:: 1.0.8
+        '''
+        def __get__(self):
+            return self._dash_offset
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_offset value, must be >= 0')
+            self._dash_offset = value
+            self.flag_update()
+
+
+cdef class Bezier(VertexInstruction):
+    '''A 2d Bezier curve.
+
+    .. versionadded:: 1.0.8
+
+    :Parameters:
+        `points`: list
+            List of points in the format (x1, y1, x2, y2...)
+        `segments`: int, default to 180
+            Define how much segment is needed for drawing the ellipse.
+            The drawing will be smoother if you have lot of segment.
+        `loop`: bool, default to False
+            Set the bezier curve to join last point to first.
+        `dash_length`: int
+            length of a segment (if dashed), default 1
+        `dash_offset`: int
+            distance between the end of a segment and the start of the
+            next one, default 0, changing this makes it dashed.
+    '''
+
+    # TODO: refactoring:
+    #
+    #    a) find interface common to all splines (given control points and
+    #    perhaps tangents, what's the position on the spline for parameter t),
+    #
+    #    b) make that a superclass Spline,
+    #    c) create BezierSpline subclass that does the computation
+
+    cdef list _points
+    cdef int _segments
+    cdef bint _loop
+    cdef int _dash_offset, _dash_length
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self.points = kwargs.get('points', [0, 0, 0, 0, 0, 0, 0, 0])
+        self._segments = kwargs.get('segments', 10)
+        self._loop = kwargs.get('loop', False)
+        if self._loop:
+            self.points.extend(self.points[:2])
+        self._dash_length = kwargs.get('dash_length', 1)
+        self._dash_offset = kwargs.get('dash_offset', 0)
+        self.batch.set_mode('line_strip')
+
+    cdef void build(self):
+        cdef int x, i, j
+        cdef float l
+        cdef list T = self.points[:]
+        cdef vertex_t *vertices = NULL
+        cdef unsigned short *indices = NULL
+        cdef float tex_x
+        cdef char *buf = NULL
+        cdef Texture texture = self.texture
+
+        if self._dash_offset != 0:
+            if texture is None or texture._width != \
+                (self._dash_length + self._dash_offset) or \
+                texture._height != 1:
+
+                self.texture = texture = Texture.create(
+                        size=(self._dash_length + self._dash_offset, 1))
+                texture.wrap = 'repeat'
+
+            # create a buffer to fill our texture
+            buf = <char *>malloc(4 * (self._dash_length + self._dash_offset))
+            memset(buf, 255, self._dash_length * 4)
+            memset(buf + self._dash_length * 4, 0, self._dash_offset * 4)
+
+            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 4)
+
+            texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
+            free(buf)
+
+        elif texture is not None:
+            self.texture = None
+
+        vertices = <vertex_t *>malloc((self._segments + 1) * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError('vertices')
+
+        indices = <unsigned short *>malloc(
+                (self._segments + 1) * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        tex_x = 0
+        for x in xrange(self._segments):
+            l = x / (1.0 * self._segments)
+            # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
+            # as the list is in the form of (x1, y1, x2, y2...) iteration is
+            # done on each item and the current item (xn or yn) in the list is
+            # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
+            # placed at n+2. each iteration makes the list one item shorter
+            for i in range(1, len(T)):
+                for j in xrange(len(T) - 2*i):
+                    T[j] = T[j] + (T[j+2] - T[j]) * l
+
+            # we got the coordinates of the point in T[0] and T[1]
+            vertices[x].x = T[0]
+            vertices[x].y = T[1]
+            if self._dash_offset != 0 and x > 0:
+                tex_x += sqrt(
+                        pow(vertices[x].x - vertices[x-1].x, 2) +
+                        pow(vertices[x].y - vertices[x-1].y, 2)) / (
+                                self._dash_length + self._dash_offset)
+
+                vertices[x].s0 = tex_x
+                vertices[x].t0 = 0
+
+            indices[x] = x
+
+        # add one last point to join the curve to the end
+        vertices[x+1].x = T[-2]
+        vertices[x+1].y = T[-1]
+
+        tex_x += sqrt(
+                (vertices[x+1].x - vertices[x].x) ** 2 +
+                (vertices[x+1].y - vertices[x].y) ** 2) / (
+                        self._dash_length + self._dash_offset)
+
+        vertices[x+1].s0 = tex_x
+        vertices[x+1].t0 = 0
+        indices[x+1] = x + 1
+
+        self.batch.set_data(
+                vertices,
+                self._segments + 1,
+                indices,
+                self._segments + 1)
 
         free(vertices)
         free(indices)
@@ -73,7 +314,157 @@ cdef class Line(VertexInstruction):
             return self._points
         def __set__(self, points):
             self._points = list(points)
+            if self._loop:
+                self._points.extend(points[:2])
             self.flag_update()
+
+    property segments:
+        '''Property for getting/setting the number of segments of the curve
+        '''
+        def __get__(self):
+            return self._segments
+        def __set__(self, value):
+            if value <= 1:
+                raise GraphicException('Invalid segments value, must be >= 2')
+            self._segments = value
+            self.flag_update()
+
+    property dash_length:
+        '''Property for getting/stting the length of the dashes in the curve
+        '''
+        def __get__(self):
+            return self._dash_length
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_length value, must be >= 0')
+            self._dash_length = value
+            self.flag_update()
+
+    property dash_offset:
+        '''Property for getting/setting the offset between the dashes in the curve
+        '''
+        def __get__(self):
+            return self._dash_offset
+
+        def __set__(self, value):
+            if value < 0:
+                raise GraphicException('Invalid dash_offset value, must be >= 0')
+            self._dash_offset = value
+            self.flag_update()
+
+
+cdef class Mesh(VertexInstruction):
+    '''A 2d mesh.
+
+    The format of vertices are actually fixed, this might change in a future
+    release. Right now, each vertex is described with 2D coordinates (x, y) and
+    a 2D texture coordinate (u, v).
+
+    In OpenGL ES 2.0 and in our graphics implementation, you cannot have more
+    than 65535 indices.
+
+    A list of vertices is described as::
+
+        vertices = [x1, y1, u1, v1, x2, y2, u2, v2, ...]
+                    |            |  |            |
+                    +---- i1 ----+  +---- i2 ----+
+
+    If you want to draw a triangles, put 3 vertices, then you can make an
+    indices list as:
+
+        indices = [0, 1, 2]
+
+    .. versionadded:: 1.0.10
+
+    :Parameters:
+        `vertices`: list
+            List of vertices in the format (x1, y1, u1, v1, x2, y2, u2, v2...)
+        `indices`: list
+            List of indices in the format (i1, i2, i3...)
+        `mode`: str
+            Mode of the vbo. Check :data:`mode` for more information. Default to
+            'points'.
+
+    '''
+    cdef list _vertices
+    cdef list _indices
+
+    def __init__(self, **kwargs):
+        VertexInstruction.__init__(self, **kwargs)
+        self.vertices = kwargs.get('vertices', [])
+        self.indices = kwargs.get('indices', [])
+        self.mode = kwargs.get('mode', 'points')
+
+    cdef void build(self):
+        cdef int i, vcount = len(self._vertices) / 4
+        cdef int icount = len(self._indices)
+        cdef vertex_t *vertices = NULL
+        cdef unsigned short *indices = NULL
+        cdef list lvertices = self._vertices
+        cdef list lindices = self._indices
+
+        if vcount == 0 or icount == 0:
+            self.batch.clear_data()
+            return
+
+        vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError('vertices')
+
+        indices = <unsigned short *>malloc(icount * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        for i in xrange(vcount):
+            vertices[i].x = lvertices[i * 4]
+            vertices[i].y = lvertices[i * 4 + 1]
+            vertices[i].s0 = lvertices[i * 4 + 2]
+            vertices[i].t0 = lvertices[i * 4 + 3]
+
+        for i in xrange(icount):
+            indices[i] = lindices[i]
+
+        self.batch.set_data(vertices, vcount, indices, icount)
+
+        free(vertices)
+        free(indices)
+
+    property vertices:
+        '''List of x, y, u, v, ... used to construct the Mesh. Right now, the
+        Mesh instruction doesn't allow you to change the format of the vertices,
+        mean it's only x/y + one texture coordinate.
+        '''
+        def __get__(self):
+            return self._vertices
+        def __set__(self, value):
+            self._vertices = list(value)
+            self.flag_update()
+
+    property indices:
+        '''Vertex indices used to know which order you wanna do for drawing the
+        mesh.
+        '''
+        def __get__(self):
+            return self._indices
+        def __set__(self, value):
+            if len(value) > 65535:
+                raise GraphicException(
+                    'Cannot upload more than 65535 indices'
+                    '(OpenGL ES 2 limitation)')
+            self._indices = list(value)
+            self.flag_update()
+
+    property mode:
+        '''VBO Mode used for drawing vertices/indices. Can be one of: 'points',
+        'line_strip', 'line_loop', 'lines', 'triangle_strip', 'triangle_fan'
+        '''
+        def __get__(self):
+            self.batch.get_mode()
+        def __set__(self, mode):
+            self.batch.set_mode(mode)
+
 
 
 cdef class Point(VertexInstruction):
@@ -84,6 +475,14 @@ cdef class Point(VertexInstruction):
             List of points in the format (x1, y1, x2, y2...)
         `pointsize`: float, default to 1.
             Size of the point (1. mean the real size will be 2)
+
+    .. warning::
+
+        Starting from version 1.0.7, vertex instruction have a limit of 65535
+        vertices (indices of vertex to be accurate).
+        2 entry in the list (x + y) will be converted to 4 vertices. So the
+        limit inside Point() class is 2^15-2.
+
     '''
     cdef list _points
     cdef float _pointsize
@@ -101,6 +500,11 @@ cdef class Point(VertexInstruction):
         cdef list tc = self._tex_coords
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
+
+        #if there is no points...nothing to do
+        if count < 1:
+            self.batch.clear_data()
+            return
 
         vertices = <vertex_t *>malloc(count * 4 * sizeof(vertex_t))
         if vertices == NULL:
@@ -162,6 +566,9 @@ cdef class Point(VertexInstruction):
         cdef vertex_t vertices[4]
         cdef unsigned short indices[6]
 
+        if len(self._points) > 2**15 - 2:
+            raise GraphicException('Cannot add elements (limit is 2^15-2)')
+
         self._points.append(x)
         self._points.append(y)
 
@@ -202,6 +609,9 @@ cdef class Point(VertexInstruction):
         def __set__(self, points):
             if self._points == points:
                 return
+            cdef list _points = list(points)
+            if len(_points) > 2**15-2:
+                raise GraphicException('Too many elements (limit is 2^15-2)')
             self._points = list(points)
             self.flag_update()
 
@@ -415,7 +825,7 @@ cdef class BorderImage(Rectangle):
         x = self.x
         y = self.y
         w = self.w
-        h=self.h
+        h = self.h
 
         # width and heigth of texture in pixels, and tex coord space
         cdef float tw, th, tcw, tch
@@ -566,13 +976,9 @@ cdef class Ellipse(Rectangle):
         else:
             angle_dir = -1
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
-        angle_start = (self._angle_start % 361) * 0.017453292519943295
-        angle_end = (self._angle_end % 361) * 0.017453292519943295
-        if angle_end > angle_start:
-            angle_range = angle_end - angle_start
-        else:
-            angle_range = angle_start - angle_end
-        angle_range = angle_range / self._segments
+        angle_start = self._angle_start * 0.017453292519943295
+        angle_end = self._angle_end * 0.017453292519943295
+        angle_range = abs(angle_end - angle_start) / self._segments
 
         # add start vertice in the middle
         x = self.x + rx

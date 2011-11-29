@@ -2,13 +2,14 @@
 Label
 =====
 
-The label widget is a widget for rendering text. You can use ascii strings or
-unicode strings.
-
-Snippet ::
+The :class:`Label` widget is for rendering text. It supports ascii and unicode
+strings ::
 
     # hello world text
     l = Label(text='Hello world')
+
+    # unicode text; can only display glyphs that are available in the font
+    l = Label(text=u'Hello world ' + unichr(2764))
 
     # multiline text
     l = Label(text='Multi\\nLine')
@@ -40,7 +41,8 @@ class Label(Widget):
 
         # bind all the property for recreating the texture
         d = ('text', 'font_size', 'font_name', 'bold', 'italic', 'halign',
-             'valign', 'padding_x', 'padding_y', 'text_size', 'shorten')
+             'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
+             'mipmap')
         dkw = {}
         for x in d:
             dkw[x] = partial(self._trigger_texture_update, x)
@@ -102,12 +104,12 @@ class Label(Widget):
     '''
 
     text_size = ListProperty([None, None])
-    '''By default, the label is not contraint to any bounding box.
-    You can set the size constraint of the label creation with this property.
+    '''By default, the label is not constrained to any bounding box.
+    You can set the size constraint of the label with this property.
 
     .. versionadded:: 1.0.4
 
-    For example, whatever is your current widget size, if you want your label to
+    For example, whatever your current widget size is, if you want the label to
     be created in a box with width=200 and unlimited height::
 
         Label(text='Very big big line', text_size=(200, None))
@@ -119,14 +121,14 @@ class Label(Widget):
         :class:`~kivy.core.text.Label` class. (Even if it's named size= in
         constructor.)
 
-    :data:`text_size` is a :class:`~kivy.properties.ListProperty` instance,
-    default to (None, None). Mean they are no size restriction by default.
+    :data:`text_size` is a :class:`~kivy.properties.ListProperty`,
+    default to (None, None), meaning no size restriction by default.
     '''
 
     font_name = StringProperty('fonts/DroidSans.ttf')
-    '''File of the font to use. The path used for the font can be a absolute
-    path, or a relative path that will be search with the
-    :func:`~kivy.resources.resource_find` function.
+    '''Filename of the font to use, the path can be absolute or relative.
+    Relative paths are resolved by the :func:`~kivy.resources.resource_find` 
+    function.
 
     .. warning::
 
@@ -138,7 +140,7 @@ class Label(Widget):
     '''
 
     font_size = NumericProperty(12)
-    '''Font size of the text. The font size is in pixels.
+    '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
     12.
@@ -212,18 +214,18 @@ class Label(Widget):
 
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the text.
-    The text is rendered after each properties changes, and stored inside this
-    property. You can use this :data:`texture` for any graphics elements.
+    The text is rendered automatically when a property changes, and stored in
+    this property. You can use this :data:`texture` for any graphics elements.
 
-    Depending of the texture creation, the value will be a
+    Depending on the texture creation, the value will be a
     :class:`~kivy.graphics.texture.Texture` or
     :class:`~kivy.graphics.texture.TextureRegion` object.
 
     .. warning::
 
-        The texture update is scheduled for the next frame. That's mean if you
-        really want the texture just after changing a property, you need to call
-        :func:`texture_update` function before ::
+        The :data:`texture` update is scheduled for the next frame. If you need 
+        the texture immediately after changing a property, you have to call
+        the :func:`texture_update` function before acessing :data:`texture` ::
 
             l = Label(text='Hello world')
             # l.texture is good
@@ -241,15 +243,25 @@ class Label(Widget):
 
     .. warning::
 
-        The texture size is set after the texture property. So if you listen on
-        the change to :data:`texture`, the property texture_size will be not yet
-        updated. Use self.texture.size instead.
+        The data:`texture_size` is set after the :data:`texture` property. If 
+        you listen for changes to :data:`texture`, :data:`texture_size` will not
+        be up to date in your callback. Bind to data:`texture_size` instead.
+    '''
+
+    mipmap = BooleanProperty(False)
+    '''Indicate if you want OpenGL mipmapping applied to texture or not.
+    Read :ref:`mipmap` for more information.
+
+    .. versionadded:: 1.0.7
+
+    :data:`mipmap` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False.
     '''
 
     shorten = BooleanProperty(False)
     '''
     Indicate whether the label should attempt to shorten its textual contents as
     much as possible if a `text_size` is given. Setting this to True without an
-    appropriately set `text_size` will lead unexpected results.
+    appropriately set `text_size` will lead to unexpected results.
     '''
 

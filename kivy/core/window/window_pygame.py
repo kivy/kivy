@@ -24,6 +24,7 @@ except:
 # late binding
 glReadPixels = GL_RGB = GL_UNSIGNED_BYTE = None
 
+
 class WindowPygame(WindowBase):
 
     def create_window(self):
@@ -36,7 +37,13 @@ class WindowPygame(WindowBase):
 
         # init some opengl, same as before.
         self.flags = pygame.HWSURFACE | pygame.OPENGL | \
-                     pygame.DOUBLEBUF | pygame.RESIZABLE
+                     pygame.DOUBLEBUF
+
+        # right now, activate resizable window only on linux.
+        # on window / macosx, the opengl context is lost, and we need to
+        # reconstruct everything. Check #168 for a state of the work.
+        if sys.platform == 'linux2':
+            self.flags |= pygame.RESIZABLE
 
         pygame.display.init()
 
@@ -85,8 +92,11 @@ class WindowPygame(WindowBase):
         pygame.key.set_repeat(repeat_delay, int(1000. / repeat_rate))
 
         # set window icon before calling set_mode
-        filename_icon = Config.get('kivy', 'window_icon')
-        self.set_icon(filename_icon)
+        try:
+            filename_icon = Config.get('kivy', 'window_icon')
+            self.set_icon(filename_icon)
+        except:
+            Logger.exception('Window: cannot set icon')
 
         # init ourself size + setmode
         # before calling on_resize
@@ -128,8 +138,13 @@ class WindowPygame(WindowBase):
         try:
             if not exists(filename):
                 return False
-            icon = pygame.image.load(filename)
-            pygame.display.set_icon(icon)
+            try:
+                im = pygame.image.load(filename)
+            except UnicodeEncodeError:
+                im = pygame.image.load(filename.encode('utf8'))
+            if im is None:
+                raise Exception('Unable to load window icon (not found)')
+            pygame.display.set_icon(im)
         except:
             Logger.exception('WinPygame: unable to set icon')
 
@@ -197,6 +212,10 @@ class WindowPygame(WindowBase):
                     btn = 'right'
                 elif event.button == 2:
                     btn = 'middle'
+                elif event.button == 4:
+                    btn = 'scrolldown'
+                elif event.button == 5:
+                    btn = 'scrollup'
                 eventname = 'on_mouse_down'
                 if event.type == pygame.MOUSEBUTTONUP:
                     eventname = 'on_mouse_up'

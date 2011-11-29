@@ -7,9 +7,10 @@ offering you 2 functions for searching specific resources across a list of
 paths.
 '''
 
-__all__ = ('resource_find', 'resource_add_path')
+__all__ = ('resource_find', 'resource_add_path', 'resource_remove_path')
 
 from os.path import join, dirname, exists
+from kivy import kivy_data_dir
 from kivy.logger import Logger
 import sys
 import kivy
@@ -19,7 +20,8 @@ resource_paths = [
     dirname(sys.argv[0]),
     # XXX iOS Hack; do properly. not sure how yet
     join(dirname(sys.argv[0]), 'YourApp'),
-    dirname(kivy.__file__)]
+    dirname(kivy.__file__),
+    join(kivy_data_dir, '..')]
 
 
 def resource_find(filename):
@@ -44,4 +46,15 @@ def resource_add_path(path):
         return
     Logger.debug('Resource: add <%s> in path list' % path)
     resource_paths.append(path)
+
+
+def resource_remove_path(path):
+    '''Remove a search path
+
+    .. versionadded:: 1.0.8
+    '''
+    if path not in resource_paths:
+        return
+    Logger.debug('Resource: remove <%s> from path list' % path)
+    resource_paths.remove(path)
 

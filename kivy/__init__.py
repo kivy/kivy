@@ -7,15 +7,14 @@ completely cross-platform (Linux/OSX/Win) and released under the terms of the
 GNU LGPL.
 
 It comes with native support for many multi-touch input devices, a growing
-library of multi-touch aware widgets, hardware accelerated OpenGL drawing,
-and an architecture that is designed to let you focus on building custom and
-highly interactive applications as quickly and easily as possible.
+library of multi-touch aware widgets and hardware accelerated OpenGL drawing.
+Kivy is designed to let you focus on building custom and highly interactive
+applications as quickly and easily as possible.
 
-Thanks to Kivy's pure Python interface, you can take advantage of its highly
-dynamic nature and use any of the thousands of high quality Python libraries
-out there.
-At the same time, performance-critical sections are internally implemented
-on the C-level to maximize performance.
+With Kivy, you can take full advantage of the dynamic nature of Python. There
+are thousands of high-quality, free libraries that can be integrated in your
+application. At the same time, performance-critical parts are implemented
+in the C language.
 
 See http://kivy.org for more information.
 '''
@@ -29,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.7-dev'
+__version__ = '1.0.10-dev'
 
 import sys
 import shutil
@@ -44,9 +43,9 @@ __kivy_post_configuration = []
 
 if sys.platform == 'darwin' and sys.maxint < 9223372036854775807:
     r ='''Unsupported Python version detected!:
-    On Mac OS X Kivy requires a 64 bit version of Python. We strongly advise you
-    to use the version of Python that is provided by Apple (and neither ports,
-    fink nor homebrew unless you know what you're doing).
+    Kivy requires a 64 bit version of Python to run on OS X. We strongly advise
+    you to use the version of Python that is provided by Apple (don't use ports,
+    fink or homebrew unless you know what you're doing).
     See http://kivy.org/docs/installation/installation-macosx.html for details.
     '''
     Logger.critical(r)
@@ -54,15 +53,15 @@ if sys.platform == 'darwin' and sys.maxint < 9223372036854775807:
 
 def require(version):
     '''Require can be used to check the minimum version required to run a Kivy
-    application. For example, you can start your application like this::
+    application. For example, you can start your application code like this::
 
         import kivy
         kivy.require('1.0.1')
 
     If a user attempts to run your application with a version of Kivy that is
-    older than the version you specified, an Exception will be raised.
+    older than the specified version, an Exception is raised.
 
-    The Kivy version is built like this::
+    The Kivy version string is built like this::
 
         X.Y.Z[-tag[-tagrevision]]
 
@@ -140,7 +139,7 @@ def kivy_configure():
 
 
 def kivy_register_post_configuration(callback):
-    '''Register a function to be called when kivy_configure() will be called.
+    '''Register a function to be called when kivy_configure() is called.
 
     .. warning::
         Internal use only.
@@ -156,14 +155,14 @@ def kivy_usage():
         -d, --debug
             Shows debug log
         -a, --auto-fullscreen
-            Force run in 'auto' fullscreen (no resolution change) mode.
+            Force 'auto' fullscreen mode (no resolution change).
             Uses your display's resolution. This is most likely what you want.
         -c, --config section:key[:value]
             Set a custom [section] key=value in the configuration object
         -f, --fullscreen
             Force running in fullscreen mode.
         -k, --fake-fullscreen
-            Force running in 'fake' fullscreen (no border) mode.
+            Force 'fake' fullscreen mode (no window border/decoration).
             Uses the resolution specified by width and height in your config.
         -w, --windowed
             Force running in a window.
@@ -182,6 +181,7 @@ def kivy_usage():
 
 
 # Start !
+Logger.setLevel(level=LOG_LEVELS.get('info'))
 Logger.info('Kivy v%s' % (__version__))
 
 #: Global settings options for kivy
@@ -190,9 +190,9 @@ kivy_options = {
     'shadow_window': True,
     'window': ('pygame', 'sdl'),
     'text': ('pil', 'cairo', 'pygame'),
-    'video': ('gstreamer', 'pyglet'),
+    'video': ('ffmpeg', 'gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', ),
-    'image': ('osxcoreimage', 'pil', 'pygame'),
+    'image': ('osxcoreimage', 'dds', 'gif', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': ('pygame', 'dummy'), }
@@ -303,8 +303,15 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             kivy_usage()
             sys.exit(0)
         elif opt in ('-p', '--provider'):
-            pid, args = arg.split(':', 1)
-            Config.set('input', pid, args)
+            try:
+                pid, args = arg.split(':', 1)
+                Config.set('input', pid, args)
+            except ValueError:
+                # when we are doing an executable on macosx with pyinstaller,
+                # they are passing information with -p. so it will conflict with
+                # our current -p option. since the format is not the same, just
+                # avoid it.
+                pass
         elif opt in ('-a', '--auto-fullscreen'):
             Config.set('graphics', 'fullscreen', 'auto')
         elif opt in ('-c', '--config'):
