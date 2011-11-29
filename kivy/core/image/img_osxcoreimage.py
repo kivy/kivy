@@ -33,7 +33,7 @@ class ImageLoaderOSXCoreImage(ImageLoaderBase):
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise Exception('Unable to load image')
         w, h, imgtype, data = ret
-        return ImageData(w, h, imgtype, data)
+        return (ImageData(w, h, imgtype, data), )
 
 # register
 ImageLoader.register(ImageLoaderOSXCoreImage)
