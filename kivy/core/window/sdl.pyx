@@ -1,3 +1,5 @@
+from libcpp cimport bool
+
 cdef extern from "Python.h":
     object PyUnicode_FromString(char *s)
 
@@ -111,6 +113,9 @@ cdef extern from "SDL.h":
     int SDL_WINDOWEVENT_EXPOSED
     int SDL_WINDOWEVENT_RESIZED
 
+    ## Hints
+    char *SDL_HINT_ORIENTATIONS
+
     int SDL_Init(unsigned int)
     void SDL_Quit()
 
@@ -135,6 +140,8 @@ cdef extern from "SDL.h":
     int SDL_EventState(unsigned int, int)
 
     char *SDL_GetError()
+    bool SDL_SetHint(char *, char *)
+    
 
 
 cdef SDL_Window *win = NULL
@@ -191,6 +198,9 @@ def setup_window(width, height, use_fake, use_fullscreen):
 
     if SDL_Init(SDL_INIT_VIDEO) < 0:
         die()
+
+    # Set default orientation (force landscape for now)
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight")
 
     #SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
     ##SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
