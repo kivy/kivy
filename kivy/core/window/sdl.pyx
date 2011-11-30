@@ -39,6 +39,19 @@ cdef extern from "SDL.h":
     ctypedef struct SDL_TextInputEvent:
         unsigned char *text
 
+    ctypedef struct SDL_TouchFingerEvent:
+        long touchId
+        long fingerId
+        unsigned char state
+        unsigned char padding1
+        unsigned char padding2
+        unsigned char padding3
+        unsigned short x
+        unsigned short y
+        short dx
+        short dy
+        unsigned short pressure
+
     ctypedef struct SDL_Event:
         unsigned int type
         SDL_MouseMotionEvent motion
@@ -46,6 +59,7 @@ cdef extern from "SDL.h":
         SDL_WindowEvent window
         SDL_KeyboardEvent key
         SDL_TextInputEvent text
+        SDL_TouchFingerEvent tfinger
 
     # Events
     int SDL_QUIT
@@ -57,6 +71,8 @@ cdef extern from "SDL.h":
     int SDL_MOUSEBUTTONDOWN
     int SDL_MOUSEBUTTONUP
     int SDL_TEXTINPUT
+    int SDL_FINGERDOWN
+    int SDL_FINGERUP
     int SDL_FINGERMOTION
 
     # GL Attribute
@@ -249,6 +265,17 @@ def poll():
         button = event.button.button
         action = 'mousebuttondown' if event.type == SDL_MOUSEBUTTONDOWN else 'mousebuttonup'
         return (action, x, y, button)
+    elif event.type == SDL_FINGERMOTION:
+        fid = event.tfinger.fingerId
+        x = event.tfinger.x
+        y = event.tfinger.y
+        return ('fingermotion', fid, x, y)
+    elif event.type == SDL_FINGERDOWN or event.type == SDL_FINGERUP:
+        fid = event.tfinger.fingerId
+        x = event.tfinger.x
+        y = event.tfinger.y
+        action = 'fingerdown' if event.type == SDL_FINGERDOWN else 'fingerup'
+        return (action, fid, x, y)
     elif event.type == SDL_WINDOWEVENT:
         if event.window.event == SDL_WINDOWEVENT_EXPOSED:
             action = ('windowexposed', )
@@ -265,7 +292,7 @@ def poll():
         s = PyUnicode_FromString(<char *>event.text.text)
         return ('textinput', s)
     else:
-        #print 'receive unknown sdl event', event.type
+        print 'receive unknown sdl event', event.type
         pass
 
 

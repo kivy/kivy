@@ -12,10 +12,51 @@ import os
 import sys
 
 try:
-    from kivy.core import sdl
+    from kivy.core.window import sdl
 except:
     Logger.warning('WinPygame: SDL wrapper failed to import!')
     raise
+
+
+from kivy.input.provider import MotionEventProvider
+from kivy.input.motionevent import MotionEvent
+from collections import deque
+
+class SDLMotionEvent(MotionEvent):
+    def depack(self, args):
+        self.is_touch = True
+        self.profile = ('pos', )
+        self.sx, self.sy = args
+        super(SDLMotionEvent, self).depack(args)
+
+class SDLMotionEventProvider(MotionEventProvider):
+    win = None
+    q = deque()
+    touchmap = {}
+
+    def update(self, dispatch_fn):
+        touchmap = self.touchmap
+        while True:
+            try:
+                value = self.q.pop()
+            except IndexError:
+                return
+
+            action, fid, x, y = value
+            x = x / 32768.
+            y = 1 - (y / 32768.)
+            if fid not in touchmap:
+                touchmap[fid] = me = SDLMotionEvent('sdl', fid, (x, y))
+            else:
+                me = touchmap[fid]
+                me.move((x, y))
+            if action == 'fingerdown':
+                dispatch_fn('begin', me)
+            elif action == 'fingerup':
+                dispatch_fn('end', me)
+                del touchmap[fid]
+            else:
+                dispatch_fn('update', me)
 
 
 class WindowSDL(WindowBase):
@@ -89,6 +130,12 @@ class WindowSDL(WindowBase):
         # set rotation
         self.rotation = params['rotation']
 
+        # auto add input provider
+        from kivy.base import EventLoop
+        print '---->'
+        SDLMotionEventProvider.win = self
+        EventLoop.add_input_provider(SDLMotionEventProvider('sdl', ''))
+
     def close(self):
         sdl.teardown_window()
         self.dispatch('on_close')
@@ -144,6 +191,10 @@ class WindowSDL(WindowBase):
                 EventLoop.quit = True
                 self.close()
                 break
+
+            elif action in ('fingermotion', 'fingerdown', 'fingerup'):
+                # for finger, pass the raw event to SDL motion event provider
+                SDLMotionEventProvider.q.appendleft(event)
 
             if action == 'mousemotion':
                 x, y = args
