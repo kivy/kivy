@@ -15,25 +15,28 @@ force:
 mesabuild:
 	$(PYTHON) setup.py build_ext --inplace --define __MESAGL__
 
-ios:
-	-mkdir extralibs
+ios-build:
 	-ln -s ../ios/python-for-iphone/Python-2.7.1/python
+	-ln -s ../ios/python-for-iphone/Python-2.7.1/python.exe
 
 	-rm -rdf iosbuild/
 	mkdir iosbuild
 
 	echo "First build ========================================"
-	#-$(HOSTPYTHON) setup.py build
 	-USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py install -O2 --root iosbuild
 	echo "cythoning =========================================="
 	find . -name *.pyx -exec cython {} \;
+
+ios-install:
 	echo "Second build ======================================="
 	USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py install -O2 --root iosbuild
 	# Strip away the large stuff
 	find iosbuild/ | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
-	-rm -rdf "../python-for-iphone/Python-2.7.1/_install/lib/python2.7/site-packages/kivy"
+	-rm -rdf "../ios/python-for-iphone/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages/kivy"
 	# Copy to python for iOS installation
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "../ios/python-for-iphone/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages"
+
+ios: ios-build ios-install
 
 pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
