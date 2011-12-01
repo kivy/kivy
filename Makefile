@@ -23,13 +23,14 @@ ios-build:
 	mkdir iosbuild
 
 	echo "First build ========================================"
-	-USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py install -O2 --root iosbuild
+	-USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py build_ext -g
 	echo "cythoning =========================================="
 	find . -name *.pyx -exec cython {} \;
 
 ios-install:
 	echo "Second build ======================================="
-	USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py install -O2 --root iosbuild
+	USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py build_ext -g
+	USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py install -O0 --root iosbuild
 	# Strip away the large stuff
 	find iosbuild/ | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
 	-rm -rdf "../ios/python-for-iphone/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages/kivy"
