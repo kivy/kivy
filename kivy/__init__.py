@@ -99,10 +99,8 @@ def require(version):
 
         # check x y z
         splitter = str('.')
-        print 'splitter', type(splitter)
         l = version.split(splitter)
         if len(l) != 3:
-            print 'we have:', repr(l), repr(version), type(version)
             raise Exception('Revision format must be X.Y.Z[-tag]')
         return [int(x) for x in l], tag, tagrev
 
