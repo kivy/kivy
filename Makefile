@@ -1,7 +1,7 @@
 PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
-HOSTPYTHON = ../ios/python-for-iphone/Python-2.7.1/hostpython
+HOSTPYTHON = $(KIVYIOSROOT)/Python-2.7.1/hostpython
 IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean
@@ -16,26 +16,26 @@ mesabuild:
 	$(PYTHON) setup.py build_ext --inplace --define __MESAGL__
 
 ios-build:
-	-ln -s ../ios/python-for-iphone/Python-2.7.1/python
-	-ln -s ../ios/python-for-iphone/Python-2.7.1/python.exe
+	-ln -s $(KIVYIOSROOT)/Python-2.7.1/python
+	-ln -s $(KIVYIOSROOT)/Python-2.7.1/python.exe
 
 	-rm -rdf iosbuild/
 	mkdir iosbuild
 
 	echo "First build ========================================"
-	-USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py build_ext -g
+	-PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
 	echo "cythoning =========================================="
 	find . -name *.pyx -exec cython {} \;
 
 ios-install:
 	echo "Second build ======================================="
-	USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py build_ext -g
-	USE_IOS=1 USE_SDL=1 PATH=$(IOSPATH) $(HOSTPYTHON) setup.py install -O0 --root iosbuild
+	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
+	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py install -O0 --root iosbuild
 	# Strip away the large stuff
 	find iosbuild/ | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
-	-rm -rdf "../ios/python-for-iphone/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages/kivy"
+	-rm -rdf "$(KIVYIOSROOT)/python_files/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages/kivy"
 	# Copy to python for iOS installation
-	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "../ios/python-for-iphone/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages"
+	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(KIVYIOSROOT)/python_files/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages"
 
 ios: ios-build ios-install
 

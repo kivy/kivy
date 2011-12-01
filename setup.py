@@ -46,7 +46,7 @@ c_options = {
     'use_opengl_debug': False,
     'use_glew': False,
     'use_sdl': False,
-    'use_ios': True,
+    'use_ios': False,
     'use_mesagl': False}
 
 # now check if environ is changing the default values
@@ -56,6 +56,15 @@ for key in c_options.keys():
         value = bool(int(environ[ukey]))
         print 'Environ change %s -> %s' % (key, value)
         c_options[key] = value
+
+# check if we are in a kivy-ios build
+kivy_ios_root = environ.get('KIVYIOSROOT', None)
+if kivy_ios_root is not None:
+    print 'Kivy-IOS project environment detect, use it.'
+    print 'Kivy-IOS project located at %r' % kivy_ios_root
+    print 'Activate SDL compilation.'
+    c_options['use_ios'] = True
+    c_options['use_sdl'] = True
 
 # Detect which opengl version headers to use
 if platform == 'win32':
@@ -167,22 +176,25 @@ if True:
         return OrigExtension(*args, **kwargs)
 
     if c_options['use_sdl']:
-        sdl_libraries = ['SDL']
-        sdl_libraries += ['SDL_ttf-arm7']
-        sdl_libraries += ['freetype-arm7']
-        sdl_libraries += ['z']
-        sdl_libraries += ['bz2']
+        sdl_libraries = ['SDL', 'SDL_ttf', 'freetype', 'z', 'bz2', 'm']
         sdl_includes = []
         sdl_extra_link_args = []
-        sdl_extra_compile_args = ['-O0']
+        sdl_extra_compile_args = []
         if platform == 'darwin':
             # Paths as per homebrew (modified formula to use hg checkout)
-            sdl_includes = ['/Users/tito/code/ios/SDL/include']
-            sdl_includes += ['/Users/tito/code/ios/kivy-ios/SDL_ttf-2.0.10']
-            sdl_includes += ['/Users/tito/code/ios/kivy-ios/freetype-2.4.8']
-            sdl_extra_link_args += ['-L', '/Users/tito/code/ios/SDL/Xcode-iPhoneOS/SDL/build/Debug-iphoneos/']
-            sdl_extra_link_args += ['-L', '/Users/tito/code/ios/kivy-ios/SDL_ttf-2.0.10/']
-            sdl_extra_link_args += ['-L', '/Users/tito/code/ios/kivy-ios/freetype-2.4.8/']
+            if c_options['use_ios']:
+                '''
+                sdl_extra_link_args += [
+                        '-march=armv7', '-mcpu=arm1176jzf-s',
+                        '-mcpu=cortex-a8']
+                sdl_extra_compile_args += [
+                        '-march=armv7', '-mcpu=arm1176jzf-s',
+                        '-mcpu=cortex-a8']
+                '''
+                sdl_includes += [join(kivy_ios_root, 'build', 'include')]
+                sdl_includes += [join(kivy_ios_root, 'build', 'include', 'SDL')]
+                sdl_includes += [join(kivy_ios_root, 'build', 'include', 'freetype')]
+                sdl_extra_link_args += ['-L', join(kivy_ios_root, 'build', 'lib')]
             sdl_extra_link_args += ['-framework', 'Foundation']
             sdl_extra_link_args += ['-framework', 'UIKit']
             sdl_extra_link_args += ['-framework', 'AudioToolbox']
