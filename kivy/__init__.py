@@ -81,8 +81,6 @@ def require(version):
 
     '''
 
-    print 'version:', version
-    #import pdb; pdb.set_trace()
     def parse_version(version):
         # check for tag
         tag = None
