@@ -168,13 +168,21 @@ if True:
 
     if c_options['use_sdl']:
         sdl_libraries = ['SDL']
+        sdl_libraries += ['SDL_ttf-arm7']
+        sdl_libraries += ['freetype-arm7']
+        sdl_libraries += ['z']
+        sdl_libraries += ['bz2']
         sdl_includes = []
         sdl_extra_link_args = []
+        sdl_extra_compile_args = ['-O0']
         if platform == 'darwin':
             # Paths as per homebrew (modified formula to use hg checkout)
-            sdl_includes = ['../ios/SDL/include']
-            #sdl_extra_link_args += ['-L', '/Users/dennda/dev/sdl-1.3/Xcode-iPhoneOS/SDL/build/SDLiPhoneOS.build/Debug-iphoneos/libSDL.build/Objects-normal/armv7']
-            sdl_extra_link_args += ['-L', '../ios/SDL/Xcode-iPhoneOS/SDL/build/Debug-iphoneos/']
+            sdl_includes = ['/Users/tito/code/ios/SDL/include']
+            sdl_includes += ['/Users/tito/code/ios/kivy-ios/SDL_ttf-2.0.10']
+            sdl_includes += ['/Users/tito/code/ios/kivy-ios/freetype-2.4.8']
+            sdl_extra_link_args += ['-L', '/Users/tito/code/ios/SDL/Xcode-iPhoneOS/SDL/build/Debug-iphoneos/']
+            sdl_extra_link_args += ['-L', '/Users/tito/code/ios/kivy-ios/SDL_ttf-2.0.10/']
+            sdl_extra_link_args += ['-L', '/Users/tito/code/ios/kivy-ios/freetype-2.4.8/']
             sdl_extra_link_args += ['-framework', 'Foundation']
             sdl_extra_link_args += ['-framework', 'UIKit']
             sdl_extra_link_args += ['-framework', 'AudioToolbox']
@@ -202,12 +210,16 @@ if True:
             ext_extra_compile_args += isysroot
             ext_extra_link_args += isysroot
 
-        if pyx.endswith('sdl.pyx') or pyx.endswith('sdl.c'):
+        if pyx.endswith('sdl.pyx') or pyx.endswith('sdl.c') \
+                or pyx.endswith('text_sdlttf.pyx') \
+                or pyx.endswith('text_sdlttf.c'):
             if c_options['use_sdl'] is False:
                 continue
             ext_libraries += sdl_libraries
             ext_include_dirs += sdl_includes
             ext_extra_link_args += sdl_extra_link_args
+            ext_extra_compile_args += sdl_extra_compile_args
+
 
         elif pyx.endswith('osxcoreimage.pyx') or pyx.endswith('osxcoreimage.c'):
             if c_options['use_ios'] is False:

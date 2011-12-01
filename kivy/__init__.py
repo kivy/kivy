@@ -187,7 +187,7 @@ kivy_options = {
     'use_accelerate': True,
     'shadow_window': True,
     'window': ('pygame', 'sdl'),
-    'text': ('pil', 'cairo', 'pygame'),
+    'text': ('pil', 'cairo', 'pygame', 'sdlttf'),
     'video': ('ffmpeg', 'gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', ),
     'image': ('osxcoreimage', 'dds', 'gif', 'pil', 'pygame'),
