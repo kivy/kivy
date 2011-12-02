@@ -30,7 +30,7 @@ ios-build:
 ios-install:
 	echo "Second build ======================================="
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
-	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py install -O0 --root iosbuild
+	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py install -O2 --root iosbuild
 	# Strip away the large stuff
 	find iosbuild/ | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
 	-rm -rdf "$(KIVYIOSROOT)/python_files/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages/kivy"
