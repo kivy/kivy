@@ -191,10 +191,19 @@ if True:
                         '-march=armv7', '-mcpu=arm1176jzf-s',
                         '-mcpu=cortex-a8']
                 '''
+                # Note: on IOS, SDL is already loaded by the launcher/main.m
+                # So if we add it here, it will just complain about duplicate
+                # symbol, cause libSDL.a would be included in main.m binary +
+                # text_sdlttf.so
+                # At the result, we are linking without SDL explicitly, and add
+                # -undefined dynamic_lookup
+                # (/tito)
+                sdl_libraries = ['SDL_ttf', 'freetype', 'bz2']
                 sdl_includes += [join(kivy_ios_root, 'build', 'include')]
                 sdl_includes += [join(kivy_ios_root, 'build', 'include', 'SDL')]
                 sdl_includes += [join(kivy_ios_root, 'build', 'include', 'freetype')]
                 sdl_extra_link_args += ['-L', join(kivy_ios_root, 'build', 'lib')]
+                sdl_extra_link_args += ['-undefined', 'dynamic_lookup']
             sdl_extra_link_args += ['-framework', 'Foundation']
             sdl_extra_link_args += ['-framework', 'UIKit']
             sdl_extra_link_args += ['-framework', 'AudioToolbox']
