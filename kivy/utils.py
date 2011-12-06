@@ -14,6 +14,7 @@ __all__ = ('intersection', 'difference', 'strtotuple',
 from sys import platform as _sys_platform
 from re import match, split
 from UserDict import DictMixin
+from os import environ
 
 _platform_android = None
 _platform_ios = None
@@ -338,8 +339,7 @@ def platform():
             _platform_android = False
 
     if _platform_ios is None:
-        # TODO implement ios support here
-        _platform_ios = False
+        _platform_ios = (environ.get('KIVY_BUILD', '') == 'ios')
 
     # On android, _sys_platform return 'linux2', so prefer to check the import
     # of Android module than trying to rely on _sys_platform.
