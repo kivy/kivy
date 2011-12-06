@@ -1,7 +1,7 @@
 PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
-HOSTPYTHON = $(KIVYIOSROOT)/Python-2.7.1/hostpython
+HOSTPYTHON = $(KIVYIOSROOT)/Python-$(PYTHON_VERSION)/hostpython
 IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean
@@ -33,9 +33,9 @@ ios-install:
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py install -O2 --root iosbuild
 	# Strip away the large stuff
 	find iosbuild/ | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
-	-rm -rdf "$(KIVYIOSROOT)/python_files/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages/kivy"
+	-rm -rdf "$(BUILDROOT)/python/lib/python2.7/site-packages/kivy"
 	# Copy to python for iOS installation
-	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(KIVYIOSROOT)/python_files/Python-2.7.1-IOS5.0-device/lib/python2.7/site-packages"
+	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
 
 ios: ios-build ios-install
 
