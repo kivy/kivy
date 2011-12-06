@@ -1,4 +1,4 @@
-# from ki
+#:kivy 1.0.9
 <AnimatedButton>:
     canvas.before:
         Color:
@@ -55,7 +55,7 @@
         id: spdlbl
         halign: 'center'
         text_size: self.size
-        text: 'Animation speed: %f FPS' %(1/root.currentObj.anim_delay)  if (root.currentObj and root.currentObj.anim_delay > 0) else 'No Image selected'
+        text: 'No Image selected' if not root.currentObj else 'Animation speed: %f FPS' %(1/root.currentObj.anim_delay) if root.currentObj.anim_delay > 0 else 'Animation speed: 0 FPS'
     Slider:
         min:0
         max: 100 if root.currentObj else 0
