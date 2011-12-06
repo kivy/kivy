@@ -360,3 +360,11 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
 
+# IOS build - hook to fix input and fullscreen in config.
+Logger.info('Core: Build is for %s' % environ.get('KIVY_BUILD', ''))
+if environ.get('KIVY_BUILD', '') == 'ios':
+    Logger.info('Core: Apply rules for IOS platform')
+    from kivy.config import Config
+    Config.set('graphics', 'fullscreen', 'auto')
+    Config.remove_section('input')
+    Config.add_section('input')
