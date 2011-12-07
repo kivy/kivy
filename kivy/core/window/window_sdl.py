@@ -7,8 +7,7 @@ __all__ = ('WindowSDL', )
 from kivy.logger import Logger
 from kivy.core.window import WindowBase
 from kivy.base import EventLoop, ExceptionManager, stopTouchApp
-from kivy.config import Config
-import os
+from kivy.clock import Clock
 import sys
 
 try:
@@ -64,11 +63,6 @@ class WindowSDL(WindowBase):
     def create_window(self):
         params = self.params
 
-        # force display to show (available only for fullscreen)
-        displayidx = Config.getint('graphics', 'display')
-        if not 'SDL_VIDEO_FULLSCREEN_HEAD' in os.environ and displayidx != -1:
-            os.environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
-
         if params['position'] == 'auto':
             self._pos = None
         elif params['position'] == 'custom':
@@ -77,39 +71,11 @@ class WindowSDL(WindowBase):
             raise ValueError('position token in configuration accept only '
                              '"auto" or "custom"')
 
-        use_fake = False
+        use_fake = True
         use_fullscreen = False
-        self._fullscreenmode = params['fullscreen']
-        if self._fullscreenmode == 'fake':
-            Logger.debug('WinPygame: Set window to fake fullscreen mode')
-            use_fake = True
-            # if no position set, in fake mode, we always need to set the
-            # position. so replace 0, 0.
-            if self._pos is None:
-                self._pos = (0, 0)
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
-
-        elif self._fullscreenmode:
-            Logger.debug('WinPygame: Set window to fullscreen mode')
-            use_fullscreen = True
-
-        elif self._pos is not None:
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
-            pass
 
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
-
-        '''
-        # prepare keyboard
-        repeat_delay = int(Config.get('kivy', 'keyboard_repeat_delay'))
-        repeat_rate = float(Config.get('kivy', 'keyboard_repeat_rate'))
-        pygame.key.set_repeat(repeat_delay, int(1000. / repeat_rate))
-
-        # set window icon before calling set_mode
-        filename_icon = Config.get('kivy', 'window_icon')
-        self.set_icon(filename_icon)
-        '''
 
         # init ourself size + setmode
         # before calling on_resize
@@ -121,18 +87,12 @@ class WindowSDL(WindowBase):
 
         super(WindowSDL, self).create_window()
 
-        '''
-        # set mouse visibility
-        pygame.mouse.set_visible(
-            Config.getboolean('graphics', 'show_cursor'))
-        '''
-
         # set rotation
         self.rotation = params['rotation']
 
         # auto add input provider
+        Logger.info('Window: auto add sdl input provider')
         from kivy.base import EventLoop
-        print '---->'
         SDLMotionEventProvider.win = self
         EventLoop.add_input_provider(SDLMotionEventProvider('sdl', ''))
 
@@ -159,17 +119,6 @@ class WindowSDL(WindowBase):
         pygame.image.save(surface, filename)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
-
-    def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
-        return
-        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
-        # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = sys.platform == 'darwin'
-        if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
-            stopTouchApp()
-            self.close()  #not sure what to do here
-            return True
-        super(WindowPygame, self).on_keyboard(key, scancode, unicode, modifier)
 
     def flip(self):
         sdl.flip()
@@ -225,6 +174,12 @@ class WindowSDL(WindowBase):
 
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, unicode = args
+
+                # XXX ios keyboard suck, when backspace is hit, the delete
+                # keycode is sent. fix it.
+                if key == 127:
+                    key = 8
+
                 self._pygame_update_modifiers(mod)
                 if action == 'keyup':
                     self.dispatch('on_key_up', key, scancode)
@@ -240,7 +195,16 @@ class WindowSDL(WindowBase):
                               self.modifiers)
 
             elif action == 'textinput':
+                key = args[0][0]
+                # XXX on IOS, keydown/up don't send unicode anymore.
+                # With latest sdl, the text is sent over textinput
+                # Right now, redo keydown/up, but we need to seperate both call
+                # too. (and adapt on_key_* API.)
+                self.dispatch('on_key_down', key, None, args[0],
+                              self.modifiers)
                 self.dispatch('on_keyboard', None, None, args[0],
+                              self.modifiers)
+                self.dispatch('on_key_up', key, None, args[0],
                               self.modifiers)
         #    # video resize
         #    elif event.type == pygame.VIDEORESIZE:
@@ -317,3 +281,25 @@ class WindowSDL(WindowBase):
             self.close()  #not sure what to do here
             return True
         super(WindowSDL, self).on_keyboard(key, scancode, unicode, modifier)
+
+    def request_keyboard(self, *largs):
+        self._sdl_keyboard = super(WindowSDL, self).request_keyboard(*largs)
+        sdl.show_keyboard()
+        #Clock.schedule_interval(self._check_keyboard_shown, 1 / 5.)
+        return self._sdl_keyboard
+
+    def release_keyboard(self, *largs):
+        super(WindowSDL, self).release_keyboard(*largs)
+        sdl.hide_keyboard()
+        self._sdl_keyboard = None
+        return True
+
+    '''
+    def _check_keyboard_shown(self, dt):
+        print sdl.is_keyboard_shown()
+        if self._sdl_keyboard is None:
+            return False
+        if not sdl.is_keyboard_shown():
+            self._sdl_keyboard.release()
+    '''
+    
