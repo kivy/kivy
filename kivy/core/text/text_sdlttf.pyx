@@ -130,6 +130,10 @@ class LabelSDLttf(LabelBase):
             in ('font_size', 'font_name', 'bold', 'italic')])
 
     def get_extents(self, text):
+        try:
+            text = text.encode('UTF-8')
+        except:
+            pass
         cdef TTF_Font *font = _get_font(self)
         cdef int w, h
         TTF_SizeUTF8(font, <char *><bytes>text, &w, &h)
@@ -147,6 +151,10 @@ class LabelSDLttf(LabelBase):
         self._surface = sc
 
     def _render_text(self, text, x, y):
+        try:
+            text = text.encode('UTF-8')
+        except:
+            pass
         cdef TTF_Font *font = _get_font(self)
         cdef SDL_Color c
         cdef _SurfaceContainer sc = self._surface
