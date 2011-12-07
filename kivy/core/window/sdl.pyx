@@ -141,48 +141,17 @@ cdef extern from "SDL.h":
 
     char *SDL_GetError()
     bool SDL_SetHint(char *, char *)
-    
 
-
+cdef extern int SDL_iPhoneKeyboardShow(SDL_Window * window) 
+cdef extern int SDL_iPhoneKeyboardHide(SDL_Window * window) 
+cdef extern int SDL_iPhoneKeyboardIsShown(SDL_Window * window) 
 cdef SDL_Window *win = NULL
 cdef SDL_GLContext ctx = NULL
 cdef SDL_Surface *surface = NULL
-
 cdef int win_flags = 0
-
 
 def die():
     raise RuntimeError(<bytes> SDL_GetError())
-
-
-#def init_video():
-#    return SDL_Init(SDL_INIT_VIDEO)
-#
-#
-#def create_window():
-#    global win
-#    win = SDL_CreateWindow(NULL, 0, 0, 320, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN)
-#    assert win != NULL
-#
-#
-#def create_context():
-#    global ctx
-#    ctx = SDL_GL_CreateContext(win)
-#
-#
-#def poll_events():
-#    cdef SDL_Event event
-#    while SDL_PollEvent(&event):
-#        print event.type,
-#
-#
-#def swap():
-#    assert win != NULL
-#    SDL_GL_SwapWindow(win)
-#
-#def get_error():
-#    print <bytes> SDL_GetError()
-
 
 def setup_window(width, height, use_fake, use_fullscreen):
     global win, ctx, win_flags
@@ -202,15 +171,19 @@ def setup_window(width, height, use_fake, use_fullscreen):
     # Set default orientation (force landscape for now)
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight")
 
-    #SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
-    ##SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
-    #SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1)
-    #SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
-    #SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
-    #SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
-    #SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
-    #SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 1)
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1)
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8)
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8)
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8)
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)
+    SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0)
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1)
 
+    '''
+    # optimized flags, but incompatible with kivy ?
+    # like stencil is needed for ScrollView / Stencil, and alpha.. ?
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -218,6 +191,7 @@ def setup_window(width, height, use_fake, use_fullscreen):
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 0);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    '''
 
 
     win = SDL_CreateWindow(NULL, 0, 0, width, height, win_flags)
@@ -256,6 +230,17 @@ def teardown_window():
     SDL_DestroyWindow(win)
     SDL_Quit()
 
+
+def show_keyboard():
+    if not SDL_iPhoneKeyboardIsShown(win):
+        SDL_iPhoneKeyboardShow(win)
+
+def hide_keyboard():
+    if SDL_iPhoneKeyboardIsShown(win):
+        SDL_iPhoneKeyboardHide(win)
+
+def is_keyboard_shown():
+    return SDL_iPhoneKeyboardIsShown(win)
 
 def poll():
     cdef SDL_Event event
