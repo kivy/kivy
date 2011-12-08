@@ -723,6 +723,10 @@ cdef class Quad(VertexInstruction):
             return self._points
         def __set__(self, points):
             self._points = list(points)
+            if len(self._points) != 8:
+                raise GraphicException(
+                    'Quad: invalid number of points (%d instead of 8' % len(
+                    self._points)))
             self.flag_update()
 
 
