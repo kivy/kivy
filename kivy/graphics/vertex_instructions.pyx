@@ -726,7 +726,7 @@ cdef class Quad(VertexInstruction):
             if len(self._points) != 8:
                 raise GraphicException(
                     'Quad: invalid number of points (%d instead of 8' % len(
-                    self._points)))
+                    self._points))
             self.flag_update()
 
 
