@@ -197,19 +197,35 @@ class AppView(Scatter):
 
         self.p = VideoPlayer(source = '../softboy.avi', size_hint = (1,1), size = (300,200), app =self )
         self.add_widget( self.p)
-    
-    def fullscreen(self):
-        self.properties_before_fullscreen = {'pos':self.pos, 'size':self.p.size, 'rotation':self.rotation - 360, 'scale':self.scale}
+
+    def adjust_target_angle(self, target_angle, current_angle):
+        #avoid looping while rotating
+        a = target_angle
+        b = current_angle
+        #flip 360 degrees when smallest angle is negative
+        smallest_angle = min( (180 - abs(a - b), abs(a - b)) )
+        if a > b : r=1
+        else : r=-1
+        if smallest_angle <0 : 
+            a = a - r*360
+        return a 
+        
+    def fullscreen(self):        
+        self.properties_before_fullscreen = {'pos':self.pos, 'size':self.p.size, 'rotation':self.rotation, 'scale':self.scale}
+
+        rotation = self.adjust_target_angle( 0, self.rotation )
         duration =2
-        anim = Animation(pos = (0,0), rotation = 0, duration= duration)
+        anim = Animation(pos = (0,0), rotation = rotation, duration= duration)
         anim2 = Animation(size = self.get_root_window().size, duration = duration)
         anim.start(self)
         anim2.start(self.p)
 
     def leave_fullscreen(self):
         p = self.properties_before_fullscreen
+
+        rotation = self.adjust_target_angle( p['rotation'], self.rotation ) 
         duration =2
-        anim = Animation(pos = p['pos'], rotation = p['rotation'] + 360, duration = duration)          
+        anim = Animation(pos = p['pos'], rotation = rotation, duration = duration)          
         anim.start(self)
         anim2 = Animation(size = p['size'], duration = duration)          
         anim2.start(self.p)
