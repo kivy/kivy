@@ -8,35 +8,116 @@ rendering can be more or less accurate.
 .. versionadded::
     Starting to 1.0.7, the :class:`LabelBase` don't generate any texture is the
     text have a width <= 1.
+
+.. versionadded::
+    In 1.0.10, renderer implementation have been seperated from `LabelBase`.
+
 '''
 
-__all__ = ('LabelBase', 'Label')
+__all__ = ('Label', 'LabelRendererBase', 'LabelExcetion')
 
 import re
 import os
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
-from kivy.core import core_select_lib
+from kivy.core import core_register_libs
 
 DEFAULT_FONT = 'Liberation Sans,Bitstream Vera Sans,Free Sans,Arial, Sans'
 
 label_font_cache = {}
 
 
-class LabelBase(object):
+class LabelException(Exception):
+    pass
+
+
+class LabelRendererBase(object):
+    '''(internal) Implementation of a label renderer.
+    '''
+
+    prefered_renderer = None
+    fallback_renderer = None
+    renderers = {}
+
+    @staticmethod
+    def register(name, renderer):
+        '''(internal) Register a new renderer
+        '''
+
+        # the first renderer found will be the prefered one
+        # assign it as the fallback is no other renderer can be found
+        if LabelRendererBase.prefered_renderer is None:
+            LabelRendererBase.prefered_renderer = renderer
+            LabelRendererBase.fallback_renderer = renderer
+
+        # if we found another renderer, use it as fallback
+        elif LabelRendererBase.fallback_renderer is None or \
+            LabelRendererBase.fallback_renderer == \
+            LabelRendererBase.prefered_renderer:
+            LabelRendererBase.fallback_renderer = renderer
+
+        # really register.
+        LabelRendererBase.renderers[name] = renderer
+
+    @staticmethod
+    def get(name):
+        '''(internal) Get a renderer from a name
+        '''
+        renderers = LabelRendererBase.renderers
+        if name is None or name not in renderers:
+            return LabelRendererBase.prefered_renderer
+        return renderers[name]
+
+    def __init__(self, **kwargs):
+        assert('label' in kwargs)
+        super(LabelRendererBase, self).__init__()
+        self.label = kwargs.get('label')
+
+    def validate(self, text):
+        '''Return True if the text can be renderer through this renderer.
+        '''
+        return True
+
+    def get_extents(self, text):
+        '''Return the extents of a text (width, height)
+        '''
+        raise NotImplementedError()
+
+    def render_begin(self, width, height):
+        '''Start the rendering, create the appropriate surface for (width,
+        height)
+        '''
+        raise NotImplementedError()
+
+    def render_text(self, text, x, y):
+        '''Render a text at the position (x, y)
+        '''
+        raise NotImplementedError()
+
+    def render_end(self):
+        '''End the rendering, return the surface data
+        '''
+        raise NotImplementedError()
+
+
+class Label(object):
     '''Core text label.
-    This is the abstract class used for different backend to render text.
 
     .. warning::
         The core text label can't be changed at runtime, you must recreate one.
 
     .. versionadded::
-        In 1.0.7, the valign is now respected. This wasn't the case before. You
-        might have issue in your application if you never think about that
-        before.
+        In 1.0.10, rendering have been moved out the LabelBase. `renderer`
+        attribute have been added to select the renderer you want for a label.
+        Depending of the renderer, you might not have a texture.
 
     .. versionadded::
         In 1.0.8, `size` have been deprecated and replaced with `text_size`
+
+    .. versionadded::
+        In 1.0.7, the valign is now respected. This wasn't the case before. You
+        might have issue in your application if you never think about that
+        before.
 
     :Parameters:
         `font_size`: int, default to 12
@@ -65,11 +146,17 @@ class LabelBase(object):
             contents as much as possible if a `size` is given.
             Setting this to True without an appropriately set size will lead
             unexpected results.
-        `mipmap` : bool, default to False
+        `mipmap`: bool, default to False
             Create mipmap for the texture
+        `renderer`: str, default to None
+            Specify a renderer to use. Must be one of the registered renderer
+            available in :data:`LabelRendererBase.renderers`. If None is
+            provided, it will use the
+            :data:`LabelRendererBase.prefered_renderer` first.
     '''
 
-    __slots__ = ('options', 'texture', '_label', '_text_size')
+    __slots__ = ('options', 'texture', '_label', '_text_size', '_renderer',
+            '_text', '_internal_height', '_size' )
 
     _cache_glyphs = {}
 
@@ -112,7 +199,7 @@ class LabelBase(object):
         if uw is not None:
             self._text_size = uw - kwargs['padding_x'] * 2, uh
 
-        super(LabelBase, self).__init__()
+        super(Label, self).__init__()
 
         self._text = None
         self._internal_height = 0
@@ -133,20 +220,36 @@ class LabelBase(object):
                 else:
                     label_font_cache[fontname] = None
 
-        self.text = kwargs.get('text', '')
+        self.text = text = kwargs.get('text', '')
+
+        # create a renderer for this label (maybe we could not create it ?)
+        self._renderer = renderer = LabelRendererBase.get(
+            kwargs.get('renderer', None))(label=self)
+
+        # validate if this text can be renderer though with renderer
+        if not renderer.validate(self.text):
+            # if it's already an instance of the prefered renderer, try to use
+            # the fallback
+            if isinstance(renderer, LabelRendererBase.prefered_renderer):
+                renderer = LabelRendererBase.fallback_renderer()
+            else:
+                renderer = LabelRendererBase.prefered_renderer()
+            if renderer is None:
+                renderer = LabelRendererBase.fallback_renderer()
+
+            validation = False
+            if renderer:
+                validation = renderer.validate(text)
+
+            # if even the fallback renderer cant do it, raise an exception
+            if not validation:
+                raise LabelException('Cannot render %r using '
+                    'fallback renderer %r' % (text, renderer))
 
     def get_extents(self, text):
-        '''Return a tuple with (width, height) for a text.'''
-        return (0, 0)
-
-    def _render_begin(self):
-        pass
-
-    def _render_text(self, text, x, y):
-        pass
-
-    def _render_end(self):
-        pass
+        '''Return a tuple with (width, height) for a text
+        '''
+        return self._renderer.get_extents(text)
 
     def shorten(self, text):
         # Just a tiny shortcut
@@ -181,11 +284,13 @@ class LabelBase(object):
         '''
 
         options = self.options
+        renderer = self._renderer
+        render_text = renderer.render_text
         uw, uh = self.text_size
         w, h = 0, 0
         x, y = 0, 0
         if real:
-            self._render_begin()
+            renderer.render_begin(self.width, self.height)
             halign = options['halign']
             valign = options['valign']
             if valign == 'bottom':
@@ -205,7 +310,7 @@ class LabelBase(object):
                         x = int((self.width - lw) / 2.)
                     elif halign == 'right':
                         x = int(self.width - lw)
-                    self._render_text(line, x, y)
+                    render_text(line, x, y)
                     y += int(lh)
                 else:
                     w = max(w, int(lw))
@@ -291,7 +396,7 @@ class LabelBase(object):
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
                         if glyph != '\n':
-                            self._render_text(glyph, x, y)
+                            render_text(glyph, x, y)
                         x += lw
                     y += size[1]
 
@@ -303,8 +408,7 @@ class LabelBase(object):
             return w, h
 
         # get data from provider
-        data = self._render_end()
-        assert(data)
+        data = renderer.render_end()
 
         # if data width is too tiny, just create texture, don't really render!
         if data.width <= 1:
@@ -375,7 +479,6 @@ class LabelBase(object):
             except:
                 self._text = text
     text = property(_get_text, _set_text, doc='Get/Set the text')
-    label = property(_get_text, _set_text, doc='Get/Set the text')
 
     @property
     def size(self):
@@ -428,10 +531,9 @@ class LabelBase(object):
     usersize = property(_get_text_size, _set_text_size,
         doc='''(deprecated) Use text_size instead.''')
 
-# Load the appropriate provider
-Label = core_select_lib('text', (
-    ('pygame', 'text_pygame', 'LabelPygame'),
-    ('cairo', 'text_cairo', 'LabelCairo'),
-    ('pil', 'text_pil', 'LabelPIL'),
+core_register_libs('text', (
+    ('pygame', 'text_pygame'),
+    #('cairo', 'text_cairo'),
+    #('pil', 'text_pil'),
 ))
 

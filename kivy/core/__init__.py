@@ -55,6 +55,12 @@ else:
                     cls = cls()
                 return cls
 
+            except ImportError as e:
+                msg = e.message
+                Logger.warning('%s: Unable to use <%s> as %s provider'
+                        ' (%s)' % (
+                        category.capitalize(), option, category, msg))
+
             except Exception as e:
                 Logger.warning('%s: Unable to use <%s> as %s'
                      'provider' % (category.capitalize(), option, category))
