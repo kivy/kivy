@@ -156,7 +156,7 @@ class Label(object):
     '''
 
     __slots__ = ('options', 'texture', '_label', '_text_size', '_renderer',
-            '_text', '_internal_height', '_size' )
+            '_text', '_internal_height', '_size')
 
     _cache_glyphs = {}
 
@@ -183,8 +183,6 @@ class Label(object):
         self._text_size = (None, None)
         if 'text_size' in kwargs:
             self._text_size = kwargs['text_size']
-        elif 'size' in kwargs:
-            self._text_size = kwargs['size']
 
         # correct size with padding
         uw, uh = self._text_size
