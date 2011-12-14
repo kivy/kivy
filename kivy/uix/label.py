@@ -62,7 +62,7 @@ class Label(Widget):
             if name == 'text':
                 self._label.text = value
             elif name == 'text_size':
-                self._label.usersize = value
+                self._label.text_size = value
             elif name == 'font_name':
                 rvalue = resource_find(value)
                 self._label.options['font_name'] = rvalue if rvalue else value
@@ -113,13 +113,6 @@ class Label(Widget):
     be created in a box with width=200 and unlimited height::
 
         Label(text='Very big big line', text_size=(200, None))
-
-    .. note::
-
-        This text_size property is the same as
-        :data:`~kivy.core.text.Label.usersize` property in
-        :class:`~kivy.core.text.Label` class. (Even if it's named size= in
-        constructor.)
 
     :data:`text_size` is a :class:`~kivy.properties.ListProperty`,
     default to (None, None), meaning no size restriction by default.

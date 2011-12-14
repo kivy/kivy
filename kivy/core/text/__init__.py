@@ -161,65 +161,57 @@ class Label(object):
     _cache_glyphs = {}
 
     def __init__(self, **kwargs):
+        super(Label, self).__init__()
+
         kwargs.setdefault('font_size', 12)
         kwargs.setdefault('font_name', DEFAULT_FONT)
         kwargs.setdefault('bold', False)
         kwargs.setdefault('italic', False)
         kwargs.setdefault('halign', 'left')
         kwargs.setdefault('valign', 'bottom')
-        kwargs.setdefault('padding', None)
-        kwargs.setdefault('padding_x', None)
-        kwargs.setdefault('padding_y', None)
         kwargs.setdefault('shorten', False)
         kwargs.setdefault('mipmap', False)
 
-        padding = kwargs.get('padding', None)
-        if not kwargs.get('padding_x', None):
-            if type(padding) in (tuple, list):
-                kwargs['padding_x'] = float(padding[0])
-            elif padding is not None:
-                kwargs['padding_x'] = float(padding)
-            else:
-                kwargs['padding_x'] = 0
-        if not kwargs.get('padding_y', None):
-            if type(padding) in (tuple, list):
-                kwargs['padding_y'] = float(padding[1])
-            elif padding is not None:
-                kwargs['padding_y'] = float(padding)
-            else:
-                kwargs['padding_y'] = 0
+        # calculate padding
+        padding_x, padding_y = kwargs.get('padding', (None, None))
+        padding_x = kwargs.get('padding_x', None)
+        padding_y = kwargs.get('padding_y', None)
+        kwargs['padding_x'] = padding_x
+        kwargs['padding_y'] = padding_y
 
+        # calculate text bounding box
         self._text_size = (None, None)
         if 'text_size' in kwargs:
             self._text_size = kwargs['text_size']
         elif 'size' in kwargs:
             self._text_size = kwargs['size']
 
+        # correct size with padding
         uw, uh = self._text_size
         if uw is not None:
             self._text_size = uw - kwargs['padding_x'] * 2, uh
 
-        super(Label, self).__init__()
-
+        # init internals.
         self._text = None
         self._internal_height = 0
-
         self.options = kwargs
         self.texture = None
 
-        if 'font_name' in self.options:
-            fontname = self.options['font_name']
+        # check if the fontname is ok for us
+        if 'font_name' in kwargs:
+            fontname = kwargs['font_name']
             if fontname in label_font_cache:
                 if label_font_cache[fontname] is not None:
-                    self.options['font_name'] = label_font_cache[fontname]
+                    kwargs['font_name'] = label_font_cache[fontname]
             else:
                 filename = os.path.join(kivy_data_dir, fontname)
                 if os.path.exists(filename):
                     label_font_cache[fontname] = filename
-                    self.options['font_name'] = filename
+                    kwargs['font_name'] = filename
                 else:
                     label_font_cache[fontname] = None
 
+        # update and decode text if necessary
         self.text = text = kwargs.get('text', '')
 
         # create a renderer for this label (maybe we could not create it ?)
@@ -227,7 +219,7 @@ class Label(object):
             kwargs.get('renderer', None))(label=self)
 
         # validate if this text can be renderer though with renderer
-        if not renderer.validate(self.text):
+        if not renderer.validate(text):
             # if it's already an instance of the prefered renderer, try to use
             # the fallback
             if isinstance(renderer, LabelRendererBase.prefered_renderer):
@@ -287,8 +279,7 @@ class Label(object):
         renderer = self._renderer
         render_text = renderer.render_text
         uw, uh = self.text_size
-        w, h = 0, 0
-        x, y = 0, 0
+        x = y = w = h = 0
         if real:
             renderer.render_begin(self.width, self.height)
             halign = options['halign']
@@ -455,7 +446,8 @@ class Label(object):
             texture.blit_data(data)
 
     def refresh(self):
-        '''Force re-rendering of the text'''
+        '''Force text rendering
+        '''
         # first pass, calculating width/height
         sz = self.render()
         self._size = sz
@@ -528,8 +520,6 @@ class Label(object):
     text_size = property(_get_text_size, _set_text_size,
         doc='''Get/set the (width, height) of the contrained rendering box''')
 
-    usersize = property(_get_text_size, _set_text_size,
-        doc='''(deprecated) Use text_size instead.''')
 
 core_register_libs('text', (
     ('pygame', 'text_pygame'),
