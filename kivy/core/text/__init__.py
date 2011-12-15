@@ -21,6 +21,7 @@ import os
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_register_libs
+from kivy.utils import OrderedDict
 
 DEFAULT_FONT = 'Liberation Sans,Bitstream Vera Sans,Free Sans,Arial, Sans'
 
@@ -37,12 +38,15 @@ class LabelRendererBase(object):
 
     prefered_renderer = None
     fallback_renderer = None
-    renderers = {}
+    renderers = OrderedDict()
+    renderer_type = None
 
     @staticmethod
     def register(name, renderer):
         '''(internal) Register a new renderer
         '''
+
+        assert(renderer.renderer_type is not None)
 
         # the first renderer found will be the prefered one
         # assign it as the fallback is no other renderer can be found
@@ -221,11 +225,11 @@ class Label(object):
             # if it's already an instance of the prefered renderer, try to use
             # the fallback
             if isinstance(renderer, LabelRendererBase.prefered_renderer):
-                renderer = LabelRendererBase.fallback_renderer()
+                renderer = LabelRendererBase.fallback_renderer(label=self)
             else:
-                renderer = LabelRendererBase.prefered_renderer()
+                renderer = LabelRendererBase.prefered_renderer(label=self)
             if renderer is None:
-                renderer = LabelRendererBase.fallback_renderer()
+                renderer = LabelRendererBase.fallback_renderer(label=self)
 
             validation = False
             if renderer:
@@ -398,7 +402,15 @@ class Label(object):
 
         # get data from provider
         data = renderer.render_end()
+        assert(data is not None)
 
+        # depending of the renderer type, update the texture
+        if renderer.renderer_type == 'texture':
+            self._update_texture_from_data(data)
+        elif renderer.renderer_type == 'mesh':
+            self.texture = data
+
+    def _update_texture_from_data(self, data):
         # if data width is too tiny, just create texture, don't really render!
         if data.width <= 1:
             if self.texture:
@@ -407,7 +419,7 @@ class Label(object):
 
         # create texture is necessary
         texture = self.texture
-        mipmap = options['mipmap']
+        mipmap = self.options['mipmap']
         if texture is None:
             if data is None:
                 texture = Texture.create(
@@ -520,6 +532,7 @@ class Label(object):
 
 
 core_register_libs('text', (
+    ('mesh', 'text_mesh'),
     ('pygame', 'text_pygame'),
     #('cairo', 'text_cairo'),
     #('pil', 'text_pil'),

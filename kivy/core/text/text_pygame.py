@@ -19,6 +19,8 @@ pygame.font.init()
 
 class LabelRendererPygame(LabelRendererBase):
 
+    renderer_type = 'texture'
+
     def _get_font_id(self):
         options = self.label.options
         return '|'.join([unicode(options[x]) for x \

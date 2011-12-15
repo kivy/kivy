@@ -786,6 +786,8 @@ cdef class Rectangle(VertexInstruction):
                 return
             self.x = x
             self.y = y
+            if self.sig is not None:
+                self.sig.pos = pos
             self.flag_update()
 
     property size:

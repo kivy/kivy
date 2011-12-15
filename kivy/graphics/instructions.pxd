@@ -11,6 +11,7 @@ from context_instructions cimport *
 from compiler cimport *
 from shader cimport *
 from texture cimport Texture
+from transformation cimport Matrix
 
 cdef void reset_gl_context()
 
@@ -43,6 +44,11 @@ cdef class InstructionGroup(Instruction):
     cpdef remove_group(self, str groupname)
     cpdef get_group(self, str groupname)
 
+cdef class SizedInstructionGroup(InstructionGroup):
+    cdef list _size
+    cdef list _pos
+    cdef Matrix translation
+
 cdef class ContextInstruction(Instruction):
     cdef dict context_state
     cdef list context_push
@@ -57,6 +63,7 @@ cdef class VertexInstruction(Instruction):
     cdef BindTexture texture_binding
     cdef VertexBatch batch
     cdef list _tex_coords
+    cdef SizedInstructionGroup sig
 
     cdef void radd(self, InstructionGroup ig)
     cdef void rinsert(self, InstructionGroup ig, int index)

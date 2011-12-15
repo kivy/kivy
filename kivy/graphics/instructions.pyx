@@ -9,7 +9,7 @@ The :class:`Canvas` is the root object used for drawing by a
 information about the usage of Canvas.
 '''
 
-__all__ = ('Instruction', 'InstructionGroup',
+__all__ = ('Instruction', 'InstructionGroup', 'SizedInstructionGroup',
            'ContextInstruction', 'VertexInstruction',
            'Canvas', 'CanvasBase',
            'RenderContext', 'Callback')
@@ -176,6 +176,50 @@ cdef class InstructionGroup(Instruction):
         return [c for c in self.children if c.group == groupname]
 
 
+cdef class SizedInstructionGroup(InstructionGroup):
+    def __init__(self, **kwargs):
+        InstructionGroup.__init__(self, **kwargs)
+        self._size = kwargs.get('size', (0, 0))
+        self.pos = kwargs.get('pos', (0, 0))
+
+    cdef void apply(self):
+        '''Apply the matrix of this instance to the
+        context model view matrix
+        '''
+        cdef RenderContext context = getActiveContext()
+        cdef Matrix mvm
+        mvm = context.get_state('modelview_mat')
+        context.set_state('modelview_mat', mvm.multiply(self.translation))
+        InstructionGroup.apply(self)
+        context.set_state('modelview_mat', mvm)
+
+    property pos:
+        def __get__(self):
+            return self._pos
+        def __set__(self, pos):
+            self._pos = list(pos)
+            self.translation = Matrix().translate(pos[0], pos[1], 0)
+
+    property size:
+        def __get__(self):
+            return self._size
+        def __set__(self, size):
+            self._size = list(size)
+
+    property width:
+        def __get__(self):
+            return self._size[0]
+        def __set__(self, x):
+            self.size = [x, self._size[1]]
+
+    property height:
+        def __get__(self):
+            return self._size[1]
+        def __set__(self, x):
+            self.size = [self._size[0], x]
+
+
+
 cdef class ContextInstruction(Instruction):
     '''The ContextInstruction class is the base for the creation of instructions
     that don't have a direct visual representation, but instead modify the
@@ -223,9 +267,15 @@ cdef class VertexInstruction(Instruction):
     def __init__(self, **kwargs):
         # Set a BindTexture instruction to bind the texture used for
         # this instruction before the actual vertex instruction
+        self.sig = None
+        texture = kwargs.pop('texture', None)
         self.texture_binding = BindTexture(noadd=True, **kwargs)
-        self.texture = self.texture_binding.texture #auto compute tex coords
-        self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
+        if texture is not None:
+            self.texture = texture
+            self.tex_coords = [0, 0, 0, 0, 0, 0, 0, 0]
+        else:
+            self.texture = self.texture_binding.texture
+            self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
 
         Instruction.__init__(self, **kwargs)
         self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
@@ -267,13 +317,31 @@ cdef class VertexInstruction(Instruction):
         '''
         def __get__(self):
             return self.texture_binding.texture
-        def __set__(self, _tex):
-            cdef Texture tex = _tex
-            self.texture_binding.texture = tex
-            if tex:
-                self.tex_coords = tex.tex_coords
-            else:
-                self.tex_coords = [0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0]
+        def __set__(self, data):
+            cdef Texture tex
+            cdef SizedInstructionGroup sig
+
+            # remove any previous sig if exist
+            if self.sig is not None:
+                if self.sig.parent is not None:
+                    self.sig.parent.remove(self.sig)
+                self.sig = None
+
+            # if it's a texture, remove it.
+            if isinstance(data, Texture) or data is None:
+                tex = data
+                self.texture_binding.texture = tex
+                if tex:
+                    self.tex_coords = tex.tex_coords
+                else:
+                    self.tex_coords = [0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,1.0]
+            elif isinstance(data, SizedInstructionGroup):
+                # add this group instead of the real vertex instruction.
+                self.flags |= GI_IGNORE
+                self.sig = data
+                self.texture_binding.texture = None
+                if self.parent:
+                    self.parent.add(self.sig)
             self.flag_update()
 
     property source:
@@ -339,7 +407,8 @@ cdef class VertexInstruction(Instruction):
         if self.flags & GI_NEEDS_UPDATE:
             self.build()
             self.flag_update_done()
-        self.batch.draw()
+        if self.sig is None:
+            self.batch.draw()
 
 
 cdef class Callback(Instruction):
