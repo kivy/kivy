@@ -90,7 +90,7 @@ Now that you've installed all the required dependencies, it's time to
 download and compile a development version of Kivy::
 
     $ # Download Kivy from GitHub
-    $ git clone git://github.com/tito/kivy.git
+    $ git clone git://github.com/kivy/kivy.git
     $ cd kivy
 
     $ # Compile:

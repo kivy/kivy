@@ -15,7 +15,7 @@ The context instructions represent non graphics elements like:
     LineWidth instruction have been removed. It wasn't working before, and we
     actually no implementation working. We need to do more experimentation to
     get it right. Check the bug `#207
-    <https://github.com/tito/kivy/issues/207>`_ for more informations.
+    <https://github.com/kivy/kivy/issues/207>`_ for more informations.
 
 '''
 

@@ -10,7 +10,7 @@ Issue Tracker
 -------------
 
 If you found an issue with the code or have a feature request, please see our
-`issue tracker <https://github.com/tito/kivy/issues>`_. If there is no issue
+`issue tracker <https://github.com/kivy/kivy/issues>`_. If there is no issue
 yet that matches your inquiry, feel free to create a new one. Please make sure
 you receive the mails that github sends if we comment on the issue in case we
 need more information.
