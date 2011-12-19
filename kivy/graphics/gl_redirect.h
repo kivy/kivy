@@ -50,6 +50,13 @@
 #	define glBlendEquationSeparate(x, y)
 #	define glDepthRangef glDepthRange
 #	define glClearDepthf glClearDepth
+
+// C redirection to prevent warning of undeclared symbol
+// (theses functions are not existing in GLES2, but if we are using GLES2
+// headers with GL library, we need to declare them.)
+GL_APICALL void GL_APIENTRY glDepthRange( GLclampf near_val, GLclampf far_val );
+GL_APICALL void GL_APIENTRY glClearDepth( GLclampf depth );
+
 #endif
 
 #endif
