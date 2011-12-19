@@ -71,6 +71,9 @@ else:
 class KivyBuildExt(build_ext):
 
     def build_extensions(self):
+        print 'Build configuration is:'
+        for opt, value in c_options.iteritems():
+            print ' *', opt, ' = ', repr(value)
         print 'Generate config.h'
         config_h = join(dirname(__file__), 'kivy', 'graphics', 'config.h')
         with open(config_h, 'w') as fd:

@@ -254,7 +254,7 @@ cdef class Bezier(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
-        tex_x = 0
+        tex_x = x = 0
         for x in xrange(self._segments):
             l = x / (1.0 * self._segments)
             # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm

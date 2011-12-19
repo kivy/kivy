@@ -635,7 +635,6 @@ cdef class Texture:
                 Indicate if we need to regenerate mipmap from level 0
         '''
         cdef GLuint target = self.target
-        cdef int tid = self._id
         if colorfmt is None:
             colorfmt = 'rgb'
         if bufferfmt is None:
@@ -837,11 +836,9 @@ cdef class TextureRegion(Texture):
         self.owner = origin
 
         # recalculate texture coordinate
-        cdef float origin_u1, origin_v1, origin_u2, origin_v2
+        cdef float origin_u1, origin_v1
         origin_u1 = origin._uvx
         origin_v1 = origin._uvy
-        origin_u2 = origin._uvx + origin._uvw
-        origin_v2 = origin._uvy + origin._uvh
         self._uvx = (x / <float>origin._width) * origin._uvw + origin_u1
         self._uvy = (y / <float>origin._height) * origin._uvh + origin_v1
         self._uvw = (width / <float>origin._width) * origin._uvw

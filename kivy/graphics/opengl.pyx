@@ -16,15 +16,7 @@ This module is python wrapper for OpenGL commands.
 '''
 
 include "config.pxi"
-
-cdef extern from "stdlib.h":
-    ctypedef unsigned long size_t
-    void free(void *ptr)
-    void *malloc(size_t size)
-
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-
+include "common.pxi"
 cimport c_opengl
 
 ctypedef  void              GLvoid
@@ -1252,7 +1244,7 @@ def glShaderSource(GLuint shader, bytes source):
     '''See: `glShaderSource() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glShaderSource.xml>`_
     '''
-    cdef char *c_source = source
+    cdef const_char_ptr c_source = <const_char_ptr>source
     c_opengl.glShaderSource(shader, 1, &c_source, NULL)
 
 def glStencilFunc(GLenum func, GLint ref, GLuint mask):
