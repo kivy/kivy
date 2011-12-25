@@ -285,7 +285,7 @@ class WindowSDL(WindowBase):
     def request_keyboard(self, *largs):
         self._sdl_keyboard = super(WindowSDL, self).request_keyboard(*largs)
         sdl.show_keyboard()
-        #Clock.schedule_interval(self._check_keyboard_shown, 1 / 5.)
+        Clock.schedule_interval(self._check_keyboard_shown, 1 / 5.)
         return self._sdl_keyboard
 
     def release_keyboard(self, *largs):
@@ -294,12 +294,12 @@ class WindowSDL(WindowBase):
         self._sdl_keyboard = None
         return True
 
-    '''
+    
     def _check_keyboard_shown(self, dt):
-        print sdl.is_keyboard_shown()
+        #print sdl.is_keyboard_shown()
         if self._sdl_keyboard is None:
             return False
         if not sdl.is_keyboard_shown():
             self._sdl_keyboard.release()
-    '''
+    
     
