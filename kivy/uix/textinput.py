@@ -413,7 +413,12 @@ class TextInput(Widget):
         if self._selection_touch is touch:
             self.selection_to = self.cursor_index()
             self._update_selection(True)
+            self.show_cut_copy_paste()
             return True
+
+    def show_cut_copy_paste(self):
+        '''show a bubble with cut copy and paste buttons'''
+        print 'nothing here yet move along'
 
     #
     # Private
