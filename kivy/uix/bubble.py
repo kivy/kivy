@@ -65,18 +65,18 @@ class Bubble(GridLayout):
 
     def __init__(self, **kwargs):
         self.arrow_layout = GridLayout(rows = 1)
-        self.bk_img       = Image(source = self.background_image,
+        self.bk_img = Image(source = self.background_image,
                                   allow_stretch = True,
-                                  keep_ratio    = False)
+                                  keep_ratio = False)
         self.background_texture = self.bk_img.texture
-        self.arrow_img    = Image(source = self.arrow_image)
-        self.rows         = 1
+        self.arrow_img = Image(source = self.arrow_image)
+        self.rows = 1
         super(Bubble, self).__init__(**kwargs)
-        self.content      = BubbleContent()
-        self.padding      = 2
+        self.content = BubbleContent()
+        self.padding = 2
         self.add_widget(self.content)
         self.bk_img.bind(on_texture = self._on_texture)
-        self.arrow_pos    = 'bottom_mid'
+        self.on_arrow_pos()
 
     def _on_texture(self, *l):
         self.background_texture = self.bk_img.texture
@@ -95,6 +95,9 @@ class Bubble(GridLayout):
         self.arrow_img.source = self.arrow_image
 
     def on_arrow_pos(self, *l):
+        if not self.content:
+            return
+        print self.content
         self.arrow_layout.clear_widgets()
         self.clear_widgets()
         self.arrow_img.size_hint = (1, None)
