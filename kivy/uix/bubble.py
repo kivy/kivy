@@ -60,8 +60,13 @@ class Bubble(GridLayout):
     '''
 
     background_texture = ObjectProperty(None)
+    '''specifies the background texture of the bubble
+    '''
 
     content = ObjectProperty(None)
+    '''this is the object where the main content of the bubble
+       is held
+    '''
 
     def __init__(self, **kwargs):
         self.arrow_layout = GridLayout(rows = 1)
