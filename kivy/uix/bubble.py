@@ -51,13 +51,14 @@ class Bubble(GridLayout):
     ''' Image of the arrow pointing to the bubble
     '''
 
-    arrow_pos = StringProperty('bottom')
+    arrow_pos = StringProperty('bottom_mid')
     '''specifies the position of the arrow relative to the bubble
     can be one of 'left_top, left_mid, left_bottom
                    top_left, top_mid, top_right
                    right_top, right_mid, right_bottom
                    bottom_left, bottom_mid, bottom_right'
     '''
+
     background_texture = ObjectProperty(None)
 
     content = ObjectProperty(None)
