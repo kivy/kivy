@@ -475,7 +475,6 @@ class TextInput(Widget):
         if self._bubble.pos[1] > (Window.size[1]- self._bubble.size[1]):
             self._bubble.pos  = (self._bubble.pos[0],
                                  (Window.size[1]- self._bubble.size[1]))
-        print self._bubble.pos
         Window.add_widget(self._bubble)
 
     #
