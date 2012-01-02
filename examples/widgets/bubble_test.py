@@ -2,10 +2,8 @@
 Bubble
 ==================
 
-Test of the widget Re_Size.
-We just add it onto the edge of the layout we want to re-size.
+Test of the widget Bubble.
 
-showcase difference between Resize widget and scatter
 '''
 
 from kivy.app             import App
@@ -25,9 +23,9 @@ class BubbleShowcase(FloatLayout):
         self.add_widget(self.but_bubble)
 
     def show_bubble(self, *l):
-        bubb = Bubble(size_hint = (.27, .0792))
-        bubb.content.rows = 1
-        #bubb.content.cols = 3
+        bubb = Bubble(size_hint = (.27, .0792), arrow_pos = 'bottom_mid')
+        #bubb.content.rows = 1
+        bubb.content.cols = 3
         bubb.add_widget(Button(text = 'Cut',
                         background_normal = 'data/images/bubble_btn.png',
                         border = (0,0,0,0)))
