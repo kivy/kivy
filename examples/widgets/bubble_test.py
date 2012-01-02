@@ -14,6 +14,29 @@ from kivy.uix.bubble      import Bubble
 from kivy.uix.button      import Button
 from kivy.lang            import Builder
 
+Builder.load_string('''
+<cut_copy_paste>
+    Bubble:
+        size_hint: (.27, .0792)
+        arrow_pos: 'bottom_right'
+        #bubb.content.cols = 3
+        Button:
+            text: 'Cut'
+            background_normal: 'data/images/bubble_btn.png'
+            border: (0,0,0,0)
+        Button:
+            text: 'Copy'
+            background_normal: 'data/images/bubble_btn.png'
+            border: (0,0,0,0)
+        Button:
+            text: 'Paste'
+            background_normal: 'data/images/bubble_btn.png'
+            border: (0,0,0,0)
+''')
+
+class cut_copy_paste(FloatLayout):
+    pass
+
 
 class BubbleShowcase(FloatLayout):
     def __init__(self, **kwargs):
@@ -23,17 +46,7 @@ class BubbleShowcase(FloatLayout):
         self.add_widget(self.but_bubble)
 
     def show_bubble(self, *l):
-        bubb = Bubble(size_hint = (.27, .0792), arrow_pos = 'bottom_right')
-        bubb.content.cols = 3
-        bubb.add_widget(Button(text = 'Cut',
-                        background_normal = 'data/images/bubble_btn.png',
-                        border = (0,0,0,0)))
-        bubb.add_widget(Button(text = 'Copy',
-                        background_normal = 'data/images/bubble_btn.png',
-                        border = (0,0,0,0)))
-        bubb.add_widget(Button(text = 'Paste',
-                        background_normal = 'data/images/bubble_btn.png',
-                        border = (0,0,0,0)))
+        bubb = cut_copy_paste()
         self.add_widget(bubb)
 
 
