@@ -102,7 +102,6 @@ class Bubble(GridLayout):
     def on_arrow_pos(self, *l):
         if not self.content:
             return
-        print self.content
         self.arrow_layout.clear_widgets()
         self.clear_widgets()
         self.arrow_img.size_hint = (1, None)
