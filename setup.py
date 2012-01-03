@@ -6,6 +6,10 @@ from distutils.core import setup
 from distutils.extension import Extension
 from subprocess import call
 
+# If you installed your stuff with MacPorts, just build with :
+# $ export USE_MACPORTS=1 && python setup.py install
+USE_MACPORTS = environ.get('USE_MACPORTS')
+
 try:
     # check for cython
     from Cython.Distutils import build_ext
@@ -172,8 +176,11 @@ if True:
         sdl_extra_link_args = []
         if platform == 'darwin':
             # Paths as per homebrew (modified formula to use hg checkout)
-            sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
-            sdl_extra_link_args += ['-L/usr/local/Cellar/sdl/HEAD/lib']
+            if USE_MACPORTS:
+                sdl_includes = ['/opt/local/include/SDL']
+            else:
+                sdl_includes = ['/usr/local/Cellar/sdl/HEAD/include/SDL']
+                sdl_extra_link_args += ['-L/usr/local/Cellar/sdl/HEAD/lib']
         else:
             sdl_includes = ['/usr/local/include/SDL']
             sdl_extra_link_args += ['-L/usr/local/lib/']
