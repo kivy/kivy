@@ -19,7 +19,7 @@ Builder.load_string('''
     Bubble:
         size_hint: (None, None)
         size: (150, 50)
-        arrow_pos: 'top_mid'
+        arrow_pos: 'top_right'
         #bubb.content.cols = 3
         Button:
             text: 'Cut'
