@@ -102,6 +102,12 @@ class Bubble(GridLayout):
     def on_arrow_pos(self, *l):
         if not self.content:
             return
+        if self.arrow_pos not in ('left_top', 'left_mid', 'left_bottom',\
+                                  'top_left', 'top_mid', 'top_right',\
+                                  'right_top', 'right_mid', 'right_bottom',\
+                                  'bottom_left', 'bottom_mid', 'bottom_right'):
+            self.arrow_pos = 'bottom_mid'
+            return
         self.arrow_layout.clear_widgets()
         self.clear_widgets()
         self.arrow_img.size_hint = (1, None)
