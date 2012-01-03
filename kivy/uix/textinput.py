@@ -468,10 +468,13 @@ class TextInput(Widget):
             Window.remove_widget(self._bubble)
         self._bubble.pos = (touch.pos[0] - self._bubble.width/2,
                             touch.pos[1])
+        self._bubble.arrow_pos = 'bottom_mid'
         if self._bubble.pos[0] < 0:
             self._bubble.pos  = (0, self._bubble.pos[1])
+            self._bubble.arrow_pos = 'bottom_left'
         elif self._bubble.right > Window.size[0]:
             self._bubble.right  = Window.size[0]
+            self._bubble.arrow_pos = 'bottom_right'
         if self._bubble.pos[1] > (Window.size[1]- self._bubble.size[1]):
             self._bubble.pos  = (self._bubble.pos[0],
                                  (Window.size[1]- self._bubble.size[1]))
