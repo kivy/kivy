@@ -18,7 +18,7 @@ Builder.load_string('''
 <cut_copy_paste>
     Bubble:
         size_hint: (.27, .0792)
-        arrow_pos: 'bottom_right'
+        arrow_pos: 'top_right'
         #bubb.content.cols = 3
         Button:
             text: 'Cut'

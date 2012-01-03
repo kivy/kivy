@@ -143,22 +143,18 @@ class Bubble(GridLayout):
                     self.arrow_layout.add_widget(Label())
                     self.arrow_layout.add_widget(sctr)
                     self.arrow_layout.add_widget(Label())
-                    self.add_widget(self.arrow_layout)
-                    self.add_widget(self.content)
                 elif self.arrow_pos == 'top_left':
                     self.arrow_layout.add_widget(sctr)
                     #add two dummy widgets
                     self.arrow_layout.add_widget(Label())
                     self.arrow_layout.add_widget(Label())
-                    self.add_widget(self.arrow_layout)
-                    self.add_widget(self.content)
                 elif self.arrow_pos == 'top_right':
                     #add two dummy widgets
                     self.arrow_layout.add_widget(Label())
                     self.arrow_layout.add_widget(Label())
                     self.arrow_layout.add_widget(sctr)
-                    self.add_widget(self.arrow_layout)
-                    self.add_widget(self.content)
+                self.add_widget(self.arrow_layout)
+                self.add_widget(self.content)
         elif self.arrow_pos[0] == 'l' or self.arrow_pos[0] == 'r':
             self.cols = 2
             self.rows = 1
