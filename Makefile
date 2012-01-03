@@ -42,6 +42,8 @@ batchtest:
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
 
+install:
+	python setup.py install
 clean:
 	-rm -rf doc/build
 	-rm -rf build
