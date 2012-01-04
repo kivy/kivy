@@ -43,7 +43,7 @@ from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.gridlayout import GridLayout
-from kivy.properties import ObjectProperty, StringProperty, OptionProperty\
+from kivy.properties import ObjectProperty, StringProperty, OptionProperty,\
                             ListProperty
 
 
