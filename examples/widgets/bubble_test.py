@@ -6,13 +6,13 @@ Test of the widget Bubble.
 
 '''
 
-from kivy.app             import App
-from kivy.uix.resize      import Re_Size
+from kivy.app import App
+from kivy.uix.resize import Re_Size
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.gridlayout  import GridLayout
-from kivy.uix.bubble      import Bubble
-from kivy.uix.button      import Button
-from kivy.lang            import Builder
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.bubble import Bubble
+from kivy.uix.button import Button
+from kivy.lang import Builder
 
 Builder.load_string('''
 <cut_copy_paste>
@@ -36,11 +36,13 @@ Builder.load_string('''
             border: (0,0,0,0)
 ''')
 
+
 class cut_copy_paste(FloatLayout):
     pass
 
 
 class BubbleShowcase(FloatLayout):
+
     def __init__(self, **kwargs):
         super(BubbleShowcase, self).__init__(**kwargs)
         self.but_bubble = Button(text = 'press to show bubble')
@@ -53,6 +55,7 @@ class BubbleShowcase(FloatLayout):
 
 
 class TestBubbleApp(App):
+
     def build(self):
         return BubbleShowcase()
 
