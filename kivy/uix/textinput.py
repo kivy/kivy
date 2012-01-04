@@ -322,7 +322,9 @@ class TextInput(Widget):
         l = self._lines
         dy = self.line_height + self._line_spacing
         cx = x - self.x
-        cy = (self.top - self.padding_y + self.scroll_y * dy) - y
+        scrl_y = self.scroll_y
+        scrl_y = scrl_y/ dy if scrl_y > 0 else 0
+        cy = (self.top - self.padding_y + scrl_y * dy) - y
         cy = int(boundary(round(cy / dy), 0, len(l) - 1))
         dcx = 0
         for i in xrange(1, len(l[cy])+1):
@@ -346,6 +348,8 @@ class TextInput(Widget):
     def delete_selection(self):
         '''Delete the current text selection (if any)
         '''
+        scrl_x = self.scroll_x
+        scrl_y = self.scroll_y
         if not self._selection:
             return
         v = self.text
@@ -355,6 +359,8 @@ class TextInput(Widget):
         text = v[:a] + v[b:]
         self.text = text
         self.cursor = self.get_cursor_from_index(a)
+        self.scroll_x = scrl_x
+        self.scroll_y = scrl_y
         self.cancel_selection()
 
     def _update_selection(self, finished=False):
