@@ -1,38 +1,51 @@
 '''
 Bubble
 ======
+.. versionadded:: 1.0.10
 
 .. image:: images/bubble.jpg
     :align: right
 
-:class:`Bubble` is a :class:`~kivy.uix.gridlayout.GridLayout`.
-To configure the bubble, you can use the same properties that you can use for
-the GridLayout class::
+The Bubble widget is a form of menu or a small poppup where the options
+are stacked either vertically or horizontally.
 
-    bubble = Bubble(pos=(10,20), size =(50, 50))
+The :class:`Bubble` contains one arrow pointing towards the direction you
+choose.
+
+Simple example
+--------------
+
+.. include:: ../../examples/widgets/bubble_test.py
+    :literal:
+
+Customize the Bubble
+-----------------------
+
+You can choose the direction the arrow points towards::
+
+    Bubble(arrow_pos = 'top_mid')
+
+The widgets added to Bubble are orderd by default horizintally like in a
+Boxlayout. You can change that by ::
+
+    orientation = 'vertical'
+
+Add Items to the bubble::
+
+    bubb = Bubble(orientation = 'vertical')
+    bubb.add_widget(your_widget_instance)
 
 '''
 
 __all__ = ('Bubble', )
 
-from kivy.uix.image      import Image
-from kivy.uix.label      import Label
-from kivy.uix.scatter    import Scatter
+from kivy.uix.image import Image
+from kivy.uix.widget import Widget
+from kivy.uix.scatter import Scatter
 from kivy.uix.gridlayout import GridLayout
-from kivy.properties     import ObjectProperty, StringProperty
-from kivy.lang           import Builder
+from kivy.properties import ObjectProperty, StringProperty, OptionProperty\
+                            ListProperty
 
-Builder.load_string('''
-<BubbleContent>
-    canvas.before:
-        Color:
-            rgba: 1, 1, 1, 1
-        BorderImage:
-            border: 16, 16, 16, 16
-            texture: root.parent.background_texture if root.parent else None
-            size:root.size
-            pos: root.pos
-''')
 
 class BubbleContent(GridLayout):
       def __init__(self, **kwargs):
@@ -43,171 +56,207 @@ class Bubble(GridLayout):
     '''Bubble class, see module documentation for more information.
     '''
 
+    background_color = ListProperty([1, 1, 1, 1])
+    '''Background color, in the format (r, g, b, a).
+
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [1, 1, 1, 1].
+    '''
+
+    border = ListProperty([16, 16, 16, 16])
+    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
+    graphics instruction, used itself for :data:`background_normal` and
+    :data:`background_down`. Can be used when using custom background.
+
+    It must be a list of 4 value: (top, right, bottom, left). Read the
+    BorderImage instruction for more information about how to play with it.
+
+    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
+    16, 16, 16)
+    '''
+
     background_image = StringProperty('data/images/bubble.png')
     '''Background image of the bubble
+
+    :data:`background_image` is a :class:`~kivy.properties.StringProperty`,
+    default to 'data/images/bubble.png'.
     '''
 
     arrow_image = StringProperty('data/images/bubble_arrow.png')
     ''' Image of the arrow pointing to the bubble
+
+    :data:`arrow_image` is a :class:`~kivy.properties.StringProperty`,
+    default to 'data/images/bubble_arrow.png'.
     '''
 
-    arrow_pos = StringProperty('bottom_mid')
+    arrow_pos = OptionProperty('bottom_mid',
+                                options =
+                                ['left_top', 'left_mid', 'left_bottom',
+                                 'top_left', 'top_mid', 'top_right',
+                                 'right_top', 'right_mid', 'right_bottom',
+                                 'bottom_left', 'bottom_mid', 'bottom_right'])
     '''specifies the position of the arrow relative to the bubble
-    can be one of 'left_top, left_mid, left_bottom
-                   top_left, top_mid, top_right
-                   right_top, right_mid, right_bottom
-                   bottom_left, bottom_mid, bottom_right'
+    can be one of:
+    'left_top, left_mid, left_bottom
+    top_left, top_mid, top_right
+    right_top, right_mid, right_bottom
+    bottom_left, bottom_mid, bottom_right'
+
+    :data:`arrow_pos` is a :class:`~kivy.properties.OptionProperty`,
+    default to 'bottom_mid'.
     '''
 
     background_texture = ObjectProperty(None)
     '''specifies the background texture of the bubble
+
+    :data:`background_texture` is a :class:`~kivy.properties.ObjectProperty`,
+    default to 'None'.
     '''
 
     content = ObjectProperty(None)
-    '''this is the object where the main content of the bubble
-       is held
+    '''this is the object where the main content of the bubble is held
+
+    :data:`content` is a :class:`~kivy.properties.ObjectProperty`,
+    default to 'None'.
+    '''
+
+    orientation = OptionProperty('horizontal',
+                                  options = ['horizontal','vertical'])
+    '''This specifies the manner in which the children inside bubble
+    are arranged. can be one of 'vertical', 'horizontal'
+
+    :data:`orientation` is a :class:`~kivy.properties.OptionProperty`,
+    default to  'horizontal'.
     '''
 
     def __init__(self, **kwargs):
-        self.arrow_layout = GridLayout(rows = 1)
-        self.bk_img = Image(source = self.background_image,
+        self._arrow_layout = GridLayout(rows = 1)
+        self._bk_img = Image(source = self.background_image,
                                   allow_stretch = True,
                                   keep_ratio = False)
-        self.background_texture = self.bk_img.texture
-        self.arrow_img = Image(source = self.arrow_image)
-        self.rows = 1
+        self.background_texture = self._bk_img.texture
+        self._arrow_img = Image(source = self.arrow_image)
+        self._rows = 1
         super(Bubble, self).__init__(**kwargs)
-        self.content = BubbleContent()
-        self.padding = 2
-        self.add_widget(self.content)
-        self.bk_img.bind(on_texture = self._on_texture)
+        self.content = content = BubbleContent()
+        self._padding = 2
+        self.add_widget(content)
+        self._bk_img.bind(on_texture = self._on_texture)
         self.on_arrow_pos()
 
     def _on_texture(self, *l):
-        self.background_texture = self.bk_img.texture
+        self.background_texture = self._bk_img.texture
 
     def add_widget(self, *l):
-        if l[0] == self.content or l[0] == self.arrow_img\
-            or l[0] == self.arrow_layout:
+        content = self.content
+        if l[0] == content or l[0] == self._arrow_img\
+            or l[0] == self._arrow_layout:
             super(Bubble, self).add_widget(*l)
         else:
-            self.content.add_widget(l[0])
+            content.add_widget(l[0])
 
     def on_background_image(self, *l):
         self.bk_img.source = self.background_image
 
+    def on_orientation(self, *l):
+        if not self.content:
+            return
+        content = self.content
+        if self.orientation[0] == 'v':
+            content.cols = 1
+            content.rows = 99
+        else:
+            content.cols = 99
+            content.rows = 1
+
     def on_arrow_image(self, *l):
-        self.arrow_img.source = self.arrow_image
+        self._arrow_img.source = self.arrow_image
 
     def on_arrow_pos(self, *l):
         if not self.content:
             return
-        if self.arrow_pos not in ('left_top', 'left_mid', 'left_bottom',\
-                                  'top_left', 'top_mid', 'top_right',\
-                                  'right_top', 'right_mid', 'right_bottom',\
-                                  'bottom_left', 'bottom_mid', 'bottom_right'):
-            self.arrow_pos = 'bottom_mid'
-            return
-        self.arrow_layout.clear_widgets()
+        self_content = self.content
+        self_arrow_pos = self.arrow_pos
+        self_arrow_layout = self._arrow_layout
+        self_arrow_layout.clear_widgets()
+        self_arrow_layout_add_widget = self_arrow_layout.add_widget
+        self_arrow_img = self._arrow_img
+        self_add_widget = self.add_widget
+
         self.clear_widgets()
-        self.arrow_img.size_hint = (1, None)
-        self.arrow_img.height = self.arrow_img.texture_size[1]
-        if self.arrow_pos[0] == 'b' or self.arrow_pos[0] == 't':
+        self_arrow_img.size_hint = (1, None)
+        self_arrow_img.height = self_arrow_img.texture_size[1]
+        widget_list = []
+        arrow_list = []
+        if self_arrow_pos[0] == 'b' or self_arrow_pos[0] == 't':
             self.cols = 1
             self.rows = 2
-            self.arrow_layout.rows = 1
-            self.arrow_layout.cols = 3
-            self.arrow_img.width = self.width/3
-            self.arrow_layout.size_hint = (1, None)
-            self.arrow_layout.height = self.arrow_img.height
-            if self.arrow_pos[0] == 'b':
-                self.add_widget(self.content)
-                if self.arrow_pos == 'bottom_mid':
-                    self.add_widget(self.arrow_img)
-                elif self.arrow_pos == 'bottom_left':
-                    self.arrow_layout.add_widget(self.arrow_img)
-                    #add two dummy widgets
-                    self.arrow_layout.add_widget(Label())
-                    self.arrow_layout.add_widget(Label())
-                    self.add_widget(self.arrow_layout)
-                elif self.arrow_pos == 'bottom_right':
-                    #add two dummy widgets
-                    self.arrow_layout.add_widget(Label())
-                    self.arrow_layout.add_widget(Label())
-                    self.arrow_layout.add_widget(self.arrow_img)
-                    self.add_widget(self.arrow_layout)
+            self_arrow_layout.rows = 1
+            self_arrow_layout.cols = 3
+            self_arrow_img.width = self.width/3
+            self_arrow_layout.size_hint = (1, None)
+            self_arrow_layout.height = self_arrow_img.height
+            if self_arrow_pos[0] == 'b':
+                if self_arrow_pos == 'bottom_mid':
+                    widget_list = (self_content, self_arrow_img)
+                else:
+                    if self_arrow_pos == 'bottom_left':
+                        arrow_list = (self_arrow_img, Widget(),Widget())
+                    elif self_arrow_pos == 'bottom_right':
+                        #add two dummy widgets
+                        arrow_list = (Widget(),Widget(),self_arrow_img)
+                    widget_list = (self_content, self_arrow_layout)
             else:
                 sctr = Scatter(do_translation = False,
                                rotation = 180,
                                do_rotation = False,
                                do_scale = False,
                                size_hint = (None, None),
-                               size = self.arrow_img.size)
-                sctr.add_widget(self.arrow_img)
-                if self.arrow_pos == 'top_mid':
+                               size = self_arrow_img.size)
+                sctr.add_widget(self_arrow_img)
+                if self_arrow_pos == 'top_mid':
                     #add two dummy widgets
-                    self.arrow_layout.add_widget(Label())
-                    self.arrow_layout.add_widget(sctr)
-                    self.arrow_layout.add_widget(Label())
-                elif self.arrow_pos == 'top_left':
-                    self.arrow_layout.add_widget(sctr)
-                    #add two dummy widgets
-                    self.arrow_layout.add_widget(Label())
-                    self.arrow_layout.add_widget(Label())
-                elif self.arrow_pos == 'top_right':
-                    #add two dummy widgets
-                    self.arrow_layout.add_widget(Label())
-                    self.arrow_layout.add_widget(Label())
-                    self.arrow_layout.add_widget(sctr)
-                self.add_widget(self.arrow_layout)
-                self.add_widget(self.content)
-        elif self.arrow_pos[0] == 'l' or self.arrow_pos[0] == 'r':
+                    arrow_list = (Widget(), sctr, Widget())
+                elif self_arrow_pos == 'top_left':
+                    arrow_list = (sctr, Widget(), Widget())
+                elif self_arrow_pos == 'top_right':
+                    arrow_list = (Widget(), Widget(), sctr)
+                widget_list = (self_arrow_layout, self_content)
+        elif self_arrow_pos[0] == 'l' or self_arrow_pos[0] == 'r':
             self.cols = 2
             self.rows = 1
-            self.arrow_img.width = self.height/3
-            self.arrow_layout.rows = 3
-            self.arrow_layout.cols = 1
-            self.arrow_layout.size_hint = (None, 1)
-            self.arrow_layout.width = self.arrow_img.height
-            rotation = -90 if self.arrow_pos[0] == 'l' else 90
+            self_arrow_img.width = self.height/3
+            self_arrow_layout.rows = 3
+            self_arrow_layout.cols = 1
+            self_arrow_layout.size_hint = (None, 1)
+            self_arrow_layout.width = self_arrow_img.height
+
+            rotation = -90 if self_arrow_pos[0] == 'l' else 90
             sctr = Scatter(do_translation = False,
                                rotation = rotation,
                                do_rotation = False,
                                do_scale = False,
                                size_hint = (None, None),
-                               size = self.arrow_img.size)
-            sctr.add_widget(self.arrow_img)
-            len_arrow_pos = len(self.arrow_pos)
-            if self.arrow_pos[len_arrow_pos-4:] == '_top':
-                self.arrow_layout.add_widget(Label(size_hint = (1, .07)))
-                self.arrow_layout.add_widget(sctr)
-                #add two dummy widgets
-                self.arrow_layout.add_widget(Label(size_hint = (1, .3)))
-                if self.arrow_pos[0] =='l':
-                    self.add_widget(self.arrow_layout)
-                    self.add_widget(self.content)
-                else:
-                    self.add_widget(self.content)
-                    self.add_widget(self.arrow_layout)
-            elif self.arrow_pos[len_arrow_pos-4:] == '_mid':
-                #add two dummy widgets
-                self.arrow_layout.add_widget(Label())
-                self.arrow_layout.add_widget(sctr)
-                self.arrow_layout.add_widget(Label())
-                if self.arrow_pos[0] =='l':
-                    self.add_widget(self.arrow_layout)
-                    self.add_widget(self.content)
-                else:
-                    self.add_widget(self.content)
-                    self.add_widget(self.arrow_layout)
-            elif self.arrow_pos[len_arrow_pos-7:] == '_bottom':
-                #add two dummy widgets
-                self.arrow_layout.add_widget(Label())
-                self.arrow_layout.add_widget(Label())
-                self.arrow_layout.add_widget(sctr)
-                if self.arrow_pos[0] =='l':
-                    self.add_widget(self.arrow_layout)
-                    self.add_widget(self.content)
-                else:
-                    self.add_widget(self.content)
-                    self.add_widget(self.arrow_layout)
+                               size = self_arrow_img.size)
+            sctr.add_widget(self_arrow_img)
+
+            lenarrow_pos = len(self_arrow_pos)
+            if self_arrow_pos[lenarrow_pos-4:] == '_top':
+                arrow_list = (Widget(size_hint = (1, .07)),
+                              sctr, Widget(size_hint = (1, .3)))
+            elif self_arrow_pos[lenarrow_pos-4:] == '_mid':
+                arrow_list = (Widget(), sctr, Widget())
+            elif self_arrow_pos[lenarrow_pos-7:] == '_bottom':
+                arrow_list = (Widget(),Widget(),sctr)
+
+            if self_arrow_pos[0] =='l':
+                widget_list = (self_arrow_layout, self_content)
+            else:
+                widget_list = (self_content, self_arrow_layout)
+
+        #add widgets to arrow_layout
+        for widg in arrow_list:
+            self_arrow_layout_add_widget(widg)
+        #add widgets to self
+        for widg in widget_list:
+            self_add_widget(widg)

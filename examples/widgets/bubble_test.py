@@ -17,9 +17,11 @@ from kivy.lang            import Builder
 Builder.load_string('''
 <cut_copy_paste>
     Bubble:
-        size_hint: (.27, .0792)
-        arrow_pos: 'top_right'
-        #bubb.content.cols = 3
+        size_hint: (None, None)
+        size: (150, 50)
+        pos_hint: {'x':.5, 'y':.5}
+        arrow_pos: 'bottom_mid'
+        orientation: 'horizontal'
         Button:
             text: 'Cut'
             background_normal: 'data/images/bubble_btn.png'
