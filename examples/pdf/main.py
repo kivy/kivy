@@ -27,17 +27,16 @@ class PDFReader(BoxLayout):
         self.add_widget(b)
 
     def next(self, *_):
-        try:
-            self.pdf.page += 1
-        except:
-            self.pdf.page = 0
+        self.pdf.page += 1
 
     def prececent(self, *_):
         self.pdf.page -= 1
 
 class MyApp(App):
     def build(self):
-        return PDFReader(filename='evaluation software engeener.pdf')
+        #return PDFReader(filename='evaluation software engeener.pdf')
+        #return PDFReader(filename='MachineofDeath_FINAL_SPREADS.pdf')
+        return PDFReader(filename='colors.pdf')
 
 if __name__ == '__main__':
     MyApp().run()
