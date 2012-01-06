@@ -75,6 +75,7 @@ properties of that class.
     numeric        :class:`SettingNumeric`
     options        :class:`SettingOptions`
     string         :class:`SettingString`
+    path           :class:`SettingPath`
     ============== =================================================
 
 In the JSON example above, the first element is of type "title". It will create
@@ -371,6 +372,8 @@ class SettingPath(SettingItem):
     clicked, will open a :class:`~kivy.uix.popup.Popup` with a
     :class:`~kivy.uix.filechooser.FileChooserListView` so the user can enter
     a custom value.
+
+    versionadded:: 1.0.10
     '''
 
     popup = ObjectProperty(None, allownone=True)
