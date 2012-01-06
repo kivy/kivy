@@ -373,7 +373,7 @@ class SettingPath(SettingItem):
     :class:`~kivy.uix.filechooser.FileChooserListView` so the user can enter
     a custom value.
 
-    versionadded:: 1.0.10
+    .. versionadded:: 1.0.10
     '''
 
     popup = ObjectProperty(None, allownone=True)
