@@ -1,9 +1,8 @@
-				+++ Kivy +++
+Kivy
+====
 
-	            Innovative User Interfaces Made Easy
-		             http://kivy.org/
-
-
+Innovative User Interfaces Made Easy
+http://kivy.org/
 
 Introduction
 ------------

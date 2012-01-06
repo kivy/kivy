@@ -21,25 +21,37 @@ future; once or on interval. ::
 
     If the callback returns False, the schedule will be removed.
 
+If you want to schedule a function to call with default arguments, you can use
+`functools.partial
+<http://docs.python.org/library/functools.html#functools.partial>`_ python
+module::
+
+    from functools import partial
+
+    def my_callback(value, key, *largs):
+        pass
+
+    Clock.schedule_interval(partial(my_callback, 'my value', 'my key'), 0.5)
+
 Schedule before frame
 ---------------------
 
 .. versionadded:: 1.0.5
 
-Sometimes you need to schedule a callback BEFORE the next frame. Starting 
+Sometimes you need to schedule a callback BEFORE the next frame. Starting
 from 1.0.5, you can use a timeout of -1::
 
     Clock.schedule_once(my_callback, 0) # call after the next frame
     Clock.schedule_once(my_callback, -1) # call before the next frame
 
 The Clock will execute all the callbacks with a timeout of -1 before
-the next frame, even if you add a new callback with -1 from a running callback. 
-However, :class:`Clock` has an iteration limit for these callbacks, it defaults 
+the next frame, even if you add a new callback with -1 from a running callback.
+However, :class:`Clock` has an iteration limit for these callbacks, it defaults
 to 10.
 
 If you schedule a callback that schedules a callback that schedules a .. etc
 more than 10 times, it will leave the loop and send a warning to the console,
-then continue after the next frame. This is implemented to prevent bugs from 
+then continue after the next frame. This is implemented to prevent bugs from
 hanging or crashing the application.
 
 If you need to increase the limit, set the :data:`max_iteration` property::
@@ -53,8 +65,8 @@ Triggered Events
 .. versionadded:: 1.0.5
 
 A triggered event is a way to defer a callback exactly like schedule_once(),
-but with some added convenience. The callback will only be scheduled once per 
-frame, even if you call the trigger twice (or more). This is not the case 
+but with some added convenience. The callback will only be scheduled once per
+frame, even if you call the trigger twice (or more). This is not the case
 with :func:`Clock.schedule_once` ::
 
     # will run the callback twice before the next frame
@@ -64,7 +76,7 @@ with :func:`Clock.schedule_once` ::
     # will run the callback once before the next frame
     t = Clock.create_trigger(my_callback)
     t()
-    t()    
+    t()
 
 Before triggered events, you may have used this approach in a widget ::
 
@@ -73,7 +85,7 @@ Before triggered events, you may have used this approach in a widget ::
         Clock.schedule_once(self.callback)
 
 As soon as you call `trigger_callback()`, it will correctly schedule the
-callback once in the next frame. It is more convenient to create and bind to 
+callback once in the next frame. It is more convenient to create and bind to
 the triggered event than using :func:`Clock.schedule_once` in a function ::
 
     from kivy.clock import Clock
@@ -92,7 +104,7 @@ Even if x and y changes within one frame, the callback is only run once.
 
 .. note::
 
-    :func:`Clock.create_trigger` also has a timeout parameter that behaves 
+    :func:`Clock.create_trigger` also has a timeout parameter that behaves
     exactly like :func:`Clock.schedule_once`.
 
 '''
@@ -308,7 +320,7 @@ class ClockBase(object):
         '''
         cid = _hash(callback)
         return ClockEvent(self, False, callback, timeout, 0, cid)
- 
+
     def schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds.
 
