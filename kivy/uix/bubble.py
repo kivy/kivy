@@ -183,6 +183,7 @@ class Bubble(GridLayout):
         self_arrow_layout.clear_widgets()
         self_arrow_layout_add_widget = self_arrow_layout.add_widget
         self_arrow_img = self._arrow_img
+        self_arrow_img.pos = (0, 0)
         self_add_widget = self.add_widget
 
         self.clear_widgets()
