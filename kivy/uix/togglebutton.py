@@ -10,8 +10,8 @@ Toggle buttons can also be grouped to make radio buttons - only one button in
 a group can be in 'down' state. The group name can be a string or any other
 hashable Python object ::
 
-    btn1 = ToggleButton(text='Male', group='sex')
-    btn2 = ToggleButton(text='Female', group='sex')
+    btn1 = ToggleButton(text='Male', group='sex',)
+    btn2 = ToggleButton(text='Female', group='sex', state='down')
     btn3 = ToggleButton(text='Mixed', group='sex')
 
 Only one of the buttons can be 'down'/checked at the same time.
