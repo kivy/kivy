@@ -217,7 +217,10 @@ class FileChooserController(FloatLayout):
             if isdir(entry.path) and not self.dirselect:
                 self.open_entry(entry)
             elif touch.is_double_tap:
-                self.dispatch('on_submit', self.selection, touch)
+                if self.dirselect and isdir(entry.path):
+                    self.open_entry(entry)
+                else:
+                    self.dispatch('on_submit', self.selection, touch)
 
     def open_entry(self, entry):
         try:
