@@ -19,6 +19,10 @@ Example of using the Factory::
     >>> widget = Factory.Widget(pos=(456,456))
     >>> vector = Factory.Vector(9, 2)
 
+Example using a class name::
+
+    >>> from kivy.factory import Factory
+    >>> Factory.register('MyWidget', cls=MyWidget)
 '''
 
 __all__ = ('Factory', 'FactoryException')
