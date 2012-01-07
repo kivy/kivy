@@ -48,7 +48,7 @@ access the children list::
 
 Change Appearance of the bubble::
 
-    bubble.background_color = (1, 0, 1, .5) #50% translucent red
+    bubble.background_color = (1, 0, 0, .5) #50% translucent red
     bubble.border = [0, 0, 0, 0]
     background_image = 'path/to/background/image'
     arrow_image = 'path/to/arrow/image'
