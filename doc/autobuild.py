@@ -40,8 +40,10 @@ import kivy.modules.keybinding
 import kivy.modules.monitor
 import kivy.modules.touchring
 import kivy.modules.inspector
+import kivy.modules.recorder
 import kivy.network.urlrequest
 import kivy.support
+import kivy.input.recorder
 from kivy.factory import Factory
 
 # force loading of all classes from factory
