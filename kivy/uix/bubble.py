@@ -135,9 +135,11 @@ class Bubble(GridLayout):
         self._arrow_layout = GridLayout(rows = 1)
         self._bk_img = Image(source = self.background_image,
                                   allow_stretch = True,
-                                  keep_ratio = False)
+                                  keep_ratio = False,
+                                  color = self.background_color)
         self.background_texture = self._bk_img.texture
-        self._arrow_img = Image(source = self.arrow_image)
+        self._arrow_img = Image(source = self.arrow_image,
+                                color = self.background_color)
         self._rows = 1
         super(Bubble, self).__init__(**kwargs)
         self.content = content = BubbleContent()
@@ -150,6 +152,8 @@ class Bubble(GridLayout):
         self.background_texture = self._bk_img.texture
 
     def add_widget(self, *l):
+        if self.content is None:
+            return
         content = self.content
         if l[0] == content or l[0] == self._arrow_img\
             or l[0] == self._arrow_layout:
@@ -157,8 +161,24 @@ class Bubble(GridLayout):
         else:
             content.add_widget(l[0])
 
+    def remove_widget(self, *l):
+        if self.content is None:
+            return
+        content = self.content
+        if l[0] == content or l[0] == self._arrow_img\
+            or l[0] == self._arrow_layout:
+            super(Bubble, self).remove_widget(*l)
+        else:
+            content.remove_widget(l[0])
+
     def on_background_image(self, *l):
         self.bk_img.source = self.background_image
+
+    def on_background_color(self, *l):
+        if self.content is None:
+            return
+        self._bk_img.color = self.background_color
+        self._arrow_img.color = self.background_color
 
     def on_orientation(self, *l):
         if not self.content:
