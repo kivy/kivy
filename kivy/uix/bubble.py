@@ -32,8 +32,27 @@ Boxlayout. You can change that by ::
 
 Add Items to the bubble::
 
-    bubb = Bubble(orientation = 'vertical')
-    bubb.add_widget(your_widget_instance)
+    bubble = Bubble(orientation = 'vertical')
+    bubble.add_widget(your_widget_instance)
+
+Remove Items::
+
+    bubble.remove_widget(Widget)
+    or
+    bubble.clear_widgets()
+
+Access children list, **Warning** This is important! use content.children to
+access the children list::
+
+    bubble.content.children
+
+Change Appearance of the bubble::
+
+    bubble.background_color = (1, 0, 1, .5) #50% translucent red
+    bubble.border = [0, 0, 0, 0]
+    background_image = 'path/to/background/image'
+    arrow_image = 'path/to/arrow/image'
+
 
 '''
 
@@ -43,8 +62,9 @@ from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.gridlayout import GridLayout
+from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty,\
-                            ListProperty
+                            ListProperty, AliasProperty
 
 
 class BubbleContent(GridLayout):
@@ -135,9 +155,11 @@ class Bubble(GridLayout):
         self._arrow_layout = GridLayout(rows = 1)
         self._bk_img = Image(source = self.background_image,
                                   allow_stretch = True,
-                                  keep_ratio = False)
+                                  keep_ratio = False,
+                                  color = self.background_color)
         self.background_texture = self._bk_img.texture
-        self._arrow_img = Image(source = self.arrow_image)
+        self._arrow_img = Image(source = self.arrow_image,
+                                color = self.background_color)
         self._rows = 1
         super(Bubble, self).__init__(**kwargs)
         self.content = content = BubbleContent()
@@ -150,6 +172,8 @@ class Bubble(GridLayout):
         self.background_texture = self._bk_img.texture
 
     def add_widget(self, *l):
+        if self.content is None:
+            return
         content = self.content
         if l[0] == content or l[0] == self._arrow_img\
             or l[0] == self._arrow_layout:
@@ -157,8 +181,33 @@ class Bubble(GridLayout):
         else:
             content.add_widget(l[0])
 
+    def remove_widget(self, *l):
+        if self.content is None:
+            return
+        content = self.content
+        if l[0] == content or l[0] == self._arrow_img\
+            or l[0] == self._arrow_layout:
+            super(Bubble, self).remove_widget(*l)
+        else:
+            content.remove_widget(l[0])
+
+    def clear_widgets(self, *l):
+        print l
+        if self.content is None:
+            return
+        if len(l) > 0:
+            super(Bubble, self).clear_widgets()
+        else:
+            self.content.clear_widgets()
+
     def on_background_image(self, *l):
         self.bk_img.source = self.background_image
+
+    def on_background_color(self, *l):
+        if self.content is None:
+            return
+        self._bk_img.color = self.background_color
+        self._arrow_img.color = self.background_color
 
     def on_orientation(self, *l):
         if not self.content:
@@ -186,7 +235,7 @@ class Bubble(GridLayout):
         self_arrow_img.pos = (0, 0)
         self_add_widget = self.add_widget
 
-        self.clear_widgets()
+        self.clear_widgets('super')
         self_arrow_img.size_hint = (1, None)
         self_arrow_img.height = self_arrow_img.texture_size[1]
         widget_list = []
