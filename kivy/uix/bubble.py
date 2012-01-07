@@ -64,7 +64,7 @@ from kivy.uix.scatter import Scatter
 from kivy.uix.gridlayout import GridLayout
 from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty,\
-                            ListProperty, AliasProperty
+                            ListProperty
 
 
 class BubbleContent(GridLayout):
