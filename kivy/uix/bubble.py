@@ -172,9 +172,9 @@ class Bubble(GridLayout):
         self.background_texture = self._bk_img.texture
 
     def add_widget(self, *l):
-        if self.content is None:
-            return
         content = self.content
+        if content is None:
+            return
         if l[0] == content or l[0] == self._arrow_img\
             or l[0] == self._arrow_layout:
             super(Bubble, self).add_widget(*l)
@@ -182,9 +182,9 @@ class Bubble(GridLayout):
             content.add_widget(l[0])
 
     def remove_widget(self, *l):
-        if self.content is None:
-            return
         content = self.content
+        if content is None:
+            return
         if l[0] == content or l[0] == self._arrow_img\
             or l[0] == self._arrow_layout:
             super(Bubble, self).remove_widget(*l)
@@ -192,13 +192,13 @@ class Bubble(GridLayout):
             content.remove_widget(l[0])
 
     def clear_widgets(self, *l):
-        print l
-        if self.content is None:
+        content = self.content
+        if content is None:
             return
         if len(l) > 0:
             super(Bubble, self).clear_widgets()
         else:
-            self.content.clear_widgets()
+            content.clear_widgets()
 
     def on_background_image(self, *l):
         self.bk_img.source = self.background_image
@@ -206,13 +206,12 @@ class Bubble(GridLayout):
     def on_background_color(self, *l):
         if self.content is None:
             return
-        self._bk_img.color = self.background_color
-        self._arrow_img.color = self.background_color
+        self._arrow_img.color = self._bk_img.color = self.background_color
 
     def on_orientation(self, *l):
-        if not self.content:
-            return
         content = self.content
+        if not content:
+            return
         if self.orientation[0] == 'v':
             content.cols = 1
             content.rows = 99
@@ -224,9 +223,9 @@ class Bubble(GridLayout):
         self._arrow_img.source = self.arrow_image
 
     def on_arrow_pos(self, *l):
-        if not self.content:
-            return
         self_content = self.content
+        if not self_content:
+            return
         self_arrow_pos = self.arrow_pos
         self_arrow_layout = self._arrow_layout
         self_arrow_layout.clear_widgets()
