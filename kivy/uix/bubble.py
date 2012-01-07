@@ -32,8 +32,27 @@ Boxlayout. You can change that by ::
 
 Add Items to the bubble::
 
-    bubb = Bubble(orientation = 'vertical')
-    bubb.add_widget(your_widget_instance)
+    bubble = Bubble(orientation = 'vertical')
+    bubble.add_widget(your_widget_instance)
+
+Remove Items::
+
+    bubble.remove_widget(Widget)
+    or
+    bubble.clear_widgets()
+
+Access children list, **Warning** This is important! use content.children to
+access the children list::
+
+    bubble.content.children
+
+Change Appearance of the bubble::
+
+    bubble.background_color = (1, 0, 1, .5) #50% translucent red
+    bubble.border = [0, 0, 0, 0]
+    background_image = 'path/to/background/image'
+    arrow_image = 'path/to/arrow/image'
+
 
 '''
 
@@ -43,8 +62,9 @@ from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.gridlayout import GridLayout
+from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty,\
-                            ListProperty
+                            ListProperty, AliasProperty
 
 
 class BubbleContent(GridLayout):
@@ -171,6 +191,15 @@ class Bubble(GridLayout):
         else:
             content.remove_widget(l[0])
 
+    def clear_widgets(self, *l):
+        print l
+        if self.content is None:
+            return
+        if len(l) > 0:
+            super(Bubble, self).clear_widgets()
+        else:
+            self.content.clear_widgets()
+
     def on_background_image(self, *l):
         self.bk_img.source = self.background_image
 
@@ -206,7 +235,7 @@ class Bubble(GridLayout):
         self_arrow_img.pos = (0, 0)
         self_add_widget = self.add_widget
 
-        self.clear_widgets()
+        self.clear_widgets('super')
         self_arrow_img.size_hint = (1, None)
         self_arrow_img.height = self_arrow_img.texture_size[1]
         widget_list = []
