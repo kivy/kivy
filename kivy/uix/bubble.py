@@ -67,8 +67,8 @@ class Bubble(GridLayout):
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction, used itself for :data:`background_normal` and
-    :data:`background_down`. Can be used when using custom background.
+    graphics instruction, used itself for :data:`background_image`.
+    Can be used when using custom background.
 
     It must be a list of 4 value: (top, right, bottom, left). Read the
     BorderImage instruction for more information about how to play with it.
@@ -97,7 +97,7 @@ class Bubble(GridLayout):
                                  'top_left', 'top_mid', 'top_right',
                                  'right_top', 'right_mid', 'right_bottom',
                                  'bottom_left', 'bottom_mid', 'bottom_right'])
-    '''specifies the position of the arrow relative to the bubble
+    '''Specifies the position of the arrow relative to the bubble
     can be one of:
     'left_top, left_mid, left_bottom
     top_left, top_mid, top_right
@@ -109,14 +109,14 @@ class Bubble(GridLayout):
     '''
 
     background_texture = ObjectProperty(None)
-    '''specifies the background texture of the bubble
+    '''Specifies the background texture of the bubble
 
     :data:`background_texture` is a :class:`~kivy.properties.ObjectProperty`,
     default to 'None'.
     '''
 
     content = ObjectProperty(None)
-    '''this is the object where the main content of the bubble is held
+    '''This is the object where the main content of the bubble is held
 
     :data:`content` is a :class:`~kivy.properties.ObjectProperty`,
     default to 'None'.
@@ -128,7 +128,7 @@ class Bubble(GridLayout):
     are arranged. can be one of 'vertical', 'horizontal'
 
     :data:`orientation` is a :class:`~kivy.properties.OptionProperty`,
-    default to  'horizontal'.
+    default to 'horizontal'.
     '''
 
     def __init__(self, **kwargs):
