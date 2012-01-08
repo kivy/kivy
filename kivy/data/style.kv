@@ -30,9 +30,9 @@
     canvas:
         Clear
         Color:
-            rgba: self.background_color
+            rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
         BorderImage:
-            border: self.border
+            border: self.parent.border if self.parent else (16, 16, 16, 16)
             texture: root.parent.background_texture if root.parent else None
             size: self.size
             pos: self.pos
