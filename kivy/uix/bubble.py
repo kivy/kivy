@@ -48,9 +48,11 @@ from kivy.properties import ObjectProperty, StringProperty, OptionProperty\
 
 
 class BubbleContent(GridLayout):
-      def __init__(self, **kwargs):
-          super(BubbleContent, self).__init__(**kwargs)
-          self.rows = 1
+
+    def __init__(self, **kwargs):
+        super(BubbleContent, self).__init__(**kwargs)
+        self.rows = 1
+
 
 class Bubble(GridLayout):
     '''Bubble class, see module documentation for more information.
@@ -121,7 +123,7 @@ class Bubble(GridLayout):
     '''
 
     orientation = OptionProperty('horizontal',
-                                  options = ['horizontal','vertical'])
+                                  options = ['horizontal', 'vertical'])
     '''This specifies the manner in which the children inside bubble
     are arranged. can be one of 'vertical', 'horizontal'
 
@@ -201,10 +203,10 @@ class Bubble(GridLayout):
                     widget_list = (self_content, self_arrow_img)
                 else:
                     if self_arrow_pos == 'bottom_left':
-                        arrow_list = (self_arrow_img, Widget(),Widget())
+                        arrow_list = (self_arrow_img, Widget(), Widget())
                     elif self_arrow_pos == 'bottom_right':
                         #add two dummy widgets
-                        arrow_list = (Widget(),Widget(),self_arrow_img)
+                        arrow_list = (Widget(), Widget(), self_arrow_img)
                     widget_list = (self_content, self_arrow_layout)
             else:
                 sctr = Scatter(do_translation = False,
@@ -247,7 +249,7 @@ class Bubble(GridLayout):
             elif self_arrow_pos[lenarrow_pos-4:] == '_mid':
                 arrow_list = (Widget(), sctr, Widget())
             elif self_arrow_pos[lenarrow_pos-7:] == '_bottom':
-                arrow_list = (Widget(),Widget(),sctr)
+                arrow_list = (Widget(), Widget(), sctr)
 
             if self_arrow_pos[0] =='l':
                 widget_list = (self_arrow_layout, self_content)
