@@ -480,6 +480,7 @@ class TextInput(Widget):
             win.remove_widget(self._bubble)
         t_pos = touch.pos
         bubble_size = bubble.size
+        win_size = win.size
         bubble.pos = (t_pos[0] - bubble_size[0]/2,
                             t_pos[1])
         bubble_pos = bubble.pos
@@ -487,25 +488,25 @@ class TextInput(Widget):
 
         if bubble_pos[0] < 0:
             # bubble beyond left of window
-            if bubble.pos[1] > (win.size[1]- bubble_size[1]):
+            if bubble.pos[1] > (win_size[1]- bubble_size[1]):
                 #bubble above window height
                 bubble.pos = (0, (t_pos[1]) - (bubble_size[1] + lh + ls))
                 bubble.arrow_pos = 'top_left'
             else:
                 bubble.pos = (0, bubble_pos[1])
                 bubble.arrow_pos = 'bottom_left'
-        elif bubble.right > win.size[0]:
+        elif bubble.right > win_size[0]:
             # bubble beyond right of window
-            bubble.right = win.size[0]
-            if bubble_pos[1] > (win.size[1]- bubble_size[1]):
+            if bubble_pos[1] > (win_size[1]- bubble_size[1]):
                 #bubble above window height
-                bubble.pos = (bubble.pos[0],
+                bubble.pos = (win_size[0] - bubble_size[0],
                         (t_pos[1]) - (bubble_size[1] + lh + ls))
                 bubble.arrow_pos = 'top_right'
             else:
+                bubble.right = win_size[0]
                 bubble.arrow_pos = 'bottom_right'
         else:
-            if bubble_pos[1] > (win.size[1]- bubble_size[1]):
+            if bubble_pos[1] > (win_size[1]- bubble_size[1]):
                 #bubble above window height
                 bubble.pos = (bubble_pos[0],
                         (t_pos[1]) - (bubble_size[1] + lh + ls))
