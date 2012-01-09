@@ -445,14 +445,17 @@ class TextInput(Widget):
             bubble = self._bubble
             from kivy.uix.button import Button
             but_cut = Button(text = 'cut',
-                         background_normal = 'data/images/bubble_btn.png',
-                         border = (0, 0, 0, 0))
+                    background_normal = 'data/images/bubble_btn.png',
+                    background_down = 'data/images/bubble_btn_pressed.png',
+                    border = (0, 0, 0, 0))
             but_copy = Button(text = 'copy',
-                         background_normal = 'data/images/bubble_btn.png',
-                         border = (0, 0, 0, 0))
+                    background_normal = 'data/images/bubble_btn.png',
+                    background_down = 'data/images/bubble_btn_pressed.png',
+                    border = (0, 0, 0, 0))
             but_paste = Button(text = 'paste',
-                         background_normal = 'data/images/bubble_btn.png',
-                         border = (0, 0, 0, 0))
+                    background_normal = 'data/images/bubble_btn.png',
+                    background_down = 'data/images/bubble_btn_pressed.png',
+                    border = (0, 0, 0, 0))
 
             def do_action(*l):
                 _action = l[0].text
