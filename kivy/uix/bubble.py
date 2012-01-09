@@ -1,12 +1,13 @@
 '''
 Bubble
 ======
+
 .. versionadded:: 1.0.10
 
 .. image:: images/bubble.jpg
     :align: right
 
-The Bubble widget is a form of menu or a small poppup where the options
+The Bubble widget is a form of menu or a small popup where the options
 are stacked either vertically or horizontally.
 
 The :class:`Bubble` contains one arrow pointing towards the direction you
@@ -23,10 +24,10 @@ Customize the Bubble
 
 You can choose the direction the arrow points towards::
 
-    Bubble(arrow_pos = 'top_mid')
+    Bubble(arrow_pos='top_mid')
 
 The widgets added to Bubble are orderd by default horizintally like in a
-Boxlayout. You can change that by ::
+Boxlayout. You can change that by::
 
     orientation = 'vertical'
 
@@ -52,26 +53,20 @@ Change Appearance of the bubble::
     bubble.border = [0, 0, 0, 0]
     background_image = 'path/to/background/image'
     arrow_image = 'path/to/arrow/image'
-
-
 '''
 
-__all__ = ('Bubble', )
+__all__ = ('Bubble', 'BubbleContent')
 
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.gridlayout import GridLayout
-from kivy.logger import Logger
-from kivy.properties import ObjectProperty, StringProperty, OptionProperty,\
-                            ListProperty
+from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
+        ListProperty
 
 
 class BubbleContent(GridLayout):
-
-    def __init__(self, **kwargs):
-        super(BubbleContent, self).__init__(**kwargs)
-        self.rows = 1
+    pass
 
 
 class Bubble(GridLayout):
@@ -112,17 +107,12 @@ class Bubble(GridLayout):
     '''
 
     arrow_pos = OptionProperty('bottom_mid',
-                                options =
-                                ['left_top', 'left_mid', 'left_bottom',
-                                 'top_left', 'top_mid', 'top_right',
-                                 'right_top', 'right_mid', 'right_bottom',
-                                 'bottom_left', 'bottom_mid', 'bottom_right'])
-    '''Specifies the position of the arrow relative to the bubble
-    can be one of:
-    'left_top, left_mid, left_bottom
-    top_left, top_mid, top_right
-    right_top, right_mid, right_bottom
-    bottom_left, bottom_mid, bottom_right'
+            options=('left_top', 'left_mid', 'left_bottom', 'top_left',
+                'top_mid', 'top_right', 'right_top', 'right_mid',
+                'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right'))
+    '''Specifies the position of the arrow relative to the bubble.
+    Can be one of: left_top, left_mid, left_bottom top_left, top_mid, top_right
+    right_top, right_mid, right_bottom bottom_left, bottom_mid, bottom_right.
 
     :data:`arrow_pos` is a :class:`~kivy.properties.OptionProperty`,
     default to 'bottom_mid'.
@@ -143,7 +133,7 @@ class Bubble(GridLayout):
     '''
 
     orientation = OptionProperty('horizontal',
-                                  options = ['horizontal', 'vertical'])
+            options=('horizontal', 'vertical'))
     '''This specifies the manner in which the children inside bubble
     are arranged. can be one of 'vertical', 'horizontal'
 
@@ -152,20 +142,17 @@ class Bubble(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        self._arrow_layout = GridLayout(rows = 1)
-        self._bk_img = Image(source = self.background_image,
-                                  allow_stretch = True,
-                                  keep_ratio = False,
-                                  color = self.background_color)
+        self._arrow_layout = GridLayout(rows=1)
+        self._bk_img = Image(
+            source=self.background_image, allow_stretch=True,
+            keep_ratio=False, color=self.background_color)
         self.background_texture = self._bk_img.texture
-        self._arrow_img = Image(source = self.arrow_image,
-                                color = self.background_color)
-        self._rows = 1
-        super(Bubble, self).__init__(**kwargs)
+        self._arrow_img = Image(source=self.arrow_image,
+            color=self.background_color)
         self.content = content = BubbleContent()
-        self._padding = 2
+        super(Bubble, self).__init__(**kwargs)
         self.add_widget(content)
-        self._bk_img.bind(on_texture = self._on_texture)
+        self._bk_img.bind(on_texture=self._on_texture)
         self.on_arrow_pos()
 
     def _on_texture(self, *l):
@@ -191,17 +178,17 @@ class Bubble(GridLayout):
         else:
             content.remove_widget(l[0])
 
-    def clear_widgets(self, *l):
+    def clear_widgets(self, **kwargs):
         content = self.content
         if content is None:
             return
-        if len(l) > 0:
+        if kwargs.get('do_super', False):
             super(Bubble, self).clear_widgets()
         else:
             content.clear_widgets()
 
     def on_background_image(self, *l):
-        self.bk_img.source = self.background_image
+        self._bk_img.source = self.background_image
 
     def on_background_color(self, *l):
         if self.content is None:
@@ -229,12 +216,10 @@ class Bubble(GridLayout):
         self_arrow_pos = self.arrow_pos
         self_arrow_layout = self._arrow_layout
         self_arrow_layout.clear_widgets()
-        self_arrow_layout_add_widget = self_arrow_layout.add_widget
         self_arrow_img = self._arrow_img
         self_arrow_img.pos = (0, 0)
-        self_add_widget = self.add_widget
 
-        self.clear_widgets('super')
+        self.clear_widgets(do_super=True)
         self_arrow_img.size_hint = (1, None)
         self_arrow_img.height = self_arrow_img.texture_size[1]
         widget_list = []
@@ -305,9 +290,13 @@ class Bubble(GridLayout):
             else:
                 widget_list = (self_content, self_arrow_layout)
 
-        #add widgets to arrow_layout
+        # add widgets to arrow_layout
+        add = self_arrow_layout.add_widget
         for widg in arrow_list:
-            self_arrow_layout_add_widget(widg)
-        #add widgets to self
+            add(widg)
+
+        # add widgets to self
+        add = self.add_widget
         for widg in widget_list:
-            self_add_widget(widg)
+            add(widg)
+

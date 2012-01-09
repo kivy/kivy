@@ -27,8 +27,8 @@
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
 <BubbleContent>
+	rows: 1
     canvas:
-        Clear
         Color:
             rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
         BorderImage:
