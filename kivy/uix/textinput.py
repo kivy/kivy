@@ -110,6 +110,8 @@ from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.text import Label
 from kivy.uix.widget import Widget
+from kivy.uix.bubble import Bubble
+from kivy.core.window import Window
 from kivy.graphics import Color, Rectangle
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
@@ -149,6 +151,7 @@ class TextInput(Widget):
         self._label_cached = None
         self._line_options = None
         self._keyboard = None
+        self._bubble = None
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -419,7 +422,97 @@ class TextInput(Widget):
         if self._selection_touch is touch:
             self.selection_to = self.cursor_index()
             self._update_selection(True)
+            if self.selection_to != self.selection_from:
+                self.show_cut_copy_paste(touch)
+            else:
+                #try:
+                Window.remove_widget(self._bubble)
+                #except:
             return True
+
+    def show_cut_copy_paste(self, touch):
+        '''show a bubble with cut copy and paste buttons'''
+        bubble = self._bubble
+        win = Window
+        if bubble is None:
+            self._bubble = Bubble(size_hint = (None, None),
+                                  size = (150, 50))
+            bubble = self._bubble
+            from kivy.uix.button import Button
+            but_cut = Button(text = 'cut',
+                         background_normal = 'data/images/bubble_btn.png',
+                         border = (0, 0, 0, 0))
+            but_copy = Button(text = 'copy',
+                         background_normal = 'data/images/bubble_btn.png',
+                         border = (0, 0, 0, 0))
+            but_paste = Button(text = 'paste',
+                         background_normal = 'data/images/bubble_btn.png',
+                         border = (0, 0, 0, 0))
+
+            def do_action(*l):
+                _action = l[0].text
+                global Clipboard
+                if Clipboard is None:
+                    from kivy.core.clipboard import Clipboard
+
+                if _action == 'cut':# cut selection
+                    Clipboard.put(self.selection_text, 'text/plain')
+                    self.delete_selection()
+                elif _action == 'copy':# copy selection
+                    Clipboard.put(self.selection_text, 'text/plain')
+                elif _action == 'paste':# paste selection
+                    data = Clipboard.get('text/plain')
+                    if data:
+                        self.delete_selection()
+                        self.insert_text(data)
+            but_cut.bind(on_release = do_action)
+            but_copy.bind(on_release = do_action)
+            but_paste.bind(on_release = do_action)
+            bubble.add_widget(but_cut)
+            bubble.add_widget(but_copy)
+            bubble.add_widget(but_paste)
+        else:
+            win.remove_widget(self._bubble)
+        t_pos = touch.pos
+        bubble_size = bubble.size
+        bubble.pos = (t_pos[0] - bubble_size[0]/2,
+                            t_pos[1])
+        bubble_pos = bubble.pos
+
+        if bubble_pos[0] < 0:
+            # bubble beyond left of window
+            bubble.pos = (0, bubble_pos[1])
+            if bubble.pos[1] > (win.size[1]- bubble_size[1]):
+                #bubble above window height
+                bubble.pos = (bubble.pos[0],
+                                     (t_pos[1]) - (bubble_size[1]
+                                     + self.line_height + self._line_spacing))
+                bubble.arrow_pos = 'top_left'
+            else:
+                bubble.arrow_pos = 'bottom_left'
+        elif bubble.right > win.size[0]:
+            # bubble beyond right of window
+            bubble.right = win.size[0]
+            if bubble_pos[1] > (win.size[1]- bubble_size[1]):
+                #bubble above window height
+                bubble.pos = (bubble.pos[0],
+                                     (t_pos[1]) - (bubble_size[1]
+                                     + self.line_height + self._line_spacing))
+                bubble.arrow_pos = 'top_right'
+                print 'top_right'
+            else:
+                bubble.arrow_pos = 'bottom_right'
+        else:
+            if bubble_pos[1] > (win.size[1]- bubble_size[1]):
+                #bubble above window height
+                bubble.pos = (bubble_pos[0],
+                                     (t_pos[1]) - (bubble_size[1]
+                                     + self.line_height + self._line_spacing))
+                bubble.arrow_pos = 'top_mid'
+            else:
+                bubble.arrow_pos = 'bottom_mid'
+
+        win.add_widget(self._bubble)
 
     #
     # Private
