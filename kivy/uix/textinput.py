@@ -487,13 +487,12 @@ class TextInput(Widget):
 
         if bubble_pos[0] < 0:
             # bubble beyond left of window
-            bubble.pos = (0, bubble_pos[1])
             if bubble.pos[1] > (win.size[1]- bubble_size[1]):
                 #bubble above window height
-                bubble.pos = (bubble.pos[0],
-                        (t_pos[1]) - (bubble_size[1] + lh + ls))
+                bubble.pos = (0, (t_pos[1]) - (bubble_size[1] + lh + ls))
                 bubble.arrow_pos = 'top_left'
             else:
+                bubble.pos = (0, bubble_pos[1])
                 bubble.arrow_pos = 'bottom_left'
         elif bubble.right > win.size[0]:
             # bubble beyond right of window
