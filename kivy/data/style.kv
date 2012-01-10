@@ -26,6 +26,16 @@
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
+<BubbleContent>
+    rows: 1
+    canvas:
+        Color:
+            rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
+        BorderImage:
+            border: self.parent.border if self.parent else (16, 16, 16, 16)
+            texture: root.parent.background_texture if root.parent else None
+            size: self.size
+            pos: self.pos
 
 <Slider>:
     canvas:
@@ -419,6 +429,8 @@
         FloatLayout:
             id: labellayout
             orientation: 'vertical'
+            size_hint_x: .5
+
             Label:
                 pos_hint: {'y': .5, 'x': 0}
                 text: root.title
@@ -436,8 +448,8 @@
 
         BoxLayout:
             id: content
-            size_hint_x: None
-            width: 150
+            size_hint_x: .5
+
 
 <SettingBoolean>:
     Switch:
