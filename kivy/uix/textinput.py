@@ -481,7 +481,9 @@ class TextInput(Widget):
             bubble.add_widget(but_paste)
         else:
             win.remove_widget(self._bubble)
-        t_pos = touch.pos
+        x, y = touch.pos
+        #get window position in case 
+        t_pos = self.to_window(x, y)
         bubble_size = bubble.size
         win_size = win.size
         bubble.pos = (t_pos[0] - bubble_size[0]/2,
