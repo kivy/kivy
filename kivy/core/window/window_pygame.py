@@ -39,11 +39,14 @@ class WindowPygame(WindowBase):
         self.flags = pygame.HWSURFACE | pygame.OPENGL | \
                      pygame.DOUBLEBUF
 
-        # right now, activate resizable window only on linux.
-        # on window / macosx, the opengl context is lost, and we need to
-        # reconstruct everything. Check #168 for a state of the work.
-        if sys.platform == 'linux2':
-            self.flags |= pygame.RESIZABLE
+        ### right now, activate resizable window only on linux.
+        ### on window / macosx, the opengl context is lost, and we need to
+        ### reconstruct everything. Check #168 for a state of the work.
+        #
+        # Not necessary to call display.set_mode each time the window is resized.
+        # This is what destroys the opengl context.
+
+        self.flags |= pygame.RESIZABLE
 
         pygame.display.init()
 
@@ -260,14 +263,9 @@ class WindowPygame(WindowBase):
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
-        self._pygame_set_mode(self._size)
         self.dispatch('on_resize', *self._size)
 
     def mainloop(self):
-        # don't known why, but pygame required a resize event
-        # for opengl, before mainloop... window reinit ?
-        self.dispatch('on_resize', *self.size)
-
         while not EventLoop.quit and EventLoop.status == 'started':
             try:
                 self._mainloop()
@@ -287,7 +285,6 @@ class WindowPygame(WindowBase):
 
     def _set_size(self, size):
         if super(WindowPygame, self)._set_size(size):
-            self._pygame_set_mode()
             return True
     size = property(WindowBase._get_size, _set_size)
 
