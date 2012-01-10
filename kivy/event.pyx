@@ -156,6 +156,19 @@ cdef class EventDispatcher(object):
 
             # With event
             self.bind(on_press=self.my_press_callback)
+
+        Usage in a class::
+
+            class MyClass(BoxLayout):
+                def __init__(self):
+                    super(MyClass, self).__init__(**kwargs)
+                    btn = Button(text='click on')
+                    btn.bind(on_press=self.my_callback) #bind event
+                    self.add_widget(btn)
+
+                def my_callback(self,obj,value):
+                    print 'press on button', obj, 'with date:', value
+
         '''
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
