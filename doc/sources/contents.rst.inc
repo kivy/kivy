@@ -12,6 +12,7 @@ stunning applications in short time using the framework.
     philosophy
     installation/installation
     guide-index
+    tutorials-index
     contribute
     faq
     contact
