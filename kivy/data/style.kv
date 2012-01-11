@@ -107,6 +107,19 @@
         Color:
             rgb: (0, 0, 0)
 
+<TextInputCutCopyPaste>:
+	size_hint: None, None
+	size: 150, 50
+	BubbleButton:
+		text: 'Cut'
+		on_release: root.do('cut')
+	BubbleButton:
+		text: 'Copy'
+		on_release: root.do('copy')
+	BubbleButton:
+		text: 'Paste'
+		on_release: root.do('paste')
+
 
 <TreeViewNode>:
     canvas.before:
