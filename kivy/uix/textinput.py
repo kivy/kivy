@@ -114,7 +114,7 @@ from kivy.uix.bubble import Bubble
 from kivy.graphics import Color, Rectangle
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
-        ListProperty
+        ListProperty, ObjectProperty
 
 Cache.register('textinput.label', timeout=60.)
 
@@ -122,6 +122,31 @@ FL_IS_NEWLINE = 0x01
 
 # late binding
 Clipboard = None
+
+
+class TextInputCutCopyPaste(Bubble):
+    # Internal class used for showing the little bubble popup when
+    # copy/cut/paste happen.
+
+    textinput = ObjectProperty(None)
+
+    def do(self, action):
+        textinput = self.textinput
+
+        global Clipboard
+        if Clipboard is None:
+            from kivy.core.clipboard import Clipboard
+
+        if action == 'cut':
+            Clipboard.put(textinput.selection_text, 'text/plain')
+            textinput.delete_selection()
+        elif action == 'copy':
+            Clipboard.put(textinput.selection_text, 'text/plain')
+        elif action == 'paste':
+            data = Clipboard.get('text/plain')
+            if data:
+                textinput.delete_selection()
+                textinput.insert_text(data)
 
 
 class TextInput(Widget):
@@ -421,7 +446,7 @@ class TextInput(Widget):
         if self._selection_touch is touch:
             self.selection_to = self.cursor_index()
             self._update_selection(True)
-            #show Bubble
+            # show Bubble
             win = self._win
             if not win:
                 self._win = win = self.get_root_window()
@@ -430,69 +455,33 @@ class TextInput(Widget):
                     'Cannot show bubble, unable to get root window')
                 return True
             if self.selection_to != self.selection_from:
-                self.show_cut_copy_paste(touch, win)
+                self._show_cut_copy_paste(touch, win)
             else:
                 win.remove_widget(self._bubble)
             return True
 
-
-    def show_cut_copy_paste(self, touch, win):
-        '''show a bubble with cut copy and paste buttons'''
+    def _show_cut_copy_paste(self, touch, win):
+        # Show a bubble with cut copy and paste buttons
         bubble = self._bubble
         if bubble is None:
-            self._bubble = Bubble(size_hint = (None, None),
-                                  size = (150, 50))
-            bubble = self._bubble
-            from kivy.uix.button import Button
-            but_cut = Button(text = 'cut',
-                    background_normal = 'data/images/bubble_btn.png',
-                    background_down = 'data/images/bubble_btn_pressed.png',
-                    border = (0, 0, 0, 0))
-            but_copy = Button(text = 'copy',
-                    background_normal = 'data/images/bubble_btn.png',
-                    background_down = 'data/images/bubble_btn_pressed.png',
-                    border = (0, 0, 0, 0))
-            but_paste = Button(text = 'paste',
-                    background_normal = 'data/images/bubble_btn.png',
-                    background_down = 'data/images/bubble_btn_pressed.png',
-                    border = (0, 0, 0, 0))
-
-            def do_action(*l):
-                _action = l[0].text
-                global Clipboard
-                if Clipboard is None:
-                    from kivy.core.clipboard import Clipboard
-
-                if _action == 'cut':# cut selection
-                    Clipboard.put(self.selection_text, 'text/plain')
-                    self.delete_selection()
-                elif _action == 'copy':# copy selection
-                    Clipboard.put(self.selection_text, 'text/plain')
-                elif _action == 'paste':# paste selection
-                    data = Clipboard.get('text/plain')
-                    if data:
-                        self.delete_selection()
-                        self.insert_text(data)
-            but_cut.bind(on_release = do_action)
-            but_copy.bind(on_release = do_action)
-            but_paste.bind(on_release = do_action)
-            bubble.add_widget(but_cut)
-            bubble.add_widget(but_copy)
-            bubble.add_widget(but_paste)
+            self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
         else:
             win.remove_widget(self._bubble)
-        t_pos = touch.pos
+
+        # Search the position from the touch to the window
+        x, y = touch.pos
+        t_pos = self.to_window(x, y)
         bubble_size = bubble.size
         win_size = win.size
-        bubble.pos = (t_pos[0] - bubble_size[0]/2,
-                            t_pos[1])
+        bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1])
         bubble_pos = bubble.pos
         lh, ls = self.line_height, self._line_spacing
 
+        # FIXME found a way to have that feature available for everybody
         if bubble_pos[0] < 0:
             # bubble beyond left of window
             if bubble.pos[1] > (win_size[1]- bubble_size[1]):
-                #bubble above window height
+                # bubble above window height
                 bubble.pos = (0, (t_pos[1]) - (bubble_size[1] + lh + ls))
                 bubble.arrow_pos = 'top_left'
             else:
@@ -501,7 +490,7 @@ class TextInput(Widget):
         elif bubble.right > win_size[0]:
             # bubble beyond right of window
             if bubble_pos[1] > (win_size[1]- bubble_size[1]):
-                #bubble above window height
+                # bubble above window height
                 bubble.pos = (win_size[0] - bubble_size[0],
                         (t_pos[1]) - (bubble_size[1] + lh + ls))
                 bubble.arrow_pos = 'top_right'
@@ -510,7 +499,7 @@ class TextInput(Widget):
                 bubble.arrow_pos = 'bottom_right'
         else:
             if bubble_pos[1] > (win_size[1]- bubble_size[1]):
-                #bubble above window height
+                # bubble above window height
                 bubble.pos = (bubble_pos[0],
                         (t_pos[1]) - (bubble_size[1] + lh + ls))
                 bubble.arrow_pos = 'top_mid'
