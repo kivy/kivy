@@ -55,14 +55,26 @@ Change Appearance of the bubble::
     arrow_image = 'path/to/arrow/image'
 '''
 
-__all__ = ('Bubble', 'BubbleContent')
+__all__ = ('Bubble', 'BubbleButton', 'BubbleContent')
 
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
         ListProperty
+
+
+class BubbleButton(Button):
+    '''A button intented to be used as a widget for Bubble widget.
+    You can use "normal" button class, but it will not look good, and you'll
+    need to change yourself the background to be ok.
+
+    Instead, you can use this BubbleButton widget that already defined the good
+    background for you.
+    '''
+    pass
 
 
 class BubbleContent(GridLayout):

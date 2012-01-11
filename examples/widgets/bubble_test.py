@@ -18,21 +18,12 @@ Builder.load_string('''
     pos_hint: {'center_x': .5, 'y': .6}
     arrow_pos: 'bottom_mid'
     orientation: 'horizontal'
-    Button:
+    BubbleButton:
         text: 'Cut'
-        background_normal: 'data/images/bubble_btn.png'
-        background_down: 'data/images/bubble_btn_pressed.png'
-        border: (0,0,0,0)
-    Button:
+    BubbleButton:
         text: 'Copy'
-        background_normal: 'data/images/bubble_btn.png'
-        background_down: 'data/images/bubble_btn_pressed.png'
-        border: (0,0,0,0)
-    Button:
+    BubbleButton:
         text: 'Paste'
-        background_normal: 'data/images/bubble_btn.png'
-        background_down: 'data/images/bubble_btn_pressed.png'
-        border: (0,0,0,0)
 ''')
 
 
