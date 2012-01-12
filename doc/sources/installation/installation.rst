@@ -49,7 +49,7 @@ Please refer to the installation instructions for your specific platform:
 
     installation-windows
     installation-macosx
-    installation-ubuntu
+    installation-linux
     installation-android
 
 
