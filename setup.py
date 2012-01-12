@@ -39,6 +39,13 @@ from kivy.tools.packaging.factory import FactoryBuild
 cmdclass['build_factory'] = FactoryBuild
 
 #
+# Detect Python for android project
+#
+ndkplatform = environ.get('NDKPLATFORM', None)
+if ndkplatform is not None:
+    platform = 'android'
+
+#
 # Detect options
 #
 c_options = {
@@ -48,12 +55,11 @@ c_options = {
     'use_mesagl': 'USE_MESAGL' in environ}
 
 # Detect which opengl version headers to use
-if platform == 'win32':
+if platform in ('android', 'darwin'):
+    pass
+elif platform == 'win32':
     print 'Windows platform detected, force GLEW usage.'
     c_options['use_glew'] = True
-elif platform == 'darwin':
-    # macosx is using their own gl.h
-    pass
 else:
     # searching GLES headers
     default_header_dirs = ['/usr/include', '/usr/local/include']
@@ -128,6 +134,10 @@ if True:
     elif platform.startswith('freebsd'):
         include_dirs += ['/usr/local/include']
         extra_link_args += ['-L', '/usr/local/lib']
+    elif platform == 'android':
+        include_dirs += [join(ndkplatform, 'usr', 'include')]
+        extra_link_args += ['-L', join(ndkplatform, 'usr', 'lib')]
+        libraries.append('GLESv2')
     else:
         libraries.append('GLESv2')
 
