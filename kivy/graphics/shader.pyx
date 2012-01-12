@@ -70,7 +70,7 @@ cdef class ShaderSource:
 
         # create and compile
         shader = glCreateShader(self.shadertype)
-        glShaderSource(shader, 1, <char**> &source, NULL)
+        glShaderSource(shader, 1, <const_char_ptr*> &source, NULL)
         glCompileShader(shader)
 
         # show any messages

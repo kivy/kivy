@@ -110,10 +110,11 @@ from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.text import Label
 from kivy.uix.widget import Widget
+from kivy.uix.bubble import Bubble
 from kivy.graphics import Color, Rectangle
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
-        ListProperty
+        ListProperty, ObjectProperty
 
 Cache.register('textinput.label', timeout=60.)
 
@@ -121,6 +122,31 @@ FL_IS_NEWLINE = 0x01
 
 # late binding
 Clipboard = None
+
+
+class TextInputCutCopyPaste(Bubble):
+    # Internal class used for showing the little bubble popup when
+    # copy/cut/paste happen.
+
+    textinput = ObjectProperty(None)
+
+    def do(self, action):
+        textinput = self.textinput
+
+        global Clipboard
+        if Clipboard is None:
+            from kivy.core.clipboard import Clipboard
+
+        if action == 'cut':
+            Clipboard.put(textinput.selection_text, 'text/plain')
+            textinput.delete_selection()
+        elif action == 'copy':
+            Clipboard.put(textinput.selection_text, 'text/plain')
+        elif action == 'paste':
+            data = Clipboard.get('text/plain')
+            if data:
+                textinput.delete_selection()
+                textinput.insert_text(data)
 
 
 class TextInput(Widget):
@@ -142,6 +168,7 @@ class TextInput(Widget):
         self.selection_text = ''
         self.selection_from = None
         self.selection_to = None
+        self._bubble = None
         self._lines_flags = []
         self._lines_labels = []
         self._lines_rects = []
@@ -322,7 +349,9 @@ class TextInput(Widget):
         l = self._lines
         dy = self.line_height + self._line_spacing
         cx = x - self.x
-        cy = (self.top - self.padding_y + self.scroll_y * dy) - y
+        scrl_y = self.scroll_y
+        scrl_y = scrl_y/ dy if scrl_y > 0 else 0
+        cy = (self.top - self.padding_y + scrl_y * dy) - y
         cy = int(boundary(round(cy / dy), 0, len(l) - 1))
         dcx = 0
         for i in xrange(1, len(l[cy])+1):
@@ -346,6 +375,8 @@ class TextInput(Widget):
     def delete_selection(self):
         '''Delete the current text selection (if any)
         '''
+        scrl_x = self.scroll_x
+        scrl_y = self.scroll_y
         if not self._selection:
             return
         v = self.text
@@ -355,6 +386,8 @@ class TextInput(Widget):
         text = v[:a] + v[b:]
         self.text = text
         self.cursor = self.get_cursor_from_index(a)
+        self.scroll_x = scrl_x
+        self.scroll_y = scrl_y
         self.cancel_selection()
 
     def _update_selection(self, finished=False):
@@ -413,7 +446,67 @@ class TextInput(Widget):
         if self._selection_touch is touch:
             self.selection_to = self.cursor_index()
             self._update_selection(True)
+            # show Bubble
+            win = self._win
+            if not win:
+                self._win = win = self.get_root_window()
+            if not win:
+                Logger.warning('Textinput: '
+                    'Cannot show bubble, unable to get root window')
+                return True
+            if self.selection_to != self.selection_from:
+                self._show_cut_copy_paste(touch, win)
+            else:
+                win.remove_widget(self._bubble)
             return True
+
+    def _show_cut_copy_paste(self, touch, win):
+        # Show a bubble with cut copy and paste buttons
+        bubble = self._bubble
+        if bubble is None:
+            self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
+        else:
+            win.remove_widget(self._bubble)
+
+        # Search the position from the touch to the window
+        x, y = touch.pos
+        t_pos = self.to_window(x, y)
+        bubble_size = bubble.size
+        win_size = win.size
+        bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1])
+        bubble_pos = bubble.pos
+        lh, ls = self.line_height, self._line_spacing
+
+        # FIXME found a way to have that feature available for everybody
+        if bubble_pos[0] < 0:
+            # bubble beyond left of window
+            if bubble.pos[1] > (win_size[1]- bubble_size[1]):
+                # bubble above window height
+                bubble.pos = (0, (t_pos[1]) - (bubble_size[1] + lh + ls))
+                bubble.arrow_pos = 'top_left'
+            else:
+                bubble.pos = (0, bubble_pos[1])
+                bubble.arrow_pos = 'bottom_left'
+        elif bubble.right > win_size[0]:
+            # bubble beyond right of window
+            if bubble_pos[1] > (win_size[1]- bubble_size[1]):
+                # bubble above window height
+                bubble.pos = (win_size[0] - bubble_size[0],
+                        (t_pos[1]) - (bubble_size[1] + lh + ls))
+                bubble.arrow_pos = 'top_right'
+            else:
+                bubble.right = win_size[0]
+                bubble.arrow_pos = 'bottom_right'
+        else:
+            if bubble_pos[1] > (win_size[1]- bubble_size[1]):
+                # bubble above window height
+                bubble.pos = (bubble_pos[0],
+                        (t_pos[1]) - (bubble_size[1] + lh + ls))
+                bubble.arrow_pos = 'top_mid'
+            else:
+                bubble.arrow_pos = 'bottom_mid'
+
+        win.add_widget(self._bubble)
 
     #
     # Private

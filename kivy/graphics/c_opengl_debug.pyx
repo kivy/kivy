@@ -1,5 +1,6 @@
 
 # This file was automatically generated with kivy/tools/stub-gl-debug.py
+include "common.pxi"
 cimport c_opengl as cgl
 
 
@@ -348,7 +349,7 @@ cdef void   glGetShaderSource (GLuint shader, GLsizei bufsize, GLsizei* length, 
     if ret: print "ERR %d / %x" % (ret, ret)
 cdef   GLubyte*  glGetString (GLenum name) with gil:
     print "GL glGetString( name = ", name, ", )"
-    return cgl.glGetString ( name)
+    return <GLubyte*><char*>cgl.glGetString ( name)
 cdef void   glGetTexParameterfv (GLenum target, GLenum pname, GLfloat* params) with gil:
     print "GL glGetTexParameterfv( target = ", target, ", pname = ", pname, ", params*=", repr(hex(<long> params)), ", )"
     cgl.glGetTexParameterfv ( target, pname, params)
@@ -457,7 +458,7 @@ cdef void  glScissor (GLint x, GLint y, GLsizei width, GLsizei height) with gil:
 # Skipping generation of: "#cdef void  glShaderBinary (cgl.GLsizei n,  cgl.GLuint* shaders, cgl.GLenum binaryformat,  cgl.GLvoid* binary, cgl.GLsizei length)"
 cdef void  glShaderSource (GLuint shader, GLsizei count,  GLchar** string,  GLint* length) with gil:
     print "GL glShaderSource( shader = ", shader, ", count = ", count, ", string**=", repr(hex(<long> string)), ", length*=", repr(hex(<long> length)), ", )"
-    cgl.glShaderSource ( shader, count, string, length)
+    cgl.glShaderSource ( shader, count, <const_char_ptr*>string, length)
     ret = glGetError()
     if ret: print "ERR %d / %x" % (ret, ret)
 cdef void  glStencilFunc (GLenum func, GLint ref, GLuint mask) with gil:

@@ -128,8 +128,11 @@ cdef class Matrix:
             raise ValueError('invalid frustrum')
         if perspective:
             raise Exception('not tested')
+            '''
+            # original code
             if near <= _EPS:
                 raise ValueError('invalid frustrum: near <= 0')
+            '''
 
         with nogil:
             if perspective:

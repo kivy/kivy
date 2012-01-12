@@ -45,7 +45,7 @@ c_options = {
     'use_opengl_es2': True,
     'use_opengl_debug': False,
     'use_glew': False,
-    'use_mesagl': False}
+    'use_mesagl': 'USE_MESAGL' in environ}
 
 # Detect which opengl version headers to use
 if platform == 'win32':
@@ -73,6 +73,9 @@ else:
 class KivyBuildExt(build_ext):
 
     def build_extensions(self):
+        print 'Build configuration is:'
+        for opt, value in c_options.iteritems():
+            print ' *', opt, ' = ', repr(value)
         print 'Generate config.h'
         config_h = join(dirname(__file__), 'kivy', 'graphics', 'config.h')
         with open(config_h, 'w') as fd:

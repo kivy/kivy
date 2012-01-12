@@ -71,7 +71,6 @@ cdef class VBO:
         self.need_upload = 0
 
     cdef void update_buffer(self):
-        cdef vertex_t* data = <vertex_t*>self.data.pointer()
         if self.vbo_size < self.data.size():
             self.allocate_buffer()
         elif self.need_upload:
@@ -89,7 +88,7 @@ cdef class VBO:
             if attr.per_vertex == 0:
                 continue
             glVertexAttribPointer(attr.index, attr.size, attr.type,
-                    GL_FALSE, sizeof(vertex_t), <GLvoid*>offset)
+                    GL_FALSE, sizeof(vertex_t), <GLvoid*><long>offset)
             offset += attr.bytesize
 
     cdef void unbind(self):

@@ -26,6 +26,21 @@
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
+<BubbleContent>
+    rows: 1
+    canvas:
+        Color:
+            rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
+        BorderImage:
+            border: self.parent.border if self.parent else (16, 16, 16, 16)
+            texture: root.parent.background_texture if root.parent else None
+            size: self.size
+            pos: self.pos
+
+<BubbleButton>:
+	background_normal: 'data/images/bubble_btn.png'
+	background_down: 'data/images/bubble_btn_pressed.png'
+	border: (0, 0, 0, 0)
 
 <Slider>:
     canvas:
@@ -91,6 +106,19 @@
             size: 1, -self.line_height
         Color:
             rgb: (0, 0, 0)
+
+<TextInputCutCopyPaste>:
+	size_hint: None, None
+	size: 150, 50
+	BubbleButton:
+		text: 'Cut'
+		on_release: root.do('cut')
+	BubbleButton:
+		text: 'Copy'
+		on_release: root.do('copy')
+	BubbleButton:
+		text: 'Paste'
+		on_release: root.do('paste')
 
 
 <TreeViewNode>:

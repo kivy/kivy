@@ -13,6 +13,7 @@ Programming Guide
     guide/widgettree
     guide/events
     guide/inputs
+    guide/kvlang
     guide/designwithkv
     guide/platform
     guide/other-frameworks

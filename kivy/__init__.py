@@ -175,8 +175,11 @@ def kivy_usage():
 
 
 # Start !
-Logger.setLevel(level=LOG_LEVELS.get('info'))
-Logger.info('Kivy v%s' % (__version__))
+if 'vim' in globals():
+    Logger.setLevel(level=LOG_LEVELS.get('critical'))
+else:
+    Logger.setLevel(level=LOG_LEVELS.get('info'))
+    Logger.info('Kivy v%s' % (__version__))
 
 #: Global settings options for kivy
 kivy_options = {
