@@ -388,7 +388,7 @@ Step 6 - Have some fun
 
 Well, the pong game is pretty much complete.  If you understood all of the
 things that are covered in this turoial, give yourself a pat on the back and
-think about how you could imrpove the game.  Here a are a few ideas of things
+think about how you could improve the game.  Here a are a few ideas of things
 you could do:
 
 * Add some nicer graphics / images (hint check out the source property on
