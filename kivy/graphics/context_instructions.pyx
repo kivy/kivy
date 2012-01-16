@@ -1,5 +1,3 @@
-#cython: embedsignature=True
-
 '''
 Context instructions
 ====================
@@ -451,7 +449,7 @@ cdef class Translate(Transform):
             x, y, z = args
             self.matrix = Matrix().translate(x, y, z)
 
-    def set_translate(self, x, y, z):
+    cdef set_translate(self, double x, double y, double z):
         self.matrix = Matrix().translate(x, y, z)
 
     property x:
@@ -459,7 +457,7 @@ cdef class Translate(Transform):
         '''
         def __get__(self):
             return self._x
-        def __set__(self, float x):
+        def __set__(self, double x):
             self.set_translate(x, self._y, self._z)
 
     property y:
@@ -467,7 +465,7 @@ cdef class Translate(Transform):
         '''
         def __get__(self):
             return self._y
-        def __set__(self, float y):
+        def __set__(self, double y):
             self.set_translate(self._x, y, self._z)
 
     property z:
@@ -475,7 +473,7 @@ cdef class Translate(Transform):
         '''
         def __get__(self):
             return self._z
-        def __set__(self, float z):
+        def __set__(self, double z):
             self.set_translate(self._x, self._y, z)
 
     property xy:

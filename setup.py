@@ -167,7 +167,11 @@ if True:
                 kwargs.get('extra_compile_args', [])
             kwargs['extra_link_args'] = extra_args + \
                 kwargs.get('extra_link_args', [])
-        return OrigExtension(*args, **kwargs)
+        ext = OrigExtension(*args, **kwargs)
+        ext.pyrex_directives = {
+            'profile': 'USE_PROFILE' in environ,
+            'embedsignature': False}
+        return ext
 
     # simple extensions
     for pyx in (x for x in pyx_files if not 'graphics' in x):
