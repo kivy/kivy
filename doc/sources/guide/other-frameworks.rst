@@ -38,7 +38,7 @@ echo_client_app.py.  The server will, reply with simple echo messages to
 anything the client app sends, when you hit enter after typing something
 in the textbox.
 
-Serer App
+Server App
 *********
 .. include:: ../../../examples/frameworks/twisted/echo_server_app.py
    :literal:
