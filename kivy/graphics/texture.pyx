@@ -698,7 +698,7 @@ cdef class Texture:
         def __get__(self):
             return self._id
 
-    property _target:
+    property target:
         '''Return the OpenGL target of the texture (readonly)
         '''
         def __get__(self):
