@@ -1,5 +1,3 @@
-#cython: embedsignature=True
-
 '''
 Framebuffer
 ===========
@@ -111,19 +109,25 @@ cdef class Fbo(RenderContext):
     def __init__(self, *args, **kwargs):
         RenderContext.__init__(self, *args, **kwargs)
 
-        kwargs.setdefault('clear_color', (0, 0, 0, 0))
-        kwargs.setdefault('size', (1024, 1024))
-        kwargs.setdefault('push_viewport', True)
-        kwargs.setdefault('with_depthbuffer', False)
+        if 'clear_color' in kwargs:
+            kwargs['clear_color'] = (0, 0, 0, 0)
+        if 'size' not in kwargs:
+            kwargs['size'] = (1024, 1024)
+        if 'push_viewport' not in kwargs:
+            kwargs['push_viewport'] = True
+        if 'with_depthbuffer' not in kwargs:
+            kwargs['with_depthbuffer'] = False
+        if 'texture' not in kwargs:
+            kwargs['texture'] = None
 
         self._buffer_id             = -1
         self._depthbuffer_id        = -1
-        self._width, self._height   = kwargs.get('size')
-        self.clear_color            = kwargs.get('clear_color')
-        self._depthbuffer_attached  = int(kwargs.get('with_depthbuffer'))
-        self._push_viewport         = int(kwargs.get('push_viewport'))
+        self._width, self._height   = kwargs['size']
+        self.clear_color            = kwargs['clear_color']
+        self._depthbuffer_attached  = int(kwargs['with_depthbuffer'])
+        self._push_viewport         = int(kwargs['push_viewport'])
         self._is_bound              = 0
-        self._texture               = kwargs.get('texture', None)
+        self._texture               = kwargs['texture']
 
         self.create_fbo()
 

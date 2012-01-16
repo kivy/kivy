@@ -33,10 +33,6 @@ Kivy's property classes support:
 
 '''
 
-#cython: profile=True
-#cython: embedsignature=True
-
-
 __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
@@ -76,10 +72,6 @@ cdef class Property:
         a.hello = 'bleh' # working
         a.hello = None # working too, because allownone is True.
     '''
-
-    cdef str _name
-    cdef int allownone
-    cdef object defaultvalue
 
     def __cinit__(self):
         self._name = ''
@@ -129,14 +121,14 @@ cdef class Property:
     cpdef bind(self, obj, observer):
         '''Add a new observer to be called only when the value is changed
         '''
-        observers = obj.__storage[self._name]['observers']
+        cdef list observers = obj.__storage[self._name]['observers']
         if not observer in observers:
             observers.append(observer)
 
     cpdef unbind(self, obj, observer):
         '''Remove the observer from our widget observer list
         '''
-        observers = obj.__storage[self._name]['observers']
+        cdef list observers = obj.__storage[self._name]['observers']
         for obj in observers[:]:
             if obj is observer:
                 observers.remove(obj)
@@ -439,11 +431,6 @@ cdef class BoundedNumericProperty(Property):
         `max`: numeric
             If set, maximum bound will be used, with the value of max
     '''
-    cdef int use_min
-    cdef int use_max
-    cdef long min
-    cdef long max
-
     def __cinit__(self):
         self.use_min = 0
         self.use_max = 0
@@ -512,8 +499,6 @@ cdef class OptionProperty(Property):
         `options`: list (not tuple.)
             List of valid options
     '''
-    cdef list options
-
     def __cinit__(self):
         self.options = []
 
@@ -555,8 +540,6 @@ cdef class ReferenceListProperty(Property):
     If you read the value of `pos`, it will return a tuple with the values of
     `x` and `y`.
     '''
-    cdef list properties
-
     def __cinit__(self):
         self.properties = list()
 
@@ -571,12 +554,13 @@ cdef class ReferenceListProperty(Property):
         storage['stop_event'] = 0
 
     cpdef link_deps(self, object obj, str name):
+        cdef Property prop
         Property.link_deps(self, obj, name)
         for prop in self.properties:
             prop.bind(obj, self.trigger_change)
 
     cpdef trigger_change(self, obj, value):
-        s = obj.__storage[self._name]
+        cdef dict s = obj.__storage[self._name]
         if s['stop_event']:
             return
         p = s['properties']
@@ -617,7 +601,7 @@ cdef class ReferenceListProperty(Property):
         return True
 
     cpdef get(self, obj):
-        s = obj.__storage[self._name]
+        cdef dict s = obj.__storage[self._name]
         p = s['properties']
         s['value'] = [p[x].get(obj) for x in xrange(len(p))]
         return s['value']
@@ -644,10 +628,6 @@ cdef class AliasProperty(Property):
         `bind`: list/tuple
             List of properties to observe for changes
     '''
-    cdef object getter
-    cdef object setter
-    cdef list bind_objects
-
     def __cinit__(self):
         self.getter = None
         self.setter = None
@@ -657,7 +637,8 @@ cdef class AliasProperty(Property):
         Property.__init__(self, None, **kwargs)
         self.getter = getter
         self.setter = setter
-        self.bind_objects = list(kwargs.get('bind', []))
+        v = kwargs.get('bind')
+        self.bind_objects = list(v) if v is not None else []
 
     cdef init_storage(self, dict storage):
         Property.init_storage(self, storage)
@@ -665,6 +646,7 @@ cdef class AliasProperty(Property):
         storage['setter'] = self.setter
 
     cpdef link_deps(self, object obj, str name):
+        cdef Property oprop
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
             oprop.bind(obj, self.trigger_change)

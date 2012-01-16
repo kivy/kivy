@@ -18,7 +18,7 @@ __all__ = ('EventDispatcher', )
 
 
 from kivy.weakmethod import WeakMethod
-from kivy.properties import Property, ObjectProperty
+from kivy.properties cimport Property, ObjectProperty
 
 cdef tuple forbidden_properties = ('touch_down', 'touch_move', 'touch_up')
 cdef int widget_uid = 0
@@ -39,6 +39,8 @@ cdef class EventDispatcher(object):
         cdef dict cp = cache_properties
         cdef dict attrs_found
         cdef list attrs
+        cdef Property attr
+        cdef str k
         self.__event_stack = {}
         __cls__ = self.__class__
 
@@ -54,26 +56,30 @@ cdef class EventDispatcher(object):
             attrs_found = cp[__cls__] = {}
             attrs = dir(__cls__)
             for k in attrs:
-                attr = getattr(__cls__, k)
-                if not isinstance(attr, Property):
+                uattr = getattr(__cls__, k)
+                if not isinstance(uattr, Property):
                     continue
                 if k in forbidden_properties:
                     raise Exception('The property <%s> have a forbidden name' % k)
-                attrs_found[k] = attr
+                attrs_found[k] = uattr
         else:
             attrs_found = cp[__cls__]
 
         # First loop, link all the properties storage to our instance
-        for k, attr in attrs_found.iteritems():
+        for k in attrs_found:
+            attr = attrs_found[k]
             attr.link(self, k)
 
         # Second loop, resolve all the reference
-        for k, attr in attrs_found.iteritems():
+        for k in attrs_found:
+            attr = attrs_found[k]
             attr.link_deps(self, k)
 
         self.__properties = attrs_found
 
     def __init__(self, **kwargs):
+        cdef str func, name, key
+        cdef dict properties
         super(EventDispatcher, self).__init__()
 
         # Auto bind on own handler if exist
@@ -90,7 +96,7 @@ cdef class EventDispatcher(object):
             if key in properties:
                 setattr(self, key, value)
 
-    cpdef register_event_type(self, str event_type):
+    def register_event_type(self, str event_type):
         '''Register an event type with the dispatcher.
 
         Registering event types allows the dispatcher to validate event handler
@@ -129,7 +135,7 @@ cdef class EventDispatcher(object):
         if not event_type in self.__event_stack:
             self.__event_stack[event_type] = []
 
-    cpdef unregister_event_types(self, str event_type):
+    def unregister_event_types(self, str event_type):
         '''Unregister an event type in the dispatcher
         '''
         if event_type in self.__event_stack:
@@ -254,8 +260,9 @@ cdef class EventDispatcher(object):
 
         .. versionadded:: 1.0.9
         '''
-        p = self.__properties
+        cdef dict ret, p
         ret = {}
+        p = self.__properties
         for x in self.__dict__['__storage'].keys():
             ret[x] = p[x]
         return ret

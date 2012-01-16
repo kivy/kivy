@@ -1,5 +1,3 @@
-#cython: embedsignature=True
-
 '''
 Vertex Buffer
 =============
@@ -108,12 +106,15 @@ cdef class VBO:
 
 cdef class VertexBatch:
     def __init__(self, **kwargs):
-        self.vbo = kwargs.get('vbo', VBO())
-        self.vbo_index = Buffer(sizeof(unsigned short)) #index of every vertex in the vbo
-        self.elements = Buffer(sizeof(unsigned short)) #indices translated to vbo indices
+        cdef object lushort = sizeof(unsigned short)
+        self.vbo = kwargs.get('vbo')
+        if self.vbo is None:
+            self.vbo = VBO()
+        self.vbo_index = Buffer(lushort) #index of every vertex in the vbo
+        self.elements = Buffer(lushort) #indices translated to vbo indices
 
         self.set_data(NULL, 0, NULL, 0)
-        self.set_mode(kwargs.get('mode', None))
+        self.set_mode(kwargs.get('mode'))
 
     cdef void clear_data(self):
         # clear old vertices from vbo and then reset index buffer

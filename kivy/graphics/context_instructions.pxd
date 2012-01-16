@@ -46,6 +46,7 @@ cdef class Scale(Transform):
     cdef void apply(self)
 
 cdef class Translate(Transform):
-    cdef float _x, _y, _z
+    cdef double _x, _y, _z
     cdef void apply(self)
+    cdef set_translate(self, double x, double y, double z)
 

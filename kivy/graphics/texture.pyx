@@ -1,5 +1,3 @@
-#cython: embedsignature=True
-
 '''
 Texture
 =======
@@ -579,18 +577,18 @@ cdef class Texture:
 
     cdef set_min_filter(self, str x):
         cdef GLuint _value = _str_to_gl_texture_min_filter(x)
-        glTexParameteri(self.target, GL_TEXTURE_MIN_FILTER, _value)
+        glTexParameteri(self._target, GL_TEXTURE_MIN_FILTER, _value)
         self._min_filter = x
 
     cdef set_mag_filter(self, str x):
         cdef GLuint _value = _str_to_gl_texture_mag_filter(x)
-        glTexParameteri(self.target, GL_TEXTURE_MAG_FILTER, _value)
+        glTexParameteri(self._target, GL_TEXTURE_MAG_FILTER, _value)
         self._mag_filter = x
 
     cdef set_wrap(self, str x):
         cdef GLuint _value = _str_to_gl_texture_wrap(x)
-        glTexParameteri(self.target, GL_TEXTURE_WRAP_S, _value)
-        glTexParameteri(self.target, GL_TEXTURE_WRAP_T, _value)
+        glTexParameteri(self._target, GL_TEXTURE_WRAP_S, _value)
+        glTexParameteri(self._target, GL_TEXTURE_WRAP_T, _value)
         self._wrap = x
 
 
@@ -634,7 +632,7 @@ cdef class Texture:
             `mipmap_generation`: bool, default to False
                 Indicate if we need to regenerate mipmap from level 0
         '''
-        cdef GLuint target = self.target
+        cdef GLuint target = self._target
         if colorfmt is None:
             colorfmt = 'rgb'
         if bufferfmt is None:
@@ -700,7 +698,7 @@ cdef class Texture:
         def __get__(self):
             return self._id
 
-    property target:
+    property _target:
         '''Return the OpenGL target of the texture (readonly)
         '''
         def __get__(self):
@@ -777,7 +775,7 @@ cdef class Texture:
         '''
         def __get__(self):
             return self._min_filter
-        def __set__(self, x):
+        def __set__(self, str x):
             cdef GLuint value
             if x == self._min_filter:
                 return
@@ -795,7 +793,7 @@ cdef class Texture:
         '''
         def __get__(self):
             return self._mag_filter
-        def __set__(self, x):
+        def __set__(self, str x):
             if x == self._mag_filter:
                 return
             self.bind()
@@ -813,7 +811,7 @@ cdef class Texture:
         '''
         def __get__(self):
             return self._wrap
-        def __set__(self, wrap):
+        def __set__(self, str wrap):
             if wrap == self._wrap:
                 return
             self.bind()
