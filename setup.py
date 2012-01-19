@@ -140,34 +140,37 @@ if True:
             pyxl.pop(0)
         return '.'.join(pyxl)
 
-    OrigExtension = Extension
+    class CythonExtension(Extension):
 
-    def Extension(*args, **kwargs):
-        # Small hack to only compile for x86_64 on OSX.
-        # Is there a better way to do this?
-        if platform == 'darwin':
-            extra_args = ['-arch', 'x86_64']
-            kwargs['extra_compile_args'] = extra_args + \
-                kwargs.get('extra_compile_args', [])
-            kwargs['extra_link_args'] = extra_args + \
-                kwargs.get('extra_link_args', [])
-        ext = OrigExtension(*args, **kwargs)
-        ext.pyrex_directives = {
-            'profile': 'USE_PROFILE' in environ,
-            'embedsignature': False}
-        return ext
+        def __init__(self, *args, **kwargs):
+            # Small hack to only compile for x86_64 on OSX.
+            # Is there a better way to do this?
+            if platform == 'darwin':
+                extra_args = ['-arch', 'x86_64']
+                kwargs['extra_compile_args'] = extra_args + \
+                    kwargs.get('extra_compile_args', [])
+                kwargs['extra_link_args'] = extra_args + \
+                    kwargs.get('extra_link_args', [])
+            Extension.__init__(self, *args, **kwargs)
+            self.pyrex_directives = {
+                'profile': 'USE_PROFILE' in environ,
+                'embedsignature': False}
+            # XXX with pip, setuptools is imported before distutils, and change
+            # our pyx to c, then, cythonize doesn't happen. So force again our
+            # sources
+            self.sources = args[1]
 
     # simple extensions
     for pyx in (x for x in pyx_files if not 'graphics' in x):
         pxd = [x for x in pxd_files if not 'graphics' in x]
         module_name = get_modulename_from_file(pyx)
-        ext_modules.append(Extension(module_name, [pyx] + pxd))
+        ext_modules.append(CythonExtension(module_name, [pyx] + pxd))
 
     # opengl aware modules
     for pyx in (x for x in pyx_files if 'graphics' in x):
         pxd = [x for x in pxd_files if 'graphics' in x]
         module_name = get_modulename_from_file(pyx)
-        ext_modules.append(Extension(
+        ext_modules.append(CythonExtension(
             module_name, [pyx] + pxd,
             libraries=libraries,
             include_dirs=include_dirs,
