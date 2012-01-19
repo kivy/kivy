@@ -488,6 +488,7 @@ class ParserError(Exception):
             self.filename, self.line, sc, message)
         super(ParserError, self).__init__(message)
 
+
 class ParserRuleProperty(object):
     '''Represent a property inside a rule
     '''
@@ -888,7 +889,8 @@ class Parser(object):
                     i = 0
                 else:
                     if current_propobject is None:
-                        current_propobject = ParserRuleProperty(self, ln, current_property, content)
+                        current_propobject = ParserRuleProperty(
+                            self, ln, current_property, content)
                         if current_property[:3] == 'on_':
                             current_object.handlers.append(current_propobject)
                         else:
@@ -1018,6 +1020,7 @@ class BuilderRuleName(BuilderRule):
 
 
 class BuilderBase(object):
+
     def __init__(self):
         super(BuilderBase, self).__init__()
         self.templates = {}
@@ -1086,7 +1089,6 @@ class BuilderBase(object):
             '''
         finally:
             self._current_filename = None
-        #return root
 
     def template(self, *args, **ctx):
         '''Create a specialized template using a specific context.
@@ -1208,7 +1210,7 @@ class BuilderBase(object):
                 if type(value) is CodeType:
                     value = create_handler(widget, widget, key,
                             value, rule, rctx['ids'])
-                print 'setattr', widget_set, key, (rule.value, value)
+                print '# setattr', widget_set, key, (rule.value, value)
                 setattr(widget_set, key, value)
 
         # build handlers
@@ -1216,11 +1218,10 @@ class BuilderBase(object):
             for crule in rules:
                 assert(isinstance(crule, ParserRuleProperty))
                 assert(crule.name.startswith('on_'))
-                print '# create handler for', widget_set, crule.name, crule.value
                 key = crule.name
                 if not widget.is_event_type(key):
                     key = crule.name[3:]
-                widget.bind(**{ key: partial(custom_callback, (
+                widget.bind(**{key: partial(custom_callback, (
                     widget, crule, rctx['ids']))})
 
         #print '\n--------- end', rule, 'for', widget, '\n'
@@ -1516,7 +1517,8 @@ class _BuilderBase(object):
                     raise ParserError(params['__ctx__'], params['__line__'],
                            'Canvas instruction in template are forbidden')
                 try:
-                    ctx[key] = eval(value[0][2], _eval_globals, self.rulectx['idmap'])
+                    ctx[key] = eval(value[0][2], _eval_globals,
+                            self.rulectx['idmap'])
                 except Exception, e:
                     raise ParserError(params['__ctx__'], params['__line__'], e)
             print '>>> create template here', cls, ctx
@@ -1570,7 +1572,8 @@ class _BuilderBase(object):
                     if lk not in self.listset or from_template:
                         print '] set', lk, value
                         print ']', item, widget
-                        self.listset[(widget, key)] = (ctx, ln, value, self.rulectx)
+                        self.listset[(widget, key)] = (
+                            ctx, ln, value, self.rulectx)
                     else:
                         print '! avoid listset from', lk, value
                         print '!', item, widget
