@@ -469,33 +469,6 @@ lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 
 
-def precompile_value(name, value, line=1, parser=None):
-    # if it's an id, we don't need to compile, the value is the id.
-    if name == 'id':
-        return value
-    # first, remove all the string from the value
-    tmp = re.sub(lang_str, '', value)
-
-    # detecting how to handle the value according to the key name
-    mode = 'exec' if name.startswith('on_') else 'eval'
-    if mode == 'eval':
-        # if we don't detect any string/key in it, we can eval and give the
-        # result
-        if re.search(lang_key, tmp) is None:
-            return (None, eval(value), value, line + 1, parser)
-
-    # ok, we can compile.
-    code = compile(value, parser.filename or '<string>', mode)
-
-    # now, detect obj.prop
-    # first, remove all the string from the value
-    tmp = re.sub(lang_str, '', value)
-    # detect key.value inside value
-    kw = re.findall(lang_keyvalue, tmp)
-
-    return (kw, code, value, line + 1, parser)
-
-
 class ParserError(Exception):
 
     def __init__(self, context, line, message):
@@ -515,6 +488,153 @@ class ParserError(Exception):
             self.filename, self.line, sc, message)
         super(ParserError, self).__init__(message)
 
+class ParserRuleProperty(object):
+    '''Represent a property inside a rule
+    '''
+
+    __slots__ = ('ctx', 'line', 'name', 'value', 'co_value', \
+            'watched_keys')
+
+    def __init__(self, ctx, line, name, value):
+        super(ParserRuleProperty, self).__init__()
+        #: Associated parser
+        self.ctx = ctx
+        #: Line of the rule
+        self.line = line
+        #: Name of the property
+        self.name = name
+        #: Value of the property
+        self.value = value
+        #: Compiled value
+        self.co_value = None
+        #: Watched keys
+        self.watched_keys = None
+
+    def precompile(self):
+        name = self.name
+        value = self.value
+
+        # first, remove all the string from the value
+        tmp = re.sub(lang_str, '', self.value)
+
+        # detecting how to handle the value according to the key name
+        mode = 'exec' if name[:3] == 'on_' else 'eval'
+        if mode == 'eval':
+            # if we don't detect any string/key in it, we can eval and give the
+            # result
+            if re.search(lang_key, tmp) is None:
+                self.co_value = eval(value)
+                return
+
+        # ok, we can compile.
+        self.co_value = compile(value, self.ctx.filename or '<string>', mode)
+
+        # now, detect obj.prop
+        # first, remove all the string from the value
+        tmp = re.sub(lang_str, '', value)
+        # detect key.value inside value
+        self.watched_keys = re.findall(lang_keyvalue, tmp)
+
+    def __repr__(self):
+        return '<ParserRuleProperty name=%r value=%r watched_keys=%r>' % (
+                self.name, self.value, self.watched_keys)
+
+
+class ParserRule(object):
+    '''Represent a rule, in term if Kivy internal language
+    '''
+
+    __slots__ = ('ctx', 'line', 'name', 'children', 'id', 'properties',
+            'canvas_before', 'canvas_root', 'canvas_after',
+            'handlers', 'matchers')
+
+    def __init__(self, ctx, line, name):
+        super(ParserRule, self).__init__()
+        #: Associated parser
+        self.ctx = ctx
+        #: Line of the rule
+        self.line = line
+        #: Name of the rule
+        self.name = name
+        #: List of matchers for "matching" the name
+        self.matchers = self._detect_matchers()
+        #: List of children to create
+        self.children = []
+        #: Id given to the rule
+        self.id = None
+        #: Properties associated to the rule
+        self.properties = {}
+        #: Canvas normal
+        self.canvas_root = None
+        #: Canvas before
+        self.canvas_before = None
+        #: Canvas after
+        self.canvas_after = None
+        #: Handlers associated to the rule
+        self.handlers = []
+
+    def precompile(self):
+        for x in self.properties.itervalues():
+            x.precompile()
+        for x in self.children:
+            x.precompile()
+        if self.canvas_before:
+            self.canvas_before.precompile()
+        if self.canvas_root:
+            self.canvas_root.precompile()
+        if self.canvas_after:
+            self.canvas_after.precompile()
+
+    def _detect_matchers(self):
+        c = self.name[0]
+        if c == '<':
+            self._build_rule()
+        elif c == '[':
+            self._build_template()
+
+    def _build_rule(self):
+        name = self.name
+        if __debug__:
+            trace('Builder: build rule for %s' % name)
+        if name[0] != '<' or name[-1] != '>':
+            raise ParserError(self.ctx, self.line,
+                           'Invalid rule (must be inside <>)')
+        rules = name[1:-1].split(',')
+        for rule in rules:
+            if not len(rule):
+                raise ParserError(self.ctx, self.line,
+                               'Empty rule detected')
+            crule = None
+            if rule[0] == '.':
+                crule = BuilderRuleClass(rule[1:])
+            elif rule[0] == '#':
+                crule = BuilderRuleId(rule[1:])
+            else:
+                crule = BuilderRuleName(rule)
+            self.ctx.rules.append((crule, self))
+
+    def _build_template(self):
+        name = self.name
+        if __debug__:
+            trace('Builder: build template for %s' % name)
+        if name[0] != '[' or name[-1] != ']':
+            raise ParserError(self.ctx, self.line,
+                'Invalid template (must be inside [])')
+        item_content = name[1:-1]
+        if not '@' in item_content:
+            raise ParserError(self.ctx, self.line,
+                'Invalid template name (missing @)')
+        template_name, template_root_cls = item_content.split('@')
+        self.ctx.templates.append((template_name, template_root_cls, self))
+        '''
+        Factory.register(template_name,
+                         cls=partial(self.template, template_name),
+                         is_template=True)
+        '''
+
+    def __repr__(self):
+        return '<ParserRule name=%r>' % (self.name, )
+
 
 class Parser(object):
     '''Create a Parser object to parse a Kivy language file or Kivy content.
@@ -528,6 +648,8 @@ class Parser(object):
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
+        self.rules = []
+        self.templates = []
         self.sourcecode = []
         self.objects = []
         self.directives = []
@@ -542,10 +664,10 @@ class Parser(object):
             cmd = cmd.strip()
             if __debug__:
                 trace('Parser: got directive <%s>' % cmd)
-            if cmd.startswith('kivy '):
+            if cmd[:5] == 'kivy ':
                 # FIXME move the version checking here
                 continue
-            elif cmd.startswith('set '):
+            elif cmd[:4] == 'set ':
                 try:
                     name, value = cmd[4:].strip().split(' ', 1)
                 except:
@@ -558,7 +680,7 @@ class Parser(object):
                     raise ParserError(self, ln, 'Invalid value')
                 global_idmap[name] = value
 
-            elif cmd.startswith('import '):
+            elif cmd[:7] == 'import ':
                 package = cmd[7:].strip()
                 l = package.split(' ')
                 if len(l) != 2:
@@ -624,15 +746,7 @@ class Parser(object):
 
     def precompile_objects(self, objects):
         for obj in objects:
-            name, properties = obj
-            for key, value in properties.iteritems():
-                if key in ('__line__', '__ctx__', 'id'):
-                    continue
-                if key in ('children', 'canvas', 'canvas.before',
-                        'canvas.after'):
-                    self.precompile_objects(value[0])
-                    continue
-                value[0] = precompile_value(key, value[0], value[1], value[2])
+            obj.precompile()
 
     def parse_version(self, line):
         '''Parse the version line.
@@ -658,11 +772,12 @@ class Parser(object):
            Comments need to be on a single line and not at the end of a line.
            I.e., a comment line's first non-whitespace character must be a #.
         '''
+        # extract directives
         for ln, line in lines[:]:
             stripped = line.strip()
-            if stripped.startswith('#:'):
+            if stripped[:2] == '#:':
                 self.directives.append((ln, stripped[2:]))
-            if stripped.startswith('#'):
+            if stripped[:1] == '#':
                 lines.remove((ln, line))
             if not stripped:
                 lines.remove((ln, line))
@@ -700,17 +815,15 @@ class Parser(object):
 
             # Current level, create an object
             elif count == indent:
-                current_object = OrderedDict()
-                current_object['__line__'] = ln
-                current_object['__ctx__'] = self
-                current_property = None
                 x = content.split(':', 1)
                 if not len(x[0]):
                     raise ParserError(self, ln, 'Identifier missing')
                 if len(x) == 2 and len(x[1]):
                     raise ParserError(self, ln,
                                         'Invalid data after declaration')
-                objects.append((x[0], current_object))
+                current_object = ParserRule(self, ln, x[0])
+                current_property = None
+                objects.append(current_object)
 
             # Next level, is it a property or an object ?
             elif count == indent + 4:
@@ -723,7 +836,7 @@ class Parser(object):
                 name = x[0]
                 if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
                     _objects, _lines = self.parse_level(level + 1, lines[i:])
-                    current_object['children'] = (_objects, ln, self)
+                    current_object.children = _objects
                     lines = _lines
                     i = 0
 
@@ -735,8 +848,16 @@ class Parser(object):
                     if len(x) == 1:
                         raise ParserError(self, ln, 'Syntax error')
                     value = x[1].strip()
-                    if len(value):
-                        current_object[name] = [value, ln, self]
+                    if name == 'id':
+                        if len(value) <= 0:
+                            raise ParserError(self, ln, 'Empty id')
+                        if value in ('self', 'root'):
+                            raise ParserError(self, ln,
+                                'Invalid id, cannot be "self" or "root"')
+                        current_object.id = value
+                    elif len(value):
+                        current_object.properties[name] = \
+                            ParserRuleProperty(self, ln, name, value)
                     else:
                         current_property = name
 
@@ -745,17 +866,24 @@ class Parser(object):
                 if current_property in (
                         'canvas', 'canvas.after', 'canvas.before'):
                     _objects, _lines = self.parse_level(level + 2, lines[i:])
-                    current_object[current_property] = [_objects, ln, self]
+                    rl = ParserRule(self, ln, current_property)
+                    rl.children = _objects
+                    if current_property == 'canvas':
+                        current_object.canvas_root = rl
+                    elif current_property == 'canvas.before':
+                        current_object.canvas_before = rl
+                    else:
+                        current_object.canvas_after = rl
                     current_property = None
                     lines = _lines
                     i = 0
                 else:
                     if current_property in current_object:
-                        info = current_object[current_property]
-                        info[0] += '\n' + content
+                        prop = current_object[current_property]
+                        prop.value += '\n' + content
                     else:
-                        info = [content, ln, self]
-                    current_object[current_property] = info
+                        current_object.properties[current_property] = \
+                            ParserRuleProperty(self, ln, current_property, content)
 
             # Too much indentation, invalid
             else:
@@ -766,14 +894,6 @@ class Parser(object):
             i += 1
 
         return objects, []
-
-    def load_resource(self, filename):
-        '''Load an external resource
-        '''
-        if __debug__:
-            trace('Parser: load external <%s>' % filename)
-        with open(filename, 'r') as fd:
-            return fd.read()
 
 
 #
@@ -803,13 +923,12 @@ def custom_callback(*largs, **kwargs):
         raise exc_type, exc_value, tb
 
 
-def create_handler(element, key, vd, idmap):
-    kw = vd[0]
-    value = vd[1]
-    assert(kw is not None)
+def create_handler(iself, element, key, value, rule, idmap):
 
     # create an handler
     idmap = copy(idmap)
+    idmap.update(global_idmap)
+    idmap['self'] = iself
 
     def call_fn(sender, _value):
         if __debug__:
@@ -821,18 +940,19 @@ def create_handler(element, key, vd, idmap):
         setattr(element, key, e_value)
 
     # bind every key.value
-    for x in kw:
-        k = x.split('.')
-        try:
-            f = idmap[k[0]]
-            for x in k[1:-1]:
-                f = getattr(f, x)
-            if hasattr(f, 'bind'):
-                f.bind(**{k[-1]: call_fn})
-        except KeyError:
-            continue
-        except AttributeError:
-            continue
+    if rule.watched_keys is not None:
+        for x in rule.watched_keys:
+            k = x.split('.')
+            try:
+                f = idmap[k[0]]
+                for x in k[1:-1]:
+                    f = getattr(f, x)
+                if hasattr(f, 'bind'):
+                    f.bind(**{k[-1]: call_fn})
+            except KeyError:
+                continue
+            except AttributeError:
+                continue
 
     return eval(value, _eval_globals, idmap)
 
@@ -886,22 +1006,209 @@ class BuilderRuleName(BuilderRule):
 
 
 class BuilderBase(object):
+    def __init__(self):
+        super(BuilderBase, self).__init__()
+        self.templates = {}
+        self.rules = []
+        self.rulectx = {}
+
+    def load_file(self, filename, **kwargs):
+        '''Insert a file into the language builder.
+
+        :parameters:
+            `rulesonly`: bool, default to False
+                If True, the Builder will raise an exception if you have a root
+                widget inside the definition.
+        '''
+        if __debug__:
+            trace('Builder: load file %s' % filename)
+        with open(filename, 'r') as fd:
+            kwargs['filename'] = filename
+            return self.load_string(fd.read(), **kwargs)
+
+    def unload_file(self, filename):
+        '''Unload all rules associated to a previously imported file.
+
+        .. versionadded:: 1.0.8
+
+        .. warning::
+
+            This will not remove rule or template already applied/used on
+            current widget. It will act only for the next widget creation or
+            template invocation.
+        '''
+        # remove rules and templates
+        self.rules = [x for x in self.rules if x[2] != filename]
+        templates = {}
+        for x, y in self.templates.iteritems():
+            if y[2] != filename:
+                templates[x] = y
+        self.templates = templates
+
+    def load_string(self, string, **kwargs):
+        '''Insert a string into the Language Builder
+
+        :parameters:
+            `rulesonly`: bool, default to False
+                If True, the Builder will raise an exception if you have a root
+                widget inside the definition.
+        '''
+        kwargs.setdefault('rulesonly', False)
+        self._current_filename = kwargs.get('filename', None)
+        try:
+            parser = Parser(content=string, filename=kwargs.get(
+                'filename', None))
+            self.rules.extend(parser.rules)
+            for name, cls, template in parser.templates:
+                self.templates[name] = (cls, template)
+            '''
+            if kwargs['rulesonly'] and root:
+                filename = kwargs.get('rulesonly', '<string>')
+                raise Exception('The file <%s> contain also non-rules '
+                                'directives' % filename)
+            '''
+        finally:
+            self._current_filename = None
+        #return root
+
+    def apply(self, widget):
+        rules = self.match(widget)
+        if __debug__:
+            trace('Builder: Found %d rules for %s' % (len(rules), widget))
+        if not rules:
+            return
+
+        for rule in rules:
+            self._apply_rule(widget, rule, rule)
+
+    def _apply_rule(self, widget, rule, rootrule):
+        # widget: the current instanciated widget
+        # rule: the current rule
+        # rootrule: the current root rule (for children of a rule)
+
+        # will collect reference to all the id in children
+        assert(rule not in self.rulectx)
+        self.rulectx[rule] = rctx = {
+            'ids': {'root': widget},
+            'set': [], 'hdl': []}
+
+        # if we got an id, put it in the root rule for a later global usage
+        if rule.id:
+            self.rulectx[rootrule]['ids'][rule.id] = widget
+
+        # first, create missing widget properties
+        for name in rule.properties:
+            if not hasattr(widget, name):
+                widget.create_property(name)
+
+        # build the widget canvas
+        if rule.canvas_before:
+            with widget.canvas.before:
+                self.build_canvas(widget.canvas.before, widget,
+                        rule.canvas_before, rootrule)
+        if rule.canvas_root:
+            with widget.canvas:
+                self.build_canvas(widget.canvas, widget,
+                        rule.canvas_root, rootrule)
+        if rule.canvas_after:
+            with widget.canvas.after:
+                self.build_canvas(widget.canvas.after, widget,
+                        rule.canvas_after, rootrule)
+
+        # create children tree
+        for childrule in rule.children:
+            cls = Factory.get(childrule.name)
+            child = cls()
+            self.apply(child)
+            self._apply_rule(child, childrule, rootrule)
+            widget.add_widget(child)
+
+        # create properties
+        assert(rootrule in self.rulectx)
+        self.rulectx[rootrule]['set'].append((widget, rule.properties.values()))
+        self.rulectx[rootrule]['hdl'].append((widget, rule.handlers))
+
+        # if we are applying another rule that the root one, then it's done for
+        # us!
+        if rootrule is not rule:
+            del self.rulectx[rule]
+            return
+
+        # normally, we can apply a list of properties with a proper context
+        rctx = self.rulectx[rootrule]
+        for widget_set, rules in rctx['set']:
+            for rule in rules:
+                assert(isinstance(rule, ParserRuleProperty))
+                key = rule.name
+                value = rule.co_value
+                if type(value) is CodeType:
+                    value = create_handler(widget, widget, key,
+                            value, rule, rctx['ids'])
+                setattr(widget_set, key, value)
+
+        # build handlers
+        for widget_set, rules in rctx['hdl']:
+            for rule in rules:
+                assert(isinstance(rule, ParserRuleProperty))
+                assert(rule.name.startswith('on_'))
+                #print '# create handler for', widget_set, rule.name, rule.value
+                widget.bind(**{ key: partial(custom_callback, (
+                    widget, rule.name, rule.co_value, rctx['ids']))})
+
+        #print '\n--------- end', rule, 'for', widget, '\n'
+
+        del self.rulectx[rootrule]
+
+    def build_canvas(self, canvas, widget, rule, rootrule):
+        if __debug__:
+            trace('Builder: build canvas for %s' % widget)
+        root = self.rulectx[rootrule]['ids']['root']
+        idmap = {'root': root}
+        for crule in rule.children:
+            name = crule.name
+            if name == 'Clear':
+                canvas.clear()
+                continue
+            instr = Factory.get(name)()
+            for prule in crule.properties.itervalues():
+                try:
+                    key = prule.name
+                    value = prule.co_value
+                    if type(value) is CodeType:
+                        value = create_handler(
+                            widget, instr, key, value, prule, idmap)
+                    setattr(instr, key, value)
+                except Exception, e:
+                    m = ParserError(prule.ctx, prule.line, str(e))
+                    print m.message
+                    raise
+
+    def match(self, widget):
+        '''Return a list of all rules matching the widget.
+        '''
+        rules = []
+        for matcher, rule in self.rules:
+            if matcher.match(widget):
+                rules.append(rule)
+        return rules
+
+"""
+class _BuilderBase(object):
     '''Kv objects are able to load a Kivy language file or string, return the
     root object of it and inject rules into the rule database.
     '''
 
     def __init__(self):
         super(BuilderBase, self).__init__()
+        self.rulelevel = -1
         self.rules = []
         self.templates = {}
-        self.idmap = {}
-        self.idmaps = []
-        self.gidmaps = []
-        self.gidmap = {}
+        self.rulectxs = []
+        self.rulectx =  {}
 
         # List of all the setattr needed to be done after creating the tree
         self.listsets = []
-        self.listset = []
+        self.listset = {}
         # List of all widget created during the tree, and then apply the style
         # for each of them.
         self.listwidgets = []
@@ -995,13 +1302,8 @@ class BuilderBase(object):
         if not matches:
             return
         self._push_widgets()
-        have_root = 'root' in self.idmap
-        if not have_root:
-            self.idmap['root'] = widget
         for defs in matches:
             self.build_item(widget, defs, is_rule=True)
-        if not have_root:
-            del self.idmap['root']
         self._pop_widgets()
 
     def template(self, *args, **ctx):
@@ -1027,47 +1329,54 @@ class BuilderBase(object):
             cls = ClassType(name, tuple(rootwidgets), {})
             Cache.append('kv.lang', key, cls)
         widget = cls()
-        self._push_widgets()
-        self._push_ids()
-        self.idmap = copy(global_idmap)
-        self.idmap['root'] = widget
-        self.idmap['ctx'] = QueryDict(ctx)
-        self.build_item(widget, defs, is_rule=True)
-        self._pop_ids()
-        self._pop_widgets()
+        self.build_item(widget, defs, is_rule=True, from_template=True)
         return widget
 
 
     #
     # Private
     #
-    def _push_ids(self):
-        self.idmaps.append(self.idmap)
-        self.idmap = copy(self.idmap)
+    def _push_rulectx(self):
+        self.rulelevel += 1
+        self.rulectxs.append(self.rulectx)
+        self.rulectx = {'idmap': copy(global_idmap)}
+        print '_push_rulectx()', self.rulelevel
 
-    def _pop_ids(self):
-        self.idmap = self.idmaps.pop()
+    def _pop_rulectx(self):
+        print '_pop_rulectx()', self.rulelevel
+        self.rulectx = self.rulectxs.pop()
+        self.rulelevel -= 1
 
     def _push_widgets(self):
-        self.gidmaps.append(self.gidmap)
-        self.gidmap = {}
-        self.listsets.append(self.listset)
-        self.listset = []
+        print '__push_widgets()'
+        #self.listsets.append(self.listset)
+        #self.listset = []
         self.listwidgets.append(self.listwidget)
         self.listwidget = []
 
     def _pop_widgets(self):
+        print '__pop_widgets()'
         self.listwidget = self.listwidgets.pop()
-        self.listset = self.listsets.pop()
-        self.gidmap = self.gidmaps.pop()
+        #self.listset = self.listsets.pop()
+
+    def _push_listset(self):
+        print '__push_listset()'
+        self.listsets.append((self.rulelevel, self.listset))
+        self.listset = {}
+        self.rulelevel = 0
+
+    def _pop_listset(self):
+        print '__pop_listset()'
+        self.rulelevel, self.listset = self.listsets.pop()
 
     def build(self, objects):
-        self.idmap = copy(global_idmap)
+        # fixme?
+        #self.idmap = copy(global_idmap)
         root = None
         for item, params in objects:
-            if item.startswith('<'):
+            if item[0] == '<':
                 self.build_rule(item, params)
-            elif item.startswith('['):
+            elif item[0] == '[':
                 self.build_template(item, params)
             else:
                 if root is not None:
@@ -1085,19 +1394,19 @@ class BuilderBase(object):
             yield key, value
 
     def _is_reserved_key(self, key):
-        if key.startswith('on_'):
+        if key[:3] == 'on_':
             return True
         if key in ('id', 'children', 'canvas', 'canvas.before', 'canvas.after'):
             return True
 
-    def build_item(self, item, params, is_rule=False):
-        self._push_ids()
+    def build_item(self, item, params, is_rule=False, from_template=False):
+        self.rulelevel += 1
         is_template = False
 
         if is_rule is False:
             if __debug__:
                 trace('Builder: build item %s' % item)
-            if item.startswith('<'):
+            if item[0] == '<':
                 raise ParserError(params['__ctx__'], params['__line__'],
                                'Rules are not accepted inside widgets')
             no_apply = False
@@ -1122,6 +1431,7 @@ class BuilderBase(object):
                     self.listwidget.append(widget)
         else:
             widget = item
+            self._push_rulectx()
 
         if is_template:
             # checking reserved keyword
@@ -1138,12 +1448,20 @@ class BuilderBase(object):
                     raise ParserError(params['__ctx__'], params['__line__'],
                            'Canvas instruction in template are forbidden')
                 try:
-                    ctx[key] = eval(value[0][2], _eval_globals, self.idmap)
+                    ctx[key] = eval(value[0][2], _eval_globals, self.rulectx['idmap'])
                 except Exception, e:
                     raise ParserError(params['__ctx__'], params['__line__'], e)
+            print '>>> create template here', cls, ctx
+            #self._push_listset()
+            #self._push_rulectx()
+            self.rulectx['idmap']['ctx'] = ctx
             widget = cls(**ctx)
+            #self._pop_rulectx()
+            #self._pop_listset()
+            print '<<< create template here', cls, ctx
         else:
-            self.idmap['self'] = widget
+            if 'root' not in self.rulectx['idmap']:
+                self.rulectx['idmap']['root'] = widget
             is_reserved_key = self._is_reserved_key
             # first loop, create unknown attribute
             for key, value in self._iterate(params):
@@ -1160,7 +1478,7 @@ class BuilderBase(object):
                 if key == 'children':
                     for citem, cparams, in value:
                         child = self.build_item(citem, cparams)
-                        root = self.idmap.get('root')
+                        root = self.rulectx['idmap'].get('root')
                         if root is not None:
                             if isinstance(child, root.__class__):
                                 raise ParserError(ctx, ln, 'Recursion detected!'
@@ -1177,46 +1495,71 @@ class BuilderBase(object):
                     with widget.canvas.after:
                         self.build_canvas(widget.canvas.after, item, value)
                 elif key == 'id':
-                    self.gidmap[value] = widget
+                    print '== current rulectx', self.rulelevel, value, widget
+                    self.rulectx['idmap'][value] = widget
                 else:
-                    self.listset.append((ctx, ln, widget, key, value,
-                                            copy(self.idmap)))
+                    lk = (widget, key)
+                    if lk not in self.listset or from_template:
+                        print '] set', lk, value
+                        print ']', item, widget
+                        self.listset[(widget, key)] = (ctx, ln, value, self.rulectx)
+                    else:
+                        print '! avoid listset from', lk, value
+                        print '!', item, widget
+                        print '!', self.listset
 
-        self._pop_ids()
         if is_template:
             self._pop_widgets()
             if template_id:
-                self.gidmap[template_id] = widget
+                print '== current rulectx', self.rulelevel, value, widget
+                self.rulectx['idmap'][template_id] = widget
         if is_rule:
             self.build_attributes()
+            self._pop_rulectx()
 
+        self.rulelevel -= 1
         return widget
 
     def build_attributes(self):
+        # last loop, apply style
+        listwidget = self.listwidget[:]
+        self.listwidget = []
+        for widget in listwidget:
+            self.apply(widget)
+
+        if self.rulelevel != 1:
+            print "avoided build attribute", self.rulelevel, len(self.listset)
+            return
+
+        self._build_attributes()
+
+    def _build_attributes(self):
+        # try to get all the attributes to set from parent
+        print 'build_attributes()=====', len(self.listset)
+        from pprint import pprint
+        pprint(self.listset.keys())
+
         # third loop, assign all attributes
-        for x in self.listset:
-            ctx, ln, widget, key, value, idmap = x
+        #self.listset[(widget, key)] = (ctx, ln, value, copy(self.idmap))
+        for key, value in self.listset.iteritems():
+            widget, key = key
+            ctx, ln, value, rulectx = value
             try:
-                idmap.update(self.gidmap)
+                print 'do listset assignation'
+                pprint(rulectx)
+                idmap = rulectx['idmap']
+                idmap['self'] = widget
                 self.build_handler(widget, key, value, idmap, True)
             except Exception, e:
                 m = ParserError(ctx, ln, str(e))
                 print m
                 raise
-        self.listset = []
-        self.gidmap = {}
+        self.listset = {}
 
-        # last loop, apply style
-        listwidget = self.listwidget[:]
-        self.listwidget = []
-        for widget in listwidget:
-            self._push_ids()
-            self.idmap['root'] = widget
-            self.apply(widget)
-            self._pop_ids()
+        print '=== build attributes'
 
     def build_handler(self, element, key, value, idmap, is_widget):
-        if key.startswith('on_'):
+        if key[:3] == 'on_':
             if __debug__:
                 trace('Builder: create custom callback for ' + key)
             if not element.is_event_type(key):
@@ -1248,48 +1591,14 @@ class BuilderBase(object):
                     continue
                 value, ln, ctx = value
                 try:
-                    self.build_handler(element, key, value, self.idmap, False)
+                    idmap = self.rulectx['idmap']
+                    idmap['self'] = element
+                    self.build_handler(element, key, value, idmap, False)
                 except Exception, e:
                     m = ParserError(ctx, ln, str(e))
                     print m.message
                     raise
-
-    def build_rule(self, item, params):
-        if __debug__:
-            trace('Builder: build rule for %s' % item)
-        if item[0] != '<' or item[-1] != '>':
-            raise ParserError(params['__ctx__'], params['__line__'],
-                           'Invalid rule (must be inside <>)')
-        rules = item[1:-1].split(',')
-        for rule in rules:
-            if not len(rule):
-                raise ParserError(params['__ctx__'], params['__line__'],
-                               'Empty rule detected')
-            crule = None
-            if rule[0] == '.':
-                crule = BuilderRuleClass(rule[1:])
-            elif rule[0] == '#':
-                crule = BuilderRuleId(rule[1:])
-            else:
-                crule = BuilderRuleName(rule)
-            self.add_rule(crule, params)
-
-    def build_template(self, item, params):
-        if __debug__:
-            trace('Builder: build template for %s' % item)
-        if item[0] != '[' or item[-1] != ']':
-            raise ParserError(params['__ctx__'], params['__line__'],
-                'Invalid template (must be inside [])')
-        item_content = item[1:-1]
-        if not '@' in item_content:
-            raise ParserError(params['__ctx__'], params['__line__'],
-                'Invalid template name (missing @)')
-        template_name, template_root_cls = item_content.split('@')
-        self.add_template(template_name, template_root_cls, params)
-        Factory.register(template_name,
-                         cls=partial(self.template, template_name),
-                         is_template=True)
-
+"""
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = BuilderBase()
