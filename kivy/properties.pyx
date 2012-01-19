@@ -187,8 +187,22 @@ cdef class Property:
         '''
         return x
 
-    cdef dispatch(self, obj):
+    cpdef dispatch(self, obj):
         '''Dispatch the value change to all observers
+
+        .. versionchanged::
+
+            In 1.0.10, the dispatch() method is now accessible from Python.
+
+        This can be used to force the dispatch of the property, even if the
+        value didn't changed::
+
+            button = Button()
+            # get the Property class instance
+            prop = button.property('text')
+            # dispatch this property on the button instance
+            prop.dispatch(button)
+
         '''
         cdef dict storage = obj.__storage[self._name]
         observers = storage['observers']

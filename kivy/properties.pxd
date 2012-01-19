@@ -12,7 +12,7 @@ cdef class Property:
     cpdef get(self, obj)
     cdef check(self, obj, x)
     cdef convert(self, obj, x)
-    cdef dispatch(self, obj)
+    cpdef dispatch(self, obj)
 
 cdef class NumericProperty(Property):
     pass
