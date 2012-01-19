@@ -494,7 +494,7 @@ class ParserRuleProperty(object):
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'value', 'co_value', \
-            'watched_keys')
+            'watched_keys', 'mode')
 
     def __init__(self, ctx, line, name, value):
         super(ParserRuleProperty, self).__init__()
@@ -508,6 +508,8 @@ class ParserRuleProperty(object):
         self.value = value
         #: Compiled value
         self.co_value = None
+        #: Compilation mode
+        self.mode = None
         #: Watched keys
         self.watched_keys = None
 
@@ -519,7 +521,9 @@ class ParserRuleProperty(object):
         tmp = re.sub(lang_str, '', self.value)
 
         # detecting how to handle the value according to the key name
-        mode = 'exec' if name[:3] == 'on_' else 'eval'
+        mode = self.mode
+        if self.mode is None:
+            self.mode = mode = 'exec' if name[:3] == 'on_' else 'eval'
         if mode == 'eval':
             # if we don't detect any string/key in it, we can eval and give the
             # result
@@ -926,9 +930,15 @@ _eval_globals['center'] = _eval_center
 def custom_callback(*largs, **kwargs):
     self, rule, idmap = largs[0]
     __kvlang__ = rule
+    locals().update(global_idmap)
     locals().update(idmap)
+    locals()['self'] = self
     args = largs[1:]
     try:
+        print '= execute', rule.value
+        print '= execute', rule.co_value
+        from pprint import pprint
+        pprint(locals())
         exec rule.co_value
     except:
         exc_info = sys.exc_info()
@@ -1177,15 +1187,18 @@ class BuilderBase(object):
                     if type(value) is CodeType:
                         value = eval(value, _eval_globals, idmap)
                     ctx[prule.name] = value
+                for prule in crule.handlers:
+                    value = eval(prule.value, _eval_globals, idmap)
+                    ctx[prule.name] = value
                 child = cls(**ctx)
                 widget.add_widget(child)
                 if crule.id:
                     self.rulectx[rootrule]['ids'][crule.id] = child
             else:
-                child = cls()
+                child = cls(__no_builder=True)
+                widget.add_widget(child)
                 self.apply(child)
                 self._apply_rule(child, crule, rootrule)
-                widget.add_widget(child)
 
         # create properties
         assert(rootrule in self.rulectx)
@@ -1214,17 +1227,18 @@ class BuilderBase(object):
                 setattr(widget_set, key, value)
 
         # build handlers
+        print '# going to build handlers for', widget, rule
         for widget_set, rules in rctx['hdl']:
-            #print '# build handlers for', widget_set, rules
+            print '# build handlers for', widget_set, rules
             for crule in rules:
-                #print '#  handler', crule.name
+                print '#  handler', crule.name
                 assert(isinstance(crule, ParserRuleProperty))
                 assert(crule.name.startswith('on_'))
                 key = crule.name
-                if not widget.is_event_type(key):
-                    key = crule.name[3:]
+                if not widget_set.is_event_type(key):
+                    key = key[3:]
                 widget_set.bind(**{key: partial(custom_callback, (
-                    widget, crule, rctx['ids']))})
+                    widget_set, crule, rctx['ids']))})
 
         #print '\n--------- end', rule, 'for', widget, '\n'
 
@@ -1233,8 +1247,7 @@ class BuilderBase(object):
     def build_canvas(self, canvas, widget, rule, rootrule):
         if __debug__:
             trace('Builder: build canvas for %s' % widget)
-        root = self.rulectx[rootrule]['ids']['root']
-        idmap = {'root': root}
+        idmap = copy(self.rulectx[rootrule]['ids'])
         for crule in rule.children:
             name = crule.name
             if name == 'Clear':
