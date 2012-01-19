@@ -109,7 +109,7 @@ cdef class Fbo(RenderContext):
     def __init__(self, *args, **kwargs):
         RenderContext.__init__(self, *args, **kwargs)
 
-        if 'clear_color' in kwargs:
+        if 'clear_color' not in kwargs:
             kwargs['clear_color'] = (0, 0, 0, 0)
         if 'size' not in kwargs:
             kwargs['size'] = (1024, 1024)
