@@ -302,6 +302,10 @@ class ObservableList(list):
         list.sort(self, *largs)
         observable_list_dispatch(self)
 
+    def reverse(self, *largs):
+        list.reverse(self, *largs)
+        observable_list_dispatch(self)
+
 
 cdef class ListProperty(Property):
     '''Property that represents a list.
