@@ -935,10 +935,6 @@ def custom_callback(*largs, **kwargs):
     locals()['self'] = self
     args = largs[1:]
     try:
-        print '= execute', rule.value
-        print '= execute', rule.co_value
-        from pprint import pprint
-        pprint(locals())
         exec rule.co_value
     except:
         exc_info = sys.exc_info()
@@ -1223,15 +1219,11 @@ class BuilderBase(object):
                 if type(value) is CodeType:
                     value = create_handler(widget_set, widget_set, key,
                             value, rule, rctx['ids'])
-                #print '# setattr', widget_set, key, (type(value), value)
                 setattr(widget_set, key, value)
 
         # build handlers
-        print '# going to build handlers for', widget, rule
         for widget_set, rules in rctx['hdl']:
-            print '# build handlers for', widget_set, rules
             for crule in rules:
-                print '#  handler', crule.name
                 assert(isinstance(crule, ParserRuleProperty))
                 assert(crule.name.startswith('on_'))
                 key = crule.name
@@ -1239,8 +1231,6 @@ class BuilderBase(object):
                     key = key[3:]
                 widget_set.bind(**{key: partial(custom_callback, (
                     widget_set, crule, rctx['ids']))})
-
-        #print '\n--------- end', rule, 'for', widget, '\n'
 
         del self.rulectx[rootrule]
 
