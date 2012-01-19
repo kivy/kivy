@@ -463,6 +463,78 @@ cdef class BoundedNumericProperty(Property):
         storage['use_min'] = self.use_min
         storage['use_max'] = self.use_max
 
+    def set_min(self, obj, value):
+        '''Change the minimum value acceptable for the BoundedNumericProperty, only
+        for the `obj` instance, None if you want to disable it::
+
+            class MyWidget(Widget):
+                number = BoundedNumericProperty(0, min=-5, max=5)
+
+            widget = MyWidget()
+            # change the minmium to -10
+            widget.property('number').set_min(widget, -10)
+            # or disable the minimum check
+            widget.property('number').set_min(widget, None)
+
+        .. warning::
+
+            Changing the bounds doesn't revalidate the current value.
+
+        .. versionadded:: 1.0.10
+        '''
+        cdef dict s = obj.__storage[self._name]
+        if value is None:
+            s['use_min'] = 0
+        else:
+            s['min'] = value
+            s['use_min'] = 1
+
+    def get_min(self, obj):
+        '''Return the minimum value acceptable for the BoundedNumericProperty in
+        `obj`, None if no minimum value are set::
+
+            class MyWidget(Widget):
+                number = BoundedNumericProperty(0, min=-5, max=5)
+
+            widget = MyWidget()
+            print widget.property('number').get_min(widget)
+            # will output -5
+
+        .. versionadded:: 1.0.10
+        '''
+        cdef dict s = obj.__storage[self._name]
+        if s['use_min'] == 1:
+            return s['min']
+
+    def set_max(self, obj, value):
+        '''Change the maximum value acceptable for the BoundedNumericProperty, only
+        for the `obj` instance, None if you want to disable it. Check
+        :data:`set_min` for an usage example.
+
+        .. warning::
+
+            Changing the bounds doesn't revalidate the current value.
+
+        .. versionadded:: 1.0.10
+        '''
+        cdef dict s = obj.__storage[self._name]
+        if value is None:
+            s['use_min'] = 0
+        else:
+            s['min'] = value
+            s['use_min'] = 1
+
+    def get_max(self, obj):
+        '''Return the maximum value acceptable for the BoundedNumericProperty in
+        `obj`, None if no maximum value are set. Check :data:`get_min` for an
+        usage example.
+
+        .. versionadded:: 1.0.10
+        '''
+        cdef dict s = obj.__storage[self._name]
+        if s['use_max'] == 1:
+            return s['max']
+
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
