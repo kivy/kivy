@@ -534,7 +534,7 @@ class ParserRuleProperty(object):
         # first, remove all the string from the value
         tmp = re.sub(lang_str, '', value)
         # detect key.value inside value
-        self.watched_keys = re.findall(lang_keyvalue, tmp)
+        self.watched_keys = re.findall(lang_keyvalue, tmp) or None
 
     def __repr__(self):
         return '<ParserRuleProperty name=%r value=%r watched_keys=%r>' % (
@@ -1111,7 +1111,6 @@ class BuilderBase(object):
                 rootwidgets.append(Factory.get(basecls))
             cls = ClassType(name, tuple(rootwidgets), {})
             Cache.append('kv.lang', key, cls)
-        print 'create template', args, rule
         widget = cls()
         self._apply_rule(widget, rule, rule, template_ctx=ctx)
         #self.build_item(widget, rule, is_rule=True, from_template=True)
@@ -1174,7 +1173,6 @@ class BuilderBase(object):
                 idmap = copy(global_idmap)
                 idmap.update({'root': self.rulectx[rootrule]['ids']['root']})
                 for prule in crule.properties.itervalues():
-                    print type(prule.co_value), repr(prule.co_value)
                     value = prule.co_value
                     if type(value) is CodeType:
                         value = eval(value, _eval_globals, idmap)
@@ -1192,8 +1190,10 @@ class BuilderBase(object):
         # create properties
         assert(rootrule in self.rulectx)
         rctx = self.rulectx[rootrule]
-        rctx['set'].append((widget, rule.properties.values()))
-        rctx['hdl'].append((widget, rule.handlers))
+        if rule.properties:
+            rctx['set'].append((widget, rule.properties.values()))
+        if rule.handlers:
+            rctx['hdl'].append((widget, rule.handlers))
 
         # if we are applying another rule that the root one, then it's done for
         # us!
@@ -1208,20 +1208,22 @@ class BuilderBase(object):
                 key = rule.name
                 value = rule.co_value
                 if type(value) is CodeType:
-                    value = create_handler(widget, widget, key,
+                    value = create_handler(widget_set, widget_set, key,
                             value, rule, rctx['ids'])
-                print '# setattr', widget_set, key, (rule.value, value)
+                #print '# setattr', widget_set, key, (type(value), value)
                 setattr(widget_set, key, value)
 
         # build handlers
         for widget_set, rules in rctx['hdl']:
+            #print '# build handlers for', widget_set, rules
             for crule in rules:
+                #print '#  handler', crule.name
                 assert(isinstance(crule, ParserRuleProperty))
                 assert(crule.name.startswith('on_'))
                 key = crule.name
                 if not widget.is_event_type(key):
                     key = crule.name[3:]
-                widget.bind(**{key: partial(custom_callback, (
+                widget_set.bind(**{key: partial(custom_callback, (
                     widget, crule, rctx['ids']))})
 
         #print '\n--------- end', rule, 'for', widget, '\n'
