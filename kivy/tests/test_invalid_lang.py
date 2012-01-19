@@ -5,7 +5,7 @@ import unittest
 class InvalidLangTestCase(unittest.TestCase):
 
     def test_invalid_childname(self):
-        from kivy.lang import Builder
+        from kivy.lang import Builder, ParserError
         from kivy.factory import FactoryException
         try:
             Builder.load_string('''
@@ -19,12 +19,13 @@ Widget:
     thecursor.Cursor:
             ''')
             self.fail('Invalid children name')
+        except ParserError:
+            pass
         except FactoryException:
             pass
 
     def test_invalid_childname_before(self):
-        from kivy.lang import Builder
-        from kivy.lang import ParserError
+        from kivy.lang import Builder, ParserError
         try:
             Builder.load_string('''
 Widget:
