@@ -105,7 +105,7 @@ class WindowPygame(WindowBase):
         # try to use mode with multisamples
         try:
             self._pygame_set_mode()
-        except pygame.error:
+        except pygame.error, e:
             if multisamples:
                 Logger.warning('WinPygame: Video: failed (multisamples=%d)' %
                                multisamples)
@@ -118,8 +118,7 @@ class WindowPygame(WindowBase):
                 except pygame.error, e:
                     raise CoreCriticalException(e.message)
             else:
-                Logger.warning('WinPygame: Video setup failed :-(')
-                raise
+                raise CoreCriticalException(e.message)
 
         super(WindowPygame, self).create_window()
 
