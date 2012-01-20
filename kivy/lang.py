@@ -443,6 +443,7 @@ Set a key that will be available anywhere in the kv. For example::
 
 __all__ = ('Builder', 'BuilderBase', 'Parser', 'ParserException')
 
+import codecs
 import re
 import sys
 from os.path import join
@@ -1063,7 +1064,19 @@ class BuilderBase(object):
             trace('Builder: load file %s' % filename)
         with open(filename, 'r') as fd:
             kwargs['filename'] = filename
-            return self.load_string(fd.read(), **kwargs)
+            data = fd.read()
+
+            # remove bom ?
+            if data.startswith(codecs.BOM_UTF16_LE) or \
+                data.startswith(codecs.BOM_UTF16_BE):
+                raise ValueError('Unsupported UTF16 for kv files.')
+            if data.startswith(codecs.BOM_UTF32_LE) or \
+                data.startswith(codecs.BOM_UTF32_BE):
+                raise ValueError('Unsupported UTF32 for kv files.')
+            if data.startswith(codecs.BOM_UTF8):
+                data = data[len(codecs.BOM_UTF8):]
+
+            return self.load_string(data, **kwargs)
 
     def unload_file(self, filename):
         '''Unload all rules associated to a previously imported file.
