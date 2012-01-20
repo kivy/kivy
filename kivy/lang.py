@@ -487,7 +487,7 @@ class ParserException(Exception):
         sc = '\n'.join(sc)
 
         message = 'Parser: File "%s", line %d:\n%s\n%s' % (
-            self.filename, self.line, sc, message)
+            self.filename, self.line+1, sc, message)
         super(ParserException, self).__init__(message)
 
 
@@ -546,8 +546,8 @@ class ParserRuleProperty(object):
             self.watched_keys = None
 
     def __repr__(self):
-        return '<ParserRuleProperty name=%r value=%r watched_keys=%r>' % (
-                self.name, self.value, self.watched_keys)
+        return '<ParserRuleProperty name=%r filename=%s:%d value=%r watched_keys=%r>' % (
+                self.name, self.ctx.filename, self.line+1, self.value, self.watched_keys)
 
 
 class ParserRule(object):
