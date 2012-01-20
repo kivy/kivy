@@ -68,8 +68,8 @@ else:
             except CoreCriticalException as e:
                 Logger.error('%s: Unable to use <%s> as %s'
                      'provider' % (category.capitalize(), option, category))
-                Logger.error('%s: The module raised an important error' %
-                        (category.capitalize()))
+                Logger.error('%s: The module raised an important error: %r' %
+                        (category.capitalize(), e.message))
                 raise
 
             except Exception as e:

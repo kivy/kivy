@@ -113,7 +113,10 @@ class WindowPygame(WindowBase):
                 pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 0)
                 pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 0)
                 multisamples = 0
-                self._pygame_set_mode()
+                try:
+                    self._pygame_set_mode()
+                except pygame.error, e:
+                    raise CoreCriticalException(e.message)
             else:
                 Logger.warning('WinPygame: Video setup failed :-(')
                 raise
