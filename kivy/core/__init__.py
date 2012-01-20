@@ -22,6 +22,9 @@ import os
 import kivy
 from kivy.logger import Logger
 
+class CoreCriticalException(Exception):
+    pass
+
 if 'KIVY_DOC' in os.environ:
     # stub for sphinx generation
     def core_select_lib(category, llist, create_instance=False):
@@ -55,10 +58,24 @@ else:
                     cls = cls()
                 return cls
 
+            except ImportError as e:
+                Logger.warning('%s: Unable to use <%s> as %s'
+                     'provider' % (category.capitalize(), option, category))
+                Logger.warning('%s: Associated module are missing' %
+                        (category.capitalize()))
+                Logger.debug('', exc_info=e)
+
+            except CoreCriticalException as e:
+                Logger.error('%s: Unable to use <%s> as %s'
+                     'provider' % (category.capitalize(), option, category))
+                Logger.error('%s: The module raised an important error' %
+                        (category.capitalize()))
+                raise
+
             except Exception as e:
                 Logger.warning('%s: Unable to use <%s> as %s'
                      'provider' % (category.capitalize(), option, category))
-                Logger.debug('', exc_info = e)
+                Logger.debug('', exc_info=e)
 
         Logger.critical('%s: Unable to find any valuable %s provider '
               'at all!' % (category.capitalize(), category.capitalize()))

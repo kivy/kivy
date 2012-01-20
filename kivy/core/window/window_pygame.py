@@ -4,8 +4,11 @@ Window Pygame: windowing provider based on Pygame
 
 __all__ = ('WindowPygame', )
 
-from . import WindowBase
+# fail early if possible
+import pygame
 
+from . import WindowBase
+from kivy.core import CoreCriticalException
 import os
 import sys
 from os.path import exists
@@ -14,12 +17,6 @@ from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.clock import Clock
-
-try:
-    import pygame
-except:
-    Logger.warning('WinPygame: Pygame is not installed !')
-    raise
 
 # late binding
 glReadPixels = GL_RGB = GL_UNSIGNED_BYTE = None
@@ -45,7 +42,10 @@ class WindowPygame(WindowBase):
         if sys.platform == 'linux2':
             self.flags |= pygame.RESIZABLE
 
-        pygame.display.init()
+        try:
+            pygame.display.init()
+        except pygame.error, e:
+            raise CoreCriticalException(e.message)
 
         multisamples = Config.getint('graphics', 'multisamples')
 
