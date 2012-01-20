@@ -704,8 +704,10 @@ class Parser(object):
             if __debug__:
                 trace('Parser: got directive <%s>' % cmd)
             if cmd[:5] == 'kivy ':
-                # FIXME move the version checking here
-                continue
+                version = cmd[5:].strip()
+                if len(version.split('.')) == 2:
+                    version += '.0'
+                require(version)
             elif cmd[:4] == 'set ':
                 try:
                     name, value = cmd[4:].strip().split(' ', 1)
@@ -759,10 +761,6 @@ class Parser(object):
         if __debug__:
             trace('Parser: parsing %d lines' % num_lines)
 
-        # Ensure the version
-        if self.filename:
-            self.parse_version(lines[0])
-
         # Strip all comments
         self.strip_comments(lines)
 
@@ -781,25 +779,6 @@ class Parser(object):
         if remaining_lines:
             ln, content = remaining_lines[0]
             raise ParserException(self, ln, 'Invalid data (not parsed)')
-
-    def parse_version(self, line):
-        '''Parse the version line.
-        The version line is always the first line, unindented and has the
-        format: #:kivy <version>
-        '''
-        ln, content = line
-
-        if not content.startswith('#:kivy '):
-            raise ParserException(self, ln,
-                           'Invalid doctype, must start with '
-                           '#:kivy <version>')
-
-        version = content[6:].strip()
-        if len(version.split('.')) == 2:
-            version += '.0'
-        require(version)
-        if __debug__:
-            trace('Parser: Kivy version is %s' % version)
 
     def strip_comments(self, lines):
         '''Remove all comments from all lines in-place.
