@@ -54,13 +54,13 @@ class LangTestCase(unittest.TestCase):
     def test_loading_failed_1(self):
         # invalid indent
         Builder = self.import_builder()
-        from kivy.lang import ParserError
+        from kivy.lang import ParserException
         try:
             Builder.load_string('''#:kivy 1.0
             <TestClass>:
             ''')
             self.fail('Invalid indentation.')
-        except ParserError:
+        except ParserException:
             pass
 
     def test_parser_numeric_1(self):
