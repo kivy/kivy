@@ -212,11 +212,12 @@ class VKeyboard(Scatter):
     default to [1, 1, 1, 1].
     '''
 
-    background = StringProperty('data/images/vkeyboard_background.png')
+    background = StringProperty(
+        'atlas://data/images/defaulttheme/vkeyboard_background')
     '''Filename of the background image.
 
     :data:`background` a :class:`~kivy.properties.StringProperty`, default to
-    :file:`data/images/vkeyboard_background.png`.
+    :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
     '''
 
     key_background_color = ListProperty([1, 1, 1, 1])
@@ -228,18 +229,18 @@ class VKeyboard(Scatter):
     '''
 
     key_background_normal = StringProperty(
-            'data/images/vkeyboard_key_normal.png')
+            'atlas://data/images/defaulttheme/vkeyboard_key_normal')
     '''Filename of the key background image when no touch are on it.
 
     :data:`key_background_normal` a :class:`~kivy.properties.StringProperty`,
-    default to :file:`data/images/vkeyboard_key_normal.png`.
+    default to :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
     '''
 
-    key_background_down = StringProperty('data/images/vkeyboard_key_down.png')
+    key_background_down = StringProperty('atlas://data/images/defaulttheme/vkeyboard_key_down')
     '''Filename of the key background image one touch is on it.
 
     :data:`key_background_down` a :class:`~kivy.properties.StringProperty`,
-    default to :file:`data/images/vkeyboard_key_down.png`.
+    default to :file:`atlas://data/images/defaulttheme/vkeyboard_key_down`.
     '''
 
     background_border = ListProperty([16, 16, 16, 16])
