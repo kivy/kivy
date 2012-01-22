@@ -1268,7 +1268,7 @@ class BuilderBase(object):
             return
 
         # normally, we can apply a list of properties with a proper context
-        for widget_set, rules in rctx['set']:
+        for widget_set, rules in reversed(rctx['set']):
             for rule in rules:
                 assert(isinstance(rule, ParserRuleProperty))
                 key = rule.name
