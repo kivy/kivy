@@ -309,7 +309,6 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.setdefault('graphics', 'width', '800')
 
             # input configuration
-            Config.setdefault('input', 'default', 'tuio,0.0.0.0:3333')
             Config.setdefault('input', 'mouse', 'mouse')
 
             # activate native input provider in configuration
