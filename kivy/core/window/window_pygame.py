@@ -11,12 +11,14 @@ from . import WindowBase
 from kivy.core import CoreCriticalException
 import os
 import sys
-from os.path import exists
+from os.path import exists, join
 from kivy.config import Config
+from kivy import kivy_home_dir
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.clock import Clock
+from kivy.utils import platform
 
 # late binding
 glReadPixels = GL_RGB = GL_UNSIGNED_BYTE = None
@@ -94,6 +96,9 @@ class WindowPygame(WindowBase):
         # set window icon before calling set_mode
         try:
             filename_icon = Config.get('kivy', 'window_icon')
+            if filename_icon == '':
+                logo_size = 512 if platform() == 'darwin' else 32
+                filename_icon = join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' % logo_size)
             self.set_icon(filename_icon)
         except:
             Logger.exception('Window: cannot set icon')
