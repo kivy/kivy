@@ -259,6 +259,7 @@ setup(
         'data/images/*.png',
         'data/images/*.jpg',
         'data/images/*.gif',
+        'data/images/*.atlas',
         'data/keyboards/*.json',
         'data/logo/*.png',
         'data/glsl/*.png',
