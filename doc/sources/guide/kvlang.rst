@@ -10,11 +10,12 @@ Widget graphics
 Per-frame drawing
 ~~~~~~~~~~~~~~~~~
 
-Let's take a look at drawing widgets. All widgets, by default, aren't drawable.
-Some widgets, like ``Button`` or ``Label``, come with a default drawing mechanism.
-Consider a ``Button`` widget, where we need to draw its background and text. In some
-toolkits, you need to overload a ``draw()`` method and put your drawing code in
-it, like::
+Let's take a look at drawing widgets. By default, widgets contain an empty
+``Canvas`` with no graphics instructions. Some widgets, like ``Button`` or
+``Label``, come with some default graphics instructions to draw their background
+and text. Consider a ``Button`` widget; how do we draw its background and text?
+In some toolkits, you need to overload a ``draw()`` method and put your drawing
+code in it, like::
 
     def draw(self):
         set_color(.5, .5, .5)
@@ -31,8 +32,9 @@ We think this way is obsolete because:
 Kivy's approach
 ~~~~~~~~~~~~~
 
-In Kivy, you are creating graphics instructions one by one, and putting them in
-the ``Canvas`` widget. A possible approach would be::
+In Kivy, you create graphics instructions and draw them to the
+widget's ``Canvas``. A possible approach to drawing our ``Button``
+could be::
 
     with self.canvas:
         Color(.5, .5, .5)
