@@ -441,7 +441,8 @@ Set a key that will be available anywhere in the kv. For example::
                 rgb: my_color if self.state == 'normal' else my_color_hl
 '''
 
-__all__ = ('Builder', 'BuilderBase', 'Parser', 'ParserException')
+__all__ = ('Builder', 'BuilderBase', 'BuilderException',
+    'Parser', 'ParserException')
 
 import codecs
 import re
@@ -490,6 +491,12 @@ class ParserException(Exception):
         message = 'Parser: File "%s", line %d:\n%s\n%s' % (
             self.filename, self.line+1, sc, message)
         super(ParserException, self).__init__(message)
+
+
+class BuilderException(ParserException):
+    '''Exception raised when the Builder failed to apply a rule on a widget.
+    '''
+    pass
 
 
 class ParserRuleProperty(object):
@@ -547,8 +554,10 @@ class ParserRuleProperty(object):
             self.watched_keys = None
 
     def __repr__(self):
-        return '<ParserRuleProperty name=%r filename=%s:%d value=%r watched_keys=%r>' % (
-                self.name, self.ctx.filename, self.line+1, self.value, self.watched_keys)
+        return '<ParserRuleProperty name=%r filename=%s:%d' \
+               'value=%r watched_keys=%r>' % (
+                self.name, self.ctx.filename, self.line + 1,
+                self.value, self.watched_keys)
 
 
 class ParserRule(object):
@@ -741,8 +750,8 @@ class Parser(object):
                     global_idmap[alias] = mod
                 except ImportError:
                     Logger.exception('')
-                    raise ParserException(self, ln, 'Unable to import package %r' %
-                                     package)
+                    raise ParserException(self, ln,
+                            'Unable to import package %r' % package)
             else:
                 raise ParserException(self, ln, 'Unknown directive')
 
@@ -866,7 +875,8 @@ class Parser(object):
                 else:
                     if name not in Parser.PROP_ALLOWED:
                         if False in [ord(z) in Parser.PROP_RANGE for z in name]:
-                            raise ParserException(self, ln, 'Invalid property name')
+                            raise ParserException(self, ln,
+                                'Invalid property name')
                     if len(x) == 1:
                         raise ParserException(self, ln, 'Syntax error')
                     value = x[1].strip()
@@ -938,6 +948,8 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
 
 
 def create_handler(iself, element, key, value, rule, idmap):
+    __kvlang__ = rule
+
     # create an handler
     idmap = copy(idmap)
     idmap.update(global_idmap)
@@ -966,7 +978,10 @@ def create_handler(iself, element, key, value, rule, idmap):
             except AttributeError:
                 continue
 
-    return eval(value, idmap)
+    try:
+        return eval(value, idmap)
+    except Exception, e:
+        raise BuilderException(rule.ctx, rule.line, str(e))
 
 
 class ParserSelector(object):
@@ -1209,10 +1224,17 @@ class BuilderBase(object):
                 for prule in crule.properties.itervalues():
                     value = prule.co_value
                     if type(value) is CodeType:
-                        value = eval(value, idmap)
+                        try:
+                            value = eval(value, idmap)
+                        except Exception, e:
+                            raise BuilderException(
+                                    prule.ctx, prule.line, str(e))
                     ctx[prule.name] = value
                 for prule in crule.handlers:
-                    value = eval(prule.value, idmap)
+                    try:
+                        value = eval(prule.value, idmap)
+                    except Exception, e:
+                        raise BuilderException(prule.ctx, prule.line, str(e))
                     ctx[prule.name] = value
 
                 # create the template with an explicit ctx
@@ -1299,9 +1321,7 @@ class BuilderBase(object):
                             widget, instr, key, value, prule, idmap)
                     setattr(instr, key, value)
                 except Exception, e:
-                    m = ParserException(prule.ctx, prule.line, str(e))
-                    print m.message
-                    raise
+                    raise BuilderException(prule.ctx, prule.line, str(e))
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = BuilderBase()

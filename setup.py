@@ -154,7 +154,7 @@ if True:
             Extension.__init__(self, *args, **kwargs)
             self.pyrex_directives = {
                 'profile': 'USE_PROFILE' in environ,
-                'embedsignature': False}
+                'embedsignature': True}
             # XXX with pip, setuptools is imported before distutils, and change
             # our pyx to c, then, cythonize doesn't happen. So force again our
             # sources
