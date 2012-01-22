@@ -9,7 +9,6 @@ from kivy.properties import StringProperty, OptionProperty,\
                              ObjectProperty, BooleanProperty
 
 
-
 class AnimatedButton(Label):
 
     state = OptionProperty('normal', options=('normal', 'down'))
@@ -22,11 +21,13 @@ class AnimatedButton(Label):
 
     anim_delay = ObjectProperty(None)
 
-    background_normal = StringProperty('data/images/button.png')
+    background_normal = StringProperty(
+            'atlas://data/images/defaulttheme/button')
 
     texture_background = ObjectProperty(None)
 
-    background_down = StringProperty('data/images/button_pressed.png')
+    background_down = StringProperty(
+            'atlas://data/images/defaulttheme/button_pressed')
 
     def __init__(self, **kwargs):
         super(AnimatedButton, self).__init__(**kwargs)
@@ -50,7 +51,7 @@ class AnimatedButton(Label):
         #update image source when background image is changed
         def background_changed(*l):
             self.img.source = self.background_normal
-            self.anim_delay = .1 
+            self.anim_delay = .1
         self.bind(background_normal = background_changed)
 
     def on_tex_changed(self, *largs):

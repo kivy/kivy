@@ -104,18 +104,18 @@ class Bubble(GridLayout):
     16, 16, 16)
     '''
 
-    background_image = StringProperty('data/images/bubble.png')
+    background_image = StringProperty('atlas://data/images/defaulttheme/bubble')
     '''Background image of the bubble
 
     :data:`background_image` is a :class:`~kivy.properties.StringProperty`,
-    default to 'data/images/bubble.png'.
+    default to 'atlas://data/images/defaulttheme/bubble'.
     '''
 
-    arrow_image = StringProperty('data/images/bubble_arrow.png')
+    arrow_image = StringProperty('atlas://data/images/defaulttheme/bubble_arrow')
     ''' Image of the arrow pointing to the bubble
 
     :data:`arrow_image` is a :class:`~kivy.properties.StringProperty`,
-    default to 'data/images/bubble_arrow.png'.
+    default to 'atlas://data/images/defaulttheme/bubble_arrow'.
     '''
 
     arrow_pos = OptionProperty('bottom_mid',

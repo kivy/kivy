@@ -27,13 +27,13 @@ None, a "POST" request will be done. It's up to you to adjust
 Example of fetching twitter trends::
 
     def got_twitter_trends(req, result):
-        trends = result['trends']
+        trends = result[0]['trends']
         print 'Last %d twitter trends:' % len(trends),
         for trend in trends:
             print trend['name'],
         print '!'
 
-    req = UrlRequest('http://api.twitter.com/1/trends.json',
+    req = UrlRequest('https://api.twitter.com/1/trends/1.json',
             got_twitter_trends)
 
 Example of Posting data (adapted from httplib example)::

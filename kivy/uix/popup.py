@@ -124,13 +124,14 @@ class Popup(FloatLayout):
     default to [0, 0, 0, .7].
     '''
 
-    background = StringProperty('data/images/popup-background.png')
+    background = StringProperty(
+        'atlas://data/images/defaulttheme/popup-background')
     '''Background image of the popup used for the popup background.
 
     .. versionadded:: 1.0.10
 
     :data:`background` is an :class:`~kivy.properties.StringProperty`,
-    default to 'data/images/popup-background.png'
+    default to 'atlas://data/images/defaulttheme/popup-background'
     '''
 
     border = ListProperty([16, 16, 16, 16])

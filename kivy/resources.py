@@ -28,6 +28,8 @@ def resource_find(filename):
     '''
     if not filename:
         return None
+    if filename[:8] == 'atlas://':
+        return filename
     if exists(filename):
         return filename
     for path in reversed(resource_paths):

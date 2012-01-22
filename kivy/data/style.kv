@@ -38,8 +38,8 @@
             pos: self.pos
 
 <BubbleButton>:
-	background_normal: 'data/images/bubble_btn.png'
-	background_down: 'data/images/bubble_btn_pressed.png'
+	background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
+	background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
 	border: (0, 0, 0, 0)
 
 <Slider>:
@@ -50,11 +50,11 @@
             border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
             pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
             size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
-            source: 'data/images/slider%s_background.png' % self.orientation[0]
+            source: 'atlas://data/images/defaulttheme/slider%s_background' % self.orientation[0]
         Image:
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
             size: (32, 32)
-            source: 'data/images/slider_cursor.png'
+            source: 'atlas://data/images/defaulttheme/slider_cursor'
 
 <ProgressBar>:
     canvas:
@@ -64,12 +64,12 @@
             border: (12, 12, 12, 12)
             pos: self.x, self.center_y - 12
             size: self.width, 24
-            source: 'data/images/progressbar_background.png'
+            source: 'atlas://data/images/defaulttheme/progressbar_background'
         BorderImage:
             border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
             pos: self.x, self.center_y - 12
             size: self.width * (self.value / float(self.max)), 24
-            source: 'data/images/progressbar.png'
+            source: 'atlas://data/images/defaulttheme/progressbar'
 
 <Scatter>:
     canvas.before:
@@ -98,7 +98,7 @@
             border: (16, 16, 16, 16)
             pos: self.pos
             size: self.size
-            source: 'data/images/textinput.png' if not self.focus else 'data/images/textinput_active.png'
+            source: 'atlas://data/images/defaulttheme/textinput%s' % ('_active' if not self.focus else '')
         Color:
             rgba: (1, 0, 0, 1 if self.focus and not self.cursor_blink else 0)
         Rectangle:
@@ -131,7 +131,7 @@
         Color:
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
-            source: 'data/images/tree_%s.png' % ('opened' if self.is_open else 'closed')
+            source: 'atlas://data/images/defaulttheme/tree_%s' % ('opened' if self.is_open else 'closed')
             size: 16, 16
             pos: self.x - 20, self.center_y - 8
     canvas.after:
@@ -282,11 +282,11 @@
             border: 8, 8, 8, 8
             pos: root.pos
             size: root.size
-            source: 'data/images/filechooser_selected.png'
+            source: 'atlas://data/images/defaulttheme/filechooser_selected'
 
     Image:
         size: 48, 48
-        source: 'data/images/filechooser_%s.png' % ('folder' if ctx.isdir else 'file')
+        source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if ctx.isdir else 'file')
         pos: root.x + 24, root.y + 40
     Label:
         text: unicode(ctx.name)
@@ -312,11 +312,11 @@
         Color:
             rgb: 1, 1, 1
         Rectangle:
-            source: 'data/images/switch-background.png'
+            source: 'atlas://data/images/defaulttheme/switch-background'
             size: 83, 32
             pos: self.center_x - 41, self.center_y - 16
         Rectangle:
-            source: 'data/images/switch-button.png'
+            source: 'atlas://data/images/defaulttheme/switch-button'
             size: 43, 32
             pos: self.center_x - 41 + self.active_norm_pos * 41, self.center_y - 16
 

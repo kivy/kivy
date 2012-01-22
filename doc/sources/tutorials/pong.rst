@@ -327,7 +327,7 @@ Step 5 - Adding Players and reacting to touch input
 
 Sweet, out ball is bouncing around. The only thing missing now are the movable
 player rackets and keeping track of the score.  We won't to go over all the
-details of creating the class and kv rules again, since those conepts were
+details of creating the class and kv rules again, since those concepts were
 already covered in the previous steps.  Instead lets focus on how to move the
 Player widgets in response to user input.  You can get the whole code and kv
 rules for the ``PongPlayer`` class at the end of this section.
@@ -387,8 +387,8 @@ Step 6 - Have some fun
 ----------------------
 
 Well, the pong game is pretty much complete.  If you understood all of the
-things that are covered in this turoial, gice yourself a pat on the back and
-think about how you could imrpove the game.  Here a are a few ideas of things
+things that are covered in this turoial, give yourself a pat on the back and
+think about how you could improve the game.  Here a are a few ideas of things
 you could do:
 
 * Add some nicer graphics / images (hint check out the source property on

@@ -4,8 +4,11 @@ Window Pygame: windowing provider based on Pygame
 
 __all__ = ('WindowPygame', )
 
-from . import WindowBase
+# fail early if possible
+import pygame
 
+from . import WindowBase
+from kivy.core import CoreCriticalException
 import os
 import sys
 from os.path import exists
@@ -14,12 +17,6 @@ from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.clock import Clock
-
-try:
-    import pygame
-except:
-    Logger.warning('WinPygame: Pygame is not installed !')
-    raise
 
 try:
     import android
@@ -50,7 +47,10 @@ class WindowPygame(WindowBase):
         if sys.platform == 'linux2':
             self.flags |= pygame.RESIZABLE
 
-        pygame.display.init()
+        try:
+            pygame.display.init()
+        except pygame.error, e:
+            raise CoreCriticalException(e.message)
 
         multisamples = Config.getint('graphics', 'multisamples')
 
@@ -110,7 +110,7 @@ class WindowPygame(WindowBase):
         # try to use mode with multisamples
         try:
             self._pygame_set_mode()
-        except pygame.error:
+        except pygame.error, e:
             if multisamples:
                 Logger.warning('WinPygame: Video: failed (multisamples=%d)' %
                                multisamples)
@@ -118,10 +118,12 @@ class WindowPygame(WindowBase):
                 pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 0)
                 pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 0)
                 multisamples = 0
-                self._pygame_set_mode()
+                try:
+                    self._pygame_set_mode()
+                except pygame.error, e:
+                    raise CoreCriticalException(e.message)
             else:
-                Logger.warning('WinPygame: Video setup failed :-(')
-                raise
+                raise CoreCriticalException(e.message)
 
         super(WindowPygame, self).create_window()
 
