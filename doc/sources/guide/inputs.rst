@@ -96,7 +96,7 @@ profile exists::
         if 'angle' in touch.profiles:
             print 'The touch angle is', touch.a
 
-You can find a list of available profiles in the :ref:`motionevent`
+You can find a list of available profiles in the :doc:`api-kivy.input.motionevent`
 documentation.
 
 Touch events

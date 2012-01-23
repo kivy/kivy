@@ -1,5 +1,5 @@
 Introduction to the Kivy Language
-=============================
+=================================
 
 In this part of the documentation, we'll see why the Kivy language was created,
 and how it changes the way you code in Kivy.
@@ -30,7 +30,7 @@ We think this way is obsolete because:
 #. And because of that, you cannot predict any optimizations.
 
 Kivy's approach
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 In Kivy, you create graphics instructions and draw them to the
 widget's ``Canvas``. A possible approach to drawing our ``Button``

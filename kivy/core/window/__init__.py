@@ -265,6 +265,7 @@ class WindowBase(EventDispatcher):
     clearcolor = AliasProperty(_get_clearcolor, _set_clearcolor,
             bind=('_clearcolor', ))
     '''Color used to clear window.
+
     ::
         from kivy.core.window import Window
 

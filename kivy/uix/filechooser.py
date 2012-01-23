@@ -78,9 +78,8 @@ class FileChooserController(FloatLayout):
     '''
 
     filters = ListProperty([])
-    '''
-    :class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
-    The filters to be applied to the files in the directory, e.g. ['*.png'].
+    ''':class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
+    The filters to be applied to the files in the directory, e.g. ['\*.png'].
     The filters are not reset when the path changes, you need to do that
     yourself if you want that. You can use the following patterns:
 

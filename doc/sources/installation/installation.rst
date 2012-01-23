@@ -25,7 +25,6 @@ Other optional libraries (mutually interchangeable) are:
     * `PIL <http://www.pythonware.com/products/pil/index.htm>`_ -- Image and text display.
     * `PyCairo <http://www.cairographics.org/pycairo/>`_ -- Text display.
     * `PyEnchant <http://www.rfk.id.au/software/pyenchant/>`_ -- Spelling correction.
-    * `Pygame <http://www.pygame.org>`_ -- Window creation, image and text display, audio playback.
     * `PyGST <http://gstreamer.freedesktop.org/ + http://pygstdocs.berlios.de/>`_ -- Audio/video playback and camera input.
 
 

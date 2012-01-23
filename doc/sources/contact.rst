@@ -25,10 +25,10 @@ Mail
 ----
 
 For users of our framework, there is a mailing list for support inquiries
-`on Google Groups <https://groups.google.com/group/kivy-users>`_. Use this list
+`on kivy-users Google Groups <https://groups.google.com/group/kivy-users>`_. Use this list
 if you have issues with your Kivy-based app.
 Also, we have a mailing list for matters that deal with development of the actual
-Kivy framework code `on Google Groups <https://groups.google.com/group/kivy-dev>`_.
+Kivy framework code `on kivy-dev Google Groups <https://groups.google.com/group/kivy-dev>`_.
 
 
 IRC

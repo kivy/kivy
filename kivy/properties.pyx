@@ -190,9 +190,9 @@ cdef class Property:
     cpdef dispatch(self, obj):
         '''Dispatch the value change to all observers
 
-        .. versionchanged::
+        .. versionchanged:: 1.0.10
 
-            In 1.0.10, the dispatch() method is now accessible from Python.
+            The method is now accessible from Python.
 
         This can be used to force the dispatch of the property, even if the
         value didn't changed::
