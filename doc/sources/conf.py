@@ -181,7 +181,8 @@ latex_elements = {
     'pointsize':    '10pt',
     'preamble':     r'\usepackage{kivystyle}'
 }
-latex_additional_files = ['kivystyle.sty', 'logo.pdf']
+latex_additional_files = ['kivystyle.sty',
+    '../../kivy/data/logo/kivy-icon-512.png']
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
