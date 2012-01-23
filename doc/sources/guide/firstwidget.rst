@@ -290,27 +290,27 @@ Here's what happens:
 
     * Line 4: We added an import statement to be able to use the
       :class:`~kivy.uix.button.Button` class.
-    * Line 24: We create a dummy ``Widget()`` object as a parent for both
+    * Line 26: We create a dummy ``Widget()`` object as a parent for both
       our painting widget and the button we're about to add. This is just
       a poor-man's approach to setting up a widget tree hierarchy. We
       could just as well use a layout or do some other fancy stuff.
       Again: This widget does absolutely nothing except holding the two
       widgets we will now add to it as children.
-    * Line 25: We create our ``MyPaintWidget()`` as usual, only this time
+    * Line 27: We create our ``MyPaintWidget()`` as usual, only this time
       we don't return it directly but bind it to a variable name.
-    * Line 26: We create a button widget. It will have a label on it that
+    * Line 28: We create a button widget. It will have a label on it that
       displays the text 'Clear'.
-    * Line 27 & 28: We set up the widget hierarchy by making both the
+    * Line 29 & 30: We set up the widget hierarchy by making both the
       painter and the clear button children of the dummy parent widget.
       That means painter and button are now siblings in the usual computer
       science tree terminology.
-    * Lines 30 & 31: Up to now, the button did nothing. It was there,
+    * Lines 32 & 33: Up to now, the button did nothing. It was there,
       visible, and you could press it, but nothing would happen.
       We change that here: We create a small throw-away function that is
       going to be our callback function which is called when the button is
       pressed. The function just clears the painter's canvas' contents,
       making it black again.
-    * Line 32: We bind the button's on_release event (which is fired when
+    * Line 34: We bind the button's on_release event (which is fired when
       the button is pressed and then released) to the callback we just
       defined.
 
