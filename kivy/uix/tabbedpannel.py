@@ -181,7 +181,7 @@ class TabbedPannel(GridLayout):
     default to 'bottom_mid'.
     '''
 
-    tab_height =  NumericProperty(20)
+    tab_height = NumericProperty(20)
     '''Specifies the height of the Tab Heading
 
     :data:`tab_height` is a :class:`~kivy.properties.NumericProperty`,
@@ -195,7 +195,7 @@ class TabbedPannel(GridLayout):
     default to '30'.
     '''
 
-    default_tab_text  = StringProperty('default tab')
+    default_tab_text = StringProperty('default tab')
     '''Specifies the Text displayed on the default Tab Heading
 
     :data:`default_tab_text` is a :class:`~kivy.properties.StringProperty`,
@@ -395,15 +395,15 @@ class TabbedPannel(GridLayout):
 
             lentab_pos = len(self_tab_pos)
             from kivy.clock import Clock
+            from functools import partial
             if self_tab_pos[lentab_pos-4:] == '_top':
-                def update_top(*l):
-                    sctr.top = self.top
-                sctr.bind(top = Clock.schedule_once(update_top, -1))
-                tab_list = ( sctr,)
+                sctr.bind(top = Clock.schedule_once(
+                    partial(self.update_top, sctr, self.top), -1))
+                tab_list = (sctr, )
             elif self_tab_pos[lentab_pos-4:] == '_mid':
-                def update_top(*l):
-                    sctr.top = self.top - (self.height - scrl_v.width)/2
-                sctr.bind(top = Clock.schedule_once(update_top, -1))
+                sctr.bind(top = Clock.schedule_once(
+                    partial(self.update_top, sctr,
+                        self.top - (self.height - scrl_v.width)/2), -1))
                 tab_list = (Widget(), sctr, Widget())
             elif self_tab_pos[lentab_pos-7:] == '_bottom':
                 tab_list = (Widget(), Widget(), sctr)
@@ -422,3 +422,6 @@ class TabbedPannel(GridLayout):
         add = self.add_widget
         for widg in widget_list:
             add(widg)
+
+    def update_top(self, sctr, top, dt):
+        sctr.top = top
