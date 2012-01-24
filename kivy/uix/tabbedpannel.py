@@ -83,10 +83,10 @@ Change Appearance of the TabbedPannel::
 #TODO: overall percentage done[===--]%
 #positioning[=====]%
 #optimize[===--]%
-#Add arrows when scrollable[-----]%
+#Add arrows when tabs are scrollable[-----]%
 #Graphix [====-]
-#Fix Example [====-]%
-#documentation[==---]
+#Fix Example [=====]%
+#documentation[=====]%
 
 __all__ = ('TabbedPannel', 'Tab_Content', 'Tab_Heading')
 
@@ -224,17 +224,18 @@ class TabbedPannel(GridLayout):
     def __init__(self, **kwargs):
         self._tab_layout = GridLayout(rows=1)
         self._bk_img = Image(
-            source=self.background_image, allow_stretch=True,
-            keep_ratio=False, color=self.background_color)
+            source=self.background_image, allow_stretch = True,
+            keep_ratio = False, color = self.background_color)
         self.background_texture = self._bk_img.texture
-        self._tabs = GridLayout(rows = 1, cols = 99, size_hint = (None, None),\
+        self._tabs = _tabs= GridLayout(
+            rows = 1, cols = 99, size_hint = (None, None),\
             height = self.tab_height, width = self.tab_width)
         self.default_tab = default_tab = \
             Tab_Heading(text = self.default_tab_text,
                 height = self.tab_height,
                 width = self.tab_width)
-        self._tabs.add_widget(default_tab)
-        self.default_tab.bind(on_release = self.on_default_tab)
+        _tabs.add_widget(default_tab)
+        default_tab.bind(on_release = self.on_default_tab)
 
         self.content = content = Tab_Content()
         super(TabbedPannel, self).__init__(**kwargs)
