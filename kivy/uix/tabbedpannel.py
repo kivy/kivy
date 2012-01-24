@@ -21,7 +21,7 @@ Simple example
 Customize the Pannel
 -----------------------
 
-You can choose the direction the tabbs point towards::
+You can choose the direction the tabbs are displayed::
 
     tab_pos = 'top_mid'
 
@@ -55,8 +55,8 @@ Change pannel contents depending on which tab is pressed::
     tabbed_pannel_instance.clear_widgets()
     tabbed_pannel_instance.add_widgets(...)...
 
-Since the default tab exists by default, a `on_default_tab` event is provided
-to facilitate changing pannel contents on default tab selection::
+Since the default tab exists by default, a `on_default_tab` event is provided.
+To facilitate changing pannel contents on default tab selection::
 
     tp.bind(on_default_tab = my_default_tab_callback)
 
@@ -340,7 +340,7 @@ class TabbedPannel(GridLayout):
         tab_list = []
         if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
             self.cols = 1
-            self.rows = 2
+            self.rows = 3
             self_tab_layout.rows = 1
             self_tab_layout.cols = 3
             self_tab_layout.size_hint = (1, None)
@@ -368,7 +368,7 @@ class TabbedPannel(GridLayout):
                     tab_list = (Widget(), Widget(), scrl_v)
                 widget_list = (self_tab_layout, self_content)
         elif self_tab_pos[0] == 'l' or self_tab_pos[0] == 'r':
-            self.cols = 2
+            self.cols = 3
             self.rows = 1
             #self_tab_layout = FloatLayout
             self_tab_layout.rows = 3
