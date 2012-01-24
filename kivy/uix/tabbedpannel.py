@@ -4,7 +4,7 @@ TabbedPannel
 
 .. versionadded:: 1.0.1?
 
-.. image:: images/TabbedPannel.jpg
+.. image:: images/tabbed_pannel.jpg
     :align: right
 
 The `TabbedPannel` widget is exactly what it sounds like, a Tabbed Pannel.
