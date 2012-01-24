@@ -2,7 +2,7 @@
 TabbedPannel
 ============
 
-.. versionadded:: 1.0.1?
+.. versionadded:: 1.0.10
 
 .. image:: images/tabbed_pannel.jpg
     :align: right
@@ -100,10 +100,6 @@ by default The tab strip takes it's background image, color from the
 TabbedPannel's background_image and background_color respectively.
 
 '''
-#TODO: overall percentage done[====-]%
-# animation
-#change added version[====-]%
-# move load_string to style.kv
 
 __all__ = ('TabbedPannel', 'Tab_Content', 'Tab_Heading', 'Tab_Strip')
 

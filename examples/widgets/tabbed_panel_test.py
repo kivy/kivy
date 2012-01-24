@@ -6,12 +6,14 @@ Test of the widget TabbedPannel.
 '''
 
 from kivy.app import App
-from kivy.uix.floatlayout import FloatLayout
+from kivy.animation import Animation
+from kivy.clock import Clock
 from kivy.uix.button import Button
-from kivy.lang import Builder
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.tabbedpannel import TabbedPannel
 from kivy.properties import ObjectProperty
 
+from kivy.lang import Builder
 Builder.load_string('''
 <cut_copy_paste>
     size_hint: (None, None)
@@ -54,8 +56,16 @@ class cut_copy_paste(TabbedPannel):
         self.change_tab_contents(self.default_content)
 
     def change_tab_contents(self, *l):
+        anim = Animation( color=(1, 1, 1, 0), d =.27, t = 'in_back')
+
+        def start_anim(*l):
+            anim.start(self.content.children[0])
+
+        start_anim()
         self.clear_widgets()
         self.add_widget(l[0])
+        anim = Animation( color = (1, 1, 1, 1), d =.27, t = 'in_quad')
+        start_anim()
 
 
 class TabShowcase(FloatLayout):
