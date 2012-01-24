@@ -100,10 +100,9 @@ by default The tab strip takes it's background image, color from the
 TabbedPannel's background_image and background_color respectively.
 
 '''
-#TODO: overall percentage done[===--]%
+#TODO: overall percentage done[====-]%
 # animation
 #change added version[====-]%
-#Add arrows when tabs are scrollable[-----]%
 # move load_string to style.kv
 
 __all__ = ('TabbedPannel', 'Tab_Content', 'Tab_Heading', 'Tab_Strip')
@@ -117,39 +116,6 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
         ListProperty, NumericProperty
-
-from kivy.lang import Builder
-Builder.load_string('''
-<Tab_Content>
-    rows: 1
-    canvas:
-        Color:
-            rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
-        BorderImage:
-            border: self.parent.border if self.parent else (16, 16, 16, 16)
-            texture: root.parent.background_texture if root.parent else None
-            size: self.size
-            pos: self.pos
-<Tab_Strip>
-    canvas:
-        Color:
-            rgba: self.tabbed_pannel.background_color if self.tabbed_pannel\
-                else (1, 1, 1, 1)
-        BorderImage:
-            border: (0, 0, 0, 0)
-            texture: self.tabbed_pannel.background_texture\
-                if self.tabbed_pannel else None
-            size: self.size
-            pos: self.pos
-
-<Tab_Heading>:
-    group: '__tab__'
-    text_size: self.size
-    halign: 'center'
-    background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
-    background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
-    border: (0, 0, 0, 0)
-''')
 
 
 class Tab_Heading(ToggleButton):
@@ -432,12 +398,12 @@ class TabbedPannel(GridLayout):
             if self_tab_pos[lentab_pos-4:] == '_top':
                 def update_top(*l):
                     sctr.top = self.top
-                sctr.bind(top = Clock.schedule_interval(update_top, .01))
+                sctr.bind(top = Clock.schedule_once(update_top, -1))
                 tab_list = ( sctr,)
             elif self_tab_pos[lentab_pos-4:] == '_mid':
                 def update_top(*l):
                     sctr.top = self.top - (self.height - scrl_v.width)/2
-                sctr.bind(top = Clock.schedule_interval(update_top, .01))
+                sctr.bind(top = Clock.schedule_once(update_top, -1))
                 tab_list = (Widget(), sctr, Widget())
             elif self_tab_pos[lentab_pos-7:] == '_bottom':
                 tab_list = (Widget(), Widget(), sctr)

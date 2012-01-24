@@ -88,6 +88,36 @@
             size: self.norm_image_size
             pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
 
+<Tab_Content>
+    rows: 1
+    canvas:
+        Color:
+            rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
+        BorderImage:
+            border: self.parent.border if self.parent else (16, 16, 16, 16)
+            texture: root.parent.background_texture if root.parent else None
+            size: self.size
+            pos: self.pos
+
+<Tab_Strip>
+    canvas:
+        Color:
+            rgba: self.tabbed_pannel.background_color if self.tabbed_pannel else (1, 1, 1, 1)
+        BorderImage:
+            border: (0, 0, 0, 0)
+            texture: self.tabbed_pannel.background_texture if self.tabbed_pannel else None
+            size: self.size
+            pos: self.pos
+
+<Tab_Heading>:
+    group: '__tab__'
+    text_size: self.size
+    halign: 'center'
+    background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
+    background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
+    border: (0, 0, 0, 0)
+
+
 <TextInput>:
     padding_x: 6
     padding_y: 6

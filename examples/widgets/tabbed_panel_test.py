@@ -17,6 +17,7 @@ Builder.load_string('''
     size_hint: (None, None)
     size: (350, 250)
     pos_hint: {'center_x': .25, 'y': .55}
+    tab_pos: 'top_left'
     tab_height: 20
     tab_width: 70
     default_tab_text: 'tab1'
@@ -36,12 +37,12 @@ Builder.load_string('''
     Tab_Heading:
         text: 'tab3'
         on_release: root.change_tab_contents(paste)
-    Tab_Heading:
-        text: 'tab4'
-        on_release: root.clear_widgets()
-    Tab_Heading:
-        text: 'tab5'
-        on_release: root.clear_widgets()
+    #Tab_Heading:
+    #    text: 'tab4'
+    #    on_release: root.clear_widgets()
+    #Tab_Heading:
+    #    text: 'tab5'
+    #    on_release: root.clear_widgets()
 ''')
 
 
@@ -61,7 +62,7 @@ class TabShowcase(FloatLayout):
 
     def __init__(self, **kwargs):
         super(TabShowcase, self).__init__(**kwargs)
-        self.but = Button(text='Press to show bubble')
+        self.but = Button(text='Press to show Tabbed Pannel')
         self.but.bind(on_release=self.show_tab)
         self.add_widget(self.but)
 
@@ -75,6 +76,8 @@ class TabShowcase(FloatLayout):
                 'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right')
             index = values.index(self.tab.tab_pos)
             self.tab.tab_pos = values[(index + 1) % len(values)]
+        self.but.text='Tabs in \'%s\' position,\n press to change to next pos'\
+                %self.tab.tab_pos
 
 
 class TestTabApp(App):
