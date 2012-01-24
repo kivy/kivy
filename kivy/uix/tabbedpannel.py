@@ -79,16 +79,34 @@ Change Appearance of the TabbedPannel::
     border = [0, 0, 0, 0]
     background_image = 'path/to/background/image'
     tab_image = 'path/to/tab/image'
+
+Change the appearance of the Tab Head::
+
+    tab_heading_instance.background_normal = 'path/to/tab_head/img'
+    tab_heading_instance.background_down = 'path/to/tab_head/img_pressed'
+
+Change The Background of the tab strip override the canvas of Tab_Strip
+in your kv language::
+
+    <Tab_Strip>
+        canvas:
+            Color:
+                rgba: (0, 1, 0, 1) # green
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+by default The tab strip takes it's background image, color from the
+TabbedPannel's background_image and background_color respectively.
+
 '''
 #TODO: overall percentage done[===--]%
 # animation
-# add .jpg
 #change added version[====-]%
-#positioning[====-]%
 #Add arrows when tabs are scrollable[-----]%
 # move load_string to style.kv
 
-__all__ = ('TabbedPannel', 'Tab_Content', 'Tab_Heading')
+__all__ = ('TabbedPannel', 'Tab_Content', 'Tab_Heading', 'Tab_Strip')
 
 from kivy.event import EventDispatcher
 from kivy.uix.togglebutton import ToggleButton
@@ -144,6 +162,7 @@ class Tab_Heading(ToggleButton):
 
 class Tab_Strip(GridLayout):
     '''A strip intented to be used as background for Heading/Tab.
+    see module documentation for details.
     '''
     tabbed_pannel = ObjectProperty(None)
     pass
@@ -350,7 +369,7 @@ class TabbedPannel(GridLayout):
         self_tabs = self._tabs
         self_tabs_width = self_tabs.width
         scrl_v.add_widget(self_tabs)
-        scrl_v.pos = (0,0)
+        scrl_v.pos = (0, 0)
 
         self.clear_widgets(do_super=True)
         self_tab_height = self.tab_height
@@ -389,6 +408,7 @@ class TabbedPannel(GridLayout):
         elif self_tab_pos[0] == 'l' or self_tab_pos[0] == 'r':
             self.cols = 2
             self.rows = 1
+            #self_tab_layout = FloatLayout
             self_tab_layout.rows = 3
             self_tab_layout.cols = 1
             self_tab_layout.size_hint = (None, 1)
@@ -406,19 +426,18 @@ class TabbedPannel(GridLayout):
                                auto_bring_to_front = False,
                                size=scrl_v.size)
             sctr.add_widget(scrl_v)
-            scrl_v.pos = (0, 0)
 
             lentab_pos = len(self_tab_pos)
-            self_top = self.top
+            from kivy.clock import Clock
             if self_tab_pos[lentab_pos-4:] == '_top':
-                #def update_top(*l):
-                #    sctr.top = self_top
-                #sctr.bind(top = update_top)
+                def update_top(*l):
+                    sctr.top = self.top
+                sctr.bind(top = Clock.schedule_interval(update_top, .01))
                 tab_list = ( sctr,)
             elif self_tab_pos[lentab_pos-4:] == '_mid':
-                #def update_top(*l):
-                #    sctr.top  = self_top - (self_height - scrl_v.width)/2
-                #sctr.bind(top = update_top)
+                def update_top(*l):
+                    sctr.top = self.top - (self.height - scrl_v.width)/2
+                sctr.bind(top = Clock.schedule_interval(update_top, .01))
                 tab_list = (Widget(), sctr, Widget())
             elif self_tab_pos[lentab_pos-7:] == '_bottom':
                 tab_list = (Widget(), Widget(), sctr)

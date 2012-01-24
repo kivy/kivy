@@ -18,7 +18,7 @@ Builder.load_string('''
     size: (350, 250)
     pos_hint: {'center_x': .25, 'y': .55}
     tab_height: 20
-    tab_width: 50
+    tab_width: 70
     default_tab_text: 'tab1'
     default_content: cut
     BubbleButton:
@@ -36,12 +36,12 @@ Builder.load_string('''
     Tab_Heading:
         text: 'tab3'
         on_release: root.change_tab_contents(paste)
-    #Tab_Heading:
-    #    text: 'tab4'
-    #    on_release: root.clear_widgets()
-    #Tab_Heading:
-    #    text: 'tab5'
-    #    on_release: root.clear_widgets()
+    Tab_Heading:
+        text: 'tab4'
+        on_release: root.clear_widgets()
+    Tab_Heading:
+        text: 'tab5'
+        on_release: root.clear_widgets()
 ''')
 
 
