@@ -81,12 +81,12 @@ Change Appearance of the TabbedPannel::
     tab_image = 'path/to/tab/image'
 '''
 #TODO: overall percentage done[===--]%
-#positioning[=====]%
-#optimize[===--]%
+# animation
+# add .jpg
+#change added version[====-]%
+#positioning[====-]%
 #Add arrows when tabs are scrollable[-----]%
-#Graphix [====-]
-#Fix Example [=====]%
-#documentation[=====]%
+# move load_string to style.kv
 
 __all__ = ('TabbedPannel', 'Tab_Content', 'Tab_Heading')
 
@@ -112,6 +112,17 @@ Builder.load_string('''
             texture: root.parent.background_texture if root.parent else None
             size: self.size
             pos: self.pos
+<Tab_Strip>
+    canvas:
+        Color:
+            rgba: self.tabbed_pannel.background_color if self.tabbed_pannel\
+                else (1, 1, 1, 1)
+        BorderImage:
+            border: (0, 0, 0, 0)
+            texture: self.tabbed_pannel.background_texture\
+                if self.tabbed_pannel else None
+            size: self.size
+            pos: self.pos
 
 <Tab_Heading>:
     group: '__tab__'
@@ -129,6 +140,14 @@ class Tab_Heading(ToggleButton):
     You can use this Tab_Heading widget to add a new tab  inside TabbedPannel
     '''
     pass
+
+
+class Tab_Strip(GridLayout):
+    '''A strip intented to be used as background for Heading/Tab.
+    '''
+    tabbed_pannel = ObjectProperty(None)
+    pass
+
 
 class Tab_Content(GridLayout):
     pass
@@ -227,7 +246,7 @@ class TabbedPannel(GridLayout):
             source=self.background_image, allow_stretch = True,
             keep_ratio = False, color = self.background_color)
         self.background_texture = self._bk_img.texture
-        self._tabs = _tabs= GridLayout(
+        self._tabs = _tabs= Tab_Strip(tabbed_pannel = self,
             rows = 1, cols = 99, size_hint = (None, None),\
             height = self.tab_height, width = self.tab_width)
         self.default_tab = default_tab = \
@@ -272,7 +291,8 @@ class TabbedPannel(GridLayout):
         if l[0] == content or l[0] == self._tab_layout:
             super(TabbedPannel, self).remove_widget(*l)
         elif isinstance(l[0], Tab_Heading) and l[0]!= self.default_tab:
-            self._tabs.remove_widget(l[0])
+            self_tabs = self._tabs
+            self_tabs.remove_widget(l[0])
             self_tabs.width -= l[0].width
         else:
             content.remove_widget(l[0])
@@ -287,8 +307,9 @@ class TabbedPannel(GridLayout):
             content.clear_widgets()
 
     def clear_tabs(self, *l):
-        self._tabs.clear_widgets()
-        self._tabs.add_widget(self.default_tab)
+        self_tabs = self._tabs
+        self_tabs.clear_widgets()
+        self_tabs.add_widget(self.default_tab)
 
     def _on_texture(self, *l):
         self.background_texture = self._bk_img.texture
@@ -327,9 +348,9 @@ class TabbedPannel(GridLayout):
         self_tab_layout.clear_widgets()
         scrl_v = ScrollView(size_hint= (None, 1))
         self_tabs = self._tabs
+        self_tabs_width = self_tabs.width
         scrl_v.add_widget(self_tabs)
         scrl_v.pos = (0,0)
-        sctr = None
 
         self.clear_widgets(do_super=True)
         self_tab_height = self.tab_height
@@ -343,7 +364,7 @@ class TabbedPannel(GridLayout):
             self_tab_layout.cols = 3
             self_tab_layout.size_hint = (1, None)
             self_tab_layout.height = self_tab_height
-            scrl_v.width = min(self.width, self_tabs.width)
+            scrl_v.width = min(self.width, self_tabs_width)
 
             if self_tab_pos[0] == 'b':
                 if self_tab_pos == 'bottom_mid':
@@ -373,7 +394,8 @@ class TabbedPannel(GridLayout):
             self_tab_layout.size_hint = (None, 1)
             self_tab_layout.width = self_tab_height
             scrl_v.height = self_tab_height
-            scrl_v.width = min(self.height, self_tabs.width)
+            self_height = self.height
+            scrl_v.width = min(self_height, self_tabs_width)
 
             rotation = 90 if self_tab_pos[0] == 'l' else -90
             sctr = Scatter(do_translation = False,
@@ -384,17 +406,19 @@ class TabbedPannel(GridLayout):
                                auto_bring_to_front = False,
                                size=scrl_v.size)
             sctr.add_widget(scrl_v)
+            scrl_v.pos = (0, 0)
 
             lentab_pos = len(self_tab_pos)
+            self_top = self.top
             if self_tab_pos[lentab_pos-4:] == '_top':
-                def update_top(*l):
-                    sctr.top = self.top
-                sctr.bind(top = update_top)
+                #def update_top(*l):
+                #    sctr.top = self_top
+                #sctr.bind(top = update_top)
                 tab_list = ( sctr,)
             elif self_tab_pos[lentab_pos-4:] == '_mid':
-                def update_top(*l):
-                    sctr.top  = self.top - (self.height - scrl_v.width)/2
-                sctr.bind(top = update_top)
+                #def update_top(*l):
+                #    sctr.top  = self_top - (self_height - scrl_v.width)/2
+                #sctr.bind(top = update_top)
                 tab_list = (Widget(), sctr, Widget())
             elif self_tab_pos[lentab_pos-7:] == '_bottom':
                 tab_list = (Widget(), Widget(), sctr)

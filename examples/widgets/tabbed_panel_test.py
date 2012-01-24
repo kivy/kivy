@@ -17,7 +17,7 @@ Builder.load_string('''
     size_hint: (None, None)
     size: (350, 250)
     pos_hint: {'center_x': .25, 'y': .55}
-    tab_height: 18
+    tab_height: 20
     tab_width: 50
     default_tab_text: 'tab1'
     default_content: cut
