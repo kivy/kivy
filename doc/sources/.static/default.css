@@ -8,13 +8,14 @@
 body {
 	margin: 0;
 	padding: 0;
-	font-family: 'Nobile', Arial, sans-serif;
+	font-family: Verdana, Arial, sans-serif;
 	font-size: 13px;
 	background: #000000 url('bg.jpg') top left repeat;
+	background-attachment: fixed;
 }
 
 table {
-	font-family: 'Nobile', Arial, sans-serif;
+	font-family: Verdana, Arial, sans-serif;
 	font-size: 13px;
 }
 
@@ -31,17 +32,18 @@ a:hover {
 	color: #222;
 }
 
-a.selected {
-	text-decoration: underline !important;
-}
-
 /** Layout
  */
 #content {
 	background-color: #f8f8f8;
 	color: #333;
-	margin-left: 250px;
 	border-left: 1px solid #666666;
+	width: 840px;
+}
+
+#contentall {
+	width: 1090px;
+	margin: 0px auto;
 }
 
 #content .wrapper {
@@ -56,35 +58,67 @@ a.selected {
 
 /** Header
  */
-#header {
-	width: 250px;
+#topbar {
+	height: 120px;
+}
+
+#topwrapper {
+	width: 1090px;
+	clear: left;
+	margin: 0 auto;
+}
+
+#toplogo {
+	font-size: 13px;
+	padding: 25px 0px;
 	float: left;
+	width: 300px;
 }
 
-#logo {
-	padding: 20px 0px;
-	text-align: center;
+#toplogo a {
+	text-decoration: none;
 }
 
-#menu {
+#topmenu {
 	display: block;
 	font-size: 13px;
 }
 
-#footer a,
-#header a {
+#topmenu ul.navigation {
+	float: right;
+	margin-right: 250px;
+}
+
+#topmenu ul.navigation li {
+	float: left;
+	list-style-type: none;
+}
+
+#topmenu ul.navigation li a {
+	float: left;
+	margin-left: 30px;
+	line-height: 30px;
+	list-style-type: none;
+	color: #bbb;
+	margin-top: 30px;
+	font-family: 'Nobile', 'OpenSans', Verdara, sans-serif;
+	text-decoration: none;
+}
+
+.sphinxsidebar a {
 	color: #bbb;
 	text-decoration: none;
 }
 
-#footer a:hover,
-#header a:hover {
+.sphinxsidebar a:hover {
 	color: #ddd;
 }
 
-
 .sphinxsidebar {
-	margin: -20px 10px 0 10px;
+	width: 220px;
+	margin: -10px 10px 0 10px;
+	float: right;
+	color: #888;
 }
 
 .sphinxsidebar ul {
@@ -110,11 +144,11 @@ a.selected {
 	color: #aa6;
 }
 
-#header .sphinxsidebar a:hover {
+.sphinxsidebar a:hover {
 	color: #fff;
 }
 
-#header .sphinxsidebar a.current {
+.sphinxsidebar a.current {
 	text-decoration: underline;
 	color: #eee;
 }
@@ -127,7 +161,7 @@ a.selected {
 	border: none;
 	border-radius: 15px;
 	width: 150px;
-	margin: 10px 0 0 20px;
+	margin: 10px auto;
 	-moz-border-radius: 15px;
 	-webkit-border-radius: 15px;
 }
@@ -136,6 +170,7 @@ a.selected {
 	border-bottom: 1px solid #666666;
 	color: #aaaaaa;
 	font-size: 16px;
+	text-shadow: 1px 1px 0px #333;
 }
 
 .sphinxsidebar h3 a {
@@ -147,6 +182,7 @@ h1, h2, h3, h4, h5 {
 	font-weight: 300;
 	font-size: 26px;
 	color: #333;
+	text-shadow: 1px 1px 0px #ccc;
 }
 
 h1 {
@@ -176,26 +212,6 @@ h4 {
 	font-size: 24px;
 	padding: 0px;
 	margin: 8px 0px;
-}
-
-#footer p {
-	margin: 0 5px;
-}
-
-#footer {
-	padding-top: 20px;
-	padding-bottom: 20px;
-	color: #999;
-}
-
-#footer .col1 {
-	width: 470px;
-	float: left;
-}
-#footer .col2 {
-	width: 470px;
-	text-align: right;
-	float: left;
 }
 
 .hl {

@@ -163,31 +163,33 @@
 
 {%- block relbar1 %}{% endblock %}
 
-	<div id="header">
-		<div id="logo">
+	<div id="topbar">
+		<div id="topwrapper">
+		<div id="toplogo">
 			<a href="http://kivy.org/">
+				<!--
 				<img src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
+				-->
+				<img src="http://kivy.org/logos/kivy-logo-black-64.png" alt="Kivy logo" title="Kivy">
+				<img src="http://kivy.org/images/logo_kivy.png" alt="Kivy logo" title="Kivy">
 			</a>
 		</div>
-		<!--
-		<div id="menu">
+		
+		<div id="topmenu">
 			<ul class="navigation">
-				<li>
-				</li>
 				<li><a href="{{ pathto('index') }}">Home</a></li>
-				<li><a href="{{ pathto('index.html#user-s-guide', 1) }}">User's Guide</a></li>
 				<li><a href="{{ pathto('guide-index') }}">Programming Guide</a></li>
 				<li><a href="{{ pathto('api-index') }}">API Reference</a></li>
 				<li><a href="{{ pathto('faq') }}">FAQ</a></li>
-			    <li><a href="http://kivy.org/docs/pdf/Kivy-latest.pdf">Download in PDF</a></li>
+			    <li><a href="http://kivy.org/docs/pdf/Kivy-latest.pdf">PDF</a></li>
 			</ul>
 		</div>
-		-->
-		{%- block sidebar1 %}{{ sidebar() }}{% endblock %}
+		</div>
 	</div>
 
-
 {%- block document %}
+<div id="contentall">
+	{%- block sidebar1 %}{{ sidebar() }}{% endblock %}
 	<div id="content">
     <div class="wrapper">
       <div class="documentwrapper">
@@ -219,6 +221,7 @@
         </div>
       {%- endif %}{% endif %}
       </div>
+	  </div>
 {%- endblock %}
       <div class="clearer"></div>
     </div>
