@@ -592,8 +592,11 @@ img.align-center {
 	border-bottom: 1px solid #cccccc;
 }
 
-.bodyshortcut.right {
+.right {
 	float: right;
+}
+.left {
+	float: left;
 }
 
 dl.class > dt.hover,

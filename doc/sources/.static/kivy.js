@@ -2,6 +2,26 @@ $(document).ready(function () {
 	var height = $(document).height();
 	$('#content').css('min-height', function(){ return height; });
 
+	var bodyshortcut = false;
+	function ensure_bodyshortcut() {
+		if ( bodyshortcut == true )
+			return;
+		var bsc = $('<div class="bodyshortcut">&nbsp;</div>');
+		bsc.insertAfter($('div.body h1:first'));
+		bodyshortcut = true;
+	};
+
+	// if it's an API page, show the module name.
+	var pagename = location.pathname.split('/');
+	pagename = pagename[pagename.length - 1];
+	if (pagename.search('api-') == 0) {
+		pagename = pagename.substr(4, pagename.length - 9);
+
+		ensure_bodyshortcut();
+		var modulename = $('<div class="left">Module: <a href="#">' + pagename + '</a></div>')
+		modulename.appendTo($('div.bodyshortcut'));
+	}
+
 	// insert breaker only for the first data/class/function found.
 	var apibreaker = false;
 	$('div.body dl[class]').each(function (i1, elem) {
@@ -38,8 +58,9 @@ $(document).ready(function () {
 	);
 
 	if ( apibreaker == true ) {
-		var apilink = $('<div class="bodyshortcut">&raquo; <a id="api-link" href="#api">Jump to API</a></div>');
-		apilink.insertAfter($('div.body h1:first'));
+		ensure_bodyshortcut();
+		var apilink = $('<div class="right"><a id="api-link" href="#api">Jump to API</a> &dArr;</div>');
+		apilink.appendTo($('div.bodyshortcut'));
 	}
 
 	$('#api-toggle-all').click(function() {
@@ -99,15 +120,5 @@ $(document).ready(function () {
 		});
 	});
 	**/
-
-	// if it's an API page, show the module name.
-	var pagename = location.pathname.split('/');
-	pagename = pagename[pagename.length - 1];
-	if (pagename.search('api-') == 0) {
-		pagename = pagename.substr(4, pagename.length - 9);
-
-		var modulename = $('<div class="bodyshortcut right">Module: <a href="#">' + pagename + '</a></div>')
-		modulename.insertAfter($('div.body h1:first'));
-	}
 
 });
