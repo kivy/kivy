@@ -98,7 +98,7 @@
             border: (16, 16, 16, 16)
             pos: self.pos
             size: self.size
-            source: 'atlas://data/images/defaulttheme/textinput%s' % ('_active' if not self.focus else '')
+            source: 'atlas://data/images/defaulttheme/textinput%s' % ('_active' if self.focus else '')
         Color:
             rgba: (1, 0, 0, 1 if self.focus and not self.cursor_blink else 0)
         Rectangle:
