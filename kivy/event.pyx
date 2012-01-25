@@ -189,7 +189,7 @@ cdef class EventDispatcher(object):
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
 
-        Same usage as :func:bind().
+        Same usage as :func:`bind`.
         '''
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
@@ -231,7 +231,7 @@ cdef class EventDispatcher(object):
 
         .. versionadded:: 1.0.9
 
-        For example, if you want to position one widget next to you ::
+        For example, if you want to position one widget next to you::
 
             self.bind(right=nextchild.setter('x'))
         '''
