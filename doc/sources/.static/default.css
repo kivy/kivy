@@ -331,7 +331,11 @@ dd {
 dt:target,
 .highlight {
     /** background-color: #fbe54e; TEMPORARY REMOVE THIS, CAUSE WITH RIGHT ALIGN IMAGE, WE ARE SEEING THE COLOR **/
-	background-color: #23cc23 !important;
+	background-color: #23cc23;
+}
+
+.highlight-python .highlight {
+	background-color: transparent;
 }
 
 dl.glossary dt {
