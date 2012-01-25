@@ -249,8 +249,10 @@ cdef class EventDispatcher(object):
 
         .. versionadded:: 1.0.9
 
-        :return: A `~kivy.property.Property` derivated instance corresponding to
-        the name.
+        :return:
+        
+            A :class:`~kivy.properties.Property` derivated instance corresponding
+            to the name.
         '''
         return self.__properties[name]
 

@@ -76,6 +76,7 @@ class BoxLayout(Layout):
             padding = self._trigger_layout,
             children = self._trigger_layout,
             orientation = self._trigger_layout,
+            parent = self._trigger_layout,
             size = self._trigger_layout,
             pos = self._trigger_layout)
 

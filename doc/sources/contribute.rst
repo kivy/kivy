@@ -148,3 +148,9 @@ Unit tests contributions
 For testing team, we have the document :doc:`contribute-unittest` that
 explain how kivy unit test is working, and how you can create your own. Use the
 same approach as the `Code Workflow` to submit new tests.
+
+.. toctree::
+    :maxdepth: 2
+
+    contribute-unittest
+

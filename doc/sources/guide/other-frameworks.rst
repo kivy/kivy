@@ -1,8 +1,8 @@
 .. _other_frameworks:
 
-=================================
 Integrating with other Frameworks
 =================================
+
 .. versionadded:: 1.0.8
 
 Using Twisted inside Kivy
@@ -39,14 +39,14 @@ anything the client app sends, when you hit enter after typing something
 in the textbox.
 
 Server App
-*********
+~~~~~~~~~~
+
 .. include:: ../../../examples/frameworks/twisted/echo_server_app.py
    :literal:
 
 Client App
-**********
+~~~~~~~~~~
+
 .. include:: ../../../examples/frameworks/twisted/echo_client_app.py
    :literal:
-
-
 

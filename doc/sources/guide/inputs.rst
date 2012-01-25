@@ -96,7 +96,7 @@ profile exists::
         if 'angle' in touch.profiles:
             print 'The touch angle is', touch.a
 
-You can find a list of available profiles in the :ref:`motionevent`
+You can find a list of available profiles in the :doc:`api-kivy.input.motionevent`
 documentation.
 
 Touch events
@@ -176,10 +176,11 @@ current touch is one of a double tap or not::
 Grabbing touch events
 ~~~~~~~~~~~~~~~~~~~~~
 
-It can happen that your parent dispatches a touch to you in ``on_touch_down`` but not
-in ``on_touch_move`` and ``on_touch_up``. They might have several reasons, like the
-touch movement is outside the bounding box of your parent, and the parent thinks
-that you don't need to know about it.
+It's possible for the parent widget to dispatch a touch event to its child
+widget from within ``on_touch_down``, but not from ``on_touch_move`` or
+``on_touch_up``. This can happen in certain scenarios, like when a touch
+movement is outside the bounding box of the parent, so the parent decides not to
+notify its children of the movement.
 
 But you might want to do something ``on_touch_up``. Say you started something on
 the down event, like playing a sound, and you'd like to finish things on the up
