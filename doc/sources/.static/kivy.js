@@ -99,4 +99,15 @@ $(document).ready(function () {
 		});
 	});
 	**/
+
+	// if it's an API page, show the module name.
+	var pagename = location.pathname.split('/');
+	pagename = pagename[pagename.length - 1];
+	if (pagename.search('api-') == 0) {
+		pagename = pagename.substr(4, pagename.length - 9);
+
+		var modulename = $('<div class="bodyshortcut right">Module: <a href="#">' + pagename + '</a></div>')
+		modulename.insertAfter($('div.body h1:first'));
+	}
+
 });

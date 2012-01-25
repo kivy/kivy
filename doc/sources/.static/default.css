@@ -587,7 +587,13 @@ img.align-center {
  */
 .bodyshortcut {
 	font-size: 10px;
-	margin-top: -10px;
+	margin: -10px -20px 20px -20px;
+	padding: 0 20px 8px 20px;
+	border-bottom: 1px solid #cccccc;
+}
+
+.bodyshortcut.right {
+	float: right;
 }
 
 dl.class > dt.hover,
