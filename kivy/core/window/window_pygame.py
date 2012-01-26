@@ -21,7 +21,7 @@ from kivy.clock import Clock
 from kivy.utils import platform
 
 # late binding
-glReadPixels = GL_RGB = GL_UNSIGNED_BYTE = None
+glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
 
 
 class WindowPygame(WindowBase):
@@ -156,16 +156,16 @@ class WindowPygame(WindowBase):
             Logger.exception('WinPygame: unable to set icon')
 
     def screenshot(self, *largs, **kwargs):
-        global glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        global glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
         if filename is None:
             return None
         if glReadPixels is None:
-            from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+            from kivy.core.gl import glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
         width, height = self.size
-        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+        data = glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE)
         data = str(buffer(data))
-        surface = pygame.image.fromstring(data, self.size, 'RGB', True)
+        surface = pygame.image.fromstring(data, self.size, 'RGBA', True)
         pygame.image.save(surface, filename)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
