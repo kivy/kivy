@@ -3,19 +3,19 @@ Widgets
 =======
 
 A widget is an element of a graphical user interface.
-The `kivy.uix` module contains classes for creating and arranging Widgets. 
+The `kivy.uix` module contains classes for creating and managing Widgets. 
 
 Read first: :doc:`api-kivy.uix.widget`
 
 - **UX widgets**: Classical user interface widgets, perfect and ready to be
-  assembled for complex widgets.
+  assembled to create more complex widgets.
 
     :doc:`api-kivy.uix.label`, :doc:`api-kivy.uix.button`,
     :doc:`api-kivy.uix.image`, :doc:`api-kivy.uix.slider`,
     :doc:`api-kivy.uix.progressbar`, :doc:`api-kivy.uix.textinput`,
     :doc:`api-kivy.uix.togglebutton`, :doc:`api-kivy.uix.switch`
 
-- **Layouts**: A layout widget have no rendering, just a trigger
+- **Layouts**: A layout widget has no rendering, just a trigger
   that will arrange its children in a specific way. Read more on
   :doc:`api-kivy.uix.layout`
 
@@ -23,15 +23,15 @@ Read first: :doc:`api-kivy.uix.widget`
     :doc:`api-kivy.uix.anchorlayout`, :doc:`api-kivy.uix.stacklayout`,
 
 - **Complex UX widgets**: Non-atomic widgets, result of classic widget
-  assembly. We call them complex because the assembly and usage are not as
+  combinations. We call them complex because the assembly and usages are not as
   generic as the classicals widgets.
 
     :doc:`api-kivy.uix.bubble`,
     :doc:`api-kivy.uix.filechooser`, :doc:`api-kivy.uix.popup`,
     :doc:`api-kivy.uix.vkeyboard`
 
-- **Behaviors widgets**: Theses widgets have no rendering, but act the graphics
-  part, or even on the touch part.
+- **Behaviors widgets**: Theses widgets have no rendering, but act on the graphics
+  part, or even on the interaction (touch) part.
 
     :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`
 
