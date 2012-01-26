@@ -7,8 +7,9 @@ from kivy.properties import ObjectProperty, StringProperty
 
 
 class Controller(FloatLayout):
-    '''Create a controler that can receive custom widget from kv lang
-    + add action to be called from kv lang
+    '''Create a controller that receives a custom widget from the kv lang file.
+
+    Add an action to be called from the kv lang file.
     '''
     label_wid = ObjectProperty(None)
     info = StringProperty('')
