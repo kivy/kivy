@@ -245,8 +245,6 @@ class TabbedPannel(GridLayout):
 
     def on_default_tab(self, *l):
         '''This event is fired when the default tab is selected.
-
-        .. versionadded:: 1.0.1?
         '''
 
     def on_default_tab_text(self, *l):
@@ -394,11 +392,11 @@ class TabbedPannel(GridLayout):
             from functools import partial
             if self_tab_pos[lentab_pos-4:] == '_top':
                 sctr.bind(top = Clock.schedule_once(
-                    partial(self.update_top, sctr, self.top), -1))
+                    partial(self._update_top, sctr, self.top), -1))
                 tab_list = (sctr, )
             elif self_tab_pos[lentab_pos-4:] == '_mid':
                 sctr.bind(top = Clock.schedule_once(
-                    partial(self.update_top, sctr,
+                    partial(self._update_top, sctr,
                         self.top - (self.height - scrl_v.width)/2), -1))
                 tab_list = (Widget(), sctr, Widget())
             elif self_tab_pos[lentab_pos-7:] == '_bottom':
@@ -419,5 +417,5 @@ class TabbedPannel(GridLayout):
         for widg in widget_list:
             add(widg)
 
-    def update_top(self, sctr, top, dt):
+    def _update_top(self, sctr, top, dt):
         sctr.top = top

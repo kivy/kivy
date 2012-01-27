@@ -24,15 +24,24 @@ Builder.load_string('''
     tab_width: 70
     default_tab_text: 'tab1'
     default_content: cut
-    BubbleButton:
-        id: cut
-        text: 'Cut'
-    BubbleButton:
-        id: copy
-        text: 'Copy'
-    BubbleButton:
-        id: paste
-        text: 'Paste'
+    FloatLayout:
+        BubbleButton:
+            id: cut
+            pos:self.parent.pos
+            size: self.parent.size
+            text: 'Cut'
+        Image:
+            id: copy
+            color: 1, 1, 1, 0
+            pos:self.parent.pos
+            size: self.parent.size
+            source: 'data/images/defaulttheme-0.png'
+        Image:
+            id: paste
+            color: 1, 1, 1, 0
+            pos:self.parent.pos
+            size: self.parent.size
+            source: 'data/images/image-loading.gif'
     Tab_Heading:
         text: 'tab2'
         on_release: root.change_tab_contents(copy)
@@ -56,16 +65,22 @@ class cut_copy_paste(TabbedPannel):
         self.change_tab_contents(self.default_content)
 
     def change_tab_contents(self, *l):
-        anim = Animation( color=(1, 1, 1, 0), d =.27, t = 'in_back')
+        anim = Animation( color=(1, 1, 1, 0), d =.15, t = 'in_back')
 
-        def start_anim(*l):
-            anim.start(self.content.children[0])
+        def start_anim(_anim, *lt):
+            _anim.start(l[0])
 
-        start_anim()
-        self.clear_widgets()
-        self.add_widget(l[0])
-        anim = Animation( color = (1, 1, 1, 1), d =.27, t = 'in_quad')
-        start_anim()
+        def _on_complete(*lt):
+            self.clear_widgets()
+            self.add_widget(l[0])
+            anim = Animation( color = (1, 1, 1, 1), d =.23, t = 'in_quad')
+            start_anim(anim)
+
+        anim.bind(on_complete = _on_complete)
+        if l[0].parent:
+            l[0].parent.remove_widget(l[0])
+        start_anim(anim)
+
 
 
 class TabShowcase(FloatLayout):
