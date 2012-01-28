@@ -37,3 +37,61 @@ Read first: :doc:`api-kivy.uix.widget`
 
 ----
 '''
+
+import accordion
+import anchorlayout
+import boxlayout
+import bubble
+import button
+import camera
+import filechooser
+import floatlayout
+import gridlayout
+import image
+import label
+import layout
+import popup
+import progressbar
+import scatter
+import scrollview
+import settings
+import slider
+import stacklayout
+import stencilview
+import switch
+import textinput
+import togglebutton
+import treeview
+import video
+import vkeyboard
+import widget
+
+__all__ = (
+    'accordion',
+    'anchorlayout',
+    'boxlayout',
+    'bubble',
+    'button',
+    'camera',
+    'filechooser',
+    'floatlayout',
+    'gridlayout',
+    'image',
+    'label',
+    'layout',
+    'popup',
+    'progressbar',
+    'scatter',
+    'scrollview',
+    'settings',
+    'slider',
+    'stacklayout',
+    'stencilview',
+    'switch',
+    'textinput',
+    'togglebutton',
+    'treeview',
+    'video',
+    'vkeyboard',
+    'widget')
+
