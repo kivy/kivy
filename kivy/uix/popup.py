@@ -244,6 +244,14 @@ class Popup(FloatLayout):
         super(Popup, self).on_touch_down(touch)
         return True
 
+    def on_touch_move(self, touch):
+        super(Popup, self).on_touch_move(touch)
+        return True
+
+    def on_touch_up(self, touch):
+        super(Popup, self).on_touch_up(touch)
+        return True
+
     def on__anim_alpha(self, instance, value):
         if value == 0 and self._window is not None:
             self._window.remove_widget(self)
