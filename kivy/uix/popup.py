@@ -236,6 +236,14 @@ class Popup(FloatLayout):
         if self._window:
             self.center = self._window.center
 
+    def on_touch_move(self, touch):
+        super(Popup, self).on_touch_move(touch) # progate to content
+        return True  # stop propagation to widgets outside the popup
+
+    def on_touch_up(self, touch):
+        super(Popup, self).on_touch_up(touch)
+        return True # stop propagation to widgets outside the popup
+
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             if self.auto_dismiss:
