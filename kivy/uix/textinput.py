@@ -455,21 +455,27 @@ class TextInput(Widget):
                     'Cannot show bubble, unable to get root window')
                 return True
             if self.selection_to != self.selection_from:
-                self._show_cut_copy_paste(touch, win)
+                self._show_cut_copy_paste(touch.pos, win)
             else:
                 win.remove_widget(self._bubble)
             return True
 
-    def _show_cut_copy_paste(self, touch, win):
+    def _show_cut_copy_paste(self, pos, win, parent_changed = False, *l):
         # Show a bubble with cut copy and paste buttons
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
+            self.bind(parent = partial(self._show_cut_copy_paste,
+                pos, win, True))
         else:
-            win.remove_widget(self._bubble)
+            win.remove_widget(bubble)
+            if not self.parent:
+                return
+        if parent_changed:
+            return
 
         # Search the position from the touch to the window
-        x, y = touch.pos
+        x, y = pos
         t_pos = self.to_window(x, y)
         bubble_size = bubble.size
         win_size = win.size
