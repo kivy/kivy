@@ -25,11 +25,15 @@ Builder.load_string('''
     default_tab_text: 'tab1'
     default_content: cut
     FloatLayout:
-        BubbleButton:
+        BoxLayout
             id: cut
             pos:self.parent.pos
             size: self.parent.size
-            text: 'Cut'
+            padding: 3
+            TextInput:
+                text: 'everything is relative!'
+            BubbleButton:
+                text:'dummy'
         Image:
             id: copy
             color: 1, 1, 1, 0
@@ -67,8 +71,11 @@ class cut_copy_paste(TabbedPannel):
     def change_tab_contents(self, *l):
         anim = Animation(color=(1, 1, 1, 0), d =.24, t = 'in_back')
 
-        def start_anim(_anim, *lt):
-            _anim.start(l[0])
+        def start_anim(_anim, child, in_complete, *lt):
+            if hasattr(child, 'color'):
+                _anim.start(child)
+            elif not in_complete:
+                _on_complete()
 
         def _on_complete(*lt):
             if l[0].parent:
@@ -76,10 +83,10 @@ class cut_copy_paste(TabbedPannel):
             self.clear_widgets()
             self.add_widget(l[0])
             anim = Animation(color = (1, 1, 1, 1), d =.23, t = 'in_quad')
-            start_anim(anim)
+            start_anim(anim, l[0], True)
 
         anim.bind(on_complete = _on_complete)
-        start_anim(anim)
+        start_anim(anim, self.content.children[0], False)
 
 
 class TabShowcase(FloatLayout):
