@@ -391,13 +391,12 @@ class TabbedPannel(GridLayout):
             from kivy.clock import Clock
             from functools import partial
             if self_tab_pos[lentab_pos-4:] == '_top':
-                sctr.bind(top = Clock.schedule_once(
-                    partial(self._update_top, sctr, self.top), -1))
+                sctr.bind(pos = Clock.schedule_once(
+                    partial(self._update_top, sctr, 'top', None), -1))
                 tab_list = (sctr, )
             elif self_tab_pos[lentab_pos-4:] == '_mid':
-                sctr.bind(top = Clock.schedule_once(
-                    partial(self._update_top, sctr,
-                        self.top - (self.height - scrl_v.width)/2), -1))
+                sctr.bind(pos = Clock.schedule_once(
+                    partial(self._update_top, sctr, 'mid', scrl_v.width), -1))
                 tab_list = (Widget(), sctr, Widget())
             elif self_tab_pos[lentab_pos-7:] == '_bottom':
                 tab_list = (Widget(), Widget(), sctr)
@@ -417,5 +416,8 @@ class TabbedPannel(GridLayout):
         for widg in widget_list:
             add(widg)
 
-    def _update_top(self, sctr, top, dt):
-        sctr.top = top
+    def _update_top(self, sctr, top, scrl_v_width, dt):
+        if top[0] == 't':
+            sctr.top = self.top
+        else:
+            sctr.top = self.top - (self.height - scrl_v_width)/2

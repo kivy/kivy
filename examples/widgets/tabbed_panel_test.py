@@ -65,7 +65,7 @@ class cut_copy_paste(TabbedPannel):
         self.change_tab_contents(self.default_content)
 
     def change_tab_contents(self, *l):
-        anim = Animation( color=(1, 1, 1, 0), d =.15, t = 'in_back')
+        anim = Animation( color=(1, 1, 1, 0), d =.24, t = 'in_back')
 
         def start_anim(_anim, *lt):
             _anim.start(l[0])
@@ -76,10 +76,11 @@ class cut_copy_paste(TabbedPannel):
             anim = Animation( color = (1, 1, 1, 1), d =.23, t = 'in_quad')
             start_anim(anim)
 
+
         anim.bind(on_complete = _on_complete)
+        start_anim(anim)
         if l[0].parent:
             l[0].parent.remove_widget(l[0])
-        start_anim(anim)
 
 
 
