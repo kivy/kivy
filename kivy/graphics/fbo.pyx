@@ -208,7 +208,7 @@ cdef class Fbo(RenderContext):
             self.fbo = FBO()
             self.fbo.bind()
             # do any drawing command
-            self.fbo.unbind()
+            self.fbo.release()
 
             # then, your fbo texture is available at
             print self.fbo.texture
@@ -245,7 +245,15 @@ cdef class Fbo(RenderContext):
                        self._viewport[2], self._viewport[3])
 
     cpdef clear_buffer(self):
-        '''Clear the framebuffer with the :data:`clear_color`
+        '''Clear the framebuffer with the :data:`clear_color`.
+
+        You need to bound the framebuffer yourself before calling this
+        method::
+
+            fbo.bind()
+            fbo.clear_buffer()
+            fbo.release()
+
         '''
         glClearColor(self._clear_color[0], self._clear_color[1],
                      self._clear_color[2], self._clear_color[3])

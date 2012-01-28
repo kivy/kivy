@@ -553,6 +553,7 @@ class Image(EventDispatcher):
         # put the image into the cache if needed
         if isinstance(image, Texture):
             self._texture = image
+            self._size = image.size
         else:
             self.image = image
             Cache.append('kv.image', uid, self.image)

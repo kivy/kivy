@@ -3,7 +3,26 @@ Scatter
 =======
 
 :class:`Scatter` is used to build interactive widgets that can be translated,
-rotated and scaled with two or more fingers on a multitouch system. 
+rotated and scaled with two or more fingers on a multitouch system.
+
+The Scatter have its own matrix transformation: the modelview matrix are
+changing before the childs draw, and the previous matrix is restored when the
+drawing is finished. That make possible the rotation / scale / translate of its
+whole children tree, without changing them.
+
+That specific behavior make the scatter unique, and their is some advantages /
+constraint that you should care about:
+
+#. The children are positionned relative to the 0, 0. The scatter position have
+   no impact of the children position. This applies to the size too.
+#. If you want to resize the scatter, use scale, not size. (read #1.)
+#. The scatter is not a layout, you must take care of the children size
+   yourself.
+
+For touch events, the scatter convert from the parent matrix to scatter matrix
+automatically in on_touch_down/move/up event. If you are doing all the things
+manually, you will need to use :func:`~kivy.uix.widget.Widget.to_parent`,
+:func:`~kivy.uix.widget.Widget.to_local`.
 
 Usage
 -----

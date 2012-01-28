@@ -213,7 +213,6 @@ class GridLayout(Layout):
 
     def __init__(self, **kwargs):
         self._cols = self._rows = None
-        self._trigger_layout = Clock.create_trigger(self.do_layout, -1)
         super(GridLayout, self).__init__(**kwargs)
 
         self.bind(
@@ -223,6 +222,7 @@ class GridLayout(Layout):
             row_force_default = self._trigger_layout,
             cols = self._trigger_layout,
             rows = self._trigger_layout,
+            parent = self._trigger_layout,
             spacing = self._trigger_layout,
             padding = self._trigger_layout,
             children = self._trigger_layout,

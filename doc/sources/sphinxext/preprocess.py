@@ -58,13 +58,15 @@ def callback_docstring(app, what, name, obj, options, lines):
             lines.pop(0)
 
     elif is_cython_extension(what, obj) and lines:
-        lines.pop(0)
+        if what == 'class':
+            lines.pop(0)
         line = lines.pop(0)
 
         # trick to realign the first line to the second one.
         # FIXME: fail if we finishing with ::
-        if line is not None and len(lines):
-            l = len(lines[0]) - len(lines[0].lstrip())
+        line_with_text = [x for x in lines if len(x.strip())]
+        if len(line_with_text) and line is not None and len(lines):
+            l = len(line_with_text[0]) - len(line_with_text[0].lstrip())
         else:
             l = 0
         lines.insert(0, ' ' * l + line)
