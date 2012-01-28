@@ -65,23 +65,21 @@ class cut_copy_paste(TabbedPannel):
         self.change_tab_contents(self.default_content)
 
     def change_tab_contents(self, *l):
-        anim = Animation( color=(1, 1, 1, 0), d =.24, t = 'in_back')
+        anim = Animation(color=(1, 1, 1, 0), d =.24, t = 'in_back')
 
         def start_anim(_anim, *lt):
             _anim.start(l[0])
 
         def _on_complete(*lt):
+            if l[0].parent:
+                l[0].parent.remove_widget(l[0])
             self.clear_widgets()
             self.add_widget(l[0])
-            anim = Animation( color = (1, 1, 1, 1), d =.23, t = 'in_quad')
+            anim = Animation(color = (1, 1, 1, 1), d =.23, t = 'in_quad')
             start_anim(anim)
-
 
         anim.bind(on_complete = _on_complete)
         start_anim(anim)
-        if l[0].parent:
-            l[0].parent.remove_widget(l[0])
-
 
 
 class TabShowcase(FloatLayout):
@@ -102,7 +100,7 @@ class TabShowcase(FloatLayout):
                 'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right')
             index = values.index(self.tab.tab_pos)
             self.tab.tab_pos = values[(index + 1) % len(values)]
-        self.but.text='Tabs in \'%s\' position,\n press to change to next pos'\
+        self.but.text = 'Tabs in\'%s\' position,\n press to change to next pos'\
                 %self.tab.tab_pos
 
 
