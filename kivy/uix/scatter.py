@@ -3,7 +3,26 @@ Scatter
 =======
 
 :class:`Scatter` is used to build interactive widgets that can be translated,
-rotated and scaled with two or more fingers on a multitouch system. 
+rotated and scaled with two or more fingers on a multitouch system.
+
+The Scatter have its own matrix transformation: the modelview matrix are
+changing before the childs draw, and the previous matrix is restored when the
+drawing is finished. That make possible the rotation / scale / translate of its
+whole children tree, without changing them.
+
+That specific behavior make the scatter unique, and their is some advantages /
+constraint that you should care about:
+
+#. The children are positionned relative to the 0, 0. The scatter position have
+   no impact of the children position. This applies to the size too.
+#. If you want to resize the scatter, use scale, not size. (read #1.)
+#. The scatter is not a layout, you must take care of the children size
+   yourself.
+
+For touch events, the scatter convert from the parent matrix to scatter matrix
+automatically in on_touch_down/move/up event. If you are doing all the things
+manually, you will need to use :func:`~kivy.uix.widget.Widget.to_parent`,
+:func:`~kivy.uix.widget.Widget.to_local`.
 
 Usage
 -----
@@ -56,6 +75,14 @@ see it on the screen), but the maximum scale is 9.99506983235e+19 (2^66)
 You can also limit the minimum and maximum scale allowed. ::
 
     scatter = Scatter(scale_min=.5, scale_max=3.)
+
+Behaviors
+---------
+
+.. versionchanged:: 1.0.10
+
+    If no control interactions are enabled, then touch handler will never return
+    True.
 
 '''
 
@@ -369,6 +396,13 @@ class Scatter(Widget):
             self.apply_transform(Matrix().scale(scale, scale, scale),
                                  anchor=anchor)
 
+    def _bring_to_front(self):
+        # auto bring to front
+        if self.auto_bring_to_front and self.parent:
+            parent = self.parent
+            parent.remove_widget(self)
+            parent.add_widget(self)
+
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y
 
@@ -376,21 +410,25 @@ class Scatter(Widget):
         if not self.collide_point(x, y):
             return False
 
-        # auto bring to front
-        if self.auto_bring_to_front and self.parent:
-            parent = self.parent
-            parent.remove_widget(self)
-            parent.add_widget(self)
-
         # let the child widgets handle the event if they want
         touch.push()
         touch.apply_transform_2d(self.to_local)
         if super(Scatter, self).on_touch_down(touch):
             touch.pop()
+            self._bring_to_front()
             return True
         touch.pop()
 
+        # if our child didn't do anything, and if we don't have any active
+        # interaction control, then don't accept the touch.
+        if not self.do_translation_x and \
+            not self.do_translation_y and \
+            not self.do_rotation and \
+            not self.do_scale:
+            return False
+
         # grab the touch so we get all it later move events for sure
+        self._bring_to_front()
         touch.grab(self)
         self._touches.append(touch)
         self._last_touch_pos[touch] = touch.pos
