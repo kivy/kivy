@@ -11,8 +11,8 @@ platform = sys.platform
 # Detect Python for android project
 # FIXME: add a specific var for this project, not just guess
 #
-ndkplatform = environ.get('NDKPLATFORM') and environ.get('LIBLINK')
-if ndkplatform is not None:
+ndkplatform = environ.get('NDKPLATFORM')
+if ndkplatform is not None and environ.get('LIBLINK'):
     platform = 'android'
 
 try:
