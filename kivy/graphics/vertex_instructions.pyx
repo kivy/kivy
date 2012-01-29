@@ -848,8 +848,8 @@ cdef class BorderImage(Rectangle):
         tc2 = tc[2]
         tc7 = tc[7]
         tw, th  = self.texture.size
-        tcw = tc[2] - tc0  #right - left
-        tch = tc[7] - tc1  #top - bottom
+        tcw = tc2 - tc0  #right - left
+        tch = tc7 - tc1  #top - bottom
 
         # calculate border offset in texture coord space
         # border width(px)/texture width(px) *  tcoord width

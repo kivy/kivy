@@ -1,9 +1,12 @@
 __all__ = ('AndroidMotionEventProvider', )
 
+import os
+
 try:
     import android
 except ImportError:
-    raise Exception('android lib not found.')
+    if 'KIVY_DOC' not in os.environ:
+        raise Exception('android lib not found.')
 
 from kivy.logger import Logger
 from kivy.input.provider import MotionEventProvider

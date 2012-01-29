@@ -145,7 +145,7 @@ if True:
         extra_link_args += ['-L', join(ndkplatform, 'usr', 'lib')]
         libraries.append('GLESv2')
     else:
-        libraries.append('GLESv2')
+        libraries.append('GL')
 
     if c_options['use_glew']:
         if platform == 'win32':
