@@ -475,6 +475,9 @@ class WindowBase(EventDispatcher):
         self.canvas = Canvas()
         self.render_context.add(self.canvas)
 
+        # set up the OpenGL viewport here instead of by resize event.
+        self.update_viewport()
+
     def on_flip(self):
         '''Flip between buffers (event)'''
         self.flip()
