@@ -178,6 +178,7 @@ from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
+from kivy.utils import platform
 
 
 class App(EventDispatcher):
@@ -508,12 +509,13 @@ class App(EventDispatcher):
 
     def _on_keyboard_settings(self, window, *largs):
         key = largs[0]
-        try:
-            import android
+        setting_key = 282 # F1
+
+        # android hack, if settings key is pygame K_MENU
+        if platform() == 'android':
             import pygame
             setting_key = pygame.K_MENU
-        except ImportError:
-            setting_key = 282 # F1
+
         if key == setting_key:
             # toggle settings panel
             if not self.open_settings():

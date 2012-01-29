@@ -21,9 +21,11 @@ from kivy.clock import Clock
 from kivy.utils import platform
 
 try:
-    import android
-except ImportError:
     android = None
+    if platform() == 'android':
+        import android
+except ImportError:
+    pass
 
 # late binding
 glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
@@ -46,7 +48,7 @@ class WindowPygame(WindowBase):
         # right now, activate resizable window only on linux.
         # on window / macosx, the opengl context is lost, and we need to
         # reconstruct everything. Check #168 for a state of the work.
-        if sys.platform == 'linux2':
+        if platform() == 'linux':
             self.flags |= pygame.RESIZABLE
 
         try:
@@ -183,7 +185,7 @@ class WindowPygame(WindowBase):
     def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = sys.platform == 'darwin'
+        is_osx = platform() == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
             self.close()  #not sure what to do here

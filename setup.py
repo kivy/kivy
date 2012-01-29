@@ -1,16 +1,29 @@
+import sys
 from fnmatch import filter as fnfilter
-from sys import platform, argv
 from os.path import join, dirname, realpath, sep, exists
 from os import walk, environ
 from distutils.core import setup
 from distutils.extension import Extension
+
+platform = sys.platform
+
+#
+# Detect Python for android project
+# FIXME: add a specific var for this project, not just guess
+#
+ndkplatform = environ.get('NDKPLATFORM') and environ.get('LIBLINK')
+if ndkplatform is not None:
+    platform = 'android'
 
 try:
     # check for cython
     from Cython.Distutils import build_ext
     have_cython = True
 except ImportError:
-    print '\nCython is missing, its required for compiling kivy !\n\n'
+    if platform != 'android':
+        print '\nCython is missing, its required for compiling kivy !\n\n'
+        raise
+    # on python-for-android, cython usage is external
     have_cython = False
     from distutils.command.build_ext import build_ext
 
@@ -37,13 +50,6 @@ except ImportError:
 
 from kivy.tools.packaging.factory import FactoryBuild
 cmdclass['build_factory'] = FactoryBuild
-
-#
-# Detect Python for android project
-#
-ndkplatform = environ.get('NDKPLATFORM', None)
-if ndkplatform is not None:
-    platform = 'android'
 
 #
 # Detect options
