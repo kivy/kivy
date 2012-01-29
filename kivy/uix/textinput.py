@@ -1198,8 +1198,14 @@ class TextInput(Widget):
 
     .. warning::
 
-        Depending of your text provider, the font file can be ignored. But you
-        can mostly use this without trouble.
+        Depending of your text provider, the font file can be ignored. However
+        you can mostly use this without trouble.
+
+        If the font used lacks the glyphs for the perticular language/symbols
+        you are using, you will see '[]' blank box characters instead of the
+        actual glyphs. The solution is to use a font that has the glyphs you
+        need to display. For Example to display 'क', use a font like
+        freesans.ttf that has the glyph in it.
 
     :data:`font_name` is a :class:`~kivy.properties.StringProperty`, default to
     'fonts/DroidSans.ttf'.
