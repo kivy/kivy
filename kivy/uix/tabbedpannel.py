@@ -328,8 +328,11 @@ class TabbedPannel(GridLayout):
         scrl_v = ScrollView(size_hint= (None, 1))
         self_tabs = self._tabs
         self_tabs_width = self_tabs.width
+        self_tabs_unbind = self_tabs.unbind
+        self_tabs_bind = self_tabs.bind
         scrl_v.add_widget(self_tabs)
         scrl_v.pos = (0, 0)
+        self_tabs_bind(width = self._udpate_scrl_v_width)
 
         self.clear_widgets(do_super=True)
         self_tab_height = self.tab_height
@@ -343,7 +346,7 @@ class TabbedPannel(GridLayout):
             self_tab_layout.cols = 3
             self_tab_layout.size_hint = (1, None)
             self_tab_layout.height = self_tab_height
-            scrl_v.width = min(self.width, self_tabs_width)
+            #scrl_v.width = min(self_width, self_tabs_width)
 
             if self_tab_pos[0] == 'b':
                 if self_tab_pos == 'bottom_mid':
@@ -374,8 +377,8 @@ class TabbedPannel(GridLayout):
             self_tab_layout.size_hint = (None, 1)
             self_tab_layout.width = self_tab_height
             scrl_v.height = self_tab_height
-            self_height = self.height
-            scrl_v.width = min(self_height, self_tabs_width)
+            #self_height = self.height
+            #scrl_v.width = min(self_height, self_tabs_width)
 
             rotation = 90 if self_tab_pos[0] == 'l' else -90
             sctr = Scatter(do_translation = False,
@@ -421,3 +424,10 @@ class TabbedPannel(GridLayout):
             sctr.top = self.top
         else:
             sctr.top = self.top - (self.height - scrl_v_width)/2
+
+    def _udpate_scrl_v_width(self, *l):
+        self_tab_pos = self.tab_pos
+        if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
+            scrl_v.width = min(self.width, self._tabs.width)
+        else:
+            scrl_v.width = min(self.height, self._tabs.width)

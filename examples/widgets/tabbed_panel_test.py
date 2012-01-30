@@ -7,14 +7,18 @@ Test of the widget TabbedPannel.
 
 from kivy.app import App
 from kivy.animation import Animation
-from kivy.clock import Clock
-from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.tabbedpannel import TabbedPannel
-from kivy.properties import ObjectProperty
+from kivy.uix.tabbedpannel import TabbedPannel, Tab_Heading
 
 from kivy.lang import Builder
 Builder.load_string('''
+<TabShowcase>
+    but: _but
+    Button:
+        id: _but
+        text: 'Press to show Tabbed Pannel'
+        on_release: root.show_tab()
+
 <cut_copy_paste>
     size_hint: (None, None)
     size: (350, 250)
@@ -33,7 +37,8 @@ Builder.load_string('''
             TextInput:
                 text: 'everything is relative!'
             BubbleButton:
-                text:'dummy'
+                text:'press to add\\n a tab head'
+                on_release: root.add_heading()
         Image:
             id: copy
             color: 1, 1, 1, 0
@@ -52,18 +57,10 @@ Builder.load_string('''
     Tab_Heading:
         text: 'tab3'
         on_release: root.change_tab_contents(paste)
-    #Tab_Heading:
-    #    text: 'tab4'
-    #    on_release: root.clear_widgets()
-    #Tab_Heading:
-    #    text: 'tab5'
-    #    on_release: root.clear_widgets()
 ''')
 
 
 class cut_copy_paste(TabbedPannel):
-
-    default_content = ObjectProperty(None)
 
     def on_default_tab(self, *l):
         self.change_tab_contents(self.default_content)
@@ -88,14 +85,11 @@ class cut_copy_paste(TabbedPannel):
         anim.bind(on_complete = _on_complete)
         start_anim(anim, self.content.children[0], False)
 
+    def add_heading(self, *l):
+        self.add_widget(Tab_Heading(text = 'tabx'))
+
 
 class TabShowcase(FloatLayout):
-
-    def __init__(self, **kwargs):
-        super(TabShowcase, self).__init__(**kwargs)
-        self.but = Button(text='Press to show Tabbed Pannel')
-        self.but.bind(on_release=self.show_tab)
-        self.add_widget(self.but)
 
     def show_tab(self, *l):
         if not hasattr(self, 'tab'):
