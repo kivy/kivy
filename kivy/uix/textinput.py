@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 '''
 Text Input
 ==========
@@ -1205,8 +1204,10 @@ class TextInput(Widget):
         If the font used lacks the glyphs for the perticular language/symbols
         you are using, you will see '[]' blank box characters instead of the
         actual glyphs. The solution is to use a font that has the glyphs you
-        need to display. For Example to display 'क', use a font like
-        freesans.ttf that has the glyph in it.
+        need to display. For example to display |unicodechar|, use a font like
+        freesans.ttf that has the glyph.
+
+        .. |unicodechar| image:: images/unicode-char.png
 
     :data:`font_name` is a :class:`~kivy.properties.StringProperty`, default to
     'fonts/DroidSans.ttf'.
