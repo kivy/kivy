@@ -50,9 +50,10 @@ def install_android():
         return
 
     from kivy.clock import Clock
+    from kivy.logger import Logger
     import pygame
 
-    print '==========+> Android install hooks'
+    Logger.info('Support: Android install hooks')
 
     # Init the library
     android.init()
@@ -62,11 +63,48 @@ def install_android():
     # If pause is asked, just leave the app.
 
     def android_check_pause(*largs):
+        # do nothing until android ask for it.
         if not android.check_pause():
             return
+
+        from kivy.app import App
         from kivy.base import stopTouchApp
-        stopTouchApp()
-        #android.wait_for_resume()
+        from kivy.logger import Logger
+        from kivy.core.window import Window
+
+        # try to get the current running application
+        Logger.info('Android: Must to in sleep mode, check the app')
+        app = App.get_running_app()
+
+        # no running application, stop our loop.
+        if app is None:
+            Logger.info('Android: No app running, stop everything.')
+            stopTouchApp()
+            return
+
+        # try to go to pause mode
+        if app.dispatch('on_pause'):
+            Logger.info('Android: App paused, now wait for resume.')
+
+            # app goes in pause mode, wait.
+            android.wait_for_resume()
+
+            # is it a stop or resume ?
+            if android.check_stop():
+                # app must stop
+                Logger.info('Android: Android want to close our app.')
+                stopTouchApp()
+            else:
+                # app resuming now !
+                Logger.info('Android: Android resumed, resume the app')
+                app.dispatch('on_resume')
+                Window.canvas.ask_update()
+                Logger.info('Android: App resume completed.')
+
+        # app don't support pause mode, just stop it.
+        else:
+            Logger.info('Android: App doesn\'t support pause mode, stop.')
+            stopTouchApp()
 
     Clock.schedule_interval(android_check_pause, 0)
 
