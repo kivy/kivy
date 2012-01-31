@@ -103,6 +103,8 @@ TabbedPannel's background_image and background_color respectively.
 
 __all__ = ('TabbedPannel', 'Tab_Content', 'Tab_Heading', 'Tab_Strip')
 
+from functools import partial
+from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.image import Image
@@ -328,11 +330,11 @@ class TabbedPannel(GridLayout):
         scrl_v = ScrollView(size_hint= (None, 1))
         self_tabs = self._tabs
         self_tabs_width = self_tabs.width
-        self_tabs_unbind = self_tabs.unbind
-        self_tabs_bind = self_tabs.bind
         scrl_v.add_widget(self_tabs)
         scrl_v.pos = (0, 0)
-        self_tabs_bind(width = self._udpate_scrl_v_width)
+        self_udpate_scrl_v_width = self._udpate_scrl_v_width
+        self_tabs.unbind(width = partial(self_udpate_scrl_v_width, scrl_v))
+        self_tabs.bind(width = partial(self_udpate_scrl_v_width, scrl_v))
 
         self.clear_widgets(do_super=True)
         self_tab_height = self.tab_height
@@ -346,7 +348,7 @@ class TabbedPannel(GridLayout):
             self_tab_layout.cols = 3
             self_tab_layout.size_hint = (1, None)
             self_tab_layout.height = self_tab_height
-            #scrl_v.width = min(self_width, self_tabs_width)
+            self_udpate_scrl_v_width(scrl_v)
 
             if self_tab_pos[0] == 'b':
                 if self_tab_pos == 'bottom_mid':
@@ -371,14 +373,12 @@ class TabbedPannel(GridLayout):
         elif self_tab_pos[0] == 'l' or self_tab_pos[0] == 'r':
             self.cols = 3
             self.rows = 1
-            #self_tab_layout = FloatLayout
             self_tab_layout.rows = 3
             self_tab_layout.cols = 1
             self_tab_layout.size_hint = (None, 1)
             self_tab_layout.width = self_tab_height
             scrl_v.height = self_tab_height
-            #self_height = self.height
-            #scrl_v.width = min(self_height, self_tabs_width)
+            self_udpate_scrl_v_width(scrl_v)
 
             rotation = 90 if self_tab_pos[0] == 'l' else -90
             sctr = Scatter(do_translation = False,
@@ -391,8 +391,6 @@ class TabbedPannel(GridLayout):
             sctr.add_widget(scrl_v)
 
             lentab_pos = len(self_tab_pos)
-            from kivy.clock import Clock
-            from functools import partial
             if self_tab_pos[lentab_pos-4:] == '_top':
                 sctr.bind(pos = Clock.schedule_once(
                     partial(self._update_top, sctr, 'top', None), -1))
@@ -425,9 +423,15 @@ class TabbedPannel(GridLayout):
         else:
             sctr.top = self.top - (self.height - scrl_v_width)/2
 
-    def _udpate_scrl_v_width(self, *l):
+    def _udpate_scrl_v_width(self, scrl_v, *l):
         self_tab_pos = self.tab_pos
+        self_tabs = self._tabs
         if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
-            scrl_v.width = min(self.width, self._tabs.width)
+            scrl_v.width = min(self.width, self_tabs.width)
+            #required for situations when scrl_v's pos is calculated
+            #when it has no parent
+            scrl_v.top += 1
+            scrl_v.top -= 1
         else:
-            scrl_v.width = min(self.height, self._tabs.width)
+            scrl_v.width = min(self.height, self_tabs.width)
+            self_tabs.pos = (0, 0)
