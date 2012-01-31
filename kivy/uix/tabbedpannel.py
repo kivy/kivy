@@ -121,7 +121,13 @@ class Tab_Heading(ToggleButton):
 
     You can use this Tab_Heading widget to add a new tab  inside TabbedPannel
     '''
-    pass
+
+    #only allow selecting the tab if not already selected
+    def on_touch_down(self, touch):
+        if self.state == 'down':
+            return
+        else:
+            super(Tab_Heading, self).on_touch_down(touch)
 
 
 class Tab_Strip(GridLayout):
@@ -224,17 +230,17 @@ class TabbedPannel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        self._tab_layout = GridLayout(rows=1)
+        self._tab_layout = GridLayout(rows = 1)
         self._bk_img = Image(
             source=self.background_image, allow_stretch = True,
             keep_ratio = False, color = self.background_color)
         self.background_texture = self._bk_img.texture
-        self._tabs = _tabs= Tab_Strip(tabbed_pannel = self,
+        self._tabs = _tabs = Tab_Strip(tabbed_pannel = self,
             rows = 1, cols = 99, size_hint = (None, None),\
             height = self.tab_height, width = self.tab_width)
         self.default_tab = default_tab = \
             Tab_Heading(text = self.default_tab_text,
-                height = self.tab_height,
+                height = self.tab_height, state = 'down',
                 width = self.tab_width)
         _tabs.add_widget(default_tab)
         default_tab.bind(on_release = self.on_default_tab)

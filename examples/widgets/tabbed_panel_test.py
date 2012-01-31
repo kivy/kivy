@@ -1,6 +1,6 @@
 '''
 TabbedPannel
-======
+============
 
 Test of the widget TabbedPannel.
 '''
