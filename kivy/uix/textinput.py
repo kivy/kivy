@@ -909,7 +909,8 @@ class TextInput(Widget):
     def _key_up(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
         if internal_action in ('shift', 'shift_L', 'shift_R'):
-            self._update_selection(True)
+            if self._selection:
+                self._update_selection(True)
 
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
         global Clipboard
