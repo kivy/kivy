@@ -455,21 +455,27 @@ class TextInput(Widget):
                     'Cannot show bubble, unable to get root window')
                 return True
             if self.selection_to != self.selection_from:
-                self._show_cut_copy_paste(touch, win)
+                self._show_cut_copy_paste(touch.pos, win)
             else:
                 win.remove_widget(self._bubble)
             return True
 
-    def _show_cut_copy_paste(self, touch, win):
+    def _show_cut_copy_paste(self, pos, win, parent_changed = False, *l):
         # Show a bubble with cut copy and paste buttons
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
+            self.bind(parent = partial(self._show_cut_copy_paste,
+                pos, win, True))
         else:
-            win.remove_widget(self._bubble)
+            win.remove_widget(bubble)
+            if not self.parent:
+                return
+        if parent_changed:
+            return
 
         # Search the position from the touch to the window
-        x, y = touch.pos
+        x, y = pos
         t_pos = self.to_window(x, y)
         bubble_size = bubble.size
         win_size = win.size
@@ -903,7 +909,8 @@ class TextInput(Widget):
     def _key_up(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
         if internal_action in ('shift', 'shift_L', 'shift_R'):
-            self._update_selection(True)
+            if self._selection:
+                self._update_selection(True)
 
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
         global Clipboard
@@ -1192,8 +1199,16 @@ class TextInput(Widget):
 
     .. warning::
 
-        Depending of your text provider, the font file can be ignored. But you
-        can mostly use this without trouble.
+        Depending of your text provider, the font file can be ignored. However
+        you can mostly use this without trouble.
+
+        If the font used lacks the glyphs for the perticular language/symbols
+        you are using, you will see '[]' blank box characters instead of the
+        actual glyphs. The solution is to use a font that has the glyphs you
+        need to display. For example to display |unicodechar|, use a font like
+        freesans.ttf that has the glyph.
+
+        .. |unicodechar| image:: images/unicode-char.png
 
     :data:`font_name` is a :class:`~kivy.properties.StringProperty`, default to
     'fonts/DroidSans.ttf'.

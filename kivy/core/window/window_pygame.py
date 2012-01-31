@@ -20,6 +20,13 @@ from kivy.base import stopTouchApp, EventLoop
 from kivy.clock import Clock
 from kivy.utils import platform
 
+try:
+    android = None
+    if platform() == 'android':
+        import android
+except ImportError:
+    pass
+
 # late binding
 glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
 
@@ -41,7 +48,7 @@ class WindowPygame(WindowBase):
         # right now, activate resizable window only on linux.
         # on window / macosx, the opengl context is lost, and we need to
         # reconstruct everything. Check #168 for a state of the work.
-        if sys.platform == 'linux2':
+        if platform() == 'linux':
             self.flags |= pygame.RESIZABLE
 
         try:
@@ -134,6 +141,11 @@ class WindowPygame(WindowBase):
         # set rotation
         self.rotation = params['rotation']
 
+        # if we are on android platform, automaticly create hooks
+        if android:
+            from kivy.support import install_android
+            install_android()
+
     def close(self):
         pygame.display.quit()
         self.dispatch('on_close')
@@ -173,7 +185,7 @@ class WindowPygame(WindowBase):
     def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = sys.platform == 'darwin'
+        is_osx = platform() == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
             self.close()  #not sure what to do here
@@ -261,9 +273,11 @@ class WindowPygame(WindowBase):
             elif event.type == pygame.ACTIVEEVENT:
                 pass
 
+            '''
             # unhandled event !
             else:
                 Logger.debug('WinPygame: Unhandled event %s' % str(event))
+            '''
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
@@ -327,3 +341,15 @@ class WindowPygame(WindowBase):
             self._modifiers.append('ctrl')
         if mods & (pygame.KMOD_META | pygame.KMOD_LMETA):
             self._modifiers.append('meta')
+
+    def request_keyboard(self, *largs):
+        keyboard = super(WindowPygame, self).request_keyboard(*largs)
+        if android:
+            android.show_keyboard()
+        return keyboard
+
+    def release_keyboard(self, *largs):
+        super(WindowPygame, self).release_keyboard(*largs)
+        if android:
+            android.hide_keyboard()
+        return True

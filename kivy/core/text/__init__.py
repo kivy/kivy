@@ -17,6 +17,7 @@ import os
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
+from kivy.utils import platform
 
 DEFAULT_FONT = 'Liberation Sans,Bitstream Vera Sans,Free Sans,Arial, Sans'
 
@@ -317,9 +318,13 @@ class LabelBase(object):
         mipmap = options['mipmap']
         if texture is None:
             if data is None:
+                if platform() in ('android', 'ios'):
+                    colorfmt = 'rgba'
+                else:
+                    colorfmt = 'luminance_alpha'
                 texture = Texture.create(
-                    size=self.size, colorfmt='luminance_alpha',
-                    mipmap=mipmap)
+                        size=self.size, colorfmt=colorfmt,
+                        mipmap=mipmap)
             else:
                 texture = Texture.create_from_data(data, mipmap=mipmap)
             texture.flip_vertical()

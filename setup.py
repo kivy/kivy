@@ -1,16 +1,31 @@
+import sys
 from fnmatch import filter as fnfilter
-from sys import platform, argv
 from os.path import join, dirname, realpath, sep, exists
 from os import walk, environ
 from distutils.core import setup
 from distutils.extension import Extension
 
+platform = sys.platform
+
+#
+# Detect Python for android project
+# FIXME: add a specific var for this project, not just guess
+#
+ndkplatform = environ.get('NDKPLATFORM')
+if ndkplatform is not None and environ.get('LIBLINK'):
+    platform = 'android'
+
 try:
     # check for cython
     from Cython.Distutils import build_ext
+    have_cython = True
 except ImportError:
-    print '\nCython is missing, its required for compiling kivy !\n\n'
-    raise
+    if platform != 'android':
+        print '\nCython is missing, its required for compiling kivy !\n\n'
+        raise
+    # on python-for-android, cython usage is external
+    have_cython = False
+    from distutils.command.build_ext import build_ext
 
 # extract version (simulate doc generation, kivy will be not imported)
 environ['KIVY_DOC_INCLUDE'] = '1'
@@ -46,12 +61,11 @@ c_options = {
     'use_mesagl': 'USE_MESAGL' in environ}
 
 # Detect which opengl version headers to use
-if platform == 'win32':
+if platform in ('android', 'darwin'):
+    pass
+elif platform == 'win32':
     print 'Windows platform detected, force GLEW usage.'
     c_options['use_glew'] = True
-elif platform == 'darwin':
-    # macosx is using their own gl.h
-    pass
 else:
     # searching GLES headers
     default_header_dirs = ['/usr/include', '/usr/local/include']
@@ -108,6 +122,10 @@ for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
     for filename in fnfilter(filenames, '*.pyx'):
         pyx_files.append(join(root, filename))
 
+if not have_cython:
+    pyx_files = pyx_files = ['%s.c' % x[:-4] for x in pyx_files]
+    pxd_files = []
+
 # add cython core extension modules if cython is available
 
 if True:
@@ -122,6 +140,10 @@ if True:
     elif platform.startswith('freebsd'):
         include_dirs += ['/usr/local/include']
         extra_link_args += ['-L', '/usr/local/lib']
+    elif platform == 'android':
+        include_dirs += [join(ndkplatform, 'usr', 'include')]
+        extra_link_args += ['-L', join(ndkplatform, 'usr', 'lib')]
+        libraries.append('GLESv2')
     else:
         libraries.append('GL')
 

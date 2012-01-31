@@ -168,7 +168,46 @@ instance. If you don't want it, you can declare your Application like this::
         use_kivy_settings = False
         # ...
 
+
+Pause mode
+----------
+
+.. versionadded:: 1.0.10
+
+.. warning::
+
+    This mode is experimental, and designed for phones/tablets. There is some
+    cases where your application could crash on resume.
+
+On tablets and phones, the user can switch at any moment to another application.
+By default, your application will reach :func:`App.on_stop` behavior.
+
+You can support the Pause mode: when switching to another application, the
+application goes into Pause mode and wait indefinitively until the user switch
+back to your application. Their is an issue with OpenGL on Android device:
+you're not ensured that the OpenGL ES Context is restored when going to resume.
+The mechanism for restoring all the OpenGL data is not yet implemented into Kivy
+(we are looking for device with this behavior.)
+
+The current implemented Pause mechanism is:
+
+    #. Kivy check every frames if Pause mode have been asked from Operating
+       System, cause the user switch to another application, or even the user
+       shutdown its phone.
+    #. :func:`App.on_pause` is called:
+    #. If False is returned (default case), then :func:`App.on_stop` is called.
+    #. Otherwise the application will sleep until the OS will resume ourself
+    #. We got a resume, :func:`App.on_resume` is called.
+    #. If the app memory have been reclaim by OS, then nothing will be called.
+
+.. warning::
+
+    Whatever if it's on_pause or on_stop, you must save important data in both
+    of them. After on_pause call, you might not be called at all.
+
 '''
+
+__all__ = ('App', )
 
 from inspect import getfile
 from os.path import dirname, join, exists
@@ -178,6 +217,7 @@ from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
+from kivy.utils import platform
 
 
 class App(EventDispatcher):
@@ -226,6 +266,10 @@ class App(EventDispatcher):
     change this to False.
     '''
 
+    # Return the current running App instance
+    _running_app = None
+
+
     def __init__(self, **kwargs):
         self._app_directory = None
         self._app_name = None
@@ -234,6 +278,8 @@ class App(EventDispatcher):
         super(App, self).__init__()
         self.register_event_type('on_start')
         self.register_event_type('on_stop')
+        self.register_event_type('on_pause')
+        self.register_event_type('on_resume')
         self.built = False
 
         #: Options passed to the __init__ of the App
@@ -425,7 +471,7 @@ class App(EventDispatcher):
                 window.set_icon(icon)
             self._install_settings_keys(window)
 
-        # Run !
+        App._running_app = self
         self.dispatch('on_start')
         runTouchApp()
         self.dispatch('on_stop')
@@ -451,6 +497,42 @@ class App(EventDispatcher):
         closed).
         '''
         pass
+
+    def on_pause(self):
+        '''Event handler called when pause mode is asked. You must return True
+        if you can go to the Pause mode. Otherwise, return False, and your
+        application will be stopped.
+
+        You cannot control when the application is going to this mode. It's
+        mostly used for embed devices (android/ios), and for resizing.
+
+        Default is False.
+        
+        .. versionadded:: 1.0.10
+        '''
+        return False
+
+    def on_resume(self):
+        '''Event handler called when your application is resuming from the Pause
+        mode.
+
+        .. versionadded:: 1.0.10
+
+        .. warning::
+
+            When resuming, OpenGL Context might have been damaged / freed. This
+            is where you should reconstruct some of your OpenGL state, like FBO
+            content.
+        '''
+        pass
+
+    @staticmethod
+    def get_running_app():
+        '''Return the current runned application instance.
+
+        .. versionadded:: 1.0.10
+        '''
+        return App._running_app
 
     def on_config_change(self, config, section, key, value):
         '''Event handler fired when one configuration token have been changed by
@@ -508,7 +590,14 @@ class App(EventDispatcher):
 
     def _on_keyboard_settings(self, window, *largs):
         key = largs[0]
-        if key == 282: # F1
+        setting_key = 282 # F1
+
+        # android hack, if settings key is pygame K_MENU
+        if platform() == 'android':
+            import pygame
+            setting_key = pygame.K_MENU
+
+        if key == setting_key:
             # toggle settings panel
             if not self.open_settings():
                 self.close_settings()
