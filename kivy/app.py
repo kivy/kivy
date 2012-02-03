@@ -183,7 +183,7 @@ On tablets and phones, the user can switch at any moment to another application.
 By default, your application will reach :func:`App.on_stop` behavior.
 
 You can support the Pause mode: when switching to another application, the
-application goes into Pause mode and waits in-definitively until the user
+application goes into Pause mode and waits infinitely until the user
 switches back to your application. Their is an issue with OpenGL on Android
 devices: you're not ensured that the OpenGL ES Context is restored when your app
 resumes. The mechanism for restoring all the OpenGL data is not yet implemented
