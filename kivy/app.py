@@ -18,7 +18,7 @@ Method using build() override
 To initialize your app with a widget tree, override the build() method in
 your app class and return the widget tree you constructed.
 
-Here's an example of very simple application that just shows a button:
+Here's an example of a very simple application that just shows a button:
 
 .. include:: ../../examples/application/app_with_build.py
    :literal:
@@ -33,7 +33,7 @@ node).
 Method using kv file
 ~~~~~~~~~~~~~~~~~~~~
 
-You can also use the :doc:`api-kivy.lang` for creating application. The .kv can
+You can also use the :doc:`api-kivy.lang` for creating applications. The .kv can
 contain rules and root widget definitions at the same time. Here is the same
 example as the Button one in a kv file.
 
@@ -60,10 +60,10 @@ Application configuration
 Use the configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Your application might want to have his own configuration file. The :class:`App`
-is able to handle a INI file automatically. You add your section/key/value in
-the :meth:`App.build_config` method by using the `config` parameters (instance
-of :class:`~kivy.config.ConfigParser`::
+Your application might want to have its own configuration file. The
+:class:`App` is able to handle an INI file automatically. You add your
+section/key/value in the :meth:`App.build_config` method by using the `config`
+parameters (instance of :class:`~kivy.config.ConfigParser`::
 
     class TestApp(App):
         def build_config(self, config):
@@ -72,16 +72,16 @@ of :class:`~kivy.config.ConfigParser`::
                 'key2': '42'
             })
 
-As soon as you will add one section in the config, a file will be created on the
-disk, and be named from the mangled name of your class: "TestApp" will give a
-config filename "test.ini" with the content::
+As soon as you add one section in the config, a file is created on the disk, and
+named from the mangled name of your class:. "TestApp" will give a config
+file-name "test.ini" with the content::
 
     [section1]
     key1 = value1
     key2 = 42
 
-The "test.ini" will be automatically loaded at runtime, and you can access to
-the configuration in your :meth:`App.build` method::
+The "test.ini" will be automatically loaded at runtime, and you can access the
+configuration in your :meth:`App.build` method::
 
     class TestApp(App):
         def build_config(self, config):
@@ -106,10 +106,10 @@ your config tokens. Here is an example done in the KinectViewer example
     .. image:: images/app-settings.jpg
         :align: center
 
-You have the possibility to extends the default application settings with your
-own panel by extending the :meth:`App.build_settings` method. Check the
-:class:`~kivy.uix.settings.Settings` about how to create a panel, because you
-need a JSON file / data first.
+You can extend the default application settings with your own panel by extending
+the :meth:`App.build_settings` method.
+Check the class:`~kivy.uix.settings.Settings` about how to create a panel,
+because you need a JSON file / data first.
 
 Let's take as an example the previous snippet of TestApp with custom config. We
 could create a JSON like this::
@@ -142,12 +142,12 @@ options, and link them to our :data:`App.config` ConfigParser instance::
             settings.add_json_panel('Test application',
                 self.config, data=jsondata)
 
-That's all ! Now you can press F1 (default keystroke) for toggle the settings
+That's all ! Now you can press F1 (default keystroke) to toggle the settings
 panel, or press the "settings" key on your android device. You can manually call
 :meth:`App.open_settings` and :meth:`App.close_settings` if you want. Every
-changes in the panel are automatically saved in the config file.
+change in the panel is automatically saved in the config file.
 
-However, you might want to know when a config value have been changed by the
+However, you might want to know when a config value has been changed by the
 user, in order to adapt or reload your UI. You can overload the
 :meth:`on_config_change` method::
 
@@ -176,34 +176,35 @@ Pause mode
 
 .. warning::
 
-    This mode is experimental, and designed for phones/tablets. There is some
+    This mode is experimental, and designed for phones/tablets. There are some
     cases where your application could crash on resume.
 
 On tablets and phones, the user can switch at any moment to another application.
 By default, your application will reach :func:`App.on_stop` behavior.
 
 You can support the Pause mode: when switching to another application, the
-application goes into Pause mode and wait indefinitively until the user switch
-back to your application. Their is an issue with OpenGL on Android device:
-you're not ensured that the OpenGL ES Context is restored when going to resume.
-The mechanism for restoring all the OpenGL data is not yet implemented into Kivy
-(we are looking for device with this behavior.)
+application goes into Pause mode and waits infinitely until the user
+switches back to your application. There is an issue with OpenGL on Android
+devices: you're not ensured that the OpenGL ES Context is restored when your app
+resumes. The mechanism for restoring all the OpenGL data is not yet implemented
+into Kivy(we are looking for device with this behavior).
 
 The current implemented Pause mechanism is:
 
-    #. Kivy check every frames if Pause mode have been asked from Operating
-       System, cause the user switch to another application, or even the user
-       shutdown its phone.
+    #. Kivy checks every frame, if Pause mode is activated by the Operating
+       System, due to user switching to another application, phone shutdown or
+       any other reason.
     #. :func:`App.on_pause` is called:
     #. If False is returned (default case), then :func:`App.on_stop` is called.
-    #. Otherwise the application will sleep until the OS will resume ourself
-    #. We got a resume, :func:`App.on_resume` is called.
-    #. If the app memory have been reclaim by OS, then nothing will be called.
+    #. Otherwise the application will sleep until the OS will resume our App
+    #. We got a `resume`, :func:`App.on_resume` is called.
+    #. If our app memory has been reclaimed by the OS, then nothing will be
+       called.
 
 .. warning::
 
-    Whatever if it's on_pause or on_stop, you must save important data in both
-    of them. After on_pause call, you might not be called at all.
+    Both `on_pause` and `on_stop` must save important data, because after
+    `on_pause` call, on_resume may not be called at all.
 
 '''
 
@@ -268,7 +269,6 @@ class App(EventDispatcher):
 
     # Return the current running App instance
     _running_app = None
-
 
     def __init__(self, **kwargs):
         self._app_directory = None
@@ -507,7 +507,7 @@ class App(EventDispatcher):
         mostly used for embed devices (android/ios), and for resizing.
 
         Default is False.
-        
+
         .. versionadded:: 1.0.10
         '''
         return False
