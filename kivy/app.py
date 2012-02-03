@@ -60,8 +60,8 @@ Application configuration
 Use the configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Your application might want to have it's own configuration file. The
-:class:`App` is able to handle a INI file automatically. You add your
+Your application might want to have its own configuration file. The
+:class:`App` is able to handle an INI file automatically. You add your
 section/key/value in the :meth:`App.build_config` method by using the `config`
 parameters (instance of :class:`~kivy.config.ConfigParser`::
 
@@ -107,9 +107,9 @@ your config tokens. Here is an example done in the KinectViewer example
         :align: center
 
 You can extend the default application settings with your own panel by extending
-the :meth:`App.build_settings` method. Check the
-class:`~kivy.uix.settings.Settings` about how to create a panel, because you
-need a JSON file / data first.
+the :meth:`App.build_settings` method.
+Check the class:`~kivy.uix.settings.Settings` about how to create a panel,
+because you need a JSON file / data first.
 
 Let's take as an example the previous snippet of TestApp with custom config. We
 could create a JSON like this::
@@ -184,7 +184,7 @@ By default, your application will reach :func:`App.on_stop` behavior.
 
 You can support the Pause mode: when switching to another application, the
 application goes into Pause mode and waits infinitely until the user
-switches back to your application. Their is an issue with OpenGL on Android
+switches back to your application. There is an issue with OpenGL on Android
 devices: you're not ensured that the OpenGL ES Context is restored when your app
 resumes. The mechanism for restoring all the OpenGL data is not yet implemented
 into Kivy(we are looking for device with this behavior).
@@ -203,8 +203,8 @@ The current implemented Pause mechanism is:
 
 .. warning::
 
-    On both `on_pause` and `on_stop`, you must save important data as after
-    on_pause call, the app might not be called at all.
+    Both `on_pause` and `on_stop` must save important data, because after
+    `on_pause` call, on_resume may not be called at all.
 
 '''
 
