@@ -90,6 +90,7 @@
 
 <Tab_Content>
     rows: 1
+    padding: 3
     canvas:
         Color:
             rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
@@ -114,8 +115,8 @@
     group: '__tab__'
     text_size: self.size
     halign: 'center'
-    background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
-    background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
+    background_normal: 'tools/theming/defaulttheme/tab_btn.png'
+    background_down: 'tools/theming/defaulttheme/tab_btn_pressed.png'
     border: (0, 0, 0, 0)
 
 <TextInput>:

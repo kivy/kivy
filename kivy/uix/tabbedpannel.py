@@ -166,7 +166,7 @@ class TabbedPannel(GridLayout):
     '''
 
     background_image =\
-        StringProperty('atlas://data/images/defaulttheme/bubble')
+        StringProperty('tools/theming/defaulttheme/tab.png')
     '''Background image of the Tab content
 
     :data:`background_image` is a :class:`~kivy.properties.StringProperty`,

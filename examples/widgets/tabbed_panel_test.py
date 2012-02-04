@@ -33,7 +33,6 @@ Builder.load_string('''
             id: cut
             pos:self.parent.pos
             size: self.parent.size
-            padding: 3
             TextInput:
                 text: 'everything is relative!'
             BubbleButton:
