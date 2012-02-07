@@ -125,7 +125,7 @@ class Label(Widget):
     default to (None, None), meaning no size restriction by default.
     '''
 
-    font_name = StringProperty('fonts/DroidSans.ttf')
+    font_name = StringProperty('DroidSans')
     '''Filename of the font to use, the path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find` 
     function.
@@ -144,7 +144,7 @@ class Label(Widget):
         .. |unicodechar| image:: images/unicode-char.png
 
     :data:`font_name` is a :class:`~kivy.properties.StringProperty`, default to
-    'fonts/DroidSans.ttf'.
+    'DroidSans'.
     '''
 
     font_size = NumericProperty(12)
