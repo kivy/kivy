@@ -81,7 +81,6 @@ for x in (
     'videocapture',
     'squirtle',
     'PIL',
-    'cairo',
     'opencv',
     'opencv.cv',
     'opencv.highgui',
