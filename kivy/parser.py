@@ -12,8 +12,10 @@ __all__ = ('parse_image', 'parse_color', 'parse_int', 'parse_float',
 import re
 from kivy.logger import Logger
 from kivy.resources import resource_find
-from kivy.core.image import Image
-from kivy.core.svg import Svg
+
+
+class ColorException(Exception):
+    pass
 
 
 def parse_filename(filename):
@@ -27,40 +29,31 @@ def parse_filename(filename):
     return result or filename
 
 
-def parse_image(filename):
-    '''Parse a filename and load it in a Widget (Image or Svg).
-    Svg is used only if the file extension is '.svg', otherwise Image.'''
-    filename = parse_filename(filename)
-    if filename in (None, 'None', u'None'):
-        return None
-    if filename.lower().endswith('.svg'):
-        return Svg(filename)
-    else:
-        return Image(filename)
-    raise Exception('Error trying to load image specified in css: %s' \
-                    % filename)
-
-
 def parse_color(text):
     '''Parse a string to a kivy color. Supported formats :
         * rgb(r, g, b)
         * rgba(r, g, b, a)
+        * aaa
+        * rrggbb
         * #aaa
         * #rrggbb
     '''
     value = [1, 1, 1, 1]
     if text.startswith('rgb'):
         res = re.match('rgba?\((.*)\)', text)
-        value = map(lambda x: int(x) / 255., re.split(',\ ?', res.groups()[0]))
+        value = [int(x) / 255. for x in re.split(',\ ?', res.groups()[0])]
         if len(value) == 3:
             value.append(1.)
-    elif text.startswith('#'):
-        res = text[1:]
-        if len(res) == 3:
-            res = ''.join(map(lambda x: x+x, res))
-        value = [int(x, 16) / 255. for x in re.split(
-                 '(?i)([0-9a-f]{2})', res) if x != '']
-        if len(value) == 3:
+    elif len(text):
+        if text[0] == '#':
+            res = text[1:]
+        lres = len(res)
+        if lres == 3 or lres == 4:
+            res = ''.join([x + x for x in res])
+        elif lres != 6 and lres != 8:
+            raise ColorException('Invalid color format for %r' % text)
+        value = [int(res[i:i+2], 16) / 255. for i in xrange(0, len(res), 2)]
+        if lres == 6:
             value.append(1.)
     return value
 
@@ -121,6 +114,7 @@ def parse_float4(text):
     elif len(value) > 4:
         raise Exception('Too many values in %s' % text)
     return value
+
 
 parse_int = int
 parse_float = float

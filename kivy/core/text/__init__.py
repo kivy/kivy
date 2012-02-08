@@ -20,7 +20,7 @@ from kivy.core import core_select_lib
 from kivy.utils import platform
 from kivy.resources import resource_find
 
-DEFAULT_FONT = 'Liberation Sans,Bitstream Vera Sans,Free Sans,Arial, Sans'
+DEFAULT_FONT = 'DroidSans'
 
 FONT_REGULAR = 0
 FONT_ITALIC = 1
@@ -128,9 +128,7 @@ class LabelBase(object):
 
         self.options = kwargs
         self.texture = None
-
         self.resolve_font_name()
-
         self.text = kwargs.get('text', '')
 
     @staticmethod
@@ -187,16 +185,16 @@ class LabelBase(object):
             italic = options['italic']
             font = fonts[fontname]
             if not bold and not italic:
-                options['font_name'] = font[FONT_REGULAR]
+                options['font_name_r'] = font[FONT_REGULAR]
             elif bold and italic:
-                options['font_name'] = font[FONT_BOLDITALIC]
+                options['font_name_r'] = font[FONT_BOLDITALIC]
             elif bold:
-                options['font_name'] = font[FONT_BOLD]
+                options['font_name_r'] = font[FONT_BOLD]
             else:
                 options['font_name'] = font[FONT_ITALIC]
 
         elif fontname in fontscache:
-            options['font_name'] = fontscache[fontname]
+            options['font_name_r'] = fontscache[fontname]
         else:
             filename = resource_find(fontname)
             if filename is None:
@@ -207,7 +205,7 @@ class LabelBase(object):
             if filename is None:
                 raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
-            options['font_name'] = filename
+            options['font_name_r'] = filename
 
 
     def get_extents(self, text):
@@ -430,7 +428,10 @@ class LabelBase(object):
             texture.blit_data(data)
 
     def refresh(self):
-        '''Force re-rendering of the text'''
+        '''Force re-rendering of the text
+        '''
+        self.resolve_font_name()
+
         # first pass, calculating width/height
         sz = self.render()
         self._size = sz
@@ -493,7 +494,7 @@ class LabelBase(object):
     def fontid(self):
         '''Return an uniq id for all font parameters'''
         return str([self.options[x] for x in (
-            'font_size', 'font_name', 'bold', 'italic')])
+            'font_size', 'font_name_r', 'bold', 'italic')])
 
     def _get_text_size(self):
         return self._text_size

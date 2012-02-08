@@ -31,6 +31,7 @@ import kivy.core.gl
 import kivy.core.image
 import kivy.core.spelling
 import kivy.core.text
+import kivy.core.text.markup
 import kivy.core.video
 import kivy.core.window
 import kivy.ext
