@@ -515,9 +515,10 @@ Label = core_select_lib('text', (
 ))
 
 # For the first initalization, register the default font
-Label.register('DroidSans',
-    'data/fonts/DroidSans.ttf',
-    'data/fonts/DroidSans-Italic.ttf',
-    'data/fonts/DroidSans-Bold.ttf',
-    'data/fonts/DroidSans-BoldItalic.ttf')
+if 'KIVY_DOC' not in os.environ:
+    Label.register('DroidSans',
+        'data/fonts/DroidSans.ttf',
+        'data/fonts/DroidSans-Italic.ttf',
+        'data/fonts/DroidSans-Bold.ttf',
+        'data/fonts/DroidSans-BoldItalic.ttf')
 
