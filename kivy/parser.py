@@ -45,6 +45,7 @@ def parse_color(text):
         if len(value) == 3:
             value.append(1.)
     elif len(text):
+        res = text
         if text[0] == '#':
             res = text[1:]
         lres = len(res)
