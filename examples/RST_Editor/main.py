@@ -37,14 +37,12 @@ class Root(FloatLayout):
         self._popup.open()
 
     def load(self, path, filename):
-        print "load"
         with open(os.path.join(path, filename[0])) as stream:
             self.text_input.text = stream.read()
 
         self.dismiss_popup()
 
     def save(self, path, filename):
-        print "save"
         with open(os.path.join(path, filename), 'w') as stream:
             stream.write(self.text_input.text)
 
