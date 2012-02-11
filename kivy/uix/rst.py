@@ -68,6 +68,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.image import AsyncImage
 from kivy.animation import Animation
+from kivy.logger import Logger
 
 from docutils.parsers import rst
 from docutils.parsers.rst import roles
@@ -439,20 +440,23 @@ class RstDocument(ScrollView):
             self.text = fd.read()
 
     def _load_from_text(self, *largs):
-        # clear the current widgets
-        self.content.clear_widgets()
-        self.anchors_widgets = []
-        self.refs_assoc = {}
+        try:
+            # clear the current widgets
+            self.content.clear_widgets()
+            self.anchors_widgets = []
+            self.refs_assoc = {}
 
-        # parse the source
-        document = utils.new_document('Document', self._settings)
-        self._parser.parse(self.text, document)
+            # parse the source
+            document = utils.new_document('Document', self._settings)
+            self._parser.parse(self.text, document)
 
-        # fill the current document node
-        visitor = _Visitor(self, document)
-        document.walkabout(visitor)
+            # fill the current document node
+            visitor = _Visitor(self, document)
+            document.walkabout(visitor)
 
-        self.title = visitor.title or 'No title'
+            self.title = visitor.title or 'No title'
+        except Exception, e:
+            Logger.exception('Rst: error while loading text')
 
     def on_ref_press(self, node, ref):
         # check if it's a file ?
