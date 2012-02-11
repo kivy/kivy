@@ -357,6 +357,23 @@ class RstDocument(ScrollView):
     :data:`colors` is a :class:`~kivy.properties.DictProperty`.
     '''
 
+    title = StringProperty('')
+    '''Title of the current document.
+
+    :data:`title` is a :class:`~kivy.properties.StringProperty`, default to ''
+    in read-only.
+    '''
+
+    toctrees = DictProperty({})
+    '''Toctree of all loaded or preloaded documents. This dictionnary is filled
+    when a rst document is explicitly loaded, or where :func:`preload` have been
+    called.
+
+    If the document have no filename, ie the document is loaded from a text,
+    then the key will be ''.
+
+    :data:`toctrees` is a :class:`~kivy.properties.DictProperty`, default to {}.
+    '''
 
     # internals.
     content = ObjectProperty(None)
@@ -366,6 +383,10 @@ class RstDocument(ScrollView):
 
     def __init__(self, **kwargs):
         self._trigger_load = Clock.create_trigger(self._load_from_text, -1)
+        self._parser = rst.Parser()
+        self._settings = frontend.OptionParser(
+            components=(rst.Parser,)
+            ).get_default_values()
         super(RstDocument, self).__init__(**kwargs)
 
     def on_source(self, instance, value):
@@ -382,8 +403,39 @@ class RstDocument(ScrollView):
         '''
         self._load_from_text()
 
+    def resolve_path(self, filename):
+        '''Get the path for this filename file. If the filename doesn't exist,
+        it will return the document_root + filename.
+        '''
+        if exists(filename):
+            return filename
+        return join(self.document_root, filename)
+
+    def preload(self, filename):
+        '''Preload a rst file to get its toctree, and its title.
+
+        The result will be stored in :data:`toctrees` with the ``filename`` as
+        key.
+        '''
+        if filename in self.toctrees:
+            return
+        if not exists(filename):
+            return
+
+        with open(filename) as fd:
+            text = fd.read()
+        # parse the source
+        document = utils.new_document('Document', self._settings)
+        self._parser.parse(text, document)
+        # fill the current document node
+        visitor = _ToctreeVisitor(document)
+        document.walkabout(visitor)
+        self.toctrees[filename] = visitor.toctree
+
     def _load_from_source(self):
-        with open(self.source) as fd:
+        filename = self.resolve_path(self.source)
+        self.preload(filename)
+        with open(filename) as fd:
             self.text = fd.read()
 
     def _load_from_text(self, *largs):
@@ -393,16 +445,14 @@ class RstDocument(ScrollView):
         self.refs_assoc = {}
 
         # parse the source
-        parser = rst.Parser()
-        settings = frontend.OptionParser(
-            components=(rst.Parser,)
-            ).get_default_values()
-        document = utils.new_document('Document', settings)
-        parser.parse(self.text, document)
+        document = utils.new_document('Document', self._settings)
+        self._parser.parse(self.text, document)
 
         # fill the current document node
         visitor = _Visitor(self, document)
         document.walkabout(visitor)
+
+        self.title = visitor.title or 'No title'
 
     def on_ref_press(self, node, ref):
         # check if it's a file ?
@@ -541,10 +591,54 @@ class RstEmptySpace(Widget):
     pass
 
 
+class _ToctreeVisitor(nodes.NodeVisitor):
+
+    def __init__(self, *largs):
+        self.toctree = self.current = []
+        self.queue = []
+        self.text = ''
+        nodes.NodeVisitor.__init__(self, *largs)
+
+    def push(self, tree):
+        self.queue.append(tree)
+        self.current = tree
+
+    def pop(self):
+        self.current = self.queue.pop()
+
+    def dispatch_visit(self, node):
+        cls = node.__class__
+        #print '>>>', cls, node.attlist() if hasattr(node, 'attlist') else ''
+        if cls is nodes.section:
+            section = {
+                'ids': node['ids'],
+                'names': node['names'],
+                'title': '',
+                'children': []}
+            if isinstance(self.current, dict):
+                self.current['children'].append(section)
+            else:
+                self.current.append(section)
+            self.push(section)
+        elif cls is nodes.title:
+            self.text = ''
+        elif cls is nodes.Text:
+            self.text += node
+
+    def dispatch_departure(self, node):
+        cls = node.__class__
+        #print '<--', cls, node.attlist() if hasattr(node, 'attlist') else ''
+        if cls is nodes.section:
+            self.pop()
+        elif cls is nodes.title:
+            self.current['title'] = self.text
+
+
 class _Visitor(nodes.NodeVisitor):
 
     def __init__(self, root, *largs):
         self.root = root
+        self.title = None
         self.current_list = []
         self.current = None
         self.idx_list = None
@@ -743,6 +837,8 @@ class _Visitor(nodes.NodeVisitor):
 
         elif cls is nodes.title:
             assert(isinstance(self.current, RstTitle))
+            if not self.title:
+                self.title = self.text
             self.set_text(self.current, 'title')
             self.pop()
 
@@ -832,10 +928,24 @@ class _Visitor(nodes.NodeVisitor):
                 docname = docname[:-4]
             else:
                 rst_docname += '.rst'
+
+            # try to preload it
+            filename = self.root.resolve_path(rst_docname)
+            self.root.preload(filename)
+
+            # if exist, use the title of the first section found in the document
+            title = docname
+            if filename in self.root.toctrees:
+                toctree = self.root.toctrees[filename]
+                if len(toctree):
+                    title = toctree[0]['title']
+
+            # replace the text with a good reference
             text = '[ref=%s]%s[/ref]' % (
                     rst_docname,
-                    self.colorize(docname, 'link'))
+                    self.colorize(title, 'link'))
             self.text = self.text[:self.doc_index] + text
+
 
     def set_text(self, node, parent):
         text = self.text
