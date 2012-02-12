@@ -180,6 +180,7 @@ else:
                         del args['delete']
                         del touches[touch.id]
                         touches_sent.remove(tid)
+                        touch.update_time_end()
                     queue.append((action, touch))
 
             def normalize(value, vmin, vmax):

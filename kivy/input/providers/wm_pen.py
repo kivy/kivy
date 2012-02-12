@@ -31,7 +31,7 @@ if 'KIVY_DOC' in os.environ:
 else:
     from collections import deque
     from ctypes.wintypes import ULONG
-    from ctypes import wintypes, Structure, windll, byref, c_int16, \
+    from ctypes import Structure, windll, byref, c_int16, \
             c_int, c_long, WINFUNCTYPE
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
@@ -110,17 +110,19 @@ else:
             while True:
 
                 try:
-                    type, x, y = self.pen_events.pop()
+                    etype, x, y = self.pen_events.pop()
                 except:
                     break
 
-                if  type == 'begin':
+                if etype == 'begin':
                     self.uid += 1
                     self.pen = WM_Pen(self.device, self.uid, [x, y])
-                if  type == 'update':
+                elif etype == 'update':
                     self.pen.move([x, y])
+                elif etype == 'end':
+                    self.pen.update_time_end()
 
-                dispatch_fn(type, self.pen)
+                dispatch_fn(etype, self.pen)
 
         def stop(self):
             self.pen = None

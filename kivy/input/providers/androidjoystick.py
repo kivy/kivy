@@ -87,6 +87,7 @@ class AndroidMotionEventProvider(MotionEventProvider):
             elif not pressed and jid in touches:
                 touch = touches[jid]
                 touch.move([x, y, pressure, radius])
+                touch.update_time_end()
                 dispatch_fn('end', touch)
                 touches.pop(jid)
 
