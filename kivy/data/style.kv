@@ -447,6 +447,8 @@
         FloatLayout:
             id: labellayout
             orientation: 'vertical'
+            size_hint_x: .5
+
             Label:
                 pos_hint: {'y': .5, 'x': 0}
                 text: root.title
@@ -464,8 +466,8 @@
 
         BoxLayout:
             id: content
-            size_hint_x: None
-            width: 150
+            size_hint_x: .5
+
 
 <SettingBoolean>:
     Switch:
@@ -475,6 +477,11 @@
         on_active: root.value = root.values[int(args[1])]
 
 <SettingString>:
+    Label:
+        text: str(root.value)
+        pos: root.pos
+
+<SettingPath>:
     Label:
         text: str(root.value)
         pos: root.pos
