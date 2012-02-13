@@ -16,10 +16,7 @@ if 'KIVY_DOC' not in environ:
 
     from kivy.logger import Logger
     from kivy.graphics import gl_init_resources
-    from kivy.graphics.opengl import GL_VERSION, GL_VENDOR, GL_RENDERER, \
-            GL_SHADING_LANGUAGE_VERSION, GL_MAX_TEXTURE_SIZE, \
-            GL_MAX_TEXTURE_IMAGE_UNITS, glGetString, glGetIntegerv, \
-            gl_init_symbols
+    from kivy.graphics.opengl import *
 
     def init_gl():
         gl_init_symbols()
