@@ -133,6 +133,12 @@ class FileChooserController(FloatLayout):
     Determines whether user is able to select multiple files.
     '''
 
+    dirselect = BooleanProperty(False)
+    '''
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    Determines whether directories are valid selections.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_entry_added')
         self.register_event_type('on_entries_cleared')
@@ -193,7 +199,8 @@ class FileChooserController(FloatLayout):
                     self.selection.append(entry.path)
         else:
             if isdir(entry.path):
-                pass
+                if self.dirselect:
+                    self.selection = [entry.path, ]
             else:
                 self.selection = [entry.path, ]
 
@@ -206,10 +213,13 @@ class FileChooserController(FloatLayout):
         if self.multiselect:
             pass
         else:
-            if isdir(entry.path):
+            if isdir(entry.path) and not self.dirselect:
                 self.open_entry(entry)
             elif touch.is_double_tap:
-                self.dispatch('on_submit', self.selection, touch)
+                if self.dirselect and isdir(entry.path):
+                    self.open_entry(entry)
+                else:
+                    self.dispatch('on_submit', self.selection, touch)
 
     def open_entry(self, entry):
         try:
