@@ -2,7 +2,7 @@
 Recorder module
 ===============
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 Create an instance of :class:`~kivy.input.recorder.Recorder`, attach to the
 class, and bind some keys to record / play sequences:

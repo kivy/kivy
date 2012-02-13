@@ -2,7 +2,7 @@
 Bubble
 ======
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 .. image:: images/bubble.jpg
     :align: right

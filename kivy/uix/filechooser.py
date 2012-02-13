@@ -138,7 +138,7 @@ class FileChooserController(FloatLayout):
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Determines whether directories are valid selections.
 
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
     '''
 
     def __init__(self, **kwargs):
@@ -210,7 +210,7 @@ class FileChooserController(FloatLayout):
         '''(internal) This method must be called by the template when an entry
         is touched by the user.
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         if self.multiselect:
             pass

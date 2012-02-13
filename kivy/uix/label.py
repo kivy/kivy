@@ -20,7 +20,7 @@ strings ::
 Markup text
 -----------
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 You can change the style of the text using :doc:`api-kivy.core.text.markup`.
 The syntax is near the bbcode syntax, but only the inline styling is allowed::
@@ -65,7 +65,7 @@ Then you can write::
 Interactive zone in text
 ------------------------
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 You can now have some kind of "links" using text markup. The idea is to be able
 to detect when the user click on a some part of the text, and react to it.
@@ -388,7 +388,7 @@ class Label(Widget):
 
     markup = BooleanProperty(False)
     '''
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     If true, the text will be rendered with
     :class:`~kivy.core.text.markup.MarkupLabel`: you can change the style of the
@@ -401,7 +401,7 @@ class Label(Widget):
 
     refs = DictProperty({})
     '''
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     List of ``[ref=xxx]`` markup put into the text, with all the bounding box of
     all the words contained in a ref, only after rendering.
@@ -434,7 +434,7 @@ class Label(Widget):
 
     anchors = DictProperty({})
     '''
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     Position of all the ``[anchor=xxx]`` markup put into the text.
 

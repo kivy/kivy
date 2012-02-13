@@ -172,7 +172,7 @@ instance. If you don't want it, you can declare your Application like this::
 Pause mode
 ----------
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 .. warning::
 
@@ -508,7 +508,7 @@ class App(EventDispatcher):
 
         Default is False.
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         return False
 
@@ -516,7 +516,7 @@ class App(EventDispatcher):
         '''Event handler called when your application is resuming from the Pause
         mode.
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
 
         .. warning::
 
@@ -530,7 +530,7 @@ class App(EventDispatcher):
     def get_running_app():
         '''Return the current runned application instance.
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         return App._running_app
 

@@ -31,7 +31,7 @@ Available configuration tokens
     * `keyboard_type` and `keyboard_layout` have been removed from widget
     * `keyboard_mode` and `keyboard_layout` have been added to kivy section
 
-.. versionchanged:: 1.0.10
+.. versionchanged:: 1.1.0
 
     * tuio is not listening by default anymore.
     * windows icons are not copied to user directory anymore. You can still set

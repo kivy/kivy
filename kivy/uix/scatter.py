@@ -79,7 +79,7 @@ You can also limit the minimum and maximum scale allowed. ::
 Behaviors
 ---------
 
-.. versionchanged:: 1.0.10
+.. versionchanged:: 1.1.0
 
     If no control interactions are enabled, then touch handler will never return
     True.

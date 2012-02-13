@@ -137,7 +137,7 @@ class LabelBase(object):
             fn_bolditalic=None):
         '''Register an alias for a Font.
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
 
         If you're using directly a ttf, you might not be able to use bold/italic
         of the ttf version. If the font is delivered with different version of

@@ -2,7 +2,7 @@
 Text Markup
 ===========
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 We provide a simple text-markup for inline text styling. The syntax look the
 same as the `BBCode <http://en.wikipedia.org/wiki/BBCode>`_.

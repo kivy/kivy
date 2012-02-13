@@ -2,7 +2,7 @@
 reStructuredText renderer
 =========================
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 `reStructuredText <http://docutils.sourceforge.net/rst.html>`_ is an
 easy-to-read, what-you-see-is-what-you-get plaintext markup syntax and parser

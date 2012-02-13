@@ -2,7 +2,7 @@
 Input recorder
 ==============
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 .. warning::
 

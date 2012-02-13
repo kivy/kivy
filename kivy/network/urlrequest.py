@@ -331,7 +331,7 @@ class UrlRequest(Thread):
         wait for the request to be finished (until :data:`resp_status` is not
         None)
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         while self.resp_status is None:
             self._dispatch_result(delay)

@@ -190,7 +190,7 @@ cdef class Property:
     cpdef dispatch(self, obj):
         '''Dispatch the value change to all observers
 
-        .. versionchanged:: 1.0.10
+        .. versionchanged:: 1.1.0
 
             The method is now accessible from Python.
 
@@ -494,7 +494,7 @@ cdef class BoundedNumericProperty(Property):
 
             Changing the bounds doesn't revalidate the current value.
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         cdef dict s = obj.__storage[self._name]
         if value is None:
@@ -514,7 +514,7 @@ cdef class BoundedNumericProperty(Property):
             print widget.property('number').get_min(widget)
             # will output -5
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         cdef dict s = obj.__storage[self._name]
         if s['use_min'] == 1:
@@ -529,7 +529,7 @@ cdef class BoundedNumericProperty(Property):
 
             Changing the bounds doesn't revalidate the current value.
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         cdef dict s = obj.__storage[self._name]
         if value is None:
@@ -543,7 +543,7 @@ cdef class BoundedNumericProperty(Property):
         `obj`, None if no maximum value are set. Check :data:`get_min` for an
         usage example.
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         cdef dict s = obj.__storage[self._name]
         if s['use_max'] == 1:
