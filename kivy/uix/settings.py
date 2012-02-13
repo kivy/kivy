@@ -75,7 +75,7 @@ properties of that class.
     numeric        :class:`SettingNumeric`
     options        :class:`SettingOptions`
     string         :class:`SettingString`
-    path           :class:`SettingPath`
+    path           :class:`SettingPath` (new from 1.0.10)
     ============== =================================================
 
 In the JSON example above, the first element is of type "title". It will create

@@ -137,6 +137,8 @@ class FileChooserController(FloatLayout):
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Determines whether directories are valid selections.
+
+    .. versionadded:: 1.0.10
     '''
 
     def __init__(self, **kwargs):
