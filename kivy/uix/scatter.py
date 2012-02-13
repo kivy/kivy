@@ -27,7 +27,7 @@ manually, you will need to use :func:`~kivy.uix.widget.Widget.to_parent`,
 Usage
 -----
 
-By default, the widget doesn't have any graphical representation, it is a 
+By default, the widget doesn't have any graphical representation, it is a
 container only. The idea is to combine Scatter with another widget, for
 example :class:`~kivy.uix.image.Image` ::
 
@@ -38,8 +38,8 @@ example :class:`~kivy.uix.image.Image` ::
 Control interactions
 --------------------
 
-By default, all interactions are enabled. You can selectively disable 
-them using the do_{rotation, translation, scale} properties. 
+By default, all interactions are enabled. You can selectively disable
+them using the do_{rotation, translation, scale} properties.
 
 Disable rotation ::
 
@@ -51,17 +51,17 @@ Allow only translation ::
 
 Allow only translation on x axis ::
 
-    scatter = Scatter(do_rotation=False, do_scale=False, 
+    scatter = Scatter(do_rotation=False, do_scale=False,
                       do_translation_y=False)
 
 
 Automatic bring to front
 ------------------------
 
-If the :data:`Scatter.auto_bring_to_front` property is True, the scatter 
-widget will be removed and re-added to the parent when it is touched 
-(brought to front, above all other widgets). This is useful when you are 
-manipulating several scatter widgets and don't want the active to be 
+If the :data:`Scatter.auto_bring_to_front` property is True, the scatter
+widget will be removed and re-added to the parent when it is touched
+(brought to front, above all other widgets). This is useful when you are
+manipulating several scatter widgets and don't want the active to be
 partially hidden.
 
 Scale limitation

@@ -9,9 +9,7 @@ try:
 except:
     raise
 
-import os
 from . import LabelBase
-from kivy import kivy_data_dir
 from kivy.core.image import ImageData
 
 # used for fetching extends before creature image surface
@@ -26,7 +24,6 @@ class LabelPIL(LabelBase):
         fontname = self.options['font_name_r']
         id = '%s.%s' % (unicode(fontname), unicode(fontsize))
         if not id in self._cache:
-            #filename = os.path.join(kivy_data_dir, 'DejaVuSans.ttf')
             font = ImageFont.truetype(fontname, fontsize)
             self._cache[id] = font
 

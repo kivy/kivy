@@ -46,7 +46,7 @@ from kivy.graphics import Color, Rectangle, PushMatrix, PopMatrix, \
         Translate, Rotate, Scale
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, \
         NumericProperty, StringProperty, OptionProperty, \
-        BoundedNumericProperty, ReferenceListProperty, AliasProperty
+        ReferenceListProperty, AliasProperty
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from functools import partial

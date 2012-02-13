@@ -27,6 +27,7 @@ FONT_ITALIC = 1
 FONT_BOLD = 2
 FONT_BOLDITALIC = 3
 
+
 class LabelBase(object):
     '''Core text label.
     This is the abstract class used for different backend to render text.
@@ -168,7 +169,8 @@ class LabelBase(object):
             _fn_bolditalic = resource_find(fn_bolditalic)
             if _fn_bolditalic is None:
                 raise IOError('Label: File %r not found' % fn_bolditalic)
-        LabelBase._fonts[name] = (_fn_regular, _fn_italic, _fn_bold, _fn_bolditalic)
+        LabelBase._fonts[name] = (_fn_regular, _fn_italic, _fn_bold,
+                _fn_bolditalic)
 
     def resolve_font_name(self):
         options = self.options
@@ -206,7 +208,6 @@ class LabelBase(object):
                 raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
             options['font_name_r'] = filename
-
 
     def get_extents(self, text):
         '''Return a tuple with (width, height) for a text.'''

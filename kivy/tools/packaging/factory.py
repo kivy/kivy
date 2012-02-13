@@ -1,6 +1,5 @@
 __all__ = ('FactoryBuild', )
 
-from glob import glob
 from distutils.cmd import Command
 import fnmatch
 import os

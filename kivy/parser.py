@@ -5,7 +5,7 @@ Parser utilities
 Helper functions used for CSS
 '''
 
-__all__ = ('parse_image', 'parse_color', 'parse_int', 'parse_float',
+__all__ = ('parse_color', 'parse_int', 'parse_float',
            'parse_string', 'parse_bool', 'parse_int2',
            'parse_float4', 'parse_filename')
 
@@ -60,8 +60,8 @@ def parse_color(text):
 
 
 def parse_bool(text):
-    '''Parse a string to a boolean, ignoring case. "true"/"1" is True, "false"/"0"
-       is False. Anything else throws an exception.'''
+    '''Parse a string to a boolean, ignoring case. "true"/"1" is True,
+    "false"/"0" is False. Anything else throws an exception.'''
     if text.lower() in ('true', '1'):
         return True
     elif text.lower() in ('false', '0'):

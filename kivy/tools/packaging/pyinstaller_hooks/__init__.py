@@ -3,6 +3,7 @@ from functools import partial
 
 curdir = dirname(__file__)
 
+
 def install_hooks(sym, hookspath=None):
 
     _hookspath = [curdir]

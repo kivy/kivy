@@ -22,9 +22,9 @@ from kivy.atlas import Atlas
 from kivy.resources import resource_find
 import zipfile
 try:
-    import cStringIO as SIO
+    SIO = __import__('cStringIO')
 except ImportError:
-    import StringIO as SIO
+    SIO = __import__('StringIO')
 
 
 # late binding

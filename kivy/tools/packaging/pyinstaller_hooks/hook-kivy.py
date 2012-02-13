@@ -14,8 +14,10 @@ Check kivy documentation about how to use theses hook for packaging application.
 import kivy
 from kivy.factory import Factory
 
+
 def get_modules():
     return [x.get('module', None) for x in Factory.classes.itervalues()]
+
 
 datas = [
     (kivy.kivy_data_dir, 'kivy_install'),

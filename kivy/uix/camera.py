@@ -9,7 +9,7 @@ the hood::
 
     cam = Camera()
 
-By default the first camera found on your system is used. To use a different 
+By default the first camera found on your system is used. To use a different
 camera, set the index property::
 
     cam = Camera(index=1)

@@ -12,7 +12,7 @@ the Label class::
 
     button = Button(text='Hello world', font_size=14)
 
-To attach a callback when the button is pressed (clicked/touched), use 
+To attach a callback when the button is pressed (clicked/touched), use
 :class:`~kivy.uix.widget.Widget.bind` ::
 
     def callback(instance):

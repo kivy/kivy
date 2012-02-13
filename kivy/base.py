@@ -105,7 +105,7 @@ class EventLoopBase(EventDispatcher):
     def ensure_window(self):
         '''Ensure that we have an window
         '''
-        import kivy.core.window
+        __import__('kivy.core.window')
 
     def set_window(self, window):
         '''Set the window used for event loop

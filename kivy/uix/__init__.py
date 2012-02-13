@@ -3,7 +3,7 @@ Widgets
 =======
 
 A widget is an element of a graphical user interface.
-The `kivy.uix` module contains classes for creating and managing Widgets. 
+The `kivy.uix` module contains classes for creating and managing Widgets.
 
 Read first: :doc:`api-kivy.uix.widget`
 

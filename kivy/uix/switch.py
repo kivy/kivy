@@ -10,7 +10,7 @@ Switch
 .. image:: images/switch-off.jpg
     :align: right
 
-The :class:`Switch` widget is active or inactive, like a mechanical light 
+The :class:`Switch` widget is active or inactive, like a mechanical light
 switch. The user can swipe to the left/right to activate/deactivate it::
 
     switch = Switch(active=True)
@@ -24,15 +24,15 @@ To attach a callback that listen to activation state::
     switch.bind(active=callback)
 
 By default, the representation of the widget is static. The minimum size
-required is 83x32 pixels (defined by the background image). The image is 
+required is 83x32 pixels (defined by the background image). The image is
 centered within the widget.
 
-The whole widget is active, not just the part with graphics. As long as you 
+The whole widget is active, not just the part with graphics. As long as you
 swipe over the widget's bounding box, it will work.
 
 .. note::
 
-    If you want to control the state with a single touch instead of swipe, 
+    If you want to control the state with a single touch instead of swipe,
     use :class:`ToggleButton` instead.
 '''
 

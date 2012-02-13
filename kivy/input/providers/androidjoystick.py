@@ -3,7 +3,7 @@ __all__ = ('AndroidMotionEventProvider', )
 import os
 
 try:
-    import android
+    __import__('android')
 except ImportError:
     if 'KIVY_DOC' not in os.environ:
         raise Exception('android lib not found.')
@@ -15,7 +15,9 @@ from kivy.input.shape import ShapeRect
 from kivy.input.motionevent import MotionEvent
 import pygame.joystick
 
+
 class AndroidMotionEvent(MotionEvent):
+
     def depack(self, args):
         self.is_touch = True
         self.profile = ['pos', 'pressure', 'shape']
@@ -25,7 +27,9 @@ class AndroidMotionEvent(MotionEvent):
         self.shape.height = radius
         super(AndroidMotionEvent, self).depack(args)
 
+
 class AndroidMotionEventProvider(MotionEventProvider):
+
     def __init__(self, device, args):
         super(AndroidMotionEventProvider, self).__init__(device, args)
         self.joysticks = []

@@ -187,7 +187,7 @@ else:
                 return (value - vmin) / float(vmax - vmin)
 
             # open mtdev device
-            _fn = self.input_fn
+            _fn = input_fn
             _slot = 0
             _device = Device(_fn)
             _changes = set()

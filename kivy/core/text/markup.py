@@ -25,8 +25,8 @@ The following tags are availables:
 ``[color=#<color>][/color]``
     Change the text color
 ``[ref=<str>][/ref]``
-    Add an interactive zone. The reference + all the word box inside the reference
-    will be available in :data:`MarkupLabel.refs`
+    Add an interactive zone. The reference + all the word box inside the
+    reference will be available in :data:`MarkupLabel.refs`
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`MarkupLabel.anchors`
@@ -168,7 +168,8 @@ class MarkupLabel(MarkupLabelBase):
                     x = y = 0
                 self._anchors[ref] = x, y
             else:
-                item = item.replace('&bl;', '[').replace('&br;', ']').replace('&amp;', '&');
+                item = item.replace('&bl;', '[').replace(
+                        '&br;', ']').replace('&amp;', '&')
                 self._pre_render_label(item, options, lines)
 
         # calculate the texture size
@@ -252,7 +253,7 @@ class MarkupLabel(MarkupLabelBase):
         r = self._render_text
 
         # convert halign/valign to int, faster comparaison
-        av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
+        #av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
         ah = {'left': 0, 'center': 1, 'right': 2}[self.options['halign']]
 
         y = 0

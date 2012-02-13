@@ -10,9 +10,9 @@ from . import Sound, SoundLoader
 
 try:
     if platform() == 'android':
-        import android_mixer as mixer
+        mixer = __import__('android_mixer')
     else:
-        import pygame.mixer as mixer
+        mixer = __import__('pygame.mixer')
 except:
     raise
 

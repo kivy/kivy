@@ -61,7 +61,6 @@ def install_android():
 
     # Check if android must be paused or not
     # If pause is asked, just leave the app.
-
     def android_check_pause(*largs):
         # do nothing until android ask for it.
         if not android.check_pause():

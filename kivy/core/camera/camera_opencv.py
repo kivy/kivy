@@ -14,18 +14,21 @@ from kivy.graphics.texture import Texture
 from . import CameraBase
 
 try:
-    import opencv as cv
-    import opencv.highgui as hg
+    cv = __import__('opencv')
+    hg = __import__('opencv.highgui')
 except ImportError:
-    import cv
+    cv = __import__('cv')
 
     class Hg(object):
         '''
-        On OSX, not only are the import names different, but also the API differs.
-        There is no module called 'highgui' but the names are directly available
-        in the 'cv' module and some of them even have a different name.
+        On OSX, not only are the import names different, but also the API
+        differs.  There is no module called 'highgui' but the names are directly
+        available in the 'cv' module and some of them even have a different
+        name.
+
         Therefore we use this proxy object.
         '''
+
         def __getattr__(self, attr):
             if attr.startswith('cv'):
                 attr = attr[2:]

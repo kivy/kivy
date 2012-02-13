@@ -29,14 +29,13 @@ this::
 
 __all__ = ('start', 'stop')
 
-from os.path import join
-from kivy import kivy_data_dir
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
 
 pointer_image = None
 pointer_scale = 1.0
 pointer_alpha = 0.7
+
 
 def _touch_down(win, touch):
     ud = touch.ud

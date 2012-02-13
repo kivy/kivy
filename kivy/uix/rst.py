@@ -78,12 +78,12 @@ from docutils import nodes, frontend, utils
 # Handle some additional roles
 #
 if 'KIVY_DOC' not in os.environ:
+
     class role_doc(nodes.Inline, nodes.TextElement):
         pass
 
     generic_docroles = {
-        'doc': role_doc
-    }
+        'doc': role_doc}
 
     for rolename, nodeclass in generic_docroles.iteritems():
         generic = roles.GenericRole(rolename, nodeclass)
@@ -346,8 +346,7 @@ class RstDocument(ScrollView):
         'link': 'ce5c00',
         'paragraph': '202020',
         'title': '204a87',
-        'bullet': '000000'
-    })
+        'bullet': '000000'})
     '''Dictionnary of all the colors used in the RST rendering.
 
     .. warning::
@@ -386,7 +385,7 @@ class RstDocument(ScrollView):
         self._trigger_load = Clock.create_trigger(self._load_from_text, -1)
         self._parser = rst.Parser()
         self._settings = frontend.OptionParser(
-            components=(rst.Parser,)
+            components=(rst.Parser, )
             ).get_default_values()
         super(RstDocument, self).__init__(**kwargs)
 
@@ -455,7 +454,7 @@ class RstDocument(ScrollView):
             document.walkabout(visitor)
 
             self.title = visitor.title or 'No title'
-        except Exception, e:
+        except:
             Logger.exception('Rst: error while loading text')
 
     def on_ref_press(self, node, ref):
@@ -497,7 +496,6 @@ class RstDocument(ScrollView):
         dx, dy = self.convert_distance_to_scroll(0, ay)
         dy = max(0, min(1, dy))
         Animation(scroll_y=dy, d=.25, t='in_out_expo').start(self)
-        #self.scroll_y = dy
 
     def add_anchors(self, node):
         self.anchors_widgets.append(node)
@@ -949,7 +947,6 @@ class _Visitor(nodes.NodeVisitor):
                     rst_docname,
                     self.colorize(title, 'link'))
             self.text = self.text[:self.doc_index] + text
-
 
     def set_text(self, node, parent):
         text = self.text

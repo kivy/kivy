@@ -86,7 +86,7 @@ Available configuration tokens
     `maxfps`: int, default to 60
         Maximum FPS allowed.
     `fullscreen`: (0, 1, fake, auto)
-        Activate fullscreen. If set to `1`, a resolution of `width` 
+        Activate fullscreen. If set to `1`, a resolution of `width`
         times `height` pixels will be used.
         If set to `auto`, your current display's resolution will be
         used instead. This is most likely what you want.
@@ -165,8 +165,8 @@ __all__ = ('Config', 'ConfigParser')
 from ConfigParser import ConfigParser as PythonConfigParser
 from sys import platform
 from os import environ
-from os.path import exists, join
-from kivy import kivy_home_dir, kivy_config_fn
+from os.path import exists
+from kivy import kivy_config_fn
 from kivy.logger import Logger
 from kivy.utils import OrderedDict
 

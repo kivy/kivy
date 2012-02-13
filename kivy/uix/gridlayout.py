@@ -33,15 +33,15 @@ The column width/row height are determined in 3 steps:
       column or row, use :data:`cols_minimum` or :data:`rows_minimum`
     - Then the `size_hint_x`/`size_hint_y` of the child are taken into account.
       If no widgets have a size hint, the maximum size is used for all children
-    - You can force the default size by setting the :data:`col_force_default` 
-      or :data:`row_force_default` property. This will force the layout to 
+    - You can force the default size by setting the :data:`col_force_default`
+      or :data:`row_force_default` property. This will force the layout to
       ignore the `width` and `size_hint` properties of children and use the
       default size.
 
 Usage of GridLayout
 -------------------
 
-In the example below, all widgets will get an equal size. By default, 
+In the example below, all widgets will get an equal size. By default,
 `size_hint` is (1, 1) so a Widget will take the full size of the parent::
 
     layout = GridLayout(cols=2)
@@ -76,7 +76,6 @@ Next, let's fix the row height to a specific size::
 
 __all__ = ('GridLayout', 'GridLayoutException')
 
-from kivy.clock import Clock
 from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
@@ -198,8 +197,8 @@ class GridLayout(Layout):
 
     .. versionadded:: 1.0.8
 
-    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`, default
-    to 0.
+    :data:`minimum_height` is a :class:`kivy.properties.NumericProperty`,
+    default to 0.
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)

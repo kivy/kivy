@@ -236,7 +236,8 @@ class VKeyboard(Scatter):
     default to :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
     '''
 
-    key_background_down = StringProperty('atlas://data/images/defaulttheme/vkeyboard_key_down')
+    key_background_down = StringProperty(
+        'atlas://data/images/defaulttheme/vkeyboard_key_down')
     '''Filename of the key background image one touch is on it.
 
     :data:`key_background_down` a :class:`~kivy.properties.StringProperty`,

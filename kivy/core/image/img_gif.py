@@ -23,14 +23,14 @@
 
 '''pygif: gif implementation in python
 
-http://www.java2s.com/Open-Source/Python/Network/emesene/emesene-1.6.2/pygif/pygif.py.htm'''
+http://www.java2s.com/Open-Source/Python/Network/\
+        emesene/emesene-1.6.2/pygif/pygif.py.htm'''
 
 
 #TODO issues to fix
 #optimize for speed  #partially done#  a lot of room for improvementd
 import struct
 from array import array
-import math
 
 KNOWN_FORMATS = ('GIF87a', 'GIF89a')
 
@@ -38,6 +38,7 @@ from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
 
 Debug = False
+
 
 class ImageLoaderGIF(ImageLoaderBase):
     '''Image loader for gif'''
@@ -62,7 +63,6 @@ class ImageLoaderGIF(ImageLoaderBase):
         img_data = []
         ls_width = im.ls_width
         ls_height = im.ls_height
-        im_global_color_table_size = im.global_color_table_size
         im_images = im.images
         im_palette = im.palette
         pixel_map = array('B', [0]*(ls_width*ls_height*4))
@@ -71,9 +71,9 @@ class ImageLoaderGIF(ImageLoaderBase):
                 else im_palette
             have_transparent_color = img.has_transparent_color
             transparent_color = img.transparent_color
-            draw_method_restore_previous =  1 \
-                if img.draw_method == 'restore previous' else 0
-            draw_method_replace =  1 \
+            #draw_method_restore_previous =  1 \
+            #    if img.draw_method == 'restore previous' else 0
+            draw_method_replace = 1 \
                 if ((img.draw_method == 'replace') or\
                     (img.draw_method == 'restore background')) else 0
             pixels = img.pixels
@@ -82,8 +82,9 @@ class ImageLoaderGIF(ImageLoaderBase):
             left = img.left
             top = img.top
             if img_height > ls_height or img_width > ls_width or\
-                top  > ls_height or left  > ls_width:
-                Logger.warning('Image_GIF: decoding error on frame <%s>' % len(img_data))
+                top > ls_height or left > ls_width:
+                Logger.warning('Image_GIF: decoding error on frame <%s>' %
+                        len(img_data))
                 img_height = ls_height
                 img_width = ls_width
                 left = top = 0
@@ -109,9 +110,9 @@ class ImageLoaderGIF(ImageLoaderBase):
                         i += 1
                         continue
                     # when not magic pink
-                    if (r, g, b) != (255,0,255):
+                    if (r, g, b) != (255, 0, 255):
                         if have_transparent_color:
-                            if transparent_color == pixels[x + i] :
+                            if transparent_color == pixels[x + i]:
                                 if draw_method_replace:
                                     #transparent pixel draw method replace
                                     pixel_map[rgba_pos + 3] = 0
@@ -161,7 +162,7 @@ class Gif(object):
 
     FMT_EXT_GRAPHIC_CONTROL = '<BBHB' #89a
 
-    def __init__( self, data, debug ):
+    def __init__(self, data, debug):
         self.data = data
         self.pointer = 0
 
@@ -183,7 +184,7 @@ class Gif(object):
         self.debug_enabled = False
         return
 
-    def pop( self, data, length=1 ):
+    def pop(self, data, length=1):
         '''gets the next $len chars from the data stack import
         and increment the pointer'''
 
@@ -193,27 +194,27 @@ class Gif(object):
 
         return data[start:end]
 
-    def pops( self, format, data ):
+    def pops(self, format, data):
         '''pop struct: get size, pop(), unpack()'''
         size = struct.calcsize(format)
-        return struct.unpack( format, self.pop(data, size) )
+        return struct.unpack(format, self.pop(data, size))
 
-    def print_info( self ):
+    def print_info(self):
         '''prints out some useful info (..debug?)'''
 
         print "Version: %s" % self.header
         print "Logical screen width: %d" % self.ls_width
         print "Logical screen height: %d" % self.ls_height
         print "Flags: %s" % repr(self.flags)
-        print " "*6,"Color resolution: %d" % self.color_resolution
-        print " "*6,"Sort flag: %s" % str(self.sort_flag)
-        print " "*6,"Global color table flag: %s" % str(self.color_table_flag)
-        print " "*22,"...size: %d (%d bytes)" % \
+        print " " * 6, "Color resolution: %d" % self.color_resolution
+        print " " * 6, "Sort flag: %r" % self.sort_flag
+        print " " * 6, "Global color table flag: %r" % self.color_table_flag
+        print " " * 22, "...size: %d (%d bytes)" % \
             (self.global_color_table_size, self.global_color_table_size * 3)
         print "Background color: %d" % self.background_color
         print "Aspect ratio info: %d" % self.aspect_ratio
 
-    def new_image( self, header=None):
+    def new_image(self, header=None):
         '''adds a new image descriptor'''
         image = ImageDescriptor(self, header)
         self.images.append(image)
@@ -223,7 +224,7 @@ class Gif(object):
 class ImageDescriptor(object):
     '''A class that represents a single image'''
 
-    def __init__( self, parent, header=None ):
+    def __init__(self, parent, header=None):
 
         self.parent = parent
         # this will be set when needed
@@ -254,7 +255,7 @@ class ImageDescriptor(object):
         if header:
             self.setup_header(header)
 
-    def setup_header( self, header ):
+    def setup_header(self, header):
         '''takes a header tuple and fills the attributes'''
 
         self.left = header[0]
@@ -262,15 +263,17 @@ class ImageDescriptor(object):
         self.width = header[2]
         self.height = header[3]
 
-        self.flags = get_bits( header[4] )
+        self.flags = get_bits(header[4])
         self.local_color_table_flag = self.flags[7]
         self.interlace_flag = self.flags[6]
         self.sort_flag = self.flags[5]
         #-- flags 4 and 3 are reserved
-        self.local_color_table_size =  2 ** (pack_bits(self.flags[:3]) + 1)
+        self.local_color_table_size = 2 ** (pack_bits(self.flags[:3]) + 1)
         if self.local_color_table_flag:
-            if Debug: print 'local color table true'
-            self.palette = self.parent.get_color_table((self.local_color_table_size) * 3)
+            if Debug:
+                print 'local color table true'
+            self.palette = self.parent.get_color_table(
+                self.local_color_table_size * 3)
 
     def get_header(self):
         '''builds a header dynamically'''
@@ -287,13 +290,14 @@ class ImageDescriptor(object):
     header = property(fget=get_header)
 
 
-class GifDecoder( Gif ):
+class GifDecoder(Gif):
     '''decodes a gif file into.. something.. else..'''
-    def __init__( self, data, debug=False ):
-        Gif.__init__( self, data, debug )
+
+    def __init__(self, data, debug=False):
+        Gif.__init__(self, data, debug)
         self.fill()
 
-    def fill( self ):
+    def fill(self):
         '''reads the data and fills each field of the file'''
 
         # start reading from the beggining of the file
@@ -301,7 +305,7 @@ class GifDecoder( Gif ):
 
         #17. Header.
         #18. Logical Screen Descriptor.
-        data = self.pops( Gif.FMT_HEADER, self.data )
+        data = self.pops(Gif.FMT_HEADER, self.data)
 
         self.header = data[0]
         self.ls_width = data[1]
@@ -310,7 +314,7 @@ class GifDecoder( Gif ):
         self.aspect_ratio = data[5]
 
         # flags field
-        self.flags = get_bits( data[3] )
+        self.flags = get_bits(data[3])
         #1 bit
         self.color_table_flag = self.flags[7]
         self.sort_flag = self.flags[3]
@@ -392,11 +396,11 @@ class GifDecoder( Gif ):
                 #if self_debug_enabled: print 'LABEL_GRAPHIC_CONTROL'
                 nextbyte = self_pops('<B', self_data)[0]
                 #if self_debug_enabled: print 'block size:%d' %nextbyte
-                drw_bits  = (get_bits(self_pops('<B', self_data)[0]))
+                drw_bits = (get_bits(self_pops('<B', self_data)[0]))
                 has_transparent_color = drw_bits[0]
-                if drw_bits[2:5] == array('B', [0,0,1]):
+                if drw_bits[2:5] == array('B', [0, 0, 1]):
                     drw_method = 'replace'
-                elif (drw_bits[2:5]) == array('B', [0,1,0]):
+                elif (drw_bits[2:5]) == array('B', [0, 1, 0]):
                     drw_method = 'restore background'
                 else:
                     drw_method = 'restore previous'
@@ -414,7 +418,6 @@ class GifDecoder( Gif ):
             else:
                 pass
 
-
     def string_to_bits(self, string):
         '''high level string unpacker'''
         ordarray = array('B', string)
@@ -422,7 +425,7 @@ class GifDecoder( Gif ):
         bits_append = bits.append
         _get_bits = get_bits
         for byte in ordarray:
-            map (bits_append, _get_bits(byte))
+            map(bits_append, _get_bits(byte))
         return bits
 
     def readable(bool_list):
@@ -440,7 +443,7 @@ class GifDecoder( Gif ):
             c +=1
         return i
 
-    def get_color_table( self, size ):
+    def get_color_table(self, size):
         '''Returns a color table in the format [(r,g,b),(r,g,b), ...]'''
 
         raw_color_table = self.pops("<%dB" % size, self.data)
@@ -476,7 +479,7 @@ class GifDecoder( Gif ):
             print 'codesize: %d' %codesize
             print 'clearcode %d, end_of_info: %d' % (clearcode, end_of_info)
 
-        def pop(size, _bits ):
+        def pop(size, _bits):
             ''' return bits '''
             start = self.bitpointer
             end = self.bitpointer = start + size
@@ -500,7 +503,8 @@ class GifDecoder( Gif ):
         if code in string_table:
             output_append(ord(string_table[code]))
         else:
-            Logger.warning('Image_GIF: decoding error on code <%d> aode size <%d>' %(code, codesize))
+            Logger.warning('Image_GIF: decoding error on code '
+                '<%d> aode size <%d>' % (code, codesize))
             string_table[code] = string_table[0]
             output_append(ord(string_table[code]))
         old = string_table[code]
@@ -518,7 +522,8 @@ class GifDecoder( Gif ):
                 if code in string_table:
                     output_append(ord(string_table[code]))
                 else:
-                    Logger.warning('Image_GIF: decoding error on code <%d> aode size <%d>' %(code, codesize))
+                    Logger.warning('Image_GIF: decoding error on code '
+                        '<%d> aode size <%d>' % (code, codesize))
                     string_table[code] = string_table[0]
                     output_append(ord(string_table[code]))
                 old = string_table[code]
@@ -532,7 +537,7 @@ class GifDecoder( Gif ):
                 c = string_table[code]
                 string_table[index] = ''.join((old, c[0]))
             else:
-                c = ''.join((old,  old[0]))
+                c = ''.join((old, old[0]))
                 string_table[code] = c
 
             index += 1
@@ -549,7 +554,7 @@ class GifDecoder( Gif ):
         return output
 
 
-def get_bits( flags, reverse=False, bits=8 ):
+def get_bits(flags, reverse=False, bits=8):
     '''return a list with $bits items, one for each enabled bit'''
 
     mybits = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048)[:bits]
@@ -563,7 +568,8 @@ def get_bits( flags, reverse=False, bits=8 ):
         ret_append(flags & bit != 0)
     return ret
 
-def pack_bits( bits ):
+
+def pack_bits(bits):
     '''convert a bit (bool or int) tuple into a int'''
     packed = 0
     level = 0

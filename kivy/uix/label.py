@@ -45,8 +45,8 @@ The following tags are availables:
 ``[color=#<color>][/color]``
     Change the text color
 ``[ref=<str>][/ref]``
-    Add an interactive zone. The reference + all the word box inside the reference
-    will be available in :data:`Label.refs`
+    Add an interactive zone. The reference + all the word box inside the
+    reference will be available in :data:`Label.refs`
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`Label.anchors`
@@ -107,9 +107,9 @@ class Label(Widget):
             ``[ref]`` tag in a text markup.
     '''
 
-    _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic', 'halign',
-         'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
-         'mipmap', 'markup')
+    _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
+        'halign', 'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
+        'mipmap', 'markup')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -237,7 +237,7 @@ class Label(Widget):
 
     font_name = StringProperty('DroidSans')
     '''Filename of the font to use, the path can be absolute or relative.
-    Relative paths are resolved by the :func:`~kivy.resources.resource_find` 
+    Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.
 
     .. warning::
@@ -341,7 +341,7 @@ class Label(Widget):
 
     .. warning::
 
-        The :data:`texture` update is scheduled for the next frame. If you need 
+        The :data:`texture` update is scheduled for the next frame. If you need
         the texture immediately after changing a property, you have to call
         the :func:`texture_update` function before acessing :data:`texture` ::
 
@@ -361,7 +361,7 @@ class Label(Widget):
 
     .. warning::
 
-        The data:`texture_size` is set after the :data:`texture` property. If 
+        The data:`texture_size` is set after the :data:`texture` property. If
         you listen for changes to :data:`texture`, :data:`texture_size` will not
         be up to date in your callback. Bind to data:`texture_size` instead.
     '''

@@ -206,6 +206,7 @@ class Recorder(EventDispatcher):
     # needed for acting as an input provider
     def stop(self):
         pass
+
     def start(self):
         pass
 

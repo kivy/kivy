@@ -111,7 +111,8 @@ class Bubble(GridLayout):
     default to 'atlas://data/images/defaulttheme/bubble'.
     '''
 
-    arrow_image = StringProperty('atlas://data/images/defaulttheme/bubble_arrow')
+    arrow_image = StringProperty(
+        'atlas://data/images/defaulttheme/bubble_arrow')
     ''' Image of the arrow pointing to the bubble
 
     :data:`arrow_image` is a :class:`~kivy.properties.StringProperty`,

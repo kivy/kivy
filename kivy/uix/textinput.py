@@ -293,7 +293,7 @@ class TextInput(Widget):
             self._set_line_text(cr - 1, text_last_line + text)
             self._delete_line(cr)
         else:
-            ch = text[cc-1]
+            #ch = text[cc-1]
             new_text = text[:cc-1] + text[cc:]
             self._set_line_text(cr, new_text)
 
@@ -647,7 +647,6 @@ class TextInput(Widget):
         self.canvas.clear()
         add = self.canvas.add
 
-        cursor_row = self.cursor_row
         lh = self.line_height
         dy = self.line_height + self._line_spacing
 
@@ -725,8 +724,6 @@ class TextInput(Widget):
         self.canvas.remove_group('selection')
         dy = self.line_height + self._line_spacing
         rects = self._lines_rects
-        labels = self._lines_labels
-        x = self.x + self.padding_x
         y = self.top - self.padding_y + self.scroll_y
         miny = self.y + self.padding_y
         maxy = self.top - self.padding_y
@@ -746,7 +743,6 @@ class TextInput(Widget):
         s2c, s2r = self.get_cursor_from_index(b)
         if line_num < s1r or line_num > s2r:
             return
-        lh = self.line_height
         x, y = pos
         w, h = size
         x1 = x

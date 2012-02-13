@@ -16,7 +16,6 @@ ignore_list = (
 
 import os
 import sys
-import re
 from glob import glob
 
 import kivy

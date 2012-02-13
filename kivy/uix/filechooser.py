@@ -230,7 +230,7 @@ class FileChooserController(FloatLayout):
             # on. Do the check here to prevent setting path to an invalid
             # directory that we cannot list.
             listdir(unicode(entry.path))
-        except OSError, e:
+        except OSError:
             #Logger.exception(e)
             entry.locked = True
         else:
@@ -257,7 +257,7 @@ class FileChooserController(FloatLayout):
             return ''
         try:
             size = getsize(fn)
-        except OSError, e:
+        except OSError:
             #Logger.exception(e)
             return '--'
 
@@ -337,7 +337,7 @@ class FileChooserController(FloatLayout):
             return
         try:
             subentries = self._add_files(entry.path, entry)
-        except OSError, e:
+        except OSError:
             #Logger.exception(e)
             entry.locked = True
             return
