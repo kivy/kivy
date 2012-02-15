@@ -47,11 +47,11 @@ are 3 things going on here:
     3. Creating a custom callback in the ``Button`` using the ``Controller``'s
        ``on_press`` method.
 
-        * ``root`` and ``self`` are 2 reserved keywords, useable anywhere.
+        * ``root`` and ``self`` are reserved keywords, useable anywhere.
           ``root`` represents the top widget in the rule and ``self`` represents
           the current widget.
 
-        * You can use any id declared in the rule, same as ``root`` and
+        * You can use any id declared in the rule the same as ``root`` and
           ``self``. For example, you could do this in the ``on_press()``::
 
             Button:

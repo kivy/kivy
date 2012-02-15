@@ -1,8 +1,8 @@
 Create package for MacOSX
 =========================
 
-Packaging your application for MacOSX 10.6 platform can be done only inside the
-MacOSX. The following method have been tested only inside VirtualBox and
+Packaging your application for the MacOSX 10.6 platform can be done only inside
+MacOSX. The following method have only been tested inside VirtualBox and
 MacOSX 10.6, using the portable package of Kivy.
 
 The package will be only for 64 bits MacOSX. We have no way to do 32 bits right
@@ -17,7 +17,7 @@ Requirements
 Install and configure PyInstaller
 ---------------------------------
 
-First, we need to setup correctly pyinstaller for 64 bits if you want to be
+First, we need to correctly setup pyinstaller for 64 bits if you want to be
 able to package your Kivy application.
 
 #. Decompress the PyInstaller
@@ -39,8 +39,8 @@ Now, your pyinstaller installation is ready to be used !
 Create the spec file
 --------------------
 
-For the example, we'll package touchtracer example, using a custom icon. The
-touchtracer is the `../kivy/examples/demo/touchtracer/` directory, and the main
+For an example, we'll package the touchtracer example, using a custom icon. The
+touchtracer is in the `../kivy/examples/demo/touchtracer/` directory, and the main
 file is named `main.py`. Replace both path/filename according to your system.
 
 #. Open a console
@@ -51,7 +51,7 @@ file is named `main.py`. Replace both path/filename according to your system.
 
 #. The specs file is located on `touchtracer/touchtracer.spec` inside the
    pyinstaller directory. Now we need to edit the spec file to add kivy hooks
-   for correctly build the exe.
+   to correctly build the exe.
    Open the spec file with your favorite editor and put theses lines at the
    start of the spec::
 
@@ -60,7 +60,7 @@ file is named `main.py`. Replace both path/filename according to your system.
 
    Then, you need to change the `COLLECT()` call to add the data of touchtracer
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
-   object. This Tree will search and add every files found in the touchtracer
+   object. This Tree will search and add every file found in the touchtracer
    directory to your final package::
 
     coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
@@ -86,5 +86,5 @@ Build the spec and create DMG
     hdiutil create ./Touchtracer.dmg -srcfolder touchtracer.app -ov
     popd
 
-#. You will have a Touchtracer.dmg available in `touchtracer/dist` directory
+#. You will have a Touchtracer.dmg available in the `touchtracer/dist` directory
 
