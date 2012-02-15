@@ -1,11 +1,11 @@
 Events
 ======
 
-You have 2 types of events living in Kivy:
+There are two types of events in Kivy:
 
-- Clock events: if you want to call a function X times per seconds, or if you
+- Clock events: if you want to call a function X times per second, or if you
   want to call a function later.
-- Widget events: if you want to call a function where something change in the
+- Widget events: if you want to call a function when something changes in the
   widget, or attach a function to a widget specific event.
 
 
@@ -31,15 +31,15 @@ a repetitive call or one-time call.
 Scheduling a repetitive event
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can call a function or a method every X times per seconds using
+You can call a function or a method every X times per second using
 :meth:`~kivy.clock.Clock.schedule_interval`. Here is an example of calling a
-function named my_callback 30 times per seconds::
+function named my_callback 30 times per second::
 
     def my_callback(dt):
         print 'My callback is called', dt
     Clock.schedule_interval(my_callback, 1 / 30.)
 
-You have 2 ways of unscheduling a previously scheduled event. The first would be
+You have two ways of unscheduling a previously scheduled event. The first would be
 to use :meth:`~kivy.clock.Clock.unschedule`::
 
     Clock.unschedule(my_callback)
@@ -117,12 +117,12 @@ A widget has 2 types of events:
 Property event
 ~~~~~~~~~~~~~~
 
-A widget has many properties. You'll find in the doc that every property has a
+A widget has many properties. You'll find in the documentation that every property has a
 type like :class:`~kivy.properties.NumericProperty`,
 :class:`~kivy.properties.StringProperty`,
 :class:`~kivy.properties.ListProperty`.
 
-Usualy, when you want to create a Python class with properties, you do something like this::
+Usually, when you want to create a Python class with properties, you do something like this::
 
     class MyClass(object):
         def __init__(self):
@@ -184,7 +184,7 @@ If you are designing your own widget, you can create a widget event by using
             # empty handler needed
             pass
 
-Then, the user can hook to it, same as the Button.on_press event. In this
+Then, the user can hook to it, the same as to the Button.on_press event. In this
 example,  the event is never dispatched. Let's just add a function demonstrating
 how to dispatch a widget-defined event::
 
@@ -195,5 +195,5 @@ how to dispatch a widget-defined event::
         def do_something(self):
             self.dispatch('on_custom_event')
 
-Now, everytime you call the ``do_something()`` method, it will dispatch
+Now, every time you call the ``do_something()`` method, it will dispatch
 ``on_custom_event``, and call every function attached to this event.
