@@ -14,8 +14,8 @@ from kivy.graphics.texture import Texture
 from . import CameraBase
 
 try:
-    cv = __import__('opencv')
-    hg = __import__('opencv.highgui')
+    cv = __import__('opencv', fromlist='.')
+    hg = __import__('opencv.highgui', fromlist='.')
 except ImportError:
     cv = __import__('cv')
 

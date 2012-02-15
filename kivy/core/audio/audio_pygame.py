@@ -12,7 +12,7 @@ try:
     if platform() == 'android':
         mixer = __import__('android_mixer')
     else:
-        mixer = __import__('pygame.mixer')
+        mixer = __import__('pygame.mixer', fromlist='.')
 except:
     raise
 
