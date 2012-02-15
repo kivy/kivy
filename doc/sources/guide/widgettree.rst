@@ -44,8 +44,8 @@ If you want to clear all the children inside a widget, use
 
     Never manipulate the children list yourself, if you don't know what you are
     doing. The widget tree is associated to a graphic tree. For example, if you
-    add a widget into the children list without adding his canvas to the
-    graphics tree, the widget will be a children yes, but nothing will be drawn
+    add a widget into the children list without adding its canvas to the
+    graphics tree, the widget will be a child yes, but nothing will be drawn
     on the screen. More than that, you might have issues on further calls of
     add_widget, remove_widget and clear_widgets.
 
