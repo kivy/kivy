@@ -2,7 +2,7 @@ Create package for MacOSX
 =========================
 
 Packaging your application for the MacOSX 10.6 platform can be done only inside
-MacOSX. The following method have only been tested inside VirtualBox and
+MacOSX. The following method has only been tested inside VirtualBox and
 MacOSX 10.6, using the portable package of Kivy.
 
 The package will be only for 64 bits MacOSX. We have no way to do 32 bits right
