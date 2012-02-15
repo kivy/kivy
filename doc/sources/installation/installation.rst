@@ -5,7 +5,7 @@ Installation
 
 We try not to reinvent the wheel but bring something innovative to the
 market. As a consequence, we're focused on our own code and use already
-existing, high-qualitative third-party libraries where possible.
+existing, high-quality third-party libraries where possible.
 For the rich set of features that Kivy offers, several other libraries are
 required. If you do not use a specific feature (e.g. video playback) you
 don't need the corresponding dependency, however.
