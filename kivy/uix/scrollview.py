@@ -26,6 +26,10 @@ If a touch travels :data:`~ScrollView.scroll_distance` pixels within the
 gesture and translatation (scroll/pan) will begin. If the timeout occurs, the
 touch down event is dispatched to the child instead (no translation).
 
+.. versionadded:: 1.1.1
+
+    Scrollview now animate the scrolling in Y when mousewheel are used.
+
 Limiting to X or Y axis
 -----------------------
 
@@ -79,6 +83,7 @@ If you want to reduce the default timeout, you can set::
 __all__ = ('ScrollView', )
 
 from functools import partial
+from kivy.animation import Animation
 from kivy.config import Config
 from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
@@ -266,6 +271,7 @@ class ScrollView(StencilView):
             self.scroll_x -= sx
         if self.do_scroll_y:
             self.scroll_y -= sy
+        self._scroll_y_mouse = self.scroll_y
         if ssx == self.scroll_x and ssy == self.scroll_y:
             return False
 
@@ -284,10 +290,13 @@ class ScrollView(StencilView):
                 d = (vp.height - self.height)
                 d = self.scroll_distance / float(d)
                 if touch.button == 'scrollup':
-                    syd = self.scroll_y - d
+                    syd = self._scroll_y_mouse - d
                 elif touch.button == 'scrolldown':
-                    syd = self.scroll_y + d
-                self.scroll_y = min(max(syd, 0), 1)
+                    syd = self._scroll_y_mouse + d
+                self._scroll_y_mouse = scroll_y = min(max(syd, 0), 1)
+                Animation.stop_all(self, 'scroll_y')
+                Animation(scroll_y=scroll_y, d=.3, t='out_quart').start(self)
+                Clock.unschedule(self._update_animation)
                 return True
 
         self._touch = touch
@@ -350,6 +359,9 @@ class ScrollView(StencilView):
         # never ungrabed, cause their on_touch_up will be never called.
         # base.py: the me.grab_list[:] => it's a copy, and we are already
         # iterate on it.
+        if 'button' in touch.profile and not touch.button.startswith('scroll'):
+            self._scroll_y_mouse = self.scroll_y
+
         if self in [x() for x in touch.grab_list]:
             touch.ungrab(self)
             self._touch = None
