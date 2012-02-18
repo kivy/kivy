@@ -586,3 +586,16 @@
                 id: content
                 height: self.minimum_height
                 width: sv.width
+
+<ScrollView>:
+	canvas.after:
+		Color:
+			rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_y else 0]
+		Rectangle:
+			pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
+			size: self.bar_width, self.height * self.vbar[1]
+		Color:
+			rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_x else 0]
+		Rectangle:
+			pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
+			size: self.width * self.hbar[1], self.bar_width
