@@ -35,6 +35,18 @@ OpenSuse (12.1)
     $ zypper install -t pattern devel_C_C++
 
 
+Mageia (1 and 2(cauldron))
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    $ su
+    $ urpmi python-setuptools python-pygame python-opengl \
+    gstreamer0.10-python python-enchant gstreamer0.10-plugins-good \
+    python-cython lib64python-devel lib64mesagl1-devel lib64mesaegl1-devel \
+    lib64mesaglesv2_2-devel make gcc
+
+
 Installation
 ------------
 
