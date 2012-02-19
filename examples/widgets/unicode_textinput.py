@@ -99,6 +99,8 @@ class Unicode_TextInput(BoxLayout):
 
 List of major languages taken from Google Translate
 ____________________________________________________
+Try changing the font to see if the font can render the glyphs you need in your application.
+Scroll to see all languages in list
 
 Basic Latin:    The quick brown fox jumps over the lazy old dog.
 Albanian:       Kafe të shpejtë dhelpra hedhje mbi qen lazy vjetër.
