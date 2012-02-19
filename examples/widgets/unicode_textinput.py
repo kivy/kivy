@@ -95,7 +95,74 @@ class LoadDialog(FloatLayout):
 class Unicode_TextInput(BoxLayout):
 
     txt_input = ObjectProperty(None)
-    unicode_string = StringProperty(u'''Latin-1 suppliment: éé çç ßß''')
+    unicode_string = StringProperty(u'''Latin-1 suppliment: éé çç ßß
+
+List of major languages taken from Google Translate
+____________________________________________________
+
+Basic Latin:    The quick brown fox jumps over the lazy old dog.
+Albanian:       Kafe të shpejtë dhelpra hedhje mbi qen lazy vjetër.
+الثعلب البني السريع يقفز فوق الكلب القديمة البطيئة.         :Arabic
+Africans:       Die vinnige bruin jakkals spring oor die lui hond.
+Armenian:       Արագ Brown Fox jumps ավելի ծույլ հին շունը.
+Azerbaijani:    Tez qonur tülkü də tənbəl yaşlı it üzərində atlamalar.
+Basque:         Azkar marroia fox alferrak txakur zaharra baino gehiago jauzi.
+Belarusian:     Хуткі карычневы ліс пераскоквае праз гультаяваты стары сабака.
+Bengali:        দ্রুত বাদামী শিয়াল অলস পুরানো কুকুর বেশি
+Bulgarian:      Бързата кафява лисица скача над мързелив куче.
+Chinese Simpl:  敏捷的棕色狐狸跳过懒惰的老狗。
+Catalan:        La cigonya tocava el saxofon en el vell gos mandrós.
+Croation:       Brzo smeđa lisica skoči preko lijen stari pas.
+Czech:          Rychlá hnědá liška skáče přes líného starého psa.
+Danish:         Den hurtige brune ræv hopper over den dovne gamle hund.
+Dutch:          De snelle bruine vos springt over de luie oude hond.
+Estonian:       Kiire pruun rebane hüppab üle laisa vana koer.
+Filipino:       Ang mabilis na brown soro jumps sa ang tamad lumang aso.
+Finnish:        Nopea ruskea kettu hyppää yli laiska vanha koira.
+French:         Le renard brun rapide saute par dessus le chien paresseux vieux.
+Galician:       A lixeira raposo marrón ataca o can preguiceiro de idade.
+Gregorian:      სწრაფი ყავისფერი მელა jumps გამო ზარმაცი წლის ძაღლი.
+German:         Der schnelle braune Fuchs springt über den faulen alten Hund.
+Greek:          Η γρήγορη καφέ αλεπού πηδάει πάνω από το τεμπέλικο γέρικο σκυλί.
+Gujrati:        આ ઝડપી ભુરો શિયાળ તે બેકાર જૂના કૂતરા પર કૂદકા.
+Hiation Creole: Rapid mawon Rena a so sou chen an parese fin vye granmoun.
+Hebrew:         השועל החום הזריז קופץ על הכלב הישן עצלן.
+Hindi:          तेज भूरे रंग की लोमड़ी आलसी बूढ़े कुत्ते के उपर से कूदती है ॥
+Hungarian:      A gyors barna róka átugorja a lusta vén kutya.
+Icelandic:      The fljótur Brown refur stökk yfir latur gamall hundur.
+Indonesian      Cepat rubah cokelat melompat atas anjing tua malas.
+Irish:          An sionnach donn tapaidh jumps thar an madra leisciúil d\'aois.
+Italian:        The quick brown fox salta sul cane pigro vecchio.
+Japanese:       速い茶色のキツネは、のろまな古いイヌに飛びかかった。
+Kannada:        ತ್ವರಿತ ಕಂದು ನರಿ ಆಲೂಗಡ್ಡೆ ಹಳೆಯ ಶ್ವಾನ ಮೇಲೆ ಜಿಗಿತಗಳು.
+Korean:         무궁화 게으른 옛 피었습니다.
+Latin:          Vivamus adipiscing orci et rutrum tincidunt super vetus canis.
+Latvian:        Ātra brūna lapsa lec pāri slinkam vecs suns.
+Lithuanian:     Greita ruda lapė šokinėja per tingus senas šuo.
+Macedonian:     Брзата кафена лисица скокови над мрзливи стариот пес.
+Malay:          Fox coklat cepat melompat atas anjing lama malas.
+Maltese:        Il-volpi kannella malajr jumps fuq il-kelb qodma għażżien.
+Norweigian:     Den raske brune reven hopper over den late gamle hunden.
+Persian:        روباه قهوه ای سریع روی سگ تنبل قدیمی میپرد.
+Polish:         Szybki brązowy lis przeskoczył nad leniwym psem życia.
+Portugese:      A ligeira raposa marrom ataca o cão preguiçoso de idade.
+Romanian:       Rapidă maro vulpea sare peste cainele lenes vechi.
+Russioan:       Быстрый коричневый лис перепрыгивает через ленивый старый пес.
+Serniam:        Брза смеђа лисица прескаче лењог пса старог.
+Slovak:         Rýchla hnedá líška skáče cez lenivého starého psa.
+Slovenian:      Kožuščku hudobnega nad leni starega psa.
+Spanish:        La cigüeña tocaba el saxofón en el viejo perro perezoso.
+Swahili:        Haraka brown fox anaruka juu ya mbwa wavivu zamani.
+Swedish:        Den snabba bruna räven hoppar över den lata gammal hund.
+Tamil:          விரைவான பிரவுன் ஃபாக்ஸ் சோம்பேறி பழைய நாய் மீது தொடரப்படுகிறது
+Telugu:         శీఘ్ర బ్రౌన్ ఫాక్స్ సోమరితనం పాత కుక్క కంటే హెచ్చుతగ్గుల.
+Thai:           สีน้ำตาลอย่างรวดเร็วจิ้งจอกกระโดดมากกว่าสุนัขเก่าที่ขี้เกียจ
+Turkish:        Hızlı kahverengi tilki tembel köpeğin üstünden atlar.
+Ukranian:       Швидкий коричневий лис перестрибує через лінивий старий пес.
+Urdu:           فوری بھوری لومڑی سست بوڑھے کتے پر کودتا.
+Vietnamese:     Các con cáo nâu nhanh chóng nhảy qua con chó lười biếng cũ.
+Welsh:          Mae\'r cyflym frown llwynog neidio dros y ci hen ddiog.
+Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער די פויל אַלט הונט.''')
 
     def dismiss_popup(self):
         self._popup.dismiss()
