@@ -53,7 +53,7 @@ Builder.load_string(
                 on_release:
                     _platform = utils.platform()
                     filechooser.path = os.path.expanduser('~/.fonts')\
-if _platform in ('linux', 'android') else os.path.expanduser('~/Library/Fonts')\
+if _platform == 'linux' else '/system/fonts' if _platform == 'android' else os.path.expanduser('~/Library/Fonts')\
 if _platform == 'macosx' else os.environ['WINDIR'] + '\Fonts\'
             Button:
                 size_hint: 1, .2
@@ -64,7 +64,7 @@ if _platform == 'macosx' else os.environ['WINDIR'] + '\Fonts\'
                 on_release:
                     _platform = utils.platform()
                     filechooser.path = '/usr/share/fonts' \
-if _platform in ('linux', 'android') else os.path.expanduser\
+if _platform == 'linux' else '/system/fonts' if _platform == 'android' else os.path.expanduser\
 ('/System/Library/Fonts') if _platform == 'macosx' else os.environ['WINDIR']\
 + "\Fonts\"
             Label:
