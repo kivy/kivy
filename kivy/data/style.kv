@@ -599,3 +599,56 @@
 		Rectangle:
 			pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
 			size: self.width * self.hbar[1], self.bar_width
+
+
+# =============================================================================
+# Video player
+# =============================================================================
+
+<VideoPlayerPreview>:
+    Image:
+        source: root.source
+        color: (.5, .5, .5, 1)
+        pos_hint: {'x': 0, 'y': 0}
+
+    Image:
+        source: 'atlas://data/images/defaulttheme/player-play-overlay' if not root.click_done else 'data/images/image-loading.gif'
+        pos_hint: {'x': 0, 'y': 0}
+
+<VideoPlayer>:
+    container: container
+    cols: 1
+
+    GridLayout:
+        cols: 1
+        id: container
+
+    GridLayout:
+        rows: 1
+        size_hint_y: None
+        height: 44
+
+        VideoPlayerPlayPause:
+            size_hint_x: None
+            video: root
+            width: 44
+            source: root.image_play if not root.play else root.image_pause
+
+        VideoPlayerVolume:
+            video: root
+            size_hint_x: None
+            width: 44
+            source: root.image_volumehigh if root.volume > 0.8 else (root.image_volumemedium if root.volume > 0.4 else (root.image_volumelow if root.volume > 0 else root.image_volumemuted))
+
+        Widget:
+            size_hint_x: None
+            width: 5
+
+        VideoPlayerProgressBar:
+            video: root
+            max: root.duration or 1
+            value: root.position
+
+        Widget:
+            size_hint_x: None
+            width: 10
