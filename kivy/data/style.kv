@@ -38,9 +38,9 @@
             pos: self.pos
 
 <BubbleButton>:
-	background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
-	background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
-	border: (0, 0, 0, 0)
+    background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
+    background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
+    border: (0, 0, 0, 0)
 
 <Slider>:
     canvas:
@@ -108,17 +108,17 @@
             rgb: (0, 0, 0)
 
 <TextInputCutCopyPaste>:
-	size_hint: None, None
-	size: 150, 50
-	BubbleButton:
-		text: 'Cut'
-		on_release: root.do('cut')
-	BubbleButton:
-		text: 'Copy'
-		on_release: root.do('copy')
-	BubbleButton:
-		text: 'Paste'
-		on_release: root.do('paste')
+    size_hint: None, None
+    size: 150, 50
+    BubbleButton:
+        text: 'Cut'
+        on_release: root.do('cut')
+    BubbleButton:
+        text: 'Copy'
+        on_release: root.do('copy')
+    BubbleButton:
+        text: 'Paste'
+        on_release: root.do('paste')
 
 
 <TreeViewNode>:
@@ -588,17 +588,17 @@
                 width: sv.width
 
 <ScrollView>:
-	canvas.after:
-		Color:
-			rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_y else 0]
-		Rectangle:
-			pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
-			size: self.bar_width, self.height * self.vbar[1]
-		Color:
-			rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_x else 0]
-		Rectangle:
-			pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
-			size: self.width * self.hbar[1], self.bar_width
+    canvas.after:
+        Color:
+            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_y else 0]
+        Rectangle:
+            pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
+            size: self.bar_width, self.height * self.vbar[1]
+        Color:
+            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_x else 0]
+        Rectangle:
+            pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
+            size: self.width * self.hbar[1], self.bar_width
 
 
 # =============================================================================
@@ -606,6 +606,7 @@
 # =============================================================================
 
 <VideoPlayerPreview>:
+    pos_hint: {'x': 0, 'y': 0}
     Image:
         source: root.source
         color: (.5, .5, .5, 1)
@@ -615,11 +616,24 @@
         source: 'atlas://data/images/defaulttheme/player-play-overlay' if not root.click_done else 'data/images/image-loading.gif'
         pos_hint: {'x': 0, 'y': 0}
 
+<VideoPlayerAnnotation>:
+    canvas.before:
+        Color:
+            rgba: self.annotation['bgcolor'] if 'bgcolor' in self.annotation else (0, 0, 0, 0.8)
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: self.annotation['bgsource'] if 'bgsource' in self.annotation else None
+            border: self.annotation['border'] if 'border' in self.annotation else (0, 0, 0, 0)
+    size_hint: self.annotation['size_hint'] if 'size_hint' in self.annotation else (None, None)
+    size: self.annotation['size'] if 'size' in self.annotation else (self.texture_size[0] + 20, self.texture_size[1] + 20)
+    pos_hint: self.annotation['pos_hint'] if 'pos_hint' in self.annotation else {'center_x': .5, 'y': .05}
+
 <VideoPlayer>:
     container: container
     cols: 1
 
-    GridLayout:
+    FloatLayout:
         cols: 1
         id: container
 

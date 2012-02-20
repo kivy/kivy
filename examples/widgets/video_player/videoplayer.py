@@ -4,55 +4,22 @@ Video player
 
 .. versionadded:: 1.1.2
 
+.. image:: images/videoplayer.jpg
+    :align: right
+
 The video player widget can be used to play video and let the user control the
 play/pause, volume and seek. The widget cannot be customized a lot, due to the
 complex assembly of lot of base widgets.
-
-.. image:: images/videoplayer.jpg
-    :align: center
-
-Annotations
------------
-
-If you want to display some texts at a specific time, duration, you might want
-to look at annotations.  An annotation file have a ".jsa" extension. The player
-will automatically load the associated annotation file if exists.
-
-It's a JSON based file, that provide a list of label dictionnary. The key and
-value must match one of the :class:`VideoPlayerAnnotation`. For example, here is
-a short version of a jsa that you can found in `examples/widgets/softboy.jsa`::
-
-
-    [
-        {"start": 0, "duration": 2,
-        "text": "This is an example of annotation"},
-        {"start": 2, "duration": 2,
-        "bgcolor": [0.5, 0.2, 0.4, 0.5],
-        "text": "You can change the background color"}
-    ]
-
-On our softboy.avi example, it will look like this:
-
-.. image:: images/videoplayer-annotation.jpg
-    :align: center
-
-If you want to test how annotations file are working, test with::
-
-    python -m kivy.uix.videoplayer examples/widgets/softboy.avi
-
 '''
 
-__all__ = ('VideoPlayer', 'VideoPlayerAnnotation')
+__all__ = ('VideoPlayer', )
 
-from json import load
-from os.path import exists
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, \
-        NumericProperty, DictProperty
+        NumericProperty
 from kivy.animation import Animation
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.progressbar import ProgressBar
-from kivy.uix.label import Label
 from kivy.uix.video import Video
 from kivy.uix.video import Image
 from kivy.factory import Factory
@@ -195,37 +162,6 @@ class VideoPlayerPreview(FloatLayout):
         return True
 
 
-class VideoPlayerAnnotation(Label):
-    '''Annotation class used for creating annotation labels.
-
-    Additionnals key are available:
-
-    * bgcolor: [r, g, b, a] - background color of the text box
-    * bgsource: 'filename' - background image used for background text box
-    * border: (n, e, s, w) - border used for background image
-
-    '''
-    start = NumericProperty(0)
-    '''Start time of the annotation.
-
-    :data:`start` is a :class:`~kivy.properties.NumericProperty`, default to
-    0
-    '''
-
-    duration = NumericProperty(1)
-    '''Duration of the annotation
-
-    :data:`duration` is a :class:`~kivy.properties.NumericProperty`, default to
-    1
-    '''
-
-    annotation = DictProperty({})
-
-    def on_annotation(self, instance, ann):
-        for key, value in ann.iteritems():
-            setattr(self, key, value)
-
-
 class VideoPlayer(GridLayout):
     '''VideoPlayer class, see module documentation for more information.
     '''
@@ -329,26 +265,18 @@ class VideoPlayer(GridLayout):
     :data:`image_volumemuted` a :class:`~kivy.properties.StringProperty`
     '''
 
-    annotations = StringProperty(None)
-    '''If set, it will be used for reading annotations box.
-    '''
-
     # internals
     container = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self._video = None
         self._image = None
-        self._annotations = None
-        self._annotations_labels = []
         super(VideoPlayer, self).__init__(**kwargs)
         self._load_thumbnail()
-        self._load_annotations()
 
     def on_source(self, instance, value):
         # we got a value, try to see if we have an image for it
         self._load_thumbnail()
-        self._load_annotations()
 
     def _load_thumbnail(self):
         if not self.container:
@@ -362,24 +290,10 @@ class VideoPlayer(GridLayout):
         self._image = VideoPlayerPreview(source=thumbnail, video=self)
         self.container.add_widget(self._image)
 
-    def _load_annotations(self):
-        if not self.container:
-            return
-        self._annotations_labels = []
-        annotations = self.annotations
-        if annotations is None:
-            filename = self.source.rsplit('.', 1)
-            annotations = filename[0] + '.jsa'
-        if exists(annotations):
-            with open(annotations, 'r') as fd:
-                self._annotations = load(fd)
-        for ann in self._annotations:
-            self._annotations_labels.append(VideoPlayerAnnotation(annotation=ann))
-
     def on_play(self, instance, value):
         if self._video is None:
             self._video = Video(source=self.source, play=True,
-                    volume=self.volume, pos_hint={'x': 0, 'y': 0})
+                    volume=self.volume)
             self._video.bind(texture=self._play_started,
                     duration=self.setter('duration'),
                     position=self.setter('position'),
@@ -391,27 +305,7 @@ class VideoPlayer(GridLayout):
             return
         self._video.volume = value
 
-    def on_position(self, instance, value):
-        labels = self._annotations_labels
-        if not labels:
-            return
-        for label in labels:
-            start = label.start
-            duration = label.duration
-            if start > value or (start + duration) < value:
-                if label.parent:
-                    label.parent.remove_widget(label)
-            elif label.parent is None:
-                self.container.add_widget(label)
-
     def seek(self, percent):
-        '''Change the position to a percentage of duration. Percentage must be a
-        value between 0-1.
-
-        .. warning::
-
-            Calling seek() before video is loaded have no impact.
-        '''
         if not self._video:
             return
         self._video.seek(percent)
