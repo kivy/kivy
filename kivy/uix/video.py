@@ -99,6 +99,21 @@ class Video(Image):
         '''
         pass
 
+    def seek(self, percent):
+        '''Change the position to a percentage of duration. Percentage must be a
+        value between 0-1.
+
+        .. warning::
+
+            Calling seek() before video is loaded have no impact.
+
+        .. versionadded:: 1.1.2
+        '''
+        if self._video is None:
+           raise Exception('Video not loaded.')
+        print 'seek to', percent
+        self._video.seek(percent)
+
     def on_source(self, instance, value):
         self._trigger_video_load()
 
@@ -119,6 +134,7 @@ class Video(Image):
                     'http', 'https', 'file', 'udp', 'rtp', 'rtsp'):
                 filename = resource_find(filename)
             self._video = CoreVideo(filename=filename, **self.options)
+            self._video.volume = self.volume
             self._video.bind(on_load=self._on_video_frame,
                              on_frame=self._on_video_frame,
                              on_eos=self._on_eos)
