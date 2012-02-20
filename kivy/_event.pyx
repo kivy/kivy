@@ -17,6 +17,7 @@ handlers.
 __all__ = ('EventDispatcher', )
 
 
+from functools import partial
 from kivy.weakmethod import WeakMethod
 from kivy.properties cimport Property, ObjectProperty
 
@@ -225,6 +226,12 @@ cdef class EventDispatcher(object):
     #
     # Properties
     #
+    def __proxy_setter(self, dstinstance, name, instance, value):
+        self.__properties[name].__set__(dstinstance, value)
+
+    def __proxy_getter(self, dstinstance, name, instance):
+        return self.__properties[name].__get__(dstinstance)
+
     def setter(self, name):
         '''Return the setter of a property. Useful if you want to directly bind
         a property to another.
@@ -235,14 +242,14 @@ cdef class EventDispatcher(object):
 
             self.bind(right=nextchild.setter('x'))
         '''
-        return self.__properties[name].__set__
+        return partial(self.__proxy_setter, self, name)
 
     def getter(self, name):
         '''Return the getter of a property.
 
         .. versionadded:: 1.0.9
         '''
-        return self.__properties[name].__get__
+        return partial(self.__proxy_getter, self, name)
 
     def property(self, name):
         '''Get a property instance from the name.
@@ -250,7 +257,7 @@ cdef class EventDispatcher(object):
         .. versionadded:: 1.0.9
 
         :return:
-        
+
             A :class:`~kivy.properties.Property` derivated instance corresponding
             to the name.
         '''
