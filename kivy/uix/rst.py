@@ -334,6 +334,7 @@ Builder.load_string('''
     size_hint: 0.01, 0.01
 
 <RstVideoPlayer>:
+    options: {'allow_stretch': True}
     canvas.before:
         Color:
             rgba: (1, 1, 1, 1)
@@ -346,43 +347,7 @@ Builder.load_string('''
 
 
 class RstVideoPlayer(VideoPlayer):
-    fullscreen = BooleanProperty(False)
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            return False
-        if touch.is_double_tap:
-            self.fullscreen = not self.fullscreen
-            return True
-        return super(RstVideoPlayer, self).on_touch_down(touch)
-
-    def on_fullscreen(self, instance, value):
-        window = self.get_parent_window()
-        if value:
-            self._old_parent = self.parent
-            self._old_pos = self.pos
-            self._old_size_hint = self.size_hint
-            self._old_size = self.size
-            self._old_window_children = window.children[:]
-
-            # remove all window children
-            for child in window.children[:]:
-                window.remove_widget(child)
-
-            # put the video in fullscreen
-            self.parent.remove_widget(self)
-            window.add_widget(self)
-            self.pos = (0, 0)
-            self.size = (100, 100)
-            self.size_hint = (1, 1)
-        else:
-            window.remove_widget(self)
-            for child in self._old_window_children:
-                window.add_widget(child)
-            self.size_hint = self._old_size_hint
-            self.pos = self._old_pos
-            self.size = self._old_size
-            self._old_parent.add_widget(self)
-
+    pass
 
 class RstDocument(ScrollView):
     '''Base widget used to store an Rst document. See module documentation for

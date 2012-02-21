@@ -40,6 +40,19 @@ If you want to test how annotations file are working, test with::
 
     python -m kivy.uix.videoplayer examples/widgets/softboy.avi
 
+Fullscreen
+----------
+
+The video player can play the video in fullscreen, if
+:data:`VideoPlayer.allow_fullscreen` is activated, when the user double-tap on
+the video. By default, if the video is smaller than the Window, it will be not
+stretched.
+
+You can allow it by passing custom options to :class:`~kivy.uix.video.Video` instance:
+
+    player = VideoPlayer(source='myvideo.avi', play=True,
+        options={'allow_stretch': True})
+
 '''
 
 __all__ = ('VideoPlayer', 'VideoPlayerAnnotation')
@@ -56,6 +69,7 @@ from kivy.uix.label import Label
 from kivy.uix.video import Video
 from kivy.uix.video import Image
 from kivy.factory import Factory
+from kivy.logger import Logger
 
 
 class VideoPlayerVolume(Image):
@@ -333,6 +347,37 @@ class VideoPlayer(GridLayout):
     '''If set, it will be used for reading annotations box.
     '''
 
+    fullscreen = BooleanProperty(False)
+    '''Switch to a fullscreen view. This must be used with care. When activated,
+    the widget will remove itself from its parent, remove all children from the
+    window and add itself to it. When fullscreen is unset, all the previous
+    children are restored, and the widget is readded to its previous parent.
+
+    .. warning::
+
+        The re-add operation doesn't care about it's children index position
+        within the parent.
+
+    :data:`fullscreen` a :class:`~kivy.properties.BooleanProperty`, default to False
+    '''
+
+    allow_fullscreen = BooleanProperty(True)
+    '''By default, you can double-tap on the video to make it fullscreen. Set
+    this property to False to prevent this behavior.
+
+    :data:`allow_fullscreen` a :class:`~kivy.properties.BooleanProperty`,
+    default to True
+    '''
+
+    options = DictProperty({})
+    '''Optionals parameters can be passed to :class:`~kivy.uix.video.Video`
+    instance with this property.
+
+    :data:`options` a :class:`~kivy.properties.DictProperty`,
+    default to {}
+    '''
+
+
     # internals
     container = ObjectProperty(None)
 
@@ -380,7 +425,7 @@ class VideoPlayer(GridLayout):
     def on_play(self, instance, value):
         if self._video is None:
             self._video = Video(source=self.source, play=True,
-                    volume=self.volume, pos_hint={'x': 0, 'y': 0})
+                    volume=self.volume, pos_hint={'x': 0, 'y': 0}, **self.options)
             self._video.bind(texture=self._play_started,
                     duration=self.setter('duration'),
                     position=self.setter('position'),
@@ -420,6 +465,64 @@ class VideoPlayer(GridLayout):
     def _play_started(self, instance, value):
         self.container.clear_widgets()
         self.container.add_widget(self._video)
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        if touch.is_double_tap and self.allow_fullscreen:
+            self.fullscreen = not self.fullscreen
+            return True
+        return super(VideoPlayer, self).on_touch_down(touch)
+
+    def on_fullscreen(self, instance, value):
+        window = self.get_parent_window()
+        if not window:
+            Logger.warning('VideoPlayer: Cannot switch to fullscreen, '
+                    'window not found.')
+            if value:
+                self.fullscreen = False
+            return
+        if not self.parent:
+            Logger.warning('VideoPlayer: Cannot switch to fullscreen, '
+                    'no parent.')
+            if value:
+                self.fullscreen = False
+            return
+
+        if value:
+            self._fullscreen_state = state = {
+                'parent': self.parent,
+                'pos': self.pos,
+                'size': self.size,
+                'pos_hint': self.pos_hint,
+                'size_hint': self.size_hint,
+                'window_children': window.children[:]}
+
+            # remove all window children
+            for child in window.children[:]:
+                window.remove_widget(child)
+
+            # put the video in fullscreen
+            if state['parent'] is not window:
+                state['parent'].remove_widget(self)
+            window.add_widget(self)
+
+            # ensure the video widget is in 0, 0, and the size will be reajusted
+            self.pos = (0, 0)
+            self.size = (100, 100)
+            self.pos_hint = {}
+            self.size_hint = (1, 1)
+        else:
+            state = self._fullscreen_state
+            window.remove_widget(self)
+            for child in state['window_children']:
+                window.add_widget(child)
+            self.pos_hint = state['pos_hint']
+            self.size_hint = state['size_hint']
+            self.pos = state['pos']
+            self.size = state['size']
+            if state['parent'] is not window:
+                state['parent'].add_widget(self)
 
 
 if __name__ == '__main__':
