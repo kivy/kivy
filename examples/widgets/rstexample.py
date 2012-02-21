@@ -2,8 +2,14 @@
 QuickReference for Rst
 ======================
 
-This is a markup example: &bl; Hello world &br;
+This is a markup example: [b]Hello[/b] [i]world[/i]
 And if i really want to write my code: &amp;bl; Hello world &amp;br;
+
+And video widget
+----------------
+
+.. video:: softboy.avi
+
 
 Inline Markup
 -------------

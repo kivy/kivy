@@ -67,12 +67,17 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.image import AsyncImage
+from kivy.uix.videoplayer import VideoPlayer
+from kivy.uix.anchorlayout import AnchorLayout
 from kivy.animation import Animation
 from kivy.logger import Logger
 
 from docutils.parsers import rst
 from docutils.parsers.rst import roles
 from docutils import nodes, frontend, utils
+from docutils.parsers.rst import Directive, directives
+from docutils.parsers.rst.roles import set_classes
+
 
 #
 # Handle some additional roles
@@ -82,6 +87,22 @@ if 'KIVY_DOC' not in os.environ:
     class role_doc(nodes.Inline, nodes.TextElement):
         pass
 
+    class role_video(nodes.General, nodes.TextElement):
+        pass
+
+    class VideoDirective(Directive):
+        has_content = False
+        required_arguments = 1
+        optional_arguments = 0
+        final_argument_whitespace = True
+        option_spec = {'width': directives.nonnegative_int,
+                       'height': directives.nonnegative_int}
+
+        def run(self):
+            set_classes(self.options)
+            node = role_video(source=self.arguments[0], **self.options)
+            return [node]
+
     generic_docroles = {
         'doc': role_doc}
 
@@ -90,12 +111,17 @@ if 'KIVY_DOC' not in os.environ:
         role = roles.CustomRole(rolename, generic, {'classes': [rolename]})
         roles.register_local_role(rolename, role)
 
+    directives.register_directive('video', VideoDirective)
+
+
+
 Builder.load_string('''
 #:import parse_color kivy.parser.parse_color
 
 <RstDocument>:
     content: content
     scatter: scatter
+    do_scroll_x: False
     canvas:
         Color:
             rgb: .9, .905, .910
@@ -306,7 +332,56 @@ Builder.load_string('''
 
 <RstEmptySpace>:
     size_hint: 0.01, 0.01
+
+<RstVideoPlayer>:
+    canvas.before:
+        Color:
+            rgba: (1, 1, 1, 1)
+        BorderImage:
+            source: 'atlas://data/images/defaulttheme/player-background'
+            pos: self.x - 25, self.y - 25
+            size: self.width + 50, self.height + 50
+            border: (25, 25, 25, 25)
 ''')
+
+
+class RstVideoPlayer(VideoPlayer):
+    fullscreen = BooleanProperty(False)
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        if touch.is_double_tap:
+            self.fullscreen = not self.fullscreen
+            return True
+        return super(RstVideoPlayer, self).on_touch_down(touch)
+
+    def on_fullscreen(self, instance, value):
+        window = self.get_parent_window()
+        if value:
+            self._old_parent = self.parent
+            self._old_pos = self.pos
+            self._old_size_hint = self.size_hint
+            self._old_size = self.size
+            self._old_window_children = window.children[:]
+
+            # remove all window children
+            for child in window.children[:]:
+                window.remove_widget(child)
+
+            # put the video in fullscreen
+            self.parent.remove_widget(self)
+            window.add_widget(self)
+            self.pos = (0, 0)
+            self.size = (100, 100)
+            self.size_hint = (1, 1)
+        else:
+            window.remove_widget(self)
+            for child in self._old_window_children:
+                window.add_widget(child)
+            self.size_hint = self._old_size_hint
+            self.pos = self._old_pos
+            self.size = self._old_size
+            self._old_parent.add_widget(self)
 
 
 class RstDocument(ScrollView):
@@ -828,6 +903,9 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is role_doc:
             self.doc_index = len(self.text)
 
+        elif cls is role_video:
+            pass
+
     def dispatch_departure(self, node):
         cls = node.__class__
         #print '<--', cls
@@ -947,6 +1025,15 @@ class _Visitor(nodes.NodeVisitor):
                     rst_docname,
                     self.colorize(title, 'link'))
             self.text = self.text[:self.doc_index] + text
+
+        elif cls is role_video:
+            width = node['width'] if 'width' in node.attlist() else 400
+            height = node['height'] if 'height' in node.attlist() else 300
+            video = RstVideoPlayer(source=node['source'], size_hint=(None, None),
+                    size=(width, height))
+            anchor = AnchorLayout(size_hint_y=None, height=height + 20)
+            anchor.add_widget(video)
+            self.current.add_widget(anchor)
 
     def set_text(self, node, parent):
         text = self.text

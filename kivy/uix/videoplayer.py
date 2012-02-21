@@ -373,8 +373,9 @@ class VideoPlayer(GridLayout):
         if exists(annotations):
             with open(annotations, 'r') as fd:
                 self._annotations = load(fd)
-        for ann in self._annotations:
-            self._annotations_labels.append(VideoPlayerAnnotation(annotation=ann))
+        if self._annotations:
+            for ann in self._annotations:
+                self._annotations_labels.append(VideoPlayerAnnotation(annotation=ann))
 
     def on_play(self, instance, value):
         if self._video is None:
