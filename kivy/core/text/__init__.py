@@ -255,6 +255,8 @@ class LabelBase(object):
         '''
 
         options = self.options
+        render_text = self._render_text
+        get_extents = self.get_extents
         uw, uh = self.text_size
         w, h = 0, 0
         x, y = 0, 0
@@ -272,14 +274,15 @@ class LabelBase(object):
         # no width specified, faster method
         if uw is None:
             for line in self.text.split('\n'):
-                lw, lh = self.get_extents(line)
+                lw, lh = get_extents(line)
                 if real:
                     x = 0
                     if halign == 'center':
                         x = int((self.width - lw) / 2.)
                     elif halign == 'right':
                         x = int(self.width - lw)
-                    self._render_text(line, x, y)
+                    if len(line):
+                        render_text(line, x, y)
                     y += int(lh)
                 else:
                     w = max(w, int(lw))
@@ -298,11 +301,11 @@ class LabelBase(object):
                 glyphs = list(set(self.text)) + ['.']
                 for glyph in glyphs:
                     if not glyph in cache:
-                        cache[glyph] = self.get_extents(glyph)
+                        cache[glyph] = get_extents(glyph)
 
             # Shorten the text that we actually display
             text = self.text
-            if options['shorten'] and self.get_extents(text)[0] > uw:
+            if options['shorten'] and get_extents(text)[0] > uw:
                 text = self.shorten(text)
 
             # first, split lines
@@ -364,8 +367,8 @@ class LabelBase(object):
                         x = int(self.width - size[0])
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
-                        if glyph != '\n':
-                            self._render_text(glyph, x, y)
+                        if glyph != ' ' and glyph != '\n':
+                            render_text(glyph, x, y)
                         x += lw
                     y += size[1]
 
