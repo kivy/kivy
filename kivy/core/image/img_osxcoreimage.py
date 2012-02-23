@@ -28,7 +28,8 @@ class ImageLoaderOSXCoreImage(ImageLoaderBase):
                 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm', 'xv')
 
     def load(self, filename):
-        ret = osxcoreimage.load_image_data(filename)
+        # FIXME: if the filename is unicode, the loader is failing.
+        ret = osxcoreimage.load_image_data(str(filename))
         if ret is None:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise Exception('Unable to load image')

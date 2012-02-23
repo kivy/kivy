@@ -82,7 +82,7 @@ if kivy_ios_root is not None:
     c_options['use_sdl'] = True
 
 # Detect which opengl version headers to use
-if platform in ('android', 'darwin'):
+if platform in ('android', 'darwin', 'ios'):
     pass
 elif platform == 'win32':
     print 'Windows platform detected, force GLEW usage.'
@@ -235,10 +235,10 @@ if True:
             self.sources = args[1]
 
     # simple extensions
-    for pyx in (x for x in pyx_files if not 'graphics' in x):
-        pxd = [x for x in pxd_files if not 'graphics' in x]
-        module_name = get_modulename_from_file(pyx)
-        ext_modules.append(CythonExtension(module_name, [pyx] + pxd))
+    #for pyx in (x for x in pyx_files if not 'graphics' in x):
+    #    pxd = [x for x in pxd_files if not 'graphics' in x]
+    #    module_name = get_modulename_from_file(pyx)
+    #    ext_modules.append(CythonExtension(module_name, [pyx] + pxd))
 
     for pyx in pyx_files:
         module_name = get_modulename_from_file(pyx)
