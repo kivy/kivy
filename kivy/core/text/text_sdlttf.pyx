@@ -98,7 +98,7 @@ cdef TTF_Font *_get_font(self):
     fontid = self._get_font_id()
     if fontid not in pygame_cache:
         # try first the file if it's a filename
-        fontname = self.options['font_name']
+        fontname = self.options['font_name_r']
         ext = fontname.split('.')[-1]
         if ext.lower() == 'ttf':
             fontobject = TTF_OpenFont(fontname,
@@ -127,7 +127,7 @@ class LabelSDLttf(LabelBase):
 
     def _get_font_id(self):
         return '|'.join([unicode(self.options[x]) for x \
-            in ('font_size', 'font_name', 'bold', 'italic')])
+            in ('font_size', 'font_name_r', 'bold', 'italic')])
 
     def get_extents(self, text):
         try:
@@ -136,6 +136,8 @@ class LabelSDLttf(LabelBase):
             pass
         cdef TTF_Font *font = _get_font(self)
         cdef int w, h
+        if font == NULL:
+            return 0, 0
         TTF_SizeUTF8(font, <char *><bytes>text, &w, &h)
         return w, h
 
@@ -160,6 +162,8 @@ class LabelSDLttf(LabelBase):
         cdef _SurfaceContainer sc = self._surface
         cdef SDL_Surface *st
         cdef SDL_Rect r
+        if font == NULL:
+            return
         c.r = c.g = c.b = 255
         st = TTF_RenderUTF8_Blended(font, <char *><bytes>text, c)
         if st == NULL:

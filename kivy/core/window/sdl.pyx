@@ -45,9 +45,6 @@ cdef extern from "SDL.h":
         long touchId
         long fingerId
         unsigned char state
-        unsigned char padding1
-        unsigned char padding2
-        unsigned char padding3
         unsigned short x
         unsigned short y
         short dx
@@ -129,7 +126,7 @@ cdef extern from "SDL.h":
     void SDL_GL_SwapBuffers()
     int SDL_GL_MakeCurrent(SDL_Window* window, SDL_GLContext context)
 
-    int SDL_GL_SetSwapInterval(int)
+    #int SDL_GL_SetSwapInterval(int)
     int SDL_Flip(SDL_Surface *)
     SDL_Surface *SDL_GetWindowSurface(SDL_Window *)
     SDL_GLContext SDL_GL_CreateContext(SDL_Window *)
@@ -200,11 +197,11 @@ def setup_window(width, height, use_fake, use_fullscreen):
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    SDL_GL_SetSwapInterval(1);
+    #SDL_GL_SetSwapInterval(1);
 
     ctx = SDL_GL_CreateContext(win)
     assert ctx != NULL
-    SDL_GL_SetSwapInterval(1);
+    #SDL_GL_SetSwapInterval(1);
     #surface = SDL_GetWindowSurface(win)
     cdef SDL_DisplayMode mode
     SDL_GetWindowDisplayMode(win, &mode)
@@ -218,7 +215,6 @@ def resize_window(w, h):
     mode.h = h
     SDL_SetWindowDisplayMode(win, &mode)
     SDL_GetWindowDisplayMode(win, &mode)
-    print 'SDL resized window size to', mode.w, mode.h
 
 
 def set_window_title(str title):
