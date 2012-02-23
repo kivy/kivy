@@ -1,20 +1,36 @@
+#
+# Kivy - Crossplatform NUI toolkit
+# http://kivy.org/
+#
+
 import sys
-from fnmatch import filter as fnfilter
-from os.path import join, dirname, realpath, sep, exists
+from copy import deepcopy
+from os.path import join, dirname, sep, exists
 from os import walk, environ
 from distutils.core import setup
 from distutils.extension import Extension
 
+# -----------------------------------------------------------------------------
+# Detect options
+#
+c_options = {
+    'use_opengl_es2': True,
+    'use_opengl_debug': False,
+    'use_glew': False,
+    'use_mesagl': 'USE_MESAGL' in environ}
+
+# -----------------------------------------------------------------------------
+# Determine on which platform we are
+
 platform = sys.platform
 
-#
-# Detect Python for android project
-# FIXME: add a specific var for this project, not just guess
-#
+# Detect Python for android project (http://github.com/kivy/python-for-android)
 ndkplatform = environ.get('NDKPLATFORM')
 if ndkplatform is not None and environ.get('LIBLINK'):
     platform = 'android'
 
+# -----------------------------------------------------------------------------
+# Cython check
 try:
     # check for cython
     from Cython.Distutils import build_ext
@@ -27,61 +43,8 @@ except ImportError:
     have_cython = False
     from distutils.command.build_ext import build_ext
 
-# extract version (simulate doc generation, kivy will be not imported)
-environ['KIVY_DOC_INCLUDE'] = '1'
-import kivy
-
-# extra build commands go in the cmdclass dict {'command-name': CommandClass}
-# see tools.packaging.{platform}.build.py for custom build commands for
-# portable packages.  also e.g. we use build_ext command from cython if its
-# installed for c extensions.
-cmdclass = {}
-
-try:
-    # add build rules for portable packages to cmdclass
-    if platform == 'win32':
-        from kivy.tools.packaging.win32.build import WindowsPortableBuild
-        cmdclass['build_portable'] = WindowsPortableBuild
-    elif platform == 'darwin':
-        from kivy.tools.packaging.osx.build import OSXPortableBuild
-        cmdclass['build_portable'] = OSXPortableBuild
-except ImportError:
-    print 'User distribution detected, avoid portable command.'
-
-from kivy.tools.packaging.factory import FactoryBuild
-cmdclass['build_factory'] = FactoryBuild
-
-#
-# Detect options
-#
-c_options = {
-    'use_opengl_es2': True,
-    'use_opengl_debug': False,
-    'use_glew': False,
-    'use_mesagl': 'USE_MESAGL' in environ}
-
-# Detect which opengl version headers to use
-if platform in ('android', 'darwin'):
-    pass
-elif platform == 'win32':
-    print 'Windows platform detected, force GLEW usage.'
-    c_options['use_glew'] = True
-else:
-    # searching GLES headers
-    default_header_dirs = ['/usr/include', '/usr/local/include']
-    found = False
-    for hdir in default_header_dirs:
-        filename = join(hdir, 'GLES2', 'gl2.h')
-        if exists(filename):
-            found = True
-            print 'Found GLES 2.0 headers at', filename
-            break
-    if not found:
-        print 'WARNING: GLES 2.0 headers are not found'
-        print 'Fallback to Desktop opengl headers.'
-        c_options['use_opengl_es2'] = False
-
-
+# -----------------------------------------------------------------------------
+# Setup classes
 class KivyBuildExt(build_ext):
 
     def build_extensions(self):
@@ -104,122 +67,192 @@ class KivyBuildExt(build_ext):
 
         build_ext.build_extensions(self)
 
-cmdclass['build_ext'] = KivyBuildExt
 
-# extension modules
-ext_modules = []
+# -----------------------------------------------------------------------------
+# extract version (simulate doc generation, kivy will be not imported)
+environ['KIVY_DOC_INCLUDE'] = '1'
+import kivy
 
-# list all files to compile
-pyx_files = []
-pxd_files = []
-kivy_libs_dir = realpath(join(kivy.kivy_base_dir, 'libs'))
-for root, dirnames, filenames in walk(join(dirname(__file__), 'kivy')):
-    # ignore lib directory
-    if realpath(root).startswith(kivy_libs_dir):
-        continue
-    for filename in fnfilter(filenames, '*.pxd'):
-        pxd_files.append(join(root, filename))
-    for filename in fnfilter(filenames, '*.pyx'):
-        pyx_files.append(join(root, filename))
+# extra build commands go in the cmdclass dict {'command-name': CommandClass}
+# see tools.packaging.{platform}.build.py for custom build commands for
+# portable packages.  also e.g. we use build_ext command from cython if its
+# installed for c extensions.
+from kivy.tools.packaging.factory import FactoryBuild
+cmdclass = {
+    'build_factory': FactoryBuild,
+    'build_ext': KivyBuildExt }
 
-if not have_cython:
-    pyx_files = pyx_files = ['%s.c' % x[:-4] for x in pyx_files]
-    pxd_files = []
-
-# add cython core extension modules if cython is available
-
-if True:
-    libraries = ['m']
-    include_dirs = []
-    extra_link_args = []
+try:
+    # add build rules for portable packages to cmdclass
     if platform == 'win32':
-        libraries.append('opengl32')
+        from kivy.tools.packaging.win32.build import WindowsPortableBuild
+        cmdclass['build_portable'] = WindowsPortableBuild
     elif platform == 'darwin':
-        # On OSX, it's not -lGL, but -framework OpenGL...
-        extra_link_args = ['-framework', 'OpenGL']
-    elif platform.startswith('freebsd'):
-        include_dirs += ['/usr/local/include']
-        extra_link_args += ['-L', '/usr/local/lib']
-    elif platform == 'android':
-        include_dirs += [join(ndkplatform, 'usr', 'include')]
-        extra_link_args += ['-L', join(ndkplatform, 'usr', 'lib')]
-        libraries.append('GLESv2')
-    else:
-        libraries.append('GL')
+        from kivy.tools.packaging.osx.build import OSXPortableBuild
+        cmdclass['build_portable'] = OSXPortableBuild
+except ImportError:
+    print 'User distribution detected, avoid portable command.'
 
+# Detect which opengl version headers to use
+if platform in ('android', 'darwin'):
+    pass
+elif platform == 'win32':
+    print 'Windows platform detected, force GLEW usage.'
+    c_options['use_glew'] = True
+else:
+    # searching GLES headers
+    default_header_dirs = ['/usr/include', '/usr/local/include']
+    found = False
+    for hdir in default_header_dirs:
+        filename = join(hdir, 'GLES2', 'gl2.h')
+        if exists(filename):
+            found = True
+            print 'Found GLES 2.0 headers at', filename
+            break
+    if not found:
+        print 'WARNING: GLES 2.0 headers are not found'
+        print 'Fallback to Desktop opengl headers.'
+        c_options['use_opengl_es2'] = False
+
+# -----------------------------------------------------------------------------
+# declare flags
+def get_modulename_from_file(filename):
+    pyx = '.'.join(filename.split('.')[:-1])
+    pyxl = pyx.split(sep)
+    while pyxl[0] != 'kivy':
+        pyxl.pop(0)
+    if pyxl[1] == 'kivy':
+        pyxl.pop(0)
+    return '.'.join(pyxl)
+
+class CythonExtension(Extension):
+
+    def __init__(self, *args, **kwargs):
+        Extension.__init__(self, *args, **kwargs)
+        self.pyrex_directives = {
+            'profile': 'USE_PROFILE' in environ,
+            'embedsignature': True}
+        # XXX with pip, setuptools is imported before distutils, and change
+        # our pyx to c, then, cythonize doesn't happen. So force again our
+        # sources
+        self.sources = args[1]
+
+def merge(d1, *args):
+    d1 = deepcopy(d1)
+    for d2 in args:
+        for key, value in d2.iteritems():
+            if key in d1:
+                d1[key].extend(value)
+            else:
+                d1[key] = value
+    return d1
+
+def determine_gl_flags():
+    flags = {'libraries': []}
+    if platform == 'win32':
+        flags['libraries'] = ['opengl32']
+    elif platform == 'darwin':
+        flags['extra_link_args'] = ['-framework', 'OpenGL', '-arch', 'x86_64']
+        flags['extra_compile_args'] = ['-arch', 'x86_64']
+    elif platform.startswith('freebsd'):
+        flags['include_dirs'] = ['/usr/local/include']
+        flags['extra_link_args'] = ['-L', '/usr/local/lib']
+    elif platform == 'android':
+        flags['include_dirs'] += [join(ndkplatform, 'usr', 'include')]
+        flags['extra_link_args'] += ['-L', join(ndkplatform, 'usr', 'lib')]
+        flags['libraries'] = ['GLESv2']
+    else:
+        flags['libraries'] = ['GL']
     if c_options['use_glew']:
         if platform == 'win32':
-            libraries.append('glew32')
+            flags['libraries'] += ['glew32']
         else:
-            libraries.append('GLEW')
+            flags['libraries'] += ['GLEW']
+    return flags
 
-    def get_modulename_from_file(filename):
-        pyx = '.'.join(filename.split('.')[:-1])
-        pyxl = pyx.split(sep)
-        while pyxl[0] != 'kivy':
-            pyxl.pop(0)
-        if pyxl[1] == 'kivy':
-            pyxl.pop(0)
-        return '.'.join(pyxl)
+def determine_graphics_pxd():
+    flags = {'depends': [join(dirname(__file__), 'kivy', x) for x in [
+        'graphics/buffer.pxd',
+        'graphics/c_opengl.pxd',
+        'graphics/c_opengl_debug.pxd',
+        'graphics/compiler.pxd',
+        'graphics/context_instructions.pxd',
+        'graphics/fbo.pxd',
+        'graphics/instructions.pxd',
+        'graphics/opengl_utils.pxd',
+        'graphics/shader.pxd',
+        'graphics/texture.pxd',
+        'graphics/transformation.pxd',
+        'graphics/vbo.pxd',
+        'graphics/vertex.pxd']]}
+    return flags
 
-    class CythonExtension(Extension):
+base_flags = {
+    'libraries': ['m'],
+    'include_dirs': [],
+    'extra_links_args': [],
+    'extra_compile_args': []}
 
-        def __init__(self, *args, **kwargs):
-            # Small hack to only compile for x86_64 on OSX.
-            # Is there a better way to do this?
-            if platform == 'darwin':
-                extra_args = ['-arch', 'x86_64']
-                kwargs['extra_compile_args'] = extra_args + \
-                    kwargs.get('extra_compile_args', [])
-                kwargs['extra_link_args'] = extra_args + \
-                    kwargs.get('extra_link_args', [])
-            Extension.__init__(self, *args, **kwargs)
-            self.pyrex_directives = {
-                'profile': 'USE_PROFILE' in environ,
-                'embedsignature': True}
-            # XXX with pip, setuptools is imported before distutils, and change
-            # our pyx to c, then, cythonize doesn't happen. So force again our
-            # sources
-            self.sources = args[1]
+gl_flags = determine_gl_flags()
+graphics_flags = determine_graphics_pxd()
 
-    # simple extensions
-    for pyx in (x for x in pyx_files if not 'graphics' in x):
-        pxd = [x for x in pxd_files if not 'graphics' in x]
+# -----------------------------------------------------------------------------
+# sources to compile
+sources = {
+    '_event.pyx': base_flags,
+    'properties.pyx': base_flags,
+    'graphics/buffer.pyx': base_flags,
+    'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/compiler.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/context_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/fbo.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/opengl.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/shader.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/texture.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/transformation.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/vbo.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/vertex.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
+}
+
+
+# -----------------------------------------------------------------------------
+# extension modules
+def get_extensions_from_sources(sources):
+    ext_modules = []
+    for pyx, flags in sources.iteritems():
+        pyx = join(dirname(__file__), 'kivy', pyx)
+        if not have_cython:
+            pyx = '%s.c' % pyx[:-4]
         module_name = get_modulename_from_file(pyx)
-        ext_modules.append(CythonExtension(module_name, [pyx] + pxd))
+        depends = flags.pop('depends', [])
+        ext_modules.append(CythonExtension(module_name,
+            [pyx] + depends, **flags))
+    return ext_modules
 
-    # opengl aware modules
-    for pyx in (x for x in pyx_files if 'graphics' in x):
-        pxd = [x for x in pxd_files if 'graphics' in x]
-        module_name = get_modulename_from_file(pyx)
-        ext_modules.append(CythonExtension(
-            module_name, [pyx] + pxd,
-            libraries=libraries,
-            include_dirs=include_dirs,
-            extra_link_args=extra_link_args))
+ext_modules = get_extensions_from_sources(sources)
 
-
-#setup datafiles to be included in the disytibution, liek examples...
-#extracts all examples files except sandbox
+# -----------------------------------------------------------------------------
+# automatically detect data files
 data_file_prefix = 'share/kivy-'
 examples = {}
 examples_allowed_ext = ('readme', 'py', 'wav', 'png', 'jpg', 'svg', 'json',
                         'avi', 'gif', 'txt', 'ttf', 'obj', 'mtl', 'kv')
 for root, subFolders, files in walk('examples'):
-    if 'sandbox' in root:
-        continue
-    for file in files:
-        ext = file.split('.')[-1].lower()
+    for fn in files:
+        ext = fn.split('.')[-1].lower()
         if ext not in examples_allowed_ext:
             continue
-        filename = join(root, file)
+        filename = join(root, fn)
         directory = '%s%s' % (data_file_prefix, dirname(filename))
         if not directory in examples:
             examples[directory] = []
         examples[directory].append(filename)
 
-
-
+# -----------------------------------------------------------------------------
 # setup !
 setup(
     name='Kivy',
@@ -255,8 +288,7 @@ setup(
         'kivy.network',
         'kivy.tools',
         'kivy.tools.packaging',
-        'kivy.uix',
-    ],
+        'kivy.uix', ],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
         'data/*.kv',
