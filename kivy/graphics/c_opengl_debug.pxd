@@ -33,7 +33,8 @@ cdef void   glBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size,  G
 cdef GLenum glCheckFramebufferStatus (GLenum target) with gil
 cdef void   glClear (GLbitfield mask) with gil
 cdef void   glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) with gil
-cdef void   glClearDepthf (GLclampf depth) with gil
+# crash on android platform
+#cdef void   glClearDepthf (GLclampf depth) with gil
 cdef void   glClearStencil (GLint s) with gil
 cdef void   glColorMask (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) with gil
 cdef void   glCompileShader (GLuint shader) with gil
@@ -52,7 +53,8 @@ cdef void   glDeleteShader (GLuint shader) with gil
 cdef void   glDeleteTextures (GLsizei n,  GLuint* textures) with gil
 cdef void   glDepthFunc (GLenum func) with gil
 cdef void   glDepthMask (GLboolean flag) with gil
-cdef void   glDepthRangef (GLclampf zNear, GLclampf zFar) with gil
+# crash on android platform
+#cdef void   glDepthRangef (GLclampf zNear, GLclampf zFar) with gil
 cdef void   glDetachShader (GLuint program, GLuint shader) with gil
 cdef void   glDisable (GLenum cap) with gil
 cdef void   glDisableVertexAttribArray (GLuint index) with gil

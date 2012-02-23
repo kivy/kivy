@@ -48,17 +48,17 @@ This project code is available at::
 
 We made that branch to be able to:
 
-	- integrate Kivy android-support branch in the build
-	- create opengl es 2 surface with stencil buffer
-	- enable multitouch event
-	- custom python native launcher that run the main.py
-	- default activation of WRITE_EXTERNAL_STORAGE permission
-    - *Video providers* (done in 1.0.8 version using ffmpeg-android)
+    - integrate Kivy android-support branch in the build
+    - create opengl es 2 surface with stencil buffer
+    - enable multitouch event
+    - custom python native launcher that run the main.py
+    - default activation of WRITE_EXTERNAL_STORAGE permission
+    - Video support (done in 1.0.8 version using ffmpeg-android)
+    - Audio support
 
 Currently, Kivy is not fully supported on Android. We are missing:
 
     - Camera providers
-    - Audio (can use RenPySound) providers
     - Keyboard mapping for main button
     - Ability to hook app on sleep/wakeup
 

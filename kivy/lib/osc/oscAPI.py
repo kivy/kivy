@@ -38,7 +38,7 @@ try:
         raise
     use_multiprocessing = True
     from multiprocessing import Process, Queue, Value
-    import multiprocessing.synchronize
+    __import__('multiprocessing.synchronize')
     Logger.info('OSC: using <multiprocessing> for socket')
 except:
     use_multiprocessing = False
@@ -262,7 +262,6 @@ if __name__ == '__main__':
     # example of how to use oscAPI
     init()
     listen() # defaults to "127.0.0.1", 9001
-    import time
     time.sleep(5)
 
     # add addresses to callback manager

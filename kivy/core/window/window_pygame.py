@@ -4,25 +4,30 @@ Window Pygame: windowing provider based on Pygame
 
 __all__ = ('WindowPygame', )
 
-from . import WindowBase
+# fail early if possible
+import pygame
 
-import os
-import sys
-from os.path import exists
+from . import WindowBase
+from kivy.core import CoreCriticalException
+from os import environ
+from os.path import exists, join
 from kivy.config import Config
+from kivy import kivy_home_dir
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.clock import Clock
+from kivy.utils import platform
 
 try:
-    import pygame
-except:
-    Logger.warning('WinPygame: Pygame is not installed !')
-    raise
+    android = None
+    if platform() == 'android':
+        import android
+except ImportError:
+    pass
 
 # late binding
-glReadPixels = GL_RGB = GL_UNSIGNED_BYTE = None
+glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
 
 
 class WindowPygame(WindowBase):
@@ -32,8 +37,8 @@ class WindowPygame(WindowBase):
 
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
-        if not 'SDL_VIDEO_FULLSCREEN_HEAD' in os.environ and displayidx != -1:
-            os.environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
+        if not 'SDL_VIDEO_FULLSCREEN_HEAD' in environ and displayidx != -1:
+            environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
 
         # init some opengl, same as before.
         self.flags = pygame.HWSURFACE | pygame.OPENGL | \
@@ -42,10 +47,13 @@ class WindowPygame(WindowBase):
         # right now, activate resizable window only on linux.
         # on window / macosx, the opengl context is lost, and we need to
         # reconstruct everything. Check #168 for a state of the work.
-        if sys.platform == 'linux2':
+        if platform() == 'linux':
             self.flags |= pygame.RESIZABLE
 
-        pygame.display.init()
+        try:
+            pygame.display.init()
+        except pygame.error, e:
+            raise CoreCriticalException(e.message)
 
         multisamples = Config.getint('graphics', 'multisamples')
 
@@ -74,14 +82,14 @@ class WindowPygame(WindowBase):
             # position. so replace 0, 0.
             if self._pos is None:
                 self._pos = (0, 0)
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
+            environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
         elif self._fullscreenmode:
             Logger.debug('WinPygame: Set window to fullscreen mode')
             self.flags |= pygame.FULLSCREEN
 
         elif self._pos is not None:
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
+            environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
@@ -94,6 +102,10 @@ class WindowPygame(WindowBase):
         # set window icon before calling set_mode
         try:
             filename_icon = Config.get('kivy', 'window_icon')
+            if filename_icon == '':
+                logo_size = 512 if platform() == 'darwin' else 32
+                filename_icon = join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' %
+                        logo_size)
             self.set_icon(filename_icon)
         except:
             Logger.exception('Window: cannot set icon')
@@ -105,7 +117,7 @@ class WindowPygame(WindowBase):
         # try to use mode with multisamples
         try:
             self._pygame_set_mode()
-        except pygame.error:
+        except pygame.error, e:
             if multisamples:
                 Logger.warning('WinPygame: Video: failed (multisamples=%d)' %
                                multisamples)
@@ -113,10 +125,12 @@ class WindowPygame(WindowBase):
                 pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 0)
                 pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 0)
                 multisamples = 0
-                self._pygame_set_mode()
+                try:
+                    self._pygame_set_mode()
+                except pygame.error, e:
+                    raise CoreCriticalException(e.message)
             else:
-                Logger.warning('WinPygame: Video setup failed :-(')
-                raise
+                raise CoreCriticalException(e.message)
 
         super(WindowPygame, self).create_window()
 
@@ -126,6 +140,11 @@ class WindowPygame(WindowBase):
 
         # set rotation
         self.rotation = params['rotation']
+
+        # if we are on android platform, automaticly create hooks
+        if android:
+            from kivy.support import install_android
+            install_android()
 
     def close(self):
         pygame.display.quit()
@@ -149,16 +168,16 @@ class WindowPygame(WindowBase):
             Logger.exception('WinPygame: unable to set icon')
 
     def screenshot(self, *largs, **kwargs):
-        global glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+        global glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
         filename = super(WindowPygame, self).screenshot(*largs, **kwargs)
         if filename is None:
             return None
         if glReadPixels is None:
-            from kivy.core.gl import glReadPixels, GL_RGB, GL_UNSIGNED_BYTE
+            from kivy.core.gl import glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
         width, height = self.size
-        data = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+        data = glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE)
         data = str(buffer(data))
-        surface = pygame.image.fromstring(data, self.size, 'RGB', True)
+        surface = pygame.image.fromstring(data, self.size, 'RGBA', True)
         pygame.image.save(surface, filename)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
@@ -166,7 +185,7 @@ class WindowPygame(WindowBase):
     def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = sys.platform == 'darwin'
+        is_osx = platform() == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
             self.close()  #not sure what to do here
@@ -254,9 +273,11 @@ class WindowPygame(WindowBase):
             elif event.type == pygame.ACTIVEEVENT:
                 pass
 
+            '''
             # unhandled event !
             else:
                 Logger.debug('WinPygame: Unhandled event %s' % str(event))
+            '''
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
@@ -320,3 +341,15 @@ class WindowPygame(WindowBase):
             self._modifiers.append('ctrl')
         if mods & (pygame.KMOD_META | pygame.KMOD_LMETA):
             self._modifiers.append('meta')
+
+    def request_keyboard(self, *largs):
+        keyboard = super(WindowPygame, self).request_keyboard(*largs)
+        if android:
+            android.show_keyboard()
+        return keyboard
+
+    def release_keyboard(self, *largs):
+        super(WindowPygame, self).release_keyboard(*largs)
+        if android:
+            android.hide_keyboard()
+        return True

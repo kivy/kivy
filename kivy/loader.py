@@ -118,7 +118,11 @@ class LoaderBase(object):
         or _load_urllib() if the file is on Internet'''
 
         filename, load_callback, post_callback = parameters
-        proto = filename.split(':', 1)[0]
+        try:
+            proto = filename.split(':', 1)[0]
+        except:
+            #if blank filename then return
+            return
         if load_callback is not None:
             data = load_callback(filename)
         elif proto in ('http', 'https', 'ftp'):
@@ -145,6 +149,7 @@ class LoaderBase(object):
         import tempfile
         data = None
         try:
+            _out_filename = ''
             suffix = '.%s' % (filename.split('.')[-1])
             _out_osfd, _out_filename = tempfile.mkstemp(
                     prefix='kivyloader', suffix=suffix)
@@ -164,7 +169,8 @@ class LoaderBase(object):
             Logger.exception('Failed to load image <%s>' % filename)
             return self.error_image
         finally:
-            unlink(_out_filename)
+            if _out_filename != '':
+                unlink(_out_filename)
 
         return data
 
@@ -199,7 +205,7 @@ class LoaderBase(object):
     def image(self, filename, load_callback=None, post_callback=None, **kwargs):
         '''Load a image using loader. A Proxy image is returned with a loading
         image.
-        
+
         ::
             img = Loader.image(filename)
             # img will be a ProxyImage.

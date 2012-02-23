@@ -46,7 +46,6 @@ if 'KIVY_DOC' in os.environ:
     ProbeSysfsHardwareProbe = None
 
 else:
-    import kivy
     from re import match, IGNORECASE
     from glob import glob
     from subprocess import Popen, PIPE

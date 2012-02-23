@@ -26,6 +26,10 @@ If a touch travels :data:`~ScrollView.scroll_distance` pixels within the
 gesture and translatation (scroll/pan) will begin. If the timeout occurs, the
 touch down event is dispatched to the child instead (no translation).
 
+.. versionadded:: 1.1.1
+
+    Scrollview now animate the scrolling in Y when mousewheel are used.
+
 Limiting to X or Y axis
 -----------------------
 
@@ -49,6 +53,8 @@ identical to that of the ScrollView (size_hint_x=1, default), and set the
 size_hint_y property to None ::
 
     layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
+    #Make sure the height is such that there is something to scroll.
+    layout.bind(minimum_height=layout.setter('height'))
     for i in range(30):
         btn = Button(text=str(i), size_hint_y=None, height=40)
         layout.add_widget(btn)
@@ -77,10 +83,12 @@ If you want to reduce the default timeout, you can set::
 __all__ = ('ScrollView', )
 
 from functools import partial
+from kivy.animation import Animation
 from kivy.config import Config
 from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
-from kivy.properties import NumericProperty, BooleanProperty, AliasProperty
+from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
+        ObjectProperty, ListProperty
 
 
 # When we are generating documentation, Config doesn't exist
@@ -96,7 +104,6 @@ class ScrollView(StencilView):
     '''
 
     def __init__(self, **kwargs):
-        self._viewport = None
         self._touch = False
         self._tdx = self._tdy = self._ts = self._tsn = 0
         self._scroll_y_mouse = 0
@@ -163,6 +170,17 @@ class ScrollView(StencilView):
         else:
             y = self.top - vp.height
         vp.pos = x, y
+
+        # new in 1.1.2, show bar when scrolling happen
+        # and slowly remove them when no scroll is happening.
+        self.bar_alpha = 1.
+        Animation.stop_all(self, 'bar_alpha')
+        Clock.unschedule(self._start_decrease_alpha)
+        Clock.schedule_once(self._start_decrease_alpha, .5)
+
+    def _start_decrease_alpha(self, *l):
+        self.bar_alpha = 1.
+        Animation(bar_alpha=0., d=.5, t='out_quart').start(self)
 
     #
     # Private
@@ -264,6 +282,7 @@ class ScrollView(StencilView):
             self.scroll_x -= sx
         if self.do_scroll_y:
             self.scroll_y -= sy
+        self._scroll_y_mouse = self.scroll_y
         if ssx == self.scroll_x and ssy == self.scroll_y:
             return False
 
@@ -282,10 +301,13 @@ class ScrollView(StencilView):
                 d = (vp.height - self.height)
                 d = self.scroll_distance / float(d)
                 if touch.button == 'scrollup':
-                    syd = self.scroll_y - d
+                    syd = self._scroll_y_mouse - d
                 elif touch.button == 'scrolldown':
-                    syd = self.scroll_y + d
-                self.scroll_y = min(max(syd, 0), 1)
+                    syd = self._scroll_y_mouse + d
+                self._scroll_y_mouse = scroll_y = min(max(syd, 0), 1)
+                Animation.stop_all(self, 'scroll_y')
+                Animation(scroll_y=scroll_y, d=.3, t='out_quart').start(self)
+                Clock.unschedule(self._update_animation)
                 return True
 
         self._touch = touch
@@ -348,6 +370,9 @@ class ScrollView(StencilView):
         # never ungrabed, cause their on_touch_up will be never called.
         # base.py: the me.grab_list[:] => it's a copy, and we are already
         # iterate on it.
+        if 'button' in touch.profile and not touch.button.startswith('scroll'):
+            self._scroll_y_mouse = self.scroll_y
+
         if self in [x() for x in touch.grab_list]:
             touch.ungrab(self)
             self._touch = None
@@ -470,4 +495,95 @@ class ScrollView(StencilView):
     :data:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`do_scroll_x` + :data:`do_scroll_y`)
     '''
+
+    def _get_vbar(self):
+        # must return (y, height) in %
+        # calculate the viewport size / scrollview size %
+        if self._viewport is None:
+            return 0, 1.
+        vh = self._viewport.height
+        h = self.height
+        if vh < h or vh == 0:
+            return 0, 1.
+        ph = max(0.01, h / float(vh))
+        py = (1. - ph) * self.scroll_y
+        return (py, ph)
+
+    vbar = AliasProperty(_get_vbar, None, bind=('scroll_y', '_viewport', '_viewport_size'))
+    '''Return a tuple of (position, size) of the vertical scrolling bar.
+
+    .. versionadded:: 1.1.2
+
+    The position and size are normalized between 0-1, and represent a percentage
+    of the current scrollview height. This property is used internally for
+    drawing the little vertical bar when you're scrolling.
+
+    :data:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
+    '''
+
+    def _get_hbar(self):
+        # must return (x, width) in %
+        # calculate the viewport size / scrollview size %
+        if self._viewport is None:
+            return 0, 1.
+        vw = self._viewport.width
+        w = self.width
+        if vw < w or vw == 0:
+            return 0, 1.
+        pw = max(0.01, w / float(vw))
+        px = (1. - pw) * self.scroll_x
+        return (px, pw)
+
+    hbar = AliasProperty(_get_hbar, None, bind=('scroll_x', '_viewport', '_viewport_size'))
+    '''Return a tuple of (position, size) of the horizontal scrolling bar.
+
+    .. versionadded:: 1.1.2
+
+    The position and size are normalized between 0-1, and represent a percentage
+    of the current scrollview height. This property is used internally for
+    drawing the little horizontal bar when you're scrolling.
+
+    :data:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
+    '''
+
+    bar_color = ListProperty([.7, .7, .7, .9])
+    '''Color of horizontal / vertical scroll bar, in RGBA format.
+
+    .. versionadded:: 1.1.2
+
+    :data:`bar_color` is a :class:`~kivy.properties.ListProperty`, default to
+    [.7, .7, .7, .9].
+    '''
+
+    bar_width = NumericProperty(2)
+    '''Width of the horizontal / vertical scroll bar. The width is interpreted
+    as an height for the horizontal bar.
+
+    .. versionadded:: 1.1.2
+
+    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default to 2
+    '''
+
+    bar_margin = NumericProperty(0)
+    '''Margin between the bottom / right side of the scrollview when drawing the
+    horizontal / vertical scroll bar.
+
+    .. versionadded:: 1.1.2
+
+    :data:`bar_margin` is a :class:`~kivy.properties.NumericProperty`, default to 0
+    '''
+
+    # private, for internal use only
+
+    _viewport = ObjectProperty(None, allownone=True)
+    _viewport_size = ListProperty([0, 0])
+    bar_alpha = NumericProperty(1.)
+
+    def _set_viewport_size(self, instance, value):
+        self._viewport_size = value
+
+    def on__viewport(self, instance, value):
+        if value:
+            value.bind(size=self._set_viewport_size)
+            self._viewport_size = value.size
 

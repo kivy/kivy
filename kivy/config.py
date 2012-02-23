@@ -31,6 +31,11 @@ Available configuration tokens
     * `keyboard_type` and `keyboard_layout` have been removed from widget
     * `keyboard_mode` and `keyboard_layout` have been added to kivy section
 
+.. versionchanged:: 1.1.0
+
+    * tuio is not listening by default anymore.
+    * windows icons are not copied to user directory anymore. You can still set
+      a new window icon by using ``window_icon`` config setting.
 
 :kivy:
 
@@ -81,7 +86,7 @@ Available configuration tokens
     `maxfps`: int, default to 60
         Maximum FPS allowed.
     `fullscreen`: (0, 1, fake, auto)
-        Activate fullscreen. If set to `1`, a resolution of `width` 
+        Activate fullscreen. If set to `1`, a resolution of `width`
         times `height` pixels will be used.
         If set to `auto`, your current display's resolution will be
         used instead. This is most likely what you want.
@@ -157,12 +162,11 @@ Available configuration tokens
 
 __all__ = ('Config', 'ConfigParser')
 
-from shutil import copyfile
 from ConfigParser import ConfigParser as PythonConfigParser
 from sys import platform
-from os import environ, listdir
-from os.path import exists, join
-from kivy import kivy_home_dir, kivy_config_fn, kivy_data_dir
+from os import environ
+from os.path import exists
+from kivy import kivy_config_fn
 from kivy.logger import Logger
 from kivy.utils import OrderedDict
 
@@ -291,8 +295,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.setdefault('kivy', 'log_enable', '1')
             Config.setdefault('kivy', 'log_level', 'info')
             Config.setdefault('kivy', 'log_name', 'kivy_%y-%m-%d_%_.txt')
-            Config.setdefault('kivy', 'window_icon', \
-                join(kivy_home_dir, 'icon', 'kivy32.png'))
+            Config.setdefault('kivy', 'window_icon', '')
 
             # default graphics parameters
             Config.setdefault('graphics', 'display', '-1')
@@ -309,7 +312,6 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.setdefault('graphics', 'width', '800')
 
             # input configuration
-            Config.setdefault('input', 'default', 'tuio,0.0.0.0:3333')
             Config.setdefault('input', 'mouse', 'mouse')
 
             # activate native input provider in configuration
@@ -343,15 +345,10 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             Config.set('graphics', 'maxfps', '60')
 
         elif version == 2:
-            logo_dir = join(kivy_data_dir, 'logo')
-            dest_dir = join(kivy_home_dir, 'icon')
-            for logo in listdir(logo_dir):
-                copyfile(join(logo_dir, logo), join(dest_dir, logo))
-            logo_size = 32
-            if platform == 'darwin':
-                logo_size = 512
-            Config.set('kivy', 'window_icon', \
-                join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' % logo_size))
+            # was a version to automatically copy windows icon in the user
+            # directory, but it's now not used anymore. User can still change
+            # the window icon by touching the config.
+            pass
 
         elif version == 3:
             # add token for scrollview

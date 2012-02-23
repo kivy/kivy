@@ -1,14 +1,13 @@
 import kivy
-kivy.require('1.0.4')
+kivy.require('1.1.2')
 
 from sys import argv
 from os.path import dirname, join
 from kivy.app import App
-from kivy.uix.video import Video
-from kivy.uix.scatter import Scatter
+from kivy.uix.videoplayer import VideoPlayer
 
 
-class VideoPlayer(App):
+class VideoPlayerApp(App):
 
     def build(self):
         if len(argv) > 1:
@@ -16,12 +15,8 @@ class VideoPlayer(App):
         else:
             curdir = dirname(__file__)
             filename = join(curdir, 'softboy.avi')
-        video = Video(source=filename, play=True)
-        scatter = Scatter()
-        video.bind(texture_size=scatter.setter('size'))
-        scatter.add_widget(video)
-        return scatter
+        return VideoPlayer(source=filename, play=True)
 
 
 if __name__ in ('__main__', '__android__'):
-    VideoPlayer().run()
+    VideoPlayerApp().run()

@@ -181,7 +181,7 @@ else:
                     self.default_ranges[key] = int(value)
                 except ValueError:
                     err = 'HIDInput: invalid value "%s" for "%s"' % (key, value)
-                    Logger.error()
+                    Logger.error(err)
                     continue
 
                 # all good!
@@ -243,6 +243,7 @@ else:
                     if tid not in actives:
                         touch = touches[tid]
                         if tid in touches_sent:
+                            touch.update_time_end()
                             queue.append(('end', touch))
                             touches_sent.remove(tid)
                         del touches[tid]

@@ -5,7 +5,7 @@ Installation
 
 We try not to reinvent the wheel but bring something innovative to the
 market. As a consequence, we're focused on our own code and use already
-existing, high-qualitative third-party libraries where possible.
+existing, high-quality third-party libraries where possible.
 For the rich set of features that Kivy offers, several other libraries are
 required. If you do not use a specific feature (e.g. video playback) you
 don't need the corresponding dependency, however.
@@ -25,7 +25,6 @@ Other optional libraries (mutually interchangeable) are:
     * `PIL <http://www.pythonware.com/products/pil/index.htm>`_ -- Image and text display.
     * `PyCairo <http://www.cairographics.org/pycairo/>`_ -- Text display.
     * `PyEnchant <http://www.rfk.id.au/software/pyenchant/>`_ -- Spelling correction.
-    * `Pygame <http://www.pygame.org>`_ -- Window creation, image and text display, audio playback.
     * `PyGST <http://gstreamer.freedesktop.org/ + http://pygstdocs.berlios.de/>`_ -- Audio/video playback and camera input.
 
 
@@ -49,7 +48,7 @@ Please refer to the installation instructions for your specific platform:
 
     installation-windows
     installation-macosx
-    installation-ubuntu
+    installation-linux
     installation-android
 
 
@@ -90,7 +89,7 @@ Now that you've installed all the required dependencies, it's time to
 download and compile a development version of Kivy::
 
     $ # Download Kivy from GitHub
-    $ git clone git://github.com/tito/kivy.git
+    $ git clone git://github.com/kivy/kivy.git
     $ cd kivy
 
     $ # Compile:

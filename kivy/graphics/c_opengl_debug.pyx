@@ -1,5 +1,6 @@
 
 # This file was automatically generated with kivy/tools/stub-gl-debug.py
+include "common.pxi"
 cimport c_opengl as cgl
 
 
@@ -88,11 +89,12 @@ cdef void   glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf 
     cgl.glClearColor ( red, green, blue, alpha)
     ret = cgl.glGetError()
     if ret: print "OpenGL Error %d / %x" % (ret, ret)
-cdef void   glClearDepthf (GLclampf depth) with gil:
-    print "GL glClearDepthf( depth = ", depth, ", )"
-    cgl.glClearDepthf ( depth)
-    ret = cgl.glGetError()
-    if ret: print "OpenGL Error %d / %x" % (ret, ret)
+#crash on android platform
+#cdef void   glClearDepthf (GLclampf depth) with gil:
+#    print "GL glClearDepthf( depth = ", depth, ", )"
+#    cgl.glClearDepthf ( depth)
+#    ret = cgl.glGetError()
+#    if ret: print "OpenGL Error %d / %x" % (ret, ret)
 cdef void   glClearStencil (GLint s) with gil:
     print "GL glClearStencil( s = ", s, ", )"
     cgl.glClearStencil ( s)
@@ -183,11 +185,12 @@ cdef void   glDepthMask (GLboolean flag) with gil:
     cgl.glDepthMask ( flag)
     ret = cgl.glGetError()
     if ret: print "OpenGL Error %d / %x" % (ret, ret)
-cdef void   glDepthRangef (GLclampf zNear, GLclampf zFar) with gil:
-    print "GL glDepthRangef( zNear = ", zNear, ", zFar = ", zFar, ", )"
-    cgl.glDepthRangef ( zNear, zFar)
-    ret = cgl.glGetError()
-    if ret: print "OpenGL Error %d / %x" % (ret, ret)
+#crash on android platform
+#cdef void   glDepthRangef (GLclampf zNear, GLclampf zFar) with gil:
+#    print "GL glDepthRangef( zNear = ", zNear, ", zFar = ", zFar, ", )"
+#    cgl.glDepthRangef ( zNear, zFar)
+#    ret = glGetError()
+#    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void   glDetachShader (GLuint program, GLuint shader) with gil:
     print "GL glDetachShader( program = ", program, ", shader = ", shader, ", )"
     cgl.glDetachShader ( program, shader)
@@ -354,9 +357,7 @@ cdef void   glGetShaderSource (GLuint shader, GLsizei bufsize, GLsizei* length, 
     if ret: print "OpenGL Error %d / %x" % (ret, ret)
 cdef   GLubyte*  glGetString (GLenum name) with gil:
     print "GL glGetString( name = ", name, ", )"
-    ret = cgl.glGetError()
-    if ret: print "OpenGL Error %d / %x" % (ret, ret)
-    return cgl.glGetString ( name)
+    return <GLubyte*><char*>cgl.glGetString ( name)
 cdef void   glGetTexParameterfv (GLenum target, GLenum pname, GLfloat* params) with gil:
     print "GL glGetTexParameterfv( target = ", target, ", pname = ", pname, ", params*=", repr(hex(<long> params)), ", )"
     cgl.glGetTexParameterfv ( target, pname, params)
@@ -481,9 +482,9 @@ cdef void  glScissor (GLint x, GLint y, GLsizei width, GLsizei height) with gil:
 # Skipping generation of: "#cdef void  glShaderBinary (cgl.GLsizei n,  cgl.GLuint* shaders, cgl.GLenum binaryformat,  cgl.GLvoid* binary, cgl.GLsizei length)"
 cdef void  glShaderSource (GLuint shader, GLsizei count,  GLchar** string,  GLint* length) with gil:
     print "GL glShaderSource( shader = ", shader, ", count = ", count, ", string**=", repr(hex(<long> string)), ", length*=", repr(hex(<long> length)), ", )"
-    cgl.glShaderSource ( shader, count, string, length)
-    ret = cgl.glGetError()
-    if ret: print "OpenGL Error %d / %x" % (ret, ret)
+    cgl.glShaderSource ( shader, count, <const_char_ptr*>string, length)
+    ret = glGetError()
+    if ret: print "ERR %d / %x" % (ret, ret)
 cdef void  glStencilFunc (GLenum func, GLint ref, GLuint mask) with gil:
     print "GL glStencilFunc( func = ", func, ", ref = ", ref, ", mask = ", mask, ", )"
     cgl.glStencilFunc ( func, ref, mask)

@@ -26,6 +26,21 @@
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
+<BubbleContent>
+    rows: 1
+    canvas:
+        Color:
+            rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
+        BorderImage:
+            border: self.parent.border if self.parent else (16, 16, 16, 16)
+            texture: root.parent.background_texture if root.parent else None
+            size: self.size
+            pos: self.pos
+
+<BubbleButton>:
+    background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
+    background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
+    border: (0, 0, 0, 0)
 
 <Slider>:
     canvas:
@@ -35,11 +50,11 @@
             border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
             pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
             size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
-            source: 'data/images/slider%s_background.png' % self.orientation[0]
+            source: 'atlas://data/images/defaulttheme/slider%s_background' % self.orientation[0]
         Image:
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
             size: (32, 32)
-            source: 'data/images/slider_cursor.png'
+            source: 'atlas://data/images/defaulttheme/slider_cursor'
 
 <ProgressBar>:
     canvas:
@@ -49,12 +64,12 @@
             border: (12, 12, 12, 12)
             pos: self.x, self.center_y - 12
             size: self.width, 24
-            source: 'data/images/progressbar_background.png'
+            source: 'atlas://data/images/defaulttheme/progressbar_background'
         BorderImage:
             border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
             pos: self.x, self.center_y - 12
             size: self.width * (self.value / float(self.max)), 24
-            source: 'data/images/progressbar.png'
+            source: 'atlas://data/images/defaulttheme/progressbar'
 
 <Scatter>:
     canvas.before:
@@ -83,7 +98,7 @@
             border: (16, 16, 16, 16)
             pos: self.pos
             size: self.size
-            source: 'data/images/textinput.png' if not self.focus else 'data/images/textinput_active.png'
+            source: 'atlas://data/images/defaulttheme/textinput%s' % ('_active' if self.focus else '')
         Color:
             rgba: (1, 0, 0, 1 if self.focus and not self.cursor_blink else 0)
         Rectangle:
@@ -91,6 +106,19 @@
             size: 1, -self.line_height
         Color:
             rgb: (0, 0, 0)
+
+<TextInputCutCopyPaste>:
+    size_hint: None, None
+    size: 150, 50
+    BubbleButton:
+        text: 'Cut'
+        on_release: root.do('cut')
+    BubbleButton:
+        text: 'Copy'
+        on_release: root.do('copy')
+    BubbleButton:
+        text: 'Paste'
+        on_release: root.do('paste')
 
 
 <TreeViewNode>:
@@ -103,7 +131,7 @@
         Color:
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
-            source: 'data/images/tree_%s.png' % ('opened' if self.is_open else 'closed')
+            source: 'atlas://data/images/defaulttheme/tree_%s' % ('opened' if self.is_open else 'closed')
             size: 16, 16
             pos: self.x - 20, self.center_y - 8
     canvas.after:
@@ -254,11 +282,11 @@
             border: 8, 8, 8, 8
             pos: root.pos
             size: root.size
-            source: 'data/images/filechooser_selected.png'
+            source: 'atlas://data/images/defaulttheme/filechooser_selected'
 
     Image:
         size: 48, 48
-        source: 'data/images/filechooser_%s.png' % ('folder' if ctx.isdir else 'file')
+        source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if ctx.isdir else 'file')
         pos: root.x + 24, root.y + 40
     Label:
         text: unicode(ctx.name)
@@ -284,11 +312,11 @@
         Color:
             rgb: 1, 1, 1
         Rectangle:
-            source: 'data/images/switch-background.png'
+            source: 'atlas://data/images/defaulttheme/switch-background'
             size: 83, 32
             pos: self.center_x - 41, self.center_y - 16
         Rectangle:
-            source: 'data/images/switch-button.png'
+            source: 'atlas://data/images/defaulttheme/switch-button'
             size: 43, 32
             pos: self.center_x - 41 + self.active_norm_pos * 41, self.center_y - 16
 
@@ -419,6 +447,8 @@
         FloatLayout:
             id: labellayout
             orientation: 'vertical'
+            size_hint_x: .5
+
             Label:
                 pos_hint: {'y': .5, 'x': 0}
                 text: root.title
@@ -436,8 +466,8 @@
 
         BoxLayout:
             id: content
-            size_hint_x: None
-            width: 150
+            size_hint_x: .5
+
 
 <SettingBoolean>:
     Switch:
@@ -447,6 +477,11 @@
         on_active: root.value = root.values[int(args[1])]
 
 <SettingString>:
+    Label:
+        text: str(root.value)
+        pos: root.pos
+
+<SettingPath>:
     Label:
         text: str(root.value)
         pos: root.pos
@@ -551,3 +586,83 @@
                 id: content
                 height: self.minimum_height
                 width: sv.width
+
+<ScrollView>:
+    canvas.after:
+        Color:
+            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_y else 0]
+        Rectangle:
+            pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
+            size: self.bar_width, self.height * self.vbar[1]
+        Color:
+            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_x else 0]
+        Rectangle:
+            pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
+            size: self.width * self.hbar[1], self.bar_width
+
+
+# =============================================================================
+# Video player
+# =============================================================================
+
+<VideoPlayerPreview>:
+    pos_hint: {'x': 0, 'y': 0}
+    Image:
+        source: root.source
+        color: (.5, .5, .5, 1)
+        pos_hint: {'x': 0, 'y': 0}
+
+    Image:
+        source: 'atlas://data/images/defaulttheme/player-play-overlay' if not root.click_done else 'data/images/image-loading.gif'
+        pos_hint: {'x': 0, 'y': 0}
+
+<VideoPlayerAnnotation>:
+    canvas.before:
+        Color:
+            rgba: self.annotation['bgcolor'] if 'bgcolor' in self.annotation else (0, 0, 0, 0.8)
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: self.annotation['bgsource'] if 'bgsource' in self.annotation else None
+            border: self.annotation['border'] if 'border' in self.annotation else (0, 0, 0, 0)
+    size_hint: self.annotation['size_hint'] if 'size_hint' in self.annotation else (None, None)
+    size: self.annotation['size'] if 'size' in self.annotation else (self.texture_size[0] + 20, self.texture_size[1] + 20)
+    pos_hint: self.annotation['pos_hint'] if 'pos_hint' in self.annotation else {'center_x': .5, 'y': .05}
+
+<VideoPlayer>:
+    container: container
+    cols: 1
+
+    FloatLayout:
+        cols: 1
+        id: container
+
+    GridLayout:
+        rows: 1
+        size_hint_y: None
+        height: 44
+
+        VideoPlayerPlayPause:
+            size_hint_x: None
+            video: root
+            width: 44
+            source: root.image_play if not root.play else root.image_pause
+
+        VideoPlayerVolume:
+            video: root
+            size_hint_x: None
+            width: 44
+            source: root.image_volumehigh if root.volume > 0.8 else (root.image_volumemedium if root.volume > 0.4 else (root.image_volumelow if root.volume > 0 else root.image_volumemuted))
+
+        Widget:
+            size_hint_x: None
+            width: 5
+
+        VideoPlayerProgressBar:
+            video: root
+            max: root.duration or 1
+            value: root.position
+
+        Widget:
+            size_hint_x: None
+            width: 10

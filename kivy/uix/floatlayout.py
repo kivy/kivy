@@ -38,7 +38,6 @@ For example, if you create a FloatLayout with size of (300, 300)::
 
 __all__ = ('FloatLayout', )
 
-from kivy.clock import Clock
 from kivy.uix.layout import Layout
 
 

@@ -1,5 +1,3 @@
-#cython: embedsignature=True
-
 '''
 Shader
 ======
@@ -70,7 +68,7 @@ cdef class ShaderSource:
 
         # create and compile
         shader = glCreateShader(self.shadertype)
-        glShaderSource(shader, 1, <char**> &source, NULL)
+        glShaderSource(shader, 1, <const_char_ptr*> &source, NULL)
         glCompileShader(shader)
 
         # show any messages
@@ -177,6 +175,10 @@ cdef class Shader:
         '''Pass a uniform variable to the shader
         '''
         cdef int vec_size, loc
+        cdef int i1, i2, i3, i4
+        cdef float f1, f2, f3, f4
+        cdef tuple tuple_value
+        cdef list list_value
         val_type = type(value)
         loc = self.uniform_locations.get(name, -1)
         if loc == -1:
@@ -194,24 +196,54 @@ cdef class Shader:
             glUniform1i(loc, value)
         elif val_type is float:
             glUniform1f(loc, value)
-        elif val_type is list or val_type is tuple:
-            #must have been a list, tuple, or other sequnce and be a vector uniform
-            val_type = type(value[0])
-            vec_size = len(value)
+        elif val_type is list:
+            list_value = value
+            val_type = type(list_value[0])
+            vec_size = len(list_value)
             if val_type is float:
                 if vec_size == 2:
-                    glUniform2f(loc, value[0], value[1])
+                    f1, f2 = list_value
+                    glUniform2f(loc, f1, f2)
                 elif vec_size == 3:
-                    glUniform3f(loc, value[0], value[1], value[2])
+                    f1, f2, f3 = list_value
+                    glUniform3f(loc, f1, f2, f3)
                 elif vec_size == 4:
-                    glUniform4f(loc, value[0], value[1], value[2], value[3])
+                    f1, f2, f3, f4 = list_value
+                    glUniform4f(loc, f1, f2, f3, f4)
             elif val_type is int:
                 if vec_size == 2:
-                    glUniform2i(loc, value[0], value[1])
+                    i1, i2 = list_value
+                    glUniform2i(loc, i1, i2)
                 elif vec_size == 3:
-                    glUniform3i(loc, value[0], value[1], value[2])
+                    i1, i2, i3 = list_value
+                    glUniform3i(loc, i1, i2, i3)
                 elif vec_size == 4:
-                    glUniform4i(loc, value[0], value[1], value[2], value[3])
+                    i1, i2, i3, i4 = list_value
+                    glUniform4i(loc, i1, i2, i3, i4)
+        elif val_type is tuple:
+            tuple_value = value
+            val_type = type(tuple_value[0])
+            vec_size = len(tuple_value)
+            if val_type is float:
+                if vec_size == 2:
+                    f1, f2 = tuple_value
+                    glUniform2f(loc, f1, f2)
+                elif vec_size == 3:
+                    f1, f2, f3 = tuple_value
+                    glUniform3f(loc, f1, f2, f3)
+                elif vec_size == 4:
+                    f1, f2, f3, f4 = tuple_value
+                    glUniform4f(loc, f1, f2, f3, f4)
+            elif val_type is int:
+                if vec_size == 2:
+                    i1, i2 = tuple_value
+                    glUniform2i(loc, i1, i2)
+                elif vec_size == 3:
+                    i1, i2, i3 = tuple_value
+                    glUniform3i(loc, i1, i2, i3)
+                elif vec_size == 4:
+                    i1, i2, i3, i4 = tuple_value
+                    glUniform4i(loc, i1, i2, i3, i4)
         else:
             raise Exception('for <%s>, type not handled <%s>' % (name, val_type))
 

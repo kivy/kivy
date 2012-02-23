@@ -16,13 +16,13 @@ ignore_list = (
 
 import os
 import sys
-import re
 from glob import glob
 
 import kivy
 
 # force loading of kivy modules
 import kivy.app
+import kivy.atlas
 import kivy.core.audio
 import kivy.core.camera
 import kivy.core.clipboard
@@ -30,6 +30,7 @@ import kivy.core.gl
 import kivy.core.image
 import kivy.core.spelling
 import kivy.core.text
+import kivy.core.text.markup
 import kivy.core.video
 import kivy.core.window
 import kivy.ext
@@ -40,8 +41,10 @@ import kivy.modules.keybinding
 import kivy.modules.monitor
 import kivy.modules.touchring
 import kivy.modules.inspector
+import kivy.modules.recorder
 import kivy.network.urlrequest
 import kivy.support
+import kivy.input.recorder
 from kivy.factory import Factory
 
 # force loading of all classes from factory

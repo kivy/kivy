@@ -105,7 +105,7 @@ class EventLoopBase(EventDispatcher):
     def ensure_window(self):
         '''Ensure that we have an window
         '''
-        import kivy.core.window
+        __import__('kivy.core.window')
 
     def set_window(self, window):
         '''Set the window used for event loop
@@ -241,10 +241,9 @@ class EventLoopBase(EventDispatcher):
                 me.pop()
         me.grab_state = False
 
-    def _dispatch_input(self, etype, me):
-        ev = (etype, me)
+    def _dispatch_input(self, *ev):
         # remove the save event for the touch if exist
-        if ev in self.input_events[:]:
+        if ev in self.input_events:
             self.input_events.remove(ev)
         self.input_events.append(ev)
 

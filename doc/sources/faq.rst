@@ -18,7 +18,7 @@ Most of time, this issue is due to an usage of old graphics driver. Install the
 latest graphics driver available for your graphics card, and it could be ok.
 
 If not, please report a detailled issue to github, by following the
-:ref:`contribute` document, in the section `Reporting an Issue`. This is very
+:doc:`contribute` document, in the section `Reporting an Issue`. This is very
 important for us because that kind of error can be very hard to debug. Give us
 all the informations you can give about your environment and execution.
 
@@ -197,7 +197,7 @@ changes, especially new features.
 
 
 Does the Kivy project participate in Google's Summer of Code 2011?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~---------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Since Google announced that there will be a GSoC 2011 we have had many
 potential students ask whether we would participate.

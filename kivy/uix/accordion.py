@@ -190,20 +190,22 @@ class AccordionItem(FloatLayout):
     None.
     '''
 
-    background_normal = StringProperty('data/images/button.png')
+    background_normal = StringProperty(
+        'atlas://data/images/defaulttheme/button')
     '''Background image of the accordion item used for default graphical
     representation, when the item is collapsed.
 
     :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
-    default to 'data/images/button.png'
+    default to 'atlas://data/images/defaulttheme/button'
     '''
 
-    background_selected = StringProperty('data/images/button_pressed.png')
+    background_selected = StringProperty(
+        'atlas://data/images/defaulttheme/button_pressed')
     '''Background image of the accordion item used for default graphical
     representation, when the item is selected (not collapsed).
 
     :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
-    default to 'data/images/button_pressed.png'
+    default to 'atlas://data/images/defaulttheme/button_pressed'
     '''
 
     orientation = OptionProperty('vertical', options=(

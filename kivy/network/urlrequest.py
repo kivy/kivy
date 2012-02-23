@@ -27,13 +27,13 @@ None, a "POST" request will be done. It's up to you to adjust
 Example of fetching twitter trends::
 
     def got_twitter_trends(req, result):
-        trends = result['trends']
+        trends = result[0]['trends']
         print 'Last %d twitter trends:' % len(trends),
         for trend in trends:
             print trend['name'],
         print '!'
 
-    req = UrlRequest('http://api.twitter.com/1/trends.json',
+    req = UrlRequest('https://api.twitter.com/1/trends/1.json',
             got_twitter_trends)
 
 Example of Posting data (adapted from httplib example)::
@@ -60,11 +60,12 @@ from json import loads
 from httplib import HTTPConnection
 from time import sleep
 
+HTTPSConnection = None
 try:
     from httplib import HTTPSConnection
 except ImportError:
     # on android platform, this is not available yet.
-    HTTPSConnection = None
+    pass
 
 from urlparse import urlparse
 from kivy.clock import Clock
@@ -330,7 +331,7 @@ class UrlRequest(Thread):
         wait for the request to be finished (until :data:`resp_status` is not
         None)
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         while self.resp_status is None:
             self._dispatch_result(delay)
@@ -339,7 +340,6 @@ class UrlRequest(Thread):
 
 if __name__ == '__main__':
 
-    from time import sleep
     from pprint import pprint
 
     def on_success(req, result):

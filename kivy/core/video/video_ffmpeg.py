@@ -26,8 +26,6 @@ from kivy.graphics.texture import Texture
 
 class VideoFFMpeg(VideoBase):
 
-    __slots__ = ('_do_load', '_player')
-
     def __init__(self, **kwargs):
         self._do_load = False
         self._player = None

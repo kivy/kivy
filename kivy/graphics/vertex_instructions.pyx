@@ -1,5 +1,3 @@
-#cython: embedsignature=True
-
 '''
 Vertex Instructions
 ===================
@@ -57,10 +55,11 @@ cdef class Line(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
-        self.points = kwargs.get('points', [])
+        v = kwargs.get('points')
+        self.points = v if v is not None else []
         self.batch.set_mode('line_strip')
-        self._dash_length = kwargs.get('dash_length', 1)
-        self._dash_offset = kwargs.get('dash_offset', 0)
+        self._dash_length = kwargs.get('dash_length') or 1
+        self._dash_offset = kwargs.get('dash_offset') or 0
 
     cdef void build(self):
         cdef int i, count = len(self.points) / 2
@@ -203,13 +202,14 @@ cdef class Bezier(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
-        self.points = kwargs.get('points', [0, 0, 0, 0, 0, 0, 0, 0])
-        self._segments = kwargs.get('segments', 10)
-        self._loop = kwargs.get('loop', False)
+        v = kwargs.get('points')
+        self.points = v if v is not None else [0, 0, 0, 0, 0, 0, 0, 0]
+        self._segments = kwargs.get('segments') or 10
+        self._loop = kwargs.get('loop') or False
         if self._loop:
             self.points.extend(self.points[:2])
-        self._dash_length = kwargs.get('dash_length', 1)
-        self._dash_offset = kwargs.get('dash_offset', 0)
+        self._dash_length = kwargs.get('dash_length') or 1
+        self._dash_offset = kwargs.get('dash_offset') or 0
         self.batch.set_mode('line_strip')
 
     cdef void build(self):
@@ -254,7 +254,7 @@ cdef class Bezier(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
-        tex_x = 0
+        tex_x = x = 0
         for x in xrange(self._segments):
             l = x / (1.0 * self._segments)
             # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
@@ -375,7 +375,7 @@ cdef class Mesh(VertexInstruction):
 
         indices = [0, 1, 2]
 
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     :Parameters:
         `vertices`: list
@@ -392,9 +392,11 @@ cdef class Mesh(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
-        self.vertices = kwargs.get('vertices', [])
-        self.indices = kwargs.get('indices', [])
-        self.mode = kwargs.get('mode', 'points')
+        v = kwargs.get('vertices')
+        self.vertices = v if v is not None else []
+        v = kwargs.get('indices')
+        self.indices = v if v is not None else []
+        self.mode = kwargs.get('mode') or 'points'
 
     cdef void build(self):
         cdef int i, vcount = len(self._vertices) / 4
@@ -489,8 +491,9 @@ cdef class Point(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
-        self.points = kwargs.get('points', [])
-        self.pointsize = kwargs.get('pointsize', 1.)
+        v = kwargs.get('points')
+        self.points = v if v is not None else []
+        self.pointsize = kwargs.get('pointsize') or 1.
 
     cdef void build(self):
         cdef float t0, t1, t2, t3, t4, t5, t6, t7
@@ -639,7 +642,8 @@ cdef class Triangle(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
-        self.points = kwargs.get('points', (0.0,0.0, 100.0,0.0, 50.0,100.0))
+        v = kwargs.get('points')
+        self.points = v if v is not None else (0.0,0.0, 100.0,0.0, 50.0,100.0)
 
     cdef void build(self):
         cdef list vc, tc
@@ -685,9 +689,10 @@ cdef class Quad(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self)
-        self.points = kwargs.get('points',
+        v = kwargs.get('points')
+        self.points = v if v is not None else \
                (  0.0,  50.0,   50.0,   0.0,
-                100.0,  50.0,   50.0, 100.0 ))
+                100.0,  50.0,   50.0, 100.0 )
 
     cdef void build(self):
         cdef list vc, tc
@@ -723,6 +728,10 @@ cdef class Quad(VertexInstruction):
             return self._points
         def __set__(self, points):
             self._points = list(points)
+            if len(self._points) != 8:
+                raise GraphicException(
+                    'Quad: invalid number of points (%d instead of 8' % len(
+                    self._points))
             self.flag_update()
 
 
@@ -739,8 +748,10 @@ cdef class Rectangle(VertexInstruction):
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
-        self.pos  = kwargs.get('pos',  (0,0))
-        self.size = kwargs.get('size', (100,100))
+        v = kwargs.get('pos')
+        self.pos = v if v is not None else (0, 0)
+        v = kwargs.get('size')
+        self.size = v if v is not None else (100, 100)
 
     cdef void build(self):
         cdef float x, y, w, h
@@ -813,7 +824,8 @@ cdef class BorderImage(Rectangle):
 
     def __init__(self, **kwargs):
         Rectangle.__init__(self, **kwargs)
-        self.border = kwargs.get('border', (10,10,10,10))
+        v = kwargs.get('border')
+        self.border = v if v is not None else (10, 10, 10, 10)
 
     cdef void build(self):
         if not self.texture:
@@ -830,36 +842,41 @@ cdef class BorderImage(Rectangle):
         # width and heigth of texture in pixels, and tex coord space
         cdef float tw, th, tcw, tch
         cdef list tc = self._tex_coords
-        tsize  = self.texture.size
-        tw  = tsize[0]
-        th  = tsize[1]
-        tcw = tc[2] - tc[0]  #right - left
-        tch = tc[7] - tc[1]  #top - bottom
+        cdef float tc0, tc1, tc2, tc7
+        tc0 = tc[0]
+        tc1 = tc[1]
+        tc2 = tc[2]
+        tc7 = tc[7]
+        tw, th  = self.texture.size
+        tcw = tc2 - tc0  #right - left
+        tch = tc7 - tc1  #top - bottom
 
         # calculate border offset in texture coord space
         # border width(px)/texture width(px) *  tcoord width
         cdef list b = self._border
+        cdef float b0, b1, b2, b3
         cdef float tb[4] # border offset in texture coordinate space
-        tb[0] = b[0] / th * tch
-        tb[1] = b[1] / tw * tcw
-        tb[2] = b[2] / th * tch
-        tb[3] = b[3] / tw * tcw
+        b0, b1, b2, b3 = b
+        tb[0] = b0 / th * tch
+        tb[1] = b1 / tw * tcw
+        tb[2] = b2 / th * tch
+        tb[3] = b3 / tw * tcw
 
 
         # horizontal and vertical sections
         cdef float hs[4]
         cdef float vs[4]
         hs[0] = x;            vs[0] = y
-        hs[1] = x + b[3];     vs[1] = y + b[0]
-        hs[2] = x + w - b[1]; vs[2] = y + h - b[2]
+        hs[1] = x + b3;       vs[1] = y + b0
+        hs[2] = x + w - b1;   vs[2] = y + h - b2
         hs[3] = x + w;        vs[3] = y + h
 
         cdef float ths[4]
         cdef float tvs[4]
-        ths[0] = tc[0];              tvs[0] = tc[1]
-        ths[1] = tc[0] + tb[3];      tvs[1] = tc[1] + tb[0]
-        ths[2] = tc[0] + tcw-tb[1];  tvs[2] = tc[1] + tch - tb[2]
-        ths[3] = tc[0] + tcw;        tvs[3] = tc[1] + tch
+        ths[0] = tc0;              tvs[0] = tc1
+        ths[1] = tc0 + tb[3];      tvs[1] = tc1 + tb[0]
+        ths[2] = tc0 + tcw-tb[1];  tvs[2] = tc1 + tch - tb[2]
+        ths[3] = tc0 + tcw;        tvs[3] = tc1 + tch
 
         '''
             v9---v8------v7----v6
@@ -940,9 +957,9 @@ cdef class Ellipse(Rectangle):
     def __init__(self, *args, **kwargs):
         Rectangle.__init__(self, **kwargs)
         self.batch.set_mode('triangle_fan')
-        self._segments = kwargs.get('segments', 180)
-        self._angle_start = kwargs.get('angle_start', 0)
-        self._angle_end = kwargs.get('angle_end', 360)
+        self._segments = kwargs.get('segments') or 180
+        self._angle_start = kwargs.get('angle_start') or 0
+        self._angle_end = kwargs.get('angle_end') or 360
 
     cdef void build(self):
         cdef list tc = self.tex_coords

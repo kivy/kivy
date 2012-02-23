@@ -128,11 +128,12 @@ class CameraBase(EventDispatcher):
 providers = ()
 
 if sys.platform != 'darwin':
-    providers += (('gstreamer', 'camera_gstreamer', 'CameraGStreamer'),)
+    providers += (('gstreamer', 'camera_gstreamer', 'CameraGStreamer'), )
 if sys.platform == 'win32':
-    providers += (('videocapture', 'camera_videocapture', 'CameraVideoCapture'),)
+    providers += (('videocapture', 'camera_videocapture',
+        'CameraVideoCapture'), )
 
-providers += (('opencv', 'camera_opencv', 'CameraOpenCV'),)
+providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
 
 
 Camera = core_select_lib('camera', (providers))

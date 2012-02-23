@@ -84,9 +84,9 @@ class Widget(EventDispatcher):
         `on_touch_up`:
             Fired when an existing touch disappears
 
-    .. versionchanged::
+    .. versionchanged:: 1.0.9
 
-        In 1.0.9, everything related to properties have been moved in
+        Everything related to properties have been moved in
         :class:`~kivy.event.EventDispatcher`. Properties can now be used for
         contruct simple class, without inherit of :class:`Widget`.
 
@@ -109,13 +109,13 @@ class Widget(EventDispatcher):
 
         # Apply all the styles
         if '__no_builder' not in kwargs:
-            current_root = Builder.idmap.get('root')
-            Builder.idmap['root'] = self
+            #current_root = Builder.idmap.get('root')
+            #Builder.idmap['root'] = self
             Builder.apply(self)
-            if current_root is not None:
-                Builder.idmap['root'] = current_root
-            else:
-                Builder.idmap.pop('root')
+            #if current_root is not None:
+            #    Builder.idmap['root'] = current_root
+            #else:
+            #    Builder.idmap.pop('root')
 
     #
     # Collision

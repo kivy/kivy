@@ -10,7 +10,7 @@ Issue Tracker
 -------------
 
 If you found an issue with the code or have a feature request, please see our
-`issue tracker <https://github.com/tito/kivy/issues>`_. If there is no issue
+`issue tracker <https://github.com/kivy/kivy/issues>`_. If there is no issue
 yet that matches your inquiry, feel free to create a new one. Please make sure
 you receive the mails that github sends if we comment on the issue in case we
 need more information.
@@ -25,10 +25,10 @@ Mail
 ----
 
 For users of our framework, there is a mailing list for support inquiries
-`on Google Groups <https://groups.google.com/group/kivy-users>`_. Use this list
+`on kivy-users Google Groups <https://groups.google.com/group/kivy-users>`_. Use this list
 if you have issues with your Kivy-based app.
 Also, we have a mailing list for matters that deal with development of the actual
-Kivy framework code `on Google Groups <https://groups.google.com/group/kivy-dev>`_.
+Kivy framework code `on kivy-dev Google Groups <https://groups.google.com/group/kivy-dev>`_.
 
 
 IRC

@@ -13,7 +13,7 @@ force:
 	$(PYTHON) setup.py build_ext --inplace -f
 
 mesabuild:
-	$(PYTHON) setup.py build_ext --inplace --define __MESAGL__
+	/usr/bin/env USE_MESAGL=1 $(PYTHON) setup.py build_ext --inplace
 
 ios-build:
 	-ln -s $(KIVYIOSROOT)/Python-2.7.1/python
@@ -66,8 +66,10 @@ batchtest:
 	nosetests kivy/tests
 
 cover:
-	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
+	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
 
+install:
+	python setup.py install
 clean:
 	-rm -rf doc/build
 	-rm -rf build

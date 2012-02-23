@@ -1,16 +1,31 @@
+import sys
 from fnmatch import filter as fnfilter
-from sys import platform, argv
 from os.path import join, dirname, realpath, sep, exists
 from os import walk, environ
 from distutils.core import setup
 from distutils.extension import Extension
+
+platform = sys.platform
+
+#
+# Detect Python for android project
+# FIXME: add a specific var for this project, not just guess
+#
+ndkplatform = environ.get('NDKPLATFORM')
+if ndkplatform is not None and environ.get('LIBLINK'):
+    platform = 'android'
+if environ.get('KIVYIOSROOT'):
+    platform = 'ios'
 
 try:
     # check for cython
     from Cython.Distutils import build_ext
     have_cython = True
 except ImportError:
-    print '\nCython is missing, its required for compiling kivy !\n\n'
+    if platform not in ('android', 'ios'):
+        print '\nCython is missing, its required for compiling kivy !\n\n'
+        raise
+    # on python-for-android, cython usage is external
     have_cython = False
     from distutils.command.build_ext import build_ext
 
@@ -47,7 +62,7 @@ c_options = {
     'use_glew': False,
     'use_sdl': False,
     'use_ios': False,
-    'use_mesagl': False}
+    'use_mesagl': 'USE_MESAGL' in environ}
 
 # now check if environ is changing the default values
 for key in c_options.keys():
@@ -67,12 +82,11 @@ if kivy_ios_root is not None:
     c_options['use_sdl'] = True
 
 # Detect which opengl version headers to use
-if platform == 'win32':
+if platform in ('android', 'darwin'):
+    pass
+elif platform == 'win32':
     print 'Windows platform detected, force GLEW usage.'
     c_options['use_glew'] = True
-elif platform == 'darwin':
-    # macosx is using their own gl.h
-    pass
 else:
     # searching GLES headers
     default_header_dirs = ['/usr/include', '/usr/local/include']
@@ -92,6 +106,9 @@ else:
 class KivyBuildExt(build_ext):
 
     def build_extensions(self):
+        print 'Build configuration is:'
+        for opt, value in c_options.iteritems():
+            print ' *', opt, ' = ', repr(value)
         print 'Generate config.h'
         config_h = join(dirname(__file__), 'kivy', 'graphics', 'config.h')
         with open(config_h, 'w') as fd:
@@ -144,6 +161,10 @@ if True:
     elif platform.startswith('freebsd'):
         include_dirs += ['/usr/local/include']
         extra_link_args += ['-L', '/usr/local/lib']
+    elif platform == 'android':
+        include_dirs += [join(ndkplatform, 'usr', 'include')]
+        extra_link_args += ['-L', join(ndkplatform, 'usr', 'lib')]
+        libraries.append('GLESv2')
     else:
         libraries.append('GLESv2')
 
@@ -162,35 +183,14 @@ if True:
             pyxl.pop(0)
         return '.'.join(pyxl)
 
-    OrigExtension = Extension
-
-    def Extension(*args, **kwargs):
-        # Small hack to only compile for x86_64 on OSX.
-        # Is there a better way to do this?
-        #if platform == 'darwin':
-        #    extra_args = ['-arch', 'x86_64']
-        #    kwargs['extra_compile_args'] = extra_args + \
-        #        kwargs.get('extra_compile_args', [])
-        #    kwargs['extra_link_args'] = extra_args + \
-        #        kwargs.get('extra_link_args', [])
-        return OrigExtension(*args, **kwargs)
-
     if c_options['use_sdl']:
         sdl_libraries = ['SDL', 'SDL_ttf', 'freetype', 'z', 'bz2', 'm']
         sdl_includes = []
         sdl_extra_link_args = []
         sdl_extra_compile_args = []
-        if platform == 'darwin':
+        if platform in ('ios', 'darwin'):
             # Paths as per homebrew (modified formula to use hg checkout)
             if c_options['use_ios']:
-                '''
-                sdl_extra_link_args += [
-                        '-march=armv7', '-mcpu=arm1176jzf-s',
-                        '-mcpu=cortex-a8']
-                sdl_extra_compile_args += [
-                        '-march=armv7', '-mcpu=arm1176jzf-s',
-                        '-mcpu=cortex-a8']
-                '''
                 # Note: on IOS, SDL is already loaded by the launcher/main.m
                 # So if we add it here, it will just complain about duplicate
                 # symbol, cause libSDL.a would be included in main.m binary +
@@ -214,8 +214,31 @@ if True:
             sdl_includes = ['/usr/local/include/SDL']
             sdl_extra_link_args += ['-L/usr/local/lib/']
 
-    pxd_core = [x for x in pxd_files if not 'graphics' in x]
-    pxd_graphics = [x for x in pxd_files if 'graphics' in x]
+    class CythonExtension(Extension):
+
+        def __init__(self, *args, **kwargs):
+            # Small hack to only compile for x86_64 on OSX.
+            # Is there a better way to do this?
+            if platform == 'darwin':
+                extra_args = ['-arch', 'x86_64']
+                kwargs['extra_compile_args'] = extra_args + \
+                    kwargs.get('extra_compile_args', [])
+                kwargs['extra_link_args'] = extra_args + \
+                    kwargs.get('extra_link_args', [])
+            Extension.__init__(self, *args, **kwargs)
+            self.pyrex_directives = {
+                'profile': 'USE_PROFILE' in environ,
+                'embedsignature': True}
+            # XXX with pip, setuptools is imported before distutils, and change
+            # our pyx to c, then, cythonize doesn't happen. So force again our
+            # sources
+            self.sources = args[1]
+
+    # simple extensions
+    for pyx in (x for x in pyx_files if not 'graphics' in x):
+        pxd = [x for x in pxd_files if not 'graphics' in x]
+        module_name = get_modulename_from_file(pyx)
+        ext_modules.append(CythonExtension(module_name, [pyx] + pxd))
 
     for pyx in pyx_files:
         module_name = get_modulename_from_file(pyx)
@@ -252,14 +275,8 @@ if True:
             ext_extra_link_args += ['-framework', 'QuartzCore']
             ext_extra_link_args += ['-framework', 'ImageIO']
 
-        elif 'graphics' in pyx:
-            ext_files += pxd_graphics
-        else:
-            ext_files += pxd_core
-
-        ext_modules.append(Extension(
-            module_name,
-            ext_files,
+        ext_modules.append(CythonExtension(
+            module_name, ext_files,
             libraries=ext_libraries,
             extra_compile_args=ext_extra_compile_args,
             include_dirs=ext_include_dirs,
@@ -332,6 +349,7 @@ setup(
         'data/images/*.png',
         'data/images/*.jpg',
         'data/images/*.gif',
+        'data/images/*.atlas',
         'data/keyboards/*.json',
         'data/logo/*.png',
         'data/glsl/*.png',

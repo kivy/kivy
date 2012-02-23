@@ -28,11 +28,9 @@
 #		if __APPLE__
 #			include "common_subset.h"
 #		else
-#			warning "GL redirect is set on GLES 2 headers"
 #			include <GLES2/gl2.h>
 #		endif
 #	else
-#		warning "GL redirect is set on standard GL headers"
 #		ifdef __APPLE__
 #			include <OpenGL/gl.h>
 #		else
@@ -49,9 +47,16 @@
 // kivy in an headless env, without proper GL support.
 // This is a hack to prevent to link with wrong symbol. :(
 #if __USE_MESAGL == 1
-#	define glBlendEquationSeparate
+#	define glBlendEquationSeparate(x, y)
 #	define glDepthRangef glDepthRange
 #	define glClearDepthf glClearDepth
+
+// C redirection to prevent warning of undeclared symbol
+// (theses functions are not existing in GLES2, but if we are using GLES2
+// headers with GL library, we need to declare them.)
+GL_APICALL void GL_APIENTRY glDepthRange( GLclampf near_val, GLclampf far_val );
+GL_APICALL void GL_APIENTRY glClearDepth( GLclampf depth );
+
 #endif
 
 #endif

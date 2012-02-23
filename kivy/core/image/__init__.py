@@ -18,11 +18,13 @@ from kivy.core import core_register_libs
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy.clock import Clock
+from kivy.atlas import Atlas
+from kivy.resources import resource_find
 import zipfile
 try:
-    import cStringIO as SIO
+    SIO = __import__('cStringIO')
 except ImportError:
-    import StringIO as SIO
+    SIO = __import__('StringIO')
 
 
 # late binding
@@ -31,6 +33,7 @@ Texture = TextureRegion = None
 
 # register image caching only for keep_data=True
 Cache.register('kv.image', timeout=60)
+Cache.register('kv.atlas')
 
 
 class ImageData(object):
@@ -260,6 +263,49 @@ class ImageLoader(object):
 
     @staticmethod
     def load(filename, **kwargs):
+
+        # atlas ?
+        if filename[:8] == 'atlas://':
+            # remove the url
+            rfn = filename[8:]
+            # last field is the ID
+            try:
+                rfn, uid = rfn.rsplit('/', 1)
+            except ValueError:
+                raise ValueError('Image: Invalid %s name for atlas' % filename)
+
+            # search if we already got the atlas loaded
+            atlas = Cache.get('kv.atlas', rfn)
+
+            # atlas already loaded, so reupload the missing texture in cache,
+            # because when it's not in use, the texture can be removed from the
+            # kv.texture cache.
+            if atlas:
+                #print 'ATLAS REUSE', filename
+                texture = atlas[uid]
+                fn = 'atlas://%s/%s' % (rfn, uid)
+                cid = '%s|%s|%s' % (fn, False, 0)
+                Cache.append('kv.texture', cid, texture)
+                return texture
+
+            # search with resource
+            afn = rfn
+            if not afn.endswith('.atlas'):
+                afn += '.atlas'
+            afn = resource_find(afn)
+            if not afn:
+                raise Exception('Unable to found %r atlas' % afn)
+            #print 'ATLAS LOAD', filename
+            atlas = Atlas(afn)
+            Cache.append('kv.atlas', rfn, atlas)
+            # first time, fill our texture cache.
+            for nid, texture in atlas.textures.iteritems():
+                fn = 'atlas://%s/%s' % (rfn, nid)
+                cid = '%s|%s|%s' % (fn, False, 0)
+                #print 'register', cid
+                Cache.append('kv.texture', cid, texture)
+            return atlas[uid]
+
         # extract extensions
         ext = filename.split('.')[-1].lower()
 
@@ -499,13 +545,18 @@ class Image(EventDispatcher):
 
         # if image not already in cache then load
         tmpfilename = self._filename
-        self.image = ImageLoader.load(
+        image = ImageLoader.load(
                 self._filename, keep_data=self._keep_data,
                 mipmap=self._mipmap)
         self._filename = tmpfilename
 
         # put the image into the cache if needed
-        Cache.append('kv.image', uid, self.image)
+        if isinstance(image, Texture):
+            self._texture = image
+            self._size = image.size
+        else:
+            self.image = image
+            Cache.append('kv.image', uid, self.image)
 
     filename = property(_get_filename, _set_filename,
             doc='Get/set the filename of image')

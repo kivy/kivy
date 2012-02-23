@@ -37,7 +37,7 @@ spelling, weird example, please take 2 minutes to report the issue.
 
 #. Execute again your code, and copy/paste the complete output to http://paste.pocoo.org/,
    including the log from kivy and the python backtrace.
-#. Open https://github.com/tito/kivy/issues/
+#. Open https://github.com/kivy/kivy/issues/
 #. Write a title of your issue
 #. Explain how we can do to reproduce the issue + paste the link of the output previously sent on pocoo
 #. Validate the issue, you're done !
@@ -82,7 +82,7 @@ instructions from :ref:`dev-install`, but you don't clone our repository,
 but the fork you create with the following steps:
 
     #. Log in to GitHub
-    #. Create a fork of the `Kivy repository <https://github.com/tito/kivy>`_ by
+    #. Create a fork of the `Kivy repository <https://github.com/kivy/kivy>`_ by
        clicking the *fork* button.
     #. Clone your fork of our repository to your computer. Your fork will have
        the git remote name 'origin' and you will be on branch 'master'.
@@ -148,3 +148,9 @@ Unit tests contributions
 For testing team, we have the document :doc:`contribute-unittest` that
 explain how kivy unit test is working, and how you can create your own. Use the
 same approach as the `Code Workflow` to submit new tests.
+
+.. toctree::
+    :maxdepth: 2
+
+    contribute-unittest
+

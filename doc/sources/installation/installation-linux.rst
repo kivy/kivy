@@ -1,21 +1,57 @@
-Installation on Ubuntu
-======================
+Installation on Linux
+=====================
 
-The following instructions are for Ubuntu, but they should work in a
-similar fashion for other Linux distributions (e.g. Debian, opensuse,
-fedora, etc.). Obviously you will need to adjust the commands.
+Prerequisites
+-------------
 
-Ubuntu 10.10 (Maverick)
------------------------
-
-Unfortunately there is no kivy package in the Ubuntu repositories yet.
-We're working on it. Until then, do the following instead:
+Ubuntu (11.10)
+~~~~~~~~~~~~~~
 
 ::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good cython python-dev \
       build-essential libgl1-mesa-dev libgles2-mesa-dev
+
+Fedora (16)
+~~~~~~~~~~~
+
+::
+
+    $ sudo yum install python-distutils-extra python-enchant freeglut PyOpenGL \
+    SDL_ttf-devel SDL_mixer-devel pygame pygame-devel Cython khrplatform-devel \
+    mesa-libGLES mesa-libGLES-devel gstreamer-plugins-good gstreamer \
+    gstreamer-python mtdev-devel
+
+
+OpenSuse (12.1)
+~~~~~~~~~~~~~~~
+
+::
+
+    $ sudo zypper install python-distutils-extra python-pygame python-opengl \
+    python-gstreamer-0_10 python-enchant gstreamer-0_10-plugins-good \
+    python-Cython python-devel Mesa-devel
+    $ zypper install -t pattern devel_C_C++
+
+
+Mageia (1 and 2(cauldron))
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    $ su
+    $ urpmi python-setuptools python-pygame python-opengl \
+    gstreamer0.10-python python-enchant gstreamer0.10-plugins-good \
+    python-cython lib64python-devel lib64mesagl1-devel lib64mesaegl1-devel \
+    lib64mesaglesv2_2-devel make gcc
+
+
+Installation
+------------
+
+If you're installing Kivy for the first time, do::
+
     $ sudo easy_install kivy
 
 If you already installed kivy before, you can upgrade it with::
@@ -50,11 +86,11 @@ Then you can go to the example directory, and run it::
 
 If you don't know about Unix and symbolic link, you can create a link directly in your home directory, for an easier access. For example:
 
-    #. Get the example path from the command line above
-    #. Paste in your console::
+#. Get the example path from the command line above
+#. Paste in your console::
 
-        $ ln -s <path to kivy-examples> ~/
+    $ ln -s <path to kivy-examples> ~/
 
-    #. Then, you can access to kivy-examples directly in your Home directory::
+#. Then, you can access to kivy-examples directly in your Home directory::
 
-        $ cd ~/kivy-examples
+    $ cd ~/kivy-examples

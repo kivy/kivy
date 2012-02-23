@@ -1,5 +1,3 @@
-#cython: embedsignature=True
-
 '''
 OpenGL
 ======
@@ -16,15 +14,7 @@ This module is python wrapper for OpenGL commands.
 '''
 
 include "config.pxi"
-
-cdef extern from "stdlib.h":
-    ctypedef unsigned long size_t
-    void free(void *ptr)
-    void *malloc(size_t size)
-
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-
+include "common.pxi"
 cimport c_opengl
 
 ctypedef  void              GLvoid
@@ -565,11 +555,13 @@ def glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha):
     '''
     c_opengl.glClearColor(red, green, blue, alpha)
 
-def glClearDepthf(GLclampf depth):
-    '''See: `glClearDepthf() on Kronos website
-    <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glClearDepthf.xml>`_
-    '''
-    c_opengl.glClearDepthf(depth)
+# We don't use this syumbol yet, but if we activate it, android platform crash
+# >_<
+#def glClearDepthf(GLclampf depth):
+#    '''See: `glClearDepthf() on Kronos website
+#    <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glClearDepthf.xml>`_
+#    '''
+#    c_opengl.glClearDepthf(depth)
 
 def glClearStencil(GLint s):
     '''See: `glClearStencil() on Kronos website
@@ -689,11 +681,11 @@ def glDepthMask(GLboolean flag):
     '''
     c_opengl.glDepthMask(flag)
 
-def glDepthRangef(GLclampf zNear, GLclampf zFar):
-    '''See: `glDepthRangef() on Kronos website
-    <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDepthRangef.xml>`_
-    '''
-    c_opengl.glDepthRangef(zNear, zFar)
+#def glDepthRangef(GLclampf zNear, GLclampf zFar):
+#    '''See: `glDepthRangef() on Kronos website
+#    <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glDepthRangef.xml>`_
+#    '''
+#    c_opengl.glDepthRangef(zNear, zFar)
 
 def glDetachShader(GLuint program, GLuint shader):
     '''See: `glDetachShader() on Kronos website
@@ -1252,7 +1244,7 @@ def glShaderSource(GLuint shader, bytes source):
     '''See: `glShaderSource() on Kronos website
     <http://www.khronos.org/opengles/sdk/docs/man/xhtml/glShaderSource.xml>`_
     '''
-    cdef char *c_source = source
+    cdef const_char_ptr c_source = <const_char_ptr>source
     c_opengl.glShaderSource(shader, 1, &c_source, NULL)
 
 def glStencilFunc(GLenum func, GLint ref, GLuint mask):

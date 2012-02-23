@@ -12,7 +12,7 @@ the Label class::
 
     button = Button(text='Hello world', font_size=14)
 
-To attach a callback when the button is pressed (clicked/touched), use 
+To attach a callback when the button is pressed (clicked/touched), use
 :class:`~kivy.uix.widget.Widget.bind` ::
 
     def callback(instance):
@@ -67,24 +67,24 @@ class Button(Label):
     default to [1, 1, 1, 1].
     '''
 
-    background_normal = StringProperty('data/images/button.png')
+    background_normal = StringProperty('atlas://data/images/defaulttheme/button')
     '''Background image of the button used for default graphical representation,
     when the button is not pressed.
 
     .. versionadded:: 1.0.4
 
     :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
-    default to 'data/images/button.png'
+    default to 'atlas://data/images/defaulttheme/button'
     '''
 
-    background_down = StringProperty('data/images/button_pressed.png')
+    background_down = StringProperty('atlas://data/images/defaulttheme/button_pressed')
     '''Background image of the button used for default graphical representation,
     when the button is pressed.
 
     .. versionadded:: 1.0.4
 
     :data:`background_down` is an :class:`~kivy.properties.StringProperty`,
-    default to 'data/images/button_pressed.png'
+    default to 'atlas://data/images/defaulttheme/button_pressed'
     '''
 
     border = ListProperty([16, 16, 16, 16])

@@ -21,7 +21,7 @@ from types import TracebackType, CodeType
 
 # on pypy we can take advantage of transparent proxies
 try:
-    from __pypy__ import tproxy
+    tproxy = __import__('__pypy__')
 except ImportError:
     tproxy = None
 
@@ -161,8 +161,8 @@ def translate_exception(exc_info, initial_skip=0):
         # fake template exceptions
         kvlang = tb.tb_frame.f_locals.get('__kvlang__')
         if kvlang is not None:
-            parser = kvlang[4]
-            line = kvlang[3]
+            parser = kvlang.ctx
+            line = kvlang.line + 1
             filename = parser.filename or '<string:%s>' % id(parser)
             tb = fake_exc_info(exc_info[:2] + (tb,), filename, line)[2]
 

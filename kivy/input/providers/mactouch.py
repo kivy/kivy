@@ -207,6 +207,7 @@ class MacMotionEventProvider(MotionEventProvider):
         for tid in touches.keys()[:]:
             if tid not in actives:
                 touch = touches[tid]
+                touch.update_time_end()
                 _instance.queue.append(('end', touch))
                 del touches[tid]
 

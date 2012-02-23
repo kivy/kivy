@@ -90,7 +90,7 @@ cdef class GraphicsCompiler:
                 rc = ci.get_context()
 
                 # flag the old one as need update, if it's a new one
-                if rc != oldrc and oldrc is not None:
+                if rc is not oldrc and oldrc is not None:
                     oldrc.flag_update(0)
 
                 # it's a new render context, track changes.
@@ -106,7 +106,7 @@ cdef class GraphicsCompiler:
                 # inside this context instruction are not needed at all.
                 # if a state has never been in the cache yet, we can't ignore
                 # it.
-                if not rc in cs_by_rc:
+                if rc not in cs_by_rc:
                     cs = cs_by_rc[rc] = []
                 else:
                     cs = cs_by_rc[rc]
@@ -124,7 +124,7 @@ cdef class GraphicsCompiler:
 
                 else:
 
-                    for state in ci.context_state.keys():
+                    for state in ci.context_state:
                         if state in cs:
                             continue
                         needed = 1

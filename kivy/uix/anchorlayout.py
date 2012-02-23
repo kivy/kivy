@@ -14,7 +14,6 @@ To draw a button in the lower-right corner ::
 
 __all__ = ('AnchorLayout', )
 
-from kivy.clock import Clock
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty
 
@@ -49,6 +48,7 @@ class AnchorLayout(Layout):
     def __init__(self, **kwargs):
         super(AnchorLayout, self).__init__(**kwargs)
         self.bind(
+            parent = self._trigger_layout,
             padding = self._trigger_layout,
             anchor_x = self._trigger_layout,
             anchor_y = self._trigger_layout,

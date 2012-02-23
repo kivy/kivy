@@ -33,10 +33,6 @@ Kivy's property classes support:
 
 '''
 
-#cython: profile=True
-#cython: embedsignature=True
-
-
 __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
@@ -76,10 +72,6 @@ cdef class Property:
         a.hello = 'bleh' # working
         a.hello = None # working too, because allownone is True.
     '''
-
-    cdef str _name
-    cdef int allownone
-    cdef object defaultvalue
 
     def __cinit__(self):
         self._name = ''
@@ -129,14 +121,14 @@ cdef class Property:
     cpdef bind(self, obj, observer):
         '''Add a new observer to be called only when the value is changed
         '''
-        observers = obj.__storage[self._name]['observers']
+        cdef list observers = obj.__storage[self._name]['observers']
         if not observer in observers:
             observers.append(observer)
 
     cpdef unbind(self, obj, observer):
         '''Remove the observer from our widget observer list
         '''
-        observers = obj.__storage[self._name]['observers']
+        cdef list observers = obj.__storage[self._name]['observers']
         for obj in observers[:]:
             if obj is observer:
                 observers.remove(obj)
@@ -195,8 +187,22 @@ cdef class Property:
         '''
         return x
 
-    cdef dispatch(self, obj):
+    cpdef dispatch(self, obj):
         '''Dispatch the value change to all observers
+
+        .. versionchanged:: 1.1.0
+
+            The method is now accessible from Python.
+
+        This can be used to force the dispatch of the property, even if the
+        value didn't changed::
+
+            button = Button()
+            # get the Property class instance
+            prop = button.property('text')
+            # dispatch this property on the button instance
+            prop.dispatch(button)
+
         '''
         cdef dict storage = obj.__storage[self._name]
         observers = storage['observers']
@@ -308,6 +314,10 @@ class ObservableList(list):
 
     def sort(self, *largs):
         list.sort(self, *largs)
+        observable_list_dispatch(self)
+
+    def reverse(self, *largs):
+        list.reverse(self, *largs)
         observable_list_dispatch(self)
 
 
@@ -439,11 +449,6 @@ cdef class BoundedNumericProperty(Property):
         `max`: numeric
             If set, maximum bound will be used, with the value of max
     '''
-    cdef int use_min
-    cdef int use_max
-    cdef long min
-    cdef long max
-
     def __cinit__(self):
         self.use_min = 0
         self.use_max = 0
@@ -471,6 +476,78 @@ cdef class BoundedNumericProperty(Property):
         storage['max'] = self.max
         storage['use_min'] = self.use_min
         storage['use_max'] = self.use_max
+
+    def set_min(self, obj, value):
+        '''Change the minimum value acceptable for the BoundedNumericProperty, only
+        for the `obj` instance, None if you want to disable it::
+
+            class MyWidget(Widget):
+                number = BoundedNumericProperty(0, min=-5, max=5)
+
+            widget = MyWidget()
+            # change the minmium to -10
+            widget.property('number').set_min(widget, -10)
+            # or disable the minimum check
+            widget.property('number').set_min(widget, None)
+
+        .. warning::
+
+            Changing the bounds doesn't revalidate the current value.
+
+        .. versionadded:: 1.1.0
+        '''
+        cdef dict s = obj.__storage[self._name]
+        if value is None:
+            s['use_min'] = 0
+        else:
+            s['min'] = value
+            s['use_min'] = 1
+
+    def get_min(self, obj):
+        '''Return the minimum value acceptable for the BoundedNumericProperty in
+        `obj`, None if no minimum value are set::
+
+            class MyWidget(Widget):
+                number = BoundedNumericProperty(0, min=-5, max=5)
+
+            widget = MyWidget()
+            print widget.property('number').get_min(widget)
+            # will output -5
+
+        .. versionadded:: 1.1.0
+        '''
+        cdef dict s = obj.__storage[self._name]
+        if s['use_min'] == 1:
+            return s['min']
+
+    def set_max(self, obj, value):
+        '''Change the maximum value acceptable for the BoundedNumericProperty, only
+        for the `obj` instance, None if you want to disable it. Check
+        :data:`set_min` for an usage example.
+
+        .. warning::
+
+            Changing the bounds doesn't revalidate the current value.
+
+        .. versionadded:: 1.1.0
+        '''
+        cdef dict s = obj.__storage[self._name]
+        if value is None:
+            s['use_min'] = 0
+        else:
+            s['min'] = value
+            s['use_min'] = 1
+
+    def get_max(self, obj):
+        '''Return the maximum value acceptable for the BoundedNumericProperty in
+        `obj`, None if no maximum value are set. Check :data:`get_min` for an
+        usage example.
+
+        .. versionadded:: 1.1.0
+        '''
+        cdef dict s = obj.__storage[self._name]
+        if s['use_max'] == 1:
+            return s['max']
 
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
@@ -512,8 +589,6 @@ cdef class OptionProperty(Property):
         `options`: list (not tuple.)
             List of valid options
     '''
-    cdef list options
-
     def __cinit__(self):
         self.options = []
 
@@ -555,8 +630,6 @@ cdef class ReferenceListProperty(Property):
     If you read the value of `pos`, it will return a tuple with the values of
     `x` and `y`.
     '''
-    cdef list properties
-
     def __cinit__(self):
         self.properties = list()
 
@@ -571,12 +644,13 @@ cdef class ReferenceListProperty(Property):
         storage['stop_event'] = 0
 
     cpdef link_deps(self, object obj, str name):
+        cdef Property prop
         Property.link_deps(self, obj, name)
         for prop in self.properties:
             prop.bind(obj, self.trigger_change)
 
     cpdef trigger_change(self, obj, value):
-        s = obj.__storage[self._name]
+        cdef dict s = obj.__storage[self._name]
         if s['stop_event']:
             return
         p = s['properties']
@@ -617,7 +691,7 @@ cdef class ReferenceListProperty(Property):
         return True
 
     cpdef get(self, obj):
-        s = obj.__storage[self._name]
+        cdef dict s = obj.__storage[self._name]
         p = s['properties']
         s['value'] = [p[x].get(obj) for x in xrange(len(p))]
         return s['value']
@@ -644,10 +718,6 @@ cdef class AliasProperty(Property):
         `bind`: list/tuple
             List of properties to observe for changes
     '''
-    cdef object getter
-    cdef object setter
-    cdef list bind_objects
-
     def __cinit__(self):
         self.getter = None
         self.setter = None
@@ -657,7 +727,8 @@ cdef class AliasProperty(Property):
         Property.__init__(self, None, **kwargs)
         self.getter = getter
         self.setter = setter
-        self.bind_objects = list(kwargs.get('bind', []))
+        v = kwargs.get('bind')
+        self.bind_objects = list(v) if v is not None else []
 
     cdef init_storage(self, dict storage):
         Property.init_storage(self, storage)
@@ -665,6 +736,7 @@ cdef class AliasProperty(Property):
         storage['setter'] = self.setter
 
     cpdef link_deps(self, object obj, str name):
+        cdef Property oprop
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
             oprop.bind(obj, self.trigger_change)

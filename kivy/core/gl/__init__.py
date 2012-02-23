@@ -63,4 +63,4 @@ if 'KIVY_DOC' not in environ:
 
     # To be able to use our GL provider, we must have a window
     # Automaticly import window auto to ensure the default window creation
-    import kivy.core.window
+    __import__('kivy.core.window')

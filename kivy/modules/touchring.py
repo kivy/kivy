@@ -29,14 +29,13 @@ this::
 
 __all__ = ('start', 'stop')
 
-from os.path import join
-from kivy import kivy_data_dir
 from kivy.core.image import Image
 from kivy.graphics import Color, Rectangle
 
 pointer_image = None
 pointer_scale = 1.0
 pointer_alpha = 0.7
+
 
 def _touch_down(win, touch):
     ud = touch.ud
@@ -69,7 +68,7 @@ def start(win, ctx):
     # XXX use ctx !
     global pointer_image, pointer_scale, pointer_alpha
     pointer_fn = ctx.config.get('image',
-            join(kivy_data_dir, 'images', 'ring.png'))
+            'atlas://data/images/defaulttheme/ring')
     pointer_scale = float(ctx.config.get('scale', 1.0))
     pointer_alpha = float(ctx.config.get('alpha', 1.0))
     pointer_image = Image(pointer_fn)
