@@ -279,10 +279,10 @@ class EventLoopBase(EventDispatcher):
         self.dispatch_input()
 
         window = self.window
-        #if window and window.canvas.needs_redraw:
-        Clock.tick_draw()
-        window.dispatch('on_draw')
-        window.dispatch('on_flip')
+        if window and window.canvas.needs_redraw:
+            Clock.tick_draw()
+            window.dispatch('on_draw')
+            window.dispatch('on_flip')
 
         # don't loop if we don't have listeners !
         if len(self.event_listeners) == 0:

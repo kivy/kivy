@@ -614,7 +614,6 @@ class WindowBase(EventDispatcher):
 
         # prepare the viewport
         glViewport(0, 0, w, h)
-        print "GL_VIEWPORT:", w, h
 
         # do projection matrix
         projection_mat = Matrix()
