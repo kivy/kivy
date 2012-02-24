@@ -159,8 +159,8 @@ def determine_gl_flags():
         flags['include_dirs'] = ['/usr/local/include']
         flags['extra_link_args'] = ['-L', '/usr/local/lib']
     elif platform == 'android':
-        flags['include_dirs'] += [join(ndkplatform, 'usr', 'include')]
-        flags['extra_link_args'] += ['-L', join(ndkplatform, 'usr', 'lib')]
+        flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
+        flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
     else:
         flags['libraries'] = ['GL']
@@ -228,8 +228,10 @@ def get_extensions_from_sources(sources):
         pyx = join(dirname(__file__), 'kivy', pyx)
         if not have_cython:
             pyx = '%s.c' % pyx[:-4]
+            depends = []
+        else:
+            depends = flags.pop('depends', [])
         module_name = get_modulename_from_file(pyx)
-        depends = flags.pop('depends', [])
         flags_clean = {}
         for key, value in flags.iteritems():
             if len(value):
