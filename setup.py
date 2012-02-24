@@ -217,7 +217,7 @@ def determine_sdl():
         return flags
 
     flags['libraries'] = ['SDL', 'SDL_ttf', 'freetype', 'z', 'bz2']
-    flags['includes ']= []
+    flags['include_dirs'] = []
     flags['extra_link_args'] = []
     flags['extra_compile_args'] = []
 
@@ -231,7 +231,7 @@ def determine_sdl():
         # -undefined dynamic_lookup
         # (/tito)
         flags['libraries'] = ['SDL_ttf', 'freetype', 'bz2']
-        flags['includes'] += [
+        flags['include_dirs'] += [
             join(kivy_ios_root, 'build', 'include'),
             join(kivy_ios_root, 'build', 'include', 'SDL'),
             join(kivy_ios_root, 'build', 'include', 'freetype')]
@@ -239,7 +239,7 @@ def determine_sdl():
             '-L', join(kivy_ios_root, 'build', 'lib'),
             '-undefined', 'dynamic_lookup']
     else:
-        flags['includes'] = ['/usr/local/include/SDL']
+        flags['include_dirs'] = ['/usr/local/include/SDL']
         flags['extra_link_args'] += ['-L/usr/local/lib/']
 
     if platform == 'ios':
@@ -326,12 +326,18 @@ if platform in ('darwin', 'ios'):
 # extension modules
 def get_extensions_from_sources(sources):
     ext_modules = []
+    if environ.get('KIVY_FAKE_BUILDEXT'):
+        print 'Fake build_ext asked, will generate only .h/.c'
+        return ext_modules
     for pyx, flags in sources.iteritems():
         pyx = join(dirname(__file__), 'kivy', pyx)
         if not have_cython:
             pyx = '%s.c' % pyx[:-4]
         module_name = get_modulename_from_file(pyx)
-        depends = flags.pop('depends', [])
+        if have_cython:
+            depends = flags.pop('depends', [])
+        else:
+            depends = []
         ext_modules.append(CythonExtension(module_name,
             [pyx] + depends, **flags))
     return ext_modules

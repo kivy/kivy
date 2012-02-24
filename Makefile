@@ -15,7 +15,7 @@ force:
 mesabuild:
 	/usr/bin/env USE_MESAGL=1 $(PYTHON) setup.py build_ext --inplace
 
-ios-build:
+ios:
 	-ln -s $(KIVYIOSROOT)/Python-2.7.1/python
 	-ln -s $(KIVYIOSROOT)/Python-2.7.1/python.exe
 
@@ -23,11 +23,9 @@ ios-build:
 	mkdir iosbuild
 
 	echo "First build ========================================"
-	-PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
+	-PATH="$(IOSPATH)" KIVY_FAKE_BUILDEXT=1 $(HOSTPYTHON) setup.py build_ext -g
 	echo "cythoning =========================================="
 	find . -name *.pyx -exec cython {} \;
-
-ios-install:
 	echo "Second build ======================================="
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py install -O2 --root iosbuild
@@ -36,8 +34,6 @@ ios-install:
 	-rm -rdf "$(BUILDROOT)/python/lib/python2.7/site-packages/kivy"
 	# Copy to python for iOS installation
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
-
-ios: ios-build ios-install
 
 pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
