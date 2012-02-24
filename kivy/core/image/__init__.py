@@ -20,6 +20,7 @@ from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.atlas import Atlas
 from kivy.resources import resource_find
+from kivy.utils import platform
 import zipfile
 try:
     SIO = __import__('cStringIO')
@@ -634,13 +635,15 @@ def load(filename):
 
 
 # load image loaders
-core_register_libs('image', (
+image_libs = []
+if platform() in ('macosx', 'ios'):
+    image_libs += [('imageio', 'img_imageio')]
+image_libs += [
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
-    ('osxcoreimage', 'img_osxcoreimage'),
-    ('gif', 'img_gif'),
-))
+    ('gif', 'img_gif')]
+core_register_libs('image', image_libs)
 
 # resolve binding.
 from kivy.graphics.texture import Texture, TextureRegion
