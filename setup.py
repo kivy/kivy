@@ -229,8 +229,12 @@ def get_extensions_from_sources(sources):
             pyx = '%s.c' % pyx[:-4]
         module_name = get_modulename_from_file(pyx)
         depends = flags.pop('depends', [])
+        flags_clean = {}
+        for key, value in flags.iteritems():
+            if len(value):
+                flags_clean[key] = value
         ext_modules.append(CythonExtension(module_name,
-            [pyx] + depends, **flags))
+            [pyx] + depends, **flags_clean))
     return ext_modules
 
 ext_modules = get_extensions_from_sources(sources)
