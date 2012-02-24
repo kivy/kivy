@@ -117,8 +117,9 @@ else:
 # -----------------------------------------------------------------------------
 # declare flags
 def get_modulename_from_file(filename):
+    filename = filename.replace(sep, '/')
     pyx = '.'.join(filename.split('.')[:-1])
-    pyxl = pyx.split(sep)
+    pyxl = pyx.split('/')
     while pyxl[0] != 'kivy':
         pyxl.pop(0)
     if pyxl[1] == 'kivy':
