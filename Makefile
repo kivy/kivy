@@ -23,9 +23,9 @@ ios:
 	mkdir iosbuild
 
 	echo "First build ========================================"
-	-PATH="$(IOSPATH)" KIVY_FAKE_BUILDEXT=1 $(HOSTPYTHON) setup.py build_ext -g
+	-PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
 	echo "cythoning =========================================="
-	find . -name *.pyx -exec cython {} \;
+	find . -name *.pyx -exec cython -t {} \;
 	echo "Second build ======================================="
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py install -O2 --root iosbuild
