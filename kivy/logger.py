@@ -279,18 +279,20 @@ Logger.trace = partial(Logger.log, logging.TRACE)
 
 # add default kivy logger
 Logger.addHandler(LoggerHistory())
-Logger.addHandler(FileHandler())
+if 'KIVY_NO_FILELOG' not in os.environ:
+    Logger.addHandler(FileHandler())
 
 # Use the custom handler instead of streaming one.
-if hasattr(sys, '_kivy_logging_handler'):
-    Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
-else:
-    use_color = os.name != 'nt'
-    color_fmt = formatter_message('[%(levelname)-18s] %(message)s', use_color)
-    formatter = ColoredFormatter(color_fmt, use_color=use_color)
-    console = ConsoleHandler()
-    console.setFormatter(formatter)
-    Logger.addHandler(console)
+if 'KIVY_NO_CONSOLELOG' not in os.environ:
+    if hasattr(sys, '_kivy_logging_handler'):
+        Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
+    else:
+        use_color = os.name != 'nt'
+        color_fmt = formatter_message('[%(levelname)-18s] %(message)s', use_color)
+        formatter = ColoredFormatter(color_fmt, use_color=use_color)
+        console = ConsoleHandler()
+        console.setFormatter(formatter)
+        Logger.addHandler(console)
 
 # install stderr handlers
 sys.stderr = LogFile('stderr', Logger.warning)

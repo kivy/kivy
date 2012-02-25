@@ -152,7 +152,7 @@ class CythonExtension(Extension):
         Extension.__init__(self, *args, **kwargs)
         self.pyrex_directives = {
             'profile': 'USE_PROFILE' in environ,
-            'embedsignature': True}
+            'embedsignature': 'USE_EMBEDSIGNATURE' in environ}
         # XXX with pip, setuptools is imported before distutils, and change
         # our pyx to c, then, cythonize doesn't happen. So force again our
         # sources
@@ -304,6 +304,8 @@ if c_options['use_sdl']:
         base_flags, gl_flags, sdl_flags)
     sources['core/text/text_sdlttf.pyx'] = merge(
         base_flags, gl_flags, sdl_flags)
+    sources['core/audio/audio_sdl.pyx'] = merge(
+        base_flags, sdl_flags)
 
 if platform in ('darwin', 'ios'):
     # activate ImageIO provider for our core image
