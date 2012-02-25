@@ -134,7 +134,7 @@ class WindowSDL(WindowBase):
             if event is None:
                 continue
 
-            print 'sdl received', event
+            #print 'sdl received', event
             action, args = event[0], event[1:]
             if action == 'quit':
                 EventLoop.quit = True
@@ -171,6 +171,12 @@ class WindowSDL(WindowBase):
 
             elif action == 'windowresized':
                  self.canvas.ask_update()
+
+            elif action == 'windowminimized':
+                self.do_pause()
+
+            elif action == 'windowrestored':
+                pass
 
             elif action in ('keydown', 'keyup'):
                 mod, key, scancode, unicode = args
@@ -230,11 +236,48 @@ class WindowSDL(WindowBase):
         sdl.resize_window(*self._size)
         self.dispatch('on_resize', *self._size)
 
+    def do_pause(self):
+        # should go to app pause mode.
+        from kivy.app import App
+        from kivy.base import stopTouchApp
+        app = App.get_running_app()
+        if not app:
+            Logger.info('WindowSDL: No running App found, exit.')
+            stopTouchApp()
+            return
+        
+        #print 'dispatch app on_pause'
+        if not app.dispatch('on_pause'):
+            Logger.info('WindowSDL: App doesn\'t support pause mode, stop.')
+            stopTouchApp()
+            return
+
+        # XXX FIXME wait for sdl resume
+        while True:
+            event = sdl.poll()
+            if event is False:
+                continue
+            if event is None:
+                continue
+
+            #print 'sdl received', event
+            action, args = event[0], event[1:]
+            if action == 'quit':
+                EventLoop.quit = True
+                self.close()
+                break
+            elif action == 'windowrestored':
+                #print 'app goes live again!'
+                break
+
+        #print 'dispatch app on_resume'
+        app.dispatch('on_resume')
+
     def mainloop(self):
         # don't known why, but pygame required a resize event
         # for opengl, before mainloop... window reinit ?
         self.dispatch('on_resize', *self.size)
-        print 'dispatched on_resize, size is', self.size
+        #print 'dispatched on_resize, size is', self.size
 
         while not EventLoop.quit and EventLoop.status == 'started':
             try:

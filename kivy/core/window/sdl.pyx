@@ -89,11 +89,6 @@ cdef extern from "SDL.h":
 
     # Init flags
     int SDL_INIT_VIDEO
-    int SDL_INIT_TIMER
-    int SDL_INIT_AUDIO
-    int SDL_INIT_JOYSTICK
-    int SDL_INIT_NOPARACHUTE
-    int SDL_INIT_EVENTTHREAD
     int SDL_INIT_EVERYTHING
 
     # Window flags
@@ -102,13 +97,12 @@ cdef extern from "SDL.h":
     int SDL_WINDOW_BORDERLESS
     int SDL_WINDOW_RESIZABLE
     int SDL_WINDOW_FULLSCREEN
-    int SDL_WINDOW_INPUT_FOCUS
-    int SDL_WINDOW_INPUT_GRABBED
-    int SDL_WINDOW_MOUSE_FOCUS
 
     ## Window event
     int SDL_WINDOWEVENT_EXPOSED
     int SDL_WINDOWEVENT_RESIZED
+    int SDL_WINDOWEVENT_MINIMIZED
+    int SDL_WINDOWEVENT_RESTORED
 
     ## Hints
     char *SDL_HINT_ORIENTATIONS
@@ -123,8 +117,6 @@ cdef extern from "SDL.h":
     int SDL_GetWindowDisplayMode(SDL_Window *, SDL_DisplayMode *)
     int SDL_SetWindowDisplayMode(SDL_Window *, SDL_DisplayMode *)
     void SDL_GL_SwapWindow(SDL_Window *)
-    void SDL_GL_SwapBuffers()
-    int SDL_GL_MakeCurrent(SDL_Window* window, SDL_GLContext context)
 
     #int SDL_GL_SetSwapInterval(int)
     int SDL_Flip(SDL_Surface *)
@@ -244,6 +236,7 @@ def poll():
     if SDL_PollEvent(&event) == 0:
         return False
 
+    action = None
     if event.type == SDL_QUIT:
         return ('quit', )
     elif event.type == SDL_MOUSEMOTION:
@@ -272,6 +265,15 @@ def poll():
             action = ('windowexposed', )
         elif event.window.event == SDL_WINDOWEVENT_RESIZED:
             action = ('windowresized', event.window.data1, event.window.data2)
+        elif event.window.event == SDL_WINDOWEVENT_MINIMIZED:
+            action = ('windowminimized', )
+        elif event.window.event == SDL_WINDOWEVENT_RESTORED:
+            action = ('windowrestored', )
+        else:
+            if __debug__:
+                print 'receive unknown sdl event', event.type
+            pass
+        return action
     elif event.type == SDL_KEYDOWN or event.type == SDL_KEYUP:
         action = 'keydown' if event.type == SDL_KEYDOWN else 'keyup'
         mod = event.key.keysym.mod
@@ -283,11 +285,11 @@ def poll():
         s = PyUnicode_FromString(<char *>event.text.text)
         return ('textinput', s)
     else:
-        print 'receive unknown sdl event', event.type
+        if __debug__:
+            print 'receive unknown sdl event', event.type
         pass
 
 
 def flip():
     SDL_GL_SwapWindow(win)
-    #SDL_GL_SwapBuffers()
 
