@@ -16,6 +16,7 @@ import sys
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
+from kivy.utils import platform
 
 
 class SoundLoader:
@@ -163,8 +164,9 @@ class Sound(EventDispatcher):
 # seem to have lot of crackle or something...
 # XXX test in macosx
 audio_libs = []
-if sys.platform not in ('win32', 'cygwin'):
+if platform() != 'win':
     audio_libs += [('gstreamer', 'audio_gstreamer')]
+audio_libs += [('sdl', 'audio_sdl')]
 audio_libs += [('pygame', 'audio_pygame')]
 
 core_register_libs('audio', audio_libs)
