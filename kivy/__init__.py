@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.10-dev'
+__version__ = '1.1.2-dev'
 
 import sys
 import shutil
@@ -185,7 +185,7 @@ else:
 #: Global settings options for kivy
 kivy_options = {
     'window': ('pygame', ),
-    'text': ('pil', 'cairo', 'pygame'),
+    'text': ('pil', 'pygame'),
     'video': ('ffmpeg', 'gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', ),
     'image': ('dds', 'gif', 'pil', 'pygame'),

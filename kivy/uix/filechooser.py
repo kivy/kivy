@@ -133,6 +133,14 @@ class FileChooserController(FloatLayout):
     Determines whether user is able to select multiple files.
     '''
 
+    dirselect = BooleanProperty(False)
+    '''
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    Determines whether directories are valid selections.
+
+    .. versionadded:: 1.1.0
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_entry_added')
         self.register_event_type('on_entries_cleared')
@@ -193,7 +201,8 @@ class FileChooserController(FloatLayout):
                     self.selection.append(entry.path)
         else:
             if isdir(entry.path):
-                pass
+                if self.dirselect:
+                    self.selection = [entry.path, ]
             else:
                 self.selection = [entry.path, ]
 
@@ -201,15 +210,18 @@ class FileChooserController(FloatLayout):
         '''(internal) This method must be called by the template when an entry
         is touched by the user.
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         if self.multiselect:
             pass
         else:
-            if isdir(entry.path):
+            if isdir(entry.path) and not self.dirselect:
                 self.open_entry(entry)
             elif touch.is_double_tap:
-                self.dispatch('on_submit', self.selection, touch)
+                if self.dirselect and isdir(entry.path):
+                    self.open_entry(entry)
+                else:
+                    self.dispatch('on_submit', self.selection, touch)
 
     def open_entry(self, entry):
         try:
@@ -218,7 +230,7 @@ class FileChooserController(FloatLayout):
             # on. Do the check here to prevent setting path to an invalid
             # directory that we cannot list.
             listdir(unicode(entry.path))
-        except OSError, e:
+        except OSError:
             #Logger.exception(e)
             entry.locked = True
         else:
@@ -245,7 +257,7 @@ class FileChooserController(FloatLayout):
             return ''
         try:
             size = getsize(fn)
-        except OSError, e:
+        except OSError:
             #Logger.exception(e)
             return '--'
 
@@ -325,7 +337,7 @@ class FileChooserController(FloatLayout):
             return
         try:
             subentries = self._add_files(entry.path, entry)
-        except OSError, e:
+        except OSError:
             #Logger.exception(e)
             entry.locked = True
             return

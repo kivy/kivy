@@ -48,7 +48,6 @@ sets up the initial extension folder structure that Kivy requires for
 extensions. It can be found at kivy/tools/extensions/make-kivyext.py
 '''
 
-import sys
 import imp
 from glob import glob
 from os import listdir, mkdir, sep, environ
@@ -152,7 +151,7 @@ def _is_valid_ext_name(name):
         extname, version = name.split('_')
         major, minor = version.split('.')
         major, minor = int(major), int(minor)
-    except Exception, e:
+    except:
         print "The name '%s' is not a valid extension name." % name
         return False
     return (extname, (major, minor))
@@ -225,7 +224,7 @@ def unzip_extensions():
                 extname = t[0]
                 version = '-'.join(t[1:])
                 version = '.'.join(version.split('.')[:2])
-                
+
                 extdir = extname + '_' + version
 
                 # is_invalid = not _is_valid_ext_name(extdir)

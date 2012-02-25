@@ -30,8 +30,28 @@ the canvas object, and will be used when the window drawing will happen.
 
 '''
 
-from kivy.graphics.instructions import *
-from kivy.graphics.context_instructions import *
-from kivy.graphics.vertex_instructions import *
-from kivy.graphics.stencil_instructions import *
+from kivy.graphics.instructions import Callback, Canvas, CanvasBase, \
+    ContextInstruction, Instruction, InstructionGroup, RenderContext, \
+    VertexInstruction # pyflakes.ignore
+from kivy.graphics.context_instructions import BindTexture, Color, \
+    MatrixInstruction, PopMatrix, PushMatrix, Rotate, Scale, \
+    Translate, gl_init_resources
+from kivy.graphics.vertex_instructions import Bezier, BorderImage, Ellipse, \
+    GraphicException, Line, Mesh, Point, Quad, Rectangle, Triangle
+from kivy.graphics.stencil_instructions import StencilPop, StencilPush, \
+    StencilUse
 from kivy.graphics.fbo import Fbo
+
+# very hacky way to avoid pyflakes warning...
+__all__ = (Bezier.__name__, BindTexture.__name__, BorderImage.__name__,
+    Callback.__name__, Canvas.__name__, CanvasBase.__name__, Color.__name__,
+    ContextInstruction.__name__, Ellipse.__name__, Fbo.__name__,
+    GraphicException.__name__, Instruction.__name__,
+    InstructionGroup.__name__, Line.__name__, MatrixInstruction.__name__,
+    Mesh.__name__, Point.__name__, PopMatrix.__name__, PushMatrix.__name__,
+    Quad.__name__, Rectangle.__name__, RenderContext.__name__,
+    Rotate.__name__, Scale.__name__, StencilPop.__name__,
+    StencilPush.__name__, StencilUse.__name__, Translate.__name__,
+    Triangle.__name__, VertexInstruction.__name__,
+    gl_init_resources.__name__)
+

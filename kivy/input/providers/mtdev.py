@@ -180,13 +180,14 @@ else:
                         del args['delete']
                         del touches[touch.id]
                         touches_sent.remove(tid)
+                        touch.update_time_end()
                     queue.append((action, touch))
 
             def normalize(value, vmin, vmax):
                 return (value - vmin) / float(vmax - vmin)
 
             # open mtdev device
-            _fn = self.input_fn
+            _fn = input_fn
             _slot = 0
             _device = Device(_fn)
             _changes = set()

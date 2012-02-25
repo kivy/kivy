@@ -18,6 +18,7 @@ import kivy
 
 report = []
 
+
 def title(t):
     report.append('')
     report.append('=' * 80)
@@ -67,12 +68,15 @@ report.append('Video  = %s' % Video)
 report.append('Window = %s' % Window)
 
 title('Libraries')
+
+
 def testimport(libname):
     try:
         l = __import__(libname)
         report.append('%-20s exist at %s' % (libname, l.__file__))
-    except ImportError, e:
+    except ImportError:
         report.append('%-20s is missing' % libname)
+
 for x in (
     'gst',
     'pygame',
@@ -81,7 +85,6 @@ for x in (
     'videocapture',
     'squirtle',
     'PIL',
-    'cairo',
     'opencv',
     'opencv.cv',
     'opencv.highgui',

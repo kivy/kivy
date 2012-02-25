@@ -332,7 +332,7 @@ def platform():
 
     if _platform_android is None:
         try:
-            import android
+            __import__('android')
             _platform_android = True
         except ImportError:
             _platform_android = False

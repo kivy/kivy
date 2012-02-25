@@ -197,9 +197,9 @@ class Vector(list):
 
     def __rdiv__(self, val):
         try:
-            return Vector(map(lambda x, y: x / y, other, val))
+            return Vector(map(lambda x, y: x / y, self, val))
         except Exception:
-            return Vector(map(lambda x: other / x, val))
+            return Vector(map(lambda x: self / x, val))
 
     def __idiv__(self, val):
         if type(val) in (int, float):

@@ -32,6 +32,7 @@ rules = '''
             title: 'valid'
 '''
 
+
 class LangComplexTestCase(unittest.TestCase):
 
     def test_complex_rewrite(self):
@@ -42,7 +43,8 @@ class LangComplexTestCase(unittest.TestCase):
         from kivy.lang import Builder
         from kivy.uix.widget import Widget
         from kivy.factory import Factory
-        from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
+        from kivy.properties import StringProperty, ObjectProperty, \
+            BooleanProperty
 
         Builder.load_string(rules)
 

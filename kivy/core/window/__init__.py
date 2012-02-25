@@ -423,7 +423,7 @@ class WindowBase(EventDispatcher):
             params['left'] = Config.getint('graphics', 'left')
 
         # before creating the window
-        import kivy.core.gl
+        __import__('kivy.core.gl')
 
         # configure the window
         self.params = params

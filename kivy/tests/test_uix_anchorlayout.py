@@ -5,6 +5,7 @@ Anchor layout unit test
 
 from common import GraphicUnitTest
 
+
 class UIXAnchorLayoutTestcase(GraphicUnitTest):
 
     def box(self, r, g, b):
@@ -14,6 +15,7 @@ class UIXAnchorLayoutTestcase(GraphicUnitTest):
         with wid.canvas:
             Color(r, g, b)
             r = Rectangle(pos=wid.pos, size=wid.size)
+
         def linksp(instance, *largs):
             r.pos = instance.pos
             r.size = instance.size

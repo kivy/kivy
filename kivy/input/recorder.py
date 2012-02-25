@@ -2,7 +2,7 @@
 Input recorder
 ==============
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 .. warning::
 
@@ -206,6 +206,7 @@ class Recorder(EventDispatcher):
     # needed for acting as an input provider
     def stop(self):
         pass
+
     def start(self):
         pass
 

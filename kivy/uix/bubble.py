@@ -2,7 +2,7 @@
 Bubble
 ======
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 .. image:: images/bubble.jpg
     :align: right
@@ -111,7 +111,8 @@ class Bubble(GridLayout):
     default to 'atlas://data/images/defaulttheme/bubble'.
     '''
 
-    arrow_image = StringProperty('atlas://data/images/defaulttheme/bubble_arrow')
+    arrow_image = StringProperty(
+        'atlas://data/images/defaulttheme/bubble_arrow')
     ''' Image of the arrow pointing to the bubble
 
     :data:`arrow_image` is a :class:`~kivy.properties.StringProperty`,
@@ -161,7 +162,7 @@ class Bubble(GridLayout):
         self.background_texture = self._bk_img.texture
         self._arrow_img = Image(source=self.arrow_image,
             color=self.background_color)
-        self.content = content = BubbleContent()
+        self.content = content = BubbleContent(parent=self)
         super(Bubble, self).__init__(**kwargs)
         self.add_widget(content)
         self._bk_img.bind(on_texture=self._on_texture)

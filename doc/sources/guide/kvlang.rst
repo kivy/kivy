@@ -149,7 +149,7 @@ And here is your "yourwidget.py" python part::
         pass
 
 Yes, not a single line of graphics code has been written in Python. You'd like
-to know how it's working, wouldn't you? Good.
+to know how it works, wouldn't you? Good.
 
 The first line indicates a rule (like a CSS (Cascading Style Sheets) rule) that
 will match all the classes named by the rule's name::

@@ -1,31 +1,86 @@
 '''
-Benchmark for Kivy Framework
+Benchmark
+=========
+
 '''
 
 benchmark_version = '1'
 
-import gc
-import kivy
-import sys
 import os
-import time
-from kivy.core.gl import *
-from random import randint, random
-from kivy import *
-from kivy.graphics import *
+import sys
+import kivy
+import gc
 from time import clock, time, ctime
+from random import randint
+
+from kivy.uix.label import Label
+from kivy.uix.widget import Widget
+from kivy.graphics import RenderContext
+from kivy.input.motionevent import MotionEvent
+from kivy.cache import Cache
+from kivy.clock import Clock
 
 clockfn = time
 if sys.platform == 'win32':
     clockfn = clock
 
-try:
-    window_size = getWindow().size
-except:
-    window_size = MTWindow().size
+
+class FakeMotionEvent(MotionEvent):
+    pass
 
 
-class bench_core_label:
+class bench_widget_creation:
+    '''Widget: creation (10000 Widget)'''
+
+    def run(self):
+        o = []
+        for x in xrange(10000):
+            o.append(Widget())
+
+
+class bench_widget_creation_with_root:
+    '''Widget: creation (10000 Widget + 1 root)'''
+
+    def run(self):
+        o = Widget()
+        for x in xrange(10000):
+            o.add_widget(Widget())
+
+
+class bench_widget_draw:
+    '''Widget: empty drawing (10000 Widget + 1 root)'''
+
+    def __init__(self):
+        self.ctx = RenderContext()
+        self.root = root = Widget()
+        for x in xrange(10000):
+            root.add_widget(Widget())
+        self.ctx.add(self.root.canvas)
+
+    def run(self):
+        self.ctx.draw()
+
+
+class bench_widget_dispatch:
+    '''Widget: event dispatch (1000 on_update in 10*1000 Widget)'''
+
+    def __init__(self):
+        root = Widget()
+        for x in xrange(10):
+            parent = Widget()
+            for y in xrange(1000):
+                parent.add_widget(Widget())
+            root.add_widget(parent)
+        self.root = root
+
+    def run(self):
+        touch = FakeMotionEvent('fake', 1, [])
+        self.root.dispatch('on_touch_down', touch)
+        self.root.dispatch('on_touch_move', touch)
+        self.root.dispatch('on_touch_up', touch)
+
+
+class bench_label_creation:
     '''Core: label creation (10000 * 10 a-z)'''
 
     def __init__(self):
@@ -41,190 +96,22 @@ class bench_core_label:
             o.append(Label(label=x))
 
 
-class bench_widget_creation:
-    '''Widget: creation (10000 MTWidget)'''
+class bench_label_creation_with_tick:
+    '''Core: label creation (10000 * 10 a-z), with Clock.tick'''
+
+    def __init__(self):
+        labels = []
+        for x in xrange(10000):
+            label = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+            labels.append(''.join(label))
+        self.labels = labels
 
     def run(self):
         o = []
-        for x in xrange(10000):
-            o.append(MTWidget())
-
-
-class bench_widget_dispatch:
-    '''Widget: event dispatch (1000 on_update in 10*1000 MTWidget)'''
-
-    def __init__(self):
-        root = MTWidget()
-        for x in xrange(10):
-            parent = MTWidget()
-            for y in xrange(1000):
-                parent.add_widget(MTWidget())
-            root.add_widget(parent)
-        self.root = root
-
-    def run(self):
-        root = self.root
-        for x in xrange(1000):
-            root.dispatch('on_update')
-
-
-class bench_graphx_line:
-    '''Graphx: draw lines (5000 x/y) 1000 times'''
-
-    def __init__(self):
-        lines = []
-        w, h = window_size
-        for x in xrange(5000):
-            lines.extend([random() * w, random() * h])
-        self.lines = lines
-
-    def run(self):
-        lines = self.lines
-        for x in xrange(1000):
-            drawLine(lines)
-
-
-class bench_graphics_line:
-    '''Graphics: draw lines (5000 x/y) 1000 times'''
-
-    def __init__(self):
-        w, h = window_size
-        self.canvas = Canvas()
-        line = self.canvas.line()
-        for x in xrange(5000):
-            line.points += [random() * w, random() * h]
-
-    def run(self):
-        canvas = self.canvas
-        for x in xrange(1000):
-            canvas.draw()
-
-
-class bench_graphx_rectangle:
-    '''Graphx: draw rectangle (5000 rect) 1000 times'''
-
-    def __init__(self):
-        rects = []
-        w, h = window_size
-        for x in xrange(5000):
-            rects.append(((random() * w, random() * h),
-                          (random() * w, random() * h)))
-        self.rects = rects
-
-    def run(self):
-        rects = self.rects
-        for x in xrange(1000):
-            for pos, size in rects:
-                drawRectangle(pos=pos, size=size)
-
-
-class bench_graphics_rectangle:
-    '''Graphics: draw rectangle (5000 rect) 1000 times'''
-
-    def __init__(self):
-        rects = []
-        w, h = window_size
-        canvas = Canvas()
-        for x in xrange(5000):
-            canvas.rectangle(random() * w, random() * h,
-                             random() * w, random() * h)
-        self.canvas = canvas
-
-    def run(self):
-        canvas = self.canvas
-        for x in xrange(1000):
-            canvas.draw()
-
-
-class bench_graphics_rectanglemesh:
-    '''Graphics: draw rectangle in same mesh (5000 rect) 1000 times'''
-
-    def __init__(self):
-        rects = []
-        w, h = window_size
-        canvas = Canvas()
-        mesh = canvas.graphicElement(format='vv', type='quads')
-        vertex = []
-        for x in xrange(50000):
-            vertex.extend([random() * w, random() * h,
-                           random() * w, random() * h])
-        mesh.data_v = vertex
-        self.canvas = canvas
-
-    def run(self):
-        canvas = self.canvas
-        for x in xrange(1000):
-            canvas.draw()
-
-
-class bench_graphx_roundedrectangle:
-    '''Graphx: draw rounded rectangle (5000 rect) 1000 times'''
-
-    def __init__(self):
-        rects = []
-        w, h = window_size
-        for x in xrange(5000):
-            rects.append(((random() * w, random() * h),
-                          (random() * w, random() * h)))
-        self.rects = rects
-
-    def run(self):
-        rects = self.rects
-        for x in xrange(1000):
-            for pos, size in rects:
-                drawRoundedRectangle(pos=pos, size=size)
-
-
-class bench_graphics_roundedrectangle:
-    '''Graphics: draw rounded rectangle (5000 rect) 1000 times'''
-
-    def __init__(self):
-        rects = []
-        w, h = window_size
-        canvas = Canvas()
-        for x in xrange(5000):
-            canvas.roundedRectangle(random() * w, random() * h,
-                                    random() * w, random() * h)
-        self.canvas = canvas
-
-    def run(self):
-        canvas = self.canvas
-        for x in xrange(1000):
-            canvas.draw()
-
-
-class bench_graphx_paintline:
-    '''Graphx: paint line (5000 x/y) 1000 times'''
-
-    def __init__(self):
-        lines = []
-        w, h = window_size
-        for x in xrange(500):
-            lines.extend([random() * w, random() * h])
-        self.lines = lines
-        set_brush(os.path.join(kivy_data_dir, 'particle.png'))
-
-    def run(self):
-        lines = self.lines
-        for x in xrange(100):
-            paintLine(lines)
-
-
-class bench_graphics_paintline:
-    '''Graphics: paint lines (5000 x/y) 1000 times'''
-
-    def __init__(self):
-        w, h = window_size
-        self.canvas = Canvas()
-        texture = Image(os.path.join(kivy_data_dir, 'particle.png')).texture
-        line = self.canvas.point(type='line_strip', texture=texture)
-        for x in xrange(500):
-            line.points += [random() * w, random() * h]
-
-    def run(self):
-        canvas = self.canvas
-        for x in xrange(100):
-            canvas.draw()
+        for x in self.labels:
+            o.append(Label(label=x))
+        # tick for texture creation
+        Clock.tick()
 
 
 if __name__ == '__main__':
@@ -262,10 +149,7 @@ if __name__ == '__main__':
     log('Python EXE      : %s' % sys.executable)
     log('Python Version  : %s' % sys.version)
     log('Python API      : %s' % sys.api_version)
-    try:
-        log('Kivy Version    : %s' % kivy.__version__)
-    except:
-        log('Kivy Version    : unknown (too old)')
+    log('Kivy Version    : %s' % kivy.__version__)
     log('Install path    : %s' % os.path.dirname(kivy.__file__))
     log('Install date    : %s' % ctime(os.path.getctime(kivy.__file__)))
 
@@ -273,6 +157,7 @@ if __name__ == '__main__':
     log('OpenGL informations')
     log('-------------------')
 
+    from kivy.core.gl import glGetString, GL_VENDOR, GL_RENDERER, GL_VERSION
     log('GL Vendor: %s' % glGetString(GL_VENDOR))
     log('GL Renderer: %s' % glGetString(GL_RENDERER))
     log('GL Version: %s' % glGetString(GL_VERSION))
@@ -289,8 +174,7 @@ if __name__ == '__main__':
         # force gc before next test
         gc.collect()
 
-        log('%2d/%-2d %-60s' % (benchs.index(x)+1,
-            len(benchs), x.__doc__), False)
+        log('%2d/%-2d %-60s' % (benchs.index(x)+1, len(benchs), x.__doc__), False)
         try:
             sys.stderr.write('.')
             test = x()
@@ -318,13 +202,7 @@ if __name__ == '__main__':
     log('')
 
 try:
-    getWindow().close()
-except:
-    pass
-
-try:
-    q = 'Do you want to send the benchmark to paste.pocoo.org (Y/n)? '
-    reply = raw_input()
+    reply = raw_input('Do you want to send benchmark to paste.pocoo.org (Y/n) : ')
 except EOFError:
     sys.exit(0)
 

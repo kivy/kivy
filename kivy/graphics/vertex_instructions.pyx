@@ -375,7 +375,7 @@ cdef class Mesh(VertexInstruction):
 
         indices = [0, 1, 2]
 
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     :Parameters:
         `vertices`: list

@@ -24,8 +24,16 @@ module by default for :
 * Ignore regions
 '''
 
+
 from kivy.input.motionevent import MotionEvent
-from kivy.input.postproc import *
-from kivy.input.provider import *
-from kivy.input.factory import *
-from kivy.input.providers import *
+from kivy.input.postproc import kivy_postproc_modules
+from kivy.input.provider import MotionEventProvider
+from kivy.input.factory import MotionEventFactory
+__import__('kivy.input.providers')
+
+__all__ = (
+    MotionEvent.__name__,
+    MotionEventProvider.__name__,
+    MotionEventFactory.__name__,
+    'kivy_postproc_modules')
+

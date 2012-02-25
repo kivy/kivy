@@ -197,7 +197,7 @@ changes, especially new features.
 
 
 Does the Kivy project participate in Google's Summer of Code 2011?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~---------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Since Google announced that there will be a GSoC 2011 we have had many
 potential students ask whether we would participate.

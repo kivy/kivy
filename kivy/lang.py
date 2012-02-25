@@ -948,7 +948,7 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
 
 
 def create_handler(iself, element, key, value, rule, idmap):
-    __kvlang__ = rule
+    locals()['__kvlang__'] = rule
 
     # create an handler
     idmap = copy(idmap)

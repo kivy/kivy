@@ -9,8 +9,7 @@ import pygame
 
 from . import WindowBase
 from kivy.core import CoreCriticalException
-import os
-import sys
+from os import environ
 from os.path import exists, join
 from kivy.config import Config
 from kivy import kivy_home_dir
@@ -38,8 +37,8 @@ class WindowPygame(WindowBase):
 
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
-        if not 'SDL_VIDEO_FULLSCREEN_HEAD' in os.environ and displayidx != -1:
-            os.environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
+        if not 'SDL_VIDEO_FULLSCREEN_HEAD' in environ and displayidx != -1:
+            environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
 
         # init some opengl, same as before.
         self.flags = pygame.HWSURFACE | pygame.OPENGL | \
@@ -83,14 +82,14 @@ class WindowPygame(WindowBase):
             # position. so replace 0, 0.
             if self._pos is None:
                 self._pos = (0, 0)
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
+            environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
         elif self._fullscreenmode:
             Logger.debug('WinPygame: Set window to fullscreen mode')
             self.flags |= pygame.FULLSCREEN
 
         elif self._pos is not None:
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
+            environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
@@ -105,7 +104,8 @@ class WindowPygame(WindowBase):
             filename_icon = Config.get('kivy', 'window_icon')
             if filename_icon == '':
                 logo_size = 512 if platform() == 'darwin' else 32
-                filename_icon = join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' % logo_size)
+                filename_icon = join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' %
+                        logo_size)
             self.set_icon(filename_icon)
         except:
             Logger.exception('Window: cannot set icon')

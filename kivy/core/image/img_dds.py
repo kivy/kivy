@@ -8,6 +8,7 @@ from kivy.lib.ddsfile import DDSFile
 from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
 
+
 class ImageLoaderDDS(ImageLoaderBase):
 
     @staticmethod

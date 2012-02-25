@@ -118,7 +118,7 @@ class Popup(FloatLayout):
     background_color = ListProperty([0, 0, 0, .7])
     '''Background color, in the format (r, g, b, a).
 
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, .7].
@@ -128,7 +128,7 @@ class Popup(FloatLayout):
         'atlas://data/images/defaulttheme/popup-background')
     '''Background image of the popup used for the popup background.
 
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     :data:`background` is an :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/popup-background'
@@ -139,7 +139,7 @@ class Popup(FloatLayout):
     graphics instruction, used itself for :data:`background_normal` and
     :data:`background_down`. Can be used when using custom background.
 
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     It must be a list of 4 value: (top, right, bottom, left). Read the
     BorderImage instruction for more information about how to play with it.
@@ -151,7 +151,7 @@ class Popup(FloatLayout):
     separator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
     '''Color used by the separator between title and content.
 
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
     default to [47 / 255., 167 / 255., 212 / 255., 1.]
@@ -160,7 +160,7 @@ class Popup(FloatLayout):
     separator_height = NumericProperty(2)
     '''Height of the separator.
 
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     :data:`separator_height` is a :class:`~kivy.properties.NumericProperty`,
     default to 2.

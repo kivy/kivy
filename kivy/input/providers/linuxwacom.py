@@ -210,7 +210,6 @@ else:
             drs = kwargs.get('default_ranges').get
             touches = {}
             touches_sent = []
-            point = {}
             l_points = {}
 
             # prepare some vars to get limit of some component
@@ -247,6 +246,7 @@ else:
                     if tid not in actives:
                         touch = touches[tid]
                         if tid in touches_sent:
+                            touch.update_time_end()
                             queue.append(('end', touch))
                             touches_sent.remove(tid)
                         del touches[tid]
@@ -308,7 +308,6 @@ else:
                             device_name, abs_min, abs_max))
 
             # read until the end
-            point = {}
             changed = False
             touch_id = 0
             touch_x = 0
@@ -353,7 +352,6 @@ else:
                             l_points.clear()
                             reset_touch = False
                             process(l_points)
-                        point = {}
                     elif ev_type == EV_MSC and ev_code == MSC_SERIAL:
                         touch_id = ev_value
                     elif ev_type == EV_ABS and ev_code == ABS_X:
