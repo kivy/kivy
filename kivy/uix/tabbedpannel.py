@@ -15,8 +15,54 @@ the direction you choose.
 Simple example
 --------------
 
-.. include:: ../../examples/widgets/tabbedpannel_test.py
-    :literal:
+    from kivy.app import App
+    from kivy.uix.tabbedpannel import TabbedPannel, Tab_Heading
+    from kivy.lang import Builder
+
+    Builder.load_string("""
+    <Test>
+        size_hint: .5, .5
+        default_content: set1_content
+        Label:
+            id: set1_content
+            text: 'this is the first tabs content area'
+        BoxLayout:
+            id: set2_content
+            Label:
+                text: 'second tabs content area'
+            Button:
+                text: 'Button'
+        BoxLayout:
+            id: set3_content
+            BubbleButton:
+                text: 'bubble button'
+        Tab_Heading:
+            text: 'set2'
+            on_release: root.change_tab_contents(set2_content)
+        Tab_Heading:
+            text: 'set3'
+            on_release: root.change_tab_contents(set3_content)
+    """)
+
+    class Test(TabbedPannel):
+
+        def __init__(self, **kwargs):
+            #super(Test, self).__init__(**kwargs)
+            self.change_tab_contents(self.default_content)
+
+        def on_default_tab(self, *l):
+            self.change_tab_contents(self.default_content)
+
+        def change_tab_contents(self, content, *l):
+            self.clear_widgets()
+            self.add_widget(content)
+
+    class MyApp(App):
+        def build(self):
+            return Test()
+
+    if __name__ == '__main__':
+        MyApp().run()
 
 Customize the Pannel
 -----------------------
@@ -66,12 +112,18 @@ Remove Items::
     or
     tp.clear_widgets()# to clear all the widgets in the content area
     or
-    tp.clear_tabs()# to remove the Tab_Headings
+    tp.clear_tabs()#
+        orientation: 'vertical' to remove the Tab_Headings
 
-Access children list, **Warning** This is important! use content.children to
-access the children list::
+.. warning::
+    Access children list, This is important! use content.children to
+    access the children list::
 
-    tp.content.children
+        tp.content.children
+
+To Access the list of Tabs::
+
+    tp.tab_list
 
 Change Appearance of the TabbedPannel::
 
@@ -113,7 +165,7 @@ from kivy.uix.scatter import Scatter
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
-        ListProperty, NumericProperty
+        ListProperty, NumericProperty, AliasProperty
 
 
 class Tab_Heading(ToggleButton):
@@ -173,7 +225,7 @@ class TabbedPannel(GridLayout):
     default to 'atlas://data/images/defaulttheme/bubble'.
     '''
 
-    tab_pos = OptionProperty('bottom_mid',
+    tab_pos = OptionProperty('top_left',
             options=('left_top', 'left_mid', 'left_bottom', 'top_left',
                 'top_mid', 'top_right', 'right_top', 'right_mid',
                 'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right'))
@@ -192,7 +244,7 @@ class TabbedPannel(GridLayout):
     default to '20'.
     '''
 
-    tab_width = NumericProperty(30)
+    tab_width = NumericProperty(70)
     '''Specifies the width of the Tab Heading
 
     :data:`tab_width` is a :class:`~kivy.properties.NumericProperty`,
@@ -204,6 +256,18 @@ class TabbedPannel(GridLayout):
 
     :data:`default_tab_text` is a :class:`~kivy.properties.StringProperty`,
     default to 'default tab'.
+    '''
+
+    def get_tab_list(self):
+        if self._tab_strip:
+            return self._tab_strip.children
+        return 1.
+
+    tab_list = AliasProperty(get_tab_list, None)
+    '''List of all the tab headers
+
+    :data:`tab_list` is a :class:`~kivy.properties.AliasProperty`, and is
+    read-only.
     '''
 
     background_texture = ObjectProperty(None)
@@ -235,7 +299,7 @@ class TabbedPannel(GridLayout):
             source=self.background_image, allow_stretch = True,
             keep_ratio = False, color = self.background_color)
         self.background_texture = self._bk_img.texture
-        self._tabs = _tabs = Tab_Strip(tabbed_pannel = self,
+        self._tab_strip = _tabs = Tab_Strip(tabbed_pannel = self,
             rows = 1, cols = 99, size_hint = (None, None),\
             height = self.tab_height, width = self.tab_width)
         self.default_tab = default_tab = \
@@ -265,9 +329,11 @@ class TabbedPannel(GridLayout):
         if l[0] == content or l[0] == self._tab_layout:
             super(TabbedPannel, self).add_widget(*l)
         elif isinstance(l[0], Tab_Heading):
-            self_tabs = self._tabs
+            self_tabs = self._tab_strip
             self_tabs.add_widget(l[0])
-            self_tabs.width += l[0].width
+            self_tabs.width += l[0].width if not l[0].size_hint_x else\
+                self.tab_width
+            self.reposition_tabs()
         else:
             content.add_widget(l[0])
 
@@ -278,9 +344,12 @@ class TabbedPannel(GridLayout):
         if l[0] == content or l[0] == self._tab_layout:
             super(TabbedPannel, self).remove_widget(*l)
         elif isinstance(l[0], Tab_Heading) and l[0]!= self.default_tab:
-            self_tabs = self._tabs
+            self_tabs = self._tab_strip
             self_tabs.remove_widget(l[0])
+            if l[0].state == 'down':
+                self.default_tab.on_release()
             self_tabs.width -= l[0].width
+            self.reposition_tabs()
         else:
             content.remove_widget(l[0])
 
@@ -294,9 +363,16 @@ class TabbedPannel(GridLayout):
             content.clear_widgets()
 
     def clear_tabs(self, *l):
-        self_tabs = self._tabs
+        self_tabs = self._tab_strip
         self_tabs.clear_widgets()
-        self_tabs.add_widget(self.default_tab)
+        self_default_tab = self.default_tab
+        self_tabs.add_widget(self_default_tab)
+        self_tabs.width = self_default_tab.width
+        self.reposition_tabs()
+
+    def reposition_tabs(self, *l):
+        Clock.unschedule(self.on_tab_pos)
+        Clock.schedule_once(self.on_tab_pos)
 
     def _on_texture(self, *l):
         self.background_texture = self._bk_img.texture
@@ -321,10 +397,12 @@ class TabbedPannel(GridLayout):
             content.rows = 1
 
     def on_tab_width(self, *l):
-        self._tabs.width = self.tab_width*len(self._tabs.children)
+        self._tab_strip.width = self.tab_width*len(self._tab_strip.children)
+        self.reposition_tabs()
 
     def on_tab_height(self, *l):
-        self._tabs.height = self.tab_height
+        self._tab_layout.height = self._tab_strip.height = self.tab_height
+        self.reposition_tabs()
 
     def on_tab_pos(self, *l):
         self_content = self.content
@@ -334,7 +412,7 @@ class TabbedPannel(GridLayout):
         self_tab_layout = self._tab_layout
         self_tab_layout.clear_widgets()
         scrl_v = ScrollView(size_hint= (None, 1))
-        self_tabs = self._tabs
+        self_tabs = self._tab_strip
         self_tabs_width = self_tabs.width
         scrl_v.add_widget(self_tabs)
         scrl_v.pos = (0, 0)
@@ -431,7 +509,7 @@ class TabbedPannel(GridLayout):
 
     def _udpate_scrl_v_width(self, scrl_v, *l):
         self_tab_pos = self.tab_pos
-        self_tabs = self._tabs
+        self_tabs = self._tab_strip
         if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
             scrl_v.width = min(self.width, self_tabs.width)
             #required for situations when scrl_v's pos is calculated
