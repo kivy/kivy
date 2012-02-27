@@ -49,6 +49,7 @@ class WindowPygame(WindowBase):
         # reconstruct everything. Check #168 for a state of the work.
         if platform() == 'linux':
             self.flags |= pygame.RESIZABLE
+        self.flags |= pygame.RESIZABLE
 
         try:
             pygame.display.init()

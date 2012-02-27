@@ -11,6 +11,7 @@ __all__ = ('VBO', 'VertexBatch')
 include "config.pxi"
 include "common.pxi"
 
+from weakref import ref
 from os import environ
 from buffer cimport Buffer
 from c_opengl cimport *
@@ -29,6 +30,22 @@ vattr[1] = ['vTexCoords0', 1, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 
 cdef object _vbo_release_trigger = None
 cdef list _vbo_release_list = []
+cdef list vbo_list = []
+
+cdef gl_vbos_gc():
+    # Remove all the vbos not weakref. 
+    vbo_list[:] = [x for x in vbo_list if x() is not None]
+
+
+cdef void gl_vbos_reload():
+    # Force reloading of vbos
+    cdef VBO vbo
+    gl_vbos_gc()
+    for item in vbo_list:
+        vbo = item()
+        if not vbo:
+            continue
+        vbo.reload()
 
 
 cdef int vbo_vertex_attr_count():
@@ -42,6 +59,7 @@ cdef vertex_attr_t *vbo_vertex_attr_list():
     return vattr
 
 cdef class VBO:
+
     def __cinit__(self, **kwargs):
         self.usage  = GL_DYNAMIC_DRAW
         self.target = GL_ARRAY_BUFFER
@@ -59,6 +77,7 @@ cdef class VBO:
                 _vbo_release_trigger()
 
     def __init__(self, **kwargs):
+        vbo_list.append(ref(self))
         self.data = Buffer(sizeof(vertex_t))
 
     cdef void allocate_buffer(self):
@@ -103,6 +122,10 @@ cdef class VBO:
     cdef void remove_vertex_data(self, unsigned short* indices, int count):
         self.data.remove(indices, count)
 
+    cdef void reload(self):
+        self.need_upload = 1
+        self.vbo_size = 0
+        glGenBuffers(1, &self.id)
 
 cdef class VertexBatch:
     def __init__(self, **kwargs):

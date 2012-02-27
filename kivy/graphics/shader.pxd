@@ -2,6 +2,8 @@
 from c_opengl cimport GLuint
 from transformation cimport Matrix
 
+cdef void gl_shaders_reload()
+
 cdef class ShaderSource:
     cdef int shader
     cdef int shadertype
@@ -11,6 +13,8 @@ cdef class ShaderSource:
     cdef int is_compiled(self)
 
 cdef class Shader:
+    cdef object __weakref__
+
     cdef int _success
     cdef int program
     cdef ShaderSource vertex_shader
@@ -35,4 +39,4 @@ cdef class Shader:
     cdef ShaderSource compile_shader(self, char* source, int shadertype)
     cdef str get_program_log(self, shader)
     cdef void process_message(self, str ctype, str message)
-
+    cdef void reload(self)

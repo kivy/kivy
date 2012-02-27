@@ -4,8 +4,11 @@ from vertex cimport vertex_t, vertex_attr_t
 
 cdef int vbo_vertex_attr_count()
 cdef vertex_attr_t *vbo_vertex_attr_list()
+cdef void gl_vbos_reload()
 
 cdef class VBO:
+    cdef object __weakref__
+
     cdef GLuint id
     cdef int usage
     cdef int target
@@ -22,6 +25,7 @@ cdef class VBO:
     cdef void add_vertex_data(self, void *v, unsigned short* indices, int count)
     cdef void update_vertex_data(self, int index, vertex_t* v, int count)
     cdef void remove_vertex_data(self, unsigned short* indices, int count)
+    cdef void reload(self)
 
 
 cdef class VertexBatch:

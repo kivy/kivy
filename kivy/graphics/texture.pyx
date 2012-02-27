@@ -153,8 +153,10 @@ include "common.pxi"
 include "opengl_utils_def.pxi"
 
 from os import environ
+from weakref import ref
 from array import array
 from kivy.logger import Logger
+from kivy.cache import Cache
 
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -170,6 +172,54 @@ cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
 
 cdef object _texture_release_trigger = None
 cdef list _texture_release_list = []
+cdef list texture_list = []
+
+cdef void gl_textures_gc():
+    # Remove all the vbos not weakref
+    texture_list[:] = [x for x in texture_list if x() is not None]
+
+cdef void gl_textures_reload():
+    # Force reloading of textures
+    cdef Texture texture
+    cdef list l
+    Cache.remove('kv.image')
+    Cache.remove('kv.texture')
+    gl_textures_gc()
+    del _texture_release_list[:]
+
+    # duplicate the current list, new texture might be created
+    l = texture_list[:]
+
+    # First step, prevent double loading by setting everything to -1
+    # We do this because texture might be loaded in seperate texture at first,
+    # then merged from the cache cause of the same source
+    print '------- texture reload phase 0'
+    for item in l:
+        texture = item()
+        if texture is None:
+            continue
+        print ' -', texture
+        texture._id = -1
+
+    # First time, only reload base texture
+    print '------- texture reload phase 1'
+    for item in l:
+        texture = item()
+        if texture is None or isinstance(texture, TextureRegion):
+            continue
+        texture.reload()
+
+    # Second time, update texture region id
+    print '------- texture reload phase 2'
+    for item in l:
+        texture = item()
+        if texture is None or not isinstance(texture, TextureRegion):
+            continue
+        texture.reload()
+
+    print '------- texture reload ended'
+
+
 
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
@@ -406,7 +456,7 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt,
         colorfmt = _convert_gl_format(colorfmt)
 
     texture = Texture(texture_width, texture_height, target, texid,
-                      colorfmt=colorfmt, mipmap=mipmap)
+                      colorfmt=colorfmt, bufferfmt=bufferfmt, mipmap=mipmap)
 
     # set default parameter for this texture
     texture.bind()
@@ -493,10 +543,12 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
 def texture_create_from_data(im, mipmap=False):
     '''Create a texture from an ImageData class
     '''
+    print '   create texture from data', im
 
     cdef int width = im.width
     cdef int height = im.height
     cdef int allocate = 1
+    cdef Texture texture
 
     # optimization, if the texture is power of 2, don't allocate in
     # _texture_create, but allocate in blit_data => only 1 upload
@@ -511,6 +563,7 @@ def texture_create_from_data(im, mipmap=False):
     if texture is None:
         return None
 
+    texture._source = im.source
     texture.blit_data(im)
 
     return texture
@@ -524,7 +577,9 @@ cdef class Texture:
     create_from_data = staticmethod(texture_create_from_data)
 
     def __init__(self, width, height, target, texid, colorfmt='rgb',
-                 mipmap=False):
+            bufferfmt='ubyte', mipmap=False, source=None):
+        texture_list.append(ref(self))
+        self.observers = []
         self._width         = width
         self._height        = height
         self._target        = target
@@ -539,13 +594,17 @@ cdef class Texture:
         self._uvw           = 1.
         self._uvh           = 1.
         self._colorfmt      = colorfmt
+        self._bufferfmt     = bufferfmt
+        self._source        = source
+        self._nofree        = 0
         self.update_tex_coords()
+        print 'create texture', self, texture_list
 
     def __dealloc__(self):
         # Add texture deletion outside GC call.
         # This case happen if some texture have been not deleted
         # before application exit...
-        if _texture_release_list is not None:
+        if _texture_release_list is not None and self._id != -1 and self._nofree == 0:
             _texture_release_list.append(self._id)
             if _texture_release_trigger is not None:
                 _texture_release_trigger()
@@ -559,6 +618,16 @@ cdef class Texture:
         self._tex_coords[5] = self._uvy + self._uvh
         self._tex_coords[6] = self._uvx
         self._tex_coords[7] = self._uvy + self._uvh
+
+    def add_observer(self, callback):
+        '''Add a callback to be called when the texture need to be recreated.
+        '''
+        self.observers.append(callback)
+
+    def remove_observer(self, callback):
+        '''Remove a callback from the observer list.
+        '''
+        self.observers.remove(callback)
 
     cpdef flip_vertical(self):
         '''Flip tex_coords for vertical displaying'''
@@ -676,9 +745,38 @@ cdef class Texture:
             if _mipmap_generation:
                 glGenerateMipmap(target)
 
+    cdef reload(self):
+        cdef Texture texture
+        print '  - want to reload texture', self.id, self._source
+        print '    ', isinstance(self, Texture), isinstance(self, TextureRegion)
+        if self._id != -1:
+            print '  -< abort, already reloaded.', self._id
+            return
+        if self._source is None:
+            print '  -< Unable to reload this texture automatically, call observers'
+            # manual texture recreation
+            texture = texture_create(self.size, self.colorfmt, self.bufferfmt,
+                    self.mipmap)
+            self._id = texture.id
+            self._nofree = 1
+            # then update content again
+            for cb in self.observers:
+                cb(self)
+            return
+        print '    reloading...'
+        from kivy.core.image import Image
+        image = Image(self._source)
+        print '    reloading give image', image
+        print '    reloading give texture', image.texture
+        self._id = image.texture.id
+        texture = image.texture
+        texture._nofree = 1
+        print '    reloading give new id', self._id
+
+
     def __str__(self):
-        return '<Texture id=%d size=(%d, %d)>' % (
-            self._id, self.width, self.height)
+        return '<Texture id=%d size=(%d, %d) source=%r observers=%r>' % (
+            self._id, self.width, self.height, self._source, self.observers)
 
     property size:
         '''Return the (width, height) of the texture (readonly)
@@ -760,6 +858,14 @@ cdef class Texture:
         def __get__(self):
             return self._colorfmt
 
+    property bufferfmt:
+        '''Return the buffer format used in this texture. (readonly)
+
+        .. versionadded:: 1.1.2
+        '''
+        def __get__(self):
+            return self._bufferfmt
+
     property min_filter:
         '''Get/set the min filter texture. Available values:
 
@@ -826,6 +932,23 @@ cdef class TextureRegion(Texture):
     cdef Texture owner
 
     def __init__(self, int x, int y, int width, int height, Texture origin):
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
+        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN', origin
         Texture.__init__(self, width, height, origin.target, origin.id)
         self._is_allocated = 1
         self._mipmap = origin._mipmap

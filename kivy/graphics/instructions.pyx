@@ -19,10 +19,24 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
+from weakref import ref
 
 
 cdef int _need_reset_gl = 1
 cdef int _active_texture = -1
+cdef list rc_list = []
+
+cdef void gl_rcs_gc():
+    rc_list[:] = [x for x in rc_list if x() is not None]
+
+cdef void gl_rcs_reload():
+    cdef RenderContext rc
+    gl_rcs_gc()
+    for item in rc_list:
+        rc = item()
+        if not rc:
+            continue
+        rc.reload()
 
 cdef void reset_gl_context():
     global _need_reset_gl, _active_texture
@@ -582,6 +596,7 @@ cdef class RenderContext(Canvas):
     - The state stack (color, texture, matrix...)
     '''
     def __init__(self, *args, **kwargs):
+        rc_list.append(ref(self))
         cdef str key
         self.bind_texture = dict()
         Canvas.__init__(self, **kwargs)
@@ -683,6 +698,11 @@ cdef class RenderContext(Canvas):
         self.pop_states(keys)
         popActiveContext()
         self.flag_update_done()
+
+    cdef void reload(self):
+        pushActiveContext(self)
+        reset_gl_context()
+        popActiveContext()
 
     def __setitem__(self, key, val):
         self.set_state(key, val)

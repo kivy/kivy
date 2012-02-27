@@ -36,6 +36,7 @@ __all__ = ('Shader', )
 include "config.pxi"
 include "common.pxi"
 
+from weakref import ref
 from os.path import join
 from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -51,6 +52,25 @@ cdef str header_vs = open(join(kivy_shader_dir, 'header.vs')).read()
 cdef str header_fs = open(join(kivy_shader_dir, 'header.fs')).read()
 cdef str default_vs = open(join(kivy_shader_dir, 'default.vs')).read()
 cdef str default_fs = open(join(kivy_shader_dir, 'default.fs')).read()
+cdef list shader_list = []
+
+
+cdef gl_shaders_gc():
+    # Remove all the shaders not weakref. 
+    shader_list[:] = [x for x in shader_list if x() is not None]
+
+
+cdef void gl_shaders_reload():
+    # Force reloading of shaders
+    cdef Shader shader
+    Cache.remove('kv.shader')
+    gl_shaders_gc()
+    for item in shader_list:
+        shader = item()
+        if not shader:
+            continue
+        shader.reload()
+
 
 cdef class ShaderSource:
 
@@ -129,6 +149,7 @@ cdef class Shader:
         self.uniform_values = dict()
 
     def __init__(self, str vs, str fs):
+        shader_list.append(ref(self))
         self.program = glCreateProgram()
         self.bind_attrib_locations()
         self.fs = fs
@@ -145,6 +166,21 @@ cdef class Shader:
             self.fragment_shader = None
         glDeleteProgram(self.program)
         self.program = -1
+
+    cdef void reload(self):
+        # Note that we don't free previous created shaders. The current reload
+        # is called only when the gl context is reseted. If we do it, we might
+        # free newly created shaders (id collision)
+        glUseProgram(0)
+        self.vertex_shader = None
+        self.fragment_shader = None
+        self.uniform_values = dict()
+        self.uniform_locations = dict()
+        self._success = 0
+        self.program = glCreateProgram()
+        self.bind_attrib_locations()
+        self.fs = self.fs
+        self.vs = self.vs
 
     cdef void use(self):
         '''Use the shader

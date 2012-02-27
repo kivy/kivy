@@ -601,6 +601,9 @@ class WindowBase(EventDispatcher):
 
     def on_resize(self, width, height):
         '''Event called when the window is resized'''
+        print '-- on resize', width, height
+        from kivy.graphics.opengl_utils import gl_reload
+        gl_reload()
         self.update_viewport()
 
     def update_viewport(self):

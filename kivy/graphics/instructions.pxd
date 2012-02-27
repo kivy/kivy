@@ -12,6 +12,7 @@ from compiler cimport *
 from shader cimport *
 from texture cimport Texture
 
+cdef void gl_rcs_reload()
 cdef void reset_gl_context()
 
 cdef class Instruction
@@ -88,6 +89,8 @@ cdef class Canvas(CanvasBase):
 
 
 cdef class RenderContext(Canvas):
+    cdef object __weakref__
+
     cdef Shader _shader
     cdef dict state_stacks
     #cdef TextureManager texture_manager
@@ -106,4 +109,5 @@ cdef class RenderContext(Canvas):
     cdef void leave(self)
     cdef void apply(self)
     cpdef draw(self)
+    cdef void reload(self)
 
