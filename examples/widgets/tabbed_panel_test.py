@@ -107,14 +107,14 @@ class Panel_Test(TabbedPannel):
 
         for tab in self.tab_list:
             if but_state == 'normal':
-               tab._label.text = tab.text
-               tab.clear_widgets()
+                tab._label.text = tab.text
+                tab.clear_widgets()
             else:
                 lbl = Label(text = tab.text,
                     size_hint = (None, None),
                     size = tab.size)
                 sctr = Scatter(do_translation = False,
-                    rotation = 90 if self.tab_pos[0] != 'l' else -90 ,
+                    rotation = 90 if self.tab_pos[0] != 'l' else -90,
                     do_rotation = False,
                     do_scale = False,
                     size_hint = (None, None),
@@ -127,7 +127,6 @@ class Panel_Test(TabbedPannel):
                 tab.bind(pos = partial(self.update_pos, sctr, tab))
 
     def close_tab(self, tab, *l):
-        print 'cross released'
         self.remove_widget(tab)
 
     def closable_tabs(self, *l):
@@ -136,12 +135,12 @@ class Panel_Test(TabbedPannel):
             if but_state == 'normal':
                 tab.clear_widgets()
             else:
-                btn = Button(text = 'x', font_size = 9,
+                btn = Button(background_normal =
+                    'atlas://data/images/defaulttheme/image-missing',
                     size_hint = (None, None),
                     size = (20, 20))
                 tab.add_widget(btn)
                 btn.pos = tab.x + tab.width - btn.width, tab.y + 0
-
                 btn.bind(on_release = partial(self.close_tab, tab))
 
     def image_tabs(self, *l):
@@ -149,17 +148,21 @@ class Panel_Test(TabbedPannel):
         if but_state == 'normal':
             self.tab_height = self.old_height
             for tab in self.tab_list:
+                tab._label.text = tab.text
                 try:
                     tab.background_down = tab.old_img
+                    tab.background_normal = tab.old_img_normal
                 except AttributeError:
                     pass
         else:
-             self.old_height = self.tab_height
-             self.tab_height = 50
-             for tab in self.tab_list:
+            self.old_height = self.tab_height
+            self.tab_height = 50
+            for tab in self.tab_list:
                 tab.old_img = tab.background_down
                 tab.background_down = 'softboy.png'
-
+                tab.old_img_normal = tab.background_normal
+                tab.background_normal = 'sequenced_images/data/images/info.png'
+                tab._label.text = ''
 
     def on_default_tab(self, *l):
         self.change_tab_contents(self.default_content)
