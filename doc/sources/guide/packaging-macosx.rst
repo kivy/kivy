@@ -27,10 +27,10 @@ able to package your Kivy application.
     VERSIONER_PYTHON_PREFER_32_BIT=yes python Configure.py
     mkdir -p support/loader/Darwin-64bit
     pushd support/loader/Darwin-64bit
-    wget http://www.pyinstaller.org/export/1488/trunk/support/loader/Darwin-64bit/run
-    wget http://www.pyinstaller.org/export/1488/trunk/support/loader/Darwin-64bit/run_d
-    wget http://www.pyinstaller.org/export/1488/trunk/support/loader/Darwin-64bit/runw
-    wget http://www.pyinstaller.org/export/1488/trunk/support/loader/Darwin-64bit/runw_d
+    wget http://www.pyinstaller.org/export/d9bfa9a291cbc0fe77a99e38acb92c79631df5b8/project/support/loader/Darwin-64bit/run
+    wget http://www.pyinstaller.org/export/d9bfa9a291cbc0fe77a99e38acb92c79631df5b8/project/support/loader/Darwin-64bit/run_d
+    wget http://www.pyinstaller.org/export/d9bfa9a291cbc0fe77a99e38acb92c79631df5b8/project/support/loader/Darwin-64bit/runw
+    wget http://www.pyinstaller.org/export/d9bfa9a291cbc0fe77a99e38acb92c79631df5b8/project/support/loader/Darwin-64bit/runw_d
     chmod +x run*
     popd
 
