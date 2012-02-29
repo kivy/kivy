@@ -111,6 +111,8 @@ class Button(Label):
         self.state = 'normal'
 
     def on_touch_down(self, touch):
+        if super(Button, self).on_touch_down(touch):
+            return True
         if not self.collide_point(touch.x, touch.y):
             return False
         if self in touch.ud:
