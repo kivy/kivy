@@ -126,6 +126,9 @@ class Panel_Test(TabbedPannel):
 
                 tab.bind(pos = partial(self.update_pos, sctr, tab))
 
+    def position_close_btn(self, tab, btn, *l):
+        btn.pos = (tab.x + tab.width - btn.width, tab.y + 0)
+
     def close_tab(self, tab, *l):
         self.remove_widget(tab)
 
@@ -140,8 +143,9 @@ class Panel_Test(TabbedPannel):
                     size_hint = (None, None),
                     size = (20, 20))
                 tab.add_widget(btn)
-                btn.pos = tab.x + tab.width - btn.width, tab.y + 0
                 btn.bind(on_release = partial(self.close_tab, tab))
+                btn.pos = (tab.x + tab.width - btn.width, tab.y + 0)
+                tab.bind(pos = partial(self.position_close_btn, tab, btn))
 
     def image_tabs(self, *l):
         but_state = l[0].state
