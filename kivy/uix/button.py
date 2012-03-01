@@ -67,7 +67,8 @@ class Button(Label):
     default to [1, 1, 1, 1].
     '''
 
-    background_normal = StringProperty('atlas://data/images/defaulttheme/button')
+    background_normal = StringProperty(
+        'atlas://data/images/defaulttheme/button')
     '''Background image of the button used for default graphical representation,
     when the button is not pressed.
 
@@ -77,7 +78,8 @@ class Button(Label):
     default to 'atlas://data/images/defaulttheme/button'
     '''
 
-    background_down = StringProperty('atlas://data/images/defaulttheme/button_pressed')
+    background_down = StringProperty(
+        'atlas://data/images/defaulttheme/button_pressed')
     '''Background image of the button used for default graphical representation,
     when the button is pressed.
 
@@ -124,9 +126,13 @@ class Button(Label):
         return True
 
     def on_touch_move(self, touch):
+        if super(Button, self).on_touch_move(touch):
+            return True
         return self in touch.ud
 
     def on_touch_up(self, touch):
+        if super(Button, self).on_touch_up(touch):
+            return True
         if touch.grab_current is not self:
             return
         assert(self in touch.ud)
