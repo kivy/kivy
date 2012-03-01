@@ -179,6 +179,8 @@ class Label(Widget):
                 self.texture_size = list(self.texture.size)
 
     def on_touch_down(self, touch):
+        if super(Label, self).on_touch_down(touch):
+            return True
         if not len(self.refs):
             return False
         tx, ty = touch.pos
