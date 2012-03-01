@@ -33,7 +33,7 @@
             rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
         BorderImage:
             border: self.parent.border if self.parent else (16, 16, 16, 16)
-            texture: root.parent.background_texture if root.parent else None
+            texture: root.parent._bk_img.texture if root.parent else None
             size: self.size
             pos: self.pos
 
