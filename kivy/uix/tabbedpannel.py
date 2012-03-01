@@ -2,7 +2,7 @@
 TabbedPannel
 ============
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.2
 
 .. image:: images/tabbed_pannel.jpg
     :align: right
@@ -164,6 +164,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
+from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
         ListProperty, NumericProperty, AliasProperty
 
@@ -177,6 +178,8 @@ class Tab_Heading(ToggleButton):
     #only allow selecting the tab if not already selected
     def on_touch_down(self, touch):
         if self.state == 'down':
+            for child in self.children:
+                child.dispatch('on_touch_down', touch)
             return
         else:
             super(Tab_Heading, self).on_touch_down(touch)
@@ -343,13 +346,17 @@ class TabbedPannel(GridLayout):
             return
         if l[0] == content or l[0] == self._tab_layout:
             super(TabbedPannel, self).remove_widget(*l)
-        elif isinstance(l[0], Tab_Heading) and l[0]!= self.default_tab:
-            self_tabs = self._tab_strip
-            self_tabs.remove_widget(l[0])
-            if l[0].state == 'down':
-                self.default_tab.on_release()
-            self_tabs.width -= l[0].width
-            self.reposition_tabs()
+        elif isinstance(l[0], Tab_Heading):
+            if l[0]!= self.default_tab:
+                self_tabs = self._tab_strip
+                self_tabs.remove_widget(l[0])
+                if l[0].state == 'down':
+                    self.default_tab.on_release()
+                self_tabs.width -= l[0].width
+                self.reposition_tabs()
+            else:
+                Logger.info('TabbedPannel: default tab! can\'t be removed.\n' +
+                    'change `default_tab` to a different tab to remove this.')
         else:
             content.remove_widget(l[0])
 

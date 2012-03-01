@@ -34,9 +34,9 @@ Builder.load_string('''
         source: 'tools/theming/defaulttheme/textinput_active.png'\
         if self.parent.state == 'normal' else\
             'tools/theming/defaulttheme/check_mark.png'
-        size: (20, 20)
+        size: (15, 15)
         y: self.parent.y + (self.parent.height/2) - (self.height/2)
-        x: self.parent.x #+ (self.width/2)
+        x: self.parent.x + (self.width/2)
 
 <TabShowcase>
     but: _but
@@ -67,7 +67,7 @@ Builder.load_string('''
                     text:'press to add\\n a tab head'
                     on_release: root.add_heading()
                 CheckButton:
-                    text: '  Economize Space\\n  Long Tabs'
+                    text: '  Economic\\n Long Tabs'
                     on_state: root.economize_tabs(self)
                 CheckButton:
                     text: 'Image tabs'
