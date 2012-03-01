@@ -31,12 +31,17 @@ Builder.load_string('''
     background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
     group: 'tab_style'
     Image:
-        source: 'tools/theming/defaulttheme/textinput_active.png'\
-        if self.parent.state == 'normal' else\
-            'tools/theming/defaulttheme/check_mark.png'
+        source: 'tools/theming/defaulttheme/textinput_active.png'
         size: (15, 15)
         y: self.parent.y + (self.parent.height/2) - (self.height/2)
         x: self.parent.x + (self.width/2)
+    Image:
+        source: 'atlas://data/images/defaulttheme/image-missing'
+        color: (1, 1, 1, 0) if self.parent.state == 'normal' else\
+            (1, 1, 1, 1)
+        size: (30, 30)
+        y: self.parent.y + (self.parent.height/2) - (self.height/2)
+        x: self.parent.x + 0
 
 <TabShowcase>
     but: _but
