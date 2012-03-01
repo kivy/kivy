@@ -273,6 +273,11 @@ class WindowPygame(WindowBase):
             elif event.type == pygame.ACTIVEEVENT:
                 pass
 
+            # drop file (pygame patch needed)
+            elif event.type == pygame.USEREVENT and hasattr(pygame,
+                'USEREVENT_DROPFILE') and event.code == pygame.USEREVENT_DROPFILE:
+                self.dispatch('on_dropfile', event.filename)
+
             '''
             # unhandled event !
             else:

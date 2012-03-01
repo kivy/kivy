@@ -195,6 +195,8 @@ class WindowBase(EventDispatcher):
             Fired when a key is down
         `on_key_up`: key, scancode, unicode
             Fired when a key is up
+        `on_dropfile`: str
+            Fired when a file is dropped on the application
     '''
 
     __instance = None
@@ -367,6 +369,7 @@ class WindowBase(EventDispatcher):
         self.register_event_type('on_keyboard')
         self.register_event_type('on_key_down')
         self.register_event_type('on_key_up')
+        self.register_event_type('on_dropfile')
 
         super(WindowBase, self).__init__()
 
@@ -709,6 +712,19 @@ class WindowBase(EventDispatcher):
 
     def on_key_up(self, key, scancode=None, unicode=None, modifier=None):
         '''Event called when a key is up (same arguments as on_keyboard)'''
+        pass
+
+    def on_dropfile(self, filename):
+        '''Event called when a file is dropped on the application.
+
+        .. warning::
+
+            This event is actually used only on MacOSX with a patched version of
+            pygame. But this will be a place for a further evolution (ios,
+            android etc.)
+
+        .. versionadded:: 1.1.2
+        '''
         pass
 
     def configure_keyboards(self):
