@@ -3,7 +3,7 @@ Vertex Buffer
 =============
 
 The :class:`VBO` class handle the creation and update of Vertex Buffer Object in
-OpenGL. 
+OpenGL.
 '''
 
 __all__ = ('VBO', 'VertexBatch')
@@ -129,15 +129,26 @@ cdef class VBO:
 
 cdef class VertexBatch:
     def __init__(self, **kwargs):
+        self.usage  = GL_DYNAMIC_DRAW
         cdef object lushort = sizeof(unsigned short)
         self.vbo = kwargs.get('vbo')
         if self.vbo is None:
             self.vbo = VBO()
         self.vbo_index = Buffer(lushort) #index of every vertex in the vbo
         self.elements = Buffer(lushort) #indices translated to vbo indices
+        self.elements_size = 0
+        self.need_upload = 1
+        glGenBuffers(1, &self.id)
 
         self.set_data(NULL, 0, NULL, 0)
         self.set_mode(kwargs.get('mode'))
+
+    def __dealloc__(self):
+        # Add texture deletion outside GC call.
+        if _vbo_release_list is not None:
+            _vbo_release_list.append(self.id)
+            if _vbo_release_trigger is not None:
+                _vbo_release_trigger()
 
     cdef void clear_data(self):
         # clear old vertices from vbo and then reset index buffer
@@ -145,7 +156,6 @@ cdef class VertexBatch:
                                     self.vbo_index.count())
         self.vbo_index.clear()
         self.elements.clear()
-
 
     cdef void set_data(self, vertex_t *vertices, int vertices_count,
                        unsigned short *indices, int indices_count):
@@ -155,6 +165,7 @@ cdef class VertexBatch:
 
         # now append the vertices and indices to vbo
         self.append_data(vertices, vertices_count, indices, indices_count)
+        self.need_upload = 1
 
     cdef void append_data(self, vertex_t *vertices, int vertices_count,
                           unsigned short *indices, int indices_count):
@@ -174,12 +185,28 @@ cdef class VertexBatch:
         for i in xrange(indices_count):
             local_index = indices[i]
             self.elements.add(&vbi[local_index], NULL, 1)
+        self.need_upload = 1
 
     cdef void draw(self):
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.id)
+        # cache indices in a gpu buffer too
+        if self.need_upload:
+            if self.elements_size == self.elements.size():
+                glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, self.elements_size,
+                    self.elements.pointer())
+            else:
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.elements.size(),
+                    self.elements.pointer(), self.usage)
+                self.elements_size = self.elements.size()
+            self.need_upload = 0
         self.vbo.bind()
         glDrawElements(self.mode, self.elements.count(),
-                       GL_UNSIGNED_SHORT, self.elements.pointer())
-        self.vbo.unbind()
+                       GL_UNSIGNED_SHORT, NULL)
+
+        # XXX if the user is doing its own things, Callback instruction will
+        # reset the context.
+        # self.vbo.unbind()
+        # glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
     cdef void set_mode(self, str mode):
         # most common case in top;

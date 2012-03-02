@@ -305,7 +305,7 @@ cdef class VertexInstruction(Instruction):
                         size: self.size
 
         .. note::
-            
+
             The filename will be searched with the
             :func:`kivy.resources.resource_find` function.
 
@@ -356,7 +356,7 @@ cdef class VertexInstruction(Instruction):
 
 cdef class Callback(Instruction):
     '''.. versionadded:: 1.0.4
-    
+
     A Callback is an instruction that will be called when the drawing
     operation is performed. When adding instructions to a canvas, you can do
     this::
@@ -417,6 +417,9 @@ cdef class Callback(Instruction):
         cdef RenderContext context
         cdef Shader shader
         cdef int i
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         if self.func(self):
             self.flag_update_done()
@@ -561,7 +564,7 @@ cdef CanvasBase getActiveCanvas():
     global ACTIVE_CANVAS
     return ACTIVE_CANVAS
 
-# Canvas Stack, for internal use so canvas can be bound 
+# Canvas Stack, for internal use so canvas can be bound
 # inside other canvas, and restroed when other canvas is done
 cdef list CANVAS_STACK = list()
 
@@ -575,7 +578,7 @@ cdef popActiveCanvas():
     ACTIVE_CANVAS = CANVAS_STACK.pop()
 
 
-#TODO: same as canvas, move back to context.pyx..fix circular import 
+#TODO: same as canvas, move back to context.pyx..fix circular import
 #on actual import from python problem
 include "common.pxi"
 from vertex cimport *
