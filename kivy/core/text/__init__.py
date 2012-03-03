@@ -431,7 +431,6 @@ class LabelBase(object):
         # If the text is 1px width, usually, the data is black.
         # Don't blit that kind of data, otherwise, you have a little black bar.
         if data is not None and data.width > 1:
-            print 'XXXXXXXXX BLIT DATA ON ', texture
             texture.blit_data(data)
 
     def _texture_refresh(self, *l):

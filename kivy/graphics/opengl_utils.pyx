@@ -189,7 +189,7 @@ cpdef int gl_has_texture_format(str fmt):
     return gl_has_texture_conversion(fmt)
 
 cdef int gl_context = 1
-from kivy.graphics.vbo cimport gl_vbos_reload
+from kivy.graphics.vbo cimport gl_vbos_reload, gl_batchs_reload
 from kivy.graphics.shader cimport gl_shaders_reload
 from kivy.graphics.texture cimport gl_textures_reload
 from kivy.graphics.instructions cimport gl_rcs_reload
@@ -202,12 +202,15 @@ def gl_reload():
     gl_context += 1
 
     print '--> reload initiated'
-    print '  > vbos'
-    gl_vbos_reload()
-    print '  > shaders'
-    gl_shaders_reload()
     print '  > textures'
     gl_textures_reload()
+    print '  > vbos'
+    gl_vbos_reload()
+    print '  > vertex batches'
+    gl_batchs_reload()
+    print '  > shaders'
+    gl_shaders_reload()
     print '  > render contexts'
     gl_rcs_reload()
+    print '  > force recompilation.'
     print '<-- reload done'

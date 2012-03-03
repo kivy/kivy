@@ -31,10 +31,15 @@ vattr[1] = ['vTexCoords0', 1, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 cdef object _vbo_release_trigger = None
 cdef list _vbo_release_list = []
 cdef list vbo_list = []
+cdef list batch_list = []
 
 cdef gl_vbos_gc():
     # Remove all the vbos not weakref. 
     vbo_list[:] = [x for x in vbo_list if x() is not None]
+
+cdef gl_batchs_gc():
+    # Remove all the vbos not weakref. 
+    batch_list[:] = [x for x in batch_list if x() is not None]
 
 
 cdef void gl_vbos_reload():
@@ -46,6 +51,16 @@ cdef void gl_vbos_reload():
         if not vbo:
             continue
         vbo.reload()
+
+cdef void gl_batchs_reload():
+    # Force reloading of Batchs
+    cdef VertexBatch batch
+    gl_batchs_gc()
+    for item in batch_list:
+        batch = item()
+        if not batch:
+            continue
+        batch.reload()
 
 
 cdef int vbo_vertex_attr_count():
@@ -129,6 +144,7 @@ cdef class VBO:
 
 cdef class VertexBatch:
     def __init__(self, **kwargs):
+        batch_list.append(ref(self))
         self.usage  = GL_DYNAMIC_DRAW
         cdef object lushort = sizeof(unsigned short)
         self.vbo = kwargs.get('vbo')
@@ -149,6 +165,11 @@ cdef class VertexBatch:
             _vbo_release_list.append(self.id)
             if _vbo_release_trigger is not None:
                 _vbo_release_trigger()
+
+    cdef void reload(self):
+        self.need_upload = 1
+        self.elements_size = 0
+        glGenBuffers(1, &self.id)
 
     cdef void clear_data(self):
         # clear old vertices from vbo and then reset index buffer

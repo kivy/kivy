@@ -170,13 +170,11 @@ cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
 
-cdef object _texture_release_trigger = None
-cdef list _texture_release_list = []
+cdef object texture_release_trigger = None
+cdef list texture_release_list = []
 cdef list texture_list = []
 
-cdef void gl_textures_gc():
-    # Remove all the vbos not weakref
-    texture_list[:] = [x for x in texture_list if x() is not None]
+
 
 cdef void gl_textures_reload():
     # Force reloading of textures
@@ -184,8 +182,8 @@ cdef void gl_textures_reload():
     cdef list l
     Cache.remove('kv.image')
     Cache.remove('kv.texture')
-    gl_textures_gc()
-    del _texture_release_list[:]
+    texture_list[:] = [x for x in texture_list if x() is not None]
+    del texture_release_list[:]
 
     # duplicate the current list, new texture might be created
     l = texture_list[:]
@@ -193,16 +191,13 @@ cdef void gl_textures_reload():
     # First step, prevent double loading by setting everything to -1
     # We do this because texture might be loaded in seperate texture at first,
     # then merged from the cache cause of the same source
-    print '------- texture reload phase 0'
     for item in l:
         texture = item()
         if texture is None:
             continue
-        print ' -', texture
         texture._id = -1
 
     # First time, only reload base texture
-    print '------- texture reload phase 1'
     for item in l:
         texture = item()
         if texture is None or isinstance(texture, TextureRegion):
@@ -210,15 +205,11 @@ cdef void gl_textures_reload():
         texture.reload()
 
     # Second time, update texture region id
-    print '------- texture reload phase 2'
     for item in l:
         texture = item()
         if texture is None or not isinstance(texture, TextureRegion):
             continue
         texture.reload()
-
-    print '------- texture reload ended'
-
 
 
 cdef dict _gl_color_fmt = {
@@ -228,10 +219,12 @@ cdef dict _gl_color_fmt = {
     's3tc_dxt3': GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
     's3tc_dxt5': GL_COMPRESSED_RGBA_S3TC_DXT5_EXT }
 
+
 cdef dict _gl_buffer_fmt = {
     'ubyte': GL_UNSIGNED_BYTE, 'ushort': GL_UNSIGNED_SHORT,
     'uint': GL_UNSIGNED_INT, 'byte': GL_BYTE,
     'short': GL_SHORT, 'int': GL_INT, 'float': GL_FLOAT }
+
 
 cdef dict _gl_buffer_size = {
     'ubyte': sizeof(GLubyte), 'ushort': sizeof(GLushort),
@@ -239,13 +232,13 @@ cdef dict _gl_buffer_size = {
     'short': sizeof(GLshort), 'int': sizeof(GLint),
     'float': sizeof(GLfloat) }
 
+
 cdef dict _gl_texture_min_filter = {
     'nearest': GL_NEAREST, 'linear': GL_LINEAR,
     'nearest_mipmap_nearest': GL_NEAREST_MIPMAP_NEAREST,
     'nearest_mipmap_linear': GL_NEAREST_MIPMAP_LINEAR,
     'linear_mipmap_nearest': GL_LINEAR_MIPMAP_NEAREST,
     'linear_mipmap_linear': GL_LINEAR_MIPMAP_LINEAR }
-
 
 
 cdef inline int _nearest_pow2(int v):
@@ -440,7 +433,7 @@ cdef _texture_create(int width, int height, str colorfmt, str bufferfmt,
         make_npot = 0
 
     # depending if npot is available, use the real size or pot size
-    if make_npot and gl_has_capability(GLCAP_NPOT):
+    if make_npot and gl_has_capability(c_GLCAP_NPOT):
         texture_width = width
         texture_height = height
     else:
@@ -543,8 +536,6 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
 def texture_create_from_data(im, mipmap=False):
     '''Create a texture from an ImageData class
     '''
-    print '   create texture from data', im
-
     cdef int width = im.width
     cdef int height = im.height
     cdef int allocate = 1
@@ -598,18 +589,19 @@ cdef class Texture:
         self._source        = source
         self._nofree        = 0
         self.update_tex_coords()
-        print 'create texture', self, texture_list
 
     def __dealloc__(self):
         # Add texture deletion outside GC call.
         # This case happen if some texture have been not deleted
         # before application exit...
-        if _texture_release_list is not None and self._id != -1 and self._nofree == 0:
-            _texture_release_list.append(self._id)
-            if _texture_release_trigger is not None:
-                _texture_release_trigger()
+        if self.__class__ is not Texture:
+            return
+        if texture_release_list is not None and self._id != -1 and self._nofree == 0:
+            texture_release_list.append(self._id)
+            if texture_release_trigger is not None:
+                texture_release_trigger()
 
-    cdef update_tex_coords(self):
+    cdef void update_tex_coords(self):
         self._tex_coords[0] = self._uvx
         self._tex_coords[1] = self._uvy
         self._tex_coords[2] = self._uvx + self._uvw
@@ -644,17 +636,17 @@ cdef class Texture:
         '''Bind the texture to current opengl state'''
         glBindTexture(self._target, self._id)
 
-    cdef set_min_filter(self, str x):
+    cdef void set_min_filter(self, str x):
         cdef GLuint _value = _str_to_gl_texture_min_filter(x)
         glTexParameteri(self._target, GL_TEXTURE_MIN_FILTER, _value)
         self._min_filter = x
 
-    cdef set_mag_filter(self, str x):
+    cdef void set_mag_filter(self, str x):
         cdef GLuint _value = _str_to_gl_texture_mag_filter(x)
         glTexParameteri(self._target, GL_TEXTURE_MAG_FILTER, _value)
         self._mag_filter = x
 
-    cdef set_wrap(self, str x):
+    cdef void set_wrap(self, str x):
         cdef GLuint _value = _str_to_gl_texture_wrap(x)
         glTexParameteri(self._target, GL_TEXTURE_WRAP_S, _value)
         glTexParameteri(self._target, GL_TEXTURE_WRAP_T, _value)
@@ -745,38 +737,34 @@ cdef class Texture:
             if _mipmap_generation:
                 glGenerateMipmap(target)
 
-    cdef reload(self):
+    cdef void reload(self):
         cdef Texture texture
-        print '  - want to reload texture', self.id, self._source
-        print '    ', isinstance(self, Texture), isinstance(self, TextureRegion)
         if self._id != -1:
-            print '  -< abort, already reloaded.', self._id
             return
         if self._source is None:
-            print '  -< Unable to reload this texture automatically, call observers'
             # manual texture recreation
             texture = texture_create(self.size, self.colorfmt, self.bufferfmt,
                     self.mipmap)
             self._id = texture.id
-            self._nofree = 1
+            texture._nofree = 1
             # then update content again
             for cb in self.observers:
                 cb(self)
+
             return
-        print '    reloading...'
         from kivy.core.image import Image
         image = Image(self._source)
-        print '    reloading give image', image
-        print '    reloading give texture', image.texture
         self._id = image.texture.id
         texture = image.texture
         texture._nofree = 1
-        print '    reloading give new id', self._id
-
+        # then update content again
+        for cb in self.observers:
+            cb(self)
 
     def __str__(self):
-        return '<Texture id=%d size=(%d, %d) source=%r observers=%r>' % (
-            self._id, self.width, self.height, self._source, self.observers)
+        return '<Texture hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (
+            id(self), self._id, self.size, self.colorfmt, self.bufferfmt,
+            self._source, len(self.observers))
 
     property size:
         '''Return the (width, height) of the texture (readonly)
@@ -927,28 +915,7 @@ cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2
     texture handling.'''
 
-    cdef int x
-    cdef int y
-    cdef Texture owner
-
     def __init__(self, int x, int y, int width, int height, Texture origin):
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN'
-        print' TEXTURE REGIONNNNNNNNNNNNNNNNNNNNNNNNNNNN', origin
         Texture.__init__(self, width, height, origin.target, origin.id)
         self._is_allocated = 1
         self._mipmap = origin._mipmap
@@ -967,20 +934,33 @@ cdef class TextureRegion(Texture):
         self.update_tex_coords()
 
     def __str__(self):
-        return '<TextureRegion id=%d size=(%d, %d)>' % (
-            self._id, self.width, self.height)
+        return '<TextureRegion of %r hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (
+            self.owner, id(self), self._id, self.size, self.colorfmt,
+            self.bufferfmt, self._source, len(self.observers))
+
+    cdef void reload(self):
+        # texture region are reloaded _after_ normal texture
+        # so that could work, except if it's a region of region
+        # it's safe to retrigger a reload, since the owner texture will be not
+        # really reloaded if its id is not -1.
+        self.owner.reload()
+        self._id = self.owner.id
+
+        # then update content again
+        for cb in self.observers:
+            cb(self)
 
 # Releasing texture through GC is problematic
 def _texture_release(*largs):
     cdef GLuint texture_id
-    if not _texture_release_list:
+    if not texture_release_list:
         return
-    Logger.trace('Texture: releasing %d textures' % len(_texture_release_list))
-    for texture_id in _texture_release_list:
+    Logger.trace('Texture: releasing %d textures' % len(texture_release_list))
+    for texture_id in texture_release_list:
         glDeleteTextures(1, &texture_id)
-    del _texture_release_list[:]
+    del texture_release_list[:]
 
 if 'KIVY_DOC_INCLUDE' not in environ:
     from kivy.clock import Clock
-    _texture_release_trigger = Clock.create_trigger(_texture_release)
+    texture_release_trigger = Clock.create_trigger(_texture_release)
 

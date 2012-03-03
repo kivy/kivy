@@ -24,15 +24,15 @@ from weakref import ref
 
 cdef int _need_reset_gl = 1
 cdef int _active_texture = -1
-cdef list rc_list = []
+cdef list canvas_list = []
 
 cdef void gl_rcs_gc():
-    rc_list[:] = [x for x in rc_list if x() is not None]
+    canvas_list[:] = [x for x in canvas_list if x() is not None]
 
 cdef void gl_rcs_reload():
-    cdef RenderContext rc
+    cdef Canvas rc
     gl_rcs_gc()
-    for item in rc_list:
+    for item in canvas_list:
         rc = item()
         if not rc:
             continue
@@ -90,6 +90,11 @@ cdef class Instruction:
 
     cdef void set_parent(self, Instruction parent):
         self.parent = parent
+
+    cdef void reload(self):
+        self.flags |= GI_NEEDS_UPDATE
+        self.flags &= ~GI_NO_APPLY_ONCE
+        self.flags &= ~GI_IGNORE
 
     property needs_redraw:
         def __get__(self):
@@ -186,6 +191,12 @@ cdef class InstructionGroup(Instruction):
         '''
         cdef Instruction c
         return [c for c in self.children if c.group == groupname]
+
+    cdef void reload(self):
+        Instruction.reload(self)
+        cdef Instruction c
+        for c in self.children:
+            c.reload()
 
 
 cdef class ContextInstruction(Instruction):
@@ -498,9 +509,21 @@ cdef class Canvas(CanvasBase):
     '''
 
     def __init__(self, **kwargs):
+        canvas_list.append(ref(self))
         CanvasBase.__init__(self, **kwargs)
         self._before = None
         self._after = None
+
+    cdef void reload(self):
+        return
+        cdef Canvas c
+        if self._before is not None:
+            c = self._before
+            c.reload()
+        CanvasBase.reload(self)
+        if self._after is not None:
+            c = self._after
+            c.reload()
 
     cpdef clear(self):
         cdef Instruction c
@@ -599,7 +622,6 @@ cdef class RenderContext(Canvas):
     - The state stack (color, texture, matrix...)
     '''
     def __init__(self, *args, **kwargs):
-        rc_list.append(ref(self))
         cdef str key
         self.bind_texture = dict()
         Canvas.__init__(self, **kwargs)
@@ -705,6 +727,7 @@ cdef class RenderContext(Canvas):
     cdef void reload(self):
         pushActiveContext(self)
         reset_gl_context()
+        Canvas.reload(self)
         popActiveContext()
 
     def __setitem__(self, key, val):

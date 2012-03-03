@@ -5,6 +5,7 @@ from vertex cimport vertex_t, vertex_attr_t
 cdef int vbo_vertex_attr_count()
 cdef vertex_attr_t *vbo_vertex_attr_list()
 cdef void gl_vbos_reload()
+cdef void gl_batchs_reload()
 
 cdef class VBO:
     cdef object __weakref__
@@ -29,6 +30,8 @@ cdef class VBO:
 
 
 cdef class VertexBatch:
+    cdef object __weakref__
+
     cdef VBO vbo
     cdef Buffer elements
     cdef Buffer vbo_index
@@ -48,3 +51,4 @@ cdef class VertexBatch:
     cdef void set_mode(self, str mode)
     cdef str get_mode(self)
     cdef int count(self)
+    cdef void reload(self)
