@@ -37,7 +37,6 @@ class WindowPygame(WindowBase):
         # have some weird bugs
         self.dispatch('on_mouse_up', 0, 0, 'all', [])
 
-        print 'window create'
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
         if not 'SDL_VIDEO_FULLSCREEN_HEAD' in environ and displayidx != -1:
@@ -270,7 +269,8 @@ class WindowPygame(WindowBase):
 
             # video resize
             elif event.type == pygame.VIDEORESIZE:
-                self.system_size = event.size
+                self._size = event.size
+                self.update_viewport()
 
             elif event.type == pygame.VIDEOEXPOSE:
                 self.canvas.ask_update()
@@ -312,7 +312,6 @@ class WindowPygame(WindowBase):
     # Pygame wrapper
     #
     def _pygame_set_mode(self, size=None):
-        print '>>> pygame set mode', self._size, self.fullscreen, self.flags
         if size is None:
             size = self.size
         if self.fullscreen == 'auto':

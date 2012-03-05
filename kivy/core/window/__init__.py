@@ -20,6 +20,7 @@ from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
         NumericProperty, OptionProperty, StringProperty
+from kivy.utils import platform
 
 # late import
 VKeyboard = None
@@ -482,7 +483,6 @@ class WindowBase(EventDispatcher):
         # called, unset the trigger
         Clock.unschedule(self.create_window)
 
-        print 'create window !!'
         if not self.initialized:
             from kivy.core.gl import init_gl
             init_gl()
@@ -496,11 +496,18 @@ class WindowBase(EventDispatcher):
         else:
             # if we get initialized more than once, then reload opengl state
             # after the second time.
+            # XXX check how it's working on embed platform.
             from kivy.graphics.opengl_utils import gl_reload
-            gl_reload()
-            def ask_update(dt):
-                self.canvas.ask_update()
-            Clock.schedule_once(ask_update, 0)
+            if platform() == 'linux':
+                # on linux, it's safe for just sending a resize.
+                self.dispatch('on_resize', *self.system_size)
+
+            else:
+                # on other platform, window are recreated, we need to reload.
+                gl_reload()
+                def ask_update(dt):
+                    self.canvas.ask_update()
+                Clock.schedule_once(ask_update, 0)
 
         # ensure the gl viewport is correct
         self.update_viewport()
@@ -631,9 +638,6 @@ class WindowBase(EventDispatcher):
 
     def on_resize(self, width, height):
         '''Event called when the window is resized'''
-        print '-- on resize', width, height
-        from kivy.graphics.opengl_utils import gl_reload
-        gl_reload()
         self.update_viewport()
 
     def update_viewport(self):
