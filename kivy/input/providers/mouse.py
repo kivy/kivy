@@ -181,6 +181,12 @@ class MouseMotionEventProvider(MotionEventProvider):
         return True
 
     def on_mouse_release(self, win, x, y, button, modifiers):
+        # special case, if button is all, then remove all the current mouses.
+        if button == 'all':
+            for cur in self.touches.values()[:]:
+                self.remove_touch(cur)
+            self.current_drag = None
+
         width, height = EventLoop.window.system_size
         rx = x / float(width)
         ry = 1. - y / float(height)

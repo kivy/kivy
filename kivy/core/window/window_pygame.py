@@ -32,9 +32,12 @@ glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
 
 class WindowPygame(WindowBase):
 
-    def create_window(self):
-        params = self.params
+    def create_window(self, *largs):
+        # ensure the mouse is still not up after window creation, otherwise, we
+        # have some weird bugs
+        self.dispatch('on_mouse_up', 0, 0, 'all', [])
 
+        print 'window create'
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
         if not 'SDL_VIDEO_FULLSCREEN_HEAD' in environ and displayidx != -1:
@@ -47,11 +50,12 @@ class WindowPygame(WindowBase):
         # right now, activate resizable window only on linux.
         # on window / macosx, the opengl context is lost, and we need to
         # reconstruct everything. Check #168 for a state of the work.
-        if platform() == 'linux':
+        if platform() in ('linux', 'macosx', 'win'):
             self.flags |= pygame.RESIZABLE
         self.flags |= pygame.RESIZABLE
 
         try:
+            pygame.display.quit()
             pygame.display.init()
         except pygame.error, e:
             raise CoreCriticalException(e.message)
@@ -65,18 +69,17 @@ class WindowPygame(WindowBase):
         pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 16)
         pygame.display.gl_set_attribute(pygame.GL_STENCIL_SIZE, 1)
         pygame.display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
-        pygame.display.set_caption('kivy')
+        pygame.display.set_caption(self.title)
 
-        if params['position'] == 'auto':
+        if self.position == 'auto':
             self._pos = None
-        elif params['position'] == 'custom':
-            self._pos = params['left'], params['top']
+        elif self.position == 'custom':
+            self._pos = self.left, self.top
         else:
             raise ValueError('position token in configuration accept only '
                              '"auto" or "custom"')
 
-        self._fullscreenmode = params['fullscreen']
-        if self._fullscreenmode == 'fake':
+        if self.fullscreen == 'fake':
             Logger.debug('WinPygame: Set window to fake fullscreen mode')
             self.flags |= pygame.NOFRAME
             # if no position set, in fake mode, we always need to set the
@@ -85,7 +88,7 @@ class WindowPygame(WindowBase):
                 self._pos = (0, 0)
             environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
-        elif self._fullscreenmode:
+        elif self.fullscreen is True:
             Logger.debug('WinPygame: Set window to fullscreen mode')
             self.flags |= pygame.FULLSCREEN
 
@@ -111,10 +114,6 @@ class WindowPygame(WindowBase):
         except:
             Logger.exception('Window: cannot set icon')
 
-        # init ourself size + setmode
-        # before calling on_resize
-        self._size = params['width'], params['height']
-
         # try to use mode with multisamples
         try:
             self._pygame_set_mode()
@@ -133,14 +132,15 @@ class WindowPygame(WindowBase):
             else:
                 raise CoreCriticalException(e.message)
 
+        info = pygame.display.Info()
+        self._size = (info.current_w, info.current_h)
+        #self.dispatch('on_resize', *self._size)
+
         super(WindowPygame, self).create_window()
 
         # set mouse visibility
         pygame.mouse.set_visible(
             Config.getboolean('graphics', 'show_cursor'))
-
-        # set rotation
-        self.rotation = params['rotation']
 
         # if we are on android platform, automaticly create hooks
         if android:
@@ -151,8 +151,9 @@ class WindowPygame(WindowBase):
         pygame.display.quit()
         self.dispatch('on_close')
 
-    def set_title(self, title):
-        pygame.display.set_caption(title)
+    def on_title(self, instance, value):
+        if self.initialized:
+            pygame.display.set_caption(self.title)
 
     def set_icon(self, filename):
         try:
@@ -220,6 +221,9 @@ class WindowPygame(WindowBase):
                 if event.buttons == (0, 0, 0):
                     continue
                 x, y = event.pos
+                self._mouse_x = x
+                self._mouse_y = y
+                self._mouse_meta = self.modifiers
                 self.dispatch('on_mouse_move', x, y, self.modifiers)
 
             # mouse action
@@ -239,6 +243,11 @@ class WindowPygame(WindowBase):
                 eventname = 'on_mouse_down'
                 if event.type == pygame.MOUSEBUTTONUP:
                     eventname = 'on_mouse_up'
+                self._mouse_x = x
+                self._mouse_y = y
+                self._mouse_meta = self.modifiers
+                self._mouse_btn = btn
+                self._mouse_down = eventname == 'on_mouse_down'
                 self.dispatch(eventname, x, y, btn, self.modifiers)
 
             # keyboard action
@@ -261,11 +270,7 @@ class WindowPygame(WindowBase):
 
             # video resize
             elif event.type == pygame.VIDEORESIZE:
-                self._size = event.size
-                # don't use trigger here, we want to delay the resize event
-                cb = self._do_resize
-                Clock.unschedule(cb)
-                Clock.schedule_once(cb, .1)
+                self.system_size = event.size
 
             elif event.type == pygame.VIDEOEXPOSE:
                 self.canvas.ask_update()
@@ -285,16 +290,7 @@ class WindowPygame(WindowBase):
                 Logger.debug('WinPygame: Unhandled event %s' % str(event))
             '''
 
-    def _do_resize(self, dt):
-        Logger.debug('Window: Resize window to %s' % str(self._size))
-        self._pygame_set_mode(self._size)
-        self.dispatch('on_resize', *self._size)
-
     def mainloop(self):
-        # don't known why, but pygame required a resize event
-        # for opengl, before mainloop... window reinit ?
-        self.dispatch('on_resize', *self.size)
-
         while not EventLoop.quit and EventLoop.status == 'started':
             try:
                 self._mainloop()
@@ -312,22 +308,15 @@ class WindowPygame(WindowBase):
         # force deletion of window
         pygame.display.quit()
 
-    def _set_size(self, size):
-        if super(WindowPygame, self)._set_size(size):
-            self._pygame_set_mode()
-            return True
-    size = property(WindowBase._get_size, _set_size)
-
     #
     # Pygame wrapper
     #
     def _pygame_set_mode(self, size=None):
+        print '>>> pygame set mode', self._size, self.fullscreen, self.flags
         if size is None:
             size = self.size
-        if self._fullscreenmode == 'auto':
+        if self.fullscreen == 'auto':
             pygame.display.set_mode((0, 0), self.flags)
-            info = pygame.display.Info()
-            self._size = (info.current_w, info.current_h)
         else:
             pygame.display.set_mode(size, self.flags)
 
