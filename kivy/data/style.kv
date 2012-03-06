@@ -93,7 +93,7 @@
     padding_y: 6
     canvas.before:
         Color:
-            rgb: (1, 1, 1)
+            rgb: self.background_color
         BorderImage:
             border: (16, 16, 16, 16)
             pos: self.pos
@@ -105,7 +105,7 @@
             pos: map(int, self.cursor_pos)
             size: 1, -self.line_height
         Color:
-            rgb: (0, 0, 0)
+            rgb: self.foreground_color
 
 <TextInputCutCopyPaste>:
     size_hint: None, None
