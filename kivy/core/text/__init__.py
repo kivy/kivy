@@ -404,14 +404,14 @@ class LabelBase(object):
             else:
                 texture = Texture.create_from_data(data, mipmap=mipmap)
             texture.flip_vertical()
-            texture.add_observer(self._texture_refresh)
+            texture.add_reload_observer(self._texture_refresh)
         elif self.width != texture.width or self.height != texture.height:
             if data is None:
                 texture = Texture.create(size=self.size, mipmap=mipmap)
             else:
                 texture = Texture.create_from_data(data, mipmap=mipmap)
             texture.flip_vertical()
-            texture.add_observer(self._texture_refresh)
+            texture.add_reload_observer(self._texture_refresh)
         '''
         # Avoid that for the moment.
         # The thing is, as soon as we got a region, the blitting is not going in

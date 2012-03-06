@@ -154,14 +154,15 @@ include "opengl_utils_def.pxi"
 
 from os import environ
 from array import array
+from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy.graphics.context cimport get_context
 
-from c_opengl cimport *
+from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
-from opengl_utils cimport *
+    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.opengl_utils cimport *
 
 # compatibility layer
 cdef GLuint GL_BGR = 0x80E0
@@ -549,9 +550,6 @@ cdef class Texture:
         self.update_tex_coords()
 
     def __dealloc__(self):
-        # Add texture deletion outside GC call.
-        # This case happen if some texture have been not deleted
-        # before application exit...
         get_context().dealloc_texture(self)
 
     cdef void update_tex_coords(self):
@@ -564,15 +562,29 @@ cdef class Texture:
         self._tex_coords[6] = self._uvx
         self._tex_coords[7] = self._uvy + self._uvh
 
-    def add_observer(self, callback):
-        '''Add a callback to be called when the texture need to be recreated.
-        '''
-        self.observers.append(callback)
+    def add_reload_observer(self, callback):
+        '''Add a callback to be called after the whole graphics context have
+        been reloaded. This is where you can reupload your custom data in GPU.
 
-    def remove_observer(self, callback):
-        '''Remove a callback from the observer list.
+        .. versionadded:: 1.1.2
+
+        :Parameters:
+            `callback`: func(context) -> return None
+                The first parameter will be the context itself
         '''
-        self.observers.remove(callback)
+        self.observers.append(WeakMethod(callback))
+
+    def remove_reload_observer(self, callback):
+        '''Remove a callback from the observer list, previously added by
+        :func:`add_reload_observer`. 
+
+        .. versionadded:: 1.1.2
+
+        '''
+        for cb in self.observers[:]:
+            if cb.is_dead() or cb() is callback:
+                self.observers.remove(cb)
+                continue
 
     cpdef flip_vertical(self):
         '''Flip tex_coords for vertical displaying'''
@@ -701,10 +713,13 @@ cdef class Texture:
             self._id = texture.id
             texture._nofree = 1
             # then update content again
-            for cb in self.observers:
-                cb(self)
-
+            for callback in self.observers[:]:
+                if callback.is_dead():
+                    self.observers.remove(callback)
+                    continue
+                callback()(self)
             return
+
         from kivy.core.image import Image
         image = Image(self._source)
         self._id = image.texture.id
