@@ -497,14 +497,14 @@ class WindowBase(EventDispatcher):
             # if we get initialized more than once, then reload opengl state
             # after the second time.
             # XXX check how it's working on embed platform.
-            from kivy.graphics.opengl_utils import gl_reload
             if platform() == 'linux':
                 # on linux, it's safe for just sending a resize.
                 self.dispatch('on_resize', *self.system_size)
 
             else:
                 # on other platform, window are recreated, we need to reload.
-                gl_reload()
+                from kivy.graphics.context import get_context
+                get_context().reload()
                 def ask_update(dt):
                     self.canvas.ask_update()
                 Clock.schedule_once(ask_update, 0)

@@ -2,8 +2,6 @@
 from c_opengl cimport GLuint
 from transformation cimport Matrix
 
-cdef void gl_shaders_reload()
-
 cdef class ShaderSource:
     cdef int shader
     cdef int shadertype

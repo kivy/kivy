@@ -55,9 +55,8 @@ IF USE_OPENGL_DEBUG == 1:
 from instructions cimport RenderContext, Canvas
 
 cdef list fbo_stack = [0]
-cdef object _fbo_release_trigger = None
-cdef list _fbo_release_list = []
-
+cdef object fbo_release_trigger = None
+cdef list fbo_release_list = []
 
 
 cdef class Fbo(RenderContext):
@@ -133,19 +132,19 @@ cdef class Fbo(RenderContext):
 
     def __dealloc__(self):
         # add fbo deletion outside gc call.
-        if _fbo_release_list is not None:
-            _fbo_release_list.append((self._buffer_id, self._depthbuffer_id))
-            if _fbo_release_trigger is not None:
-                _fbo_release_trigger()
+        if fbo_release_list is not None:
+            fbo_release_list.append((self._buffer_id, self._depthbuffer_id))
+            if fbo_release_trigger is not None:
+                fbo_release_trigger()
 
     cdef void delete_fbo(self):
         self._texture = None
         self._depthbuffer_attached = 0
         # delete in asynchronous way the framebuffers
-        if _fbo_release_list is not None:
-            _fbo_release_list.append((self._buffer_id, self._depthbuffer_id))
-            if _fbo_release_trigger is not None:
-                _fbo_release_trigger()
+        if fbo_release_list is not None:
+            fbo_release_list.append((self._buffer_id, self._depthbuffer_id))
+            if fbo_release_trigger is not None:
+                fbo_release_trigger()
         self._buffer_id = -1
         self._depthbuffer_id = -1
 
@@ -310,19 +309,19 @@ cdef class Fbo(RenderContext):
             return self._texture
 
 # Releasing fbo through GC is problematic. Same as any GL deletion.
-def _fbo_release(*largs):
+def fbo_release(*largs):
     cdef GLuint fbo_id, render_id
-    if not _fbo_release_list:
+    if not fbo_release_list:
         return
-    Logger.trace('FBO: releasing %d fbos' % len(_fbo_release_list))
-    for l in _fbo_release_list:
+    Logger.trace('FBO: releasing %d fbos' % len(fbo_release_list))
+    for l in fbo_release_list:
         fbo_id, render_id = l
         if fbo_id != -1:
             glDeleteFramebuffers(1, &fbo_id)
         if render_id != -1:
             glDeleteRenderbuffers(1, &render_id)
-    del _fbo_release_list[:]
+    del fbo_release_list[:]
 
 if 'KIVY_DOC_INCLUDE' not in environ:
     from kivy.clock import Clock
-    _fbo_release_trigger = Clock.create_trigger(_fbo_release)
+    fbo_release_trigger = Clock.create_trigger(fbo_release)

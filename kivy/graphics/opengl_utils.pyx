@@ -9,7 +9,6 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
         'gl_has_capability', 'gl_register_get_size',
         'gl_has_texture_format', 'gl_has_texture_conversion',
         'gl_has_texture_native_format', 'gl_get_texture_formats',
-        'gl_reload',
         'GLCAP_BGRA', 'GLCAP_NPOT', 'GLCAP_S3TC', 'GLCAP_DXT1')
 
 include "opengl_utils_def.pxi"
@@ -188,29 +187,3 @@ cpdef int gl_has_texture_format(str fmt):
     # otherwise, check if it can be converted
     return gl_has_texture_conversion(fmt)
 
-cdef int gl_context = 1
-from kivy.graphics.vbo cimport gl_vbos_reload, gl_batchs_reload
-from kivy.graphics.shader cimport gl_shaders_reload
-from kivy.graphics.texture cimport gl_textures_reload
-from kivy.graphics.instructions cimport gl_rcs_reload
-
-def gl_reload():
-    '''Mark all the current opengl resources as invalid, and reupload
-    everything.
-    '''
-    global gl_context
-    gl_context += 1
-
-    print '--> reload initiated'
-    print '  > textures'
-    gl_textures_reload()
-    print '  > vbos'
-    gl_vbos_reload()
-    print '  > vertex batches'
-    gl_batchs_reload()
-    print '  > shaders'
-    gl_shaders_reload()
-    print '  > render contexts'
-    gl_rcs_reload()
-    print '  > force recompilation.'
-    print '<-- reload done'

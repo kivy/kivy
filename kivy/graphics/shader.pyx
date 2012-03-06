@@ -36,7 +36,6 @@ __all__ = ('Shader', )
 include "config.pxi"
 include "common.pxi"
 
-from weakref import ref
 from os.path import join
 from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -44,6 +43,7 @@ IF USE_OPENGL_DEBUG == 1:
 from kivy.graphics.vertex cimport vertex_attr_t
 from kivy.graphics.vbo cimport vbo_vertex_attr_list, vbo_vertex_attr_count
 from kivy.graphics.transformation cimport Matrix
+from kivy.graphics.context cimport get_context
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import kivy_shader_dir
@@ -52,24 +52,6 @@ cdef str header_vs = open(join(kivy_shader_dir, 'header.vs')).read()
 cdef str header_fs = open(join(kivy_shader_dir, 'header.fs')).read()
 cdef str default_vs = open(join(kivy_shader_dir, 'default.vs')).read()
 cdef str default_fs = open(join(kivy_shader_dir, 'default.fs')).read()
-cdef list shader_list = []
-
-
-cdef gl_shaders_gc():
-    # Remove all the shaders not weakref. 
-    shader_list[:] = [x for x in shader_list if x() is not None]
-
-
-cdef void gl_shaders_reload():
-    # Force reloading of shaders
-    cdef Shader shader
-    Cache.remove('kv.shader')
-    gl_shaders_gc()
-    for item in shader_list:
-        shader = item()
-        if not shader:
-            continue
-        shader.reload()
 
 
 cdef class ShaderSource:
@@ -149,23 +131,14 @@ cdef class Shader:
         self.uniform_values = dict()
 
     def __init__(self, str vs, str fs):
-        shader_list.append(ref(self))
+        get_context().register_shader(self)
         self.program = glCreateProgram()
         self.bind_attrib_locations()
         self.fs = fs
         self.vs = vs
 
     def __dealloc__(self):
-        if self.program == -1:
-            return
-        if self.vertex_shader is not None:
-            glDetachShader(self.program, self.vertex_shader.shader)
-            self.vertex_shader = None
-        if self.fragment_shader is not None:
-            glDetachShader(self.program, self.fragment_shader.shader)
-            self.fragment_shader = None
-        glDeleteProgram(self.program)
-        self.program = -1
+        get_context().dealloc_shader(self)
 
     cdef void reload(self):
         # Note that we don't free previous created shaders. The current reload

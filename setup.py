@@ -203,6 +203,7 @@ sources = {
     '_event.pyx': base_flags,
     'properties.pyx': base_flags,
     'graphics/buffer.pyx': base_flags,
+    'graphics/context.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/compiler.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/context_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),

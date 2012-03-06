@@ -153,10 +153,10 @@ include "common.pxi"
 include "opengl_utils_def.pxi"
 
 from os import environ
-from weakref import ref
 from array import array
 from kivy.logger import Logger
 from kivy.cache import Cache
+from kivy.graphics.context cimport get_context
 
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
@@ -169,48 +169,6 @@ cdef GLuint GL_BGRA = 0x80E1
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
-
-cdef object texture_release_trigger = None
-cdef list texture_release_list = []
-cdef list texture_list = []
-
-
-
-cdef void gl_textures_reload():
-    # Force reloading of textures
-    cdef Texture texture
-    cdef list l
-    Cache.remove('kv.image')
-    Cache.remove('kv.texture')
-    texture_list[:] = [x for x in texture_list if x() is not None]
-    del texture_release_list[:]
-
-    # duplicate the current list, new texture might be created
-    l = texture_list[:]
-
-    # First step, prevent double loading by setting everything to -1
-    # We do this because texture might be loaded in seperate texture at first,
-    # then merged from the cache cause of the same source
-    for item in l:
-        texture = item()
-        if texture is None:
-            continue
-        texture._id = -1
-
-    # First time, only reload base texture
-    for item in l:
-        texture = item()
-        if texture is None or isinstance(texture, TextureRegion):
-            continue
-        texture.reload()
-
-    # Second time, update texture region id
-    for item in l:
-        texture = item()
-        if texture is None or not isinstance(texture, TextureRegion):
-            continue
-        texture.reload()
-
 
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
@@ -411,7 +369,7 @@ cdef inline void _gl_prepare_pixels_upload(int width) nogil:
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
 
-cdef _texture_create(int width, int height, str colorfmt, str bufferfmt,
+cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
                      int mipmap, int allocate):
     '''Create the OpenGL texture.
     '''
@@ -569,7 +527,7 @@ cdef class Texture:
 
     def __init__(self, width, height, target, texid, colorfmt='rgb',
             bufferfmt='ubyte', mipmap=False, source=None):
-        texture_list.append(ref(self))
+        get_context().register_texture(self)
         self.observers = []
         self._width         = width
         self._height        = height
@@ -594,12 +552,7 @@ cdef class Texture:
         # Add texture deletion outside GC call.
         # This case happen if some texture have been not deleted
         # before application exit...
-        if self.__class__ is not Texture:
-            return
-        if texture_release_list is not None and self._id != -1 and self._nofree == 0:
-            texture_release_list.append(self._id)
-            if texture_release_trigger is not None:
-                texture_release_trigger()
+        get_context().dealloc_texture(self)
 
     cdef void update_tex_coords(self):
         self._tex_coords[0] = self._uvx
@@ -761,7 +714,7 @@ cdef class Texture:
         for cb in self.observers:
             cb(self)
 
-    def __str__(self):
+    def __repr__(self):
         return '<Texture hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (
             id(self), self._id, self.size, self.colorfmt, self.bufferfmt,
             self._source, len(self.observers))
@@ -949,18 +902,4 @@ cdef class TextureRegion(Texture):
         # then update content again
         for cb in self.observers:
             cb(self)
-
-# Releasing texture through GC is problematic
-def _texture_release(*largs):
-    cdef GLuint texture_id
-    if not texture_release_list:
-        return
-    Logger.trace('Texture: releasing %d textures' % len(texture_release_list))
-    for texture_id in texture_release_list:
-        glDeleteTextures(1, &texture_id)
-    del texture_release_list[:]
-
-if 'KIVY_DOC_INCLUDE' not in environ:
-    from kivy.clock import Clock
-    texture_release_trigger = Clock.create_trigger(_texture_release)
 

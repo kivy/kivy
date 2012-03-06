@@ -19,24 +19,12 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
-from weakref import ref
+from kivy.graphics.context cimport get_context
 
 
 cdef int _need_reset_gl = 1
 cdef int _active_texture = -1
 cdef list canvas_list = []
-
-cdef void gl_rcs_gc():
-    canvas_list[:] = [x for x in canvas_list if x() is not None]
-
-cdef void gl_rcs_reload():
-    cdef Canvas rc
-    gl_rcs_gc()
-    for item in canvas_list:
-        rc = item()
-        if not rc:
-            continue
-        rc.reload()
 
 cdef void reset_gl_context():
     global _need_reset_gl, _active_texture
@@ -509,7 +497,7 @@ cdef class Canvas(CanvasBase):
     '''
 
     def __init__(self, **kwargs):
-        canvas_list.append(ref(self))
+        get_context().register_canvas(self)
         CanvasBase.__init__(self, **kwargs)
         self._before = None
         self._after = None

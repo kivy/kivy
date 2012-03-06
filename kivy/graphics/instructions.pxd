@@ -12,7 +12,6 @@ from compiler cimport *
 from shader cimport *
 from texture cimport Texture
 
-cdef void gl_rcs_reload()
 cdef void reset_gl_context()
 
 cdef class Instruction

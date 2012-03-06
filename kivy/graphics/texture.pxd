@@ -1,7 +1,5 @@
 from c_opengl cimport GLuint
 
-cdef void gl_textures_reload()
-
 cdef class Texture:
     cdef object __weakref__
 
