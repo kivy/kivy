@@ -54,7 +54,6 @@ class WindowPygame(WindowBase):
         self.flags |= pygame.RESIZABLE
 
         try:
-            pygame.display.quit()
             pygame.display.init()
         except pygame.error, e:
             raise CoreCriticalException(e.message)
