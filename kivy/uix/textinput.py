@@ -1132,6 +1132,8 @@ class TextInput(Widget):
 
     background_color = ListProperty([1, 1, 1, 1])
     '''Current color of the background, in (r, g, b, a) format.
+    
+    .. versionadded:: 1.1.2
 
     :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
     default to [1, 1, 1, 1] #White
@@ -1139,6 +1141,8 @@ class TextInput(Widget):
 
     foreground_color = ListProperty([0, 0, 0, 1])
     '''Current color of the foreground, in (r, g, b, a) format.
+    
+    .. versionadded:: 1.1.2
 
     :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 1] #Black
