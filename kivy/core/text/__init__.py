@@ -434,7 +434,6 @@ class LabelBase(object):
             texture.blit_data(data)
 
     def _texture_refresh(self, *l):
-        print 'context reloaded, reupload texture'
         self.refresh()
 
     def refresh(self):

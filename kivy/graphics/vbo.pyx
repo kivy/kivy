@@ -110,7 +110,7 @@ cdef class VBO:
         self.data.remove(indices, count)
 
     cdef void reload(self):
-        self.flags = V_NEEDUPLOAD & V_NEEDGEN
+        self.flags = V_NEEDUPLOAD | V_NEEDGEN
         self.vbo_size = 0
 
     def __repr__(self):

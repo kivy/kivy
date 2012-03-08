@@ -711,23 +711,28 @@ cdef class Texture:
             texture = texture_create(self.size, self.colorfmt, self.bufferfmt,
                     self.mipmap)
             self._id = texture.id
+        else:
+            from kivy.core.image import Image
+            image = Image(self._source)
+            self._id = image.texture.id
+            texture = image.texture
             texture._nofree = 1
-            # then update content again
-            for callback in self.observers[:]:
-                if callback.is_dead():
-                    self.observers.remove(callback)
-                    continue
-                callback()(self)
-            return
 
-        from kivy.core.image import Image
-        image = Image(self._source)
-        self._id = image.texture.id
-        texture = image.texture
+        # ensure the new opengl ID will not get through GC
         texture._nofree = 1
+
+        # set the same parameters as our current texture
+        texture.bind()
+        texture.set_wrap(self.wrap)
+        texture.set_min_filter(self.min_filter)
+        texture.set_mag_filter(self.mag_filter)
+
         # then update content again
-        for cb in self.observers:
-            cb(self)
+        for callback in self.observers[:]:
+            if callback.is_dead():
+                self.observers.remove(callback)
+                continue
+            callback()(self)
 
     def __repr__(self):
         return '<Texture hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (
@@ -901,7 +906,7 @@ cdef class TextureRegion(Texture):
         self._uvh = (height / <float>origin._height) * origin._uvh
         self.update_tex_coords()
 
-    def __str__(self):
+    def __repr__(self):
         return '<TextureRegion of %r hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (
             self.owner, id(self), self._id, self.size, self.colorfmt,
             self.bufferfmt, self._source, len(self.observers))

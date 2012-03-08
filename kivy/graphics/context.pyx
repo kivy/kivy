@@ -119,6 +119,7 @@ cdef class Context:
         cdef Shader shader
         cdef Canvas canvas
 
+        Cache.remove('kv.atlas')
         Cache.remove('kv.image')
         Cache.remove('kv.texture')
         Cache.remove('kv.shader')
@@ -158,25 +159,25 @@ cdef class Context:
         for item in self.l_vbo[:]:
             vbo = item()
             if vbo is not None:
-                Logger.debug('Context: reloaded %r' % item())
+                Logger.trace('Context: reloaded %r' % item())
                 vbo.reload()
         Logger.debug('Context: Reload vertex batchs')
         for item in self.l_vertexbatch[:]:
             batch = item()
             if batch is not None:
-                Logger.debug('Context: reloaded %r' % item())
+                Logger.trace('Context: reloaded %r' % item())
                 batch.reload()
         Logger.debug('Context: Reload shaders')
         for item in self.l_shader[:]:
             shader = item()
             if shader is not None:
-                Logger.debug('Context: reloaded %r' % item())
+                Logger.trace('Context: reloaded %r' % item())
                 shader.reload()
         Logger.debug('Context: Reload canvas')
         for item in self.l_canvas[:]:
             canvas = item()
             if canvas is not None:
-                Logger.debug('Context: reloaded %r' % item())
+                Logger.trace('Context: reloaded %r' % item())
                 canvas.reload()
 
         # call reload observers that want to do something after a whole gpu
@@ -202,18 +203,18 @@ cdef class Context:
         # dealloc all gl resources asynchronously
         cdef GLuint i, j
         if len(self.lr_vbo):
-            Logger.debug('Context: releasing %d vbos' % len(self.lr_vbo))
+            Logger.trace('Context: releasing %d vbos' % len(self.lr_vbo))
             while len(self.lr_vbo):
                 i = self.lr_vbo.pop()
                 glDeleteBuffers(1, &i)
         if len(self.lr_texture):
-            Logger.debug('Context: releasing %d textures: %r' % (
+            Logger.trace('Context: releasing %d textures: %r' % (
                 len(self.lr_texture), self.lr_texture))
             while len(self.lr_texture):
                 i = self.lr_texture.pop()
                 glDeleteTextures(1, &i)
         if len(self.lr_fbo):
-            Logger.debug('Context: releasing %d fbos' % len(self.lr_fbo))
+            Logger.trace('Context: releasing %d fbos' % len(self.lr_fbo))
             while len(self.lr_fbo):
                 i, j = self.lr_fbo.pop()
                 if i != -1:
