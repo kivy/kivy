@@ -49,9 +49,9 @@ class WindowPygame(WindowBase):
         # right now, activate resizable window only on linux.
         # on window / macosx, the opengl context is lost, and we need to
         # reconstruct everything. Check #168 for a state of the work.
-        if platform() in ('linux', 'macosx', 'win'):
+        if platform() in ('linux', 'macosx', 'win') and \
+            Config.getint('graphics', 'resizable'):
             self.flags |= pygame.RESIZABLE
-        self.flags |= pygame.RESIZABLE
 
         try:
             pygame.display.init()
