@@ -34,42 +34,42 @@ GL Reloading mechanism
 .. versionadded:: 1.1.2
 
 During the lifetime of the application, the OpenGL context might be lost. This
-is happening when:
+is happening:
 
-    - Window is resized, on MacOSX and Windows platform, if you're using pygame
-      as window provider, cause of SDL 1.2. In the SDL 1.2 design, it need to
-      recreate a GL context everytime the window is resized. This is fixed in
-      SDL 1.3, but pygame is not available on it by default yet.
+- When window is resized, on MacOSX and Windows platform, if you're using pygame
+  as window provider, cause of SDL 1.2. In the SDL 1.2 design, it need to
+  recreate a GL context everytime the window is resized. This is fixed in SDL
+  1.3, but pygame is not available on it by default yet.
 
-    - Android release the app resources: when your application goes to
-      background, android system might reclaim your opengl context to give the
-      resource to another app. When the user switch back to your application, a
-      newly gl context is given to you.
+- when Android release the app resources: when your application goes to
+  background, android system might reclaim your opengl context to give the
+  resource to another app. When the user switch back to your application, a
+  newly gl context is given to you.
 
 Starting from 1.1.2, we introduced a mechanism for reloading all the graphics
 resources using the GPU: Canvas, FBO, Shader, Texture, VBO, VertexBatch:
 
-    - VBO and VertexBatch are constructed by our graphics instructions. We have
-      all the data to reconstruct when reloading.
+- VBO and VertexBatch are constructed by our graphics instructions. We have all
+  the data to reconstruct when reloading.
 
-    - Shader: same as VBO, we store the source and values used in the shader, we
-      are able to recreate the vertex/fragment/program.
+- Shader: same as VBO, we store the source and values used in the shader, we are
+  able to recreate the vertex/fragment/program.
 
-    - Texture: if the texture have a source (an image file, an atlas...), the
-      image is reloaded from the source, and reuploaded to the GPU.
+- Texture: if the texture have a source (an image file, an atlas...), the image
+  is reloaded from the source, and reuploaded to the GPU.
 
 You should cover theses cases yourself:
 
-    - Texture without source: if you manually created a texture, and manually
-      blit data / buffer to it, you must handle the reloading yourself. Check
-      the :doc:`api-kivy.graphics.texture` to learn how to manage that case.
-      (The text rendering is generating the texture, and handle already the
-      reloading. You don't need to reload text yourself.)
+- Texture without source: if you manually created a texture, and manually blit
+  data / buffer to it, you must handle the reloading yourself. Check the
+  :doc:`api-kivy.graphics.texture` to learn how to manage that case.  (The text
+  rendering is generating the texture, and handle already the reloading. You
+  don't need to reload text yourself.)
 
-    - FBO: if you added / removed / drawed things multiple times on the FBO, we
-      can't reload it. We don't keep a history of the instruction put on it. As
-      texture without source, Check the :doc:`api-kivy.graphics.fbo` to learn
-      how to manage that case.
+- FBO: if you added / removed / drawed things multiple times on the FBO, we
+  can't reload it. We don't keep a history of the instruction put on it. As
+  texture without source, Check the :doc:`api-kivy.graphics.fbo` to learn how to
+  manage that case.
 
 '''
 
