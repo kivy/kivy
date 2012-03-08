@@ -43,6 +43,7 @@ IF USE_OPENGL_DEBUG == 1:
 from kivy.graphics.vertex cimport vertex_attr_t
 from kivy.graphics.vbo cimport vbo_vertex_attr_list, vbo_vertex_attr_count
 from kivy.graphics.transformation cimport Matrix
+from kivy.graphics.context cimport get_context
 from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import kivy_shader_dir
@@ -51,6 +52,7 @@ cdef str header_vs = open(join(kivy_shader_dir, 'header.vs')).read()
 cdef str header_fs = open(join(kivy_shader_dir, 'header.fs')).read()
 cdef str default_vs = open(join(kivy_shader_dir, 'default.vs')).read()
 cdef str default_fs = open(join(kivy_shader_dir, 'default.fs')).read()
+
 
 cdef class ShaderSource:
 
@@ -129,22 +131,29 @@ cdef class Shader:
         self.uniform_values = dict()
 
     def __init__(self, str vs, str fs):
+        get_context().register_shader(self)
         self.program = glCreateProgram()
         self.bind_attrib_locations()
         self.fs = fs
         self.vs = vs
 
     def __dealloc__(self):
-        if self.program == -1:
-            return
-        if self.vertex_shader is not None:
-            glDetachShader(self.program, self.vertex_shader.shader)
-            self.vertex_shader = None
-        if self.fragment_shader is not None:
-            glDetachShader(self.program, self.fragment_shader.shader)
-            self.fragment_shader = None
-        glDeleteProgram(self.program)
-        self.program = -1
+        get_context().dealloc_shader(self)
+
+    cdef void reload(self):
+        # Note that we don't free previous created shaders. The current reload
+        # is called only when the gl context is reseted. If we do it, we might
+        # free newly created shaders (id collision)
+        glUseProgram(0)
+        self.vertex_shader = None
+        self.fragment_shader = None
+        #self.uniform_values = dict()
+        self.uniform_locations = dict()
+        self._success = 0
+        self.program = glCreateProgram()
+        self.bind_attrib_locations()
+        self.fs = self.fs
+        self.vs = self.vs
 
     cdef void use(self):
         '''Use the shader
@@ -152,15 +161,16 @@ cdef class Shader:
         glUseProgram(self.program)
         for k,v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
-        # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call
-        # glFlush or glFinish or glGetIntegerv(GL_CURRENT_PROGRAM, ...), it seem
-        # that the pipeline is broken, and we have glitch issue. In order to
-        # prevent that on possible other hardware, i've (mathieu) prefered to
-        # include a glFlush here. However, it could be nice to know exactly what
-        # is going on. Even the glGetIntegerv() is not working here. Broken
-        # driver on virtualbox / win7 ????
-        # FIXME maybe include that instruction for glew usage only.
-        glFlush()
+        IF USE_GLEW == 1:
+            # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call
+            # glFlush or glFinish or glGetIntegerv(GL_CURRENT_PROGRAM, ...), it seem
+            # that the pipeline is broken, and we have glitch issue. In order to
+            # prevent that on possible other hardware, i've (mathieu) prefered to
+            # include a glFlush here. However, it could be nice to know exactly what
+            # is going on. Even the glGetIntegerv() is not working here. Broken
+            # driver on virtualbox / win7 ????
+            # FIXME maybe include that instruction for glew usage only.
+            glFlush()
 
     cdef void stop(self):
         '''Stop using the shader

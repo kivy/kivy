@@ -37,6 +37,32 @@ Exemple of using an fbo for some color rectangles ::
 
 If you change anything in the `self.fbo` object, it will be automaticly updated,
 and canvas where the fbo is putted will be automaticly updated too.
+
+Reloading the FBO content
+-------------------------
+
+.. versionadded:: 1.1.2
+
+If the OpenGL context is lost, then the FBO is lost too. You need to reupload
+data on it yourself. Use the :func:`Fbo.add_reload_observer` to add a reloading
+function that will be automatically called when needed::
+
+    def __init__(self, **kwargs):
+        super(...).__init__(**kwargs)
+        self.fbo = Fbo(size=(512, 512))
+        self.fbo.add_reload_observer(self.populate_fbo)
+
+        # and load the data now.
+        self.populate_fbo(self.fbo)
+
+
+    def populate_fbo(self, fbo):
+        with fbo:
+            # .. put your Color / Rectangle / ... here
+
+This way, you could use the same method for initialization and for reloading.
+But it's up to you.
+
 '''
 
 __all__ = ('Fbo', )
@@ -45,19 +71,19 @@ include "config.pxi"
 include "opcodes.pxi"
 
 from os import environ
-from kivy import Logger
+from kivy.logger import Logger
+from kivy.weakmethod import WeakMethod
 from kivy.graphics.texture cimport Texture
 from kivy.graphics.transformation cimport Matrix
+from kivy.graphics.context cimport get_context
 
-from c_opengl cimport *
+from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
-from instructions cimport RenderContext, Canvas
+    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.instructions cimport RenderContext, Canvas
 
 cdef list fbo_stack = [0]
-cdef object _fbo_release_trigger = None
-cdef list _fbo_release_list = []
-
+cdef list fbo_release_list = []
 
 
 cdef class Fbo(RenderContext):
@@ -107,6 +133,8 @@ cdef class Fbo(RenderContext):
         raise Exception(message)
 
     def __init__(self, *args, **kwargs):
+        get_context().register_fbo(self)
+
         RenderContext.__init__(self, *args, **kwargs)
 
         if 'clear_color' not in kwargs:
@@ -120,32 +148,25 @@ cdef class Fbo(RenderContext):
         if 'texture' not in kwargs:
             kwargs['texture'] = None
 
-        self._buffer_id             = -1
-        self._depthbuffer_id        = -1
-        self._width, self._height   = kwargs['size']
-        self.clear_color            = kwargs['clear_color']
-        self._depthbuffer_attached  = int(kwargs['with_depthbuffer'])
-        self._push_viewport         = int(kwargs['push_viewport'])
-        self._is_bound              = 0
-        self._texture               = kwargs['texture']
+        self.buffer_id = -1
+        self.depthbuffer_id = -1
+        self._width, self._height  = kwargs['size']
+        self.clear_color = kwargs['clear_color']
+        self._depthbuffer_attached = int(kwargs['with_depthbuffer'])
+        self._push_viewport = int(kwargs['push_viewport'])
+        self._is_bound = 0
+        self._texture = kwargs['texture']
+        self.observers = []
 
         self.create_fbo()
 
     def __dealloc__(self):
-        # add fbo deletion outside gc call.
-        if _fbo_release_list is not None:
-            _fbo_release_list.append((self._buffer_id, self._depthbuffer_id))
-            if _fbo_release_trigger is not None:
-                _fbo_release_trigger()
+        get_context().dealloc_fbo(self)
 
     cdef void delete_fbo(self):
+        print 'XXXD Delete fbo', self
         self._texture = None
-        self._depthbuffer_attached = 0
-        # delete in asynchronous way the framebuffers
-        if _fbo_release_list is not None:
-            _fbo_release_list.append((self._buffer_id, self._depthbuffer_id))
-            if _fbo_release_trigger is not None:
-                _fbo_release_trigger()
+        get_context().dealloc_fbo(self)
         self._buffer_id = -1
         self._depthbuffer_id = -1
 
@@ -269,6 +290,43 @@ cdef class Fbo(RenderContext):
             self.release()
             self.flag_update_done()
 
+    cdef void reload(self):
+        # recreate the framebuffer, without deleting it. the deletion is not
+        # handled by us.
+        self.create_fbo()
+        self.flag_update()
+        # notify observers
+        for callback in self.observers:
+            if callback.is_dead():
+                self.observers.remove(callback)
+                continue
+            callback()(self)
+
+    def add_reload_observer(self, callback):
+        '''Add a callback to be called after the whole graphics context have
+        been reloaded. This is where you can reupload your custom data in GPU.
+
+        .. versionadded:: 1.1.2
+
+        :Parameters:
+            `callback`: func(context) -> return None
+                The first parameter will be the context itself
+        '''
+        self.observers.append(WeakMethod(callback))
+
+    def remove_reload_observer(self, callback):
+        '''Remove a callback from the observer list, previously added by
+        :func:`add_reload_observer`. 
+
+        .. versionadded:: 1.1.2
+
+        '''
+        for cb in self.observers[:]:
+            if cb.is_dead() or cb() is callback:
+                self.observers.remove(cb)
+                continue
+
+
     property size:
         '''Size of the framebuffer, in (width, height) format.
 
@@ -309,20 +367,3 @@ cdef class Fbo(RenderContext):
         def __get__(self):
             return self._texture
 
-# Releasing fbo through GC is problematic. Same as any GL deletion.
-def _fbo_release(*largs):
-    cdef GLuint fbo_id, render_id
-    if not _fbo_release_list:
-        return
-    Logger.trace('FBO: releasing %d fbos' % len(_fbo_release_list))
-    for l in _fbo_release_list:
-        fbo_id, render_id = l
-        if fbo_id != -1:
-            glDeleteFramebuffers(1, &fbo_id)
-        if render_id != -1:
-            glDeleteRenderbuffers(1, &render_id)
-    del _fbo_release_list[:]
-
-if 'KIVY_DOC_INCLUDE' not in environ:
-    from kivy.clock import Clock
-    _fbo_release_trigger = Clock.create_trigger(_fbo_release)

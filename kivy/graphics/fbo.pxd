@@ -13,6 +13,7 @@ cdef class Fbo(RenderContext):
     cdef GLint _viewport[4]
     cdef Texture _texture
     cdef int _is_bound
+    cdef list observers
 
     cpdef clear_buffer(self)
     cpdef bind(self)
@@ -23,3 +24,4 @@ cdef class Fbo(RenderContext):
     cdef void apply(self)
     cdef void raise_exception(self, str message, int status=?)
     cdef str resolve_status(self, int status)
+    cdef void reload(self)
