@@ -37,6 +37,32 @@ Exemple of using an fbo for some color rectangles ::
 
 If you change anything in the `self.fbo` object, it will be automaticly updated,
 and canvas where the fbo is putted will be automaticly updated too.
+
+Reloading the FBO content
+-------------------------
+
+.. versionadded:: 1.1.2
+
+If the OpenGL context is lost, then the FBO is lost too. You need to reupload
+data on it yourself. Use the :func:`Fbo.add_reload_observer` to add a reloading
+function that will be automatically called when needed::
+
+    def __init__(self, **kwargs):
+        super(...).__init__(**kwargs)
+        self.fbo = Fbo(size=(512, 512))
+        self.fbo.add_reload_observer(self.populate_fbo)
+
+        # and load the data now.
+        self.populate_fbo(self.fbo)
+
+
+    def populate_fbo(self, fbo):
+        with fbo:
+            # .. put your Color / Rectangle / ... here
+
+This way, you could use the same method for initialization and for reloading.
+But it's up to you.
+
 '''
 
 __all__ = ('Fbo', )

@@ -6,6 +6,8 @@ Context management
 
 This class handle a register of all graphics instructions created, and the
 ability to flush and delete them.
+
+You can read more about it at :doc:`api-kivy.graphics`
 '''
 
 include "config.pxi"

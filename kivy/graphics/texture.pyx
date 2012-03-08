@@ -144,6 +144,38 @@ information.
     actually creating the nearest POT texture and generate mipmap on it. This
     might change in the future.
 
+Reloading the Texture
+---------------------
+
+.. versionadded:: 1.1.2
+
+If the OpenGL context is lost, the Texture must be reloaded. Texture having a
+source are automatically reloaded without any help. But generated textures must
+be reloaded by the user.
+
+Use the :func:`Texture.add_reload_observer` to add a reloading function that will be
+automatically called when needed::
+
+    def __init__(self, **kwargs):
+        super(...).__init__(**kwargs)
+        self.texture = Texture.create(size=(512, 512), colorfmt='RGB',
+            bufferfmt='ubyte')
+        self.texture.add_reload_observer(self.populate_texture)
+
+        # and load the data now.
+        self.cbuffer = '\x00\xf0\xff' * 512 * 512
+        self.populate_texture(self.texture)
+
+    def populate_texture(self, texture):
+        texture.blit_buffer(self.cbuffer)
+
+This way, you could use the same method for initialization and for reloading.
+
+.. note::
+
+    For all text rendering with our core text renderer, texture is generated,
+    but we are binding already a method to redo the text rendering and reupload
+    the text to the texture. You have nothing to do on that case.
 '''
 
 __all__ = ('Texture', 'TextureRegion')
