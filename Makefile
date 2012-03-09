@@ -1,7 +1,7 @@
 PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
-HOSTPYTHON = $(KIVYIOSROOT)/Python-$(PYTHON_VERSION)/hostpython
+HOSTPYTHON = $(KIVYIOSROOT)/tmp/Python-$(PYTHON_VERSION)/hostpython
 IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean
