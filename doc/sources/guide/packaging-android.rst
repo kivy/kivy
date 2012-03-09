@@ -3,12 +3,14 @@
 Create a package for Android
 ============================
 
-Starting from 1.1.0, we are not providing anymore a Kivy-XXX-android.zip. We
-are using `python-for-android <http://https://github.com/kivy/python-for-android>`_
-project.
+.. versionchanged:: 1.1.0
 
-The whole packaging is explained at
-`http://python-for-android.readthedocs.org/en/latest/index.html`_
+    Starting from 1.1.0, we are not providing anymore a Kivy-XXX-android.zip.
+    We are using `python-for-android <http://https://github.com/kivy/python-for-android>`_
+    project.
+
+    The whole packaging is explained at
+    `http://python-for-android.readthedocs.org/en/latest/index.html`_
 
 Packaging your application into APK
 -----------------------------------
