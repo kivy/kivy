@@ -167,8 +167,8 @@ cdef class Fbo(RenderContext):
         print 'XXXD Delete fbo', self
         self._texture = None
         get_context().dealloc_fbo(self)
-        self._buffer_id = -1
-        self._depthbuffer_id = -1
+        self.buffer_id = -1
+        self.depthbuffer_id = -1
 
     cdef void create_fbo(self):
         cdef GLuint f_id = 0
@@ -182,19 +182,19 @@ cdef class Fbo(RenderContext):
 
         # create framebuffer
         glGenFramebuffers(1, &f_id)
-        self._buffer_id = f_id
-        glBindFramebuffer(GL_FRAMEBUFFER, self._buffer_id)
+        self.buffer_id = f_id
+        glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
         # if we need depth, create a renderbuffer
         if self._depthbuffer_attached:
             glGenRenderbuffers(1, &f_id)
-            self._depthbuffer_id = f_id
-            glBindRenderbuffer(GL_RENDERBUFFER, self._depthbuffer_id)
+            self.depthbuffer_id = f_id
+            glBindRenderbuffer(GL_RENDERBUFFER, self.depthbuffer_id)
             glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
                                   self._width, self._height)
             glBindRenderbuffer(GL_RENDERBUFFER, 0)
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                      GL_RENDERBUFFER, self._depthbuffer_id)
+                                      GL_RENDERBUFFER, self.depthbuffer_id)
 
         # attach the framebuffer to our texture
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -240,8 +240,8 @@ cdef class Fbo(RenderContext):
             self._is_bound = 1
 
         # stack our fbo to the last binded fbo
-        fbo_stack.append(self._buffer_id)
-        glBindFramebuffer(GL_FRAMEBUFFER, self._buffer_id)
+        fbo_stack.append(self.buffer_id)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
         # if asked, push the viewport
         if self._push_viewport:
@@ -316,7 +316,7 @@ cdef class Fbo(RenderContext):
 
     def remove_reload_observer(self, callback):
         '''Remove a callback from the observer list, previously added by
-        :func:`add_reload_observer`. 
+        :func:`add_reload_observer`.
 
         .. versionadded:: 1.1.2
 
