@@ -9,7 +9,7 @@ Create a package for IOS
 
     This method is still under development.
 
-The overall method for creating a package on IOS can be explained in 3 steps:
+The overall method for creating a package on IOS can be explained in 4 steps:
 
 #. Compile python + modules for IOS
 #. Create an Xcode project
@@ -29,9 +29,9 @@ Open a terminal, and::
     $ tools/build-all.sh
 
 If you don't want to compile all the things needed for kivy, edit and change
-tools/build-all.sh to your needs.
+`tools/build-all.sh` to your needs.
 
-Most of the python distribution will be packed into a python27.zip.
+Most of the python distribution will be packed into a `python27.zip`.
 
 
 Create an Xcode project
