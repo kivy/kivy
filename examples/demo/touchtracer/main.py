@@ -89,5 +89,8 @@ class TouchtracerApp(App):
     def build(self):
         return Touchtracer()
 
+    def on_pause(self):
+        return True
+
 if __name__ in ('__main__', '__android__'):
     TouchtracerApp().run()
