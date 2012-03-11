@@ -3,11 +3,6 @@
 Installation on Android
 =======================
 
-.. note::
-
-    The Android version is not fully supported yet. Check :ref:`android` for
-    more information about the current status.
-
 Please note that Kivy is a framework. Installing Kivy itself on your phone will do
 absolutely nothing. Kivy is not an application.
 

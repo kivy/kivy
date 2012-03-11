@@ -20,6 +20,8 @@ Builder.load_string(
         size_hint: 1, .9
         TextInput:
             id: unicode_txt
+            background_color: [.5, .5, .5, 1]
+            foreground_color: .5, 1, .5, 1
             text: root.unicode_string
             size_hint: 1, None
             height: 1364

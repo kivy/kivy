@@ -1130,6 +1130,24 @@ class TextInput(Widget):
     to [0.1843, 0.6549, 0.8313, .5]
     '''
 
+    background_color = ListProperty([1, 1, 1, 1])
+    '''Current color of the background, in (r, g, b, a) format.
+    
+    .. versionadded:: 1.1.2
+
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [1, 1, 1, 1] #White
+    '''
+
+    foreground_color = ListProperty([0, 0, 0, 1])
+    '''Current color of the foreground, in (r, g, b, a) format.
+    
+    .. versionadded:: 1.1.2
+
+    :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [0, 0, 0, 1] #Black
+    '''
+
     selection_from = NumericProperty(None, allownone=True)
     '''If a selection is happening, or finished, this property will represent
     the cursor index where the selection start.

@@ -131,13 +131,6 @@ class Bubble(GridLayout):
     default to 'bottom_mid'.
     '''
 
-    background_texture = ObjectProperty(None)
-    '''Specifies the background texture of the bubble
-
-    :data:`background_texture` is a :class:`~kivy.properties.ObjectProperty`,
-    default to 'None'.
-    '''
-
     content = ObjectProperty(None)
     '''This is the object where the main content of the bubble is held
 
@@ -165,11 +158,7 @@ class Bubble(GridLayout):
         self.content = content = BubbleContent(parent=self)
         super(Bubble, self).__init__(**kwargs)
         self.add_widget(content)
-        self._bk_img.bind(on_texture=self._on_texture)
         self.on_arrow_pos()
-
-    def _on_texture(self, *l):
-        self.background_texture = self._bk_img.texture
 
     def add_widget(self, *l):
         content = self.content

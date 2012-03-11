@@ -12,24 +12,15 @@ __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
 include "config.pxi"
 include "common.pxi"
 
-from vbo cimport *
-from vertex cimport *
-from instructions cimport *
-from c_opengl cimport *
+from kivy.graphics.vbo cimport *
+from kivy.graphics.vertex cimport *
+from kivy.graphics.instructions cimport *
+from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
+    from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture import Texture
 
-cdef extern from "string.h":
-    void *memset(void *s, int c, int n)
-
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-
-cdef extern from "math.h":
-    double sqrt(double x) nogil
-    double pow(double x, double y) nogil
 
 class GraphicException(Exception):
     '''Exception fired when a graphic error is fired.

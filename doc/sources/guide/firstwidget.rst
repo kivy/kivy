@@ -7,7 +7,7 @@ Your First Widget
 =================
 
 In the following you will be guided through the creation of your first
-widget. This is some very powerful and important knowledge when
+widget. This provides very powerful and important knowledge when
 programming Kivy applications, as it lets you create completely new user
 interfaces with custom elements for your specific purpose.
 

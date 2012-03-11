@@ -12,13 +12,15 @@ from os.path import join, exists
 from os import getcwd
 
 from kivy.core import core_select_lib
+from kivy.clock import Clock
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.base import EventLoop
 from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
-        NumericProperty
+        NumericProperty, OptionProperty, StringProperty
+from kivy.utils import platform
 
 # late import
 VKeyboard = None
@@ -195,6 +197,8 @@ class WindowBase(EventDispatcher):
             Fired when a key is down
         `on_key_up`: key, scancode, unicode
             Fired when a key is up
+        `on_dropfile`: str
+            Fired when a file is dropped on the application
     '''
 
     __instance = None
@@ -329,12 +333,31 @@ class WindowBase(EventDispatcher):
     degrees.
     '''
 
+    def _set_system_size(self, size):
+        self._size = size
+
     def _get_system_size(self):
         return self._size
 
-    system_size = AliasProperty(_get_system_size, None, bind=('_size', ))
+    system_size = AliasProperty(_get_system_size, _set_system_size, bind=('_size', ))
     '''Real size of the window, without taking care of the rotation.
     '''
+
+    fullscreen = OptionProperty(False, options=(True, False, 'auto', 'fake'))
+    '''If true, the window will be put in fullscreen mode, "auto". That's mean
+    the screen size will not change, and use the current one to set the app
+    fullscreen
+
+    .. versionadded:: 1.1.2
+    '''
+
+    top = NumericProperty(None, allownone=True)
+    left = NumericProperty(None, allownone=True)
+    position = OptionProperty('auto', options=['auto', 'custom'])
+    render_context = ObjectProperty(None)
+    canvas = ObjectProperty(None)
+    title = StringProperty('Kivy')
+
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -344,12 +367,12 @@ class WindowBase(EventDispatcher):
     def __init__(self, **kwargs):
 
         kwargs.setdefault('force', False)
-        kwargs.setdefault('config', None)
 
         # don't init window 2 times,
         # except if force is specified
-        if self.__initialized and not kwargs.get('force'):
+        if WindowBase.__instance is not None and not kwargs.get('force'):
             return
+        self.initialized = False
 
         # event subsystem
         self.register_event_type('on_draw')
@@ -367,8 +390,43 @@ class WindowBase(EventDispatcher):
         self.register_event_type('on_keyboard')
         self.register_event_type('on_key_down')
         self.register_event_type('on_key_up')
+        self.register_event_type('on_dropfile')
 
-        super(WindowBase, self).__init__()
+        # create a trigger for update/create the window when one of window
+        # property changes
+        self.trigger_create_window = Clock.create_trigger(self.create_window, -1)
+
+        # set the default window parameter according to the configuration
+        if 'fullscreen' not in kwargs:
+            fullscreen = Config.get('graphics', 'fullscreen')
+            if fullscreen not in ('auto', 'fake'):
+                fullscreen = fullscreen.lower() in ('true', '1', 'yes', 'yup')
+            kwargs['fullscreen'] = fullscreen
+        if 'width' not in kwargs:
+            kwargs['width'] = Config.getint('graphics', 'width')
+        if 'height' not in kwargs:
+            kwargs['height'] = Config.getint('graphics', 'height')
+        if 'rotation' not in kwargs:
+            kwargs['rotation'] = Config.getint('graphics', 'rotation')
+        if 'position' not in kwargs:
+            kwargs['position'] = Config.get('graphics', 'position', 'auto')
+        if 'top' in kwargs:
+            kwargs['position'] = 'custom'
+            kwargs['top'] = kwargs['top']
+        else:
+            kwargs['top'] = Config.getint('graphics', 'top')
+        if 'left' in kwargs:
+            kwargs['position'] = 'custom'
+            kwargs['left'] = kwargs['left']
+        else:
+            kwargs['left'] = Config.getint('graphics', 'left')
+        kwargs['_size'] = (kwargs.pop('width'), kwargs.pop('height'))
+
+        super(WindowBase, self).__init__(**kwargs)
+
+        # bind all the properties that need to recreate the window
+        for prop in ('fullscreen', 'position', 'top', 'left', '_size', 'system_size'):
+            self.bind(**{prop: self.trigger_create_window})
 
         # init privates
         self._system_keyboard = Keyboard(window=self)
@@ -378,55 +436,10 @@ class WindowBase(EventDispatcher):
         self.children = []
         self.parent = self
 
-        # add view
-        if 'view' in kwargs:
-            self.add_widget(kwargs.get('view'))
-
-        # get window params, user options before config option
-        params = {}
-
-        if 'fullscreen' in kwargs:
-            params['fullscreen'] = kwargs.get('fullscreen')
-        else:
-            params['fullscreen'] = Config.get('graphics', 'fullscreen')
-            if params['fullscreen'] not in ('auto', 'fake'):
-                params['fullscreen'] = params['fullscreen'].lower() in \
-                    ('true', '1', 'yes', 'yup')
-
-        if 'width' in kwargs:
-            params['width'] = kwargs.get('width')
-        else:
-            params['width'] = Config.getint('graphics', 'width')
-
-        if 'height' in kwargs:
-            params['height'] = kwargs.get('height')
-        else:
-            params['height'] = Config.getint('graphics', 'height')
-
-        if 'rotation' in kwargs:
-            params['rotation'] = kwargs.get('rotation')
-        else:
-            params['rotation'] = Config.getint('graphics', 'rotation')
-
-        params['position'] = Config.get(
-            'graphics', 'position', 'auto')
-        if 'top' in kwargs:
-            params['position'] = 'custom'
-            params['top'] = kwargs.get('top')
-        else:
-            params['top'] = Config.getint('graphics', 'top')
-
-        if 'left' in kwargs:
-            params['position'] = 'custom'
-            params['left'] = kwargs.get('left')
-        else:
-            params['left'] = Config.getint('graphics', 'left')
-
         # before creating the window
         __import__('kivy.core.gl')
 
         # configure the window
-        self.params = params
         self.create_window()
 
         # attach modules + listener event
@@ -438,7 +451,7 @@ class WindowBase(EventDispatcher):
         self.configure_keyboards()
 
         # mark as initialized
-        self.__initialized = True
+        self.initialized = True
 
     def toggle_fullscreen(self):
         '''Toggle fullscreen on window'''
@@ -448,7 +461,7 @@ class WindowBase(EventDispatcher):
         '''Close the window'''
         pass
 
-    def create_window(self):
+    def create_window(self, *largs):
         '''Will create the main window and configure it.
 
         .. warning::
@@ -466,14 +479,38 @@ class WindowBase(EventDispatcher):
             Again, don't use this method unless you know exactly what you are
             doing !
         '''
-        from kivy.core.gl import init_gl
-        init_gl()
+        # just to be sure, if the trigger is set, and if this method is manually
+        # called, unset the trigger
+        Clock.unschedule(self.create_window)
 
-        # create the render context and canvas
-        from kivy.graphics import RenderContext, Canvas
-        self.render_context = RenderContext()
-        self.canvas = Canvas()
-        self.render_context.add(self.canvas)
+        if not self.initialized:
+            from kivy.core.gl import init_gl
+            init_gl()
+
+            # create the render context and canvas, only the first time.
+            from kivy.graphics import RenderContext, Canvas
+            self.render_context = RenderContext()
+            self.canvas = Canvas()
+            self.render_context.add(self.canvas)
+
+        else:
+            # if we get initialized more than once, then reload opengl state
+            # after the second time.
+            # XXX check how it's working on embed platform.
+            if platform() == 'linux':
+                # on linux, it's safe for just sending a resize.
+                self.dispatch('on_resize', *self.system_size)
+
+            else:
+                # on other platform, window are recreated, we need to reload.
+                from kivy.graphics.context import get_context
+                get_context().reload()
+                def ask_update(dt):
+                    self.canvas.ask_update()
+                Clock.schedule_once(ask_update, 0)
+
+        # ensure the gl viewport is correct
+        self.update_viewport()
 
     def on_flip(self):
         '''Flip between buffers (event)'''
@@ -527,7 +564,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 1.0.5
         '''
-        pass
+        self.title = title
 
     def set_icon(self, filename):
         '''Set the icon of the window
@@ -709,6 +746,19 @@ class WindowBase(EventDispatcher):
 
     def on_key_up(self, key, scancode=None, unicode=None, modifier=None):
         '''Event called when a key is up (same arguments as on_keyboard)'''
+        pass
+
+    def on_dropfile(self, filename):
+        '''Event called when a file is dropped on the application.
+
+        .. warning::
+
+            This event is actually used only on MacOSX with a patched version of
+            pygame. But this will be a place for a further evolution (ios,
+            android etc.)
+
+        .. versionadded:: 1.1.2
+        '''
         pass
 
     def configure_keyboards(self):

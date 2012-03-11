@@ -138,8 +138,9 @@ if platform == 'ios':
 # -----------------------------------------------------------------------------
 # declare flags
 def get_modulename_from_file(filename):
+    filename = filename.replace(sep, '/')
     pyx = '.'.join(filename.split('.')[:-1])
-    pyxl = pyx.split(sep)
+    pyxl = pyx.split('/')
     while pyxl[0] != 'kivy':
         pyxl.pop(0)
     if pyxl[1] == 'kivy':
@@ -199,8 +200,8 @@ def determine_gl_flags():
         flags['include_dirs'] = ['/usr/local/include']
         flags['extra_link_args'] = ['-L', '/usr/local/lib']
     elif platform == 'android':
-        flags['include_dirs'] += [join(ndkplatform, 'usr', 'include')]
-        flags['extra_link_args'] += ['-L', join(ndkplatform, 'usr', 'lib')]
+        flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
+        flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
         flags['libraries'] = ['GLESv2']
     else:
         flags['libraries'] = ['GL']
@@ -282,6 +283,7 @@ sources = {
     '_event.pyx': base_flags,
     'properties.pyx': base_flags,
     'graphics/buffer.pyx': base_flags,
+    'graphics/context.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/compiler.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/context_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
@@ -335,13 +337,20 @@ def get_extensions_from_sources(sources):
         pyx = join(dirname(__file__), 'kivy', pyx)
         if not have_cython:
             pyx = '%s.c' % pyx[:-4]
+            depends = []
+        else:
+            depends = flags.pop('depends', [])
         module_name = get_modulename_from_file(pyx)
         if have_cython:
             depends = flags.pop('depends', [])
         else:
             depends = []
+        flags_clean = {}
+        for key, value in flags.iteritems():
+            if len(value):
+                flags_clean[key] = value
         ext_modules.append(CythonExtension(module_name,
-            [pyx] + depends, **flags))
+            [pyx] + depends, **flags_clean))
     return ext_modules
 
 ext_modules = get_extensions_from_sources(sources)

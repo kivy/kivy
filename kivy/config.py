@@ -37,6 +37,10 @@ Available configuration tokens
     * windows icons are not copied to user directory anymore. You can still set
       a new window icon by using ``window_icon`` config setting.
 
+.. versionchanged:: 1.1.2
+
+    * `resizable` has been added to graphics section
+
 :kivy:
 
     `log_level`: (debug, info, warning, error, critical)
@@ -114,7 +118,9 @@ Available configuration tokens
         pygame icon.
     `rotation`: (0, 90, 180, 270)
         Rotation of the :class:`~kivy.core.window.Window`
-
+    `resizable`: (0, 1)
+        If 0, the window will have a fixed size. If 1, the window will be
+        resizable.
 
 :input:
 
@@ -171,7 +177,7 @@ from kivy.logger import Logger
 from kivy.utils import OrderedDict
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 5
+KIVY_CONFIG_VERSION = 6
 
 #: Kivy configuration object
 Config = None
@@ -370,6 +376,9 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             # add keyboard token
             Config.setdefault('kivy', 'keyboard_mode', '')
             Config.setdefault('kivy', 'keyboard_layout', 'qwerty')
+
+        elif version == 5:
+            Config.setdefault('graphics', 'resizable', '1')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
