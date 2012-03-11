@@ -162,9 +162,12 @@ class LabelSDLttf(LabelBase):
         cdef _SurfaceContainer sc = self._surface
         cdef SDL_Surface *st
         cdef SDL_Rect r
+        cdef list color = list(self.options['color'])
         if font == NULL:
             return
-        c.r = c.g = c.b = 255
+        c.r = <int>(color[0] * 255)
+        c.g = <int>(color[1] * 255)
+        c.b = <int>(color[2] * 255)
         st = TTF_RenderUTF8_Blended(font, <char *><bytes>text, c)
         if st == NULL:
             return
