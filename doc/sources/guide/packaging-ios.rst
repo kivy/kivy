@@ -77,7 +77,8 @@ You can customize the build in many ways:
 Known issues
 ------------
 
-Currently, the project have few issues as:
+Currently, the project have few issues as (we'll fixes them during the
+development):
 
 - Loading time: Apple provide a way to reduce the feeling of a slow application
   loading by showing an image when the application is initialize. But, due to
@@ -86,7 +87,13 @@ Currently, the project have few issues as:
   screen -> your app. Remove the launch image for now.
 
 - Application configuration not writing: we are learning how IOS manage its
-  filesystem. Kivy will evolve to have a better integration of it.
+  filesystem.
+
+- You can't export your project outside kivy-ios directory, because the
+  libraries included in the project are relative to it.
+
+- Removing some libraries (like SDL_Mixer for the sound) is currently not
+  possible cause kivy project need it.
 
 - And more, just too technical to be written here.
 
