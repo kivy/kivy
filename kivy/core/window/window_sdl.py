@@ -52,6 +52,7 @@ class SDLMotionEventProvider(MotionEventProvider):
             if action == 'fingerdown':
                 dispatch_fn('begin', me)
             elif action == 'fingerup':
+                me.update_time_end()
                 dispatch_fn('end', me)
                 del touchmap[fid]
             else:
