@@ -62,34 +62,17 @@ class SDLMotionEventProvider(MotionEventProvider):
 class WindowSDL(WindowBase):
 
     def create_window(self):
-        params = self.params
-
-        if params['position'] == 'auto':
-            self._pos = None
-        elif params['position'] == 'custom':
-            self._pos = params['left'], params['top']
-        else:
-            raise ValueError('position token in configuration accept only '
-                             '"auto" or "custom"')
-
         use_fake = True
         use_fullscreen = False
 
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
 
-        # init ourself size + setmode
-        # before calling on_resize
-        self._size = params['width'], params['height']
-
         # setup !
         w, h = self._size
         self._size = sdl.setup_window(w, h, use_fake, use_fullscreen)
 
         super(WindowSDL, self).create_window()
-
-        # set rotation
-        self.rotation = params['rotation']
 
         # auto add input provider
         Logger.info('Window: auto add sdl input provider')
