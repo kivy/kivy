@@ -20,7 +20,7 @@ from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
                             ObjectProperty
 from os import listdir
 from os.path import basename, getsize, isdir, join, sep, normpath, \
-                    expanduser, altsep, splitdrive
+                    expanduser, altsep, splitdrive, realpath
 from fnmatch import fnmatch
 
 platform = core_platform()
@@ -141,6 +141,18 @@ class FileChooserController(FloatLayout):
     .. versionadded:: 1.1.0
     '''
 
+    rootpath = StringProperty(None, allownone=True)
+    '''
+    Root path to use, instead of the system root path. If set, it will not show
+    a ".." directory to go upper the root path. For example, if you set rootpath
+    to /Users/foo, the user will be unable to goes to /Users, or any other
+    directory not starting with /Users/foo.
+
+    .. versionadded:: 1.1.2
+
+    :class:`~kivy.properties.StringProperty`, defaults to None.
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_entry_added')
         self.register_event_type('on_entries_cleared')
@@ -161,7 +173,8 @@ class FileChooserController(FloatLayout):
                     ' (platform is %r)' % platform)
 
         self.bind(path=self._trigger_update,
-                  filters=self._trigger_update)
+                  filters=self._trigger_update,
+                  rootpath=self._trigger_update)
         self._trigger_update()
 
     def _update_item_selection(self, *args):
@@ -270,16 +283,27 @@ class FileChooserController(FloatLayout):
         # Clear current files
         self.dispatch('on_entries_cleared')
         self._items = []
+        is_root = True
+        path = self.path
 
         # Add the components that are always needed
-        if platform == 'win':
-            is_root = splitdrive(self.path)[1] in (sep, altsep)
-        elif platform in ('macosx', 'linux', 'android', 'ios'):
-            is_root = normpath(expanduser(self.path)) == sep
+        if self.rootpath:
+            rootpath = realpath(self.rootpath)
+            path = realpath(self.path)
+            if not path.startswith(rootpath):
+                self.path = rootpath
+                return
+            elif path == rootpath:
+                is_root = True
         else:
-            # Unknown file system; Just always add the .. entry but also log
-            Logger.warning('Filechooser: Unsupported OS: %r' % platform)
-            is_root = False
+            if platform == 'win':
+                is_root = splitdrive(path)[1] in (sep, altsep)
+            elif platform in ('macosx', 'linux', 'android', 'ios'):
+                is_root = normpath(expanduser(path)) == sep
+            else:
+                # Unknown file system; Just always add the .. entry but also log
+                Logger.warning('Filechooser: Unsupported OS: %r' % platform)
+                is_root = False
         if not is_root:
             back = '..' + sep
             pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
@@ -288,7 +312,7 @@ class FileChooserController(FloatLayout):
             self._items.append(pardir)
             self.dispatch('on_entry_added', pardir)
         try:
-            self._add_files(self.path)
+            self._add_files(path)
         except OSError:
             Logger.exception('Unable to open directory <%s>' % self.path)
 
