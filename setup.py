@@ -250,6 +250,7 @@ def determine_sdl():
             '-framework', 'AudioToolbox',
             '-framework', 'CoreGraphics',
             '-framework', 'QuartzCore',
+            '-framework', 'MobileCoreServices',
             '-framework', 'ImageIO']
     elif platform == 'darwin':
         flags['extra_link_args'] += [

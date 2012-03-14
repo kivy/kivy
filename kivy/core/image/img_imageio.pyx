@@ -11,6 +11,8 @@ from . import ImageLoaderBase, ImageData, ImageLoader
 
 from array import array
 from libcpp cimport bool
+from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy
 
 ctypedef unsigned long size_t
 ctypedef signed long CFIndex
@@ -82,11 +84,27 @@ cdef extern from "CoreGraphics/CGDataProvider.h":
 
 cdef extern from "CoreFoundation/CFBase.h":
     ctypedef void *CFAllocatorRef
+    ctypedef void *CFStringRef
+    ctypedef void *CFURLRef
+    ctypedef void *CFTypeRef
+    CFStringRef CFStringCreateWithCString (CFAllocatorRef alloc, char *cStr,
+            int encoding)
+
+    void CFRelease(CFTypeRef cf)
+
+cdef unsigned int kCFStringEncodingUTF8 = 0x08000100
+
+cdef extern CFStringRef kUTTypePNG
 
 cdef extern from "CoreFoundation/CFURL.h":
     ctypedef void *CFURLRef
+    ctypedef int CFURLPathStyle
+    int kCFURLPOSIXPathStyle
+    CFAllocatorRef kCFAllocatorDefault
     CFURLRef CFURLCreateFromFileSystemRepresentation(
             CFAllocatorRef, unsigned char *, CFIndex, bool)
+    CFURLRef CFURLCreateWithFileSystemPath(CFAllocatorRef allocator,
+            CFStringRef filePath, CFURLPathStyle pathStyle, int isDirectory)
 
 cdef extern from "CoreFoundation/CFDictionary.h":
     ctypedef void *CFDictionaryRef
@@ -94,10 +112,11 @@ cdef extern from "CoreFoundation/CFDictionary.h":
 cdef extern from "CoreGraphics/CGImage.h":
     ctypedef void *CGImageRef
     CGDataProviderRef CGImageGetDataProvider(CGImageRef)
-    int CGImageGetWidth(CGImageRef)
-    int CGImageGetHeight(CGImageRef)
     int CGImageGetAlphaInfo(CGImageRef)
     int kCGImageAlphaNone
+
+cdef extern from "CoreGraphics/CGBitmapContext.h":
+    CGImageRef CGBitmapContextCreateImage(CGColorSpaceRef)
 
 cdef extern from "ImageIO/CGImageSource.h":
     ctypedef void *CGImageSourceRef
@@ -105,6 +124,15 @@ cdef extern from "ImageIO/CGImageSource.h":
             CFURLRef, CFDictionaryRef)
     CGImageRef CGImageSourceCreateImageAtIndex(
             CGImageSourceRef, size_t, CFDictionaryRef)
+
+cdef extern from "ImageIO/CGImageDestination.h":
+    ctypedef void *CGImageDestinationRef
+    CGImageDestinationRef CGImageDestinationCreateWithURL(
+        CFURLRef, CFStringRef, size_t, CFDictionaryRef)
+    void CGImageDestinationAddImage (CGImageDestinationRef idst,
+        CGImageRef image, CFDictionaryRef properties)
+    int CGImageDestinationFinalize (CGImageDestinationRef idst)
+
 
 def load_image_data(bytes _url):
     cdef CFURLRef url
@@ -143,6 +171,62 @@ def load_image_data(bytes _url):
 
     return (width, height, imgtype, r_data)
 
+def save_image_rgba(filename, width, height, data):
+    assert(len(data) == width * height * 4)
+
+    print 'save rggba image: create the memory and copy', type(data), len(data)
+    cdef char *source = NULL
+    if type(data) is array:
+        data = data.tostring()
+    source = <bytes>data[:len(data)]
+
+    print 'now malloc'
+    cdef char *rgba = <char *>malloc(int(width * height * 4))
+    print 'now copy'
+    memcpy(rgba, <void *>source, int(width * height * 4))
+    
+    print 'XX create COLORSPACE'
+    cdef CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB()
+    print 'XX create BITMAP CONTEXT'
+    cdef CGContextRef bitmapContext = CGBitmapContextCreate(
+        rgba,
+        width,
+        height,
+        8, # bitsPerComponent
+        4 * width, # bytesPerRow
+        colorSpace,
+        kCGImageAlphaNoneSkipLast)
+
+    print 'XX bitmap create image', <long>bitmapContext
+    cdef CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext)
+    print 'XX filename %r' % filename
+    cdef char *cfilename = <char *>malloc(len(filename) + 1)
+    memcpy(cfilename, <char *><bytes>filename, len(filename));
+    cfilename[len(filename)] = <char>0
+    cdef CFStringRef sfilename = CFStringCreateWithCString(NULL,
+            cfilename, kCFStringEncodingUTF8)
+    print '->', <long>sfilename
+    print 'XX url'
+    cdef CFURLRef url = CFURLCreateWithFileSystemPath(NULL,
+            sfilename, kCFURLPOSIXPathStyle, 0)
+
+    print '->', <long>url
+    print 'XX create dest'
+    cdef CFStringRef ctype = kUTTypePNG
+    cdef CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url,
+            ctype, 1, NULL)
+
+    print 'XX add image'
+    CGImageDestinationAddImage(dest, cgImage, NULL)
+
+    print 'XX release everthing'
+    CFRelease(cgImage)
+    CFRelease(bitmapContext)
+    print 'XX release colorspace'
+    CFRelease(colorSpace)
+
+    print 'XX finalize'
+    CGImageDestinationFinalize(dest)
 
 class ImageLoaderImageIO(ImageLoaderBase):
     '''Image loader based on ImageIO MacOSX Framework
