@@ -174,20 +174,15 @@ def load_image_data(bytes _url):
 def save_image_rgba(filename, width, height, data):
     assert(len(data) == width * height * 4)
 
-    print 'save rggba image: create the memory and copy', type(data), len(data)
     cdef char *source = NULL
     if type(data) is array:
         data = data.tostring()
     source = <bytes>data[:len(data)]
 
-    print 'now malloc'
     cdef char *rgba = <char *>malloc(int(width * height * 4))
-    print 'now copy'
     memcpy(rgba, <void *>source, int(width * height * 4))
     
-    print 'XX create COLORSPACE'
     cdef CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB()
-    print 'XX create BITMAP CONTEXT'
     cdef CGContextRef bitmapContext = CGBitmapContextCreate(
         rgba,
         width,
@@ -197,35 +192,25 @@ def save_image_rgba(filename, width, height, data):
         colorSpace,
         kCGImageAlphaNoneSkipLast)
 
-    print 'XX bitmap create image', <long>bitmapContext
     cdef CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext)
-    print 'XX filename %r' % filename
     cdef char *cfilename = <char *>malloc(len(filename) + 1)
     memcpy(cfilename, <char *><bytes>filename, len(filename));
     cfilename[len(filename)] = <char>0
     cdef CFStringRef sfilename = CFStringCreateWithCString(NULL,
             cfilename, kCFStringEncodingUTF8)
-    print '->', <long>sfilename
-    print 'XX url'
     cdef CFURLRef url = CFURLCreateWithFileSystemPath(NULL,
             sfilename, kCFURLPOSIXPathStyle, 0)
 
-    print '->', <long>url
-    print 'XX create dest'
     cdef CFStringRef ctype = kUTTypePNG
     cdef CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url,
             ctype, 1, NULL)
 
-    print 'XX add image'
     CGImageDestinationAddImage(dest, cgImage, NULL)
 
-    print 'XX release everthing'
     CFRelease(cgImage)
     CFRelease(bitmapContext)
-    print 'XX release colorspace'
     CFRelease(colorSpace)
 
-    print 'XX finalize'
     CGImageDestinationFinalize(dest)
 
 class ImageLoaderImageIO(ImageLoaderBase):
