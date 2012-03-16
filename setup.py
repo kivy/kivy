@@ -296,6 +296,7 @@ setup(
         'kivy.network',
         'kivy.tools',
         'kivy.tools.packaging',
+        'kivy.tools.packaging.pyinstaller_hooks',
         'kivy.uix', ],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
