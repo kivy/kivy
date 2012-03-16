@@ -8,6 +8,7 @@ from kivy.lib.ddsfile import DDSFile
 from kivy.logger import Logger
 from . import ImageLoaderBase, ImageData, ImageLoader
 
+
 class ImageLoaderDDS(ImageLoaderBase):
 
     @staticmethod
@@ -23,7 +24,7 @@ class ImageLoaderDDS(ImageLoaderBase):
 
         self.filename = filename
         width, height = dds.size
-        im = ImageData(width, height, dds.dxt, dds.images[0])
+        im = ImageData(width, height, dds.dxt, dds.images[0], source=filename)
         if len(dds.images) > 1:
             images = dds.images
             images_size = dds.images_size

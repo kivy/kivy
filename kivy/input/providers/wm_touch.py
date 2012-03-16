@@ -142,8 +142,10 @@ else:
                     dispatch_fn('update', self.touches[t.id])
 
                 if t.event_type == 'end' and t.id in self.touches:
-                    self.touches[t.id].move([x, y, t.size()])
-                    dispatch_fn('end', self.touches[t.id])
+                    touch = self.touches[t.id]
+                    touch.move([x, y, t.size()])
+                    touch.update_time_end()
+                    dispatch_fn('end', touch)
                     del self.touches[t.id]
 
         def stop(self):

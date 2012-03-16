@@ -2,7 +2,7 @@
 Atlas
 =====
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 Atlas is a class for managing textures atlases: packing multiple texture into
 one. With it, you are reducing the number of image to load and speedup the

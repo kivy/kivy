@@ -205,7 +205,7 @@ class LoaderBase(object):
     def image(self, filename, load_callback=None, post_callback=None, **kwargs):
         '''Load a image using loader. A Proxy image is returned with a loading
         image.
-        
+
         ::
             img = Loader.image(filename)
             # img will be a ProxyImage.

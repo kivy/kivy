@@ -8,6 +8,7 @@ On the screen, most of example must have the red->blue->green order.
 
 from common import GraphicUnitTest
 
+
 class UIXBoxLayoutTestcase(GraphicUnitTest):
 
     def box(self, r, g, b):
@@ -17,12 +18,12 @@ class UIXBoxLayoutTestcase(GraphicUnitTest):
         with wid.canvas:
             Color(r, g, b)
             r = Rectangle(pos=wid.pos, size=wid.size)
+
         def linksp(instance, *largs):
             r.pos = instance.pos
             r.size = instance.size
         wid.bind(pos=linksp, size=linksp)
         return wid
-
 
     def test_boxlayout_orientation(self):
         from kivy.uix.boxlayout import BoxLayout

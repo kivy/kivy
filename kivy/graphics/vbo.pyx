@@ -3,7 +3,7 @@ Vertex Buffer
 =============
 
 The :class:`VBO` class handle the creation and update of Vertex Buffer Object in
-OpenGL. 
+OpenGL.
 '''
 
 __all__ = ('VBO', 'VertexBatch')
@@ -18,6 +18,7 @@ IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from vertex cimport *
 from kivy.logger import Logger
+from kivy.graphics.context cimport Context, get_context
 
 cdef int vattr_count = 2
 cdef vertex_attr_t vattr[2]
@@ -26,10 +27,6 @@ vattr[1] = ['vTexCoords0', 1, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 #vertex_attr_list[2] = ['vTexCoords1', 2, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 #vertex_attr_list[3] = ['vTexCoords2', 3, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
 #vertex_attr_list[4] = ['vColor', 4, 2, GL_FLOAT, sizeof(GLfloat) * 4, 0]
-
-cdef object _vbo_release_trigger = None
-cdef list _vbo_release_list = []
-
 
 cdef int vbo_vertex_attr_count():
     '''Return the number of vertex attributes used in VBO
@@ -41,40 +38,49 @@ cdef vertex_attr_t *vbo_vertex_attr_list():
     '''
     return vattr
 
+cdef short V_NEEDGEN = 1 << 0
+cdef short V_NEEDUPLOAD = 1 << 1 
+cdef short V_HAVEID = 1 << 2
+
 cdef class VBO:
+
     def __cinit__(self, **kwargs):
         self.usage  = GL_DYNAMIC_DRAW
         self.target = GL_ARRAY_BUFFER
         self.format = vbo_vertex_attr_list()
         self.format_count = vbo_vertex_attr_count()
-        self.need_upload = 1
+        self.flags = V_NEEDGEN | V_NEEDUPLOAD
         self.vbo_size = 0
-        glGenBuffers(1, &self.id)
 
     def __dealloc__(self):
-        # Add texture deletion outside GC call.
-        if _vbo_release_list is not None:
-            _vbo_release_list.append(self.id)
-            if _vbo_release_trigger is not None:
-                _vbo_release_trigger()
+        get_context().dealloc_vbo(self)
 
     def __init__(self, **kwargs):
+        get_context().register_vbo(self)
         self.data = Buffer(sizeof(vertex_t))
 
-    cdef void allocate_buffer(self):
-        #Logger.trace("VBO:allocating VBO " + str(self.data.size()))
-        self.vbo_size = self.data.size()
-        glBindBuffer(GL_ARRAY_BUFFER, self.id)
-        glBufferData(GL_ARRAY_BUFFER, self.vbo_size, self.data.pointer(), self.usage)
-        self.need_upload = 0
+    cdef int have_id(self):
+        return self.flags & V_HAVEID
 
     cdef void update_buffer(self):
+        # generate VBO if not done yet
+        if self.flags & V_NEEDGEN:
+            glGenBuffers(1, &self.id)
+            self.flags &= ~V_NEEDGEN
+            self.flags |= V_HAVEID
+
+        # if the size doesn't match, we need to reupload the whole data
         if self.vbo_size < self.data.size():
-            self.allocate_buffer()
-        elif self.need_upload:
+            self.vbo_size = self.data.size()
+            glBindBuffer(GL_ARRAY_BUFFER, self.id)
+            glBufferData(GL_ARRAY_BUFFER, self.vbo_size, self.data.pointer(), self.usage)
+            self.flags &= ~V_NEEDUPLOAD
+
+        # if size match, update only what is needed
+        elif self.flags & V_NEEDUPLOAD:
             glBindBuffer(GL_ARRAY_BUFFER, self.id)
             glBufferSubData(GL_ARRAY_BUFFER, 0, self.data.size(), self.data.pointer())
-            self.need_upload  = 0
+            self.flags &= ~V_NEEDUPLOAD
 
     cdef void bind(self):
         cdef vertex_attr_t *attr
@@ -93,28 +99,50 @@ cdef class VBO:
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     cdef void add_vertex_data(self, void *v, unsigned short* indices, int count):
-        self.need_upload = 1
+        self.flags |= V_NEEDUPLOAD
         self.data.add(v, indices, count)
 
     cdef void update_vertex_data(self, int index, vertex_t* v, int count):
-        self.need_upload = 1
+        self.flags |= V_NEEDUPLOAD
         self.data.update(index, v, count)
 
     cdef void remove_vertex_data(self, unsigned short* indices, int count):
         self.data.remove(indices, count)
 
+    cdef void reload(self):
+        self.flags = V_NEEDUPLOAD | V_NEEDGEN
+        self.vbo_size = 0
+
+    def __repr__(self):
+        return '<VBO at %x id=%r count=%d size=%d>' % (
+                id(self), self.id if self.flags & V_HAVEID else None,
+                self.data.count(), self.data.size())
 
 cdef class VertexBatch:
     def __init__(self, **kwargs):
+        get_context().register_vertexbatch(self)
+        self.usage  = GL_DYNAMIC_DRAW
         cdef object lushort = sizeof(unsigned short)
         self.vbo = kwargs.get('vbo')
         if self.vbo is None:
             self.vbo = VBO()
         self.vbo_index = Buffer(lushort) #index of every vertex in the vbo
         self.elements = Buffer(lushort) #indices translated to vbo indices
+        self.elements_size = 0
+        self.flags = V_NEEDGEN | V_NEEDUPLOAD
 
         self.set_data(NULL, 0, NULL, 0)
         self.set_mode(kwargs.get('mode'))
+
+    def __dealloc__(self):
+        get_context().dealloc_vertexbatch(self)
+
+    cdef int have_id(self):
+        return self.flags & V_HAVEID
+
+    cdef void reload(self):
+        self.flags = V_NEEDGEN | V_NEEDUPLOAD
+        self.elements_size = 0
 
     cdef void clear_data(self):
         # clear old vertices from vbo and then reset index buffer
@@ -122,7 +150,6 @@ cdef class VertexBatch:
                                     self.vbo_index.count())
         self.vbo_index.clear()
         self.elements.clear()
-
 
     cdef void set_data(self, vertex_t *vertices, int vertices_count,
                        unsigned short *indices, int indices_count):
@@ -132,6 +159,7 @@ cdef class VertexBatch:
 
         # now append the vertices and indices to vbo
         self.append_data(vertices, vertices_count, indices, indices_count)
+        self.flags |= V_NEEDUPLOAD
 
     cdef void append_data(self, vertex_t *vertices, int vertices_count,
                           unsigned short *indices, int indices_count):
@@ -151,12 +179,35 @@ cdef class VertexBatch:
         for i in xrange(indices_count):
             local_index = indices[i]
             self.elements.add(&vbi[local_index], NULL, 1)
+        self.flags |= V_NEEDUPLOAD
 
     cdef void draw(self):
+        # create when needed
+        if self.flags & V_NEEDGEN:
+            glGenBuffers(1, &self.id)
+            self.flags &= ~V_NEEDGEN
+            self.flags |= V_HAVEID
+
+
+        # bind to the current id
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.id)
+
+        # cache indices in a gpu buffer too
+        if self.flags & V_NEEDUPLOAD:
+            if self.elements_size == self.elements.size():
+                glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, self.elements_size,
+                    self.elements.pointer())
+            else:
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, self.elements.size(),
+                    self.elements.pointer(), self.usage)
+                self.elements_size = self.elements.size()
+            self.flags &= ~V_NEEDUPLOAD
+
         self.vbo.bind()
+
+        # draw the elements pointed by indices in ELEMENT ARRAY BUFFER.
         glDrawElements(self.mode, self.elements.count(),
-                       GL_UNSIGNED_SHORT, self.elements.pointer())
-        self.vbo.unbind()
+                       GL_UNSIGNED_SHORT, NULL)
 
     cdef void set_mode(self, str mode):
         # most common case in top;
@@ -184,16 +235,8 @@ cdef class VertexBatch:
     cdef int count(self):
         return self.elements.count()
 
-# Releasing vbo through GC is problematic. Same as any GL deletion.
-def _vbo_release(*largs):
-    cdef GLuint vbo_id
-    if not _vbo_release_list:
-        return
-    Logger.trace('VBO: releasing %d vbos' % len(_vbo_release_list))
-    for vbo_id in _vbo_release_list:
-        glDeleteBuffers(1, &vbo_id)
-    del _vbo_release_list[:]
-
-if 'KIVY_DOC_INCLUDE' not in environ:
-    from kivy.clock import Clock
-    _vbo_release_trigger = Clock.create_trigger(_vbo_release)
+    def __repr__(self):
+        return '<VertexBatch at %x id=%r vertex=%d size=%d mode=%s vbo=%x>' % (
+                id(self), self.id if self.flags & V_HAVEID else None,
+                self.elements.count(), self.elements.size(), self.get_mode(),
+                id(self.vbo))

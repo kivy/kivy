@@ -7,6 +7,7 @@ Testing the simple vertex instructions
 
 from common import GraphicUnitTest
 
+
 class VertexInstructionTestCase(GraphicUnitTest):
 
     def test_circle(self):

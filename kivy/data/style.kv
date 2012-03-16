@@ -33,14 +33,14 @@
             rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
         BorderImage:
             border: self.parent.border if self.parent else (16, 16, 16, 16)
-            texture: root.parent.background_texture if root.parent else None
+            texture: root.parent._bk_img.texture if root.parent else None
             size: self.size
             pos: self.pos
 
 <BubbleButton>:
-	background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
-	background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
-	border: (0, 0, 0, 0)
+    background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
+    background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
+    border: (0, 0, 0, 0)
 
 <Slider>:
     canvas:
@@ -93,7 +93,7 @@
     padding_y: 6
     canvas.before:
         Color:
-            rgb: (1, 1, 1)
+            rgb: self.background_color
         BorderImage:
             border: (16, 16, 16, 16)
             pos: self.pos
@@ -105,20 +105,20 @@
             pos: map(int, self.cursor_pos)
             size: 1, -self.line_height
         Color:
-            rgb: (0, 0, 0)
+            rgb: self.foreground_color
 
 <TextInputCutCopyPaste>:
-	size_hint: None, None
-	size: 150, 50
-	BubbleButton:
-		text: 'Cut'
-		on_release: root.do('cut')
-	BubbleButton:
-		text: 'Copy'
-		on_release: root.do('copy')
-	BubbleButton:
-		text: 'Paste'
-		on_release: root.do('paste')
+    size_hint: None, None
+    size: 150, 50
+    BubbleButton:
+        text: 'Cut'
+        on_release: root.do('cut')
+    BubbleButton:
+        text: 'Copy'
+        on_release: root.do('copy')
+    BubbleButton:
+        text: 'Paste'
+        on_release: root.do('paste')
 
 
 <TreeViewNode>:
@@ -447,6 +447,8 @@
         FloatLayout:
             id: labellayout
             orientation: 'vertical'
+            size_hint_x: .5
+
             Label:
                 pos_hint: {'y': .5, 'x': 0}
                 text: root.title
@@ -464,8 +466,8 @@
 
         BoxLayout:
             id: content
-            size_hint_x: None
-            width: 150
+            size_hint_x: .5
+
 
 <SettingBoolean>:
     Switch:
@@ -475,6 +477,11 @@
         on_active: root.value = root.values[int(args[1])]
 
 <SettingString>:
+    Label:
+        text: str(root.value)
+        pos: root.pos
+
+<SettingPath>:
     Label:
         text: str(root.value)
         pos: root.pos
@@ -579,3 +586,83 @@
                 id: content
                 height: self.minimum_height
                 width: sv.width
+
+<ScrollView>:
+    canvas.after:
+        Color:
+            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_y else 0]
+        Rectangle:
+            pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
+            size: self.bar_width, self.height * self.vbar[1]
+        Color:
+            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_x else 0]
+        Rectangle:
+            pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
+            size: self.width * self.hbar[1], self.bar_width
+
+
+# =============================================================================
+# Video player
+# =============================================================================
+
+<VideoPlayerPreview>:
+    pos_hint: {'x': 0, 'y': 0}
+    Image:
+        source: root.source
+        color: (.5, .5, .5, 1)
+        pos_hint: {'x': 0, 'y': 0}
+
+    Image:
+        source: 'atlas://data/images/defaulttheme/player-play-overlay' if not root.click_done else 'data/images/image-loading.gif'
+        pos_hint: {'x': 0, 'y': 0}
+
+<VideoPlayerAnnotation>:
+    canvas.before:
+        Color:
+            rgba: self.annotation['bgcolor'] if 'bgcolor' in self.annotation else (0, 0, 0, 0.8)
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: self.annotation['bgsource'] if 'bgsource' in self.annotation else None
+            border: self.annotation['border'] if 'border' in self.annotation else (0, 0, 0, 0)
+    size_hint: self.annotation['size_hint'] if 'size_hint' in self.annotation else (None, None)
+    size: self.annotation['size'] if 'size' in self.annotation else (self.texture_size[0] + 20, self.texture_size[1] + 20)
+    pos_hint: self.annotation['pos_hint'] if 'pos_hint' in self.annotation else {'center_x': .5, 'y': .05}
+
+<VideoPlayer>:
+    container: container
+    cols: 1
+
+    FloatLayout:
+        cols: 1
+        id: container
+
+    GridLayout:
+        rows: 1
+        size_hint_y: None
+        height: 44
+
+        VideoPlayerPlayPause:
+            size_hint_x: None
+            video: root
+            width: 44
+            source: root.image_play if not root.play else root.image_pause
+
+        VideoPlayerVolume:
+            video: root
+            size_hint_x: None
+            width: 44
+            source: root.image_volumehigh if root.volume > 0.8 else (root.image_volumemedium if root.volume > 0.4 else (root.image_volumelow if root.volume > 0 else root.image_volumemuted))
+
+        Widget:
+            size_hint_x: None
+            width: 5
+
+        VideoPlayerProgressBar:
+            video: root
+            max: root.duration or 1
+            value: root.position
+
+        Widget:
+            size_hint_x: None
+            width: 10

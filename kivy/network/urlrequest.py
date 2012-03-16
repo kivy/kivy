@@ -60,11 +60,12 @@ from json import loads
 from httplib import HTTPConnection
 from time import sleep
 
+HTTPSConnection = None
 try:
     from httplib import HTTPSConnection
 except ImportError:
     # on android platform, this is not available yet.
-    HTTPSConnection = None
+    pass
 
 from urlparse import urlparse
 from kivy.clock import Clock
@@ -330,7 +331,7 @@ class UrlRequest(Thread):
         wait for the request to be finished (until :data:`resp_status` is not
         None)
 
-        .. versionadded:: 1.0.10
+        .. versionadded:: 1.1.0
         '''
         while self.resp_status is None:
             self._dispatch_result(delay)
@@ -339,7 +340,6 @@ class UrlRequest(Thread):
 
 if __name__ == '__main__':
 
-    from time import sleep
     from pprint import pprint
 
     def on_success(req, result):

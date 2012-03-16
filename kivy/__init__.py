@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.0.10-dev'
+__version__ = '1.1.2-dev'
 
 import sys
 import shutil
@@ -36,12 +36,13 @@ from getopt import getopt, GetoptError
 from os import environ, mkdir
 from os.path import dirname, join, basename, exists, expanduser
 from kivy.logger import Logger, LOG_LEVELS
+from kivy.utils import platform
 
 # internals for post-configuration
 __kivy_post_configuration = []
 
 
-if sys.platform == 'darwin' and sys.maxint < 9223372036854775807:
+if platform() == 'macosx' and sys.maxint < 9223372036854775807:
     r ='''Unsupported Python version detected!:
     Kivy requires a 64 bit version of Python to run on OS X. We strongly advise
     you to use the version of Python that is provided by Apple (don't use ports,
@@ -184,7 +185,7 @@ else:
 #: Global settings options for kivy
 kivy_options = {
     'window': ('pygame', ),
-    'text': ('pil', 'cairo', 'pygame'),
+    'text': ('pil', 'pygame'),
     'video': ('ffmpeg', 'gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', ),
     'image': ('dds', 'gif', 'pil', 'pygame'),
@@ -239,6 +240,8 @@ if basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
 if not 'KIVY_DOC_INCLUDE' in environ:
     # Configuration management
     user_home_dir = expanduser('~')
+    if platform() == 'android':
+        user_home_dir = environ['ANDROID_APP_PATH']
     kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
 
@@ -358,4 +361,12 @@ if not 'KIVY_DOC_INCLUDE' in environ:
                              'configuration file:', str(e))
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
+
+# android hooks: force fullscreen and add android touch input provider
+if platform() == 'android':
+    from kivy.config import Config
+    Config.set('graphics', 'fullscreen', 'auto')
+    Config.remove_section('input')
+    Config.add_section('input')
+    Config.set('input', 'androidtouch', 'android')
 

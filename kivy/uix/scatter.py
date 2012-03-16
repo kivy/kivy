@@ -27,7 +27,7 @@ manually, you will need to use :func:`~kivy.uix.widget.Widget.to_parent`,
 Usage
 -----
 
-By default, the widget doesn't have any graphical representation, it is a 
+By default, the widget doesn't have any graphical representation, it is a
 container only. The idea is to combine Scatter with another widget, for
 example :class:`~kivy.uix.image.Image` ::
 
@@ -38,8 +38,8 @@ example :class:`~kivy.uix.image.Image` ::
 Control interactions
 --------------------
 
-By default, all interactions are enabled. You can selectively disable 
-them using the do_{rotation, translation, scale} properties. 
+By default, all interactions are enabled. You can selectively disable
+them using the do_{rotation, translation, scale} properties.
 
 Disable rotation ::
 
@@ -51,17 +51,17 @@ Allow only translation ::
 
 Allow only translation on x axis ::
 
-    scatter = Scatter(do_rotation=False, do_scale=False, 
+    scatter = Scatter(do_rotation=False, do_scale=False,
                       do_translation_y=False)
 
 
 Automatic bring to front
 ------------------------
 
-If the :data:`Scatter.auto_bring_to_front` property is True, the scatter 
-widget will be removed and re-added to the parent when it is touched 
-(brought to front, above all other widgets). This is useful when you are 
-manipulating several scatter widgets and don't want the active to be 
+If the :data:`Scatter.auto_bring_to_front` property is True, the scatter
+widget will be removed and re-added to the parent when it is touched
+(brought to front, above all other widgets). This is useful when you are
+manipulating several scatter widgets and don't want the active to be
 partially hidden.
 
 Scale limitation
@@ -75,6 +75,14 @@ see it on the screen), but the maximum scale is 9.99506983235e+19 (2^66)
 You can also limit the minimum and maximum scale allowed. ::
 
     scatter = Scatter(scale_min=.5, scale_max=3.)
+
+Behaviors
+---------
+
+.. versionchanged:: 1.1.0
+
+    If no control interactions are enabled, then touch handler will never return
+    True.
 
 '''
 
@@ -388,6 +396,13 @@ class Scatter(Widget):
             self.apply_transform(Matrix().scale(scale, scale, scale),
                                  anchor=anchor)
 
+    def _bring_to_front(self):
+        # auto bring to front
+        if self.auto_bring_to_front and self.parent:
+            parent = self.parent
+            parent.remove_widget(self)
+            parent.add_widget(self)
+
     def on_touch_down(self, touch):
         x, y = touch.x, touch.y
 
@@ -395,21 +410,25 @@ class Scatter(Widget):
         if not self.collide_point(x, y):
             return False
 
-        # auto bring to front
-        if self.auto_bring_to_front and self.parent:
-            parent = self.parent
-            parent.remove_widget(self)
-            parent.add_widget(self)
-
         # let the child widgets handle the event if they want
         touch.push()
         touch.apply_transform_2d(self.to_local)
         if super(Scatter, self).on_touch_down(touch):
             touch.pop()
+            self._bring_to_front()
             return True
         touch.pop()
 
+        # if our child didn't do anything, and if we don't have any active
+        # interaction control, then don't accept the touch.
+        if not self.do_translation_x and \
+            not self.do_translation_y and \
+            not self.do_rotation and \
+            not self.do_scale:
+            return False
+
         # grab the touch so we get all it later move events for sure
+        self._bring_to_front()
         touch.grab(self)
         self._touches.append(touch)
         self._last_touch_pos[touch] = touch.pos

@@ -16,7 +16,7 @@ it will be generated like this:
 
 .. image:: images/api-button.jpg
 
-It must readed like this: the "Button" class is into the "kivy.uix.button"
+It should be read like this: the "Button" class is into the "kivy.uix.button"
 module. So if you want to import that class in your code, write that::
 
     from kivy.uix.button import Button

@@ -31,11 +31,15 @@ Available configuration tokens
     * `keyboard_type` and `keyboard_layout` have been removed from widget
     * `keyboard_mode` and `keyboard_layout` have been added to kivy section
 
-.. versionchanged:: 1.0.10
+.. versionchanged:: 1.1.0
 
     * tuio is not listening by default anymore.
     * windows icons are not copied to user directory anymore. You can still set
       a new window icon by using ``window_icon`` config setting.
+
+.. versionchanged:: 1.1.2
+
+    * `resizable` has been added to graphics section
 
 :kivy:
 
@@ -86,7 +90,7 @@ Available configuration tokens
     `maxfps`: int, default to 60
         Maximum FPS allowed.
     `fullscreen`: (0, 1, fake, auto)
-        Activate fullscreen. If set to `1`, a resolution of `width` 
+        Activate fullscreen. If set to `1`, a resolution of `width`
         times `height` pixels will be used.
         If set to `auto`, your current display's resolution will be
         used instead. This is most likely what you want.
@@ -114,7 +118,9 @@ Available configuration tokens
         pygame icon.
     `rotation`: (0, 90, 180, 270)
         Rotation of the :class:`~kivy.core.window.Window`
-
+    `resizable`: (0, 1)
+        If 0, the window will have a fixed size. If 1, the window will be
+        resizable.
 
 :input:
 
@@ -165,13 +171,13 @@ __all__ = ('Config', 'ConfigParser')
 from ConfigParser import ConfigParser as PythonConfigParser
 from sys import platform
 from os import environ
-from os.path import exists, join
-from kivy import kivy_home_dir, kivy_config_fn
+from os.path import exists
+from kivy import kivy_config_fn
 from kivy.logger import Logger
 from kivy.utils import OrderedDict
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 5
+KIVY_CONFIG_VERSION = 6
 
 #: Kivy configuration object
 Config = None
@@ -368,6 +374,9 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             # add keyboard token
             Config.setdefault('kivy', 'keyboard_mode', '')
             Config.setdefault('kivy', 'keyboard_layout', 'qwerty')
+
+        elif version == 5:
+            Config.setdefault('graphics', 'resizable', '1')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

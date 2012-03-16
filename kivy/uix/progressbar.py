@@ -7,7 +7,7 @@ Progress Bar
 .. image:: images/progressbar.jpg
     :align: right
 
-The :class:`ProgressBar` widget is used to visualize progression. Only 
+The :class:`ProgressBar` widget is used to visualize progression. Only
 horizontal mode is supported, vertical mode is not available yet.
 
 The progress bar cannot be interacted with, it's a display-only widget.

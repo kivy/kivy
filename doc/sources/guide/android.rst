@@ -12,8 +12,10 @@ Requirements for android application
 ------------------------------------
 
 To create an application for Android platform, you must have a
-file named `main.py` in the root directory of your application, handling
-the android platform in the `__name__` test::
+file named `main.py` in the root directory of your application.
+
+If the application will run inside the Kivy launcher, then you must handle the
+`__name__` as::
 
     if __name__ in ('__main__', '__android__'):
         YourApp().run()
@@ -37,30 +39,15 @@ You'll see all the log including your stdout/stderr, Kivy logger.
 Status of the Project
 ---------------------
 
-This project is a derivated work of Pygame Subset for Android, made by Tom
-Rothamel. His work is available at::
+The project is now stable, using `Python for Android
+<http://github.com/kivy/python-for-android/>`_.
 
-	https://code.launchpad.net/~pgs4a-developer/pgs4a/mainline
+We made that project to be able to:
 
-This project code is available at::
-
-	https://code.launchpad.net/~tito-bankiz/pgs4a/kivy
-
-We made that branch to be able to:
-
-    - integrate Kivy android-support branch in the build
-    - create opengl es 2 surface with stencil buffer
-    - enable multitouch event
-    - custom python native launcher that run the main.py
-    - default activation of WRITE_EXTERNAL_STORAGE permission
-    - Video support (done in 1.0.8 version using ffmpeg-android)
-    - Audio support
-
-Currently, Kivy is not fully supported on Android. We are missing:
-
-    - Camera providers
-    - Keyboard mapping for main button
-    - Ability to hook app on sleep/wakeup
+- create custom Python version including only wanted modules
+- handle multitouch events to Kivy
+- create a python module for accessing to some intents
+- handle sleep/wakeup properly
 
 Tested Devices
 --------------

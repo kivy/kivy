@@ -14,8 +14,10 @@ Check kivy documentation about how to use theses hook for packaging application.
 import kivy
 from kivy.factory import Factory
 
+
 def get_modules():
     return [x.get('module', None) for x in Factory.classes.itervalues()]
+
 
 datas = [
     (kivy.kivy_data_dir, 'kivy_install'),
@@ -37,6 +39,19 @@ _kivy_modules = [
     'kivy.lib.osc.OSC',
     'kivy.lib.osc.oscAPI',
     'kivy.lib.mtdev',
+    'kivy.lib.debug',
+    'kivy.factory_registers',
+    'kivy.input.providers',
+    'kivy.input.providers.tuio',
+    'kivy.input.providers.mouse',
+    'kivy.input.providers.wm_common',
+    'kivy.input.providers.wm_touch',
+    'kivy.input.providers.wm_pen',
+    'kivy.input.providers.hidinput',
+    'kivy.input.providers.linuxwacom',
+    'kivy.input.providers.mactouch',
+    'kivy.input.providers.mouse',
+    'kivy.input.providers.mtdev',
 
     # compiled modules
     'kivy.event',
@@ -66,7 +81,6 @@ _kivy_modules = [
     'kivy.core.video.video_pyglet',
     'kivy.core.video.video_gstreamer',
     'kivy.core.text.text_pygame',
-    'kivy.core.text.text_cairo',
     'kivy.core.text.markup',
     'kivy.core.clipboard.clipboard_pygame',
     'kivy.core.clipboard.clipboard_dummy',

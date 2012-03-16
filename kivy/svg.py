@@ -47,6 +47,7 @@ class Matrix(object):
                 vals = [sx, 0, 0, sy, 0, 0]
         elif string is not None:
             vals = list(string)
+        self.values = vals
 
     def __call__(self, other):
         vals = self.values
@@ -105,7 +106,7 @@ class SVGData(object):
 
     @property
     def size(self):
-        return (self, width, self.height)
+        return (self, self.width, self.height)
 
     def parse_doc(self):
         self.paths = []
@@ -122,7 +123,7 @@ class SVGData(object):
         for e in self.tree._root.getchildren():
             try:
                 self.parse_element(e)
-            except Exception, ex:
+            except:
                 Logger.exception('SVGData: Error while parsing element %s' % e)
                 raise
 
@@ -219,12 +220,12 @@ class SVGData(object):
             regex = "(-?[0-9]+\.?[0-9]*(?:e-?[0-9]*)?)"
             pathdata = re.findall(regex, pathdata)
 
-            def pnext():
+            def pnext2():
                 return (float(pathdata.pop(0)), float(pathdata.pop(0)))
 
             self.new_path()
             while pathdata:
-                self.line_to(*pnext())
+                self.line_to(*pnext2())
             if e.tag.endswith('polygon'):
                 self.close_path()
             self.end_path()
@@ -272,7 +273,7 @@ class SVGData(object):
         for c in e.getchildren():
             try:
                 self.parse_element(c)
-            except Exception, ex:
+            except:
                 err = 'SVGData: Exception while parsing child element ' \
                       '%s of %s' % (c, e)
                 Logger.exception(err)

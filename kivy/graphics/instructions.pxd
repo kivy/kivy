@@ -26,6 +26,7 @@ cdef class Instruction:
     cdef void flag_update(self, int do_parent=?)
     cdef void flag_update_done(self)
     cdef void set_parent(self, Instruction parent)
+    cdef void reload(self)
 
     cdef void radd(self, InstructionGroup ig)
     cdef void rinsert(self, InstructionGroup ig, int index)
@@ -36,6 +37,7 @@ cdef class InstructionGroup(Instruction):
     cdef InstructionGroup compiled_children
     cdef GraphicsCompiler compiler
     cdef void build(self)
+    cdef void reload(self)
     cpdef add(self, Instruction c)
     cpdef insert(self, int index, Instruction c)
     cpdef remove(self, Instruction c)
@@ -79,8 +81,10 @@ cdef class CanvasBase(InstructionGroup):
     pass
 
 cdef class Canvas(CanvasBase):
+    cdef object __weakref__
     cdef CanvasBase _before
     cdef CanvasBase _after
+    cdef void reload(self)
     cpdef clear(self)
     cpdef add(self, Instruction c)
     cpdef remove(self, Instruction c)
@@ -106,4 +110,5 @@ cdef class RenderContext(Canvas):
     cdef void leave(self)
     cdef void apply(self)
     cpdef draw(self)
+    cdef void reload(self)
 

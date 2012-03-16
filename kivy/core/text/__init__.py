@@ -17,10 +17,15 @@ import os
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
+from kivy.utils import platform
+from kivy.resources import resource_find
 
-DEFAULT_FONT = 'Liberation Sans,Bitstream Vera Sans,Free Sans,Arial, Sans'
+DEFAULT_FONT = 'DroidSans'
 
-label_font_cache = {}
+FONT_REGULAR = 0
+FONT_ITALIC = 1
+FONT_BOLD = 2
+FONT_BOLDITALIC = 3
 
 
 class LabelBase(object):
@@ -73,6 +78,10 @@ class LabelBase(object):
 
     _cache_glyphs = {}
 
+    _fonts = {}
+
+    _fonts_cache = {}
+
     def __init__(self, **kwargs):
         kwargs.setdefault('font_size', 12)
         kwargs.setdefault('font_name', DEFAULT_FONT)
@@ -85,6 +94,7 @@ class LabelBase(object):
         kwargs.setdefault('padding_y', None)
         kwargs.setdefault('shorten', False)
         kwargs.setdefault('mipmap', False)
+        kwargs.setdefault('color', (1, 1, 1, 1))
 
         padding = kwargs.get('padding', None)
         if not kwargs.get('padding_x', None):
@@ -119,21 +129,85 @@ class LabelBase(object):
 
         self.options = kwargs
         self.texture = None
-
-        if 'font_name' in self.options:
-            fontname = self.options['font_name']
-            if fontname in label_font_cache:
-                if label_font_cache[fontname] is not None:
-                    self.options['font_name'] = label_font_cache[fontname]
-            else:
-                filename = os.path.join(kivy_data_dir, fontname)
-                if os.path.exists(filename):
-                    label_font_cache[fontname] = filename
-                    self.options['font_name'] = filename
-                else:
-                    label_font_cache[fontname] = None
-
+        self.resolve_font_name()
         self.text = kwargs.get('text', '')
+
+    @staticmethod
+    def register(name, fn_regular, fn_italic=None, fn_bold=None,
+            fn_bolditalic=None):
+        '''Register an alias for a Font.
+
+        .. versionadded:: 1.1.0
+
+        If you're using directly a ttf, you might not be able to use bold/italic
+        of the ttf version. If the font is delivered with different version of
+        it (one regular, one italic and one bold), then you need to register it
+        and use the alias instead.
+
+        All the fn_regular/fn_italic/fn_bold parameters are resolved with
+        :func:`kivy.resources.resource_find`. If fn_italic/fn_bold are None,
+        fn_regular will be used instead.
+        '''
+        _fn_regular = resource_find(fn_regular)
+        if _fn_regular is None:
+            raise IOError('File %r not found' % fn_regular)
+        if fn_italic is None:
+            _fn_italic = _fn_regular
+        else:
+            _fn_italic = resource_find(fn_italic)
+            if _fn_italic is None:
+                raise IOError('File %r not found' % fn_italic)
+        if fn_bold is None:
+            _fn_bold = _fn_regular
+        else:
+            _fn_bold = resource_find(fn_bold)
+            if _fn_bold is None:
+                raise IOError('File %r not found' % fn_bold)
+        if fn_bolditalic is None:
+            _fn_bolditalic = _fn_regular
+        else:
+            _fn_bolditalic = resource_find(fn_bolditalic)
+            if _fn_bolditalic is None:
+                raise IOError('Label: File %r not found' % fn_bolditalic)
+        LabelBase._fonts[name] = (_fn_regular, _fn_italic, _fn_bold,
+                _fn_bolditalic)
+
+    def resolve_font_name(self):
+        options = self.options
+        if 'font_name' not in options:
+            return
+        fontname = options['font_name']
+        fonts = self._fonts
+        fontscache = self._fonts_cache
+
+        # is the font is registered ?
+        if fontname in fonts:
+            # return the prefered font for the current bold/italic combinaison
+            bold = options['bold']
+            italic = options['italic']
+            font = fonts[fontname]
+            if not bold and not italic:
+                options['font_name_r'] = font[FONT_REGULAR]
+            elif bold and italic:
+                options['font_name_r'] = font[FONT_BOLDITALIC]
+            elif bold:
+                options['font_name_r'] = font[FONT_BOLD]
+            else:
+                options['font_name'] = font[FONT_ITALIC]
+
+        elif fontname in fontscache:
+            options['font_name_r'] = fontscache[fontname]
+        else:
+            filename = resource_find(fontname)
+            if filename is None:
+                # XXX for compatibility, check directly in the data dir
+                filename = os.path.join(kivy_data_dir, fontname)
+                if not os.path.exists(filename):
+                    filename = None
+            if filename is None:
+                raise IOError('Label: File %r not found' % fontname)
+            fontscache[fontname] = filename
+            options['font_name_r'] = filename
 
     def get_extents(self, text):
         '''Return a tuple with (width, height) for a text.'''
@@ -181,6 +255,8 @@ class LabelBase(object):
         '''
 
         options = self.options
+        render_text = self._render_text
+        get_extents = self.get_extents
         uw, uh = self.text_size
         w, h = 0, 0
         x, y = 0, 0
@@ -198,14 +274,15 @@ class LabelBase(object):
         # no width specified, faster method
         if uw is None:
             for line in self.text.split('\n'):
-                lw, lh = self.get_extents(line)
+                lw, lh = get_extents(line)
                 if real:
                     x = 0
                     if halign == 'center':
                         x = int((self.width - lw) / 2.)
                     elif halign == 'right':
                         x = int(self.width - lw)
-                    self._render_text(line, x, y)
+                    if len(line):
+                        render_text(line, x, y)
                     y += int(lh)
                 else:
                     w = max(w, int(lw))
@@ -224,11 +301,11 @@ class LabelBase(object):
                 glyphs = list(set(self.text)) + ['.']
                 for glyph in glyphs:
                     if not glyph in cache:
-                        cache[glyph] = self.get_extents(glyph)
+                        cache[glyph] = get_extents(glyph)
 
             # Shorten the text that we actually display
             text = self.text
-            if options['shorten'] and self.get_extents(text)[0] > uw:
+            if options['shorten'] and get_extents(text)[0] > uw:
                 text = self.shorten(text)
 
             # first, split lines
@@ -290,8 +367,8 @@ class LabelBase(object):
                         x = int(self.width - size[0])
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
-                        if glyph != '\n':
-                            self._render_text(glyph, x, y)
+                        if glyph != ' ' and glyph != '\n':
+                            render_text(glyph, x, y)
                         x += lw
                     y += size[1]
 
@@ -317,18 +394,24 @@ class LabelBase(object):
         mipmap = options['mipmap']
         if texture is None:
             if data is None:
+                if platform() in ('android', 'ios'):
+                    colorfmt = 'rgba'
+                else:
+                    colorfmt = 'luminance_alpha'
                 texture = Texture.create(
-                    size=self.size, colorfmt='luminance_alpha',
-                    mipmap=mipmap)
+                        size=self.size, colorfmt=colorfmt,
+                        mipmap=mipmap)
             else:
                 texture = Texture.create_from_data(data, mipmap=mipmap)
             texture.flip_vertical()
+            texture.add_reload_observer(self._texture_refresh)
         elif self.width != texture.width or self.height != texture.height:
             if data is None:
                 texture = Texture.create(size=self.size, mipmap=mipmap)
             else:
                 texture = Texture.create_from_data(data, mipmap=mipmap)
             texture.flip_vertical()
+            texture.add_reload_observer(self._texture_refresh)
         '''
         # Avoid that for the moment.
         # The thing is, as soon as we got a region, the blitting is not going in
@@ -350,8 +433,14 @@ class LabelBase(object):
         if data is not None and data.width > 1:
             texture.blit_data(data)
 
+    def _texture_refresh(self, *l):
+        self.refresh()
+
     def refresh(self):
-        '''Force re-rendering of the text'''
+        '''Force re-rendering of the text
+        '''
+        self.resolve_font_name()
+
         # first pass, calculating width/height
         sz = self.render()
         self._size = sz
@@ -414,7 +503,7 @@ class LabelBase(object):
     def fontid(self):
         '''Return an uniq id for all font parameters'''
         return str([self.options[x] for x in (
-            'font_size', 'font_name', 'bold', 'italic')])
+            'font_size', 'font_name_r', 'bold', 'italic')])
 
     def _get_text_size(self):
         return self._text_size
@@ -431,7 +520,14 @@ class LabelBase(object):
 # Load the appropriate provider
 Label = core_select_lib('text', (
     ('pygame', 'text_pygame', 'LabelPygame'),
-    ('cairo', 'text_cairo', 'LabelCairo'),
     ('pil', 'text_pil', 'LabelPIL'),
 ))
+
+# For the first initalization, register the default font
+if 'KIVY_DOC' not in os.environ:
+    Label.register('DroidSans',
+        'data/fonts/DroidSans.ttf',
+        'data/fonts/DroidSans-Italic.ttf',
+        'data/fonts/DroidSans-Bold.ttf',
+        'data/fonts/DroidSans-BoldItalic.ttf')
 

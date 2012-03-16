@@ -12,24 +12,15 @@ __all__ = ('Triangle', 'Quad', 'Rectangle', 'BorderImage', 'Ellipse', 'Line',
 include "config.pxi"
 include "common.pxi"
 
-from vbo cimport *
-from vertex cimport *
-from instructions cimport *
-from c_opengl cimport *
+from kivy.graphics.vbo cimport *
+from kivy.graphics.vertex cimport *
+from kivy.graphics.instructions cimport *
+from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
+    from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
 from kivy.graphics.texture import Texture
 
-cdef extern from "string.h":
-    void *memset(void *s, int c, int n)
-
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-
-cdef extern from "math.h":
-    double sqrt(double x) nogil
-    double pow(double x, double y) nogil
 
 class GraphicException(Exception):
     '''Exception fired when a graphic error is fired.
@@ -375,7 +366,7 @@ cdef class Mesh(VertexInstruction):
 
         indices = [0, 1, 2]
 
-    .. versionadded:: 1.0.10
+    .. versionadded:: 1.1.0
 
     :Parameters:
         `vertices`: list
@@ -848,8 +839,8 @@ cdef class BorderImage(Rectangle):
         tc2 = tc[2]
         tc7 = tc[7]
         tw, th  = self.texture.size
-        tcw = tc[2] - tc0  #right - left
-        tch = tc[7] - tc1  #top - bottom
+        tcw = tc2 - tc0  #right - left
+        tch = tc7 - tc1  #top - bottom
 
         # calculate border offset in texture coord space
         # border width(px)/texture width(px) *  tcoord width

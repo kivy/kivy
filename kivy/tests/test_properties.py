@@ -109,7 +109,7 @@ class PropertiesTestCase(unittest.TestCase):
         try:
             a.set(wid, None)
             self.assertEqual(a.get(wid), None)
-        except ValueError, e:
+        except ValueError:
             pass
         a.set(wid, 1)
         self.assertEqual(a.get(wid), 1)

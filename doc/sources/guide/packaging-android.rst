@@ -3,25 +3,65 @@
 Create a package for Android
 ============================
 
+.. versionchanged:: 1.1.0
+
+    Starting from 1.1.0, we are not providing anymore a Kivy-XXX-android.zip.
+    We are using `python-for-android <http://https://github.com/kivy/python-for-android>`_
+    project.
+
+    The whole packaging is explained at
+    `http://python-for-android.readthedocs.org/en/latest/index.html`_
+
 Packaging your application into APK
 -----------------------------------
 
-To be able to package your Kivy application into an APK, you must have some
-tools available in your PATH:
+You'll need:
 
-    * Java
-    * Python 2.7 (not 2.6.)
-    * Jinja2 (python module)
-    * Apache ant
-    * Android SDK
+- A linux computer or virtual machine
+- Java
+- Python 2.7 (not 2.6.)
+- Jinja2 (python module)
+- Apache ant
+- Android SDK
 
-You must download the tool named Kivy-XXX-android.zip, available at
-http://code.google.com/p/kivy/downloads/list, and unzip it.
+Setup Python for android
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Build in debug mode
-~~~~~~~~~~~~~~~~~~~
+First, follow the prerequisites needed for the project:
 
-Inside the package, you have a tool named build.py. This is the script that will create APK for you::
+    http://python-for-android.readthedocs.org/en/latest/prerequisites/
+
+Then a console, and type::
+
+    git clone git://github.com/kivy/python-for-android
+
+Build your distribution
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The distribution is a "directory" containing a specialized python compiled for
+android, including only the modules you asked for. You can, from the same
+python-for-android, compile multiple distribution like:
+
+- One containing a minimal support without audio / video
+- Another containing audio, openssl etc.
+
+To do that, you must use the script named `distribute.sh`::
+
+    ./distribute.sh -m "kivy"
+    
+The result of the compilation will be saved into `dist/default`. Here is others
+examples of distribution::
+
+    ./distribute.sh -m "openssl kivy"
+    ./distribute.sh -m "pil ffmpeg kivy"
+
+Check with `-h` to know the available options of distribute.sh.
+
+Package your application
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Inside the distribution (`dist/default` by default), you have a tool named
+`build.py`. This is the script that will create the APK for you::
 
     ./build.py --dir <path to your app>
                --name "<title>"
@@ -30,47 +70,22 @@ Inside the package, you have a tool named build.py. This is the script that will
                --icon <path to an icon to use>
                --orientation <landscape|portrait>
                --permission <android permission like VIBRATE> (multiple allowed)
-               --with-ffmpeg
                <debug|release> <installd|installr|...>
 
-Starting 1.0.9, build.py have been updated to use Android SDK rev14, but is
-still compatible with previous version:
-
-- if you pass 2 last argument, it will use Android SDK rev14 (new build system)
-- if you pass only one argument, it will use older Android SDK build system
-
-.. note::
-
-    The Android SDK rev14 usage is available starting Kivy 1.0.9. If you have SDK
-    rev14 installed on your system, you must upgrade Kivy for android as well.
-
-For example, if we imagine that touchtracer demo of Kivy is in the directory
+For example, if we imagine that the touchtracer demo of Kivy is in the directory
 ~/kivy/examples/demo/touchtracer, you can do::
 
-    python build.py --dir ~/kivy/examples/demo/touchtracer \
-    --package org.demo.touchtracer \
-	--name "Kivy Touchtracer" --version 1.0.6 debug installd
+    ./build.py --dir ~/kivy/examples/demo/touchtracer \
+        --package org.demo.touchtracer \
+        --name "Kivy Touchtracer" --version 1.1.0 debug installd
 
-The debug binary will be generated in bin/KivyTouchtracer-1.0.6-debug.apk.
+The debug binary will be generated in bin/KivyTouchtracer-1.1.0-debug.apk.  The
+`debug` and `installd` are commands from android project itself. It say it will
+compile the APK in debug mode, and install on the first connected device.
 
-Then in later time, you can install directly to your android device by doing::
+Then, later, you can install it directly to your android device by doing::
 
-    adb install -r bin/KivyTouchtracer-1.0.6-debug.apk
-
-Or you can use the `install` method instead of `debug`.
-
-Video support
-~~~~~~~~~~~~~
-
-.. versionadded:: 1.0.8
-
-By default, the produced APK don't contain any libraries for video support. You
-can add ffmpeg library on your build to activate it. The default ffmpeg
-compiled is the "minimal support", and will increase the APK size of ~8MB.
-
-The option to add on the build.py command line is `--with-ffmpeg`::
-
-    python build.py --with-ffmpeg --dir ....
+    adb install -r bin/KivyTouchtracer-1.1.0-debug.apk
 
 Release on the market
 ~~~~~~~~~~~~~~~~~~~~~
@@ -80,8 +95,8 @@ sign and zipalign the apk.  Read the android documentation at:
 
 http://developer.android.com/guide/publishing/app-signing.html
 
-The release binary will be generated in bin/KivyTouchtracer-1.0.6-unsigned.apk
-(for previous touchtracer example.)
+The release binary will be generated in
+bin/KivyTouchtracer-1.1.0-release-unsigned.apk (for the previous touchtracer example.)
 
 
 Packaging your application for Kivy Launcher

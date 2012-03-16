@@ -45,6 +45,9 @@ class ShowcaseApp(App):
         except Exception, e:
             print e
 
+    def on_pause(self):
+        return True
+
     def build(self):
         root = BoxLayout(orientation='horizontal', padding=20, spacing=20)
         tree = TreeView(size_hint=(None, 1), width=200, hide_root=True,

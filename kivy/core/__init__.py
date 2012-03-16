@@ -18,87 +18,86 @@ opening a new Bug report instead of relying on your library.
     looking for widgets, please refer to :mod:`kivy.uix` instead.
 '''
 
+
 import os
 import kivy
 from kivy.logger import Logger
 
+
 class CoreCriticalException(Exception):
     pass
 
-if 'KIVY_DOC' in os.environ:
-    # stub for sphinx generation
-    def core_select_lib(category, llist, create_instance=False):
-        pass
 
-    def core_register_libs(category, libs):
-        pass
-else:
-
-    def core_select_lib(category, llist, create_instance=False):
-        category = category.lower()
-        for option, modulename, classname in llist:
-            try:
-                # module activated in config ?
-                if option not in kivy.kivy_options[category]:
-                    Logger.debug('%s: option <%s> ignored by config' %
-                        (category.capitalize(), option))
-                    continue
-
-                # import module
-                mod = __import__(name='%s.%s' % (category, modulename),
-                                 globals=globals(),
-                                 locals=locals(),
-                                 fromlist=[modulename], level=-1)
-                cls = mod.__getattribute__(classname)
-
-                # ok !
-                Logger.info('%s: using <%s> as %s provider' %
-                    (category.capitalize(), option, category))
-                if create_instance:
-                    cls = cls()
-                return cls
-
-            except ImportError as e:
-                Logger.warning('%s: Unable to use <%s> as %s'
-                     'provider' % (category.capitalize(), option, category))
-                Logger.warning('%s: Associated module are missing' %
-                        (category.capitalize()))
-                Logger.debug('', exc_info=e)
-
-            except CoreCriticalException as e:
-                Logger.error('%s: Unable to use <%s> as %s'
-                     'provider' % (category.capitalize(), option, category))
-                Logger.error('%s: The module raised an important error: %r' %
-                        (category.capitalize(), e.message))
-                raise
-
-            except Exception as e:
-                Logger.warning('%s: Unable to use <%s> as %s'
-                     'provider' % (category.capitalize(), option, category))
-                Logger.debug('', exc_info=e)
-
-        Logger.critical('%s: Unable to find any valuable %s provider '
-              'at all!' % (category.capitalize(), category.capitalize()))
-
-    def core_register_libs(category, libs):
-        category = category.lower()
-        for option, lib in libs:
-            try:
-                # module activated in config ?
-                if option not in kivy.kivy_options[category]:
-                    Logger.debug('%s: option <%s> ignored by config' %
-                        (category.capitalize(), option))
-                    continue
-
-                # import module
-                __import__(name='%s.%s' % (category, lib),
-                           globals=globals(),
-                           locals=locals(),
-                           fromlist=[lib],
-                           level=-1)
-
-            except Exception as e:
-                Logger.warning('%s: Unable to use <%s> as loader!' %
+def core_select_lib(category, llist, create_instance=False):
+    if 'KIVY_DOC' in os.environ:
+        return
+    category = category.lower()
+    for option, modulename, classname in llist:
+        try:
+            # module activated in config ?
+            if option not in kivy.kivy_options[category]:
+                Logger.debug('%s: option <%s> ignored by config' %
                     (category.capitalize(), option))
-                Logger.debug('', exc_info=e)
+                continue
+
+            # import module
+            mod = __import__(name='%s.%s' % (category, modulename),
+                                globals=globals(),
+                                locals=locals(),
+                                fromlist=[modulename], level=-1)
+            cls = mod.__getattribute__(classname)
+
+            # ok !
+            Logger.info('%s: using <%s> as %s provider' %
+                (category.capitalize(), option, category))
+            if create_instance:
+                cls = cls()
+            return cls
+
+        except ImportError as e:
+            Logger.warning('%s: Unable to use <%s> as %s'
+                    'provider' % (category.capitalize(), option, category))
+            Logger.warning('%s: Associated module are missing' %
+                    (category.capitalize()))
+            Logger.debug('', exc_info=e)
+
+        except CoreCriticalException as e:
+            Logger.error('%s: Unable to use <%s> as %s'
+                    'provider' % (category.capitalize(), option, category))
+            Logger.error('%s: The module raised an important error: %r' %
+                    (category.capitalize(), e.message))
+            raise
+
+        except Exception as e:
+            Logger.warning('%s: Unable to use <%s> as %s'
+                    'provider' % (category.capitalize(), option, category))
+            Logger.debug('', exc_info=e)
+
+    Logger.critical('%s: Unable to find any valuable %s provider '
+            'at all!' % (category.capitalize(), category.capitalize()))
+
+
+def core_register_libs(category, libs):
+    if 'KIVY_DOC' in os.environ:
+        return
+    category = category.lower()
+    for option, lib in libs:
+        try:
+            # module activated in config ?
+            if option not in kivy.kivy_options[category]:
+                Logger.debug('%s: option <%s> ignored by config' %
+                    (category.capitalize(), option))
+                continue
+
+            # import module
+            __import__(name='%s.%s' % (category, lib),
+                        globals=globals(),
+                        locals=locals(),
+                        fromlist=[lib],
+                        level=-1)
+
+        except Exception as e:
+            Logger.warning('%s: Unable to use <%s> as loader!' %
+                (category.capitalize(), option))
+            Logger.debug('', exc_info=e)
 

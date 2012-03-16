@@ -60,7 +60,6 @@ def start(win, ctx):
         ctx.color = Color(1, 1, 1)
         ctx.rectangle = Rectangle(pos=(5, win.height - 20))
         ctx.color = Color(1, 1, 1, .5)
-        m = 64
         for x in xrange(64):
             ctx.stats.append(0)
             ctx.statsr.append(

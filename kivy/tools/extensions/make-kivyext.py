@@ -19,7 +19,6 @@ import os
 import sys
 import getpass
 from datetime import datetime
-from subprocess import Popen
 from urllib import quote
 
 

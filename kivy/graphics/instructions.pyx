@@ -19,10 +19,12 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
+from kivy.graphics.context cimport get_context
 
 
 cdef int _need_reset_gl = 1
 cdef int _active_texture = -1
+cdef list canvas_list = []
 
 cdef void reset_gl_context():
     global _need_reset_gl, _active_texture
@@ -76,6 +78,11 @@ cdef class Instruction:
 
     cdef void set_parent(self, Instruction parent):
         self.parent = parent
+
+    cdef void reload(self):
+        self.flags |= GI_NEEDS_UPDATE
+        self.flags &= ~GI_NO_APPLY_ONCE
+        self.flags &= ~GI_IGNORE
 
     property needs_redraw:
         def __get__(self):
@@ -172,6 +179,12 @@ cdef class InstructionGroup(Instruction):
         '''
         cdef Instruction c
         return [c for c in self.children if c.group == groupname]
+
+    cdef void reload(self):
+        Instruction.reload(self)
+        cdef Instruction c
+        for c in self.children:
+            c.reload()
 
 
 cdef class ContextInstruction(Instruction):
@@ -291,7 +304,7 @@ cdef class VertexInstruction(Instruction):
                         size: self.size
 
         .. note::
-            
+
             The filename will be searched with the
             :func:`kivy.resources.resource_find` function.
 
@@ -342,7 +355,7 @@ cdef class VertexInstruction(Instruction):
 
 cdef class Callback(Instruction):
     '''.. versionadded:: 1.0.4
-    
+
     A Callback is an instruction that will be called when the drawing
     operation is performed. When adding instructions to a canvas, you can do
     this::
@@ -403,6 +416,9 @@ cdef class Callback(Instruction):
         cdef RenderContext context
         cdef Shader shader
         cdef int i
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         if self.func(self):
             self.flag_update_done()
@@ -481,9 +497,21 @@ cdef class Canvas(CanvasBase):
     '''
 
     def __init__(self, **kwargs):
+        get_context().register_canvas(self)
         CanvasBase.__init__(self, **kwargs)
         self._before = None
         self._after = None
+
+    cdef void reload(self):
+        return
+        cdef Canvas c
+        if self._before is not None:
+            c = self._before
+            c.reload()
+        CanvasBase.reload(self)
+        if self._after is not None:
+            c = self._after
+            c.reload()
 
     cpdef clear(self):
         cdef Instruction c
@@ -547,7 +575,7 @@ cdef CanvasBase getActiveCanvas():
     global ACTIVE_CANVAS
     return ACTIVE_CANVAS
 
-# Canvas Stack, for internal use so canvas can be bound 
+# Canvas Stack, for internal use so canvas can be bound
 # inside other canvas, and restroed when other canvas is done
 cdef list CANVAS_STACK = list()
 
@@ -561,7 +589,7 @@ cdef popActiveCanvas():
     ACTIVE_CANVAS = CANVAS_STACK.pop()
 
 
-#TODO: same as canvas, move back to context.pyx..fix circular import 
+#TODO: same as canvas, move back to context.pyx..fix circular import
 #on actual import from python problem
 include "common.pxi"
 from vertex cimport *
@@ -683,6 +711,12 @@ cdef class RenderContext(Canvas):
         self.pop_states(keys)
         popActiveContext()
         self.flag_update_done()
+
+    cdef void reload(self):
+        pushActiveContext(self)
+        reset_gl_context()
+        Canvas.reload(self)
+        popActiveContext()
 
     def __setitem__(self, key, val):
         self.set_state(key, val)

@@ -29,7 +29,6 @@
 #   Added a generic callback handler.
 #   - dwh
 
-import socket
 import struct
 import math
 import sys

@@ -79,14 +79,14 @@ cdef class Buffer:
 
         # Add all the block inside our buffer
         for i in xrange(count):
-            p = blocks + (self.block_size * i)
+            p = <void *>(<char *>blocks + (self.block_size * i))
 
             # Take a free block
             block = self.l_free[self.i_free]
             self.i_free += 1
 
             # Copy content
-            memcpy(self.data + (block * self.block_size), p, self.block_size)
+            memcpy(<char *>(self.data) + (block * self.block_size), p, self.block_size)
 
             # Push the current block as indices
             if indices != NULL:
@@ -105,7 +105,7 @@ cdef class Buffer:
     cdef void update(self, int index, void* blocks, int count):
         '''Update count number of blocks starting at index with the data in blocks
         '''
-        memcpy(self.data + (index * self.block_size), blocks, self.block_size * count)
+        memcpy(<char *>(self.data) + (index * self.block_size), blocks, self.block_size * count)
 
     cdef int count(self):
         '''Return how many block are currently used
@@ -123,7 +123,7 @@ cdef class Buffer:
         return self.data
 
     cdef void *offset_pointer(self, int offset):
-        return self.data + (offset * self.block_size)
+        return <char *>(self.data) + (offset * self.block_size)
 
 
 '''

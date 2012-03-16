@@ -293,7 +293,7 @@ class TextInput(Widget):
             self._set_line_text(cr - 1, text_last_line + text)
             self._delete_line(cr)
         else:
-            ch = text[cc-1]
+            #ch = text[cc-1]
             new_text = text[:cc-1] + text[cc:]
             self._set_line_text(cr, new_text)
 
@@ -455,21 +455,27 @@ class TextInput(Widget):
                     'Cannot show bubble, unable to get root window')
                 return True
             if self.selection_to != self.selection_from:
-                self._show_cut_copy_paste(touch, win)
+                self._show_cut_copy_paste(touch.pos, win)
             else:
                 win.remove_widget(self._bubble)
             return True
 
-    def _show_cut_copy_paste(self, touch, win):
+    def _show_cut_copy_paste(self, pos, win, parent_changed = False, *l):
         # Show a bubble with cut copy and paste buttons
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
+            self.bind(parent = partial(self._show_cut_copy_paste,
+                pos, win, True))
         else:
-            win.remove_widget(self._bubble)
+            win.remove_widget(bubble)
+            if not self.parent:
+                return
+        if parent_changed:
+            return
 
         # Search the position from the touch to the window
-        x, y = touch.pos
+        x, y = pos
         t_pos = self.to_window(x, y)
         bubble_size = bubble.size
         win_size = win.size
@@ -641,7 +647,6 @@ class TextInput(Widget):
         self.canvas.clear()
         add = self.canvas.add
 
-        cursor_row = self.cursor_row
         lh = self.line_height
         dy = self.line_height + self._line_spacing
 
@@ -719,8 +724,6 @@ class TextInput(Widget):
         self.canvas.remove_group('selection')
         dy = self.line_height + self._line_spacing
         rects = self._lines_rects
-        labels = self._lines_labels
-        x = self.x + self.padding_x
         y = self.top - self.padding_y + self.scroll_y
         miny = self.y + self.padding_y
         maxy = self.top - self.padding_y
@@ -740,7 +743,6 @@ class TextInput(Widget):
         s2c, s2r = self.get_cursor_from_index(b)
         if line_num < s1r or line_num > s2r:
             return
-        lh = self.line_height
         x, y = pos
         w, h = size
         x1 = x
@@ -903,7 +905,8 @@ class TextInput(Widget):
     def _key_up(self, key, repeat=False):
         displayed_str, internal_str, internal_action, scale = key
         if internal_action in ('shift', 'shift_L', 'shift_R'):
-            self._update_selection(True)
+            if self._selection:
+                self._update_selection(True)
 
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
         global Clipboard
@@ -1127,6 +1130,24 @@ class TextInput(Widget):
     to [0.1843, 0.6549, 0.8313, .5]
     '''
 
+    background_color = ListProperty([1, 1, 1, 1])
+    '''Current color of the background, in (r, g, b, a) format.
+    
+    .. versionadded:: 1.1.2
+
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [1, 1, 1, 1] #White
+    '''
+
+    foreground_color = ListProperty([0, 0, 0, 1])
+    '''Current color of the foreground, in (r, g, b, a) format.
+    
+    .. versionadded:: 1.1.2
+
+    :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [0, 0, 0, 1] #Black
+    '''
+
     selection_from = NumericProperty(None, allownone=True)
     '''If a selection is happening, or finished, this property will represent
     the cursor index where the selection start.
@@ -1185,18 +1206,26 @@ class TextInput(Widget):
     :data:`text` a :class:`~kivy.properties.StringProperty`.
     '''
 
-    font_name = StringProperty('fonts/DroidSans.ttf')
+    font_name = StringProperty('DroidSans')
     '''Filename of the font to use, the path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.
 
     .. warning::
 
-        Depending of your text provider, the font file can be ignored. But you
-        can mostly use this without trouble.
+        Depending of your text provider, the font file can be ignored. However
+        you can mostly use this without trouble.
+
+        If the font used lacks the glyphs for the perticular language/symbols
+        you are using, you will see '[]' blank box characters instead of the
+        actual glyphs. The solution is to use a font that has the glyphs you
+        need to display. For example to display |unicodechar|, use a font like
+        freesans.ttf that has the glyph.
+
+        .. |unicodechar| image:: images/unicode-char.png
 
     :data:`font_name` is a :class:`~kivy.properties.StringProperty`, default to
-    'fonts/DroidSans.ttf'.
+    'DroidSans'.
     '''
 
     font_size = NumericProperty(10)

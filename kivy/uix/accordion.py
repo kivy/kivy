@@ -190,7 +190,8 @@ class AccordionItem(FloatLayout):
     None.
     '''
 
-    background_normal = StringProperty('atlas://data/images/defaulttheme/button')
+    background_normal = StringProperty(
+        'atlas://data/images/defaulttheme/button')
     '''Background image of the accordion item used for default graphical
     representation, when the item is collapsed.
 
@@ -198,7 +199,8 @@ class AccordionItem(FloatLayout):
     default to 'atlas://data/images/defaulttheme/button'
     '''
 
-    background_selected = StringProperty('atlas://data/images/defaulttheme/button_pressed')
+    background_selected = StringProperty(
+        'atlas://data/images/defaulttheme/button_pressed')
     '''Background image of the accordion item used for default graphical
     representation, when the item is selected (not collapsed).
 

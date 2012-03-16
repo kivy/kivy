@@ -22,9 +22,9 @@ from kivy.atlas import Atlas
 from kivy.resources import resource_find
 import zipfile
 try:
-    import cStringIO as SIO
+    SIO = __import__('cStringIO')
 except ImportError:
-    import StringIO as SIO
+    SIO = __import__('StringIO')
 
 
 # late binding
@@ -41,11 +41,11 @@ class ImageData(object):
     The container will always have at least the mipmap level 0.
     '''
 
-    __slots__ = ('fmt', 'mipmaps')
+    __slots__ = ('fmt', 'mipmaps', 'source')
     _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra',
             's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5')
 
-    def __init__(self, width, height, fmt, data):
+    def __init__(self, width, height, fmt, data, source=None):
         assert fmt in ImageData._supported_fmts
 
         #: Decoded image format, one of a available texture format
@@ -54,6 +54,9 @@ class ImageData(object):
         #: Data for each mipmap.
         self.mipmaps = {}
         self.add_mipmap(0, width, height, data)
+
+        #: Image source, if available
+        self.source = source
 
     def release_data(self):
         mm = self.mipmaps
@@ -94,8 +97,8 @@ class ImageData(object):
         return len(self.mipmaps) > 1
 
     def __repr__(self):
-        return '<ImageData width=%d height=%d fmt=%s with %d images>' % (
-                self.width, self.height, self.fmt, len(self.mipmaps))
+        return '<ImageData width=%d height=%d fmt=%s source=%r with %d images>' % (
+                self.width, self.height, self.fmt, self.source, len(self.mipmaps))
 
     def add_mipmap(self, level, width, height, data):
         '''Add a image for a specific mipmap level.
@@ -553,6 +556,7 @@ class Image(EventDispatcher):
         # put the image into the cache if needed
         if isinstance(image, Texture):
             self._texture = image
+            self._size = image.size
         else:
             self.image = image
             Cache.append('kv.image', uid, self.image)

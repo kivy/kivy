@@ -1,5 +1,5 @@
 import sys
-import os
+from os import walk
 from os.path import isdir, join, abspath, dirname
 import pep8
 import time
@@ -56,13 +56,13 @@ if __name__ == '__main__':
     exclude_files = ['kivy/gesture.py', 'osx/build.py', 'win32/build.py',
                      'kivy/tools/stub-gl-debug.py']
     for target in targets:
-        if os.path.isdir(target):
+        if isdir(target):
             if htmlmode:
                 path = join(dirname(abspath(__file__)), 'pep8base.html')
                 print open(path, 'r').read()
                 print '''<p>Generated: %s</p><table>''' % (time.strftime('%c'))
 
-            for dirpath, dirnames, filenames in os.walk(target):
+            for dirpath, dirnames, filenames in walk(target):
                 cont = False
                 for pat in exclude_dirs:
                     if pat in dirpath:
@@ -74,7 +74,7 @@ if __name__ == '__main__':
                     if not filename.endswith('.py'):
                         continue
                     cont = False
-                    complete_filename = os.path.join(dirpath, filename)
+                    complete_filename = join(dirpath, filename)
                     for pat in exclude_files:
                         if complete_filename.endswith(pat):
                             cont = True

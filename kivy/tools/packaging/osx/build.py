@@ -226,17 +226,21 @@ class OSXPortableBuild(Command):
                    set current view of container window to icon view
                    set toolbar visible of container window to false
                    set statusbar visible of container window to false
-                   set the bounds of container window to {300,100,942,582}
+                   set the bounds of container window to {270,100,912,582}
                    set theViewOptions to the icon view options of container window
                    set arrangement of theViewOptions to not arranged
                    set icon size of theViewOptions to 72
                    set background picture of theViewOptions to file ".background:kivydmg.png"
                    make new alias file at container window to POSIX file "/Applications" with properties {name:"Applications"}
-                   set position of item "Kivy" of container window to {150, 130}
-                   set position of item "Applications" of container window to {500, 130}
+                   set position of item "Kivy" of container window to {155, 85}
+                   set position of item "Applications" of container window to {495, 85}
                    set position of item "examples" of container window to {575, 400}
                    set position of item "Readme.txt" of container window to {475, 400}
                    set position of item "make-symlinks" of container window to {375, 400}
+                   set position of item ".background" of container window to {900, 900}
+                   set position of item ".DS_Store" of container window to {900, 900}
+                   set position of item ".fseventsd" of container window to {900, 900}
+                   set position of item ".Trashes" of container window to {900, 900}
                    close
                    open
                    update without registering applications

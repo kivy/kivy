@@ -6,14 +6,14 @@ Controling the environment
 Many environment variables are available to control the initialization and
 behavior of Kivy.
 
-For example, for restricting text rendering to cairo implementation::
+For example, for restricting text rendering to PIL implementation::
 
-    $ KIVY_TEXT=cairo python main.py
+    $ KIVY_TEXT=pil python main.py
 
 Environment variable can be set before importing kivy::
 
     import os
-    os.environ['KIVY_TEXT'] = 'cairo'
+    os.environ['KIVY_TEXT'] = 'pil'
     import kivy
 
 Configuration
@@ -54,7 +54,7 @@ KIVY_WINDOW
 KIVY_TEXT
     Implementation to use for rendering text
 
-    Values: pil, cairo, pygame
+    Values: pil, pygame
 
 KIVY_VIDEO
     Implementation to use for rendering video

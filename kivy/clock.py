@@ -319,7 +319,9 @@ class ClockBase(object):
         .. versionadded:: 1.0.5
         '''
         cid = _hash(callback)
-        return ClockEvent(self, False, callback, timeout, 0, cid)
+        ev = ClockEvent(self, False, callback, timeout, 0, cid)
+        ev.release()
+        return ev
 
     def schedule_once(self, callback, timeout=0):
         '''Schedule an event in <timeout> seconds.

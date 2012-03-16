@@ -9,8 +9,7 @@ import pygame
 
 from . import WindowBase
 from kivy.core import CoreCriticalException
-import os
-import sys
+from os import environ
 from os.path import exists, join
 from kivy.config import Config
 from kivy import kivy_home_dir
@@ -20,19 +19,28 @@ from kivy.base import stopTouchApp, EventLoop
 from kivy.clock import Clock
 from kivy.utils import platform
 
+try:
+    android = None
+    if platform() == 'android':
+        import android
+except ImportError:
+    pass
+
 # late binding
 glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
 
 
 class WindowPygame(WindowBase):
 
-    def create_window(self):
-        params = self.params
+    def create_window(self, *largs):
+        # ensure the mouse is still not up after window creation, otherwise, we
+        # have some weird bugs
+        self.dispatch('on_mouse_up', 0, 0, 'all', [])
 
         # force display to show (available only for fullscreen)
         displayidx = Config.getint('graphics', 'display')
-        if not 'SDL_VIDEO_FULLSCREEN_HEAD' in os.environ and displayidx != -1:
-            os.environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
+        if not 'SDL_VIDEO_FULLSCREEN_HEAD' in environ and displayidx != -1:
+            environ['SDL_VIDEO_FULLSCREEN_HEAD'] = '%d' % displayidx
 
         # init some opengl, same as before.
         self.flags = pygame.HWSURFACE | pygame.OPENGL | \
@@ -41,7 +49,8 @@ class WindowPygame(WindowBase):
         # right now, activate resizable window only on linux.
         # on window / macosx, the opengl context is lost, and we need to
         # reconstruct everything. Check #168 for a state of the work.
-        if sys.platform == 'linux2':
+        if platform() in ('linux', 'macosx', 'win') and \
+            Config.getint('graphics', 'resizable'):
             self.flags |= pygame.RESIZABLE
 
         try:
@@ -58,32 +67,31 @@ class WindowPygame(WindowBase):
         pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 16)
         pygame.display.gl_set_attribute(pygame.GL_STENCIL_SIZE, 1)
         pygame.display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
-        pygame.display.set_caption('kivy')
+        pygame.display.set_caption(self.title)
 
-        if params['position'] == 'auto':
+        if self.position == 'auto':
             self._pos = None
-        elif params['position'] == 'custom':
-            self._pos = params['left'], params['top']
+        elif self.position == 'custom':
+            self._pos = self.left, self.top
         else:
             raise ValueError('position token in configuration accept only '
                              '"auto" or "custom"')
 
-        self._fullscreenmode = params['fullscreen']
-        if self._fullscreenmode == 'fake':
+        if self.fullscreen == 'fake':
             Logger.debug('WinPygame: Set window to fake fullscreen mode')
             self.flags |= pygame.NOFRAME
             # if no position set, in fake mode, we always need to set the
             # position. so replace 0, 0.
             if self._pos is None:
                 self._pos = (0, 0)
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
+            environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
-        elif self._fullscreenmode:
+        elif self.fullscreen is True:
             Logger.debug('WinPygame: Set window to fullscreen mode')
             self.flags |= pygame.FULLSCREEN
 
         elif self._pos is not None:
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
+            environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
         # never stay with a None pos, application using w.center will be fired.
         self._pos = (0, 0)
@@ -98,14 +106,11 @@ class WindowPygame(WindowBase):
             filename_icon = Config.get('kivy', 'window_icon')
             if filename_icon == '':
                 logo_size = 512 if platform() == 'darwin' else 32
-                filename_icon = join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' % logo_size)
+                filename_icon = join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' %
+                        logo_size)
             self.set_icon(filename_icon)
         except:
             Logger.exception('Window: cannot set icon')
-
-        # init ourself size + setmode
-        # before calling on_resize
-        self._size = params['width'], params['height']
 
         # try to use mode with multisamples
         try:
@@ -125,21 +130,28 @@ class WindowPygame(WindowBase):
             else:
                 raise CoreCriticalException(e.message)
 
+        info = pygame.display.Info()
+        self._size = (info.current_w, info.current_h)
+        #self.dispatch('on_resize', *self._size)
+
         super(WindowPygame, self).create_window()
 
         # set mouse visibility
         pygame.mouse.set_visible(
             Config.getboolean('graphics', 'show_cursor'))
 
-        # set rotation
-        self.rotation = params['rotation']
+        # if we are on android platform, automaticly create hooks
+        if android:
+            from kivy.support import install_android
+            install_android()
 
     def close(self):
         pygame.display.quit()
         self.dispatch('on_close')
 
-    def set_title(self, title):
-        pygame.display.set_caption(title)
+    def on_title(self, instance, value):
+        if self.initialized:
+            pygame.display.set_caption(self.title)
 
     def set_icon(self, filename):
         try:
@@ -173,7 +185,7 @@ class WindowPygame(WindowBase):
     def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
-        is_osx = sys.platform == 'darwin'
+        is_osx = platform() == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
             self.close()  #not sure what to do here
@@ -207,6 +219,9 @@ class WindowPygame(WindowBase):
                 if event.buttons == (0, 0, 0):
                     continue
                 x, y = event.pos
+                self._mouse_x = x
+                self._mouse_y = y
+                self._mouse_meta = self.modifiers
                 self.dispatch('on_mouse_move', x, y, self.modifiers)
 
             # mouse action
@@ -226,6 +241,11 @@ class WindowPygame(WindowBase):
                 eventname = 'on_mouse_down'
                 if event.type == pygame.MOUSEBUTTONUP:
                     eventname = 'on_mouse_up'
+                self._mouse_x = x
+                self._mouse_y = y
+                self._mouse_meta = self.modifiers
+                self._mouse_btn = btn
+                self._mouse_down = eventname == 'on_mouse_down'
                 self.dispatch(eventname, x, y, btn, self.modifiers)
 
             # keyboard action
@@ -249,10 +269,7 @@ class WindowPygame(WindowBase):
             # video resize
             elif event.type == pygame.VIDEORESIZE:
                 self._size = event.size
-                # don't use trigger here, we want to delay the resize event
-                cb = self._do_resize
-                Clock.unschedule(cb)
-                Clock.schedule_once(cb, .1)
+                self.update_viewport()
 
             elif event.type == pygame.VIDEOEXPOSE:
                 self.canvas.ask_update()
@@ -261,20 +278,18 @@ class WindowPygame(WindowBase):
             elif event.type == pygame.ACTIVEEVENT:
                 pass
 
+            # drop file (pygame patch needed)
+            elif event.type == pygame.USEREVENT and hasattr(pygame,
+                'USEREVENT_DROPFILE') and event.code == pygame.USEREVENT_DROPFILE:
+                self.dispatch('on_dropfile', event.filename)
+
+            '''
             # unhandled event !
             else:
                 Logger.debug('WinPygame: Unhandled event %s' % str(event))
-
-    def _do_resize(self, dt):
-        Logger.debug('Window: Resize window to %s' % str(self._size))
-        self._pygame_set_mode(self._size)
-        self.dispatch('on_resize', *self._size)
+            '''
 
     def mainloop(self):
-        # don't known why, but pygame required a resize event
-        # for opengl, before mainloop... window reinit ?
-        self.dispatch('on_resize', *self.size)
-
         while not EventLoop.quit and EventLoop.status == 'started':
             try:
                 self._mainloop()
@@ -292,22 +307,14 @@ class WindowPygame(WindowBase):
         # force deletion of window
         pygame.display.quit()
 
-    def _set_size(self, size):
-        if super(WindowPygame, self)._set_size(size):
-            self._pygame_set_mode()
-            return True
-    size = property(WindowBase._get_size, _set_size)
-
     #
     # Pygame wrapper
     #
     def _pygame_set_mode(self, size=None):
         if size is None:
             size = self.size
-        if self._fullscreenmode == 'auto':
+        if self.fullscreen == 'auto':
             pygame.display.set_mode((0, 0), self.flags)
-            info = pygame.display.Info()
-            self._size = (info.current_w, info.current_h)
         else:
             pygame.display.set_mode(size, self.flags)
 
@@ -327,3 +334,15 @@ class WindowPygame(WindowBase):
             self._modifiers.append('ctrl')
         if mods & (pygame.KMOD_META | pygame.KMOD_LMETA):
             self._modifiers.append('meta')
+
+    def request_keyboard(self, *largs):
+        keyboard = super(WindowPygame, self).request_keyboard(*largs)
+        if android:
+            android.show_keyboard()
+        return keyboard
+
+    def release_keyboard(self, *largs):
+        super(WindowPygame, self).release_keyboard(*largs)
+        if android:
+            android.hide_keyboard()
+        return True

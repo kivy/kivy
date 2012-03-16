@@ -23,14 +23,14 @@ class LabelPygame(LabelBase):
 
     def _get_font_id(self):
         return '|'.join([unicode(self.options[x]) for x \
-            in ('font_size', 'font_name', 'bold', 'italic')])
+            in ('font_size', 'font_name_r', 'bold', 'italic')])
 
     def _get_font(self):
         fontid = self._get_font_id()
         if fontid not in pygame_cache:
             # try first the file if it's a filename
             fontobject = None
-            fontname = self.options['font_name']
+            fontname = self.options['font_name_r']
             ext = fontname.split('.')[-1]
             if ext.lower() == 'ttf':
                 # fontobject
@@ -41,7 +41,7 @@ class LabelPygame(LabelBase):
             if fontobject is None:
                 # try to search the font
                 font = pygame.font.match_font(
-                    self.options['font_name'].replace(' ', ''),
+                    self.options['font_name_r'].replace(' ', ''),
                     bold=self.options['bold'],
                     italic=self.options['italic'])
 
@@ -59,9 +59,7 @@ class LabelPygame(LabelBase):
         return pygame_cache[fontid]
 
     def get_extents(self, text):
-        font = self._get_font()
-        w, h = font.size(text)
-        return w, h
+        return self._get_font().size(text)
 
     def _render_begin(self):
         self._pygame_surface = pygame.Surface(self._size, pygame.SRCALPHA, 32)
@@ -69,14 +67,17 @@ class LabelPygame(LabelBase):
 
     def _render_text(self, text, x, y):
         font = self._get_font()
+        color = [c * 255 for c in self.options['color']]
+        color[0], color[2] = color[2], color[0]
         try:
-            text = font.render(text, 1, (255, 255, 255))
+            text = font.render(text, True, color)
             self._pygame_surface.blit(text, (x, y), None, pygame.BLEND_RGBA_ADD)
         except pygame.error:
             pass
 
     def _render_end(self):
-        data = ImageData(self._size[0], self._size[1],
+        w, h = self._size
+        data = ImageData(w, h,
             'rgba', self._pygame_surface.get_buffer().raw)
 
         del self._pygame_surface

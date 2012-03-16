@@ -2,7 +2,7 @@
 Input recorder
 ==============
 
-.. versionadded:: 1.0.10
+.. versionadded:: 1.1.0
 
 .. warning::
 
@@ -98,7 +98,7 @@ from kivy.input.motionevent import MotionEvent
 from kivy.base import EventLoop
 from kivy.logger import Logger
 from ast import literal_eval
-
+from functools import partial
 
 class RecorderMotionEvent(MotionEvent):
 
@@ -172,7 +172,11 @@ class Recorder(EventDispatcher):
             # manually set the current window
             from kivy.core.window import Window
             self.window = Window
-        self.window.bind(on_motion=self.on_motion)
+        self.window.bind(
+                on_motion=self.on_motion,
+                on_key_up=partial(self.on_keyboard, 'keyup'),
+                on_key_down=partial(self.on_keyboard, 'keydown'),
+                on_keyboard=partial(self.on_keyboard, 'keyboard'))
 
     def on_motion(self, window, etype, motionevent):
         if not self.record:
@@ -187,8 +191,24 @@ class Recorder(EventDispatcher):
             (time() - self.record_time, etype, motionevent.uid, args), ))
         self.counter += 1
 
+    def on_keyboard(self,  etype, window, key, scancode=None, unicode=None, modifier=None):
+        if not self.record:
+            return
+        self.record_fd.write('%r\n' % (
+            (time() - self.record_time, etype, 0, {
+                'key': key,
+                'scancode': scancode,
+                'unicode': unicode,
+                'modifier': modifier,
+                'is_touch': False
+                }),))
+        self.counter += 1
+
     def release(self):
-        self.window.unbind(on_motion=self.on_motion)
+        self.window.unbind(
+                on_motion=self.on_motion,
+                on_key_up=self.on_keyboard,
+                on_key_down=self.on_keyboard)
 
     def on_record(self, instance, value):
         if value:
@@ -206,6 +226,7 @@ class Recorder(EventDispatcher):
     # needed for acting as an input provider
     def stop(self):
         pass
+
     def start(self):
         pass
 
@@ -252,6 +273,7 @@ class Recorder(EventDispatcher):
             if event[0] > dt:
                 return
 
+            me = None
             etype, uid, args = event[1:]
             if etype == 'begin':
                 me = RecorderMotionEvent('recorder', uid, args)
@@ -262,8 +284,30 @@ class Recorder(EventDispatcher):
             elif etype == 'end':
                 me = self.play_me.pop(uid)
                 me.depack(args)
+            elif etype == 'keydown':
+                self.window.dispatch(
+                        'on_key_down',
+                        args['key'],
+                        args['scancode'],
+                        args['unicode'],
+                        args['modifier'])
+            elif etype == 'keyup':
+                self.window.dispatch(
+                        'on_key_up',
+                        args['key'],
+                        args['scancode'],
+                        args['unicode'],
+                        args['modifier'])
+            elif etype == 'keyboard':
+                self.window.dispatch(
+                        'on_keyboard',
+                        args['key'],
+                        args['scancode'],
+                        args['unicode'],
+                        args['modifier'])
 
-            dispatch_fn(etype, me)
+            if me:
+                dispatch_fn(etype, me)
 
             self.play_data.pop(0)
 
