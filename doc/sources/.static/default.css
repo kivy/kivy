@@ -572,12 +572,12 @@ table.field-list th.field-name {
 
 /** Image link
  */
-img.align-right {
+div.body .align-right {
 	float: right;
 	margin: 0 0 20px 20px;
 }
 
-img.align-center {
+div.body .align-center {
 	text-align: center;
 	margin: 20px auto;
 	display: block;
@@ -620,3 +620,4 @@ dl.exception > dt.hover {
 dl.api-level dt {
 	cursor: pointer;
 }
+
