@@ -325,6 +325,8 @@ class WindowBase(EventDispatcher):
         if x not in (0, 90, 180, 270):
             raise ValueError('can rotate only 0, 90, 180, 270 degrees')
         self._rotation = x
+        if self.initialized is False:
+            return
         self.dispatch('on_resize', *self.size)
         self.dispatch('on_rotate', x)
 
