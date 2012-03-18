@@ -26,14 +26,14 @@ class AndroidApplicationRunner(UnixApplicationRunner):
         return self.application
 
 Builder.load_string('''
-<TwistedTwistdWeb>:
+<TwistedTwistd>:
     cols: 1
     Button:
         text: root.running and 'STOP' or 'START'
         on_release: root.cb_twistd()
 ''')
 
-class TwistedTwistdWeb(GridLayout):
+class TwistedTwistd(GridLayout):
     running = BooleanProperty(False)
     def cb_twistd(self,*la):
         if self.running:
@@ -48,9 +48,9 @@ class TwistedTwistdWeb(GridLayout):
             self.app = AndroidApplicationRunner(config).run()
             self.running = True
 
-class TwistedTwistdWebApp(App):
+class TwistedTwistdApp(App):
     def build(self):
-        return TwistedTwistdWeb()
+        return TwistedTwistd()
     
 if __name__ == '__main__':
-    TwistedTwistdWebApp().run()
+    TwistedTwistdApp().run()
