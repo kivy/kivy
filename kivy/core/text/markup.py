@@ -228,7 +228,8 @@ class MarkupLabel(MarkupLabelBase):
             # (extract all extents of the part,
             # sum the width, and get the maximum height)
             pg = [cache[g] for g in part]
-            pw = sum([g[0] for g in pg])
+            #pw = sum([g[0] for g in pg])
+            pw = get_extents(part)[0]
             ph = max([g[1] for g in pg])
 
             options = copy(options)
