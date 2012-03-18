@@ -981,10 +981,13 @@ class TextInput(Widget):
     '''
 
     password = BooleanProperty(False)
-    '''If True, the widget will display it's characters as the character*.
+    '''If True, the widget will display its characters as the character*.
 
     :data:`password` is a :class:`~kivy.properties.BooleanProperty`, default to
     False
+
+    .. versionadded:: 1.1.2
+
     '''
 
     cursor_blink = BooleanProperty(False)
