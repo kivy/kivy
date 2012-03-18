@@ -559,10 +559,9 @@ class TextInput(Widget):
         if not self._label_cached:
             self._get_line_options()
         text = text.replace('\t', ' ' * self.tab_width)
-        if(not self.password):
-                return self._label_cached.get_extents(text)[0]
-        else:
-                return self._label_cached.get_extents('*'*len(text))[0]
+        if not self.password:
+            return self._label_cached.get_extents(text)[0]
+        return self._label_cached.get_extents('*' * len(text))[0]
 
     def _do_blink_cursor(self, dt):
         # Callback called by the timer to blink the cursor, according to the
@@ -796,8 +795,8 @@ class TextInput(Widget):
     def _create_line_label(self, text):
         # Create a label from a text, using line options
         ntext = text.replace('\n', '').replace('\t', ' ' * self.tab_width)
-        if(self.password):
-                ntext='*'*len(ntext)
+        if self.password:
+            ntext = '*' * len(ntext)
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache.get('textinput.label', cid)
@@ -983,11 +982,10 @@ class TextInput(Widget):
     password = BooleanProperty(False)
     '''If True, the widget will display its characters as the character*.
 
-    :data:`password` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False
-
     .. versionadded:: 1.1.2
 
+    :data:`password` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False
     '''
 
     cursor_blink = BooleanProperty(False)
