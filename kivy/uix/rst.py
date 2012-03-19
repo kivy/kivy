@@ -113,8 +113,6 @@ if 'KIVY_DOC' not in os.environ:
 
     directives.register_directive('video', VideoDirective)
 
-
-
 Builder.load_string('''
 #:import parse_color kivy.parser.parse_color
 
@@ -313,7 +311,17 @@ Builder.load_string('''
         Color:
             rgb: .2, .2, .2
         Line:
-            points: [self.x, self.y, self.right, self.y, self.right, self.top, self.x, self.top, self.x, self.y]
+            points: [\
+            self.x,\
+            self.y,\
+            self.right,\
+            self.y,\
+            self.right,\
+            self.top,\
+            self.x,\
+            self.top,\
+            self.x,\
+            self.y]
 
 <RstTransition>:
     size_hint_y: None
@@ -348,6 +356,7 @@ Builder.load_string('''
 
 class RstVideoPlayer(VideoPlayer):
     pass
+
 
 class RstDocument(ScrollView):
     '''Base widget used to store an Rst document. See module documentation for
@@ -852,7 +861,8 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is nodes.reference:
             name = node.get('name', node.get('refuri'))
             self.text += '[ref=%s][color=%s]' % (name,
-                    self.root.colors.get('link', self.root.colors.get('paragraph')))
+                    self.root.colors.get('link',
+                        self.root.colors.get('paragraph')))
             if 'refname' in node and 'name' in node:
                 self.root.refs_assoc[node['name']] = node['refname']
 
@@ -994,7 +1004,9 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is role_video:
             width = node['width'] if 'width' in node.attlist() else 400
             height = node['height'] if 'height' in node.attlist() else 300
-            video = RstVideoPlayer(source=node['source'], size_hint=(None, None),
+            video = RstVideoPlayer(
+                    source=node['source'],
+                    size_hint=(None, None),
                     size=(width, height))
             anchor = AnchorLayout(size_hint_y=None, height=height + 20)
             anchor.add_widget(video)
