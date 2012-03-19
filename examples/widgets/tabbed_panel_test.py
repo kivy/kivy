@@ -1,14 +1,14 @@
 '''
-TabbedPannel
+TabbedPanel
 ============
 
-Test of the widget TabbedPannel.
+Test of the widget TabbedPanel.
 '''
 
 from kivy.app import App
 from kivy.animation import Animation
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.tabbedpannel import TabbedPannel, Tab_Heading
+from kivy.uix.tabbedpanel import TabbedPanel, Tab_Heading
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -47,7 +47,7 @@ Builder.load_string('''
     but: _but
     Button:
         id: _but
-        text: 'Press to show Tabbed Pannel'
+        text: 'Press to show Tabbed Panel'
         on_release: root.show_tab()
 
 <Panel_Test>
@@ -101,7 +101,7 @@ Builder.load_string('''
 ''')
 
 
-class Panel_Test(TabbedPannel):
+class Panel_Test(TabbedPanel):
 
     def update_pos(self, sctr, tab, *l):
         sctr.pos = tab.pos
