@@ -37,7 +37,7 @@ Boxlayout. You can change that by::
 Add Tabs/Headings::
 
     tp = TabbedPanel()
-    th = Tabbed_Heading(text='Tab2')
+    th = TabbedPanelHeader(text='Tab2')
     tp.add_widget(th)
 
 Change the text of default Tab::
@@ -149,7 +149,6 @@ class TabbedPanelStrip(GridLayout):
     see module documentation for details.
     '''
     tabbed_panel = ObjectProperty(None)
-    pass
 
 
 class TabbedPanelContent(GridLayout):
@@ -261,6 +260,7 @@ class TabbedPanel(GridLayout):
                 height = self.tab_height, state = 'down',
                 width = self.tab_width)
         _tabs.add_widget(Default_tab)
+        Default_tab.group = '__tab%r__' %_tabs.uid
         Default_tab.bind(on_release = self.on_Default_tab)
 
         self.content = content = TabbedPanelContent()
@@ -283,8 +283,8 @@ class TabbedPanel(GridLayout):
             super(TabbedPanel, self).add_widget(*l)
         elif isinstance(l[0], TabbedPanelHeader):
             self_tabs = self._tab_strip
-            l[0].group = '__tab%r__' %self_tabs.uid
             self_tabs.add_widget(l[0])
+            l[0].group = '__tab%r__' %self_tabs.uid
             self_tabs.width += l[0].width if not l[0].size_hint_x else\
                 self.tab_width
             self.reposition_tabs()
