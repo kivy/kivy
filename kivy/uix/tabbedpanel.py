@@ -4,6 +4,11 @@ TabbedPanel
 
 .. versionadded:: 1.1.2
 
+.. warning::
+
+    This widget is still experimental, and its API is subject to change in a
+    future version.
+
 .. image:: images/tabbed_panel.jpg
     :align: right
 
