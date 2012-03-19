@@ -15,34 +15,9 @@ from kivy.uix.label import Label
 from kivy.uix.scatter import Scatter
 from functools import partial
 
-
-class CheckButton(ToggleButton):
-    pass
-
-
-from kivy.factory import Factory
-Factory.register('CheckButton', cls = CheckButton)
-
 from kivy.lang import Builder
 
 Builder.load_string('''
-<CheckButton>
-    background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
-    background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
-    group: 'tab_style'
-    Image:
-        source: 'tools/theming/defaulttheme/textinput_active.png'
-        size: (15, 15)
-        y: self.parent.y + (self.parent.height/2) - (self.height/2)
-        x: self.parent.x + (self.width/2)
-    Image:
-        source: 'atlas://data/images/defaulttheme/image-missing'
-        color: (1, 1, 1, 0) if self.parent.state == 'normal' else\
-            (1, 1, 1, 1)
-        size: (30, 30)
-        y: self.parent.y + (self.parent.height/2) - (self.height/2)
-        x: self.parent.x + 0
-
 <TabShowcase>
     but: _but
     Button:
@@ -71,13 +46,15 @@ Builder.load_string('''
                 BubbleButton:
                     text:'press to add\\n a tab head'
                     on_release: root.add_heading()
-                CheckButton:
+                ToggleButton:
+                    id: mbtn
+                    group: 'tab_style'
                     text: '  Economic\\n Long Tabs'
                     on_state: root.economize_tabs(self)
-                CheckButton:
+                ToggleButton:
                     text: 'Image tabs'
                     on_state: root.image_tabs(self)
-                CheckButton:
+                ToggleButton:
                     text: 'Closable tabs'
                     on_state: root.closable_tabs(self)
         Image:
