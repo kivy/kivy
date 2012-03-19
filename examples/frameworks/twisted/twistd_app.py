@@ -1,11 +1,11 @@
 from kivy.support import install_twisted_reactor
 install_twisted_reactor()
 
-import os, sys
+import os
+import sys
 
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.button import Button
 from kivy.properties import BooleanProperty
 from kivy.lang import Builder
 
@@ -14,16 +14,20 @@ from twisted.application.service import IServiceCollection
 
 TWISTD = 'twistd web -p 8087'
 
+
 class AndroidApplicationRunner(UnixApplicationRunner):
+
     def run(self):
+
         self.preApplication()
         self.application = self.createOrGetApplication()
-        self.logger.start(self.application)        
+        self.logger.start(self.application)
         sc = IServiceCollection(self.application)
 
         # reactor is already running, so we just start the service collection
         sc.startService()
         return self.application
+
 
 Builder.load_string('''
 <TwistedTwistd>:
@@ -33,9 +37,13 @@ Builder.load_string('''
         on_release: root.cb_twistd()
 ''')
 
+
 class TwistedTwistd(GridLayout):
+
     running = BooleanProperty(False)
-    def cb_twistd(self,*la):
+
+    def cb_twistd(self, *la):
+
         if self.running:
             IServiceCollection(self.app).stopService()
             self.running = False
@@ -48,9 +56,12 @@ class TwistedTwistd(GridLayout):
             self.app = AndroidApplicationRunner(config).run()
             self.running = True
 
+
 class TwistedTwistdApp(App):
+
     def build(self):
         return TwistedTwistd()
-    
+
+
 if __name__ == '__main__':
     TwistedTwistdApp().run()
