@@ -59,10 +59,10 @@ Change panel contents depending on which tab is pressed::
     tabbed_panel_instance.clear_widgets()
     tabbed_panel_instance.add_widgets(...)...
 
-Since the default tab exists by default, a `on_default_tab` event is provided.
+Since the default tab exists by default, a `on_Default_tab` event is provided.
 To facilitate changing panel contents on default tab selection::
 
-    tp.bind(on_default_tab = my_default_tab_callback)
+    tp.bind(on_Default_tab = my_default_tab_callback)
 
 Remove Items::
 
@@ -134,7 +134,7 @@ class TabbedPanelHeader(ToggleButton):
     You can use this TabbedPanelHeader widget to add a new tab to TabbedPanel
     '''
 
-    #only allow selecting the tab if not already selected
+    # only allow selecting the tab if not already selected
     def on_touch_down(self, touch):
         if self.state == 'down':
             for child in self.children:
@@ -199,7 +199,7 @@ class TabbedPanel(GridLayout):
     default to 'bottom_mid'.
     '''
 
-    tab_height = NumericProperty(20)
+    tab_height = NumericProperty(40)
     '''Specifies the height of the Tab Heading
 
     :data:`tab_height` is a :class:`~kivy.properties.NumericProperty`,
@@ -232,13 +232,6 @@ class TabbedPanel(GridLayout):
     read-only.
     '''
 
-    background_texture = ObjectProperty(None)
-    '''Specifies the background texture of the Tabs contents and the Tab Heading
-
-    :data:`background_texture` is a :class:`~kivy.properties.ObjectProperty`,
-    default to 'None'.
-    '''
-
     content = ObjectProperty(None)
     '''This is the object where the main content of the current tab is held
 
@@ -260,29 +253,27 @@ class TabbedPanel(GridLayout):
         self._bk_img = Image(
             source=self.background_image, allow_stretch = True,
             keep_ratio = False, color = self.background_color)
-        self.background_texture = self._bk_img.texture
         self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel = self,
             rows = 1, cols = 99, size_hint = (None, None),\
             height = self.tab_height, width = self.tab_width)
-        self.default_tab = default_tab = \
+        self.Default_tab = Default_tab = \
             TabbedPanelHeader(text = self.default_tab_text,
                 height = self.tab_height, state = 'down',
                 width = self.tab_width)
-        _tabs.add_widget(default_tab)
-        default_tab.bind(on_release = self.on_default_tab)
+        _tabs.add_widget(Default_tab)
+        Default_tab.bind(on_release = self.on_Default_tab)
 
         self.content = content = TabbedPanelContent()
         super(TabbedPanel, self).__init__(**kwargs)
         self.add_widget(content)
-        self._bk_img.bind(on_texture=self._on_texture)
         self.on_tab_pos()
 
-    def on_default_tab(self, *l):
+    def on_Default_tab(self, *l):
         '''This event is fired when the default tab is selected.
         '''
 
     def on_default_tab_text(self, *l):
-        self.default_tab.text = self.default_tab_text
+        self.Default_tab.text = self.default_tab_text
 
     def add_widget(self, *l):
         content = self.content
@@ -292,6 +283,7 @@ class TabbedPanel(GridLayout):
             super(TabbedPanel, self).add_widget(*l)
         elif isinstance(l[0], TabbedPanelHeader):
             self_tabs = self._tab_strip
+            l[0].group = '__tab%r__' %self_tabs.uid
             self_tabs.add_widget(l[0])
             self_tabs.width += l[0].width if not l[0].size_hint_x else\
                 self.tab_width
@@ -306,16 +298,16 @@ class TabbedPanel(GridLayout):
         if l[0] == content or l[0] == self._tab_layout:
             super(TabbedPanel, self).remove_widget(*l)
         elif isinstance(l[0], TabbedPanelHeader):
-            if l[0]!= self.default_tab:
+            if l[0]!= self.Default_tab:
                 self_tabs = self._tab_strip
                 self_tabs.remove_widget(l[0])
                 if l[0].state == 'down':
-                    self.default_tab.on_release()
+                    self.Default_tab.on_release()
                 self_tabs.width -= l[0].width
                 self.reposition_tabs()
             else:
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
-                    'change `default_tab` to a different tab to remove this.')
+                    'change `Default_tab` to a different tab to remove this.')
         else:
             content.remove_widget(l[0])
 
@@ -331,17 +323,14 @@ class TabbedPanel(GridLayout):
     def clear_tabs(self, *l):
         self_tabs = self._tab_strip
         self_tabs.clear_widgets()
-        self_default_tab = self.default_tab
-        self_tabs.add_widget(self_default_tab)
-        self_tabs.width = self_default_tab.width
+        self_Default_tab = self.Default_tab
+        self_tabs.add_widget(self_Default_tab)
+        self_tabs.width = self_Default_tab.width
         self.reposition_tabs()
 
     def reposition_tabs(self, *l):
         Clock.unschedule(self.on_tab_pos)
         Clock.schedule_once(self.on_tab_pos)
-
-    def _on_texture(self, *l):
-        self.background_texture = self._bk_img.texture
 
     def on_background_image(self, *l):
         self._bk_img.source = self.background_image
@@ -374,6 +363,7 @@ class TabbedPanel(GridLayout):
         self_content = self.content
         if not self_content:
             return
+        # cache variables for faster access
         self_tab_pos = self.tab_pos
         self_tab_layout = self._tab_layout
         self_tab_layout.clear_widgets()
@@ -383,17 +373,24 @@ class TabbedPanel(GridLayout):
         scrl_v.add_widget(self_tabs)
         scrl_v.pos = (0, 0)
         self_udpate_scrl_v_width = self._udpate_scrl_v_width
+
+        # update scrlv width when tab width changes depends on tab_pos
         self_tabs.unbind(width = partial(self_udpate_scrl_v_width, scrl_v))
         self_tabs.bind(width = partial(self_udpate_scrl_v_width, scrl_v))
 
+        # remove all widgets from the tab_strip
         self.clear_widgets(do_super=True)
         self_tab_height = self.tab_height
 
         widget_list = []
         tab_list = []
         if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
+            # bottom or top positions
+            # one col containing the tab_strip and the content
             self.cols = 1
-            self.rows = 3
+            self.rows = 2
+            # tab_layout contains the scrollview containing tabs and two blank
+            # dummy widgets for spacing
             self_tab_layout.rows = 1
             self_tab_layout.cols = 3
             self_tab_layout.size_hint = (1, None)
@@ -401,6 +398,7 @@ class TabbedPanel(GridLayout):
             self_udpate_scrl_v_width(scrl_v)
 
             if self_tab_pos[0] == 'b':
+                # bottom
                 if self_tab_pos == 'bottom_mid':
                     tab_list = (Widget(), scrl_v, Widget())
                     widget_list = (self_content, self_tab_layout)
@@ -412,8 +410,8 @@ class TabbedPanel(GridLayout):
                         tab_list = (Widget(), Widget(), scrl_v)
                     widget_list = (self_content, self_tab_layout)
             else:
+                # top
                 if self_tab_pos == 'top_mid':
-                    #add two dummy widgets
                     tab_list = (Widget(), scrl_v, Widget())
                 elif self_tab_pos == 'top_left':
                     tab_list = (scrl_v, Widget(), Widget())
@@ -421,8 +419,12 @@ class TabbedPanel(GridLayout):
                     tab_list = (Widget(), Widget(), scrl_v)
                 widget_list = (self_tab_layout, self_content)
         elif self_tab_pos[0] == 'l' or self_tab_pos[0] == 'r':
-            self.cols = 3
+            # left ot right positions
+            # one row containing the tab_strip and the content
+            self.cols = 2
             self.rows = 1
+            # tab_layout contains two blank dummy widgets for spacing
+            #"vertically" and the scatter containing scrollview containing tabs
             self_tab_layout.rows = 3
             self_tab_layout.cols = 1
             self_tab_layout.size_hint = (None, 1)
@@ -430,6 +432,7 @@ class TabbedPanel(GridLayout):
             scrl_v.height = self_tab_height
             self_udpate_scrl_v_width(scrl_v)
 
+            # rotate the scatter for vertical positions
             rotation = 90 if self_tab_pos[0] == 'l' else -90
             sctr = Scatter(do_translation = False,
                                rotation = rotation,
@@ -441,11 +444,22 @@ class TabbedPanel(GridLayout):
             sctr.add_widget(scrl_v)
 
             lentab_pos = len(self_tab_pos)
+
+            # Update scatter's top when it's pos changes.
+            # Needed for repositioning scatter to the correct place after its
+            # added to the parent. Use clock_schedule_once to ensure top is
+            # calculated after the parent's pos on canvas has been calculated.
+            # This is needed for when tab_pos changes to correctly position
+            # scatter. Without clock.schedule_once the positions would look
+            # fine but touch won't translate to the correct position
+
             if self_tab_pos[lentab_pos-4:] == '_top':
+                #on positions 'left_top' and 'right_top'
                 sctr.bind(pos = Clock.schedule_once(
                     partial(self._update_top, sctr, 'top', None), -1))
                 tab_list = (sctr, )
             elif self_tab_pos[lentab_pos-4:] == '_mid':
+                #calculate top of scatter
                 sctr.bind(pos = Clock.schedule_once(
                     partial(self._update_top, sctr, 'mid', scrl_v.width), -1))
                 tab_list = (Widget(), sctr, Widget())
@@ -477,11 +491,13 @@ class TabbedPanel(GridLayout):
         self_tab_pos = self.tab_pos
         self_tabs = self._tab_strip
         if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
+            #bottom or top
             scrl_v.width = min(self.width, self_tabs.width)
             #required for situations when scrl_v's pos is calculated
             #when it has no parent
             scrl_v.top += 1
             scrl_v.top -= 1
         else:
+            # left or right
             scrl_v.width = min(self.height, self_tabs.width)
             self_tabs.pos = (0, 0)

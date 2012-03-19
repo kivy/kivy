@@ -26,12 +26,8 @@ Builder.load_string('''
         on_release: root.show_tab()
 
 <PanelTest>
-    size_hint: (None, None)
-    size: (350, 250)
-    pos_hint: {'center_x': .25, 'y': .55}
-    tab_pos: 'top_left'
-    tab_height: 20
-    tab_width: 70
+    size_hint: (.54, .45)
+    pos_hint: {'center_x': .5, 'y': .55}
     default_tab_text: 'Settings'
     default_content: cut
     FloatLayout:
@@ -84,15 +80,22 @@ class PanelTest(TabbedPanel):
     def update_pos(self, sctr, tab, *l):
         sctr.pos = tab.pos
 
-    def economize_tabs(self, *l):
-        self.tab_width, self.tab_height = self.tab_height, self.tab_width
-        but_state = l[0].state
+    def update_sctr_rotation(self, sctr, *l):
+        sctr.rotation = 90 if self.tab_pos[0] != 'l' else -90
 
+    def economize_tabs(self, *l):
+        # switch width and height for long tabs
+        self.tab_width, self.tab_height = self.tab_height, self.tab_width
+
+        but_state = l[0].state
         for tab in self.tab_list:
             if but_state == 'normal':
+                # restore text
                 tab._label.text = tab.text
+                # remove scatter and label
                 tab.clear_widgets()
             else:
+                # add a scatter with a label rotated to display standing text
                 lbl = Label(text = tab.text,
                     size_hint = (None, None),
                     size = tab.size)
@@ -105,6 +108,10 @@ class PanelTest(TabbedPanel):
                     size = lbl.size)
                 tab.add_widget(sctr)
                 sctr.add_widget(lbl)
+                # update scatter rotation on tab_pos required only if you need
+                # to dynamically change the tab_pos when in long tabs mode and
+                # going from 'bottom_right' to 'left_*' tab_pos
+                self.bind(tab_pos = partial(self.update_sctr_rotation, sctr))
                 tab._label.text = ''
 
                 tab.bind(pos = partial(self.update_pos, sctr, tab))
@@ -151,7 +158,7 @@ class PanelTest(TabbedPanel):
                 tab.background_normal = 'sequenced_images/data/images/info.png'
                 tab._label.text = ''
 
-    def on_default_tab(self, *l):
+    def on_Default_tab(self, *l):
         self.change_tab_contents(self.default_content)
 
     def change_tab_contents(self, *l):

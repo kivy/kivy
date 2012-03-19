@@ -25,7 +25,7 @@ Builder.load_string("""
     BoxLayout:
         id: set3_content
         BubbleButton:
-            text: 'bubble button'
+            text: 'Bubble Button'
     TabbedPanelHeader:
         text: 'set2'
         on_release: root.change_tab_contents(set2_content)
@@ -40,7 +40,7 @@ class Test(TabbedPanel):
         super(Test, self).__init__(**kwargs)
         self.change_tab_contents(self.default_content)
 
-    def on_default_tab(self, *l):
+    def on_Default_tab(self, *l):
         self.change_tab_contents(self.default_content)
 
     def change_tab_contents(self, content, *l):
