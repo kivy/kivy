@@ -2,7 +2,7 @@
 TabbedPanel
 ============
 
-Test of the widget TabbedPanel.
+Test of the widget TabbedPanel showing all capabilities.
 '''
 
 from kivy.app import App
@@ -47,14 +47,15 @@ Builder.load_string('''
                     text:'press to add\\n a tab head'
                     on_release: root.add_heading()
                 ToggleButton:
-                    id: mbtn
                     group: 'tab_style'
                     text: '  Economic\\n Long Tabs'
                     on_state: root.economize_tabs(self)
                 ToggleButton:
+                    group: 'tab_style'
                     text: 'Image tabs'
                     on_state: root.image_tabs(self)
                 ToggleButton:
+                    group: 'tab_style'
                     text: 'Closable tabs'
                     on_state: root.closable_tabs(self)
         Image:
