@@ -49,6 +49,9 @@ class PicturesApp(App):
             except Exception, e:
                 Logger.exception('Pictures: Unable to load <%s>' % filename)
 
+    def on_pause(self):
+        return True
+
 
 if __name__ in ('__main__', '__android__'):
     PicturesApp().run()

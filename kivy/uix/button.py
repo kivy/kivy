@@ -126,15 +126,15 @@ class Button(Label):
         return True
 
     def on_touch_move(self, touch):
+        if touch.grab_current is self:
+            return True
         if super(Button, self).on_touch_move(touch):
             return True
         return self in touch.ud
 
     def on_touch_up(self, touch):
-        if super(Button, self).on_touch_up(touch):
-            return True
         if touch.grab_current is not self:
-            return
+            return super(Button, self).on_touch_up(touch)
         assert(self in touch.ud)
         touch.ungrab(self)
         self._do_release()

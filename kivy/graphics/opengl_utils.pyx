@@ -186,3 +186,4 @@ cpdef int gl_has_texture_format(str fmt):
         return 1
     # otherwise, check if it can be converted
     return gl_has_texture_conversion(fmt)
+

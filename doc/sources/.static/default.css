@@ -351,9 +351,22 @@ th {
 pre {
     padding: 1em;
 	font-size: 1em;
-	background-color: #e5e5e5;
     overflow: auto;
 	border: 1px solid #cccccc;
+	background: rgba(125, 125, 125, 0.1);
+	padding: 12px 15px;
+	margin: 20px 0px;
+	-white-space: nowrap;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-o-border-radius: 3px;
+	-ms-border-radius: 3px;
+	-khtml-border-radius: 3px;
+	border-radius: 3px;
+	-moz-box-shadow: #ccc 1px 1px 3px 0 inset;
+	-webkit-box-shadow: #ccc 1px 1px 3px 0 inset;
+	-o-box-shadow: #ccc 1px 1px 3px 0 inset;
+	box-shadow: #ccc 1px 1px 3px 0 inset;
 }
 
 td.linenos pre {
@@ -361,6 +374,10 @@ td.linenos pre {
     border: 0;
     background-color: transparent;
     color: #aaa;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	-o-box-shadow: none;
+	box-shadow: none;
 }
 
 table.highlighttable {
@@ -572,12 +589,12 @@ table.field-list th.field-name {
 
 /** Image link
  */
-img.align-right {
+div.body .align-right {
 	float: right;
 	margin: 0 0 20px 20px;
 }
 
-img.align-center {
+div.body .align-center {
 	text-align: center;
 	margin: 20px auto;
 	display: block;
@@ -620,3 +637,4 @@ dl.exception > dt.hover {
 dl.api-level dt {
 	cursor: pointer;
 }
+

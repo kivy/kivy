@@ -559,7 +559,9 @@ class TextInput(Widget):
         if not self._label_cached:
             self._get_line_options()
         text = text.replace('\t', ' ' * self.tab_width)
-        return self._label_cached.get_extents(text)[0]
+        if not self.password:
+            return self._label_cached.get_extents(text)[0]
+        return self._label_cached.get_extents('*' * len(text))[0]
 
     def _do_blink_cursor(self, dt):
         # Callback called by the timer to blink the cursor, according to the
@@ -793,6 +795,8 @@ class TextInput(Widget):
     def _create_line_label(self, text):
         # Create a label from a text, using line options
         ntext = text.replace('\n', '').replace('\t', ' ' * self.tab_width)
+        if self.password:
+            ntext = '*' * len(ntext)
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache.get('textinput.label', cid)
@@ -975,6 +979,15 @@ class TextInput(Widget):
     True
     '''
 
+    password = BooleanProperty(False)
+    '''If True, the widget will display its characters as the character*.
+
+    .. versionadded:: 1.1.2
+
+    :data:`password` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False
+    '''
+
     cursor_blink = BooleanProperty(False)
     '''This property is used to blink the cursor graphics. The value of
     :data:`cursor_blink` is automatically computed, setting a value on it will
@@ -1128,6 +1141,24 @@ class TextInput(Widget):
 
     :data:`selection_color` is a :class:`~kivy.properties.ListProperty`, default
     to [0.1843, 0.6549, 0.8313, .5]
+    '''
+
+    background_color = ListProperty([1, 1, 1, 1])
+    '''Current color of the background, in (r, g, b, a) format.
+
+    .. versionadded:: 1.1.2
+
+    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [1, 1, 1, 1] #White
+    '''
+
+    foreground_color = ListProperty([0, 0, 0, 1])
+    '''Current color of the foreground, in (r, g, b, a) format.
+
+    .. versionadded:: 1.1.2
+
+    :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [0, 0, 0, 1] #Black
     '''
 
     selection_from = NumericProperty(None, allownone=True)
