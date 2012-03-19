@@ -22,10 +22,6 @@ from kivy.uix.gridlayout import GridLayout
 
 class ComboBox(Button):
     '''ComboBox class, see module documentation for more information.
-
-    :Events:
-        `on_highlight`
-            Fired when an entry is hovered by the touch / mouse.
     '''
 
     values = ListProperty([])
