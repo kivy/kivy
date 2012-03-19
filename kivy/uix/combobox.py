@@ -14,21 +14,27 @@ A button that allows selecting a value from several options
     present.
 '''
 
-from kivy.app import App
 from kivy.properties import ListProperty, ObjectProperty, NumericProperty
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.floatlayout import FloatLayout
+
 
 class ComboBox(Button):
+    '''ComboBox class, see module documentation for more information.
+
+    :Events:
+        `on_highlight`
+            Fired when an entry is hovered by the touch / mouse.
+    '''
+
     values = ListProperty([])
     '''Values that can be selected by the user, should be a list of strings
     '''
 
     select_class = ObjectProperty(Label)
-    '''The class used to represent the options when displayed, the value will be
-    passed to the `text` property. Can be used to customize the apparence of the
+    '''The class used to represent the options when displayed. The value will be
+    passed the `text` and the `color` properties. It can be used to customize the apparence of the
     list.
 
     :data:`select_class` is an :class:`~kivy.properties.ObjectProperty`, default
@@ -38,29 +44,30 @@ class ComboBox(Button):
     selected_color = ListProperty([1, 1, 1, 1])
     '''Text color when overed by the touch, in the format (r, g, b, a)
 
-    :data:`color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
-    1, 1].
+    :data:`selected_color` is a :class:`~kivy.properties.ListProperty`, default     to [1, 1, 1, 1].
     '''
 
     current_index = NumericProperty(0)
-    '''Index of the currently selected value
+    '''Index of the currently selected value. It can be used to
+    initialize the widget with the default text.
 
-    :data:`current_index` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
+    :data:`index` is a :class:`~kivy.properties.NumericProperty` default to 0.
     '''
 
-    highlight_index = NumericProperty(0)
-    '''Indicate the last overed value
+    highlight_index = NumericProperty(None)
+    '''Indicate the last hovered value.
 
     :data:`highlight_index` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
+    default to None.
     '''
 
-    def __init__(self, *args, **kwargs):
-        super(ComboBox, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(ComboBox, self).__init__(**kwargs)
+        if self.values:
+            self.text = self.values[self.current_index]
         self.bind(current_index=self._update_text)
 
-    def _update_text(self, *args):
+    def _update_text(self, *largs):
         self.text = str(self.values[self.current_index])
 
     def on_touch_down(self, touch, *args):
@@ -79,42 +86,20 @@ class ComboBox(Button):
             return True
 
     def on_touch_move(self, touch, *args):
-        if touch.grab_current == self:
-            for i, l in enumerate(touch.ud['combobox_grid'].children):
-                if hasattr(l, 'color'):
-                    if l.collide_point(*touch.pos):
-                        self.highlight_index = len(self.values) - i - 1
-                        l.color = self.selected_color
-                    else:
-                        l.color = self.color
+        if touch.grab_current is self:
+            for i, l in enumerate(reversed(touch.ud['combobox_grid'].children)):
+                if l.collide_point(*touch.pos):
+                    l.color = self.selected_color
+                    self.highlight_index = i
+                else:
+                    l.color = self.color
 
     def on_touch_up(self, touch, *args):
-        if touch.grab_current == self:
-            for i, l in enumerate(touch.ud['combobox_grid'].children):
+        if touch.grab_current is self:
+            touch.ungrab(self)
+            for i, l in enumerate(reversed(touch.ud['combobox_grid'].children)):
                 if l.collide_point(*touch.pos):
-                    self.current_index = len(self.values) - i - 1
+                    self.current_index = i
                     self.remove_widget(touch.ud['combobox_grid'])
                     return True
             self.remove_widget(touch.ud['combobox_grid'])
-
-def printf(*args):
-    print args
-
-class ComboBoxTest(App):
-    def build(self):
-        f = FloatLayout()
-        c = ComboBox(
-                values=['a', 'b', 'c'],
-                pos_hint={'center_x':.5, 'center_y': .5},
-                size_hint=(None, None),
-                size=(200, 20),
-                selected_color=(1, .2, .2 , 1))
-
-        c.bind(text=printf)
-        c.bind(highlight_index=printf)
-        f.add_widget(c)
-        return f
-
-if __name__ == '__main__':
-    ComboBoxTest().run()
-
