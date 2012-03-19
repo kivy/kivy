@@ -16,7 +16,7 @@ Simple example
 --------------
 
     from kivy.app import App
-    from kivy.uix.tabbedpanel import TabbedPanel, Tab_Heading
+    from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
     from kivy.lang import Builder
 
     Builder.load_string("""
@@ -36,10 +36,10 @@ Simple example
             id: set3_content
             BubbleButton:
                 text: 'bubble button'
-        Tab_Heading:
+        TabbedPanelHeader:
             text: 'set2'
             on_release: root.change_tab_contents(set2_content)
-        Tab_Heading:
+        TabbedPanelHeader:
             text: 'set3'
             on_release: root.change_tab_contents(set3_content)
     """)
@@ -108,12 +108,12 @@ To facilitate changing panel contents on default tab selection::
 
 Remove Items::
 
-    tp.remove_widget(Widget/Tab_Heading)
+    tp.remove_widget(Widget/TabbedPanelHeader)
     or
     tp.clear_widgets()# to clear all the widgets in the content area
     or
     tp.clear_tabs()#
-        orientation: 'vertical' to remove the Tab_Headings
+        orientation: 'vertical' to remove the TabbedPanelHeaders
 
 .. warning::
     Access children list, This is important! use content.children to
@@ -137,10 +137,10 @@ Change the appearance of the Tab Head::
     tab_heading_instance.background_normal = 'path/to/tab_head/img'
     tab_heading_instance.background_down = 'path/to/tab_head/img_pressed'
 
-Change The Background of the tab strip override the canvas of Tab_Strip
+Change The Background of the tab strip override the canvas of TabbedPanelStrip
 in your kv language::
 
-    <Tab_Strip>
+    <TabbedPanelStrip>
         canvas:
             Color:
                 rgba: (0, 1, 0, 1) # green
@@ -153,7 +153,8 @@ TabbedPanel's background_image and background_color respectively.
 
 '''
 
-__all__ = ('TabbedPanel', 'Tab_Content', 'Tab_Heading', 'Tab_Strip')
+__all__ = ('TabbedPanel', 'TabbedPanelContent', 'TabbedPanelHeader',
+    'TabbedPanelStrip')
 
 from functools import partial
 from kivy.clock import Clock
@@ -169,10 +170,10 @@ from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
         ListProperty, NumericProperty, AliasProperty
 
 
-class Tab_Heading(ToggleButton):
+class TabbedPanelHeader(ToggleButton):
     '''A button intented to be used as a Heading/Tab for TabbedPanel widget.
 
-    You can use this Tab_Heading widget to add a new tab  inside TabbedPanel
+    You can use this TabbedPanelHeader widget to add a new tab to TabbedPanel
     '''
 
     #only allow selecting the tab if not already selected
@@ -182,10 +183,10 @@ class Tab_Heading(ToggleButton):
                 child.dispatch('on_touch_down', touch)
             return
         else:
-            super(Tab_Heading, self).on_touch_down(touch)
+            super(TabbedPanelHeader, self).on_touch_down(touch)
 
 
-class Tab_Strip(GridLayout):
+class TabbedPanelStrip(GridLayout):
     '''A strip intented to be used as background for Heading/Tab.
     see module documentation for details.
     '''
@@ -193,7 +194,7 @@ class Tab_Strip(GridLayout):
     pass
 
 
-class Tab_Content(GridLayout):
+class TabbedPanelContent(GridLayout):
     pass
 
 
@@ -302,17 +303,17 @@ class TabbedPanel(GridLayout):
             source=self.background_image, allow_stretch = True,
             keep_ratio = False, color = self.background_color)
         self.background_texture = self._bk_img.texture
-        self._tab_strip = _tabs = Tab_Strip(tabbed_panel = self,
+        self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel = self,
             rows = 1, cols = 99, size_hint = (None, None),\
             height = self.tab_height, width = self.tab_width)
         self.default_tab = default_tab = \
-            Tab_Heading(text = self.default_tab_text,
+            TabbedPanelHeader(text = self.default_tab_text,
                 height = self.tab_height, state = 'down',
                 width = self.tab_width)
         _tabs.add_widget(default_tab)
         default_tab.bind(on_release = self.on_default_tab)
 
-        self.content = content = Tab_Content()
+        self.content = content = TabbedPanelContent()
         super(TabbedPanel, self).__init__(**kwargs)
         self.add_widget(content)
         self._bk_img.bind(on_texture=self._on_texture)
@@ -331,7 +332,7 @@ class TabbedPanel(GridLayout):
             return
         if l[0] == content or l[0] == self._tab_layout:
             super(TabbedPanel, self).add_widget(*l)
-        elif isinstance(l[0], Tab_Heading):
+        elif isinstance(l[0], TabbedPanelHeader):
             self_tabs = self._tab_strip
             self_tabs.add_widget(l[0])
             self_tabs.width += l[0].width if not l[0].size_hint_x else\
@@ -346,7 +347,7 @@ class TabbedPanel(GridLayout):
             return
         if l[0] == content or l[0] == self._tab_layout:
             super(TabbedPanel, self).remove_widget(*l)
-        elif isinstance(l[0], Tab_Heading):
+        elif isinstance(l[0], TabbedPanelHeader):
             if l[0]!= self.default_tab:
                 self_tabs = self._tab_strip
                 self_tabs.remove_widget(l[0])

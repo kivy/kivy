@@ -8,7 +8,7 @@ Test of the widget TabbedPanel.
 from kivy.app import App
 from kivy.animation import Animation
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.tabbedpanel import TabbedPanel, Tab_Heading
+from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -25,7 +25,7 @@ Builder.load_string('''
         text: 'Press to show Tabbed Panel'
         on_release: root.show_tab()
 
-<Panel_Test>
+<PanelTest>
     size_hint: (None, None)
     size: (350, 250)
     pos_hint: {'center_x': .25, 'y': .55}
@@ -69,16 +69,16 @@ Builder.load_string('''
             pos:self.parent.pos
             size: self.parent.size
             source: 'data/images/image-loading.gif'
-    Tab_Heading:
+    TabbedPanelHeader:
         text: 'tab2'
         on_release: root.change_tab_contents(copy)
-    Tab_Heading:
+    TabbedPanelHeader:
         text: 'tab3'
         on_release: root.change_tab_contents(paste)
 ''')
 
 
-class Panel_Test(TabbedPanel):
+class PanelTest(TabbedPanel):
 
     def update_pos(self, sctr, tab, *l):
         sctr.pos = tab.pos
@@ -174,14 +174,14 @@ class Panel_Test(TabbedPanel):
         start_anim(anim, self.content.children[0], False)
 
     def add_heading(self, *l):
-        self.add_widget(Tab_Heading(text = 'tabx'))
+        self.add_widget(TabbedPanelHeader(text = 'tabx'))
 
 
 class TabShowcase(FloatLayout):
 
     def show_tab(self, *l):
         if not hasattr(self, 'tab'):
-            self.tab = tab = Panel_Test()
+            self.tab = tab = PanelTest()
             self.add_widget(tab)
         else:
             values = ('left_top', 'left_mid', 'left_bottom', 'top_left',
