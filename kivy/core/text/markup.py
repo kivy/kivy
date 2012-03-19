@@ -226,9 +226,9 @@ class MarkupLabel(MarkupLabelBase):
 
             # calculate the size of the part
             # (extract all extents of the part,
-            # sum the width, and get the maximum height)
+            # calculate width through extents due to kerning
+            # and get the maximum height)
             pg = [cache[g] for g in part]
-            #pw = sum([g[0] for g in pg])
             pw = get_extents(part)[0]
             ph = max([g[1] for g in pg])
 
