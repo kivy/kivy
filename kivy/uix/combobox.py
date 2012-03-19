@@ -15,7 +15,7 @@ A button that allows selecting a value from several options
 '''
 
 from kivy.app import App
-from kivy.properties import ListProperty, ObjectProperty
+from kivy.properties import ListProperty, ObjectProperty, NumericProperty
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
@@ -42,6 +42,27 @@ class ComboBox(Button):
     1, 1].
     '''
 
+    current_index = NumericProperty(0)
+    '''Index of the currently selected value
+
+    :data:`current_index` is a :class:`~kivy.properties.NumericProperty`,
+    default to 0.
+    '''
+
+    highlight_index = NumericProperty(0)
+    '''Indicate the last overed value
+
+    :data:`highlight_index` is a :class:`~kivy.properties.NumericProperty`,
+    default to 0.
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super(ComboBox, self).__init__(*args, **kwargs)
+        self.bind(current_index=self._update_text)
+
+    def _update_text(self, *args):
+        self.text = str(self.values[self.current_index])
+
     def on_touch_down(self, touch, *args):
         if self.collide_point(*touch.pos):
             touch.grab(self)
@@ -59,18 +80,19 @@ class ComboBox(Button):
 
     def on_touch_move(self, touch, *args):
         if touch.grab_current == self:
-            for l in touch.ud['combobox_grid'].children:
+            for i, l in enumerate(touch.ud['combobox_grid'].children):
                 if hasattr(l, 'color'):
                     if l.collide_point(*touch.pos):
+                        self.highlight_index = len(self.values) - i - 1
                         l.color = self.selected_color
                     else:
                         l.color = self.color
 
     def on_touch_up(self, touch, *args):
         if touch.grab_current == self:
-            for l in touch.ud['combobox_grid'].children:
+            for i, l in enumerate(touch.ud['combobox_grid'].children):
                 if l.collide_point(*touch.pos):
-                    self.text = l.text
+                    self.current_index = len(self.values) - i - 1
                     self.remove_widget(touch.ud['combobox_grid'])
                     return True
             self.remove_widget(touch.ud['combobox_grid'])
@@ -89,6 +111,7 @@ class ComboBoxTest(App):
                 selected_color=(1, .2, .2 , 1))
 
         c.bind(text=printf)
+        c.bind(highlight_index=printf)
         f.add_widget(c)
         return f
 
