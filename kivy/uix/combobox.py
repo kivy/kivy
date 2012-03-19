@@ -7,11 +7,18 @@ ComboBox
 
 A button that allows selecting a value from several options
 
-
 .. warning::
 
     This is experimental and subject to change as long as this warning notice is
     present.
+
+Example:
+    c = ComboBox(
+            values=['a', 'b', 'c', 'd'],
+            pos_hint={'center_x': .5, 'center_y': .7},
+            size_hint=(None, None),
+            size=(200, 40),
+            selected_color=(1, .2, .2, 1))
 '''
 
 from kivy.properties import ListProperty, ObjectProperty, NumericProperty
@@ -30,8 +37,8 @@ class ComboBox(Button):
 
     select_class = ObjectProperty(Label)
     '''The class used to represent the options when displayed. The value will be
-    passed the `text` and the `color` properties. It can be used to customize the apparence of the
-    list.
+    passed the `text` and the `color` properties. It can be used to customize
+    the apparence of the list.
 
     :data:`select_class` is an :class:`~kivy.properties.ObjectProperty`, default
     to `~kivy.uix.label.Label`.
@@ -40,7 +47,8 @@ class ComboBox(Button):
     selected_color = ListProperty([1, 1, 1, 1])
     '''Text color when overed by the touch, in the format (r, g, b, a)
 
-    :data:`selected_color` is a :class:`~kivy.properties.ListProperty`, default     to [1, 1, 1, 1].
+    :data:`selected_color` is a :class:`~kivy.properties.ListProperty`, default
+    to [1, 1, 1, 1].
     '''
 
     current_index = NumericProperty(0)
@@ -99,3 +107,4 @@ class ComboBox(Button):
                     self.remove_widget(touch.ud['combobox_grid'])
                     return True
             self.remove_widget(touch.ud['combobox_grid'])
+
