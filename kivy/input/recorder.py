@@ -74,7 +74,8 @@ Let's say you want to save angle and pressure of the touch, if available::
 
 Or with modules variables::
 
-    $ python main.py -m recorder,attrs=is_touch:sx:sy:angle:pressure,profile_mask=pos:angle:pressure
+    $ python main.py -m recorder,attrs=is_touch:sx:sy:angle:pressure,\
+            profile_mask=pos:angle:pressure
 
 Known limitations
 -----------------
@@ -99,6 +100,7 @@ from kivy.base import EventLoop
 from kivy.logger import Logger
 from ast import literal_eval
 from functools import partial
+
 
 class RecorderMotionEvent(MotionEvent):
 
@@ -191,17 +193,16 @@ class Recorder(EventDispatcher):
             (time() - self.record_time, etype, motionevent.uid, args), ))
         self.counter += 1
 
-    def on_keyboard(self,  etype, window, key, scancode=None, unicode=None, modifier=None):
+    def on_keyboard(self, etype, window, key, **kwargs):
         if not self.record:
             return
         self.record_fd.write('%r\n' % (
             (time() - self.record_time, etype, 0, {
                 'key': key,
-                'scancode': scancode,
-                'unicode': unicode,
-                'modifier': modifier,
-                'is_touch': False
-                }),))
+                'scancode': kwargs.get('scancode'),
+                'unicode': kwargs.get('unicode'),
+                'modifier': kwargs.get('modifier'),
+                'is_touch': False}), ))
         self.counter += 1
 
     def release(self):
