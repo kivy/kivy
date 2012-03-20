@@ -117,7 +117,7 @@ class PanelTest(TabbedPanel):
                 tab.bind(pos = partial(self.update_pos, sctr, tab))
 
     def position_close_btn(self, tab, btn, *l):
-        btn.pos = (tab.x + tab.width - btn.width, tab.y + 0)
+        btn.pos = (tab.right - btn.width, tab.top - btn.height)
 
     def close_tab(self, tab, *l):
         self.remove_widget(tab)
@@ -129,12 +129,13 @@ class PanelTest(TabbedPanel):
                 tab.clear_widgets()
             else:
                 btn = Button(background_normal =
-                    'atlas://data/images/defaulttheme/image-missing',
+                    'tools/theming/defaulttheme/close.png',
                     size_hint = (None, None),
-                    size = (20, 20))
+                    size = (15, 15),
+                    border = (0, 0, 0, 0))
                 tab.add_widget(btn)
                 btn.bind(on_release = partial(self.close_tab, tab))
-                btn.pos = (tab.x + tab.width - btn.width, tab.y + 0)
+                btn.pos = (tab.right - btn.width, tab.top - btn.height)
                 tab.bind(pos = partial(self.position_close_btn, tab, btn))
 
     def image_tabs(self, *l):
