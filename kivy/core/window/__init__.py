@@ -353,6 +353,12 @@ class WindowBase(EventDispatcher):
     .. versionadded:: 1.1.2
     '''
 
+    mouse_pos = ObjectProperty([0, 0])
+    '''2d position of the mouse within the window.
+
+    .. versionadded:: 1.1.2
+    '''
+
     top = NumericProperty(None, allownone=True)
     left = NumericProperty(None, allownone=True)
     position = OptionProperty('auto', options=['auto', 'custom'])
