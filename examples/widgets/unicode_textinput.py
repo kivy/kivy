@@ -10,7 +10,6 @@ from kivy.uix.popup import Popup
 
 Builder.load_string(
 '''
-#: import resource_find kivy.resources
 #: import utils kivy
 #: import os os
 <Unicode_TextInput>
