@@ -1,4 +1,4 @@
-touch events
+Touch events
 ============
 
 on_touch_*:

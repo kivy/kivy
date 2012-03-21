@@ -6,4 +6,6 @@ cpdef tuple gl_get_texture_formats()
 cpdef int gl_has_texture_native_format(str fmt)
 cpdef int gl_has_texture_conversion(str fmt)
 cpdef int gl_has_texture_format(str fmt)
-
+cpdef tuple gl_get_version()
+cpdef int gl_get_version_major()
+cpdef int gl_get_version_minor()

@@ -419,6 +419,10 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     if not _is_pow2(width) or not _is_pow2(height):
         make_npot = 1
 
+    IF not USE_OPENGL_ES2:
+        if gl_get_version_major() < 3:
+            mipmap = 0
+
     # in case of mipmap is asked for npot texture, make it pot compatible
     if mipmap:
         make_npot = 0
@@ -541,6 +545,10 @@ def texture_create_from_data(im, mipmap=False):
     if im.have_mipmap:
         mipmap = True
 
+    IF not USE_OPENGL_ES2:
+        if gl_get_version_major() < 3:
+            mipmap = False
+
     texture = _texture_create(width, height, im.fmt, 'ubyte', mipmap, allocate)
     if texture is None:
         return None
@@ -608,7 +616,7 @@ cdef class Texture:
 
     def remove_reload_observer(self, callback):
         '''Remove a callback from the observer list, previously added by
-        :func:`add_reload_observer`. 
+        :func:`add_reload_observer`.
 
         .. versionadded:: 1.1.2
 
