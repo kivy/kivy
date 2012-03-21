@@ -24,8 +24,6 @@ Builder.load_string(
             text: root.unicode_string
             size_hint: 1, None
             height: 1364
-            on_touch_down:
-                print (self.line_height-1+self.padding_y)*(len(self._lines)-1)
     BoxLayout:
         size_hint: 1, .05
         Label:
@@ -39,6 +37,7 @@ Builder.load_string(
             on_release: root.show_load()
 
 <LoadDialog>:
+    platform: utils.platform()
     BoxLayout:
         size: root.size
         pos: root.pos
@@ -52,7 +51,7 @@ Builder.load_string(
                 halign: 'center'
                 text_size: self.size
                 on_release:
-                    _platform = utils.platform()
+                    _platform = root.platform
                     filechooser.path = os.path.expanduser('~/.fonts')\
 if _platform == 'linux' else '/system/fonts' if _platform == 'android' else os.path.expanduser('~/Library/Fonts')\
 if _platform == 'macosx' else os.environ['WINDIR'] + '\Fonts\'
@@ -63,7 +62,7 @@ if _platform == 'macosx' else os.environ['WINDIR'] + '\Fonts\'
                 halign: 'center'
                 text_size: self.size
                 on_release:
-                    _platform = utils.platform()
+                    _platform = root.platform
                     filechooser.path = '/usr/share/fonts' \
 if _platform == 'linux' else '/system/fonts' if _platform == 'android' else os.path.expanduser\
 ('/System/Library/Fonts') if _platform == 'macosx' else os.environ['WINDIR']\

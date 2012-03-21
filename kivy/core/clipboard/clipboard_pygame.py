@@ -23,8 +23,6 @@ class ClipboardPygame(ClipboardBase):
 
     def init(self):
         if ClipboardPygame._is_init:
-            # re init if clipboard lost
-            if not pygame.scrap.lost():
                 return
         pygame.scrap.init()
         ClipboardPygame._is_init = True
