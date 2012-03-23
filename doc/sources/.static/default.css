@@ -36,9 +36,15 @@ a:hover {
  */
 #content {
 	background-color: #f8f8f8;
-	color: #333;
+	color: #4a4a4a;
 	border-left: 1px solid #666666;
 	width: 840px;
+}
+
+#content p,
+#content ul,
+#content pre {
+	line-height: 20px;
 }
 
 #contentall {
