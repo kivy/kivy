@@ -545,13 +545,13 @@ class TextInput(Widget):
         global Clipboard
         if Clipboard is None:
             from kivy.core.clipboard import Clipboard
-        _platform = platform()
-        if _platform == 'win':
-            self._clip_mime_type = 'text/plain;charset=utf-8'
-        elif _platform == 'linux':
-            self._clip_mime_type = 'UTF8_STRING'
-        else:
-            self._clip_mime_type = 'text/plain'
+            _platform = platform()
+            if _platform == 'win':
+                self._clip_mime_type = 'text/plain;charset=utf-8'
+            elif _platform == 'linux':
+                self._clip_mime_type = 'UTF8_STRING'
+            else:
+                self._clip_mime_type = 'text/plain'
 
     def _cut(self, data):
         try:
@@ -574,12 +574,9 @@ class TextInput(Widget):
         except AttributeError:
             self._enable_clipboard()
             _clip_types = Clipboard.get_types()
-        print _clip_types
         mime_type = self._clip_mime_type
-        print mime_type
         if mime_type not in _clip_types:
             mime_type = 'text/plain'
-        print mime_type
         data = Clipboard.get(mime_type)
         if data:
             data = data.decode('utf8')

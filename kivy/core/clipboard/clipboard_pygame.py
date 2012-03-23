@@ -4,10 +4,10 @@ Clipboard Pygame: implementation of clipboard using pygame.scrap.
 
 __all__ = ('ClipboardPygame', )
 
-from kivy import utils
+from kivy.utils import platform
 from . import ClipboardBase
 
-if utils.platform() not in ('win', 'linux'):
+if platform() not in ('win', 'linux'):
     raise SystemError('unsupported platform for pygame clipboard')
 
 try:
