@@ -55,7 +55,6 @@ a:hover {
 }
 
 
-
 /** Header
  */
 #topbar {
@@ -599,6 +598,11 @@ table.field-list th.field-name {
 
 /** Image link
  */
+div.body .align-left {
+	float: left;
+	margin: 0 20px 20px 20px;
+}
+
 div.body .align-right {
 	float: right;
 	margin: 0 0 20px 20px;
@@ -648,3 +652,23 @@ dl.api-level dt {
 	cursor: pointer;
 }
 
+/* Getting started
+ */
+.gs-osimage {
+	margin-top: 10px;
+	width: 264px !important;
+	height: 168px;
+	float: left;
+}
+.gs-osimage canvas {
+	width: 128px !important;
+	margin: 0 auto;
+}
+
+.gs-osimage img {
+	margin: 0 auto;
+}
+
+.gs-osimage-last {
+	clear: right;
+}
