@@ -1,5 +1,5 @@
 Layouts
-=======
+-------
 
 hints?
 rule of thumb on when a hint is taken into account

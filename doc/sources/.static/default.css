@@ -36,9 +36,15 @@ a:hover {
  */
 #content {
 	background-color: #f8f8f8;
-	color: #333;
+	color: #4a4a4a;
 	border-left: 1px solid #666666;
 	width: 840px;
+}
+
+#content p,
+#content ul,
+#content pre {
+	line-height: 20px;
 }
 
 #contentall {
@@ -53,7 +59,6 @@ a:hover {
 .clearer {
 	clear: left;
 }
-
 
 
 /** Header
@@ -201,12 +206,19 @@ h2 {
 	border-bottom: 1px solid #cccccc;
 }
 
-div.getting-started h2 {
+div.panelstep h2,
+div.panelstep div.title {
+	font-family: 'Open Sans', sans-serif;
+	font-weight: 300;
+	font-size: 26px;
+	color: #333;
+	text-shadow: 1px 1px 0px #ccc;
 	border-bottom: none;
 	font-weight: 300;
+	margin: 20px 0 10px 0;
 }
 
-div.getting-started {
+div.panelstep {
 	position: absolute;
 	width: 800px;
 }
@@ -599,6 +611,11 @@ table.field-list th.field-name {
 
 /** Image link
  */
+div.body .align-left {
+	float: left;
+	margin: 0 20px 20px 20px;
+}
+
 div.body .align-right {
 	float: right;
 	margin: 0 0 20px 20px;
@@ -648,3 +665,23 @@ dl.api-level dt {
 	cursor: pointer;
 }
 
+/* Getting started
+ */
+.gs-osimage {
+	margin-top: 10px;
+	width: 264px !important;
+	height: 168px;
+	float: left;
+}
+.gs-osimage canvas {
+	width: 128px !important;
+	margin: 0 auto;
+}
+
+.gs-osimage img {
+	margin: 0 auto;
+}
+
+.gs-osimage-last {
+	clear: right;
+}

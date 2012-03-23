@@ -1,8 +1,9 @@
 Introduction
-============
+------------
 
-Start Developing Kivy Apps right away!
---------------------------------------
+.. container:: title
+
+    Start Developing Kivy Apps right away!
 
 Creating Kivy apps is fun and enriching. If you're a new developer, this guide
 provides the perfect starting point for app development.
@@ -23,7 +24,7 @@ Follow this guide to get the tools you need, understand the major concepts and
 best practices, as this is an introduction, pointers will be provided at the
 end of each section to find more information.
 
-As you proceed through the guide, you will, using kivy sdk:
+As you proceed through the guide, you will, using Kivy SDK:
 
 - **Learn**: The basics of programming with the Kivy language.
 - **Explore**: The Kivy framework.

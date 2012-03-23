@@ -1,3 +1,5 @@
+.. _installation_macosx:
+
 Installation on MacOSX
 ======================
 

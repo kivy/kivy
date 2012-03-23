@@ -52,6 +52,8 @@ Please refer to the installation instructions for your specific platform:
     installation-android
 
 
+.. _installation_devel:
+
 Development Version
 -------------------
 
