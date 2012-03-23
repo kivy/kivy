@@ -111,7 +111,7 @@ the named class. If you replaced ``PongGame`` with Widget in our example, all
 Widget instances would have the vertical line and the two Label widgets inside
 them for instance.
 
-Inside a Rule section, you can add various blcoks to define the style and
+Inside a Rule section, you can add various blocks to define the style and
 contents of the widgets it will be applied to. You can set property values,
 child widgets that will be automatically added, or a `canvas` section in
 which you can add Graphics instructions that define how the widget itself is
@@ -325,7 +325,7 @@ Here is the entire code for this step:
 Step 5 - Adding Players and reacting to touch input
 ---------------------------------------------------
 
-Sweet, our ball is bouncing around. The only things missing now are the movable
+Sweet, our ball is bouncing around. The only things missing now are, the movable
 player rackets and keeping track of the score.  We won't to go over all the
 details of creating the class and kv rules again, since those concepts were
 already covered in the previous steps.  Instead lets focus on how to move the
