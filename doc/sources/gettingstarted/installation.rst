@@ -28,7 +28,8 @@ Please refer to the installation instructions for your specific platform:
     :target: ../installation/installation-linux.html
     :class: gs-osimage gs-osimage-last
 
-If you want to use the development version of Kivy, so you can use the last
+
+If you want to use the development version of Kivy, so you can use the latest
 additions to the framework, you can get the source code from github::
 
     git clone http://github.com/kivy/kivy
