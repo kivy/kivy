@@ -341,7 +341,10 @@ class WindowBase(EventDispatcher):
     def _get_system_size(self):
         return self._size
 
-    system_size = AliasProperty(_get_system_size, _set_system_size, bind=('_size', ))
+    system_size = AliasProperty(
+            _get_system_size,
+            _set_system_size,
+            bind=('_size', ))
     '''Real size of the window, without taking care of the rotation.
     '''
 
@@ -365,7 +368,6 @@ class WindowBase(EventDispatcher):
     render_context = ObjectProperty(None)
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
-
 
     def __new__(cls, **kwargs):
         if cls.__instance is None:
@@ -402,7 +404,8 @@ class WindowBase(EventDispatcher):
 
         # create a trigger for update/create the window when one of window
         # property changes
-        self.trigger_create_window = Clock.create_trigger(self.create_window, -1)
+        self.trigger_create_window = Clock.create_trigger(
+                self.create_window, -1)
 
         # set the default window parameter according to the configuration
         if 'fullscreen' not in kwargs:
@@ -433,7 +436,9 @@ class WindowBase(EventDispatcher):
         super(WindowBase, self).__init__(**kwargs)
 
         # bind all the properties that need to recreate the window
-        for prop in ('fullscreen', 'position', 'top', 'left', '_size', 'system_size'):
+        for prop in (
+                'fullscreen', 'position', 'top',
+                'left', '_size', 'system_size'):
             self.bind(**{prop: self.trigger_create_window})
 
         # init privates
@@ -513,9 +518,7 @@ class WindowBase(EventDispatcher):
                 # on other platform, window are recreated, we need to reload.
                 from kivy.graphics.context import get_context
                 get_context().reload()
-                def ask_update(dt):
-                    self.canvas.ask_update()
-                Clock.schedule_once(ask_update, 0)
+                Clock.schedule_once(lambda x: self.ask_update(), 0)
 
         # ensure the gl viewport is correct
         self.update_viewport()
