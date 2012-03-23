@@ -518,7 +518,7 @@ class WindowBase(EventDispatcher):
                 # on other platform, window are recreated, we need to reload.
                 from kivy.graphics.context import get_context
                 get_context().reload()
-                Clock.schedule_once(lambda x: self.ask_update(), 0)
+                Clock.schedule_once(lambda x: self.canvas.ask_update(), 0)
 
         # ensure the gl viewport is correct
         self.update_viewport()
