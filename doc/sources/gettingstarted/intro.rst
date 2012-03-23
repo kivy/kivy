@@ -1,8 +1,9 @@
 Introduction
-============
+------------
 
-Start Developing Kivy Apps right away!
---------------------------------------
+.. container:: title
+
+    Start Developing Kivy Apps right away!
 
 Creating Kivy apps is fun and enriching. If you're a new developer, this guide
 provides the perfect starting point for app development.

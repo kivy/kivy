@@ -1,8 +1,9 @@
 A first App
-===========
+-----------
 
-Jump into the code
-------------------
+.. container:: title
+
+    Jump into the code
 
 Immerse yourself into the world of Kivy with your first App.
 

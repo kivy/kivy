@@ -1,19 +1,18 @@
-function gs_start() {
+function gs_start(firstsection) {
 
+	var count = $('div.section h2').length;
+	if ( count == 0 )
+		return;
+
+	// The page must have only one h1, and h2 will act as steps.
 	$('div.footerlinks').hide();
+	$('div.section h1').hide();
+	$('<div id="gs-bar"></div>').insertAfter($('div.section h1').first());
+	$('div.section h2').parent().addClass('panelstep').hide();
+	$('div.section h2').hide();
 
-	$('div.section h1').each(function(index, elem) {
-		var pt = $(elem).parent()[0];
-		$(pt).hide();
-		if ( pt.id == 'getting-started' ) {
-			$('<div id="gs-bar"></div>').insertAfter(pt);
-		} else {
-			$(pt).addClass('getting-started');
-			$(elem).hide();
-		}
-	});
-
-	var r = Raphael('gs-bar', 840, 100);
+	// Create the graphics context
+	var r = Raphael('gs-bar', 820, 100);
 	r.clear();
 	var instrs = r.set();
 	var x = 20, y = 60;
@@ -49,20 +48,18 @@ function gs_start() {
 		var nid = '';
 		console.log(prev_gsid);
 		if ( event.which == 37 ) {
-			nid = $('div.getting-started[id="' + prev_gsid + '"]').prev().attr('id');
+			nid = $('div.panelstep[id="' + prev_gsid + '"]').prev().attr('id');
 		}
 		else if ( event.which == 39 ) {
-			nid = $('div.getting-started[id="' + prev_gsid + '"]').next().attr('id');
+			nid = $('div.panelstep[id="' + prev_gsid + '"]').next().attr('id');
 		}
 		if ( typeof(nid) != 'undefined' && nid != '' && nid != 'gs-bar' )
 			gs_show_section(nid);
 		return true;
 	});
 
-	$('div.section h1').each(function(index, elem) {
+	$('div.section h2').each(function(index, elem) {
 		var gsid = $(elem).parent()[0].id;
-		if ( gsid == 'getting-started' )
-			return;
 		var instr_t = r.text(x - 2, y, $(elem).text().split('¶')[0]);
 		instr_t.rotate(-20, x, y);
 		instrs.push(instr_t);
@@ -73,7 +70,7 @@ function gs_start() {
 		sections[gsid] = [$(elem).parent()[0], instr_t, instr_c];
 		sections_key.push(gsid);
 
-		x += 70;
+		x += (820/(count + 1));
 	});
 	instrs.attr({font: "14px Open Sans", fill: "#333", "text-anchor": "start"});
 
@@ -202,10 +199,11 @@ $(document).ready(function () {
 	$('div.body img').reflect({'opacity': .35, 'height': 40});
 
 	//----------------------------------------------------------------------------
-	// Getting started
+	// Page to change with panel navigation
 	//----------------------------------------------------------------------------
 
-	if ( $('div.section').attr('id') == 'getting-started' )
-		gs_start();
+	var firstsection = $('div.section').attr('id');
+	if ( firstsection == 'getting-started' || firstsection == 'pong-game-tutorial' )
+		gs_start(firstsection);
 
 });

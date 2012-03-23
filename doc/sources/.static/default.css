@@ -206,12 +206,19 @@ h2 {
 	border-bottom: 1px solid #cccccc;
 }
 
-div.getting-started h2 {
+div.panelstep h2,
+div.panelstep div.title {
+	font-family: 'Open Sans', sans-serif;
+	font-weight: 300;
+	font-size: 26px;
+	color: #333;
+	text-shadow: 1px 1px 0px #ccc;
 	border-bottom: none;
 	font-weight: 300;
+	margin: 20px 0 10px 0;
 }
 
-div.getting-started {
+div.panelstep {
 	position: absolute;
 	width: 800px;
 }

@@ -1,42 +1,50 @@
 .. _pong:
 
-Pong Game Tutorial
-==================
-
 .. highlight:: python
     :linenothreshold: 3
 
+Pong Game Tutorial
+==================
+
+Introduction
+------------
+
+.. container:: title
+
+    Welcome to the Pong tutorial
+
+This tutorial will teach you how to write pong using Kivy. We'll start with
+a basic application like the one described in the :ref:`quickstart` and make
+it into a playable pong game describing each step along the way.
+
 .. image:: pong.jpg
-    :align: right
+    :align: center
+
+Here is a check list for things you should know before starting this tutorial:
+
+- You have a working Kivy installation.  See the :doc:`/installation/installation`
+  section for detailed descriptions
+- You know how to run a basic Kivy application. See :doc:`/guide/quickstart`
+  if you don't.
+
+If you have read the programming guide, and understand both basic Widget
+concepts (:doc:`/guide/firstwidget`) and basic concepts of the kv language
+(:doc:`/guide/kvlang`, :doc:`/guide/designwithkv`), you can probably skip the first 2
+steps and go straight to step 3.
 
 .. note:: 
 
     You can find the entire source code, and source code files for each step in
     the Kivy examples directory under `tutorials/pong/`
 
-.. note:: 
-
-    If you have read the programming guide, and understand both basic Widget
-    concepts (:doc:`/guide/firstwidget`) and basic concepts of the kv language
-    (:doc:`/guide/kvlang`, :doc:`/guide/designwithkv`), you can probably skip the first 2
-    steps and go straight to step 3.
-
-This tutorial will teach you how to write pong using Kivy.  We'll start with
-a basic application like the one described in the :ref:`quickstart` and make
-it into a playable pong game describing each step along the way.
-
-Here is a check list for things you should know before starting this tutorial:
-
-* You have a working Kivy installation.  See the :doc:`/installation/installation`
-  section for detailed descriptions
-* You know how to run a basic Kivy application. See :doc:`/guide/quickstart`
-  if you don't.
-
 Ready? Sweet, let's get started!
 
+Getting Started
+---------------
 
-Step 1 - Getting Started
-------------------------
+.. container:: title
+
+    Getting Started
 
 Let's start by getting a really simple Kivy app up and running. Create a
 directory for the game and a file named *main.py*
@@ -52,11 +60,12 @@ for the applications UI. In the next step, we will draw the Pong background
 and scores by defining how the ``PongGame widget`` looks.
 
 
-Step 2 - Some simple graphics
------------------------------
+Add simple graphics
+-------------------
 
-Creation of pong.kv
-~~~~~~~~~~~~~~~~~~~
+.. container:: title
+
+    Creation of pong.kv
 
 We will use a .kv file to define the look and feel of the ``PongGame`` class.
 Since our :class:`~kivy.app.App` class is called ``PongGameApp``, we can simply create a file
@@ -157,8 +166,12 @@ case)::
             top: root.top - 50
             text: "0"
     
-Step 3 - Adding a ball
-----------------------
+Add the ball
+------------
+
+.. container:: title
+
+    Add the ball
 
 Ok, so we have a basic pong arena to play in, but we still need the players and
 a ball to pong around.  Let's start with the ball.  We'll add a new `PongBall`
@@ -222,8 +235,12 @@ Here is the entire updated python code and kv file for this step:
             :literal:
 
 
-Step 4 - Making the ball move
------------------------------
+Adding ball animation
+---------------------
+
+.. container:: title
+
+    Making the ball move
 
 Cool, so now we have a ball, and it even has a ``move`` function... but it's not
 moving yet. Let's fix that.
@@ -322,8 +339,12 @@ Here is the entire code for this step:
        .. include:: ../../../examples/tutorials/pong/steps/step4/pong.kv
         :literal:
 
-Step 5 - Adding Players and reacting to touch input
----------------------------------------------------
+Connect input event
+-------------------
+
+.. container:: title
+
+    Adding Players and reacting to touch input
 
 Sweet, our ball is bouncing around. The only things missing now are, the movable
 player rackets and keeping track of the score.  We won't to go over all the
@@ -383,8 +404,12 @@ And here it is in context. Pretty much done:
         :literal:
 
 
-Step 6 - Have some fun
-----------------------
+Where to go now?
+----------------
+
+.. container:: title
+
+    Have some fun
 
 Well, the pong game is pretty much complete.  If you understood all of the
 things that are covered in this turoial, give yourself a pat on the back and
@@ -403,7 +428,7 @@ you could do:
 
 * Make it a 4 player Pong Game.  Most tablets have Multi-Touch support,
   wouldn't it be cool to have a player on each side and play four people at
-  the same time? 
+  the same time?
 
 .. note:: 
 
