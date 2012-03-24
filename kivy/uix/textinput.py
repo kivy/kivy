@@ -548,25 +548,30 @@ class TextInput(Widget):
             _platform = platform()
             if _platform == 'win':
                 self._clip_mime_type = 'text/plain;charset=utf-8'
+                #windows clipboard uses a utf-16 encoding
+                self._encoding = 'utf-16'
             elif _platform == 'linux':
                 self._clip_mime_type = 'UTF8_STRING'
+                self._encoding = 'utf-8'
             else:
                 self._clip_mime_type = 'text/plain'
+                self._encoding = 'utf-8'
 
     def _cut(self, data):
-        try:
-            Clipboard.put(data.encode('utf8'), self._clip_mime_type)
-        except AttributeError:
-            self._enable_clipboard()
-            Clipboard.put(data.encode('utf8'), self._clip_mime_type)
+        self._copy(data)
         self.delete_selection()
 
     def _copy(self, data):
+        # explicitly terminate strings with a null character
+        # so as to avoid putting spurious data after the end.
+        # MS windows issue.
         try:
-            Clipboard.put(data.encode('utf8'), self._clip_mime_type)
+            data = data.encode(self._encoding) + '\x00'
+            Clipboard.put(data, self._clip_mime_type)
         except AttributeError:
             self._enable_clipboard()
-            Clipboard.put(data.encode('utf8'), self._clip_mime_type)
+            data = data.encode(self._encoding) + '\x00'
+            Clipboard.put(data, self._clip_mime_type)
 
     def _paste(self):
         try:
@@ -574,12 +579,16 @@ class TextInput(Widget):
         except AttributeError:
             self._enable_clipboard()
             _clip_types = Clipboard.get_types()
+
         mime_type = self._clip_mime_type
         if mime_type not in _clip_types:
             mime_type = 'text/plain'
+
         data = Clipboard.get(mime_type)
         if data:
-            data = data.decode('utf8')
+            data = data.decode(self._encoding, 'ignore')
+            # remove null strings mostly a windows issue
+            data = data.replace('\x00', '')
             self.delete_selection()
             self.insert_text(data)
 
