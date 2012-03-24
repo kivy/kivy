@@ -1,5 +1,5 @@
-touch events
-============
+Touch events
+------------
 
 on_touch_*:
 -> what they are,

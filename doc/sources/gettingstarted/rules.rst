@@ -1,5 +1,5 @@
 Kv rules
-========
+--------
 
 -> highlite that kv files are for ease of gui design, separating GUI design from code
 -> what sets a property of a widget

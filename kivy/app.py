@@ -356,8 +356,12 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-        kv_directory = self.options.get('kv_directory',
-            dirname(getfile(self.__class__)))
+        try:
+            default_kv_directory = dirname(getfile(self.__class__))
+        except TypeError:
+            # if it's a builtin module.. use the current dir.
+            default_kv_directory = '.'
+        kv_directory = self.options.get('kv_directory', default_kv_directory)
         clsname = self.__class__.__name__
         if clsname.endswith('App'):
             clsname = clsname[:-3]
@@ -431,7 +435,11 @@ class App(EventDispatcher):
         Return the directory where the application live
         '''
         if self._app_directory is None:
-            self._app_directory = dirname(getfile(self.__class__))
+            try:
+                self._app_directory = dirname(getfile(self.__class__))
+            except TypeError:
+                # if it's a builtin module.. use the current dir.
+                self._app_directory = '.'
         return self._app_directory
 
     @property
