@@ -6,7 +6,7 @@ Accordion
 
 .. warning::
 
-    This widget is still experimental, and his API is subject to change in a
+    This widget is still experimental, and its API is subject to change in a
     future version.
 
 .. image:: images/accordion.jpg

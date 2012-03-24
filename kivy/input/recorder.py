@@ -193,7 +193,7 @@ class Recorder(EventDispatcher):
             (time() - self.record_time, etype, motionevent.uid, args), ))
         self.counter += 1
 
-    def on_keyboard(self, etype, window, key, **kwargs):
+    def on_keyboard(self, etype, window, key, *args, **kwargs):
         if not self.record:
             return
         self.record_fd.write('%r\n' % (
