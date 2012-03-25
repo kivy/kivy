@@ -23,7 +23,7 @@ class ClipboardPygame(ClipboardBase):
 
     def init(self):
         if ClipboardPygame._is_init:
-                return
+            return
         pygame.scrap.init()
         ClipboardPygame._is_init = True
 
