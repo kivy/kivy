@@ -19,6 +19,7 @@ it into a playable pong game describing each step along the way.
 
 .. image:: pong.jpg
     :align: center
+    :height: 392px
 
 Here is a check list for things you should know before starting this tutorial:
 

@@ -1,3 +1,51 @@
+var sections = {};
+var sections_key = [];
+var prev_gsid = '';
+
+function gs_check_hash() {
+	if ( location.hash.substring(0, 5) == '#doc-' ) {
+		gs_show_section(location.hash.substring(5), 1);
+	} else {
+		console.log($(location.hash).parent('.panelstep'));
+		var id = $(location.hash).parent('.panelstep').attr('id');
+		if ( typeof(id) != 'undefined' )
+			gs_show_section(id, 0);
+		else
+			gs_show_section(sections_key[0], 1);
+	}
+	setTimeout('gs_check_hash()', 250);
+}
+
+function gs_show_section(gsid, changehash) {
+	if ( prev_gsid == gsid )
+		return;
+	$('html, body').animate({scrollTop:0});
+	$(sections_key).each(function(i, key){
+		if ( gsid == key ) {
+			if ( prev_gsid == '' )
+				$(sections[key][0]).show();
+			else
+				$(sections[key][0]).show('slide', {direction: 'right'}, 150);
+			sections[key][1].attr({'font-weight': 'bold'});
+			sections[key][2].animate({'stroke-width': '8', 'fill': '#f80'}, 300);
+			console.log($(sections[key][0]).height());
+			$('#content').css('min-height', function(){
+				return $(sections[key][0]).height() + 180;
+			});
+			console.log($(sections[key][0]).height());
+		}
+		else if ( key == prev_gsid )
+		{
+			$(sections[key][0]).hide('slide', {direction: 'left'}, 150);
+			sections[key][1].attr({'font-weight': 'normal'});
+			sections[key][2].animate({'stroke-width': '3', 'fill': '#f7ff7a'}, 300);
+		}
+	});
+	prev_gsid = gsid;
+	if ( changehash )
+		document.location.hash = 'doc-' + gsid;
+}
+
 function gs_start(firstsection) {
 
 	var count = $('div.section h2').length;
@@ -19,31 +67,6 @@ function gs_start(firstsection) {
 	r.path('M20,85L760,85').attr({fill: "#445fa3", stroke: "#999", "stroke-width": 4, "stroke-opacity": 0.4});
 	r.path('M770,85L760,80L760,90Z').attr({fill: "#999", stroke: "#999", "stroke-width": 4, "stroke-opacity": 0.4});
 
-	var sections = {};
-	var sections_key = [];
-	var prev_gsid = '';
-
-	function gs_show_section(gsid) {
-		$(sections_key).each(function(i, key){
-			if ( gsid == key ) {
-				if ( prev_gsid == '' )
-					$(sections[key][0]).show();
-				else
-					$(sections[key][0]).show('slide', {direction: 'right'}, 150);
-				sections[key][1].attr({'font-weight': 'bold'});
-				sections[key][2].animate({'stroke-width': '8', 'fill': '#f80'}, 300);
-			}
-			else if ( key == prev_gsid )
-			{
-				$(sections[key][0]).hide('slide', {direction: 'left'}, 150);
-				sections[key][1].attr({'font-weight': 'normal'});
-				sections[key][2].animate({'stroke-width': '3', 'fill': '#f7ff7a'}, 300);
-			}
-		});
-		prev_gsid = gsid;
-		document.location.hash = 'doc-' + gsid;
-	}
-
 	jQuery(document).bind('keydown', function (evt){
 		var nid = '';
 		console.log(prev_gsid);
@@ -54,7 +77,7 @@ function gs_start(firstsection) {
 			nid = $('div.panelstep[id="' + prev_gsid + '"]').next().attr('id');
 		}
 		if ( typeof(nid) != 'undefined' && nid != '' && nid != 'gs-bar' )
-			gs_show_section(nid);
+			gs_show_section(nid, 1);
 		return true;
 	});
 
@@ -65,20 +88,44 @@ function gs_start(firstsection) {
 		instrs.push(instr_t);
 		var instr_c = r.circle(x + 4, y + 25, 10).attr({fill: "#f7ff7a", stroke: "#000", "stroke-width": 3, "stroke-opacity": 0.4});
 
-		instr_t.click(function() { gs_show_section(gsid, index); });
-		instr_c.click(function() { gs_show_section(gsid, index); });
+		instr_t.click(function() { gs_show_section(gsid, 1); });
+		instr_c.click(function() { gs_show_section(gsid, 1); });
 		sections[gsid] = [$(elem).parent()[0], instr_t, instr_c];
 		sections_key.push(gsid);
+
+		var prevlink = '', nextlink = '';
+		var pt = $(elem).parent()[0];
+
+		prevlink =  $(pt).prev().attr('id');
+		if ( prevlink != '' && prevlink != 'gs-bar' ) {
+			var text = $('#' + prevlink + ' h2').text().split('¶')[0];
+			prevlink = '<a href="#doc-' + prevlink + '">&laquo; ' + text + '</a>';
+		} else {
+			prevlink = '';
+		}
+
+		nextlink =  $(pt).next().attr('id');
+		if ( typeof(nextlink) != 'undefined' ) {
+			var text = $('#' + nextlink + ' h2').text().split('¶')[0];
+			nextlink = '<a href="#doc-' + nextlink + '">' + text + ' &raquo; </a>';
+		} else {
+			nextlink = '';
+		}
+
+		$(['<div class="footerlinks">',
+		   '<table><tbody><tr><td class="leftlink">',
+		   prevlink,
+		   '</td><td class="rightlink">',
+		   nextlink,
+		   '</td></tr></tbody></table>',
+		   '</div>'
+		].join('')).appendTo($(elem).parent());
 
 		x += (820/(count + 1));
 	});
 	instrs.attr({font: "14px Open Sans", fill: "#333", "text-anchor": "start"});
 
-	console.log(location.hash.substring(0, 5));
-	if ( location.hash.substring(0, 5) == '#doc-' )
-		gs_show_section(location.hash.substring(5));
-	else
-		gs_show_section('introduction');
+	gs_check_hash();
 }
 
 $(document).ready(function () {

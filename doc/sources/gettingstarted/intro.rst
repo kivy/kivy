@@ -10,6 +10,7 @@ provides the perfect starting point for app development.
 
 .. image:: ../images/gs-introduction.png
     :align: center
+    :height: 255px
 
 On your computer, you can create apps that run on:
 

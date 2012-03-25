@@ -18,16 +18,19 @@ Please refer to the installation instructions for your specific platform:
     :alt: Windows
     :target: ../installation/installation-windows.html
     :class: gs-osimage
+    :height: 128px
 
 .. image:: ../images/macosx.png
     :alt: MacOSX
     :target: ../installation/installation-macosx.html
     :class: gs-osimage
+    :height: 128px
 
 .. image:: ../images/linux.png
     :alt: Linux
     :target: ../installation/installation-linux.html
     :class: gs-osimage gs-osimage-last
+    :height: 128px
 
 
 If you want to use the development version of Kivy, so you can use the latest

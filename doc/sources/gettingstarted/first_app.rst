@@ -9,6 +9,7 @@ Immerse yourself into the world of Kivy with your first App.
 
 .. image:: ../images/gs-tutorial.png
     :align: center
+    :height: 229px
 
 The :doc:`/tutorials/pong` introduces the fundamental design patterns and
 application development process. As you follow the tutorial, you will create a simple app.
