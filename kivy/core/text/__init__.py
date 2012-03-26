@@ -303,6 +303,7 @@ class LabelBase(object):
                     if not glyph in cache:
                         cache[glyph] = get_extents(glyph)
 
+
             # Shorten the text that we actually display
             text = self.text
             if options['shorten'] and get_extents(text)[0] > uw:
@@ -403,6 +404,7 @@ class LabelBase(object):
                         mipmap=mipmap)
             else:
                 texture = Texture.create_from_data(data, mipmap=mipmap)
+                data = None
             texture.flip_vertical()
             texture.add_reload_observer(self._texture_refresh)
         elif self.width != texture.width or self.height != texture.height:
@@ -410,20 +412,9 @@ class LabelBase(object):
                 texture = Texture.create(size=self.size, mipmap=mipmap)
             else:
                 texture = Texture.create_from_data(data, mipmap=mipmap)
+                data = None
             texture.flip_vertical()
             texture.add_reload_observer(self._texture_refresh)
-        '''
-        # Avoid that for the moment.
-        # The thing is, as soon as we got a region, the blitting is not going in
-        # the right position cause of previous flip_vertical
-        # In addition, as soon as we have a region, we are not testing from the
-        # original texture. Mean we'll have region of region of region.
-        # Take more time to implement a fix for it, if it's needed.
-        else:
-            print 'get region ??', self, self.width, self.height
-            texture = texture.get_region(
-                0, 0, self.width, self.height)
-        '''
 
         self.texture = texture
 

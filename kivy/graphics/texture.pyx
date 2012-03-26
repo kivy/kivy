@@ -540,6 +540,8 @@ def texture_create_from_data(im, mipmap=False):
     # _texture_create, but allocate in blit_data => only 1 upload
     if _is_pow2(width) and _is_pow2(height):
         allocate = 0
+    elif gl_has_capability(c_GLCAP_NPOT):
+        allocate = 0
 
     # if imagedata have more than one image, activate mipmap
     if im.have_mipmap:
