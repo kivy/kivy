@@ -447,6 +447,7 @@ __all__ = ('Builder', 'BuilderBase', 'BuilderException',
 import codecs
 import re
 import sys
+from re import sub, findall
 from os.path import join
 from copy import copy
 from types import ClassType, CodeType
@@ -461,6 +462,9 @@ from kivy.lib.debug import make_traceback
 
 trace = Logger.trace
 global_idmap = {}
+
+# late import
+Instruction = None
 
 # register cache for creating new classtype (template)
 Cache.register('kv.lang')
@@ -528,7 +532,7 @@ class ParserRuleProperty(object):
         value = self.value
 
         # first, remove all the string from the value
-        tmp = re.sub(lang_str, '', self.value)
+        tmp = sub(lang_str, '', self.value)
 
         # detecting how to handle the value according to the key name
         mode = self.mode
@@ -546,12 +550,11 @@ class ParserRuleProperty(object):
 
         # now, detect obj.prop
         # first, remove all the string from the value
-        tmp = re.sub(lang_str, '', value)
+        tmp = sub(lang_str, '', value)
         # detect key.value inside value, and split them
-        self.watched_keys = [x.split('.') for x in re.findall(lang_keyvalue,
-            tmp)]
-        if len(self.watched_keys) == 0:
-            self.watched_keys = None
+        wk = list(set(findall(lang_keyvalue, tmp)))
+        if len(wk):
+            self.watched_keys = [x.split('.') for x in wk]
 
     def __repr__(self):
         return '<ParserRuleProperty name=%r filename=%s:%d' \
@@ -957,8 +960,8 @@ def create_handler(iself, element, key, value, rule, idmap):
 
     def call_fn(sender, _value):
         if __debug__:
-            trace('Builder: call_fn %s, key=%s, value=%r' % (
-                element, key, value))
+            trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
+                element, key, value, rule.value))
         e_value = eval(value, idmap)
         if __debug__:
             trace('Builder: call_fn => value=%r' % (e_value, ))
@@ -1305,6 +1308,9 @@ class BuilderBase(object):
         return rules
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
+        global Instruction
+        if Instruction is None:
+            Instruction = Factory.get('Instruction')
         idmap = copy(self.rulectx[rootrule]['ids'])
         for crule in rule.children:
             name = crule.name
@@ -1312,6 +1318,9 @@ class BuilderBase(object):
                 canvas.clear()
                 continue
             instr = Factory.get(name)()
+            if not isinstance(instr, Instruction):
+                raise BuilderException(crule.ctx, crule.line,
+                    'You can add only graphics Instruction in canvas.')
             for prule in crule.properties.itervalues():
                 try:
                     key = prule.name

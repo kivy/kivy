@@ -252,8 +252,8 @@ cdef class BindTexture(ContextInstruction):
                         'texture property')
 
         self.source = kwargs.get('source', None)
-        if self.source is None:
-            self.texture = kwargs.get('texture', None)
+        if self.source is None and 'texture' in kwargs:
+            self.texture = kwargs['texture']
 
         self.index = kwargs.get('index', 0)
 

@@ -159,7 +159,7 @@ cdef class Shader:
         '''Use the shader
         '''
         glUseProgram(self.program)
-        for k,v in self.uniform_values.iteritems():
+        for k, v in self.uniform_values.iteritems():
             self.upload_uniform(k, v)
         IF USE_GLEW == 1:
             # XXX Very very weird bug. On virtualbox / win7 / glew, if we don't call
@@ -178,6 +178,8 @@ cdef class Shader:
         glUseProgram(0)
 
     cdef void set_uniform(self, str name, value):
+        if name in self.uniform_values and self.uniform_values[name] == value:
+            return
         self.uniform_values[name] = value
         self.upload_uniform(name, value)
 
@@ -194,7 +196,7 @@ cdef class Shader:
         if loc == -1:
             loc = self.get_uniform_loc(name)
 
-        #Logger.debug('Shader: uploading uniform %s (loc=%d)' % (name, loc))
+        #Logger.debug('Shader: uploading uniform %s (loc=%d, value=%r)' % (name, loc, value))
         if loc == -1:
             #Logger.debug('Shader: -> ignored')
             return
