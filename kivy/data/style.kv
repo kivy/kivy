@@ -51,7 +51,7 @@
             pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
             size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
             source: 'atlas://data/images/defaulttheme/slider%s_background' % self.orientation[0]
-        Image:
+        Rectangle:
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
             size: (32, 32)
             source: 'atlas://data/images/defaulttheme/slider_cursor'
