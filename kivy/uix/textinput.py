@@ -541,21 +541,22 @@ class TextInput(Widget):
             Clock.unschedule(self._do_blink_cursor)
             self._win = None
 
-    def _enable_clipboard(self):
+    def _ensure_clipboard(self):
         global Clipboard
-        if Clipboard is None:
-            from kivy.core.clipboard import Clipboard
-            _platform = platform()
-            if _platform == 'win':
-                self._clip_mime_type = 'text/plain;charset=utf-8'
-                #windows clipboard uses a utf-16 encoding
-                self._encoding = 'utf-16'
-            elif _platform == 'linux':
-                self._clip_mime_type = 'UTF8_STRING'
-                self._encoding = 'utf-8'
-            else:
-                self._clip_mime_type = 'text/plain'
-                self._encoding = 'utf-8'
+        if Clipboard is not None:
+            return
+        from kivy.core.clipboard import Clipboard
+        _platform = platform()
+        if _platform == 'win':
+            self._clip_mime_type = 'text/plain;charset=utf-8'
+            #windows clipboard uses a utf-16 encoding
+            self._encoding = 'utf-16'
+        elif _platform == 'linux':
+            self._clip_mime_type = 'UTF8_STRING'
+            self._encoding = 'utf-8'
+        else:
+            self._clip_mime_type = 'text/plain'
+            self._encoding = 'utf-8'
 
     def _cut(self, data):
         self._copy(data)
@@ -565,27 +566,20 @@ class TextInput(Widget):
         # explicitly terminate strings with a null character
         # so as to avoid putting spurious data after the end.
         # MS windows issue.
-        try:
-            data = data.encode(self._encoding) + '\x00'
-            Clipboard.put(data, self._clip_mime_type)
-        except AttributeError:
-            self._enable_clipboard()
-            data = data.encode(self._encoding) + '\x00'
-            Clipboard.put(data, self._clip_mime_type)
+        self._ensure_clipboard()
+        data = data.encode(self._encoding) + '\x00'
+        Clipboard.put(data, self._clip_mime_type)
 
     def _paste(self):
-        try:
-            _clip_types = Clipboard.get_types()
-        except AttributeError:
-            self._enable_clipboard()
-            _clip_types = Clipboard.get_types()
+        self._ensure_clipboard()
+        _clip_types = Clipboard.get_types()
 
         mime_type = self._clip_mime_type
         if mime_type not in _clip_types:
             mime_type = 'text/plain'
 
         data = Clipboard.get(mime_type)
-        if data:
+        if data is not None:
             data = data.decode(self._encoding, 'ignore')
             # remove null strings mostly a windows issue
             data = data.replace('\x00', '')
