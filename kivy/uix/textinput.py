@@ -106,6 +106,7 @@ import sys
 from functools import partial
 from kivy.logger import Logger
 from kivy.utils import boundary
+from kivy.utils import platform
 from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.text import Label
@@ -133,20 +134,12 @@ class TextInputCutCopyPaste(Bubble):
     def do(self, action):
         textinput = self.textinput
 
-        global Clipboard
-        if Clipboard is None:
-            from kivy.core.clipboard import Clipboard
-
         if action == 'cut':
-            Clipboard.put(textinput.selection_text, 'text/plain')
-            textinput.delete_selection()
+            textinput._cut(textinput.selection_text)
         elif action == 'copy':
-            Clipboard.put(textinput.selection_text, 'text/plain')
+            textinput._copy(textinput.selection_text)
         elif action == 'paste':
-            data = Clipboard.get('text/plain')
-            if data:
-                textinput.delete_selection()
-                textinput.insert_text(data)
+            textinput._paste()
 
 
 class TextInput(Widget):
@@ -525,7 +518,7 @@ class TextInput(Widget):
             # we got argument, it could be the previous schedule
             # cancel focus.
             if len(largs):
-                Logger.warning('Textinput: '
+                Logger.warning('Textinput: ' +
                     'Cannot focus the element, unable to get root window')
                 return
             else:
@@ -547,6 +540,57 @@ class TextInput(Widget):
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
             self._win = None
+
+    def _enable_clipboard(self):
+        global Clipboard
+        if Clipboard is None:
+            from kivy.core.clipboard import Clipboard
+            _platform = platform()
+            if _platform == 'win':
+                self._clip_mime_type = 'text/plain;charset=utf-8'
+                #windows clipboard uses a utf-16 encoding
+                self._encoding = 'utf-16'
+            elif _platform == 'linux':
+                self._clip_mime_type = 'UTF8_STRING'
+                self._encoding = 'utf-8'
+            else:
+                self._clip_mime_type = 'text/plain'
+                self._encoding = 'utf-8'
+
+    def _cut(self, data):
+        self._copy(data)
+        self.delete_selection()
+
+    def _copy(self, data):
+        # explicitly terminate strings with a null character
+        # so as to avoid putting spurious data after the end.
+        # MS windows issue.
+        try:
+            data = data.encode(self._encoding) + '\x00'
+            Clipboard.put(data, self._clip_mime_type)
+        except AttributeError:
+            self._enable_clipboard()
+            data = data.encode(self._encoding) + '\x00'
+            Clipboard.put(data, self._clip_mime_type)
+
+    def _paste(self):
+        try:
+            _clip_types = Clipboard.get_types()
+        except AttributeError:
+            self._enable_clipboard()
+            _clip_types = Clipboard.get_types()
+
+        mime_type = self._clip_mime_type
+        if mime_type not in _clip_types:
+            mime_type = 'text/plain'
+
+        data = Clipboard.get(mime_type)
+        if data:
+            data = data.decode(self._encoding, 'ignore')
+            # remove null strings mostly a windows issue
+            data = data.replace('\x00', '')
+            self.delete_selection()
+            self.insert_text(data)
 
     def _keyboard_released(self):
         # Callback called when the real keyboard is taken by someone else
@@ -913,10 +957,6 @@ class TextInput(Widget):
                 self._update_selection(True)
 
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
-        global Clipboard
-        if Clipboard is None:
-            from kivy.core.clipboard import Clipboard
-
         is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
@@ -926,15 +966,11 @@ class TextInput(Widget):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
                 if key == ord('x'): # cut selection
-                    Clipboard.put(self.selection_text, 'text/plain')
-                    self.delete_selection()
+                    self._cut(self.selection_text)
                 elif key == ord('c'): # copy selection
-                    Clipboard.put(self.selection_text, 'text/plain')
+                    self._copy(self.selection_text)
                 elif key == ord('v'): # paste selection
-                    data = Clipboard.get('text/plain')
-                    if data:
-                        self.delete_selection()
-                        self.insert_text(data)
+                    self._paste()
                 elif key == ord('a'): # select all
                     self.selection_from = 0
                     self.selection_to = len(self.text)

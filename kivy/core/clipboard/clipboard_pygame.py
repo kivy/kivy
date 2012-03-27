@@ -4,10 +4,10 @@ Clipboard Pygame: implementation of clipboard using pygame.scrap.
 
 __all__ = ('ClipboardPygame', )
 
-import sys
+from kivy.utils import platform
 from . import ClipboardBase
 
-if sys.platform not in ('win32', 'cygwin'):
+if platform() not in ('win', 'linux'):
     raise SystemError('unsupported platform for pygame clipboard')
 
 try:
@@ -38,4 +38,3 @@ class ClipboardPygame(ClipboardBase):
     def get_types(self):
         self.init()
         return pygame.scrap.get_types()
-
