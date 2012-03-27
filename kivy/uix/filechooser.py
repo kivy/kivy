@@ -49,7 +49,6 @@ if platform == 'win':
     except ImportError:
         Logger.error('filechooser: win32file module is missing')
         Logger.error('filechooser: we cant check if a file is hidden or not')
-        pass
 
 
 def is_hidden_unix(fn):
@@ -300,9 +299,7 @@ class FileChooserController(FloatLayout):
 
         .. versionadded:: 1.1.0
         '''
-        if self.multiselect:
-            pass
-        else:
+        if not self.multiselect:
             if isdir(entry.path) and not self.dirselect:
                 self.open_entry(entry)
             elif touch.is_double_tap:
@@ -317,7 +314,11 @@ class FileChooserController(FloatLayout):
             # _add_file does, so if it fails here, it would also fail later
             # on. Do the check here to prevent setting path to an invalid
             # directory that we cannot list.
-            listdir(unicode(entry.path))
+            try:
+                path = entry.path.decode('utf-8')
+            except UnicodeEncodeError:
+                pass
+            listdir(path)
         except OSError:
             #Logger.exception(e)
             entry.locked = True
@@ -486,7 +487,11 @@ class FileChooserController(FloatLayout):
         path = expanduser(path)
         # Make sure we're using unicode in case of non-ascii chars in filenames.
         # listdir() returns unicode if you pass it unicode.
-        files = listdir(unicode(path))
+        try:
+            path = path.decode('utf-8')
+        except UnicodeEncodeError:
+            pass
+        files = listdir(path)
         # In the following, use fully qualified filenames
         files = [normpath(join(path, f)) for f in files]
         # Apply filename filters
@@ -538,14 +543,14 @@ class FileChooserIconView(FileChooserController):
 
 if __name__ == '__main__':
     from kivy.app import App
+    import sys
 
     class FileChooserApp(App):
 
         def build(self):
-            pos = (100, 100)
-            size_hint = (None, None)
-            size = (300, 400)
-            #return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
-            return FileChooserIconView()
+            view = FileChooserListView
+            if len(sys.argv) > 1:
+                return view(path=sys.argv[1])
+            return view()
 
     FileChooserApp().run()
