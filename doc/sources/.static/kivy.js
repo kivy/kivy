@@ -1,6 +1,11 @@
 var sections = {};
 var sections_key = [];
 var prev_gsid = '';
+var avoidscroll = 1;
+
+function gs_enable_scroll() {
+	avoidscroll = 0;
+}
 
 function gs_check_hash() {
 	if ( location.hash.substring(0, 5) == '#doc-' ) {
@@ -237,6 +242,38 @@ $(document).ready(function () {
 		$('#api-toggle').removeClass('showed');
 		$('#api-toggle').html('Expand All &dArr;');
 	}
+
+	//----------------------------------------------------------------------------
+	// Reduce the TOC page
+	//----------------------------------------------------------------------------
+
+	var ul = $('div.sphinxsidebarwrapper h3:eq(1) + ul > li > ul');
+	$('div.sphinxsidebarwrapper h3:eq(1) + ul').detach();
+	ul.insertAfter($('div.sphinxsidebarwrapper h3:eq(1)'));
+	$("div.sphinxsidebarwrapper ul").each(function() {
+		if ($(this).children().length < 1)
+			$(this).remove()
+	});
+
+	//----------------------------------------------------------------------------
+	// Make the navigation always in view
+	//----------------------------------------------------------------------------
+	var $scrollingDiv = $('div.sphinxsidebarwrapper');
+	var $scrolltop = $('div.sphinxsidebarwrapper h3:eq(1)').position().top;
+	$(window).scroll(function() {
+		if ( avoidscroll )
+			return;
+		var wtop = $(window).scrollTop();
+		wtop -= $scrolltop;
+		if ( wtop < 0 )
+			wtop = 0;
+		console.log(wtop);
+		$scrollingDiv
+			.stop()
+			.animate({'marginTop': wtop + 'px'}, 'slow');
+	});
+
+	setTimeout('gs_enable_scroll()', 250);
 
 
 	//----------------------------------------------------------------------------
