@@ -330,14 +330,14 @@ class Inspector(FloatLayout):
         node.refresh = True
         node.refresh = False
 
-    def keyboard_shortcut(self, win, scancode, *largs):
+    def keyboard_shortcut(self, win, key, scancode, *largs):
         modifiers = largs[-1]
-        if scancode == 101 and modifiers == ['ctrl']:
+        if scancode == 40 and modifiers == ['ctrl']:
             self.activated = not self.activated
             if self.activated:
                 self.inspect_enabled = True
             return True
-        elif scancode == 27:
+        elif scancode == 9:
             if self.inspect_enabled:
                 self.inspect_enabled = False
                 return True
