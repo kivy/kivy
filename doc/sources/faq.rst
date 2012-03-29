@@ -196,10 +196,10 @@ It does make sense to talk to us before you come up with bigger
 changes, especially new features.
 
 
-Does the Kivy project participate in Google's Summer of Code 2011?
+Does the Kivy project participate in Google's Summer of Code 2012?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Since Google announced that there will be a GSoC 2011 we have had many
+Since Google announced that there will be a GSoC 2012 we have had many
 potential students ask whether we would participate.
 The clear answer is: Indeed. :-)
 The NUIGroup has applied as an umbrella organization and luckily
@@ -212,32 +212,30 @@ chances of being accepted, start talking to us today and try fixing
 some smaller (or larger, if you can ;-) problems to get used to our
 workflow. If we know you can work well with us, that'd be a big plus.
 
-See: http://wiki.nuigroup.com/Google_Summer_of_Code_2011
+See: http://gsoc.nuigc.com/
 
 Here's a checklist:
 
-    * Make sure to read through the website and at least skim the
-      documentation.
-    * Look at the source code.
-    * Read our contribution guidelines.
-    * Pick an idea that you think is interesting from the ideas list (see
-      link above) or come up with your own idea.
-    * Do some research **yourself**. GSoC is not about us teaching you
-      something and you getting paid for that. It is about you trying to
-      achieve agreed upon goals by yourself with our support. The main
-      driving force in this should be, obviously, yourself, though.
-      Many students come up and ask what they should do. Well, we don't
-      know because we know neither your interests nor your skills. Show us
-      you're serious about it and take initiative.
-    * Write a draft proposal about what you want to do. Include what you
-      understand the current state is (very roughly), what you would like
-      to improve and how, etc.
-    * Discuss that proposal with us in a timely manner. Get feedback.
-    * Be patient! Especially on IRC. We will try to get to you if we're
-      available. If not, send an email and just wait. Most questions are
-      already answered in the docs or somewhere else and can be found with
-      some research. If your questions don't reflect that you've actually
-      thought through what you're asking, that might not be received well.
+* Make sure to read through the website and at least skim the documentation.
+* Look at the source code.
+* Read our contribution guidelines.
+* Pick an idea that you think is interesting from the ideas list (see link
+  above) or come up with your own idea.
+* Do some research **yourself**. GSoC is not about us teaching you something
+  and you getting paid for that. It is about you trying to achieve agreed upon
+  goals by yourself with our support. The main driving force in this should be,
+  obviously, yourself, though.  Many students come up and ask what they should
+  do. Well, we don't know because we know neither your interests nor your
+  skills. Show us you're serious about it and take initiative.
+* Write a draft proposal about what you want to do. Include what you understand
+  the current state is (very roughly), what you would like to improve and how,
+  etc.
+* Discuss that proposal with us in a timely manner. Get feedback.
+* Be patient! Especially on IRC. We will try to get to you if we're available.
+  If not, send an email and just wait. Most questions are already answered in
+  the docs or somewhere else and can be found with some research. If your
+  questions don't reflect that you've actually thought through what you're
+  asking, that might not be received well.
 
 Good luck! :-)
 
