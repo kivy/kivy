@@ -248,7 +248,8 @@ class FileChooserController(FloatLayout):
             item.selected = item.path in self.selection
 
     def _save_previous_path(self, instance, value):
-        path = realpath(value)
+        path = expanduser(value)
+        path = realpath(path)
         if path != value:
             self.path = path
             return
@@ -278,6 +279,8 @@ class FileChooserController(FloatLayout):
         '''(internal) This method must be called by the template when an entry
         is touched by the user.
         '''
+        if 'button' in touch.profile and touch.button in ('scrollup', 'scrolldown'):
+            return False
         if self.multiselect:
             if isdir(entry.path) and touch.is_double_tap:
                 self.open_entry(entry)
@@ -299,6 +302,8 @@ class FileChooserController(FloatLayout):
 
         .. versionadded:: 1.1.0
         '''
+        if 'button' in touch.profile and touch.button in ('scrollup', 'scrolldown'):
+            return False
         if not self.multiselect:
             if isdir(entry.path) and not self.dirselect:
                 self.open_entry(entry)
