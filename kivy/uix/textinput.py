@@ -264,7 +264,11 @@ class TextInput(Widget):
         text = self._lines[cr]
         new_text = text[:cc] + substring + text[cc:]
         self._set_line_text(cr, new_text)
-        self._trigger_refresh_text()
+        if len(substring) > 1 or substring == '\n':
+            # Avoid refreshing text on every keystroke.
+            # Allows for fatser typing of text when the amount of text in
+            # TextInput gets large.
+            self._trigger_refresh_text()
         self.cursor = self.get_cursor_from_index(ci + len(substring))
 
     def do_backspace(self):
@@ -290,7 +294,10 @@ class TextInput(Widget):
             new_text = text[:cc-1] + text[cc:]
             self._set_line_text(cr, new_text)
 
-        self._refresh_text_from_property()
+        # refresh_text seems to be unnecessary here
+        # plus removing it leads to a large improvement in editing text
+        # where large..ish text is involved.
+        #self._refresh_text_from_property()
         self.cursor = self.get_cursor_from_index(cursor_index - 1)
 
     def do_cursor_movement(self, action):
@@ -397,7 +404,11 @@ class TextInput(Widget):
         else:
             self._selection = bool(len(self.selection_text))
             self._selection_touch = None
-        self._trigger_update_graphics()
+        if a == 0:
+            # update graphics only on new line
+            # allows smoother scrolling, noticeably
+            # faster when dealing with large text.
+            self._trigger_update_graphics()
 
     #
     # Touch control
@@ -648,17 +659,19 @@ class TextInput(Widget):
         # By using cache in internal functions, this method should be fast.
         _lines, self._lines_flags = self._split_smart(text)
         self._lines = _lines
-        self._lines_labels = [self._create_line_label(x) for x in self._lines]
+        _create_label = self._create_line_label
+        _lines_labels = self._lines_labels =\
+            [_create_label(x) for x in _lines]
         self._lines_rects = [Rectangle(texture=x, size=( \
                              x.size if x else (0, 0))) \
-                             for x in self._lines_labels]
-        line_label = self._lines_labels[0]
+                             for x in _lines_labels]
+        line_label = _lines_labels[0]
         if line_label is None:
             self.line_height = max(1, self.font_size + self.padding_y)
         else:
             self.line_height = line_label.height
         self._line_spacing = 2
-        # now, if the text change, maybe the cursor is not as the same place as
+        # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
         row = self.cursor_row
         self.cursor = self.get_cursor_from_index(self.cursor_index())
@@ -764,11 +777,24 @@ class TextInput(Widget):
         self.canvas.remove_group('selection')
         dy = self.line_height + self._line_spacing
         rects = self._lines_rects
-        y = self.top - self.padding_y + self.scroll_y
-        miny = self.y + self.padding_y
-        maxy = self.top - self.padding_y
+        _padding_y = self.padding_y
+        _top = self.top
+        y = _top - _padding_y + self.scroll_y
+        miny = self.y + _padding_y
+        maxy = _top - _padding_y
         draw_selection = self._draw_selection
-        for line_num, value in enumerate(self._lines):
+        scroll_y = self.scroll_y
+        a, b = self.selection_from, self.selection_to
+        if a > b:
+            a, b = b, a
+        get_cursor_from_index = self.get_cursor_from_index
+        s1c, s1r = get_cursor_from_index(a)
+        s2c, s2r = get_cursor_from_index(b)
+        s2r += 1
+        # pass only the selection lines
+        # passing all the lines can get slow when dealing a lot of text
+        y -= s1r * dy
+        for line_num, value in enumerate(self._lines[s1r:s2r], start=s1r):
             if miny <= y <= maxy + dy:
                 r = rects[line_num]
                 draw_selection(r.pos, r.size, line_num)
@@ -779,8 +805,9 @@ class TextInput(Widget):
         a, b = self.selection_from, self.selection_to
         if a > b:
             a, b = b, a
-        s1c, s1r = self.get_cursor_from_index(a)
-        s2c, s2r = self.get_cursor_from_index(b)
+        get_cursor_from_index = self.get_cursor_from_index
+        s1c, s1r = get_cursor_from_index(a)
+        s2c, s2r = get_cursor_from_index(b)
         if line_num < s1r or line_num > s2r:
             return
         x, y = pos
@@ -793,12 +820,14 @@ class TextInput(Widget):
         if line_num == s2r:
             lines = self._lines[line_num]
             x2 = x + self._get_text_width(lines[:s2c])
-        maxx = x + self.width - self.padding_x
+        width_minus_padding_x = self.width - self.padding_x
+        maxx = x + width_minus_padding_x
         if x1 > maxx:
             return
-        x2 = min(x2, self.x + self.width - self.padding_x)
-        self.canvas.add(Color(*self.selection_color, group='selection'))
-        self.canvas.add(Rectangle(
+        x2 = min(x2, self.x + width_minus_padding_x)
+        canvas_add = self.canvas.add
+        canvas_add(Color(*self.selection_color, group='selection'))
+        canvas_add(Rectangle(
             pos=(x1, pos[1]), size=(x2 - x1, size[1]), group='selection'))
 
     def on_size(self, instance, value):
