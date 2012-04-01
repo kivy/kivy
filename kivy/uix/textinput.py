@@ -266,7 +266,7 @@ class TextInput(Widget):
         self._set_line_text(cr, new_text)
         if len(substring) > 1 or substring == '\n':
             # Avoid refreshing text on every keystroke.
-            # Allows for fatser typing of text when the amount of text in
+            # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
             self._trigger_refresh_text()
         self.cursor = self.get_cursor_from_index(ci + len(substring))
@@ -792,7 +792,7 @@ class TextInput(Widget):
         s2c, s2r = get_cursor_from_index(b)
         s2r += 1
         # pass only the selection lines
-        # passing all the lines can get slow when dealing a lot of text
+        # passing all the lines can get slow when dealing with a lot of text
         y -= s1r * dy
         for line_num, value in enumerate(self._lines[s1r:s2r], start=s1r):
             if miny <= y <= maxy + dy:
