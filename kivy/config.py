@@ -37,7 +37,7 @@ Available configuration tokens
     * windows icons are not copied to user directory anymore. You can still set
       a new window icon by using ``window_icon`` config setting.
 
-.. versionchanged:: 1.1.2
+.. versionchanged:: 1.2.0
 
     * `resizable` has been added to graphics section
 

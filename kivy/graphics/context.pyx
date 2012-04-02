@@ -2,7 +2,7 @@
 Context management
 ==================
 
-.. versionadded:: 1.1.2
+.. versionadded:: 1.2.0
 
 This class handle a register of all graphics instructions created, and the
 ability to flush and delete them.

@@ -171,7 +171,7 @@ class ScrollView(StencilView):
             y = self.top - vp.height
         vp.pos = x, y
 
-        # new in 1.1.2, show bar when scrolling happen
+        # new in 1.2.0, show bar when scrolling happen
         # and slowly remove them when no scroll is happening.
         self.bar_alpha = 1.
         Animation.stop_all(self, 'bar_alpha')
@@ -512,7 +512,7 @@ class ScrollView(StencilView):
     vbar = AliasProperty(_get_vbar, None, bind=('scroll_y', '_viewport', '_viewport_size'))
     '''Return a tuple of (position, size) of the vertical scrolling bar.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     The position and size are normalized between 0-1, and represent a percentage
     of the current scrollview height. This property is used internally for
@@ -537,7 +537,7 @@ class ScrollView(StencilView):
     hbar = AliasProperty(_get_hbar, None, bind=('scroll_x', '_viewport', '_viewport_size'))
     '''Return a tuple of (position, size) of the horizontal scrolling bar.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     The position and size are normalized between 0-1, and represent a percentage
     of the current scrollview height. This property is used internally for
@@ -549,7 +549,7 @@ class ScrollView(StencilView):
     bar_color = ListProperty([.7, .7, .7, .9])
     '''Color of horizontal / vertical scroll bar, in RGBA format.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     :data:`bar_color` is a :class:`~kivy.properties.ListProperty`, default to
     [.7, .7, .7, .9].
@@ -559,7 +559,7 @@ class ScrollView(StencilView):
     '''Width of the horizontal / vertical scroll bar. The width is interpreted
     as an height for the horizontal bar.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default to 2
     '''
@@ -568,7 +568,7 @@ class ScrollView(StencilView):
     '''Margin between the bottom / right side of the scrollview when drawing the
     horizontal / vertical scroll bar.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     :data:`bar_margin` is a :class:`~kivy.properties.NumericProperty`, default to 0
     '''

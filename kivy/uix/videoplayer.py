@@ -2,7 +2,7 @@
 Video player
 ============
 
-.. versionadded:: 1.1.2
+.. versionadded:: 1.2.0
 
 The video player widget can be used to play video and let the user control the
 play/pause, volume and seek. The widget cannot be customized a lot, due to the

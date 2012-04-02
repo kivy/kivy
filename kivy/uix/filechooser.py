@@ -9,7 +9,7 @@ FileChooser
     This is experimental and subject to change as long as this warning notice is
     present.
 
-.. versionchanged:: 1.1.2
+.. versionchanged:: 1.2.0
 
     In chooser template, the `controller` is not a direct reference anymore, but a weak-reference.
     You must update all the notation `root.controller.xxx` to `root.controller().xxx`.
@@ -77,7 +77,7 @@ class FileChooserProgressBase(FloatLayout):
     '''Base for implementing a progress view. This view is used when too many
     entries need to be created, and are delayed over multiple frames.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
     '''
 
     path = StringProperty('')
@@ -203,7 +203,7 @@ class FileChooserController(FloatLayout):
     to /Users/foo, the user will be unable to goes to /Users, or any other
     directory not starting with /Users/foo.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.StringProperty`, defaults to None.
     '''
@@ -211,7 +211,7 @@ class FileChooserController(FloatLayout):
     progress_cls = ObjectProperty(FileChooserProgress)
     '''Class to use for display a progression of the filechooser loading.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.ObjectProperty`, defaults to :class:`FileChooserProgress`
     '''
@@ -425,7 +425,7 @@ class FileChooserController(FloatLayout):
     def cancel(self, *largs):
         '''Cancel any background action started by filechooser, like loading a new directory.
 
-        .. versionadded:: 1.1.2
+        .. versionadded:: 1.2.0
         '''
         Clock.unschedule(self._create_files_entries)
         self._hide_progress()

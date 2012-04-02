@@ -1012,7 +1012,7 @@ class TextInput(Widget):
     password = BooleanProperty(False)
     '''If True, the widget will display its characters as the character*.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     :data:`password` is a :class:`~kivy.properties.BooleanProperty`, default to
     False
@@ -1176,7 +1176,7 @@ class TextInput(Widget):
     background_color = ListProperty([1, 1, 1, 1])
     '''Current color of the background, in (r, g, b, a) format.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
     default to [1, 1, 1, 1] #White
@@ -1185,7 +1185,7 @@ class TextInput(Widget):
     foreground_color = ListProperty([0, 0, 0, 1])
     '''Current color of the foreground, in (r, g, b, a) format.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 1] #Black

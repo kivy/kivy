@@ -107,7 +107,7 @@ class Video(Image):
 
             Calling seek() before video is loaded have no impact.
 
-        .. versionadded:: 1.1.2
+        .. versionadded:: 1.2.0
         '''
         if self._video is None:
            raise Exception('Video not loaded.')
