@@ -49,3 +49,92 @@
             text: 'Hello'
         Button:
             text: 'World'
+
+[Title@Label]
+    pos_hint: {'center_x': .5, 'y': .3}
+    text: ctx.text
+    font_size: 22
+
+<AnchorLayoutShowcase>
+    Title:
+        text: 'Anchor Layout'
+    AnchorLayout:
+        size_hint: .5, .5
+        pos_hint: {'center_x':.5, 'center_y':.5}
+        anchor_x: root.anchor_x
+        anchor_y: root.anchor_y
+        # highlight the Layout area
+        canvas:
+            Color:
+                rgba: .1, .3, .1, .51
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        Button:
+            text: 'anchor_x = %s \n anchor_y = %s' %(root.anchor_x, root.anchor_y)
+            size_hint: None, None
+            size: 150, 50
+
+<BoxLayoutShowcase>
+    blayout: blayout
+    Title:
+        text: "Box Layout"
+    BoxLayout:
+        id:blayout
+        # highlight the Layout area
+        size_hint: .5, .5
+        pos_hint: {'center_x':.5, 'center_y':.5}
+        canvas:
+            Color:
+                rgba: .1, .3, .1, .51
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+<FloatLayoutShowcase>
+    flayout: flayout
+    Title:
+        text: "Float Layout"
+    FloatLayout:
+        id: flayout
+        # highlight the Layout area
+        size_hint: .5, .5
+        pos_hint: {'center_x':.5, 'center_y':.5}
+        canvas:
+            Color:
+                rgba: .1, .3, .1, .51
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+<GridLayoutShowcase>
+    glayout: glayout
+    Title:
+        text: "Grid Layout"
+    GridLayout:
+        id: glayout
+        # highlight the Layout area
+        size_hint: .5, .5
+        pos_hint: {'center_x':.5, 'center_y':.5}
+        canvas:
+            Color:
+                rgba: .1, .3, .1, .51
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+<StackLayoutShowcase>
+    slayout: slayout
+    Title:
+        text: "Stack Layout"
+    StackLayout:
+        id: slayout
+        # highlight the Layout area
+        size_hint: .5, .5
+        pos_hint: {'center_x':.5, 'center_y':.5}
+        canvas:
+            Color:
+                rgba: .1, .3, .1, .51
+            Rectangle:
+                size: self.size
+                pos: self.pos
