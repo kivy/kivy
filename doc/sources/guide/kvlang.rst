@@ -119,7 +119,9 @@ The Kivy language has a lot of benefits for this example ``Button``. You can
 create a rule that will match your widget, create graphics instructions, and
 update their properties according to a python expression. Here is the complete
 example for our widget. This is the "yourwidget.kv" kivy language
-part::
+part:
+
+.. code-block:: kv
 
     #:kivy 1.0
 
@@ -152,11 +154,15 @@ Yes, not a single line of graphics code has been written in Python. You'd like
 to know how it works, wouldn't you? Good.
 
 The first line indicates a rule (like a CSS (Cascading Style Sheets) rule) that
-will match all the classes named by the rule's name::
+will match all the classes named by the rule's name:
+
+.. code-block:: kv
 
     <YourWidget>:
 
-Then, you specify the canvas's graphics instruction::
+Then, you specify the canvas's graphics instruction:
+
+.. code-block:: kv
 
     canvas:
         # ...
