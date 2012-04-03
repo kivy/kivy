@@ -17,7 +17,9 @@ from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.accordion import Accordion, AccordionItem
 from kivy.uix.filechooser import FileChooserIconView, FileChooserListView
-
+from kivy.properties import StringProperty
+from kivy.clock import Clock
+import random
 
 class Showcase(FloatLayout):
     pass
@@ -29,6 +31,120 @@ class KivyImageScatter(Scatter):
 
 class ButtonsScatter(Scatter):
     pass
+
+
+class AnchorLayoutShowcase(FloatLayout):
+
+    anchor_x = StringProperty('left')
+    anchor_y = StringProperty('top')
+
+    def __init__(self, **kwargs):
+        super(AnchorLayoutShowcase, self).__init__(**kwargs)
+        Clock.schedule_once(self.change_anchor, 1)
+
+    def change_anchor(self, *l):
+        if self.anchor_x == 'left':
+            self.anchor_x = 'center'
+        elif self.anchor_x == 'center':
+            self.anchor_x = 'right'
+        else:
+            self.anchor_x = 'left'
+            if self.anchor_y == 'top':
+                self.anchor_y = 'center'
+            elif self.anchor_y == 'center':
+                self.anchor_y = 'bottom'
+            else:
+                self.anchor_y = 'top'
+
+        Clock.schedule_once(self.change_anchor, 1)
+
+
+class BoxLayoutShowcase(FloatLayout):
+
+    def __init__(self, **kwargs):
+        super(BoxLayoutShowcase, self).__init__(**kwargs)
+        self.buttons = 0
+        self.txt = 'horizontal'
+        Clock.schedule_once(self.add_button, 1)
+
+    def add_button(self, *l):
+        self.buttons += 1
+        if self.buttons > 5:
+            self.buttons = 0
+            self.blayout.clear_widgets()
+            if self.txt == "vertical":
+                self.txt = self.blayout.orientation = 'horizontal'
+            else:
+                self.txt = self.blayout.orientation = 'vertical'
+        self.blayout.add_widget(Button(text = self.txt))
+        Clock.schedule_once(self.add_button, 1)
+
+
+class FloatLayoutShowcase(FloatLayout):
+
+    def __init__(self, **kwargs):
+        super(FloatLayoutShowcase, self).__init__(**kwargs)
+        self.buttons = 0
+        Clock.schedule_once(self.add_button, 1)
+
+    def add_button(self, *l):
+        self.buttons += 1
+        if self.buttons > 5:
+            self.buttons = 0
+            self.flayout.clear_widgets()
+        self.flayout.add_widget(Button(text = 'no restrictions\n what so ever',
+            size_hint = (None, None), size = (150, 40),
+            pos_hint = {'x':random.random(), 'y': random.random()}))
+        Clock.schedule_once(self.add_button, 1)
+
+
+class GridLayoutShowcase(FloatLayout):
+
+    def __init__(self, **kwargs):
+        super(GridLayoutShowcase, self).__init__(**kwargs)
+        self.buttons = 0
+        self.cols_default = self.glayout.cols
+        self.rows_default = self.glayout.rows
+        self.glayout.rows = 3
+        self.txt = "rows = 3"
+        Clock.schedule_once(self.add_button, 1)
+
+    def add_button(self, *l):
+        self.buttons += 1
+        if self.buttons > 20:
+            self.buttons = 0
+            self.glayout.clear_widgets()
+            if self.txt == "rows = 3":
+                self.glayout.cols = 3
+                self.glayout.rows = 7
+                self.txt = "cols = 3"
+            else:
+                self.glayout.rows = 3
+                self.glayout.cols = 7
+                self.txt = "rows = 3"
+        self.glayout.add_widget(Button(text = self.txt))
+        Clock.schedule_once(self.add_button, 1)
+
+
+class StackLayoutShowcase(FloatLayout):
+
+    def __init__(self, **kwargs):
+        super(StackLayoutShowcase, self).__init__(**kwargs)
+        self.buttons = 0
+        self.txt = 'lr-tb'
+        Clock.schedule_once(self.add_button, 1)
+
+    def add_button(self, *l):
+        self.buttons += 1
+        if self.buttons > 5:
+            self.buttons = 0
+            self.slayout.clear_widgets()
+            if self.txt == "tb-lr":
+                self.txt = self.slayout.orientation = 'lr-tb'
+            else:
+                self.txt = self.slayout.orientation = 'tb-lr'
+        self.slayout.add_widget(Button(text = self.txt))
+        Clock.schedule_once(self.add_button, 1)
 
 
 class ShowcaseApp(App):
@@ -50,8 +166,8 @@ class ShowcaseApp(App):
 
     def build(self):
         root = BoxLayout(orientation='horizontal', padding=20, spacing=20)
-        tree = TreeView(size_hint=(None, 1), width=200, hide_root=True,
-                        indent_level=0)
+        tree = TreeView(
+            size_hint=(None, 1), width=200, hide_root=True, indent_level=0)
 
         def create_tree(text):
             return tree.add_node(TreeViewLabel(
@@ -75,6 +191,12 @@ class ShowcaseApp(App):
         attach_node('Accordion', n)
         attach_node('Popup', n)
         attach_node('Switch', n)
+        n = create_tree('Layouts')
+        attach_node('Anchor Layout', n)
+        attach_node('Box Layout', n)
+        attach_node('Float Layout', n)
+        attach_node('Grid Layout', n)
+        attach_node('Stack Layout', n)
         n = create_tree('Experimentals')
         attach_node('Filechooser icon', n)
         attach_node('Filechooser list', n)
@@ -84,6 +206,21 @@ class ShowcaseApp(App):
         sc = Showcase()
         sc.content.add_widget(root)
         return sc
+
+    def show_anchor_layout(self):
+        return AnchorLayoutShowcase()
+
+    def show_box_layout(self):
+        return BoxLayoutShowcase()
+
+    def show_float_layout(self):
+        return FloatLayoutShowcase()
+
+    def show_grid_layout(self):
+        return GridLayoutShowcase()
+
+    def show_stack_layout(self):
+        return StackLayoutShowcase()
 
     def show_scatter_with_image(self):
         s = KivyImageScatter(center=self.content.center)
