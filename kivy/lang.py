@@ -129,7 +129,7 @@ Furthermore, if a class definition contains an id, you can use it as a keyword::
 
     <Widget>:
         Button:
-            id: 'btn1'
+            id: btn1
         Button:
             text: 'The state of the other button is %s' % btn1.state
 
