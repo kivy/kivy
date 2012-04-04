@@ -5,9 +5,8 @@ Kv Design Language
 
     Designing through kv language.
 
-Kivy provides a design language specifically geared towards ease of GUI Design, seperating the interface design part of your App from the rest. for example ::
-
-To create a username/passsword accepting feilds, do this in your kv file.
+Kivy provides a design language specifically geared towards ease of GUI Design, seperating the interface design part of your App from the rest. for example.
+To create a username/passsword accepting feilds, do this in your kv file ::
 
     #:kivy 1.1.2
     <MyAppClass> 
