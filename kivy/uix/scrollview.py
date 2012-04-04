@@ -509,7 +509,8 @@ class ScrollView(StencilView):
         py = (1. - ph) * self.scroll_y
         return (py, ph)
 
-    vbar = AliasProperty(_get_vbar, None, bind=('scroll_y', '_viewport', '_viewport_size'))
+    vbar = AliasProperty(_get_vbar, None, bind=(
+        'scroll_y', '_viewport', '_viewport_size'))
     '''Return a tuple of (position, size) of the vertical scrolling bar.
 
     .. versionadded:: 1.2.0
@@ -534,7 +535,8 @@ class ScrollView(StencilView):
         px = (1. - pw) * self.scroll_x
         return (px, pw)
 
-    hbar = AliasProperty(_get_hbar, None, bind=('scroll_x', '_viewport', '_viewport_size'))
+    hbar = AliasProperty(_get_hbar, None, bind=(
+        'scroll_x', '_viewport', '_viewport_size'))
     '''Return a tuple of (position, size) of the horizontal scrolling bar.
 
     .. versionadded:: 1.2.0
@@ -561,7 +563,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default to 2
+    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default to
+    2
     '''
 
     bar_margin = NumericProperty(0)
@@ -570,7 +573,8 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    :data:`bar_margin` is a :class:`~kivy.properties.NumericProperty`, default to 0
+    :data:`bar_margin` is a :class:`~kivy.properties.NumericProperty`, default
+    to 0
     '''
 
     # private, for internal use only

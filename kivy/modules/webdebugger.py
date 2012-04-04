@@ -35,23 +35,29 @@ except ImportError:
 
 history_max = 250
 
+
 class MissingOrderedDict(OrderedDict):
+
     def __missing__(self, key):
         self[key] = [0] * history_max
         return self[key]
 
-metrics = MissingOrderedDict()
 
+metrics = MissingOrderedDict()
 app = Flask(__name__)
+
+
 @app.route('/')
 def index():
     return render_template_string(html_index)
+
 
 @app.route('/metrics.json')
 def metrics_json():
     resp = make_response(json.dumps(metrics), 200)
     resp.headers['Content-Type'] = 'text/json'
     return resp
+
 
 @app.route('/f/<name>')
 def getfile(name):
@@ -66,6 +72,7 @@ def getfile(name):
 
 
 class FlaskThread(threading.Thread):
+
     def run(self):
         Clock.schedule_interval(self.dump_metrics, .1)
         app.run(debug=True, use_debugger=True, use_reloader=False)
@@ -84,10 +91,12 @@ class FlaskThread(threading.Thread):
             values.pop(0)
             values[0] = 0
 
+
 def start(win, ctx):
     ctx.thread = FlaskThread()
     ctx.thread.daemon = True
     ctx.thread.start()
+
 
 def stop(win, ctx):
     pass

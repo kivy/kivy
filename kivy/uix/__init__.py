@@ -32,8 +32,8 @@ Read first: :doc:`api-kivy.uix.widget`
     :doc:`api-kivy.uix.videoplayer`,
     :doc:`api-kivy.uix.vkeyboard`
 
-- **Behaviors widgets**: Theses widgets have no rendering, but act on the graphics
-  part, or even on the interaction (touch) part.
+- **Behaviors widgets**: Theses widgets have no rendering, but act on the
+  graphics part, or even on the interaction (touch) part.
 
     :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`
 

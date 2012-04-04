@@ -280,8 +280,9 @@ class WindowPygame(WindowBase):
                 pass
 
             # drop file (pygame patch needed)
-            elif event.type == pygame.USEREVENT and hasattr(pygame,
-                'USEREVENT_DROPFILE') and event.code == pygame.USEREVENT_DROPFILE:
+            elif event.type == pygame.USEREVENT and \
+                hasattr(pygame, 'USEREVENT_DROPFILE') and \
+                event.code == pygame.USEREVENT_DROPFILE:
                 self.dispatch('on_dropfile', event.filename)
 
             '''

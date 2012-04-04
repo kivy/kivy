@@ -11,8 +11,10 @@ FileChooser
 
 .. versionchanged:: 1.2.0
 
-    In chooser template, the `controller` is not a direct reference anymore, but a weak-reference.
-    You must update all the notation `root.controller.xxx` to `root.controller().xxx`.
+    In chooser template, the `controller` is not a direct reference anymore, but
+    a weak-reference.
+    You must update all the notation `root.controller.xxx` to
+    `root.controller().xxx`.
 
 '''
 
@@ -217,7 +219,8 @@ class FileChooserController(FloatLayout):
 
     .. versionadded:: 1.2.0
 
-    :class:`~kivy.properties.ObjectProperty`, defaults to :class:`FileChooserProgress`
+    :class:`~kivy.properties.ObjectProperty`, defaults to
+    :class:`FileChooserProgress`
     '''
 
 
@@ -231,7 +234,8 @@ class FileChooserController(FloatLayout):
 
     .. versionadded:: 1.3.0
 
-    :class:`~kivy.properties.ListProperty`, defaults to ['utf-8', 'latin1', 'cp1252']
+    :class:`~kivy.properties.ListProperty`, defaults to ['utf-8', 'latin1',
+    'cp1252']
     '''
 
     def __init__(self, **kwargs):
@@ -297,7 +301,8 @@ class FileChooserController(FloatLayout):
         '''(internal) This method must be called by the template when an entry
         is touched by the user.
         '''
-        if 'button' in touch.profile and touch.button in ('scrollup', 'scrolldown'):
+        if 'button' in touch.profile and touch.button in (
+            'scrollup', 'scrolldown'):
             return False
         if self.multiselect:
             if isdir(entry.path) and touch.is_double_tap:
@@ -320,7 +325,8 @@ class FileChooserController(FloatLayout):
 
         .. versionadded:: 1.1.0
         '''
-        if 'button' in touch.profile and touch.button in ('scrollup', 'scrolldown'):
+        if 'button' in touch.profile and touch.button in (
+            'scrollup', 'scrolldown'):
             return False
         if not self.multiselect:
             if isdir(entry.path) and not self.dirselect:
@@ -441,7 +447,8 @@ class FileChooserController(FloatLayout):
         return False
 
     def cancel(self, *largs):
-        '''Cancel any background action started by filechooser, like loading a new directory.
+        '''Cancel any background action started by filechooser, like loading a
+        new directory.
 
         .. versionadded:: 1.2.0
         '''
@@ -488,15 +495,15 @@ class FileChooserController(FloatLayout):
             elif platform in ('macosx', 'linux', 'android', 'ios'):
                 is_root = normpath(expanduser(path)) == sep
             else:
-                # Unknown file system; Just always add the .. entry but also log
+                # Unknown fs, just always add the .. entry but also log
                 Logger.warning('Filechooser: Unsupported OS: %r' % platform)
                 is_root = False
         # generate an entries to go back to previous
         if not is_root and not have_parent:
             back = '..' + sep
             pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
-                size='', path=back, controller=ref(self), isdir=True, parent=None,
-                sep=sep, get_nice_size=lambda: ''))
+                size='', path=back, controller=ref(self), isdir=True,
+                parent=None, sep=sep, get_nice_size=lambda: ''))
             yield 0, 1, pardir
 
         # generate all the entries for files
