@@ -55,24 +55,19 @@ Layout illustrations:
 .. image:: ../images/anchorlayout.gif
         :alt: AnchorLayout illustration
         :class: gs-layoutimage
-        :align: left
 
 .. image:: ../images/boxlayout.gif
         :alt: AnchorLayout illustration
         :class: gs-layoutimage
-        :align: center
 
 .. image:: ../images/floatlayout.gif
         :alt: AnchorLayout illustration
         :class: gs-layoutimage
-        :align: right
 
 .. image:: ../images/gridlayout.gif
         :alt: AnchorLayout illustration
         :class: gs-layoutimage
-        :align: left
 
 .. image:: ../images/stacklayout.gif
         :alt: AnchorLayout illustration
         :class: gs-layoutimage
-        :align: center

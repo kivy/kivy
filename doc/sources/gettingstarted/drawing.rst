@@ -24,6 +24,7 @@ class MyWidget(Widget):
 However, doing all that in kv is just:
 
 .. code-block:: kv
+
     MyWidget:
         canvas:
             Color:

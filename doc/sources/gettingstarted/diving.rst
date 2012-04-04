@@ -15,7 +15,7 @@ Understand the Basics about **kivy Graphics** http://kivy.org/docs/api-kivy.grap
 
 Take a look at the built-in **widgets** http://kivy.org/docs/api-kivy.uix.html
 
-Follow the **programing guide** to get even more familiar with kivy.  :doc:`/guide/index`
+Follow the **programing guide** to get even more familiar with kivy.  http://kivy.org/docs/guide-index.html
 
 See how to use different **Modules** like the Inspector for live inspection in the modules section http://kivy.org/docs/api-kivy.modules.html
 
