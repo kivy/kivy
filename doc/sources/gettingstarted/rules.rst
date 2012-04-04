@@ -1,5 +1,5 @@
 Kv Design Language
-------------
+-------------------
 
 .. container:: title
 
@@ -26,7 +26,7 @@ In the above code ::
 
     <MyappClass>    # every class in your app can be represented by a rule like this in the kv file
         GridLayout: # this is how you add your widget/layout to the parent note the indentation.
-        rows: 2 # this how you set each property of your widget
+            rows: 2 # this how you set each property of your widget
 
 An important thing to note here is that when you set a property in your `kv` language like ``row: 2`` one of two things happen.
 If the value(the part that comes after the ``:``) has no variables then what happens is a normal assignment like ``gridlayout_obj.rows = 2``.
