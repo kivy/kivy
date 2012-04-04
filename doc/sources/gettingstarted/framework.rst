@@ -1,5 +1,7 @@
 Non widgets stuff
-=================
+-----------------
+
+.. container:: Non widgets stuff
 
 what is an animation (and a gif to go with it)
 **Animation** and AnimationTransition are used to animate Widget properties(size/pos/center...), in a sequential http://kivy.org/docs/api-kivy.animation.html#sequential-animation or parallel http://kivy.org/docs/api-kivy.animation.html#parallel-animation order.
