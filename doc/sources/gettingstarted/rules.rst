@@ -1,5 +1,9 @@
 Kv Design Language
-==================
+------------
+
+.. container:: title
+
+    Designing through kv language.
 
 Kivy provides a design language specifically geared towards ease of GUI Design, seperating the interface design part of your App from the rest. for example ::
 
@@ -19,9 +23,10 @@ To create a username/passsword accepting feilds, do this in your kv file.
                 password: True
 
 In the above code ::
+
     <MyappClass>    # every class in your app can be represented by a rule like this in the kv file
         GridLayout: # this is how you add your widget/layout to the parent note the indentation.
-            rows: 2 # this how you set each property of your widget
+        rows: 2 # this how you set each property of your widget
 
 An important thing to note here is that when you set a property in your `kv` language like ``row: 2`` one of two things happen.
 If the value(the part that comes after the ``:``) has no variables then what happens is a normal assignment like ``gridlayout_obj.rows = 2``.
@@ -41,8 +46,8 @@ The ``args`` is a list of arguments passed to the ``on_focus`` event.
 
 To define a new property in you class through kv language::
 
-<MyAppClass>
-    myNewProperty: 'my new property value'
+    <MyAppClass>
+        myNewProperty: 'my new property value'
 
 Now you can access this new property in your .py file like so::
 
