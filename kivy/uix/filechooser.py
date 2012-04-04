@@ -73,6 +73,10 @@ def alphanumeric_folders_first(files):
            sorted(f for f in files if not isdir(f))
 
 
+class ForceUnicodeError(Exception):
+    pass
+
+
 class FileChooserProgressBase(FloatLayout):
     '''Base for implementing a progress view. This view is used when too many
     entries need to be created, and are delayed over multiple frames.
@@ -214,6 +218,20 @@ class FileChooserController(FloatLayout):
     .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.ObjectProperty`, defaults to :class:`FileChooserProgress`
+    '''
+
+
+    file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
+    '''Possible encodings for decoding a filename to unicode. It might be
+    possible than user have a weird filename, undecodable without knowing it's
+    initial encoding. We have no other choice to guess it.
+
+    Please note that if you encounter an issue cause of a missing encodings
+    here, we'll be glad to add it in this list.
+
+    .. versionadded:: 1.3.0
+
+    :class:`~kivy.properties.ListProperty`, defaults to ['utf-8', 'latin1', 'cp1252']
     '''
 
     def __init__(self, **kwargs):
@@ -489,14 +507,22 @@ class FileChooserController(FloatLayout):
             Logger.exception('Unable to open directory <%s>' % self.path)
 
     def _add_files(self, path, parent=None):
-        path = expanduser(path)
+        force_unicode = self._force_unicode
         # Make sure we're using unicode in case of non-ascii chars in filenames.
         # listdir() returns unicode if you pass it unicode.
         try:
-            path = path.decode('utf-8')
-        except UnicodeEncodeError:
+            path = expanduser(path)
+            path = force_unicode(path)
+        except ForceUnicodeError:
             pass
-        files = listdir(path)
+
+        files = []
+        fappend = files.append
+        for fn in listdir(path):
+            try:
+                fappend(force_unicode(fn))
+            except ForceUnicodeError:
+                pass
         # In the following, use fully qualified filenames
         files = [normpath(join(path, f)) for f in files]
         # Apply filename filters
@@ -523,6 +549,21 @@ class FileChooserController(FloatLayout):
                    'sep': sep}
             entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
             yield index, total, entry
+
+    def _force_unicode(self, s):
+        # the idea is, whatever is the filename, unicode or str, even if the str
+        # can't be directly returned as a unicode, return something.
+        if type(s) is unicode:
+            return s
+        encodings = self.file_encodings
+        for encoding in encodings:
+            try:
+                return s.decode(encoding, 'strict')
+            except UnicodeDecodeError:
+                pass
+            except UnicodeEncodeError:
+                pass
+        raise ForceUnicodeError('Unable to decode %r' % s)
 
     def entry_subselect(self, entry):
         if not isdir(entry.path):
