@@ -7,8 +7,6 @@ Stack Layout
 :class:`StackLayout` arranges children vertically or horizontally, as many
 as the layout can fit.
 
-.. image:: images/stacklayout.gif
-    :align: right
 
 .. warning:
 
