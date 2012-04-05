@@ -320,12 +320,18 @@
         pos_hint: {'x': .2, 'y': .4}
         size_hint: .6, .2
         ProgressBar:
-            pos_hint: {'x': 0, 'y': 0}
+			id: pb
+            pos_hint: {'x': 0, 'center_y': .5}
             max: root.total
             value: root.index
         Label:
-            pos_hint: {'x': 0, 'y': 0}
+            pos_hint: {'x': 0}
             text: '%d / %d' % (root.index, root.total)
+			size_hint_y: None
+			height: self.texture_size[1]
+			y: pb.center_y - self.height - 8
+			font_size: 10
+			color: (.8, .8, .8, .8)
 
     AnchorLayout:
         pos_hint: {'x': .2, 'y': .2}
