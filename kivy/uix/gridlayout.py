@@ -7,6 +7,9 @@ Grid Layout
 :class:`GridLayout` arranges children in a matrix. It takes the available space
 and divides it in columns and rows, then adds widgets to the resulting "cells".
 
+.. image:: images/girdlayout.gif
+    :align: right
+
 .. versionadded:: 1.0.7
     The implementation has changed to use widget size_hint for calculating
     column/row sizes. `uniform_width` and `uniform_height` have been removed,

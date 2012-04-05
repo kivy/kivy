@@ -4,6 +4,9 @@ Box Layout
 
 :class:`BoxLayout` arranges children in a vertical or horizontal box.
 
+.. image:: images/boxlayout.gif
+    :align: right
+
 To position widgets above/below each other, use a vertical BoxLayout::
 
     layout = BoxLayout(orientation='vertical')

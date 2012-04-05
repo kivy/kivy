@@ -5,6 +5,9 @@ Anchor Layout
 :class:`AnchorLayout` aligns children to a border (top, bottom, left, right)
 or center.
 
+.. image:: images/anchorlayout.gif
+    :align: right
+
 To draw a button in the lower-right corner ::
 
     layout = AnchorLayout(anchor_x='right', anchor_y='bottom')
