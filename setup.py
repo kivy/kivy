@@ -158,6 +158,10 @@ def determine_gl_flags():
     elif platform.startswith('freebsd'):
         flags['include_dirs'] = ['/usr/local/include']
         flags['extra_link_args'] = ['-L', '/usr/local/lib']
+    elif platform.startswith('openbsd'):
+        flags['include_dirs'] = ['/usr/X11R6/include']
+        flags['extra_link_args'] = ['-L', '/usr/X11R6/lib']
+        flags['libraries'] = ['GL']
     elif platform == 'android':
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
         flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
