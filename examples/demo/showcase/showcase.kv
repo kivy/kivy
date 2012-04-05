@@ -33,13 +33,15 @@
             id: content
 
 <KivyImageScatter>:
+	scale_min: 1
     Image:
         source: 'data/logo/kivy-icon-512.png'
 
 <ButtonsScatter>:
+	scale_min: 1
     canvas:
         Color:
-            rgba: .5, .5, .5, .5
+            rgba: .5, .5, .5, .2
         Rectangle:
             size: self.size
     BoxLayout:
@@ -71,7 +73,7 @@
                 size: self.size
                 pos: self.pos
         Button:
-            text: 'anchor_x = %s \n anchor_y = %s' %(root.anchor_x, root.anchor_y)
+            text: 'anchor_x = %s\nanchor_y = %s' %(root.anchor_x, root.anchor_y)
             size_hint: None, None
             size: 150, 50
 
@@ -138,3 +140,238 @@
             Rectangle:
                 size: self.size
                 pos: self.pos
+
+[VSeparator@Widget]:
+	size_hint_x: None
+	width: 10
+	canvas:
+		Color:
+			rgba: .8, .8, .8, .3
+		Rectangle:
+			size: 1, self.height
+			pos: self.center_x, self.y
+
+[HSeparator@Label]:
+	size_hint_y: None
+	height: 45
+	text: ctx.text if 'text' in ctx else ''
+	text_size: self.size
+	valign: 'middle'
+	halign: 'center'
+	canvas.before:
+		Color:
+			rgba: .2, .2, .2, .8
+		Rectangle:
+			size: self.size
+			pos: self.pos
+
+<StandardWidgets>:
+	BoxLayout:
+		pos_hint: {'x': 0, 'y': 0}
+
+		BoxLayout:
+			orientation: 'vertical'
+			padding: 10
+			spacing: 10
+
+			HSeparator:
+				text: 'Buttons'
+
+			Button:
+				text: 'Button ' + self.state
+
+			Button:
+				text: 'Button ' + self.state
+				state: 'down'
+
+			ToggleButton:
+				text: 'Toggle ' + self.state
+
+			HSeparator:
+				text: 'Toggle buttons with group'
+
+			ToggleButton:
+				text: 'Toggle 1'
+				group: 'tgroup'
+
+			ToggleButton:
+				text: 'Toggle 2'
+				group: 'tgroup'
+
+
+		BoxLayout:
+			orientation: 'vertical'
+			padding: 10
+			spacing: 10
+
+			HSeparator:
+				text: 'Sliders'
+
+			Slider:
+				value: 33
+				size_hint_y: None
+				height: 50
+
+			Slider:
+				value: 66
+				size_hint_y: None
+				height: 50
+
+
+			BoxLayout:
+
+				Slider:
+					orientation: 'vertical'
+					value: 33
+
+				Slider:
+					orientation: 'vertical'
+					value: 66
+
+			HSeparator:
+				text: 'Progress Bar'
+
+			ProgressBar:
+				value: (20 * root.value) % (1 + self.max)
+				size_hint_y: None
+				height: 50
+
+			HSeparator:
+				text: 'Switch'
+
+			Switch:
+				size_hint_y: None
+				height: 50
+
+
+		BoxLayout:
+			orientation: 'vertical'
+			padding: 10
+			spacing: 10
+
+			HSeparator:
+				text: 'Text inputs'
+
+			TextInput:
+				text: 'Monoline textinput'
+				size_hint_y: None
+				height: 50
+
+			TextInput:
+				text: 'This is a password'
+				size_hint_y: None
+				height: 50
+				password: True
+
+			TextInput:
+				text: 'Multiline textinput\nSecond line'
+
+<ComplexWidgets>:
+	BoxLayout:
+		pos_hint: {'x': 0, 'y': 0}
+
+		BoxLayout:
+			orientation: 'vertical'
+			padding: 10
+			spacing: 10
+
+			HSeparator:
+				text: 'Accordions'
+
+			Accordion:
+
+				AccordionItem:
+					title: 'Panel 1'
+					Label:
+						text: 'This is a label fit to the content view'
+
+				AccordionItem:
+					title: 'Panel 2'
+					Button:
+						text: 'A button, what else?'
+
+				AccordionItem:
+					title: 'Panel 3'
+					Label:
+						text: 'This is a label fit to the content view'
+
+
+			Accordion:
+
+				orientation: 'vertical'
+
+				AccordionItem:
+					title: 'Panel 1'
+					Label:
+						text: 'This is a label fit to the content view'
+
+				AccordionItem:
+					title: 'Panel 2'
+					Button:
+						text: 'A button, what else?'
+
+				AccordionItem:
+					title: 'Panel 3'
+					Label:
+						text: 'This is a label fit to the content view'
+
+
+		VSeparator
+
+		BoxLayout:
+			orientation: 'vertical'
+			padding: 10
+			spacing: 10
+
+			HSeparator:
+				text: 'File choosers'
+
+			FileChooserListView
+
+			FileChooserIconView
+
+<TreeViewWidgets>:
+	treeview1: treeview1
+	treeview2: treeview2
+
+	BoxLayout:
+		pos_hint: {'x': 0, 'y': 0}
+
+		BoxLayout:
+			orientation: 'vertical'
+			padding: 10
+			spacing: 10
+
+			HSeparator:
+				text: 'Treeview with root'
+
+			TreeView:
+				id: treeview1
+
+			Button:
+				text: 'Remove first node'
+				size_hint_y: None
+				height: 50
+				on_release: treeview1.remove_node(treeview1.root.nodes[0]) if not treeview1.root.is_leaf else None
+
+		BoxLayout:
+			orientation: 'vertical'
+			padding: 10
+			spacing: 10
+
+			HSeparator:
+				text: 'Treeview without root'
+
+			TreeView:
+				id: treeview2
+				hide_root: True
+
+			Button:
+				text: 'Remove first node'
+				size_hint_y: None
+				height: 50
+				on_release: treeview2.remove_node(treeview2.root.nodes[0]) if not treeview2.root.is_leaf else None
+
+
+
+<ScatterWidgets>:
