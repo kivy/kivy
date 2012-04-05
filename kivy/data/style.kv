@@ -354,11 +354,11 @@
         Rectangle:
             source: 'atlas://data/images/defaulttheme/switch-background'
             size: 83, 32
-            pos: self.center_x - 41, self.center_y - 16
+            pos: int(self.center_x - 41), int(self.center_y - 16)
         Rectangle:
             source: 'atlas://data/images/defaulttheme/switch-button'
             size: 43, 32
-            pos: self.center_x - 41 + self.active_norm_pos * 41, self.center_y - 16
+            pos: int(self.center_x - 41 + self.active_norm_pos * 41), int(self.center_y - 16)
 
 # Popup widget
 <Popup>:
