@@ -2,9 +2,31 @@ var sections = {};
 var sections_key = [];
 var prev_gsid = '';
 var avoidscroll = 1;
+var scrollingDiv = null;
+var scrolltop = null;
 
 function gs_enable_scroll() {
 	avoidscroll = 0;
+	gs_scroll(0);
+}
+
+function gs_scroll(anim) {
+	if ( avoidscroll )
+		return;
+	var sh = $(scrollingDiv).innerHeight();
+	var dh = $(document).height() - 130;
+	var wtop = $(window).scrollTop();
+	wtop -= scrolltop;
+	if ( wtop + sh > dh )
+		wtop = dh - sh;
+	if ( wtop < 0 )
+		wtop = 0;
+	if ( anim === 0 )
+		scrollingDiv.css({'marginTop': wtop + 'px'});
+	else
+		scrollingDiv
+			.stop()
+			.animate({'marginTop': wtop + 'px'}, 'slow');
 }
 
 function gs_check_hash() {
@@ -258,22 +280,13 @@ $(document).ready(function () {
 	//----------------------------------------------------------------------------
 	// Make the navigation always in view
 	//----------------------------------------------------------------------------
-	var $scrollingDiv = $('div.sphinxsidebarwrapper');
-	var $scrolltop = $('div.sphinxsidebarwrapper h3:eq(1)').position().top;
 	$(window).scroll(function() {
-		if ( avoidscroll )
-			return;
-		var wtop = $(window).scrollTop();
-		wtop -= $scrolltop;
-		if ( wtop < 0 )
-			wtop = 0;
-		console.log(wtop);
-		$scrollingDiv
-			.stop()
-			.animate({'marginTop': wtop + 'px'}, 'slow');
+		gs_scroll();
 	});
 
-	setTimeout('gs_enable_scroll()', 250);
+	scrollingDiv = $('div.sphinxsidebarwrapper');
+	scrolltop = $('div.sphinxsidebarwrapper h3:eq(1)').position().top;
+	setTimeout('gs_enable_scroll()', 50);
 
 
 	//----------------------------------------------------------------------------
