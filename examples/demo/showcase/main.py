@@ -1,6 +1,7 @@
 import kivy
 kivy.require('1.0.6')
 
+from weakref import ref
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -18,7 +19,9 @@ from kivy.uix.popup import Popup
 from kivy.uix.accordion import Accordion, AccordionItem
 from kivy.uix.filechooser import FileChooserIconView, FileChooserListView
 from kivy.properties import StringProperty
+from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
+from functools import partial
 import random
 
 class Showcase(FloatLayout):
@@ -191,6 +194,7 @@ class ShowcaseApp(App):
         attach_node('Accordion', n)
         attach_node('Popup', n)
         attach_node('Switch', n)
+        attach_node('ProgressBar', n)
         n = create_tree('Layouts')
         attach_node('Anchor Layout', n)
         attach_node('Box Layout', n)
@@ -337,6 +341,15 @@ class ShowcaseApp(App):
     def show_filechooser_list(self):
         return FileChooserListView()
 
+    def show_progressbar(self):
+        pb = ProgressBar()
+        Clock.schedule_interval(partial(self.update_pb, ref(pb)), 0)
+        return pb
+
+    def update_pb(self, pb, dt):
+        if not pb():
+            return False
+        pb().value = (pb().value + dt * 10) % (1 + pb().max)
 
 if __name__ in ('__main__', '__android__'):
     ShowcaseApp().run()
