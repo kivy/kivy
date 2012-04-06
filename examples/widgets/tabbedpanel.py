@@ -6,31 +6,36 @@ Test of the widget TabbedPanel.
 '''
 
 from kivy.app import App
-from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
+from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.lang import Builder
 
 Builder.load_string("""
-<Test>
+<Test>:
     size_hint: .5, .5
+    pos_hint: {'center_x': .5, 'center_y': .5}
     default_content: set1_content
+
     Label:
         id: set1_content
-        text: 'this is the first tabs content area'
+        text: 'First tab content area'
+
     BoxLayout:
         id: set2_content
         Label:
-            text: 'second tabs content area'
+            text: 'Second tab content area'
         Button:
-            text: 'Button'
-    BoxLayout:
+            text: 'Button that does nothing'
+
+    RstDocument:
         id: set3_content
-        BubbleButton:
-            text: 'Bubble Button'
+        text: '\\n'.join(("Hello world", "-----------", "You are in the third tab."))
+
+    # now categorize widgets inserted above in a specific header
     TabbedPanelHeader:
-        text: 'set2'
+        text: 'Tab 2'
         on_release: root.change_tab_contents(set2_content)
     TabbedPanelHeader:
-        text: 'set3'
+        text: 'Tab 3'
         on_release: root.change_tab_contents(set3_content)
 """)
 

@@ -59,10 +59,10 @@ Change panel contents depending on which tab is pressed::
     tabbed_panel_instance.clear_widgets()
     tabbed_panel_instance.add_widgets(...)...
 
-Since the default tab exists by default, a `on_Default_tab` event is provided.
+Since the default tab exists by default, a `on_default_tab` event is provided.
 To facilitate changing panel contents on default tab selection::
 
-    tp.bind(on_Default_tab = my_default_tab_callback)
+    tp.bind(on_default_tab = my_default_tab_callback)
 
 Remove Items::
 
@@ -116,7 +116,6 @@ __all__ = ('TabbedPanel', 'TabbedPanelContent', 'TabbedPanelHeader',
 
 from functools import partial
 from kivy.clock import Clock
-from kivy.event import EventDispatcher
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
@@ -178,12 +177,11 @@ class TabbedPanel(GridLayout):
     default to (16, 16, 16, 16)
     '''
 
-    background_image =\
-        StringProperty('tools/theming/defaulttheme/tab.png')
+    background_image = StringProperty('atlas://data/images/defaulttheme/tab')
     '''Background image of the Tab content
 
     :data:`background_image` is a :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/bubble'.
+    default to 'atlas://data/images/defaulttheme/tab'.
     '''
 
     tab_pos = OptionProperty('top_left',
@@ -212,8 +210,8 @@ class TabbedPanel(GridLayout):
     default to '30'.
     '''
 
-    default_tab_text = StringProperty('default tab')
-    '''Specifies the Text displayed on the default Tab Heading
+    default_tab_text = StringProperty('Default tab')
+    '''Specifies the Text displayed on the default tab Heading
 
     :data:`default_tab_text` is a :class:`~kivy.properties.StringProperty`,
     default to 'default tab'.
@@ -255,25 +253,26 @@ class TabbedPanel(GridLayout):
         self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel = self,
             rows = 1, cols = 99, size_hint = (None, None),\
             height = self.tab_height, width = self.tab_width)
-        self.Default_tab = Default_tab = \
+        self.default_tab = default_tab = \
             TabbedPanelHeader(text = self.default_tab_text,
                 height = self.tab_height, state = 'down',
                 width = self.tab_width)
-        _tabs.add_widget(Default_tab)
-        Default_tab.group = '__tab%r__' %_tabs.uid
-        Default_tab.bind(on_release = self.on_Default_tab)
+        _tabs.add_widget(default_tab)
+        default_tab.group = '__tab%r__' %_tabs.uid
+        default_tab.bind(on_release = self.on_default_tab)
+        self._partial_update_scrollview = None
 
         self.content = content = TabbedPanelContent()
         super(TabbedPanel, self).__init__(**kwargs)
         self.add_widget(content)
         self.on_tab_pos()
 
-    def on_Default_tab(self, *l):
+    def on_default_tab(self, *l):
         '''This event is fired when the default tab is selected.
         '''
 
     def on_default_tab_text(self, *l):
-        self.Default_tab.text = self.default_tab_text
+        self.default_tab.text = self.default_tab_text
 
     def add_widget(self, *l):
         content = self.content
@@ -284,7 +283,7 @@ class TabbedPanel(GridLayout):
         elif isinstance(l[0], TabbedPanelHeader):
             self_tabs = self._tab_strip
             self_tabs.add_widget(l[0])
-            l[0].group = '__tab%r__' %self_tabs.uid
+            l[0].group = '__tab%r__' % self_tabs.uid
             self_tabs.width += l[0].width if not l[0].size_hint_x else\
                 self.tab_width
             self.reposition_tabs()
@@ -298,16 +297,16 @@ class TabbedPanel(GridLayout):
         if l[0] == content or l[0] == self._tab_layout:
             super(TabbedPanel, self).remove_widget(*l)
         elif isinstance(l[0], TabbedPanelHeader):
-            if l[0]!= self.Default_tab:
+            if l[0]!= self.default_tab:
                 self_tabs = self._tab_strip
                 self_tabs.remove_widget(l[0])
                 if l[0].state == 'down':
-                    self.Default_tab.on_release()
+                    self.default_tab.on_release()
                 self_tabs.width -= l[0].width
                 self.reposition_tabs()
             else:
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
-                    'change `Default_tab` to a different tab to remove this.')
+                    'change `default_tab` to a different tab to remove this.')
         else:
             content.remove_widget(l[0])
 
@@ -323,9 +322,9 @@ class TabbedPanel(GridLayout):
     def clear_tabs(self, *l):
         self_tabs = self._tab_strip
         self_tabs.clear_widgets()
-        self_Default_tab = self.Default_tab
-        self_tabs.add_widget(self_Default_tab)
-        self_tabs.width = self_Default_tab.width
+        self_default_tab = self.default_tab
+        self_tabs.add_widget(self_default_tab)
+        self_tabs.width = self_default_tab.width
         self.reposition_tabs()
 
     def reposition_tabs(self, *l):
@@ -364,76 +363,78 @@ class TabbedPanel(GridLayout):
         if not self_content:
             return
         # cache variables for faster access
-        self_tab_pos = self.tab_pos
-        self_tab_layout = self._tab_layout
-        self_tab_layout.clear_widgets()
-        scrl_v = ScrollView(size_hint= (None, 1))
-        self_tabs = self._tab_strip
-        self_tabs_width = self_tabs.width
-        scrl_v.add_widget(self_tabs)
+        tab_pos = self.tab_pos
+        tab_layout = self._tab_layout
+        tab_layout.clear_widgets()
+        scrl_v = ScrollView(size_hint=(None, 1))
+        tabs = self._tab_strip
+        scrl_v.add_widget(tabs)
         scrl_v.pos = (0, 0)
-        self_udpate_scrl_v_width = self._udpate_scrl_v_width
+        self_update_scrollview = self._update_scrollview
 
         # update scrlv width when tab width changes depends on tab_pos
-        self_tabs.unbind(width = partial(self_udpate_scrl_v_width, scrl_v))
-        self_tabs.bind(width = partial(self_udpate_scrl_v_width, scrl_v))
+        if self._partial_update_scrollview is not None:
+            tabs.unbind(width=self._partial_update_scrollview)
+        self._partial_update_scrollview = partial(self_update_scrollview, scrl_v)
+        tabs.bind(width=self._partial_update_scrollview)
 
         # remove all widgets from the tab_strip
         self.clear_widgets(do_super=True)
-        self_tab_height = self.tab_height
+        tab_height = self.tab_height
 
         widget_list = []
         tab_list = []
-        if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
+        pos_letter = tab_pos[0]
+        if pos_letter == 'b' or pos_letter == 't':
             # bottom or top positions
             # one col containing the tab_strip and the content
             self.cols = 1
             self.rows = 2
             # tab_layout contains the scrollview containing tabs and two blank
             # dummy widgets for spacing
-            self_tab_layout.rows = 1
-            self_tab_layout.cols = 3
-            self_tab_layout.size_hint = (1, None)
-            self_tab_layout.height = self_tab_height
-            self_udpate_scrl_v_width(scrl_v)
+            tab_layout.rows = 1
+            tab_layout.cols = 3
+            tab_layout.size_hint = (1, None)
+            tab_layout.height = tab_height
+            self_update_scrollview(scrl_v)
 
-            if self_tab_pos[0] == 'b':
+            if pos_letter == 'b':
                 # bottom
-                if self_tab_pos == 'bottom_mid':
+                if tab_pos == 'bottom_mid':
                     tab_list = (Widget(), scrl_v, Widget())
-                    widget_list = (self_content, self_tab_layout)
+                    widget_list = (self_content, tab_layout)
                 else:
-                    if self_tab_pos == 'bottom_left':
+                    if tab_pos == 'bottom_left':
                         tab_list = (scrl_v, Widget(), Widget())
-                    elif self_tab_pos == 'bottom_right':
+                    elif tab_pos == 'bottom_right':
                         #add two dummy widgets
                         tab_list = (Widget(), Widget(), scrl_v)
-                    widget_list = (self_content, self_tab_layout)
+                    widget_list = (self_content, tab_layout)
             else:
                 # top
-                if self_tab_pos == 'top_mid':
+                if tab_pos == 'top_mid':
                     tab_list = (Widget(), scrl_v, Widget())
-                elif self_tab_pos == 'top_left':
+                elif tab_pos == 'top_left':
                     tab_list = (scrl_v, Widget(), Widget())
-                elif self_tab_pos == 'top_right':
+                elif tab_pos == 'top_right':
                     tab_list = (Widget(), Widget(), scrl_v)
-                widget_list = (self_tab_layout, self_content)
-        elif self_tab_pos[0] == 'l' or self_tab_pos[0] == 'r':
+                widget_list = (tab_layout, self_content)
+        elif pos_letter == 'l' or pos_letter == 'r':
             # left ot right positions
             # one row containing the tab_strip and the content
             self.cols = 2
             self.rows = 1
             # tab_layout contains two blank dummy widgets for spacing
             #"vertically" and the scatter containing scrollview containing tabs
-            self_tab_layout.rows = 3
-            self_tab_layout.cols = 1
-            self_tab_layout.size_hint = (None, 1)
-            self_tab_layout.width = self_tab_height
-            scrl_v.height = self_tab_height
-            self_udpate_scrl_v_width(scrl_v)
+            tab_layout.rows = 3
+            tab_layout.cols = 1
+            tab_layout.size_hint = (None, 1)
+            tab_layout.width = tab_height
+            scrl_v.height = tab_height
+            self_update_scrollview(scrl_v)
 
             # rotate the scatter for vertical positions
-            rotation = 90 if self_tab_pos[0] == 'l' else -90
+            rotation = 90 if tab_pos[0] == 'l' else -90
             sctr = Scatter(do_translation = False,
                                rotation = rotation,
                                do_rotation = False,
@@ -443,7 +444,7 @@ class TabbedPanel(GridLayout):
                                size=scrl_v.size)
             sctr.add_widget(scrl_v)
 
-            lentab_pos = len(self_tab_pos)
+            lentab_pos = len(tab_pos)
 
             # Update scatter's top when it's pos changes.
             # Needed for repositioning scatter to the correct place after its
@@ -453,26 +454,26 @@ class TabbedPanel(GridLayout):
             # scatter. Without clock.schedule_once the positions would look
             # fine but touch won't translate to the correct position
 
-            if self_tab_pos[lentab_pos-4:] == '_top':
+            if tab_pos[lentab_pos-4:] == '_top':
                 #on positions 'left_top' and 'right_top'
                 sctr.bind(pos = Clock.schedule_once(
                     partial(self._update_top, sctr, 'top', None), -1))
                 tab_list = (sctr, )
-            elif self_tab_pos[lentab_pos-4:] == '_mid':
+            elif tab_pos[lentab_pos-4:] == '_mid':
                 #calculate top of scatter
                 sctr.bind(pos = Clock.schedule_once(
                     partial(self._update_top, sctr, 'mid', scrl_v.width), -1))
                 tab_list = (Widget(), sctr, Widget())
-            elif self_tab_pos[lentab_pos-7:] == '_bottom':
+            elif tab_pos[lentab_pos-7:] == '_bottom':
                 tab_list = (Widget(), Widget(), sctr)
 
-            if self_tab_pos[0] =='l':
-                widget_list = (self_tab_layout, self_content)
+            if pos_letter =='l':
+                widget_list = (tab_layout, self_content)
             else:
-                widget_list = (self_content, self_tab_layout)
+                widget_list = (self_content, tab_layout)
 
         # add widgets to tab_layout
-        add = self_tab_layout.add_widget
+        add = tab_layout.add_widget
         for widg in tab_list:
             add(widg)
 
@@ -487,7 +488,7 @@ class TabbedPanel(GridLayout):
         else:
             sctr.top = self.top - (self.height - scrl_v_width)/2
 
-    def _udpate_scrl_v_width(self, scrl_v, *l):
+    def _update_scrollview(self, scrl_v, *l):
         self_tab_pos = self.tab_pos
         self_tabs = self._tab_strip
         if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':
