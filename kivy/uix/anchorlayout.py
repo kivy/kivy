@@ -5,11 +5,13 @@ Anchor Layout
 :class:`AnchorLayout` aligns children to a border (top, bottom, left, right)
 or center.
 
+
 To draw a button in the lower-right corner ::
 
     layout = AnchorLayout(anchor_x='right', anchor_y='bottom')
     btn = Button(text='Hello World')
     layout.add_widget(btn)
+
 '''
 
 __all__ = ('AnchorLayout', )

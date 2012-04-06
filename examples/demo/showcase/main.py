@@ -1,24 +1,24 @@
 import kivy
 kivy.require('1.0.6')
 
+from weakref import ref
+from kivy.properties import NumericProperty
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.button import Button
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.slider import Slider
 from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
-from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewLabel
-from kivy.uix.switch import Switch
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.accordion import Accordion, AccordionItem
 from kivy.uix.filechooser import FileChooserIconView, FileChooserListView
 from kivy.properties import StringProperty
+from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
+from functools import partial
 import random
 
 class Showcase(FloatLayout):
@@ -147,6 +147,24 @@ class StackLayoutShowcase(FloatLayout):
         Clock.schedule_once(self.add_button, 1)
 
 
+class StandardWidgets(FloatLayout):
+
+    value = NumericProperty(0)
+
+    def __init__(self, **kwargs):
+        super(StandardWidgets, self).__init__(**kwargs)
+        Clock.schedule_interval(self.increment_value, 1 / 30.)
+
+    def increment_value(self, dt):
+        self.value += dt
+
+
+class ComplexWidgets(FloatLayout):
+    pass
+
+class TreeViewWidgets(FloatLayout):
+    pass
+
 class ShowcaseApp(App):
 
     def on_select_node(self, instance, value):
@@ -177,35 +195,31 @@ class ShowcaseApp(App):
             tree.add_node(TreeViewLabel(text=text), n)
 
         tree.bind(selected_node=self.on_select_node)
-        n = create_tree('Buttons')
-        attach_node('Standard buttons', n)
-        attach_node('Options buttons', n)
-        attach_node('Horizontal sliders', n)
-        attach_node('Vertical sliders', n)
-        attach_node('Scatter with image', n)
-        attach_node('Scatter with buttons', n)
-        attach_node('Monoline textinput', n)
-        attach_node('Multiline textinput', n)
-        attach_node('Standard treeview', n)
-        attach_node('Treeview without root', n)
-        attach_node('Accordion', n)
+        n = create_tree('Widgets')
+        attach_node('Standard widgets', n)
+        attach_node('Complex widgets', n)
+        attach_node('Scatters', n)
+        attach_node('Treeviews', n)
         attach_node('Popup', n)
-        attach_node('Switch', n)
         n = create_tree('Layouts')
         attach_node('Anchor Layout', n)
         attach_node('Box Layout', n)
         attach_node('Float Layout', n)
         attach_node('Grid Layout', n)
         attach_node('Stack Layout', n)
-        n = create_tree('Experimentals')
-        attach_node('Filechooser icon', n)
-        attach_node('Filechooser list', n)
         root.add_widget(tree)
         self.content = content = BoxLayout()
         root.add_widget(content)
         sc = Showcase()
         sc.content.add_widget(root)
+        self.content.add_widget(StandardWidgets())
         return sc
+
+    def show_standard_widgets(self):
+        return StandardWidgets()
+
+    def show_complex_widgets(self):
+        return ComplexWidgets()
 
     def show_anchor_layout(self):
         return AnchorLayoutShowcase()
@@ -222,58 +236,15 @@ class ShowcaseApp(App):
     def show_stack_layout(self):
         return StackLayoutShowcase()
 
-    def show_scatter_with_image(self):
-        s = KivyImageScatter(center=self.content.center)
+    def show_scatters(self):
         col = Widget()
+        center = self.content.center_x - 150, self.content.center_y
+        s = KivyImageScatter(center=center)
         col.add_widget(s)
-        return col
-
-    def show_scatter_with_buttons(self):
+        center = self.content.center_x + 150, self.content.center_y
         s = ButtonsScatter(size=(300, 200))
-        s.center = self.content.center
-        col = Widget()
+        s.center = center
         col.add_widget(s)
-        return col
-
-    def show_standard_buttons(self):
-        col = BoxLayout(spacing=10)
-        col.add_widget(Button(text='Hello world'))
-        col.add_widget(Button(text='Hello world', state='down'))
-        return col
-
-    def show_options_buttons(self):
-        col = BoxLayout(spacing=10)
-        col.add_widget(ToggleButton(text='Option 1', group='t1'))
-        col.add_widget(ToggleButton(text='Option 2', group='t1'))
-        col.add_widget(ToggleButton(text='Option 3', group='t1'))
-        return col
-
-    def show_horizontal_sliders(self):
-        col = BoxLayout(orientation='vertical', spacing=10)
-        col.add_widget(Slider())
-        col.add_widget(Slider(value=50))
-        return col
-
-    def show_vertical_sliders(self):
-        col = BoxLayout(spacing=10)
-        col.add_widget(Slider(orientation='vertical'))
-        col.add_widget(Slider(orientation='vertical', value=50))
-        return col
-
-    def show_multiline_textinput(self):
-        col = AnchorLayout()
-        col.add_widget(TextInput(size_hint=(None, None), size=(200, 100)))
-        return col
-
-    def show_monoline_textinput(self):
-        col = AnchorLayout()
-        col.add_widget(TextInput(size_hint=(None, None), size=(200, 32),
-                                 multiline=False))
-        return col
-
-    def show_switch(self):
-        col = AnchorLayout()
-        col.add_widget(Switch(active=True))
         return col
 
     def show_popup(self):
@@ -293,21 +264,11 @@ class ShowcaseApp(App):
         col.add_widget(button)
         return col
 
-    def show_standard_treeview(self):
-        return self.populate_treeview(TreeView())
-
-    def show_treeview_without_root(self):
-        # test with removing a node
-        col = BoxLayout(orientation='vertical')
-        tv = self.populate_treeview(TreeView(hide_root=True))
-        col.add_widget(tv)
-        btn = Button(text='Remove one node', size_hint_y=None, height=50)
-        def remove_node(*l):
-            if not tv.root.is_leaf:
-                tv.remove_node(tv.root.nodes[0])
-        btn.bind(on_release=remove_node)
-        col.add_widget(btn)
-        return col
+    def show_treeviews(self):
+        tv = TreeViewWidgets()
+        self.populate_treeview(tv.treeview1)
+        self.populate_treeview(tv.treeview2)
+        return tv
 
     def populate_treeview(self, tv):
         n = tv.add_node(TreeViewLabel(text='Item 1'))
@@ -320,23 +281,6 @@ class ShowcaseApp(App):
         for x in xrange(3):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         return tv
-
-    def show_accordion(self):
-        root = Accordion()
-        for x in xrange(5):
-            item = AccordionItem(title='Title %d' % x)
-            item.add_widget(Label(text='Very big content\n' * 10))
-            root.add_widget(item)
-        col = AnchorLayout()
-        col.add_widget(root)
-        return col
-
-    def show_filechooser_icon(self):
-        return FileChooserIconView()
-
-    def show_filechooser_list(self):
-        return FileChooserListView()
-
 
 if __name__ in ('__main__', '__android__'):
     ShowcaseApp().run()

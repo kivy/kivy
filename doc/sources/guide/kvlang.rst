@@ -182,3 +182,26 @@ More complex expressions can be used, like::
 This expression listens for a change in ``center_x``, ``center_y``, and
 ``texture_size``. If one of them is changing, the expression will be
 re-evaluated, and update the ``Rectangle.pos`` field.
+
+You can also handle ``on_`` events inside your kv language.
+For example the TextInput class has a ``focus`` property whose auto-generated ``on_focus`` event can be accessed inside the kv language like so:
+
+.. code-block:: kv
+
+    TextInput:
+        on_focus: print args
+
+The ``args`` is a list of arguments passed to the ``on_focus`` event.
+
+To define a new property in you class through kv language:
+
+.. code-block:: kv
+
+    <MyAppClass>
+        myNewProperty: 'my new property value'
+
+Now you can access this new property in your .py file like so::
+
+    my_app_class_instance.myNewProperty
+
+Please note that if you want to call from kv lang a widget you defined from python. You need to register it from python, using the `Factory` object.

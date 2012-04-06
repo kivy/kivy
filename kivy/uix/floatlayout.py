@@ -5,6 +5,7 @@ Float Layout
 The :class:`FloatLayout` class will just honor the :data:`Widget.pos_hint` and
 :data:`Widget.size_hint` attributes.
 
+
 For example, if you create a FloatLayout with size of (300, 300)::
 
     layout = FloatLayout(size=(300, 300))

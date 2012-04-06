@@ -7,67 +7,21 @@ Layouts
 
 Layouts are used to arrange widgets in a perticular manner. ::
 
-    AnchorLayout:   widgets can be anchored to 'top', 'bottom', 'left', 'right'
+    AnchorLayout:   widgets can be anchored to 'top', 'bottom', 'left', 'right', 'center'
     BoxLayout:      widgets arranged in a box either in 'vertical' or 'horizontal' orientation
     FloatLayout:    Widgets are essentially unrestricted
-    GridLayout:     widgets arranged in grids of rows and columns defined by ``rows`` and ``cols`` properties
-    StackLayout:    widgets are stacked in ``lr-tp`` (left to right then top to bottom) or ``tp-lr``
+    GridLayout:     widgets arranged in a grid defined by `rows` and `cols` properties
+    StackLayout:    widgets are stacked in `lr-tb` (left to right then top to bottom) or `tb-lr`
 
 **Size_hint**: defines the size of a widget in parent space in percentages, values restricted to range 0 - 1 i.e. 0.01 = 1% and 1. = 100%.
+**pos_hint**: is used to place the widget relative to the parent.
 
-Eg. ::
+size_hint or pos_hint are used to calculate widget's size and position only if the value/s are not set to None.
+However one can set these to None and provide direct values in screen coordinates.
 
-     widget.size_hint_x = .5
-
-sets the width of  the widget to 50% of free space in parent.
-
-Consider widgets w1, w2, w3
-
-w1.size_hint_x =  1, w2.size_hint_x =  1, w3.size_hint_x = 1 ::
-
-        [(111111111111)]<-parent width = 12
-               w1
-    width:     12
-
-        [(1111)(1111)(1111)]<-parent width = 12
-           w1    w2    w3
-    width:  4     4     4
-
-w2.size_hint_x = .5 ::
-
-        [(11111)(11)(11111)]<-parent width: 12
-            w1   w2    w3
-    width:  5    2     5
-
-w2.size_hint_x = 2 ::
-
-        [(11)(11111111)(11)]<-parent width: 12
-          w1     w2     w3
-    width: 2      8      2
-
-The above notation doesn't work on float layouts. There widgets size when set using size_hint is not dependent on it's sibblings sizes.
-
-size_hint_x or size_hint_y is used to calculate widget's size only if the value/s are not set to None.
-
-
-Layout illustrations:
-
-.. image:: ../images/anchorlayout.gif
-        :alt: AnchorLayout illustration
-        :class: gs-layoutimage
-
-.. image:: ../images/boxlayout.gif
-        :alt: AnchorLayout illustration
-        :class: gs-layoutimage
-
-.. image:: ../images/floatlayout.gif
-        :alt: AnchorLayout illustration
-        :class: gs-layoutimage
-
-.. image:: ../images/gridlayout.gif
-        :alt: AnchorLayout illustration
-        :class: gs-layoutimage
-
-.. image:: ../images/stacklayout.gif
-        :alt: AnchorLayout illustration
-        :class: gs-layoutimage
+For a detailed look at how you can arrange widgets using layouts look in
+`AnchorLayout <http://kivy.org/docs/api-kivy.uix.anchorlayout.html>`_
+`BoxLayout <http://kivy.org/docs/api-kivy.uix.boxlayout.html>`_
+`FloatLayout <http://kivy.org/docs/api-kivy.uix.floatlayout.html>`_
+`GridLayout <http://kivy.org/docs/api-kivy.uix.gridlayout.html>`_
+`StackLayout <http://kivy.org/docs/api-kivy.uix.stacklayout.html>`_
