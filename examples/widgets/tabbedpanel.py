@@ -45,7 +45,7 @@ class Test(TabbedPanel):
         super(Test, self).__init__(**kwargs)
         self.change_tab_contents(self.default_content)
 
-    def on_Default_tab(self, *l):
+    def on_default_tab(self, *l):
         self.change_tab_contents(self.default_content)
 
     def change_tab_contents(self, content, *l):

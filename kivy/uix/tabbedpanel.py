@@ -259,7 +259,7 @@ class TabbedPanel(GridLayout):
                 width = self.tab_width)
         _tabs.add_widget(default_tab)
         default_tab.group = '__tab%r__' %_tabs.uid
-        default_tab.bind(on_release = self.on_default_tab)
+        default_tab.bind(on_release=self.on_default_tab)
         self._partial_update_scrollview = None
 
         self.content = content = TabbedPanelContent()
