@@ -133,6 +133,8 @@ class TabbedPanelHeader(ToggleButton):
     You can use this TabbedPanelHeader widget to add a new tab to TabbedPanel
     '''
 
+    content = ObjectProperty(None)
+
     # only allow selecting the tab if not already selected
     def on_touch_down(self, touch):
         if self.state == 'down':
@@ -142,6 +144,15 @@ class TabbedPanelHeader(ToggleButton):
         else:
             super(TabbedPanelHeader, self).on_touch_down(touch)
 
+    def on_release(self, *l):
+        if not self.content:
+            return
+        parent = self.parent
+        while parent is not None and not isinstance(parent, TabbedPanel):
+            parent = parent.parent
+        if not parent:
+            return
+        parent.switch_to(self)
 
 class TabbedPanelStrip(GridLayout):
     '''A strip intented to be used as background for Heading/Tab.
@@ -270,6 +281,12 @@ class TabbedPanel(GridLayout):
     def on_default_tab(self, *l):
         '''This event is fired when the default tab is selected.
         '''
+
+    def switch_to(self, header):
+        '''Switch to a specific panel header
+        '''
+        self.clear_widgets()
+        self.add_widget(header.content)
 
     def on_default_tab_text(self, *l):
         self.default_tab.text = self.default_tab_text

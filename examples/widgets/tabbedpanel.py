@@ -33,10 +33,10 @@ Builder.load_string("""
     # now categorize widgets inserted above in a specific header
     TabbedPanelHeader:
         text: 'Tab 2'
-        on_release: root.change_tab_contents(set2_content)
+        content: set2_content
     TabbedPanelHeader:
         text: 'Tab 3'
-        on_release: root.change_tab_contents(set3_content)
+        content: set3_content
 """)
 
 class Test(TabbedPanel):
