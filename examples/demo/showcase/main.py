@@ -1,7 +1,6 @@
 import kivy
-kivy.require('1.0.6')
+kivy.require('1.1.3')
 
-from weakref import ref
 from kivy.properties import NumericProperty
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -13,12 +12,8 @@ from kivy.uix.scatter import Scatter
 from kivy.uix.treeview import TreeView, TreeViewLabel
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.uix.accordion import Accordion, AccordionItem
-from kivy.uix.filechooser import FileChooserIconView, FileChooserListView
 from kivy.properties import StringProperty
-from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
-from functools import partial
 import random
 
 class Showcase(FloatLayout):

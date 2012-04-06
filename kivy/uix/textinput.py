@@ -259,6 +259,8 @@ class TextInput(Widget):
     def insert_text(self, substring):
         '''Insert new text on the current cursor position
         '''
+        if self.readonly:
+            return
         cc, cr = self.cursor
         ci = self.cursor_index()
         text = self._lines[cr]
@@ -375,6 +377,8 @@ class TextInput(Widget):
     def delete_selection(self):
         '''Delete the current text selection (if any)
         '''
+        if self.readonly:
+            return
         scrl_x = self.scroll_x
         scrl_y = self.scroll_y
         if not self._selection:
@@ -551,6 +555,10 @@ class TextInput(Widget):
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
             self._win = None
+
+    def on_readonly(self, instance, value):
+        if value is False:
+            self.focus = False
 
     def _ensure_clipboard(self):
         global Clipboard
@@ -1029,6 +1037,14 @@ class TextInput(Widget):
     #
 
     _lines = ListProperty([])
+
+    readonly = BooleanProperty(False)
+    '''If True, the user will not be able to change the content of a textinput.
+
+    .. versionadded:: 1.3.0
+
+    :data:`readonly` is a :class:`~kivy.properties.BooleanProperty`, default to False
+    '''
 
     multiline = BooleanProperty(True)
     '''If True, the widget will be able show multiple lines of text. If false,
