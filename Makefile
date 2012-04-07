@@ -1,4 +1,4 @@
-PYTHON = python2
+PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
 
