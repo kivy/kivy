@@ -3,20 +3,24 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.slider import Slider
+from kivy.lang import Builder
+
+Builder.load_string('''
+<AppOptions>:
+    cols: 3
+    width: 650
+    spacing: 10
+    padding: 5
+    row_default_height: 100
+    cols_minimum: {0: 400, 1: 200, 2: 50}''')
 
 # Local libraries
 import touchanalyzer as TA
 
-__all__ = ('AppOptions')
+__all__ = ('AppOptions',)
 
 class AppOptions(GridLayout):
     def __init__(self, **kwargs):
-        kwargs.setdefault('cols', 3)
-        kwargs.setdefault('width', 650)
-        kwargs.setdefault('spacing', 10)
-        kwargs.setdefault('padding', 5)
-        kwargs.setdefault('row_default_height', 100)
-        kwargs.setdefault('cols_minimum', {0:400,1:200,2:50})
         super(AppOptions, self).__init__(**kwargs)
         self._setup_maxstrokes()
         self._setup_temporal()

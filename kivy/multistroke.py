@@ -1,11 +1,17 @@
 '''
-Multistroke gesture recognition - **EXPERIMENTAL**
-==================================================
+Multistroke gesture recognition
+===============================
+
+.. versionadded::
+    1.3.0
+
+.. warning::
+    This module is highly experimental - use with care.
 
 "The $N Multistroke Recognizer" by Lisa Anthony and Jacob O. Wobbrock
   http://depts.washington.edu/aimgroup/proj/dollar/ndollar.html
 
-"Protractor: A fast and accurate gesture recognizer" by Yang Li. 
+"Protractor: A fast and accurate gesture recognizer" by Yang Li 
   http://yangl.org/pdf/protractor-chi2010.pdf
 
 Conceptual Overview
@@ -65,7 +71,7 @@ It should be possible to normalize the score from Protractor, but I have
 not researched the details. One possible approach (that I have not tried)::
 
     def score_hack(dist):
-        return dist/math.pi
+        return dist / math.pi
 
 Lazy data preparation
 ---------------------
@@ -150,13 +156,17 @@ Note that you can also use the result from the `recognize` function ::
 __all__ = ('GPoint', 'Recognizer', 'GestureSearch', 'Multistroke', 'Template', 
            'Candidate')
 
-import math
 import pickle
 import base64
 import zlib
+import re
+from collections import deque
+from math import sqrt, pi, radians, acos, atan, atan2, pow, floor
+from math import sin as math_sin, cos as math_cos
 from cStringIO import StringIO
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from kivy.properties import ListProperty
 
 # Default number of gesture matches per frame
 # FIXME: relevant number
@@ -167,19 +177,23 @@ SQUARESIZE = 250.0
 ONEDTHRESHOLD = 0.25
 
 # only for golden section search:
-PHI = 0.5 * (-1.0 + math.sqrt(5.0))
-HALFDIAGONAL = 0.5 * math.sqrt(SQUARESIZE**2 + SQUARESIZE**2)
+PHI = 0.5 * (-1.0 + sqrt(5.0))
+HALFDIAGONAL = 0.5 * sqrt(SQUARESIZE ** 2 + SQUARESIZE ** 2)
+
 
 class GPoint:
     '''Basic Point object'''
+
     def __init__(self, x, y):
+        #. x coordinate
         self.x = float(x)
+        #. y coordinate
         self.y = float(y)
 
     def __repr__(self):
         return 'GPoint(%f, %f)' % (self.x, self.y)
 
-ORIGIN = GPoint(0,0)
+ORIGIN = GPoint(0, 0)
 
 # -----------------------------------------------------------------------------
 # Recognizer
@@ -190,24 +204,23 @@ class Recognizer(EventDispatcher):
 
     :Events:
         `on_search_start`:
-            Dispatched when a new search is started using this Recognizer.
+            Fired when a new search is started using this Recognizer.
         
         `on_search_complete`:
-            Dispatched when a running search ends, for whatever reason.
+            Fired when a running search ends, for whatever reason.
             (use :data:`GestureSearch.status` to find out)
 
     :Parameters:
         `gestures`:
             An optional list of Multistroke objects to seed `self.db`.
     '''
-    def __init__(self, gestures=None):
+
+    db = ListProperty([])
+
+    def __init__(self):
         self.register_event_type('on_search_start')
         self.register_event_type('on_search_complete')
-        
-        if gestures is not None:
-            self.db = gestures
-        else:
-            self.db = []
+        super(Recognizer, self).__init__()
 
     def filter(self, name=None, priority=None, numpoints=None, numstrokes=None,
         orientation_dep=None, db=None, force_sort=None, **kwargs):
@@ -283,14 +296,14 @@ class Recognizer(EventDispatcher):
         '''
         # Wrap arguments in lists as needed. Probably wrong way to do it.
         min_p, max_p = self._get_priority(priority)
-        name         = self._get_list(name, 'str')
-        numstrokes   = self._get_list(numstrokes, 'int')
-        numpoints    = self._get_list(numpoints, 'int')
+        name = self._get_list(name, 'str')
+        numstrokes = self._get_list(numstrokes, 'int')
+        numpoints = self._get_list(numpoints, 'int')
         
         # Prepare a correctly sorted tasklist
-        force_on  = force_sort == True  and True
-        force_off = force_sort == False and True
-        tasklist = ( ((priority or force_on) and not force_off)
+        force_on  = force_sort and True
+        force_off = (not force_sort) and True
+        tasklist = (((priority or force_on) and not force_off)
            and sorted(db or self.db, key=lambda n: n.priority) 
             or (db or self.db))
 
@@ -298,14 +311,13 @@ class Recognizer(EventDispatcher):
         # popleft(). I don't really know which one is better. I considered using
         # a dict instead, but it seems equally weak if not worse. It would be
         # interesting to try SQLite.
-        from collections import deque
         out = deque()
 
         # Now test each gesture against the candidate
         for gesture in tasklist:
 
             if orientation_dep is not None and \
-               orientation_dep <> gesture.orientation_dep:
+               orientation_dep != gesture.orientation_dep:
                 continue 
 
             if numpoints and gesture.numpoints not in numpoints:
@@ -322,7 +334,6 @@ class Recognizer(EventDispatcher):
 
             if name:
                 # FIXME: Best place is the narrowest possible scope, or what??
-                import re
                 for f in name:
                     if re.match(f, gesture.name):
                         out.append(gesture)
@@ -443,7 +454,7 @@ class Recognizer(EventDispatcher):
         template as candidate). Default is None (disabled). When this option is
         used, the matching is performed according to gesture priority.
 
-        IMPORTANT::
+        .. warning::
         
             Scores differ depending on what algorithm is used and cannot always
             be ranked against each other. If use_protractor is False, it is 
@@ -552,10 +563,10 @@ class Recognizer(EventDispatcher):
         return result
     
     def _candidate(self, strokes, use_protractor, **kwargs):
-        '''recognize() helper function, do not use directly. Set up a Candidate
-        object from arguments. Either use a specified object or make a new
-        one from strokes and apply safe skip_* settings to use less resources.
-        '''
+        #  recognize() helper function, do not use directly. Set up a
+        #  Candidate object from arguments. Either use a specified object
+        #  or make a new one from strokes and apply safe skip_* settings to
+        #  use less resources.
         if isinstance(strokes, Candidate):
             return strokes
 
@@ -626,12 +637,12 @@ class GestureSearch(EventDispatcher):
 
     :Events:
         `on_progress`:
-            Dispatched for every gesture that is processed
+            Fired for every gesture that is processed
         `on_result`:
-            Dispatched when a new result is added, and it is the first match
+            Fired when a new result is added, and it is the first match
             for the `name` so far, or a consecutive match with better score.
         `on_complete`:
-            Dispatched when the search is completed, for whatever reason. 
+            Fired when the search is completed, for whatever reason. 
             (use `GestureSearch.status` to find out)
 
     :Parameters:
@@ -650,12 +661,13 @@ class GestureSearch(EventDispatcher):
         self._completed = 0
         self._break_flag = False
 
-        # dispatched by recognize()
+        # fired by recognize()
         self.register_event_type('on_complete')
         self.register_event_type('on_progress')
 
-        # dispatched locally
+        # fired locally
         self.register_event_type('on_result')
+        super(GestureSearch, self).__init__()
     
     @property
     def progress(self):
@@ -817,17 +829,17 @@ class Multistroke(object):
 
     @property
     def angle_similarity_threshold(self):
-        return math.radians(self.angle_similarity)
+        return radians(self.angle_similarity)
 
     @property
     def angle_range(self):
         '''Used internally by golden section search/$1'''
-        return math.radians(self.phi_angle_range)
+        return radians(self.phi_angle_range)
     
     @property
     def angle_precision(self):
         '''Used internally by golden section search/$1'''
-        return math.radians(self.phi_angle_precision)
+        return radians(self.phi_angle_precision)
 
     def add_stroke(self, stroke, permute=False):
         '''Add a stroke to the self.strokes list. If `permute` is True, the
@@ -849,13 +861,13 @@ class Multistroke(object):
         if use_protractor: 
             # Cosine distance
             vec = cand.get_protractor_vector(n, tpl.orientation_dep)
-            return OptimalCosineDistance(tpl.get_vector(n), vec)
+            return optimal_cosine_distance(tpl.get_vector(n), vec)
         else:
             # Euclidian distance
             rng = self.angle_range
             prc = self.angle_precision
             pts = cand.get_phi_points(n, tpl.orientation_dep)
-            return DistanceAtBestAngle(pts, tpl, -rng, +rng, prc, n)
+            return distance_at_best_angle(pts, tpl, -rng, +rng, prc, n)
 
     def match_candidate(self, cand, use_protractor=True, **kwargs):
         '''Match a given candidate against this Multistroke object. Will
@@ -883,7 +895,7 @@ class Multistroke(object):
                 continue
 
             if self.use_strokelen and \
-               len(self.strokes) <> len(cand.strokes):
+               len(self.strokes) != len(cand.strokes):
                 continue
 
             # Count as a match operation now, since the call to get_
@@ -940,12 +952,12 @@ class Multistroke(object):
         del self._order
 
         # Generate unistroke permutations
-        self.templates = [ Template(
+        self.templates = [Template(
               self.name, 
               points=permutation, 
               numpoints=self.numpoints, 
               orientation_dep=self.orientation_dep
-        ) for permutation in self._MakeUnistrokes() ]
+        ) for permutation in self._MakeUnistrokes()]
         del self._orders
         
     def _HeapPermute(self, n):
@@ -970,7 +982,7 @@ class Multistroke(object):
         unistrokes = list()
         for r in self._orders:
             b = 0
-            while b < math.pow(2, len(r)): # use b's bits for directions
+            while b < pow(2, len(r)): # use b's bits for directions
                 unistroke = list()
                 for i in range(0, len(r)):
                     pts = self.strokes[r[i]][:]
@@ -986,7 +998,7 @@ class Multistroke(object):
 # -----------------------------------------------------------------------------
 # Template
 # -----------------------------------------------------------------------------
-class Template:
+class Template(object):
     '''Represents a (uni)stroke path as a list of GPoints. Normally, this class
     is instantiated by Multistroke and not by the programmer directly. However,
     it is possible to manually compose Template objects. Please write module
@@ -1064,15 +1076,15 @@ class Template:
         if not n:
             raise Exception('prepare() called with invalid numpoints')
 
-        p = Resample(self.points, n)
-        radians = IndicativeAngle(p)
-        p = RotateBy(p, -radians)
-        p = ScaleDimTo(p, SQUARESIZE, ONEDTHRESHOLD)
+        p = resample(self.points, n)
+        radians = indicative_angle(p)
+        p = rotate_by(p, -radians)
+        p = scale_dim(p, SQUARESIZE, ONEDTHRESHOLD)
         
         if self.orientation_dep:
-            p = RotateBy(p, +radians) # restore
+            p = rotate_by(p, +radians) # restore
 
-        p = TranslateTo(p, ORIGIN)
+        p = translate_to(p, ORIGIN)
         
         # Now store it using the number of points in the resampled path as the
         # dict key. On the next call to get_*, it will be returned instead of
@@ -1080,15 +1092,15 @@ class Template:
         # all the keys once you manipulate self.points.
         self.db[n] = {
           # Compute STARTANGLEINDEX as n/8:
-          'startv': CalcStartUnitVector(p, (n / 8) ),
-          'vector': self.skip_protractor or Vectorize(p, self.orientation_dep),
+          'startv': start_unit_vector(p, (n / 8) ),
+          'vector': self.skip_protractor or vectorize(p, self.orientation_dep),
           'points': self.skip_phi or p
         }
 
 # -----------------------------------------------------------------------------
 # Candidate
 # -----------------------------------------------------------------------------
-class Candidate:
+class Candidate(object):
     '''Represents a set of unistroke paths of user input, ie data to be matched
     against a :class:`Template` object using the $1 or Protractor algorithm. By
     default, data is precomputed and stored for both algorithms and to match
@@ -1165,7 +1177,7 @@ class Candidate:
         object. This step is common for both algorithms. Returns a number that
         represents the angle similarity, lower is more similar.'''
         n = kwargs.get('numpoints', self.numpoints)
-        return AngleBetweenUnitVectors(
+        return angle_between_unit_vectors(
             self.get_start_unit_vector(n, tpl.orientation_dep),
              tpl.get_start_unit_vector(n) )
         
@@ -1175,11 +1187,11 @@ class Candidate:
         then the vectors are calculated and stored in self.db (for use by 
         `get_distance` and `get_angle_similarity`)'''
         n = numpoints and numpoints or self.numpoints
-        points = CombineStrokes(self.strokes)
-        points = Resample(points, n)
-        radians = IndicativeAngle(points)
-        points = RotateBy(points, -radians)
-        points = ScaleDimTo(points, SQUARESIZE, ONEDTHRESHOLD)
+        points = combine_strokes(self.strokes)
+        points = resample(points, n)
+        radians = indicative_angle(points)
+        points = rotate_by(points, -radians)
+        points = scale_dim(points, SQUARESIZE, ONEDTHRESHOLD)
 
         # Compute STARTANGLEINDEX as n / 8
         angidx = n/8
@@ -1187,23 +1199,23 @@ class Candidate:
         
         # full rotation invariance
         if not self.skip_invariant:
-            inv_points = TranslateTo(points, ORIGIN)
-            cand['inv_startv'] = CalcStartUnitVector(inv_points, angidx)
+            inv_points = translate_to(points, ORIGIN)
+            cand['inv_startv'] = start_unit_vector(inv_points, angidx)
 
             if not self.skip_protractor:
-                cand['inv_vector'] = Vectorize(inv_points, False)
+                cand['inv_vector'] = vectorize(inv_points, False)
 
             if not self.skip_phi:
                 cand['inv_points'] = inv_points
 
         # rotation bounded invariance
         if not self.skip_bounded:
-            bound_points = RotateBy(points, +radians) # restore
-            bound_points = TranslateTo(bound_points, ORIGIN)
-            cand['bound_startv'] = CalcStartUnitVector(bound_points, angidx)
+            bound_points = rotate_by(points, +radians) # restore
+            bound_points = translate_to(bound_points, ORIGIN)
+            cand['bound_startv'] = start_unit_vector(bound_points, angidx)
 
             if not self.skip_protractor:
-                cand['bound_vector'] = Vectorize(bound_points, True)
+                cand['bound_vector'] = vectorize(bound_points, True)
 
             if not self.skip_phi:
                 cand['bound_points'] = bound_points
@@ -1214,17 +1226,17 @@ class Candidate:
 # Helper functions from this point on. This is all directly related to the two
 # recognition algorithms, and is almost 100% transcription from the JavaScript
 # -----------------------------------------------------------------------------
-def CombineStrokes(strokes):
+def combine_strokes(strokes):
     '''Collapse a list of lists, ie connect multiple strokes to unistroke.'''
-    return [ i for sub in strokes for i in sub ]
+    return [i for sub in strokes for i in sub]
 
-def Resample(points, n):
+def resample(points, n):
     '''Resample a path to `n` points'''
 
     if not len(points) or not n:
-        raise Exception('Resample() called with invalid arguments')
+        raise Exception('resample() called with invalid arguments')
         
-    interval = PathLength(points) / (n-1)
+    interval = path_length(points) / (n - 1)
     D = 0.0
     i = 1
     newpoints = [points[0]]
@@ -1233,35 +1245,35 @@ def Resample(points, n):
     while i < len(workpoints):
         p1 = workpoints[i - 1]
         p2 = workpoints[i]
-        d = Distance(p1, p2)
+        d = distance(p1, p2)
 
         if D + d >= interval:
             qx = p1.x + ((interval-D) / d) * (p2.x - p1.x)
             qy = p1.y + ((interval-D) / d) * (p2.y - p1.y)
             q = GPoint(qx, qy)
             newpoints.append(q)
-            workpoints.insert(i, q) # q is the next i
+            workpoints.insert(i, q) #  q is the next i
             D = 0.0
         else:
             D += d
 
         i += 1
 
-    # rounding error; insert the last point
+    #  rounding error; insert the last point
     if len(newpoints) < n:
         newpoints.append(points[-1])
     
     return newpoints
             
-def IndicativeAngle(points):
-    c = Centroid(points)
-    return math.atan2(c.y - points[0].y, c.x - points[0].x)
+def indicative_angle(points):
+    c = centroid(points)
+    return atan2(c.y - points[0].y, c.x - points[0].x)
 
-def RotateBy(points, radians):
+def rotate_by(points, radians):
     '''Rotate points around centroid'''
-    c = Centroid(points)
-    cos = math.cos(radians)
-    sin = math.sin(radians)
+    c = centroid(points)
+    cos = math_cos(radians)
+    sin = math_sin(radians)
     newpoints = list()
     
     for i in range(0, len(points)):
@@ -1271,8 +1283,8 @@ def RotateBy(points, radians):
     
     return newpoints
 
-def ScaleDimTo(points, size, oneDratio):
-    bbox_x, bbox_y, bbox_w, bbox_h = BoundingBox(points)
+def scale_dim(points, size, oneDratio):
+    bbox_x, bbox_y, bbox_w, bbox_h = bounding_box(points)
 
     # 1D or 2D gesture test
     uniformly = min(bbox_w/bbox_h, bbox_h/bbox_w) <= oneDratio
@@ -1289,9 +1301,9 @@ def ScaleDimTo(points, size, oneDratio):
 
     return newpoints
 
-def TranslateTo(points, pt):
+def translate_to(points, pt):
     '''Translate points around centroid'''
-    c = Centroid(points)
+    c = centroid(points)
     newpoints = list()
     for p in points:
         qx = p.x + pt.x - c.x
@@ -1299,16 +1311,16 @@ def TranslateTo(points, pt):
         newpoints.append(GPoint(qx, qy))
     return newpoints
 
-def Vectorize(points, use_bounded_rotation_invariance):
+def vectorize(points, use_bounded_rotation_invariance):
     '''Helper function for the Protractor algorithm'''
     cos = 1.0
     sin = 0.0
 
     if use_bounded_rotation_invariance:
-        ang = math.atan2(points[0].y, points[0].x)
-        bo = (math.pi / 4.) * math.floor((ang + math.pi / 8.) / (math.pi / 4.))
-        cos = math.cos(bo - ang)
-        sin = math.sin(bo - ang)
+        ang = atan2(points[0].y, points[0].x)
+        bo = (pi / 4.) * floor((ang + pi / 8.) / (pi / 4.))
+        cos = math_cos(bo - ang)
+        sin = math_sin(bo - ang)
 
     sum = 0.0
     vector = list()
@@ -1319,13 +1331,13 @@ def Vectorize(points, use_bounded_rotation_invariance):
         vector.append(newy)
         sum += newx**2 + newy**2
 
-    magnitude = math.sqrt(sum)
+    magnitude = sqrt(sum)
     for i in range(0, len(vector)):
         vector[i] /= magnitude
     
     return vector
 
-def OptimalCosineDistance(v1, v2):
+def optimal_cosine_distance(v1, v2):
     '''Helper function for the Protractor algorithm'''
     a = 0.0
     b = 0.0
@@ -1334,49 +1346,49 @@ def OptimalCosineDistance(v1, v2):
         a += (v1[i] * v2[i])     + (v1[i + 1] * v2[i + 1])
         b += (v1[i] * v2[i + 1]) - (v1[i + 1] * v2[i])
 
-    angle = math.atan(b / a)
+    angle = atan(b / a)
 
     # If you put the below directly into math.acos(), you will get a domain
-    # error when a=1.0 and angle=0.0 (ie cos(angle)=1.0). It seems this is 
+    # error when a=1.0 and angle=0.0 (ie math_cos(angle)=1.0). It seems this is 
     # because float representation of 1.0*1.0 is >1.0 (ie 1.00000000...001) 
-    # and this is problematic for acos(). If you type math.acos(1.0*1.0) to
+    # and this is problematic for math.acos(). If you type math.acos(1.0*1.0) to
     # the interpreter, it does not happen, only with exact match at runtime
-    result = a*math.cos(angle) + b*math.sin(angle)
+    result = a * math_cos(angle) + b * math_sin(angle)
 
     # FIXME: I'm sure there is a better way to do it but..
     if result >= 1: 
         result = 1
-    if result <= -1: # has not happened to me, but I leave it here.
+    elif result <= -1: #  has not happened to me, but I leave it here.
         result = -1
-    return math.acos(result)
+    return acos(result)
 
-def DistanceAtBestAngle(points, template, a, b, threshold, numpoints):
+def distance_at_best_angle(points, template, a, b, threshold, numpoints):
     '''Golden section search (original $1 algorithm). Slower than Protractor.'''
     x1 = PHI * a + (1.0 - PHI) * b
-    f1 = DistanceAtAngle(points, template, x1, numpoints)
+    f1 = distance_at_angle(points, template, x1, numpoints)
     x2 = (1.0 - PHI) * a + PHI * b
-    f2 = DistanceAtAngle(points, template, x2, numpoints)
+    f2 = distance_at_angle(points, template, x2, numpoints)
 
     while abs(b - a) > threshold:
         if f1 < f2:
             b = x2; x2 = x1; 
             f2 = f1
             x1 = PHI * a + (1.0 - PHI) * b
-            f1 = DistanceAtAngle(points, template, x1, numpoints)
+            f1 = distance_at_angle(points, template, x1, numpoints)
         else:
             a = x1; x1 = x2
             f1 = f2
             x2 = (1.0 - PHI) * a + PHI * b
-            f2 = DistanceAtAngle(points, template, x2, numpoints)
+            f2 = distance_at_angle(points, template, x2, numpoints)
 
     return min(f1, f2)
 
-def DistanceAtAngle(points, template, radians, numpoints):
+def distance_at_angle(points, template, radians, numpoints):
     '''Golden section search (original $1 algorithm). Helper function.'''
-    newpoints = RotateBy(points, radians)
-    return PathDistance(newpoints, template.get_points(numpoints)) 
+    newpoints = rotate_by(points, radians)
+    return path_distance(newpoints, template.get_points(numpoints)) 
 
-def Centroid(points):
+def centroid(points):
     x = 0.0
     y = 0.0
 
@@ -1389,7 +1401,7 @@ def Centroid(points):
     
     return GPoint(x, y)
 
-def BoundingBox(points):
+def bounding_box(points):
     minx = float('infinity')
     miny = float('infinity')
     maxx = float('-infinity')
@@ -1407,35 +1419,35 @@ def BoundingBox(points):
     
     return (minx, miny, maxx - minx, maxy - miny)
             
-def PathDistance(pts1, pts2):
+def path_distance(pts1, pts2):
     d = 0.0
     for i in range(0, len(pts1)):
-        d += Distance(pts1[i], pts2[i])
+        d += distance(pts1[i], pts2[i])
     return d / len(pts1)
 
-def PathLength(points):
+def path_length(points):
     d = 0.0
     for i in range(1, len(points)):
-        d += Distance(points[i - 1], points[i])
+        d += distance(points[i - 1], points[i])
     return d
 
-def Distance(p1, p2):
+def distance(p1, p2):
     dx = p2.x - p1.x
     dy = p2.y - p1.y
-    return math.sqrt(dx**2 + dy**2)
+    return sqrt(dx**2 + dy**2)
 
-def CalcStartUnitVector(points, index):
+def start_unit_vector(points, index):
     v = GPoint(points[index].x - points[0].x, points[index].y - points[0].y)
-    length = math.sqrt(v.x**2 + v.y**2)
+    length = sqrt(v.x**2 + v.y**2)
     return GPoint(v.x / length, v.y / length)
 
-def AngleBetweenUnitVectors(v1, v2):
+def angle_between_unit_vectors(v1, v2):
     n = (v1.x * v2.x + v1.y * v2.y)
     # FIXME: Domain error on float representation of 1.0 (exact match)
-    # (see OptimalCosineDistance)
+    # (see optimal_cosine_distance)
     if n >= 1:
         return 0.0
     if n <= -1:
-        return math.pi
-    return math.acos(n)
+        return pi
+    return acos(n)
 
