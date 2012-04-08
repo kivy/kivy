@@ -4,6 +4,7 @@ from kivy.app import App
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.lang import Builder
 
 # Local libraries
 import touchanalyzer as TA
@@ -14,6 +15,16 @@ from appoptions import AppOptions
 
 # Size hint for the MainMenu widget (others are scaled accordingly)
 MENU_SIZE_HINT = .07
+
+Builder.load_string('''
+#:set menu_size_hint %f
+
+<MainMenu>:
+    rows: 1
+    size_hint: (1, menu_size_hint)
+    spacing: 5
+    padding: 5
+''' % (MENU_SIZE_HINT))
 
 
 # Override default ToggleButton behavior so it's not deselectable. Should
@@ -34,10 +45,6 @@ class MainMenu(GridLayout):
     '''MainMenu provides a simple horizontal list of buttons and emit an event
     when a new one is selected.'''
     def __init__(self, **kwargs):
-        kwargs.setdefault('rows', 1)
-        kwargs.setdefault('size_hint', (1, MENU_SIZE_HINT))
-        kwargs.setdefault('spacing', 5)
-        kwargs.setdefault('padding', 5)
         super(MainMenu, self).__init__(**kwargs)
 
         self.active = None
