@@ -19,28 +19,29 @@ import touchanalyzer as TA
 
 __all__ = ('AppOptions',)
 
+
 class AppOptions(GridLayout):
     def __init__(self, **kwargs):
         super(AppOptions, self).__init__(**kwargs)
         self._setup_maxstrokes()
         self._setup_temporal()
         self._setup_resulttime()
-        
+
     def _setup_maxstrokes(self):
         txt = "Maximum number of strokes? (0=disable)\n"
         txt += "Causes the sample to be dispatched for recognition when\n"
         txt += "the gesture reaches a specific number of strokes"
         self.add_widget(Label(text=txt, size_hint=(None, None), width=400))
 
-        sl = Slider(min=0, max=20, size_hint=(None, None), 
+        sl = Slider(min=0, max=20, size_hint=(None, None),
             value=TA.MAX_STROKES, size=(200, 50))
-        lbl = Label(text=str(TA.MAX_STROKES), size_hint=(None, None), 
+        lbl = Label(text=str(TA.MAX_STROKES), size_hint=(None, None),
             size=(100, 50))
-        
+
         def upd_slider(*l):
             TA.MAX_STROKES = int(sl.value)
             lbl.text = str(int(sl.value))
-        sl.bind(value = upd_slider)
+        sl.bind(value=upd_slider)
 
         self.add_widget(sl)
         self.add_widget(lbl)
@@ -51,16 +52,16 @@ class AppOptions(GridLayout):
         txt += "attempting to recognize the gesture?"
         self.add_widget(Label(text=txt, size_hint=(None, None), width=400))
 
-        sl = Slider(min=0, max=20, size_hint=(None, None), 
+        sl = Slider(min=0, max=20, size_hint=(None, None),
             value=TA.TEMPORAL_WINDOW, size=(200, 50))
-        lbl = Label(text=str(round(TA.TEMPORAL_WINDOW, 1)), size_hint=(None, 
-None), 
+        lbl = Label(text=str(round(TA.TEMPORAL_WINDOW, 1)), size_hint=(None,
+None),
             size=(100, 50))
-        
+
         def upd_slider(*l):
             TA.TEMPORAL_WINDOW = sl.value
             lbl.text = str(round(sl.value, 1))
-        sl.bind(value = upd_slider)
+        sl.bind(value=upd_slider)
 
         self.add_widget(sl)
         self.add_widget(lbl)
@@ -70,17 +71,15 @@ None),
         txt += "How long should the result display on screen?\n"
         self.add_widget(Label(text=txt, size_hint=(None, None), width=400))
 
-        sl = Slider(min=1, max=60, size_hint=(None, None), 
+        sl = Slider(min=1, max=60, size_hint=(None, None),
             value=TA.RESULT_TIMEOUT, size=(200, 50))
-        lbl = Label(text=str(round(TA.RESULT_TIMEOUT, 1)), size_hint=(None, 
-None), 
+        lbl = Label(text=str(round(TA.RESULT_TIMEOUT, 1)), size_hint=(None,
+None),
             size=(100, 50))
-        
+
         def upd_slider(*l):
             TA.RESULT_TIMEOUT = sl.value
             lbl.text = str(round(sl.value, 1))
-        sl.bind(value = upd_slider)
+        sl.bind(value=upd_slider)
         self.add_widget(sl)
         self.add_widget(lbl)
-
-

@@ -24,6 +24,7 @@ MAX_STROKES = 4
 # collisions (in both directions)
 FUZZY_BBOX = 35
 
+
 class GContainer(object):
     '''A simple Gesture Container that is used to store data about one of the
     tracked gestures.'''
@@ -38,7 +39,7 @@ class GContainer(object):
         # a gesture when a stroke is still active.
         self.active_strokes = 0
 
-        # This option forces the gesture to be dispatched if it reaches 
+        # This option forces the gesture to be dispatched if it reaches
         # this number of strokes; it will not allow merging with another
         # gesture if the total stroke length is exceeded.
         self.max_strokes = max_strokes
@@ -46,34 +47,33 @@ class GContainer(object):
         # When a gesture is merged (so it disappears), this flag is raised
         # so we can clean it up later.
         self.merged = False
-        
-        # Raised if the gesture is too small to be matched; so it's not 
+
+        # Raised if the gesture is too small to be matched; so it's not
         # appended to history after cleanup
         self.discard = False
-        
+
         # Store various timestamps for decision making
         self.created = Clock.get_time()
         self.last_update = None
         self.result_time = None
-        
+
         # Before we push the item to history, we tag it with the corresponding
         # GestureSearch object
         self.recognize_result = None
-        
+
         # The color is applied to all canvas items of this gesture
         self.color = random()
 
         # Key is touch.uid; value is the canvas Line item.
         self.strokes = {}
 
-
-        # Holds Canvas instructions 
+        # Holds Canvas instructions
         self.bbrect = None
         self.result_lbl = None
 
         # Actual bounding box data, updated for every touch move
         self.bbox = {'minx': float('inf'),  'miny': float('inf'),
-                     'maxx': float('-inf'), 'maxy': float('-inf') }
+                     'maxx': float('-inf'), 'maxy': float('-inf')}
 
         # Computed on bbox update
         self.width = 0
@@ -84,13 +84,13 @@ class GContainer(object):
 
     def handles(self, touch):
         if not self.active:
-           return False
+            return False
         return str(touch.uid) in self.strokes
 
     def accept_stroke(self, count=1):
         if not self.max_strokes:
             return True
-        return len(self.strokes)+count <= self.max_strokes
+        return len(self.strokes) + count <= self.max_strokes
 
     def update_bbox(self, touch):
         '''Update gesture bbox from a touch coordinate'''
@@ -101,7 +101,7 @@ class GContainer(object):
         if touch.x > self.bbox['maxx']:
             self.bbox['maxx'] = touch.x
         if touch.y > self.bbox['maxy']:
-            self.bbox['maxy'] = touch.y        
+            self.bbox['maxy'] = touch.y
         self.width = self.bbox['maxx'] - self.bbox['minx']
         self.height = self.bbox['maxy'] - self.bbox['miny']
         self.last_update = Clock.get_time()
@@ -113,14 +113,14 @@ class GContainer(object):
         self.last_update = Clock.get_time()
         self.strokes[str(touch.uid)] = line
         self.active_strokes += 1
-    
+
     def complete_stroke(self):
         '''Called on touch up events to keep track of how many strokes
         are actie in the gesture. (we only want to dispatch event when
         the *last* stroke is released'''
         self.last_update = Clock.get_time()
         self.active_strokes -= 1
-        
+
     def merge_with(self, other, canvas):
         # Swap order depending on gesture age (the merged gesture gets
         # the color from the oldest one of the two).
@@ -138,7 +138,7 @@ class GContainer(object):
         if b.bbox['maxy'] > a.bbox['maxy']:
             a.bbox['maxy'] = b.bbox['maxy']
 
-        # Now transfer the actual line from old to new gesture; 
+        # Now transfer the actual line from old to new gesture;
         # FIXME: I couldn't figure out how to actually change the group/color
         # of the old instructions, so this was the easiest hack..
         for uid, old_line in b.strokes.items():
@@ -163,20 +163,22 @@ class GContainer(object):
         maxy = self.bbox['maxy'] + FUZZY_BBOX
         return minx <= x <= maxx and miny <= y <= maxy
 
-# Could not figure out how to do this with canvas Line instructions stored in 
+
+# Could not figure out how to do this with canvas Line instructions stored in
 # touch.ud, so I moved them all out instead of a hybrid approach.
+
 class TouchAnalyzer(FloatLayout):
     '''$N is a template-based gesture recognizer; there are a lot of problems
-    that it does not solve. This class illustrates how the `on_touch` events 
-    can be used in combination with Recognizer. The basic job is to determine 
+    that it does not solve. This class illustrates how the `on_touch` events
+    can be used in combination with Recognizer. The basic job is to determine
     what strokes belong in what gesture, and then dispatch for template
     matching.'''
     def __init__(self, **kwargs):
         super(TouchAnalyzer, self).__init__(**kwargs)
 
-        # A list of GContainer objects; ie all the gestures on the surface. 
+        # A list of GContainer objects; ie all the gestures on the surface.
         self._gestures = []
-        
+
         # When we don't need the gesture anymore (ie finished analyzing and
         # reporting the result), it is moved to history storage. This is a
         # deque() object so we can .popleft() items in history order.
@@ -206,8 +208,8 @@ class TouchAnalyzer(FloatLayout):
 # -----------------------------------------------------------------------------
     def on_touch_down(self, touch):
         '''When a new touch is registered, the first thing we do is to test if
-        it collides with the bounding box of another known gesture. If so, it 
-        is assumed to be part of that gesture. 
+        it collides with the bounding box of another known gesture. If so, it
+        is assumed to be part of that gesture.
         '''
         # If the touch originates outside the analyzer, ignore it.
         if not self.collide_point(touch.x, touch.y):
@@ -225,7 +227,7 @@ class TouchAnalyzer(FloatLayout):
         self._init_stroke(g, touch)
 
         return True
-        
+
     def on_touch_move(self, touch):
         '''When a touch moves, we add a point to the line on the canvas so the
         path is updated. We must also check if the new point collides with the
@@ -234,7 +236,7 @@ class TouchAnalyzer(FloatLayout):
             return
         if not self.collide_point(touch.y, touch.y):
             return
-        
+
         # Retrieve the GContainer object that handles this touch, and test for
         # colliding gestures. If found, merge them to one.
         g = self.get_gesture(touch)
@@ -243,15 +245,15 @@ class TouchAnalyzer(FloatLayout):
             g = g.merge_with(collision, self.canvas)
         else:
             g.update_bbox(touch)
-        
+
         # Add a point to the Line with the new coordinates
         g.strokes[str(touch.uid)].points += [touch.x, touch.y]
-        
+
         # Force drawing the gesture bounding box; if it is a single press that
         # does not trigger a move event, we would miss it otherwise.
         self._update_canvas_bbox(g)
         return True
-        
+
     def on_touch_up(self, touch):
         if 'is_gesture' not in touch.ud:
             return
@@ -264,8 +266,8 @@ class TouchAnalyzer(FloatLayout):
             with self.canvas:
                 Color(g.color, 1, 1, mode='hsv', group=g.id)
                 Rectangle(
-                    source='particle.png', pos=(touch.x-5, touch.y-5),
-                    size=(10, 10), group=g.id )
+                    source='particle.png', pos=(touch.x - 5, touch.y - 5),
+                    size=(10, 10), group=g.id)
 
         # If this stroke hit the maximum limit, dispatch immediately
         if not g.accept_stroke():
@@ -283,13 +285,13 @@ class TouchAnalyzer(FloatLayout):
         if g.width < 5 and g.height < 5:
             self.dispatch('on_gesture_discard', g)
             return
-            
+
         # Convert the data to acceptable input for recognize, ie a list of
         # GPoint objects with the coordinates from on_touch_* events.
         cand = []
         for tuid, l in g.strokes.items():
-            cand.append([ GPoint(*pts) for pts in \
-                zip(l.points[::2], l.points[1::2]) ])
+            cand.append([GPoint(*pts) for pts in \
+                zip(l.points[::2], l.points[1::2])])
 
         # Create a callback that dispatches the event when the actual search
         # is completed (depends on # of gestures in gdb, among other things)
@@ -297,8 +299,8 @@ class TouchAnalyzer(FloatLayout):
             self.dispatch('on_gesture_recognize', g, result)
 
         res = self.gdb.recognize(cand)
-        res.bind(on_complete = _recognize_complete)
-                
+        res.bind(on_complete=_recognize_complete)
+
     def on_gesture_recognize(self, g, result):
         g.recognize_result = result
         best = result.best
@@ -309,14 +311,14 @@ class TouchAnalyzer(FloatLayout):
             txt = 'No match'
 
         g.result_lbl = Label(text=txt, size_hint=(None, None),
-            center=(g.bbox['minx'], g.bbox['miny']) )
+            center=(g.bbox['minx'], g.bbox['miny']))
         self.add_widget(g.result_lbl)
-        g.result_time  = Clock.get_time()
+        g.result_time = Clock.get_time()
         Clock.schedule_once(self._cleanup, RESULT_TIMEOUT)
 
     def on_gesture_discard(self, g):
         g.result_lbl = Label(text='Not enough input', size_hint=(None, None),
-            center=(g.bbox['minx'], g.bbox['miny']) )
+            center=(g.bbox['minx'], g.bbox['miny']))
         self.add_widget(g.result_lbl)
         g.discard = True
         g.result_time = Clock.get_time()
@@ -324,7 +326,7 @@ class TouchAnalyzer(FloatLayout):
 
     def on_gesture_purge(self, *l):
         pass
-        
+
 # -----------------------------------------------------------------------------
 # Other methods
 # -----------------------------------------------------------------------------
@@ -333,7 +335,7 @@ class TouchAnalyzer(FloatLayout):
             if g.active and g.handles(touch):
                 return g
         raise Exception('get_gesture() failed to identify ' + str(touch.uid))
-            
+
     def find_colliding_gesture(self, touch):
         '''Checks if a touch x/y collides with the (fuzzy) bounding box of
         another gesture. If so, return it's id (otherwise return touch id)
@@ -348,7 +350,7 @@ class TouchAnalyzer(FloatLayout):
 # Other methods
 # -----------------------------------------------------------------------------
     def _update_canvas_bbox(self, g):
-        g.bbrect.pos  = (g.bbox['minx'], g.bbox['miny'])
+        g.bbrect.pos = (g.bbox['minx'], g.bbox['miny'])
         g.bbrect.size = (g.bbox['maxx'] - g.bbox['minx'],
                          g.bbox['maxy'] - g.bbox['miny'])
 
@@ -362,10 +364,10 @@ class TouchAnalyzer(FloatLayout):
         with self.canvas:
             Color(g.color, 1, 1, .045, mode='hsv', group=g.id)
             g.bbrect = Rectangle(
-              group = g.id,
-              pos   = (g.bbox['minx'], g.bbox['miny']), 
-              size  = (g.bbox['maxx'] - g.bbox['minx'], 
-                       g.bbox['maxy'] - g.bbox['miny'])
+              group=g.id,
+              pos=(g.bbox['minx'], g.bbox['miny']),
+              size=(g.bbox['maxx'] - g.bbox['minx'],
+                    g.bbox['maxy'] - g.bbox['miny'])
             )
 
         self._gestures.append(g)
@@ -374,7 +376,7 @@ class TouchAnalyzer(FloatLayout):
     def _init_stroke(self, g, touch):
         with self.canvas:
             Color(g.color, 1, 1, mode='hsv', group=g.id)
-            Rectangle(source='particle.png', pos=(touch.x-5, touch.y-5), 
+            Rectangle(source='particle.png', pos=(touch.x - 5, touch.y - 5),
                 size=(10, 10), group=g.id)
             l = Line(points=(touch.x, touch.y), group=g.id)
 
@@ -396,22 +398,22 @@ class TouchAnalyzer(FloatLayout):
         final touch, and event is dispatched.'''
         for id, g in enumerate(self._gestures):
             if g.active and g.active_strokes == 0 and \
-               (g.last_update+TEMPORAL_WINDOW <= Clock.get_time() or
+               (g.last_update + TEMPORAL_WINDOW <= Clock.get_time() or
                 not g.accept_stroke()):
                 g.active = False
                 self.dispatch('on_gesture_detect', g)
-            
+
             elif g.merged:
                 # Do some cleanup while we're here
                 del self._gestures[id]
 
     def _cleanup(self, dt):
         '''This method is scheduled from on_gesture_recognize, it's job is
-        to clean up the line/bbox on the canvas, remove the result label 
+        to clean up the line/bbox on the canvas, remove the result label
         and move the gesture to history.'''
         for idx, g in enumerate(self._gestures):
             if g.result_time and \
-               g.result_time+RESULT_TIMEOUT < Clock.get_time():
+               g.result_time + RESULT_TIMEOUT < Clock.get_time():
                 del self._gestures[idx]
                 self.canvas.remove_group(g.id)
                 if g.result_lbl is not None:
@@ -419,4 +421,3 @@ class TouchAnalyzer(FloatLayout):
                 if not g.discard:
                     self._history.append(g)
                     self.dispatch('on_gesture_purge')
-
