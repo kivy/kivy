@@ -181,7 +181,7 @@ PHI = 0.5 * (-1.0 + sqrt(5.0))
 HALFDIAGONAL = 0.5 * sqrt(SQUARESIZE ** 2 + SQUARESIZE ** 2)
 
 
-class GPoint(object):
+class GPoint:
     '''Basic Point object'''
 
     def __init__(self, x, y):
