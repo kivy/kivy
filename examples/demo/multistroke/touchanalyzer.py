@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 from random import random
+from collections import deque
 from kivy.clock import Clock
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Line, Rectangle
+from kivy.properties import ObjectProperty
 from kivy.multistroke import Recognizer, GPoint
 
 __all__ = ('TouchAnalyzer', 'GContainer')
@@ -173,6 +175,9 @@ class TouchAnalyzer(FloatLayout):
     can be used in combination with Recognizer. The basic job is to determine
     what strokes belong in what gesture, and then dispatch for template
     matching.'''
+
+    gdb = ObjectProperty(Recognizer())
+
     def __init__(self, **kwargs):
         super(TouchAnalyzer, self).__init__(**kwargs)
 
@@ -182,11 +187,7 @@ class TouchAnalyzer(FloatLayout):
         # When we don't need the gesture anymore (ie finished analyzing and
         # reporting the result), it is moved to history storage. This is a
         # deque() object so we can .popleft() items in history order.
-        from collections import deque
         self._history = deque()
-
-        # Set up the recognizer
-        self.gdb = kwargs.get('recognizer', Recognizer())
 
         # Dispatched when a set of strokes is considered a complete gesture,
         # we will start Recognizer.recognize() from the default handler.
@@ -202,6 +203,8 @@ class TouchAnalyzer(FloatLayout):
 
         # Dispatched when a gesture is moved to history
         self.register_event_type('on_gesture_purge')
+
+        super(TouchAnalyzer, self).__init__(**kwargs)
 
 # -----------------------------------------------------------------------------
 # Touch Event handlers
