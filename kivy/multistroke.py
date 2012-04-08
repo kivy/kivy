@@ -98,7 +98,7 @@ You can bind to events on the :class:`Recognizer` instance to track all calls
 to recognize(). `res.status` in the callback can be used to determine if the
 search was completed, stopped by the user etc::
 
-    from kivy.multistroke import Recognizer
+    from kivy.multistroke import Recognizer, GPoint
 
     gdb = Recognizer()
 
@@ -114,8 +114,8 @@ search was completed, stopped by the user etc::
             res.status, best['name'], best['score'], best['dist'] )
 
     # Now bind callbacks to track all search operations:
-    gdb.bind(on_search_start = search_start)
-    gdb.bind(on_search_complete = search_stop)
+    gdb.bind(on_search_start=search_start)
+    gdb.bind(on_search_complete=search_stop)
 
     # The format below is referred to as `strokes`, a list of stroke paths.
     # Note that each path is two points, ie a straight line; if you plot them
@@ -992,11 +992,11 @@ class Multistroke(object):
 
     def _make_unistrokes(self):
         '''Create unistroke permutations from self.strokes'''
-        unistrokes = list()
+        unistrokes = []
         for r in self._orders:
             b = 0
             while b < pow(2, len(r)):  # use b's bits for directions
-                unistroke = list()
+                unistroke = []
                 for i in range(0, len(r)):
                     pts = self.strokes[r[i]][:]
                     if (b >> i) & 1 == 1:  # is b's bit at index i 1?
@@ -1050,7 +1050,7 @@ class Template(object):
         self.skip_phi = kwargs.get('skip_phi', False)
 
         self.db = {}
-        self.points = list()
+        self.points = []
 
         if points is not None:
             self.points = points
@@ -1297,7 +1297,7 @@ def rotate_by(points, radians):
     c = centroid(points)
     cos = math_cos(radians)
     sin = math_sin(radians)
-    newpoints = list()
+    newpoints = []
 
     for i in range(0, len(points)):
         qx = (points[i].x - c.x) * cos - (points[i].y - c.y) * sin + c.x
@@ -1329,7 +1329,7 @@ def scale_dim(points, size, oneDratio):
 def translate_to(points, pt):
     '''Translate points around centroid'''
     c = centroid(points)
-    newpoints = list()
+    newpoints = []
     for p in points:
         qx = p.x + pt.x - c.x
         qy = p.y + pt.y - c.y
@@ -1349,7 +1349,7 @@ def vectorize(points, use_bounded_rotation_invariance):
         sin = math_sin(bo - ang)
 
     sum = 0.0
-    vector = list()
+    vector = []
     for p in points:
         newx = p.x * cos - p.y * sin
         newy = p.y * cos + p.x * sin
