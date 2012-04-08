@@ -20,8 +20,6 @@ MENU_SIZE_HINT = .07
 # probably be added as a feature in core, unless it is and I missed it
 
 class RadioButton(ToggleButton):
-    def __init__(self, **kwargs):
-        super(RadioButton, self).__init__(**kwargs)
 
     def _do_press(self):
         self._release_group(self)
