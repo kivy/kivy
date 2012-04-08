@@ -13,6 +13,8 @@ class BaseClass(object):
         self.children = []
         self.parent = None
         self.binded_func = {}
+        self.id = None
+        self.cls = []
 
     def add_widget(self, widget):
         self.children.append(widget)
