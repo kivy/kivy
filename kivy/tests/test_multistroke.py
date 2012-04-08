@@ -58,7 +58,7 @@ class MultistrokeTestCase(unittest.TestCase):
 # Recognizer scheduling
 # -----------------------------------------------------------------------------
     def test_immediate(self):
-        gdb = Recognizer([self.Tinvar, self.Ninvar])
+        gdb = Recognizer(db=[self.Tinvar, self.Ninvar])
         r = gdb.recognize([Ncandidate], max_gpf=0, use_protractor=False)
         self.assertEqual(r._match_ops, 4)
         self.assertEqual(r._completed, 2)
@@ -68,7 +68,7 @@ class MultistrokeTestCase(unittest.TestCase):
     def test_scheduling(self):
         global best_score
         from kivy.clock import Clock
-        gdb = Recognizer([self.Tinvar, self.Ninvar])
+        gdb = Recognizer(db=[self.Tinvar, self.Ninvar])
         r = gdb.recognize([Ncandidate], max_gpf=1, use_protractor=False)
         r.bind(on_complete=best_score_cb)
 
@@ -85,7 +85,7 @@ class MultistrokeTestCase(unittest.TestCase):
     def test_scheduling_limits(self):
         global best_score
         from kivy.clock import Clock
-        gdb = Recognizer([self.Ninvar])
+        gdb = Recognizer(db=[self.Ninvar])
         tpls = len(self.Ninvar.templates)
 
         best_score = 0
@@ -160,7 +160,7 @@ class MultistrokeTestCase(unittest.TestCase):
         from time import sleep
 
         best_score = 0
-        gdb = Recognizer([self.Tbound, self.Ninvar])
+        gdb = Recognizer(db=[self.Tbound, self.Ninvar])
         r = gdb.recognize([Ncandidate], max_gpf=1, timeout=0.1,
                           use_protractor=False)
         Clock.tick()  # matches Tbound in this tick
@@ -177,7 +177,7 @@ class MultistrokeTestCase(unittest.TestCase):
         from time import sleep
 
         best_score = 0
-        gdb = Recognizer([self.Tbound, self.Ninvar, self.Tinvar])
+        gdb = Recognizer(db=[self.Tbound, self.Ninvar, self.Tinvar])
         r = gdb.recognize([Ncandidate], max_gpf=1, timeout=0.2,
                           use_protractor=False)
 
@@ -207,14 +207,14 @@ class MultistrokeTestCase(unittest.TestCase):
 # Recognizer - filter tests
 # -----------------------------------------------------------------------------
     def test_name_filter(self):
-        gdb = Recognizer([self.Ninvar, self.Nbound])
+        gdb = Recognizer(db=[self.Ninvar, self.Nbound])
         n = gdb.filter()
         self.assertEqual(len(n), 2)
         n = gdb.filter(name='X')
         self.assertEqual(len(n), 0)
 
     def test_numpoints_filter(self):
-        gdb = Recognizer([self.Ninvar, self.Nbound])
+        gdb = Recognizer(db=[self.Ninvar, self.Nbound])
         n = gdb.filter(numpoints=100)
         self.assertEqual(len(n), 0)
 
@@ -225,7 +225,7 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertEqual(len(n), 3)
 
     def test_numstrokes_filter(self):
-        gdb = Recognizer([self.Ninvar, self.Nbound])
+        gdb = Recognizer(db=[self.Ninvar, self.Nbound])
         n = gdb.filter(numstrokes=2)
         self.assertEqual(len(n), 0)
 
@@ -236,7 +236,7 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertEqual(len(n), 3)
 
     def test_priority_filter(self):
-        gdb = Recognizer([self.Ninvar, self.Nbound])
+        gdb = Recognizer(db=[self.Ninvar, self.Nbound])
         n = gdb.filter(priority=50)
         self.assertEqual(len(n), 0)
 
@@ -259,7 +259,7 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertEqual(len(n), 0)
 
     def test_orientation_filter(self):
-        gdb = Recognizer([self.Ninvar, self.Nbound])
+        gdb = Recognizer(db=[self.Ninvar, self.Nbound])
         n = gdb.filter(orientation_dep=True)
         self.assertEqual(len(n), 1)
         n = gdb.filter(orientation_dep=False)
@@ -279,11 +279,11 @@ class MultistrokeTestCase(unittest.TestCase):
 # misc tests
 # -----------------------------------------------------------------------------
     def test_resample(self):
-        r = kivy.multistroke.Resample([GPoint(0, 0), GPoint(1, 1)], 11)
+        r = kivy.multistroke.resample([GPoint(0, 0), GPoint(1, 1)], 11)
         self.assertEqual(len(r), 11)
         self.assertEqual(round(r[9].x, 1), 0.9)
 
-        r = kivy.multistroke.Resample(TGesture, 25)
+        r = kivy.multistroke.resample(TGesture, 25)
         self.assertEqual(len(r), 25)
         self.assertEqual(round(r[12].x), 81)
         self.assertEqual(r[12].y, 7)
@@ -291,12 +291,12 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertEqual(TGesture[3].y, r[24].y)
 
     def test_rotateby(self):
-        r = kivy.multistroke.RotateBy(NGesture, 24)
+        r = kivy.multistroke.rotate_by(NGesture, 24)
         self.assertEqual(round(r[2].x, 1), 158.59999999999999)
         self.assertEqual(round(r[2].y, 1), 54.899999999999999)
 
     def test_transfer(self):
-        gdb1 = Recognizer([self.Ninvar])
+        gdb1 = Recognizer(db=[self.Ninvar])
         gdb2 = Recognizer()
         gdb1.transfer_gesture(gdb2, name='N')
 
@@ -305,7 +305,7 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertTrue(r.best['score'] > 0.91 and r.best['score'] < 0.92)
 
     def test_export_import_case_1(self):
-        gdb1 = Recognizer([self.Ninvar])
+        gdb1 = Recognizer(db=[self.Ninvar])
         gdb2 = Recognizer()
 
         g = gdb1.export_gesture(name='N')
@@ -318,7 +318,7 @@ class MultistrokeTestCase(unittest.TestCase):
     def test_export_import_case_2(self):
         from tempfile import mkstemp
         import os
-        gdb1 = Recognizer([self.Ninvar, self.Tinvar])
+        gdb1 = Recognizer(db=[self.Ninvar, self.Tinvar])
         gdb2 = Recognizer()
         fh, fn = mkstemp()
         os.close(fh)
@@ -337,7 +337,7 @@ class MultistrokeTestCase(unittest.TestCase):
 # Test golden section search; note .99 1 etc is safe scoring here
 # -----------------------------------------------------------------------------
     def test_phi_invariant(self):
-        gdb = Recognizer([self.Tinvar, self.Ninvar])
+        gdb = Recognizer(db=[self.Tinvar, self.Ninvar])
         r = gdb.recognize([NGesture], orientation_dep=False, max_gpf=0,
                      use_protractor=False)
         self.assertEqual(r.best['name'], 'N')
@@ -354,7 +354,7 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertTrue(r.best['score'] >= .91 and r.best['score'] <= .92)
 
     def test_phi_bound(self):
-        gdb = Recognizer([self.Tbound, self.Nbound])
+        gdb = Recognizer(db=[self.Tbound, self.Nbound])
         r = gdb.recognize([NGesture], orientation_dep=True, max_gpf=0,
                      use_protractor=False)
         self.assertEqual(r.best['name'], 'N')
@@ -371,7 +371,7 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertTrue(r.best['score'] >= .91 and r.best['score'] <= .92)
 
     def test_phi_orientation_filter(self):
-        gdb = Recognizer([self.Tbound])
+        gdb = Recognizer(db=[self.Tbound])
 
         # We should now be able to match it using None or True filter
         r = gdb.recognize([TGesture], orientation_dep=None, max_gpf=0,
@@ -407,7 +407,7 @@ class MultistrokeTestCase(unittest.TestCase):
 # Test protractor search - .99/1 is not safe
 # ------------------------------------------------------------------------
     def test_protractor_invariant(self):
-        gdb = Recognizer([self.Tinvar, self.Ninvar])
+        gdb = Recognizer(db=[self.Tinvar, self.Ninvar])
         r = gdb.recognize([NGesture], orientation_dep=False, max_gpf=0,
                      use_protractor=True)
         self.assertEqual(r.best['name'], 'N')
@@ -425,7 +425,7 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertTrue(r.best['score'] <= CANDIDATE_SCORE + 0.1)
 
     def test_protractor_bound(self):
-        gdb = Recognizer([self.Tbound, self.Nbound])
+        gdb = Recognizer(db=[self.Tbound, self.Nbound])
         r = gdb.recognize([NGesture], orientation_dep=True, max_gpf=0,
                      use_protractor=True)
         self.assertEqual(r.best['name'], 'N')
@@ -443,7 +443,7 @@ class MultistrokeTestCase(unittest.TestCase):
         self.assertTrue(r.best['score'] <= CANDIDATE_SCORE + 0.1)
 
     def test_phi_orientation_filter(self):
-        gdb = Recognizer([self.Tbound])
+        gdb = Recognizer(db=[self.Tbound])
 
         # We should now be able to match it using None or True filter
         r = gdb.recognize([TGesture], orientation_dep=None, max_gpf=0,

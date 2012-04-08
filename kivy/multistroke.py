@@ -219,10 +219,10 @@ class Recognizer(EventDispatcher):
 
     db = ListProperty([])
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.register_event_type('on_search_start')
         self.register_event_type('on_search_complete')
-        super(Recognizer, self).__init__()
+        super(Recognizer, self).__init__(**kwargs)
 
     def filter(self, name=None, priority=None, numpoints=None, numstrokes=None,
         orientation_dep=None, db=None, force_sort=None, **kwargs):
