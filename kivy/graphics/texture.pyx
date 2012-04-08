@@ -147,7 +147,7 @@ information.
 Reloading the Texture
 ---------------------
 
-.. versionadded:: 1.1.2
+.. versionadded:: 1.2.0
 
 If the OpenGL context is lost, the Texture must be reloaded. Texture having a
 source are automatically reloaded without any help. But generated textures must
@@ -608,7 +608,7 @@ cdef class Texture:
         '''Add a callback to be called after the whole graphics context have
         been reloaded. This is where you can reupload your custom data in GPU.
 
-        .. versionadded:: 1.1.2
+        .. versionadded:: 1.2.0
 
         :Parameters:
             `callback`: func(context) -> return None
@@ -620,7 +620,7 @@ cdef class Texture:
         '''Remove a callback from the observer list, previously added by
         :func:`add_reload_observer`.
 
-        .. versionadded:: 1.1.2
+        .. versionadded:: 1.2.0
 
         '''
         for cb in self.observers[:]:
@@ -864,7 +864,7 @@ cdef class Texture:
     property bufferfmt:
         '''Return the buffer format used in this texture. (readonly)
 
-        .. versionadded:: 1.1.2
+        .. versionadded:: 1.2.0
         '''
         def __get__(self):
             return self._bufferfmt

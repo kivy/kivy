@@ -31,7 +31,7 @@ the canvas object, and will be used when the window drawing will happen.
 GL Reloading mechanism
 ----------------------
 
-.. versionadded:: 1.1.2
+.. versionadded:: 1.2.0
 
 During the lifetime of the application, the OpenGL context might be lost. This
 is happening:
@@ -46,7 +46,7 @@ is happening:
   resource to another app. When the user switch back to your application, a
   newly gl context is given to you.
 
-Starting from 1.1.2, we introduced a mechanism for reloading all the graphics
+Starting from 1.2.0, we introduced a mechanism for reloading all the graphics
 resources using the GPU: Canvas, FBO, Shader, Texture, VBO, VertexBatch:
 
 - VBO and VertexBatch are constructed by our graphics instructions. We have all

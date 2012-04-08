@@ -353,13 +353,13 @@ class WindowBase(EventDispatcher):
     the screen size will not change, and use the current one to set the app
     fullscreen
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
     '''
 
     mouse_pos = ObjectProperty([0, 0])
     '''2d position of the mouse within the window.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
     '''
 
     top = NumericProperty(None, allownone=True)
@@ -768,7 +768,7 @@ class WindowBase(EventDispatcher):
             pygame. But this will be a place for a further evolution (ios,
             android etc.)
 
-        .. versionadded:: 1.1.2
+        .. versionadded:: 1.2.0
         '''
         pass
 

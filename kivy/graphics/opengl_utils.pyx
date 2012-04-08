@@ -194,7 +194,7 @@ cpdef int gl_has_texture_format(str fmt):
 cpdef tuple gl_get_version():
     '''Return the (major, minor) OpenGL version, parsed from the GL_VERSION.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
     '''
 
     global _gl_version_minor, _gl_version_major
@@ -232,7 +232,7 @@ cpdef tuple gl_get_version():
 cpdef int gl_get_version_major():
     '''Return the major component of the OpenGL version.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
     '''
     if _gl_version_major == -1:
         gl_get_version()
@@ -242,7 +242,7 @@ cpdef int gl_get_version_major():
 cpdef int gl_get_version_minor():
     '''Return the minor component of the OpenGL version.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
     '''
     if _gl_version_major == -1:
         gl_get_version()
