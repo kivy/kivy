@@ -143,7 +143,7 @@ Note that you can also use the result from the `recognize` function ::
         [GPoint(45, 8), GPoint(110, 12)],
         [GPoint(88, 9), GPoint(85, 95)]])
 
-    result.bind(on_progress = my_other_callback)
+    result.bind(on_progress=my_other_callback)
     print result.progress # = 0
 
     # [ assuming a kivy.clock.Clock.tick() here ]
@@ -181,7 +181,7 @@ PHI = 0.5 * (-1.0 + sqrt(5.0))
 HALFDIAGONAL = 0.5 * sqrt(SQUARESIZE ** 2 + SQUARESIZE ** 2)
 
 
-class GPoint:
+class GPoint(object):
     '''Basic Point object'''
 
     def __init__(self, x, y):
@@ -194,6 +194,10 @@ class GPoint:
         return 'GPoint(%f, %f)' % (self.x, self.y)
 
 ORIGIN = GPoint(0, 0)
+
+
+class MultistrokeError(Exception):
+    pass
 
 
 # -----------------------------------------------------------------------------
@@ -394,7 +398,7 @@ class Recognizer(EventDispatcher):
         if filename is not None:
             data = file(filename).read()
         elif data is None:
-            raise Exception('import_gesture needs data= or filename=')
+            raise MultistrokeError('import_gesture needs data= or filename=')
 
         new = self.filter(db=self.parse_gesture(data), **kwargs)
         if new:
@@ -461,7 +465,7 @@ class Recognizer(EventDispatcher):
 
             Scores differ depending on what algorithm is used and cannot always
             be ranked against each other. If use_protractor is False, it is
-            safe to specify `goodscore` between 1-0 (1 is perfect match),
+            safe to specify `goodscore` between 0..1 (1 is perfect match),
             otherwise the score is from 0..N; a score of 100 is *very* good,
             and typically only acheived on a very simple template.
 
@@ -576,7 +580,8 @@ class Recognizer(EventDispatcher):
 
         if not isinstance(strokes, list) or not len(strokes) or \
            not isinstance(strokes[0], list):
-            raise Exception('recognize() needs strokes= list or Candidate')
+            raise MultistrokeError('recognize() needs strokes= ' \
+                                   'list or Candidate')
 
         cand = Candidate(strokes)
         if use_protractor:
@@ -689,13 +694,14 @@ class GestureSearch(EventDispatcher):
         the template's name, distance (from candidate path) and the
         computed score value. The latter two depends on which algorithm is
         used.'''
-        if not self.results:
+        results = self.results  # to avoid too many self. lookups
+        if not results:
             return {'name': None, 'dist': None, 'score': 0}
-        b = max(self.results, key=lambda r: self.results[r]['score'])
+        b = max(results, key=lambda r: results[r]['score'])
         return {
-            'name':  self.results[b]['name'],
-            'dist':  self.results[b]['dist'],
-            'score': self.results[b]['score']
+            'name':  results[b]['name'],
+            'dist':  results[b]['dist'],
+            'score': results[b]['score']
         }
 
     def stop(self):
@@ -955,7 +961,7 @@ class Multistroke(object):
 
         # Prepare ._orders
         self._orders = []
-        self._HeapPermute(len(self.strokes))
+        self._heap_permute(len(self.strokes))
         del self._order
 
         # Generate unistroke permutations
@@ -964,17 +970,17 @@ class Multistroke(object):
               points=permutation,
               numpoints=self.numpoints,
               orientation_dep=self.orientation_dep
-        ) for permutation in self._MakeUnistrokes()]
+        ) for permutation in self._make_unistrokes()]
         del self._orders
 
-    def _HeapPermute(self, n):
+    def _heap_permute(self, n):
         '''Heap Permute algorithm'''
         if n == 1:
             self._orders.append(self._order[:])
         else:
             i = 0
             for i in range(0, n):
-                self._HeapPermute(n - 1)
+                self._heap_permute(n - 1)
                 if n % 2 == 1:
                     tmp = self._order[0]
                     self._order[0] = self._order[n - 1]
@@ -984,7 +990,7 @@ class Multistroke(object):
                     self._order[i] = self._order[n - 1]
                     self._order[n - 1] = tmp
 
-    def _MakeUnistrokes(self):
+    def _make_unistrokes(self):
         '''Create unistroke permutations from self.strokes'''
         unistrokes = list()
         for r in self._orders:
@@ -1078,12 +1084,12 @@ class Template(object):
         prepared.'''
 
         if not self.points:
-            raise Exception('prepare() called without self.points')
+            raise MultistrokeError('prepare() called without self.points')
 
         # How many points are we resampling to?
         n = numpoints and numpoints or self.numpoints
         if not n:
-            raise Exception('prepare() called with invalid numpoints')
+            raise MultistrokeError('prepare() called with invalid numpoints')
 
         p = resample(self.points, n)
         radians = indicative_angle(p)
@@ -1249,7 +1255,7 @@ def resample(points, n):
     '''Resample a path to `n` points'''
 
     if not len(points) or not n:
-        raise Exception('resample() called with invalid arguments')
+        raise MultistrokeError('resample() called with invalid arguments')
 
     interval = path_length(points) / (n - 1)
     D = 0.0
