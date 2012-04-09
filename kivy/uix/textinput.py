@@ -282,6 +282,8 @@ class TextInput(Widget):
             - do nothing, if we are at the start.
 
         '''
+        if self.readonly:
+            return
         cc, cr = self.cursor
         text = self._lines[cr]
         cursor_index = self.cursor_index()
@@ -557,7 +559,7 @@ class TextInput(Widget):
             self._win = None
 
     def on_readonly(self, instance, value):
-        if value is False:
+        if not value:
             self.focus = False
 
     def _ensure_clipboard(self):
