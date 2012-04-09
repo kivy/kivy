@@ -11,18 +11,17 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
 from kivy.factory import Factory
 
+
 class StandingHeader(TabbedPanelHeader):
     pass
+
 
 class ClosableHeader(TabbedPanelHeader):
     pass
 
-class ImageHeader(TabbedPanelHeader):
-    pass
 
 Factory.register('StandingHeader', cls = StandingHeader)
 Factory.register('ClosableHeader', cls = ClosableHeader)
-Factory.register('ImageHeader', cls = ImageHeader)
 
 from kivy.lang import Builder
 
@@ -120,7 +119,8 @@ Builder.load_string('''
     FloatLayout:
         RstDocument:
             id: default_content
-            text: 'Closable tabs\\n-------------\\n'
+            text: 'Closable tabs\\n-------------\\n'+\
+                'The tabs above are also scrollable'
         Image:
             id: tab_2_content
             pos:self.parent.pos
@@ -187,16 +187,12 @@ Builder.load_string('''
         text: 'tab3'
         content: tab_3_content
 
-<ImageHeader>
-    border: 0, 0, 0, 0
-    background_down: 'softboy.png'
-    background_normal:'sequenced_images/data/images/info.png'
-
 <PanelbRight>
     tab_pos: 'right_top'
     size_hint: (.45, .45)
     pos_hint: {'center_x': .75, 'y': .02}
     default_tab: def_tab
+    tab_height: img.width
     FloatLayout:
         RstDocument:
             id: default_content
@@ -211,13 +207,44 @@ Builder.load_string('''
             pos:self.parent.pos
             size: self.parent.size
             source: 'softboy.avi'
-    ImageHeader:
+    TabbedPanelHeader:
         id: def_tab
         content:default_content
-    ImageHeader:
+        border: 0, 0, 0, 0
+        background_down: 'softboy.png'
+        background_normal:'sequenced_images/data/images/info.png'
+    TabbedPanelHeader:
+        id: tph
         content: tab_2_content
-    ImageHeader:
+        BoxLayout:
+            pos: tph.pos
+            size: tph.size
+            orientation: 'vertical'
+            Image:
+                source: 'sequenced_images/data/images/info.png'\
+                    if tph.state == 'normal' else 'softboy.png'
+            Label:
+                text: 'text & img'
+    TabbedPanelHeader:
+        id: tph2
         content: tab_3_content
+        Scatter:
+            do_translation: False
+            do_scale: False
+            do_rotation: False
+            auto_bring_to_front: False
+            rotation: 90
+            size_hint: None, None
+            size: img.size
+            center_x: tph2.center_x - 10
+            center_y: tph2.center_y
+            Image:
+                id: img
+                source: 'sequenced_images/data/images/info.png'\
+                    if tph2.state == 'normal' else 'softboy.png'
+                size: tph2.size
+                allow_stretch: True
+                keep_ratio: False
 ''')
 
 
@@ -238,27 +265,33 @@ class Tp(TabbedPanel):
             self.clear_widgets()
             if hasattr(header.content, 'color'):
                 header.content.color = (0, 0, 0, 0)
-                anim = Animation(color = (1, 1, 1, 1), d =.23, t = 'in_out_quad')
+                anim = Animation(color =
+                    (1, 1, 1, 1), d =.23, t = 'in_out_quad')
                 start_anim(anim, header.content, True)
             self.add_widget(header.content)
 
         anim.bind(on_complete = _on_complete)
-        if self.content != None:
+        if self.content:
             start_anim(anim, self.content.children[0], False)
         else:
             _on_complete()
 
+
 class PanelLeft(Tp):
     pass
+
 
 class PanelRight(Tp):
     pass
 
+
 class PanelbLeft(Tp):
     pass
 
+
 class PanelbRight(Tp):
     pass
+
 
 class TabShowcase(FloatLayout):
 
