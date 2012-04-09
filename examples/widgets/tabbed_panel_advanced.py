@@ -29,10 +29,10 @@ Builder.load_string('''
     size_hint: (.54, .45)
     pos_hint: {'center_x': .5, 'y': .55}
     default_tab_text: 'Settings'
-    default_content: cut
+    default_tab_content: default_content
     FloatLayout:
         BoxLayout
-            id: cut
+            id: default_content
             pos:self.parent.pos
             size: self.parent.size
             Label:
@@ -55,27 +55,53 @@ Builder.load_string('''
                     text: 'Closable tabs'
                     on_state: root.closable_tabs(self)
         Image:
-            id: copy
-            color: 1, 1, 1, 0
+            id: tab_2_content
             pos:self.parent.pos
             size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
         Image:
-            id: paste
-            color: 1, 1, 1, 0
+            id: tab_3_content
             pos:self.parent.pos
             size: self.parent.size
             source: 'data/images/image-loading.gif'
     TabbedPanelHeader:
         text: 'tab2'
-        on_release: root.change_tab_contents(copy)
+        content: tab_2_content
     TabbedPanelHeader:
         text: 'tab3'
-        on_release: root.change_tab_contents(paste)
+        content: tab_3_content
 ''')
 
 
-class PanelTest(TabbedPanel):
+class Tp(TabbedPanel):
+    #override tab switching method to animate on tab switch
+    def switch_to(self, header):
+        if header.content is None:
+            return
+        anim = Animation(color=(1, 1, 1, 0), d =.24, t = 'in_out_quad')
+
+        def start_anim(_anim, child, in_complete, *lt):
+            if hasattr(child, 'color'):
+                _anim.start(child)
+            elif not in_complete:
+                _on_complete()
+
+        def _on_complete(*lt):
+            self.clear_widgets()
+            if hasattr(header.content, 'color'):
+                header.content.color = (0, 0, 0, 0)
+                anim = Animation(color = (1, 1, 1, 1), d =.23, t = 'in_out_quad')
+                start_anim(anim, header.content, True)
+            self.add_widget(header.content)
+
+        anim.bind(on_complete = _on_complete)
+        if self.content != None:
+            start_anim(anim, self.content.children[0], False)
+        else:
+            _on_complete()
+
+
+class PanelTest(Tp):
 
     def update_pos(self, sctr, tab, *l):
         sctr.pos = tab.pos
@@ -90,15 +116,16 @@ class PanelTest(TabbedPanel):
         but_state = l[0].state
         for tab in self.tab_list:
             if but_state == 'normal':
-                # restore text
-                tab._label.text = tab.text
+                try:
+                    tab.color = tab.old_color
+                except AttributeError:
+                    pass
                 # remove scatter and label
                 tab.clear_widgets()
             else:
                 # add a scatter with a label rotated to display standing text
                 lbl = Label(text = tab.text,
-                    size_hint = (None, None),
-                    size = tab.size)
+                    size_hint=(None, None), size=tab.size)
                 sctr = Scatter(do_translation = False,
                     rotation = 90 if self.tab_pos[0] != 'l' else -90,
                     do_rotation = False,
@@ -112,7 +139,8 @@ class PanelTest(TabbedPanel):
                 # to dynamically change the tab_pos when in long tabs mode and
                 # going from 'bottom_right' to 'left_*' tab_pos
                 self.bind(tab_pos = partial(self.update_sctr_rotation, sctr))
-                tab._label.text = ''
+                tab.old_color = tab.color
+                tab.color = (0, 0, 0, 0)
 
                 tab.bind(pos = partial(self.update_pos, sctr, tab))
 
@@ -138,17 +166,25 @@ class PanelTest(TabbedPanel):
                 btn.pos = (tab.right - btn.width, tab.top - btn.height)
                 tab.bind(pos = partial(self.position_close_btn, tab, btn))
 
-    def image_tabs(self, *l):
-        but_state = l[0].state
+    def image_tabs(self, but):
+        but_state = but.state
         if but_state == 'normal':
             self.tab_height = self.old_height
             for tab in self.tab_list:
-                tab._label.text = tab.text
                 try:
+                    tab.color = tab.old_color
                     tab.background_down = tab.old_img
                     tab.background_normal = tab.old_img_normal
                 except AttributeError:
                     pass
+            # all new tabs should also follow style
+            Builder.load_string(str('''
+<TabbedPanelHeader>:
+    background_normal: '%s'
+    background_down: '%s'
+    color: (%x, %x, %x, %x)
+    font_size: 11''') %(tab.old_img_normal, tab.old_img,
+        tab.color[0], tab.color[1], tab.color[2], tab.color[3]))
         else:
             self.old_height = self.tab_height
             self.tab_height = 50
@@ -157,38 +193,23 @@ class PanelTest(TabbedPanel):
                 tab.background_down = 'softboy.png'
                 tab.old_img_normal = tab.background_normal
                 tab.background_normal = 'sequenced_images/data/images/info.png'
-                tab._label.text = ''
+                tab.old_color = tab.color
+                tab.color = (0, 0, 0, 0)
+            # all new tabs should also follow style
+            Builder.load_string('''
+<TabbedPanelHeader>:
+    background_normal: 'sequenced_images/data/images/info.png'
+    background_down: 'softboy.png'
+    color: 0,0,0,0
+    font_size: 11''')
 
-    def on_Default_tab(self, *l):
-        self.change_tab_contents(self.default_content)
-
-    def change_tab_contents(self, *l):
-        anim = Animation(color=(1, 1, 1, 0), d =.24, t = 'in_out_quad')
-
-        def start_anim(_anim, child, in_complete, *lt):
-            if hasattr(child, 'color'):
-                _anim.start(child)
-            elif not in_complete:
-                _on_complete()
-
-        def _on_complete(*lt):
-            if l[0].parent:
-                l[0].parent.remove_widget(l[0])
-            self.clear_widgets()
-            self.add_widget(l[0])
-            anim = Animation(color = (1, 1, 1, 1), d =.23, t = 'in_out_quad')
-            start_anim(anim, l[0], True)
-
-        anim.bind(on_complete = _on_complete)
-        start_anim(anim, self.content.children[0], False)
-
-    def add_heading(self, *l):
+    def add_heading(self):
         self.add_widget(TabbedPanelHeader(text = 'tabx'))
 
 
 class TabShowcase(FloatLayout):
 
-    def show_tab(self, *l):
+    def show_tab(self):
         if not hasattr(self, 'tab'):
             self.tab = tab = PanelTest()
             self.add_widget(tab)

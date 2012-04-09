@@ -13,7 +13,7 @@ Builder.load_string("""
 <Test>:
     size_hint: .5, .5
     pos_hint: {'center_x': .5, 'center_y': .5}
-    default_content: set1_content
+    default_tab_content: set1_content
 
     Label:
         id: set1_content
@@ -40,17 +40,7 @@ Builder.load_string("""
 """)
 
 class Test(TabbedPanel):
-
-    def __init__(self, **kwargs):
-        super(Test, self).__init__(**kwargs)
-        self.change_tab_contents(self.default_content)
-
-    def on_default_tab(self, *l):
-        self.change_tab_contents(self.default_content)
-
-    def change_tab_contents(self, content, *l):
-        self.clear_widgets()
-        self.add_widget(content)
+    pass
 
 class MyApp(App):
     def build(self):

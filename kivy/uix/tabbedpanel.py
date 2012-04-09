@@ -52,15 +52,12 @@ Note: There is only one content area shared by all the tabs. Each tab heading
 is itself responsible for clearing that content area and adding the widgets it
 needs to display to the content area.
 
-Change panel contents depending on which tab is pressed::
+Set panel contents::
 
-    tab_heading_instance.bind(on_release = my_callback)
-    in my_callback
-    tabbed_panel_instance.clear_widgets()
-    tabbed_panel_instance.add_widgets(...)...
+    th.content = your_content_instance
 
 Since the default tab exists by default, a `on_default_tab` event is provided.
-To facilitate changing panel contents on default tab selection::
+To facilitate custom jobs you might want to do on that event::
 
     tp.bind(on_default_tab = my_default_tab_callback)
 
@@ -68,10 +65,9 @@ Remove Items::
 
     tp.remove_widget(Widget/TabbedPanelHeader)
     or
-    tp.clear_widgets()# to clear all the widgets in the content area
+    tp.clear_widgets() # to clear all the widgets in the content area
     or
-    tp.clear_tabs()#
-        orientation: 'vertical' to remove the TabbedPanelHeaders
+    tp.clear_tabs() # to remove the TabbedPanelHeaders
 
 .. warning::
     Access children list, This is important! use content.children to
@@ -134,10 +130,15 @@ class TabbedPanelHeader(ToggleButton):
     '''
 
     content = ObjectProperty(None)
+    '''content to be loaded when this tab heading is selected
+
+    :data:`content` is a :class:`~kivy.properties.ObjectProperty`
+    '''
 
     # only allow selecting the tab if not already selected
     def on_touch_down(self, touch):
         if self.state == 'down':
+            #dispatch to children, not to self
             for child in self.children:
                 child.dispatch('on_touch_down', touch)
             return
@@ -153,6 +154,7 @@ class TabbedPanelHeader(ToggleButton):
         if not parent:
             return
         parent.switch_to(self)
+
 
 class TabbedPanelStrip(GridLayout):
     '''A strip intented to be used as background for Heading/Tab.
@@ -247,6 +249,19 @@ class TabbedPanel(GridLayout):
     default to 'None'.
     '''
 
+    def get_def_tab_content(self):
+        return self.default_tab.content
+
+    def set_def_tab_content(self, *l):
+        self.default_tab.content = l[0]
+
+    default_tab_content = AliasProperty(get_def_tab_content,
+        set_def_tab_content)
+    '''Holds the default_tab_content
+
+    :data:`default_tab_content` is a :class:`~kivy.properties.AliasProperty`
+    '''
+
     orientation = OptionProperty('horizontal',
             options=('horizontal', 'vertical'))
     '''This specifies the manner in which the children inside panel content
@@ -277,19 +292,23 @@ class TabbedPanel(GridLayout):
         super(TabbedPanel, self).__init__(**kwargs)
         self.add_widget(content)
         self.on_tab_pos()
+        #make default tab the active tab
+        self.switch_to(self.default_tab)
 
     def on_default_tab(self, *l):
         '''This event is fired when the default tab is selected.
         '''
 
+    def on_default_tab_text(self, *l):
+        self.default_tab.text = self.default_tab_text
+
     def switch_to(self, header):
         '''Switch to a specific panel header
         '''
+        if header.content is None:
+            return
         self.clear_widgets()
         self.add_widget(header.content)
-
-    def on_default_tab_text(self, *l):
-        self.default_tab.text = self.default_tab_text
 
     def add_widget(self, *l):
         content = self.content
@@ -392,7 +411,8 @@ class TabbedPanel(GridLayout):
         # update scrlv width when tab width changes depends on tab_pos
         if self._partial_update_scrollview is not None:
             tabs.unbind(width=self._partial_update_scrollview)
-        self._partial_update_scrollview = partial(self_update_scrollview, scrl_v)
+        self._partial_update_scrollview = partial(
+            self_update_scrollview, scrl_v)
         tabs.bind(width=self._partial_update_scrollview)
 
         # remove all widgets from the tab_strip
@@ -484,7 +504,7 @@ class TabbedPanel(GridLayout):
             elif tab_pos[lentab_pos-7:] == '_bottom':
                 tab_list = (Widget(), Widget(), sctr)
 
-            if pos_letter =='l':
+            if pos_letter == 'l':
                 widget_list = (tab_layout, self_content)
             else:
                 widget_list = (self_content, tab_layout)
