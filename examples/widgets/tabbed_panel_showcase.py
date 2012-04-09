@@ -196,7 +196,8 @@ Builder.load_string('''
     FloatLayout:
         RstDocument:
             id: default_content
-            text: 'Image tabs\\n-------------\\n'
+            text: 'Image tabs\\n-------------\\n'+\
+                '1. Normal image tab\\n2. Image with Text\\n3. Rotated Image'
         Image:
             id: tab_2_content
             pos:self.parent.pos
