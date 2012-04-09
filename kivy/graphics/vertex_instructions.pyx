@@ -595,6 +595,9 @@ cdef class Point(VertexInstruction):
         # append the vertices / indices to current vertex batch
         self.batch.append_data(vertices, 4, indices, 6)
 
+        if self.parent is not None:
+            self.parent.flag_update()
+
     property points:
         '''Property for getting/settings points of the triangle
         '''
