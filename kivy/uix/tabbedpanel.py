@@ -215,7 +215,7 @@ class TabbedPanel(GridLayout):
     default to '20'.
     '''
 
-    tab_width = NumericProperty(70)
+    tab_width = NumericProperty(70, allownone = True)
     '''Specifies the width of the Tab Heading
 
     :data:`tab_width` is a :class:`~kivy.properties.NumericProperty`,
@@ -397,7 +397,17 @@ class TabbedPanel(GridLayout):
             content.rows = 1
 
     def on_tab_width(self, *l):
-        self._tab_strip.width = self.tab_width*len(self._tab_strip.children)
+        Clock.unschedule(self.update_tab_width)
+        Clock.schedule_once(self.update_tab_width, 0)
+
+    def update_tab_width(self, *l):
+        if self.tab_width:
+            tsw = self.tab_width*len(self._tab_strip.children)
+        else:
+            tsw = 0
+            for tab in self.tab_list:
+                tsw += tab.width
+        self._tab_strip.width = tsw
         self.reposition_tabs()
 
     def on_tab_height(self, *l):

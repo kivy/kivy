@@ -44,8 +44,8 @@ Builder.load_string('''
         rotation: 70
         size_hint: None, None
         size: lbl.size
-        center: root.center
-        #pos: root.x - root.width/2, root.y
+        center_x: root.center_x
+        center_y: root.center_y + (lbl.height/4)
         Label:
             id: lbl
             text: root.text
@@ -86,16 +86,21 @@ Builder.load_string('''
 
 <ClosableHeader>
     color: 0,0,0,0
+    # variable tab_width
+    text: 'tabx'
+    size_hint_x: None
+    width: self.texture_size[0] + 40
     BoxLayout:
         pos: root.pos
         size_hint: None, None
         size: root.size
+        padding: 3
         Label:
             id: lbl
             text: root.text
         BoxLayout:
             size_hint: None, 1
-            width: 18
+            width: 22
             orientation: 'vertical'
             Widget:
             Button:
@@ -110,6 +115,8 @@ Builder.load_string('''
     size_hint: (.45, .45)
     pos_hint: {'center_x': .75, 'y': .55}
     default_tab: def_tab
+    #allow variable tab width
+    tab_width: None
     FloatLayout:
         RstDocument:
             id: default_content
@@ -126,7 +133,7 @@ Builder.load_string('''
             source: 'data/images/image-loading.gif'
     ClosableHeader:
         id: def_tab
-        text: 'default\\ntab'
+        text: 'default tab'
         content:default_content
         panel: root
     ClosableHeader:
@@ -136,6 +143,20 @@ Builder.load_string('''
     ClosableHeader:
         text: 'tab3'
         content: tab_3_content
+        panel: root
+    ClosableHeader:
+        panel: root
+    ClosableHeader:
+        panel: root
+    ClosableHeader:
+        panel: root
+    ClosableHeader:
+        panel: root
+    ClosableHeader:
+        panel: root
+    ClosableHeader:
+        panel: root
+    ClosableHeader:
         panel: root
 
 <PanelbLeft>
@@ -148,7 +169,7 @@ Builder.load_string('''
         RstDocument:
             id: default_content
             text: 'Normal tabs\\n-------------\\n press ' +\
-'background button to change tab_pos'
+                'background button to change tab_pos'
         Image:
             id: tab_2_content
             pos:self.parent.pos
@@ -185,11 +206,11 @@ Builder.load_string('''
             pos:self.parent.pos
             size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
-        Image:
+        VideoPlayer:
             id: tab_3_content
             pos:self.parent.pos
             size: self.parent.size
-            source: 'data/images/image-loading.gif'
+            source: 'softboy.avi'
     ImageHeader:
         id: def_tab
         content:default_content
