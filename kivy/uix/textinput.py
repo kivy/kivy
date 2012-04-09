@@ -877,9 +877,35 @@ class TextInput(Widget):
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache.get('textinput.label', cid)
+
         if not texture:
-            label = Label(text=ntext, **kw)
-            label.refresh()
+            # FIXME right now, we can't render very long line...
+            # if we move on "VBO" version as fallback, we won't need to do this.
+            # try to found the maximum text we can handle
+            label = None
+            label_len = len(ntext)
+            ld = None
+            while True:
+                try:
+                    label = Label(text=ntext[:label_len], **kw)
+                    label.refresh()
+                    if ld is not None and ld > 2:
+                        ld = int(ld / 2)
+                        label_len += ld
+                    else:
+                        break
+                except:
+                    # exception happen when we tried to render the text
+                    # reduce it...
+                    if ld is None:
+                        ld = len(ntext)
+                    ld = int(ld / 2)
+                    if ld < 2 and label_len:
+                        label_len -= 1
+                    label_len -= ld
+                    continue
+
+            # ok, we found it.
             texture = label.texture
             Cache.append('textinput.label', cid, texture)
         return texture
