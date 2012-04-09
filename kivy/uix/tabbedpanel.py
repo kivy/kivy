@@ -14,8 +14,7 @@ TabbedPanel
 
 The `TabbedPanel` widget is exactly what it sounds like, a Tabbed Panel.
 
-The :class:`TabbedPanel` contains one tabbed panel by default pointing towards
-the direction you choose.
+The :class:`TabbedPanel` contains one tab by default.
 
 Simple example
 --------------
@@ -249,6 +248,22 @@ class TabbedPanel(GridLayout):
     default to 'None'.
     '''
 
+    def get_def_tab(self):
+        return self._default_tab
+
+    def set_def_tab(self, *l):
+        old_tab = self._default_tab
+        self._default_tab = l[0]
+        self.remove_widget(old_tab)
+        self.switch_to(l[0])
+        l[0].state = 'down'
+
+    default_tab = AliasProperty(get_def_tab, set_def_tab)
+    '''Holds the default_tab
+
+    :data:`default_tab` is a :class:`~kivy.properties.AliasProperty`
+    '''
+
     def get_def_tab_content(self):
         return self.default_tab.content
 
@@ -279,13 +294,12 @@ class TabbedPanel(GridLayout):
         self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel = self,
             rows = 1, cols = 99, size_hint = (None, None),\
             height = self.tab_height, width = self.tab_width)
-        self.default_tab = default_tab = \
+        self._default_tab = default_tab = \
             TabbedPanelHeader(text = self.default_tab_text,
                 height = self.tab_height, state = 'down',
                 width = self.tab_width)
         _tabs.add_widget(default_tab)
         default_tab.group = '__tab%r__' %_tabs.uid
-        default_tab.bind(on_release=self.on_default_tab)
         self._partial_update_scrollview = None
 
         self.content = content = TabbedPanelContent()
@@ -293,14 +307,10 @@ class TabbedPanel(GridLayout):
         self.add_widget(content)
         self.on_tab_pos()
         #make default tab the active tab
-        self.switch_to(self.default_tab)
-
-    def on_default_tab(self, *l):
-        '''This event is fired when the default tab is selected.
-        '''
+        self.switch_to(self._default_tab)
 
     def on_default_tab_text(self, *l):
-        self.default_tab.text = self.default_tab_text
+        self._default_tab.text = self.default_tab_text
 
     def switch_to(self, header):
         '''Switch to a specific panel header
@@ -333,11 +343,11 @@ class TabbedPanel(GridLayout):
         if l[0] == content or l[0] == self._tab_layout:
             super(TabbedPanel, self).remove_widget(*l)
         elif isinstance(l[0], TabbedPanelHeader):
-            if l[0]!= self.default_tab:
+            if l[0]!= self._default_tab:
                 self_tabs = self._tab_strip
                 self_tabs.remove_widget(l[0])
                 if l[0].state == 'down':
-                    self.default_tab.on_release()
+                    self._default_tab.on_release()
                 self_tabs.width -= l[0].width
                 self.reposition_tabs()
             else:
@@ -358,7 +368,7 @@ class TabbedPanel(GridLayout):
     def clear_tabs(self, *l):
         self_tabs = self._tab_strip
         self_tabs.clear_widgets()
-        self_default_tab = self.default_tab
+        self_default_tab = self._default_tab
         self_tabs.add_widget(self_default_tab)
         self_tabs.width = self_default_tab.width
         self.reposition_tabs()
