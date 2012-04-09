@@ -1,0 +1,50 @@
+#:import TA touchanalyzer
+
+<AppOptions>:
+    cols: 3
+    size_hint_x: 1
+    spacing: 30
+    padding: 10
+    row_default_height: 100
+    cols_minimum: {0: 400, 1: 500, 2: 50}
+
+    Label:
+        text: "Maximum number of strokes? (0=disable)\nCauses the sample to be dispatched for recognition when\nthe gesture reaches a specific number of strokes"
+
+    CustomSlider:
+        id: slider1
+        min: 0
+        max: 20
+        watch_value: 'MAX_STROKES'
+        value: getattr(TA, self.watch_value)
+
+    Label:
+        text: str(round(slider1.value, 1))
+
+    Label:
+        text: "Temporal Window\nHow long should we wait from a touch up event before\nattempting to recognize the gesture?"
+
+    CustomSlider:
+        id: slider2
+        min: 0
+        max: 20
+        watch_value: 'TEMPORAL_WINDOW'
+        value: getattr(TA, self.watch_value)
+
+    Label:
+        text: str(round(slider2.value, 1))
+
+    Label:
+        text: "Result Timeout\nHow long should the result display on screen?\n"
+
+    CustomSlider:
+        id: slider3
+        min: 0
+        max: 60
+        watch_value: 'RESULT_TIMEOUT'
+        value: getattr(TA, self.watch_value)
+
+    Label:
+        text: str(round(slider3.value, 1))
+
+
