@@ -467,15 +467,20 @@ class TextInput(Widget):
             if self.selection_to != self.selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
             else:
-                win.remove_widget(self._bubble)
+                self._hide_cut_copy_paste(win)
             return True
+
+    def _hide_cut_copy_paste(self, win):
+        bubble = self._bubble
+        if bubble is not None:
+            win.remove_widget(bubble)
 
     def _show_cut_copy_paste(self, pos, win, parent_changed = False, *l):
         # Show a bubble with cut copy and paste buttons
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
-            self.bind(parent = partial(self._show_cut_copy_paste,
+            self.bind(parent=partial(self._show_cut_copy_paste,
                 pos, win, True))
         else:
             win.remove_widget(bubble)
@@ -556,6 +561,7 @@ class TextInput(Widget):
             keyboard.release()
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
+            self._hide_cut_copy_paste(win)
             self._win = None
 
     def on_readonly(self, instance, value):
