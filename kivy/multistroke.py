@@ -1262,6 +1262,8 @@ def resample(points, n):
     i = 1
     newpoints = [points[0]]
     workpoints = points[:]
+    newpoints_len = 1
+    workpoints_len = len(points)
 
     while i < len(workpoints):
         p1 = workpoints[i - 1]
@@ -1274,6 +1276,8 @@ def resample(points, n):
             q = GPoint(qx, qy)
             newpoints.append(q)
             workpoints.insert(i, q)  # q is the next i
+            newpoints_len += 1
+            workpoints_len += 1
             D = 0.0
         else:
             D += d
@@ -1350,15 +1354,17 @@ def vectorize(points, use_bounded_rotation_invariance):
 
     sum = 0.0
     vector = []
+    vector_len = 0
     for p in points:
         newx = p.x * cos - p.y * sin
         newy = p.y * cos + p.x * sin
         vector.append(newx)
         vector.append(newy)
+        vector_len += 2
         sum += newx ** 2 + newy ** 2
 
     magnitude = sqrt(sum)
-    for i in xrange(0, len(vector)):
+    for i in xrange(0, vector_len):
         vector[i] /= magnitude
 
     return vector
@@ -1424,13 +1430,14 @@ def distance_at_angle(points, template, radians, numpoints):
 def centroid(points):
     x = 0.0
     y = 0.0
+    points_len = len(points)
 
-    for i in xrange(0, len(points)):
+    for i in xrange(0, points_len):
         x += points[i].x
         y += points[i].y
 
-    x /= len(points)
-    y /= len(points)
+    x /= points_len
+    y /= points_len
 
     return GPoint(x, y)
 
