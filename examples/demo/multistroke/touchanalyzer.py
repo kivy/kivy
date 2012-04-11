@@ -301,6 +301,9 @@ class TouchAnalyzer(FloatLayout):
         def _recognize_complete(result):
             self.dispatch('on_gesture_recognize', g, result)
 
+        import cProfile
+        print cProfile.runctx('self.gdb.recognize(cand);Clock.tick()',
+                                  globals(), locals())
         res = self.gdb.recognize(cand)
         res.bind(on_complete=_recognize_complete)
 

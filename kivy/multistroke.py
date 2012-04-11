@@ -957,7 +957,7 @@ class Multistroke(object):
         See section 4.1: "$N Algorithm" of the linked paper for details.
         '''
         # Seed with index of each stroke
-        self._order = [i for i in range(0, len(self.strokes))]
+        self._order = [i for i in xrange(0, len(self.strokes))]
 
         # Prepare ._orders
         self._orders = []
@@ -979,7 +979,7 @@ class Multistroke(object):
             self._orders.append(self._order[:])
         else:
             i = 0
-            for i in range(0, n):
+            for i in xrange(0, n):
                 self._heap_permute(n - 1)
                 if n % 2 == 1:
                     tmp = self._order[0]
@@ -997,7 +997,7 @@ class Multistroke(object):
             b = 0
             while b < pow(2, len(r)):  # use b's bits for directions
                 unistroke = []
-                for i in range(0, len(r)):
+                for i in xrange(0, len(r)):
                     pts = self.strokes[r[i]][:]
                     if (b >> i) & 1 == 1:  # is b's bit at index i 1?
                         pts.reverse()
@@ -1299,7 +1299,7 @@ def rotate_by(points, radians):
     sin = math_sin(radians)
     newpoints = []
 
-    for i in range(0, len(points)):
+    for i in xrange(0, len(points)):
         qx = (points[i].x - c.x) * cos - (points[i].y - c.y) * sin + c.x
         qy = (points[i].x - c.x) * sin + (points[i].y - c.y) * cos + c.y
         newpoints.append(GPoint(qx, qy))
@@ -1358,7 +1358,7 @@ def vectorize(points, use_bounded_rotation_invariance):
         sum += newx ** 2 + newy ** 2
 
     magnitude = sqrt(sum)
-    for i in range(0, len(vector)):
+    for i in xrange(0, len(vector)):
         vector[i] /= magnitude
 
     return vector
@@ -1369,7 +1369,7 @@ def optimal_cosine_distance(v1, v2):
     a = 0.0
     b = 0.0
 
-    for i in range(0, len(v1), 2):
+    for i in xrange(0, len(v1), 2):
         a += (v1[i] * v2[i]) + (v1[i + 1] * v2[i + 1])
         b += (v1[i] * v2[i + 1]) - (v1[i + 1] * v2[i])
 
@@ -1425,7 +1425,7 @@ def centroid(points):
     x = 0.0
     y = 0.0
 
-    for i in range(0, len(points)):
+    for i in xrange(0, len(points)):
         x += points[i].x
         y += points[i].y
 
@@ -1456,14 +1456,14 @@ def bounding_box(points):
 
 def path_distance(pts1, pts2):
     d = 0.0
-    for i in range(0, len(pts1)):
+    for i in xrange(0, len(pts1)):
         d += distance(pts1[i], pts2[i])
     return d / len(pts1)
 
 
 def path_length(points):
     d = 0.0
-    for i in range(1, len(points)):
+    for i in xrange(1, len(points)):
         d += distance(points[i - 1], points[i])
     return d
 
