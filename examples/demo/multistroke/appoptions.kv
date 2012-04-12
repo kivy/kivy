@@ -1,12 +1,15 @@
 #:import TA touchanalyzer
 
+<CustomSlider>:
+    size_hint_x: 1 
+
+
 <AppOptions>:
     cols: 3
     size_hint_x: 1
     spacing: 30
     padding: 10
     row_default_height: 100
-    cols_minimum: {0: 400, 1: 500, 2: 50}
 
     Label:
         text: "Maximum number of strokes? (0=disable)\nCauses the sample to be dispatched for recognition when\nthe gesture reaches a specific number of strokes"
@@ -19,6 +22,7 @@
         value: getattr(TA, self.watch_value)
 
     Label:
+        size_hint_x: .07
         text: str(round(slider1.value, 1))
 
     Label:
@@ -32,6 +36,7 @@
         value: getattr(TA, self.watch_value)
 
     Label:
+        size_hint_x: .07
         text: str(round(slider2.value, 1))
 
     Label:
@@ -45,6 +50,7 @@
         value: getattr(TA, self.watch_value)
 
     Label:
+        size_hint_x: .07
         text: str(round(slider3.value, 1))
 
 

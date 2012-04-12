@@ -20,7 +20,6 @@ class CustomSlider(Slider):
         self.bind(value=self._set_value)
 
     def _set_value(self, instance, value):
-        print 'Setting value:', value, 'for', self.watch_value
         setattr(TA, self.watch_value, round(value, 1))
 
 Factory.register('CustomSlider', cls=CustomSlider)
