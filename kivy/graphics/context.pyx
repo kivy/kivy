@@ -12,6 +12,7 @@ You can read more about it at :doc:`api-kivy.graphics`
 
 include "config.pxi"
 
+import gc
 from os import environ
 from weakref import ref
 from kivy.graphics.instructions cimport Canvas
@@ -130,6 +131,7 @@ cdef class Context:
         Logger.info('Context: Reloading graphics data...')
         Logger.debug('Context: Collect and flush all garbage')
         self.gc()
+        gc.collect()
         self.flush()
 
         # First step, prevent double loading by setting everything to -1
