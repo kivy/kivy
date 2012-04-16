@@ -570,7 +570,6 @@ cdef class Texture:
 
     def __init__(self, width, height, target, texid, colorfmt='rgb',
             bufferfmt='ubyte', mipmap=False, source=None):
-        get_context().register_texture(self)
         self.observers = []
         self._width         = width
         self._height        = height
@@ -590,6 +589,7 @@ cdef class Texture:
         self._source        = source
         self._nofree        = 0
         self.update_tex_coords()
+        get_context().register_texture(self)
 
     def __dealloc__(self):
         get_context().dealloc_texture(self)
