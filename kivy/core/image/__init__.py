@@ -353,8 +353,6 @@ class Image(EventDispatcher):
             image object will be returned.
         `keep_data` : bool, default to False
             Keep the image data when texture is created
-        `opacity` : float, default to 1.0
-            Opacity of the image
         `scale` : float, default to 1.0
             Scale of the image
         `mipmap` : bool, default to False
