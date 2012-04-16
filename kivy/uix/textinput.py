@@ -570,9 +570,10 @@ class TextInput(Widget):
 
     def _ensure_clipboard(self):
         global Clipboard
-        if Clipboard is not None:
+        if hasattr(self, '_clip_mime_type'):
             return
-        from kivy.core.clipboard import Clipboard
+        if Clipboard is None:
+            from kivy.core.clipboard import Clipboard
         _platform = platform()
         if _platform == 'win':
             self._clip_mime_type = 'text/plain;charset=utf-8'
@@ -1077,7 +1078,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.3.0
 
-    :data:`readonly` is a :class:`~kivy.properties.BooleanProperty`, default to False
+    :data:`readonly` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False
     '''
 
     multiline = BooleanProperty(True)
