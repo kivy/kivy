@@ -93,7 +93,9 @@ Shift + <dir>   Start a text selection. Dir can be Up, Down, Left, Right
 Control + c     Copy selection
 Control + x     Cut selection
 Control + p     Paste selection
-control + a     Select all the content
+Control + a     Select all the content
+Control + z     undo
+Control + r     redo
 =============== ========================================================
 
 '''
@@ -169,6 +171,7 @@ class TextInput(Widget):
         self._label_cached = None
         self._line_options = None
         self._keyboard = None
+        self.reset_undo()
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -256,24 +259,93 @@ class TextInput(Widget):
             i = ni
         return index, row
 
-    def insert_text(self, substring):
+    def insert_text(self, substring, from_undo = False):
         '''Insert new text on the current cursor position
         '''
         if self.readonly:
             return
         cc, cr = self.cursor
-        ci = self.cursor_index()
+        sci = self.cursor_index
+        ci = sci()
         text = self._lines[cr]
+        len_str = len(substring)
         new_text = text[:cc] + substring + text[cc:]
         self._set_line_text(cr, new_text)
-        if len(substring) > 1 or substring == '\n':
+        if len_str > 1 or substring == '\n':
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
             self._trigger_refresh_text()
-        self.cursor = self.get_cursor_from_index(ci + len(substring))
+        #reset cursor
+        self.cursor = cursor = self.get_cursor_from_index(ci + len_str)
+        #handle undo and redo
+        self._set_unredo_insert(cc, cr, ci, sci, substring, cursor, from_undo)
 
-    def do_backspace(self):
+    def _set_unredo_insert(self, cc, cr, ci, sci, substring, cursor, from_undo):
+        #handle undo and redo
+        if from_undo:
+            return
+        count = substring.count('\n')
+        if substring == '\n':
+            cursor = 0, cursor[1] + 1
+        elif count > 0:
+            cursor = cursor[0], cursor[1] + count
+
+        self._undo.append({'undo_command': \
+            'self.cursor = (%i, %i)\n' %(cursor[0], cursor[1]) +\
+            'self.selection_from = %i\nself.selection_to = %i\n' %(ci, sci())+
+            'self._selection = True\n'+\
+            'self.delete_selection(True)\n',\
+            'redo_command': \
+            'self.cursor = (%i, %i)\nself.insert_text(u\'%s\', True)'\
+            %(cc, cr, substring.replace('\n', '\\n').replace('\'', '\\\''))})
+        #reset redo when undo is appended to
+        self._redo = []
+
+    def reset_undo(self):
+        '''Reset undo and redo lists from memory
+
+        .. versionadded:: 1.3.0
+
+        '''
+        self._redo = self._undo = []
+
+    def do_redo(self):
+        '''Do redo operation
+
+        .. versionadded:: 1.3.0
+
+        This action re-does any command that has been un-done by do_undo/ctrl+z.
+        This function is automaticlly called when `ctrl+r` keys
+        are pressed.
+        '''
+        try:
+            x_item = self._redo.pop()
+            exec(x_item['redo_command'])
+            self._undo.append(x_item)
+        except IndexError:
+            # reached at top of undo list
+            pass
+
+    def do_undo(self):
+        '''Do undo operation
+
+        .. versionadded:: 1.3.0
+
+        This action un-does any edits that have been made since the last
+        call to reset_undo().
+        This function is automatically called when `ctrl+z` keys
+        are pressed.
+        '''
+        try:
+            x_item = self._undo.pop()
+            exec(x_item['undo_command'])
+            self._redo.append(x_item)
+        except IndexError:
+            # reached at top of undo list
+            pass
+
+    def do_backspace(self, from_undo = False):
         '''Do backspace operation from the current cursor position.
         This action might do lot of things like:
 
@@ -293,8 +365,10 @@ class TextInput(Widget):
             text_last_line = self._lines[cr - 1]
             self._set_line_text(cr - 1, text_last_line + text)
             self._delete_line(cr)
+            substring = '\n'
         else:
             #ch = text[cc-1]
+            substring = text[cc-1]
             new_text = text[:cc-1] + text[cc:]
             self._set_line_text(cr, new_text)
 
@@ -302,7 +376,24 @@ class TextInput(Widget):
         # plus removing it leads to a large improvement in editing text
         # where large..ish text is involved.
         #self._refresh_text_from_property()
-        self.cursor = self.get_cursor_from_index(cursor_index - 1)
+        self.cursor = cursor = self.get_cursor_from_index(cursor_index - 1)
+        #handle undo and redo
+        self._set_undo_redo_bkspc(cc, cr, cursor, substring, from_undo)
+
+    def _set_undo_redo_bkspc(self, cc, cr, cursor, substring, from_undo):
+        #handle undo and redo for backspace
+        if from_undo:
+            return
+
+        self._undo.append({'undo_command': \
+            'self.cursor = (%i, %i)\n' %(cursor[0], cursor[1]) +\
+            'self.insert_text(u\'%s\', True)'\
+            %(substring.replace('\n', '\\n').replace('\'', '\\\'')),
+            'redo_command': \
+            'self.cursor = (%i, %i)\n' %(cc, cr)+\
+            'self.do_backspace(True)'})
+        #reset redo when undo is appended to
+        self._redo = []
 
     def do_cursor_movement(self, action):
         '''Move the cursor relative to it's current position.
@@ -376,13 +467,16 @@ class TextInput(Widget):
         self._selection_touch = None
         self._trigger_update_graphics()
 
-    def delete_selection(self):
+    def delete_selection(self, from_undo = False):
         '''Delete the current text selection (if any)
         '''
         if self.readonly:
             return
         scrl_x = self.scroll_x
         scrl_y = self.scroll_y
+        cc, cr = self.cursor
+        sci = self.cursor_index
+        ci = sci()
         if not self._selection:
             return
         v = self.text
@@ -391,10 +485,30 @@ class TextInput(Widget):
             a, b = b, a
         text = v[:a] + v[b:]
         self.text = text
-        self.cursor = self.get_cursor_from_index(a)
+        text = v[a:b]
+        self.cursor = cursor = self.get_cursor_from_index(a)
         self.scroll_x = scrl_x
         self.scroll_y = scrl_y
+        #handle undo and redo
+        self._set_unredo_delsel(cc, cr, a, b, cursor, text, from_undo)
         self.cancel_selection()
+
+    def _set_unredo_delsel(self, cc, cr, ci, sci, cursor, substring, from_undo):
+        #handle undo and redo for backspace
+        if from_undo:
+            return
+
+        self._undo.append({'undo_command': \
+            'self.cursor = (%i, %i)\n' %(cursor[0], cursor[1]) +\
+            'self.insert_text(u\'%s\', True)'\
+            %(substring.replace('\n', '\\n').replace('\'', '\\\'')),
+            'redo_command': \
+            'self.selection_from = %i\nself.selection_to = %i\n' %(ci, sci)+
+            'self._selection = True\n'+\
+            'self.delete_selection(True)\n'+\
+            'self.cursor = (%i, %i)\n' %(cc, cr)})
+        #reset redo when undo is appended to
+        self._redo = []
 
     def _update_selection(self, finished=False):
         '''Update selection text and order of from/to if finished is True.
@@ -1041,6 +1155,10 @@ class TextInput(Widget):
                     self.selection_from = 0
                     self.selection_to = len(self.text)
                     self._update_selection(True)
+                elif key == ord('z'): # undo
+                    self.do_undo()
+                elif key == ord('r'): # redo
+                    self.do_redo()
             else:
                 if self._selection:
                     self.delete_selection()
