@@ -93,7 +93,9 @@ Shift + <dir>   Start a text selection. Dir can be Up, Down, Left, Right
 Control + c     Copy selection
 Control + x     Cut selection
 Control + p     Paste selection
-control + a     Select all the content
+Control + a     Select all the content
+Control + z     undo
+Control + r     redo
 =============== ========================================================
 
 '''
@@ -274,7 +276,6 @@ class TextInput(Widget):
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
             self._trigger_refresh_text()
-        #else:
         #reset cursor
         self.cursor = cursor = self.get_cursor_from_index(ci + len_str)
         #handle undo and redo
