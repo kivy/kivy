@@ -8,22 +8,35 @@ FileChooser
 
     This is experimental and subject to change as long as this warning notice is
     present.
+
+.. versionchanged:: 1.2.0
+
+    In chooser template, the `controller` is not a direct reference anymore, but
+    a weak-reference.
+    You must update all the notation `root.controller.xxx` to
+    `root.controller().xxx`.
+
 '''
 
+__all__ = ('FileChooserListView', 'FileChooserIconView',
+    'FileChooserController', 'FileChooserProgressBase')
 
+from weakref import ref
+from time import time
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
-                            ObjectProperty
+                            ObjectProperty, NumericProperty
 from os import listdir
 from os.path import basename, getsize, isdir, join, sep, normpath, \
                     expanduser, altsep, splitdrive, realpath
 from fnmatch import fnmatch
 
 platform = core_platform()
+filesize_units = ('B', 'KB', 'MB', 'GB', 'TB')
 
 _have_win32file = False
 if platform == 'win':
@@ -38,7 +51,6 @@ if platform == 'win':
     except ImportError:
         Logger.error('filechooser: win32file module is missing')
         Logger.error('filechooser: we cant check if a file is hidden or not')
-        pass
 
 
 def is_hidden_unix(fn):
@@ -61,6 +73,55 @@ def is_hidden_win(fn):
 def alphanumeric_folders_first(files):
     return sorted(f for f in files if isdir(f)) + \
            sorted(f for f in files if not isdir(f))
+
+
+class ForceUnicodeError(Exception):
+    pass
+
+
+class FileChooserProgressBase(FloatLayout):
+    '''Base for implementing a progress view. This view is used when too many
+    entries need to be created, and are delayed over multiple frames.
+
+    .. versionadded:: 1.2.0
+    '''
+
+    path = StringProperty('')
+    '''Current path of the FileChooser, read-only
+    '''
+
+    index = NumericProperty(0)
+    '''Current index of :data:`total` entries to be loaded
+    '''
+
+    total = NumericProperty(1)
+    '''Total number of entries to load
+    '''
+
+    def cancel(self, *largs):
+        '''Cancel any action from the FileChooserController
+        '''
+        if self.parent:
+            self.parent.cancel()
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            super(FileChooserProgressBase, self).on_touch_down(touch)
+            return True
+
+    def on_touch_move(self, touch):
+        if self.collide_point(*touch.pos):
+            super(FileChooserProgressBase, self).on_touch_move(touch)
+            return True
+
+    def on_touch_up(self, touch):
+        if self.collide_point(*touch.pos):
+            super(FileChooserProgressBase, self).on_touch_up(touch)
+            return True
+
+
+class FileChooserProgress(FileChooserProgressBase):
+    pass
 
 
 class FileChooserController(FloatLayout):
@@ -148,9 +209,33 @@ class FileChooserController(FloatLayout):
     to /Users/foo, the user will be unable to goes to /Users, or any other
     directory not starting with /Users/foo.
 
-    .. versionadded:: 1.1.2
+    .. versionadded:: 1.2.0
 
     :class:`~kivy.properties.StringProperty`, defaults to None.
+    '''
+
+    progress_cls = ObjectProperty(FileChooserProgress)
+    '''Class to use for display a progression of the filechooser loading.
+
+    .. versionadded:: 1.2.0
+
+    :class:`~kivy.properties.ObjectProperty`, defaults to
+    :class:`FileChooserProgress`
+    '''
+
+
+    file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
+    '''Possible encodings for decoding a filename to unicode. It might be
+    possible than user have a weird filename, undecodable without knowing it's
+    initial encoding. We have no other choice to guess it.
+
+    Please note that if you encounter an issue cause of a missing encodings
+    here, we'll be glad to add it in this list.
+
+    .. versionadded:: 1.3.0
+
+    :class:`~kivy.properties.ListProperty`, defaults to ['utf-8', 'latin1',
+    'cp1252']
     '''
 
     def __init__(self, **kwargs):
@@ -159,6 +244,7 @@ class FileChooserController(FloatLayout):
         self.register_event_type('on_subentry_to_entry')
         self.register_event_type('on_remove_subentry')
         self.register_event_type('on_submit')
+        self._progress = None
         super(FileChooserController, self).__init__(**kwargs)
 
         self._items = []
@@ -172,6 +258,8 @@ class FileChooserController(FloatLayout):
             raise NotImplementedError('Only available for Linux, OSX and Win'
                     ' (platform is %r)' % platform)
 
+        self._previous_path = [self.path]
+        self.bind(path=self._save_previous_path)
         self.bind(path=self._trigger_update,
                   filters=self._trigger_update,
                   rootpath=self._trigger_update)
@@ -180,6 +268,15 @@ class FileChooserController(FloatLayout):
     def _update_item_selection(self, *args):
         for item in self._items:
             item.selected = item.path in self.selection
+
+    def _save_previous_path(self, instance, value):
+        path = expanduser(value)
+        path = realpath(path)
+        if path != value:
+            self.path = path
+            return
+        self._previous_path.append(value)
+        self._previous_path = self._previous_path[-2:]
 
     def _trigger_update(self, *args):
         Clock.unschedule(self._update_files)
@@ -204,6 +301,9 @@ class FileChooserController(FloatLayout):
         '''(internal) This method must be called by the template when an entry
         is touched by the user.
         '''
+        if 'button' in touch.profile and touch.button in (
+            'scrollup', 'scrolldown'):
+            return False
         if self.multiselect:
             if isdir(entry.path) and touch.is_double_tap:
                 self.open_entry(entry)
@@ -225,9 +325,10 @@ class FileChooserController(FloatLayout):
 
         .. versionadded:: 1.1.0
         '''
-        if self.multiselect:
-            pass
-        else:
+        if 'button' in touch.profile and touch.button in (
+            'scrollup', 'scrolldown'):
+            return False
+        if not self.multiselect:
             if isdir(entry.path) and not self.dirselect:
                 self.open_entry(entry)
             elif touch.is_double_tap:
@@ -242,7 +343,11 @@ class FileChooserController(FloatLayout):
             # _add_file does, so if it fails here, it would also fail later
             # on. Do the check here to prevent setting path to an invalid
             # directory that we cannot list.
-            listdir(unicode(entry.path))
+            try:
+                path = entry.path.decode('utf-8')
+            except UnicodeEncodeError:
+                pass
+            listdir(path)
         except OSError:
             #Logger.exception(e)
             entry.locked = True
@@ -262,8 +367,7 @@ class FileChooserController(FloatLayout):
         return list(set(filtered))
 
     def get_nice_size(self, fn):
-        '''
-        Pass the filepath. Returns the size in the best human readable
+        '''Pass the filepath. Returns the size in the best human readable
         format or '' if it's a directory (Don't recursively calculate size.).
         '''
         if isdir(fn):
@@ -274,22 +378,112 @@ class FileChooserController(FloatLayout):
             #Logger.exception(e)
             return '--'
 
-        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        for unit in filesize_units:
             if size < 1024.0:
-                return "%1.0f %s" % (size, unit)
+                return '%1.0f %s' % (size, unit)
             size /= 1024.0
 
-    def _update_files(self, *args):
-        # Clear current files
-        self.dispatch('on_entries_cleared')
-        self._items = []
+    def _update_files(self, *args, **kwargs):
+        # trigger to start gathering the files in the new directory
+        # we'll start a timer that will do the job, 10 times per frames
+        # (default)
+        self._gitems = []
+        self._gitems_parent = kwargs.get('parent', None)
+        self._gitems_gen = self._generate_file_entries(
+            path=kwargs.get('path', self.path),
+            parent=self._gitems_parent)
+
+        # cancel any previous clock if exist
+        Clock.unschedule(self._create_files_entries)
+
+        # show the progression screen
+        self._hide_progress()
+        if self._create_files_entries():
+            # not enough for creating all the entries, all a clock to continue
+            # start a timer for the next 100 ms
+            Clock.schedule_interval(self._create_files_entries, .1)
+
+    def _create_files_entries(self, *args):
+        # create maximum entries during 50ms max, or 10 minimum (slow system)
+        # (on a "fast system" (core i7 2700K), we can create up to 40 entries in
+        # 50 ms. So 10 is fine for low system.
+        start = time()
+        finished = False
+        index = total = count = 1
+        while time() - start < 0.05 or count < 10:
+            try:
+                index, total, item = self._gitems_gen.next()
+                self._gitems.append(item)
+                count += 1
+            except StopIteration:
+                finished = True
+                break
+
+        # if this wasn't enough for creating all the entries, show a progress
+        # bar, and report the activity to the user.
+        if not finished:
+            self._show_progress()
+            self._progress.total = total
+            self._progress.index = index
+            return True
+
+        # we created all the files, now push them on the view
+        self._items = items = self._gitems
+        parent = self._gitems_parent
+        if parent is None:
+            self.dispatch('on_entries_cleared')
+            for entry in items:
+                self.dispatch('on_entry_added', entry, parent)
+        else:
+            parent.entries[:] = items
+            for entry in items:
+                self.dispatch('on_subentry_to_entry', entry, parent)
+
+        # stop the progression / creation
+        self._hide_progress()
+        self._gitems = None
+        self._gitems_gen = None
+        Clock.unschedule(self._create_files_entries)
+        return False
+
+    def cancel(self, *largs):
+        '''Cancel any background action started by filechooser, like loading a
+        new directory.
+
+        .. versionadded:: 1.2.0
+        '''
+        Clock.unschedule(self._create_files_entries)
+        self._hide_progress()
+        if len(self._previous_path) > 1:
+            # if we cancel any action, the path will be set same as the previous
+            # one, so we can safely cancel the update of the previous path.
+            self.path = self._previous_path[-2]
+            Clock.unschedule(self._update_files)
+
+    def _show_progress(self):
+        if self._progress:
+            return
+        self._progress = self.progress_cls(path=self.path)
+        self._progress.value = 0
+        self.add_widget(self._progress)
+
+    def _hide_progress(self):
+        if self._progress:
+            self.remove_widget(self._progress)
+            self._progress = None
+
+    def _generate_file_entries(self, *args, **kwargs):
+        # Generator that will create all the files entries.
+        # the generator is used via _update_files() and _create_files_entries()
+        # don't use it directly.
         is_root = True
-        path = self.path
+        path = kwargs.get('path', self.path)
+        have_parent = kwargs.get('parent', None) is not None
 
         # Add the components that are always needed
         if self.rootpath:
             rootpath = realpath(self.rootpath)
-            path = realpath(self.path)
+            path = realpath(path)
             if not path.startswith(rootpath):
                 self.path = rootpath
                 return
@@ -301,39 +495,53 @@ class FileChooserController(FloatLayout):
             elif platform in ('macosx', 'linux', 'android', 'ios'):
                 is_root = normpath(expanduser(path)) == sep
             else:
-                # Unknown file system; Just always add the .. entry but also log
+                # Unknown fs, just always add the .. entry but also log
                 Logger.warning('Filechooser: Unsupported OS: %r' % platform)
                 is_root = False
-        if not is_root:
+        # generate an entries to go back to previous
+        if not is_root and not have_parent:
             back = '..' + sep
             pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
-                size='', path=back, controller=self, isdir=True, parent=None,
-                sep=sep, get_nice_size=lambda: ''))
-            self._items.append(pardir)
-            self.dispatch('on_entry_added', pardir)
+                size='', path=back, controller=ref(self), isdir=True,
+                parent=None, sep=sep, get_nice_size=lambda: ''))
+            yield 0, 1, pardir
+
+        # generate all the entries for files
         try:
-            self._add_files(path)
+            for index, total, item in self._add_files(path):
+                yield index, total, item
         except OSError:
             Logger.exception('Unable to open directory <%s>' % self.path)
 
     def _add_files(self, path, parent=None):
-        path = expanduser(path)
+        force_unicode = self._force_unicode
         # Make sure we're using unicode in case of non-ascii chars in filenames.
         # listdir() returns unicode if you pass it unicode.
-        files = listdir(unicode(path))
+        try:
+            path = expanduser(path)
+            path = force_unicode(path)
+        except ForceUnicodeError:
+            pass
+
+        files = []
+        fappend = files.append
+        for fn in listdir(path):
+            try:
+                fappend(force_unicode(fn))
+            except ForceUnicodeError:
+                pass
         # In the following, use fully qualified filenames
         files = [normpath(join(path, f)) for f in files]
         # Apply filename filters
         files = self._apply_filters(files)
         # Sort the list of files
         files = self.sort_func(files)
-        # Add the files
-        if parent:
-            parent.entries = []
         is_hidden = self.is_hidden
         if not self.show_hidden:
             files = [x for x in files if not is_hidden(x)]
-        for fn in files:
+        total = len(files)
+        wself = ref(self)
+        for index, fn in enumerate(files):
 
             def get_nice_size():
                 # Use a closure for lazy-loading here
@@ -342,31 +550,32 @@ class FileChooserController(FloatLayout):
             ctx = {'name': basename(fn),
                    'get_nice_size': get_nice_size,
                    'path': fn,
-                   'controller': self,
+                   'controller': wself,
                    'isdir': isdir(fn),
                    'parent': parent,
                    'sep': sep}
             entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
-            if not parent:
-                self.dispatch('on_entry_added', entry, parent)
-            else:
-                parent.entries.append(entry)
+            yield index, total, entry
 
-        self.files = files
-        if parent:
-            return parent.entries
+    def _force_unicode(self, s):
+        # the idea is, whatever is the filename, unicode or str, even if the str
+        # can't be directly returned as a unicode, return something.
+        if type(s) is unicode:
+            return s
+        encodings = self.file_encodings
+        for encoding in encodings:
+            try:
+                return s.decode(encoding, 'strict')
+            except UnicodeDecodeError:
+                pass
+            except UnicodeEncodeError:
+                pass
+        raise ForceUnicodeError('Unable to decode %r' % s)
 
     def entry_subselect(self, entry):
         if not isdir(entry.path):
             return
-        try:
-            subentries = self._add_files(entry.path, entry)
-        except OSError:
-            #Logger.exception(e)
-            entry.locked = True
-            return
-        for subentry in subentries:
-            self.dispatch('on_subentry_to_entry', subentry, entry)
+        self._update_files(path=entry.path, parent=entry)
 
     def close_subselection(self, entry):
         for subentry in entry.entries:
@@ -387,13 +596,14 @@ class FileChooserIconView(FileChooserController):
 
 if __name__ == '__main__':
     from kivy.app import App
+    import sys
 
     class FileChooserApp(App):
 
         def build(self):
-            pos = (100, 100)
-            size_hint = (None, None)
-            size = (300, 400)
-            return FileChooserListView(pos=pos, size=size, size_hint=size_hint)
-            return FileChooserIconView(pos=pos, size=size, size_hint=size_hint)
+            view = FileChooserListView
+            if len(sys.argv) > 1:
+                return view(path=sys.argv[1])
+            return view()
+
     FileChooserApp().run()

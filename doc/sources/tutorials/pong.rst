@@ -1,42 +1,51 @@
 .. _pong:
 
-Pong Game Tutorial
-==================
-
 .. highlight:: python
     :linenothreshold: 3
 
+Pong Game Tutorial
+==================
+
+Introduction
+------------
+
+.. container:: title
+
+    Welcome to the Pong tutorial
+
+This tutorial will teach you how to write pong using Kivy. We'll start with
+a basic application like the one described in the :ref:`quickstart` and make
+it into a playable pong game describing each step along the way.
+
 .. image:: pong.jpg
-    :align: right
+    :align: center
+    :height: 392px
+
+Here is a check list for things you should know before starting this tutorial:
+
+- You have a working Kivy installation.  See the :doc:`/installation/installation`
+  section for detailed descriptions
+- You know how to run a basic Kivy application. See :doc:`/guide/quickstart`
+  if you don't.
+
+If you have read the programming guide, and understand both basic Widget
+concepts (:doc:`/guide/firstwidget`) and basic concepts of the kv language
+(:doc:`/guide/kvlang`, :doc:`/guide/designwithkv`), you can probably skip the first 2
+steps and go straight to step 3.
 
 .. note:: 
 
     You can find the entire source code, and source code files for each step in
     the Kivy examples directory under `tutorials/pong/`
 
-.. note:: 
-
-    If you have read the programming guide, and understand both basic Widget
-    concepts (:doc:`/guide/firstwidget`) and basic concepts of the kv language
-    (:doc:`/guide/kvlang`, :doc:`/guide/designwithkv`), you can probably skip the first 2
-    steps and go straight to step 3.
-
-This tutorial will teach you how to write pon using Kivy.  We'll start with
-a basic application like the one described in the :ref:`quickstart` and make
-it into a playable pong game describing each step along the way.
-
-Here is a check list for things you should know before startingt this tutorial:
-
-* You have a working Kivy installation.  See the :doc:`/installation/installation`
-  section for detailed descriptions
-* You know how to run a basic Kivy application. See :doc:`/guide/quickstart`
-  if you don't.
-
 Ready? Sweet, let's get started!
 
+Getting Started
+---------------
 
-Step 1 - Getting Started
-------------------------
+.. container:: title
+
+    Getting Started
 
 Let's start by getting a really simple Kivy app up and running. Create a
 directory for the game and a file named *main.py*
@@ -52,11 +61,12 @@ for the applications UI. In the next step, we will draw the Pong background
 and scores by defining how the ``PongGame widget`` looks.
 
 
-Step 2 - Some simple graphics
------------------------------
+Add simple graphics
+-------------------
 
-Creation of pong.kv
-~~~~~~~~~~~~~~~~~~~
+.. container:: title
+
+    Creation of pong.kv
 
 We will use a .kv file to define the look and feel of the ``PongGame`` class.
 Since our :class:`~kivy.app.App` class is called ``PongGameApp``, we can simply create a file
@@ -75,7 +85,7 @@ zeros where the player scores will be displayed.
     Try to resize the application window and notice what happens.  That's
     right, the entire UI resizes automatically.  The standard behaviour of the
     Window is to resize the root element based on the elements `size_hint`. The
-    default Widget size_hont is (1,1), so it will be stretched to full size.
+    default Widget size_hint is (1,1), so it will be stretched to full size.
     Since the pos and size of the Rectangle and score labels were defined with
     references to the our PongGame class, these properties will automatically
     update when the corrosponding widget properties change.  Using the Kv
@@ -87,7 +97,7 @@ Explaning Kv file syntax
 
 Before going on to the next step, you might want to take a closer look at
 the contents of the kv file we just created and figure out what is going on.
-If you understand what's happenging, you can probably skip ahead to the next
+If you understand what's happening, you can probably skip ahead to the next
 Step.
 
 On the very first line we have::
@@ -111,7 +121,7 @@ the named class. If you replaced ``PongGame`` with Widget in our example, all
 Widget instances would have the vertical line and the two Label widgets inside
 them for instance.
 
-Inside a Rule section, you can add various bloks to define the style and
+Inside a Rule section, you can add various blocks to define the style and
 contents of the widgets it will be applied to. You can set property values,
 child widgets that will be automatically added, or a `canvas` section in
 which you can add Graphics instructions that define how the widget itself is
@@ -133,7 +143,7 @@ in width, and the widgets height in height. The nice thing about defining the
 graphics like this, is that the rendered rectangle will be automatically
 updated when the properties of any widgets used in the value expression change.
 
-The last two section we add look pretty simmilar. Each of them adds a Label
+The last two section we add, look pretty similar. Each of them adds a Label
 widget as a childwidget to the ``PongGame`` widget itself. For now the text on
 both of them is just set to *"0"*, we'll have to hook that up to the actual
 score once we have the logic for that implemented.  But the labels already
@@ -157,8 +167,12 @@ case)::
             top: root.top - 50
             text: "0"
     
-Step 3 - Adding a ball
-----------------------
+Add the ball
+------------
+
+.. container:: title
+
+    Add the ball
 
 Ok, so we have a basic pong arena to play in, but we still need the players and
 a ball to pong around.  Let's start with the ball.  We'll add a new `PongBall`
@@ -167,9 +181,9 @@ class to create a widget that will be our ball and make it bounce around.
 .. note:: 
 
     We'll just look at the python class and kv rule for PongBall first.
-    To make it al usable, and add the ball to the arena, you'll also need to add
+    To make it all usable, and add the ball to the arena, you'll also need to add
     the proper imports and register the `PongBall` class with the widget factory
-    so you can add it as a childwidget in the `<PongGame>` rule.  But don't 
+    so you can add it as a childwidget in the `<PongGame>` rule. However, don't 
     worry, the entire code is listed at the end of this step.
 
 PongBall class
@@ -187,8 +201,8 @@ Here is the python code for the PongBall class::
         # a shorthand..just like e.g. w.pos for w.x and w.y
         velocity = ReferenceListProperty(velocity_x, velocity_y)
         
-        # move function will move the ball one step.  This will
-        # be called in equal intervals to animate the ball
+        # ``move`` function will move the ball one step. This
+        #  will be called in equal intervals to animate the ball
         def move(self):
             self.pos = Vector(*self.velocity) + self.pos  
             
@@ -222,38 +236,42 @@ Here is the entire updated python code and kv file for this step:
             :literal:
 
 
-Step 4 - Making the ball move
------------------------------
+Adding ball animation
+---------------------
 
-Cool, so now we have a ball, and it even has a move function... but it's not
+.. container:: title
+
+    Making the ball move
+
+Cool, so now we have a ball, and it even has a ``move`` function... but it's not
 moving yet. Let's fix that.
 
 Scheduling functions on the Clock
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We need the move method of our ball to be called regularly. Luckily Kivy
-makes this pretty easy, by prividing letting us schedule function we want
-on the :class:`~kivy.clock.Clock` and specify the interval::
+We need the ``move`` method of our ball to be called regularly. Luckily Kivy
+makes this pretty easy, by letting us schedule any function we want on the
+:class:`~kivy.clock.Clock` and specify the interval::
 
     Clock.schedule_interval(game.update, 1.0/60.0)
     
-That line for example, would cause the update function of the game object to
+That line for example, would cause the ``update`` function of the game object to
 be called once every 60th of a second (60 times per second).
 
 Object Properties/References
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We have another problem though.  We'd like to make sure the PongBall has its
-move function called regularly, but in our code we don't have any references
+``move`` function called regularly, but in our code we don't have any references
 to the ball object, since we just added it as a child widget of our ``PongGame``
 class inside the kv rule for the ``PongGame`` class.  The only reference to our
 game is the one we return in the Applications build method.
 
 Since we're going to have to do more than just move the ball (e.g.
 bounce it off the walls and later the players racket), we'll probably need
-an update method for our ``PongGame`` class anyways.  And given that we have a
-reference to the game object already, we can easily schedule its new update
-method when the application gets build::
+an ``update` method for our ``PongGame`` class anyways.  Furthermore given that
+we have a reference to the game object already, we can easily schedule its new
+``update`` method when the application gets build::
 
     class PongGame(Widget):
 
@@ -269,11 +287,11 @@ method when the application gets build::
             return game
             
 
-But that still doesn't help the fact that we don't have a reference to the
-``PongBall`` child widget created by the kv rule.  Do fix this, we can add an
+However that still doesn't help the fact that we don't have a reference to the
+``PongBall`` child widget created by the kv rule.  To fix this, we can add an
 ObjectProperty to the PongGame class, and hook it up to the widget created in
 the kv rule. Once that's done, we can easily reference the ball property
-inside the update method and even make it bounce of the edges::
+inside the ``update`` method and even make it bounce of the edges::
 
     class PongGame(Widget):
         ball = ObjectProperty(None)
@@ -308,7 +326,7 @@ and setting the games property to that id::
     your coding along as we go, you might be wondering why the ball isn't 
     moving anywhere.  We'll the ball's velocity is set to 0 on both x and y.
     In code listing below for the entire source a ``serve_ball`` method is 
-    added to the ``PongGame`` class and called in the apps build method.  It sets a
+    added to the ``PongGame`` class and called in the apps ``build`` method.  It sets a
     random x and y velocity for the ball, and also resets the position, so we
     can use it later to reset the ball when a player has scored a point.
     
@@ -322,10 +340,14 @@ Here is the entire code for this step:
        .. include:: ../../../examples/tutorials/pong/steps/step4/pong.kv
         :literal:
 
-Step 5 - Adding Players and reacting to touch input
----------------------------------------------------
+Connect input event
+-------------------
 
-Sweet, out ball is bouncing around. The only thing missing now are the movable
+.. container:: title
+
+    Adding Players and reacting to touch input
+
+Sweet, our ball is bouncing around. The only things missing now are, the movable
 player rackets and keeping track of the score.  We won't to go over all the
 details of creating the class and kv rules again, since those concepts were
 already covered in the previous steps.  Instead lets focus on how to move the
@@ -334,7 +356,7 @@ rules for the ``PongPlayer`` class at the end of this section.
 
 In Kivy, a widget can react to input by implemeting the ``on_touch_down``,
 ``on_touch_move`` and ``on_touch_up`` methods. By default, the Widget class
-implements thes methods by just calling the corropsonding method on all it's
+implements these methods by just calling the corropsonding method on all it's
 child widgets to pass on the event until one of the children returns True.
 
 Pong is pretty simple, the rackets just need to move up and down. In fact it's
@@ -356,7 +378,7 @@ We'll keep the score for each player in a
 are kept updated by changing the static string we had in the kv file before to
 the score property of our new ``PongPlayer`` child widgets.  When the ball
 get's out of bounce on of the sides, we'll update the score and serve the ball
-again by changing the update method in the ``PongGame`` class.  The player
+again by changing the ``update`` method in the ``PongGame`` class.  The player
 class also implements a bounce_ball method, so that the ball bounces
 differently based on where on the racket it hits. Here is the code for the
 `PongPlayer` class::
@@ -383,8 +405,12 @@ And here it is in context. Pretty much done:
         :literal:
 
 
-Step 6 - Have some fun
-----------------------
+Where to go now?
+----------------
+
+.. container:: title
+
+    Have some fun
 
 Well, the pong game is pretty much complete.  If you understood all of the
 things that are covered in this turoial, give yourself a pat on the back and
@@ -392,7 +418,7 @@ think about how you could improve the game.  Here a are a few ideas of things
 you could do:
 
 * Add some nicer graphics / images (hint check out the source property on
-  the graphics instructions liek Circle or Rectangle, to set an image as the
+  the graphics instructions like Circle or Rectangle, to set an image as the
   texture for it)
 
 * Make the game end after a certain score.  Maybe once a player has 10
@@ -403,7 +429,7 @@ you could do:
 
 * Make it a 4 player Pong Game.  Most tablets have Multi-Touch support,
   wouldn't it be cool to have a player on each side and play four people at
-  the same time? 
+  the same time?
 
 .. note:: 
 

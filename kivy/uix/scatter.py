@@ -60,9 +60,9 @@ Automatic bring to front
 
 If the :data:`Scatter.auto_bring_to_front` property is True, the scatter
 widget will be removed and re-added to the parent when it is touched
-(brought to front, above all other widgets). This is useful when you are
-manipulating several scatter widgets and don't want the active to be
-partially hidden.
+(brought to front, above all other widgets in the parent). This is useful
+when you are manipulating several scatter widgets and don't want the active
+to be partially hidden.
 
 Scale limitation
 ----------------

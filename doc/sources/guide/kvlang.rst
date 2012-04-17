@@ -119,7 +119,9 @@ The Kivy language has a lot of benefits for this example ``Button``. You can
 create a rule that will match your widget, create graphics instructions, and
 update their properties according to a python expression. Here is the complete
 example for our widget. This is the "yourwidget.kv" kivy language
-part::
+part:
+
+.. code-block:: kv
 
     #:kivy 1.0
 
@@ -152,11 +154,15 @@ Yes, not a single line of graphics code has been written in Python. You'd like
 to know how it works, wouldn't you? Good.
 
 The first line indicates a rule (like a CSS (Cascading Style Sheets) rule) that
-will match all the classes named by the rule's name::
+will match all the classes named by the rule's name:
+
+.. code-block:: kv
 
     <YourWidget>:
 
-Then, you specify the canvas's graphics instruction::
+Then, you specify the canvas's graphics instruction:
+
+.. code-block:: kv
 
     canvas:
         # ...
@@ -176,3 +182,26 @@ More complex expressions can be used, like::
 This expression listens for a change in ``center_x``, ``center_y``, and
 ``texture_size``. If one of them is changing, the expression will be
 re-evaluated, and update the ``Rectangle.pos`` field.
+
+You can also handle ``on_`` events inside your kv language.
+For example the TextInput class has a ``focus`` property whose auto-generated ``on_focus`` event can be accessed inside the kv language like so:
+
+.. code-block:: kv
+
+    TextInput:
+        on_focus: print args
+
+The ``args`` is a list of arguments passed to the ``on_focus`` event.
+
+To define a new property in you class through kv language:
+
+.. code-block:: kv
+
+    <MyAppClass>
+        myNewProperty: 'my new property value'
+
+Now you can access this new property in your .py file like so::
+
+    my_app_class_instance.myNewProperty
+
+Please note that if you want to call from kv lang a widget you defined from python. You need to register it from python, using the `Factory` object.

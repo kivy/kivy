@@ -30,6 +30,7 @@ __all__ = ('start', 'stop')
 import kivy
 kivy.require('1.0.9')
 
+import weakref
 from kivy.animation import Animation
 from kivy.logger import Logger
 from kivy.uix.widget import Widget
@@ -132,14 +133,26 @@ Builder.load_string('''
         size_hint_x: None
     Label:
         id: ltext
-        text: [repr(getattr(root.widget, root.key)), root.refresh][0]
+        text: [repr(getattr(root.widget, root.key)), root.refresh][0]\
+                if root.widget else ''
         text_size: (self.width, None)
 ''')
 
 
 class TreeViewProperty(BoxLayout, TreeViewNode):
 
-    widget = ObjectProperty(None)
+    widget_ref = ObjectProperty(None, allownone=True)
+
+    def _get_widget(self):
+        wr = self.widget_ref
+        if wr is None:
+            return None
+        wr = wr()
+        if wr is None:
+            self.widget_ref = None
+            return None
+        return wr
+    widget = AliasProperty(_get_widget, None, bind=('widget_ref', ))
 
     key = ObjectProperty(None, allownone=True)
 
@@ -275,6 +288,11 @@ class Inspector(FloatLayout):
     def animation_close(self, instance, value):
         if self.activated is False:
             self.win.remove_widget(self)
+            self.content.clear_widgets()
+            treeview = self.treeview
+            for node in list(treeview.iterate_all_nodes())[:]:
+                node.widget_ref = None
+                treeview.remove_node(node)
             Logger.info('Inspector: inspector deactivated')
 
     def show_widget_info(self):
@@ -282,6 +300,7 @@ class Inspector(FloatLayout):
         widget = self.widget
         treeview = self.treeview
         for node in list(treeview.iterate_all_nodes())[:]:
+            node.widget_ref = None
             treeview.remove_node(node)
         if not widget:
             Animation(top=60, t='out_quad', d=.3).start(self.layout)
@@ -294,14 +313,20 @@ class Inspector(FloatLayout):
 
         keys = widget.properties().keys()
         keys.sort()
+        node = None
+        wk_widget = weakref.ref(widget)
         for key in keys:
             text = '%s' % key
-            node = TreeViewProperty(text=text, key=key, widget=widget)
+            node = TreeViewProperty(text=text, key=key, widget_ref=wk_widget)
             node.bind(is_selected=self.show_property)
-            widget.bind(**{key: partial(self.update_node_content, node)})
+            widget.bind(**{key: partial(
+                self.update_node_content, weakref.ref(node))})
             treeview.add_node(node)
 
     def update_node_content(self, node, *l):
+        node = node()
+        if node is None:
+            return
         node.refresh = True
         node.refresh = False
 

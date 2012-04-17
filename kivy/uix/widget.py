@@ -222,6 +222,8 @@ class Widget(EventDispatcher):
         >>> slider = Slider()
         >>> root.add_widget(slider)
         '''
+        if widget is self:
+            raise WidgetException('You cannot add yourself in a Widget')
         if not isinstance(widget, Widget):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')

@@ -115,6 +115,7 @@ class bench_label_creation_with_tick:
 
 
 if __name__ == '__main__':
+
     report = []
     report_newline = True
 
@@ -174,7 +175,8 @@ if __name__ == '__main__':
         # force gc before next test
         gc.collect()
 
-        log('%2d/%-2d %-60s' % (benchs.index(x)+1, len(benchs), x.__doc__), False)
+        log('%2d/%-2d %-60s' % (benchs.index(x)+1,
+            len(benchs), x.__doc__), False)
         try:
             sys.stderr.write('.')
             test = x()
@@ -202,7 +204,8 @@ if __name__ == '__main__':
     log('')
 
 try:
-    reply = raw_input('Do you want to send benchmark to paste.pocoo.org (Y/n) : ')
+    reply = raw_input(
+        'Do you want to send benchmark to paste.pocoo.org (Y/n) : ')
 except EOFError:
     sys.exit(0)
 

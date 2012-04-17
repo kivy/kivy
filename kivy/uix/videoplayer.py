@@ -2,7 +2,7 @@
 Video player
 ============
 
-.. versionadded:: 1.1.2
+.. versionadded:: 1.2.0
 
 The video player widget can be used to play video and let the user control the
 play/pause, volume and seek. The widget cannot be customized a lot, due to the
@@ -48,7 +48,8 @@ The video player can play the video in fullscreen, if
 the video. By default, if the video is smaller than the Window, it will be not
 stretched.
 
-You can allow it by passing custom options to :class:`~kivy.uix.video.Video` instance:
+You can allow it by passing custom options to :class:`~kivy.uix.video.Video`
+instance::
 
     player = VideoPlayer(source='myvideo.avi', play=True,
         options={'allow_stretch': True})
@@ -131,7 +132,8 @@ class VideoPlayerProgressBar(ProgressBar):
             seek=self._update_bubble)
 
     def on_video(self, instance, value):
-        self.video.bind(position=self._update_bubble, play=self._showhide_bubble)
+        self.video.bind(position=self._update_bubble,
+                play=self._showhide_bubble)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -251,9 +253,11 @@ class VideoPlayer(GridLayout):
     '''
 
     thumbnail = StringProperty(None)
-    '''Thumbnail of the video to show. If None, it will try to search the thumbnail from the :data:`source` + .png.
+    '''Thumbnail of the video to show. If None, it will try to search the
+    thumbnail from the :data:`source` + .png.
 
-    :data:`thumbnail` a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`thumbnail` a :class:`~kivy.properties.StringProperty`, default to
+    None.
     '''
 
     duration = NumericProperty(-1)
@@ -295,8 +299,10 @@ class VideoPlayer(GridLayout):
     False.
     '''
 
-    image_overlay_play = StringProperty('atlas://data/images/defaulttheme/player-play-overlay')
-    '''Image filename used to show an "play" overlay when the video is not yet started.
+    image_overlay_play = StringProperty(
+            'atlas://data/images/defaulttheme/player-play-overlay')
+    '''Image filename used to show an "play" overlay when the video is not yet
+    started.
 
     :data:`image_overlay_play` a :class:`~kivy.properties.StringProperty`
     '''
@@ -307,37 +313,43 @@ class VideoPlayer(GridLayout):
     :data:`image_loading` a :class:`~kivy.properties.StringProperty`
     '''
 
-    image_play = StringProperty('atlas://data/images/defaulttheme/media-playback-start')
+    image_play = StringProperty(
+            'atlas://data/images/defaulttheme/media-playback-start')
     '''Image filename used for the "Play" button.
 
     :data:`image_loading` a :class:`~kivy.properties.StringProperty`
     '''
 
-    image_pause = StringProperty('atlas://data/images/defaulttheme/media-playback-pause')
+    image_pause = StringProperty(
+            'atlas://data/images/defaulttheme/media-playback-pause')
     '''Image filename used for the "Pause" button.
 
     :data:`image_pause` a :class:`~kivy.properties.StringProperty`
     '''
 
-    image_volumehigh = StringProperty('atlas://data/images/defaulttheme/audio-volume-high')
+    image_volumehigh = StringProperty(
+            'atlas://data/images/defaulttheme/audio-volume-high')
     '''Image filename used for the volume icon, when the volume is high.
 
     :data:`image_volumehigh` a :class:`~kivy.properties.StringProperty`
     '''
 
-    image_volumemedium = StringProperty('atlas://data/images/defaulttheme/audio-volume-medium')
+    image_volumemedium = StringProperty(
+            'atlas://data/images/defaulttheme/audio-volume-medium')
     '''Image filename used for the volume icon, when the volume is medium.
 
     :data:`image_volumemedium` a :class:`~kivy.properties.StringProperty`
     '''
 
-    image_volumelow = StringProperty('atlas://data/images/defaulttheme/audio-volume-low')
+    image_volumelow = StringProperty(
+            'atlas://data/images/defaulttheme/audio-volume-low')
     '''Image filename used for the volume icon, when the volume is low.
 
     :data:`image_volumelow` a :class:`~kivy.properties.StringProperty`
     '''
 
-    image_volumemuted = StringProperty('atlas://data/images/defaulttheme/audio-volume-muted')
+    image_volumemuted = StringProperty(
+            'atlas://data/images/defaulttheme/audio-volume-muted')
     '''Image filename used for the volume icon, when the volume is muted.
 
     :data:`image_volumemuted` a :class:`~kivy.properties.StringProperty`
@@ -358,7 +370,8 @@ class VideoPlayer(GridLayout):
         The re-add operation doesn't care about it's children index position
         within the parent.
 
-    :data:`fullscreen` a :class:`~kivy.properties.BooleanProperty`, default to False
+    :data:`fullscreen` a :class:`~kivy.properties.BooleanProperty`, default to
+    False
     '''
 
     allow_fullscreen = BooleanProperty(True)
@@ -420,12 +433,14 @@ class VideoPlayer(GridLayout):
                 self._annotations = load(fd)
         if self._annotations:
             for ann in self._annotations:
-                self._annotations_labels.append(VideoPlayerAnnotation(annotation=ann))
+                self._annotations_labels.append(
+                    VideoPlayerAnnotation(annotation=ann))
 
     def on_play(self, instance, value):
         if self._video is None:
             self._video = Video(source=self.source, play=True,
-                    volume=self.volume, pos_hint={'x': 0, 'y': 0}, **self.options)
+                    volume=self.volume, pos_hint={'x': 0, 'y': 0},
+                    **self.options)
             self._video.bind(texture=self._play_started,
                     duration=self.setter('duration'),
                     position=self.setter('position'),

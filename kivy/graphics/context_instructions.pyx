@@ -252,8 +252,8 @@ cdef class BindTexture(ContextInstruction):
                         'texture property')
 
         self.source = kwargs.get('source', None)
-        if self.source is None:
-            self.texture = kwargs.get('texture', None)
+        if self.source is None and 'texture' in kwargs:
+            self.texture = kwargs['texture']
 
         self.index = kwargs.get('index', 0)
 
@@ -320,6 +320,7 @@ cdef class MatrixInstruction(ContextInstruction):
 
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
+        self._matrix = None
 
     cdef void apply(self):
         '''Apply the matrix of this instance to the
@@ -336,9 +337,11 @@ cdef class MatrixInstruction(ContextInstruction):
         is important, becasue it will notify the context about the update
         '''
         def __get__(self):
-            return self.matrix
+            if self._matrix == None:
+                self._matrix = Matrix()
+            return self._matrix
         def __set__(self, x):
-            self.matrix = x
+            self._matrix = x
             self.flag_update()
 
 cdef class Transform(MatrixInstruction):
@@ -451,6 +454,9 @@ cdef class Translate(Transform):
 
     cdef set_translate(self, double x, double y, double z):
         self.matrix = Matrix().translate(x, y, z)
+        self._x = x
+        self._y = y
+        self._z = z
 
     property x:
         '''Property for getting/setting the translation on X axis

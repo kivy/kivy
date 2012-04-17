@@ -36,9 +36,15 @@ a:hover {
  */
 #content {
 	background-color: #f8f8f8;
-	color: #333;
+	color: #4a4a4a;
 	border-left: 1px solid #666666;
 	width: 840px;
+}
+
+#content p,
+#content ul,
+#content pre {
+	line-height: 20px;
 }
 
 #contentall {
@@ -53,7 +59,6 @@ a:hover {
 .clearer {
 	clear: left;
 }
-
 
 
 /** Header
@@ -201,6 +206,23 @@ h2 {
 	border-bottom: 1px solid #cccccc;
 }
 
+div.panelstep h2,
+div.panelstep div.title {
+	font-family: 'Open Sans', sans-serif;
+	font-weight: 300;
+	font-size: 26px;
+	color: #333;
+	text-shadow: 1px 1px 0px #ccc;
+	border-bottom: none;
+	font-weight: 300;
+	margin: 20px 0 10px 0;
+}
+
+div.panelstep {
+	position: absolute;
+	width: 800px;
+}
+
 h3 {
 	font-size: 24px;
 	border-bottom: 1px dotted #cccccc;
@@ -334,7 +356,7 @@ dt:target,
 	background-color: #23cc23;
 }
 
-.highlight-python .highlight {
+.highlight {
 	background-color: transparent;
 }
 
@@ -351,9 +373,22 @@ th {
 pre {
     padding: 1em;
 	font-size: 1em;
-	background-color: #e5e5e5;
     overflow: auto;
 	border: 1px solid #cccccc;
+	background: rgba(125, 125, 125, 0.1);
+	padding: 12px 15px;
+	margin: 20px 0px;
+	-white-space: nowrap;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-o-border-radius: 3px;
+	-ms-border-radius: 3px;
+	-khtml-border-radius: 3px;
+	border-radius: 3px;
+	-moz-box-shadow: #ccc 1px 1px 3px 0 inset;
+	-webkit-box-shadow: #ccc 1px 1px 3px 0 inset;
+	-o-box-shadow: #ccc 1px 1px 3px 0 inset;
+	box-shadow: #ccc 1px 1px 3px 0 inset;
 }
 
 td.linenos pre {
@@ -361,6 +396,10 @@ td.linenos pre {
     border: 0;
     background-color: transparent;
     color: #aaa;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	-o-box-shadow: none;
+	box-shadow: none;
 }
 
 table.highlighttable {
@@ -572,12 +611,17 @@ table.field-list th.field-name {
 
 /** Image link
  */
-img.align-right {
+div.body .align-left {
+	float: left;
+	margin: 0 20px 20px 20px;
+}
+
+div.body .align-right {
 	float: right;
 	margin: 0 0 20px 20px;
 }
 
-img.align-center {
+div.body .align-center {
 	text-align: center;
 	margin: 20px auto;
 	display: block;
@@ -619,4 +663,25 @@ dl.exception > dt.hover {
 
 dl.api-level dt {
 	cursor: pointer;
+}
+
+/* Getting started
+ */
+.gs-osimage {
+	margin-top: 10px;
+	width: 264px !important;
+	height: 168px;
+	float: left;
+}
+.gs-osimage canvas {
+	width: 128px !important;
+	margin: 0 auto;
+}
+
+.gs-osimage img {
+	margin: 0 auto;
+}
+
+.gs-osimage-last {
+	clear: right;
 }

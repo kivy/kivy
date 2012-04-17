@@ -6,7 +6,7 @@ Accordion
 
 .. warning::
 
-    This widget is still experimental, and his API is subject to change in a
+    This widget is still experimental, and its API is subject to change in a
     future version.
 
 .. image:: images/accordion.jpg
@@ -54,7 +54,7 @@ to customize the design of the title bar.
         [WARNING] [Accordion] need 440px, got 100px
         [WARNING] [Accordion] layout aborted.
 
-    That's mean you have too many children, and they are no more space to
+    That means you have too many children, and they are no more space to
     display any content. This is "normal", and nothing will be done. Try to
     increase the space for the accordion, and reduce the number of children. You
     can also reduce the :attr:`Accordion.min_space`.
