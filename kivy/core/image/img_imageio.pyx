@@ -2,6 +2,12 @@
 ImageIO OSX framework
 =====================
 
+.. todo::
+
+    clean all unused definitions
+    handle all errors cases
+    add documentation
+
 '''
 
 __all__ = ('ImageLoaderImageIO', )
@@ -93,8 +99,6 @@ cdef extern from "CoreFoundation/CFBase.h":
     void CFRelease(CFTypeRef cf)
 
 cdef unsigned int kCFStringEncodingUTF8 = 0x08000100
-
-cdef extern CFStringRef kUTTypePNG
 
 cdef extern from "CoreFoundation/CFURL.h":
     ctypedef void *CFURLRef
@@ -200,8 +204,9 @@ def save_image_rgba(filename, width, height, data):
             cfilename, kCFStringEncodingUTF8)
     cdef CFURLRef url = CFURLCreateWithFileSystemPath(NULL,
             sfilename, kCFURLPOSIXPathStyle, 0)
+    cdef CFStringRef ctype = CFStringCreateWithCString(NULL,
+            "public.png", kCFStringEncodingUTF8)
 
-    cdef CFStringRef ctype = kUTTypePNG
     cdef CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url,
             ctype, 1, NULL)
 
