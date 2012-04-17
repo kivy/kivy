@@ -176,7 +176,7 @@ def determine_base_flags():
         'extra_link_args': [],
         'extra_compile_args': []}
     if c_options['use_ios']:
-        sysroot = '/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk'
+        sysroot = environ['SDKROOT']
         flags['include_dirs'] += [sysroot]
         flags['extra_compile_args'] += ['-isysroot', sysroot]
         flags['extra_link_args'] += ['-isysroot', sysroot]
