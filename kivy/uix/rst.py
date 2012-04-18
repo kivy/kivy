@@ -66,7 +66,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.image import AsyncImage
+from kivy.uix.image import AsyncImage, Image
 from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.animation import Animation
@@ -267,8 +267,12 @@ Builder.load_string('''
         height: self.minimum_height
 
 <RstImage>:
-    size_hint_y: None
-    height: self.texture_size[1] + 10
+    size_hint: None, None
+    size: self.texture_size[0], self.texture_size[1] + 10
+
+<RstAsyncImage>:
+    size_hint: None, None
+    size: self.texture_size[0], self.texture_size[1] + 10
 
 <RstDefinitionList>:
     cols: 2
@@ -598,7 +602,11 @@ class RstNote(GridLayout):
     content = ObjectProperty(None)
 
 
-class RstImage(AsyncImage):
+class RstImage(Image):
+    pass
+
+
+class RstAsyncImage(AsyncImage):
     pass
 
 
@@ -805,8 +813,19 @@ class _Visitor(nodes.NodeVisitor):
             assert(self.text == '')
 
         elif cls is nodes.image:
-            image = RstImage(source=node['uri'])
-            self.current.add_widget(image)
+            uri = node['uri']
+            if uri.startswith('/') and self.root.document_root:
+                uri = join(self.root.document_root, uri[1:])
+            if uri.startswith('http://') or uri.startswith('https://'):
+                image = RstAsyncImage(source=uri)
+            else:
+                image = RstImage(source=uri)
+
+            align = node.get('align', 'center')
+            root = AnchorLayout(size_hint_y=None, anchor_x=align, height=1)
+            image.bind(height=root.setter('height'))
+            root.add_widget(image)
+            self.current.add_widget(root)
 
         elif cls is nodes.definition_list:
             lst = RstDefinitionList()
@@ -1004,8 +1023,11 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is role_video:
             width = node['width'] if 'width' in node.attlist() else 400
             height = node['height'] if 'height' in node.attlist() else 300
+            uri = node['source']
+            if uri.startswith('/') and self.root.document_root:
+                uri = join(self.root.document_root, uri[1:])
             video = RstVideoPlayer(
-                    source=node['source'],
+                    source=uri,
                     size_hint=(None, None),
                     size=(width, height))
             anchor = AnchorLayout(size_hint_y=None, height=height + 20)
