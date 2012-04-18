@@ -218,8 +218,10 @@ class TouchAnalyzer(FloatLayout):
         if not self.collide_point(touch.x, touch.y):
             return
 
-        # Raise a flag so move/up events know they should track the touch
-        touch.ud['is_gesture'] = True
+        # OLD - we now use touch.grab(self)
+        ## Raise a flag so move/up events know they should track the touch
+        #touch.ud['is_gesture'] = True
+        touch.grab(self)
 
         # Add the stroke to existing gesture, or make a new one
         g = self.find_colliding_gesture(touch)
@@ -235,7 +237,7 @@ class TouchAnalyzer(FloatLayout):
         '''When a touch moves, we add a point to the line on the canvas so the
         path is updated. We must also check if the new point collides with the
         bouonding box of another gesture - if so, they should be merged.'''
-        if 'is_gesture' not in touch.ud:
+        if touch.grab_current is not self:
             return
         if not self.collide_point(touch.y, touch.y):
             return
@@ -258,8 +260,9 @@ class TouchAnalyzer(FloatLayout):
         return True
 
     def on_touch_up(self, touch):
-        if 'is_gesture' not in touch.ud:
+        if touch.grab_current is not self:
             return
+        touch.ungrab(self)
 
         g = self.get_gesture(touch)
         g.complete_stroke()

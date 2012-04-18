@@ -366,7 +366,12 @@ class Recognizer(EventDispatcher):
         gestures (Multistroke objects).'''
         io = StringIO(zlib.decompress(base64.b64decode(data)))
         p = pickle.Unpickler(io)
-        return p.load()
+        multistrokes = []
+        for multistroke in p.load():
+            strokes = multistroke['strokes']
+            multistroke['strokes'] = [[GPoint(x, y) for x, y in line] for line in strokes]
+            multistrokes.append(Multistroke(**multistroke))
+        return multistrokes
 
     # FIXME: use a try block, maybe shelve or something
     def export_gesture(self, filename=None, **kwargs):
@@ -377,7 +382,19 @@ class Recognizer(EventDispatcher):
         the output is written to disk, otherwise returned.'''
         io = StringIO()
         p = pickle.Pickler(io)
-        p.dump(self.filter(**kwargs))
+        multistrokes = []
+        defaults = {'priority': 100, 'numpoints': 16, 'use_strokelen': True,
+                    'orientation_dep': False, 'angle_similarity': 30.0,
+                    'phi_angle_range': 45.0, 'phi_angle_precision': 2.0}
+        for multistroke in self.filter(**kwargs):
+            m = {'name': multistroke.name}
+            for attr, value in defaults.iteritems():
+                current = getattr(multistroke, attr)
+                if current != value:
+                    m[attr] = current
+            m['strokes'] = tuple([(p.x, p.y) for p in line] for line in multistroke.strokes)
+            multistrokes.append(m)
+        p.dump(multistrokes)
 
         if filename:
             f = open(filename, 'w')
@@ -402,8 +419,7 @@ class Recognizer(EventDispatcher):
 
         new = self.filter(db=self.parse_gesture(data), **kwargs)
         if new:
-            self.db.append(None)
-            self.db[-1:] = new
+            self.db.extend(new)
 
     def transfer_gesture(self, tgt, **kwargs):
         '''Transfers all Multistroke objects in the database matching
