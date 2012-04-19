@@ -127,7 +127,7 @@ class Label(Widget):
         self._create_label()
 
         # force the texture creation
-        self.texture_update()
+        self._trigger_texture()
 
     def _create_label(self):
         # create the core label class according to markup value

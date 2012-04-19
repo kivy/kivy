@@ -9,6 +9,7 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
         'gl_has_capability', 'gl_register_get_size',
         'gl_has_texture_format', 'gl_has_texture_conversion',
         'gl_has_texture_native_format', 'gl_get_texture_formats',
+        'gl_get_version', 'gl_get_version_minor', 'gl_get_version_major',
         'GLCAP_BGRA', 'GLCAP_NPOT', 'GLCAP_S3TC', 'GLCAP_DXT1')
 
 include "opengl_utils_def.pxi"
@@ -22,6 +23,8 @@ cdef dict _gl_caps = {}
 cdef tuple _gl_texture_fmts = (
     'rgb', 'rgba', 'luminance', 'luminance_alpha',
     'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5')
+cdef int _gl_version_major = -1
+cdef int _gl_version_minor = -1
 
 
 cpdef list gl_get_extensions():
@@ -186,4 +189,63 @@ cpdef int gl_has_texture_format(str fmt):
         return 1
     # otherwise, check if it can be converted
     return gl_has_texture_conversion(fmt)
+
+
+cpdef tuple gl_get_version():
+    '''Return the (major, minor) OpenGL version, parsed from the GL_VERSION.
+
+    .. versionadded:: 1.2.0
+    '''
+
+    global _gl_version_minor, _gl_version_major
+    cdef str version
+
+    if _gl_version_major == -1:
+
+        _gl_version_minor = _gl_version_major = 0
+        version = <char *>c_opengl.glGetString(c_opengl.GL_VERSION)
+
+        try:
+            # same parsing algo as Panda3D
+            sver = ''
+            found = 0
+            for c in version:
+                if found and c == ' ':
+                    break
+                if 49 <= ord(c) <= 57:
+                    found = 1
+                if found:
+                    sver += c
+
+            component = sver.split('.')
+            if len(component) >= 1:
+                _gl_version_major = int(component[0])
+            if len(component) >= 2:
+                _gl_version_minor = int(component[1])
+
+        except:
+            Logger.warning('OpenGL: Error while parsing GL_VERSION')
+
+    return _gl_version_major, _gl_version_minor
+
+
+cpdef int gl_get_version_major():
+    '''Return the major component of the OpenGL version.
+
+    .. versionadded:: 1.2.0
+    '''
+    if _gl_version_major == -1:
+        gl_get_version()
+    return _gl_version_major
+
+
+cpdef int gl_get_version_minor():
+    '''Return the minor component of the OpenGL version.
+
+    .. versionadded:: 1.2.0
+    '''
+    if _gl_version_major == -1:
+        gl_get_version()
+    return _gl_version_minor
+
 

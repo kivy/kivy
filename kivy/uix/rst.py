@@ -66,7 +66,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.image import AsyncImage
+from kivy.uix.image import AsyncImage, Image
 from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.animation import Animation
@@ -112,8 +112,6 @@ if 'KIVY_DOC' not in os.environ:
         roles.register_local_role(rolename, role)
 
     directives.register_directive('video', VideoDirective)
-
-
 
 Builder.load_string('''
 #:import parse_color kivy.parser.parse_color
@@ -269,8 +267,12 @@ Builder.load_string('''
         height: self.minimum_height
 
 <RstImage>:
-    size_hint_y: None
-    height: self.texture_size[1] + 10
+    size_hint: None, None
+    size: self.texture_size[0], self.texture_size[1] + 10
+
+<RstAsyncImage>:
+    size_hint: None, None
+    size: self.texture_size[0], self.texture_size[1] + 10
 
 <RstDefinitionList>:
     cols: 2
@@ -313,7 +315,17 @@ Builder.load_string('''
         Color:
             rgb: .2, .2, .2
         Line:
-            points: [self.x, self.y, self.right, self.y, self.right, self.top, self.x, self.top, self.x, self.y]
+            points: [\
+            self.x,\
+            self.y,\
+            self.right,\
+            self.y,\
+            self.right,\
+            self.top,\
+            self.x,\
+            self.top,\
+            self.x,\
+            self.y]
 
 <RstTransition>:
     size_hint_y: None
@@ -348,6 +360,7 @@ Builder.load_string('''
 
 class RstVideoPlayer(VideoPlayer):
     pass
+
 
 class RstDocument(ScrollView):
     '''Base widget used to store an Rst document. See module documentation for
@@ -589,7 +602,11 @@ class RstNote(GridLayout):
     content = ObjectProperty(None)
 
 
-class RstImage(AsyncImage):
+class RstImage(Image):
+    pass
+
+
+class RstAsyncImage(AsyncImage):
     pass
 
 
@@ -796,8 +813,19 @@ class _Visitor(nodes.NodeVisitor):
             assert(self.text == '')
 
         elif cls is nodes.image:
-            image = RstImage(source=node['uri'])
-            self.current.add_widget(image)
+            uri = node['uri']
+            if uri.startswith('/') and self.root.document_root:
+                uri = join(self.root.document_root, uri[1:])
+            if uri.startswith('http://') or uri.startswith('https://'):
+                image = RstAsyncImage(source=uri)
+            else:
+                image = RstImage(source=uri)
+
+            align = node.get('align', 'center')
+            root = AnchorLayout(size_hint_y=None, anchor_x=align, height=1)
+            image.bind(height=root.setter('height'))
+            root.add_widget(image)
+            self.current.add_widget(root)
 
         elif cls is nodes.definition_list:
             lst = RstDefinitionList()
@@ -852,7 +880,8 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is nodes.reference:
             name = node.get('name', node.get('refuri'))
             self.text += '[ref=%s][color=%s]' % (name,
-                    self.root.colors.get('link', self.root.colors.get('paragraph')))
+                    self.root.colors.get('link',
+                        self.root.colors.get('paragraph')))
             if 'refname' in node and 'name' in node:
                 self.root.refs_assoc[node['name']] = node['refname']
 
@@ -994,7 +1023,12 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is role_video:
             width = node['width'] if 'width' in node.attlist() else 400
             height = node['height'] if 'height' in node.attlist() else 300
-            video = RstVideoPlayer(source=node['source'], size_hint=(None, None),
+            uri = node['source']
+            if uri.startswith('/') and self.root.document_root:
+                uri = join(self.root.document_root, uri[1:])
+            video = RstVideoPlayer(
+                    source=uri,
+                    size_hint=(None, None),
                     size=(width, height))
             anchor = AnchorLayout(size_hint_y=None, height=height + 20)
             anchor.add_widget(video)

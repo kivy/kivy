@@ -10,6 +10,7 @@ for helping in debugging process.
 import os
 import sys
 import time
+from time import ctime
 from ConfigParser import ConfigParser
 from StringIO import StringIO
 from xmlrpclib import ServerProxy
@@ -37,7 +38,7 @@ report.append('Python Version  : %s' % sys.version)
 report.append('Python API      : %s' % sys.api_version)
 report.append('Kivy Version    : %s' % kivy.__version__)
 report.append('Install path    : %s' % os.path.dirname(kivy.__file__))
-report.append('Install date    : %s' % time.ctime(os.path.getctime(kivy.__file__)))
+report.append('Install date    : %s' % ctime(os.path.getctime(kivy.__file__)))
 
 title('OpenGL')
 from kivy.core import gl
@@ -125,7 +126,8 @@ print
 print
 
 try:
-    reply = raw_input('Do you accept to send report to paste.pocoo.org (Y/n) : ')
+    reply = raw_input(
+        'Do you accept to send report to paste.pocoo.org (Y/n) : ')
 except EOFError:
     sys.exit(0)
 

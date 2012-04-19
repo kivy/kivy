@@ -1,8 +1,31 @@
-properties
-==========
+Kivy Properties
+---------------
+.. container:: title
 
-they are used to bind action to information, there is one type for whatever you need
--> StringProperty
--> NumericProperty
--> and so on
--> on_ property events
+    Using Kivy's Properties
+
+Kivy properties are an implementation of the `observer pattern <http://en.wikipedia.org/wiki/Observer_pattern>`_ .
+Kivy's properties are provided to:
+
+- Allow manipulating your class in kv language easier
+- Automatically observe any changes and dispatch functions/code accordingly
+- Validate/Value Check
+- Better memory managment
+
+
+To use them, **you have to create them at class level**. Each property by default provides a ``on_property`` event that is called whenever the properties state/value changes .
+
+Kivy provides the following properties:
+    `NumericProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.NumericProperty>`_, 
+    `StringProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.StringProperty>`_, 
+    `ListProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.ListProperty>`_, 
+    `ObjectProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.ObjectProperty>`_, 
+    `BooleanProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.BooleanProperty>`_, 
+    `BoundedNumericProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.BoundedNumericProperty>`_, 
+    `OptionProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.OptionProperty>`_, 
+    `ReferenceListProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.ReferenceListProperty>`_, 
+    `AliasProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.AliasProperty>`_, 
+    `DictProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.DictProperty>`_, 
+
+
+For a in-depth look in how-to use kivy properties start `here <http://kivy.org/docs/api-kivy.properties.html>`_

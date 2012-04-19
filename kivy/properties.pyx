@@ -205,10 +205,11 @@ cdef class Property:
 
         '''
         cdef dict storage = obj.__storage[self._name]
-        observers = storage['observers']
-        value = storage['value']
-        for observer in observers:
-            observer(obj, value)
+        cdef list observers = storage['observers']
+        if len(observers):
+            value = storage['value']
+            for observer in observers:
+                observer(obj, value)
 
 
 cdef class NumericProperty(Property):
@@ -608,7 +609,7 @@ cdef class OptionProperty(Property):
             raise ValueError('%s.%s is set to an invalid option %r. '
                              'Must be one of: %s' % (
                              obj.__class__.__name__,
-                             self.name, 
+                             self.name,
                              value, valid_options))
 
     property options:

@@ -10,7 +10,6 @@ from kivy.uix.popup import Popup
 
 Builder.load_string(
 '''
-#: import resource_find kivy.resources
 #: import utils kivy
 #: import os os
 <Unicode_TextInput>
@@ -25,8 +24,6 @@ Builder.load_string(
             text: root.unicode_string
             size_hint: 1, None
             height: 1364
-            on_touch_down:
-                print (self.line_height-1+self.padding_y)*(len(self._lines)-1)
     BoxLayout:
         size_hint: 1, .05
         Label:
@@ -40,6 +37,7 @@ Builder.load_string(
             on_release: root.show_load()
 
 <LoadDialog>:
+    platform: utils.platform()
     BoxLayout:
         size: root.size
         pos: root.pos
@@ -53,7 +51,7 @@ Builder.load_string(
                 halign: 'center'
                 text_size: self.size
                 on_release:
-                    _platform = utils.platform()
+                    _platform = root.platform
                     filechooser.path = os.path.expanduser('~/.fonts')\
 if _platform == 'linux' else '/system/fonts' if _platform == 'android' else os.path.expanduser('~/Library/Fonts')\
 if _platform == 'macosx' else os.environ['WINDIR'] + '\Fonts\'
@@ -64,7 +62,7 @@ if _platform == 'macosx' else os.environ['WINDIR'] + '\Fonts\'
                 halign: 'center'
                 text_size: self.size
                 on_release:
-                    _platform = utils.platform()
+                    _platform = root.platform
                     filechooser.path = '/usr/share/fonts' \
 if _platform == 'linux' else '/system/fonts' if _platform == 'android' else os.path.expanduser\
 ('/System/Library/Fonts') if _platform == 'macosx' else os.environ['WINDIR']\
@@ -129,6 +127,7 @@ Gregorian:      სწრაფი ყავისფერი მელა jump
 German:         Der schnelle braune Fuchs springt über den faulen alten Hund.
 Greek:          Η γρήγορη καφέ αλεπού πηδάει πάνω από το τεμπέλικο γέρικο σκυλί.
 Gujrati:        આ ઝડપી ભુરો શિયાળ તે બેકાર જૂના કૂતરા પર કૂદકા.
+Gurmukhi:       ਤੇਜ ਭੂਰੇ ਰੰਗ ਦੀ ਲੂੰਬੜੀ ਆਲਸੀ ਬੁੱਢੇ ਕੁੱਤੇ ਦੇ ਉਤੋਂ ਦੀ ਟੱਪਦੀ ਹੈ ।
 Hiation Creole: Rapid mawon Rena a so sou chen an parese fin vye granmoun.
 Hebrew:         השועל החום הזריז קופץ על הכלב הישן עצלן.
 Hindi:          तेज भूरे रंग की लोमड़ी आलसी बूढ़े कुत्ते के उपर से कूदती है ॥

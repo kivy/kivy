@@ -16,6 +16,7 @@ if 'KIVY_DOC' not in environ:
 
     from kivy.logger import Logger
     from kivy.graphics import gl_init_resources
+    from kivy.graphics.opengl_utils import gl_get_version
     from kivy.graphics.opengl import *
 
     def init_gl():
@@ -37,29 +38,14 @@ if 'KIVY_DOC' not in environ:
         Logger.info('GL: Texture max units <%s>' % str(
             glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS)[0]))
 
-        # As per http://www.opengl.org/resources/faq/technical/extensions.htm
-        # the format for the string is:
-        # """The first part of the return string must be of the form
-        # [major-number].[minor-number], optionally followed by a release
-        # number or other vendor-specific information.
-        try:
-            if version.startswith('OpenGL ES '):
-                version = version[10:]
-            majorminor = version.split()[0]
-            major, minor = majorminor.split('.')[0:2]
-            major, minor = int(major), int(minor)
-        except:
-            # We don't want to bail out here if there is an error while parsing
-            # Just raise a warning (God knows what vendors return here...)
-            Logger.warning('GL: Error parsing OpenGL version: %r' % version)
-        else:
-            # If parsing went without problems, let the user know if his
-            # graphics hardware/drivers are too old
-            if (major, minor) < MIN_REQUIRED_GL_VERSION:
-                msg = 'GL: Minimum required OpenGL version (2.0) NOT found! ' \
-                      'Try upgrading your graphics drivers and/or your ' \
-                      'graphics hardware in case of problems.'
-                Logger.critical(msg)
+        # Let the user know if his graphics hardware/drivers are too old
+        major, minor = gl_get_version()
+        Logger.info('GL: OpenGL parsed version: %d, %d' % (major, minor))
+        if (major, minor) < MIN_REQUIRED_GL_VERSION:
+            msg = 'GL: Minimum required OpenGL version (2.0) NOT found! ' \
+                    'Try upgrading your graphics drivers and/or your ' \
+                    'graphics hardware in case of problems.'
+            Logger.critical(msg)
 
     # To be able to use our GL provider, we must have a window
     # Automaticly import window auto to ensure the default window creation

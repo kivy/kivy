@@ -93,7 +93,7 @@ class MarkupLabel(MarkupLabelBase):
         self._style_stack[k].append(self.options[k])
 
     def _pop_style(self, k):
-        if len(self._style_stack[k]) == 0:
+        if k not in self._style_stack or len(self._style_stack[k]) == 0:
             Logger.warning('Label: pop style stack without push')
             return
         v = self._style_stack[k].pop()
@@ -135,7 +135,10 @@ class MarkupLabel(MarkupLabelBase):
                 spop('italic')
                 self.resolve_font_name()
             elif item[:6] == '[size=':
-                size = int(item[6:-1])
+                try:
+                    size = int(item[6:-1])
+                except ValueError:
+                    size = options['font_size']
                 spush('font_size')
                 options['font_size'] = size
             elif item == '[/size]':
@@ -226,9 +229,10 @@ class MarkupLabel(MarkupLabelBase):
 
             # calculate the size of the part
             # (extract all extents of the part,
-            # sum the width, and get the maximum height)
+            # calculate width through extents due to kerning
+            # and get the maximum height)
             pg = [cache[g] for g in part]
-            pw = sum([g[0] for g in pg])
+            pw = get_extents(part)[0]
             ph = max([g[1] for g in pg])
 
             options = copy(options)

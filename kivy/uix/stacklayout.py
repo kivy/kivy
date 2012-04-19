@@ -7,6 +7,7 @@ Stack Layout
 :class:`StackLayout` arranges children vertically or horizontally, as many
 as the layout can fit.
 
+
 .. warning:
 
     This is experimental and subject to change as long as this warning notice is
