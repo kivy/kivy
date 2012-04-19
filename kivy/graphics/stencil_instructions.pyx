@@ -98,11 +98,9 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from instructions cimport Instruction
-from kivy.utils import platform
 
 cdef int _stencil_level = 0
 cdef int _stencil_in_push = 0
-cdef int not_android = (platform() != 'android')
 
 cdef class StencilPush(Instruction):
     '''Push the stencil stack. See module documentation for more information.
@@ -126,8 +124,7 @@ cdef class StencilPush(Instruction):
         glEnable(GL_STENCIL_TEST)
         glStencilFunc(GL_ALWAYS, 0, 0)
         glStencilOp(GL_INCR, GL_INCR, GL_INCR)
-        if not_android:
-            glColorMask(0, 0, 0, 0)
+        glColorMask(0, 0, 0, 0)
 
 cdef class StencilPop(Instruction):
     '''Pop the stencil stack. See module documentation for more information.
@@ -164,5 +161,4 @@ cdef class StencilUnUse(Instruction):
     cdef void apply(self):
         glStencilFunc(GL_ALWAYS, 0, 0)
         glStencilOp(GL_DECR, GL_DECR, GL_DECR)
-        if not_android:
-            glColorMask(0, 0, 0, 0)
+        glColorMask(0, 0, 0, 0)
