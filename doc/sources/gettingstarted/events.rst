@@ -34,5 +34,5 @@ the easiest way to do that is to call **super** ::
             return False
         print 'you touched me!'
 
-Get more familiar with events by reading the following `event <file:///mnt/MyData/code/multitouch/MT__code/akfork/kivy/doc/build/html/guide/events.html#events>` documentation.
+Get more familiar with events by reading the following `event <http://kivy.org/docs/guide/events.html#events>`_ documentation.
 

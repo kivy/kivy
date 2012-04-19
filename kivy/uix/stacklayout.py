@@ -2,6 +2,16 @@
 Stack Layout
 ============
 
+.. only:: html
+
+    .. image:: images/stacklayout.gif
+        :align: right
+
+.. only:: latex
+
+    .. image:: images/stacklayout.png
+        :align: right
+
 .. versionadded:: 1.0.5
 
 :class:`StackLayout` arranges children vertically or horizontally, as many

@@ -2,6 +2,16 @@
 Box Layout
 ==========
 
+.. only:: html
+
+    .. image:: images/boxlayout.gif
+        :align: right
+
+.. only:: latex
+
+    .. image:: images/boxlayout.png
+        :align: right
+
 :class:`BoxLayout` arranges children in a vertical or horizontal box.
 
 To position widgets above/below each other, use a vertical BoxLayout::
