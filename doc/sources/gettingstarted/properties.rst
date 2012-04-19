@@ -1,35 +1,31 @@
-Properties
-----------
+Kivy Properties
+---------------
+.. container:: title
 
-Kivy properties are an implementation of the observer pattern, they give you a way to bind events to the changing of their value.
+    Using Kivy's Properties
 
-To use them, you have to create them at class level, they will take care of their instanciation when the class is instanciated.
+Kivy properties are an implementation of the `observer pattern <http://en.wikipedia.org/wiki/Observer_pattern>`_ .
+Kivy's properties are provided to:
 
-class MyWidget(Widget):
-    # definition at class level
-    my_property = StringProperty('world')
+- Allow manipulating your class in kv language easier
+- Automatically observe any changes and dispatch functions/code accordingly
+- Validate/Value Check
+- Better memory managment
 
-    # create a callback for when the property is changed,
-    # due to its name, it will be bound to my_property
-    # you can bind any callback to the property using my_property.bind(callback)
 
-    def on_my_property(self, value, \*others):
-        print 'hello',self.my_property
+To use them, **you have to create them at class level**. Each property by default provides a ``on_property`` event that is called whenever the properties state/value changes .
 
-Kivy’s Properties are not to be confused with Python’s properties (i.e. the @property decorator and the <property> type).
+Kivy provides the following properties:
+    `NumericProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.NumericProperty>`_, 
+    `StringProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.StringProperty>`_, 
+    `ListProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.ListProperty>`_, 
+    `ObjectProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.ObjectProperty>`_, 
+    `BooleanProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.BooleanProperty>`_, 
+    `BoundedNumericProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.BoundedNumericProperty>`_, 
+    `OptionProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.OptionProperty>`_, 
+    `ReferenceListProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.ReferenceListProperty>`_, 
+    `AliasProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.AliasProperty>`_, 
+    `DictProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.DictProperty>`_, 
 
-Kivy’s property classes support:
 
-    Value Checking / Validation
-        When you assign a new value to a property, the value is checked to pass some constraints implemented in the class. I.e., validation is performed. 
-        For example, an OptionProperty will make sure that the value is in a predefined list of possibilities. A NumericProperty will check that your value is a numeric type, 
-        i.e. int, float, etc. This prevents many errors early on.
-    Observer Pattern
-        You can specify what should happen when a property’s value changes. You can bind your own function as a callback to changes of a Property. 
-        If, for example, you want a piece of code to be called when a widget’s pos property changes, you can bind a function to it.
-    Better Memory Management
-        The same instance of a property is shared across multiple widget instances.
-
-Each property by default provides a ``on_property`` event in the class it is defined in.
-
-For a in-depth look into kivy properties look in http://kivy.org/docs/api-kivy.properties.html
+For a in-depth look in how-to use kivy properties start `here <http://kivy.org/docs/api-kivy.properties.html>`_
