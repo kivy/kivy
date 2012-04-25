@@ -30,6 +30,9 @@ The following tags are availables:
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`MarkupLabel.anchors`
+
+If you need to escape the markup from the current text, use
+:func:`kivy.utils.escape_markup`.
 '''
 
 __all__ = ('MarkupLabel', )
