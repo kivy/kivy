@@ -245,7 +245,7 @@ cdef class Fbo(RenderContext):
 
         # if asked, push the viewport
         if self._push_viewport:
-            glGetIntegerv(GL_VIEWPORT, <GLint *>&self._viewport)
+            glGetIntegerv(GL_VIEWPORT, <GLint *>self._viewport)
             glViewport(0, 0, self._width, self._height)
 
     cpdef release(self):
