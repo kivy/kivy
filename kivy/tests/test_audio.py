@@ -24,8 +24,11 @@ class AudioTestCase(unittest.TestCase):
 
     def test_length_simple(self):
         sound = self.get_sound()
+        volume = sound.volume = 0.75
         length = sound.length
         assert SAMPLE_LENGTH_MIN <= length <= SAMPLE_LENGTH_MAX
+        # ensure that the gstreamer play/stop doesn't mess up the volume
+        assert volume == sound.volume
 
     def test_length_playing(self):
         import time
