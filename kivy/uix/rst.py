@@ -511,6 +511,36 @@ class RstDocument(ScrollView):
             Logger.exception('Rst: error while loading text')
 
     def on_ref_press(self, node, ref):
+        self.goto(ref)
+
+    def goto(self, ref, *largs):
+        '''Scroll to the reference. If it's not found, nothing will be done.
+
+        If you wrote a text like::
+
+            .. _myref:
+
+            This is something i always wanted
+
+        You can do::
+
+            from kivy.clock import Clock
+            from functools import partial
+
+            doc = RstDocument(...)
+            Clock.schedule_once(partial(doc.goto, 'myref'), 0.1)
+
+        .. note::
+
+            It's preferable to delay the call of the goto if you just loaded the
+            document. Because the layout could not be finished, or it the size
+            of the RstDocument is not fixed yet, then the calculation of the
+            scrolling will be wrong.
+
+            However, you can do a direct call if the document is already loaded.
+
+        .. versionadded:: 1.3.0
+        '''
         # check if it's a file ?
         if self.document_root is not None and ref.endswith('.rst'):
             filename = join(self.document_root, ref)
@@ -519,8 +549,7 @@ class RstDocument(ScrollView):
                 return
 
         # get the association
-        ref = self.refs_assoc.get(ref)
-        #print 'want to go to', ref
+        ref = self.refs_assoc.get(ref, ref)
 
         # search into all the nodes containing anchors
         ax = ay = None
