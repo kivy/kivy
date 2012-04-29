@@ -346,6 +346,7 @@ class FileChooserController(FloatLayout):
             try:
                 path = entry.path.decode('utf-8')
             except UnicodeEncodeError:
+                path = entry.path
                 pass
             listdir(path)
         except OSError:
