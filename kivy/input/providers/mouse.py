@@ -205,8 +205,8 @@ class MouseMotionEventProvider(MotionEventProvider):
         rx = x / float(width)
         ry = 1. - y / float(height)
         cur = self.find_touch(rx, ry)
-        if button in ('left', 'scrollup', 'scrolldown') and cur and not (
-                'ctrl' in modifiers) or self.disable_multitouch:
+        if (button in ('left', 'scrollup', 'scrolldown') or
+                self.disable_multitouch) and cur and not ('ctrl' in modifiers):
             self.remove_touch(cur)
             self.current_drag = None
         if self.alt_touch:
