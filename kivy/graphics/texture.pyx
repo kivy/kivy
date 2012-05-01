@@ -534,6 +534,7 @@ def texture_create_from_data(im, mipmap=False):
     cdef int width = im.width
     cdef int height = im.height
     cdef int allocate = 1
+    cdef int no_blit = 0
     cdef Texture texture
 
     # optimization, if the texture is power of 2, don't allocate in
@@ -551,12 +552,17 @@ def texture_create_from_data(im, mipmap=False):
         if gl_get_version_major() < 3:
             mipmap = False
 
+    if width == 0 or height == 0:
+        height = width = 1
+        allocate = 1
+        no_blit = 1
     texture = _texture_create(width, height, im.fmt, 'ubyte', mipmap, allocate)
     if texture is None:
         return None
 
     texture._source = im.source
-    texture.blit_data(im)
+    if no_blit == 0:
+        texture.blit_data(im)
 
     return texture
 
