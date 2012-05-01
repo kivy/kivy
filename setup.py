@@ -212,6 +212,7 @@ sources = {
     'graphics/compiler.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/context_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/fbo.pyx': merge(base_flags, gl_flags, graphics_flags),
+    'graphics/gl_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/opengl.pyx': merge(base_flags, gl_flags, graphics_flags),
     'graphics/opengl_utils.pyx': merge(base_flags, gl_flags, graphics_flags),
