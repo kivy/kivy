@@ -167,10 +167,15 @@ Builder.load_string('''
     text_size: self.width - self.mx, None
 
 <RstTerm>:
-    markup: True
     size_hint: None, None
-    height: self.texture_size[1] + 10
-    width: self.texture_size[0] + 10
+    height: label.height
+    anchor_x: 'left'
+    Label:
+        id: label
+        text: root.text
+        markup: True
+        size_hint: None, None
+        size: self.texture_size[0] + 10, self.texture_size[1] + 10
 
 <RstBlockQuote>:
     cols: 2
@@ -275,12 +280,12 @@ Builder.load_string('''
     size: self.texture_size[0], self.texture_size[1] + 10
 
 <RstDefinitionList>:
-    cols: 2
+    cols: 1
     size_hint_y: None
     height: self.minimum_height
 
 <RstDefinition>:
-    cols: 1
+    cols: 2
     size_hint_y: None
     height: self.minimum_height
 
@@ -344,6 +349,10 @@ Builder.load_string('''
 
 <RstEmptySpace>:
     size_hint: 0.01, 0.01
+
+<RstDefinitionSpace>:
+    size_hint: None, 0.1
+    width: 50
 
 <RstVideoPlayer>:
     options: {'allow_stretch': True}
@@ -595,8 +604,8 @@ class RstParagraph(Label):
     my = NumericProperty(10)
 
 
-class RstTerm(Label):
-    pass
+class RstTerm(AnchorLayout):
+    text = StringProperty('')
 
 
 class RstBlockQuote(GridLayout):
@@ -676,6 +685,9 @@ class RstTransition(Widget):
 
 
 class RstEmptySpace(Widget):
+    pass
+
+class RstDefinitionSpace(Widget):
     pass
 
 
@@ -865,13 +877,12 @@ class _Visitor(nodes.NodeVisitor):
             assert(isinstance(self.current, RstDefinitionList))
             term = RstTerm()
             self.current.add_widget(term)
-            self.current.add_widget(RstEmptySpace())
             self.push(term)
 
         elif cls is nodes.definition:
             assert(isinstance(self.current, RstDefinitionList))
             definition = RstDefinition()
-            self.current.add_widget(RstEmptySpace())
+            definition.add_widget(RstDefinitionSpace())
             self.current.add_widget(definition)
             self.push(definition)
 
