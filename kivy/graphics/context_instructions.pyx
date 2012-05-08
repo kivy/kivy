@@ -450,7 +450,7 @@ cdef class Translate(Transform):
         Transform.__init__(self)
         if len(args) == 3:
             x, y, z = args
-            self.matrix = Matrix().translate(x, y, z)
+            self.set_translate(x, y, z)
 
     cdef set_translate(self, double x, double y, double z):
         self.matrix = Matrix().translate(x, y, z)
