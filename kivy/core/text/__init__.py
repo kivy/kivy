@@ -83,44 +83,66 @@ class LabelBase(object):
     _fonts_cache = {}
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('font_size', 12)
-        kwargs.setdefault('font_name', DEFAULT_FONT)
-        kwargs.setdefault('bold', False)
-        kwargs.setdefault('italic', False)
-        kwargs.setdefault('halign', 'left')
-        kwargs.setdefault('valign', 'bottom')
-        kwargs.setdefault('padding', None)
-        kwargs.setdefault('padding_x', None)
-        kwargs.setdefault('padding_y', None)
-        kwargs.setdefault('shorten', False)
-        kwargs.setdefault('mipmap', False)
-        kwargs.setdefault('color', (1, 1, 1, 1))
+        if 'font_size' not in kwargs:
+            kwargs['font_size'] = 12
+        if 'font_name' not in kwargs:
+            kwargs['font_name'] = DEFAULT_FONT
+        if 'bold' not in kwargs:
+            kwargs['bold'] = False
+        if 'italic' not in kwargs:
+            kwargs['italic'] = False
+        if 'halign' not in kwargs:
+            kwargs['halign'] = 'left'
+        if 'valign' not in kwargs:
+            kwargs['valign'] = 'bottom'
+        if 'padding_x' not in kwargs:
+            kwargs['padding_x'] = None
+        if 'padding_y' not in kwargs:
+            kwargs['padding_y'] = None
+        if 'shorten' not in kwargs:
+            kwargs['shorten'] = False
+        if 'mipmap' not in kwargs:
+            kwargs['mipmap'] = False
+        if 'color' not in kwargs:
+            kwargs['color'] = (1, 1, 1, 1)
+        if 'padding' not in kwargs:
+            kwargs['padding'] = padding = None
+        else:
+            padding = kwargs['padding']
 
-        padding = kwargs.get('padding', None)
-        if not kwargs.get('padding_x', None):
-            if type(padding) in (tuple, list):
-                kwargs['padding_x'] = float(padding[0])
+        tp_padding = type(padding)
+        padding_x = padding_y = None
+        if 'padding_x' in kwargs:
+            padding_x = kwargs['padding_x']
+        if 'padding_y' in kwargs:
+            padding_y = kwargs['padding_y']
+        if not padding_x:
+            if tp_padding is tuple or tp_padding is list:
+                kwargs['padding_x'] = padding_x = float(padding[0])
             elif padding is not None:
-                kwargs['padding_x'] = float(padding)
+                kwargs['padding_x'] = padding_x = float(padding)
             else:
-                kwargs['padding_x'] = 0
-        if not kwargs.get('padding_y', None):
-            if type(padding) in (tuple, list):
+                kwargs['padding_x'] = padding_x = 0
+        if not padding_y:
+            if tp_padding is tuple or tp_padding is list:
                 kwargs['padding_y'] = float(padding[1])
             elif padding is not None:
                 kwargs['padding_y'] = float(padding)
             else:
                 kwargs['padding_y'] = 0
 
-        self._text_size = (None, None)
         if 'text_size' in kwargs:
-            self._text_size = kwargs['text_size']
+            ts = kwargs['text_size']
         elif 'size' in kwargs:
-            self._text_size = kwargs['size']
+            ts = kwargs['size']
+        else:
+            ts = (None, None)
 
-        uw, uh = self._text_size
+        uw = ts[0]
         if uw is not None:
-            self._text_size = uw - kwargs['padding_x'] * 2, uh
+            self._text_size = uw - padding_x * 2, ts[1]
+        else:
+            self._text_size = ts
 
         super(LabelBase, self).__init__()
 
@@ -130,7 +152,10 @@ class LabelBase(object):
         self.options = kwargs
         self.texture = None
         self.resolve_font_name()
-        self.text = kwargs.get('text', '')
+        if 'text' in kwargs:
+            self.text = kwargs['text']
+        else:
+            self.text = ''
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,
@@ -303,6 +328,7 @@ class LabelBase(object):
                     if not glyph in cache:
                         cache[glyph] = get_extents(glyph)
 
+
             # Shorten the text that we actually display
             text = self.text
             if options['shorten'] and get_extents(text)[0] > uw:
@@ -392,40 +418,14 @@ class LabelBase(object):
         # create texture is necessary
         texture = self.texture
         mipmap = options['mipmap']
-        if texture is None:
-            if data is None:
-                if platform() in ('android', 'ios'):
-                    colorfmt = 'rgba'
-                else:
-                    colorfmt = 'luminance_alpha'
-                texture = Texture.create(
-                        size=self.size, colorfmt=colorfmt,
-                        mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
+        if texture is None or \
+                self.width != texture.width or \
+                self.height != texture.height:
+            texture = Texture.create_from_data(data, mipmap=mipmap)
+            data = None
             texture.flip_vertical()
             texture.add_reload_observer(self._texture_refresh)
-        elif self.width != texture.width or self.height != texture.height:
-            if data is None:
-                texture = Texture.create(size=self.size, mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
-            texture.flip_vertical()
-            texture.add_reload_observer(self._texture_refresh)
-        '''
-        # Avoid that for the moment.
-        # The thing is, as soon as we got a region, the blitting is not going in
-        # the right position cause of previous flip_vertical
-        # In addition, as soon as we have a region, we are not testing from the
-        # original texture. Mean we'll have region of region of region.
-        # Take more time to implement a fix for it, if it's needed.
-        else:
-            print 'get region ??', self, self.width, self.height
-            texture = texture.get_region(
-                0, 0, self.width, self.height)
-        '''
-
-        self.texture = texture
+            self.texture = texture
 
         # update texture
         # If the text is 1px width, usually, the data is black.

@@ -147,7 +147,7 @@ information.
 Reloading the Texture
 ---------------------
 
-.. versionadded:: 1.1.2
+.. versionadded:: 1.2.0
 
 If the OpenGL context is lost, the Texture must be reloaded. Texture having a
 source are automatically reloaded without any help. But generated textures must
@@ -419,6 +419,10 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     if not _is_pow2(width) or not _is_pow2(height):
         make_npot = 1
 
+    IF not USE_OPENGL_ES2:
+        if gl_get_version_major() < 3:
+            mipmap = 0
+
     # in case of mipmap is asked for npot texture, make it pot compatible
     if mipmap:
         make_npot = 0
@@ -530,23 +534,35 @@ def texture_create_from_data(im, mipmap=False):
     cdef int width = im.width
     cdef int height = im.height
     cdef int allocate = 1
+    cdef int no_blit = 0
     cdef Texture texture
 
     # optimization, if the texture is power of 2, don't allocate in
     # _texture_create, but allocate in blit_data => only 1 upload
     if _is_pow2(width) and _is_pow2(height):
         allocate = 0
+    elif gl_has_capability(c_GLCAP_NPOT):
+        allocate = 0
 
     # if imagedata have more than one image, activate mipmap
     if im.have_mipmap:
         mipmap = True
 
+    IF not USE_OPENGL_ES2:
+        if gl_get_version_major() < 3:
+            mipmap = False
+
+    if width == 0 or height == 0:
+        height = width = 1
+        allocate = 1
+        no_blit = 1
     texture = _texture_create(width, height, im.fmt, 'ubyte', mipmap, allocate)
     if texture is None:
         return None
 
     texture._source = im.source
-    texture.blit_data(im)
+    if no_blit == 0:
+        texture.blit_data(im)
 
     return texture
 
@@ -560,7 +576,6 @@ cdef class Texture:
 
     def __init__(self, width, height, target, texid, colorfmt='rgb',
             bufferfmt='ubyte', mipmap=False, source=None):
-        get_context().register_texture(self)
         self.observers = []
         self._width         = width
         self._height        = height
@@ -580,6 +595,7 @@ cdef class Texture:
         self._source        = source
         self._nofree        = 0
         self.update_tex_coords()
+        get_context().register_texture(self)
 
     def __dealloc__(self):
         get_context().dealloc_texture(self)
@@ -598,7 +614,7 @@ cdef class Texture:
         '''Add a callback to be called after the whole graphics context have
         been reloaded. This is where you can reupload your custom data in GPU.
 
-        .. versionadded:: 1.1.2
+        .. versionadded:: 1.2.0
 
         :Parameters:
             `callback`: func(context) -> return None
@@ -608,9 +624,9 @@ cdef class Texture:
 
     def remove_reload_observer(self, callback):
         '''Remove a callback from the observer list, previously added by
-        :func:`add_reload_observer`. 
+        :func:`add_reload_observer`.
 
-        .. versionadded:: 1.1.2
+        .. versionadded:: 1.2.0
 
         '''
         for cb in self.observers[:]:
@@ -854,7 +870,7 @@ cdef class Texture:
     property bufferfmt:
         '''Return the buffer format used in this texture. (readonly)
 
-        .. versionadded:: 1.1.2
+        .. versionadded:: 1.2.0
         '''
         def __get__(self):
             return self._bufferfmt

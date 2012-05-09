@@ -1,6 +1,6 @@
 .. _packaging_ios:
 
-.. versionadded:: 1.1.2
+.. versionadded:: 1.2.0
 
 Create a package for IOS
 ========================

@@ -88,4 +88,9 @@ class SoundPygame(Sound):
             self._data.set_volume(volume)
         return super(SoundPygame, self)._set_volume(volume)
 
+    def _get_length(self):
+        if self._data is not None:
+            return self._data.get_length()
+        return super(SoundPygame, self)._get_length()
+
 SoundLoader.register(SoundPygame)

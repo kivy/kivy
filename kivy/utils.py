@@ -9,7 +9,7 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'OrderedDict', 'QueryDict',
-           'platform')
+           'platform', 'escape_markup')
 
 from sys import platform as _sys_platform
 from re import match, split
@@ -354,4 +354,17 @@ def platform():
     elif _sys_platform in ('linux2', 'linux3'):
         return 'linux'
     return 'unknown'
+
+def escape_markup(text):
+    '''
+    Escape markup characters found in the text. Intended to be used when markup
+    text is activated on the Label::
+
+        untrusted_text = escape_markup('Look at the example [1]')
+        text = '[color=ff0000]' + untrusted_text + '[/color]'
+        w = Label(text=text, markup=True)
+
+    .. versionadded:: 1.3.0
+    '''
+    return text.replace('[', '&bl;').replace(']', '&br;').replace('&', '&amp;')
 

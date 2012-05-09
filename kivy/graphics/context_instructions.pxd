@@ -25,7 +25,7 @@ cdef class PopMatrix(ContextInstruction):
     cdef void apply(self)
 
 cdef class MatrixInstruction(ContextInstruction):
-    cdef Matrix matrix
+    cdef Matrix _matrix
     cdef void apply(self)
 
 cdef class Transform(MatrixInstruction):

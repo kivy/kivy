@@ -66,6 +66,9 @@ Phones
 - HTC Desire
 - HTC Desire Z
 - Xperia 10 (custom ROM 2.1 + GLES 2.0 support)
+- LG Optimus S
+- LG Optimus V
+- Samsung Galaxy S (mostly works, seems to have some weird OpenGL behaviour, most notably kivy splash screen doesn't work)
 
 Tablets
 ~~~~~~~

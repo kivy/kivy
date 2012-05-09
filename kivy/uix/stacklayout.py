@@ -2,10 +2,21 @@
 Stack Layout
 ============
 
+.. only:: html
+
+    .. image:: images/stacklayout.gif
+        :align: right
+
+.. only:: latex
+
+    .. image:: images/stacklayout.png
+        :align: right
+
 .. versionadded:: 1.0.5
 
 :class:`StackLayout` arranges children vertically or horizontally, as many
 as the layout can fit.
+
 
 .. warning:
 
@@ -114,10 +125,13 @@ class StackLayout(Layout):
 
                 # is the widget fit in the line ?
                 if lw - c.width >= 0:
+                    print 'PUSH', c, c.width
                     lc.append(c)
                     lw -= c.width + spacing
                     lh = max(lh, c.height)
                     continue
+
+                print 'NEW LINE CAUSE OF', lw - c.width
 
                 # push the line
                 y -= lh

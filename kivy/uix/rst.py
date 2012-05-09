@@ -66,7 +66,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.image import AsyncImage
+from kivy.uix.image import AsyncImage, Image
 from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.animation import Animation
@@ -112,8 +112,6 @@ if 'KIVY_DOC' not in os.environ:
         roles.register_local_role(rolename, role)
 
     directives.register_directive('video', VideoDirective)
-
-
 
 Builder.load_string('''
 #:import parse_color kivy.parser.parse_color
@@ -169,10 +167,15 @@ Builder.load_string('''
     text_size: self.width - self.mx, None
 
 <RstTerm>:
-    markup: True
     size_hint: None, None
-    height: self.texture_size[1] + 10
-    width: self.texture_size[0] + 10
+    height: label.height
+    anchor_x: 'left'
+    Label:
+        id: label
+        text: root.text
+        markup: True
+        size_hint: None, None
+        size: self.texture_size[0] + 10, self.texture_size[1] + 10
 
 <RstBlockQuote>:
     cols: 2
@@ -269,16 +272,20 @@ Builder.load_string('''
         height: self.minimum_height
 
 <RstImage>:
-    size_hint_y: None
-    height: self.texture_size[1] + 10
+    size_hint: None, None
+    size: self.texture_size[0], self.texture_size[1] + 10
+
+<RstAsyncImage>:
+    size_hint: None, None
+    size: self.texture_size[0], self.texture_size[1] + 10
 
 <RstDefinitionList>:
-    cols: 2
+    cols: 1
     size_hint_y: None
     height: self.minimum_height
 
 <RstDefinition>:
-    cols: 1
+    cols: 2
     size_hint_y: None
     height: self.minimum_height
 
@@ -313,7 +320,17 @@ Builder.load_string('''
         Color:
             rgb: .2, .2, .2
         Line:
-            points: [self.x, self.y, self.right, self.y, self.right, self.top, self.x, self.top, self.x, self.y]
+            points: [\
+            self.x,\
+            self.y,\
+            self.right,\
+            self.y,\
+            self.right,\
+            self.top,\
+            self.x,\
+            self.top,\
+            self.x,\
+            self.y]
 
 <RstTransition>:
     size_hint_y: None
@@ -333,6 +350,10 @@ Builder.load_string('''
 <RstEmptySpace>:
     size_hint: 0.01, 0.01
 
+<RstDefinitionSpace>:
+    size_hint: None, 0.1
+    width: 50
+
 <RstVideoPlayer>:
     options: {'allow_stretch': True}
     canvas.before:
@@ -348,6 +369,7 @@ Builder.load_string('''
 
 class RstVideoPlayer(VideoPlayer):
     pass
+
 
 class RstDocument(ScrollView):
     '''Base widget used to store an Rst document. See module documentation for
@@ -498,6 +520,36 @@ class RstDocument(ScrollView):
             Logger.exception('Rst: error while loading text')
 
     def on_ref_press(self, node, ref):
+        self.goto(ref)
+
+    def goto(self, ref, *largs):
+        '''Scroll to the reference. If it's not found, nothing will be done.
+
+        If you wrote a text like::
+
+            .. _myref:
+
+            This is something i always wanted
+
+        You can do::
+
+            from kivy.clock import Clock
+            from functools import partial
+
+            doc = RstDocument(...)
+            Clock.schedule_once(partial(doc.goto, 'myref'), 0.1)
+
+        .. note::
+
+            It's preferable to delay the call of the goto if you just loaded the
+            document. Because the layout could not be finished, or it the size
+            of the RstDocument is not fixed yet, then the calculation of the
+            scrolling will be wrong.
+
+            However, you can do a direct call if the document is already loaded.
+
+        .. versionadded:: 1.3.0
+        '''
         # check if it's a file ?
         if self.document_root is not None and ref.endswith('.rst'):
             filename = join(self.document_root, ref)
@@ -506,8 +558,7 @@ class RstDocument(ScrollView):
                 return
 
         # get the association
-        ref = self.refs_assoc.get(ref)
-        #print 'want to go to', ref
+        ref = self.refs_assoc.get(ref, ref)
 
         # search into all the nodes containing anchors
         ax = ay = None
@@ -553,8 +604,8 @@ class RstParagraph(Label):
     my = NumericProperty(10)
 
 
-class RstTerm(Label):
-    pass
+class RstTerm(AnchorLayout):
+    text = StringProperty('')
 
 
 class RstBlockQuote(GridLayout):
@@ -589,7 +640,11 @@ class RstNote(GridLayout):
     content = ObjectProperty(None)
 
 
-class RstImage(AsyncImage):
+class RstImage(Image):
+    pass
+
+
+class RstAsyncImage(AsyncImage):
     pass
 
 
@@ -630,6 +685,9 @@ class RstTransition(Widget):
 
 
 class RstEmptySpace(Widget):
+    pass
+
+class RstDefinitionSpace(Widget):
     pass
 
 
@@ -796,8 +854,19 @@ class _Visitor(nodes.NodeVisitor):
             assert(self.text == '')
 
         elif cls is nodes.image:
-            image = RstImage(source=node['uri'])
-            self.current.add_widget(image)
+            uri = node['uri']
+            if uri.startswith('/') and self.root.document_root:
+                uri = join(self.root.document_root, uri[1:])
+            if uri.startswith('http://') or uri.startswith('https://'):
+                image = RstAsyncImage(source=uri)
+            else:
+                image = RstImage(source=uri)
+
+            align = node.get('align', 'center')
+            root = AnchorLayout(size_hint_y=None, anchor_x=align, height=1)
+            image.bind(height=root.setter('height'))
+            root.add_widget(image)
+            self.current.add_widget(root)
 
         elif cls is nodes.definition_list:
             lst = RstDefinitionList()
@@ -808,13 +877,12 @@ class _Visitor(nodes.NodeVisitor):
             assert(isinstance(self.current, RstDefinitionList))
             term = RstTerm()
             self.current.add_widget(term)
-            self.current.add_widget(RstEmptySpace())
             self.push(term)
 
         elif cls is nodes.definition:
             assert(isinstance(self.current, RstDefinitionList))
             definition = RstDefinition()
-            self.current.add_widget(RstEmptySpace())
+            definition.add_widget(RstDefinitionSpace())
             self.current.add_widget(definition)
             self.push(definition)
 
@@ -852,7 +920,8 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is nodes.reference:
             name = node.get('name', node.get('refuri'))
             self.text += '[ref=%s][color=%s]' % (name,
-                    self.root.colors.get('link', self.root.colors.get('paragraph')))
+                    self.root.colors.get('link',
+                        self.root.colors.get('paragraph')))
             if 'refname' in node and 'name' in node:
                 self.root.refs_assoc[node['name']] = node['refname']
 
@@ -994,7 +1063,12 @@ class _Visitor(nodes.NodeVisitor):
         elif cls is role_video:
             width = node['width'] if 'width' in node.attlist() else 400
             height = node['height'] if 'height' in node.attlist() else 300
-            video = RstVideoPlayer(source=node['source'], size_hint=(None, None),
+            uri = node['source']
+            if uri.startswith('/') and self.root.document_root:
+                uri = join(self.root.document_root, uri[1:])
+            video = RstVideoPlayer(
+                    source=uri,
+                    size_hint=(None, None),
                     size=(width, height))
             anchor = AnchorLayout(size_hint_y=None, height=height + 20)
             anchor.add_widget(video)

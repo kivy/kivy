@@ -1,5 +1,5 @@
 import kivy
-kivy.require('1.1.2')
+kivy.require('1.2.0')
 
 from sys import argv
 from os.path import dirname, join

@@ -36,6 +36,23 @@ def install_gobject_iteration():
             loop += 1
     Clock.schedule_interval(_gobject_iteration, 0)
 
+# -----------------------------------------------------------------------------
+# Android support
+# -----------------------------------------------------------------------------
+
+g_android_redraw_count = 0
+
+
+def _android_ask_redraw(*largs):
+    # after wakeup, we need to redraw more than once, otherwise we get a
+    # black screen
+    global g_android_redraw_count
+    from kivy.core.window import Window
+    Window.canvas.ask_update()
+    g_android_redraw_count -= 1
+    if g_android_redraw_count < 0:
+        return False
+
 
 def install_android():
     '''Install hooks for android platform.
@@ -58,6 +75,7 @@ def install_android():
     # Init the library
     android.init()
     android.map_key(android.KEYCODE_MENU, pygame.K_MENU)
+    android.map_key(android.KEYCODE_BACK, pygame.K_ESCAPE)
 
     # Check if android must be paused or not
     # If pause is asked, just leave the app.
@@ -70,6 +88,7 @@ def install_android():
         from kivy.base import stopTouchApp
         from kivy.logger import Logger
         from kivy.core.window import Window
+        global g_android_redraw_count
 
         # try to get the current running application
         Logger.info('Android: Must to in sleep mode, check the app')
@@ -98,6 +117,9 @@ def install_android():
                 Logger.info('Android: Android resumed, resume the app')
                 app.dispatch('on_resume')
                 Window.canvas.ask_update()
+                g_android_redraw_count = 25 # 5 frames/seconds, during 5 seconds
+                Clock.unschedule(_android_ask_redraw)
+                Clock.schedule_interval(_android_ask_redraw, 1 / 5)
                 Logger.info('Android: App resume completed.')
 
         # app don't support pause mode, just stop it.

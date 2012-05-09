@@ -1,13 +1,23 @@
+.. _installation_windows:
+
 Installation on Windows
 =======================
 
 For Windows, we provide what we call a 'portable package'. You don't have
 to install anything "system" wide. Just unzip & run:
 
-    #. Download the latest version from http://kivy.org/#downloads
-    #. Unzip the package
-    #. Then, in the unzipped package, you have a script called `kivy.bat`,
-       use it for launching any kivy application as described below
+#. Download the latest version from http://kivy.org/#downloads
+
+    .. image:: images/win-step1.png
+        :scale: 50%
+
+#. Unzip the package
+
+    .. image:: images/win-step3.png
+        :scale: 50%
+
+#. Then, in the unzipped package, you have a script called `kivy.bat`,
+   use it for launching any kivy application as described below
 
 
 .. _windows-run-app:
@@ -20,15 +30,30 @@ Send-to method
 
 You can launch a .py file with our Python using the Send-to menu:
 
-    #. Create a shortcut of the kivy.bat
-    #. Open the explorer, and to go the address 'shell:sendto'
-    #. Move the kivy.bat's shortcut to this directory
-    #. (optional) rename it to Kivy <kivy-version>
+#. Copy the kivy.bat in the Clipboard
 
-Then, you can execute application by doing:
+    .. image:: images/win-step4.png
 
-    #. Right click on the .py file
-    #. Select Send-to > Kivy <version>
+#. Open the explorer, and to go the address 'shell:sendto'
+
+    .. image:: images/win-step5.png
+
+#. You should get the special windows directory SendTo
+
+    .. image:: images/win-step6.png
+
+#. Paste the previously copied kivy.bat **as a shortcut**
+
+    .. image:: images/win-step7.png
+
+#. Rename it to Kivy <kivy-version>
+
+    .. image:: images/win-step8.png
+
+Then, you can execute application by doing a right click on the .py file ->
+"Send To" -> "Kivy <version>".
+
+    .. image:: images/win-step9.png
 
 Double-click method
 ~~~~~~~~~~~~~~~~~~~

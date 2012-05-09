@@ -2,10 +2,21 @@
 Grid Layout
 ===========
 
+.. only:: html
+
+    .. image:: images/gridlayout.gif
+        :align: right
+
+.. only:: latex
+
+    .. image:: images/gridlayout.png
+        :align: right
+
 .. versionadded:: 1.0.4
 
 :class:`GridLayout` arranges children in a matrix. It takes the available space
 and divides it in columns and rows, then adds widgets to the resulting "cells".
+
 
 .. versionadded:: 1.0.7
     The implementation has changed to use widget size_hint for calculating

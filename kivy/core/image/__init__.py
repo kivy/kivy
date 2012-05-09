@@ -98,8 +98,10 @@ class ImageData(object):
         return len(self.mipmaps) > 1
 
     def __repr__(self):
-        return '<ImageData width=%d height=%d fmt=%s source=%r with %d images>' % (
-                self.width, self.height, self.fmt, self.source, len(self.mipmaps))
+        return '<ImageData width=%d height=%d fmt=%s ' \
+               'source=%r with %d images>' % (
+                self.width, self.height, self.fmt,
+                self.source, len(self.mipmaps))
 
     def add_mipmap(self, level, width, height, data):
         '''Add a image for a specific mipmap level.
@@ -352,8 +354,6 @@ class Image(EventDispatcher):
             image object will be returned.
         `keep_data` : bool, default to False
             Keep the image data when texture is created
-        `opacity` : float, default to 1.0
-            Opacity of the image
         `scale` : float, default to 1.0
             Scale of the image
         `mipmap` : bool, default to False

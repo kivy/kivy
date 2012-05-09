@@ -51,7 +51,7 @@
             pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
             size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
             source: 'atlas://data/images/defaulttheme/slider%s_background' % self.orientation[0]
-        Image:
+        Rectangle:
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
             size: (32, 32)
             source: 'atlas://data/images/defaulttheme/slider_cursor'
@@ -93,7 +93,7 @@
     padding_y: 6
     canvas.before:
         Color:
-            rgb: self.background_color
+            rgba: self.background_color
         BorderImage:
             border: (16, 16, 16, 16)
             pos: self.pos
@@ -105,7 +105,7 @@
             pos: map(int, self.cursor_pos)
             size: 1, -self.line_height
         Color:
-            rgb: self.foreground_color
+            rgba: self.foreground_color
 
 <TextInputCutCopyPaste>:
     size_hint: None, None
@@ -156,6 +156,10 @@
         StencilUse
 
     canvas.after:
+        StencilUnUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
         StencilPop
 
 
@@ -216,25 +220,25 @@
     locked: False
     entries: []
     path: ctx.path
-    controller: ctx.controller
     # FIXME: is_selected is actually a read_only treeview property. In this
     # case, however, we're doing this because treeview only has single-selection
     # hardcoded in it. The fix to this would be to update treeview to allow
     # multiple selection.
-    is_selected: self.path in ctx.controller.selection
+    is_selected: self.path in ctx.controller().selection
 
     orientation: 'horizontal'
     size_hint_y: None
     height: 24
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
-    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller.entry_touched(self, args[1])
-    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller.entry_released(self, args[1])
+    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
+    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
     BoxLayout:
         pos: root.pos
         Label:
             text_size: self.size
             halign: 'left'
+            shorten: True
             text: unicode(ctx.name)
         Label:
             text_size: self.size
@@ -269,11 +273,11 @@
 [FileIconEntry@Widget]:
     locked: False
     path: ctx.path
-    selected: self.path in ctx.controller.selection
+    selected: self.path in ctx.controller().selection
     size_hint: None, None
 
-    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller.entry_touched(self, args[1])
-    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller.entry_released(self, args[1])
+    on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
+    on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
 
     canvas:
         Color:
@@ -304,6 +308,46 @@
         pos: root.pos
         halign: 'center'
 
+<FileChooserProgress>:
+    pos_hint: {'x': 0, 'y': 0}
+    canvas:
+        Color:
+            rgba: 0, 0, 0, .8
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    Label:
+        pos_hint: {'x': .2, 'y': .6}
+        size_hint: .6, .2
+        text: 'Opening %s' % root.path
+    FloatLayout:
+        pos_hint: {'x': .2, 'y': .4}
+        size_hint: .6, .2
+        ProgressBar:
+            id: pb
+            pos_hint: {'x': 0, 'center_y': .5}
+            max: root.total
+            value: root.index
+        Label:
+            pos_hint: {'x': 0}
+            text: '%d / %d' % (root.index, root.total)
+            size_hint_y: None
+            height: self.texture_size[1]
+            y: pb.center_y - self.height - 8
+            font_size: 10
+            color: (.8, .8, .8, .8)
+
+    AnchorLayout:
+        pos_hint: {'x': .2, 'y': .2}
+        size_hint: .6, .2
+
+        Button:
+            text: 'Cancel'
+            size_hint: None, None
+            size: 150, 44
+            on_release: root.cancel()
+
+
 
 # Switch widget
 <Switch>:
@@ -314,11 +358,11 @@
         Rectangle:
             source: 'atlas://data/images/defaulttheme/switch-background'
             size: 83, 32
-            pos: self.center_x - 41, self.center_y - 16
+            pos: int(self.center_x - 41), int(self.center_y - 16)
         Rectangle:
             source: 'atlas://data/images/defaulttheme/switch-button'
             size: 43, 32
-            pos: self.center_x - 41 + self.active_norm_pos * 41, self.center_y - 16
+            pos: int(self.center_x - 41 + self.active_norm_pos * 41), int(self.center_y - 16)
 
 # Popup widget
 <Popup>:
