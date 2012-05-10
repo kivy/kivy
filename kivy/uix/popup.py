@@ -235,6 +235,10 @@ class Popup(FloatLayout):
     def _align_center(self, *l):
         if self._window:
             self.center = self._window.center
+            # hack to resize dark background on window resize
+            _window = self._window
+            self._window = None
+            self._window = _window
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
