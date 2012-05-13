@@ -1,71 +1,87 @@
+'''
+InteractiveLauncher
+===========
+
+The :class:`InteractiveLauncher` provides a user-friendly python shell interface
+to an :class:`App` so that it can be prototyped and debugged interactively. 
+
+Creating an InteractiveLauncher
+-----------------------
+
+Take you existing subclass of :class:`App` (this can be production code) and pass an
+instance to the :class:`InteractiveLauncher` constructor.
+
+from kivy.interactive import InteractiveLauncher
+from kivy.app import App
+from kivy.uix.button import Button
+
+class MyApp(App):
+    def build(self):
+        return Button(test='Hello Shell')
+
+interactiveLauncher = InteractiveLauncher(MyApp()).run()
+
+The script will return, allowing an interpreter shell to continue running and
+inspection or modification of the :class:`App` can be done safely through the
+InteractiveLauncher instance or the provided SafeMembrane class instances.
+
+
+Directly Pausing the Application
+-------------------------
+
+Both :class:`InteractiveLauncher and :class:`SafeMembrane` hold internal
+references to :class:`EventLoop`'s 'safe' and 'confirmed'
+:class:`threading.Event` objects.  You can use their methods to control the
+application manually.
+
+:func:`InteractiveLauncher.safe.set` will internally allow a paused application
+to continue running.  :func:`Interactive.safe.clear()` will cause the applicaiton
+to pause.  This is useful for scripting actions into functions that need the
+screen to update etc.
+
+Adding Attributes Dynamically
+-------------------------
+
+The :class:`InteractiveLauncher` can have attributes added to it exactly like a normal
+object, and if these were created from outside the membrane, they will not be
+threadsafe because the external references to them in the python interpreter do
+not go through InteractiveLauncher's membrane behavior inherited from
+SafeMembrane.
+
+To threadsafe these external referencess, simply assign them to SafeMembrane
+instances of themselves like so:
+
+interactiveLauncher.attribute = myNewObject
+# myNewObject is unsafe
+myNewObject = SafeMembrane(myNewObject)
+# myNewObject is now safe
+
+'''
+
 from kivy.app import App
 from kivy.base import EventLoop
-
+from kivy.clock import Clock
 from threading import Thread, Event
 
-class InteractiveLauncher(Thread):
-    """ Allows an App to be run in a thread and for thread-safe membranes to
-    objects in that thread to be created"""
-    def __init__(self, App = App(), *args, **kwargs):
-        self.app = App
-        #
-        # modify the EventLoop to make it cooperative
-        EventLoop.safe = Event()
-        EventLoop.safe.set()
-        EventLoop.confirmed = Event()
-        idle = EventLoop.idle
-        def idle_interactive():
-            '''EventLoopBase.idle is wrapped in threadsafing code to allow the
-            interpreter to interject execution'''
-            #print 'running in interactive mode'
-            if  EventLoop.safe.is_set():
-                idle()
-            else:
-                EventLoop.confirmed.set()
-                EventLoop.safe.wait()
-                EventLoop.confirmed.clear()
-                idle()
-
-        EventLoop.idle = idle_interactive
-        self.safe = EventLoop.safe
-        self.confirmed = EventLoop.confirmed
-        
-        # start the app in a thread
-        super(InteractiveLauncher, self).__init__(target=self.startApp, *args, **kwargs)
-        self.start()
-
-    def startApp(self, *args, **kwargs):
-        print 'Starting the application in a manager thread'
-        self.app.run(*args, **kwargs)
-        
-    def join(self, *args, **kwargs):
-        # joining a non-returning thread is annoying
-        self.app.eventLoop.quit = True
-        super(InteractiveLauncher, self).join()
-
-    def membrane(self, ob=None):
-        """ returns a threadsafe membrane to any object it's passed.  use when
-        you already have references to non-threadsafe objects to thread-safe them.
-        by default, a membrane to App is returned."""
-        if ob is None:
-            ob = self.app
-        return SafeMembrane(ob, self.safe, self.confirmed)
-
+def safeWait(dt):
+    EventLoop.confirmed.set()
+    EventLoop.safe.wait()
+    EventLoop.confirmed.clear()
 
 class SafeMembrane(object):
-    """Returns attributes as new thread-safe objects and makes thread-safe
-    method calls, preventing thread-unsafe objects from leaking into the user's
-    environment.  Create these with InteractiveLauncher.membrane to be sure
-    EventLoop has been made cooperative."""
+    """Threadsafe proxy that also returns attributes as new thread-safe objects
+    and makes thread-safe method calls, preventing thread-unsafe objects
+    from leaking into the user's environment."""
     __slots__ = {'__subject__', 'safe', 'confirmed'}
 
-    def __init__(self, ob, safe, confirmed):
+    def __init__(self, ob, *args, **kwargs):
+        self.confirmed = EventLoop.confirmed()
+        self.safe = EventLoop.safe()
         self.__subject__ = ob
-        self.safe = safe
-        self.confirmed = confirmed
         
     def safeIn(self):
         self.safe.clear()
+        Clock.schedule_once(safeWait, -1)
         self.confirmed.wait()
 
     def safeOut(self):
@@ -126,37 +142,62 @@ class SafeMembrane(object):
     # for non-threadsafe objects to leak into the user's shell
     # see peak.util.proxies.AbstractProxy for a guide
 
-            
+
+class InteractiveLauncher(SafeMembrane):
+    """ Proxy to an application instance that launches it in a thread and
+    then returns and acts as a proxy to the application in the thread"""
+    __slots__ = {'__subject__', 'safe', 'confirmed', 'thread', 'app'}
+
+    def __init__(self, app = App(), *args, **kwargs):
+        EventLoop.safe = Event()
+        self.safe = EventLoop.safe
+        self.safe.set()
+        EventLoop.confirmed = Event()
+        self.confirmed = EventLoop.confirmed
+        self.app = app
+        def startApp(app=app, *args, **kwargs):
+            app.run(*args, **kwargs)
+        self.thread = Thread(target=startApp, *args, **kwargs)
+
+    def run(self):
+        self.thread.start()
+        #Proxy behavior starts after this is set.  Before this point, attaching
+        #widgets etc can only be done through the Launcher's app attribute
+        self.__subject__ = self.app()
+
+    def stop(self):
+        EventLoop.quit = True
+        self.thread.join()
+        
+    #Act like the app instance before __subject__ is set
+    def __repr__(self):
+        return self.app.__repr__()
+
 
 #Here's some testing code.  
 
-#from kivy.uix.widget import Widget
-#from kivy.graphics import Color, Ellipse
+from kivy.uix.widget import Widget
+from kivy.graphics import Color, Ellipse
 
 
 
-#class MyPaintWidget(Widget):
-#    def on_touch_down(self, touch):
-#        with self.canvas:
-#            Color(1, 1, 0)
-#            d = 30.
-#            Ellipse(pos=(touch.x - d/2, touch.y - d/2), size=(d, d))
+class MyPaintWidget(Widget):
+    def on_touch_down(self, touch):
+        with self.canvas:
+            Color(1, 1, 0)
+            d = 30.
+            Ellipse(pos=(touch.x - d/2, touch.y - d/2), size=(d, d))
 
-#class TestApp(App):
-#    def build(self):
-#        return MyPaintWidget()
+class TestApp(App):
+    def build(self):
+        return MyPaintWidget()
 
 #  Test that nothing was broken
 #TestApp().run()
 
-# Test the interactive overrides
-#i = InteractiveLauncher(TestApp())
-
-# Test that the safing bahavior works
-#m = i.membrane()
-# m is now a membrane to the App instance
-#m.safe.set()
+i = InteractiveLauncher(TestApp())
+#i.safe.set()
 # The application is now blocked
 # Click on the screen a bit
-#m.safe.clear()
+#i.safe.clear()
 # The clicks will show up now
