@@ -34,9 +34,9 @@ references to :class:`EventLoop`'s 'safe' and 'confirmed'
 :class:`threading.Event` objects.  You can use their safing methods to control the
 application manually.
 
-:meth:`InteractiveLauncher.safeIn()` will internally allow a paused application
-to continue running.  :meth:`Interactive.safeOut()` will cause the applicaiton
-to pause.  This is useful for scripting actions into functions that need the
+:meth:`Interactive.safeIn()` will cause the applicaiton to pause and
+ :meth:`InteractiveLauncher.safeOut()` will internally allow a paused application
+to continue running.  This is useful for scripting actions into functions that need the
 screen to update etc.
 
 Adding Attributes Dynamically
@@ -45,7 +45,7 @@ Adding Attributes Dynamically
 The :class:`InteractiveLauncher` can have attributes added to it exactly like a normal
 object, and if these were created from outside the membrane, they will not be
 threadsafe because the external references to them in the python interpreter do
-not go through InteractiveLauncher's membrane behavior inherited from
+not go through InteractiveLauncher's membrane behavior, inherited from
 SafeMembrane.
 
 To threadsafe these external referencess, simply assign them to SafeMembrane
