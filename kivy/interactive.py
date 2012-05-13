@@ -9,17 +9,17 @@ Creating an InteractiveLauncher
 -----------------------
 
 Take you existing subclass of :class:`App` (this can be production code) and pass an
-instance to the :class:`InteractiveLauncher` constructor.
+instance to the :class:`InteractiveLauncher` constructor.::
 
-from kivy.interactive import InteractiveLauncher
-from kivy.app import App
-from kivy.uix.button import Button
+    from kivy.interactive import InteractiveLauncher
+    from kivy.app import App
+    from kivy.uix.button import Button
+    
+    class MyApp(App):
+        def build(self):
+            return Button(test='Hello Shell')
 
-class MyApp(App):
-    def build(self):
-        return Button(test='Hello Shell')
-
-interactiveLauncher = InteractiveLauncher(MyApp()).run()
+    interactiveLauncher = InteractiveLauncher(MyApp()).run()
 
 The script will return, allowing an interpreter shell to continue running and
 inspection or modification of the :class:`App` can be done safely through the
@@ -31,11 +31,11 @@ Directly Pausing the Application
 
 Both :class:`InteractiveLauncher and :class:`SafeMembrane` hold internal
 references to :class:`EventLoop`'s 'safe' and 'confirmed'
-:class:`threading.Event` objects.  You can use their methods to control the
+:class:`threading.Event` objects.  You can use their safing methods to control the
 application manually.
 
-:func:`InteractiveLauncher.safe.set` will internally allow a paused application
-to continue running.  :func:`Interactive.safe.clear()` will cause the applicaiton
+:meth:`InteractiveLauncher.safeIn()` will internally allow a paused application
+to continue running.  :meth:`Interactive.safeOut()` will cause the applicaiton
 to pause.  This is useful for scripting actions into functions that need the
 screen to update etc.
 
@@ -49,12 +49,13 @@ not go through InteractiveLauncher's membrane behavior inherited from
 SafeMembrane.
 
 To threadsafe these external referencess, simply assign them to SafeMembrane
-instances of themselves like so:
+instances of themselves like so::
 
-interactiveLauncher.attribute = myNewObject
-# myNewObject is unsafe
-myNewObject = SafeMembrane(myNewObject)
-# myNewObject is now safe
+    interactiveLauncher.attribute = myNewObject
+    # myNewObject is unsafe
+    myNewObject = SafeMembrane(myNewObject)
+    # myNewObject is now safe.  Call at will.
+    myNewObject.method()
 
 '''
 
@@ -176,7 +177,7 @@ class InteractiveLauncher(SafeMembrane):
 
 #Here's some testing code.  
 
-from kivy.uix.widget import Widget
+"""from kivy.uix.widget import Widget
 from kivy.graphics import Color, Ellipse
 
 
@@ -190,12 +191,12 @@ class MyPaintWidget(Widget):
 
 class TestApp(App):
     def build(self):
-        return MyPaintWidget()
+        return MyPaintWidget()"""
 
 #  Test that nothing was broken
 #TestApp().run()
 
-i = InteractiveLauncher(TestApp())
+#i = InteractiveLauncher(TestApp())
 #i.safe.set()
 # The application is now blocked
 # Click on the screen a bit
