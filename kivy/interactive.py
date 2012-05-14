@@ -76,8 +76,8 @@ class SafeMembrane(object):
     __slots__ = {'__subject__', 'safe', 'confirmed'}
 
     def __init__(self, ob, *args, **kwargs):
-        self.confirmed = EventLoop.confirmed()
-        self.safe = EventLoop.safe()
+        self.confirmed = EventLoop.confirmed
+        self.safe = EventLoop.safe
         self.__subject__ = ob
         
     def safeIn(self):
@@ -164,7 +164,7 @@ class InteractiveLauncher(SafeMembrane):
         self.thread.start()
         #Proxy behavior starts after this is set.  Before this point, attaching
         #widgets etc can only be done through the Launcher's app attribute
-        self.__subject__ = self.app()
+        self.__subject__ = self.app
 
     def stop(self):
         EventLoop.quit = True
