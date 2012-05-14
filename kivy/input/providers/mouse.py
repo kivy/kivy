@@ -13,6 +13,11 @@ be discarded. Put in your configuration ::
     [input]
     mouse = mouse,disable_on_activity
 
+Disabling multitouch interaction with mouse
+-------------------------------------------
+
+.. versionadded:: 1.3.0
+
 By default middle and right mouse buttons ared used for multitouch emulation.
 If you want to use them for other purpose you can disable this behavior by
 activating the "disable_multitouch" token.
@@ -186,7 +191,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.current_drag = new_me
         else:
             is_double_tap = 'shift' in modifiers
-            do_graphics = (not self.disable_multitouch and button != 'left' or 
+            do_graphics = (not self.disable_multitouch and button != 'left' or
                 ('ctrl' in modifiers))
             cur = self.create_touch(rx, ry, is_double_tap, do_graphics, button)
             if 'alt' in modifiers:
