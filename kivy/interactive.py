@@ -1,12 +1,25 @@
 '''
 InteractiveLauncher
-===========
+===================
+
+.. versionadded:: 1.3.0
 
 The :class:`InteractiveLauncher` provides a user-friendly python shell interface
-to an :class:`App` so that it can be prototyped and debugged interactively. 
+to an :class:`App` so that it can be prototyped and debugged interactively.
+
+.. NOTE::
+    The Kivy API intends for some functions to only be run once or before the main
+    EventLoop has started.  Methods that can be called during the course of an
+    application will work as intended, but specifically overriding methods
+    such as :meth:`on_touch` dynamically leads to trouble.
+
+.. NOTE::
+    This module uses threading and object proxies to encapsulate the running
+    :class:`App`.  Deadlocks and memory corruption can occur if making direct
+    references inside the thread without going through the provided proxy.
 
 Creating an InteractiveLauncher
------------------------
+-------------------------------
 
 Take you existing subclass of :class:`App` (this can be production code) and pass an
 instance to the :class:`InteractiveLauncher` constructor.::
@@ -25,11 +38,51 @@ The script will return, allowing an interpreter shell to continue running and
 inspection or modification of the :class:`App` can be done safely through the
 InteractiveLauncher instance or the provided SafeMembrane class instances.
 
+Interactive Development 
+-----------------------
+
+IPython's attribute lookup makes it very easy to learn the Kivy API.  On a
+running App instance and every object in the entire widget tree and all their
+methods and attributes of all objects can be printed nicely by using the '.'
+operator and pressing 'tab.'  Run this code in a terminal::
+
+    from kivy.uix.widget import Widget
+    from kivy.graphics import Color, Ellipse
+    
+    class MyPaintWidget(Widget):
+        def on_touch_down(self, touch):
+            with self.canvas:
+                Color(1, 1, 0)
+                d = 30.
+                Ellipse(pos=(touch.x - d/2, touch.y - d/2), size=(d, d))
+    
+                
+    class TestApp(App):
+        def build(self):
+            return Widget()
+
+    
+    i = InteractiveLauncher(TestApp())
+    i.run()
+    i.       # press 'tab' to list attributes of the app
+    i.root.  # press 'tab' to list attributes of the root widget
+    
+    # App is boring.  Attach a new widget!
+    i.root.add_widget(MyPaintWidget())
+    
+    i.safe.set()
+    # The application is now blocked.
+    # Click on the screen several times.
+    i.safe.clear()
+    # The clicks will show up now
+    
+    # Erase artwork and start over
+    i.root.canvas.clear()
 
 Directly Pausing the Application
--------------------------
+--------------------------------
 
-Both :class:`InteractiveLauncher and :class:`SafeMembrane` hold internal
+Both :class:`InteractiveLauncher` and :class:`SafeMembrane` hold internal
 references to :class:`EventLoop`'s 'safe' and 'confirmed'
 :class:`threading.Event` objects.  You can use their safing methods to control the
 application manually.
@@ -40,7 +93,7 @@ to continue running.  This is useful for scripting actions into functions that n
 screen to update etc.
 
 Adding Attributes Dynamically
--------------------------
+-----------------------------
 
 The :class:`InteractiveLauncher` can have attributes added to it exactly like a normal
 object, and if these were created from outside the membrane, they will not be
@@ -56,6 +109,15 @@ instances of themselves like so::
     myNewObject = SafeMembrane(myNewObject)
     # myNewObject is now safe.  Call at will.
     myNewObject.method()
+
+TODO
+====
+
+Running help() on proxies still pulls the proxy's help doc instead of the
+referent.  Testing a __doc__ override is underway.
+
+Unit tests, an example, and more understanding of which methods are safe in a
+running application would be nice.  All three would be excellent.
 
 '''
 
@@ -121,11 +183,12 @@ class SafeMembrane(object):
         return oga(self,attr)
 
     def __getattr__(self,attr, oga=object.__getattribute__):
-        #print 'getting {} of type {}'.format(attr, type(getattr(oga(self, '__subject__'), attr)))
         r = getattr(oga(self,'__subject__'), attr)
         if self.isMethod(r):
             r = self.enSafen(r)
             return r
+        #if attr.startswith('__'):
+        #    return r
         return SafeMembrane(r, self.safe, self.confirmed)
 
     def __setattr__(self,attr,val, osa=object.__setattr__):
@@ -175,30 +238,4 @@ class InteractiveLauncher(SafeMembrane):
         return self.app.__repr__()
 
 
-#Here's some testing code.  
 
-"""from kivy.uix.widget import Widget
-from kivy.graphics import Color, Ellipse
-
-
-
-class MyPaintWidget(Widget):
-    def on_touch_down(self, touch):
-        with self.canvas:
-            Color(1, 1, 0)
-            d = 30.
-            Ellipse(pos=(touch.x - d/2, touch.y - d/2), size=(d, d))
-
-class TestApp(App):
-    def build(self):
-        return MyPaintWidget()"""
-
-#  Test that nothing was broken
-#TestApp().run()
-
-#i = InteractiveLauncher(TestApp())
-#i.safe.set()
-# The application is now blocked
-# Click on the screen a bit
-#i.safe.clear()
-# The clicks will show up now
