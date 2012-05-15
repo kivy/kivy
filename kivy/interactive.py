@@ -44,7 +44,7 @@ Interactive Development
 IPython's attribute lookup makes it very easy to learn the Kivy API.  On a
 running App instance and every object in the entire widget tree and all their
 methods and attributes of all objects can be printed nicely by using the '.'
-operator and pressing 'tab.'  Run this code in a terminal::
+operator and pressing 'tab.'  Run this code in an Ipython shell::
 
     from kivy.uix.widget import Widget
     from kivy.graphics import Color, Ellipse
