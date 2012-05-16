@@ -27,7 +27,7 @@ instance to the :class:`InteractiveLauncher` constructor.::
         def build(self):
             return Button(test='Hello Shell')
 
-    interactiveLauncher = InteractiveLauncher(MyApp().run()
+    interactiveLauncher = InteractiveLauncher(MyApp()).run()
 
 The script will return, allowing an interpreter shell to continue running and
 inspection or modification of the :class:`App` can be done safely through the
