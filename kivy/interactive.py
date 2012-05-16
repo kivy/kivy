@@ -9,14 +9,20 @@ to an :class:`App` so that it can be prototyped and debugged interactively.
 
 .. NOTE::
     The Kivy API intends for some functions to only be run once or before the main
-    EventLoop has started.  Methods that can be called during the course of an
+    EventLoop has started.  Methods that can normally be called during the course of an
     application will work as intended, but specifically overriding methods
     such as :meth:`on_touch` dynamically leads to trouble.
 
-.. NOTE::
+.. WARNING::
     This module uses threading and object proxies to encapsulate the running
     :class:`App`.  Deadlocks and memory corruption can occur if making direct
-    references inside the thread without going through the provided proxy.
+    references inside the thread without going through the provided proxy(s).
+
+.. TIP::
+    All of the proxies used in the module store their referent in the
+    :attr:`_ref` attribute, which can be accessed directly if needed, such as for
+    getting doc strings.  :func:`help` and :func:`type` will access the proxy,
+    not its referent.
 
 Creating an InteractiveLauncher
 -------------------------------
@@ -60,7 +66,7 @@ operator and pressing 'tab.'  Run this code in an Ipython shell::
     class TestApp(App):
         def build(self):
             return Widget()
-
+    
     
     i = InteractiveLauncher(TestApp())
     i.run()
@@ -84,13 +90,17 @@ Directly Pausing the Application
 
 Both :class:`InteractiveLauncher` and :class:`SafeMembrane` hold internal
 references to :class:`EventLoop`'s 'safe' and 'confirmed'
-:class:`threading.Event` objects.  You can use their safing methods to control the
-application manually.
+:class:`threading.Event`  objects.  You can use their safing methods to control
+the application manually.
 
 :meth:`Interactive.safeIn()` will cause the applicaiton to pause and
  :meth:`InteractiveLauncher.safeOut()` will internally allow a paused application
-to continue running.  This is useful for scripting actions into functions that need the
-screen to update etc.
+to continue running.  This is potentially useful for scripting actions into
+ functions that need the screen to update etc.
+
+.. NOTE::
+    The pausing is implemented via :meth:`kivy.clock.Clock.schedule_once` and
+    occurs before the start of each frame.
 
 Adding Attributes Dynamically
 -----------------------------
@@ -113,9 +123,6 @@ instances of themselves like so::
 TODO
 ====
 
-Running help() on proxies still pulls the proxy's help doc instead of the
-referent.  Testing a __doc__ override is underway.
-
 Unit tests, an example, and more understanding of which methods are safe in a
 running application would be nice.  All three would be excellent.
 
@@ -132,15 +139,19 @@ def safeWait(dt):
     EventLoop.confirmed.clear()
 
 class SafeMembrane(object):
-    """Threadsafe proxy that also returns attributes as new thread-safe objects
+    """
+    This help is for a proxy object.  Did you want help on the proxy's referent
+    instead?  Try using help(<instance>._ref) 
+    
+    Threadsafe proxy that also returns attributes as new thread-safe objects
     and makes thread-safe method calls, preventing thread-unsafe objects
     from leaking into the user's environment."""
-    __slots__ = {'__subject__', 'safe', 'confirmed'}
+    __slots__ = {'_ref', 'safe', 'confirmed'}
 
     def __init__(self, ob, *args, **kwargs):
         self.confirmed = EventLoop.confirmed
         self.safe = EventLoop.safe
-        self.__subject__ = ob
+        self._ref = ob
         
     def safeIn(self):
         self.safe.clear()
@@ -165,25 +176,25 @@ class SafeMembrane(object):
     # the interpreter will report that all attributes are objects of class
     # SafeProxy unless some effort is made.
     def __repr__(self):
-        return self.__subject__.__repr__()
+        return self._ref.__repr__()
 
-    #  just in case __subject__ is a non-method and callable
+    #  just in case _ref is a non-method and callable
     def __call__(self,*args,**kw):
         self.safeIn()
-        r = self.__subject__(*args,**kw)
+        r = self._ref(*args,**kw)
         self.safeOut()
         return r
 
     def __getattribute__(self, attr, oga=object.__getattribute__):
-        if attr.startswith('__'):
-            subject = oga(self,'__subject__')
-            if attr=='__subject__':
+        if attr.startswith('__') or attr =='_ref':
+            subject = oga(self,'_ref')
+            if attr=='_ref':
                 return subject
             return getattr(subject,attr)
         return oga(self,attr)
 
     def __getattr__(self,attr, oga=object.__getattribute__):
-        r = getattr(oga(self,'__subject__'), attr)
+        r = getattr(oga(self,'_ref'), attr)
         if self.isMethod(r):
             r = self.enSafen(r)
             return r
@@ -193,13 +204,13 @@ class SafeMembrane(object):
 
     def __setattr__(self,attr,val, osa=object.__setattr__):
         if (
-            attr=='__subject__'
+            attr=='_ref'
             or hasattr(type(self),attr) and not attr.startswith('__')
         ):
             osa(self,attr,val)
         else:
             self.safeIn()
-            setattr(self.__subject__,attr,val)
+            setattr(self._ref,attr,val)
             self.safeOut()
     # TODO
     # add some dictionary and list methods to prevent other avenues
@@ -210,7 +221,7 @@ class SafeMembrane(object):
 class InteractiveLauncher(SafeMembrane):
     """ Proxy to an application instance that launches it in a thread and
     then returns and acts as a proxy to the application in the thread"""
-    __slots__ = {'__subject__', 'safe', 'confirmed', 'thread', 'app'}
+    __slots__ = {'_ref', 'safe', 'confirmed', 'thread', 'app'}
 
     def __init__(self, app = App(), *args, **kwargs):
         EventLoop.safe = Event()
@@ -227,13 +238,13 @@ class InteractiveLauncher(SafeMembrane):
         self.thread.start()
         #Proxy behavior starts after this is set.  Before this point, attaching
         #widgets etc can only be done through the Launcher's app attribute
-        self.__subject__ = self.app
+        self._ref = self.app
 
     def stop(self):
         EventLoop.quit = True
         self.thread.join()
         
-    #Act like the app instance before __subject__ is set
+    #Act like the app instance before _ref is set
     def __repr__(self):
         return self.app.__repr__()
 
