@@ -13,17 +13,6 @@ to an :class:`App` so that it can be prototyped and debugged interactively.
     application will work as intended, but specifically overriding methods
     such as :meth:`on_touch` dynamically leads to trouble.
 
-.. WARNING::
-    This module uses threading and object proxies to encapsulate the running
-    :class:`App`.  Deadlocks and memory corruption can occur if making direct
-    references inside the thread without going through the provided proxy(s).
-
-.. TIP::
-    All of the proxies used in the module store their referent in the
-    :attr:`_ref` attribute, which can be accessed directly if needed, such as for
-    getting doc strings.  :func:`help` and :func:`type` will access the proxy,
-    not its referent.
-
 Creating an InteractiveLauncher
 -------------------------------
 
@@ -38,7 +27,7 @@ instance to the :class:`InteractiveLauncher` constructor.::
         def build(self):
             return Button(test='Hello Shell')
 
-    interactiveLauncher = InteractiveLauncher(MyApp()).run()
+    interactiveLauncher = InteractiveLauncher(MyApp().run()
 
 The script will return, allowing an interpreter shell to continue running and
 inspection or modification of the :class:`App` can be done safely through the
@@ -85,6 +74,12 @@ operator and pressing 'tab.'  Run this code in an Ipython shell::
     # Erase artwork and start over
     i.root.canvas.clear()
 
+.. NOTE::
+    All of the proxies used in the module store their referent in the
+    :attr:`_ref` attribute, which can be accessed directly if needed, such as for
+    getting doc strings.  :func:`help` and :func:`type` will access the proxy,
+    not its referent.
+
 Directly Pausing the Application
 --------------------------------
 
@@ -94,7 +89,7 @@ references to :class:`EventLoop`'s 'safe' and 'confirmed'
 the application manually.
 
 :meth:`Interactive.safeIn()` will cause the applicaiton to pause and
- :meth:`InteractiveLauncher.safeOut()` will internally allow a paused application
+ :meth:`InteractiveLauncher.safeOut()` will allow a paused application
 to continue running.  This is potentially useful for scripting actions into
  functions that need the screen to update etc.
 
@@ -104,6 +99,11 @@ to continue running.  This is potentially useful for scripting actions into
 
 Adding Attributes Dynamically
 -----------------------------
+
+.. NOTE::
+    This module uses threading and object proxies to encapsulate the running
+    :class:`App`.  Deadlocks and memory corruption can occur if making direct
+    references inside the thread without going through the provided proxy(s).
 
 The :class:`InteractiveLauncher` can have attributes added to it exactly like a normal
 object, and if these were created from outside the membrane, they will not be
@@ -173,12 +173,12 @@ class SafeMembrane(object):
     def isMethod(self, fn):
         return type(fn) is type(self.isMethod)
         
-    # the interpreter will report that all attributes are objects of class
-    # SafeProxy unless some effort is made.
+    """ Everything from this point on is just a series of thread-safing proxy
+    methods that make calls against _ref and threadsafe whenever data will be
+    written to or if a method will be called.  """
     def __repr__(self):
         return self._ref.__repr__()
 
-    #  just in case _ref is a non-method and callable
     def __call__(self,*args,**kw):
         self.safeIn()
         r = self._ref(*args,**kw)
@@ -198,8 +198,6 @@ class SafeMembrane(object):
         if self.isMethod(r):
             r = self.enSafen(r)
             return r
-        #if attr.startswith('__'):
-        #    return r
         return SafeMembrane(r, self.safe, self.confirmed)
 
     def __setattr__(self,attr,val, osa=object.__setattr__):
@@ -212,12 +210,43 @@ class SafeMembrane(object):
             self.safeIn()
             setattr(self._ref,attr,val)
             self.safeOut()
-    # TODO
-    # add some dictionary and list methods to prevent other avenues
-    # for non-threadsafe objects to leak into the user's shell
-    # see peak.util.proxies.AbstractProxy for a guide
 
+    def __delattr__(self,attr, oda=object.__delattr__):
+        self.safeIn()
+        delattr(self._ref,attr)
+        self.safeOut()
+ 
+    def __nonzero__(self):
+        return bool(self._ref)
 
+    def __getitem__(self,arg):
+        return self._ref[arg]
+
+    def __setitem__(self,arg,val):
+        self.safeIn()
+        self._ref[arg] = val
+        self.safeOut()
+
+    def __delitem__(self,arg):
+        self.safeIn()
+        del self._ref[arg]
+        self.safeOut()
+
+    def __getslice__(self,i,j):
+        return self._ref[i:j]
+
+    def __setslice__(self,i,j,val):
+        self.safeIn()
+        self._ref[i:j] = val
+        self.safeOut()
+
+    def __delslice__(self,i,j):
+        self.safeIn()
+        del self._ref[i:j]
+        self.safeOut()
+
+    
+    
 class InteractiveLauncher(SafeMembrane):
     """ Proxy to an application instance that launches it in a thread and
     then returns and acts as a proxy to the application in the thread"""
@@ -244,7 +273,7 @@ class InteractiveLauncher(SafeMembrane):
         EventLoop.quit = True
         self.thread.join()
         
-    #Act like the app instance before _ref is set
+    #Act like the app instance even before _ref is set
     def __repr__(self):
         return self.app.__repr__()
 
