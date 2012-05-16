@@ -36,10 +36,9 @@ InteractiveLauncher instance or the provided SafeMembrane class instances.
 Interactive Development 
 -----------------------
 
-IPython's attribute lookup makes it very easy to learn the Kivy API.  On a
-running App instance and every object in the entire widget tree and all their
-methods and attributes of all objects can be printed nicely by using the '.'
-operator and pressing 'tab.'  Run this code in an Ipython shell::
+IPython provides a fast way to learn the kivy API.  The :class:`App` instance
+itself, all of it's attributes, including methods and the entire widget tree, can 
+be quickly listed by using the '.' operator and pressing 'tab.'  Try this code in an Ipython shell.::
 
     from kivy.uix.widget import Widget
     from kivy.graphics import Color, Ellipse
@@ -245,8 +244,7 @@ class SafeMembrane(object):
         del self._ref[i:j]
         self.safeOut()
 
-    
-    
+        
 class InteractiveLauncher(SafeMembrane):
     """ Proxy to an application instance that launches it in a thread and
     then returns and acts as a proxy to the application in the thread"""
