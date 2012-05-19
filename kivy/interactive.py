@@ -40,6 +40,8 @@ IPython provides a fast way to learn the kivy API.  The :class:`App` instance
 itself, all of it's attributes, including methods and the entire widget tree, can 
 be quickly listed by using the '.' operator and pressing 'tab.'  Try this code in an Ipython shell.::
 
+    from kivy.interactive import InteractiveLauncher
+    from kivy.app imort App
     from kivy.uix.widget import Widget
     from kivy.graphics import Color, Ellipse
     
@@ -113,6 +115,8 @@ SafeMembrane.
 To threadsafe these external referencess, simply assign them to SafeMembrane
 instances of themselves like so::
 
+    from kivy.interactive import SafeMembrane
+    
     interactiveLauncher.attribute = myNewObject
     # myNewObject is unsafe
     myNewObject = SafeMembrane(myNewObject)
