@@ -160,15 +160,6 @@ class SafeMembrane(object):
     def safeOut(self):
         self.safe.set()
 
-    def enSafen(self, fn):
-        """ returns a threadsafe version of the method """
-        def safeFunction( *args, **kwargs):
-                self.safeIn()
-                r = fn(*args, **kwargs)
-                self.safeOut()
-                return r
-        return safeFunction
-
     def isMethod(self, fn):
         return type(fn) is type(self.isMethod)
         
@@ -182,7 +173,8 @@ class SafeMembrane(object):
         self.safeIn()
         r = self._ref(*args,**kw)
         self.safeOut()
-        return r
+        if r is not None:
+            return SafeMembrane(r)
 
     def __getattribute__(self, attr, oga=object.__getattribute__):
         if attr.startswith('__') or attr =='_ref':
@@ -194,10 +186,7 @@ class SafeMembrane(object):
 
     def __getattr__(self,attr, oga=object.__getattribute__):
         r = getattr(oga(self,'_ref'), attr)
-        if self.isMethod(r):
-            r = self.enSafen(r)
-            return r
-        return SafeMembrane(r, self.safe, self.confirmed)
+        return SafeMembrane(r)
 
     def __setattr__(self,attr,val, osa=object.__setattr__):
         if (
@@ -219,7 +208,7 @@ class SafeMembrane(object):
         return bool(self._ref)
 
     def __getitem__(self,arg):
-        return self._ref[arg]
+        return SafeMembrane(self._ref[arg])
 
     def __setitem__(self,arg,val):
         self.safeIn()
@@ -232,7 +221,7 @@ class SafeMembrane(object):
         self.safeOut()
 
     def __getslice__(self,i,j):
-        return self._ref[i:j]
+        return SafeMembrane(self._ref[i:j])
 
     def __setslice__(self,i,j,val):
         self.safeIn()
