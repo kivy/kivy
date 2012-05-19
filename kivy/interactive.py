@@ -64,10 +64,10 @@ be quickly listed by using the '.' operator and pressing 'tab.'  Try this code i
     # App is boring.  Attach a new widget!
     i.root.add_widget(MyPaintWidget())
     
-    i.safe.set()
+    i.safeIn()
     # The application is now blocked.
     # Click on the screen several times.
-    i.safe.clear()
+    i.safeOut()
     # The clicks will show up now
     
     # Erase artwork and start over
@@ -125,7 +125,16 @@ TODO
 Unit tests, an example, and more understanding of which methods are safe in a
 running application would be nice.  All three would be excellent.
 
+Could be re-written with a context-manager style, ie::
+
+    with safe:
+        foo()
+
+Any use cases besides compacting code?
+
 '''
+
+__all__ = ['SafeMembrane', 'InteractiveLauncher']
 
 from kivy.app import App
 from kivy.base import EventLoop
@@ -170,7 +179,9 @@ class SafeMembrane(object):
         
     """ Everything from this point on is just a series of thread-safing proxy
     methods that make calls against _ref and threadsafe whenever data will be
-    written to or if a method will be called.  """
+    written to or if a method will be called.  SafeMembrane instances should be
+    unwrapped whenever passing them into the thread """
+    #use type() to determine if an object is a SafeMembrane while debugging
     def __repr__(self):
         return self._ref.__repr__()
 
@@ -244,7 +255,7 @@ class SafeMembrane(object):
         del self._ref[i:j]
         self.safeOut()
 
-        
+
 class InteractiveLauncher(SafeMembrane):
     """ Proxy to an application instance that launches it in a thread and
     then returns and acts as a proxy to the application in the thread"""
@@ -274,6 +285,3 @@ class InteractiveLauncher(SafeMembrane):
     #Act like the app instance even before _ref is set
     def __repr__(self):
         return self.app.__repr__()
-
-
-
