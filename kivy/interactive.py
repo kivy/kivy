@@ -137,6 +137,11 @@ def safeWait(dt):
     EventLoop.safe.wait()
     EventLoop.confirmed.clear()
 
+def unwrap(ob):
+    while type(ob) == SafeMembrane:
+        ob = ob._ref
+    return ob
+
 class SafeMembrane(object):
     """
     This help is for a proxy object.  Did you want help on the proxy's referent
@@ -171,6 +176,9 @@ class SafeMembrane(object):
 
     def __call__(self,*args,**kw):
         self.safeIn()
+        args = map(unwrap, args)
+        for k in kw.keys():
+            kw[k] = unwrap(kw[k])
         r = self._ref(*args,**kw)
         self.safeOut()
         if r is not None:
@@ -196,6 +204,7 @@ class SafeMembrane(object):
             osa(self,attr,val)
         else:
             self.safeIn()
+            val = unwrap(val)
             setattr(self._ref,attr,val)
             self.safeOut()
 
@@ -212,6 +221,7 @@ class SafeMembrane(object):
 
     def __setitem__(self,arg,val):
         self.safeIn()
+        val = unwrap(val)
         self._ref[arg] = val
         self.safeOut()
 
@@ -225,6 +235,7 @@ class SafeMembrane(object):
 
     def __setslice__(self,i,j,val):
         self.safeIn()
+        val = unwrap(val) 
         self._ref[i:j] = val
         self.safeOut()
 
