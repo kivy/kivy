@@ -43,7 +43,7 @@ Color = Ellipse = None
 class MouseMotionEvent(MotionEvent):
 
     def depack(self, args):
-        self.profile = ['pos', 'button']
+        self.profiles = ['pos', 'button']
         self.is_touch = True
         self.sx, self.sy = args[:2]
         if len(args) == 3:
