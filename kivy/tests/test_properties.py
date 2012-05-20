@@ -70,7 +70,7 @@ class PropertiesTestCase(unittest.TestCase):
     def test_stringcheck(self):
         from kivy.properties import StringProperty
 
-        a = StringProperty('')
+        a = StringProperty()
         a.link(wid, 'a')
         a.link_deps(wid, 'a')
         self.assertEqual(a.get(wid), '')
@@ -86,7 +86,7 @@ class PropertiesTestCase(unittest.TestCase):
     def test_numericcheck(self):
         from kivy.properties import NumericProperty
 
-        a = NumericProperty(0)
+        a = NumericProperty()
         a.link(wid, 'a')
         a.link_deps(wid, 'a')
         self.assertEqual(a.get(wid), 0)
@@ -215,7 +215,7 @@ class PropertiesTestCase(unittest.TestCase):
     def test_dict(self):
         from kivy.properties import DictProperty
 
-        x = DictProperty({})
+        x = DictProperty()
         x.link(wid, 'x')
         x.link_deps(wid, 'x')
 

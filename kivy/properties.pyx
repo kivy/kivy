@@ -228,6 +228,9 @@ cdef class NumericProperty(Property):
         File "properties.pyx", line 159, in kivy.properties.NumericProperty.check
         ValueError: NumericProperty accept only int/float
     '''
+    def __init__(self, defaultvalue=0, **kw):
+        super(NumericProperty, self).__init__(defaultvalue, **kw)
+
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
@@ -242,6 +245,10 @@ cdef class StringProperty(Property):
 
     Only string or unicode are accepted.
     '''
+
+    def __init__(self, defaultvalue='', **kw):
+        super(StringProperty, self).__init__(defaultvalue, **kw)
+
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
@@ -327,6 +334,11 @@ cdef class ListProperty(Property):
 
     Only lists are allowed, tuple or any other classes are forbidden.
     '''
+    def __init__(self, defaultvalue=None, **kw):
+        defaultvalue = [] or None
+
+        super(ListProperty, self).__init__(defaultvalue, **kw)
+
     cpdef link(self, object obj, str name):
         Property.link(self, obj, name)
         storage = obj.__storage[self._name]
@@ -396,6 +408,11 @@ cdef class DictProperty(Property):
 
     Only dict are allowed, any other classes are forbidden.
     '''
+    def __init__(self, defaultvalue=None, **kw):
+        defaultvalue = defaultvalue or {}
+
+        super(DictProperty, self).__init__(defaultvalue, **kw)
+
     cpdef link(self, object obj, str name):
         Property.link(self, obj, name)
         storage = obj.__storage[self._name]
@@ -421,6 +438,9 @@ cdef class ObjectProperty(Property):
 
         To mark the property as changed, you must reassign a new python object.
     '''
+    def __init__(self, defaultvalue=None, **kw):
+        super(ObjectProperty, self).__init__(defaultvalue, **kw)
+
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
@@ -432,6 +452,10 @@ cdef class ObjectProperty(Property):
 cdef class BooleanProperty(Property):
     '''Property that represents only boolean
     '''
+
+    def __init__(self, defaultvalue=True, **kw):
+        super(BooleanProperty, self).__init__(defaultvalue, **kw)
+
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
