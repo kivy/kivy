@@ -99,6 +99,27 @@ class PropertiesTestCase(unittest.TestCase):
         except ValueError:
             pass
 
+    def test_listcheck(self):
+        from kivy.properties import ListProperty
+
+        a = ListProperty()
+        a.link(wid, 'a')
+        a.link_deps(wid, 'a')
+        self.assertEqual(a.get(wid), [])
+        a.set(wid, [1, 2, 3])
+        self.assertEqual(a.get(wid), [1, 2, 3])
+
+    def test_dictcheck(self):
+        from kivy.properties import DictProperty
+
+        a = DictProperty()
+        a.link(wid, 'a')
+        a.link_deps(wid, 'a')
+        self.assertEqual(a.get(wid), {})
+        a.set(wid, {'foo': 'bar'})
+        self.assertEqual(a.get(wid), {'foo': 'bar'})
+
+
     def test_propertynone(self):
         from kivy.properties import NumericProperty
 

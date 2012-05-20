@@ -335,7 +335,7 @@ cdef class ListProperty(Property):
     Only lists are allowed, tuple or any other classes are forbidden.
     '''
     def __init__(self, defaultvalue=None, **kw):
-        defaultvalue = [] or None
+        defaultvalue = defaultvalue or []
 
         super(ListProperty, self).__init__(defaultvalue, **kw)
 
