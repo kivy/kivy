@@ -258,6 +258,10 @@ class SafeMembrane(object):
         self.safeIn()
         del self._ref[i:j]
         self.safeOut()
+    def __enter__(self, *args, **kwargs):
+        self._ref.__enter__(*args, **kwargs)
+    def __exit__(self, *args, **kwargs):
+        self._ref.__exit__(*args, **kwargs)
 
 
 class InteractiveLauncher(SafeMembrane):
