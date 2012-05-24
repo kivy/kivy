@@ -35,7 +35,7 @@ from array import array
 KNOWN_FORMATS = ('GIF87a', 'GIF89a')
 
 from kivy.logger import Logger
-from . import ImageLoaderBase, ImageData, ImageLoader
+from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 Debug = False
 
