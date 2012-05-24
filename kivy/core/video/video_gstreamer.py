@@ -25,7 +25,7 @@ from kivy.graphics.texture import Texture
 from kivy.logger import Logger
 from functools import partial
 from weakref import ref
-from . import VideoBase
+from kivy.core.video import VideoBase
 
 # install the gobject iteration
 from kivy.support import install_gobject_iteration

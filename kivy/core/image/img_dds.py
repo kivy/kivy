@@ -6,7 +6,7 @@ __all__ = ('ImageLoaderDDS', )
 
 from kivy.lib.ddsfile import DDSFile
 from kivy.logger import Logger
-from . import ImageLoaderBase, ImageData, ImageLoader
+from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageLoaderDDS(ImageLoaderBase):

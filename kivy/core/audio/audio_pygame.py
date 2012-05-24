@@ -6,7 +6,7 @@ __all__ = ('SoundPygame', )
 
 from kivy.clock import Clock
 from kivy.utils import platform
-from . import Sound, SoundLoader
+from kivy.core.audio import Sound, SoundLoader
 
 try:
     if platform() == 'android':
