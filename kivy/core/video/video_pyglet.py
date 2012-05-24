@@ -8,7 +8,7 @@ try:
 except:
     raise
 
-from . import VideoBase
+from kivy.core.video import VideoBase
 
 
 #have to set these before importing pyglet.gl

@@ -4,7 +4,7 @@ Text Pygame: Draw text with pygame
 
 __all__ = ('LabelPygame', )
 
-from . import LabelBase
+from kivy.core.text import LabelBase
 from kivy.core.image import ImageData
 
 try:
