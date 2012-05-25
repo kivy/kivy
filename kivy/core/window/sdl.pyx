@@ -182,19 +182,15 @@ def setup_window(width, height, use_fake, use_fullscreen):
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     '''
 
-
     win = SDL_CreateWindow(NULL, 0, 0, width, height, win_flags)
     if not win:
         die()
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    #SDL_GL_SetSwapInterval(1);
 
     ctx = SDL_GL_CreateContext(win)
     assert ctx != NULL
-    #SDL_GL_SetSwapInterval(1);
-    #surface = SDL_GetWindowSurface(win)
     cdef SDL_DisplayMode mode
     SDL_GetWindowDisplayMode(win, &mode)
     return mode.w, mode.h
