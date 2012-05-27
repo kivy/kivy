@@ -423,7 +423,13 @@ class App(EventDispatcher):
         if filename is None:
             return config
         if exists(filename):
-            config.read(filename)
+            try:
+                config.read(filename)
+            except:
+                Logger.error('App: Corrupted config file, ignored.')
+                self.config = config = ConfigParser()
+                self.build_config(config)
+                pass
         else:
             config.filename = filename
             config.write()

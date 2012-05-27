@@ -20,7 +20,7 @@ try:
 except:
     raise
 
-from . import VideoBase
+from kivy.core.video import VideoBase
 from kivy.graphics.texture import Texture
 
 

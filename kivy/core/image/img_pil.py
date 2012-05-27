@@ -10,7 +10,7 @@ except:
     raise
 
 from kivy.logger import Logger
-from . import ImageLoaderBase, ImageData, ImageLoader
+from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 
 class ImageLoaderPIL(ImageLoaderBase):

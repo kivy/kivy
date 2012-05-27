@@ -9,7 +9,7 @@ try:
 except:
     raise
 
-from . import LabelBase
+from kivy.core.text import LabelBase
 from kivy.core.image import ImageData
 
 # used for fetching extends before creature image surface
