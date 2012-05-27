@@ -219,6 +219,7 @@ from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.utils import platform
+from kivy.uix.widget import Widget
 
 
 class App(EventDispatcher):
@@ -300,7 +301,7 @@ class App(EventDispatcher):
 
         :return: None or a root :class:`~kivy.uix.widget.Widget` instance
         '''
-        pass
+        return Widget()
 
     def build_config(self, config):
         '''.. versionadded:: 1.0.7
@@ -598,7 +599,7 @@ class App(EventDispatcher):
 
     def _on_keyboard_settings(self, window, *largs):
         key = largs[0]
-        setting_key = 282 # F1
+        setting_key = 282  # F1
 
         # android hack, if settings key is pygame K_MENU
         if platform() == 'android':
@@ -612,4 +613,3 @@ class App(EventDispatcher):
             return True
         if key == 27:
             return self.close_settings()
-
