@@ -114,7 +114,7 @@ After that, we define one rule that is applied to any PongGame instance::
     <PongGame>:
         ...
     
-Like python, kv files use indendtation to define nested blocks. A block defined
+Like python, kv files use indentation to define nested blocks. A block defined
 with a class name inside the ``<`` and ``>`` charachters is a
 :class:`~kivy.uix.widget.Widget` rule, it will be applied to any instance of
 the named class. If you replaced ``PongGame`` with Widget in our example, all
