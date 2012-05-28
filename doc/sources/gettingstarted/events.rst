@@ -1,5 +1,5 @@
 Events
-------------
+------
 .. container:: title
 
     Events in Kivy
