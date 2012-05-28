@@ -8,7 +8,7 @@ VideoCapture Camera: Implement CameraBase with VideoCapture
 
 __all__ = ('CameraVideoCapture', )
 
-from . import CameraBase
+from kivy.core.camera import CameraBase
 from kivy.clock import Clock
 
 try:
