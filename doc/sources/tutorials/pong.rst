@@ -88,7 +88,7 @@ zeros where the player scores will be displayed.
     default Widget size_hint is (1,1), so it will be stretched to full size.
     Since the pos and size of the Rectangle and score labels were defined with
     references to the our PongGame class, these properties will automatically
-    update when the corrosponding widget properties change.  Using the Kv
+    update when the corresponding widget properties change.  Using the Kv
     language gives you automatic property binding. :)
  
 
@@ -115,7 +115,7 @@ After that, we define one rule that is applied to any PongGame instance::
         ...
     
 Like python, kv files use indendtation to define nested blocks. A block defined
-with a class name inside the ``<`` and ``>`` charachters is a
+with a class name inside the ``<`` and ``>`` characters is a
 :class:`~kivy.uix.widget.Widget` rule, it will be applied to any instance of
 the named class. If you replaced ``PongGame`` with Widget in our example, all
 Widget instances would have the vertical line and the two Label widgets inside
@@ -137,7 +137,7 @@ The first block inside the ``<PongGame>`` rule we have is a canvas block::
                 
 So this canvas block says that the ``PongGame`` widget itself should draw some
 graphics primitives.  In this case, we add a Rectangle to the canvas. We set
-the pos of the rectangle to be 5 pixels left of the the horizontal center of
+the pos of the rectangle to be 5 pixels left of the horizontal center of
 the widget itself, and 0 for y. The size of the rectangle is set to 10 pixels
 in width, and the widgets height in height. The nice thing about defining the
 graphics like this, is that the rendered rectangle will be automatically
@@ -221,7 +221,7 @@ To make it all work, you also have to add the imports for the
 :doc:`/api-kivy.properties` Property classes used, the
 :class:`~kivy.vector.Vector`, and the :class:`~kivy.factory.Factory` singleton.
 The factory is used to register your custom classes, so that Kivy knows what
-class to instatiate when you use e.g. a custom classname inside a kv rule.
+class to instantiate when you use e.g. a custom classname inside a kv rule.
 Once that's done, you can add a ``PongBall`` to the ``<PongGame>`` class, just
 like we added the Labels before.
 
@@ -269,7 +269,7 @@ game is the one we return in the Applications build method.
 
 Since we're going to have to do more than just move the ball (e.g.
 bounce it off the walls and later the players racket), we'll probably need
-an ``update` method for our ``PongGame`` class anyways.  Furthermore given that
+an ``update`` method for our ``PongGame`` class anyways. Furthermore given that
 we have a reference to the game object already, we can easily schedule its new
 ``update`` method when the application gets build::
 
