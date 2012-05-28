@@ -69,7 +69,7 @@ Add simple graphics
     Creation of pong.kv
 
 We will use a .kv file to define the look and feel of the ``PongGame`` class.
-Since our :class:`~kivy.app.App` class is called ``PongGameApp``, we can simply create a file
+Since our :class:`~kivy.app.App` class is called ``PongApp``, we can simply create a file
 called ``pong.kv`` in the same directory that will be automatically loaded
 when the application is run.  So create a new file called ``*pong.kv*`` and add
 the following contents.
