@@ -1,7 +1,7 @@
 Input management
 ================
 
-Input architecure
+Input architecture
 -----------------
 
 Kivy is able to handle most types of input: mouse, touchscreen, accelerometer,
