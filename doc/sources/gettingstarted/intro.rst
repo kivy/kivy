@@ -9,7 +9,7 @@ Creating Kivy apps is fun and enriching. This guide should be the perfect
 starting point to get you on the right track for app development.
 
 .. note::
-    Kivy is based on Python, `basic <http://docs.python.org/tutorial/>`_ `python http://www.korokithakis.net/tutorials/python/`_ `knowlege <http://learnpythonthehardway.org/>`_ is assumed in this introduction.
+    Kivy is based on Python, `basic <http://docs.python.org/tutorial/>`_ `python <http://www.korokithakis.net/tutorials/python/>`_ `knowlege <http://learnpythonthehardway.org/>`_ is assumed in this introduction.
 
 .. image:: ../images/gs-introduction.png
     :align: center
