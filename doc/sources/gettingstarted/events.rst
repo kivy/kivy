@@ -19,9 +19,11 @@ Kivy is **event oriented**. The most basic events you will work with are. ::
             - on_touch_down: which is dispatched at the begining of a touch
             - on_touch_move: which is dispatched every time a touch is moving
             - on_touch_up: which is dispatched when the end of the touch
-          Note** that, all widgets get all of these events whatever there position,
-          allowing for widget to react to any event
-        -  Keyboard events
+          Note** that, all widgets get all of these events whatever there positions,
+          allowing for the widgets to react to any event.
+        - Keyboard events
+            - system kayboard events (hard/soft keyboards)
+            - virtual Keyboard events (kivy provided virtual keyboard)
 
 Another thing to **Note** is that if you override an event, you now become
 responsible of implementing all it's behavoiur handled by the base class,

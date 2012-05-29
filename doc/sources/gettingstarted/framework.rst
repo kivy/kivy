@@ -3,7 +3,9 @@ Non widgets stuff
 
 .. container:: Non widgets stuff
 
-what is an animation (and a gif to go with it)
+.. only:: html
+
+    .. image:: images/animation.gif
 
 :class:`Animation <kivy.animation.Animation>` and are used to change a Widget
 properties (size/pos/center...), to a target value, in a target time, various
