@@ -413,7 +413,7 @@ Where to go now?
     Have some fun
 
 Well, the pong game is pretty much complete.  If you understood all of the
-things that are covered in this turoial, give yourself a part on the back and
+things that are covered in this turoial, give yourself a pat on the back and
 think about how you could improve the game.  Here are a few ideas of things
 you could do:
 
