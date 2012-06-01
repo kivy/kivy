@@ -232,7 +232,7 @@ class Image(Widget):
 
         Usage::
 
-            im = Image('1.jpg')
+            im = Image(source = '1.jpg')
             # -- do something --
             im.reload()
             # image will be re-loaded from disk
