@@ -212,6 +212,7 @@ class SafeMembrane(object):
         return SafeMembrane(r)
 
     def __setattr__(self,attr,val, osa=object.__setattr__):
+        val = unwrap(val)
         if (
             attr=='_ref'
             or hasattr(type(self),attr) and not attr.startswith('__')
@@ -219,17 +220,36 @@ class SafeMembrane(object):
             osa(self,attr,val)
         else:
             self.safeIn()
-            val = unwrap(val)
             setattr(self._ref,attr,val)
             self.safeOut()
 
     def __delattr__(self,attr, oda=object.__delattr__):
+        attr = unwrap(attr)
         self.safeIn()
         delattr(self._ref,attr)
         self.safeOut()
  
     def __nonzero__(self):
         return bool(self._ref)
+
+    def __get__(self, instance, owner):
+        # safe descriptor execution 
+        safeIn()
+        r = SafeMembrane(self._ref.__get__(instance, owner))
+        safeOut()
+        return r
+
+    def __set__(self, instance, value):
+        instance, value = unwrap(instance), unwrap(value)
+        self.safeIn()
+        self._ref.__set__(instance, value)
+        self.safeOut()
+
+    def __delete__(self, instance):
+        instance = unwrap(instance)
+        self.safeIn()
+        self._ref.__delete__(instance)
+        self.safeOut()
 
     def __getitem__(self,arg):
         return SafeMembrane(self._ref[arg])
@@ -241,6 +261,7 @@ class SafeMembrane(object):
         self.safeOut()
 
     def __delitem__(self,arg):
+        arg = unwrap(arg)
         self.safeIn()
         del self._ref[arg]
         self.safeOut()
@@ -258,9 +279,11 @@ class SafeMembrane(object):
         self.safeIn()
         del self._ref[i:j]
         self.safeOut()
+        
     def __enter__(self, *args, **kwargs):
         self.safeIn()
         self._ref.__enter__(*args, **kwargs)
+        
     def __exit__(self, *args, **kwargs):
         self._ref.__exit__(*args, **kwargs)
         self.safeOut()
