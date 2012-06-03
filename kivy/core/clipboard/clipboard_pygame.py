@@ -7,7 +7,7 @@ __all__ = ('ClipboardPygame', )
 from kivy.utils import platform
 from . import ClipboardBase
 
-if platform() not in ('win', 'linux'):
+if platform() not in ('win', 'linux', 'macosx'):
     raise SystemError('unsupported platform for pygame clipboard')
 
 try:
@@ -33,6 +33,8 @@ class ClipboardPygame(ClipboardBase):
 
     def put(self, data, mimetype='text/plain'):
         self.init()
+        if platform() == 'macosx' and data.endswith('\x00'):
+            data = data[:-1]
         pygame.scrap.put(mimetype, data)
 
     def get_types(self):
