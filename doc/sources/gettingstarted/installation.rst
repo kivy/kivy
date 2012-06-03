@@ -3,9 +3,9 @@ Installation
 
 .. container:: title
 
-    Installing Kivy SDK
+    Installing Kivy
 
-Using Kivy SDK, you can use your favorite development environment to start
+Using Kivy, you can use your favorite development environment to start
 coding your App.
 
 - To get started, you need to download the latest version of Kivy:

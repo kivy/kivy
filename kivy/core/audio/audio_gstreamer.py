@@ -11,7 +11,7 @@ try:
 except:
     raise
 
-from . import Sound, SoundLoader
+from kivy.core.audio import Sound, SoundLoader
 import os
 import sys
 from kivy.logger import Logger

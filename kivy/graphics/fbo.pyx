@@ -164,7 +164,6 @@ cdef class Fbo(RenderContext):
         get_context().dealloc_fbo(self)
 
     cdef void delete_fbo(self):
-        print 'XXXD Delete fbo', self
         self._texture = None
         get_context().dealloc_fbo(self)
         self.buffer_id = -1

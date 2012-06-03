@@ -21,7 +21,7 @@ See how to use different `Modules <http://kivy.org/docs/api-kivy.modules.html>`_
 
 Learn how to handle custom `Input <http://kivy.org/docs/api-kivy.input.html>`_ 
 
-See how kivy has been extended with `extions <http://kivy.org/docs/api-kivy.ext.html#module-kivy.ext>`_ support.
+See how kivy has been extended with `extensions <http://kivy.org/docs/api-kivy.ext.html#module-kivy.ext>`_ support.
 
 Familiarize yourself with `kivy framework <http://kivy.org/docs/api-kivy.html#module-kivy>`_
 

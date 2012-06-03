@@ -89,7 +89,7 @@ Here is an example, in kv style::
 
 '''
 
-__all__ = ('StencilPush', 'StencilPop', 'StencilUse')
+__all__ = ('StencilPush', 'StencilPop', 'StencilUse', 'StencilUnUse')
 
 include "config.pxi"
 include "opcodes.pxi"

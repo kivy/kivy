@@ -4,16 +4,21 @@ Kivy Properties
 
     Using Kivy's Properties
 
-Kivy properties are an implementation of the `observer pattern <http://en.wikipedia.org/wiki/Observer_pattern>`_ .
-Kivy's properties are provided to:
+Kivy properties are an implementation of the `observer pattern
+<http://en.wikipedia.org/wiki/Observer_pattern>`_ .
+Kivy's properties are useful to:
 
-- Allow manipulating your class in kv language easier
+- Allow manipulating your widgets in kv language more easily
 - Automatically observe any changes and dispatch functions/code accordingly
-- Validate/Value Check
-- Better memory managment
+- Value checking/validation
+- Optimize memory managment
 
 
-To use them, **you have to create them at class level**. Each property by default provides a ``on_property`` event that is called whenever the properties state/value changes .
+To use them, **you have to declare them at class level**. That is, directly in
+the class, not în any method of the class, the property is a class attribute
+that will automatically create instance attributes. Each property by default
+provides a ``on_property`` event that is called whenever the properties
+state/value changes .
 
 Kivy provides the following properties:
     `NumericProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.NumericProperty>`_, 
