@@ -11,8 +11,8 @@ class Controller(FloatLayout):
 
     Add an action to be called from the kv lang file.
     '''
-    label_wid = ObjectProperty(None)
-    info = StringProperty('')
+    label_wid = ObjectProperty()
+    info = StringProperty()
 
     def do_action(self):
         self.label_wid.text = 'My label after button press'
