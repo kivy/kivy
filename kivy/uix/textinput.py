@@ -722,7 +722,9 @@ class TextInput(Widget):
 
         data = Clipboard.get(mime_type)
         if data is not None:
-            data = data.decode(self._encoding, 'ignore')
+            # decode only if we don't have unicode
+            if type(data) is not unicode:
+                data = data.decode(self._encoding, 'ignore')
             # remove null strings mostly a windows issue
             data = data.replace('\x00', '')
             self.delete_selection()
