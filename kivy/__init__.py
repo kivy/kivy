@@ -244,24 +244,22 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         user_home_dir = environ['ANDROID_APP_PATH']
     kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
-
-    if not exists(kivy_home_dir):
-        mkdir(kivy_home_dir)
-
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
-    if not exists(kivy_usermodules_dir):
-        mkdir(kivy_usermodules_dir)
-
     kivy_userexts_dir = join(kivy_home_dir, 'extensions')
-    if not exists(kivy_userexts_dir):
-        mkdir(kivy_userexts_dir)
-
     icon_dir = join(kivy_home_dir, 'icon')
-    if not exists(icon_dir):
-        try:
-            shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-        except shutil.Error, e:
-            Logger.exception('Error when copying logo directory')
+
+    if 'KIVY_NO_CONFIG' not in environ:
+        if not exists(kivy_home_dir):
+            mkdir(kivy_home_dir)
+        if not exists(kivy_usermodules_dir):
+            mkdir(kivy_usermodules_dir)
+        if not exists(kivy_userexts_dir):
+            mkdir(kivy_userexts_dir)
+        if not exists(icon_dir):
+            try:
+                shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
+            except shutil.Error, e:
+                Logger.exception('Error when copying logo directory')
 
     # configuration
     from kivy.config import Config
@@ -269,6 +267,8 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     # Set level of logger
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
+    Logger.setLevel(level=LOG_LEVELS.get('debug'))
+
 
     # Can be overrided in command line
     if 'KIVY_UNITTEST' not in environ:
@@ -352,7 +352,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             level = LOG_LEVELS.get('debug')
             Logger.setLevel(level=level)
 
-    if need_save:
+    if need_save and 'KIVY_NO_CONFIG' not in environ:
         try:
             with open(kivy_config_fn, 'w') as fd:
                 Config.write(fd)
