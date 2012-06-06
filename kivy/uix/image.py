@@ -224,6 +224,25 @@ class Image(Widget):
         # update texture from core image
         self.texture = self._coreimage.texture
 
+    def reload(self):
+        '''Reload image from disk. This facilitates re-loading of
+        image from disk in case of contents having been changed.
+
+        .. versionadded:: 1.3.0
+
+        Usage::
+
+            im = Image('1.jpg')
+            # -- do something --
+            im.reload()
+            # image will be re-loaded from disk
+
+        '''
+        self._coreimage.remove_from_cache()
+        olsource = self.source
+        self.source = ''
+        self.source = olsource
+
 
 class AsyncImage(Image):
     '''Asynchronous Image class, see module documentation for more information.

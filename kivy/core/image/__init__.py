@@ -400,6 +400,29 @@ class Image(EventDispatcher):
         # check if the image hase sequences for animation in it
         self._img_iterate()
 
+    def remove_from_cache(self):
+        '''Remove the Image from cache. This facilitates re-loading of
+        image from disk in case of contents having been changed.
+
+        .. versionadded:: 1.3.0
+
+        Usage::
+
+            im = CoreImage('1.jpg')
+            # -- do something --
+            im.remove_from_cache()
+            im = CoreImage('1.jpg')
+            # this time image will be re-loaded from disk
+
+        '''
+        count = 0
+        uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+        Cache.remove("kv.image", uid)
+        while Cache.get("kv.texture", uid):
+            Cache.remove("kv.texture", uid)
+            count += 1
+            uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+
     def _anim(self, *largs):
         if not self._image:
             return
@@ -536,8 +559,16 @@ class Image(EventDispatcher):
         if image:
             # we found an image, yeah ! but reset the texture now.
             self.image = image
-            self._texture = None
-            self._img_iterate()
+            if image.keep_data == False and self._keep_data == True:
+            # if image is loaded with keep_data = True and cached
+            # image.keep_data = False. Reload image
+                #reload image
+                self.remove_from_cache()
+                self._filename = ''
+                self._set_filename(value)
+            else:
+                self._texture = None
+                self._img_iterate()
             return
         else:
             # if we already got a texture, it will be automatically reloaded.
