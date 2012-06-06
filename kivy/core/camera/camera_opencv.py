@@ -11,7 +11,7 @@ __all__ = ('CameraOpenCV')
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
-from . import CameraBase
+from kivy.core.camera import CameraBase
 
 try:
     cv = __import__('opencv', fromlist='.')

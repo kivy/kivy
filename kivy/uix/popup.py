@@ -220,13 +220,24 @@ class Popup(FloatLayout):
             popup = Popup(...)
             popup.dismiss(force=True)
 
+        .. versionchanged:: 1.3.0
+
+            When the popup is dismiss, it will be faded out, before beeing
+            really removed from the parent. If you don't want any animation,
+            use:
+
+                popup.dismiss(animation=False)
+
         '''
         if self._window is None:
             return self
         if self.dispatch('on_dismiss') is True:
             if kwargs.get('force', False) is not True:
                 return self
-        Animation(_anim_alpha=0., d=self._anim_duration).start(self)
+        if kwargs.get('animation', True):
+            Animation(_anim_alpha=0., d=self._anim_duration).start(self)
+        else:
+            self._anim_alpha = 0
         return self
 
     def on_size(self, instance, value):
@@ -235,6 +246,10 @@ class Popup(FloatLayout):
     def _align_center(self, *l):
         if self._window:
             self.center = self._window.center
+            # hack to resize dark background on window resize
+            _window = self._window
+            self._window = None
+            self._window = _window
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):

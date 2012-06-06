@@ -15,6 +15,7 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
 include "opengl_utils_def.pxi"
 cimport c_opengl
 from kivy.logger import Logger
+from kivy.utils import platform as core_platform
 from opengl import _GL_GET_SIZE
 
 
@@ -25,6 +26,7 @@ cdef tuple _gl_texture_fmts = (
     'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5')
 cdef int _gl_version_major = -1
 cdef int _gl_version_minor = -1
+cdef str _platform = core_platform()
 
 
 cpdef list gl_get_extensions():
@@ -102,12 +104,15 @@ cpdef int gl_has_capability(int cap):
 
     elif cap == c_GLCAP_NPOT:
         msg = 'NPOT texture support'
-        value = gl_has_extension('ARB_texture_non_power_of_two')
-        if not value:
-            value = gl_has_extension('OES_texture_npot')
-        if not value:
-            # motorola droid don't have OES_ but IMG_
-            value = gl_has_extension('IMG_texture_npot')
+        if _platform == 'ios' or _platform == 'android':
+            value = 1
+        else:
+            value = gl_has_extension('ARB_texture_non_power_of_two')
+            if not value:
+                value = gl_has_extension('OES_texture_npot')
+            if not value:
+                # motorola droid don't have OES_ but IMG_
+                value = gl_has_extension('IMG_texture_npot')
 
     elif cap == c_GLCAP_S3TC:
         # S3TC support DXT1, DXT3 and DXT5

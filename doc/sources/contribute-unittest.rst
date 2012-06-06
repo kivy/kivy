@@ -1,6 +1,13 @@
 Unit tests
 ==========
 
+Tests are located in the kivy/tests folder, if you find a bug in kivy, a good
+thing to do can be to write a minimal case showing the issue, to ask core devs
+if the behaviour showed is intended or a real bug, if you put your code as a
+unittest, it will prevent the bug to come back unnoticed in the future, and
+will make kivy a better, stronger project. Writting unittest may be a really
+good way to get familiar with Kivy while doing something useful.
+
 Unit tests are seperated in two cases:
 
 * Non graphics unit tests: theses are standard unit tests that can run in console

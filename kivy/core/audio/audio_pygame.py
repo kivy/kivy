@@ -6,7 +6,7 @@ __all__ = ('SoundPygame', )
 
 from kivy.clock import Clock
 from kivy.utils import platform
-from . import Sound, SoundLoader
+from kivy.core.audio import Sound, SoundLoader
 
 try:
     if platform() == 'android':
@@ -87,5 +87,10 @@ class SoundPygame(Sound):
         if self._data is not None:
             self._data.set_volume(volume)
         return super(SoundPygame, self)._set_volume(volume)
+
+    def _get_length(self):
+        if self._data is not None:
+            return self._data.get_length()
+        return super(SoundPygame, self)._get_length()
 
 SoundLoader.register(SoundPygame)

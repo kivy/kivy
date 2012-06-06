@@ -32,6 +32,12 @@ The syntax is near the bbcode syntax, but only the inline styling is allowed::
     l = Label(text='[color=ff3333]Hello[/color][color=3333ff]World[/color]',
         markup = True)
 
+If you need to escape the markup from the current text, use
+:func:`kivy.utils.escape_markup`::
+
+    text = 'This is an important message [1]'
+    l = Label(text='[b]' + escape_markup(text) + '[/b]', markup=True)
+
 The following tags are availables:
 
 ``[b][/b]``
@@ -127,7 +133,7 @@ class Label(Widget):
         self._create_label()
 
         # force the texture creation
-        self.texture_update()
+        self._trigger_texture()
 
     def _create_label(self):
         # create the core label class according to markup value
@@ -316,6 +322,12 @@ class Label(Widget):
 
     :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
     'left'. Available options are : left, center and right.
+
+    .. warning::
+
+        this doesn't change the position of the text texture of the Label
+        (centered), only the position of the text in this texture, you probably
+        want to bind the size of the Label to the texture_size or set a text_size.
     '''
 
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
@@ -323,6 +335,12 @@ class Label(Widget):
 
     :data:`valign` is a :class:`~kivy.properties.OptionProperty`, default to
     'bottom'. Available options are : bottom, middle and top.
+
+    .. warning::
+
+        this doesn't change the position of the text texture of the Label
+        (centered), only the position of the text in this texture, you probably
+        want to bind the size of the Label to the texture_size or set a text_size.
     '''
 
     color = ListProperty([1, 1, 1, 1])

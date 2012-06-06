@@ -11,7 +11,7 @@ try:
 except:
     raise
 
-from . import Sound, SoundLoader
+from kivy.core.audio import Sound, SoundLoader
 import os
 import sys
 from kivy.logger import Logger
@@ -103,5 +103,21 @@ class SoundGstreamer(Sound):
         if self._data is not None:
             self._data.set_property('volume', volume)
         return super(SoundGstreamer, self)._set_volume(volume)
+
+    def _get_length(self):
+        if self._data is not None:
+            if self._data.get_state()[1] != gst.STATE_PLAYING:
+                volume_before = self._data.get_property('volume')
+                self._data.set_property('volume', 0)
+                self._data.set_state(gst.STATE_PLAYING)
+                try:
+                    self._data.get_state()
+                    return self._data.query_duration(gst.Format(gst.FORMAT_TIME))[0] / 1000000000.
+                finally:
+                    self._data.set_state(gst.STATE_NULL)
+                    self._data.set_property('volume', volume_before)
+            else:
+                return self._data.query_duration(gst.Format(gst.FORMAT_TIME))[0] / 1000000000.
+        return super(SoundGstreamer, self)._get_length()
 
 SoundLoader.register(SoundGstreamer)

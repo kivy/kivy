@@ -5,19 +5,35 @@ Float Layout
 The :class:`FloatLayout` class will just honor the :data:`Widget.pos_hint` and
 :data:`Widget.size_hint` attributes.
 
+.. only:: html
+
+    .. image:: images/floatlayout.gif
+        :align: right
+
+.. only:: latex
+
+    .. image:: images/floatlayout.png
+        :align: right
 
 For example, if you create a FloatLayout with size of (300, 300)::
 
     layout = FloatLayout(size=(300, 300))
 
-    # by default, all widgets have size_hint=(1, 1)
-    # So this button will have the same size as layout
+    # By default, all widgets have size_hint=(1, 1)
+    # So this button will have the same size as
+    # the layout
     button = Button(text='Hello world')
     layout.add_widget(button)
 
-    # if you want to create a button to be the 50% of the layout width, and 25%
-    # of the layout height, and set position to 20, 20, you can do
-    button = Button(text='Hello world', size_hint=(.5, .25), pos=(20, 20))
+    # To create a button of 50% width and 25%
+    # height of the layout and positioned at
+    # 20, 20, you can do
+    button = Button(
+        text='Hello world',
+        size_hint=(.5, .25),
+        pos=(20, 20))
+
+::
 
     # If you want to create a button that will always be the size of layout -
     # 20% each sides

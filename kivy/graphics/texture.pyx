@@ -534,6 +534,7 @@ def texture_create_from_data(im, mipmap=False):
     cdef int width = im.width
     cdef int height = im.height
     cdef int allocate = 1
+    cdef int no_blit = 0
     cdef Texture texture
 
     # optimization, if the texture is power of 2, don't allocate in
@@ -551,12 +552,17 @@ def texture_create_from_data(im, mipmap=False):
         if gl_get_version_major() < 3:
             mipmap = False
 
+    if width == 0 or height == 0:
+        height = width = 1
+        allocate = 1
+        no_blit = 1
     texture = _texture_create(width, height, im.fmt, 'ubyte', mipmap, allocate)
     if texture is None:
         return None
 
     texture._source = im.source
-    texture.blit_data(im)
+    if no_blit == 0:
+        texture.blit_data(im)
 
     return texture
 
@@ -570,7 +576,6 @@ cdef class Texture:
 
     def __init__(self, width, height, target, texid, colorfmt='rgb',
             bufferfmt='ubyte', mipmap=False, source=None):
-        get_context().register_texture(self)
         self.observers = []
         self._width         = width
         self._height        = height
@@ -590,6 +595,7 @@ cdef class Texture:
         self._source        = source
         self._nofree        = 0
         self.update_tex_coords()
+        get_context().register_texture(self)
 
     def __dealloc__(self):
         get_context().dealloc_texture(self)

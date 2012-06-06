@@ -709,7 +709,7 @@ class WindowBase(EventDispatcher):
                 elif key == 'center_y':
                     w.center_y = value * height
 
-    def screenshot(self, name='screenshot%(counter)04d.jpg'):
+    def screenshot(self, name='screenshot%(counter)04d.png'):
         '''Save the actual displayed image in a file
         '''
         i = 0

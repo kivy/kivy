@@ -7,7 +7,7 @@ __all__ = ('WindowPygame', )
 # fail early if possible
 import pygame
 
-from . import WindowBase
+from kivy.core.window import WindowBase
 from kivy.core import CoreCriticalException
 from os import environ
 from os.path import exists, join

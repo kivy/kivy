@@ -6,7 +6,7 @@ Diving in
 
 To further get into kivy take a look at :doc:`/index`
 
-Kivy comes with a set of **examples** in the ``examples`` directory.
+Kivy comes with a set of :doc:`examples` in the ``examples`` directory.
 You should try modifying/improving/adapting them to your needs.
 
 Browse the `snippet wiki <http://wiki.kivy.org>`_ , You can even add your snippet in the user snippets section.
@@ -21,7 +21,7 @@ See how to use different `Modules <http://kivy.org/docs/api-kivy.modules.html>`_
 
 Learn how to handle custom `Input <http://kivy.org/docs/api-kivy.input.html>`_ 
 
-See how kivy has been extended with `extions <http://kivy.org/docs/api-kivy.ext.html#module-kivy.ext>`_ support.
+See how kivy has been extended with `extensions <http://kivy.org/docs/api-kivy.ext.html#module-kivy.ext>`_ support.
 
 Familiarize yourself with `kivy framework <http://kivy.org/docs/api-kivy.html#module-kivy>`_
 

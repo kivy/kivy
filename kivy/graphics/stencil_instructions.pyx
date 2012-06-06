@@ -4,33 +4,58 @@ Stencil instructions
 
 .. versionadded:: 1.0.4
 
+.. versionchanged:: 1.3.0
+
+    The stencil operation have been updated to resolve some issues appearing
+    when nested. You **must** know have a StencilUnUse and repeat the same
+    operation as you did after StencilPush.
+
 Stencil instructions permit you to draw and use the current drawing as a mask.
 Even if you don't have as much control as OpenGL, you can still do fancy things
 :=)
 
 The stencil buffer can be controled with theses 3 instructions :
 
-    - :class:`StencilPush`
-    - :class:`StencilUse`
-    - :class:`StencilPop`
-
-Here is a global scheme to respect :
-
-    - :class:`StencilPush` : push a new stencil layer
-    - any drawing that happening here will be used as a mask
+    - :class:`StencilPush`: push a new stencil layer
+      any drawing that happening here will be used as a mask
     - :class:`StencilUse` : now draw the next instructions and use the stencil
       for masking them
+    - :class:`StencilUnUse` : stop drawing, and use the stencil to remove the
+      mask
     - :class:`StencilPop` : pop the current stencil layer.
+
+
+Here is a global scheme to respect::
+
+.. code-block:: kv
+
+    StencilPush
+
+    # PHASE 1: put here any drawing instruction to use as a mask
+
+    StencilUse
+
+    # PHASE 2: all the drawing here will be automatically clipped by the previous mask
+
+    StencilUnUse
+
+    # PHASE 3: put here the same drawing instruction as you did in PHASE 1
+
+    StencilPop
+
+
 
 Limitations
 -----------
 
+- Drawing in PHASE 1 and PHASE 3 must not collide between each others, or you
+  will get unexpected result.
 - The stencil is activated as soon as you're doing a StencilPush
 - The stencil is deactivated as soon as you've correctly pop all the stencils
   layers
 - You must not play with stencil yourself between a StencilPush / StencilPop
 - You can push again the stencil after a StencilUse / before the StencilPop
-- You can push up to 8 layers of stencils.
+- You can push up to 128 layers of stencils. (8 for kivy < 1.3.0)
 
 
 Example of stencil usage
@@ -54,11 +79,17 @@ Here is an example, in kv style::
     Rectangle:
         size: 900, 900
 
+    StencilUnUse:
+        # new in kivy 1.3.0, remove the mask previoulsy added
+        Rectangle:
+            pos: 100, 100
+            size: 100, 100
+
     StencilPop
 
 '''
 
-__all__ = ('StencilPush', 'StencilPop', 'StencilUse')
+__all__ = ('StencilPush', 'StencilPop', 'StencilUse', 'StencilUnUse')
 
 include "config.pxi"
 include "opcodes.pxi"
@@ -67,12 +98,9 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from instructions cimport Instruction
-from kivy.utils import platform
 
-cdef int _stencil_level = -1
+cdef int _stencil_level = 0
 cdef int _stencil_in_push = 0
-cdef int _stencil_table[8]
-_stencil_table[:] = [1, 3, 7, 15, 31, 63, 127, 255]
 
 cdef class StencilPush(Instruction):
     '''Push the stencil stack. See module documentation for more information.
@@ -85,38 +113,34 @@ cdef class StencilPush(Instruction):
         _stencil_in_push = 1
         _stencil_level += 1
 
-        if _stencil_level == 0:
+        if _stencil_level == 1:
+            glStencilMask(0xff)
             glClearStencil(0)
             glClear(GL_STENCIL_BUFFER_BIT)
-        if _stencil_level > 8:
+        if _stencil_level > 128:
             raise Exception('Cannot push more than 8 level of stencil.'
                             ' (stack overflow)')
 
         glEnable(GL_STENCIL_TEST)
-
-        glStencilMask(1 << _stencil_level)
-        glStencilFunc(GL_NEVER, 1 << _stencil_level, 1 << _stencil_level)
-        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
-        if platform() != 'android':
-            glColorMask(0, 0, 0, 0)
+        glStencilFunc(GL_ALWAYS, 0, 0)
+        glStencilOp(GL_INCR, GL_INCR, GL_INCR)
+        glColorMask(0, 0, 0, 0)
 
 cdef class StencilPop(Instruction):
     '''Pop the stencil stack. See module documentation for more information.
     '''
     cdef void apply(self):
         global _stencil_level, _stencil_in_push
-        if _stencil_level == -1:
+        if _stencil_level == 0:
             raise Exception('Too much StencilPop (stack underflow)')
         _stencil_level -= 1
         _stencil_in_push = 0
-        if _stencil_level == -1:
+        glColorMask(1, 1, 1, 1)
+        if _stencil_level == 0:
             glDisable(GL_STENCIL_TEST)
-            glColorMask(1, 1, 1, 1)
             return
         # reset for previous
-        glColorMask(1, 1, 1, 1)
-        cdef int mask = _stencil_table[_stencil_level]
-        glStencilFunc(GL_EQUAL, mask, mask)
+        glStencilFunc(GL_EQUAL, _stencil_level, 0xff)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 
 
@@ -127,8 +151,14 @@ cdef class StencilUse(Instruction):
     cdef void apply(self):
         global _stencil_in_push
         _stencil_in_push = 0
-        cdef int mask = _stencil_table[_stencil_level]
         glColorMask(1, 1, 1, 1)
-        glStencilFunc(GL_EQUAL, mask, mask)
+        glStencilFunc(GL_EQUAL, _stencil_level, 0xff)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 
+cdef class StencilUnUse(Instruction):
+    '''Use current stencil buffer to unset the mask.
+    '''
+    cdef void apply(self):
+        glStencilFunc(GL_ALWAYS, 0, 0)
+        glStencilOp(GL_DECR, GL_DECR, GL_DECR)
+        glColorMask(0, 0, 0, 0)
