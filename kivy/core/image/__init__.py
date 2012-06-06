@@ -559,10 +559,7 @@ class Image(EventDispatcher):
         if image:
             # we found an image, yeah ! but reset the texture now.
             self.image = image
-            if image.keep_data == False and self._keep_data == True:
-            # if image is loaded with keep_data = True and cached
-            # image.keep_data = False. Reload image
-                #reload image
+            if not image.keep_data and self._keep_data:
                 self.remove_from_cache()
                 self._filename = ''
                 self._set_filename(value)
