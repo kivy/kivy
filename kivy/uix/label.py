@@ -322,6 +322,12 @@ class Label(Widget):
 
     :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
     'left'. Available options are : left, center and right.
+
+    .. warning::
+
+        this doesn't change the position of the text texture of the Label
+        (centered), only the position of the text in this texture, you probably
+        want to bind the size of the Label to the texture_size or set a text_size.
     '''
 
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
@@ -329,6 +335,12 @@ class Label(Widget):
 
     :data:`valign` is a :class:`~kivy.properties.OptionProperty`, default to
     'bottom'. Available options are : bottom, middle and top.
+
+    .. warning::
+
+        this doesn't change the position of the text texture of the Label
+        (centered), only the position of the text in this texture, you probably
+        want to bind the size of the Label to the texture_size or set a text_size.
     '''
 
     color = ListProperty([1, 1, 1, 1])
