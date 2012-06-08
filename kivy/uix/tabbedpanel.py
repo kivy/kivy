@@ -2,7 +2,7 @@
 TabbedPanel
 ============
 
-.. versionadded:: 1.1.2
+.. versionadded:: 1.3.0
 
 .. warning::
 

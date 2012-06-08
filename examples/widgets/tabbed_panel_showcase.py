@@ -126,11 +126,12 @@ Builder.load_string('''
             pos:self.parent.pos
             size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
-        Image:
+        BubbleButton:
             id: tab_3_content
             pos:self.parent.pos
             size: self.parent.size
-            source: 'data/images/image-loading.gif'
+            text: 'Press to add new tab'
+            on_release: root.add_header()
     ClosableHeader:
         id: def_tab
         text: 'default tab'
@@ -283,7 +284,9 @@ class PanelLeft(Tp):
 
 
 class PanelRight(Tp):
-    pass
+
+    def add_header(self):
+        self.add_widget(ClosableHeader(panel = self))
 
 
 class PanelbLeft(Tp):
@@ -300,18 +303,19 @@ class TabShowcase(FloatLayout):
         if not hasattr(self, 'tab'):
             self.tab = tab = PanelLeft()
             self.add_widget(tab)
-            self.tab = tab = PanelRight()
+            self.tab1 = tab = PanelRight()
             self.add_widget(tab)
-            self.tab = tab = PanelbRight()
+            self.tab2 = tab = PanelbRight()
             self.add_widget(tab)
-            self.tab = tab = PanelbLeft()
+            self.tab3 = tab = PanelbLeft()
             self.add_widget(tab)
         else:
             values = ('left_top', 'left_mid', 'left_bottom', 'top_left',
                 'top_mid', 'top_right', 'right_top', 'right_mid',
                 'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right')
             index = values.index(self.tab.tab_pos)
-            self.tab.tab_pos = values[(index + 1) % len(values)]
+            self.tab.tab_pos = self.tab1.tab_pos = self.tab2.tab_pos\
+                = self.tab3.tab_pos = values[(index + 1) % len(values)]
         self.but.text = 'Tabs in\'%s\' position,\n press to change to next pos'\
                 %self.tab.tab_pos
 
