@@ -251,15 +251,22 @@ class TabbedPanel(GridLayout):
     def get_def_tab(self):
         return self._default_tab
 
-    def set_def_tab(self, *l):
-        old_tab = self._default_tab
-        self._default_tab = l[0]
-        self.remove_widget(old_tab)
-        self.switch_to(l[0])
-        l[0].state = 'down'
+    def set_def_tab(self, new_tab):
+        if  self._default_tab == new_tab:
+            return
+        oltab = self._default_tab
+        self._default_tab = new_tab
+        if self._original_tab == oltab:
+            self.remove_widget(oltab)
+            self._origina_tab = None
+        self.switch_to(new_tab)
+        new_tab.state = 'down'
 
     default_tab = AliasProperty(get_def_tab, set_def_tab)
     '''Holds the default_tab
+
+    .. Note:: for convenience the auto provided default tab is also deleted
+    once you change default_tab to something else.
 
     :data:`default_tab` is a :class:`~kivy.properties.AliasProperty`
     '''
@@ -294,7 +301,7 @@ class TabbedPanel(GridLayout):
         self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel = self,
             rows = 1, cols = 99, size_hint = (None, None),\
             height = self.tab_height, width = self.tab_width)
-        self._default_tab = default_tab = \
+        self._original_tab = self._default_tab = default_tab = \
             TabbedPanelHeader(text = self.default_tab_text,
                 height = self.tab_height, state = 'down',
                 width = self.tab_width)

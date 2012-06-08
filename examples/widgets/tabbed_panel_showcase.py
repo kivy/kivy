@@ -61,7 +61,8 @@ Builder.load_string('''
     FloatLayout:
         RstDocument:
             id: default_content
-            text: 'Standing tabs\\n-------------\\n'
+            text: 'Standing tabs\\n-------------\\n'+\
+                'Tabs in \\'%s\\' position' %root.tab_pos
         Image:
             id: tab_2_content
             pos:self.parent.pos
@@ -120,18 +121,23 @@ Builder.load_string('''
         RstDocument:
             id: default_content
             text: 'Closable tabs\\n-------------\\n'+\
-                'The tabs above are also scrollable'
+                '- The tabs above are also scrollable\\n'+\
+                '- Tabs in \\'%s\\' position' %root.tab_pos
         Image:
             id: tab_2_content
             pos:self.parent.pos
             size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
-        BubbleButton:
+        BoxLayout:
             id: tab_3_content
             pos:self.parent.pos
             size: self.parent.size
-            text: 'Press to add new tab'
-            on_release: root.add_header()
+            BubbleButton:
+                text: 'Press to add new tab'
+                on_release: root.add_header()
+            BubbleButton:
+                text: 'Press set this tab as default'
+                on_release: root.default_tab = tab3
     ClosableHeader:
         id: def_tab
         text: 'default tab'
@@ -142,6 +148,7 @@ Builder.load_string('''
         content: tab_2_content
         panel: root
     ClosableHeader:
+        id: tab3
         text: 'tab3'
         content: tab_3_content
         panel: root
@@ -169,8 +176,8 @@ Builder.load_string('''
     FloatLayout:
         RstDocument:
             id: default_content
-            text: 'Normal tabs\\n-------------\\n press ' +\
-                'background button to change tab_pos'
+            text: 'Normal tabs\\n-------------\\n'+\
+                'Tabs in \\'%s\\' position' %root.tab_pos
         Image:
             id: tab_2_content
             pos:self.parent.pos
@@ -198,7 +205,8 @@ Builder.load_string('''
         RstDocument:
             id: default_content
             text: 'Image tabs\\n-------------\\n'+\
-                '1. Normal image tab\\n2. Image with Text\\n3. Rotated Image'
+                '1. Normal image tab\\n2. Image with Text\\n3. Rotated Image'+\
+                '\\n4. Tabs in \\'%s\\' position' %root.tab_pos
         Image:
             id: tab_2_content
             pos:self.parent.pos
@@ -228,7 +236,7 @@ Builder.load_string('''
             Label:
                 text: 'text & img'
     TabbedPanelHeader:
-        id: tph2
+        id: my_header
         content: tab_3_content
         Scatter:
             do_translation: False
@@ -238,13 +246,12 @@ Builder.load_string('''
             rotation: 90
             size_hint: None, None
             size: img.size
-            center_x: tph2.center_x - 10
-            center_y: tph2.center_y
+            center: my_header.center
             Image:
                 id: img
                 source: 'sequenced_images/data/images/info.png'\
-                    if tph2.state == 'normal' else 'softboy.png'
-                size: tph2.size
+                    if my_header.state == 'normal' else 'softboy.png'
+                size: my_header.size
                 allow_stretch: True
                 keep_ratio: False
 ''')
@@ -309,6 +316,8 @@ class TabShowcase(FloatLayout):
             self.add_widget(tab)
             self.tab3 = tab = PanelbLeft()
             self.add_widget(tab)
+            self.but.text = \
+                'Tabs in variable positions, press to change to top_left'
         else:
             values = ('left_top', 'left_mid', 'left_bottom', 'top_left',
                 'top_mid', 'top_right', 'right_top', 'right_mid',
@@ -316,8 +325,8 @@ class TabShowcase(FloatLayout):
             index = values.index(self.tab.tab_pos)
             self.tab.tab_pos = self.tab1.tab_pos = self.tab2.tab_pos\
                 = self.tab3.tab_pos = values[(index + 1) % len(values)]
-        self.but.text = 'Tabs in\'%s\' position,\n press to change to next pos'\
-                %self.tab.tab_pos
+            self.but.text = 'Tabs in\'%s\' position,' %self.tab.tab_pos\
+                + '\n press to change to next pos'
 
 
 class TestTabApp(App):
