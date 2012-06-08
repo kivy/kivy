@@ -325,6 +325,10 @@ class TabbedPanel(GridLayout):
         if header.content is None:
             return
         self.clear_widgets()
+        # if content has a previous parent remove it from that parent
+        parent = header.content.parent
+        if header.content.parent:
+            parent.remove_widget(header.content)
         self.add_widget(header.content)
 
     def add_widget(self, *l):

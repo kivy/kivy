@@ -180,7 +180,7 @@ Builder.load_string('''
                 'Tabs in \\'%s\\' position' %root.tab_pos
         Image:
             id: tab_2_content
-            pos:self.parent.pos
+            pos: self.parent.pos
             size: self.parent.size
             source: 'data/images/defaulttheme-0.png'
         Image:
@@ -271,13 +271,12 @@ class Tp(TabbedPanel):
                 _on_complete()
 
         def _on_complete(*lt):
-            self.clear_widgets()
             if hasattr(header.content, 'color'):
                 header.content.color = (0, 0, 0, 0)
                 anim = Animation(color =
                     (1, 1, 1, 1), d =.23, t = 'in_out_quad')
                 start_anim(anim, header.content, True)
-            self.add_widget(header.content)
+            super(Tp, self).switch_to(header)
 
         anim.bind(on_complete = _on_complete)
         if self.content:
@@ -325,7 +324,7 @@ class TabShowcase(FloatLayout):
             index = values.index(self.tab.tab_pos)
             self.tab.tab_pos = self.tab1.tab_pos = self.tab2.tab_pos\
                 = self.tab3.tab_pos = values[(index + 1) % len(values)]
-            self.but.text = 'Tabs in\'%s\' position,' %self.tab.tab_pos\
+            self.but.text = 'Tabs in \'%s\' position,' %self.tab.tab_pos\
                 + '\n press to change to next pos'
 
 
