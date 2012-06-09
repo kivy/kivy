@@ -61,8 +61,8 @@ Builder.load_string('''
     FloatLayout:
         RstDocument:
             id: default_content
-            text: 'Standing tabs\\n-------------\\n'+\
-                'Tabs in \\'%s\\' position' %root.tab_pos
+            text: '\\n'.join(("Standing tabs", "-------------",\
+                "Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
             pos:self.parent.pos
@@ -120,9 +120,9 @@ Builder.load_string('''
     FloatLayout:
         RstDocument:
             id: default_content
-            text: 'Closable tabs\\n-------------\\n'+\
-                '- The tabs above are also scrollable\\n'+\
-                '- Tabs in \\'%s\\' position' %root.tab_pos
+            text: '\\n'.join(("Closable tabs", "-------------",\
+                "- The tabs above are also scrollable",\
+                "- Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
             pos:self.parent.pos
@@ -176,8 +176,8 @@ Builder.load_string('''
     FloatLayout:
         RstDocument:
             id: default_content
-            text: 'Normal tabs\\n-------------\\n'+\
-                'Tabs in \\'%s\\' position' %root.tab_pos
+            text: '\\n'.join(("Normal tabs", "-------------",\
+                "Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
             pos: self.parent.pos
@@ -204,9 +204,9 @@ Builder.load_string('''
     FloatLayout:
         RstDocument:
             id: default_content
-            text: 'Image tabs\\n-------------\\n'+\
-                '1. Normal image tab\\n2. Image with Text\\n3. Rotated Image'+\
-                '\\n4. Tabs in \\'%s\\' position' %root.tab_pos
+            text: '\\n'.join(("Image tabs","-------------",\
+                "1. Normal image tab","2. Image with Text","3. Rotated Image",\
+                "4. Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
             id: tab_2_content
             pos:self.parent.pos
