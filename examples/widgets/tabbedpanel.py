@@ -42,9 +42,9 @@ Builder.load_string("""
 class Test(TabbedPanel):
     pass
 
-class MyApp(App):
+class TabbedPanelApp(App):
     def build(self):
         return Test()
 
 if __name__ == '__main__':
-    MyApp().run()
+    TabbedPanelApp().run()

@@ -215,11 +215,11 @@ class TabbedPanel(GridLayout):
     default to '20'.
     '''
 
-    tab_width = NumericProperty(70, allownone = True)
+    tab_width = NumericProperty(100, allownone=True)
     '''Specifies the width of the Tab Heading
 
     :data:`tab_width` is a :class:`~kivy.properties.NumericProperty`,
-    default to '30'.
+    default to '100'.
     '''
 
     default_tab_text = StringProperty('Default tab')
@@ -289,15 +289,15 @@ class TabbedPanel(GridLayout):
     def __init__(self, **kwargs):
         self._tab_layout = GridLayout(rows = 1)
         self._bk_img = Image(
-            source=self.background_image, allow_stretch = True,
-            keep_ratio = False, color = self.background_color)
-        self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel = self,
-            rows = 1, cols = 99, size_hint = (None, None),\
-            height = self.tab_height, width = self.tab_width)
+            source=self.background_image, allow_stretch=True,
+            keep_ratio=False, color=self.background_color)
+        self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel=self,
+            rows=1, cols=99, size_hint=(None, None),\
+            height=self.tab_height, width=self.tab_width)
         self._default_tab = default_tab = \
-            TabbedPanelHeader(text = self.default_tab_text,
-                height = self.tab_height, state = 'down',
-                width = self.tab_width)
+            TabbedPanelHeader(text=self.default_tab_text,
+                height=self.tab_height, state='down',
+                width=self.tab_width)
         _tabs.add_widget(default_tab)
         default_tab.group = '__tab%r__' %_tabs.uid
         self._partial_update_scrollview = None
