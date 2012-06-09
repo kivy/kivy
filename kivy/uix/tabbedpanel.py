@@ -1,6 +1,6 @@
 '''
 TabbedPanel
-============
+===========
 
 .. versionadded:: 1.3.0
 
@@ -20,6 +20,7 @@ Simple example
 --------------
 
 .. include :: ../../examples/widgets/tabbedpanel.py
+    :literal:
 
 Customize the Panel
 -----------------------
