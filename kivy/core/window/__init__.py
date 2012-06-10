@@ -10,7 +10,7 @@ __all__ = ('Keyboard', 'WindowBase', 'Window')
 
 from os.path import join, exists
 from os import getcwd
-from warning import warn
+from warnings import warn
 
 from kivy.core import core_select_lib
 from kivy.clock import Clock
