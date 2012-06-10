@@ -182,6 +182,10 @@ cdef class VertexBatch:
         self.flags |= V_NEEDUPLOAD
 
     cdef void draw(self):
+        cdef int count = self.elements.count()
+        if count == 0:
+            return
+
         # create when needed
         if self.flags & V_NEEDGEN:
             glGenBuffers(1, &self.id)
@@ -206,8 +210,7 @@ cdef class VertexBatch:
         self.vbo.bind()
 
         # draw the elements pointed by indices in ELEMENT ARRAY BUFFER.
-        glDrawElements(self.mode, self.elements.count(),
-                       GL_UNSIGNED_SHORT, NULL)
+        glDrawElements(self.mode, count, GL_UNSIGNED_SHORT, NULL)
 
     cdef void set_mode(self, str mode):
         # most common case in top;
