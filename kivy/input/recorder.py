@@ -200,7 +200,7 @@ class Recorder(EventDispatcher):
             (time() - self.record_time, etype, 0, {
                 'key': key,
                 'scancode': kwargs.get('scancode'),
-                'unicode': kwargs.get('unicode'),
+                'codepoint': kwargs.get('codepoint') or kwargs.get('unicode'),
                 'modifier': kwargs.get('modifier'),
                 'is_touch': False}), ))
         self.counter += 1
@@ -290,21 +290,21 @@ class Recorder(EventDispatcher):
                         'on_key_down',
                         args['key'],
                         args['scancode'],
-                        args['unicode'],
+                        args['codepoint'] or args['unicode'],
                         args['modifier'])
             elif etype == 'keyup':
                 self.window.dispatch(
                         'on_key_up',
                         args['key'],
                         args['scancode'],
-                        args['unicode'],
+                        args['codepoint'] or args['unicode'],
                         args['modifier'])
             elif etype == 'keyboard':
                 self.window.dispatch(
                         'on_keyboard',
                         args['key'],
                         args['scancode'],
-                        args['unicode'],
+                        args['codepoint'] or args['unicode'],
                         args['modifier'])
 
             if me:
