@@ -221,7 +221,6 @@ class SafeMembrane(object):
         r = getattr(oga(self, '_ref'), attr)
         return SafeMembrane(r)
 
-<<<<<<< HEAD
     def __setattr__(self,attr,val, osa=object.__setattr__):
         val = unwrap(val)
         if (
@@ -236,19 +235,6 @@ class SafeMembrane(object):
 
     def __delattr__(self,attr, oda=object.__delattr__):
         attr = unwrap(attr)
-=======
-    def __setattr__(self, attr, val, osa=object.__setattr__):
-        if (attr == '_ref'
-            or hasattr(type(self), attr) and not attr.startswith('__')):
-            osa(self, attr, val)
-        else:
-            self.safeIn()
-            val = unwrap(val)
-            setattr(self._ref, attr, val)
-            self.safeOut()
-
-    def __delattr__(self, attr, oda=object.__delattr__):
->>>>>>> upstream/master
         self.safeIn()
         delattr(self._ref, attr)
         self.safeOut()
@@ -256,7 +242,6 @@ class SafeMembrane(object):
     def __nonzero__(self):
         return bool(self._ref)
 
-<<<<<<< HEAD
     def __get__(self, instance, owner):
         # safe descriptor execution 
         safeIn()
@@ -277,9 +262,6 @@ class SafeMembrane(object):
         self.safeOut()
 
     def __getitem__(self,arg):
-=======
-    def __getitem__(self, arg):
->>>>>>> upstream/master
         return SafeMembrane(self._ref[arg])
 
     def __setitem__(self, arg, val):
@@ -288,12 +270,8 @@ class SafeMembrane(object):
         self._ref[arg] = val
         self.safeOut()
 
-<<<<<<< HEAD
     def __delitem__(self,arg):
         arg = unwrap(arg)
-=======
-    def __delitem__(self, arg):
->>>>>>> upstream/master
         self.safeIn()
         del self._ref[arg]
         self.safeOut()
@@ -311,19 +289,15 @@ class SafeMembrane(object):
         self.safeIn()
         del self._ref[i:j]
         self.safeOut()
-<<<<<<< HEAD
         
     def __enter__(self, *args, **kwargs):
         self.safeIn()
         self._ref.__enter__(*args, **kwargs)
-        
-=======
 
     def __enter__(self, *args, **kwargs):
         self.safeIn()
         self._ref.__enter__(*args, **kwargs)
 
->>>>>>> upstream/master
     def __exit__(self, *args, **kwargs):
         self._ref.__exit__(*args, **kwargs)
         self.safeOut()
