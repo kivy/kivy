@@ -194,7 +194,7 @@ class WindowPygame(WindowBase):
             self.close()  #not sure what to do here
             return True
         super(WindowPygame, self).on_keyboard(key, scancode,
-            unicode=codepoint, modifier=modifier)
+            codepoint=codepoint, modifier=modifier)
 
     def flip(self):
         pygame.display.flip()
