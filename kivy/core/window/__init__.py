@@ -760,7 +760,7 @@ class WindowBase(EventDispatcher):
         .. warning::
             Some providers may omit `scancode`, `codepoint` and/or `modifier`!
         '''
-        if kwargs.get('unicode'):
+        if 'unicode' in kwargs:
             warn("The use of the unicode parameter is deprecated, and will be "
                  "removed in future versions. Use codepoint instead, which "
                  "has identical semantics.")
@@ -769,7 +769,7 @@ class WindowBase(EventDispatcher):
     def on_key_down(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
         '''Event called when a key is down (same arguments as on_keyboard)'''
-        if kwargs.get('unicode'):
+        if 'unicode' in kwargs:
             warn("The use of the unicode parameter is deprecated, and will be "
                  "removed in future versions. Use codepoint instead, which "
                  "has identical semantics.")
@@ -777,7 +777,7 @@ class WindowBase(EventDispatcher):
     def on_key_up(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
         '''Event called when a key is up (same arguments as on_keyboard)'''
-        if kwargs.get('unicode'):
+        if 'unicode' in kwargs:
             warn("The use of the unicode parameter is deprecated, and will be "
                  "removed in future versions. Use codepoint instead, which "
                  "has identical semantics.")
