@@ -4,7 +4,7 @@ Clipboard Dummy: internal implementation without using system
 
 __all__ = ('ClipboardDummy', )
 
-from . import ClipboardBase
+from kivy.core.clipboard import ClipboardBase
 
 
 class ClipboardDummy(ClipboardBase):

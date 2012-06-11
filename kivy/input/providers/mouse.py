@@ -13,6 +13,18 @@ be discarded. Put in your configuration ::
     [input]
     mouse = mouse,disable_on_activity
 
+Disabling multitouch interaction with mouse
+-------------------------------------------
+
+.. versionadded:: 1.3.0
+
+By default middle and right mouse buttons ared used for multitouch emulation.
+If you want to use them for other purpose you can disable this behavior by
+activating the "disable_multitouch" token ::
+
+   [input]
+   mouse = mouse,disable_multitouch
+
 '''
 
 __all__ = ('MouseMotionEventProvider', )
@@ -79,6 +91,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         self.current_drag = None
         self.alt_touch = None
         self.disable_on_activity = False
+        self.disable_multitouch = False
 
         # split arguments
         args = args.split(',')
@@ -87,6 +100,8 @@ class MouseMotionEventProvider(MotionEventProvider):
                 continue
             elif arg == 'disable_on_activity':
                 self.disable_on_activity = True
+            elif arg == 'disable_multitouch':
+                self.disable_multitouch = True
             else:
                 Logger.error('Mouse: unknown parameter <%s>' % arg)
 
@@ -176,7 +191,8 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.current_drag = new_me
         else:
             is_double_tap = 'shift' in modifiers
-            do_graphics = (button != 'left' or ('ctrl' in modifiers))
+            do_graphics = (not self.disable_multitouch and button != 'left' or
+                ('ctrl' in modifiers))
             cur = self.create_touch(rx, ry, is_double_tap, do_graphics, button)
             if 'alt' in modifiers:
                 self.alt_touch = cur
@@ -194,8 +210,8 @@ class MouseMotionEventProvider(MotionEventProvider):
         rx = x / float(width)
         ry = 1. - y / float(height)
         cur = self.find_touch(rx, ry)
-        if button in ('left', 'scrollup', 'scrolldown') and cur and not (
-                'ctrl' in modifiers):
+        if (button in ('left', 'scrollup', 'scrolldown') or
+                self.disable_multitouch) and cur and not ('ctrl' in modifiers):
             self.remove_touch(cur)
             self.current_drag = None
         if self.alt_touch:

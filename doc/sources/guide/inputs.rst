@@ -1,7 +1,7 @@
 Input management
 ================
 
-Input architecure
+Input architecture
 -----------------
 
 Kivy is able to handle most types of input: mouse, touchscreen, accelerometer,
@@ -72,7 +72,7 @@ A profile is a string that indicates what features are available inside the
 motion event. Let's imagine that you are in an ``on_touch_move`` method::
 
     def on_touch_move(self, touch):
-        print touch.profiles
+        print touch.profile
         return super(..., self).on_touch_move(touch)
 
 The print could output::
@@ -82,7 +82,7 @@ The print could output::
 .. warning::
 
     Most people mix up the profile's name and the name of the corresponding
-    property. Just because ``'angle'`` is in the available profiles doest not
+    property. Just because ``'angle'`` is in the available profile doesnt
     mean that the touch event object will have an ``angle`` property.
 
 For the ``'pos'`` profile, the properties ``pos``, ``x``, and ``y`` will be
@@ -93,7 +93,7 @@ profile exists::
 
     def on_touch_move(self, touch):
         print 'The touch is at position', touch.pos
-        if 'angle' in touch.profiles:
+        if 'angle' in touch.profile:
             print 'The touch angle is', touch.a
 
 You can find a list of available profiles in the :doc:`api-kivy.input.motionevent`

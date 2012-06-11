@@ -29,8 +29,8 @@ Read first: :doc:`api-kivy.uix.widget`
 
     :doc:`api-kivy.uix.bubble`,
     :doc:`api-kivy.uix.filechooser`, :doc:`api-kivy.uix.popup`,
-    :doc:`api-kivy.uix.videoplayer`,
-    :doc:`api-kivy.uix.vkeyboard`
+    :doc:`api-kivy.uix.tabbedpanel`, :doc:`api-kivy.uix.videoplayer`,
+    :doc:`api-kivy.uix.vkeyboard`,
 
 - **Behaviors widgets**: Theses widgets have no rendering, but act on the
   graphics part, or even on the interaction (touch) part.

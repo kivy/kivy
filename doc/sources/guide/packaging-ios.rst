@@ -59,6 +59,9 @@ You can customize the build in many ways:
    then check the `Link Binary With Libraries`. You can remove the libraries
    not used by your application.
 #. Change the icon, orientation, etc... According to the Apple policy :)
+#. Go to the settings panel > build, search for "strip" options, and
+   triple-check that they are all set to NO. Stripping is not working with
+   Python dynamic modules, and will strip needed symbols.
 
 
 Known issues

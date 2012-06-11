@@ -125,13 +125,10 @@ class StackLayout(Layout):
 
                 # is the widget fit in the line ?
                 if lw - c.width >= 0:
-                    print 'PUSH', c, c.width
                     lc.append(c)
                     lw -= c.width + spacing
                     lh = max(lh, c.height)
                     continue
-
-                print 'NEW LINE CAUSE OF', lw - c.width
 
                 # push the line
                 y -= lh

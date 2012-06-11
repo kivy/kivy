@@ -5,10 +5,11 @@ Introduction
 
     Start Developing Kivy Apps right away!
 
-Creating Kivy apps is fun and enriching. This guide provides the perfect starting point for app development.
+Creating Kivy apps is fun and enriching. This guide should be the perfect
+starting point to get you on the right track for app development.
 
 .. note::
-    Kivy is based on Python, `basic <http://docs.python.org/tutorial/>`_ `python <http://docs.python.org/tutorial/>`_ `knowlege <http://learnpythonthehardway.org/>`_ is assumed in this introduction.
+    Kivy is based on Python, `basic <http://docs.python.org/tutorial/>`_ `python <http://www.korokithakis.net/tutorials/python/>`_ `knowlege <http://learnpythonthehardway.org/>`_ is assumed in this introduction.
 
 .. image:: ../images/gs-introduction.png
     :align: center
@@ -27,7 +28,7 @@ Follow this guide to get the tools you need, understand the major concepts and
 best practices, as this is an introduction, pointers will be provided at the
 end of each section to find more information.
 
-As you proceed through the guide, you will, using Kivy SDK:
+As you proceed through the guide, you will, using Kivy:
 
 - **Learn**:    The basics of programming with the Kivy language.
 - **Explore**:  The Kivy framework.
@@ -36,7 +37,7 @@ As you proceed through the guide, you will, using Kivy SDK:
 
 Finally, you will learn how to **Deploy** on a device of your choice.
 
-Each section of the guide introduces a new topic trying to give you enough
+Each section of the guide introduces a new topic, trying to give you enough
 information to get started and links to related articles for more in-depth
 explanations. When you are done with this guide, you'll be able to develop
 Kivy apps and will know where to look for informations for the more challenging
