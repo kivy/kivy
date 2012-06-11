@@ -10,7 +10,6 @@ __all__ = ('Keyboard', 'WindowBase', 'Window')
 
 from os.path import join, exists
 from os import getcwd
-from warnings import warn
 
 from kivy.core import core_select_lib
 from kivy.clock import Clock
@@ -761,26 +760,26 @@ class WindowBase(EventDispatcher):
             Some providers may omit `scancode`, `codepoint` and/or `modifier`!
         '''
         if 'unicode' in kwargs:
-            warn("The use of the unicode parameter is deprecated, and will be "
-                 "removed in future versions. Use codepoint instead, which "
-                 "has identical semantics.")
+            Logger.warning("The use of the unicode parameter is deprecated, "
+                "and will be removed in future versions. Use codepoint "
+                "instead, which has identical semantics.")
 
 
     def on_key_down(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
         '''Event called when a key is down (same arguments as on_keyboard)'''
         if 'unicode' in kwargs:
-            warn("The use of the unicode parameter is deprecated, and will be "
-                 "removed in future versions. Use codepoint instead, which "
-                 "has identical semantics.")
+            Logger.warning("The use of the unicode parameter is deprecated, "
+                "and will be removed in future versions. Use codepoint "
+                "instead, which has identical semantics.")
 
     def on_key_up(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
         '''Event called when a key is up (same arguments as on_keyboard)'''
         if 'unicode' in kwargs:
-            warn("The use of the unicode parameter is deprecated, and will be "
-                 "removed in future versions. Use codepoint instead, which "
-                 "has identical semantics.")
+            Logger.warning("The use of the unicode parameter is deprecated, "
+                "and will be removed in future versions. Use codepoint "
+                "instead, which has identical semantics.")
 
     def on_dropfile(self, filename):
         '''Event called when a file is dropped on the application.
