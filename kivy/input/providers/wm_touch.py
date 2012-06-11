@@ -111,7 +111,7 @@ else:
             # inject our own wndProc to handle messages
             # before window manager does
             self.new_windProc = WNDPROC(self._touch_wndProc)
-            self.old_windProc = windll.user32.SetWindowLongW(
+            self.old_windProc = windll.user32.SetWindowLongPtrW(
                 self.hwnd,
                 GWL_WNDPROC,
                 self.new_windProc)
@@ -150,7 +150,7 @@ else:
 
         def stop(self):
             windll.user32.UnregisterTouchWindow(self.hwnd)
-            self.new_windProc = windll.user32.SetWindowLongW(
+            self.new_windProc = windll.user32.SetWindowLongPtrW(
                 self.hwnd,
                 GWL_WNDPROC,
                 self.old_windProc)
