@@ -88,6 +88,30 @@
             size: self.norm_image_size
             pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
 
+<TabbedPanelContent>
+    rows: 1
+    padding: 3
+    canvas:
+        Color:
+            rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
+        BorderImage:
+            border: self.parent.border if self.parent else (16, 16, 16, 16)
+            texture: root.parent._bk_img.texture if root.parent else None
+            size: self.size
+            pos: self.pos
+
+<TabbedPanelStrip>
+    rows: 1
+
+<TabbedPanelHeader>:
+    halign: 'center'
+    valign: 'middle'
+    background_normal: 'atlas://data/images/defaulttheme/tab_btn'
+    background_down: 'atlas://data/images/defaulttheme/tab_btn_pressed'
+    border: (8, 8, 8, 8)
+    font_size: 11
+
+
 <TextInput>:
     padding_x: 6
     padding_y: 6

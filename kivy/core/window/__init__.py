@@ -10,6 +10,7 @@ __all__ = ('Keyboard', 'WindowBase', 'Window')
 
 from os.path import join, exists
 from os import getcwd
+from warnings import warn
 
 from kivy.core import core_select_lib
 from kivy.clock import Clock
@@ -191,12 +192,21 @@ class WindowBase(EventDispatcher):
             Fired when the :class:`Window` is beeing rotated
         `on_close`:
             Fired when the :class:`Window` is closed
-        `on_keyboard`: key, scancode, unicode, modifier
+        `on_keyboard`: key, scancode, codepoint, modifier
             Fired when the keyboard is in action
-        `on_key_down`: key, scancode, unicode
+            .. versionchanged:: 1.3.0
+                The *unicode* parameter has be deprecated in favor of
+                codepoint, and will be removed completely in future versions
+        `on_key_down`: key, scancode, codepoint
             Fired when a key is down
-        `on_key_up`: key, scancode, unicode
+            .. versionchanged:: 1.3.0
+                The *unicode* parameter has be deprecated in favor of
+                codepoint, and will be removed completely in future versions
+        `on_key_up`: key, scancode, codepoint
             Fired when a key is up
+            .. versionchanged:: 1.3.0
+                The *unicode* parameter has be deprecated in favor of
+                codepoint, and will be removed completely in future versions
         `on_dropfile`: str
             Fired when a file is dropped on the application
     '''
@@ -743,21 +753,34 @@ class WindowBase(EventDispatcher):
         '''Event called when mouse is moving, with buttons pressed'''
         pass
 
-    def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
+    def on_keyboard(self, key,
+        scancode=None, codepoint=None, modifier=None ,**kwargs):
         '''Event called when keyboard is in action
 
         .. warning::
-            Some providers may omit `scancode`, `unicode` and/or `modifier`!
+            Some providers may omit `scancode`, `codepoint` and/or `modifier`!
         '''
-        pass
+        if kwargs.get('unicode'):
+            warn("The use of the unicode parameter is deprecated, and will be "
+                 "removed in future versions. Use codepoint instead, which "
+                 "has identical semantics.")
 
-    def on_key_down(self, key, scancode=None, unicode=None, modifier=None):
+
+    def on_key_down(self, key,
+        scancode=None, codepoint=None, modifier=None, **kwargs):
         '''Event called when a key is down (same arguments as on_keyboard)'''
-        pass
+        if kwargs.get('unicode'):
+            warn("The use of the unicode parameter is deprecated, and will be "
+                 "removed in future versions. Use codepoint instead, which "
+                 "has identical semantics.")
 
-    def on_key_up(self, key, scancode=None, unicode=None, modifier=None):
+    def on_key_up(self, key,
+        scancode=None, codepoint=None, modifier=None, **kwargs):
         '''Event called when a key is up (same arguments as on_keyboard)'''
-        pass
+        if kwargs.get('unicode'):
+            warn("The use of the unicode parameter is deprecated, and will be "
+                 "removed in future versions. Use codepoint instead, which "
+                 "has identical semantics.")
 
     def on_dropfile(self, filename):
         '''Event called when a file is dropped on the application.
