@@ -35,7 +35,7 @@ spelling, weird example, please take 2 minutes to report the issue.
     [kivy]
     log_level = debug
 
-#. Execute again your code, and copy/paste the complete output to http://paste.pocoo.org/,
+#. Execute again your code, and copy/paste the complete output to http://gist.github.com/,
    including the log from kivy and the python backtrace.
 #. Open https://github.com/kivy/kivy/issues/
 #. Write a title of your issue
