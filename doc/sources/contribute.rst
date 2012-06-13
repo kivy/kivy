@@ -88,9 +88,10 @@ but the fork you create with the following steps:
        the git remote name 'origin' and you will be on branch 'master'.
     #. Compile and set up PYTHONPATH or install (see :ref:`dev-install`).
     #. Install our pre-commit hook that ensures your code doesn't violate our
-       styleguide by executing 'make hook' in your clone. This will run our
-       styleguide check whenever you do a commit, and if there are violations in
-       the parts that you changed, your commit will be aborted. Fix & retry.
+       styleguide by executing `make hook` from the root directory of your
+       clone. This will run our styleguide check whenever you do a commit, 
+       and if there are violations in the parts that you changed, your commit 
+       will be aborted. Fix & retry.
 
 Now, whenever you want to create a patch, you follow the following steps:
 

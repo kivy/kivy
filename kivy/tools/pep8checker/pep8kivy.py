@@ -18,7 +18,7 @@ class KivyStyleChecker(pep8.Checker):
                 line_number, offset, text, check)
 
         # html generation
-        print '<tr><td>%d</td><td>%s</td></tr>' % (line_number, text)
+        print '<tr><td>{0}</td><td>{1}</td></tr>'.format(line_number, text)
 
 
 if __name__ == '__main__':
