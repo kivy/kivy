@@ -17,10 +17,10 @@ Fatal Python error: (pygame parachute) Segmentation Fault
 Most of time, this issue is due to an usage of old graphics driver. Install the
 latest graphics driver available for your graphics card, and it could be ok.
 
-If not, please report a detailled issue to github, by following the
-:doc:`contribute` document, in the section `Reporting an Issue`. This is very
-important for us because that kind of error can be very hard to debug. Give us
-all the informations you can give about your environment and execution.
+if not, please report a detailed issue on github by following the instructions
+in the :ref:`reporting_issues` section of the :doc:`contribute` documentation.
+This is very important for us because that kind of error can be very hard 
+to debug. Give us all the informations you can give about your environment and execution.
 
 
 undefined symbol: glGenerateMipmap

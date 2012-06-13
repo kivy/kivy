@@ -24,6 +24,8 @@ feel encouraged to report any obstacles you encountered such as missing
 documentation, misleading directions or similar.
 We are perfectionists, so even if it's just a typo, let us know.
 
+.. _reporting_issues:
+
 Reporting an Issue
 ------------------
 
