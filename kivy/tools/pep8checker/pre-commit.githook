@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''
     Kivy Git Pre-Commit Hook to Enforce Styleguide
@@ -26,14 +26,13 @@ curdir = dirname(abspath(__file__))
 kivydir = sep.join(curdir.split(sep)[:-2])
 srcdir = join(kivydir, 'kivy')
 script = join(srcdir, 'tools', 'pep8checker', 'pep8kivy.py')
-python = 'python{0}.{1}'.format(*sys.version_info[:2])
 
 # Only check the files that were staged
 proc = Popen(['git', 'diff', '--cached', '--name-only', 'HEAD'], stdout=PIPE)
 proc.wait()
 targets = [join(kivydir, target) for target in proc.stdout]
 call(['git', 'stash', 'save', '--keep-index', '--quiet'])
-retval = call([python, script, srcdir] + targets)
+retval = call([sys.executable, script, srcdir] + targets)
 call(['git', 'stash', 'pop', '--quiet'])
 
 if retval:
