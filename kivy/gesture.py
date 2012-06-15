@@ -21,6 +21,14 @@ new gesture, and compare them::
     # ...
     gdb.find(g2)
 
+.. warning::
+
+   you don't really want to start from such an example, this is more to get the
+   idea how one would construct gestures dynamically, but you would need a lot
+   more points, it's better to record gestures in a file, and reload them to
+   compare latter, look into the examples/gestures directory for an example of
+   how to do that.
+   
 '''
 
 __all__ = ('Gesture', 'GestureDatabase', 'GesturePoint', 'GestureStroke')

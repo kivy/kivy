@@ -1,6 +1,7 @@
 PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
+NOSETESTS = nosetests
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean
 
@@ -33,11 +34,7 @@ hook:
 
 test:
 	-rm -rf kivy/tests/build
-	nosetests kivy/tests
-
-batchtest:
-	-rm -rf kivy/tests/build
-	nosetests kivy/tests
+	$(NOSETESTS) kivy/tests
 
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'

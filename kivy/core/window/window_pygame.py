@@ -182,7 +182,10 @@ class WindowPygame(WindowBase):
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
 
-    def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
+    def on_keyboard(self, key,
+        scancode=None, codepoint=None, modifier=None, **kwargs):
+
+        codepoint = codepoint or kwargs.get('unicode')
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = platform() == 'darwin'
@@ -190,7 +193,8 @@ class WindowPygame(WindowBase):
             stopTouchApp()
             self.close()  #not sure what to do here
             return True
-        super(WindowPygame, self).on_keyboard(key, scancode, unicode, modifier)
+        super(WindowPygame, self).on_keyboard(key, scancode,
+            codepoint=codepoint, modifier=modifier)
 
     def flip(self):
         pygame.display.flip()

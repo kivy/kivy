@@ -1,6 +1,9 @@
 '''
 TabbedPanel
-============
+===========
+
+.. image:: images/tabbed_panel.jpg
+    :align: right
 
 .. versionadded:: 1.3.0
 
@@ -9,17 +12,18 @@ TabbedPanel
     This widget is still experimental, and its API is subject to change in a
     future version.
 
-.. image:: images/tabbed_panel.jpg
-    :align: right
+The `TabbedPanel` widget provides you a way to manage different widgets in
+each tab.
 
-The `TabbedPanel` widget is exactly what it sounds like, a Tabbed Panel.
-
-The :class:`TabbedPanel` contains one tab by default.
+The :class:`TabbedPanel` auto provides one (default tab) tab and also
+automatically deletes it when `default_tab` is changed, thus maintaining
+at least one default tab at any given time.
 
 Simple example
 --------------
 
 .. include :: ../../examples/widgets/tabbedpanel.py
+    :literal:
 
 Customize the Panel
 -----------------------
@@ -331,35 +335,34 @@ class TabbedPanel(GridLayout):
             parent.remove_widget(header.content)
         self.add_widget(header.content)
 
-    def add_widget(self, *l):
+    def add_widget(self, widget, index=0):
         content = self.content
         if content is None:
             return
-        if l[0] == content or l[0] == self._tab_layout:
-            super(TabbedPanel, self).add_widget(*l)
-        elif isinstance(l[0], TabbedPanelHeader):
+        if widget == content or widget == self._tab_layout:
+            super(TabbedPanel, self).add_widget(widget, index)
+        elif isinstance(widget, TabbedPanelHeader):
             self_tabs = self._tab_strip
-            self_tabs.add_widget(l[0])
-            l[0].group = '__tab%r__' % self_tabs.uid
-            self_tabs.width += l[0].width if not l[0].size_hint_x else\
-                self.tab_width
-            self.reposition_tabs()
+            self_tab_width = self.tab_width
+            self_tabs.add_widget(widget)
+            widget.group = '__tab%r__' % self_tabs.uid
+            self.on_tab_width()
         else:
-            content.add_widget(l[0])
+            content.add_widget(widget, index)
 
-    def remove_widget(self, *l):
+    def remove_widget(self, widget):
         content = self.content
         if content is None:
             return
-        if l[0] == content or l[0] == self._tab_layout:
-            super(TabbedPanel, self).remove_widget(*l)
-        elif isinstance(l[0], TabbedPanelHeader):
-            if l[0]!= self._default_tab:
+        if widget == content or widget == self._tab_layout:
+            super(TabbedPanel, self).remove_widget(widget)
+        elif isinstance(widget, TabbedPanelHeader):
+            if widget != self._default_tab:
                 self_tabs = self._tab_strip
-                self_tabs.remove_widget(l[0])
-                if l[0].state == 'down':
+                self_tabs.width -= widget.width
+                self_tabs.remove_widget(widget)
+                if widget.state == 'down':
                     self._default_tab.on_release()
-                self_tabs.width -= l[0].width
                 self.reposition_tabs()
             else:
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
@@ -413,11 +416,21 @@ class TabbedPanel(GridLayout):
 
     def update_tab_width(self, *l):
         if self.tab_width:
-            tsw = self.tab_width*len(self._tab_strip.children)
+            for tab in self.tab_list:
+                tab.size_hint_x = 1
+            tsw = self.tab_width * len(self._tab_strip.children)
         else:
+            # tab_width = None
             tsw = 0
             for tab in self.tab_list:
-                tsw += tab.width
+                if tab.size_hint_x:
+                    # size_hint_x: x/.xyz
+                    tab.size_hint_x = 1
+                    #drop to default tab_width
+                    tsw = 100 * len(self._tab_strip.children)
+                else:
+                    # size_hint_x: None
+                    tsw += tab.width
         self._tab_strip.width = tsw
         self.reposition_tabs()
 
