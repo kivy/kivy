@@ -138,7 +138,7 @@ class StackLayoutShowcase(FloatLayout):
                 self.txt = self.slayout.orientation = 'lr-tb'
             else:
                 self.txt = self.slayout.orientation = 'tb-lr'
-        self.slayout.add_widget(Button(text = self.txt))
+        self.slayout.add_widget(Button(text=self.txt, size_hint=(.30, .20)))
         Clock.schedule_once(self.add_button, 1)
 
 

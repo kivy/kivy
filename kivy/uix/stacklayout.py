@@ -122,6 +122,8 @@ class StackLayout(Layout):
             for c in reversed(self.children):
                 if c.size_hint_x:
                     c.width = c.size_hint_x * (selfw - padding2)
+                if c.size_hint_y:
+                    c.height = c.size_hint_y * (selfh - padding2)
 
                 # is the widget fit in the line ?
                 if lw - c.width >= 0:
@@ -156,6 +158,8 @@ class StackLayout(Layout):
             lw = 0
             lh = self.height - padding2
             for c in reversed(self.children):
+                if c.size_hint_x:
+                    c.width = c.size_hint_x * (selfw - padding2)
                 if c.size_hint_y:
                     c.height = c.size_hint_y * (selfh - padding2)
 
