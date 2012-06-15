@@ -140,20 +140,21 @@ class VideoPlayerProgressBar(ProgressBar):
             return
         self._show_bubble()
         touch.grab(self)
-        touch.ud[self.uid] = self._update_seek(touch.x)
+        self._update_seek(touch.x)
         return True
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
             return
-        touch.ud[self.uid] = self._update_seek(touch.x)
+        self._update_seek(touch.x)
         return True
 
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return
         touch.ungrab(self)
-        self.video.seek(self.seek)
+        if self.seek:
+            self.video.seek(self.seek)
         self.seek = None
         self._hide_bubble()
         return True
