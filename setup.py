@@ -45,6 +45,7 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 # Setup classes
+
 class KivyBuildExt(build_ext):
 
     def build_extensions(self):
@@ -80,7 +81,7 @@ import kivy
 from kivy.tools.packaging.factory import FactoryBuild
 cmdclass = {
     'build_factory': FactoryBuild,
-    'build_ext': KivyBuildExt }
+    'build_ext': KivyBuildExt}
 
 try:
     # add build rules for portable packages to cmdclass
@@ -116,6 +117,7 @@ else:
 
 # -----------------------------------------------------------------------------
 # declare flags
+
 def get_modulename_from_file(filename):
     filename = filename.replace(sep, '/')
     pyx = '.'.join(filename.split('.')[:-1])
@@ -125,6 +127,7 @@ def get_modulename_from_file(filename):
     if pyxl[1] == 'kivy':
         pyxl.pop(0)
     return '.'.join(pyxl)
+
 
 class CythonExtension(Extension):
 
@@ -138,6 +141,7 @@ class CythonExtension(Extension):
         # sources
         self.sources = args[1]
 
+
 def merge(d1, *args):
     d1 = deepcopy(d1)
     for d2 in args:
@@ -147,6 +151,7 @@ def merge(d1, *args):
             else:
                 d1[key] = value
     return d1
+
 
 def determine_gl_flags():
     flags = {'libraries': []}
@@ -175,6 +180,7 @@ def determine_gl_flags():
         else:
             flags['libraries'] += ['GLEW']
     return flags
+
 
 def determine_graphics_pxd():
     flags = {'depends': [join(dirname(__file__), 'kivy', x) for x in [
@@ -208,26 +214,43 @@ sources = {
     '_event.pyx': base_flags,
     'properties.pyx': base_flags,
     'graphics/buffer.pyx': base_flags,
-    'graphics/context.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/compiler.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/context_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/fbo.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/opengl.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/shader.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/texture.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/transformation.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/vbo.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/vertex.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
-}
+    'graphics/context.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/c_opengl_debug.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/compiler.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/context_instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/fbo.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/gl_instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/opengl.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/opengl_utils.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/shader.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/stencil_instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/texture.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/transformation.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/vbo.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/vertex.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/vertex_instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags)}
 
 
 # -----------------------------------------------------------------------------
 # extension modules
+
 def get_extensions_from_sources(sources):
     ext_modules = []
     for pyx, flags in sources.iteritems():
