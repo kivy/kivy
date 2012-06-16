@@ -11,16 +11,14 @@ SAMPLE_LENGTH = 1.402
 SAMPLE_LENGTH_MIN = SAMPLE_LENGTH * 0.99
 SAMPLE_LENGTH_MAX = SAMPLE_LENGTH * 1.01
 
-class AudioTestCase(unittest.TestCase):
 
-    def setUp(self):
-        from kivy.core import audio
-        self.make_sound = audio.SoundLoader.load
+class AudioTestCase(unittest.TestCase):
 
     def get_sound(self):
         import os
         assert os.path.exists(SAMPLE_FILE)
-        return self.make_sound(filename=SAMPLE_FILE)
+        from kivy.core import audio
+        return audio.SoundLoader.load(SAMPLE_FILE)
 
     def test_length_simple(self):
         sound = self.get_sound()
@@ -52,14 +50,18 @@ class AudioTestCase(unittest.TestCase):
         length = sound.length
         assert SAMPLE_LENGTH_MIN <= length <= SAMPLE_LENGTH_MAX
 
+
 class AudioGstreamerTestCase(AudioTestCase):
-    def setUp(self):
+
+    def make_sound(self, source):
         from kivy.core.audio import audio_gstreamer
-        self.make_sound = audio_gstreamer.SoundGstreamer
+        return audio_gstreamer.SoundGstreamer(source)
+
 
 class AudioPygameTestCase(AudioTestCase):
-    def setUp(self):
+
+    def make_sound(self, source):
         from kivy.core.audio import audio_pygame
-        self.make_sound = audio_pygame.SoundPygame
+        return audio_pygame.SoundPygame(source)
 
 
