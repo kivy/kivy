@@ -152,6 +152,15 @@ class Scatter(Widget):
     default to True.
     '''
 
+    do_collide_after_children = BooleanProperty(False)
+    '''If True, the collision detection for limiting the touch inside the
+    scatter will be done after dispaching the touch to the children.
+    You can put children outside the bounding box of the scatter, and be able to
+    touch them.
+
+    .. versionadded:: 1.3.0
+    '''
+
     scale_min = NumericProperty(0.01)
     '''Minimum scaling factor allowed
 
@@ -407,8 +416,9 @@ class Scatter(Widget):
         x, y = touch.x, touch.y
 
         # if the touch isnt on the widget we do nothing
-        if not self.collide_point(x, y):
-            return False
+        if not self.do_collide_after_children:
+            if not self.collide_point(x, y):
+                return False
 
         # let the child widgets handle the event if they want
         touch.push()
@@ -426,6 +436,10 @@ class Scatter(Widget):
             not self.do_rotation and \
             not self.do_scale:
             return False
+
+        if self.do_collide_after_children:
+            if not self.collide_point(x, y):
+                return False
 
         # grab the touch so we get all it later move events for sure
         self._bring_to_front()
