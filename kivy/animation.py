@@ -154,11 +154,18 @@ class Animation(EventDispatcher):
         self.dispatch('on_start', widget)
 
     def stop(self, widget):
-        '''Stop the animation previously applied on a widget
-        '''
+        '''Stop the animation previously applied on a widget, triggering
+        `on_complete` event '''
         props = self._widgets.pop(widget, None)
         if props:
             self.dispatch('on_complete', widget)
+        self.cancel(widget)
+
+    def cancel(self, widget):
+        '''Stop the animation previously applied on a widget
+
+        .. versionadded:: 1.4.0
+        '''
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
