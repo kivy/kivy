@@ -178,6 +178,7 @@ class Sound(EventDispatcher):
 audio_libs = []
 if sys.platform not in ('win32', 'cygwin'):
     audio_libs += [('gstreamer', 'audio_gstreamer')]
-audio_libs += [('pygame', 'audio_pygame')]
+audio_libs += [('pygame', 'audio_pygame'),
+               ('sfml', 'audio_sfml'),]
 
 core_register_libs('audio', audio_libs)
