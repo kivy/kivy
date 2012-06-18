@@ -471,13 +471,13 @@ class AnimationTransition(object):
     def in_sine(progress):
         '''.. image:: images/anim_in_sine.png
         '''
-        return -1.0 * cos(progress * (pi/2.0)) + 1.0
+        return -1.0 * cos(progress * (pi / 2.0)) + 1.0
 
     @staticmethod
     def out_sine(progress):
         '''.. image:: images/anim_out_sine.png
         '''
-        return sin(progress * (pi/2.0))
+        return sin(progress * (pi / 2.0))
 
     @staticmethod
     def in_out_sine(progress):
@@ -572,7 +572,7 @@ class AnimationTransition(object):
             return 1.0
         if q < 1:
             q -= 1.0
-            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 *pi) / p))
+            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 * pi) / p))
         else:
             q -= 1.0
             return pow(2, -10 * q) * sin((q - s) * (2.0 * pi) / p) * .5 + 1.0
@@ -640,4 +640,3 @@ class AnimationTransition(object):
         if p < 1.:
             return AnimationTransition._in_bounce_internal(p, 1.) * .5
         return AnimationTransition._out_bounce_internal(p - 1., 1.) * .5 + .5
-
