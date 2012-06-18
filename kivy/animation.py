@@ -142,7 +142,7 @@ class Animation(EventDispatcher):
                 for x in largs:
                     animation.stop_property(widget, x)
         else:
-            for animation in Animation._instances[:]:
+            for animation in set(Animation._instances):
                 animation.stop(widget)
 
     def start(self, widget):
