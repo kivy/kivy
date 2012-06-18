@@ -299,9 +299,11 @@ class App(EventDispatcher):
         If this method returns a widget (tree), it will be used as the root
         widget and added to the window.
 
-        :return: None or a root :class:`~kivy.uix.widget.Widget` instance
+        :return: None or a root :class:`~kivy.uix.widget.Widget` instance is no
+        self.root exist.
         '''
-        return Widget()
+        if not self.root:
+            return Widget()
 
     def build_config(self, config):
         '''.. versionadded:: 1.0.7
