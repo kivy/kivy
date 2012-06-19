@@ -14,9 +14,11 @@ way in the future.
 To install the Kivy launcher, you must:
 
 #. Go to the `Kivy Launcher <https://market.android.com/details?id=org.kivy.pygame>`_
-   on the Android market
+   on the Google Play Store
 #. Click on Install
 #. Select your phone... And you're done!
+
+If you don't have Google Play Store on your tablet, check http://kivy.org/#download for downloading the APK manually.
 
 Now, you can put your Kivy applications in the Kivy directory on the SD Card.
 Refer to :ref:`android` for a more detailed explanation.
@@ -24,15 +26,11 @@ Refer to :ref:`android` for a more detailed explanation.
 Installation of Examples
 ------------------------
 
-.. warning::
-
-    These examples are not final, they are just tests for the Kivy environment
-    on Android.
-
-#. Download the `KivyTest for Android <http://kivy.googlecode.com/files/kivytest-for-android.zip>`_
-#. Unzip the content to the SD Card of your phone, in the kivy directory::
+#. Download the `Kivy demos for Android <http://kivy.googlecode.com/files/kivydemo-for-android.zip>`_
+#. Unzip the content, and go to the kivydemo-for-android
+#. Copy all the folders to
 
     /sdcard/kivy
 
-#. Run the launcher and select Kivytest
+#. Run the launcher and select one of Pictures, Showcase, Touchtracer, Cymunk demo...
 
