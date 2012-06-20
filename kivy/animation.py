@@ -142,7 +142,7 @@ class Animation(EventDispatcher):
                 for x in largs:
                     animation.stop_property(widget, x)
         else:
-            for animation in Animation._instances[:]:
+            for animation in set(Animation._instances):
                 animation.stop(widget)
 
     def start(self, widget):
@@ -154,11 +154,18 @@ class Animation(EventDispatcher):
         self.dispatch('on_start', widget)
 
     def stop(self, widget):
-        '''Stop the animation previously applied on a widget
-        '''
+        '''Stop the animation previously applied on a widget, triggering
+        `on_complete` event '''
         props = self._widgets.pop(widget, None)
         if props:
             self.dispatch('on_complete', widget)
+        self.cancel(widget)
+
+    def cancel(self, widget):
+        '''Stop the animation previously applied on a widget
+
+        .. versionadded:: 1.4.0
+        '''
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
@@ -464,13 +471,13 @@ class AnimationTransition(object):
     def in_sine(progress):
         '''.. image:: images/anim_in_sine.png
         '''
-        return -1.0 * cos(progress * (pi/2.0)) + 1.0
+        return -1.0 * cos(progress * (pi / 2.0)) + 1.0
 
     @staticmethod
     def out_sine(progress):
         '''.. image:: images/anim_out_sine.png
         '''
-        return sin(progress * (pi/2.0))
+        return sin(progress * (pi / 2.0))
 
     @staticmethod
     def in_out_sine(progress):
@@ -565,7 +572,7 @@ class AnimationTransition(object):
             return 1.0
         if q < 1:
             q -= 1.0
-            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 *pi) / p))
+            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 * pi) / p))
         else:
             q -= 1.0
             return pow(2, -10 * q) * sin((q - s) * (2.0 * pi) / p) * .5 + 1.0
@@ -633,4 +640,3 @@ class AnimationTransition(object):
         if p < 1.:
             return AnimationTransition._in_bounce_internal(p, 1.) * .5
         return AnimationTransition._out_bounce_internal(p - 1., 1.) * .5 + .5
-
