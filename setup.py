@@ -319,6 +319,8 @@ sources = {
             base_flags, gl_flags, graphics_flags),
     'graphics/texture.pyx': merge(
             base_flags, gl_flags, graphics_flags),
+    'graphics/paths.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
     'graphics/transformation.pyx': merge(
             base_flags, gl_flags, graphics_flags),
     'graphics/vbo.pyx': merge(
