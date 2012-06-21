@@ -687,6 +687,7 @@ def load(filename):
 core_register_libs('image', (
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),
+    ('sfml', 'img_sfml'),
     ('pil', 'img_pil'),
     ('gif', 'img_gif'),
 ))

@@ -11,7 +11,10 @@ from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.core.audio import Sound, SoundLoader
 
-import sfml as sf
+try:
+    from sfml.audio import Music, SoundSource
+except:
+    raise
 
 
 class SoundSFML(Sound):
@@ -29,9 +32,9 @@ class SoundSFML(Sound):
     def load(self):
         if not self.filename:
             return
-        self.unload()
 
-        self._data = sf.Music.open_from_file(self.filename)
+        self.unload()
+        self._data = Music.open_from_file(self.filename)
 
     def unload(self):
         self.stop()
@@ -60,20 +63,23 @@ class SoundSFML(Sound):
     def _get_volume(self):
         if not self._data:
             return
+
         return self._data.volume / 100
 
     def _get_legnth(self):
         if not self._data:
             return
+
         return self._data.duration
 
     def _get_status(self):
         if not self._data:
             return
+
         status = dict(
-            sf.SoundSource.PLAYING = 'play',
-            sf.SoundSource.PAUSED = 'pause',
-            sf.SoundSource.STOPPED = 'stop')
+            SoundSource.PLAYING = 'play',
+            SoundSource.PAUSED = 'pause',
+            SoundSource.STOPPED = 'stop')
 
         return status[self._data.status]
 

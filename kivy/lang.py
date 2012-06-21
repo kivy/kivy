@@ -992,7 +992,8 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
         exc_info = sys.exc_info()
         traceback = make_traceback(exc_info)
         exc_type, exc_value, tb = traceback.standard_exc_info
-        raise exc_type, exc_value, tb
+
+        raise Exception(exc_tye, exc_value, tb)
 
 
 def create_handler(iself, element, key, value, rule, idmap):
