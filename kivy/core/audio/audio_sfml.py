@@ -76,10 +76,10 @@ class SoundSFML(Sound):
         if not self._data:
             return
 
-        status = dict(
-            SoundSource.PLAYING = 'play',
-            SoundSource.PAUSED = 'pause',
-            SoundSource.STOPPED = 'stop')
+        status = {
+            SoundSource.PLAYING: 'play',
+            SoundSource.PAUSED: 'pause',
+            SoundSource.STOPPED: 'stop'}
 
         return status[self._data.status]
 
