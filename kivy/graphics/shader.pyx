@@ -41,7 +41,7 @@ from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.vertex cimport vertex_attr_t
-from kivy.graphics.vbo cimport vbo_vertex_attr_list, vbo_vertex_attr_count
+from kivy.graphics.vbo cimport default_vertex
 from kivy.graphics.transformation cimport Matrix
 from kivy.graphics.context cimport get_context
 from kivy.logger import Logger
@@ -133,7 +133,7 @@ cdef class Shader:
     def __init__(self, str vs, str fs):
         get_context().register_shader(self)
         self.program = glCreateProgram()
-        self.bind_attrib_locations()
+        #self.bind_attrib_locations(None)
         self.fs = fs
         self.vs = vs
 
@@ -151,7 +151,7 @@ cdef class Shader:
         self.uniform_locations = dict()
         self._success = 0
         self.program = glCreateProgram()
-        self.bind_attrib_locations()
+        #self.bind_attrib_locations()
         self.fs = self.fs
         self.vs = self.vs
 
@@ -272,11 +272,13 @@ cdef class Shader:
         self.uniform_locations[name] = loc
         return loc
 
-    cdef void bind_attrib_locations(self):
+    cdef void bind_attrib_locations(self, Vertex vertex):
         cdef int i
+        if self.vertex is vertex:
+            return
         cdef vertex_attr_t *attr
-        cdef vertex_attr_t *vattr = vbo_vertex_attr_list()
-        for i in xrange(vbo_vertex_attr_count()):
+        cdef vertex_attr_t *vattr = vertex.vattr
+        for i in xrange(vertex.vattr_count):
             attr = &vattr[i]
             glBindAttribLocation(self.program, attr.index, attr.name)
             if attr.per_vertex == 1:

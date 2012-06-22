@@ -446,7 +446,7 @@ cdef class Callback(Instruction):
             context = getActiveContext()
             shader = context._shader
             context.enter()
-            shader.bind_attrib_locations()
+            #shader.bind_attrib_locations()
             for index, texture in context.bind_texture.iteritems():
                 context.set_texture(index, texture)
 

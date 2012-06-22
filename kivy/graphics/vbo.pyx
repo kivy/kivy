@@ -6,7 +6,7 @@ The :class:`VBO` class handle the creation and update of Vertex Buffer Object in
 OpenGL.
 '''
 
-__all__ = ('VBO', 'VertexBatch')
+__all__ = ('VBO', 'VertexBatch', 'Vertex')
 
 include "config.pxi"
 include "common.pxi"
@@ -19,6 +19,7 @@ IF USE_OPENGL_DEBUG == 1:
 from vertex cimport *
 from kivy.logger import Logger
 from kivy.graphics.context cimport Context, get_context
+from instructions cimport getActiveContext
 
 cdef int vattr_count = 2
 cdef vertex_attr_t vattr[2]
@@ -38,26 +39,80 @@ cdef vertex_attr_t *vbo_vertex_attr_list():
     '''
     return vattr
 
+'''
+Usage example
+-------------
+
+vertex2d = Vertex([('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float')])
+'''
+
+class VertexException(Exception):
+    pass
+
+cdef class Vertex:
+    def __cinit__(self, list fmt):
+        self.vattr = NULL
+        self.vattr_count = 0
+        self.vsize = 0
+        self.vbytesize = 0
+
+    def __dealloc__(self):
+        if self.vattr != NULL:
+            free(self.vattr)
+            self.vattr = NULL
+
+    def __init__(self, list fmt):
+        cdef vertex_attr_t *attr
+        cdef int index, size
+
+        if not fmt:
+            raise VertexException('No format specified')
+
+        self.vattr_count = len(fmt)
+        self.vattr = <vertex_attr_t *>malloc(sizeof(vertex_attr_t) * self.vattr_count)
+        index = 0
+        for name, size, tp in fmt:
+            attr = &self.vattr[index]
+            attr.per_vertex = 1
+            attr.name = <char *><bytes>name
+            attr.index = index
+            attr.size = size
+            if tp == 'float':
+                attr.type = GL_FLOAT
+                attr.bytesize = sizeof(GLfloat) * size
+            else:
+                raise VertexException('Unknow format type %r' % tp)
+
+            index += 1
+            self.vsize += attr.size
+            self.vbytesize += attr.bytesize
+
+cdef Vertex default_vertex = Vertex([('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float')])
+
 cdef short V_NEEDGEN = 1 << 0
-cdef short V_NEEDUPLOAD = 1 << 1 
+cdef short V_NEEDUPLOAD = 1 << 1
 cdef short V_HAVEID = 1 << 2
 
 cdef class VBO:
 
-    def __cinit__(self, **kwargs):
+    def __cinit__(self, Vertex vertex=None):
         self.usage  = GL_DYNAMIC_DRAW
         self.target = GL_ARRAY_BUFFER
-        self.format = vbo_vertex_attr_list()
-        self.format_count = vbo_vertex_attr_count()
+        if vertex is None:
+            vertex = default_vertex
+        self.vertex = vertex
+        self.format = vertex.vattr
+        self.format_count = vertex.vattr_count
+        self.format_size = vertex.vbytesize
         self.flags = V_NEEDGEN | V_NEEDUPLOAD
         self.vbo_size = 0
 
     def __dealloc__(self):
         get_context().dealloc_vbo(self)
 
-    def __init__(self, **kwargs):
+    def __init__(self, Vertex vertex = None):
         get_context().register_vbo(self)
-        self.data = Buffer(sizeof(vertex_t))
+        self.data = Buffer(self.format_size)
 
     cdef int have_id(self):
         return self.flags & V_HAVEID
@@ -86,13 +141,14 @@ cdef class VBO:
         cdef vertex_attr_t *attr
         cdef int offset = 0, i
         self.update_buffer()
+        getActiveContext()._shader.bind_attrib_locations(self.vertex)
         glBindBuffer(GL_ARRAY_BUFFER, self.id)
         for i in xrange(self.format_count):
             attr = &self.format[i]
             if attr.per_vertex == 0:
                 continue
             glVertexAttribPointer(attr.index, attr.size, attr.type,
-                    GL_FALSE, sizeof(vertex_t), <GLvoid*><long>offset)
+                    GL_FALSE, self.format_size, <GLvoid*><long>offset)
             offset += attr.bytesize
 
     cdef void unbind(self):
@@ -102,7 +158,7 @@ cdef class VBO:
         self.flags |= V_NEEDUPLOAD
         self.data.add(v, indices, count)
 
-    cdef void update_vertex_data(self, int index, vertex_t* v, int count):
+    cdef void update_vertex_data(self, int index, void* v, int count):
         self.flags |= V_NEEDUPLOAD
         self.data.update(index, v, count)
 
@@ -151,7 +207,7 @@ cdef class VertexBatch:
         self.vbo_index.clear()
         self.elements.clear()
 
-    cdef void set_data(self, vertex_t *vertices, int vertices_count,
+    cdef void set_data(self, void *vertices, int vertices_count,
                        unsigned short *indices, int indices_count):
         #clear old vertices first
         self.clear_data()
@@ -161,7 +217,7 @@ cdef class VertexBatch:
         self.append_data(vertices, vertices_count, indices, indices_count)
         self.flags |= V_NEEDUPLOAD
 
-    cdef void append_data(self, vertex_t *vertices, int vertices_count,
+    cdef void append_data(self, void *vertices, int vertices_count,
                           unsigned short *indices, int indices_count):
         # add vertex data to vbo and get index for every vertex added
         cdef unsigned short *vi = <unsigned short *>malloc(sizeof(unsigned short) * vertices_count)
