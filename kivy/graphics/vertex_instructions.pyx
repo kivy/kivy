@@ -251,6 +251,7 @@ cdef class Mesh(VertexInstruction):
     '''
     cdef list _vertices
     cdef list _indices
+    cdef Vertex vertex
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -258,12 +259,17 @@ cdef class Mesh(VertexInstruction):
         self.vertices = v if v is not None else []
         v = kwargs.get('indices')
         self.indices = v if v is not None else []
+        fmt = kwargs.get('fmt')
+        cdef Vertex vertex
+        if fmt is not None:
+            self.vertex = Vertex(fmt)
+            self.batch = VertexBatch(vbo=VBO(self.vertex))
         self.mode = kwargs.get('mode') or 'points'
 
     cdef void build(self):
-        cdef int i, vcount = len(self._vertices) / 4
+        cdef int i, vcount = len(self._vertices)
         cdef int icount = len(self._indices)
-        cdef vertex_t *vertices = NULL
+        cdef float *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef list lvertices = self._vertices
         cdef list lindices = self._indices
@@ -272,7 +278,12 @@ cdef class Mesh(VertexInstruction):
             self.batch.clear_data()
             return
 
-        vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
+        cdef int vsize = 4
+        cdef int vbytesize = 4 * sizeof(float)
+        if self.vertex:
+            vsize = self.vertex.vsize
+            vbytesize = self.vertex.vbytesize
+        vertices = <float *>malloc(vcount * sizeof(float))
         if vertices == NULL:
             raise MemoryError('vertices')
 
@@ -281,16 +292,15 @@ cdef class Mesh(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
+        print len(lvertices), (vcount, vsize), vcount * vsize
+        print lvertices
         for i in xrange(vcount):
-            vertices[i].x = lvertices[i * 4]
-            vertices[i].y = lvertices[i * 4 + 1]
-            vertices[i].s0 = lvertices[i * 4 + 2]
-            vertices[i].t0 = lvertices[i * 4 + 3]
+            vertices[i] = lvertices[i]
 
         for i in xrange(icount):
             indices[i] = lindices[i]
 
-        self.batch.set_data(vertices, vcount, indices, icount)
+        self.batch.set_data(vertices, vcount / vsize, indices, icount)
 
         free(vertices)
         free(indices)
