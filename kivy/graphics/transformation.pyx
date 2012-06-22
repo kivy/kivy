@@ -20,6 +20,7 @@ cdef extern from "math.h":
     double sqrt(double x) nogil
     double sin(double x) nogil
     double cos(double x) nogil
+    double tan(double x) nogil
     double fabs(double x) nogil
 
 cdef extern from "string.h":
@@ -118,6 +119,25 @@ cdef class Matrix:
             self.mat[14] += z
         return self
 
+    cpdef Matrix perspective(Matrix self, double fovy, double aspect, double zNear, double zFar):
+        cdef double f = 1 / tan(fovy / 2. / (3.141592653589793 * 2))
+        self.mat[0]  = f / aspect
+        self.mat[1]  = 0.0
+        self.mat[2]  = 0.0
+        self.mat[3]  = 0.0
+        self.mat[4]  = 0.0
+        self.mat[5]  = f
+        self.mat[6]  = 0.0
+        self.mat[7]  = 0.0
+        self.mat[8]  = 0.0
+        self.mat[9]  = 0.0
+        self.mat[10] = (zFar + zNear) / (zNear - zFar)
+        self.mat[11] = (2 * zFar * zNear) / (zNear - zFar)
+        self.mat[12] = 0.0
+        self.mat[13] = 0.0
+        self.mat[14] = -1.0
+        self.mat[15] = 0.0
+
     cpdef Matrix view_clip(Matrix self, double left, double right, double bottom, double top,
                              double near, double far, int perspective):
         '''Create a clip matrix (inplace)
@@ -126,49 +146,66 @@ cdef class Matrix:
         if left >= right or bottom >= top or near >= far:
             raise ValueError('invalid frustrum')
         if perspective:
-            raise Exception('not tested')
-            '''
+            #raise Exception('not tested')
             # original code
-            if near <= _EPS:
-                raise ValueError('invalid frustrum: near <= 0')
-            '''
+            #if near <= _EPS:
+            #    raise ValueError('invalid frustrum: near <= 0')
+            pass
 
         with nogil:
             if perspective:
                 t = 2.0 * near
-                self.mat[0]  = -t/(right-left)
-                self.mat[4]  = 0.0
-                self.mat[8]  = (right+left)/(right-left)
-                self.mat[12] = 0.0
+                '''
+                self.mat[0]  = t/(left-right)
                 self.mat[1]  = 0.0
-                self.mat[5]  = -t/(top-bottom)
-                self.mat[9]  = (top+bottom)/(top-bottom)
-                self.mat[13] = 0.0
                 self.mat[2]  = 0.0
-                self.mat[6]  = 0.0
-                self.mat[10] = -(far+near)/(far-near)
-                self.mat[14] = t*far/(far-near)
                 self.mat[3]  = 0.0
+                self.mat[4]  = 0.0
+                self.mat[5]  = t/(bottom-top)
+                self.mat[6]  = 0.0
                 self.mat[7]  = 0.0
+                self.mat[8]  = (right+left)/(right-left)
+                self.mat[9]  = (top+bottom)/(top-bottom)
+                self.mat[10] = (far+near)/(near-far)
                 self.mat[11] = -1.0
+                self.mat[12] = 0.0
+                self.mat[13] = 0.0
+                self.mat[14] = t*far/(far-near)
+                self.mat[15] = 0.0
+                '''
+                self.mat[0]  = t/(left-right)
+                self.mat[1]  = 0.0
+                self.mat[2]  = 0.0
+                self.mat[3]  = 0.0
+                self.mat[4]  = 0.0
+                self.mat[5]  = t/(bottom-top)
+                self.mat[6]  = 0.0
+                self.mat[7]  = 0.0
+                self.mat[8]  = (right+left)/(right-left)
+                self.mat[9]  = (top+bottom)/(top-bottom)
+                self.mat[10] = (far+near)/(near-far)
+                self.mat[11] = -1.0
+                self.mat[12] = 0.0
+                self.mat[13] = 0.0
+                self.mat[14] = t*far/(far-near)
                 self.mat[15] = 0.0
             else:
                 #(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)
                 self.mat[0]  = 2.0/(right-left)
-                self.mat[4]  = 0.0
-                self.mat[8]  = 0.0
-                self.mat[12] = (right+left)/(left-right)
                 self.mat[1]  = 0.0
-                self.mat[5]  = 2.0/(top-bottom)
-                self.mat[9]  = 0.0
-                self.mat[13] = (top+bottom)/(bottom-top)
                 self.mat[2]  = 0.0
-                self.mat[6]  = 0.0
-                self.mat[10] = 2.0/(far-near)
-                self.mat[14] = (far+near)/(near-far)
                 self.mat[3]  = 0.0
+                self.mat[4]  = 0.0
+                self.mat[5]  = 2.0/(top-bottom)
+                self.mat[6]  = 0.0
                 self.mat[7]  = 0.0
+                self.mat[8]  = 0.0
+                self.mat[9]  = 0.0
+                self.mat[10] = 2.0/(far-near)
                 self.mat[11] = 0.0
+                self.mat[12] = (right+left)/(left-right)
+                self.mat[13] = (top+bottom)/(bottom-top)
+                self.mat[14] = (far+near)/(near-far)
                 self.mat[15] = 1.0
         return self
 
@@ -249,6 +286,79 @@ cdef class Matrix:
             r[11] = 0
             r[15] = 1
         return mr
+
+    cpdef look_at(Matrix self, double eyex, double eyey, double eyez,
+          double centerx, double centery, double centerz,
+          double upx, double upy, double upz):
+
+        cdef double x[3], y[3], z[3]
+        cdef double mag
+
+        # Make rotation matrix
+
+        # Z vector
+        z[0] = eyex - centerx
+        z[1] = eyey - centery
+        z[2] = eyez - centerz
+        mag = sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2])
+        if (mag):          # mpichler, 19950515
+            z[0] /= mag
+            z[1] /= mag
+            z[2] /= mag
+
+        # Y vector
+        y[0] = upx
+        y[1] = upy
+        y[2] = upz
+
+        # X vector = Y cross Z
+        x[0] = y[1] * z[2] - y[2] * z[1]
+        x[1] = -y[0] * z[2] + y[2] * z[0]
+        x[2] = y[0] * z[1] - y[1] * z[0]
+
+        # Recompute Y = Z cross X
+        y[0] = z[1] * x[2] - z[2] * x[1]
+        y[1] = -z[0] * x[2] + z[2] * x[0]
+        y[2] = z[0] * x[1] - z[1] * x[0]
+
+        # mpichler, 19950515
+        # cross product gives area of parallelogram, which is < 1.0 for
+        # non-perpendicular unit-length vectors so normalize x, y here
+        #
+
+        mag = sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2])
+        if (mag):
+            x[0] /= mag
+            x[1] /= mag
+            x[2] /= mag
+
+        mag = sqrt(y[0] * y[0] + y[1] * y[1] + y[2] * y[2])
+        if (mag):
+            y[0] /= mag
+            y[1] /= mag
+            y[2] /= mag
+
+        self.mat[0 + 0 * 4] = x[0]
+        self.mat[0 + 1 * 4] = x[1]
+        self.mat[0 + 2 * 4] = x[2]
+        self.mat[0 + 3 * 4] = 0.0
+        self.mat[1 + 0 * 4] = y[0]
+        self.mat[1 + 1 * 4] = y[1]
+        self.mat[1 + 2 * 4] = y[2]
+        self.mat[1 + 3 * 4] = 0.0
+        self.mat[2 + 0 * 4] = z[0]
+        self.mat[2 + 1 * 4] = z[1]
+        self.mat[2 + 2 * 4] = z[2]
+        self.mat[2 + 3 * 4] = 0.0
+        self.mat[3 + 0 * 4] = 0.0
+        self.mat[3 + 1 * 4] = 0.0
+        self.mat[3 + 2 * 4] = 0.0
+        self.mat[3 + 3 * 4] = 1.0
+
+        cdef Matrix m = Matrix()
+        m = self.multiply(m)
+        m = m.multiply(Matrix().translate(-eyex, -eyey, -eyez))
+        return m
 
     def __str__(self):
         cdef double *m = <double *>self.mat
