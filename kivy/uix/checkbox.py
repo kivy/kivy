@@ -36,6 +36,8 @@ from kivy.properties import BooleanProperty, ObjectProperty
 
 
 class CheckBox(Widget):
+    '''CheckXox class, see module documentation for more information.
+    '''
 
     active = BooleanProperty(False)
     '''Indicate if the switch is active or inactive.

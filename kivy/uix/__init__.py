@@ -11,6 +11,7 @@ Read first: :doc:`api-kivy.uix.widget`
   assembled to create more complex widgets.
 
     :doc:`api-kivy.uix.label`, :doc:`api-kivy.uix.button`,
+    :doc:`api-kivy.uix.checkbox`,
     :doc:`api-kivy.uix.image`, :doc:`api-kivy.uix.slider`,
     :doc:`api-kivy.uix.progressbar`, :doc:`api-kivy.uix.textinput`,
     :doc:`api-kivy.uix.togglebutton`, :doc:`api-kivy.uix.switch`,
