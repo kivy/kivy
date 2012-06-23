@@ -3,7 +3,7 @@ CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
 NOSETESTS = nosetests
 
-.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean
+.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
 
 build:
 	$(PYTHON) setup.py build_ext --inplace
@@ -53,3 +53,7 @@ clean:
 
 distclean: clean
 	-git clean -dxf
+
+theming:
+	python -m kivy.atlas kivy/data/images/defaulttheme 512 kivy/tools/theming/defaulttheme/*.png
+
