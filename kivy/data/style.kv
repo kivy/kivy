@@ -734,3 +734,17 @@
         Widget:
             size_hint_x: None
             width: 10
+
+# =============================================================================
+# Checkbox
+# =============================================================================
+
+<CheckBox>:
+    canvas:
+        Color:
+            rgb: 1, 1, 1
+        Rectangle:
+            source: 'atlas://data/images/defaulttheme/checkbox%s_%s' % (('_radio' if self.group else ''), ('on' if self.active else 'off'))
+            size: 32, 32
+            pos: int(self.center_x - 16), int(self.center_y - 16)
+

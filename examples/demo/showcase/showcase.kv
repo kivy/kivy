@@ -272,6 +272,27 @@
 			TextInput:
 				text: 'Multiline textinput\nSecond line'
 
+			HSeparator:
+				text: 'Checkbox'
+
+			GridLayout:
+				rows: 1
+				CheckBox
+				CheckBox
+
+			GridLayout:
+				cols: 2
+				CheckBox:
+					group: 'group1'
+				CheckBox:
+					group: 'group1'
+				CheckBox:
+					group: 'group2'
+				CheckBox:
+					group: 'group2'
+
+
+
 <ComplexWidgets>:
 	BoxLayout:
 		pos_hint: {'x': 0, 'y': 0}
