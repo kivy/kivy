@@ -120,7 +120,7 @@ cdef class Matrix:
         return self
 
     cpdef Matrix perspective(Matrix self, double fovy, double aspect, double zNear, double zFar):
-        cdef double f = 1 / tan(fovy / 2. / (3.141592653589793 * 2))
+        cdef double f = 1 / tan(fovy / 2. / 360. * 2 * 3.141592653589793)
         self.mat[0]  = f / aspect
         self.mat[1]  = 0.0
         self.mat[2]  = 0.0
