@@ -7,10 +7,10 @@ Bubble
 .. image:: images/bubble.jpg
     :align: right
 
-The Bubble widget is a form of menu or a small popup where the options
+The Bubble widget is a form of menu or a small popup where the menu options
 are stacked either vertically or horizontally.
 
-The :class:`Bubble` contains one arrow pointing towards the direction you
+The :class:`Bubble` contains an arrow pointing towards the direction you
 choose.
 
 Simple example
@@ -26,7 +26,7 @@ You can choose the direction the arrow points towards::
 
     Bubble(arrow_pos='top_mid')
 
-The widgets added to Bubble are orderd by default horizintally like in a
+The widgets added to Bubble are orderd by default horizontally as in a
 Boxlayout. You can change that by::
 
     orientation = 'vertical'
@@ -42,7 +42,7 @@ Remove Items::
     or
     bubble.clear_widgets()
 
-Access children list, **Warning** This is important! use content.children to
+Access children list, **Warning** This is important! Use content.children to
 access the children list::
 
     bubble.content.children
@@ -67,9 +67,9 @@ from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
 
 
 class BubbleButton(Button):
-    '''A button intented to be used as a widget for Bubble widget.
-    You can use "normal" button class, but it will not look good, and you'll
-    need to change yourself the background to be ok.
+    '''A button intended for use as in a Bubble widget.
+    You can use a "normal" button class, but it will not look good, unless
+    the background is changed.
 
     Instead, you can use this BubbleButton widget that already defined the good
     background for you.
@@ -82,7 +82,7 @@ class BubbleContent(GridLayout):
 
 
 class Bubble(GridLayout):
-    '''Bubble class, see module documentation for more information.
+    '''Bubble class. See module documentation for more information.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
@@ -94,18 +94,18 @@ class Bubble(GridLayout):
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction, used itself for :data:`background_image`.
+    graphics instruction. Used for :data:`background_image`.
     Can be used when using custom background.
 
-    It must be a list of 4 value: (top, right, bottom, left). Read the
-    BorderImage instruction for more information about how to play with it.
+    It must be a list of 4 values: (top, right, bottom, left). Read the
+    BorderImage instructions for more information about how to use it.
 
     :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
     16, 16, 16)
     '''
 
     background_image = StringProperty('atlas://data/images/defaulttheme/bubble')
-    '''Background image of the bubble
+    '''Background image of the bubble.
 
     :data:`background_image` is a :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/bubble'.
@@ -113,7 +113,7 @@ class Bubble(GridLayout):
 
     arrow_image = StringProperty(
         'atlas://data/images/defaulttheme/bubble_arrow')
-    ''' Image of the arrow pointing to the bubble
+    ''' Image of the arrow pointing to the bubble.
 
     :data:`arrow_image` is a :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/bubble_arrow'.
@@ -132,7 +132,7 @@ class Bubble(GridLayout):
     '''
 
     content = ObjectProperty(None)
-    '''This is the object where the main content of the bubble is held
+    '''This is the object where the main content of the bubble is held.
 
     :data:`content` is a :class:`~kivy.properties.ObjectProperty`,
     default to 'None'.
@@ -141,7 +141,7 @@ class Bubble(GridLayout):
     orientation = OptionProperty('horizontal',
             options=('horizontal', 'vertical'))
     '''This specifies the manner in which the children inside bubble
-    are arranged. can be one of 'vertical', 'horizontal'
+    are arranged. Can be one of 'vertical', 'horizontal'
 
     :data:`orientation` is a :class:`~kivy.properties.OptionProperty`,
     default to 'horizontal'.
