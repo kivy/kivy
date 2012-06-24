@@ -9,63 +9,90 @@ Tree View
     This widget is still experimental, and his API is subject to change in a
     future version.
 
-:class:`TreeView` is a widget to represent tree list. It's currently very basic,
-but support the minimal features set to be usable.
+:class:`TreeView` is a widget to represent a tree structure. It's currently very basic,
+supporting a minimal feature set.
 
-Introduction to the TreeView
-----------------------------
+Introduction
+------------
 
-A :class:`TreeView` is populated with :class:`TreeViewNode`, but you cannot use
-directly a :class:`TreeViewNode`. You must combine it with another widget, such
+A :class:`TreeView` is populated with :class:`TreeViewNode` instances, but you cannot use
+a :class:`TreeViewNode` directly. You must combine it with another widget, such
 as :class:`~kivy.uix.label.Label`, :class:`~kivy.uix.button.Button`... or even
-your own widget. The TreeView always create a default root node, based on
+your own widget. The TreeView always creates a default root node, based on
 :class:`TreeViewLabel`.
 
-The :class:`TreeViewNode` is just an class object that hold the needed property
-to successful use the other class as a node for the Tree. You can read the next
-section about how to create custom node to be used in the :class:`TreeView`.
+:class:`TreeViewNode` is a class object containing needed properties for serving as a tree
+node. Extend TreeViewNode to create custom a custom node type for use with :class:`TreeView`.
 
-For you, we have combine Label + TreeViewNode: the result is a
-:class:`TreeViewLabel`, that you can directly use as a node in the Tree.
+For constructing your own subclass, follow the pattern of TreeViewLabel, which combines Label
+and TreeViewNode, producing :class:`TreeViewLabel` for direct use in a TreeView instance.
 
-For example, you can create 2 nodes, directly attached to root::
+To use the TreeViewLabel class, you could create two nodes, directly attached to root::
 
     tv = TreeView()
     tv.add_node(TreeViewLabel(text='My first item'))
     tv.add_node(TreeViewLabel(text='My second item'))
 
-If you want to create 2 nodes attached to another one, you can do::
+Or, create two nodes attached to a first::
 
     tv = TreeView()
     n1 = tv.add_node(TreeViewLabel(text='Item 1'))
     tv.add_node(TreeViewLabel(text='SubItem 1'), n1)
     tv.add_node(TreeViewLabel(text='SubItem 2'), n1)
 
-The default root widget is always opened, and have a default text 'Root'. If you
+If you have a large tree structure, perhaps you would need a utility function to populate
+the tree view, as with:
+
+    def populate_tree_view(tree_view, parent, node):
+        if parent is None:
+            tree_node = tree_view.add_node(TreeNodeLabel(text=node['node_id'], is_open=True))
+        else:
+            tree_node = tree_view.add_node(TreeNodeLabel(text=node['node_id'], is_open=True), parent)
+
+        for child_node in node['children']:
+            populate_tree_view(tree_view, tree, child_node)
+
+    tree = {'node_id': '1',
+            'children': [{'node_id': '1.1',
+                          'children': [{'node_id': '1.1.1',
+                                        'children': [{'node_id': '1.1.1.1',
+                                                      'children': []}]},
+                                       {'node_id': '1.1.2',
+                                        'children': []},
+                                       {'node_id': '1.1.3',
+                                        'children': []}]},
+                          {'node_id': '1.2',
+                           'children': []}]}
+
+    tv = TreeView(root_options=dict(text='Tree One'), hide_root=False, indent_level=4)
+    populate_tree_view(tv, None, tree)
+    some_containing_widget.add_widget(tv)
+
+The root widget in the tree view is opened by default, and has a text set as 'Root'. If you
 want to change that, you can use :data:`TreeView.root_options` property. This
 will pass options to the root widget::
 
     tv = TreeView(root_options=dict(text='My root label'))
 
 
-Create your own node widget
----------------------------
+Creating Your Own Node Widget
+-----------------------------
 
-If you want to create a button node for example, you can just combine
-:class:`~kivy.uix.button.Button` + :class:`TreeViewNode` like this::
+For a button node type, combine :class:`~kivy.uix.button.Button` + :class:`TreeViewNode`
+like this::
 
     class TreeViewButton(Button, TreeViewNode):
         pass
 
-You must know that only the :data:`~kivy.uix.widget.Widget.size_hint_x` will be
-honored. The allocated width will depend of the current width of the TreeView
-and the level of the node. For example, if your node is at level 4, the width
+You must know that, for a given node, only the :data:`~kivy.uix.widget.Widget.size_hint_x`
+will be honored. The allocated width for the node will depend of the current width of the
+TreeView and the level of the node. For example, if a node is at level 4, the width
 allocated will be:
 
     treeview.width - treeview.indent_start - treeview.indent_level * node.level
 
-You might have some trouble with that, it's on your side to correctly handle
-that case, and adapt the graphical representation of your node if needed
+You might have some trouble with that. It is the developer's responsibility to correctly
+handle adapt the graphical representation nodes, if needed.
 '''
 
 from kivy.clock import Clock
@@ -76,7 +103,7 @@ from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, \
 
 
 class TreeViewException(Exception):
-    '''Exception for errors in the :class:`TreeView`
+    '''Exception for errors in the :class:`TreeView`.
     '''
     pass
 
@@ -91,7 +118,7 @@ class TreeViewNode(object):
         super(TreeViewNode, self).__init__(**kwargs)
 
     is_leaf = BooleanProperty(True)
-    '''Boolean to indicate if this node is a leaf or not, used to adjust
+    '''Boolean to indicate if this node is a leaf or not. Used to adjust
     graphical representation.
 
     :data:`is_leaf` is a :class:`~kivy.properties.BooleanProperty`, default to
@@ -99,13 +126,13 @@ class TreeViewNode(object):
     '''
 
     is_open = BooleanProperty(False)
-    '''Boolean to indicate if this node is opened or not, in case if he contain
-    children nodes. This is used for graphical representation.
+    '''Boolean to indicate if this node is opened or not, in case if there are
+    child nodes. This is used to adjust graphical representation.
 
     .. warning::
 
-        This property is automatically setted by the :class:`TreeView`. You can
-        read it but not write on it.
+        This property is automatically set by the :class:`TreeView`. You can
+        read but not write it.
 
     :data:`is_open` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
@@ -113,7 +140,7 @@ class TreeViewNode(object):
 
     is_loaded = BooleanProperty(False)
     '''Boolean to indicate if this node is already loaded or not. This property
-    is used only if the :class:`TreeView` use asynchronous loading.
+    is used only if the :class:`TreeView` uses asynchronous loading.
 
     :data:`is_loaded` is a :class:`~kivy.properties.BooleanProperty`, default to
     False
@@ -125,8 +152,8 @@ class TreeViewNode(object):
 
     .. warning::
 
-        This property is automatically setted by the :class:`TreeView`. You can
-        read it but not write on it.
+        This property is automatically set by the :class:`TreeView`. You can
+        read but not write it.
 
     :data:`is_selected` is a :class:`~kivy.properties.BooleanProperty`, default
     to False.
@@ -140,14 +167,14 @@ class TreeViewNode(object):
     '''
 
     nodes = ListProperty([])
-    '''List of nodes. The nodes list is differents than children. Nodes
-    represent a node on the tree, while children represent the widget associated
-    to the current node.
+    '''List of nodes. The nodes list is different than the children list. A node in
+    the nodes list represents a node on the tree. An item in the children list 
+    represents the widget associated with the node.
 
     .. warning::
 
-        This property is automatically setted by the :class:`TreeView`. You can
-        read it, but not write on it.
+        This property is automatically set by the :class:`TreeView`. You can
+        read but not write it.
 
     :data:`nodes` is a :class:`~kivy.properties.ListProperty`, default to [].
     '''
@@ -190,7 +217,7 @@ class TreeViewNode(object):
     '''
 
     even_color = ListProperty([0.5, 0.5, 0.5, 0.1])
-    '''Background color of odd nodes when the node is not selected.
+    '''Background color of even nodes when the node is not selected.
 
     :data:`bg_color` is a :class:`~kivy.properties.ListProperty`, default
     to [.5, .5, .5, .1].
@@ -211,7 +238,7 @@ class TreeView(Widget):
 
     :Events:
         `on_node_expand`: (node, )
-            Fired when a node is being expended
+            Fired when a node is being expanded
         `on_node_collapse`: (node, )
             Fired when a node is being collapsed
     '''
@@ -287,7 +314,7 @@ class TreeView(Widget):
         pass
 
     def select_node(self, node):
-        '''Select a node in the tree
+        '''Select a node in the tree.
         '''
         if node.no_selection:
             return
@@ -297,7 +324,7 @@ class TreeView(Widget):
         self._selected_node = node
 
     def toggle_node(self, node):
-        '''Toggle the state of the node (open/collapse)
+        '''Toggle the state of the node (open/collapse).
         '''
         node.is_open = not node.is_open
         if node.is_open:
@@ -309,7 +336,7 @@ class TreeView(Widget):
         self._trigger_layout()
 
     def get_node_at_pos(self, pos):
-        '''Get a node a at the position (x, y).
+        '''Get a node at the position (x, y).
         '''
         x, y = pos
         for node in self.iterate_open_nodes(self.root):
@@ -319,8 +346,7 @@ class TreeView(Widget):
 
     def iterate_open_nodes(self, node=None):
         '''Generator to iterate over expanded nodes.
-        Example for get all the node opened:
-        ::
+        To get all the open nodes:
 
             treeview = TreeView()
             # ... add nodes ...
@@ -342,7 +368,7 @@ class TreeView(Widget):
                 yield ynode
 
     def iterate_all_nodes(self, node=None):
-        '''Generate to iterate over all nodes, expanded or not.
+        '''Generator to iterate over all nodes, expanded or not.
         '''
         if not node:
             node = self.root
@@ -447,7 +473,7 @@ class TreeView(Widget):
     #
 
     minimum_width = NumericProperty(0)
-    '''Minimum width needed to contain all childrens.
+    '''Minimum width needed to contain all children.
 
     .. versionadded:: 1.0.9
 
@@ -456,7 +482,7 @@ class TreeView(Widget):
     '''
 
     minimum_height = NumericProperty(0)
-    '''Minimum height needed to contain all childrens.
+    '''Minimum height needed to contain all children.
 
     .. versionadded:: 1.0.9
 
@@ -465,7 +491,7 @@ class TreeView(Widget):
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
-    '''Minimum size needed to contain all childrens.
+    '''Minimum size needed to contain all children.
 
     .. versionadded:: 1.0.9
 
@@ -486,7 +512,7 @@ class TreeView(Widget):
 
     indent_start = NumericProperty(24)
     '''Indentation width of the level 0 / root node. This is mostly the initial
-    size to put an tree icon (collapsed / expanded). See :data:`indent_level`
+    size to accommodate a tree icon (collapsed / expanded). See :data:`indent_level`
     for more information about the computation of level indentation.
 
     :data:`indent_start` is a :class:`~kivy.properties.NumericProperty`,
@@ -495,7 +521,7 @@ class TreeView(Widget):
 
     hide_root = BooleanProperty(False)
     '''Use this property to show/hide the initial root node. If True, the root
-    node will be always considerate as an open node
+    node will be appear as a closed node.
 
     :data:`hide_root` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
@@ -518,9 +544,9 @@ class TreeView(Widget):
     root = AliasProperty(get_root, None, bind=('_root', ))
     '''Root node.
 
-    By default, the root node widget is a :class:`TreeViewLabel`, with the label
+    By default, the root node widget is a :class:`TreeViewLabel`, with text
     'Root'. If you want to change the default options passed to the widget
-    creation, you can use :data:`root_options` property::
+    creation, use the :data:`root_options` property::
 
         treeview = TreeView(root_options={
             'text': 'Root directory',
@@ -543,9 +569,9 @@ class TreeView(Widget):
     '''
 
     load_func = ObjectProperty(None)
-    '''Callback to use for asynchronous loading. If set, the asynchronous will
-    be automatically done. The callback must act as a Python generator function
-    : use yield to send data back to the treeview.
+    '''Callback to use for asynchronous loading. If set, asynchronous loading will
+    be automatically done. The callback must act as a Python generator function,
+    using yield to send data back to the treeview.
 
     The callback should be in the format::
 
