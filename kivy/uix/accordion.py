@@ -16,8 +16,8 @@ The Accordion widget is a form of menu where the options are stacked either
 vertically or horizontally, and the item in focus/when touched opens up
 displaying his content.
 
-The :class:`Accordion` will contain one or many :class:`AccordionItem`, that
-will contain one root content widget. You'll have a Tree like this:
+The :class:`Accordion` will contain one or many :class:`AccordionItem` instances,
+that will contain one root content widget. You'll have a Tree like this:
 
 - Accordion
 
@@ -38,7 +38,7 @@ will contain one root content widget. You'll have a Tree like this:
     - Another user content
 
 
-The current implementation divide the :class:`AccordionItem` in 2:
+The current implementation divides the :class:`AccordionItem` into two parts:
 
 #. One container for the title bar
 #. One container for the content
@@ -50,11 +50,11 @@ to customize the design of the title bar.
 
     If you see message like::
 
-        [WARNING] [Accordion] not have enough space for displaying all childrens
+        [WARNING] [Accordion] not have enough space for displaying all children
         [WARNING] [Accordion] need 440px, got 100px
         [WARNING] [Accordion] layout aborted.
 
-    That means you have too many children, and they are no more space to
+    That means you have too many children, and there is no more space to
     display any content. This is "normal", and nothing will be done. Try to
     increase the space for the accordion, and reduce the number of children. You
     can also reduce the :attr:`Accordion.min_space`.
@@ -76,8 +76,8 @@ Or change the orientation to vertical::
 
     root = Accordion(orientation='vertical')
 
-The item is more configurable, and you can set your own title background when
-the item is collapsed or opened like::
+AccordionItem is more configurable, and you can set your own title background when
+the item is collapsed or opened::
 
     item = AccordionItem(background_normal='image_when_collapsed.png',
         background_selected='image_when_selected.png')
@@ -98,8 +98,7 @@ from kivy.logger import Logger
 
 
 class AccordionException(Exception):
-    '''AccordionException class, that can be throwed anytime the accordion is
-    doing something bad.
+    '''AccordionException class.
     '''
     pass
 
@@ -110,11 +109,10 @@ class AccordionItem(FloatLayout):
     '''
 
     title = StringProperty('')
-    '''Title string of the item. The title might be used with conjuction of the
-    `AccordionItemTitle` that use it.
-    If you are using a custom template, you can use that property as a text
-    entry, or not. By default, it's used for the title text.
-
+    '''Title string of the item. The title might be used in conjuction with the
+    `AccordionItemTitle` template. If you are using a custom template, you can 
+    use that property as a text entry, or not. By default, it's used for the 
+    title text. See title_template and the example below.
 
     :data:`title` is a :class:`~kivy.properties.StringProperty`, default to ''
     '''
@@ -122,17 +120,17 @@ class AccordionItem(FloatLayout):
     title_template = StringProperty('AccordionItemTitle')
     '''Template to use for creating the title part of the accordion item. The
     default template is a simple Label, not customizable (except the text) that
-    support vertical and horizontal orientation, and different background for
+    supports vertical and horizontal orientation, and different backgrounds for
     collapse and selected mode.
 
-    It's better to create and use your own template if you want to do that is
-    not supported by the default template.
+    It's better to create and use your own template, if the default template
+    does not suffice.
 
     :data:`title` is a :class:`~kivy.properties.StringProperty`, default to
-    'AccordionItemTitle'. The current default template live in the
+    'AccordionItemTitle'. The current default template lives in the
     `kivy/data/style.kv` file.
 
-    Here is the code if you want to start over to build your own template::
+    Here is the code if you want to build your own template::
 
         [AccordionItemTitle@Label]:
             text: ctx.title
@@ -169,14 +167,14 @@ class AccordionItem(FloatLayout):
     '''
 
     collapse = BooleanProperty(True)
-    '''Boolean indicate if the current item is collapsed or not.
+    '''Boolean to indicate if the current item is collapsed or not.
 
     :data:`collapse` is a :class:`~kivy.properties.BooleanProperty`, default to
     True
     '''
 
     collapse_alpha = NumericProperty(1.)
-    '''Value between 0 and 1 indicate how much the item is collasped (1) or
+    '''Value between 0 and 1 to indicate how much the item is collasped (1) or
     selected (0). It's mostly used for animation.
 
     :data:`collapse_alpha` is a :class:`~kivy.properties.NumericProperty`,
@@ -184,7 +182,7 @@ class AccordionItem(FloatLayout):
     '''
 
     accordion = ObjectProperty(None)
-    '''Instance of the :class:`Accordion` that the item belong to.
+    '''Instance of the :class:`Accordion` that the item belongs to.
 
     :data:`accordion` is an :class:`~kivy.properties.ObjectProperty`, default to
     None.
@@ -219,7 +217,7 @@ class AccordionItem(FloatLayout):
 
     content_size = ListProperty([100, 100])
     '''(internal) Set by the :class:`Accordion` to the size allocated for the
-    content
+    content.
     '''
 
     container = ObjectProperty(None)
@@ -291,7 +289,7 @@ class AccordionItem(FloatLayout):
 
 
 class Accordion(Widget):
-    '''Accordion class, see module documentation for more information.
+    '''Accordion class. See module documentation for more information.
     '''
 
     orientation = OptionProperty('horizontal', options=(
@@ -303,7 +301,7 @@ class Accordion(Widget):
     '''
 
     anim_duration = NumericProperty(.25)
-    '''Duration of the animation is second, when a new accordion item is
+    '''Duration of the animation in seconds, when a new accordion item is
     selected.
 
     :data:`anim_duration` is a :class:`~kivy.properties.NumericProperty`,
@@ -322,7 +320,7 @@ class Accordion(Widget):
 
     min_space = NumericProperty(44)
     '''Minimum space to use for title of each item. This value is automatically
-    set on each children, each time the layout happen.
+    set on each children, each time the layout happens.
 
     :data:`min_space` is a :class:`~kivy.properties.NumericProperty`, default to
     44 (px).
@@ -372,8 +370,8 @@ class Accordion(Widget):
             display_space = self.height - min_space_total
 
         if display_space <= 0:
-            Logger.warning('Accordion: not have enough space '
-                           'for displaying all childrens')
+            Logger.warning('Accordion: not enough space '
+                           'for displaying all children')
             Logger.warning('Accordion: need %dpx, got %dpx' % (
                 min_space_total, min_space_total + display_space))
             Logger.warning('Accordion: layout aborted.')
