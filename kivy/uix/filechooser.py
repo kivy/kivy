@@ -87,19 +87,19 @@ class FileChooserProgressBase(FloatLayout):
     '''
 
     path = StringProperty('')
-    '''Current path of the FileChooser, read-only
+    '''Current path of the FileChooser, read-only.
     '''
 
     index = NumericProperty(0)
-    '''Current index of :data:`total` entries to be loaded
+    '''Current index of :data:`total` entries to be loaded.
     '''
 
     total = NumericProperty(1)
-    '''Total number of entries to load
+    '''Total number of entries to load.
     '''
 
     def cancel(self, *largs):
-        '''Cancel any action from the FileChooserController
+        '''Cancel any action from the FileChooserController.
         '''
         if self.parent:
             self.parent.cancel()
@@ -126,7 +126,7 @@ class FileChooserProgress(FileChooserProgressBase):
 
 class FileChooserController(FloatLayout):
     '''Base for implementing a FileChooser. Don't use that class directly,
-    prefer to use one implementation like :class:`FileChooserListView` or
+    preferring to use an implementation like :class:`FileChooserListView` or
     :class:`FileChooserIconView`.
     '''
     _ENTRY_TEMPLATE = None
@@ -135,14 +135,14 @@ class FileChooserController(FloatLayout):
     '''
     :class:`~kivy.properties.StringProperty`, defaults to current working
     directory as unicode string. Specifies the path on the filesystem that
-    this controller should look at.
+    this controller should refer to.
     '''
 
     filters = ListProperty([])
     ''':class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
     The filters to be applied to the files in the directory, e.g. ['\*.png'].
-    The filters are not reset when the path changes, you need to do that
-    yourself if you want that. You can use the following patterns:
+    The filters are not reset when the path changes. You need to do that
+    yourself if desired. You can use the following patterns:
 
       ========== =================================
       Pattern     Meaning
@@ -158,15 +158,14 @@ class FileChooserController(FloatLayout):
     filter_dirs = BooleanProperty(False)
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
-    Indicate whether filters should also apply to directories.
+    Indicates whether filters should also apply to directories.
     '''
 
     sort_func = ObjectProperty(alphanumeric_folders_first)
     '''
     :class:`~kivy.properties.ObjectProperty`.
-    Provide a function to be called with a list of filenames as only argument.
-    Return a list of filenames in such a manner that the new list is sorted and
-    represents in which order files are supposed to be displayed in the view.
+    Provides a function to be called with a list of filenames as the only argument.
+    Returns a list of filenames sorted for display in the view.
     '''
 
     files = ListProperty([])
@@ -206,7 +205,7 @@ class FileChooserController(FloatLayout):
     '''
     Root path to use, instead of the system root path. If set, it will not show
     a ".." directory to go upper the root path. For example, if you set rootpath
-    to /Users/foo, the user will be unable to goes to /Users, or any other
+    to /Users/foo, the user will be unable to go to /Users, or to any other
     directory not starting with /Users/foo.
 
     .. versionadded:: 1.2.0
@@ -215,7 +214,7 @@ class FileChooserController(FloatLayout):
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
-    '''Class to use for display a progression of the filechooser loading.
+    '''Class to use for displaying a progress indicator for filechooser loading.
 
     .. versionadded:: 1.2.0
 
@@ -225,12 +224,12 @@ class FileChooserController(FloatLayout):
 
 
     file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
-    '''Possible encodings for decoding a filename to unicode. It might be
-    possible than user have a weird filename, undecodable without knowing it's
-    initial encoding. We have no other choice to guess it.
+    '''Possible encodings for decoding a filename to unicode. In the case that
+    the user has a weird filename, undecodable without knowing it's
+    initial encoding, we have no other choice than to guess it.
 
-    Please note that if you encounter an issue cause of a missing encodings
-    here, we'll be glad to add it in this list.
+    Please note that if you encounter an issue because of a missing encoding
+    here, we'll be glad to add it to this list.
 
     .. versionadded:: 1.3.0
 
@@ -369,7 +368,7 @@ class FileChooserController(FloatLayout):
 
     def get_nice_size(self, fn):
         '''Pass the filepath. Returns the size in the best human readable
-        format or '' if it's a directory (Don't recursively calculate size.).
+        format or '' if it is a directory (Don't recursively calculate size.).
         '''
         if isdir(fn):
             return ''
@@ -448,7 +447,7 @@ class FileChooserController(FloatLayout):
         return False
 
     def cancel(self, *largs):
-        '''Cancel any background action started by filechooser, like loading a
+        '''Cancel any background action started by filechooser, such as loading a
         new directory.
 
         .. versionadded:: 1.2.0
@@ -584,13 +583,13 @@ class FileChooserController(FloatLayout):
 
 
 class FileChooserListView(FileChooserController):
-    '''Implementation of :class:`FileChooserController` using a list view
+    '''Implementation of :class:`FileChooserController` using a list view.
     '''
     _ENTRY_TEMPLATE = 'FileListEntry'
 
 
 class FileChooserIconView(FileChooserController):
-    '''Implementation of :class:`FileChooserController` using an icon view
+    '''Implementation of :class:`FileChooserController` using an icon view.
     '''
     _ENTRY_TEMPLATE = 'FileIconEntry'
 
