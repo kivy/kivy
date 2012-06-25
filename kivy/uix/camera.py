@@ -62,7 +62,7 @@ class Camera(Image):
     '''
 
     resolution = ListProperty([-1, -1])
-    '''Prefered resolution to use when invoking the camera. If you are using
+    '''Preferred resolution to use when invoking the camera. If you are using
     [-1, -1], the resolution will be the default one. ::
 
         # create a camera object with the best image available
@@ -73,7 +73,7 @@ class Camera(Image):
 
     .. warning::
 
-        Depending of the implementation, the camera may not respect this
+        Depending on the implementation, the camera may not respect this
         property.
 
     :data:`resolution` is a :class:`~kivy.properties.ListProperty`, default to

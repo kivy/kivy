@@ -12,7 +12,7 @@ The :class:`Layout` class itself cannot be used directly. You must use one of:
 - Grid layout : :class:`kivy.uix.gridlayout.GridLayout`
 - Stack layout : :class:`kivy.uix.stacklayout.StackLayout`
 
-Understanding `size_hint` property in `Widget`
+Understanding `size_hint` Property in `Widget`
 ----------------------------------------------
 
 The :data:`~kivy.uix.Widget.size_hint` is mostly used in Layout. This is the
@@ -20,17 +20,17 @@ size in percent, not in pixels. The format is::
 
     widget.size_hint = (width_percent, height_percent)
 
-The percent is specified as a floating point number in the range 0-1, ie 0.5
-is 50%, 1 is 100%.
+The percent is specified as a floating point number in the range 0-1. For 
+example, 0.5 is 50%, 1 is 100%.
 
-If you want a widget's width to be half of the parent's and their heights to
-be identical, you can do::
+If you want a widget's width to be half of the parent's width and the
+height to be identical to parent's height, you would do::
 
     widget.size_hint = (0.5, 1.0)
 
 If you don't want to use size_hint for one of width or height, set the value to
 None. For example, to make a widget that is 250px wide and 30% of the parent's
-height, you can write::
+height, do::
 
     widget.size_hint = (None, 0.3)
     widget.width = 250
@@ -44,7 +44,7 @@ from kivy.uix.widget import Widget
 
 
 class Layout(Widget):
-    '''Layout interface class, used to implement every layout. Check module
+    '''Layout interface class, used to implement every layout. See module
     documentation for more information.
     '''
 
@@ -62,7 +62,7 @@ class Layout(Widget):
             child.__setattr__(prop, kwargs[prop])
 
     def do_layout(self, *largs):
-        '''This function is called when a layout is needed, with by a trigger.
+        '''This function is called when a layout is needed, by a trigger.
         If you are doing a new Layout subclass, don't call this function
         directly, use :data:`_trigger_layout` instead.
 

@@ -47,7 +47,7 @@ class AnchorLayout(Layout):
     '''Horizontal anchor.
 
     :data:`anchor_x` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'center'. Can take a value of 'left', 'center' or 'right'
+    to 'center'. Can take a value of 'left', 'center' or 'right'.
     '''
 
     anchor_y = OptionProperty('center', options=(
@@ -55,7 +55,7 @@ class AnchorLayout(Layout):
     '''Vertical anchor.
 
     :data:`anchor_y` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'center'. Can take a value of 'top', 'center' or 'bottom'
+    to 'center'. Can take a value of 'top', 'center' or 'bottom'.
     '''
 
     def __init__(self, **kwargs):
