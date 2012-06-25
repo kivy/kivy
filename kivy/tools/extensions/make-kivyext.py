@@ -71,7 +71,7 @@ class PackageBuild(Command):
     def run(self):
         # Call this file and make a distributable .zip file that has our desired
         # folder structure
-        call(['python', 'setup.py', 'install', '--root', 'output/',
+        call([sys.executable, 'setup.py', 'install', '--root', 'output/',
             '--install-lib', '/', '--install-platlib', '/', '--install-data',
             '/%(extname)s/data', 'bdist', '--formats=zip'])
         files = os.listdir('dist')
