@@ -211,15 +211,18 @@ The current implemented Pause mechanism is:
 __all__ = ('App', )
 
 from inspect import getfile
-from os.path import dirname, join, exists
+from os.path import dirname, join, exists, sep, expanduser
 from kivy.config import ConfigParser
 from kivy.base import runTouchApp, stopTouchApp
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
-from kivy.utils import platform
+from kivy.utils import platform as core_platform
 from kivy.uix.widget import Widget
+
+
+platform = core_platform()
 
 
 class App(EventDispatcher):
@@ -394,12 +397,48 @@ class App(EventDispatcher):
             return resource_find(self.icon)
         return None
 
-    def get_application_config(self):
+    def get_application_config(self, defaultpath='%(appdir)s/%(appname)s.ini'):
         '''.. versionadded:: 1.0.7
 
-        Return the filename of your application configuration
+        .. versionchanged:: 1.4.0
+
+            Customize the default path for iOS and Android platform. Add
+            defaultpath parameter for desktop computer (not applicatable for iOS
+            and Android.)
+
+        Return the filename of your application configuration. Depending the
+        platform, the application file will be stored at different places:
+
+            - on iOS: <appdir>/Documents/.<appname>.ini
+            - on Android: /sdcard/.<appname>.ini
+            - otherwise: <appdir>/<appname>.ini
+
+        When you are distributing your application on Desktop, please note than
+        if the application is meant to be installed system-wise, then the user
+        might not have any write-access to the application directory. You could
+        overload this method to change the default behavior, and save the
+        configuration file in the user directory by default::
+
+            class TestApp(App):
+                def get_application_config(self):
+                    return super(TestApp, self).get_application_config(
+                        '~/.%(appname)s.ini')
+
+        Some notes:
+
+        - The tilda '~' will be expanded to the user directory.
+        - %(appdir)s will be replaced with the application :data:`directory`
+        - %(appname)s will be replaced with the application :data:`name`
         '''
-        return join(self.directory, '%s.ini' % self.name)
+
+        if platform == 'android':
+            defaultpath = '/sdcard/.%(appname).ini'
+        elif platform == 'ios':
+            defaultpath = '~/Documents/%(appname).ini'
+        elif platform == 'win':
+            defaultpath = defaultpath.replace('/', sep)
+        return expanduser(defaultpath) % {
+            'appname': self.name, 'appdir': self.directory}
 
     def load_config(self):
         '''(internal) This function is used for returning a ConfigParser with
@@ -610,7 +649,7 @@ class App(EventDispatcher):
         setting_key = 282  # F1
 
         # android hack, if settings key is pygame K_MENU
-        if platform() == 'android':
+        if platform == 'android':
             import pygame
             setting_key = pygame.K_MENU
 
