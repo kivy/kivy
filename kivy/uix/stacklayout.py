@@ -64,7 +64,7 @@ class StackLayout(Layout):
     '''
 
     minimum_width = NumericProperty(0)
-    '''Minimum width needed to contain all childrens.
+    '''Minimum width needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -73,7 +73,7 @@ class StackLayout(Layout):
     '''
 
     minimum_height = NumericProperty(0)
-    '''Minimum height needed to contain all childrens.
+    '''Minimum height needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -82,7 +82,7 @@ class StackLayout(Layout):
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
-    '''Minimum size needed to contain all childrens.
+    '''Minimum size needed to contain all children.
 
     .. versionadded:: 1.0.8
 

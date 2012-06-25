@@ -7,12 +7,12 @@ CheckBox
 .. image:: images/checkbox.png
     :align: right
 
-:class:`CheckBox` is a specific two-states button that can be either checked or
-unchecked. If the CheckBox is in a Group, it become a Radio button.
-As the :class:`~kivy.uix.togglebutton.ToggleButton`, only one Radio button at
-time can be selected when the :data:`CheckBox.group` is set.
+:class:`CheckBox` is a specific two-state button that can be either checked or
+unchecked. If the CheckBox is in a Group, it becomes a Radio button.
+As with the :class:`~kivy.uix.togglebutton.ToggleButton`, only one Radio button
+at a time can be selected when the :data:`CheckBox.group` is set.
 
-An example usage of a checkbox inside your application would be the following::
+An example usage::
 
     from kivy.uix.checkbox import CheckBox
 
@@ -40,7 +40,7 @@ class CheckBox(Widget):
     '''
 
     active = BooleanProperty(False)
-    '''Indicate if the switch is active or inactive.
+    '''Indicates if the switch is active or inactive.
 
     :data:`active` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
