@@ -102,7 +102,6 @@ class SoundGstreamer(Sound):
     def _set_volume(self, volume):
         if self._data is not None:
             self._data.set_property('volume', volume)
-        return super(SoundGstreamer, self)._set_volume(volume)
 
     def _get_length(self):
         if self._data is not None:
