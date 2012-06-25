@@ -47,12 +47,12 @@ To run a callback when the text changes ::
     textinput.bind(text=on_text)
 
 You can 'focus' a textinput, meaning that the input box will be highlighted,
-and keyboard will be requested ::
+and keyboard focus will be requested ::
 
     textinput = TextInput(focus=True)
 
 The textinput is defocused if the 'escape' key is pressed, or if another
-widget requests the keyboard. You can bind a callback to focus property to
+widget requests the keyboard. You can bind a callback to the focus property to
 get notified of focus changes ::
 
     def on_focus(instance, value):
@@ -145,7 +145,7 @@ class TextInputCutCopyPaste(Bubble):
 
 
 class TextInput(Widget):
-    '''TextInput class, see module documentation for more information.
+    '''TextInput class. See module documentation for more information.
 
     :Events:
         `on_text_validate`
@@ -232,7 +232,7 @@ class TextInput(Widget):
             return 0
 
     def cursor_offset(self):
-        '''Get the cursor x offset on the current line
+        '''Get the cursor x offset on the current line.
         '''
         offset = 0
         if self.cursor_col:
@@ -241,7 +241,7 @@ class TextInput(Widget):
         return offset
 
     def get_cursor_from_index(self, index):
-        '''Return the (row, col) of the cursor from text index
+        '''Return the (row, col) of the cursor from text index.
         '''
         index = boundary(index, 0, len(self.text))
         if index <= 0:
@@ -260,7 +260,7 @@ class TextInput(Widget):
         return index, row
 
     def insert_text(self, substring, from_undo = False):
-        '''Insert new text on the current cursor position
+        '''Insert new text on the current cursor position.
         '''
         if self.readonly:
             return
@@ -303,7 +303,7 @@ class TextInput(Widget):
         self._redo = []
 
     def reset_undo(self):
-        '''Reset undo and redo lists from memory
+        '''Reset undo and redo lists from memory.
 
         .. versionadded:: 1.3.0
 
@@ -316,8 +316,7 @@ class TextInput(Widget):
         .. versionadded:: 1.3.0
 
         This action re-does any command that has been un-done by do_undo/ctrl+z.
-        This function is automaticlly called when `ctrl+r` keys
-        are pressed.
+        This function is automaticlly called when `ctrl+r` keys are pressed.
         '''
         try:
             x_item = self._redo.pop()
@@ -334,8 +333,7 @@ class TextInput(Widget):
 
         This action un-does any edits that have been made since the last
         call to reset_undo().
-        This function is automatically called when `ctrl+z` keys
-        are pressed.
+        This function is automatically called when `ctrl+z` keys are pressed.
         '''
         try:
             x_item = self._undo.pop()
@@ -347,7 +345,7 @@ class TextInput(Widget):
 
     def do_backspace(self, from_undo = False):
         '''Do backspace operation from the current cursor position.
-        This action might do lot of things like:
+        This action might do several things:
 
             - removing the current selection if available
             - removing the previous char, and back the cursor
@@ -410,7 +408,7 @@ class TextInput(Widget):
 
         .. warning::
 
-            Current page are 3 lines before/after
+            Current page has three lines before/after.
 
         '''
         pgmove_speed = 3
@@ -460,7 +458,7 @@ class TextInput(Widget):
     # Selection control
     #
     def cancel_selection(self):
-        '''Cancel current selection (if any)
+        '''Cancel current selection (if any).
         '''
         self._selection = False
         self._selection_finished = True
@@ -468,7 +466,7 @@ class TextInput(Widget):
         self._trigger_update_graphics()
 
     def delete_selection(self, from_undo = False):
-        '''Delete the current text selection (if any)
+        '''Delete the current text selection (if any).
         '''
         if self.readonly:
             return
@@ -512,7 +510,7 @@ class TextInput(Widget):
 
     def _update_selection(self, finished=False):
         '''Update selection text and order of from/to if finished is True.
-        Can be called multiple times until finished=True.
+        Can be called multiple times until finished is True.
         '''
         a, b = self.selection_from, self.selection_to
         if a > b:
@@ -1203,7 +1201,7 @@ class TextInput(Widget):
     '''
 
     multiline = BooleanProperty(True)
-    '''If True, the widget will be able show multiple lines of text. If false,
+    '''If True, the widget will be able show multiple lines of text. If False,
     "enter" action will defocus the textinput instead of adding a new line.
 
     :data:`multiline` is a :class:`~kivy.properties.BooleanProperty`, default to
@@ -1211,7 +1209,7 @@ class TextInput(Widget):
     '''
 
     password = BooleanProperty(False)
-    '''If True, the widget will display its characters as the character*.
+    '''If True, the widget will display its characters as the character *.
 
     .. versionadded:: 1.2.0
 
@@ -1221,7 +1219,7 @@ class TextInput(Widget):
 
     cursor_blink = BooleanProperty(False)
     '''This property is used to blink the cursor graphics. The value of
-    :data:`cursor_blink` is automatically computed, setting a value on it will
+    :data:`cursor_blink` is automatically computed. Setting a value on it will
     have no impact.
 
     :data:`cursor_blink` is a :class:`~kivy.properties.BooleanProperty`, default
@@ -1317,7 +1315,7 @@ class TextInput(Widget):
     '''
 
     tab_width = NumericProperty(4)
-    '''By default, each tab will be replaced by the size of 4 spaces on the text
+    '''By default, each tab will be replaced by four spaces on the text
     input widget. You can set a lower or higher value.
 
     :data:`tab_width` is a :class:`~kivy.properties.NumericProperty`, default to
@@ -1339,7 +1337,7 @@ class TextInput(Widget):
     '''
 
     padding = ReferenceListProperty(padding_x, padding_y)
-    '''Padding of the text, in the format (padding_x, padding_y)
+    '''Padding of the text, in the format (padding_x, padding_y).
 
     :data:`padding` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`padding_x`, :data:`padding_y`) properties.
@@ -1347,8 +1345,8 @@ class TextInput(Widget):
 
     scroll_x = NumericProperty(0)
     '''X scrolling value of the viewport. The scrolling is automatically updated
-    when the cursor is moving or text is changing. If you are not doing any
-    action, you can still change the scroll_x and scroll_y properties.
+    when the cursor is moving or text is changing. If there is no action, the
+    scroll_x and scroll_y properties may be changed.
 
     :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
@@ -1368,7 +1366,7 @@ class TextInput(Widget):
     .. warning::
 
         The color should always have "alpha" component different from 1, since
-        the selection is drawed after the text.
+        the selection is drawn after the text.
 
     :data:`selection_color` is a :class:`~kivy.properties.ListProperty`, default
     to [0.1843, 0.6549, 0.8313, .5]
@@ -1394,7 +1392,7 @@ class TextInput(Widget):
 
     selection_from = NumericProperty(None, allownone=True)
     '''If a selection is happening, or finished, this property will represent
-    the cursor index where the selection start.
+    the cursor index where the selection started.
 
     :data:`selection_from` is a :class:`~kivy.properties.NumericProperty`,
     default to None
@@ -1402,7 +1400,7 @@ class TextInput(Widget):
 
     selection_to = NumericProperty(None, allownone=True)
     '''If a selection is happening, or finished, this property will represent
-    the cursor index where the selection end.
+    the cursor index where the selection ended.
 
     :data:`selection_to` is a :class:`~kivy.properties.NumericProperty`,
     default to None
@@ -1416,7 +1414,7 @@ class TextInput(Widget):
     '''
 
     focus = BooleanProperty(False)
-    '''If focus is true, the keyboard will be requested, and you can start to
+    '''If focus is True, the keyboard will be requested, and you can start to
     write on the textinput.
 
     :data:`focus` is a :class:`~kivy.properties.BooleanProperty`, default to
@@ -1451,19 +1449,19 @@ class TextInput(Widget):
     '''
 
     font_name = StringProperty('DroidSans')
-    '''Filename of the font to use, the path can be absolute or relative.
+    '''Filename of the font to use. The path can be absolute or relative.
     Relative paths are resolved by the :func:`~kivy.resources.resource_find`
     function.
 
     .. warning::
 
-        Depending of your text provider, the font file can be ignored. However
+        Depending on your text provider, the font file can be ignored. However,
         you can mostly use this without trouble.
 
-        If the font used lacks the glyphs for the perticular language/symbols
+        If the font used lacks the glyphs for the particular language/symbols
         you are using, you will see '[]' blank box characters instead of the
         actual glyphs. The solution is to use a font that has the glyphs you
-        need to display. For example to display |unicodechar|, use a font like
+        need to display. For example, to display |unicodechar|, use a font like
         freesans.ttf that has the glyph.
 
         .. |unicodechar| image:: images/unicode-char.png
