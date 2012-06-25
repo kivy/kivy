@@ -11,9 +11,9 @@ system.
 .. warning::
 
     This widget is highly experimental. The whole styling and implementation are
-    not stable until this warning have been removed.
+    not stable until this warning has been removed.
 
-Usage with text
+Usage with Text
 ---------------
 
 ::
@@ -36,10 +36,10 @@ The rendering will output:
 
 .. image:: images/rstdocument.png
 
-Usage with source
+Usage with Source
 -----------------
 
-You can also render a rst filename by using :data:`RstDocument.source`::
+You can also render a rst file by using :data:`RstDocument.source`::
 
     document = RstDocument(source='index.rst')
 
@@ -48,7 +48,7 @@ document ``index.rst`` you can write::
 
     Go to my next document: :doc:`moreinfo.rst`
 
-It will generate a link that user can click, and the document ``moreinfo.rst``
+It will generate a link that, when clicked, the document ``moreinfo.rst``
 will be loaded.
 
 '''
@@ -377,20 +377,20 @@ class RstDocument(ScrollView):
     '''
 
     source = StringProperty(None)
-    '''Filename of the RST document
+    '''Filename of the RST document.
 
     :data:`source` is a :class:`~kivy.properties.StringProperty`, default to
     None.
     '''
 
     text = StringProperty(None)
-    '''RST markup text of the document
+    '''RST markup text of the document.
 
     :data:`text` is a :class:`~kivy.properties.StringProperty`, default to None.
     '''
 
     document_root = StringProperty(None)
-    '''Root path where :doc: will search any rst document. If no path are
+    '''Root path where :doc: will search any rst document. If no path is
     given, then it will use the directory of the first loaded source.
 
     :data:`document_root` is a :class:`~kivy.properties.StringProperty`, default
@@ -398,7 +398,7 @@ class RstDocument(ScrollView):
     '''
 
     show_errors = BooleanProperty(False)
-    '''Indicate if RST parsers errors must be showed on the screen or not.
+    '''Indicate if RST parsers errors must be shown on the screen or not.
 
     :data:`show_errors` is a :class:`~kivy.properties.BooleanProperty`, default
     to False
@@ -409,11 +409,11 @@ class RstDocument(ScrollView):
         'paragraph': '202020',
         'title': '204a87',
         'bullet': '000000'})
-    '''Dictionnary of all the colors used in the RST rendering.
+    '''Dictionary of all the colors used in the RST rendering.
 
     .. warning::
 
-        This dictionnary is not yet used completly. You also need to call
+        This dictionary is needs special handling. You also need to call
         :meth:`RstDocument.render` if you change them after loading.
 
     :data:`colors` is a :class:`~kivy.properties.DictProperty`.
@@ -427,12 +427,12 @@ class RstDocument(ScrollView):
     '''
 
     toctrees = DictProperty({})
-    '''Toctree of all loaded or preloaded documents. This dictionnary is filled
-    when a rst document is explicitly loaded, or where :func:`preload` have been
+    '''Toctree of all loaded or preloaded documents. This dictionary is filled
+    when a rst document is explicitly loaded, or where :func:`preload` has been
     called.
 
-    If the document have no filename, ie the document is loaded from a text,
-    then the key will be ''.
+    If the document has no filename, e.g., when the document is loaded from a text file,
+    the key will be ''.
 
     :data:`toctrees` is a :class:`~kivy.properties.DictProperty`, default to {}.
     '''
@@ -461,13 +461,13 @@ class RstDocument(ScrollView):
         self._trigger_load()
 
     def render(self):
-        '''Force the document rendering
+        '''Force document rendering.
         '''
         self._load_from_text()
 
     def resolve_path(self, filename):
-        '''Get the path for this filename file. If the filename doesn't exist,
-        it will return the document_root + filename.
+        '''Get the path for this filename. If the filename doesn't exist,
+        it return the document_root + filename.
         '''
         if exists(filename):
             return filename
@@ -525,11 +525,11 @@ class RstDocument(ScrollView):
     def goto(self, ref, *largs):
         '''Scroll to the reference. If it's not found, nothing will be done.
 
-        If you wrote a text like::
+        For this text::
 
             .. _myref:
 
-            This is something i always wanted
+            This is something I always wanted.
 
         You can do::
 
@@ -541,10 +541,10 @@ class RstDocument(ScrollView):
 
         .. note::
 
-            It's preferable to delay the call of the goto if you just loaded the
-            document. Because the layout could not be finished, or it the size
+            It is preferable to delay the call of the goto if you just loaded the
+            document, because the layout might not be finished, or if the size
             of the RstDocument is not fixed yet, then the calculation of the
-            scrolling will be wrong.
+            scrolling would be wrong.
 
             However, you can do a direct call if the document is already loaded.
 
