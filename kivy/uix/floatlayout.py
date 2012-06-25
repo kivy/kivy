@@ -2,7 +2,7 @@
 Float Layout
 ============
 
-The :class:`FloatLayout` class will just honor the :data:`Widget.pos_hint` and
+The :class:`FloatLayout` class will only honor the :data:`Widget.pos_hint` and
 :data:`Widget.size_hint` attributes.
 
 .. only:: html
@@ -35,21 +35,21 @@ For example, if you create a FloatLayout with size of (300, 300)::
 
 ::
 
-    # If you want to create a button that will always be the size of layout -
-    # 20% each sides
+    # If you want to create a button that will always be the size of layout 
+    # minus 20% on each side:
     button = Button(text='Hello world', size_hint=(.6, .6),
                     pos_hint={'x':.2, 'y':.2})
 
 .. note::
 
-    This layout can be used to start an application. Most of time, you need to
-    want which size is your Window.
+    This layout can be used for an application. Most of time, you will
+    use the size of Window.
 
 .. warning::
 
-    If you are not using pos_hint, you must handle yourself the position of your
-    childs. Mean if the float layout is moving, your must handle the moving
-    childs too.
+    If you are not using pos_hint, you must handle the position of
+    children: If the float layout is moving, you must handle moving
+    children too.
 
 '''
 
