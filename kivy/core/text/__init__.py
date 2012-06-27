@@ -199,24 +199,13 @@ class LabelBase(object):
     def shorten(self, text):
         # Just a tiny shortcut
         textwidth = lambda txt: self.get_extents(txt)[0]
-        mid = len(text)/2
-        begin = text[:mid].strip()
-        end = text[mid:].strip()
-        steps = 1
-        middle = '...'
-        width = textwidth(begin+end) + textwidth(middle)
-        last_width = width
-        while width > self.text_size[0]:
-            begin = text[:mid - steps].strip()
-            end = text[mid + steps:].strip()
-            steps += 1
-            width = textwidth(begin+end) + textwidth(middle)
-            if width == last_width:
-                # No more shortening possible. This is the best we can
-                # do. :-( -- Prevent infinite while loop.
-                break
-            last_width = width
-        return begin + middle + end
+
+        letters = text + '...'
+        letter_width = textwidth(letters) // len(letters)
+        max_letters = self.text_size[0] // letter_width
+        segment = (max_letters // 2) - 3
+
+        return text[:segment] + '...' + text[-segment:]
 
     def render(self, real=False):
         '''Return a tuple(width, height) to create the image
