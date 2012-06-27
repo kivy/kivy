@@ -157,37 +157,31 @@ class LabelBase(object):
         LabelBase._fonts[name] = tuple(fonts)
 
     def resolve_font_name(self):
-        options = self.options
-        if 'font_name' not in options:
-            return
-        fontname = options['font_name']
-        fonts = self._fonts
+        fontname = self.options['font_name']
         fontscache = self._fonts_cache
 
         # is the font is registered ?
-        if fontname in fonts:
+        if fontname in self._fonts:
             # return the prefered font for the current bold/italic combinaison
-            bold = int(options['bold'])
-            if options['italic']:
+            bold = int(self.options['bold'])
+            if self.options['italic']:
                 italic = FONT_ITALIC
             else:
                 italic = FONT_REGULAR
 
-            options['font_name_r'] = fonts[fontname][bold | italic]
+            self.options['font_name_r'] = self._fonts[fontname][bold | italic]
 
         elif fontname in fontscache:
-            options['font_name_r'] = fontscache[fontname]
+            self.options['font_name_r'] = fontscache[fontname]
         else:
             filename = resource_find(fontname)
             if filename is None:
                 # XXX for compatibility, check directly in the data dir
                 filename = os.path.join(kivy_data_dir, fontname)
                 if not os.path.exists(filename):
-                    filename = None
-            if filename is None:
-                raise IOError('Label: File %r not found' % fontname)
+                    raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
-            options['font_name_r'] = filename
+            self.options['font_name_r'] = filename
 
     def get_extents(self, text):
         '''Return a tuple with (width, height) for a text.'''
