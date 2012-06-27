@@ -131,7 +131,7 @@ class LabelBase(object):
 
         .. versionadded:: 1.1.0
 
-        If you're using directly a ttf, you might not be able to use bold/italic
+        If you're using a ttf directly, you might not be able to use bold/italic
         of the ttf version. If the font is delivered with different version of
         it (one regular, one italic and one bold), then you need to register it
         and use the alias instead.
@@ -140,29 +140,21 @@ class LabelBase(object):
         :func:`kivy.resources.resource_find`. If fn_italic/fn_bold are None,
         fn_regular will be used instead.
         '''
-        _fn_regular = resource_find(fn_regular)
-        if _fn_regular is None:
-            raise IOError('File %r not found' % fn_regular)
-        if fn_italic is None:
-            _fn_italic = _fn_regular
-        else:
-            _fn_italic = resource_find(fn_italic)
-            if _fn_italic is None:
-                raise IOError('File %r not found' % fn_italic)
-        if fn_bold is None:
-            _fn_bold = _fn_regular
-        else:
-            _fn_bold = resource_find(fn_bold)
-            if _fn_bold is None:
-                raise IOError('File %r not found' % fn_bold)
-        if fn_bolditalic is None:
-            _fn_bolditalic = _fn_regular
-        else:
-            _fn_bolditalic = resource_find(fn_bolditalic)
-            if _fn_bolditalic is None:
-                raise IOError('Label: File %r not found' % fn_bolditalic)
-        LabelBase._fonts[name] = (_fn_regular, _fn_italic, _fn_bold,
-                _fn_bolditalic)
+
+        fonts = []
+
+        for font_type in fn_regular, fn_italic, fn_bold, fn_bolditalic:
+            if font_type is not None:
+                font = resource_find(font_type)
+
+                if font is None:
+                    raise IOError('File {0}s not found'.format(font_type))
+                else:
+                    fonts.append(font)
+            else:
+                fonts.append(fonts[-1]) # add regular font to list again
+
+        LabelBase._fonts[name] = tuple(fonts)
 
     def resolve_font_name(self):
         options = self.options
