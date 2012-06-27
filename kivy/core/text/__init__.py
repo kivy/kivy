@@ -55,11 +55,11 @@ class LabelBase(object):
         `text_size`: tuple, default to (None, None)
             Add constraint to render the text (inside a bounding box)
             If no size is given, the label size will be set to the text size.
-        `padding`: int, default to None
-            If it's a integer, it will set padding_x and padding_y
-        `padding_x`: int, default to 0
+        `padding`: float, default to None
+            If it's a float, it will set padding_x and padding_y
+        `padding_x`: float, default to 0.0
             Left/right padding
-        `padding_y`: int, default to 0
+        `padding_y`: float, default to 0.0
             Top/bottom padding
         `halign`: str, default to "left"
             Horizontal text alignement inside bounding box
@@ -84,7 +84,7 @@ class LabelBase(object):
 
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
                  bold=False, italic=False, halign='left', valign='bottom',
-                 shorten=False, text_size=None, mipmap=False, color=None, padding=None,
+                 shorten=False, text_size=None, mipmap=False, color=None,
                  **kwargs):
 
         options = {'text': text, 'font_size': font_size,
@@ -92,17 +92,10 @@ class LabelBase(object):
             'halign': halign, 'valign': valign, 'shorten': shorten,
             'mipmap': mipmap}
 
-        if color is None:
-            options['color'] = (1, 1, 1, 1)
-        else:
-            options['color'] = color
-
-        if padding is None:
-            options['padding'] = (0.0, 0.0)
-        else:
-            options['padding'] = float(padding), float(padding)
-
-        options['padding_x'], options['padding_y'] = options['padding']
+        options['color'] = color or (1, 1, 1, 1)
+        options['padding'] = kwargs.get('padding', 0)
+        options['padding_x'] = kwargs.get('padding_x', options['padding'])
+        options['padding_y'] = kwargs.get('padding_x', options['padding'])
 
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
