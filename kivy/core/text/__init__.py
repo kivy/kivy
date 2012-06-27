@@ -181,7 +181,7 @@ class LabelBase(object):
             else:
                 italic = FONT_REGULAR
 
-            options['font_name_r'] = fonts[fontname][bold|italic]
+            options['font_name_r'] = fonts[fontname][bold | italic]
 
         elif fontname in fontscache:
             options['font_name_r'] = fontscache[fontname]
