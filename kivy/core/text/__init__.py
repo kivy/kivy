@@ -82,45 +82,47 @@ class LabelBase(object):
 
     _fonts_cache = {}
 
-    def __init__(self, **kwargs):
-        kwargs.setdefault('font_size', 12)
-        kwargs.setdefault('font_name', DEFAULT_FONT)
-        kwargs.setdefault('bold', False)
-        kwargs.setdefault('italic', False)
-        kwargs.setdefault('halign', 'left')
-        kwargs.setdefault('valign', 'bottom')
-        kwargs.setdefault('shorten', False)
-        kwargs.setdefault('mipmap', False)
-        kwargs.setdefault('color', (1, 1, 1, 1))
+    def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
+                 bold=False, italic=False, halign='left', valign='bottom',
+                 shorten=False, text_size=None, mipmap=False, color=None, padding=None,
+                 **kwargs):
 
-        if 'padding' not in kwargs:
-            kwargs['padding'] = (0.0, 0.0)
+        options = {'text': text, 'font_size': font_size,
+            'font_name': font_name, 'bold': bold, 'italic': italic,
+            'halign': halign, 'valign': valign, 'shorten': shorten,
+            'mipmap': mipmap}
+
+        if color is None:
+            options['color'] = (1, 1, 1, 1)
         else:
-            kwargs['padding'] = float(kwargs['padding'])
+            options['color'] = color
 
-        kwargs.setdefault('padding_x', kwargs['padding'][0])
-        kwargs.setdefault('padding_y', kwargs['padding'][-1])
-
-        if 'text' not in kwargs:
-            self._text = u''
+        if padding is None:
+            options['padding'] = (0.0, 0.0)
         else:
-            self._text = unicode(kwargs['text'])
+            options['padding'] = float(padding), float(padding)
+
+        options['padding_x'], options['padding_y'] = options['padding']
 
         if 'size' in kwargs:
-            kwargs['text_size'] = kwargs['size']
-            del kwargs['size']
+            options['text_size'] = kwargs['size']
         else:
-            kwargs.setdefault('text_size', (None, None))
+            if text_size is None:
+                options['text_size'] = (None, None)
+            else:
+                options['text_size'] = text_size
 
-        if kwargs['text_size'][0] is not None:
-            self._text_size = (kwargs['text_size'][0] - kwargs['padding_x'] * 2,
-                               kwargs['text_size'][1])
+        if options['text_size'][0] is not None:
+            self._text_size = (
+                options['text_size'][0] - options['padding_x'] * 2,
+                options['text_size'][1])
         else:
-            self._text_size = kwargs['text_size']
+            self._text_size = options['text_size']
 
+        self._text = options['text']
         self._internal_height = 0.0
 
-        self.options = kwargs
+        self.options = options
         self.texture = None
         self.resolve_font_name()
 
