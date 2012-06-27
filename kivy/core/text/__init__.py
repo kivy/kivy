@@ -52,7 +52,7 @@ class LabelBase(object):
             Activate "bold" text style
         `italic`: bool, default to False
             Activate "italic" text style
-        `text_size`: list, default to (None, None)
+        `text_size`: tuple, default to (None, None)
             Add constraint to render the text (inside a bounding box)
             If no size is given, the label size will be set to the text size.
         `padding`: int, default to None
@@ -175,17 +175,13 @@ class LabelBase(object):
         # is the font is registered ?
         if fontname in fonts:
             # return the prefered font for the current bold/italic combinaison
-            bold = options['bold']
-            italic = options['italic']
-            font = fonts[fontname]
-            if not bold and not italic:
-                options['font_name_r'] = font[FONT_REGULAR]
-            elif bold and italic:
-                options['font_name_r'] = font[FONT_BOLDITALIC]
-            elif bold:
-                options['font_name_r'] = font[FONT_BOLD]
+            bold = int(options['bold'])
+            if options['italic']:
+                italic = FONT_ITALIC
             else:
-                options['font_name'] = font[FONT_ITALIC]
+                italic = FONT_REGULAR
+
+            options['font_name_r'] = fonts[fontname][bold|italic]
 
         elif fontname in fontscache:
             options['font_name_r'] = fontscache[fontname]
