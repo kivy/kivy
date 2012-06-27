@@ -191,16 +191,21 @@ class LabelBase(object):
     def _render_end(self):
         pass
 
-    def shorten(self, text):
+    def shorten(self, text, margin=2):
         # Just a tiny shortcut
         textwidth = lambda txt: self.get_extents(txt)[0]
 
         letters = text + '...'
         letter_width = textwidth(letters) // len(letters)
         max_letters = self.text_size[0] // letter_width
-        segment = (max_letters // 2) - 3
+        segment = (max_letters // 2)
 
-        return text[:segment] + '...' + text[-segment:]
+        if segment - margin > 5:
+            segment -= margin
+            return text[:segment].strip() + '...' + text[-segment:].strip()
+        else:
+            segment = max_letters - 3
+            return text[:segment].strip() + '...'
 
     def render(self, real=False):
         '''Return a tuple(width, height) to create the image
