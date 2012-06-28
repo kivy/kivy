@@ -113,7 +113,7 @@ class LabelBase(object):
             self._text_size = options['text_size']
 
         self._text = options['text']
-        self._internal_height = 0.0
+        self._internal_height = 0
 
         self.options = options
         self.texture = None
@@ -152,22 +152,24 @@ class LabelBase(object):
         LabelBase._fonts[name] = tuple(fonts)
 
     def resolve_font_name(self):
+        options = self.options
         fontname = self.options['font_name']
+        fonts = self._fonts
         fontscache = self._fonts_cache
 
         # is the font is registered ?
-        if fontname in self._fonts:
+        if fontname in fonts:
             # return the prefered font for the current bold/italic combinaison
-            bold = int(self.options['bold'])
-            if self.options['italic']:
+            bold = int(options['bold'])
+            if options['italic']:
                 italic = FONT_ITALIC
             else:
                 italic = FONT_REGULAR
 
-            self.options['font_name_r'] = self._fonts[fontname][bold | italic]
+            options['font_name_r'] = fonts[fontname][bold | italic]
 
         elif fontname in fontscache:
-            self.options['font_name_r'] = fontscache[fontname]
+            options['font_name_r'] = fontscache[fontname]
         else:
             filename = resource_find(fontname)
             if filename is None:
@@ -176,7 +178,7 @@ class LabelBase(object):
                 if not os.path.exists(filename):
                     raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
-            self.options['font_name_r'] = filename
+            options['font_name_r'] = filename
 
     def get_extents(self, text):
         '''Return a tuple with (width, height) for a text.'''
@@ -202,10 +204,11 @@ class LabelBase(object):
 
         if segment - margin > 5:
             segment -= margin
-            return text[:segment].strip() + '...' + text[-segment:].strip()
+            return '{0}...{1}'.format(text[:segment].strip(),
+                text[-segment:].strip())
         else:
             segment = max_letters - 3
-            return text[:segment].strip() + '...'
+            return '{0}...'.format(text[:segment].strip())
 
     def render(self, real=False):
         '''Return a tuple(width, height) to create the image
