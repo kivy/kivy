@@ -142,7 +142,7 @@ part:
 And here is your "yourwidget.py" python part::
 
     from kivy.lang import Builder
-    from kivy.widget import Widget
+    from kivy.uix.widget import Widget
 
     Builder.load_file('yourwidget.kv')
 
