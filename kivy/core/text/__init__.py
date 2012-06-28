@@ -105,10 +105,11 @@ class LabelBase(object):
             else:
                 options['text_size'] = text_size
 
-        if options['text_size'][0] is not None:
+        text_width, text_height = options['text_size']
+        if text_width is not None:
             self._text_size = (
-                options['text_size'][0] - options['padding_x'] * 2,
-                options['text_size'][1])
+                text_width - options['padding_x'] * 2,
+                text_height)
         else:
             self._text_size = options['text_size']
 
@@ -207,7 +208,7 @@ class LabelBase(object):
             return '{0}...{1}'.format(text[:segment].strip(),
                 text[-segment:].strip())
         else:
-            segment = max_letters - 3
+            segment = max_letters - 3 # length of '...'
             return '{0}...'.format(text[:segment].strip())
 
     def render(self, real=False):
