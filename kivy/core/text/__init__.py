@@ -95,7 +95,7 @@ class LabelBase(object):
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', 0)
         options['padding_x'] = kwargs.get('padding_x', options['padding'])
-        options['padding_y'] = kwargs.get('padding_x', options['padding'])
+        options['padding_y'] = kwargs.get('padding_y', options['padding'])
 
         if 'size' in kwargs:
             options['text_size'] = kwargs['size']
