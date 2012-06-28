@@ -30,37 +30,40 @@ You can choose the direction the tabs are displayed::
 
     tab_pos = 'top_mid'
 
-By default, the widgets added to a tabbed panel are orderd horizontally, as in a
-Boxlayout. You can change that by::
+By default, the widgets added to a tabbed panel are orderd horizontally, as in
+a Boxlayout. You can change that by::
 
     orientation = 'vertical'
 
-An individual tab is called a TabbedPanelHeader. It is a special button containing a content
-property. You add the TabbedPanelHeader first, and set its content separately::
+An individual tab is called a TabbedPanelHeader. It is a special button
+containing a content property. You add the TabbedPanelHeader first, and set its
+content separately::
 
     tp = TabbedPanel()
     th = TabbedPanelHeader(text='Tab2')
     tp.add_widget(th)
 
-An individual tab, represented by a TabbedPanelHeader, needs its content set. This content
-can be any of the widget choices. It could be a layout with a deep hierarchy of widget, or
-it could be an indivual widget, such as a label or button::
+An individual tab, represented by a TabbedPanelHeader, needs its content set.
+This content can be any of the widget choices. It could be a layout with a deep
+hierarchy of widget, or it could be an indivual widget, such as a label or
+button::
 
     th.content = your_content_instance
 
-Note: There is one "shared" main content area, active at a given time, for all the tabs. Your
-app is responsible for adding the content of individual tabs, and for managing it, but not
-for doing the content switching. The tabbed panel handles switching of the main content object,
-per user action.
+Note: There is one "shared" main content area, active at a given time, for all
+the tabs. Your app is responsible for adding the content of individual tabs,
+and for managing it, but not for doing the content switching. The tabbed panel
+handles switching of the main content object, per user action.
 
-There is always a default tab added when the tabbed panel is instantiated. Tabs that you
-add individually as above, are added in addition to the default tab. Thus, depending on your
-needs and design, you will want to customize the default tab, including its text::
+There is always a default tab added when the tabbed panel is instantiated.
+Tabs that you add individually as above, are added in addition to the default
+tab. Thus, depending on your needs and design, you will want to customize the
+default tab, including its text::
 
     tp.default_tab_text = 'Something Specific To Your Use'
 
-The default tab machinery requires special consideration and management.  Accordingly, an
-`on_default_tab` event is provided for associating a callback::
+The default tab machinery requires special consideration and management.
+Accordingly, an `on_default_tab` event is provided for associating a callback::
 
     tp.bind(on_default_tab = my_default_tab_callback)
 
@@ -73,7 +76,7 @@ Tabs and content can be removed in several ways::
     tp.clear_tabs() # to remove the TabbedPanelHeaders
 
 .. warning::
-    Important! To access the children of the tabbed panel, use content.children::
+    To access the children of the tabbed panel, use content.children::
 
         tp.content.children
 
@@ -81,20 +84,20 @@ To access the list of tabs::
 
     tp.tab_list
 
-There are various ways to change the appearance of the main tabbed panel content::
+To change the appearance of the main tabbed panel content::
 
     background_color = (1, 0, 0, .5) #50% translucent red
     border = [0, 0, 0, 0]
     background_image = 'path/to/background/image'
-    tab_image = 'path/to/tab/image'
 
 To change the background of a individual tab, use these two properties::
 
     tab_header_instance.background_normal = 'path/to/tab_head/img'
     tab_header_instance.background_down = 'path/to/tab_head/img_pressed'
 
-A TabbedPanelStrip contains the individual tab headers. To change the appearance
-of this tab strip, override the canvas of TabbedPanelStrip. For example, in the kv language::
+A TabbedPanelStrip contains the individual tab headers. To change the
+appearance of this tab strip, override the canvas of TabbedPanelStrip.
+For example, in the kv language::
 
     <TabbedPanelStrip>
         canvas:
@@ -317,22 +320,23 @@ class TabbedPanel(GridLayout):
         self.add_widget(content)
         self.on_tab_pos()
         #make default tab the active tab
-        self.switch_to(self._default_tab)
+        Clock.schedule_once(partial(self.switch_to, self._default_tab))
 
     def on_default_tab_text(self, *l):
         self._default_tab.text = self.default_tab_text
 
-    def switch_to(self, header):
+    def switch_to(self, header, *dt):
         '''Switch to a specific panel header.
         '''
-        if header.content is None:
+        header_content = header.content
+        if header_content is None:
             return
         self.clear_widgets()
         # if content has a previous parent remove it from that parent
-        parent = header.content.parent
-        if header.content.parent:
-            parent.remove_widget(header.content)
-        self.add_widget(header.content)
+        parent = header_content.parent
+        if parent:
+            parent.remove_widget(header_content)
+        self.add_widget(header_content)
 
     def add_widget(self, widget, index=0):
         content = self.content
@@ -367,7 +371,7 @@ class TabbedPanel(GridLayout):
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
                     'Change `default_tab` to a different tab.')
         else:
-            content.remove_widget(l[0])
+            content.remove_widget(widget)
 
     def clear_widgets(self, **kwargs):
         content = self.content

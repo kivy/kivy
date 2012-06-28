@@ -259,7 +259,7 @@ Builder.load_string('''
 
 class Tp(TabbedPanel):
     #override tab switching method to animate on tab switch
-    def switch_to(self, header):
+    def switch_to(self, header, *args):
         if header.content is None:
             return
         anim = Animation(color=(1, 1, 1, 0), d =.24, t = 'in_out_quad')
