@@ -294,11 +294,6 @@ class ObservableList(list):
         list.__imul__(self, *largs)
         observable_list_dispatch(self)
 
-    def __add__(self, *largs):
-        cdef object result = list.__add__(self, *largs)
-        observable_list_dispatch(self)
-        return result
-
     def append(self, *largs):
         list.append(self, *largs)
         observable_list_dispatch(self)
