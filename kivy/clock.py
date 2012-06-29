@@ -33,6 +33,32 @@ module::
 
     Clock.schedule_interval(partial(my_callback, 'my value', 'my key'), 0.5)
 
+.. important::
+
+    The callback is weak-referenced: you are responsible to keep a reference to
+    your original object/callback. If you don't keep a reference, the Clock will
+    never execute your callback. For example::
+
+        class Foo(object):
+            def start(self):
+                Clock.schedule_interval(self.callback)
+
+            def callback(self, dt):
+                print 'In callback'
+
+        # a Foo object is created, the method start is called,
+        # and the instance of foo is deleted
+        # Because nobody keep a reference to the instance returned from Foo(),
+        # the object will be collected by Python Garbage Collector. And you're
+        # callback will be never called.
+        Foo().start()
+
+        # So you must do:
+        foo = Foo()
+        foo.start()
+
+        # and keep the instance of foo, until you don't need it anymore!
+
 Schedule before frame
 ---------------------
 
