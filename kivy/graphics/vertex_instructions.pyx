@@ -682,7 +682,7 @@ cdef class Quad(VertexInstruction):
     cdef list _points
 
     def __init__(self, **kwargs):
-        VertexInstruction.__init__(self)
+        VertexInstruction.__init__(self, **kwargs)
         v = kwargs.get('points')
         self.points = v if v is not None else \
                (  0.0,  50.0,   50.0,   0.0,
@@ -724,7 +724,7 @@ cdef class Quad(VertexInstruction):
             self._points = list(points)
             if len(self._points) != 8:
                 raise GraphicException(
-                    'Quad: invalid number of points (%d instead of 8' % len(
+                    'Quad: invalid number of points (%d instead of 8)' % len(
                     self._points))
             self.flag_update()
 
