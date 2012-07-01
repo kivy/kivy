@@ -311,7 +311,6 @@ class TabbedPanel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        print self, 'init'
         self._tab_layout = GridLayout(rows = 1)
         self._bk_img = Image(
             source=self.background_image, allow_stretch=True,
@@ -327,7 +326,6 @@ class TabbedPanel(GridLayout):
             = TabbedPanelHeader()
         super(TabbedPanel, self).__init__(**kwargs)
 
-        #from pudb import set_trace; set_trace()
         content = self._default_tab.content
         cls = Factory.classes[self.default_tab_class]['cls']
         if cls != type(default_tab):
@@ -345,18 +343,13 @@ class TabbedPanel(GridLayout):
             _tabs.add_widget(default_tab, len(tl))
         default_tab.group = '__tab%r__' %_tabs.uid
 
-
         self.add_widget(content)
         self.on_tab_pos()
-        #make default tab the active tab
-        Clock.schedule_once(partial(self.switch_to, self._default_tab))
 
     def on_default_tab_text(self, *l):
-        print self, 'on_def_tab_text'
         self._default_tab.text = self.default_tab_text
 
     def switch_to(self, header, *dt):
-        print self, 'switch_to'
         '''Switch to a specific panel header.
         '''
         header_content = header.content
@@ -370,7 +363,6 @@ class TabbedPanel(GridLayout):
         self.add_widget(header_content)
 
     def add_widget(self, widget, index=0):
-        print self, 'add_widget'
         content = self.content
         if content is None:
             return
@@ -386,7 +378,6 @@ class TabbedPanel(GridLayout):
             content.add_widget(widget, index)
 
     def remove_widget(self, widget):
-        print self, 'remove_widget'
         content = self.content
         if content is None:
             return
@@ -407,7 +398,6 @@ class TabbedPanel(GridLayout):
             content.remove_widget(widget)
 
     def clear_widgets(self, **kwargs):
-        print self, 'clear_widgets'
         content = self.content
         if content is None:
             return
@@ -417,7 +407,6 @@ class TabbedPanel(GridLayout):
             content.clear_widgets()
 
     def clear_tabs(self, *l):
-        print self, 'clear_tabs'
         self_tabs = self._tab_strip
         self_tabs.clear_widgets()
         self_default_tab = self._default_tab
@@ -426,27 +415,22 @@ class TabbedPanel(GridLayout):
         self.reposition_tabs()
 
     def reposition_tabs(self, *l):
-        print self, 'reposition_tabs'
         Clock.unschedule(self.on_tab_pos)
         Clock.schedule_once(self.on_tab_pos, 0)
 
     def on_background_image(self, *l):
-        print self, 'on_background_image'
         self._bk_img.source = self.background_image
 
     def on_background_color(self, *l):
-        print self, 'on_background_color'
         if self.content is None:
             return
         self._bk_img.color = self.background_color
 
     def on_tab_width(self, *l):
-        print self, 'on_tab_width'
         Clock.unschedule(self.update_tab_width)
         Clock.schedule_once(self.update_tab_width, 0)
 
     def update_tab_width(self, *l):
-        print self, 'update_tab_width'
         if self.tab_width:
             for tab in self.tab_list:
                 tab.size_hint_x = 1
@@ -467,12 +451,10 @@ class TabbedPanel(GridLayout):
         self.reposition_tabs()
 
     def on_tab_height(self, *l):
-        print self, 'on_tab_height'
         self._tab_layout.height = self._tab_strip.height = self.tab_height
         self.reposition_tabs()
 
     def on_tab_pos(self, *l):
-        print self, 'on_tab_pos'
         #from pudb import set_trace;set_trace()
         self_content = self.content
         if not self_content:
@@ -603,14 +585,12 @@ class TabbedPanel(GridLayout):
         Clock.schedule_once(partial(self._updt_top, sctr, top, scrl_v_width), 0)
 
     def _updt_top(self, sctr, top, scrl_v_width, *args):
-        print self, 'update top'
         if top[0] == 't':
             sctr.top = self.top
         else:
             sctr.top = self.top - (self.height - scrl_v_width)/2
 
     def _update_scrollview(self, scrl_v, *l):
-        print self, 'update sscrlvw'
         self_tab_pos = self.tab_pos
         self_tabs = self._tab_strip
         if self_tab_pos[0] == 'b' or self_tab_pos[0] == 't':

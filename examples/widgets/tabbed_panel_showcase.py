@@ -304,14 +304,14 @@ class TabShowcase(FloatLayout):
 
     def show_tab(self):
         if not hasattr(self, 'tab'):
-            #self.tab = tab = PanelLeft()
-            #self.add_widget(tab)
-            #self.tab1 = tab = PanelRight()
-            #self.add_widget(tab)
+            self.tab = tab = PanelLeft()
+            self.add_widget(tab)
+            self.tab1 = tab = PanelRight()
+            self.add_widget(tab)
             self.tab2 = tab = PanelbRight()
             self.add_widget(tab)
-            #self.tab3 = tab = PanelbLeft()
-            #self.add_widget(tab)
+            self.tab3 = tab = PanelbLeft()
+            self.add_widget(tab)
             self.but.text = \
                 'Tabs in variable positions, press to change to top_left'
         else:
@@ -319,8 +319,8 @@ class TabShowcase(FloatLayout):
                 'top_mid', 'top_right', 'right_top', 'right_mid',
                 'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right')
             index = values.index(self.tab.tab_pos)
-            #self.tab.tab_pos = self.tab1.tab_pos = self.tab2.tab_pos\
-            #    = self.tab3.tab_pos = values[(index + 1) % len(values)]
+            self.tab.tab_pos = self.tab1.tab_pos = self.tab2.tab_pos\
+                = self.tab3.tab_pos = values[(index + 1) % len(values)]
             self.but.text = 'Tabs in \'%s\' position,' %self.tab.tab_pos\
                 + '\n press to change to next pos'
 
