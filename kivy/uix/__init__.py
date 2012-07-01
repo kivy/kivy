@@ -38,5 +38,40 @@ Read first: :doc:`api-kivy.uix.widget`
 
     :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`
 
+All widgets which are not marked "experimental" are available for export
+directly from the `kivy.uix` module. Thus you can use::
+
+    from kivy.uix import Label, Button, FloatLayout, ...
+
+Or, if you are exceptionally lazy, you can import all stable widgets and
+layouts into your program using::
+
+    from kivy.uix import *
+
 ----
 '''
+
+from kivy.uix.anchorlayout import *
+from kivy.uix.boxlayout import *
+from kivy.uix.bubble import *
+from kivy.uix.button import *
+from kivy.uix.camera import *
+from kivy.uix.checkbox import *
+from kivy.uix.floatlayout import *
+from kivy.uix.gridlayout import *
+from kivy.uix.image import *
+from kivy.uix.label import *
+from kivy.uix.popup import *
+from kivy.uix.progressbar import *
+from kivy.uix.scatter import *
+from kivy.uix.scrollview import *
+from kivy.uix.settings import *
+from kivy.uix.slider import *
+from kivy.uix.stacklayout import *
+from kivy.uix.stencilview import *
+from kivy.uix.switch import *
+from kivy.uix.textinput import *
+from kivy.uix.togglebutton import *
+from kivy.uix.video import *
+from kivy.uix.videoplayer import *
+from kivy.uix.widget import *
