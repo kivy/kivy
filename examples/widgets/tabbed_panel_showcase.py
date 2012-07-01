@@ -16,12 +16,12 @@ class StandingHeader(TabbedPanelHeader):
     pass
 
 
-class ClosableHeader(TabbedPanelHeader):
+class CloseableHeader(TabbedPanelHeader):
     pass
 
 
 Factory.register('StandingHeader', cls = StandingHeader)
-Factory.register('ClosableHeader', cls = ClosableHeader)
+Factory.register('CloseableHeader', cls = CloseableHeader)
 
 from kivy.lang import Builder
 
@@ -44,7 +44,7 @@ Builder.load_string('''
         size_hint: None, None
         size: lbl.size
         center_x: root.center_x
-        center_y: root.center_y + (lbl.height/4)
+        center_y: root.center_y
         Label:
             id: lbl
             text: root.text
@@ -55,7 +55,8 @@ Builder.load_string('''
     size_hint: (.45, .45)
     pos_hint: {'center_x': .25, 'y': .55}
     #replace the default tab with our custom tab
-    default_tab: def_tab
+    default_tab_class: 'StandingHeader'
+    default_tab_content: default_content
     tab_width: 40
     tab_height: 70
     FloatLayout:
@@ -74,17 +75,13 @@ Builder.load_string('''
             size: self.parent.size
             source: 'data/images/image-loading.gif'
     StandingHeader:
-        id: def_tab
-        content: default_content
-        text: 'Default tab'
-    StandingHeader:
         content: tab_2_content
         text: 'tab 2'
     StandingHeader:
         content: tab_3_content
         text: 'tab 3'
 
-<ClosableHeader>
+<CloseableHeader>
     color: 0,0,0,0
     # variable tab_width
     text: 'tabx'
@@ -120,7 +117,7 @@ Builder.load_string('''
     FloatLayout:
         RstDocument:
             id: default_content
-            text: '\\n'.join(("Closable tabs", "-------------",\
+            text: '\\n'.join(("Closeable tabs", "---------------",\
                 "- The tabs above are also scrollable",\
                 "- Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
@@ -138,33 +135,33 @@ Builder.load_string('''
             BubbleButton:
                 text: 'Press set this tab as default'
                 on_release: root.default_tab = tab3
-    ClosableHeader:
+    CloseableHeader:
         id: def_tab
         text: 'default tab'
         content:default_content
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         text: 'tab2'
         content: tab_2_content
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         id: tab3
         text: 'tab3'
         content: tab_3_content
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
 
 <PanelbLeft>
@@ -292,7 +289,7 @@ class PanelLeft(Tp):
 class PanelRight(Tp):
 
     def add_header(self):
-        self.add_widget(ClosableHeader(panel = self))
+        self.add_widget(CloseableHeader(panel = self))
 
 
 class PanelbLeft(Tp):
@@ -307,14 +304,14 @@ class TabShowcase(FloatLayout):
 
     def show_tab(self):
         if not hasattr(self, 'tab'):
-            self.tab = tab = PanelLeft()
-            self.add_widget(tab)
-            self.tab1 = tab = PanelRight()
-            self.add_widget(tab)
+            #self.tab = tab = PanelLeft()
+            #self.add_widget(tab)
+            #self.tab1 = tab = PanelRight()
+            #self.add_widget(tab)
             self.tab2 = tab = PanelbRight()
             self.add_widget(tab)
-            self.tab3 = tab = PanelbLeft()
-            self.add_widget(tab)
+            #self.tab3 = tab = PanelbLeft()
+            #self.add_widget(tab)
             self.but.text = \
                 'Tabs in variable positions, press to change to top_left'
         else:
@@ -322,8 +319,8 @@ class TabShowcase(FloatLayout):
                 'top_mid', 'top_right', 'right_top', 'right_mid',
                 'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right')
             index = values.index(self.tab.tab_pos)
-            self.tab.tab_pos = self.tab1.tab_pos = self.tab2.tab_pos\
-                = self.tab3.tab_pos = values[(index + 1) % len(values)]
+            #self.tab.tab_pos = self.tab1.tab_pos = self.tab2.tab_pos\
+            #    = self.tab3.tab_pos = values[(index + 1) % len(values)]
             self.but.text = 'Tabs in \'%s\' position,' %self.tab.tab_pos\
                 + '\n press to change to next pos'
 
