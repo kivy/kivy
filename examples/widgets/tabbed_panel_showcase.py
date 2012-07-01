@@ -97,6 +97,7 @@ Builder.load_string('''
             text: root.text
         BoxLayout:
             size_hint: None, 1
+            orientation: 'vertical'
             width: 22
             Widget:
             Button:
@@ -225,6 +226,7 @@ Builder.load_string('''
         BoxLayout:
             pos: tph.pos
             size: tph.size
+            orientation: 'vertical'
             Image:
                 source: 'sequenced_images/data/images/info.png'\
                     if tph.state == 'normal' else 'softboy.png'
@@ -254,7 +256,7 @@ Builder.load_string('''
 
 class Tp(TabbedPanel):
     #override tab switching method to animate on tab switch
-    def switch_to(self, header, *args):
+    def switch_to(self, header):
         if header.content is None:
             return
         anim = Animation(color=(1, 1, 1, 0), d =.24, t = 'in_out_quad')

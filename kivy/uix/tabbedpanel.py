@@ -338,13 +338,18 @@ class TabbedPanel(GridLayout):
             _tabs.add_widget(default_tab, len(tl))
         default_tab.group = '__tab%r__' %_tabs.uid
 
-        self.add_widget(content)
-        self.on_tab_pos()
+        if default_tab.content:
+            self.add_widget(self.default_tab.content)
+        else:
+            Clock.schedule_once(self._load_default_tab_content)
 
-    def on_default_tab_text(self, *l):
+    def _load_default_tab_content(self, dt):
+        self.switch_to(self.default_tab)
+
+    def on_default_tab_text(self, *args):
         self._default_tab.text = self.default_tab_text
 
-    def switch_to(self, header, *dt):
+    def switch_to(self, header):
         '''Switch to a specific panel header.
         '''
         header_content = header.content
