@@ -148,8 +148,6 @@ class TabbedPanelHeader(ToggleButton):
             super(TabbedPanelHeader, self).on_touch_down(touch)
 
     def on_release(self, *l):
-        if not self.content:
-            return
         parent = self.parent
         while parent is not None and not isinstance(parent, TabbedPanel):
             parent = parent.parent
@@ -197,6 +195,17 @@ class TabbedPanel(GridLayout):
 
     :data:`background_image` is a :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/tab'.
+    '''
+
+    def get_current_tab(self):
+        return self._current_tab
+
+    current_tab = AliasProperty(get_current_tab, None)
+    '''Links to the currently select or active tab.
+
+    .. versionadded:: 1.4.0
+
+    :data:`current_tab` is a :class:`~kivy.AliasProperty`, read-only.
     '''
 
     tab_pos = OptionProperty('top_left',
@@ -296,15 +305,6 @@ class TabbedPanel(GridLayout):
     :data:`default_tab_content` is a :class:`~kivy.properties.AliasProperty`
     '''
 
-    orientation = OptionProperty('horizontal',
-            options=('horizontal', 'vertical'))
-    '''This specifies the manner in which the children of the panel content
-    are arranged. Can be one of 'vertical', 'horizontal'.
-
-    :data:`orientation` is a :class:`~kivy.properties.OptionProperty`,
-    default to 'horizontal'.
-    '''
-
     def __init__(self, **kwargs):
         self._tab_layout = GridLayout(rows = 1)
         self._bk_img = Image(
@@ -317,8 +317,8 @@ class TabbedPanel(GridLayout):
         self._partial_update_scrollview = None
         self.content = content = TabbedPanelContent()
 
-        default_tab = self._original_tab = self._default_tab\
-            = TabbedPanelHeader()
+        self._current_tab = default_tab = self._original_tab\
+            = self._default_tab = TabbedPanelHeader()
         super(TabbedPanel, self).__init__(**kwargs)
 
         content = self._default_tab.content
@@ -339,9 +339,12 @@ class TabbedPanel(GridLayout):
         default_tab.group = '__tab%r__' %_tabs.uid
 
         if default_tab.content:
+            self.clear_widgets()
             self.add_widget(self.default_tab.content)
         else:
             Clock.schedule_once(self._load_default_tab_content)
+        self._current_tab = default_tab
+        self.on_tab_pos()
 
     def _load_default_tab_content(self, dt):
         self.switch_to(self.default_tab)
@@ -353,9 +356,10 @@ class TabbedPanel(GridLayout):
         '''Switch to a specific panel header.
         '''
         header_content = header.content
+        self._current_tab = header
+        self.clear_widgets()
         if header_content is None:
             return
-        self.clear_widgets()
         # if content has a previous parent remove it from that parent
         parent = header_content.parent
         if parent:

@@ -10,15 +10,11 @@ from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 
-
-class ExistingRule(TabbedPanel):
-    pass
-
-from kivy.factory import Factory
-Factory.register('ExistingRule', cls = ExistingRule)
-
 Builder.load_string("""
-<ExistingRule>:
+
+<Test>:
+    size_hint: .5, .5
+    pos_hint: {'center_x': .5, 'center_y': .5}
     default_tab_content: set1_content
 
     Label:
@@ -43,14 +39,9 @@ Builder.load_string("""
     TabbedPanelHeader:
         text: 'Tab 3'
         content: set3_content
-
-<Test>:
-    ExistingRule:
-        size_hint: .5, .5
-        pos_hint: {'center_x': .5, 'center_y': .5}
 """)
 
-class Test(FloatLayout):
+class Test(TabbedPanel):
     pass
 
 class TabbedPanelApp(App):
