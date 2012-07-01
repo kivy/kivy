@@ -98,7 +98,6 @@ Builder.load_string('''
         BoxLayout:
             size_hint: None, 1
             width: 22
-            orientation: 'vertical'
             Widget:
             Button:
                 border: 0,0,0,0
@@ -226,7 +225,6 @@ Builder.load_string('''
         BoxLayout:
             pos: tph.pos
             size: tph.size
-            orientation: 'vertical'
             Image:
                 source: 'sequenced_images/data/images/info.png'\
                     if tph.state == 'normal' else 'softboy.png'

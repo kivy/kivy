@@ -30,11 +30,6 @@ You can choose the direction the tabs are displayed::
 
     tab_pos = 'top_mid'
 
-By default, the widgets added to a tabbed panel are orderd horizontally, as in
-a Boxlayout. You can change that by::
-
-    orientation = 'vertical'
-
 An individual tab is called a TabbedPanelHeader. It is a special button
 containing a content property. You add the TabbedPanelHeader first, and set its
 content separately::
@@ -455,7 +450,6 @@ class TabbedPanel(GridLayout):
         self.reposition_tabs()
 
     def on_tab_pos(self, *l):
-        #from pudb import set_trace;set_trace()
         self_content = self.content
         if not self_content:
             return
