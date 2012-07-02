@@ -125,6 +125,8 @@ from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
 
 
 class TabbedPanelException(Exception):
+    '''The TabbedPanelException class.
+    '''
     pass
 
 
@@ -138,7 +140,8 @@ class TabbedPanelHeader(ToggleButton):
     content = ObjectProperty(None)
     '''Content to be loaded when this tab header is selected.
 
-    :data:`content` is a :class:`~kivy.properties.ObjectProperty`
+    :data:`content` is a :class:`~kivy.properties.ObjectProperty` default
+    to None .
     '''
 
     # only allow selecting the tab if not already selected
@@ -162,12 +165,18 @@ class TabbedPanelHeader(ToggleButton):
 
 class TabbedPanelStrip(GridLayout):
     '''A strip intended to be used as background for Heading/Tab.
-    See module documentation for details.
     '''
     tabbed_panel = ObjectProperty(None)
+    '''link to the panel that tab strip is a part of.
+
+    :data:`tabbed_panel` is a :class:`~kivy.properties.ObjectProperty` default
+    to None .
+    '''
 
 
 class TabbedPanelContent(FloatLayout):
+    '''The TabbedPanelContent class.
+    '''
     pass
 
 
@@ -217,8 +226,9 @@ class TabbedPanel(GridLayout):
                 'top_mid', 'top_right', 'right_top', 'right_mid',
                 'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right'))
     '''Specifies the position of the tabs relative to the content.
-    Can be one of: left_top, left_mid, left_bottom top_left, top_mid, top_right
-    right_top, right_mid, right_bottom bottom_left, bottom_mid, bottom_right.
+    Can be one of: `left_top`, `left_mid`, `left_bottom`, `top_left`,
+    `top_mid`, `top_right`, `right_top`, `right_mid`, `right_bottom`,
+    `bottom_left`, `bottom_mid`, `bottom_right`.
 
     :data:`tab_pos` is a :class:`~kivy.properties.OptionProperty`,
     default to 'bottom_mid'.
@@ -228,14 +238,14 @@ class TabbedPanel(GridLayout):
     '''Specifies the height of the tab header.
 
     :data:`tab_height` is a :class:`~kivy.properties.NumericProperty`,
-    default to '20'.
+    default to 40.
     '''
 
     tab_width = NumericProperty(100, allownone=True)
     '''Specifies the width of the tab header.
 
     :data:`tab_width` is a :class:`~kivy.properties.NumericProperty`,
-    default to '100'.
+    default to 100.
     '''
 
     default_tab_text = StringProperty('Default tab')
@@ -250,11 +260,11 @@ class TabbedPanel(GridLayout):
 
     .. versionadded:: 1.4.0
 
-    ..warning::
-        `default_tab_class` should be subclassed from TabbedPanelHeader'
+    .. warning::
+        `default_tab_cls` should be subclassed from `TabbedPanelHeader`
 
-    :data:`default_tab_cls` is a :class:`~kivy.properties.StringProperty`,
-    default to 'TabbedPanelHeader'.
+    :data:`default_tab_cls` is a :class:`~kivy.properties.ObjectProperty`,
+    default to `TabbedPanelHeader`.
     '''
 
     def get_tab_list(self):
@@ -280,6 +290,9 @@ class TabbedPanel(GridLayout):
         return self._default_tab
 
     def set_def_tab(self, new_tab):
+        if not issubclass(new_tab.__class__, TabbedPanelHeader):
+            raise TabbedPanelException('`default_tab_class` should be\
+                subclassed from `TabbedPanelHeader`')
         if  self._default_tab == new_tab:
             return
         oltab = self._default_tab
@@ -330,7 +343,7 @@ class TabbedPanel(GridLayout):
 
         content = self._default_tab.content
         cls = self.default_tab_cls
-        if not issubclass(cls, default_tab.__class__):
+        if not issubclass(cls, TabbedPanelHeader):
             raise TabbedPanelException('`default_tab_class` should be\
                 subclassed from `TabbedPanelHeader`')
 
@@ -339,6 +352,7 @@ class TabbedPanel(GridLayout):
         default_tab = self.default_tab
         default_tab.text = self.default_tab_text
         default_tab.height = self.tab_height
+        default_tab.group = '__tab%r__' %_tabs.uid
         default_tab.state = 'down'
         default_tab.width = self.tab_width if self.tab_width else 100
         default_tab.content = content
@@ -346,7 +360,6 @@ class TabbedPanel(GridLayout):
         tl = self.tab_list
         if default_tab not in tl:
             _tabs.add_widget(default_tab, len(tl))
-        default_tab.group = '__tab%r__' %_tabs.uid
 
         if default_tab.content:
             self.clear_widgets()
