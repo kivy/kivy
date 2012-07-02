@@ -16,12 +16,12 @@ class StandingHeader(TabbedPanelHeader):
     pass
 
 
-class ClosableHeader(TabbedPanelHeader):
+class CloseableHeader(TabbedPanelHeader):
     pass
 
 
 Factory.register('StandingHeader', cls = StandingHeader)
-Factory.register('ClosableHeader', cls = ClosableHeader)
+Factory.register('CloseableHeader', cls = CloseableHeader)
 
 from kivy.lang import Builder
 
@@ -44,7 +44,7 @@ Builder.load_string('''
         size_hint: None, None
         size: lbl.size
         center_x: root.center_x
-        center_y: root.center_y + (lbl.height/4)
+        center_y: root.center_y
         Label:
             id: lbl
             text: root.text
@@ -55,7 +55,8 @@ Builder.load_string('''
     size_hint: (.45, .45)
     pos_hint: {'center_x': .25, 'y': .55}
     #replace the default tab with our custom tab
-    default_tab: def_tab
+    default_tab_cls: sh.__class__
+    default_tab_content: default_content
     tab_width: 40
     tab_height: 70
     FloatLayout:
@@ -74,17 +75,14 @@ Builder.load_string('''
             size: self.parent.size
             source: 'data/images/image-loading.gif'
     StandingHeader:
-        id: def_tab
-        content: default_content
-        text: 'Default tab'
-    StandingHeader:
+        id: sh
         content: tab_2_content
         text: 'tab 2'
     StandingHeader:
         content: tab_3_content
         text: 'tab 3'
 
-<ClosableHeader>
+<CloseableHeader>
     color: 0,0,0,0
     # variable tab_width
     text: 'tabx'
@@ -100,8 +98,8 @@ Builder.load_string('''
             text: root.text
         BoxLayout:
             size_hint: None, 1
-            width: 22
             orientation: 'vertical'
+            width: 22
             Widget:
             Button:
                 border: 0,0,0,0
@@ -114,13 +112,14 @@ Builder.load_string('''
     tab_pos: 'top_right'
     size_hint: (.45, .45)
     pos_hint: {'center_x': .75, 'y': .55}
+    #replace the default tab with our custom tab
     default_tab: def_tab
     #allow variable tab width
     tab_width: None
     FloatLayout:
         RstDocument:
             id: default_content
-            text: '\\n'.join(("Closable tabs", "-------------",\
+            text: '\\n'.join(("Closeable tabs", "---------------",\
                 "- The tabs above are also scrollable",\
                 "- Tabs in \\'%s\\' position" %root.tab_pos))
         Image:
@@ -138,33 +137,33 @@ Builder.load_string('''
             BubbleButton:
                 text: 'Press set this tab as default'
                 on_release: root.default_tab = tab3
-    ClosableHeader:
+    CloseableHeader:
         id: def_tab
         text: 'default tab'
         content:default_content
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         text: 'tab2'
         content: tab_2_content
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         id: tab3
         text: 'tab3'
         content: tab_3_content
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
-    ClosableHeader:
+    CloseableHeader:
         panel: root
 
 <PanelbLeft>
@@ -259,9 +258,7 @@ Builder.load_string('''
 
 class Tp(TabbedPanel):
     #override tab switching method to animate on tab switch
-    def switch_to(self, header, *args):
-        if header.content is None:
-            return
+    def switch_to(self, header):
         anim = Animation(color=(1, 1, 1, 0), d =.24, t = 'in_out_quad')
 
         def start_anim(_anim, child, in_complete, *lt):
@@ -280,7 +277,7 @@ class Tp(TabbedPanel):
 
         anim.bind(on_complete = _on_complete)
         if self.content:
-            start_anim(anim, self.content.children[0], False)
+            start_anim(anim, self.current_tab.content, False)
         else:
             _on_complete()
 
@@ -292,7 +289,7 @@ class PanelLeft(Tp):
 class PanelRight(Tp):
 
     def add_header(self):
-        self.add_widget(ClosableHeader(panel = self))
+        self.add_widget(CloseableHeader(panel = self))
 
 
 class PanelbLeft(Tp):
