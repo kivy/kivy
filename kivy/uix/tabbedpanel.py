@@ -108,7 +108,7 @@ tabbed panel's background_image and background_color.
 '''
 
 __all__ = ('TabbedPanel', 'TabbedPanelContent', 'TabbedPanelHeader',
-    'TabbedPanelStrip')
+    'TabbedPanelStrip', 'TabbedPanelException')
 
 from functools import partial
 from kivy.clock import Clock
@@ -122,11 +122,15 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
         ListProperty, NumericProperty, AliasProperty
-from kivy.factory import Factory
+
+
+class TabbedPanelException(Exception):
+    pass
 
 
 class TabbedPanelHeader(ToggleButton):
-    '''A button intended to be used as a Heading/Tab for TabbedPanel widget.
+    '''A Base for implementing a Tabbed Panel Head. A button intended to be
+    used as a Heading/Tab for TabbedPanel widget.
 
     You can use this TabbedPanelHeader widget to add a new tab to TabbedPanel.
     '''
@@ -241,12 +245,15 @@ class TabbedPanel(GridLayout):
     default to 'default tab'.
     '''
 
-    default_tab_class = StringProperty('TabbedPanelHeader')
+    default_tab_cls = ObjectProperty(TabbedPanelHeader)
     '''Specifies the class to use for the styling of the default tab.
 
     .. versionadded:: 1.4.0
 
-    :data:`default_tab_class` is a :class:`~kivy.properties.StringProperty`,
+    ..warning::
+        `default_tab_class` should be subclassed from TabbedPanelHeader'
+
+    :data:`default_tab_cls` is a :class:`~kivy.properties.StringProperty`,
     default to 'TabbedPanelHeader'.
     '''
 
@@ -322,10 +329,13 @@ class TabbedPanel(GridLayout):
         super(TabbedPanel, self).__init__(**kwargs)
 
         content = self._default_tab.content
-        cls = Factory.classes[self.default_tab_class]['cls']
+        cls = self.default_tab_cls
+        if not issubclass(cls, default_tab.__class__):
+            raise TabbedPanelException('`default_tab_class` should be\
+                subclassed from `TabbedPanelHeader`')
+
         if cls != type(default_tab):
-            if cls:
-                self._default_tab = cls()
+            self._default_tab = cls()
         default_tab = self.default_tab
         default_tab.text = self.default_tab_text
         default_tab.height = self.tab_height
