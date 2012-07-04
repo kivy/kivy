@@ -123,7 +123,7 @@ The latest Windows package contains:
     * Glew 1.5.7
     * Pygame 1.9.2
     * Cython 0.14
-    * MingW
-    * Gstreamer
+    * MinGW
+    * GStreamer
     * Setuptools
 
