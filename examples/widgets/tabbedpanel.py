@@ -7,9 +7,11 @@ Test of the widget TabbedPanel.
 
 from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanel
+from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 
 Builder.load_string("""
+
 <Test>:
     size_hint: .5, .5
     pos_hint: {'center_x': .5, 'center_y': .5}
