@@ -536,5 +536,13 @@ class Widget(EventDispatcher):
 
     The canvas is a graphics object that contains all the drawing instructions
     for the graphical representation of the widget.
+
+    There are no general properties for the Widget class, such as background
+    color, to keep the design simple and lean. Some derived classes, such as
+    Button, do add such convenience properties, but generally the developer is
+    responsible for implementing the graphics representation for a custom
+    widget from the ground up. See the derived widget classes for patterns to
+    follow and extend.
+
     See :class:`~kivy.graphics.Canvas` for more information about the usage.
     '''
