@@ -352,7 +352,7 @@ player rackets and keeping track of the score.  We won't to go over all the
 details of creating the class and kv rules again, since those concepts were
 already covered in the previous steps.  Instead lets focus on how to move the
 Player widgets in response to user input.  You can get the whole code and kv
-rules for the ``PongPlayer`` class at the end of this section.
+rules for the ``PongPaddle`` class at the end of this section.
 
 In Kivy, a widget can react to input by implemeting the ``on_touch_down``,
 ``on_touch_move`` and ``on_touch_up`` methods. By default, the Widget class
@@ -376,12 +376,12 @@ Check the ``on_touch_move`` handler::
 We'll keep the score for each player in a
 :class:`~kivy.properties.NumericProperty`. The score labels of the ``PongGame``
 are kept updated by changing the static string we had in the kv file before to
-the score property of our new ``PongPlayer`` child widgets.  When the ball
+the score property of our new ``PongPaddle`` child widgets.  When the ball
 get's out of bounce on of the sides, we'll update the score and serve the ball
 again by changing the ``update`` method in the ``PongGame`` class.  The player
 class also implements a ``bounce_ball method``, so that the ball bounces
 differently based on where on the racket it hits. Here is the code for the
-`PongPlayer` class::
+`PongPaddle` class::
 
     class PongPaddle(Widget):
 
