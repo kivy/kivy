@@ -161,13 +161,13 @@ class LabelBase(object):
         # is the font is registered ?
         if fontname in fonts:
             # return the prefered font for the current bold/italic combinaison
-            bold = int(options['bold'])
-            if options['italic']:
-                italic = FONT_ITALIC
+            italic = int(options['italic'])
+            if options['bold']:
+                bold = FONT_BOLD
             else:
-                italic = FONT_REGULAR
+                bold = FONT_REGULAR
 
-            options['font_name_r'] = fonts[fontname][bold | italic]
+            options['font_name_r'] = fonts[fontname][italic | bold]
 
         elif fontname in fontscache:
             options['font_name_r'] = fontscache[fontname]
