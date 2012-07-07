@@ -314,6 +314,17 @@ Here's what happens:
       the button is pressed and then released) to the callback we just
       defined.
 
+.. note::
+   The Kivy Widget class, by design, is kept simple. There are no general
+   properties such as background color and border color. Instead, the examples
+   and documentation illustrate how to easily handle such simple things
+   yourself, as we have done here, setting the color for the canvas, and 
+   drawing the shape. From a simple start, you can move to more elaborate
+   customization. Higher-level built-in widgets, deriving from Widget, such
+   as Button, do have convenience properties such as background_color, but
+   these vary by widget. Use the API docs to see what is offered by a widget,
+   and subclass if you need to add more functionality.
+
 Congratulations! You've written your first Kivy widget. Obviously this was
 just a quick introduction. There is much more to discover. We suggest
 taking a short break to let what you just learned sink in. Maybe draw some
