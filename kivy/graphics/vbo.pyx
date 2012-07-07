@@ -43,14 +43,14 @@ cdef vertex_attr_t *vbo_vertex_attr_list():
 Usage example
 -------------
 
-vertex2d = Vertex([('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float')])
+vertex2d = VertexFormat(('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float'))
 '''
 
-class VertexException(Exception):
+class VertexFormatException(Exception):
     pass
 
-cdef class Vertex:
-    def __cinit__(self, list fmt):
+cdef class VertexFormat:
+    def __cinit__(self, *fmt):
         self.vattr = NULL
         self.vattr_count = 0
         self.vsize = 0
@@ -61,12 +61,12 @@ cdef class Vertex:
             free(self.vattr)
             self.vattr = NULL
 
-    def __init__(self, list fmt):
+    def __init__(self, *fmt):
         cdef vertex_attr_t *attr
         cdef int index, size
 
         if not fmt:
-            raise VertexException('No format specified')
+            raise VertexFormatException('No format specified')
 
         self.vattr_count = len(fmt)
         self.vattr = <vertex_attr_t *>malloc(sizeof(vertex_attr_t) * self.vattr_count)
@@ -81,13 +81,13 @@ cdef class Vertex:
                 attr.type = GL_FLOAT
                 attr.bytesize = sizeof(GLfloat) * size
             else:
-                raise VertexException('Unknow format type %r' % tp)
+                raise VertexFormatException('Unknow format type %r' % tp)
 
             index += 1
             self.vsize += attr.size
             self.vbytesize += attr.bytesize
 
-cdef Vertex default_vertex = Vertex([('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float')])
+cdef VertexFormat default_vertex = VertexFormat(('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float'))
 
 cdef short V_NEEDGEN = 1 << 0
 cdef short V_NEEDUPLOAD = 1 << 1
@@ -95,12 +95,12 @@ cdef short V_HAVEID = 1 << 2
 
 cdef class VBO:
 
-    def __cinit__(self, Vertex vertex=None):
+    def __cinit__(self, VertexFormat vertex=None):
         self.usage  = GL_DYNAMIC_DRAW
         self.target = GL_ARRAY_BUFFER
         if vertex is None:
             vertex = default_vertex
-        self.vertex = vertex
+        #self.vertex = vertex
         self.format = vertex.vattr
         self.format_count = vertex.vattr_count
         self.format_size = vertex.vbytesize
@@ -110,7 +110,7 @@ cdef class VBO:
     def __dealloc__(self):
         get_context().dealloc_vbo(self)
 
-    def __init__(self, Vertex vertex = None):
+    def __init__(self, VertexFormat vertex = None):
         get_context().register_vbo(self)
         self.data = Buffer(self.format_size)
 
@@ -141,14 +141,18 @@ cdef class VBO:
         cdef vertex_attr_t *attr
         cdef int offset = 0, i
         self.update_buffer()
-        getActiveContext()._shader.bind_attrib_locations(self.vertex)
         glBindBuffer(GL_ARRAY_BUFFER, self.id)
+        shader = getActiveContext()._shader
         for i in xrange(self.format_count):
             attr = &self.format[i]
             if attr.per_vertex == 0:
                 continue
+            attr.index = shader.get_attribute_loc(attr.name)
+            if attr.index == -1:
+                raise VertexFormatException("Current Shader has no vertex attribute named %s" % attr.name)
             glVertexAttribPointer(attr.index, attr.size, attr.type,
                     GL_FALSE, self.format_size, <GLvoid*><long>offset)
+            glEnableVertexAttribArray(attr.index)
             offset += attr.bytesize
 
     cdef void unbind(self):

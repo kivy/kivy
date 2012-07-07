@@ -251,7 +251,7 @@ cdef class Mesh(VertexInstruction):
     '''
     cdef list _vertices
     cdef list _indices
-    cdef Vertex vertex
+    cdef VertexFormat vertex
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -260,9 +260,10 @@ cdef class Mesh(VertexInstruction):
         v = kwargs.get('indices')
         self.indices = v if v is not None else []
         fmt = kwargs.get('fmt')
-        cdef Vertex vertex
+        cdef VertexFormat vertex
         if fmt is not None:
-            self.vertex = Vertex(fmt)
+            print "FORMAT", fmt
+            self.vertex = VertexFormat(*fmt)
             self.batch = VertexBatch(vbo=VBO(self.vertex))
         self.mode = kwargs.get('mode') or 'points'
 
