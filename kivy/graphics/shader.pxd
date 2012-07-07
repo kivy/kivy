@@ -1,7 +1,7 @@
 
 from c_opengl cimport GLuint
 from transformation cimport Matrix
-from vbo cimport Vertex
+from vbo cimport VertexFormat
 
 cdef class ShaderSource:
     cdef int shader
@@ -22,15 +22,15 @@ cdef class Shader:
     cdef object frag_src
     cdef dict uniform_locations
     cdef dict uniform_values
-    cdef Vertex vertex
 
     cdef void use(self)
     cdef void stop(self)
     cdef void set_uniform(self, str name, value)
     cdef void upload_uniform(self, str name, value)
     cdef void upload_uniform_matrix(self, int loc, Matrix value)
+    cdef int get_attribute_loc(self, str name)
     cdef int get_uniform_loc(self, str name)
-    cdef void bind_attrib_locations(self, Vertex)
+    cdef void bind_attrib_locations(self, VertexFormat fmt)
     cdef void build(self)
     cdef void build_vertex(self)
     cdef void build_fragment(self)

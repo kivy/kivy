@@ -5,13 +5,13 @@ from vertex cimport vertex_attr_t
 cdef int vbo_vertex_attr_count()
 cdef vertex_attr_t *vbo_vertex_attr_list()
 
-cdef class Vertex:
+cdef class VertexFormat:
     cdef vertex_attr_t *vattr
     cdef int vattr_count
     cdef unsigned int vsize
     cdef unsigned int vbytesize
 
-cdef Vertex default_vertex
+cdef VertexFormat default_vertex
 
 
 cdef class VBO:
@@ -26,7 +26,6 @@ cdef class VBO:
     cdef Buffer data
     cdef short flags
     cdef int vbo_size
-    cdef Vertex vertex
 
     cdef void update_buffer(self)
     cdef void bind(self)

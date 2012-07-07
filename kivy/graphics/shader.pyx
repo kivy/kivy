@@ -151,7 +151,6 @@ cdef class Shader:
         self.uniform_locations = dict()
         self._success = 0
         self.program = glCreateProgram()
-        #self.bind_attrib_locations()
         self.fs = self.fs
         self.vs = self.vs
 
@@ -272,7 +271,13 @@ cdef class Shader:
         self.uniform_locations[name] = loc
         return loc
 
-    cdef void bind_attrib_locations(self, Vertex vertex):
+    cdef int get_attribute_loc(self, str name):
+        name_byte_str = name
+        cdef char* c_name = name_byte_str
+        cdef int loc = glGetAttribLocation(self.program, c_name)
+        return loc
+
+    cdef void bind_attrib_locations(self, VertexFormat vertex):
         cdef int i
         if self.vertex is vertex:
             return
@@ -313,6 +318,7 @@ cdef class Shader:
         # XXX to ensure that shader is ok, read error state right now.
         glGetError()
 
+        #self.bind_attrib_locations(default_vertex)
         glLinkProgram(self.program)
         self.process_message('program', self.get_program_log(self.program))
         self.uniform_locations = dict()
