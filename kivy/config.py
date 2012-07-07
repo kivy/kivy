@@ -205,6 +205,12 @@ class ConfigParser(PythonConfigParser):
         self.filename = filename
         PythonConfigParser.read(self, filename)
 
+    def set(self, section, option, value):
+        '''Functions similarly to PythonConfigParser's set method, except that
+        the value is implicitly converted to a string.
+        '''
+        return PythonConfigParser.set(self, section, option, str(value))
+
     def setdefaults(self, section, keyvalues):
         '''Set a lot of keys/values in one section at the same time
         '''
