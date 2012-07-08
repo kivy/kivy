@@ -1,38 +1,16 @@
+
+
 from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ObjectProperty, \
         NumericProperty, ListProperty, OptionProperty
 from kivy.animation import Animation, AnimationTransition
 from kivy.logger import Logger
-from kivy.uix.scatter import Scatter
+from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 
-Builder.load_string('''
-<RelativeFloatLayout>:
-    do_translation: False
-    do_rotation: False
-    do_scale: False
-''')
 
-class RelativeFloatLayout(Scatter):
-    content = ObjectProperty()
-    def __init__(self, **kw):
-        self.content = FloatLayout()
-        super(RelativeFloatLayout, self).__init__(**kw)
-        super(RelativeFloatLayout, self).add_widget(self.content)
-        self.bind(size=self.update_size)
-
-    def update_size(self, instance, size):
-        self.content.size = size
-
-    def add_widget(self, *l):
-        self.content.add_widget(*l)
-
-    def remove_widget(self, *l):
-        self.content.remove_widget(*l)
-
-
-class Screen(RelativeFloatLayout):
+class Screen(RelativeLayout):
     name = StringProperty('')
     manager = ObjectProperty()
     transition_alpha = NumericProperty(0.)
@@ -126,25 +104,28 @@ class SwapTransition(Transition):
         a = self.screen_in
         b = self.screen_out
         manager = self.manager
-        from math import cos, pi
 
         b.scale = 1. - progression * 0.7
         a.scale = 0.5 + progression * 0.5
         a.center_y = b.center_y = manager.center_y
 
-        al = AnimationTransition.in_out_quad
+        al = AnimationTransition.in_out_sine
 
         if progression < 0.5:
             p2 = al(progression * 2)
             width = manager.width * 0.7
+            widthb = manager.width * 0.2
             a.x = manager.center_x + p2 * width / 2.
+            b.center_x = manager.center_x - p2 * widthb / 2.
         else:
             if self.screen_in is self.manager.children[-1]:
                 self.manager.real_remove_widget(self.screen_in)
                 self.manager.real_add_widget(self.screen_in)
             p2 = al((progression - 0.5) * 2)
             width = manager.width * 0.85
+            widthb = manager.width * 0.2
             a.x = manager.x + width * (1 - p2)
+            b.center_x = manager.center_x - (1 - p2) * widthb / 2.
 
 class ScreenManagerBase(FloatLayout):
     current = StringProperty(None)
@@ -203,14 +184,20 @@ if __name__ == '__main__':
 <Screen>:
     canvas:
         Color:
-            rgb: 1, 1, 1 if self.name == 'test1' else 0
+            rgb: .2, .2, .2
         Rectangle:
             size: self.size
 
-    Label:
-        text: root.name
-        font_size: 45
-        color: (0, 0, 0, 1)
+    GridLayout:
+        cols: 2
+        Button:
+            text: 'Hello world'
+        Button:
+            text: 'Hello world'
+        Button:
+            text: 'Hello world'
+        Button:
+            text: 'Hello world'
 ''')
 
     class TestApp(App):
