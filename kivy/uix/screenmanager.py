@@ -177,14 +177,14 @@ class TransitionBase(EventDispatcher):
 
 class SlideTransition(TransitionBase):
     '''Slide Transition, can be used to show a new screen from any direction:
-    left, right, top or down.
+    left, right, up or down.
     '''
 
-    direction = OptionProperty('left', options=('left', 'right', 'top', 'down'))
+    direction = OptionProperty('left', options=('left', 'right', 'up', 'down'))
     '''Direction of the transition.
 
     :data:`direction` is an :class:`~kivy.properties.OptionProperty`, default to
-    left. Can be one of 'left', 'right', 'top' or 'down'.
+    left. Can be one of 'left', 'right', 'up' or 'down'.
     '''
 
     def on_progress(self, progression):
@@ -204,7 +204,7 @@ class SlideTransition(TransitionBase):
             a.y = b.y = y
             b.x = x + width * progression
             a.x = x - width * (1 - progression)
-        elif direction == 'top':
+        elif direction == 'up':
             a.x = b.x = x
             a.y = y + height * (1 - progression)
             b.y = y - height * progression
@@ -291,21 +291,34 @@ class ScreenManager(FloatLayout):
         sm.current = 'second'
     '''
 
-    _screens = ListProperty()
-    _current_screen = ObjectProperty(None)
+    screens = ListProperty()
+    '''List of all the :class:`Screen` widgets added. You must not change the
+    list manually. Use :meth:`Screen.add_widget` instead.
+
+    :data:`screens` is a :class:`~kivy.properties.ListProperty`, default to [],
+    read-only.
+    '''
+
+    current_screen = ObjectProperty(None)
+    '''Contain the current displayed screen. You must not change this property
+    manually, use :data:`current` instead.
+
+    :data:`current_screen` is an :class:`~kivy.properties.ObjectProperty`,
+    default to None, read-only.
+    '''
 
     def add_widget(self, screen):
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
                     'ScreenManager accept only Screen widget.')
-        if screen.name in [s.name for s in self._screens]:
+        if screen.name in [s.name for s in self.screens]:
             raise ScreenManagerException(
                     'Name %r already used' % screen.name)
         if screen.manager:
             raise ScreenManagerException(
                     'Screen already managed by another ScreenManager.')
         screen.manager = self
-        self._screens.append(screen)
+        self.screens.append(screen)
         if self.current is None:
             self.current = screen.name
 
@@ -320,8 +333,8 @@ class ScreenManager(FloatLayout):
         if not screen:
             return
 
-        previous_screen = self._current_screen
-        self._current_screen = screen
+        previous_screen = self.current_screen
+        self.current_screen = screen
         if previous_screen:
             self.transition.stop()
             self.transition.screen_in = screen
@@ -334,9 +347,35 @@ class ScreenManager(FloatLayout):
         '''Return the screen widget associated to the name, or None if not
         found.
         '''
-        for screen in self._screens:
+        for screen in self.screens:
             if screen.name == name:
                 return screen
+
+    def next(self):
+        '''Return the name of the next screen from the screen list.
+        '''
+        screens = self.screens
+        if not screens:
+            return
+        try:
+            index = screens.index(self.current_screen)
+            index = (index + 1) % len(screens)
+            return screens[index].name
+        except ValueError:
+            return
+
+    def previous(self):
+        '''Return the name of the previous screen from the screen list.
+        '''
+        screens = self.screens
+        if not screens:
+            return
+        try:
+            index = screens.index(self.current_screen)
+            index = (index - 1) % len(screens)
+            return screens[index].name
+        except ValueError:
+            return
 
 if __name__ == '__main__':
     from kivy.app import App
@@ -364,7 +403,7 @@ if __name__ == '__main__':
 
     class TestApp(App):
         def change_view(self, *l):
-            #d = ('left', 'top', 'down', 'right')
+            #d = ('left', 'up', 'down', 'right')
             #di = d.index(self.sm.transition.direction)
             #self.sm.transition.direction = d[(di + 1) % len(d)]
             self.sm.current = 'test2' if self.sm.current == 'test1' else 'test1'
