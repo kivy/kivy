@@ -1,4 +1,13 @@
+'''
+Screen Manager
+==============
 
+.. versionadded:: 1.4.0
+
+'''
+
+__all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
+    'FullScreenManager')
 
 from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
@@ -10,26 +19,116 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 
 
+class ScreenManagerException(Exception):
+    pass
+
+
 class Screen(RelativeLayout):
+    '''Screen is an element intented to be used within :class:`ScreenManager`.
+    Check module documentation for more information.
+    '''
+
     name = StringProperty('')
+    '''
+    Name of the screen, must be unique within a :class:`ScreenManager`. This is
+    the name used for :data:`ScreenManager.current`
+
+    :data:`name` is a :class:`~kivy.properties.StringProperty`, default to ''
+    '''
+
     manager = ObjectProperty()
+    '''Screen manager object, set when the screen is added within a manager.
+
+    :data:`manager` is a :class:`~kivy.properties.ObjectProperty`, default to
+    None, read-only.
+    '''
+
     transition_alpha = NumericProperty(0.)
+    '''Value that represent the completion of the current transition, if any is
+    occuring.
+
+    If a transition is going on, whatever is the mode, the value will got from 0
+    to 1. If you want to know if it's an entering or leaving animation, check
+    the :data:`transition_state`
+
+    :data:`transition_alpha` is a :class:`~kivy.properties.NumericProperty`,
+    default to 0.
+    '''
+
     transition_state = OptionProperty('out', options=('in', 'out'))
+    '''Value that represent the state of the transition:
+
+    - 'in' if the transition is going to show your screen
+    - 'out' if the transition is going to hide your screen
+
+    After the transition is done, the state will stay on the last one (in or
+    out).
+
+    :data:`transition_state` is an :class:`~kivy.properties.OptionProperty`,
+    default to 'out'.
+    '''
 
     def __repr__(self):
         return '<Screen name=%r>' % self.name
 
 
-class Transition(EventDispatcher):
+class TransitionBase(EventDispatcher):
+    '''Transition class is used to animate 2 screens within the
+    :class:`ScreenManager`. This class act as a base for others implementation,
+    like :class:`SlideTransition`, :class:`SwapTransition`.
+
+    :Events:
+        `on_progress`: Transition object, progression float
+            Fired during the animation of the transition
+        `on_complete`: Transition object
+            Fired when the transition is fininshed.
+    '''
+
     screen_out = ObjectProperty()
+    '''Property that contain the screen to hide.
+    Automatically set by the :class:`ScreenManager`.
+
+    :class:`screen_out` is a :class:`~kivy.properties.ObjectProperty`, default
+    to None.
+    '''
+
     screen_in = ObjectProperty()
-    duration = NumericProperty(1.)
+    '''Property that contain the screen to show.
+    Automatically set by the :class:`ScreenManager`.
+
+    :class:`screen_in` is a :class:`~kivy.properties.ObjectProperty`, default
+    to None.
+    '''
+
+    duration = NumericProperty(.7)
+    '''Duration in seconds of the transition.
+
+    :class:`duration` is a :class:`~kivy.properties.NumericProperty`, default to
+    .7 (= 700ms)
+    '''
+
     manager = ObjectProperty()
+    '''Screen manager object, set when the screen is added within a manager.
+
+    :data:`manager` is a :class:`~kivy.properties.ObjectProperty`, default to
+    None, read-only.
+    '''
+
+    # privates
+
     _anim = ObjectProperty(allownone=True)
 
+    def __init__(self, **kw):
+        self.register_event_type('on_progress')
+        self.register_event_type('on_complete')
+        super(TransitionBase, self).__init__(**kw)
+
     def start(self, manager):
+        '''(internal) Start the transition. This is automatically called by the
+        :class:`ScreenManager`.
+        '''
         self.manager = manager
-        self._anim = Animation(d=self.duration)
+        self._anim = Animation(d=self.duration, s=0)
         self._anim.bind(on_progress=self._on_progress, on_complete=self._on_complete)
 
         self.add_screen(self.screen_in)
@@ -39,29 +138,26 @@ class Transition(EventDispatcher):
         self.screen_out.transition_mode = 'out'
 
         self._anim.start(self)
-        self.on_progress(0)
+        self.dispatch('on_progress', 0)
 
     def stop(self):
+        '''(internal) Stop the transition. This is automatically called by the
+        :class:`ScreenManager`.
+        '''
         if self._anim:
             self._anim.cancel(self)
-            self.on_complete()
+            self.dispatch('on_complete')
             self._anim = None
 
     def add_screen(self, screen):
+        '''(internal) Used to add a screen into the :class:`ScreenManager`
+        '''
         self.manager.real_add_widget(screen)
 
     def remove_screen(self, screen):
+        '''(internal) Used to remove a screen into the :class:`ScreenManager`
+        '''
         self.manager.real_remove_widget(screen)
-
-    def _on_progress(self, *l):
-        alpha = l[-1]
-        self.screen_in.transition_value = alpha
-        self.screen_out.transition_value = 1. - alpha
-        self.on_progress(alpha)
-
-    def _on_complete(self, *l):
-        self.on_complete()
-        self._anim = None
 
     def on_complete(self):
         self.remove_screen(self.screen_out)
@@ -69,8 +165,18 @@ class Transition(EventDispatcher):
     def on_progress(self, progression):
         pass
 
+    def _on_progress(self, *l):
+        alpha = l[-1]
+        self.screen_in.transition_value = alpha
+        self.screen_out.transition_value = 1. - alpha
+        self.dispatch('on_progress', alpha)
 
-class SlideTransition(Transition):
+    def _on_complete(self, *l):
+        self.dispatch('on_complete')
+        self._anim = None
+
+
+class SlideTransition(TransitionBase):
     direction = OptionProperty('left', options=('left', 'right', 'top', 'down'))
 
     def on_progress(self, progression):
@@ -78,6 +184,8 @@ class SlideTransition(Transition):
         b = self.screen_out
         manager = self.manager
         direction = self.direction
+        al = AnimationTransition.out_quad
+        progression = al(progression)
         if direction == 'left':
             a.y = b.y = manager.y
             a.x = manager.x + manager.width * (1 - progression)
@@ -95,7 +203,7 @@ class SlideTransition(Transition):
             b.y = manager.y + manager.height * progression
             a.y = manager.y - manager.height * (1 - progression)
 
-class SwapTransition(Transition):
+class SwapTransition(TransitionBase):
 
     def add_screen(self, screen):
         self.manager.real_add_widget(screen, 1)
@@ -127,7 +235,7 @@ class SwapTransition(Transition):
             a.x = manager.x + width * (1 - p2)
             b.center_x = manager.center_x - (1 - p2) * widthb / 2.
 
-class ScreenManagerBase(FloatLayout):
+class ScreenManager(FloatLayout):
     current = StringProperty(None)
     transition = ObjectProperty(SlideTransition())
 
@@ -137,7 +245,7 @@ class ScreenManagerBase(FloatLayout):
     def add_widget(self, screen):
         assert(isinstance(screen, Screen))
         if screen.name in [s.name for s in self._screens]:
-            Logger.warning('ScreenManagerBase: duplicated screen name %r' %
+            Logger.warning('ScreenManager: duplicated screen name %r' %
                     screen.name)
         if screen.manager:
             raise Exception('ScreenManager: you are adding a screen already managed by somebody else')
@@ -147,10 +255,10 @@ class ScreenManagerBase(FloatLayout):
             self.current = screen.name
 
     def real_add_widget(self, *l):
-        super(ScreenManagerBase, self).add_widget(*l)
+        super(ScreenManager, self).add_widget(*l)
 
     def real_remove_widget(self, *l):
-        super(ScreenManagerBase, self).remove_widget(*l)
+        super(ScreenManager, self).remove_widget(*l)
 
     def on_current(self, instance, value):
         screen = self.get_screen(value)
@@ -171,10 +279,6 @@ class ScreenManagerBase(FloatLayout):
         for screen in self._screens:
             if screen.name == name:
                 return screen
-
-class FullScreenManager(ScreenManagerBase):
-    pass
-
 
 if __name__ == '__main__':
     from kivy.app import App
@@ -209,7 +313,7 @@ if __name__ == '__main__':
 
         def build(self):
             root = FloatLayout()
-            self.sm = sm = FullScreenManager(transition=SwapTransition())
+            self.sm = sm = ScreenManager(transition=SwapTransition())
 
             sm.add_widget(Screen(name='test1'))
             sm.add_widget(Screen(name='test2'))
