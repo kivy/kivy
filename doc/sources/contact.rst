@@ -34,7 +34,7 @@ Kivy framework code `on kivy-dev Google Groups <https://groups.google.com/group/
 IRC
 ---
 
-**#kivy on irc.freenode.net**
+**#Kivy on irc.freenode.net**
 
 IRC is great for real-time communication, but please make sure to **wait** after
 you asked your question. If you just join, ask and quit we have **no way** of
