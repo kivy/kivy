@@ -1,9 +1,9 @@
 .. _packaging_ios:
 
-.. versionadded:: 1.2.0
-
 Create a package for IOS
 ========================
+
+.. versionadded:: 1.2.0
 
 .. warning::
 
@@ -16,8 +16,20 @@ The overall method for creating a package on IOS can be explained in 4 steps:
 #. Populate the Xcode project with your application source code
 #. Customize
 
-The current method have been tested with Xcode 4.2.
+The current method have been tested with Xcode 4.2
 
+Prerequisites
+-------------
+
+You need to install some dependencies, like cython or mercurial. If you're
+using Xcode 4.3, then you also need to install autotools. We encourage you to
+use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install thoses dependencies::
+
+    brew install cython autoconf automake libtool pkg-config mercurial
+    brew link libtool
+    brew link mercurial
+
+Ensure that everything is ok before starting the second step!
 
 Compile the distribution
 ------------------------

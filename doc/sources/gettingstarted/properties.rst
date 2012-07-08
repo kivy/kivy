@@ -10,14 +10,14 @@ Kivy's properties are useful to:
 
 - Allow manipulating your widgets in kv language more easily
 - Automatically observe any changes and dispatch functions/code accordingly
-- Value checking/validation
-- Optimize memory managment
+- Check and validate values
+- Optimize memory management
 
 
 To use them, **you have to declare them at class level**. That is, directly in
-the class, not în any method of the class, the property is a class attribute
+the class, not în any method of the class. A property is a class attribute
 that will automatically create instance attributes. Each property by default
-provides a ``on_property`` event that is called whenever the properties
+provides an ``on_property`` event that is called whenever the property's
 state/value changes .
 
 Kivy provides the following properties:
@@ -33,4 +33,4 @@ Kivy provides the following properties:
     `DictProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.DictProperty>`_, 
 
 
-For a in-depth look in how-to use kivy properties start `here <http://kivy.org/docs/api-kivy.properties.html>`_
+For an in-depth look at how to use kivy properties, start `here. <http://kivy.org/docs/api-kivy.properties.html>`_
