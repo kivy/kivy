@@ -38,7 +38,7 @@ spelling, weird example, please take 2 minutes to report the issue.
     log_level = debug
 
 #. Execute again your code, and copy/paste the complete output to http://gist.github.com/,
-   including the log from kivy and the python backtrace.
+   including the log from Kivy and the python backtrace.
 #. Open https://github.com/kivy/kivy/issues/
 #. Write a title of your issue
 #. Explain how we can do to reproduce the issue + paste the link of the output previously sent on pocoo
@@ -149,7 +149,7 @@ Unit tests contributions
 ------------------------
 
 For testing team, we have the document :doc:`contribute-unittest` that
-explain how kivy unit test is working, and how you can create your own. Use the
+explain how Kivy unit test is working, and how you can create your own. Use the
 same approach as the `Code Workflow` to submit new tests.
 
 .. toctree::

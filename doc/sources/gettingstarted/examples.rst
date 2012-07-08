@@ -36,11 +36,11 @@ Examples
 
 .. |dem_dir| replace:: ./examples/demo:
 .. |dem_file| replace:: camera_puzzle.py
-.. |dem_desc| replace:: A puzzle using camera's output
+.. |dem_desc| replace:: A puzzle using camera output
 
 .. |pic_dir| replace:: ./examples/demo/pictures
 .. |pic_file| replace:: main.py
-.. |pic_desc| replace:: Highlites usage of :class:`Image <kivy.uix.image>` and :class:`Scatter <kivy.uix.scatter>` Widgets
+.. |pic_desc| replace:: Highlights usage of :class:`Image <kivy.uix.image>` and :class:`Scatter <kivy.uix.scatter>` Widgets
 
 .. |sed_dir| replace:: ./examples/demo/shadereditor
 .. |sed_file| replace:: main.py
@@ -52,7 +52,7 @@ Examples
 
 .. |tch_dir| replace:: ./examples/demo/touchtracer
 .. |tch_file| replace:: main.py
-.. |tch_desc| replace:: Draw lines under every touch/s detected.
+.. |tch_desc| replace:: Draw lines under every detected touch.
 .. |tch_desc2| replace:: A good place to understand how touch events work in kivy.
 
 .. |tws_dir| replace:: ./examples/frameworks/twisted
@@ -91,7 +91,7 @@ Examples
 
 .. |rst_dir| replace::  ./examples/RST_Editor
 .. |rst_file| replace:: main.py
-.. |rst_desc| replace:: A  RST editor for :class:`RstDocument <kivy.uix.rst.RstDocument>` Widget.
+.. |rst_desc| replace:: An  RST editor for the :class:`RstDocument <kivy.uix.rst.RstDocument>` Widget.
 
 .. |sdr_dir| replace::  ./examples/shader
 .. |sdr_file| replace:: plasma.py
@@ -100,7 +100,7 @@ Examples
 
 .. |png_dir| replace::  ./examples/tutorials/pong
 .. |png_file| replace:: main.py
-.. |png_desc| replace:: Pong Game tutorial. Your first step into kivy programming.
+.. |png_desc| replace:: Pong Game tutorial. Your first step in kivy programming.
 
 .. |wdg_dir| replace::  ./examples/widgets
 .. |wdg_file1| replace:: accordion_1.py
@@ -112,7 +112,7 @@ Examples
 .. |wdg_file4| replace:: customcollide.py
 .. |wdg_desc4| replace:: Test for collision with custom shaped widget
 .. |wdg_file5| replace:: fbowidget.py
-.. |wdg_desc5| replace:: Usage of FBO to speedup graphics.
+.. |wdg_desc5| replace:: Usage of FBO to speed up graphics.
 .. |wdg_file6| replace:: image_mipmap.py
 .. |wdg_desc6| replace:: How to use :class:`Image <kivy.uix.image>` widget with mipmap.
 .. |wdg_file7| replace:: keyboardlistener.py
