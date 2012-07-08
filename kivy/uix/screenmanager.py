@@ -14,7 +14,6 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ObjectProperty, \
         NumericProperty, ListProperty, OptionProperty
 from kivy.animation import Animation, AnimationTransition
-from kivy.logger import Logger
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 
@@ -177,33 +176,48 @@ class TransitionBase(EventDispatcher):
 
 
 class SlideTransition(TransitionBase):
+    '''Slide Transition, can be used to show a new screen from any direction:
+    left, right, top or down.
+    '''
+
     direction = OptionProperty('left', options=('left', 'right', 'top', 'down'))
+    '''Direction of the transition.
+
+    :data:`direction` is an :class:`~kivy.properties.OptionProperty`, default to
+    left. Can be one of 'left', 'right', 'top' or 'down'.
+    '''
 
     def on_progress(self, progression):
         a = self.screen_in
         b = self.screen_out
         manager = self.manager
+        x, y = manager.pos
+        width, height = manager.size
         direction = self.direction
         al = AnimationTransition.out_quad
         progression = al(progression)
         if direction == 'left':
-            a.y = b.y = manager.y
-            a.x = manager.x + manager.width * (1 - progression)
-            b.x = manager.x - manager.width * progression
+            a.y = b.y = y
+            a.x = x + width * (1 - progression)
+            b.x = x - width * progression
         elif direction == 'right':
-            a.y = b.y = manager.y
-            b.x = manager.x + manager.width * progression
-            a.x = manager.x - manager.width * (1 - progression)
+            a.y = b.y = y
+            b.x = x + width * progression
+            a.x = x - width * (1 - progression)
         elif direction == 'top':
-            a.x = b.x = manager.x
-            a.y = manager.y + manager.height * (1 - progression)
-            b.y = manager.y - manager.height * progression
+            a.x = b.x = x
+            a.y = y + height * (1 - progression)
+            b.y = y - height * progression
         elif direction == 'down':
             a.x = b.x = manager.x
-            b.y = manager.y + manager.height * progression
-            a.y = manager.y - manager.height * (1 - progression)
+            b.y = y + height * progression
+            a.y = y - height * (1 - progression)
+
 
 class SwapTransition(TransitionBase):
+    '''Swap transition, that look like iOS transition, when a new window appear
+    on the screen.
+    '''
 
     def add_screen(self, screen):
         self.manager.real_add_widget(screen, 1)
@@ -235,20 +249,61 @@ class SwapTransition(TransitionBase):
             a.x = manager.x + width * (1 - p2)
             b.center_x = manager.center_x - (1 - p2) * widthb / 2.
 
+
 class ScreenManager(FloatLayout):
+    '''Screen manager. This is the main class that will control your
+    :class:`Screen` stack, and memory.
+
+    By default, the manager will show only one screen at time.
+    '''
+
     current = StringProperty(None)
+    '''Name of the screen currently show, or the screen to show.
+
+    ::
+
+        from kivy.uix.screenmanager import ScreenManager, Screen
+
+        sm = ScreenManager()
+        sm.add_widget(Screen(name='first'))
+        sm.add_widget(Screen(name='second'))
+
+        # by default, the first added screen will be showed. If you want to show
+        # another one, just set the current string:
+        sm.current = 'second'
+    '''
+
     transition = ObjectProperty(SlideTransition())
+    '''Transition object to use for animate the screen that will be hidden, and
+    the screen that will be showed. By default, an instance of
+    :class:`SlideTransition` will be given.
+
+    For example, if you want to change to a :class:`SwapTransition`::
+
+        from kivy.uix.screenmanager import ScreenManager, Screen, SwapTransition
+
+        sm = ScreenManager(transition=SwapTransition())
+        sm.add_widget(Screen(name='first'))
+        sm.add_widget(Screen(name='second'))
+
+        # by default, the first added screen will be showed. If you want to show
+        # another one, just set the current string:
+        sm.current = 'second'
+    '''
 
     _screens = ListProperty()
     _current_screen = ObjectProperty(None)
 
     def add_widget(self, screen):
-        assert(isinstance(screen, Screen))
+        if not isinstance(screen, Screen):
+            raise ScreenManagerException(
+                    'ScreenManager accept only Screen widget.')
         if screen.name in [s.name for s in self._screens]:
-            Logger.warning('ScreenManager: duplicated screen name %r' %
-                    screen.name)
+            raise ScreenManagerException(
+                    'Name %r already used' % screen.name)
         if screen.manager:
-            raise Exception('ScreenManager: you are adding a screen already managed by somebody else')
+            raise ScreenManagerException(
+                    'Screen already managed by another ScreenManager.')
         screen.manager = self
         self._screens.append(screen)
         if self.current is None:
@@ -276,6 +331,9 @@ class ScreenManager(FloatLayout):
             self.real_add_widget(screen)
 
     def get_screen(self, name):
+        '''Return the screen widget associated to the name, or None if not
+        found.
+        '''
         for screen in self._screens:
             if screen.name == name:
                 return screen
@@ -325,5 +383,4 @@ if __name__ == '__main__':
             return root
 
     TestApp().run()
-
 
