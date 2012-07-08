@@ -12,31 +12,31 @@ Examples
 
 .. |app_dir| replace:: ./examples/application
 .. |app_file1| replace:: app_with_build.py
-.. |app_desc1| replace:: Application example using build() + return
+.. |app_desc1| replace:: Application example using :py:meth:`~kivy.app.App.build`
 .. |app_file2| replace:: app_with_kv.py
-.. |app_desc2| replace:: Application from a .kv
+.. |app_desc2| replace:: Application from a **.kv**
 .. |app_file3| replace:: app_with_kv_in_template1.py
-.. |app_desc3| replace:: Application from a kv_directory
+.. |app_desc3| replace:: Application from a **kv_directory**
 
 .. |aud_dir| replace:: ./examples/audio:
 .. |aud_file| replace:: main.py
-.. |aud_desc| replace:: How to Play Audio.
+.. |aud_desc| replace:: How to Play **Audio**.
 
 .. |can_dir| replace:: ./examples/canvas
 .. |can_file1| replace:: bezier.py
-.. |can_desc1| replace:: How to draw bezier Lines
+.. |can_desc1| replace:: How to draw :class:`Bezier <kivy.graphics.Bezier>` Lines
 .. |can_file2| replace:: canvas_stress.py
-.. |can_desc2| replace:: Stress test canvas
+.. |can_desc2| replace:: Stress test :class:`Canvas <kivy.graphics.Canvas>`
 .. |can_file3| replace:: mesh.py
-.. |can_desc3| replace:: How to use Meshes in kivy
+.. |can_desc3| replace:: How to use :class:`Mesh <kivy.graphics.Mesh>` in kivy
 .. |can_file4| replace:: multitexture.py
-.. |can_desc4| replace:: How to handle multiple textures with shader
+.. |can_desc4| replace:: How to handle **multiple textures with shader**
 .. |can_file5| replace:: stencil_canvas.py
 .. |can_desc5| replace:: How to use :class:`Stencil <kivy.uix.stencil>` on widget canvas
 
 .. |dem_dir| replace:: ./examples/demo:
 .. |dem_file| replace:: camera_puzzle.py
-.. |dem_desc| replace:: A puzzle using camera output
+.. |dem_desc| replace:: A puzzle using :class:`Camera <kivy.uix.camera.Camera>` output
 
 .. |pic_dir| replace:: ./examples/demo/pictures
 .. |pic_file| replace:: main.py
@@ -44,16 +44,16 @@ Examples
 
 .. |sed_dir| replace:: ./examples/demo/shadereditor
 .. |sed_file| replace:: main.py
-.. |sed_desc| replace:: How to use fragment and vertex shaders
+.. |sed_desc| replace:: How to use **fragment and vertex shaders**
 
 .. |sho_dir| replace:: ../examples/demo/showcase
 .. |sho_file| replace:: main.py
-.. |sho_desc| replace:: Showcase of widgets and layouts used in kivy.
+.. |sho_desc| replace:: Showcase of **widgets and layouts** used in kivy.
 
 .. |tch_dir| replace:: ./examples/demo/touchtracer
 .. |tch_file| replace:: main.py
 .. |tch_desc| replace:: Draw lines under every detected touch.
-.. |tch_desc2| replace:: A good place to understand how touch events work in kivy.
+.. |tch_desc2| replace:: A good place to understand **how touch events work in kivy**.
 
 .. |tws_dir| replace:: ./examples/frameworks/twisted
 .. |tws_file| replace:: echo_client_app.py
@@ -62,11 +62,11 @@ Examples
 
 .. |gst_dir| replace:: ./examples/gestures
 .. |gst_file| replace:: gesture_board.py
-.. |gst_desc| replace:: A clean board to try out gestures.
+.. |gst_desc| replace:: A clean board to try out **gestures**.
 
 .. |kv_dir| replace:: ./examples/guide/designwithkv
 .. |kv_file| replace:: main.py
-.. |kv_desc| replace:: Programming Guide examples on how to design with kv lang.
+.. |kv_desc| replace:: Programming Guide examples on how to `design with kv lang <http://kivy.org/docs/guide/designwithkv.html>`__.
 
 .. |fwd_dir| replace:: ./examples/guide/firstwidget
 .. |fwd_file| replace:: 1_skeleton.py
@@ -75,19 +75,19 @@ Examples
 .. |fwd_file4| replace:: 4_draw_line.py
 .. |fwd_file5| replace:: 5_random_colors.py
 .. |fwd_file6| replace:: 6_button.py
-.. |fwd_desc| replace:: Programming Guide examples `Your first widget`.
+.. |fwd_desc| replace:: Programming Guide examples `Your first widget <http://kivy.org/docs/guide/firstwidget.html>`__ .
 
 .. |qst_dir| replace:: ./examples/guide/quickstart
 .. |qst_file| replace:: main.py
-.. |qst_desc| replace:: Prigramming Guide `Quick start` example.
+.. |qst_desc| replace:: Programming Guide `guide/quickstart <http://kivy.org/docs/guide/quickstart.html>`__ example.
 
 .. |kin_dir| replace::  ./examples/kinect
 .. |kin_file| replace:: main.py
-.. |kin_desc| replace:: Howto use kinect for input.
+.. |kin_desc| replace:: Howto use **kinect** for input.
 
 .. |kvd_dir| replace::  ./examples/kv
 .. |kvd_file| replace:: kvrun.py
-.. |kvd_desc| replace:: load kv files, use kv lang to load different widgets.
+.. |kvd_desc| replace:: load kv files, use **kv lang to load different widgets**.
 
 .. |rst_dir| replace::  ./examples/RST_Editor
 .. |rst_file| replace:: main.py
@@ -96,11 +96,11 @@ Examples
 .. |sdr_dir| replace::  ./examples/shader
 .. |sdr_file| replace:: plasma.py
 .. |sdr_file1| replace:: shadertree.py
-.. |sdr_desc| replace:: How to use Different Shaders
+.. |sdr_desc| replace:: How to use different **Shaders**.
 
 .. |png_dir| replace::  ./examples/tutorials/pong
 .. |png_file| replace:: main.py
-.. |png_desc| replace:: Pong Game tutorial. Your first step in kivy programming.
+.. |png_desc| replace:: :doc:`/tutorials/pong`. Your first step in kivy programming.
 
 .. |wdg_dir| replace::  ./examples/widgets
 .. |wdg_file1| replace:: accordion_1.py
@@ -110,9 +110,9 @@ Examples
 .. |wdg_file3| replace:: bubble_test.py
 .. |wdg_desc3| replace:: Usage and Showcase of :class:`Bubble <kivy.uix.bubble>`  Widget.
 .. |wdg_file4| replace:: customcollide.py
-.. |wdg_desc4| replace:: Test for collision with custom shaped widget
+.. |wdg_desc4| replace:: Test for **collision** with custom shaped widget
 .. |wdg_file5| replace:: fbowidget.py
-.. |wdg_desc5| replace:: Usage of FBO to speed up graphics.
+.. |wdg_desc5| replace:: Usage of :class:`FBO <kivy.graphics.fbo>` to speed up graphics.
 .. |wdg_file6| replace:: image_mipmap.py
 .. |wdg_desc6| replace:: How to use :class:`Image <kivy.uix.image>` widget with mipmap.
 .. |wdg_file7| replace:: keyboardlistener.py
@@ -125,20 +125,21 @@ Examples
 .. |wdg_desc10| replace:: Usage and Showcase of :class:`Scatter <kivy.uix.scatter>` Widget.
 .. |wdg_file11| replace:: scrollview.py
 .. |wdg_desc11| replace:: Usage and Showcase of :class:`ScrollView <kivy.uix.scrollview>` Widget.
-.. |wdg_file12| replace:: textalign.py
-.. |wdg_desc12| replace:: Usage and Showcase of text alignment in :class:`Label <kivy.uix.label>` widget.
-.. |wdg_file14| replace:: textinput.py
-.. |wdg_desc14| replace:: Usage and Showcase of :class:`TextInput <kivy.uix.textinput>` Widget.
-.. |wdg_file15| replace:: unicode_textinput.py
-.. |wdg_desc15| replace:: Showcase of unicode text in :class:`TextInput <kivy.uix.textinput>` Widget.
-.. |wdg_file16| replace:: videoplayer.py
-.. |wdg_desc16| replace:: Usage and options of :class:`VideoPlayer <kivy.uix.videoplayer>` Widget.
-
-
-
+.. |wdg_file12| replace:: tabbedpanel.py
+.. |wdg_desc12| replace:: Usage of a simple :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
+.. |wdg_file14| replace:: tabbed_panel_showcase.py
+.. |wdg_desc14| replace:: Advanced Showcase of :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
+.. |wdg_file15| replace:: textalign.py
+.. |wdg_desc15| replace:: Usage of text alignment in :class:`Label <kivy.uix.label>` widget.
+.. |wdg_file16| replace:: textinput.py
+.. |wdg_desc16| replace:: Usage and Showcase of :class:`TextInput <kivy.uix.textinput>` Widget.
+.. |wdg_file17| replace:: unicode_textinput.py
+.. |wdg_desc17| replace:: Showcase of unicode text in :class:`TextInput <kivy.uix.textinput>` Widget.
+.. |wdg_file18| replace:: videoplayer.py
+.. |wdg_desc18| replace:: Usage and options of :class:`VideoPlayer <kivy.uix.videoplayer>` Widget.
 .. |seq_dir| replace::  ./examples/widgets/sequenced_images:
 .. |seq_file| replace:: main.py
-.. |seq_desc| replace:: Showcase usage of sequenced images: gif, images in .zip.
+.. |seq_desc| replace:: Showcase usage of **sequenced images**: gif, images in .zip.
 
 +------------+---------------+------------------------+
 |  Directory |   Filename/s  |  Example Description   |
@@ -189,9 +190,7 @@ Examples
 |- |rst_dir| | - |rst_file|  |- |rst_desc|            |
 +------------+---------------+------------------------+
 |- |sdr_dir| | - |sdr_file|  |- |sdr_desc|            |
-|            | - |sdr_file|  |                        |
-+------------+---------------+------------------------+
-|- |sdr_dir| | - |sdr_file|  |- |sdr_desc|            |
+|            | - |sdr_file1| |                        |
 +------------+---------------+------------------------+
 |- |wdg_dir| | - |wdg_file1| |- |wdg_desc1|           |
 |            | - |wdg_file2| |- |wdg_desc2|           |
@@ -208,6 +207,8 @@ Examples
 |            | - |wdg_file14||- |wdg_desc14|          |
 |            | - |wdg_file15||- |wdg_desc15|          |
 |            | - |wdg_file16||- |wdg_desc16|          |
+|            | - |wdg_file17||- |wdg_desc17|          |
+|            | - |wdg_file18||- |wdg_desc18|          |
 +------------+---------------+------------------------+
 |- |seq_dir| | - |seq_file|  |- |seq_desc|            |
 +------------+---------------+------------------------+
