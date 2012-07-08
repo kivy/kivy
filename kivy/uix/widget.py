@@ -227,6 +227,10 @@ class Widget(EventDispatcher):
         if not isinstance(widget, Widget):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
+        parent = widget.parent
+        # ensure widget isn't already added to another widget
+        if parent:
+            parent.remove_widget(widget)
         widget.parent = self
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
