@@ -31,6 +31,7 @@ class RelativeFloatLayout(Scatter):
     def remove_widget(self, *l):
         self.content.remove_widget(*l)
 
+
 class Screen(RelativeFloatLayout):
     name = StringProperty('')
     manager = ObjectProperty()
@@ -113,7 +114,17 @@ class SlideTransition(Transition):
 class SwapTransition(Transition):
 
     def on_progress(self, progression):
-        pass
+        a = self.screen_in
+        b = self.screen_out
+        manager = self.manager
+        from math import cos, pi
+        a.scale = 0.5 + progression * 0.5
+        b.scale = 1. - progression * 0.9
+        x = (cos(progression * 2 * pi - pi) + 1) / 2.
+        a.x = manager.x + x * (manager.width / 2.)
+        a.center_y = b.center_y = manager.center_y
+
+
 
 
 class ScreenManagerBase(FloatLayout):
@@ -185,14 +196,14 @@ if __name__ == '__main__':
 
     class TestApp(App):
         def change_view(self, *l):
-            d = ('left', 'top', 'down', 'right')
-            di = d.index(self.sm.transition.direction)
-            self.sm.transition.direction = d[(di + 1) % len(d)]
+            #d = ('left', 'top', 'down', 'right')
+            #di = d.index(self.sm.transition.direction)
+            #self.sm.transition.direction = d[(di + 1) % len(d)]
             self.sm.current = 'test2' if self.sm.current == 'test1' else 'test1'
 
         def build(self):
             root = FloatLayout()
-            self.sm = sm = FullScreenManager()
+            self.sm = sm = FullScreenManager(transition=SwapTransition())
 
             sm.add_widget(Screen(name='test1'))
             sm.add_widget(Screen(name='test2'))
