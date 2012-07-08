@@ -1,35 +1,17 @@
+from kivy.logger import Logger
+from kivy.lang import Builder
 from kivy.event import EventDispatcher
-from kivy.uix.floatlayout import FloatLayout
+from kivy.animation import Animation, AnimationTransition
+from kivy.uix.floatlayout import FloatLayout, RelativeFloatLayout
+from kivy.graphics.transformation import Matrix
+
+from kivy.graphics import RenderContext, Rectangle, Fbo, \
+        ClearColor, ClearBuffers, BindTexture
+
 from kivy.properties import StringProperty, ObjectProperty, \
         NumericProperty, ListProperty, OptionProperty
-from kivy.animation import Animation, AnimationTransition
-from kivy.logger import Logger
-from kivy.uix.scatter import Scatter
-from kivy.lang import Builder
 
-Builder.load_string('''
-<RelativeFloatLayout>:
-    do_translation: False
-    do_rotation: False
-    do_scale: False
-''')
-
-class RelativeFloatLayout(Scatter):
-    content = ObjectProperty()
-    def __init__(self, **kw):
-        self.content = FloatLayout()
-        super(RelativeFloatLayout, self).__init__(**kw)
-        super(RelativeFloatLayout, self).add_widget(self.content)
-        self.bind(size=self.update_size)
-
-    def update_size(self, instance, size):
-        self.content.size = size
-
-    def add_widget(self, *l):
-        self.content.add_widget(*l)
-
-    def remove_widget(self, *l):
-        self.content.remove_widget(*l)
+__all__ = ('Screen', 'ScreenManager', 'FullScreenManager', 'Transition')
 
 
 class Screen(RelativeFloatLayout):
@@ -118,88 +100,6 @@ class SlideTransition(Transition):
             a.y = manager.y - manager.height * (1 - progression)
 
 
-
-
-from kivy.graphics import Rectangle, Canvas, RenderContext, BindTexture
-from kivy.graphics import Fbo, ClearColor, ClearBuffers
-from kivy.graphics.transformation import Matrix
-
-_FADE_FS = '''$HEADER$
-uniform float t;
-uniform sampler2D tex_in;
-uniform sampler2D tex_out;
-
-void main(void) {
-    vec4 cin = texture2D(tex_in, tex_coord0);
-    vec4 cout = texture2D(tex_out, tex_coord0);
-    gl_FragColor = mix(cout, cin, t);
-}
-'''
-
-_WIPE_FS = '''$HEADER$
-uniform float t;
-uniform sampler2D tex_in;
-uniform sampler2D tex_out;
-
-void main(void) {
-    vec4 cin = texture2D(tex_in, tex_coord0);
-    vec4 cout = texture2D(tex_out, tex_coord0);
-    float comp = smoothstep( 0.2, 0.7, sin(t) );
-    gl_FragColor = mix(cout, cin, clamp((-2.0 + 2.0 * tex_coord0.x + 3.0 * comp), 0.0, 1.0));
-}
-
-'''
-
-
-class ShaderTransition(Transition):
-    fs = StringProperty(_WIPE_FS)
-    vs = StringProperty(None)
-
-    def __init__(self, **kw):
-        super(ShaderTransition, self).__init__(**kw)
-
-    def make_screen_fbo(self, screen):
-        fbo  = Fbo(size=screen.size)
-        with fbo:
-            ClearColor(0,1,0,1)
-            ClearBuffers()
-        fbo.add(screen.canvas)
-        return fbo
-
-
-    def add_screen(self, screen):
-        self.screen_in.pos = self.screen_out.pos
-        self.screen_in.size = self.screen_out.size
-        self.manager.clear_widgets()
-
-        self.fbo_in = self.make_screen_fbo(self.screen_in)
-        self.fbo_out = self.make_screen_fbo(self.screen_out)
-        self.manager.canvas.add(self.fbo_in)
-        self.manager.canvas.add(self.fbo_out)
-
-        self.render_ctx = RenderContext(fs=self.fs)
-        with self.render_ctx:
-            BindTexture(texture=self.fbo_out.texture, index=1)
-            BindTexture(texture=self.fbo_in.texture, index=2)
-            Rectangle(size=(1,1))
-        self.render_ctx['projection_mat'] = Matrix().view_clip(0,1,0,1,0,1,0)
-        self.render_ctx['tex_out'] = 1
-        self.render_ctx['tex_in'] = 2
-
-        self.manager.canvas.add(self.render_ctx)
-
-
-    def remove_screen(self, screen):
-        self.manager.canvas.remove(self.fbo_in)
-        self.manager.canvas.remove(self.fbo_out)
-        self.manager.canvas.remove(self.render_ctx)
-        self.manager.real_add_widget(self.screen_in)
-
-
-    def on_progress(self, progress):
-        self.render_ctx['t'] = progress
-
-
 class SwapTransition(Transition):
 
     def add_screen(self, screen):
@@ -209,7 +109,6 @@ class SwapTransition(Transition):
         a = self.screen_in
         b = self.screen_out
         manager = self.manager
-        from math import cos, pi
 
         b.scale = 1. - progression * 0.7
         a.scale = 0.5 + progression * 0.5
@@ -229,6 +128,74 @@ class SwapTransition(Transition):
             width = manager.width * 0.85
             a.x = manager.x + width * (1 - p2)
 
+
+WIPE_TRANSITION_FS = '''$HEADER$
+uniform float t;
+uniform sampler2D tex_in;
+uniform sampler2D tex_out;
+
+void main(void) {
+    vec4 cin = texture2D(tex_in, tex_coord0);
+    vec4 cout = texture2D(tex_out, tex_coord0);
+    gl_FragColor = mix(cout, cin, t);
+}
+'''
+WIPE_TRANSITION_FS = '''$HEADER$
+uniform float t;
+uniform sampler2D tex_in;
+uniform sampler2D tex_out;
+
+void main(void) {
+    vec4 cin = texture2D(tex_in, tex_coord0);
+    vec4 cout = texture2D(tex_out, tex_coord0);
+    gl_FragColor = mix(cout, cin, clamp((-1.5 + 1.5*tex_coord0.x + 2.5*t), 0.0, 1.0));
+}
+'''
+class ShaderTransition(Transition):
+    fs = StringProperty(WIPE_TRANSITION_FS)
+    vs = StringProperty(None)
+
+    def __init__(self, **kw):
+        super(ShaderTransition, self).__init__(**kw)
+
+    def make_screen_fbo(self, screen):
+        fbo  = Fbo(size=screen.size)
+        with fbo:
+            ClearColor(0,1,0,1)
+            ClearBuffers()
+        fbo.add(screen.canvas)
+        return fbo
+
+    def on_progress(self, progress):
+        self.render_ctx['t'] = progress
+
+    def add_screen(self, screen):
+        self.screen_in.pos = self.screen_out.pos
+        self.screen_in.size = self.screen_out.size
+        self.manager.real_remove_widget(self.screen_out)
+
+        self.fbo_in = self.make_screen_fbo(self.screen_in)
+        self.fbo_out = self.make_screen_fbo(self.screen_out)
+        self.manager.canvas.add(self.fbo_in)
+        self.manager.canvas.add(self.fbo_out)
+
+        self.render_ctx = RenderContext(fs=self.fs)
+        with self.render_ctx:
+            BindTexture(texture=self.fbo_out.texture, index=1)
+            BindTexture(texture=self.fbo_in.texture, index=2)
+            Rectangle(size=(1,1))
+        self.render_ctx['projection_mat'] = Matrix().view_clip(0,1,0,1,0,1,0)
+        self.render_ctx['tex_out'] = 1
+        self.render_ctx['tex_in'] = 2
+        self.manager.canvas.add(self.render_ctx)
+
+    def remove_screen(self, screen):
+        self.manager.canvas.remove(self.fbo_in)
+        self.manager.canvas.remove(self.fbo_out)
+        self.manager.canvas.remove(self.render_ctx)
+        self.manager.real_add_widget(self.screen_in)
+
+
 class ScreenManagerBase(FloatLayout):
     current = StringProperty(None)
     transition = ObjectProperty(SlideTransition())
@@ -242,7 +209,8 @@ class ScreenManagerBase(FloatLayout):
             Logger.warning('ScreenManagerBase: duplicated screen name %r' %
                     screen.name)
         if screen.manager:
-            raise Exception('ScreenManager: you are adding a screen already managed by somebody else')
+            msg = 'ScreenManager: adding a screen thats already has a manager'
+            raise Exception(msg)
         screen.manager = self
         self._screens.append(screen)
         if self.current is None:
@@ -274,14 +242,27 @@ class ScreenManagerBase(FloatLayout):
             if screen.name == name:
                 return screen
 
+    def on_touch_down(self, touch):
+        if self.transition._anim:
+            return True
+        return super(ScreenManagerBase, self).on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if self.transition._anim:
+            return True
+        return super(ScreenManagerBase, self).on_touch_move(touch)
+
+    def on_touch_up(self, touch):
+        if self.transition._anim:
+            return True
+        return super(ScreenManagerBase, self).on_touch_up(touch)
+
+
 class FullScreenManager(ScreenManagerBase):
     pass
 
 
 if __name__ == '__main__':
-    from kivy.app import App
-    from kivy.uix.button import Button
-    from kivy.lang import Builder
     Builder.load_string('''
 <Screen>:
     canvas:
@@ -296,16 +277,16 @@ if __name__ == '__main__':
         color: (0, 0, 0, 1)
 ''')
 
+    from kivy.app import App
+    from kivy.uix.button import Button
+
     class TestApp(App):
         def change_view(self, *l):
-            #d = ('left', 'top', 'down', 'right')
-            #di = d.index(self.sm.transition.direction)
-            #self.sm.transition.direction = d[(di + 1) % len(d)]
             self.sm.current = 'test2' if self.sm.current == 'test1' else 'test1'
 
         def build(self):
             root = FloatLayout()
-            self.sm = sm = FullScreenManager(transition=ShaderTransition(duration=2.0))
+            self.sm = sm = FullScreenManager(transition=ShaderTransition())
 
             sm.add_widget(Screen(name='test1'))
             sm.add_widget(Screen(name='test2'))

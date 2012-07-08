@@ -35,7 +35,7 @@ For example, if you create a FloatLayout with size of (300, 300)::
 
 ::
 
-    # If you want to create a button that will always be the size of layout 
+    # If you want to create a button that will always be the size of layout
     # minus 20% on each side:
     button = Button(text='Hello world', size_hint=(.6, .6),
                     pos_hint={'x':.2, 'y':.2})
@@ -51,9 +51,35 @@ For example, if you create a FloatLayout with size of (300, 300)::
     children: If the float layout is moving, you must handle moving
     children too.
 
+
+
+Relative Float Layout
+=====================
+
+The :class:`RelativeFloatLayout` class behaves just like the regular Float
+Layout, except that it's child widgets are positioned relative to the layout.
+
+For example, if you create a RelativeFloatLayout, add a widgets with
+position = (0,0), the child widget will also move, when you change the
+position of the RelativeFloatLayout.  The child widgets coordiantes remain
+(0,0), i.e. they are relative to the containing layout.
+
+..note::
+
+    The :class:`RelativeFloatLayout` is implemented as a :class`FloatLayout`
+    inside a :class:`Scatter`.
+
+.. warning::
+
+    Since the actual RelativeFloatLayout is a Scatter, its add_widget and
+    remove_widget functions are overwritten to add children to the embedded
+    FloatLayout (accessible as `content` property of RelativeFloatLayout)
+    automatically. So if you want to access the added child elements,
+    you need self.content.children, instead of self.children.
+
 '''
 
-__all__ = ('FloatLayout', )
+__all__ = ('FloatLayout', 'RelativeFloatLayout')
 
 from kivy.uix.layout import Layout
 
@@ -119,3 +145,33 @@ class FloatLayout(Layout):
             pos = self._trigger_layout,
             pos_hint = self._trigger_layout)
         return super(Layout, self).remove_widget(widget)
+
+
+from kivy.lang import Builder
+from kivy.uix.scatter import Scatter
+from kivy.properties import ObjectProperty
+
+Builder.load_string('''
+<RelativeFloatLayout>:
+    do_translation: False
+    do_rotation: False
+    do_scale: False
+''')
+
+class RelativeFloatLayout(Scatter):
+    content = ObjectProperty()
+    def __init__(self, **kw):
+        self.content = FloatLayout()
+        super(RelativeFloatLayout, self).__init__(**kw)
+        super(RelativeFloatLayout, self).add_widget(self.content)
+        self.bind(size=self.update_size)
+
+    def update_size(self, instance, size):
+        self.content.size = size
+
+    def add_widget(self, *l):
+        self.content.add_widget(*l)
+
+    def remove_widget(self, *l):
+        self.content.remove_widget(*l)
+
