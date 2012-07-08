@@ -2,7 +2,7 @@ from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ObjectProperty, \
         NumericProperty, ListProperty, OptionProperty
-from kivy.animation import Animation
+from kivy.animation import Animation, AnimationTransition
 from kivy.logger import Logger
 from kivy.uix.scatter import Scatter
 from kivy.lang import Builder
@@ -119,19 +119,32 @@ class SlideTransition(Transition):
 
 class SwapTransition(Transition):
 
+    def add_screen(self, screen):
+        self.manager.real_add_widget(screen, 1)
+
     def on_progress(self, progression):
         a = self.screen_in
         b = self.screen_out
         manager = self.manager
         from math import cos, pi
+
+        b.scale = 1. - progression * 0.7
         a.scale = 0.5 + progression * 0.5
-        b.scale = 1. - progression * 0.9
-        x = (cos(progression * 2 * pi - pi) + 1) / 2.
-        a.x = manager.x + x * (manager.width / 2.)
         a.center_y = b.center_y = manager.center_y
 
+        al = AnimationTransition.in_out_quad
 
-
+        if progression < 0.5:
+            p2 = al(progression * 2)
+            width = manager.width * 0.7
+            a.x = manager.center_x + p2 * width / 2.
+        else:
+            if self.screen_in is self.manager.children[-1]:
+                self.manager.real_remove_widget(self.screen_in)
+                self.manager.real_add_widget(self.screen_in)
+            p2 = al((progression - 0.5) * 2)
+            width = manager.width * 0.85
+            a.x = manager.x + width * (1 - p2)
 
 class ScreenManagerBase(FloatLayout):
     current = StringProperty(None)
