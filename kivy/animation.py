@@ -166,6 +166,7 @@ class Animation(EventDispatcher):
 
         .. versionadded:: 1.4.0
         '''
+        self._widgets.pop(widget, None)
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
