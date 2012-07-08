@@ -54,7 +54,7 @@ class Transition(EventDispatcher):
         self._anim = Animation(d=self.duration)
         self._anim.bind(on_progress=self._on_progress, on_complete=self._on_complete)
 
-        manager.real_add_widget(self.screen_in)
+        self.add_screen(self.screen_in)
         self.screen_in.transition_value = 0.
         self.screen_in.transition_mode = 'in'
         self.screen_out.transition_value = 0.
@@ -69,6 +69,12 @@ class Transition(EventDispatcher):
             self.on_complete()
             self._anim = None
 
+    def add_screen(self, screen):
+        self.manager.real_add_widget(screen)
+
+    def remove_screen(self, screen):
+        self.manager.real_remove_widget(screen)
+
     def _on_progress(self, *l):
         alpha = l[-1]
         self.screen_in.transition_value = alpha
@@ -80,7 +86,7 @@ class Transition(EventDispatcher):
         self._anim = None
 
     def on_complete(self):
-        self.manager.real_remove_widget(self.screen_out)
+        self.remove_screen(self.screen_out)
 
     def on_progress(self, progression):
         pass
