@@ -6,6 +6,27 @@ Relative Layout
 
 This layout allow you to set relative coordinate for children. If you want
 absolute positioning, check :class:`~kivy.uix.floatlayout.FloatLayout`.
+
+The :class:`RelativeFloatLayout` class behaves just like the regular Float
+Layout, except that it's child widgets are positioned relative to the layout.
+
+For example, if you create a RelativeFloatLayout, add a widgets with
+position = (0,0), the child widget will also move, when you change the
+position of the RelativeFloatLayout.  The child widgets coordiantes remain
+(0,0), i.e. they are relative to the containing layout.
+
+..note::
+
+    The :class:`RelativeFloatLayout` is implemented as a :class`FloatLayout`
+    inside a :class:`Scatter`.
+
+.. warning::
+
+    Since the actual RelativeFloatLayout is a Scatter, its add_widget and
+    remove_widget functions are overwritten to add children to the embedded
+    FloatLayout (accessible as `content` property of RelativeFloatLayout)
+    automatically. So if you want to access the added child elements,
+    you need self.content.children, instead of self.children.
 '''
 
 from kivy.uix.scatter import Scatter
