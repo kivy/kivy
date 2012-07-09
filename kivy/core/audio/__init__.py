@@ -122,6 +122,7 @@ class Sound(EventDispatcher):
         self.register_event_type('on_play')
         self.register_event_type('on_stop')
         super(Sound, self).__init__(**kwargs)
+        self.bind(volume=lambda _, v: self._set_volume(v))
 
     def on_source(self, instance, filename):
         self.unload()
