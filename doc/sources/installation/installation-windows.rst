@@ -6,7 +6,7 @@ Installation on Windows
 For Windows, we provide what we call a 'portable package'. You don't have
 to install anything "system" wide. Just unzip & run:
 
-#. Download the latest version from http://kivy.org/#downloads
+#. Download the latest version from http://kivy.org/#download
 
     .. image:: images/win-step1.png
         :scale: 50%
