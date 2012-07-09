@@ -360,7 +360,10 @@ class FileChooserController(FloatLayout):
             return files
         filtered = []
         for filter in self.filters:
-            filtered.extend([fn for fn in files if fnmatch(fn, filter)])
+            if callable(filter):
+                filtered.extend([fn for fn in files if filter(self.path, fn)])
+            else:
+                filtered.extend([fn for fn in files if fnmatch(fn, filter)])
         if not self.filter_dirs:
             dirs = [fn for fn in files if isdir(fn)]
             filtered.extend(dirs)
