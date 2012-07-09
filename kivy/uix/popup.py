@@ -65,12 +65,20 @@ popup from closing by explictly returning True from your callback ::
 
 '''
 
+__all__ = ('Popup', 'PopupException')
 
 from kivy.logger import Logger
 from kivy.animation import Animation
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, BooleanProperty, ObjectProperty, \
     NumericProperty, ListProperty
+
+
+class PopupException(Exception):
+    '''Popup exception, fired when multiple content are added to the popup.
+
+    .. versionadded:: 1.4.0
+    '''
 
 
 class Popup(FloatLayout):
@@ -194,6 +202,14 @@ class Popup(FloatLayout):
             window = Window
         return window
 
+    def add_widget(self, widget):
+        if self._container:
+            if self.content:
+                raise PopupException('Popup can have only one widget as content')
+            self.content = widget
+        else:
+            super(Popup, self).add_widget(widget)
+
     def open(self, *largs):
         '''Show the popup window from the :data:`attach_to` widget. If set, it
         will attach to the nearest window. If the widget is not attached to any
@@ -222,7 +238,7 @@ class Popup(FloatLayout):
 
         .. versionchanged:: 1.3.0
 
-            When the popup is dismissed, it will be faded out, before 
+            When the popup is dismissed, it will be faded out, before
             removal from the parent. If you don't want animation, use:
 
                 popup.dismiss(animation=False)
