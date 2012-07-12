@@ -15,16 +15,21 @@ clipped at the scrollview's bounding box, which contains a list of items.
       that is bound to the selection.
     - Also, what about an associated "array adapter/controller" bound to the
       selection? (For a cascade of several listviews).
+    - Settle terminology question: adapter or controller?
     - Add associated SortableItem mixin, to be used by list item classes
       in a manner similar to the SelectableItem mixin.
-    - Add a sort_by property for use with sortable items.
+    - Add a sort_by property for use with sortable items. (See next item: is
+      the arranged_objects list set to one property of the list item cls?)
     - Review the use of arranged_objects in association with sortable items.
       (Presently arranged_objects is a list of strings -- are these just the
        strings representing the items, which are instances of the provided
-       cls input argument?)
+       cls input argument?). If so, formalize and document.
     - Test layout -- presently problematic for how to use size_hint and
       height -- item can become undefined in the cls list item instantiation
       if the listview's size_hint and/or height is not set "correctly."
+    - Address question about "pushing" out to registered selection observers,
+      vs. using the built-in Kivy event dispatching for an "on_select" event.
+      (Will event dispatching work instead of registering/pushing?). Merits?
     - Work on items marked [TODO] below.
 
     Examples (in examples/widgets):
