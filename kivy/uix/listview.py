@@ -7,6 +7,51 @@ List View
 The :class:`ListView` widget provides a scrollable/pannable viewport that is
 clipped at the scrollview's bounding box, which contains a list of items.
 
+[TODO]:
+
+    - Are multiple levels of abstraction needed? Explain why. (Adapter,
+      ListAdapter, AbstractView, ListView).
+    - Consider an associated "object adapter" (a.k.a., "object controller")
+      that is bound to the selection.
+    - Also, what about an associated "array adapter/controller" bound to the
+      selection? (For a cascade of several listviews).
+    - Add associated SortableItem mixin, to be used by list item classes
+      in a manner similar to the SelectableItem mixin.
+    - Add a sort_by property for use with sortable items.
+    - Review the use of arranged_objects in association with sortable items.
+      (Presently arranged_objects is a list of strings -- are these just the
+       strings representing the items, which are instances of the provided
+       cls input argument?)
+    - Test layout -- presently problematic for how to use size_hint and
+      height -- item can become undefined in the cls list item instantiation
+      if the listview's size_hint and/or height is not set "correctly."
+    - Work on items marked [TODO] below.
+
+    Examples (in examples/widgets):
+
+    - Improve master-detail example:
+        - Fix layout, in association with layout item above, and also for an
+          improved detail view.
+        - Add fruit images.
+    - Provide examples of display changes for selected and unselected. Now
+      the example in master-detail uses buttons in the list item, but the
+      selection display, using background, only partially works.
+    - Add an example where selection doesn't just change background color
+      or font, but animates.
+
+    Other Possibilities:
+
+    - Consider a horizontally scrolling variant.
+    - Is it possible to have dynamic item height, for use in a master-detail
+      list view in this manner? http://www.zkoss.org/zkdemo/grid/master_detail
+      (Would this be a new widget called MasterDetailListView, or would the
+       listview widget having a facility for use in this way?)
+    - Make a separate master-detail example that works like an iphone-style
+      animated "source list" that has "disclosure" buttons per item, on the
+      right, that when clicked will expand to fill the entire list view area
+      (useful on mobile devices especially). Similar question as above --
+       would listview be given expanded functionality or would this become
+       another kind of "master-detail" widget?)
 '''
 
 __all__ = ('ListView', )
@@ -80,7 +125,7 @@ class Adapter(SelectionSupport, EventDispatcher):
     def on_select(self, *args):
         pass
 
-    # Things to think about:
+    # [TODO] Things to think about:
     #
     # There are other possibilities:
     #
@@ -93,15 +138,19 @@ class Adapter(SelectionSupport, EventDispatcher):
     #             - guards for adding, removing, sorting items
     #
 
+    # [TODO]
     def add_item(self, item):
         pass
 
+    # [TODO]
     def remove_item(self, item):
         pass
 
+    # [TODO]
     def replace_item(self, item):
         pass
 
+    # [TODO]
     # This method would have an associated sort_key property.
     def sorted_items(self):
         pass
