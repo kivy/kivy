@@ -168,6 +168,7 @@ class ListAdapter(Adapter):
             raise Exception('ListAdapter: input must be a tuple or list')
         self.arranged_objects = arranged_objects
         super(ListAdapter, self).__init__(**kwargs)
+        self.bind(arranged_objects=self.initialize_selection)
 
     def get_count(self):
         return len(self.arranged_objects)

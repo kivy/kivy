@@ -138,3 +138,7 @@ class SelectionSupport(object):
 
         for obs in self.registered_selection_observers:
             obs.observed_selection_changed(self)
+
+    def initialize_selection(self, *args):
+        self.selection = []
+        self.update_selection()
