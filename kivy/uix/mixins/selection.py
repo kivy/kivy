@@ -119,7 +119,9 @@ class SelectionSupport(object):
 
     # Override to return the first selectable object.  For example, if you
     # have groups or want to otherwise limit the kinds of objects that can be
-    # selected. [TODO] This comment presently has no context -- the idea for
+    # selected.
+    #
+    # [TODO] This comment presently has no context -- the idea for
     # having grouped items, as might be done for something like a TreeView,
     # has not been addressed. So, as it is, it simple grabs the first item
     # in arranged_objects.
@@ -142,7 +144,7 @@ class SelectionSupport(object):
                 fso = self.first_selectable_object()
                 if fso is not None:
                     if isinstance(fso, SelectableItem):
-                        fso.select()
+                        self.handle_selection(fso)
                     else:
                         view = self.get_view(self.arranged_objects.index(fso))
                         self.handle_selection(view)

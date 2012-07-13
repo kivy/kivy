@@ -125,6 +125,8 @@ class MasterDetailView(GridLayout):
         #
         self.list_adapter.register_selection_observer(self.detail_view)
 
+        self.list_adapter.update_selection()
+
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
 #                InformationforRestaurantsRetailEstablishments/\
