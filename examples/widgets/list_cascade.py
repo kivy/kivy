@@ -7,13 +7,10 @@ from kivy.uix.listview import ListView, ListAdapter
 from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
 
 
-# List views for showing a list on the left (the fruit_categories),
-# an fruits list, and a view on the right for the detail view.
+# This is an expansion on the "master-detail" example to illustrate
+# cascading from the selection of one list view to another.
 
-# This is an expansion on the "fruit_categories-detail" example to
-# show the fruits list that works in similar fashion to the "detail" view.
-
-# Generic list item will do fine:
+# Generic list item will do fine for both list views:
 
 class ListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
@@ -103,10 +100,10 @@ class DetailView(SelectionObserver, GridLayout):
         print 'just added or updated detail label'
 
 
-class MasterCascadeDetailView(GridLayout):
-    '''Implementation of an MasterDetailView with a vertical scrollable list
-    on the left (the fruit_categories, or source list), an fruits list, and a
-    detail view on the right.
+class CascadingView(GridLayout):
+    '''Implementation of a master-detail style view, with a scrollable list
+    of fruit categories on the left (source list), a list of fruits for the
+    selected category in the middle, and a detail view on the right.
     '''
 
     fruit_categories_list_adapter = ObjectProperty(None)
@@ -120,7 +117,7 @@ class MasterCascadeDetailView(GridLayout):
     def __init__(self, fruit_categories, fruits, **kwargs):
         kwargs['cols'] = 3
         kwargs['size_hint'] = (1.0, 1.0)
-        super(MasterCascadeDetailView, self).__init__(**kwargs)
+        super(CascadingView, self).__init__(**kwargs)
 
         list_item_converter = lambda x: {'text': x,
                                          'size_hint_y': None,
@@ -262,7 +259,7 @@ if __name__ == '__main__':
     # All fruit categories will be shown in the left left (first argument),
     # and the first category will be auto-selected -- Melons. So, set the
     # second list to show the melon fruits (second argument).
-    fruit_categories_detail = MasterCascadeDetailView(fruit_categories.keys(),
+    fruit_categories_detail = CascadingView(fruit_categories.keys(),
             fruit_categories['Melons'], width=800)
 
     runTouchApp(fruit_categories_detail)
