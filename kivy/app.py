@@ -234,6 +234,12 @@ class App(EventDispatcher):
             :func:`~kivy.base.runTouchApp` call.
         `on_stop`:
             Fired when the application stops.
+        `on_pause`:
+            Fired when the application is paused by the OS.
+        `on_resume`:
+            Fired when the application is resumed from pause by the OS, beware,
+            you have no garantee that this event will be fired after the
+            on_pause event has been called.
 
     :Parameters:
         `kv_directory`: <path>, default to None
