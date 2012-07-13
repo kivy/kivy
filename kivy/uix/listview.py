@@ -16,6 +16,7 @@ clipped at the scrollview's bounding box, which contains a list of items.
     - Also, what about an associated "array adapter/controller" bound to the
       selection? (For a cascade of several listviews).
     - Settle terminology question: adapter or controller?
+    - Divider isn't used (yet).
     - Add associated SortableItem mixin, to be used by list item classes
       in a manner similar to the SelectableItem mixin.
     - Add a sort_by property for use with sortable items. (See next item: is
@@ -224,7 +225,8 @@ class ListView(AbstractView):
         super(ListView, self).__init__(**kwargs)
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
         self.bind(size=self._trigger_populate,
-                pos=self._trigger_populate)
+                pos=self._trigger_populate,
+                adapter=self._trigger_populate)
         self.populate()
 
     def _scroll(self, scroll_y):
@@ -296,6 +298,8 @@ class ListView(AbstractView):
             count = 0
             while available_height > 0:
                 item = self.get_item(index)
+                if item is None:
+                    break
                 sizes[index] = item.height
                 index += 1
                 count += 1
