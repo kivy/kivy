@@ -35,7 +35,7 @@ class SelectableItem:
 
 class SelectionObserver(object):
     # Override to take action on selection.
-    def selection_changed(self, observed_selection):
+    def observed_selection_changed(self, observed_selection):
         raise NotImplementedError()
 
 
@@ -64,7 +64,7 @@ class SelectionSupport(object):
     def register_selection_observer(self, obs):
         if isinstance(obs, SelectionObserver):
             self.registered_selection_observers.append(obs)
-            obs.selection_changed(self)
+            obs.observed_selection_changed(self)
         print 'registered_selection_observers:', \
             len(self.registered_selection_observers)
 
@@ -134,4 +134,4 @@ class SelectionSupport(object):
                     self.selection.append(fso)
 
         for obs in self.registered_selection_observers:
-            obs.selection_changed(self)
+            obs.observed_selection_changed(self)

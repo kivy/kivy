@@ -67,7 +67,7 @@ from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, DictProperty, \
-                            NumericProperty
+                            NumericProperty, ListProperty
 from kivy.lang import Builder
 from math import ceil, floor
 from kivy.uix.mixins.selection import SelectionSupport
@@ -98,9 +98,6 @@ class Adapter(SelectionSupport, EventDispatcher):
 
     def __init__(self, **kwargs):
         self.register_event_type('on_select')
-        if kwargs['selection_mode'] is not None:
-            if kwargs['selection_mode'] in ['single', 'multiple', 'filter']:
-                self.selection_mode = kwargs['selection_mode']
         super(Adapter, self).__init__(**kwargs)
         if self.cls is None and self.template is None:
             raise Exception('A cls or template must be defined')
@@ -167,10 +164,10 @@ class ListAdapter(Adapter):
     '''
 
     def __init__(self, arranged_objects, **kwargs):
-        super(ListAdapter, self).__init__(**kwargs)
         if type(arranged_objects) not in (tuple, list):
             raise Exception('ListAdapter: input must be a tuple or list')
         self.arranged_objects = arranged_objects
+        super(ListAdapter, self).__init__(**kwargs)
 
     def get_count(self):
         return len(self.arranged_objects)

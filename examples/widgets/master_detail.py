@@ -169,11 +169,11 @@ class DetailView(SelectionObserver, GridLayout):
             self.add_widget(Label(text="{0}:".format(category), halign='right'))
             self.add_widget(Label(text=fruit_data[self.fruit_name][category]))
 
-    def selection_changed(self, selection_observed):
-        if len(selection_observed.selection) == 0:
+    def observed_selection_changed(self, observed_selection):
+        if len(observed_selection.selection) == 0:
             return
 
-        selected_object = selection_observed.selection[0]
+        selected_object = observed_selection.selection[0]
 
         if type(selected_object) is str:
             self.fruit_name = selected_object
@@ -220,8 +220,8 @@ class MasterDetailView(GridLayout):
         self.add_widget(self.detail_view)
 
         # Manually initialize detail view to show first object of list view,
-        # which will be auto-selected, but the selection_changed call would
-        # have already fired.
+        # which will be auto-selected, but the observed_selection_changed
+        # call would have already fired.
         #
         self.list_adapter.register_selection_observer(self.detail_view)
 
