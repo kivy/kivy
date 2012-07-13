@@ -4,10 +4,116 @@ Screen Manager
 
 .. versionadded:: 1.4.0
 
+.. warning::
+
+    This widget is still experimental, and his API is subject to change in a
+    future version.
+
+The screen manager is a widget dedicated to manage multiple screens on your
+application. The default :class:`ScreenManager` display only one
+:class:`Screen` at time, and use a :class:`TransitionBase` to switch from one to
+another Screen.
+
+Multiple transitions are supported, based of moving the screen coordinate /
+scale, or even do fancy animation using custom shaders.
+
+Basic Usage
+-----------
+
+Let's construct a Screen Manager with 4 named screen. When you are creating
+screen, you absolutely need to give a name to it::
+
+    from kivy.uix.screenmanager import ScreenManager, Screen
+
+    # Create the manager
+    sm = ScreenManager()
+
+    # Add few screens
+    for i in xrange(4):
+        screen = Screen(name='Title %d' % i)
+        sm.add_widget(sm)
+
+    # By default, the first screen added into the ScreenManager will be
+    # displayed. Then, you can change to another screen:
+
+    # Let's display the screen named 'Title 2'
+    # The transition will be automatically used.
+    sm.current = 'Title 2'
+
+
+Please note that by default, a :class:`Screen` display nothing, it's just a
+:class:`~kivy.uix.relativelayout.RelativeLayout`. You need to use that class as
+a root widget for your own screen. Best way is to subclass.
+
+Here is an example with a 'Menu Screen', and a 'Setting Screen'::
+
+    from kivy.lang import Builder
+    from kivy.uix.screenmanager import ScreenManager, Screen
+
+    # Create both screen. Please note the root.manager.current: this is how you
+    # can control the ScreenManager from kv. Each screen have by default a
+    # property manager that give you the instance of the ScreenManager used.
+    Builder.load_string("""
+    <MenuScreen>:
+        BoxLayout:
+            Button:
+                text: 'Goto settings'
+                on_press: root.manager.current = 'settings'
+            Button:
+                text: 'Quit'
+
+    <SettingsScreen>:
+        BoxLayout:
+            Button:
+                text: 'My setting button'
+            Button:
+                text: 'Back to menu'
+                on_press: root.manager.current = 'menu'
+    """)
+
+    # Declare both screen
+    class MenuScreen(Screen):
+        pass
+
+    class SettingsScreen(Screen):
+        pass
+
+    # Create the screen manager
+    sm = ScreenManager()
+    sm.add_widget(MenuScreen(name='menu'))
+    sm.add_widget(SettingsScreen(name='settings'))
+
+
+Changing transition
+-------------------
+
+You have multiple transition available by default, such as:
+
+- :class:`SlideTransition` - slide screen in/out, from any direction
+- :class:`SwapTransition` - implementation of the iOS swap transition
+- :class:`FadeTransition` - shader to fade in/out the screens
+- :class:`WipeTransition` - shader to wipe from right to left the screens
+
+You can easily switch to a new transition by changing the
+:data:`ScreenManager.transition` property::
+
+    sm = ScreenManager(transition=FadeTransition())
+
+.. note::
+
+    Currently, all Shader based Transition doesn't have any anti-aliasing. This
+    is because we are using FBO, and don't have any logic to do supersampling on
+    them. This is a know issue, and working to have a transparent implementation
+    that will give the same result as it would be rendered on the screen.
+
+    To be more concrete, if you see sharped-text during the animation, it's
+    normal.
+
 '''
 
 __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
-    'FullScreenManager')
+    'TransitionBase', 'ShaderTransition', 'SlideTransition', 'SwapTransition',
+    'FadeTransition', 'WipeTransition')
 
 from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
@@ -178,6 +284,84 @@ class TransitionBase(EventDispatcher):
         self._anim = None
 
 
+class ShaderTransition(TransitionBase):
+    '''Transition class that use a Shader for animating the transition between 2
+    screens. By default, this class doesn't any assign fragment/vertex shader.
+
+    If you want to create your own fragment shader for transition, you need to
+    declare the header yourself, and include the "t", "tex_in" and "tex_out"
+    uniform::
+
+        # Create your own transition. This is shader implement a "fading"
+        # transition.
+        fs = """$HEADER
+            uniform float t;
+            uniform sampler2D tex_in;
+            uniform sampler2D tex_out;
+
+            void main(void) {
+                vec4 cin = texture2D(tex_in, tex_coord0);
+                vec4 cout = texture2D(tex_out, tex_coord0);
+                gl_FragColor = mix(cout, cin, t);
+            }
+        """
+
+        # And create your transition
+        tr = ShaderTransition(fs=fs)
+        sm = ScreenManager(transition=tr)
+
+    '''
+
+    fs = StringProperty(None)
+    '''Fragment shader to use.
+
+    :data:`fs` is a :class:`~kivy.properties.StringProperty`, default to None.
+    '''
+
+    vs = StringProperty(None)
+    '''Vertex shader to use.
+
+    :data:`vs` is a :class:`~kivy.properties.StringProperty`, default to None.
+    '''
+
+    def make_screen_fbo(self, screen):
+        fbo  = Fbo(size=screen.size)
+        with fbo:
+            ClearColor(0,1,0,1)
+            ClearBuffers()
+        fbo.add(screen.canvas)
+        return fbo
+
+    def on_progress(self, progress):
+        self.render_ctx['t'] = progress
+
+    def add_screen(self, screen):
+        self.screen_in.pos = self.screen_out.pos
+        self.screen_in.size = self.screen_out.size
+        self.manager.real_remove_widget(self.screen_out)
+
+        self.fbo_in = self.make_screen_fbo(self.screen_in)
+        self.fbo_out = self.make_screen_fbo(self.screen_out)
+        self.manager.canvas.add(self.fbo_in)
+        self.manager.canvas.add(self.fbo_out)
+
+        self.render_ctx = RenderContext(fs=self.fs)
+        with self.render_ctx:
+            BindTexture(texture=self.fbo_out.texture, index=1)
+            BindTexture(texture=self.fbo_in.texture, index=2)
+            Rectangle(size=(1,1))
+        self.render_ctx['projection_mat'] = Matrix().view_clip(0,1,0,1,0,1,0)
+        self.render_ctx['tex_out'] = 1
+        self.render_ctx['tex_in'] = 2
+        self.manager.canvas.add(self.render_ctx)
+
+    def remove_screen(self, screen):
+        self.manager.canvas.remove(self.fbo_in)
+        self.manager.canvas.remove(self.fbo_out)
+        self.manager.canvas.remove(self.render_ctx)
+        self.manager.real_add_widget(self.screen_in)
+
+
 class SlideTransition(TransitionBase):
     '''Slide Transition, can be used to show a new screen from any direction:
     left, right, up or down.
@@ -225,6 +409,10 @@ class SwapTransition(TransitionBase):
     def add_screen(self, screen):
         self.manager.real_add_widget(screen, 1)
 
+    def on_complete(self):
+        self.screen_in.scale = 1.
+        self.screen_out.scale = 1.
+
     def on_progress(self, progression):
         a = self.screen_in
         b = self.screen_out
@@ -253,71 +441,40 @@ class SwapTransition(TransitionBase):
             b.center_x = manager.center_x - (1 - p2) * widthb / 2.
 
 
-WIPE_TRANSITION_FS = '''$HEADER$
-uniform float t;
-uniform sampler2D tex_in;
-uniform sampler2D tex_out;
+class WipeTransition(ShaderTransition):
+    '''Wipe transition, based on a fragment Shader.
+    '''
 
-void main(void) {
-    vec4 cin = texture2D(tex_in, tex_coord0);
-    vec4 cout = texture2D(tex_out, tex_coord0);
-    gl_FragColor = mix(cout, cin, t);
-}
-'''
-WIPE_TRANSITION_FS = '''$HEADER$
-uniform float t;
-uniform sampler2D tex_in;
-uniform sampler2D tex_out;
+    WIPE_TRANSITION_FS = '''$HEADER$
+    uniform float t;
+    uniform sampler2D tex_in;
+    uniform sampler2D tex_out;
 
-void main(void) {
-    vec4 cin = texture2D(tex_in, tex_coord0);
-    vec4 cout = texture2D(tex_out, tex_coord0);
-    gl_FragColor = mix(cout, cin, clamp((-1.5 + 1.5*tex_coord0.x + 2.5*t), 0.0, 1.0));
-}
-'''
-class ShaderTransition(TransitionBase):
+    void main(void) {
+        vec4 cin = texture2D(tex_in, tex_coord0);
+        vec4 cout = texture2D(tex_out, tex_coord0);
+        gl_FragColor = mix(cout, cin, clamp((-1.5 + 1.5*tex_coord0.x + 2.5*t), 0.0, 1.0));
+    }
+    '''
     fs = StringProperty(WIPE_TRANSITION_FS)
-    vs = StringProperty(None)
 
-    def __init__(self, **kw):
-        super(ShaderTransition, self).__init__(**kw)
 
-    def make_screen_fbo(self, screen):
-        fbo  = Fbo(size=screen.size)
-        with fbo:
-            ClearColor(0,1,0,1)
-            ClearBuffers()
-        fbo.add(screen.canvas)
-        return fbo
+class FadeTransition(ShaderTransition):
+    '''Fade transition, based on a fragment Shader.
+    '''
 
-    def on_progress(self, progress):
-        self.render_ctx['t'] = progress
+    FADE_TRANSITION_FS = '''$HEADER$
+    uniform float t;
+    uniform sampler2D tex_in;
+    uniform sampler2D tex_out;
 
-    def add_screen(self, screen):
-        self.screen_in.pos = self.screen_out.pos
-        self.screen_in.size = self.screen_out.size
-        self.manager.real_remove_widget(self.screen_out)
-
-        self.fbo_in = self.make_screen_fbo(self.screen_in)
-        self.fbo_out = self.make_screen_fbo(self.screen_out)
-        self.manager.canvas.add(self.fbo_in)
-        self.manager.canvas.add(self.fbo_out)
-
-        self.render_ctx = RenderContext(fs=self.fs)
-        with self.render_ctx:
-            BindTexture(texture=self.fbo_out.texture, index=1)
-            BindTexture(texture=self.fbo_in.texture, index=2)
-            Rectangle(size=(1,1))
-        self.render_ctx['projection_mat'] = Matrix().view_clip(0,1,0,1,0,1,0)
-        self.render_ctx['tex_out'] = 1
-        self.render_ctx['tex_in'] = 2
-        self.manager.canvas.add(self.render_ctx)
-
-    def remove_screen(self, screen):
-        self.manager.canvas.remove(self.fbo_in)
-        self.manager.canvas.remove(self.fbo_out)
-        self.manager.canvas.remove(self.render_ctx)
-        self.manager.real_add_widget(self.screen_in)
+    void main(void) {
+        vec4 cin = texture2D(tex_in, tex_coord0);
+        vec4 cout = texture2D(tex_out, tex_coord0);
+        gl_FragColor = mix(cout, cin, t);
+    }
+    '''
+    fs = StringProperty(FADE_TRANSITION_FS)
 
 
 class ScreenManager(FloatLayout):
@@ -343,16 +500,16 @@ class ScreenManager(FloatLayout):
         sm.current = 'second'
     '''
 
-    transition = ObjectProperty(SlideTransition())
+    transition = ObjectProperty(SwapTransition())
     '''Transition object to use for animate the screen that will be hidden, and
     the screen that will be showed. By default, an instance of
-    :class:`SlideTransition` will be given.
+    :class:`SwapTransition` will be given.
 
-    For example, if you want to change to a :class:`SwapTransition`::
+    For example, if you want to change to a :class:`WipeTransition`::
 
-        from kivy.uix.screenmanager import ScreenManager, Screen, SwapTransition
+        from kivy.uix.screenmanager import ScreenManager, Screen, WipeTransition
 
-        sm = ScreenManager(transition=SwapTransition())
+        sm = ScreenManager(transition=WipeTransition())
         sm.add_widget(Screen(name='first'))
         sm.add_widget(Screen(name='second'))
 

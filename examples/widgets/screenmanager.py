@@ -7,6 +7,8 @@ Builder.load_string('''
 #:import random random.random
 #:import SlideTransition kivy.uix.screenmanager.SlideTransition
 #:import SwapTransition kivy.uix.screenmanager.SwapTransition
+#:import WipeTransition kivy.uix.screenmanager.WipeTransition
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
 <CustomScreen>:
     hue: random()
     canvas:
@@ -25,7 +27,7 @@ Builder.load_string('''
         pos_hint: {'right': 1}
         size: 150, 50
         on_release: root.manager.current = root.manager.next()
-        
+
     Button:
         text: 'Previous screen'
         size_hint: None, None
@@ -41,22 +43,30 @@ Builder.load_string('''
         Button:
             text: 'Use SlideTransition with "up" direction'
             on_release: root.manager.transition = SlideTransition(direction="up")
-        
+
         Button:
             text: 'Use SlideTransition with "down" direction'
             on_release: root.manager.transition = SlideTransition(direction="down")
-        
+
         Button:
             text: 'Use SlideTransition with "left" direction'
             on_release: root.manager.transition = SlideTransition(direction="left")
-        
+
         Button:
             text: 'Use SlideTransition with "right" direction'
             on_release: root.manager.transition = SlideTransition(direction="right")
-        
+
         Button:
             text: 'Use SwapTransition'
             on_release: root.manager.transition = SwapTransition()
+
+        Button:
+            text: 'Use WipeTransition'
+            on_release: root.manager.transition = WipeTransition()
+
+        Button:
+            text: 'Use FadeTransition'
+            on_release: root.manager.transition = FadeTransition()
 ''')
 
 class CustomScreen(Screen):
