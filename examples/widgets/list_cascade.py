@@ -87,7 +87,8 @@ class DetailView(SelectionObserver, GridLayout):
         for category in descriptors:
             self.add_widget(Label(text="{0}:".format(category),
                                   halign='right'))
-            self.add_widget(Label(text=fruit_data[self.fruit_name][category]))
+            self.add_widget(
+                    Label(text=str(fruit_data[self.fruit_name][category])))
 
     def observed_selection_changed(self, observed_selection):
         if len(observed_selection.selection) == 0:
