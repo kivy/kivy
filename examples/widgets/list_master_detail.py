@@ -20,19 +20,13 @@ from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
 # For the master list, we need to create a custom "list item" type that
 # subclasses SelectableItem.
 
-# "Sub" to indicate that this class is for "sub" list items -- a list item
-# could consist of a button on the left, several labels in the middle, and
-# another button on the right. Not sure of the merit of allowing, perhaps,
-# some "sub" list items to react to touches and others not, if that were to
-# be enabled.
-
-class ListItemSubButton(SelectableItem, Button):
+class ListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = None
 
     def __init__(self, selection_callback, **kwargs):
         self.selection_callback = selection_callback
-        super(ListItemSubButton, self).__init__(**kwargs)
+        super(ListItem, self).__init__(**kwargs)
 
         # Set deselected_color to be default Button bg color.
         self.deselected_color = self.background_color
@@ -46,91 +40,6 @@ class ListItemSubButton(SelectableItem, Button):
             self.deselect()
 
         # Not this "sub" list item, but the list item.
-        self.selection_callback(self.parent)
-
-    # [TODO] At least there is some action on this set, but
-    #        the color gets somehow composited.
-    def select(self, *args):
-        self.background_color = self.selected_color
-
-    # [TODO] No effect seen, but it is grey, so might be happening.
-    def deselect(self, *args):
-        self.background_color = self.deselected_color
-
-    def __repr__(self):
-        return self.text
-
-
-class ListItemSubLabel(SelectableItem, Label):
-    # Same idea as "sub" for button above.
-    selected_color = ListProperty([1., 0., 0., 1])
-    deselected_color = ListProperty([.33, .33, .33, 1])
-
-    def __init__(self, selection_callback, **kwargs):
-        self.selection_callback = selection_callback
-        super(ListItemSubLabel, self).__init__(**kwargs)
-
-        self.bind(on_release=self.handle_selection)
-
-    def handle_selection(self, button):
-        if self.is_selected:
-            self.select()
-        else:
-            self.deselect()
-
-        # Not this "sub" list item, but the list item (parent).
-        self.selection_callback(self.parent)
-
-    # [TODO] Should Label have background_color, like Button, etc.?
-    # [TODO] Not tested yet.
-    def select(self, *args):
-        self.bold = True
-
-    def deselect(self, *args):
-        self.bold = False
-
-    def __repr__(self):
-        return self.text
-
-
-class ListItem(SelectableItem, BoxLayout):
-    # ListItem (BoxLayout) by default uses orientation='horizontal',
-    # but could be used also for a side-to-side display of items.
-    #
-    # ListItemSubButton sublasses Button, which has background_color.
-    # Here we must add this property.
-    background_color = ListProperty([1, 1, 1, 1])
-
-    selected_color = ListProperty([1., 0., 0., 1])
-    deselected_color = ListProperty([.33, .33, .33, 1])
-
-    icon_button = ObjectProperty(None)
-    content_button = ObjectProperty(None)
-
-    def __init__(self, selection_callback, **kwargs):
-        self.selection_callback = selection_callback
-        super(ListItem, self).__init__(size_hint_y=None, height=25)
-
-        # Now this button just has text '>', but it would be neat to make the
-        # left button hold icons -- the list would be heterogeneous, containing
-        # different ListItem types that could be filtered perhaps (an option
-        # for selecting all of a given type, for example).
-        self.icon_button = ListItemSubButton(
-            selection_callback=selection_callback,
-            text='>', size_hint_x=.05, size_hint_y=None, height=25)
-        self.content_button = ListItemSubButton(
-            selection_callback=selection_callback, **kwargs)
-        self.add_widget(self.icon_button)
-        self.add_widget(self.content_button)
-
-        self.bind(on_release=self.handle_selection)
-
-    def handle_selection(self, item):
-        if self.is_selected:
-            self.select()
-        else:
-            self.deselect()
-
         self.selection_callback(self)
 
     def select(self, *args):
@@ -140,10 +49,7 @@ class ListItem(SelectableItem, BoxLayout):
         self.background_color = self.deselected_color
 
     def __repr__(self):
-        if self.content_button is not None:
-            return self.content_button.text
-        else:
-            return 'empty'
+        return self.text
 
 
 class DetailView(SelectionObserver, GridLayout):
