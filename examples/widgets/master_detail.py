@@ -195,6 +195,7 @@ class MasterDetailView(GridLayout):
     def __init__(self, items, **kwargs):
         #kwargs['orientation'] = 'horizontal'
         kwargs['cols'] = 2
+        kwargs['size_hint'] = (1.0, 1.0)
         super(MasterDetailView, self).__init__(**kwargs)
 
         list_item_converter = lambda x: {'text': x,
@@ -206,10 +207,10 @@ class MasterDetailView(GridLayout):
                                         allow_empty_selection=False,
                                         cls=ListItem)
         self.master_list_view = ListView(adapter=self.list_adapter,
-                                         size_hint=(.3, None))
+                                         size_hint=(.3, 1.0))
         self.add_widget(self.master_list_view)
 
-        self.detail_view = DetailView(size_hint=(.7, None))
+        self.detail_view = DetailView(size_hint=(.7, 1.0))
         self.add_widget(self.detail_view)
 
         # Manually initialize detail view to show first object of list view,
