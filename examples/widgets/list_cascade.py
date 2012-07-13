@@ -14,7 +14,6 @@ from kivy.properties import ListProperty, StringProperty, ObjectProperty
 class ListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = None
-    #deselected_color = ListProperty([.33, .33, .33, 1])
 
     def __init__(self, selection_callback, **kwargs):
         self.selection_callback = selection_callback
@@ -182,8 +181,9 @@ class CascadingView(GridLayout):
 #                ucm063482.htm
 fruit_categories = \
         {'Melons': ['Cantaloupe', 'Honeydew Melon', 'Watermelon'],
-         'Tree Fruits': ['Apple', 'Avocado', 'Banana', 'Nectarine', 'Peach',
-                         'Pear', 'Pineapple', 'Plums', 'Sweet Cherries'],
+         'Tree Fruits': ['Apple', 'Avocado, California', 'Banana', 'Nectarine',
+                         'Peach', 'Pear', 'Pineapple', 'Plums',
+                         'Sweet Cherries'],
          'Citrus Fruits': ['Grapefruit', 'Lemon', 'Lime', 'Orange',
                            'Tangerine'],
          'Miscellaneous Fruits': ['Grapes', 'Kiwifruit', 'Strawberries']}
