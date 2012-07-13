@@ -8,6 +8,18 @@ from kivy.properties import ObjectProperty, \
 from kivy.uix.listview import ListView, ListAdapter
 from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
 
+# [TODO] NOTE -- This is a copy of the old version of list_master_detail.py,
+#                because it contains an example of how to make a custom
+#                ListItem.
+#
+#                Calling this example "disclosure" because plan is to try
+#                expanding a row to show a detail view when the disclosure
+#                button for a row is clicked.
+#
+#                Something like this:
+#
+#                     http://www.zkoss.org/zkdemo/grid/master_detail
+#
 # Master-Detail view for showing a list on the left (the master) and a view
 # on the right for the detail view.
 
