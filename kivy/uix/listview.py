@@ -166,9 +166,14 @@ class ListAdapter(Adapter):
     def __init__(self, arranged_objects, **kwargs):
         if type(arranged_objects) not in (tuple, list):
             raise Exception('ListAdapter: input must be a tuple or list')
-        self.arranged_objects = arranged_objects
         super(ListAdapter, self).__init__(**kwargs)
+
+        # Reset and update selection, in SelectionSupport, if arranged_objects
+        # gets reset.
         self.bind(arranged_objects=self.initialize_selection)
+
+        # Do the initial set.
+        self.arranged_objects = arranged_objects
 
     def get_count(self):
         return len(self.arranged_objects)
