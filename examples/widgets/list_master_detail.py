@@ -217,6 +217,6 @@ if __name__ == '__main__':
 
     from kivy.base import runTouchApp
 
-    master_detail = MasterDetailView(fruit_data.keys(), width=800)
+    master_detail = MasterDetailView(sorted(fruit_data.keys()), width=800)
 
     runTouchApp(master_detail)
