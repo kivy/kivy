@@ -35,7 +35,7 @@ For example, if you create a FloatLayout with size of (300, 300)::
 
 ::
 
-    # If you want to create a button that will always be the size of layout 
+    # If you want to create a button that will always be the size of layout
     # minus 20% on each side:
     button = Button(text='Hello world', size_hint=(.6, .6),
                     pos_hint={'x':.2, 'y':.2})
@@ -53,7 +53,7 @@ For example, if you create a FloatLayout with size of (300, 300)::
 
 '''
 
-__all__ = ('FloatLayout', )
+__all__ = ('FloatLayout', 'RelativeFloatLayout')
 
 from kivy.uix.layout import Layout
 
@@ -119,3 +119,4 @@ class FloatLayout(Layout):
             pos = self._trigger_layout,
             pos_hint = self._trigger_layout)
         return super(Layout, self).remove_widget(widget)
+

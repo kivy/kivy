@@ -69,12 +69,18 @@ from kivy.clock import Clock
 class Animation(EventDispatcher):
     '''Create an animation definition that can be used to animate a Widget
 
+    .. versionchanged:: 1.4.0
+
+        Added s/step parameter.
+
     :Parameters:
         `duration` or `d`: float, default to 1.
             Duration of the animation, in seconds
         `transition` or `t`: str or func
             Transition function for animate properties. It can be the name of a
             method from :class:`AnimationTransition`
+        `step` or `s`: float
+            Step in milliseconds of the animation. Default to 1 / 60.
 
     :Events:
         `on_start`: widget
@@ -99,9 +105,10 @@ class Animation(EventDispatcher):
         self._clock_installed = False
         self._duration = kw.get('d', kw.get('duration', 1.))
         self._transition = kw.get('t', kw.get('transition', 'linear'))
+        self._step = kw.get('s', kw.get('step', 1. / 60.))
         if isinstance(self._transition, basestring):
             self._transition = getattr(AnimationTransition, self._transition)
-        for key in ('d', 't', 'duration', 'transition'):
+        for key in ('d', 't', 's', 'step', 'duration', 'transition'):
             kw.pop(key, None)
         self._animated_properties = kw
         self._widgets = {}
@@ -210,7 +217,7 @@ class Animation(EventDispatcher):
     def _clock_install(self):
         if self._clock_installed:
             return
-        Clock.schedule_interval(self._update, 1 / 60.)
+        Clock.schedule_interval(self._update, self._step)
         self._clock_installed = True
 
     def _clock_uninstall(self):

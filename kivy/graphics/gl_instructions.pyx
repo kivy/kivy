@@ -17,7 +17,7 @@ instructions like this example::
 
 '''
 
-__all__ = ('ClearColor', 'ColorBuffers')
+__all__ = ('ClearColor', 'ClearBuffers')
 
 
 include "config.pxi"
