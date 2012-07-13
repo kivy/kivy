@@ -13,11 +13,15 @@ from kivy.properties import ListProperty, StringProperty, ObjectProperty
 
 class ListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
-    deselected_color = ListProperty([.33, .33, .33, 1])
+    deselected_color = None
+    #deselected_color = ListProperty([.33, .33, .33, 1])
 
     def __init__(self, selection_callback, **kwargs):
         self.selection_callback = selection_callback
         super(ListItem, self).__init__(**kwargs)
+
+        # Set deselected_color to be default Button bg color.
+        self.deselected_color = self.background_color
 
         self.bind(on_release=self.handle_selection)
 

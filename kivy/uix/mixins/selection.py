@@ -119,7 +119,10 @@ class SelectionSupport(object):
 
     # Override to return the first selectable object.  For example, if you
     # have groups or want to otherwise limit the kinds of objects that can be
-    # selected.
+    # selected. [TODO] This comment presently has no context -- the idea for
+    # having grouped items, as might be done for something like a TreeView,
+    # has not been addressed. So, as it is, it simple grabs the first item
+    # in arranged_objects.
     #
     # The default implementation returns first object at index 0.
     #
