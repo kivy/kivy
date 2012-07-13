@@ -75,7 +75,8 @@ class SelectionSupport(object):
     def handle_selection(self, obj):
         if obj not in self.selection:
             if self.selection_mode == 'single' and len(self.selection) > 0:
-                self.selection = []
+                for selected_obj in self.selection:
+                    self.deselect_object(selected_obj)
             self.select_object(obj)
         else:
             self.deselect_object(obj)
@@ -130,11 +131,18 @@ class SelectionSupport(object):
     def update_selection(self, *args):
         if self.allow_empty_selection is False:
             if len(self.selection) == 0:
+                # [TODO] In present design, arranged_objects is a list of
+                #        strings in parallel with items (instances of cls),
+                #        so fso will not be SelectableItem. Fix by adding
+                #        a properly handled sort_key ref into items dict,
+                #        perhaps.
                 fso = self.first_selectable_object()
                 if fso is not None:
                     if isinstance(fso, SelectableItem):
                         fso.select()
-                    self.selection.append(fso)
+                    else:
+                        view = self.get_view(self.arranged_objects.index(fso))
+                        self.handle_selection(view)
 
         for obs in self.registered_selection_observers:
             obs.observed_selection_changed(self)
