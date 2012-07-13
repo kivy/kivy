@@ -1,10 +1,9 @@
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.properties import ListProperty, StringProperty, ObjectProperty
-
 from kivy.uix.listview import ListView, ListAdapter
 from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
+from kivy.properties import ListProperty, StringProperty, ObjectProperty
 
 
 # This is an expansion on the "master-detail" example to illustrate
@@ -45,9 +44,6 @@ class FruitsListView(SelectionObserver, ListView):
     # but the fruits list, showing fruits for a given category,
     # will be a SelectionObserver, changing when fruit category
     # changes.
-
-    fruit_category = StringProperty('')
-
     def __init__(self, **kwargs):
         super(FruitsListView, self).__init__(**kwargs)
 
@@ -58,11 +54,13 @@ class FruitsListView(SelectionObserver, ListView):
         selected_object = observed_selection.selection[0]
 
         if type(selected_object) is str:
-            self.fruit_category = selected_object
+            fruit_category = selected_object
         else:
-            self.fruit_category = str(selected_object)
+            fruit_category = str(selected_object)
 
-        self.adapter.arranged_objects = fruit_categories[self.fruit_category]
+        self.adapter.arranged_objects = fruit_categories[fruit_category]
+
+        self.items = {}
 
         self.populate()
 
