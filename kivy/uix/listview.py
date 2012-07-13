@@ -119,7 +119,7 @@ class Adapter(SelectionSupport, EventDispatcher):
         if self.cls:
             print 'CREATE VIEW FOR', index
             item_instance = self.cls(
-                selection_callback=self.select_object,
+                selection_callback=self.handle_selection, # in SelectionSupport
                 **item)
             return item_instance
         return Builder.template(self.template, **item)

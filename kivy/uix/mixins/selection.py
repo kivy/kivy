@@ -72,12 +72,11 @@ class SelectionSupport(object):
         if obs in self.registered_selection_observers:
             self.registered_selection_observers.remove(obs)
 
-    def select_object(self, obj):
+    def handle_selection(self, obj):
         if obj not in self.selection:
-            if self.selection_mode == 'single' and len(self.selection):
+            if self.selection_mode == 'single' and len(self.selection) > 0:
                 self.selection = []
-            self.selection.append(obj)
-            obj.select()
+            self.select_object(obj)
         else:
             self.deselect_object(obj)
 
@@ -90,6 +89,10 @@ class SelectionSupport(object):
         self.dispatch('on_select')
         self.update_selection()
         print 'selection is now', self.selection
+
+    def select_object(self, obj):
+        obj.select()
+        self.selection.append(obj)
 
     # l: the list of objects to become the new selection, or to add to the
     #    existing selection, if extend is True

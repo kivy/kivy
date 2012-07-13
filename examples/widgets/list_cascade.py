@@ -30,9 +30,11 @@ class ListItem(SelectableItem, Button):
         self.selection_callback(self)
 
     def select(self, *args):
+        print self.text, 'is now selected'
         self.background_color = self.selected_color
 
     def deselect(self, *args):
+        print self.text, 'is now unselected'
         self.background_color = self.deselected_color
 
     def __repr__(self):
@@ -51,6 +53,10 @@ class FruitsListView(SelectionObserver, ListView):
         if len(observed_selection.selection) == 0:
             return
 
+        self.items = {}
+
+        self.selection = []
+
         selected_object = observed_selection.selection[0]
 
         if type(selected_object) is str:
@@ -58,11 +64,14 @@ class FruitsListView(SelectionObserver, ListView):
         else:
             fruit_category = str(selected_object)
 
+        # Reset arranged_objects for the adapter. This will trigger a call
+        # to update_selection().
         self.adapter.arranged_objects = fruit_categories[fruit_category]
 
-        self.items = {}
-
         self.populate()
+
+        # Manually call update_selection(), because items are new objects.
+        self.adapter.update_selection()
 
         print 'just added or updated fruit category'
 
