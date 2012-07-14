@@ -86,6 +86,7 @@ class SelectionSupport(object):
 
     def select_object(self, obj):
         obj.select()
+        obj.is_selected = True
         self.selection.append(obj)
 
     # l: the list of objects to become the new selection, or to add to the
@@ -95,8 +96,7 @@ class SelectionSupport(object):
     #
     def select_list(self, l, extend):
         for obj in l:
-            if not obj.is_selected:
-                obj.select()
+            self.select_object(obj)
         if extend:
             self.selection.extend(l)
         else:
@@ -104,6 +104,7 @@ class SelectionSupport(object):
 
     def deselect_object(self, obj):
         obj.deselect()
+        obj.is_selected = False
         self.selection.remove(obj)
 
     def deselect_list(self, l):
@@ -114,11 +115,14 @@ class SelectionSupport(object):
         if self.allow_empty_selection is False:
             if len(self.selection) == 0:
                 if len(self.data) > 0:
+                    v = self.get_view(0)
+                    print 'selecting first data item view', v, v.is_selected
                     self.handle_selection(self.get_view(0))
 
         for obs in self.registered_selection_observers:
             obs.observed_selection_changed(self)
 
     def initialize_selection(self, *args):
+        print 'initialize_selection'
         self.selection = []
         self.update_selection()

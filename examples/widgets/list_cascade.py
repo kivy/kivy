@@ -25,10 +25,10 @@ class ListItem(SelectableItem, Button):
         self.bind(on_release=self.handle_selection)
 
     def handle_selection(self, button):
-        if self.is_selected:
-            self.select()
-        else:
-            self.deselect()
+#        if not self.is_selected:
+#            self.select()
+#        else:
+#            self.deselect()
 
         self.list_adapter.handle_selection(self)
 
@@ -58,8 +58,7 @@ class FruitsListView(SelectionObserver, ListView):
 
         self.item_view_instances = {}
 
-        self.selection = []
-
+        # Single selection is operational for fruit categories list.
         selected_object = observed_selection.selection[0]
 
         if type(selected_object) is str:
@@ -68,13 +67,10 @@ class FruitsListView(SelectionObserver, ListView):
             fruit_category = str(selected_object)
 
         # Reset data for the adapter. This will trigger a call
-        # to update_selection().
+        # to self.adapter.initialize_selection().
         self.adapter.data = fruit_categories[fruit_category]
 
         self.populate()
-
-        # Manually call update_selection(), because items are new objects.
-        self.adapter.update_selection()
 
         print 'just added or updated fruit category'
 

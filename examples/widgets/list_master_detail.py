@@ -34,11 +34,6 @@ class ListItem(SelectableItem, Button):
         self.bind(on_release=self.handle_selection)
 
     def handle_selection(self, button):
-        if self.is_selected:
-            self.select()
-        else:
-            self.deselect()
-
         self.list_adapter.handle_selection(self)
 
     def select(self, *args):

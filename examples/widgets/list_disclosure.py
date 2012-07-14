@@ -52,11 +52,6 @@ class ListItemSubButton(SelectableItem, Button):
         self.bind(on_release=self.handle_selection)
 
     def handle_selection(self, button):
-        if self.is_selected:
-            self.select()
-        else:
-            self.deselect()
-
         # Not this "sub" list item, but the list item.
         self.list_adapter.handle_selection(self.parent)
 
@@ -85,11 +80,6 @@ class ListItemSubLabel(SelectableItem, Label):
         self.bind(on_release=self.handle_selection)
 
     def handle_selection(self, button):
-        if self.is_selected:
-            self.select()
-        else:
-            self.deselect()
-
         # Not this "sub" list item, but the list item (parent).
         self.list_adapter.handle_selection(self.parent)
 
@@ -138,11 +128,6 @@ class ListItem(SelectableItem, BoxLayout):
         self.bind(on_release=self.handle_selection)
 
     def handle_selection(self, item):
-        if self.is_selected:
-            self.select()
-        else:
-            self.deselect()
-
         self.list_adapter.handle_selection(self)
 
     def select(self, *args):

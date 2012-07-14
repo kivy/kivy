@@ -197,20 +197,20 @@ class ListAdapter(SelectionSupport, Adapter):
     #
 
     # [TODO]
-    def add_item_view(self, item_view):
+    def add_item(self, item):
         pass
 
     # [TODO]
-    def remove_item_view(self, item_view):
+    def remove_item(self, item):
         pass
 
     # [TODO]
-    def replace_item_view(self, item_view):
+    def replace_item(self, item):
         pass
 
     # [TODO]
     # This method would have an associated sort_key property.
-    def sorted_item_view_instances(self):
+    def sorted_items(self):
         pass
 
 
