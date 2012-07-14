@@ -10,22 +10,21 @@ item_view_instances.
 
 [TODO]:
 
-    - Are multiple levels of abstraction needed? Explain why. (Adapter,
+    - Explain why multiple levels of abstraction are needed. (Adapter,
       ListAdapter, AbstractView, ListView).
     - Consider an associated "object adapter" (a.k.a., "object controller")
-      that is bound to the selection.
-    - Also, what about an associated "array adapter/controller" bound to the
-      selection? (For a cascade of several listviews).
-    - Settle terminology question: adapter or controller?
+      that is bound to the selection. It can also subclass Adapter?
+    - Explain the design philosophy used here -- something like model-view-
+      adapter (MVA) as described here:
+
+          http://en.wikipedia.org/wiki/Model–view–adapter (and link to
+              basis article about Java Swing design)
+
     - Divider isn't used (yet).
-    - Add associated SortableItem mixin, to be used by list item_view classes
-      in a manner similar to the SelectableItem mixin.
-    - Add a sort_by property for use with sortable item_view_instances. (See
-      next item: is the item_keys list set to one property of the list item
-      cls?)
-    - Review the use of item_keys in association with sortable
-      item_view_instances.
-      (Presently item_keys is a list of strings -- are these just the
+    - Consider adding an associated SortableItem mixin, to be used by list
+      item classes in a manner similar to the SelectableItem mixin.
+    - Consider a sort_by property. Review the use of the items property.
+      (Presently items is a list of strings -- are these just the
        strings representing the item_view_instances, which are instances of
        the provided item_view_cls input argument?). If so, formalize and
        document.
@@ -51,12 +50,15 @@ item_view_instances.
 
       (Would this be a new widget called MasterDetailListView, or would the
        listview widget having a facility for use in this way?)
+
+      (See the list_disclosure.py file as a start.)
+
     - Make a separate master-detail example that works like an iphone-style
       animated "source list" that has "disclosure" buttons per item_view, on
       the right, that when clicked will expand to fill the entire list view
       area (useful on mobile devices especially). Similar question as above --
-       would listview be given expanded functionality or would this become
-       another kind of "master-detail" widget?)
+      would listview be given expanded functionality or would this become
+      another kind of "master-detail" widget?)
 '''
 
 __all__ = ('ListView', )

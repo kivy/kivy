@@ -6,7 +6,8 @@ from kivy.properties import ObjectProperty, \
 # view to observe selection.
 
 # The idea for SelectionSupport as mixin, comes from SproutCore's mixin of the
-# same name.
+# same name. It exists as a mixin toward the idea of reuse in other
+# "collection" type views that need to implement selection.
 
 # The allow_empty_selection property is important. If you have a list of items,
 # to which a view is bound to the selection of that list, set
