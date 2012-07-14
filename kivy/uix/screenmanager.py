@@ -6,11 +6,11 @@ Screen Manager
 
 .. warning::
 
-    This widget is still experimental, and his API is subject to change in a
+    This widget is still experimental, and its API is subject to change in a
     future version.
 
 The screen manager is a widget dedicated to manage multiple screens on your
-application. The default :class:`ScreenManager` display only one
+application. The default :class:`ScreenManager` displays only one
 :class:`Screen` at time, and use a :class:`TransitionBase` to switch from one to
 another Screen.
 
@@ -237,7 +237,8 @@ class TransitionBase(EventDispatcher):
         '''
         self.manager = manager
         self._anim = Animation(d=self.duration, s=0)
-        self._anim.bind(on_progress=self._on_progress, on_complete=self._on_complete)
+        self._anim.bind(on_progress=self._on_progress,
+                        on_complete=self._on_complete)
 
         self.add_screen(self.screen_in)
         self.screen_in.transition_value = 0.
@@ -325,9 +326,9 @@ class ShaderTransition(TransitionBase):
     '''
 
     def make_screen_fbo(self, screen):
-        fbo  = Fbo(size=screen.size)
+        fbo = Fbo(size=screen.size)
         with fbo:
-            ClearColor(0,1,0,1)
+            ClearColor(0, 1, 0, 1)
             ClearBuffers()
         fbo.add(screen.canvas)
         return fbo
@@ -349,8 +350,9 @@ class ShaderTransition(TransitionBase):
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
-            Rectangle(size=(1,1))
-        self.render_ctx['projection_mat'] = Matrix().view_clip(0,1,0,1,0,1,0)
+            Rectangle(size=(1, 1))
+        self.render_ctx['projection_mat'] = Matrix().\
+            view_clip(0, 1, 0, 1, 0, 1, 0)
         self.render_ctx['tex_out'] = 1
         self.render_ctx['tex_in'] = 2
         self.manager.canvas.add(self.render_ctx)
@@ -453,7 +455,8 @@ class WipeTransition(ShaderTransition):
     void main(void) {
         vec4 cin = texture2D(tex_in, tex_coord0);
         vec4 cout = texture2D(tex_out, tex_coord0);
-        gl_FragColor = mix(cout, cin, clamp((-1.5 + 1.5*tex_coord0.x + 2.5*t), 0.0, 1.0));
+        gl_FragColor = mix(cout, cin, clamp((-1.5 + 1.5*tex_coord0.x + 2.5*t),
+            0.0, 1.0));
     }
     '''
     fs = StringProperty(WIPE_TRANSITION_FS)
@@ -629,6 +632,7 @@ if __name__ == '__main__':
 ''')
 
     class TestApp(App):
+
         def change_view(self, *l):
             #d = ('left', 'up', 'down', 'right')
             #di = d.index(self.sm.transition.direction)
