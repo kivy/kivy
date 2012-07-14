@@ -399,9 +399,10 @@ class App(EventDispatcher):
     def get_application_icon(self):
         '''Return the icon of the application.
         '''
-        if self.icon is not None:
+        if not resource_find(self.icon):
+            return ''
+        else:
             return resource_find(self.icon)
-        return None
 
     def get_application_config(self, defaultpath='%(appdir)s/%(appname)s.ini'):
         '''.. versionadded:: 1.0.7
