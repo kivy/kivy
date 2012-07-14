@@ -5,7 +5,8 @@ List View
 .. versionadded:: 1.4
 
 The :class:`ListView` widget provides a scrollable/pannable viewport that is
-clipped at the scrollview's bounding box, which contains a list of item_view_instances.
+clipped at the scrollview's bounding box, which contains a list of
+item_view_instances.
 
 [TODO]:
 
@@ -19,12 +20,15 @@ clipped at the scrollview's bounding box, which contains a list of item_view_ins
     - Divider isn't used (yet).
     - Add associated SortableItem mixin, to be used by list item_view classes
       in a manner similar to the SelectableItem mixin.
-    - Add a sort_by property for use with sortable item_view_instances. (See next item_view: is
-      the item_keys list set to one property of the list item_view item_view_cls?)
-    - Review the use of item_keys in association with sortable item_view_instances.
+    - Add a sort_by property for use with sortable item_view_instances. (See
+      next item: is the item_keys list set to one property of the list item
+      cls?)
+    - Review the use of item_keys in association with sortable
+      item_view_instances.
       (Presently item_keys is a list of strings -- are these just the
-       strings representing the item_view_instances, which are instances of the provided
-       item_view_cls input argument?). If so, formalize and document.
+       strings representing the item_view_instances, which are instances of
+       the provided item_view_cls input argument?). If so, formalize and
+       document.
     - Address question about "pushing" out to registered selection observers,
       vs. using the built-in Kivy event dispatching for an "on_select" event.
       (Will event dispatching work instead of registering/pushing?). Merits?
@@ -40,14 +44,17 @@ clipped at the scrollview's bounding box, which contains a list of item_view_ins
     Other Possibilities:
 
     - Consider a horizontally scrolling variant.
-    - Is it possible to have dynamic item_view height, for use in a master-detail
-      list view in this manner? http://www.zkoss.org/zkdemo/grid/master_detail
+    - Is it possible to have dynamic item_view height, for use in a
+      master-detail list view in this manner?
+
+        http://www.zkoss.org/zkdemo/grid/master_detail
+
       (Would this be a new widget called MasterDetailListView, or would the
        listview widget having a facility for use in this way?)
     - Make a separate master-detail example that works like an iphone-style
-      animated "source list" that has "disclosure" buttons per item_view, on the
-      right, that when clicked will expand to fill the entire list view area
-      (useful on mobile devices especially). Similar question as above --
+      animated "source list" that has "disclosure" buttons per item_view, on
+      the right, that when clicked will expand to fill the entire list view
+      area (useful on mobile devices especially). Similar question as above --
        would listview be given expanded functionality or would this become
        another kind of "master-detail" widget?)
 '''
@@ -106,20 +113,20 @@ class Adapter(SelectionSupport, EventDispatcher):
 
     def get_item_view_instance(self, index):
         item_key = self.get_item_key(index)
-        list_item_args = None
+        item_args = None
         if item_key is None:
             return None
         if self.item_view_args_converter:
-            list_item_args = self.item_view_args_converter(item_key)
+            item_args = self.item_view_args_converter(item_key)
         else:
-            list_item_args = item_key
+            item_args = item_key
         if self.item_view_cls:
             print 'CREATE VIEW FOR', index
             item_view_instance = self.item_view_cls(
-                selection_callback=self.handle_selection, # in SelectionSupport
-                **list_item_args)
+                selection_callback=self.handle_selection,
+                **item_args)
             return item_view_instance
-        return Builder.template(self.item_view_template, **list_item_args)
+        return Builder.template(self.item_view_template, **item_args)
 
     # This is for the list adapter, if it wants to get selection events.
     def on_select(self, *args):
@@ -132,7 +139,8 @@ class Adapter(SelectionSupport, EventDispatcher):
     #         Additional possibilities, to those stubbed out in
     #         methods below.
     #
-    #             - a boolean for whether or not editing of item_view_instances is allowed
+    #             - a boolean for whether or not editing of item_view_instances
+    #               is allowed
     #             - a boolean for whether or not to destroy on removal (if
     #               applicable)
     #             - guards for adding, removing, sorting item_view_instances
@@ -159,6 +167,7 @@ class Adapter(SelectionSupport, EventDispatcher):
 class ListAdapter(Adapter):
     '''Adapter around a simple Python list
     '''
+
     def __init__(self, item_keys, **kwargs):
         if type(item_keys) not in (tuple, list):
             raise Exception('ListAdapter: input must be a tuple or list')
