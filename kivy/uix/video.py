@@ -38,12 +38,6 @@ class Video(Image):
     '''
     STOP, PLAY, PAUSE = range(3)
 
-    play = BooleanProperty(False)
-    '''Boolean, indicates whether the video is stopped or playing.
-    .. deprecated:: 1.4.0
-       Use :data:`state` instead.
-    '''
-
     state = NumericProperty(0)
     '''Integer, indicates whether the video is stopped, playing, or paused.
     You can play/stop a video by setting this property. ::
@@ -58,6 +52,13 @@ class Video(Image):
     :data:`state` is a :class:`~kivy.properties.IntegerProperty`, defaults to
     0.
     '''
+
+    play = BooleanProperty(False)
+    '''Boolean, indicates whether the video is stopped or playing.
+    .. deprecated:: 1.4.0
+       Use :data:`state` instead.
+    '''
+
 
     eos = BooleanProperty(False)
     '''Boolean, indicates if the video is done playing (reached end of stream).
@@ -158,14 +159,20 @@ class Video(Image):
             self._video.position = 0
             self._video.eos = False
         elif value == self.PLAY:
+            if self.eos:
+                self._video.stop()
+                self._video.position = 0.
+                self._video.eos = False
             self.eos = False
             self._video.play()
         elif value == self.PAUSE:
             self._video.pause()
+        else:
+            self._video.stop()
 
     def on_play(self, instance, value):
         Logger.warn("'play' is deprecated. Use 'state' instead")
-        return self.on_state(instance, value)
+        self.on_state(instance, value)
 
     def _on_video_frame(self, *largs):
         self.duration = self._video.duration

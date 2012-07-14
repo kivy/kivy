@@ -718,7 +718,7 @@
             size_hint_x: None
             video: root
             width: 44
-            source: root.image_play if not root.play else root.image_pause
+            source: root.image_play if root.state == root.PLAY else root.image_pause
 
         VideoPlayerVolume:
             video: root
