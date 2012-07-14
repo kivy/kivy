@@ -5,7 +5,7 @@ List View
 .. versionadded:: 1.4
 
 The :class:`ListView` widget provides a scrollable/pannable viewport that is
-clipped at the scrollview's bounding box, which contains a list of items.
+clipped at the scrollview's bounding box, which contains a list of item_view_instances.
 
 [TODO]:
 
@@ -17,18 +17,18 @@ clipped at the scrollview's bounding box, which contains a list of items.
       selection? (For a cascade of several listviews).
     - Settle terminology question: adapter or controller?
     - Divider isn't used (yet).
-    - Add associated SortableItem mixin, to be used by list item classes
+    - Add associated SortableItem mixin, to be used by list item_view classes
       in a manner similar to the SelectableItem mixin.
-    - Add a sort_by property for use with sortable items. (See next item: is
-      the arranged_objects list set to one property of the list item cls?)
-    - Review the use of arranged_objects in association with sortable items.
-      (Presently arranged_objects is a list of strings -- are these just the
-       strings representing the items, which are instances of the provided
-       cls input argument?). If so, formalize and document.
+    - Add a sort_by property for use with sortable item_view_instances. (See next item_view: is
+      the item_keys list set to one property of the list item_view item_view_cls?)
+    - Review the use of item_keys in association with sortable item_view_instances.
+      (Presently item_keys is a list of strings -- are these just the
+       strings representing the item_view_instances, which are instances of the provided
+       item_view_cls input argument?). If so, formalize and document.
     - Address question about "pushing" out to registered selection observers,
       vs. using the built-in Kivy event dispatching for an "on_select" event.
       (Will event dispatching work instead of registering/pushing?). Merits?
-    - Work on items marked [TODO] in the code.
+    - Work on item_view_instances marked [TODO] in the code.
 
     Examples (in examples/widgets):
 
@@ -40,12 +40,12 @@ clipped at the scrollview's bounding box, which contains a list of items.
     Other Possibilities:
 
     - Consider a horizontally scrolling variant.
-    - Is it possible to have dynamic item height, for use in a master-detail
+    - Is it possible to have dynamic item_view height, for use in a master-detail
       list view in this manner? http://www.zkoss.org/zkdemo/grid/master_detail
       (Would this be a new widget called MasterDetailListView, or would the
        listview widget having a facility for use in this way?)
     - Make a separate master-detail example that works like an iphone-style
-      animated "source list" that has "disclosure" buttons per item, on the
+      animated "source list" that has "disclosure" buttons per item_view, on the
       right, that when clicked will expand to fill the entire list view area
       (useful on mobile devices especially). Similar question as above --
        would listview be given expanded functionality or would this become
@@ -82,39 +82,43 @@ class Adapter(SelectionSupport, EventDispatcher):
     '''Adapter is a bridge between an AbstractView and the data.
     '''
 
-    cls = ObjectProperty(None)
+    item_view_cls = ObjectProperty(None)
 
-    template = ObjectProperty(None)
+    item_view_template = ObjectProperty(None)
 
-    converter = ObjectProperty(None)
+    item_view_args_converter = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_select')
         super(Adapter, self).__init__(**kwargs)
-        if self.cls is None and self.template is None:
+        if self.item_view_cls is None and self.item_view_template is None:
             raise Exception('A cls or template must be defined')
-        if self.cls is not None and self.template is not None:
+        if self.item_view_cls is not None \
+                and self.item_view_template is not None:
             raise Exception('Cannot use cls and template at the same time')
 
     def get_count(self):
         raise NotImplementedError()
 
-    def get_item(self, index):
+    def get_item_key(self, index):
         raise NotImplementedError()
 
-    def get_view(self, index):
-        item = self.get_item(index)
-        if item is None:
+    def get_item_view_instance(self, index):
+        item_key = self.get_item_key(index)
+        list_item_args = None
+        if item_key is None:
             return None
-        if self.converter:
-            item = self.converter(item)
-        if self.cls:
+        if self.item_view_args_converter:
+            list_item_args = self.item_view_args_converter(item_key)
+        else:
+            list_item_args = item_key
+        if self.item_view_cls:
             print 'CREATE VIEW FOR', index
-            item_instance = self.cls(
+            item_view_instance = self.item_view_cls(
                 selection_callback=self.handle_selection, # in SelectionSupport
-                **item)
-            return item_instance
-        return Builder.template(self.template, **item)
+                **list_item_args)
+            return item_view_instance
+        return Builder.template(self.item_view_template, **list_item_args)
 
     # This is for the list adapter, if it wants to get selection events.
     def on_select(self, *args):
@@ -127,53 +131,52 @@ class Adapter(SelectionSupport, EventDispatcher):
     #         Additional possibilities, to those stubbed out in
     #         methods below.
     #
-    #             - a boolean for whether or not editing of items is allowed
+    #             - a boolean for whether or not editing of item_view_instances is allowed
     #             - a boolean for whether or not to destroy on removal (if
     #               applicable)
-    #             - guards for adding, removing, sorting items
+    #             - guards for adding, removing, sorting item_view_instances
     #
 
     # [TODO]
-    def add_item(self, item):
+    def add_item_view(self, item_view):
         pass
 
     # [TODO]
-    def remove_item(self, item):
+    def remove_item_view(self, item_view):
         pass
 
     # [TODO]
-    def replace_item(self, item):
+    def replace_item_view(self, item_view):
         pass
 
     # [TODO]
     # This method would have an associated sort_key property.
-    def sorted_items(self):
+    def sorted_item_view_instances(self):
         pass
 
 
 class ListAdapter(Adapter):
     '''Adapter around a simple Python list
     '''
-
-    def __init__(self, arranged_objects, **kwargs):
-        if type(arranged_objects) not in (tuple, list):
+    def __init__(self, item_keys, **kwargs):
+        if type(item_keys) not in (tuple, list):
             raise Exception('ListAdapter: input must be a tuple or list')
         super(ListAdapter, self).__init__(**kwargs)
 
-        # Reset and update selection, in SelectionSupport, if arranged_objects
+        # Reset and update selection, in SelectionSupport, if item_keys
         # gets reset.
-        self.bind(arranged_objects=self.initialize_selection)
+        self.bind(item_keys=self.initialize_selection)
 
         # Do the initial set.
-        self.arranged_objects = arranged_objects
+        self.item_keys = item_keys
 
     def get_count(self):
-        return len(self.arranged_objects)
+        return len(self.item_keys)
 
-    def get_item(self, index):
-        if index < 0 or index >= len(self.arranged_objects):
+    def get_item_key(self, index):
+        if index < 0 or index >= len(self.item_keys):
             return None
-        return self.arranged_objects[index]
+        return self.item_keys[index]
 
 
 class AbstractView(FloatLayout):
@@ -182,19 +185,19 @@ class AbstractView(FloatLayout):
 
     adapter = ObjectProperty(None)
 
-    items = DictProperty({})
+    item_view_instances = DictProperty({})
 
-    def set_item(self, index, item):
+    def set_item_view(self, index, item_view):
         pass
 
-    def get_item(self, index):
-        items = self.items
-        if index in items:
-            return items[index]
-        item = self.adapter.get_view(index)
-        if item:
-            items[index] = item
-        return item
+    def get_item_view(self, index):
+        item_view_instances = self.item_view_instances
+        if index in item_view_instances:
+            return item_view_instances[index]
+        item_view = self.adapter.get_item_view_instance(index)
+        if item_view:
+            item_view_instances[index] = item_view
+        return item_view
 
 
 class ListView(AbstractView):
@@ -276,15 +279,15 @@ class ListView(AbstractView):
                 fh += sizes[x] if x in sizes else rh
             container.add_widget(Widget(size_hint_y=None, height=fh))
 
-            # now fill with real item
+            # now fill with real item_view
             index = istart
             while index <= iend:
-                item = self.get_item(index)
+                item_view = self.get_item_view(index)
                 index += 1
-                if item is None:
+                if item_view is None:
                     continue
-                sizes[index] = item.height
-                container.add_widget(item)
+                sizes[index] = item_view.height
+                container.add_widget(item_view)
 
         else:
             available_height = self.height
@@ -292,20 +295,20 @@ class ListView(AbstractView):
             index = self._index
             count = 0
             while available_height > 0:
-                item = self.get_item(index)
-                if item is None:
+                item_view = self.get_item_view(index)
+                if item_view is None:
                     break
-                sizes[index] = item.height
+                sizes[index] = item_view.height
                 index += 1
                 count += 1
-                container.add_widget(item)
-                available_height -= item.height
-                real_height += item.height
+                container.add_widget(item_view)
+                available_height -= item_view.height
+                real_height += item_view.height
 
             self._count = count
 
             # extrapolate the full size of the container from the size
-            # of items
+            # of item_view_instances
             if count:
                 container.height = \
                     real_height / count * self.adapter.get_count()

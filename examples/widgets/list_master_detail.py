@@ -104,14 +104,15 @@ class MasterDetailView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(MasterDetailView, self).__init__(**kwargs)
 
-        list_item_converter = lambda x: {'text': x,
-                                         'size_hint_y': None,
-                                         'height': 25}
-        self.list_adapter = ListAdapter(items,
-                                        converter=list_item_converter,
-                                        selection_mode='single',
-                                        allow_empty_selection=False,
-                                        cls=ListItem)
+        list_item_args_converter = lambda x: {'text': x,
+                                              'size_hint_y': None,
+                                              'height': 25}
+        self.list_adapter = \
+                ListAdapter(items,
+                            item_view_args_converter=list_item_args_converter,
+                            selection_mode='single',
+                            allow_empty_selection=False,
+                            item_view_cls=ListItem)
         self.master_list_view = ListView(adapter=self.list_adapter,
                                          size_hint=(.3, 1.0))
         self.add_widget(self.master_list_view)

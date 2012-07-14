@@ -56,7 +56,7 @@ class FruitsListView(SelectionObserver, ListView):
         if len(observed_selection.selection) == 0:
             return
 
-        self.items = {}
+        self.item_view_instances = {}
 
         self.selection = []
 
@@ -67,9 +67,9 @@ class FruitsListView(SelectionObserver, ListView):
         else:
             fruit_category = str(selected_object)
 
-        # Reset arranged_objects for the adapter. This will trigger a call
+        # Reset item_keys for the adapter. This will trigger a call
         # to update_selection().
-        self.adapter.arranged_objects = fruit_categories[fruit_category]
+        self.adapter.item_keys = fruit_categories[fruit_category]
 
         self.populate()
 
@@ -129,18 +129,18 @@ class CascadingView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(CascadingView, self).__init__(**kwargs)
 
-        list_item_converter = lambda x: {'text': x,
-                                         'size_hint_y': None,
-                                         'height': 25}
+        list_item_args_converter = lambda x: {'text': x,
+                                              'size_hint_y': None,
+                                              'height': 25}
 
         # Fruit categories list on the left:
         #
         self.fruit_categories_list_adapter = \
                 ListAdapter(fruit_categories,
-                        converter=list_item_converter,
+                        item_view_args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
-                        cls=ListItem)
+                        item_view_cls=ListItem)
         self.fruit_categories_list_view = \
                 ListView(adapter=self.fruit_categories_list_adapter,
                          size_hint=(.2, 1.0))
@@ -150,10 +150,10 @@ class CascadingView(GridLayout):
         #
         self.fruits_list_adapter = \
                 ListAdapter(fruits,
-                        converter=list_item_converter,
+                        item_view_args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
-                        cls=ListItem)
+                        item_view_cls=ListItem)
         self.fruits_list_view = \
                 FruitsListView(adapter=self.fruits_list_adapter,
                          size_hint=(.2, 1.0))

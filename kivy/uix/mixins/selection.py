@@ -40,14 +40,7 @@ class SelectionObserver(object):
 
 
 class SelectionSupport(object):
-    # arranged_objects can be a list of strings, or a list of objects that
-    # can implement SelectableItem.
-    #
-    # If SelectableItem objects, what do we need for them to implement, in
-    # addition to the selection properties and methods already in place?
-    #
-    arranged_objects = ListProperty([])
-
+    item_keys = ListProperty([])
     selection = ListProperty([])
     selection_mode = OptionProperty('multiple',
             options=('none', 'single', 'multiple', 'filter'))
@@ -57,7 +50,7 @@ class SelectionSupport(object):
 
     def __init__(self, **kwargs):
         super(SelectionSupport, self).__init__(**kwargs)
-        self.bind(arranged_objects=self.update_selection)
+        self.bind(item_keys=self.update_selection)
         self.bind(selection_mode=self.update_selection)
         self.bind(allow_empty_selection=self.update_selection)
 
@@ -117,37 +110,11 @@ class SelectionSupport(object):
         for obj in l:
             self.deselect_object(obj)
 
-    # Override to return the first selectable object.  For example, if you
-    # have groups or want to otherwise limit the kinds of objects that can be
-    # selected.
-    #
-    # [TODO] This comment presently has no context -- the idea for
-    # having grouped items, as might be done for something like a TreeView,
-    # has not been addressed. So, as it is, it simple grabs the first item
-    # in arranged_objects.
-    #
-    # The default implementation returns first object at index 0.
-    #
-    def first_selectable_object(self):
-        if len(self.arranged_objects) > 0:
-            return self.arranged_objects[0]
-        return None
-
     def update_selection(self, *args):
         if self.allow_empty_selection is False:
             if len(self.selection) == 0:
-                # [TODO] In present design, arranged_objects is a list of
-                #        strings in parallel with items (instances of cls),
-                #        so fso will not be SelectableItem. Fix by adding
-                #        a properly handled sort_key ref into items dict,
-                #        perhaps.
-                fso = self.first_selectable_object()
-                if fso is not None:
-                    if isinstance(fso, SelectableItem):
-                        self.handle_selection(fso)
-                    else:
-                        view = self.get_view(self.arranged_objects.index(fso))
-                        self.handle_selection(view)
+                if len(self.item_keys) > 0:
+                    self.handle_selection(self.get_item_view_instance(0))
 
         for obs in self.registered_selection_observers:
             obs.observed_selection_changed(self)
