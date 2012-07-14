@@ -65,6 +65,7 @@ from kivy.properties import NumericProperty, StringProperty, \
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
+from kivy.logger import Logger
 
 
 class WidgetException(Exception):
@@ -227,6 +228,13 @@ class Widget(EventDispatcher):
         if not isinstance(widget, Widget):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
+        parent = widget.parent
+        # ensure widget isn't already added to another widget
+        if parent:
+            Logger.warning(''.join(('Cannot add Widget ', str(widget),\
+                ' It already has a parent ', str(parent),
+                ' Skipping addition')))
+            return
         widget.parent = self
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
