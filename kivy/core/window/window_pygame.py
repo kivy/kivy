@@ -103,7 +103,8 @@ class WindowPygame(WindowBase):
 
         # set window icon before calling set_mode
         try:
-            filename_icon = Config.get('kivy', 'window_icon')
+            #filename_icon = Config.get('kivy', 'window_icon')
+            filename_icon = self.icon or Config.get('kivy', 'window_icon')
             if filename_icon == '':
                 logo_size = 512 if platform() == 'macosx' else 32
                 filename_icon = join(kivy_home_dir, 'icon', 'kivy-icon-%d.png' %
@@ -164,6 +165,7 @@ class WindowPygame(WindowBase):
             if im is None:
                 raise Exception('Unable to load window icon (not found)')
             pygame.display.set_icon(im)
+            super(WindowPygame, self).set_icon(filename)
         except:
             Logger.exception('WinPygame: unable to set icon')
 

@@ -238,6 +238,8 @@ class WindowBase(EventDispatcher):
     You must take care of it if you are doing recursive check.
     '''
 
+    icon = StringProperty()
+
     def _get_modifiers(self):
         return self._modifiers
 
@@ -591,7 +593,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 1.0.5
         '''
-        pass
+        self.icon = filename
 
     def to_widget(self, x, y, initial=True, relative=False):
         return (x, y)
