@@ -95,7 +95,6 @@ class Adapter(SelectionSupport, EventDispatcher):
     args_converter = ObjectProperty(None)
 
     def __init__(self, **kwargs):
-        self.register_event_type('on_select')
         super(Adapter, self).__init__(**kwargs)
         if self.cls is None and self.template is None:
             raise Exception('A cls or template must be defined')
@@ -111,24 +110,21 @@ class Adapter(SelectionSupport, EventDispatcher):
 
     def get_item_view_instance(self, index):
         item = self.get_item(index)
-        item_args = None
         if item is None:
             return None
+
+        item_args = None
         if self.args_converter:
             item_args = self.args_converter(item)
         else:
             item_args = item
+
         if self.cls:
             print 'CREATE VIEW FOR', index
-            instance = self.cls(
-                selection_callback=self.handle_selection,
-                **item_args)
+            instance = self.cls(self, **item_args)
             return instance
-        return Builder.template(self.template, **item_args)
-
-    # This is for the list adapter, if it wants to get selection events.
-    def on_select(self, *args):
-        pass
+        else:
+            return Builder.template(self.template, **item_args)
 
     # [TODO] Things to think about:
     #
@@ -170,6 +166,7 @@ class ListAdapter(Adapter):
     def __init__(self, item_keys, **kwargs):
         if type(item_keys) not in (tuple, list):
             raise Exception('ListAdapter: input must be a tuple or list')
+        self.register_event_type('on_select')
         super(ListAdapter, self).__init__(**kwargs)
 
         # Reset and update selection, in SelectionSupport, if item_keys
@@ -186,6 +183,9 @@ class ListAdapter(Adapter):
         if index < 0 or index >= len(self.item_keys):
             return None
         return self.item_keys[index]
+
+    def on_select(self, *args):
+        pass
 
 
 class AbstractView(FloatLayout):
