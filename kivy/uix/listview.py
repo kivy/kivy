@@ -20,6 +20,12 @@ item_view_instances.
           http://en.wikipedia.org/wiki/Model–view–adapter (and link to
               basis article about Java Swing design)
 
+      Also, tie discussion to inspiration for Adapter and related classes:
+
+          http://developer.android.com/reference/android/\
+              widget/Adapter.html#getView(int,%20android/\
+              .view.View,%20android.view.ViewGroup)
+
     - Divider isn't used (yet).
     - Consider adding an associated SortableItem mixin, to be used by list
       item classes in a manner similar to the SelectableItem mixin.
