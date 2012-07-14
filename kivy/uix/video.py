@@ -169,6 +169,8 @@ class Video(Image):
             self._video.pause()
         else:
             self._video.stop()
+            self._video.position = 0
+            self._video.eos = False
 
     def on_play(self, instance, value):
         Logger.warn("'play' is deprecated. Use 'state' instead")

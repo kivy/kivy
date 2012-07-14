@@ -126,6 +126,7 @@ class VideoPlayerStop(Image):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             self.video.state = Video.STOP
+            self.video.position = 0
 
 
 class VideoPlayerProgressBar(ProgressBar):
@@ -423,6 +424,10 @@ class VideoPlayer(GridLayout):
     container = ObjectProperty(None)
 
     def __init__(self, **kwargs):
+        if kwargs.get('play'):
+            kwargs['state'] = int(kwargs['play'])
+            del kwargs['play']
+
         self._video = None
         self._image = None
         self._annotations = None
@@ -465,11 +470,11 @@ class VideoPlayer(GridLayout):
                     VideoPlayerAnnotation(annotation=ann))
 
     def on_state(self, instance, value):
-        print value
         if self._video is None:
             self._video = Video(source=self.source, state=VideoPlayer.PLAY,
                     volume=self.volume, pos_hint={'x': 0, 'y': 0},
                     **self.options)
+
             self._video.bind(texture=self._play_started,
                     duration=self.setter('duration'),
                     position=self.setter('position'),
