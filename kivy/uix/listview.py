@@ -85,7 +85,7 @@ Builder.load_string('''
 ''')
 
 
-class Adapter(SelectionSupport, EventDispatcher):
+class Adapter(EventDispatcher):
     '''Adapter is a bridge between an AbstractView and the data.
     '''
 
@@ -107,6 +107,54 @@ class Adapter(SelectionSupport, EventDispatcher):
 
     def get_item(self, index):
         raise NotImplementedError()
+
+    def get_item_view_instance(self, index):
+        item = self.get_item(index)
+        if item is None:
+            return None
+
+        item_args = None
+        if self.args_converter:
+            item_args = self.args_converter(item)
+        else:
+            item_args = item
+
+        if self.cls:
+            print 'CREATE VIEW FOR', index
+            instance = self.cls(**item_args)
+            return instance
+        else:
+            return Builder.template(self.template, **item_args)
+
+
+class ListAdapter(SelectionSupport, Adapter):
+    '''Adapter around a simple Python list
+    '''
+    item_keys = ListProperty([])
+
+    def __init__(self, item_keys, **kwargs):
+        if type(item_keys) not in (tuple, list):
+            raise Exception('ListAdapter: input must be a tuple or list')
+        self.register_event_type('on_select')
+        super(ListAdapter, self).__init__(**kwargs)
+
+        # Reset and update selection, in SelectionSupport, if item_keys
+        # gets reset.
+        self.bind(item_keys=self.initialize_selection)
+
+        # Do the initial set.
+        self.item_keys = item_keys
+
+    def get_count(self):
+        return len(self.item_keys)
+
+    def get_item(self, index):
+        if index < 0 or index >= len(self.item_keys):
+            return None
+        return self.item_keys[index]
+
+    def on_select(self, *args):
+        pass
 
     def get_item_view_instance(self, index):
         item = self.get_item(index)
@@ -155,36 +203,6 @@ class Adapter(SelectionSupport, EventDispatcher):
     # [TODO]
     # This method would have an associated sort_key property.
     def sorted_item_view_instances(self):
-        pass
-
-
-class ListAdapter(Adapter):
-    '''Adapter around a simple Python list
-    '''
-    item_keys = ListProperty([])
-
-    def __init__(self, item_keys, **kwargs):
-        if type(item_keys) not in (tuple, list):
-            raise Exception('ListAdapter: input must be a tuple or list')
-        self.register_event_type('on_select')
-        super(ListAdapter, self).__init__(**kwargs)
-
-        # Reset and update selection, in SelectionSupport, if item_keys
-        # gets reset.
-        self.bind(item_keys=self.initialize_selection)
-
-        # Do the initial set.
-        self.item_keys = item_keys
-
-    def get_count(self):
-        return len(self.item_keys)
-
-    def get_item(self, index):
-        if index < 0 or index >= len(self.item_keys):
-            return None
-        return self.item_keys[index]
-
-    def on_select(self, *args):
         pass
 
 
