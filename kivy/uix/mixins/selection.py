@@ -50,7 +50,7 @@ class SelectionSupport(object):
 
     def __init__(self, **kwargs):
         super(SelectionSupport, self).__init__(**kwargs)
-        self.bind(item_keys=self.update_selection)
+        self.bind(data=self.update_selection)
         self.bind(selection_mode=self.update_selection)
         self.bind(allow_empty_selection=self.update_selection)
 
@@ -113,7 +113,7 @@ class SelectionSupport(object):
     def update_selection(self, *args):
         if self.allow_empty_selection is False:
             if len(self.selection) == 0:
-                if len(self.item_keys) > 0:
+                if len(self.data) > 0:
                     self.handle_selection(self.get_view(0))
 
         for obs in self.registered_selection_observers:

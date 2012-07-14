@@ -67,9 +67,9 @@ class FruitsListView(SelectionObserver, ListView):
         else:
             fruit_category = str(selected_object)
 
-        # Reset item_keys for the adapter. This will trigger a call
+        # Reset data for the adapter. This will trigger a call
         # to update_selection().
-        self.adapter.item_keys = fruit_categories[fruit_category]
+        self.adapter.data = fruit_categories[fruit_category]
 
         self.populate()
 

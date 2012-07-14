@@ -10,17 +10,17 @@ item_view_instances.
 
 [TODO]:
 
-    - Explain why multiple levels of abstraction are needed. (Adapter,
-      ListAdapter, AbstractView, ListView).
     - Consider an associated "object adapter" (a.k.a., "object controller")
       that is bound to the selection. It can also subclass Adapter?
     - Explain the design philosophy used here -- something like model-view-
       adapter (MVA) as described here:
 
-          http://en.wikipedia.org/wiki/Model–view–adapter (and link to
-              basis article about Java Swing design)
+          http://en.wikipedia.org/wiki/Model-view-adapter (and link to
+            basis article about Java Swing design)
 
-      Also, tie discussion to inspiration for Adapter and related classes:
+      Explain why multiple levels of abstraction are needed. (Adapter,
+      ListAdapter, AbstractView, ListView) -- Tie discussion to inspiration
+      for Adapter and related classes:
 
           http://developer.android.com/reference/android/\
               widget/Adapter.html#getView(int,%20android/\
@@ -32,8 +32,7 @@ item_view_instances.
     - Consider a sort_by property. Review the use of the items property.
       (Presently items is a list of strings -- are these just the
        strings representing the item_view_instances, which are instances of
-       the provided item_view_cls input argument?). If so, formalize and
-       document.
+       the provided cls input argument?). If so, formalize and document.
     - Address question about "pushing" out to registered selection observers,
       vs. using the built-in Kivy event dispatching for an "on_select" event.
       (Will event dispatching work instead of registering/pushing?). Merits?
@@ -139,28 +138,28 @@ class Adapter(EventDispatcher):
 class ListAdapter(SelectionSupport, Adapter):
     '''Adapter around a simple Python list
     '''
-    item_keys = ListProperty([])
+    data = ListProperty([])
 
-    def __init__(self, item_keys, **kwargs):
-        if type(item_keys) not in (tuple, list):
+    def __init__(self, data, **kwargs):
+        if type(data) not in (tuple, list):
             raise Exception('ListAdapter: input must be a tuple or list')
         self.register_event_type('on_select')
         super(ListAdapter, self).__init__(**kwargs)
 
-        # Reset and update selection, in SelectionSupport, if item_keys
+        # Reset and update selection, in SelectionSupport, if data
         # gets reset.
-        self.bind(item_keys=self.initialize_selection)
+        self.bind(data=self.initialize_selection)
 
         # Do the initial set.
-        self.item_keys = item_keys
+        self.data = data
 
     def get_count(self):
-        return len(self.item_keys)
+        return len(self.data)
 
     def get_item(self, index):
-        if index < 0 or index >= len(self.item_keys):
+        if index < 0 or index >= len(self.data):
             return None
-        return self.item_keys[index]
+        return self.data[index]
 
     def on_select(self, *args):
         pass
