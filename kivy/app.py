@@ -401,6 +401,8 @@ class App(EventDispatcher):
         '''
         if not resource_find(self.icon):
             return ''
+        else:
+            return resource_find(self.icon)
 
     def get_application_config(self, defaultpath='%(appdir)s/%(appname)s.ini'):
         '''.. versionadded:: 1.0.7
