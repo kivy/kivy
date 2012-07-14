@@ -26,6 +26,7 @@ the video is loaded (when the texture is created)::
 __all__ = ('Video', )
 
 from kivy.clock import Clock
+from kivy.logger import Logger
 from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
@@ -35,21 +36,27 @@ from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty
 class Video(Image):
     '''Video class. See module documentation for more information.
     '''
+    STOP, PLAY, PAUSE = range(3)
 
     play = BooleanProperty(False)
-    '''Boolean, indicates if the video is playing.
-    You can start/stop the video by setting this property::
+    '''Boolean, indicates whether the video is stopped or playing.
+    .. deprecated:: 1.4.0
+       Use :data:`state` instead.
+    '''
 
+    state = NumericProperty(0)
+    '''Integer, indicates whether the video is stopped, playing, or paused.
+    You can play/stop a video by setting this property. ::
         # start playing the video at creation
-        video = Video(source='movie.mkv', play=True)
+        video = Video(source='movie.mkv', state=Video.PLAY)
 
         # create the video, and start later
         video = Video(source='movie.mkv')
         # and later
-        video.play = True
+        video.state = Video.PLAY
 
-    :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`state` is a :class:`~kivy.properties.IntegerProperty`, defaults to
+    0.
     '''
 
     eos = BooleanProperty(False)
@@ -137,23 +144,28 @@ class Video(Image):
             self._video.bind(on_load=self._on_video_frame,
                              on_frame=self._on_video_frame,
                              on_eos=self._on_eos)
-            if self.play:
+            if self.state == self.PLAY:
                 self._video.play()
             self.duration = 1.
             self.position = 0.
 
-    def on_play(self, instance, value):
+    def on_state(self, instance, value):
         if not self._video:
             return
-        if value:
-            if self.eos:
-                self._video.stop()
-                self._video.position = 0.
-                self._video.eos = False
+
+        if value == self.STOP or self.eos:
+            self._video.stop()
+            self._video.position = 0
+            self._video.eos = False
+        elif value == self.PLAY:
             self.eos = False
             self._video.play()
-        else:
-            self._video.stop()
+        elif value == self.PAUSE:
+            self._video.pause()
+
+    def on_play(self, instance, value):
+        Logger.warn("'play' is deprecated. Use 'state' instead")
+        return self.on_state(instance, value)
 
     def _on_video_frame(self, *largs):
         self.duration = self._video.duration
@@ -162,7 +174,7 @@ class Video(Image):
         self.canvas.ask_update()
 
     def _on_eos(self, *largs):
-        self.play = False
+        self.state = self.STOP
         self.eos = True
 
     def on_volume(self, instance, value):

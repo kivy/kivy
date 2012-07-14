@@ -128,6 +128,10 @@ class VideoGStreamer(VideoBase):
         self._state = ''
         self._playbin.set_state(gst.STATE_PAUSED)
 
+    def pause(self):
+        self._state = 'paused'
+        self._playbin.set_state(gst.STATE_PAUSED)
+
     def play(self):
         self._state = 'playing'
         self._playbin.set_state(gst.STATE_PLAYING)

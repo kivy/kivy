@@ -113,8 +113,18 @@ class VideoPlayerPlayPause(Image):
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            self.video.play = not self.video.play
+            if self.video.state == Video.PLAY:
+                self.video.state = Video.PAUSE
+            else:
+                self.video.state = Video.PLAY
             return True
+
+class VideoPlayerStop(Image):
+    video = ObjectProperty(None)
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.video.state = Video.STOP
 
 
 class VideoPlayerProgressBar(ProgressBar):
@@ -134,7 +144,7 @@ class VideoPlayerProgressBar(ProgressBar):
 
     def on_video(self, instance, value):
         self.video.bind(position=self._update_bubble,
-                play=self._showhide_bubble)
+                state=self._showhide_bubble)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -209,7 +219,7 @@ class VideoPlayerPreview(FloatLayout):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and not self.click_done:
             self.click_done = True
-            self.video.play = True
+            self.video.state = Video.PLAY
         return True
 
 
@@ -287,19 +297,24 @@ class VideoPlayer(GridLayout):
     '''
 
     play = BooleanProperty(False)
-    '''Boolean, indicates if the video is playing.
-    You can start/stop the video by setting this property::
+    '''Boolean, indicates whether the video is stopped or playing.
+    .. deprecated:: 1.4.0
+       Use :data:`state` instead.
+    '''
 
+    state = NumericProperty(0)
+    '''Integer, indicates whether the video is stopped, playing, or paused.
+    You can play/stop a video by setting this property. ::
         # start playing the video at creation
-        video = VideoPlayer(source='movie.mkv', play=True)
+        video = Video(source='movie.mkv', state=Video.PLAY)
 
         # create the video, and start later
-        video = VideoPlayer(source='movie.mkv')
+        video = Video(source='movie.mkv')
         # and later
-        video.play = True
+        video.state = Video.PLAY
 
-    :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False.
+    :data:`state` is a :class:`~kivy.properties.IntegerProperty`, defaults to
+    0.
     '''
 
     image_overlay_play = StringProperty(
@@ -325,6 +340,13 @@ class VideoPlayer(GridLayout):
 
     image_pause = StringProperty(
             'atlas://data/images/defaulttheme/media-playback-pause')
+    '''Image filename used for the "Pause" button.
+
+    :data:`image_pause` a :class:`~kivy.properties.StringProperty`
+    '''
+
+    image_stop = StringProperty(
+            'atlas://data/images/defaulttheme/media-playback-stop')
     '''Image filename used for the "Pause" button.
 
     :data:`image_pause` a :class:`~kivy.properties.StringProperty`
@@ -440,16 +462,21 @@ class VideoPlayer(GridLayout):
                 self._annotations_labels.append(
                     VideoPlayerAnnotation(annotation=ann))
 
-    def on_play(self, instance, value):
+    def on_state(self, instance, value):
         if self._video is None:
-            self._video = Video(source=self.source, play=True,
+            self._video = Video(source=self.source, state=Video.PLAY,
                     volume=self.volume, pos_hint={'x': 0, 'y': 0},
                     **self.options)
             self._video.bind(texture=self._play_started,
                     duration=self.setter('duration'),
                     position=self.setter('position'),
                     volume=self.setter('volume'))
-        self._video.play = value
+
+        self._video.state = value
+
+    def on_play(self, instance, value):
+        Logger.warn("'play' is deprecated. Use 'state' instead")
+        return self.on_state(instance, value)
 
     def on_volume(self, instance, value):
         if not self._video:

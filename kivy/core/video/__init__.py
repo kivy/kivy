@@ -158,6 +158,10 @@ class VideoBase(EventDispatcher):
         '''Stop the video playing'''
         self._state = ''
 
+    def pause(self):
+        '''Pause the video'''
+        self._state = 'paused'
+
     def play(self):
         '''Play the video'''
         self._state = 'playing'
