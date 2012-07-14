@@ -4,11 +4,11 @@ Relative Layout
 
 .. versionadded:: 1.4.0
 
-This layout allow you to set relative coordinate for children. If you want
+This layout allows you to set relative coordinate for children. If you want
 absolute positioning, check :class:`~kivy.uix.floatlayout.FloatLayout`.
 
 The :class:`RelativeFloatLayout` class behaves just like the regular Float
-Layout, except that it's child widgets are positioned relative to the layout.
+Layout, except that its child widgets are positioned relative to the layout.
 
 For example, if you create a RelativeFloatLayout, add a widgets with
 position = (0,0), the child widget will also move, when you change the
