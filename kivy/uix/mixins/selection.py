@@ -40,7 +40,6 @@ class SelectionObserver(object):
 
 
 class SelectionSupport(object):
-    item_keys = ListProperty([])
     selection = ListProperty([])
     selection_mode = OptionProperty('multiple',
             options=('none', 'single', 'multiple', 'filter'))

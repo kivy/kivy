@@ -81,6 +81,7 @@ Builder.load_string('''
 class Adapter(SelectionSupport, EventDispatcher):
     '''Adapter is a bridge between an AbstractView and the data.
     '''
+    item_keys = ListProperty([])
 
     item_view_cls = ObjectProperty(None)
 
