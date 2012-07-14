@@ -25,23 +25,15 @@ clipped at the scrollview's bounding box, which contains a list of items.
       (Presently arranged_objects is a list of strings -- are these just the
        strings representing the items, which are instances of the provided
        cls input argument?). If so, formalize and document.
-    - Test layout -- presently problematic for how to use size_hint and
-      height -- item can become undefined in the cls list item instantiation
-      if the listview's size_hint and/or height is not set "correctly."
     - Address question about "pushing" out to registered selection observers,
       vs. using the built-in Kivy event dispatching for an "on_select" event.
       (Will event dispatching work instead of registering/pushing?). Merits?
-    - Work on items marked [TODO] below.
+    - Work on items marked [TODO] in the code.
 
     Examples (in examples/widgets):
 
-    - Improve master-detail example:
-        - Fix layout, in association with layout item above, and also for an
-          improved detail view.
+    - Improve examples:
         - Add fruit images.
-    - Provide examples of display changes for selected and unselected. Now
-      the example in master-detail uses buttons in the list item, but the
-      selection display, using background, only partially works.
     - Add an example where selection doesn't just change background color
       or font, but animates.
 
