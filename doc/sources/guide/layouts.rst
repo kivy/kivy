@@ -55,3 +55,7 @@ FloatLayout:
  allowing to set position relatively to layout position.
 
  .. image:: ../images/floatlayout.gif
+
+RelativeLayout:
+ Behave just like FloatLayout, except children pos is relative to layout
+ position, not screen.
