@@ -336,6 +336,10 @@ class ShaderTransition(TransitionBase):
     def on_progress(self, progress):
         self.render_ctx['t'] = progress
 
+    def on_complete(self):
+        self.render_ctx['t'] = 1.
+        super(ShaderTransition, self).on_complete()
+
     def add_screen(self, screen):
         self.screen_in.pos = self.screen_out.pos
         self.screen_in.size = self.screen_out.size
@@ -402,6 +406,11 @@ class SlideTransition(TransitionBase):
             b.y = y + height * progression
             a.y = y - height * (1 - progression)
 
+    def on_complete(self):
+        self.screen_in.pos = (0, 0)
+        self.screen_out.pos = (0, 0)
+        super(SlideTransition, self).on_complete()
+
 
 class SwapTransition(TransitionBase):
     '''Swap transition, that look like iOS transition, when a new window appear
@@ -414,6 +423,9 @@ class SwapTransition(TransitionBase):
     def on_complete(self):
         self.screen_in.scale = 1.
         self.screen_out.scale = 1.
+        self.screen_in.pos = (0, 0)
+        self.screen_out.pos = (0, 0)
+        super(SwapTransition, self).on_complete()
 
     def on_progress(self, progression):
         a = self.screen_in
