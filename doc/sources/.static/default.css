@@ -267,13 +267,20 @@ div.seealso {
 }
 
 div.warning {
-    background-color: #ffe4e4;
-    border: 1px solid #f66;
+    border: 1px solid #fb9d43;
+	background: #fbddbf url('icon-warning.png') 8px 5px no-repeat;
+	padding-left: 42px;
 }
 
 div.note {
-    background-color: #eee;
-    border: 1px solid #ccc;
+	border: 1px solid #dbd286;
+	background: #f7f0b9 url('icon-note.png') 8px 5px no-repeat;
+	padding-left: 42px;
+}
+
+div.warning .admonition-title,
+div.note .admonition-title {
+	display: none;
 }
 
 p.admonition-title {
