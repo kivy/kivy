@@ -113,7 +113,7 @@ class SelectionSupport(object):
         if self.allow_empty_selection is False:
             if len(self.selection) == 0:
                 if len(self.item_keys) > 0:
-                    self.handle_selection(self.get_item_view_instance(0))
+                    self.handle_selection(self.get_view(0))
 
         for obs in self.registered_selection_observers:
             obs.observed_selection_changed(self)

@@ -108,7 +108,8 @@ class Adapter(EventDispatcher):
     def get_item(self, index):
         raise NotImplementedError()
 
-    def get_item_view_instance(self, index):
+    # Returns a view instance for an item.
+    def get_view(self, index):
         item = self.get_item(index)
         if item is None:
             return None
@@ -156,7 +157,7 @@ class ListAdapter(SelectionSupport, Adapter):
     def on_select(self, *args):
         pass
 
-    def get_item_view_instance(self, index):
+    def get_view(self, index):
         item = self.get_item(index)
         if item is None:
             return None
@@ -221,7 +222,7 @@ class AbstractView(FloatLayout):
         item_view_instances = self.item_view_instances
         if index in item_view_instances:
             return item_view_instances[index]
-        item_view = self.adapter.get_item_view_instance(index)
+        item_view = self.adapter.get_view(index)
         if item_view:
             item_view_instances[index] = item_view
         return item_view
