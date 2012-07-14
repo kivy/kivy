@@ -137,10 +137,10 @@ class CascadingView(GridLayout):
         #
         self.fruit_categories_list_adapter = \
                 ListAdapter(fruit_categories,
-                        item_view_args_converter=list_item_args_converter,
+                        args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
-                        item_view_cls=ListItem)
+                        cls=ListItem)
         self.fruit_categories_list_view = \
                 ListView(adapter=self.fruit_categories_list_adapter,
                          size_hint=(.2, 1.0))
@@ -150,10 +150,10 @@ class CascadingView(GridLayout):
         #
         self.fruits_list_adapter = \
                 ListAdapter(fruits,
-                        item_view_args_converter=list_item_args_converter,
+                        args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
-                        item_view_cls=ListItem)
+                        cls=ListItem)
         self.fruits_list_view = \
                 FruitsListView(adapter=self.fruits_list_adapter,
                          size_hint=(.2, 1.0))

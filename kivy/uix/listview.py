@@ -88,45 +88,43 @@ Builder.load_string('''
 class Adapter(SelectionSupport, EventDispatcher):
     '''Adapter is a bridge between an AbstractView and the data.
     '''
-    item_keys = ListProperty([])
 
-    item_view_cls = ObjectProperty(None)
-
-    item_view_template = ObjectProperty(None)
-
-    item_view_args_converter = ObjectProperty(None)
+    # These pertain to item views:
+    cls = ObjectProperty(None)
+    template = ObjectProperty(None)
+    args_converter = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_select')
         super(Adapter, self).__init__(**kwargs)
-        if self.item_view_cls is None and self.item_view_template is None:
+        if self.cls is None and self.template is None:
             raise Exception('A cls or template must be defined')
-        if self.item_view_cls is not None \
-                and self.item_view_template is not None:
+        if self.cls is not None \
+                and self.template is not None:
             raise Exception('Cannot use cls and template at the same time')
 
     def get_count(self):
         raise NotImplementedError()
 
-    def get_item_key(self, index):
+    def get_item(self, index):
         raise NotImplementedError()
 
     def get_item_view_instance(self, index):
-        item_key = self.get_item_key(index)
+        item = self.get_item(index)
         item_args = None
-        if item_key is None:
+        if item is None:
             return None
-        if self.item_view_args_converter:
-            item_args = self.item_view_args_converter(item_key)
+        if self.args_converter:
+            item_args = self.args_converter(item)
         else:
-            item_args = item_key
-        if self.item_view_cls:
+            item_args = item
+        if self.cls:
             print 'CREATE VIEW FOR', index
-            item_view_instance = self.item_view_cls(
+            instance = self.cls(
                 selection_callback=self.handle_selection,
                 **item_args)
-            return item_view_instance
-        return Builder.template(self.item_view_template, **item_args)
+            return instance
+        return Builder.template(self.template, **item_args)
 
     # This is for the list adapter, if it wants to get selection events.
     def on_select(self, *args):
@@ -167,6 +165,7 @@ class Adapter(SelectionSupport, EventDispatcher):
 class ListAdapter(Adapter):
     '''Adapter around a simple Python list
     '''
+    item_keys = ListProperty([])
 
     def __init__(self, item_keys, **kwargs):
         if type(item_keys) not in (tuple, list):
@@ -183,7 +182,7 @@ class ListAdapter(Adapter):
     def get_count(self):
         return len(self.item_keys)
 
-    def get_item_key(self, index):
+    def get_item(self, index):
         if index < 0 or index >= len(self.item_keys):
             return None
         return self.item_keys[index]

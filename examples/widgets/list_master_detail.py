@@ -109,10 +109,10 @@ class MasterDetailView(GridLayout):
                                               'height': 25}
         self.list_adapter = \
                 ListAdapter(items,
-                            item_view_args_converter=list_item_args_converter,
+                            args_converter=list_item_args_converter,
                             selection_mode='single',
                             allow_empty_selection=False,
-                            item_view_cls=ListItem)
+                            cls=ListItem)
         self.master_list_view = ListView(adapter=self.list_adapter,
                                          size_hint=(.3, 1.0))
         self.add_widget(self.master_list_view)
