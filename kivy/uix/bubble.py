@@ -157,6 +157,7 @@ class Bubble(GridLayout):
             color=self.background_color)
         self.content = content = BubbleContent(parent=self)
         super(Bubble, self).__init__(**kwargs)
+        content.parent = None
         self.add_widget(content)
         self.on_arrow_pos()
 
@@ -226,6 +227,10 @@ class Bubble(GridLayout):
         self_arrow_img.height = self_arrow_img.texture_size[1]
         widget_list = []
         arrow_list = []
+        parent = self_arrow_img.parent
+        if parent:
+            parent.remove_widget(self_arrow_img)
+
         if self_arrow_pos[0] == 'b' or self_arrow_pos[0] == 't':
             self.cols = 1
             self.rows = 2
