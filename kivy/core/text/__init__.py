@@ -450,8 +450,8 @@ class LabelBase(object):
     def _get_text_size(self):
         return self._text_size
 
-    def _set_text_size(self, x):
-        self._text_size = x
+    def _set_text_size(self, value):
+        self._text_size = tuple([x if x is None else int(x) for x in value])
 
     text_size = property(_get_text_size, _set_text_size,
         doc='''Get/set the (width, height) of the contrained rendering box''')
