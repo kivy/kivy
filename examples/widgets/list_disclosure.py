@@ -210,12 +210,10 @@ class MasterDetailView(GridLayout):
         self.detail_view = DetailView(size_hint=(.7, 1.0))
         self.add_widget(self.detail_view)
 
-        # Manually initialize detail view to show first object of list view,
-        # which will be auto-selected, but the observed_selection_changed
-        # call would have already fired.
-        #
         self.list_adapter.bind(
                 selection=self.detail_view.observed_selection_changed)
+
+        self.list_adapter.initialize_selection()
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
