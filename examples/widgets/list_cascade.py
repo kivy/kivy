@@ -160,7 +160,7 @@ class CascadingView(GridLayout):
         self.add_widget(self.fruits_list_view)
 
         # Set the fruits_list_view as an observer of the selection of
-        # the fruit category.
+        # the fruit categories list.
         self.fruit_categories_list_adapter.bind(
                 selection=self.fruits_list_view.observed_selection_changed)
 
@@ -169,12 +169,21 @@ class CascadingView(GridLayout):
         self.detail_view = DetailView(size_hint=(.6, 1.0))
         self.add_widget(self.detail_view)
 
-        # Manually initialize detail view to show first object of list view,
-        # which will be auto-selected, but the observed_selection_changed
-        # call would have already fired. [TODO] Evaluate this statement.
-        #
         self.fruits_list_adapter.bind(
                 selection=self.detail_view.observed_selection_changed)
+
+        # Manually re-initialize selection of fruit category to fire updates
+        # to observing views in the chain:
+        #
+        #    fruit categories list -> fruits list -> detail view
+        #
+        # These lists are set up for auto-selection, but the dispatching
+        # that happens on instantiation would have already fired.
+        #
+        self.fruit_categories_list_adapter.initialize_selection()
+
+        # [TODO] Why is this call also needed?
+        self.fruits_list_adapter.initialize_selection()
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\

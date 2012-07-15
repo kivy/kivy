@@ -146,7 +146,7 @@ class ListAdapter(SelectionSupport, Adapter):
         # gets reset.
         self.bind(data=self.initialize_selection)
 
-        # Do the initial set.
+        # Do the initial set -- triggers initial_selection()
         self.data = data
 
     def get_count(self):
@@ -251,8 +251,8 @@ class ListView(AbstractView):
         super(ListView, self).__init__(**kwargs)
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
         self.bind(size=self._trigger_populate,
-                pos=self._trigger_populate,
-                adapter=self._trigger_populate)
+                  pos=self._trigger_populate,
+                  adapter=self._trigger_populate)
         self.populate()
 
     def _scroll(self, scroll_y):

@@ -68,7 +68,7 @@ class SelectionSupport(object):
         super(SelectionSupport, self).__init__(**kwargs)
         self.bind(selection_mode=self.initialize_selection,
                   allow_empty_selection=self.initialize_selection)
-        self.update_selection()
+        self.initialize_selection()
 
     def handle_selection(self, obj):
         if obj not in self.selection:
@@ -108,17 +108,12 @@ class SelectionSupport(object):
         for obj in l:
             self.deselect_object(obj)
 
-    def update_selection(self, *args):
-        if self.allow_empty_selection is False:
-            if len(self.selection) == 0:
-                if len(self.data) > 0:
-                    v = self.get_view(0)
-                    print 'selecting first data item view', v, v.is_selected
-                    self.handle_selection(self.get_view(0))
-
-    # Is this needed as special case for resetting? Or can update_selection
-    # be modified for this case?
     def initialize_selection(self, *args):
         print 'initialize_selection'
         self.selection = []
-        self.update_selection()
+
+        if self.allow_empty_selection is False:
+            v = self.get_view(0)
+            if v is not None:
+                print 'selecting first data item view', v, v.is_selected
+                self.handle_selection(self.get_view(0))
