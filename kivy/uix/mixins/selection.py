@@ -66,9 +66,9 @@ class SelectionSupport(object):
 
     def __init__(self, **kwargs):
         super(SelectionSupport, self).__init__(**kwargs)
-        self.bind(data=self.initialize_selection,
-                  selection_mode=self.initialize_selection,
+        self.bind(selection_mode=self.initialize_selection,
                   allow_empty_selection=self.initialize_selection)
+        self.update_selection()
 
     def handle_selection(self, obj):
         if obj not in self.selection:
@@ -79,8 +79,6 @@ class SelectionSupport(object):
         else:
             self.deselect_object(obj)
 
-        self.dispatch('on_select')
-        self.update_selection()
         print 'selection is now', self.selection
 
     def select_object(self, obj):
