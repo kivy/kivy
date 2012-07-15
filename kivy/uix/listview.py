@@ -33,14 +33,6 @@ item_view_instances.
       (Presently items is a list of strings -- are these just the
        strings representing the item_view_instances, which are instances of
        the provided cls input argument?). If so, formalize and document.
-    - Address question about "pushing" out to registered selection observers,
-      vs. using the built-in Kivy bindings system
-      (Will event dispatching work instead of registering/pushing?). Merits?
-
-      ANSWER: Use built-in Kivy system -- no need for observer registration
-              system and pushing out to registered observers. Just bind
-              observers to the selection ListProperty.
-
     - Work on item_view_instances marked [TODO] in the code.
 
     Examples (in examples/widgets):
