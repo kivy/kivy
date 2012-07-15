@@ -484,9 +484,10 @@ class FadeTransition(ShaderTransition):
     uniform sampler2D tex_out;
 
     void main(void) {
-        vec4 cin = texture2D(tex_in, tex_coord0);
-        vec4 cout = texture2D(tex_out, tex_coord0);
-        gl_FragColor = mix(cout, cin, t);
+        vec4 cin = vec4(texture2D(tex_in, tex_coord0.st));
+        vec4 cout = vec4(texture2D(tex_out, tex_coord0.st));
+        vec4 frag_col = vec4(t*cout) + vec4((1.0-t)*cin);
+        gl_FragColor = frag_col;
     }
     '''
     fs = StringProperty(FADE_TRANSITION_FS)
