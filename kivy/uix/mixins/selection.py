@@ -41,14 +41,27 @@ class SelectionObserver(object):
 
 
 class SelectionSupport(object):
+    # The selection list property is the main observable item for selection.
     selection = ListProperty([])
-    # none -- use the list as a simple list (no select action)
-    # single -- multi-touch/click ignored. single item selecting only
-    # multiple -- multi-touch / incremental clicks to select allowed
-    # filter -- idea only now. Could pass in filtering function to
+
+    # Selection modes:
+    #
+    #    none -- use the list as a simple list (no select action)
+    #
+    #    single -- multi-touch/click ignored. single item selecting only
+    #
+    #    multiple -- multi-touch / incremental clicks to select allowed
+    #
+    #    filter -- idea only now. Could pass in filtering function to
     #           perform associated items selection
+    #
     selection_mode = OptionProperty('multiple',
             options=('none', 'single', 'multiple', 'filter'))
+
+    # allow_empty_selection is the key to cascading selection between
+    # several lists, between a list and a dependent view. Having selection
+    # automatically maintained, together with bindings, is important for
+    # all but simple displays of list items.
     allow_empty_selection = BooleanProperty(True)
 
     registered_selection_observers = ListProperty([])
@@ -127,6 +140,8 @@ class SelectionSupport(object):
         for obs in self.registered_selection_observers:
             obs.observed_selection_changed(self)
 
+    # Is this needed as special case for resetting? Or can update_selection
+    # be modified for this case?
     def initialize_selection(self, *args):
         print 'initialize_selection'
         self.selection = []
