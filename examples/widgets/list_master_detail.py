@@ -8,17 +8,12 @@ from kivy.uix.listview import ListView
 from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
-# Master-Detail view for showing a list on the left (the master) and a view
-# on the right for the detail view.
-
 # A "master-detail" view is a good way to experiment with a listview
 # (the master) and another view (detail view) that gets updated upon selection.
 
-
-# MASTER list
-
 # For the master list, we need to create a custom "list item" type that
 # subclasses SelectableItem.
+
 
 class ListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
@@ -44,6 +39,11 @@ class ListItem(SelectableItem, Button):
 
     def __repr__(self):
         return self.text
+
+
+# DetailView is an observer of the selection of the associated list view,
+# so SelectionObserver is mixed in, requiring an override of the
+# observed_selection_changed() method.
 
 
 class DetailView(SelectionObserver, GridLayout):

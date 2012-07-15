@@ -66,8 +66,8 @@ item_view_instances.
 __all__ = ('ListView', )
 
 from kivy.clock import Clock
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.widget import Widget
+from kivy.uix.abstractview import AbstractView
 from kivy.properties import ObjectProperty, DictProperty, NumericProperty
 from kivy.lang import Builder
 from math import ceil, floor
@@ -84,27 +84,6 @@ Builder.load_string('''
             id: container
             size_hint_y: None
 ''')
-
-
-class AbstractView(FloatLayout):
-    '''View using an Adapter as a data provider
-    '''
-
-    adapter = ObjectProperty(None)
-
-    item_view_instances = DictProperty({})
-
-    def set_item_view(self, index, item_view):
-        pass
-
-    def get_item_view(self, index):
-        item_view_instances = self.item_view_instances
-        if index in item_view_instances:
-            return item_view_instances[index]
-        item_view = self.adapter.get_view(index)
-        if item_view:
-            item_view_instances[index] = item_view
-        return item_view
 
 
 class ListView(AbstractView):
