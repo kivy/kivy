@@ -57,12 +57,12 @@ class FruitsListView(SelectionObserver, ListView):
         self.item_view_instances = {}
 
         # Single selection is operational for fruit categories list.
-        selected_object = list_adapter.selection[0]
+        selected_fruit_category = list_adapter.selection[0]
 
-        if type(selected_object) is str:
-            fruit_category = selected_object
+        if type(selected_fruit_category) is str:
+            fruit_category = selected_fruit_category
         else:
-            fruit_category = str(selected_object)
+            fruit_category = str(selected_fruit_category)
 
         # Reset data for the adapter. This will trigger a call
         # to self.adapter.initialize_selection().
@@ -71,8 +71,6 @@ class FruitsListView(SelectionObserver, ListView):
         #print self.adapter.selection[0], self.adapter.selection[0].background_color
 
         self.populate()
-
-        #self.canvas.ask_update()
 
         print 'just added or updated fruit category'
 
@@ -124,7 +122,7 @@ class CascadingView(GridLayout):
 
     detail_view = ObjectProperty(None)
 
-    def __init__(self, fruit_categories, fruits, **kwargs):
+    def __init__(self, **kwargs):
         kwargs['cols'] = 3
         kwargs['size_hint'] = (1.0, 1.0)
         super(CascadingView, self).__init__(**kwargs)
@@ -135,8 +133,9 @@ class CascadingView(GridLayout):
 
         # Fruit categories list on the left:
         #
+        categories = sorted(fruit_categories.keys())
         self.fruit_categories_list_adapter = \
-                ListAdapter(fruit_categories,
+                ListAdapter(categories,
                         args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
@@ -149,7 +148,7 @@ class CascadingView(GridLayout):
         # Fruits, for a given category, in the middle:
         #
         self.fruits_list_adapter = \
-                ListAdapter(fruits,
+                ListAdapter(fruit_categories[categories[0]],
                         args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
@@ -280,7 +279,4 @@ if __name__ == '__main__':
     # All fruit categories will be shown in the left left (first argument),
     # and the first category will be auto-selected -- Melons. So, set the
     # second list to show the melon fruits (second argument).
-    fruit_categories_detail = CascadingView(fruit_categories.keys(),
-            fruit_categories['Melons'], width=800)
-
-    runTouchApp(fruit_categories_detail)
+    runTouchApp(CascadingView(width=800))

@@ -146,7 +146,7 @@ class ListAdapter(SelectionSupport, Adapter):
         # gets reset.
         self.bind(data=self.initialize_selection)
 
-        # Do the initial set -- triggers initial_selection()
+        # Do the initial set -- triggers initialize_selection()
         self.data = data
 
     def get_count(self):
