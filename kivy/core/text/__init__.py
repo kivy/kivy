@@ -197,10 +197,14 @@ class LabelBase(object):
     def shorten(self, text, margin=2):
         # Just a tiny shortcut
         textwidth = lambda txt: self.get_extents(txt)[0]
+        if self.text_size[0] is None:
+            width = 0
+        else:
+            width = int(self.text_size[0])
 
         letters = text + '...'
         letter_width = textwidth(letters) // len(letters)
-        max_letters = self.text_size[0] // letter_width
+        max_letters = width // letter_width
         segment = (max_letters // 2)
 
         if segment - margin > 5:
@@ -450,8 +454,8 @@ class LabelBase(object):
     def _get_text_size(self):
         return self._text_size
 
-    def _set_text_size(self, value):
-        self._text_size = tuple([x if x is None else int(x) for x in value])
+    def _set_text_size(self, x):
+        self._text_size = x
 
     text_size = property(_get_text_size, _set_text_size,
         doc='''Get/set the (width, height) of the contrained rendering box''')
