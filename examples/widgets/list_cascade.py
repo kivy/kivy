@@ -4,7 +4,8 @@ from kivy.uix.button import Button
 from kivy.uix.listview import ListView, ListAdapter
 from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
 from kivy.properties import ListProperty, StringProperty, ObjectProperty
-
+from kivy.clock import Clock
+from kivy.graphics.instructions import Callback
 
 # This is an expansion on the "master-detail" example to illustrate
 # cascading from the selection of one list view to another.
@@ -25,11 +26,6 @@ class ListItem(SelectableItem, Button):
         self.bind(on_release=self.handle_selection)
 
     def handle_selection(self, button):
-#        if not self.is_selected:
-#            self.select()
-#        else:
-#            self.deselect()
-
         self.list_adapter.handle_selection(self)
 
     def select(self, *args):
@@ -52,10 +48,12 @@ class FruitsListView(SelectionObserver, ListView):
     def __init__(self, **kwargs):
         super(FruitsListView, self).__init__(**kwargs)
 
+    # Observed selection is fruit categories list.
     def observed_selection_changed(self, observed_selection):
         if len(observed_selection.selection) == 0:
             return
 
+        # Clear the previously built views.
         self.item_view_instances = {}
 
         # Single selection is operational for fruit categories list.
@@ -70,7 +68,11 @@ class FruitsListView(SelectionObserver, ListView):
         # to self.adapter.initialize_selection().
         self.adapter.data = fruit_categories[fruit_category]
 
+        #print self.adapter.selection[0], self.adapter.selection[0].background_color
+
         self.populate()
+
+        self.canvas.ask_update()
 
         print 'just added or updated fruit category'
 

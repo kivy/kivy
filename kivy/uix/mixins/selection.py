@@ -42,6 +42,11 @@ class SelectionObserver(object):
 
 class SelectionSupport(object):
     selection = ListProperty([])
+    # none -- use the list as a simple list (no select action)
+    # single -- multi-touch/click ignored. single item selecting only
+    # multiple -- multi-touch / incremental clicks to select allowed
+    # filter -- idea only now. Could pass in filtering function to
+    #           perform associated items selection
     selection_mode = OptionProperty('multiple',
             options=('none', 'single', 'multiple', 'filter'))
     allow_empty_selection = BooleanProperty(True)
@@ -50,9 +55,9 @@ class SelectionSupport(object):
 
     def __init__(self, **kwargs):
         super(SelectionSupport, self).__init__(**kwargs)
-        self.bind(data=self.update_selection)
-        self.bind(selection_mode=self.update_selection)
-        self.bind(allow_empty_selection=self.update_selection)
+        self.bind(data=self.initialize_selection,
+                  selection_mode=self.initialize_selection,
+                  allow_empty_selection=self.initialize_selection)
 
     def register_selection_observer(self, obs):
         if isinstance(obs, SelectionObserver):
