@@ -49,15 +49,15 @@ class FruitsListView(SelectionObserver, ListView):
         super(FruitsListView, self).__init__(**kwargs)
 
     # Observed selection is fruit categories list.
-    def observed_selection_changed(self, observed_selection):
-        if len(observed_selection.selection) == 0:
+    def observed_selection_changed(self, list_adapter, selection):
+        if len(list_adapter.selection) == 0:
             return
 
         # Clear the previously built views.
         self.item_view_instances = {}
 
         # Single selection is operational for fruit categories list.
-        selected_object = observed_selection.selection[0]
+        selected_object = list_adapter.selection[0]
 
         if type(selected_object) is str:
             fruit_category = selected_object
@@ -72,7 +72,7 @@ class FruitsListView(SelectionObserver, ListView):
 
         self.populate()
 
-        self.canvas.ask_update()
+        #self.canvas.ask_update()
 
         print 'just added or updated fruit category'
 
@@ -95,12 +95,14 @@ class DetailView(SelectionObserver, GridLayout):
             self.add_widget(
                     Label(text=str(fruit_data[self.fruit_name][category])))
 
-    def observed_selection_changed(self, observed_selection):
-        if len(observed_selection.selection) == 0:
+    def observed_selection_changed(self, list_adapter, selection):
+        if len(list_adapter.selection) == 0:
             return
 
-        selected_object = observed_selection.selection[0]
+        selected_object = list_adapter.selection[0]
 
+        # Resetting self.fruit_name will trigger call to redraw().
+        # [TODO] Why not direct call to redraw here? (And remove binding).
         if type(selected_object) is str:
             self.fruit_name = selected_object
         else:
@@ -159,8 +161,8 @@ class CascadingView(GridLayout):
 
         # Set the fruits_list_view as an observer of the selection of
         # the fruit category.
-        self.fruit_categories_list_adapter.register_selection_observer(
-                self.fruits_list_view)
+        self.fruit_categories_list_adapter.bind(
+                selection=self.fruits_list_view.observed_selection_changed)
 
         # Detail view, for a given fruit, on the right:
         #
@@ -169,9 +171,10 @@ class CascadingView(GridLayout):
 
         # Manually initialize detail view to show first object of list view,
         # which will be auto-selected, but the observed_selection_changed
-        # call would have already fired.
+        # call would have already fired. [TODO] Evaluate this statement.
         #
-        self.fruits_list_adapter.register_selection_observer(self.detail_view)
+        self.fruits_list_adapter.bind(
+                selection=self.detail_view.observed_selection_changed)
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\

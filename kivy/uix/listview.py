@@ -34,8 +34,13 @@ item_view_instances.
        strings representing the item_view_instances, which are instances of
        the provided cls input argument?). If so, formalize and document.
     - Address question about "pushing" out to registered selection observers,
-      vs. using the built-in Kivy event dispatching for an "on_select" event.
+      vs. using the built-in Kivy bindings system
       (Will event dispatching work instead of registering/pushing?). Merits?
+
+      ANSWER: Use built-in Kivy system -- no need for observer registration
+              system and pushing out to registered observers. Just bind
+              observers to the selection ListProperty.
+
     - Work on item_view_instances marked [TODO] in the code.
 
     Examples (in examples/widgets):
@@ -143,7 +148,6 @@ class ListAdapter(SelectionSupport, Adapter):
     def __init__(self, data, **kwargs):
         if type(data) not in (tuple, list):
             raise Exception('ListAdapter: input must be a tuple or list')
-        self.register_event_type('on_select')
         super(ListAdapter, self).__init__(**kwargs)
 
         # Reset and update selection, in SelectionSupport, if data
@@ -160,9 +164,6 @@ class ListAdapter(SelectionSupport, Adapter):
         if index < 0 or index >= len(self.data):
             return None
         return self.data[index]
-
-    def on_select(self, *args):
-        pass
 
     def get_view(self, index):
         item = self.get_item(index)

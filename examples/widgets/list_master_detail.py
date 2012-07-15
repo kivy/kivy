@@ -64,11 +64,11 @@ class DetailView(SelectionObserver, GridLayout):
             self.add_widget(
                     Label(text=str(fruit_data[self.fruit_name][category])))
 
-    def observed_selection_changed(self, observed_selection):
-        if len(observed_selection.selection) == 0:
+    def observed_selection_changed(self, list_adapter, selection):
+        if len(list_adapter.selection) == 0:
             return
 
-        selected_object = observed_selection.selection[0]
+        selected_object = list_adapter.selection[0]
 
         if type(selected_object) is str:
             self.fruit_name = selected_object
@@ -114,13 +114,8 @@ class MasterDetailView(GridLayout):
         self.detail_view = DetailView(size_hint=(.7, 1.0))
         self.add_widget(self.detail_view)
 
-        # Manually initialize detail view to show first object of list view,
-        # which will be auto-selected, but the observed_selection_changed
-        # call would have already fired.
-        #
-        self.list_adapter.register_selection_observer(self.detail_view)
-
-        self.list_adapter.update_selection()
+        self.list_adapter.bind(
+                selection=self.detail_view.observed_selection_changed)
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\

@@ -64,24 +64,11 @@ class SelectionSupport(object):
     # all but simple displays of list items.
     allow_empty_selection = BooleanProperty(True)
 
-    registered_selection_observers = ListProperty([])
-
     def __init__(self, **kwargs):
         super(SelectionSupport, self).__init__(**kwargs)
         self.bind(data=self.initialize_selection,
                   selection_mode=self.initialize_selection,
                   allow_empty_selection=self.initialize_selection)
-
-    def register_selection_observer(self, obs):
-        if isinstance(obs, SelectionObserver):
-            self.registered_selection_observers.append(obs)
-            obs.observed_selection_changed(self)
-        print 'registered_selection_observers:', \
-            len(self.registered_selection_observers)
-
-    def unregister_selection_observer(self, obs):
-        if obs in self.registered_selection_observers:
-            self.registered_selection_observers.remove(obs)
 
     def handle_selection(self, obj):
         if obj not in self.selection:
@@ -92,12 +79,6 @@ class SelectionSupport(object):
         else:
             self.deselect_object(obj)
 
-        # dispatch will use the Kivy property-observing system.
-        #
-        # update_selection will push out to registered selection observers.
-        #
-        # Which is the way to go?
-        #
         self.dispatch('on_select')
         self.update_selection()
         print 'selection is now', self.selection
@@ -136,9 +117,6 @@ class SelectionSupport(object):
                     v = self.get_view(0)
                     print 'selecting first data item view', v, v.is_selected
                     self.handle_selection(self.get_view(0))
-
-        for obs in self.registered_selection_observers:
-            obs.observed_selection_changed(self)
 
     # Is this needed as special case for resetting? Or can update_selection
     # be modified for this case?
