@@ -66,14 +66,11 @@ item_view_instances.
 __all__ = ('ListView', )
 
 from kivy.clock import Clock
-from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.widget import Widget
-from kivy.properties import ObjectProperty, DictProperty, \
-                            NumericProperty, ListProperty
+from kivy.properties import ObjectProperty, DictProperty, NumericProperty
 from kivy.lang import Builder
 from math import ceil, floor
-from kivy.uix.mixins.selection import SelectionSupport
 
 Builder.load_string('''
 <ListView>:
@@ -87,124 +84,6 @@ Builder.load_string('''
             id: container
             size_hint_y: None
 ''')
-
-
-class Adapter(EventDispatcher):
-    '''Adapter is a bridge between an AbstractView and the data.
-    '''
-
-    # These pertain to item views:
-    cls = ObjectProperty(None)
-    template = ObjectProperty(None)
-    args_converter = ObjectProperty(None)
-
-    def __init__(self, **kwargs):
-        super(Adapter, self).__init__(**kwargs)
-        if self.cls is None and self.template is None:
-            raise Exception('A cls or template must be defined')
-        if self.cls is not None \
-                and self.template is not None:
-            raise Exception('Cannot use cls and template at the same time')
-
-    def get_count(self):
-        raise NotImplementedError()
-
-    def get_item(self, index):
-        raise NotImplementedError()
-
-    # Returns a view instance for an item.
-    def get_view(self, index):
-        item = self.get_item(index)
-        if item is None:
-            return None
-
-        item_args = None
-        if self.args_converter:
-            item_args = self.args_converter(item)
-        else:
-            item_args = item
-
-        if self.cls:
-            print 'CREATE VIEW FOR', index
-            instance = self.cls(**item_args)
-            return instance
-        else:
-            return Builder.template(self.template, **item_args)
-
-
-class ListAdapter(SelectionSupport, Adapter):
-    '''Adapter around a simple Python list
-    '''
-    data = ListProperty([])
-
-    def __init__(self, data, **kwargs):
-        if type(data) not in (tuple, list):
-            raise Exception('ListAdapter: input must be a tuple or list')
-        super(ListAdapter, self).__init__(**kwargs)
-
-        # Reset and update selection, in SelectionSupport, if data
-        # gets reset.
-        self.bind(data=self.initialize_selection)
-
-        # Do the initial set -- triggers initialize_selection()
-        self.data = data
-
-    def get_count(self):
-        return len(self.data)
-
-    def get_item(self, index):
-        if index < 0 or index >= len(self.data):
-            return None
-        return self.data[index]
-
-    def get_view(self, index):
-        item = self.get_item(index)
-        if item is None:
-            return None
-
-        item_args = None
-        if self.args_converter:
-            item_args = self.args_converter(item)
-        else:
-            item_args = item
-
-        if self.cls:
-            print 'CREATE VIEW FOR', index
-            instance = self.cls(self, **item_args)
-            return instance
-        else:
-            return Builder.template(self.template, **item_args)
-
-    # [TODO] Things to think about:
-    #
-    # There are other possibilities:
-    #
-    #         Additional possibilities, to those stubbed out in
-    #         methods below.
-    #
-    #             - a boolean for whether or not editing of item_view_instances
-    #               is allowed
-    #             - a boolean for whether or not to destroy on removal (if
-    #               applicable)
-    #             - guards for adding, removing, sorting item_view_instances
-    #
-
-    # [TODO]
-    def add_item(self, item):
-        pass
-
-    # [TODO]
-    def remove_item(self, item):
-        pass
-
-    # [TODO]
-    def replace_item(self, item):
-        pass
-
-    # [TODO]
-    # This method would have an associated sort_key property.
-    def sorted_items(self):
-        pass
 
 
 class AbstractView(FloatLayout):

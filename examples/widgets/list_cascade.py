@@ -1,16 +1,16 @@
+from kivy.adapters.listadapter import ListAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.listview import ListView, ListAdapter
+from kivy.uix.listview import ListView
 from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
 from kivy.properties import ListProperty, StringProperty, ObjectProperty
-from kivy.clock import Clock
-from kivy.graphics.instructions import Callback
 
 # This is an expansion on the "master-detail" example to illustrate
 # cascading from the selection of one list view to another.
 
 # Generic list item will do fine for both list views:
+
 
 class ListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
@@ -67,8 +67,6 @@ class FruitsListView(SelectionObserver, ListView):
         # Reset data for the adapter. This will trigger a call
         # to self.adapter.initialize_selection().
         self.adapter.data = fruit_categories[fruit_category]
-
-        #print self.adapter.selection[0], self.adapter.selection[0].background_color
 
         self.populate()
 

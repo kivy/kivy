@@ -5,8 +5,9 @@ from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, \
                             NumericProperty, ListProperty, \
                             StringProperty
-from kivy.uix.listview import ListView, ListAdapter
+from kivy.uix.listview import ListView
 from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.listadapter import ListAdapter
 
 # [TODO] NOTE -- This is a copy of the old version of list_master_detail.py,
 #                because it contains an example of how to make a custom
@@ -195,11 +196,11 @@ class MasterDetailView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(MasterDetailView, self).__init__(**kwargs)
 
-        list_item_args_converter = lambda x: {'text': x,
-                                              'size_hint_y': None,
-                                              'height': 25}
+        args_converter = lambda x: {'text': x,
+                                    'size_hint_y': None,
+                                    'height': 25}
         self.list_adapter = ListAdapter(items,
-                                        args_converter=list_item_args_converter,
+                                        args_converter=args_converter,
                                         selection_mode='single',
                                         allow_empty_selection=False,
                                         cls=ListItem)

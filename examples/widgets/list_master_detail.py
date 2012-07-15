@@ -1,12 +1,12 @@
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, \
                             NumericProperty, ListProperty, \
                             StringProperty
-from kivy.uix.listview import ListView, ListAdapter
+from kivy.uix.listview import ListView
 from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.listadapter import ListAdapter
 
 # Master-Detail view for showing a list on the left (the master) and a view
 # on the right for the detail view.
