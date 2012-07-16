@@ -7,7 +7,7 @@ import unittest
 
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
-from kivy.properties import NumericProperty, ListProperty
+from kivy.properties import NumericProperty, ListProperty, StringProperty
 from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
@@ -128,9 +128,12 @@ class FruitListItem(SelectableItem, Button):
 
 
 class FruitSelectionObserver(SelectionObserver, Widget):
+    fruit_name = StringProperty('')
     call_count = NumericProperty(0)
 
-    def observed_selection_changed(self, *args):
+    def observed_selection_changed(self, list_adapter, selection):
+        if len(list_adapter.selection) > 0:
+            self.fruit_name = str(list_adapter.selection[0])
         self.call_count += 1
 
 
@@ -212,3 +215,14 @@ class AdaptersTestCase(unittest.TestCase):
         #        call to initialize_selection(), done in this test. Instead,
         #        the call_count in self.selection_observer is 2 here. Why?
         self.assertEqual(self.selection_observer.call_count, 2)
+
+    def test_list_adapter_selection_handle_selection(self):
+        list_adapter = ListAdapter(self.fruits,
+                                   args_converter=self.args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=FruitListItem)
+        list_adapter.bind(
+            selection=self.selection_observer.observed_selection_changed)
+        list_adapter.handle_selection(list_adapter.get_view(2))
+        self.assertEqual(self.selection_observer.fruit_name, 'Banana')
