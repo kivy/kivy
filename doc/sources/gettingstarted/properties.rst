@@ -1,5 +1,5 @@
-Kivy Properties
----------------
+Properties
+----------
 .. container:: title
 
     Using Kivy's Properties
