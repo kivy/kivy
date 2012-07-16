@@ -41,6 +41,7 @@ a:hover {
 	width: 840px;
 }
 
+#content dd,
 #content p,
 #content ul,
 #content pre {
@@ -436,7 +437,17 @@ tt.descclassname {
 
 tt.xref, a tt {
     background-color: transparent;
-    font-weight: bold;
+	font: inherit;
+}
+
+div.body a.reference {
+	text-decoration: none !important;
+	font-style: italic;
+	color: #d97400;
+}
+
+div.body a.reference:hover {
+	color: #af541e;
 }
 
 .footnote:target  { background-color: #ffa }
@@ -691,4 +702,9 @@ dl.api-level dt {
 
 .gs-osimage-last {
 	clear: right;
+}
+
+.gs-eleft {
+	float: left;
+	margin-right: 22px;
 }
