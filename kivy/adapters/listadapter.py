@@ -44,7 +44,7 @@ class ListAdapter(SelectionSupport, Adapter):
     data = ListProperty([])
     '''The data list property contains dict argument sets for individual
     data items. If an args_converter function is provided, it will be used to
-    intantiate view class (cls) instances for the row items.
+    instantiate view class (cls) instances for the row items.
     '''
 
     def __init__(self, data, **kwargs):
