@@ -1,3 +1,27 @@
+'''
+Adapter
+=======
+
+.. versionadded:: 1.4
+
+Notes:
+
+    - Presently, the only subclass is ListAdapter.
+
+    - Explain the design philosophy used here -- something like model-view-
+      adapter (MVA) as described here:
+
+          http://en.wikipedia.org/wiki/Model-view-adapter (and link to
+            basis article about Java Swing design)
+
+      Using background in references like these, compare to MVC terminology,
+      and how Kivy operates to fulfill the roles of mediating and coordinating
+      controllers, especially.
+
+    - Consider an associated "object adapter" (a.k.a., "object controller")
+      that is bound to selection. It can also subclass Adapter?
+'''
+
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder

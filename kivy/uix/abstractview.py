@@ -1,3 +1,15 @@
+'''
+Abstract View
+=============
+
+.. versionadded:: 1.4
+
+The :class:`AbstractView` widget has an adapter property for an adapter that
+mediates to data, and an item_view_instances dict property that holds views
+managed by the adapter.
+
+'''
+
 __all__ = ('AbstractView', )
 
 from kivy.uix.floatlayout import FloatLayout
@@ -9,8 +21,18 @@ class AbstractView(FloatLayout):
     '''
 
     adapter = ObjectProperty(None)
+    '''The adapter can be one of several defined in kivy/adapters. The most
+    common example is the ListAdapter used for managing data items in a list.
+    '''
 
     item_view_instances = DictProperty({})
+    '''View instances for data items are instantiated and managed in the
+    associated adapter. Here we maintain a dictionary containing the view
+    instances keyed to the indices in the data.
+
+    Effectively, this dictionary works as a cache, only asking for a view from
+    the adapter if one is not already stored for the requested index.
+    '''
 
     def set_item_view(self, index, item_view):
         pass

@@ -10,15 +10,11 @@ item_view_instances.
 
 [TODO]:
 
-    - Consider an associated "object adapter" (a.k.a., "object controller")
-      that is bound to the selection. It can also subclass Adapter?
-    - Explain the design philosophy used here -- something like model-view-
-      adapter (MVA) as described here:
-
-          http://en.wikipedia.org/wiki/Model-view-adapter (and link to
-            basis article about Java Swing design)
-
-      Explain why multiple levels of abstraction are needed. (Adapter,
+    - Initial selection is apparently working in the associated ListAdapter,
+      but the list view display does not show the initial selection (red, in
+      example code). After the list view has been clicked for the first manual
+      selection, the updating of selected items (in red) works.
+    - Explain why multiple levels of abstraction are needed. (Adapter,
       ListAdapter, AbstractView, ListView) -- Tie discussion to inspiration
       for Adapter and related classes:
 
@@ -88,15 +84,37 @@ Builder.load_string('''
 
 class ListView(AbstractView):
     '''Implementation of an Abstract View as a vertical scrollable list.
+
+    From AbstractView we have these properties and methods:
+
+        - adapter (in usage here, a ListAdapter)
+        - item_view_instances, a dictionary with data item indices as keys
+          to the item view instances created and held in the ListAdapter
+        - set_item_view() and get_item_view() methods to item view instances
+
     '''
 
     divider = ObjectProperty(None)
+    '''[TODO] Not used.
+    '''
 
     divider_height = NumericProperty(2)
+    '''[TODO] Not used.
+    '''
 
     container = ObjectProperty(None)
+    '''The container is a GridLayout widget held within a ScrollView widget.
+    (See the associated kv block in the Builder.load_string() setup). Item
+    view instances managed in the ListAdapter are added to this container. The
+    container is cleared with a call to contain.clear_widgets() when the list
+    is rebuilt in the populate() method. A padding Widget instance is also
+    added as needed, depending on the row height calculations.
+    '''
 
     row_height = NumericProperty(None)
+    '''The row_height property is calculated on the basis of the height of the
+    container and the count of items.
+    '''
 
     _index = NumericProperty(0)
     _sizes = DictProperty({})

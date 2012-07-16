@@ -1,20 +1,22 @@
+'''
+SelectableItem, SelectionObserver, SelectionSupport
+===================================================
+
+.. versionadded:: 1.4
+
+Mixin classes for giving selection functionality to "collection-style" views.
+'''
+
 from kivy.properties import ObjectProperty, \
                             ListProperty, BooleanProperty, OptionProperty
 
-# selection.py contains several "mixin" classes relating to selection, either
-# for view to implement a list of items, for the items themselves, or for a
-# view to observe selection.
-
-# The idea for SelectionSupport as mixin, comes from SproutCore's mixin of the
-# same name. It exists as a mixin toward the idea of reuse in other
-# "collection" type views that need to implement selection.
-
-# The allow_empty_selection property is important. If you have a list of items,
-# to which a view is bound to the selection of that list, set
-# allow_empty_selection = False, so that the observing view is
-# auto-initialized. This sets up a "cascade" on this basis.
 
 class SelectableItem:
+    '''The :class:`SelectableItem` mixin is used in list item classes that are
+    to be instantiated in a ListView. The handle_selection() callback
+    interfaces to the ListView. select() and deselect() are to be overridden
+    with display code to mark items as selected or not.
+    '''
     is_selected = BooleanProperty(False)
     selection_callback = ObjectProperty(None)
 
@@ -35,34 +37,55 @@ class SelectableItem:
 
 
 class SelectionObserver(object):
-    # Override to take action on selection.
+    '''The :class:`SelectionObserver` mixin is used to mark classes that wish
+    to observe a ListView -- to observe its selection. Such an observer class
+    must override the observed_selection_changed() method.
+    '''
+
     def observed_selection_changed(self, observed_selection):
+        '''Override to take action on selection.
+        '''
         raise NotImplementedError()
 
 
 class SelectionSupport(object):
-    # The selection list property is the main observable item for selection.
-    selection = ListProperty([])
+    '''The :class:`SelectionSupport` mixin is the main one used for selection.
+    Any "collection" view, such as ListView, that subclasses it will attain
+    the selection ListProperty, a selection_mode OptionProperty, and an
+    allow_empty_selection BooleanProperty, along with methods for the
+    selection machinery tied to these properties.
+    '''
 
-    # Selection modes:
-    #
-    #    none -- use the list as a simple list (no select action)
-    #
-    #    single -- multi-touch/click ignored. single item selecting only
-    #
-    #    multiple -- multi-touch / incremental clicks to select allowed
-    #
-    #    filter -- idea only now. Could pass in filtering function to
-    #           perform associated items selection
-    #
+    selection = ListProperty([])
+    '''The selection list property is the main observable item for selection.
+    As the primary target for observation, the Kivy bindings system assures
+    that any actions on this list property -- changing it wholesale, adding
+    or removing items, and so on, trigger dispatching to bound observer
+    methods.
+    '''
+
     selection_mode = OptionProperty('multiple',
             options=('none', 'single', 'multiple', 'filter'))
+    '''Selection modes:
 
-    # allow_empty_selection is the key to cascading selection between
-    # several lists, between a list and a dependent view. Having selection
-    # automatically maintained, together with bindings, is important for
-    # all but simple displays of list items.
+       none -- use the list as a simple list (no select action)
+
+       single -- multi-touch/click ignored. single item selecting only
+
+       multiple -- multi-touch / incremental clicks to select allowed
+
+       filter -- [TODO] idea only now. Could pass in filtering function to
+                 perform associated items selection
+    '''
+
     allow_empty_selection = BooleanProperty(True)
+    '''The allow_empty_selection may be used for cascading selection between
+    several list views, or between a list view and an observing view. Such
+    automatic maintainence of selection is important for all but simple
+    list displays. Set allow_empty_selection = False, so that selection is
+    auto-initialized, and always maintained, and so that any observing views
+    may likewise be updated to stay in sync.
+    '''
 
     def __init__(self, **kwargs):
         super(SelectionSupport, self).__init__(**kwargs)
@@ -86,12 +109,20 @@ class SelectionSupport(object):
         obj.is_selected = True
         self.selection.append(obj)
 
-    # l: the list of objects to become the new selection, or to add to the
-    #    existing selection, if extend is True
-    #
-    # extend: boolean for whether or not to extend the existing list
-    #
     def select_list(self, l, extend):
+        '''Methods for selecting/deselecting a single item are
+        straightforward, but here selection is handled for the items in the
+        provided list, l. Keyboard actions or multi-touch gestures may, if
+        allowed, select multiple items, and may replace or add to an existing
+        selction.
+
+        Arguments:
+
+            l: the list of objects to become the new selection, or to add to
+               the existing selection
+
+            extend: boolean for whether or not to extend the existing list
+        '''
         for obj in l:
             self.select_object(obj)
         if extend:
@@ -109,6 +140,9 @@ class SelectionSupport(object):
             self.deselect_object(obj)
 
     def initialize_selection(self, *args):
+        '''After emptying the selection list property, check the
+        allow_empty_selection boolean, and maintain selection if required.
+        '''
         print 'initialize_selection'
         self.selection = []
 
