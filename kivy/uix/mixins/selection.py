@@ -91,7 +91,7 @@ class SelectionSupport(object):
         super(SelectionSupport, self).__init__(**kwargs)
         self.bind(selection_mode=self.initialize_selection,
                   allow_empty_selection=self.initialize_selection)
-        self.initialize_selection()
+        self.check_for_empty_selection()
 
     def handle_selection(self, obj):
         if obj not in self.selection:
@@ -146,6 +146,9 @@ class SelectionSupport(object):
         print 'initialize_selection'
         self.selection = []
 
+        self.check_for_empty_selection(*args)
+
+    def check_for_empty_selection(self, *args):
         if self.allow_empty_selection is False:
             v = self.get_view(0)
             if v is not None:

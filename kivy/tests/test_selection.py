@@ -154,7 +154,7 @@ class AdaptersTestCase(unittest.TestCase):
                                    cls=FruitListItem)
 
         self.assertEqual(len(list_adapter.selection), 0)
-        list_adapter.initialize_selection()
+        list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 0)
 
     def test_list_adapter_selection_mode_single(self):
@@ -165,7 +165,7 @@ class AdaptersTestCase(unittest.TestCase):
                                    cls=FruitListItem)
 
         self.assertEqual(len(list_adapter.selection), 0)
-        list_adapter.initialize_selection()
+        list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 0)
         list_adapter.handle_selection(list_adapter.get_view(0))
         self.assertEqual(len(list_adapter.selection), 1)
@@ -180,7 +180,7 @@ class AdaptersTestCase(unittest.TestCase):
                                    cls=FruitListItem)
 
         self.assertEqual(len(list_adapter.selection), 1)
-        list_adapter.initialize_selection()
+        list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_multiple_auto_selection(self):
@@ -205,14 +205,14 @@ class AdaptersTestCase(unittest.TestCase):
         list_adapter.bind(
             selection=self.selection_observer.observed_selection_changed)
         self.assertEqual(self.selection_observer.call_count, 0)
-        list_adapter.initialize_selection()
-        # [TODO] On first call to initialize_selection(), which is at the end
+        list_adapter.check_for_empty_selection()
+        # [TODO] On first call to check_for_empty_selection(), which is at the end
         #        of SelectionSupport.__init__(), there is not yet data, so
         #        there is an ERROR message, and selection is set to []. This
         #        should happen before the bind call to selection and
         #        self.selection_observer.observed_selection_changed. So, we
         #        should expect that we only get one callback from the second
-        #        call to initialize_selection(), done in this test. Instead,
+        #        call to check_for_empty_selection(), done in this test. Instead,
         #        the call_count in self.selection_observer is 2 here. Why?
         self.assertEqual(self.selection_observer.call_count, 2)
 

@@ -19,8 +19,6 @@ class ListItem(SelectableItem, Button):
     def __init__(self, list_adapter, **kwargs):
         self.list_adapter = list_adapter
         super(ListItem, self).__init__(**kwargs)
-        self.background_normal = None
-        self.background_down = None
 
         # Set deselected_color to be default Button bg color.
         self.deselected_color = self.background_color
@@ -67,7 +65,7 @@ class FruitsListView(SelectionObserver, ListView):
             fruit_category = str(selected_fruit_category)
 
         # Reset data for the adapter. This will trigger a call
-        # to self.adapter.initialize_selection().
+        # to self.adapter.check_for_empty_selection().
         self.adapter.data = fruit_categories[fruit_category]
 
         self.populate()
@@ -179,10 +177,10 @@ class CascadingView(GridLayout):
         # These lists are set up for auto-selection, but the dispatching
         # that happens on instantiation would have already fired.
         #
-        self.fruit_categories_list_adapter.initialize_selection()
+        self.fruit_categories_list_adapter.check_for_empty_selection()
 
         # [TODO] Why is this call also needed?
-        self.fruits_list_adapter.initialize_selection()
+        self.fruits_list_adapter.check_for_empty_selection()
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\

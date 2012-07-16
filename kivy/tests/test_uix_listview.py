@@ -165,7 +165,7 @@ class AdaptersTestCase(unittest.TestCase):
                                    cls=FruitListItem)
 
         self.assertEqual(len(list_adapter.selection), 0)
-        list_adapter.initialize_selection()
+        list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 0)
 
         list_view = ListView(adapter=list_adapter)
@@ -176,7 +176,7 @@ class AdaptersTestCase(unittest.TestCase):
         list_adapter.bind(
                 selection=self.observing_view.observed_selection_changed)
 
-        list_adapter.initialize_selection()
+        list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 0)
 
     def test_list_adapter_selection_mode_multiple_allow_empty_selection(self):
@@ -187,7 +187,7 @@ class AdaptersTestCase(unittest.TestCase):
                                    cls=FruitListItem)
 
         self.assertEqual(len(list_adapter.selection), 0)
-        list_adapter.initialize_selection()
+        list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 0)
 
         list_view = ListView(adapter=list_adapter)
@@ -198,5 +198,5 @@ class AdaptersTestCase(unittest.TestCase):
         list_adapter.bind(
                 selection=self.observing_view.observed_selection_changed)
 
-        list_adapter.initialize_selection()
+        list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 0)
