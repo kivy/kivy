@@ -157,10 +157,32 @@ class AdaptersTestCase(unittest.TestCase):
                                          'height': 25}
         self.fruits = sorted(fruit_data.keys())
 
-    def test_list_adapter_selection_mode_none(self):
+    def test_list_adapter_selection_mode_none_allow_empty_selection(self):
         list_adapter = ListAdapter(self.fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='none',
+                                   allow_empty_selection=True,
+                                   cls=FruitListItem)
+
+        self.assertEqual(len(list_adapter.selection), 0)
+        list_adapter.initialize_selection()
+        self.assertEqual(len(list_adapter.selection), 0)
+
+        list_view = ListView(adapter=list_adapter)
+
+        self.assertEqual(list_view.adapter, list_adapter)
+        self.assertEqual(list_view.row_height, 25)
+
+        list_adapter.bind(
+                selection=self.observing_view.observed_selection_changed)
+
+        list_adapter.initialize_selection()
+        self.assertEqual(len(list_adapter.selection), 0)
+
+    def test_list_adapter_selection_mode_multiple_allow_empty_selection(self):
+        list_adapter = ListAdapter(self.fruits,
+                                   args_converter=self.args_converter,
+                                   selection_mode='multiple',
                                    allow_empty_selection=True,
                                    cls=FruitListItem)
 

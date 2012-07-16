@@ -1,6 +1,6 @@
 '''
-Adapter tests
-=============
+Selection tests
+===============
 '''
 
 import unittest
@@ -150,12 +150,65 @@ class AdaptersTestCase(unittest.TestCase):
                                    allow_empty_selection=True,
                                    cls=FruitListItem)
 
-        self.assertEqual(list_adapter.cls, FruitListItem)
-        self.assertEqual(list_adapter.args_converter, self.args_converter)
-        self.assertEqual(list_adapter.template, None)
+        self.assertEqual(len(list_adapter.selection), 0)
+        list_adapter.initialize_selection()
+        self.assertEqual(len(list_adapter.selection), 0)
 
-        apple_data_item = list_adapter.get_item(0)
-        self.assertTrue(isinstance(apple_data_item, str))
+    def test_list_adapter_selection_mode_single(self):
+        list_adapter = ListAdapter(self.fruits,
+                                   args_converter=self.args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=True,
+                                   cls=FruitListItem)
 
-        apple_view = list_adapter.get_view(0)
-        self.assertTrue(isinstance(apple_view, FruitListItem))
+        self.assertEqual(len(list_adapter.selection), 0)
+        list_adapter.initialize_selection()
+        self.assertEqual(len(list_adapter.selection), 0)
+        list_adapter.handle_selection(list_adapter.get_view(0))
+        self.assertEqual(len(list_adapter.selection), 1)
+        list_adapter.handle_selection(list_adapter.get_view(1))
+        self.assertEqual(len(list_adapter.selection), 1)
+
+    def test_list_adapter_selection_mode_single_auto_selection(self):
+        list_adapter = ListAdapter(self.fruits,
+                                   args_converter=self.args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=FruitListItem)
+
+        self.assertEqual(len(list_adapter.selection), 1)
+        list_adapter.initialize_selection()
+        self.assertEqual(len(list_adapter.selection), 1)
+
+    def test_list_adapter_selection_mode_multiple_auto_selection(self):
+        list_adapter = ListAdapter(self.fruits,
+                                   args_converter=self.args_converter,
+                                   selection_mode='multiple',
+                                   allow_empty_selection=False,
+                                   cls=FruitListItem)
+
+        self.assertEqual(len(list_adapter.selection), 1)
+        list_adapter.handle_selection(list_adapter.get_view(1))
+        self.assertEqual(len(list_adapter.selection), 2)
+        list_adapter.handle_selection(list_adapter.get_view(1))
+        self.assertEqual(len(list_adapter.selection), 3)
+
+    def test_list_adapter_observed_selection(self):
+        list_adapter = ListAdapter(self.fruits,
+                                   args_converter=self.args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=FruitListItem)
+        list_adapter.bind(
+            selection=self.selection_observer.observed_selection_changed)
+        self.assertEqual(self.selection_observer.call_count, 0)
+        list_adapter.initialize_selection()
+        # [TODO] On first call to initialize_selection(), which is at the end
+        #        of SelectionSupport.__init__(), there is not yet data, so
+        #        there is an ERROR message, and selection is set to []. This
+        #        should happen before the bind call to selection and
+        #        self.selection_observer.observed_selection_changed. So, we
+        #        should expect that we only get one callback from the second
+        #        call to initialize_selection(), done in this test. Instead,
+        #        the call_count in self.selection_observer is 2 here. Why?
+        self.assertEqual(self.selection_observer.call_count, 2)
