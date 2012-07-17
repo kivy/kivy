@@ -250,17 +250,22 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
-        if r == 0 or r == 180:
+        if r in (0, 180):
             return w, h
         return h, w
 
     def _set_size(self, size):
-        if super(WindowBase, self)._set_size(size):
-            Logger.debug('Window: Resize window to %s' % str(self.size))
+        if self._size != size:
+            r = self._rotation
+            if r in (0, 180):
+                self._size = size
+            else:
+                self._size = size[1], size[0]
+
             self.dispatch('on_resize', *size)
             return True
-        return False
-
+        else:
+            return False
     size = AliasProperty(_get_size, _set_size)
     '''Get the rotated size of the window. If :data:`rotation` is set, then the
     size will change to reflect the rotation.
