@@ -10,10 +10,8 @@ FileChooser
     present.
 
 .. versionchanged:: 1.2.0
-
     In chooser template, the `controller` is not a direct reference anymore, but
-    a weak-reference.
-    You must update all the notation `root.controller.xxx` to
+    a weak-reference.  You must update all the notation `root.controller.xxx` to
     `root.controller().xxx`.
 
 '''

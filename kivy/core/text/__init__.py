@@ -5,9 +5,9 @@ Text
 Abstraction of text creation. Depending of the selected backend, the text
 rendering can be more or less accurate.
 
-.. versionadded::
-    Starting to 1.0.7, the :class:`LabelBase` don't generate any texture is the
-    text have a width <= 1.
+.. versionchanged:: 1.0.7
+    The :class:`LabelBase` don't generate any texture is the text have a width
+    <= 1.
 '''
 
 __all__ = ('LabelBase', 'Label')
@@ -17,7 +17,6 @@ import os
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
-from kivy.utils import platform
 from kivy.resources import resource_find
 
 DEFAULT_FONT = 'DroidSans'

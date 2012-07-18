@@ -80,7 +80,6 @@ Behaviors
 ---------
 
 .. versionchanged:: 1.1.0
-
     If no control interactions are enabled, then touch handler will never return
     True.
 

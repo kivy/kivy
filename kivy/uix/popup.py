@@ -237,11 +237,9 @@ class Popup(FloatLayout):
             popup.dismiss(force=True)
 
         .. versionchanged:: 1.3.0
-
             When the popup is dismissed, it will be faded out, before
             removal from the parent. If you don't want animation, use:
-
-                popup.dismiss(animation=False)
+            `popup.dismiss(animation=False)`
 
         '''
         if self._window is None:
