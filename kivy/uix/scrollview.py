@@ -5,16 +5,16 @@ Scroll View
 .. versionadded:: 1.0.4
 
 The :class:`ScrollView` widget provides a scrollable/pannable viewport that is
-clipped at the ScrollViews bounding box.
+clipped at the scrollview's bounding box.
 
-Scrolling behavior
+Scrolling Behavior
 ------------------
 
-The ScrollView accepts only one child, and controls a viewport/window to it
+ScrollView accepts only one child, and applies a viewport/window to it
 according to the :data:`scroll_x` and :data:`scroll_y` properties. Touches are
-analyzed to determine if the user wants to scroll or control the child - you
-cannot do both at the same time. To determine if interaction is a scrolling
-gesture, these properties are used:
+analyzed to determine if the user wants to scroll or control the child in some
+other manner - you cannot do both at the same time. To determine if interaction
+is a scrolling gesture, these properties are used:
 
     - :data:`ScrollView.scroll_distance` a minimum distance to travel, default
       to 20 pixels.
@@ -28,25 +28,25 @@ touch down event is dispatched to the child instead (no translation).
 
 .. versionadded:: 1.1.1
 
-    Scrollview now animate the scrolling in Y when mousewheel are used.
+    Scrollview now animates scrolling in Y when a mousewheel is used.
 
-Limiting to X or Y axis
+Limiting to X or Y Axis
 -----------------------
 
-By default, the ScrollView allows scrolling both the X and Y axis. You can
-explicitly disable scrolling on one of the axis by setting
+By default, ScrollView allows scrolling in both the X and Y axes. You can
+explicitly disable scrolling on an axis by setting
 :data:`ScrollView.do_scroll_x` or :data:`ScrollView.do_scroll_y` to False.
 
-Managing the content size
+Managing the Content Size
 -------------------------
 
-The ScrollView manages the position of the child content, not the size. You must
+ScrollView manages the position of the child content, not the size. You must
 carefully specify the :data:`ScrollView.size_hint` property to get the desired
 scroll/pan effect.
 
 By default, size_hint is (1, 1), so the content size will fit your ScrollView
 exactly (you will have nothing to scroll). You must deactivate at least one of
-the size_hint (x or y) of the child to enable scrolling.
+the size_hint instructions (x or y) of the child to enable scrolling.
 
 To scroll a :class:`GridLayout` on Y-axis/vertically, set the child's width
 identical to that of the ScrollView (size_hint_x=1, default), and set the
@@ -61,7 +61,7 @@ size_hint_y property to None ::
     root = ScrollView(size_hint=(None, None), size=(400, 400))
     root.add_widget(layout)
 
-Controlling timeout, distance and trigger
+Controlling Timeout, Distance and Trigger
 -----------------------------------------
 
 .. versionadded:: 1.0.8
@@ -115,10 +115,10 @@ class ScrollView(StencilView):
         self.update_from_scroll()
 
     def convert_distance_to_scroll(self, dx, dy):
-        '''Convert a distance in pixel to a scroll distance, depending of the
+        '''Convert a distance in pixels to a scroll distance, depending on the
         content size and the scrollview size.
 
-        The result will be a tuple of scroll distance, that can be added to
+        The result will be a tuple of scroll distance that can be added to
         :data:`scroll_x` and :data:`scroll_y`
         '''
         if not self._viewport:
@@ -406,16 +406,16 @@ class ScrollView(StencilView):
 
     scroll_friction = NumericProperty(_scroll_friction)
     '''Friction is a factor for reducing the scrolling when the list is not
-    moved by a touch. When you do a swipe, the movement speed is calculated, and
-    is used to move automatically the list when you touch up. The speed is
-    reducing from this equation::
+    moved by a touch. When you do a swipe, the movement speed is calculated,
+    and is used to move the list automatically when touch up happens. The speed
+    is reducing from this equation::
 
         2 ^ (t * f)
         # t is the time from the touch up
         # f is the friction
 
-    By default, the friction factor is 1, it will reduce the speed by a factor
-    or 2 each seconds. If you set the friction to 0, the list speed will never
+    By default, the friction factor is 1. It will reduce the speed by a factor
+    of 2 each second. If you set the friction to 0, the list speed will never
     stop. If you set to a bigger value, the list movement will stop faster.
 
     :data:`scroll_friction` is a :class:`~kivy.properties.NumericProperty`,
@@ -424,7 +424,7 @@ class ScrollView(StencilView):
 
     scroll_distance = NumericProperty(_scroll_distance)
     '''Distance to move before scrolling the :class:`ScrollView`, in pixels. As
-    soon as the distance have been traveled, the :class:`ScrollView` will start
+    soon as the distance has been traveled, the :class:`ScrollView` will start
     to scroll, and no touch event will go to children.
 
     :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty`,
@@ -434,8 +434,8 @@ class ScrollView(StencilView):
 
     scroll_timeout = NumericProperty(_scroll_timeout)
     '''Timeout allowed to trigger the :data:`scroll_distance`, in milliseconds.
-    If the timeout is reach, the scrolling will be disabled, and the touch event
-    will go to the children.
+    If the timeout is reached, the scrolling will be disabled, and the touch
+    event will go to the children.
 
     :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty`,
     default to 250 (milliseconds), according to the default value in user
@@ -467,14 +467,14 @@ class ScrollView(StencilView):
     '''
 
     do_scroll_x = BooleanProperty(True)
-    '''Allow scroll on X axis
+    '''Allow scroll on X axis.
 
     :data:`do_scroll_x` is a :class:`~kivy.properties.BooleanProperty`,
     default to True.
     '''
 
     do_scroll_y = BooleanProperty(True)
-    '''Allow scroll on Y axis
+    '''Allow scroll on Y axis.
 
     :data:`do_scroll_y` is a :class:`~kivy.properties.BooleanProperty`,
     default to True.
@@ -490,7 +490,7 @@ class ScrollView(StencilView):
             self.do_scroll_x = self.do_scroll_y = bool(value)
     do_scroll = AliasProperty(_get_do_scroll, _set_do_scroll,
                                 bind=('do_scroll_x', 'do_scroll_y'))
-    '''Allow scroll on X or Y axis
+    '''Allow scroll on X or Y axis.
 
     :data:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`do_scroll_x` + :data:`do_scroll_y`)
@@ -515,9 +515,9 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    The position and size are normalized between 0-1, and represent a percentage
-    of the current scrollview height. This property is used internally for
-    drawing the little vertical bar when you're scrolling.
+    The position and size are normalized between 0-1, and represent a
+    percentage of the current scrollview height. This property is used
+    internally for drawing the little vertical bar when you're scrolling.
 
     :data:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
     '''
@@ -541,9 +541,9 @@ class ScrollView(StencilView):
 
     .. versionadded:: 1.2.0
 
-    The position and size are normalized between 0-1, and represent a percentage
-    of the current scrollview height. This property is used internally for
-    drawing the little horizontal bar when you're scrolling.
+    The position and size are normalized between 0-1, and represent a
+    percentage of the current scrollview height. This property is used
+    internally for drawing the little horizontal bar when you're scrolling.
 
     :data:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
     '''
@@ -559,17 +559,17 @@ class ScrollView(StencilView):
 
     bar_width = NumericProperty(2)
     '''Width of the horizontal / vertical scroll bar. The width is interpreted
-    as an height for the horizontal bar.
+    as a height for the horizontal bar.
 
     .. versionadded:: 1.2.0
 
-    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default to
-    2
+    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default
+    to 2
     '''
 
     bar_margin = NumericProperty(0)
-    '''Margin between the bottom / right side of the scrollview when drawing the
-    horizontal / vertical scroll bar.
+    '''Margin between the bottom / right side of the scrollview when drawing
+    the horizontal / vertical scroll bar.
 
     .. versionadded:: 1.2.0
 

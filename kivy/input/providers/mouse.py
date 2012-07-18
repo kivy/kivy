@@ -20,7 +20,7 @@ Disabling multitouch interaction with mouse
 
 By default middle and right mouse buttons ared used for multitouch emulation.
 If you want to use them for other purpose you can disable this behavior by
-activating the "disable_multitouch" token.
+activating the "disable_multitouch" token ::
 
    [input]
    mouse = mouse,disable_multitouch
@@ -101,7 +101,7 @@ class MouseMotionEventProvider(MotionEventProvider):
             elif arg == 'disable_on_activity':
                 self.disable_on_activity = True
             elif arg == 'disable_multitouch':
-                self.disable_multitouch  = True
+                self.disable_multitouch = True
             else:
                 Logger.error('Mouse: unknown parameter <%s>' % arg)
 

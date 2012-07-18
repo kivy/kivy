@@ -15,7 +15,7 @@ switch. The user can swipe to the left/right to activate/deactivate it::
 
     switch = Switch(active=True)
 
-To attach a callback that listen to activation state::
+To attach a callback that listens to activation state::
 
     def callback(instance, value):
         print 'the switch', instance, 'is', value
@@ -27,7 +27,7 @@ By default, the representation of the widget is static. The minimum size
 required is 83x32 pixels (defined by the background image). The image is
 centered within the widget.
 
-The whole widget is active, not just the part with graphics. As long as you
+The entire widget is active, not just the part with graphics. As long as you
 swipe over the widget's bounding box, it will work.
 
 .. note::
@@ -43,7 +43,7 @@ from kivy.properties import BooleanProperty, ObjectProperty, NumericProperty
 
 
 class Switch(Widget):
-    '''Switch class, see module documentation for more information.
+    '''Switch class. See module documentation for more information.
     '''
 
     active = BooleanProperty(False)
@@ -62,7 +62,7 @@ class Switch(Widget):
 
     touch_distance = NumericProperty(0)
     '''(internal) Contains the distance between the initial position of the
-    touch and the current position to determinate if the swipe is from left or
+    touch and the current position to determine if the swipe is from left or
     right.
 
     :data:`touch_distance` is a :class:`~kivy.properties.NumericProperty`,

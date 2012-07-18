@@ -4,7 +4,7 @@
     :linenothreshold: 3
 
 Designing with the Kivy Language
-============================
+================================
 
 Let's start with a little example. First, the Python file named `main.py`:
 

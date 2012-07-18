@@ -11,6 +11,7 @@ Read first: :doc:`api-kivy.uix.widget`
   assembled to create more complex widgets.
 
     :doc:`api-kivy.uix.label`, :doc:`api-kivy.uix.button`,
+    :doc:`api-kivy.uix.checkbox`,
     :doc:`api-kivy.uix.image`, :doc:`api-kivy.uix.slider`,
     :doc:`api-kivy.uix.progressbar`, :doc:`api-kivy.uix.textinput`,
     :doc:`api-kivy.uix.togglebutton`, :doc:`api-kivy.uix.switch`,
@@ -29,13 +30,18 @@ Read first: :doc:`api-kivy.uix.widget`
 
     :doc:`api-kivy.uix.bubble`,
     :doc:`api-kivy.uix.filechooser`, :doc:`api-kivy.uix.popup`,
-    :doc:`api-kivy.uix.videoplayer`,
-    :doc:`api-kivy.uix.vkeyboard`
+    :doc:`api-kivy.uix.tabbedpanel`, :doc:`api-kivy.uix.videoplayer`,
+    :doc:`api-kivy.uix.vkeyboard`,
 
 - **Behaviors widgets**: Theses widgets have no rendering, but act on the
   graphics part, or even on the interaction (touch) part.
 
     :doc:`api-kivy.uix.scatter`, :doc:`api-kivy.uix.stencilview`
+
+- **Screen manager**: Manage screens, and transition when switching from one to
+  another.
+
+    :doc:`api-kivy.uix.screenmanager`
 
 ----
 '''

@@ -504,6 +504,8 @@ cdef class Canvas(CanvasBase):
 
     cdef void reload(self):
         return
+        '''
+        # XXX ensure it's not needed anymore.
         cdef Canvas c
         if self._before is not None:
             c = self._before
@@ -512,6 +514,7 @@ cdef class Canvas(CanvasBase):
         if self._after is not None:
             c = self._after
             c.reload()
+        '''
 
     cpdef clear(self):
         cdef Instruction c

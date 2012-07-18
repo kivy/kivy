@@ -170,7 +170,7 @@ for package in packages:
 
     # search modules
     m = modules.keys()
-    m.sort()
+    m.sort(key=lambda x: extract_summary_line(sys.modules[x].__doc__))
     for module in m:
         packagemodule = module.rsplit('.', 1)[0]
         if packagemodule != package:

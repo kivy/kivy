@@ -8,8 +8,8 @@ Popup
     :align: right
 
 The :class:`Popup` widget is used to create modal popups. By default, the popup
-will cover the whole "parent" window. When you are creating a Popup, you must at
-minimum set a :data:`Popup.title` and a :data:`Popup.content` widget.
+will cover the whole "parent" window. When you are creating a popup, you must at
+a minimum set a :data:`Popup.title` and a :data:`Popup.content` widget.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
 want your popup to be fullscreen, deactivate the size_hint and use a specific
@@ -36,28 +36,28 @@ To manually dismiss/close the popup, use :meth:`Popup.dismiss`::
     popup.dismiss()
 
 The :meth:`Popup.open` and :meth:`Popup.dismiss` are bindable. That means you
-can directly bind the function to an action, like an a Button's on_press ::
+can directly bind the function to an action, e.g., to a button's on_press ::
 
     # create content and assign to the popup
     content = Button(text='Close me!')
     popup = Popup(content=content, auto_dismiss=False)
 
-    # bind the on_press event of the button to the our dismiss function
+    # bind the on_press event of the button to the dismiss function
     content.bind(on_press=popup.dismiss)
 
     # open the popup
     popup.open()
 
 
-Popup events
+Popup Events
 ------------
 
-There are 2 events available: `on_open` when the popup is opening, and
+There are two events available: `on_open` when the popup is opening, and
 `on_dismiss` when it is closed. For `on_dismiss`, you can prevent the
 popup from closing by explictly returning True from your callback ::
 
     def my_callback(instance):
-        print 'Popup', instance, 'is beeing dismiss, but i dont want!'
+        print 'Popup', instance, 'is being dismissed, but is prevented!'
         return True
     popup = Popup(content=Label(text='Hello world'))
     popup.bind(on_dismiss=my_callback)
@@ -65,6 +65,7 @@ popup from closing by explictly returning True from your callback ::
 
 '''
 
+__all__ = ('Popup', 'PopupException')
 
 from kivy.logger import Logger
 from kivy.animation import Animation
@@ -73,8 +74,15 @@ from kivy.properties import StringProperty, BooleanProperty, ObjectProperty, \
     NumericProperty, ListProperty
 
 
+class PopupException(Exception):
+    '''Popup exception, fired when multiple content are added to the popup.
+
+    .. versionadded:: 1.4.0
+    '''
+
+
 class Popup(FloatLayout):
-    '''Popup class, see module documentation for more information.
+    '''Popup class. See module documentation for more information.
 
     :Events:
         `on_open`:
@@ -85,7 +93,7 @@ class Popup(FloatLayout):
     '''
 
     title = StringProperty('No title')
-    '''String that represent the title of the popup.
+    '''String that represents the title of the popup.
 
     :data:`title` is a :class:`~kivy.properties.StringProperty`, default to 'No
     title'.
@@ -101,7 +109,7 @@ class Popup(FloatLayout):
 
     attach_to = ObjectProperty(None)
     '''If a widget is set on attach_to, the popup will attach to the nearest
-    parent window of the Widget. If none is found, it will attach to the
+    parent window of the widget. If none is found, it will attach to the
     main/global Window.
 
     :data:`attach_to` is a :class:`~kivy.properties.ObjectProperty`, default to
@@ -109,7 +117,7 @@ class Popup(FloatLayout):
     '''
 
     content = ObjectProperty(None)
-    '''Content of the popup, that is displayed just under the title.
+    '''Content of the popup that is displayed just under the title.
 
     :data:`content` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
@@ -136,13 +144,13 @@ class Popup(FloatLayout):
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction, used itself for :data:`background_normal` and
+    graphics instruction. Used for :data:`background_normal` and
     :data:`background_down`. Can be used when using custom background.
 
     .. versionadded:: 1.1.0
 
-    It must be a list of 4 value: (top, right, bottom, left). Read the
-    BorderImage instruction for more information about how to play with it.
+    It must be a list of four values: (top, right, bottom, left). Read the
+    BorderImage instructions for more information about how to use it.
 
     :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
     16, 16, 16)
@@ -194,6 +202,14 @@ class Popup(FloatLayout):
             window = Window
         return window
 
+    def add_widget(self, widget):
+        if self._container:
+            if self.content:
+                raise PopupException('Popup can have only one widget as content')
+            self.content = widget
+        else:
+            super(Popup, self).add_widget(widget)
+
     def open(self, *largs):
         '''Show the popup window from the :data:`attach_to` widget. If set, it
         will attach to the nearest window. If the widget is not attached to any
@@ -213,12 +229,19 @@ class Popup(FloatLayout):
         return self
 
     def dismiss(self, *largs, **kwargs):
-        '''Close the popup if it's opened. If you really want to close the
-        popup, whatever the on_dismiss event return, you can do like this:
+        '''Close the popup if it is open. If you really want to close the
+        popup, whatever the on_dismiss event returns, you can do this:
         ::
 
             popup = Popup(...)
             popup.dismiss(force=True)
+
+        .. versionchanged:: 1.3.0
+
+            When the popup is dismissed, it will be faded out, before
+            removal from the parent. If you don't want animation, use:
+
+                popup.dismiss(animation=False)
 
         '''
         if self._window is None:
@@ -226,7 +249,10 @@ class Popup(FloatLayout):
         if self.dispatch('on_dismiss') is True:
             if kwargs.get('force', False) is not True:
                 return self
-        Animation(_anim_alpha=0., d=self._anim_duration).start(self)
+        if kwargs.get('animation', True):
+            Animation(_anim_alpha=0., d=self._anim_duration).start(self)
+        else:
+            self._anim_alpha = 0
         return self
 
     def on_size(self, instance, value):
@@ -299,7 +325,7 @@ if __name__ == '__main__':
     # add popup
     content = GridLayout(cols=1)
     content_cancel = Button(text='Cancel', size_hint_y=None, height=40)
-    content.add_widget(Label(text='This is an hello world'))
+    content.add_widget(Label(text='This is a hello world'))
     content.add_widget(content_cancel)
     popup = Popup(title='Test popup',
                   size_hint=(None, None), size=(256, 256),

@@ -23,6 +23,7 @@ for a Button class.
 
 __all__ = ('ToggleButton', )
 
+from weakref import ref
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty
 
@@ -48,16 +49,25 @@ class ToggleButton(Button):
     def on_group(self, *largs):
         groups = ToggleButton.__groups
         if self._previous_group:
-            groups[self._previous_group].remove(self)
+            group = groups[self._previous_group]
+            for item in group[:]:
+                if item() is self:
+                    group.remove(item)
+                    break
         group = self._previous_group = self.group
-        if not group in groups:
+        if group not in groups:
             groups[group] = []
-        groups[group].append(self)
+        r = ref(self, ToggleButton._clear_groups)
+        groups[group].append(r)
 
     def _release_group(self, current):
         if self.group is None:
             return
-        for widget in self.__groups[self.group]:
+        group = self.__groups[self.group]
+        for item in group[:]:
+            widget = item()
+            if widget is None:
+                group.remove(item)
             if widget is current:
                 continue
             widget.state = 'normal'
@@ -68,4 +78,40 @@ class ToggleButton(Button):
 
     def _do_release(self):
         pass
+
+    @staticmethod
+    def _clear_groups(wk):
+        # auto flush the element when the weak reference have been deleted
+        groups = ToggleButton.__groups
+        for group in groups.values():
+            if wk in group:
+                group.remove(wk)
+                break
+
+    @staticmethod
+    def get_widgets(groupname):
+        '''Return the widgets contained in a specific group. If the group
+        doesn't exist, an empty list will be returned.
+
+        .. important::
+
+            Always release the result of this method! In doubt, do::
+
+                l = ToggleButton.get_widgets('mygroup')
+                # do your job
+                del l
+
+        .. warning::
+
+            It's possible that some widgets that you have previously deleted are
+            still in the list. Garbage collector might need more elements before
+            flushing it. The return of this method is informative, you've been
+            warned!
+
+        .. versionadded:: 1.3.0
+        '''
+        groups = ToggleButton.__groups
+        if groupname not in groups:
+            return []
+        return [x() for x in groups[groupname] if x()][:]
 

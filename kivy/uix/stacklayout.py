@@ -64,7 +64,7 @@ class StackLayout(Layout):
     '''
 
     minimum_width = NumericProperty(0)
-    '''Minimum width needed to contain all childrens.
+    '''Minimum width needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -73,7 +73,7 @@ class StackLayout(Layout):
     '''
 
     minimum_height = NumericProperty(0)
-    '''Minimum height needed to contain all childrens.
+    '''Minimum height needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -82,7 +82,7 @@ class StackLayout(Layout):
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
-    '''Minimum size needed to contain all childrens.
+    '''Minimum size needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -122,16 +122,15 @@ class StackLayout(Layout):
             for c in reversed(self.children):
                 if c.size_hint_x:
                     c.width = c.size_hint_x * (selfw - padding2)
+                if c.size_hint_y:
+                    c.height = c.size_hint_y * (selfh - padding2)
 
                 # is the widget fit in the line ?
                 if lw - c.width >= 0:
-                    print 'PUSH', c, c.width
                     lc.append(c)
                     lw -= c.width + spacing
                     lh = max(lh, c.height)
                     continue
-
-                print 'NEW LINE CAUSE OF', lw - c.width
 
                 # push the line
                 y -= lh
@@ -159,6 +158,8 @@ class StackLayout(Layout):
             lw = 0
             lh = self.height - padding2
             for c in reversed(self.children):
+                if c.size_hint_x:
+                    c.width = c.size_hint_x * (selfw - padding2)
                 if c.size_hint_y:
                     c.height = c.size_hint_y * (selfh - padding2)
 

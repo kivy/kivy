@@ -69,7 +69,7 @@ Add simple graphics
     Creation of pong.kv
 
 We will use a .kv file to define the look and feel of the ``PongGame`` class.
-Since our :class:`~kivy.app.App` class is called ``PongGameApp``, we can simply create a file
+Since our :class:`~kivy.app.App` class is called ``PongApp``, we can simply create a file
 called ``pong.kv`` in the same directory that will be automatically loaded
 when the application is run.  So create a new file called ``*pong.kv*`` and add
 the following contents.
@@ -88,7 +88,7 @@ zeros where the player scores will be displayed.
     default Widget size_hint is (1,1), so it will be stretched to full size.
     Since the pos and size of the Rectangle and score labels were defined with
     references to the our PongGame class, these properties will automatically
-    update when the corrosponding widget properties change.  Using the Kv
+    update when the corresponding widget properties change.  Using the Kv
     language gives you automatic property binding. :)
  
 
@@ -114,7 +114,7 @@ After that, we define one rule that is applied to any PongGame instance::
     <PongGame>:
         ...
     
-Like python, kv files use indendtation to define nested blocks. A block defined
+Like python, kv files use indentation to define nested blocks. A block defined
 with a class name inside the ``<`` and ``>`` charachters is a
 :class:`~kivy.uix.widget.Widget` rule, it will be applied to any instance of
 the named class. If you replaced ``PongGame`` with Widget in our example, all
@@ -137,7 +137,7 @@ The first block inside the ``<PongGame>`` rule we have is a canvas block::
                 
 So this canvas block says that the ``PongGame`` widget itself should draw some
 graphics primitives.  In this case, we add a Rectangle to the canvas. We set
-the pos of the rectangle to be 5 pixels left of the the horizontal center of
+the pos of the rectangle to be 5 pixels left of the horizontal center of
 the widget itself, and 0 for y. The size of the rectangle is set to 10 pixels
 in width, and the widgets height in height. The nice thing about defining the
 graphics like this, is that the rendered rectangle will be automatically
@@ -221,7 +221,7 @@ To make it all work, you also have to add the imports for the
 :doc:`/api-kivy.properties` Property classes used, the
 :class:`~kivy.vector.Vector`, and the :class:`~kivy.factory.Factory` singleton.
 The factory is used to register your custom classes, so that Kivy knows what
-class to instatiate when you use e.g. a custom classname inside a kv rule.
+class to instantiate when you use e.g. a custom classname inside a kv rule.
 Once that's done, you can add a ``PongBall`` to the ``<PongGame>`` class, just
 like we added the Labels before.
 
@@ -269,7 +269,7 @@ game is the one we return in the Applications build method.
 
 Since we're going to have to do more than just move the ball (e.g.
 bounce it off the walls and later the players racket), we'll probably need
-an ``update` method for our ``PongGame`` class anyways.  Furthermore given that
+an ``update`` method for our ``PongGame`` class anyways. Furthermore given that
 we have a reference to the game object already, we can easily schedule its new
 ``update`` method when the application gets build::
 
@@ -324,7 +324,7 @@ and setting the games property to that id::
 
     At this point everything is hooked up for the ball to bounce around.  If 
     your coding along as we go, you might be wondering why the ball isn't 
-    moving anywhere.  We'll the ball's velocity is set to 0 on both x and y.
+    moving anywhere.  The ball's velocity is set to 0 on both x and y.
     In code listing below for the entire source a ``serve_ball`` method is 
     added to the ``PongGame`` class and called in the apps ``build`` method.  It sets a
     random x and y velocity for the ball, and also resets the position, so we
@@ -352,11 +352,11 @@ player rackets and keeping track of the score.  We won't to go over all the
 details of creating the class and kv rules again, since those concepts were
 already covered in the previous steps.  Instead lets focus on how to move the
 Player widgets in response to user input.  You can get the whole code and kv
-rules for the ``PongPlayer`` class at the end of this section.
+rules for the ``PongPaddle`` class at the end of this section.
 
 In Kivy, a widget can react to input by implemeting the ``on_touch_down``,
 ``on_touch_move`` and ``on_touch_up`` methods. By default, the Widget class
-implements these methods by just calling the corropsonding method on all it's
+implements these methods by just calling the corresponding method on all it's
 child widgets to pass on the event until one of the children returns True.
 
 Pong is pretty simple, the rackets just need to move up and down. In fact it's
@@ -376,12 +376,12 @@ Check the ``on_touch_move`` handler::
 We'll keep the score for each player in a
 :class:`~kivy.properties.NumericProperty`. The score labels of the ``PongGame``
 are kept updated by changing the static string we had in the kv file before to
-the score property of our new ``PongPlayer`` child widgets.  When the ball
+the score property of our new ``PongPaddle`` child widgets.  When the ball
 get's out of bounce on of the sides, we'll update the score and serve the ball
 again by changing the ``update`` method in the ``PongGame`` class.  The player
-class also implements a bounce_ball method, so that the ball bounces
+class also implements a ``bounce_ball method``, so that the ball bounces
 differently based on where on the racket it hits. Here is the code for the
-`PongPlayer` class::
+`PongPaddle` class::
 
     class PongPaddle(Widget):
 
@@ -414,7 +414,7 @@ Where to go now?
 
 Well, the pong game is pretty much complete.  If you understood all of the
 things that are covered in this turoial, give yourself a pat on the back and
-think about how you could improve the game.  Here a are a few ideas of things
+think about how you could improve the game.  Here are a few ideas of things
 you could do:
 
 * Add some nicer graphics / images (hint check out the source property on
@@ -422,8 +422,8 @@ you could do:
   texture for it)
 
 * Make the game end after a certain score.  Maybe once a player has 10
-  points, you can display a large "PLAYER 1 WINS" Label and/or add a main menu
-  to start, pause and reset the game (hint: chck out the 'Button' and 'Label'
+  points, you can display a large "PLAYER 1 WINS" label and/or add a main menu
+  to start, pause and reset the game (hint: check out the 'Button' and 'Label'
   classes and figure out how to use the `add_widget` & `remove_widget`
   functions form the `Widget` class, to add or remove widgets dynamically.
 

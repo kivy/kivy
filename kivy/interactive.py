@@ -1,6 +1,6 @@
 '''
-InteractiveLauncher
-===================
+Interactive launcher
+====================
 
 .. versionadded:: 1.3.0
 

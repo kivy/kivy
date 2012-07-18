@@ -1,6 +1,13 @@
 Unit tests
 ==========
 
+Tests are located in the kivy/tests folder, if you find a bug in kivy, a good
+thing to do can be to write a minimal case showing the issue, to ask core devs
+if the behaviour showed is intended or a real bug, if you put your code as a
+unittest, it will prevent the bug to come back unnoticed in the future, and
+will make Kivy a better, stronger project. Writting unittest may be a really
+good way to get familiar with Kivy while doing something useful.
+
 Unit tests are seperated in two cases:
 
 * Non graphics unit tests: theses are standard unit tests that can run in console
@@ -64,10 +71,10 @@ Currently, images are generated in 320x240, png.
 
 .. note::
 
-    Currently, the image comparaison is done per pixel. That mean the reference
-    image that you will generate will be only correct for your GPU/driver. If
-    somebody can implement a image comparaison with "delta" support, patches
-    welcome :)
+    Currently, image comparison is done per-pixel. This means the reference
+    image that you generate will only be correct for your GPU/driver. If
+    somebody can implement image comparison with "delta" support, patches
+    are welcome :)
 
 To execute gl unit test, you need to create a directory::
 

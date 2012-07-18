@@ -79,6 +79,11 @@ For example, if we imagine that the touchtracer demo of Kivy is in the directory
         --package org.demo.touchtracer \
         --name "Kivy Touchtracer" --version 1.1.0 debug installd
 
+You need to be aware that the default target Android SDK version for the build 
+will be SDK v.8, which is the minimum required SDK version for kivy. You should 
+either install this API version, or change the AndroidManifest.xml file (under 
+dist/.../) to match your own target SDK requirements.
+
 The debug binary will be generated in bin/KivyTouchtracer-1.1.0-debug.apk.  The
 `debug` and `installd` are commands from android project itself. It say it will
 compile the APK in debug mode, and install on the first connected device.

@@ -32,7 +32,7 @@ proc = Popen(['git', 'diff', '--cached', '--name-only', 'HEAD'], stdout=PIPE)
 proc.wait()
 targets = [join(kivydir, target) for target in proc.stdout]
 call(['git', 'stash', 'save', '--keep-index', '--quiet'])
-retval = call(['python', script, srcdir] + targets)
+retval = call([sys.executable, script, srcdir] + targets)
 call(['git', 'stash', 'pop', '--quiet'])
 
 if retval:

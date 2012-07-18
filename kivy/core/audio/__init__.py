@@ -2,7 +2,19 @@
 Audio
 =====
 
-Core class for loading and play sound.
+Load an audio sound and play it with::
+
+    from kivy.core.audio import SoundLoader
+
+    sound = SoundLoader.load('mytest.wav')
+    if sound:
+        print "Sound found at %s" % sound.source
+        print "Sound is %.3f seconds" % sound.length
+        sound.play()
+
+You should not use directly the sound class yourself. The result will use the
+best sound provider for reading the file, so you might have a different Sound
+class depending the file.
 
 .. note::
 
@@ -17,20 +29,13 @@ from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
 from kivy.utils import platform
+from kivy.resources import resource_find
+from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
+        AliasProperty
 
 
 class SoundLoader:
     '''Load a sound, with usage of the best loader for a given filename.
-    If you want to load an audio file ::
-
-        sound = SoundLoader.load(filename='test.wav')
-        if not sound:
-            # unable to load this sound ?
-            pass
-        else:
-            # sound loaded, let's play!
-            sound.play()
-
     '''
 
     _classes = []
@@ -44,10 +49,13 @@ class SoundLoader:
     @staticmethod
     def load(filename):
         '''Load a sound, and return a Sound() instance'''
+        rfn = resource_find(filename)
+        if rfn is not None:
+            filename = rfn
         ext = filename.split('.')[-1].lower()
         for classobj in SoundLoader._classes:
             if ext in classobj.extensions():
-                return classobj(filename=filename)
+                return classobj(source=filename)
         Logger.warning('Audio: Unable to found a loader for <%s>' %
                        filename)
         return None
@@ -56,6 +64,7 @@ class SoundLoader:
 class Sound(EventDispatcher):
     '''Represent a sound to play. This class is abstract, and cannot be used
     directly.
+
     Use SoundLoader to load a sound !
 
     :Events:
@@ -65,67 +74,61 @@ class Sound(EventDispatcher):
             Fired when the sound is stopped
     '''
 
-    __slots__ = ('_filename', '_volume', '_status')
+    source = StringProperty(None)
+    '''Filename / source of your image.
 
-    def __init__(self, **kwargs):
-        kwargs.setdefault('filename', None)
-        kwargs.setdefault('volume', 1.)
+    .. versionadded:: 1.3.0
 
-        self.register_event_type('on_play')
-        self.register_event_type('on_stop')
+    :data:`source` a :class:`~kivy.properties.StringProperty`, default to None,
+    read-only. Use the :meth:`SoundLoader.load` for loading audio.
+    '''
 
-        super(Sound, self).__init__()
+    volume = NumericProperty(1.)
+    '''Volume, in the range 0-1. 1 mean full volume, 0 mean mute.
 
-        self._status = 'stop'
-        self._volume = kwargs.get('volume')
-        self._filename = kwargs.get('filename')
-        self.load()
+    .. versionadded:: 1.3.0
+
+    :data:`volume` is a :class:`~kivy.properties.NumericProperty`, default to
+    1.
+    '''
+
+    state = OptionProperty('stop', options=('stop', 'play'))
+    '''State of the sound, one of 'stop' or 'play'
+
+    .. versionadded:: 1.3.0
+
+    :data:`state` is an :class:`~kivy.properties.OptionProperty`, read-only.
+    '''
+
+    #
+    # deprecated
+    #
+    def _get_status(self):
+        return self.state
+    status = AliasProperty(_get_status, None, bind=('state', ))
+    '''
+    .. deprecated:: 1.3.0
+        Use :data:`state` instead
+    '''
 
     def _get_filename(self):
-        return self._filename
+        return self.source
+    filename = AliasProperty(_get_filename, None, bind=('source', ))
+    '''
+    .. deprecated:: 1.3.0
+        Use :data:`source` instead
+    '''
 
-    def _set_filename(self, filename):
-        if filename == self._filename:
-            return
+    def __init__(self, **kwargs):
+        self.register_event_type('on_play')
+        self.register_event_type('on_stop')
+        super(Sound, self).__init__(**kwargs)
+
+    def on_source(self, instance, filename):
         self.unload()
-        self._filename = filename
-        if self._filename is None:
+        if filename is None:
             return
         self.load()
-
-    filename = property(lambda self: self._get_filename(),
-            lambda self, x: self._set_filename(x),
-            doc='Get/set the filename/uri of the sound')
-
-    def _get_volume(self):
-        return self._volume
-
-    def _set_volume(self, volume):
-        if self._volume == volume:
-            return
-        self._volume = volume
-
-    volume = property(lambda self: self._get_volume(),
-            lambda self, x: self._set_volume(x),
-            doc='Get/set the volume of the sound')
-
-    def _get_status(self):
-        return self._status
-
-    def _set_status(self, x):
-        # this function must not be available for user
-        if self._status == x:
-            return
-        self._status = x
-        if x == 'stop':
-            self.dispatch('on_stop')
-        elif x == 'play':
-            self.dispatch('on_play')
-        else:
-            assert('unknown status %s' % x)
-
-    status = property(_get_status,
-            doc='Get the status of the sound (stop, play)')
 
     def _get_length(self):
         return 0
@@ -143,11 +146,13 @@ class Sound(EventDispatcher):
 
     def play(self):
         '''Play the file'''
-        self._set_status('play')
+        self.state = 'play'
+        self.dispatch('on_play')
 
     def stop(self):
         '''Stop playback'''
-        self._set_status('stop')
+        self.state = 'stop'
+        self.dispatch('on_stop')
 
     def seek(self, position):
         '''Seek to the <position> (in seconds)'''

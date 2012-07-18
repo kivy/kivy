@@ -3,14 +3,14 @@ Video
 =====
 
 The :class:`Video` widget is used to display video files and streams. Depending
-on your Video core provider, platform and plugins you will be able to play
-different formats. For example, pygame video provider only supports MPEG1 on
+on your Video core provider, platform, and plugins, you will be able to play
+different formats. For example, the pygame video provider only supports MPEG1 on
 Linux and OSX. GStreamer is more versatile, and can read many video containers
 and codecs such as MKV, OGV, AVI, MOV, FLV (if the correct gstreamer plugins
 are installed). Our :class:`~kivy.core.video.VideoBase` implementation is used
 under the hood.
 
-The video loading is asynchronous - many properties are not available until
+Video loading is asynchronous - many properties are not available until
 the video is loaded (when the texture is created). ::
 
     def on_position_change(instance, value):
@@ -60,15 +60,15 @@ class Video(Image):
     '''
 
     position = NumericProperty(-1)
-    '''Position of the video between 0 and :data:`duration`. The position is
-    default to -1, and set to real position when the video is loaded.
+    '''Position of the video between 0 and :data:`duration`. The position
+    defaults to -1, and is set to a real position when the video is loaded.
 
     :data:`position` is a :class:`~kivy.properties.NumericProperty`, default to
     -1.
     '''
 
     duration = NumericProperty(-1)
-    '''Duration of the video. The duration is default to -1, and set to real
+    '''Duration of the video. The duration defaults to -1, and is set to a real
     duration when the video is loaded.
 
     :data:`duration` is a :class:`~kivy.properties.NumericProperty`, default to
@@ -76,7 +76,7 @@ class Video(Image):
     '''
 
     volume = NumericProperty(1.)
-    '''Volume of the video, in the range 0-1. 1 mean full volume, 0 mean mute.
+    '''Volume of the video, in the range 0-1. 1 means full volume, 0 means mute.
 
     :data:`volume` is a :class:`~kivy.properties.NumericProperty`, default to
     1.
@@ -105,7 +105,7 @@ class Video(Image):
 
         .. warning::
 
-            Calling seek() before video is loaded have no impact.
+            Calling seek() before video is loaded has no impact.
 
         .. versionadded:: 1.2.0
         '''

@@ -1,10 +1,11 @@
 PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
+NOSETESTS = nosetests
 HOSTPYTHON = $(KIVYIOSROOT)/tmp/Python-$(PYTHON_VERSION)/hostpython
 IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
-.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean
+.PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
 
 build:
 	$(PYTHON) setup.py build_ext --inplace
@@ -55,11 +56,7 @@ hook:
 
 test:
 	-rm -rf kivy/tests/build
-	nosetests kivy/tests
-
-batchtest:
-	-rm -rf kivy/tests/build
-	nosetests kivy/tests
+	$(NOSETESTS) kivy/tests
 
 cover:
 	coverage html --include='$(KIVY_DIR)*' --omit '$(KIVY_DIR)data/*,$(KIVY_DIR)lib/*,$(KIVY_DIR)tools/*,$(KIVY_DIR)tests/*'
@@ -78,3 +75,7 @@ clean:
 
 distclean: clean
 	-git clean -dxf
+
+theming:
+	python -m kivy.atlas kivy/data/images/defaulttheme 512 kivy/tools/theming/defaulttheme/*.png
+

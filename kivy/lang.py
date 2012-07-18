@@ -1231,6 +1231,8 @@ class BuilderBase(object):
                 ctx = {}
                 idmap = copy(global_idmap)
                 idmap.update({'root': rctx['ids']['root']})
+                if 'ctx' in rctx['ids']:
+                    idmap.update({'ctx': rctx['ids']['ctx']})
                 try:
                     for prule in crule.properties.itervalues():
                         value = prule.co_value

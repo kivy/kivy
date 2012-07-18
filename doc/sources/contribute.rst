@@ -24,6 +24,8 @@ feel encouraged to report any obstacles you encountered such as missing
 documentation, misleading directions or similar.
 We are perfectionists, so even if it's just a typo, let us know.
 
+.. _reporting_issues:
+
 Reporting an Issue
 ------------------
 
@@ -35,8 +37,8 @@ spelling, weird example, please take 2 minutes to report the issue.
     [kivy]
     log_level = debug
 
-#. Execute again your code, and copy/paste the complete output to http://paste.pocoo.org/,
-   including the log from kivy and the python backtrace.
+#. Execute again your code, and copy/paste the complete output to http://gist.github.com/,
+   including the log from Kivy and the python backtrace.
 #. Open https://github.com/kivy/kivy/issues/
 #. Write a title of your issue
 #. Explain how we can do to reproduce the issue + paste the link of the output previously sent on pocoo
@@ -88,9 +90,10 @@ but the fork you create with the following steps:
        the git remote name 'origin' and you will be on branch 'master'.
     #. Compile and set up PYTHONPATH or install (see :ref:`dev-install`).
     #. Install our pre-commit hook that ensures your code doesn't violate our
-       styleguide by executing 'make hook' in your clone. This will run our
-       styleguide check whenever you do a commit, and if there are violations in
-       the parts that you changed, your commit will be aborted. Fix & retry.
+       styleguide by executing `make hook` from the root directory of your
+       clone. This will run our styleguide check whenever you do a commit, 
+       and if there are violations in the parts that you changed, your commit 
+       will be aborted. Fix & retry.
 
 Now, whenever you want to create a patch, you follow the following steps:
 
@@ -146,7 +149,7 @@ Unit tests contributions
 ------------------------
 
 For testing team, we have the document :doc:`contribute-unittest` that
-explain how kivy unit test is working, and how you can create your own. Use the
+explain how Kivy unit test is working, and how you can create your own. Use the
 same approach as the `Code Workflow` to submit new tests.
 
 .. toctree::

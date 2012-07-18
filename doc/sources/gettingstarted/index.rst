@@ -13,4 +13,5 @@ Getting Started
 .. include:: layouts.rst
 .. include:: drawing.rst
 .. include:: packaging.rst
+.. include:: examples.rst
 .. include:: diving.rst

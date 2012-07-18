@@ -3,10 +3,10 @@
 Installation
 ============
 
-We try not to reinvent the wheel but bring something innovative to the
-market. As a consequence, we're focused on our own code and use already
-existing, high-quality third-party libraries where possible.
-For the rich set of features that Kivy offers, several other libraries are
+We try not to reinvent the wheel, but to bring something innovative to the
+market. As a consequence, we're focused on our own code and use pre-existing, 
+high-quality third-party libraries where possible.
+To support the full, rich set of features that Kivy offers, several other libraries are
 required. If you do not use a specific feature (e.g. video playback) you
 don't need the corresponding dependency, however.
 That said, there is one dependency that Kivy **does** require:
@@ -19,7 +19,7 @@ be available. For these, we recommend `Pygame <http://pygame.org>`_, `Gst-Python
 <http://www.gstreamer.net/modules/gst-python.html>`_ and `Enchant
 <http://www.rfk.id.au/software/pyenchant/>`_, respectively.
 
-Other optional libraries (mutually interchangeable) are:
+Other optional libraries (mutually independent) are:
 
     * `OpenCV 2.0 <http://sourceforge.net/projects/opencvlibrary/>`_ -- Camera input.
     * `PIL <http://www.pythonware.com/products/pil/index.htm>`_ -- Image and text display.
@@ -31,7 +31,7 @@ Other optional libraries (mutually interchangeable) are:
 That said, **DON'T PANIC**!
 
 We don't ask you to install all those things on your own.
-Instead, we created nice portable packages that you can use directly
+Instead, we have created nice portable packages that you can use directly
 since they already contain the necessary packages for your platform.
 We just want you to know about the alternatives for the defaults and give
 you an overview about the things Kivy uses internally.
@@ -117,20 +117,38 @@ Or, if you don't want to make any changes to Kivy itself, you can also run
 If you want to contribute code (patches, new features) to the Kivy
 code base, please read :ref:`contributing`.
 
+Running the test suite
+~~~~~~~~~~~~~~~~~~~~~~
+
+To help detect issues and behaviour changes in kivy, a set of unittests is
+provided. A good thing to do is to run it just after kivy installation, and
+then, every time you intend to push a change, or you think something was broken
+in kivy, maybe a test will show this. If not, it might be a good time to write
+one .)
+
+Kivy tests are based on nosetest, that you can install from your package
+manager or using pip :
+
+  $ pip install nosetest
+
+to run the test suite, do :
+
+  $ make test
+
 Uninstalling Kivy
 ~~~~~~~~~~~~~~~~~
 
-If you are mixing multiple Kivy installation, you might be confused where is
-located each Kivy version. Please note that you might need to do it multiple
-time, if you have multiple kivy version installed into python libraries path.
-To found your current installed version, you can write in command line::
+If you are mixing multiple Kivy installations, you might be confused about where each Kivy version is
+located.  Please note that you might need to follow these steps multiple times, if you have multiple kivy versions 
+installed in the Python library path.
+To find your current installed version, you can use the command line: ::
 
     $ python -c 'import kivy; print kivy.__path__'
 
 Then, remove that directory recursively.
 
-If you have installed Kivy with easy_install on linux, the directory can
-contain a "egg" directory. Remove it as well::
+If you have installed Kivy with easy_install on linux, the directory may
+contain a "egg" directory. Remove that as well::
 
     $ python -c 'import kivy; print kivy.__path__'
     ['/usr/local/lib/python2.7/dist-packages/Kivy-1.0.7-py2.7-linux-x86_64.egg/kivy']
