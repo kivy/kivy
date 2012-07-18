@@ -25,7 +25,7 @@ ios:
 	echo "First build ========================================"
 	-PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
 	echo "cythoning =========================================="
-	find . -name *.pyx -exec cython -t {} \;
+	find . -name *.pyx -exec cython {} \;
 	echo "Second build ======================================="
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py install -O2 --root iosbuild
