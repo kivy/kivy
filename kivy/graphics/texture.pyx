@@ -184,11 +184,8 @@ include "config.pxi"
 include "common.pxi"
 include "opengl_utils_def.pxi"
 
-from os import environ
 from array import array
 from kivy.weakmethod import WeakMethod
-from kivy.logger import Logger
-from kivy.cache import Cache
 from kivy.graphics.context cimport get_context
 
 from kivy.graphics.c_opengl cimport *

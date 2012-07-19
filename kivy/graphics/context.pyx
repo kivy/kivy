@@ -122,10 +122,14 @@ cdef class Context:
         cdef Shader shader
         cdef Canvas canvas
 
-        Cache.remove('kv.atlas')
         Cache.remove('kv.image')
-        Cache.remove('kv.texture')
         Cache.remove('kv.shader')
+
+        # For texture cache, save the objects. We need to clean the cache as the
+        # others to prevent of using it during the reloading part.
+        # We'll restore the object later.
+        texture_objects = Cache._objects['kv.texture']
+        Cache.remove('kv.texture')
 
         start = time()
         Logger.info('Context: Reloading graphics data...')
@@ -143,6 +147,7 @@ cdef class Context:
             texture = item()
             if texture is None:
                 continue
+            Logger.trace('Context: unset texture id %r' % texture)
             texture._id = -1
 
         # First time, only reload base texture
@@ -150,14 +155,22 @@ cdef class Context:
             texture = item()
             if texture is None or isinstance(texture, TextureRegion):
                 continue
+            Logger.trace('Context: >> reload base texture %r' % texture)
             texture.reload()
+            Logger.trace('Context: << reload base texture %r' % texture)
 
         # Second time, update texture region id
         for item in l:
             texture = item()
             if texture is None or not isinstance(texture, TextureRegion):
                 continue
+            Logger.trace('Context: >> reload region texture %r' % texture)
             texture.reload()
+            Logger.trace('Context: << reload region texture %r' % texture)
+
+        # Restore texture cache
+        texture_objects.update(Cache._objects['kv.texture'])
+        Cache._objects['kv.texture'] = texture_objects
 
         Logger.debug('Context: Reload vbos')
         for item in self.l_vbo[:]:
