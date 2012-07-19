@@ -151,6 +151,11 @@ class FileChooserController(FloatLayout):
       [!seq]     matches any character not in seq
       ========== =================================
 
+    Also possible is for an entry in this list to be a callable (function or
+    method) that will be called with the path and a name as arguments.  This
+    function returns True to indicate a match or False to indicate that there
+    is no match.
+    .. versionadded:: 1.4.0
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -358,7 +363,10 @@ class FileChooserController(FloatLayout):
             return files
         filtered = []
         for filter in self.filters:
-            filtered.extend([fn for fn in files if fnmatch(fn, filter)])
+            if callable(filter):
+                filtered.extend([fn for fn in files if filter(self.path, fn)])
+            else:
+                filtered.extend([fn for fn in files if fnmatch(fn, filter)])
         if not self.filter_dirs:
             dirs = [fn for fn in files if isdir(fn)]
             filtered.extend(dirs)
