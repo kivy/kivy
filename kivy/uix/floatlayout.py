@@ -95,10 +95,14 @@ class FloatLayout(Layout):
                     c.x = x + value * w
                 elif key == 'right':
                     c.right = x + value * w
+                elif key == 'pos':
+                    c.pos = x + value[0] * w, y + value[1] * h
                 elif key == 'y':
                     c.y = y + value * h
                 elif key == 'top':
                     c.top = y + value * h
+                elif key == 'center':
+                    c.center = x + value[0] * w, y + value[1] * h
                 elif key == 'center_x':
                     c.center_x = x + value * w
                 elif key == 'center_y':
