@@ -353,7 +353,6 @@ class ClockBase(object):
         '''Schedule an event in <timeout> seconds.
 
         .. versionchanged:: 1.0.5
-
             If the timeout is -1, the callback will be called before the next
             frame (at :func:`tick_draw`).
 

@@ -408,7 +408,6 @@ class App(EventDispatcher):
         '''.. versionadded:: 1.0.7
 
         .. versionchanged:: 1.4.0
-
             Customize the default path for iOS and Android platform. Add
             defaultpath parameter for desktop computer (not applicatable for iOS
             and Android.)

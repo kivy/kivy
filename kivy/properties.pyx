@@ -305,7 +305,6 @@ cdef class Property:
         '''Dispatch the value change to all observers
 
         .. versionchanged:: 1.1.0
-
             The method is now accessible from Python.
 
         This can be used to force the dispatch of the property, even if the

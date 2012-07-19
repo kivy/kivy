@@ -883,7 +883,6 @@ class WindowBase(EventDispatcher):
             and if configuration allowed it, a VKeyboard instance.
 
         .. versionchanged:: 1.0.8
-
             `target` have been added, and must be the widget source that request
             the keyboard. If set, the widget must have one method named
             `on_keyboard_text`, that will be called from the vkeyboard.

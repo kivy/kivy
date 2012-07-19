@@ -69,10 +69,6 @@ from kivy.clock import Clock
 class Animation(EventDispatcher):
     '''Create an animation definition that can be used to animate a Widget
 
-    .. versionchanged:: 1.4.0
-
-        Added s/step parameter.
-
     :Parameters:
         `duration` or `d`: float, default to 1.
             Duration of the animation, in seconds
@@ -89,6 +85,10 @@ class Animation(EventDispatcher):
             Fired when the animation is completed or stopped on a widget
         `on_progress`: widget, progression
             Fired when the progression of the animation is changing
+
+    .. versionchanged:: 1.4.0
+        Added s/step parameter.
+
     '''
 
     _instances = set()

@@ -74,7 +74,7 @@ from kivy.clock import Clock
 class UrlRequest(Thread):
     '''Url request. See module documentation for usage.
 
-    .. versionchanged::
+    .. versionchanged:: 1.0.10
         Add `method` parameters
 
     :Parameters:

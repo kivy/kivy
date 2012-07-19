@@ -85,7 +85,6 @@ class Widget(EventDispatcher):
             Fired when an existing touch disappears
 
     .. versionchanged:: 1.0.9
-
         Everything related to event properties has been moved to
         :class:`~kivy.event.EventDispatcher`. Event properties can now be used
         in contructing a simple class, without subclassing :class:`Widget`.
