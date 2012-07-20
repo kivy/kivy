@@ -260,22 +260,33 @@ class MarkupLabel(MarkupLabelBase):
         r = self._render_text
 
         # convert halign/valign to int, faster comparaison
-        #av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
+        av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
         ah = {'left': 0, 'center': 1, 'right': 2}[self.options['halign']]
 
         y = 0
         w, h = self._size
         refs = self._refs
+        no_of_lines = len(self._lines)-1
+
         for line in self._lines:
             lh = line[1]
+            lw = line[0]
 
             # horizontal alignement
             if ah == 0:
                 x = 0
             elif ah == 1:
-                x = int((w - line[0]) / 2)
+                x = int((w - lw) / 2)
             else:
-                x = w - line[0]
+                x = w - lw
+
+            # vertical alignement
+            if y == 0:
+                if av == 1:
+                    y = int((h - (lh*no_of_lines))/2)
+                elif av == 2:
+                    y = h - (lh*(no_of_lines))
+
 
             for pw, ph, part, options in line[2]:
                 self.options = options
