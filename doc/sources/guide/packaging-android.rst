@@ -5,7 +5,7 @@ Create a package for Android
 
 .. versionchanged:: 1.1.0
     Kivy-XXX-android.zip is not provided anymore.  We are using
-    `python-for-android <http://https://github.com/kivy/python-for-android>`_
+    `python-for-android <http://github.com/kivy/python-for-android>`_
     (`doc <http://python-for-android.readthedocs.org/en/latest/index.html>`_)
 
 Packaging your application into APK
