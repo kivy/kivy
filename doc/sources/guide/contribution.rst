@@ -80,7 +80,7 @@ Will result in
     :doc:`/api-kivy.core.window`
 
 `:doc:` and `:mod:` are essentially the same, except for an anchor in the url,
-this makes `:doc:` prefered, for the cleaner url:
+this makes `:doc:` prefered, for the cleaner url.
 
 Tests
 -----
