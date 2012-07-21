@@ -1,6 +1,6 @@
 '''
 ModalView
-=====
+=========
 
 .. versionadded:: 1.4.0
 
@@ -46,7 +46,7 @@ can directly bind the function to an action, e.g., to a button's on_press ::
 
 
 ModalView Events
-------------
+----------------
 
 There are two events available: `on_open` when the view is opening, and
 `on_dismiss` when it is closed. For `on_dismiss`, you can prevent the
@@ -62,7 +62,7 @@ view from closing by explictly returning True from your callback ::
 
 '''
 
-__all__ = ('ModalView')
+__all__ = ('ModalView',)
 
 from kivy.logger import Logger
 from kivy.animation import Animation
