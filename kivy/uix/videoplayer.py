@@ -303,12 +303,12 @@ class VideoPlayer(GridLayout):
     '''Integer, indicates whether the video is stopped, playing, or paused.
     You can play/stop a video by setting this property. ::
         # start playing the video at creation
-        video = Video(source='movie.mkv', state=Video.PLAY)
+        video = VideoPlayer(source='movie.mkv', state=VideoPlayer.PLAY)
 
         # create the video, and start later
-        video = Video(source='movie.mkv')
+        video = VideoPlayer(source='movie.mkv')
         # and later
-        video.state = Video.PLAY
+        video.state = VideoPlayer.PLAY
 
     :data:`state` is a :class:`~kivy.properties.IntegerProperty`, defaults to
     0.
