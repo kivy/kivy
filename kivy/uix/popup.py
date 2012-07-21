@@ -15,6 +15,11 @@ Remember that the default size of a Widget is size_hint=(1, 1). If you don't
 want your popup to be fullscreen, deactivate the size_hint and use a specific
 size attribute.
 
+
+.. versionchanged:: 1.4.0
+    The :class:`Popup` class now inherits from :class:`~kivy.uix.modalview.ModalView`.
+    The :class:`Popup` offers a default layout with a title and a separation bar.
+
 Examples
 --------
 
@@ -99,6 +104,14 @@ class Popup(ModalView):
     title'.
     '''
 
+    background = StringProperty(
+        'atlas://data/images/defaulttheme/popup-background')
+    '''Background image of the view used for the view background.
+
+    :data:`background` is an :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/popup-background'
+    '''
+
     content = ObjectProperty(None)
     '''Content of the popup that is displayed just under the title.
 
@@ -127,10 +140,6 @@ class Popup(ModalView):
     # Internals properties used for graphical representation.
 
     _container = ObjectProperty(None)
-
-    def __init__(self, **kwargs):
-        kwargs.setdefault('background', 'atlas://data/images/defaulttheme/popup-background')
-        super(Popup, self).__init__(**kwargs)
 
     def add_widget(self, widget):
         if self._container:
