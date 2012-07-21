@@ -72,10 +72,8 @@ popup from closing by explictly returning True from your callback ::
 
 __all__ = ('Popup', 'PopupException')
 
-from kivy.logger import Logger
-from kivy.animation import Animation
 from kivy.uix.modalview import ModalView
-from kivy.properties import StringProperty, BooleanProperty, ObjectProperty, \
+from kivy.properties import StringProperty, ObjectProperty, \
     NumericProperty, ListProperty
 
 
