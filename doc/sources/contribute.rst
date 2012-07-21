@@ -62,8 +62,8 @@ code history (you can opt-out if you don't want that).
 Coding style
 ~~~~~~~~~~~~
 
-- If you didn't do it yet, read the `PEP8 <
-  http://www.python.org/dev/peps/pep-0008/>` about coding style in python.
+- If you didn't do it yet, read the
+  `PEP8 <http://www.python.org/dev/peps/pep-0008/>`_ about coding style in python.
 
 - Activate pep8 check on git commit like this::
 
@@ -77,8 +77,8 @@ and try again.
 Performances
 ~~~~~~~~~~~~
 
-- take care of performance issues, read `Python performance tips <
-  http://wiki.python.org/moin/PythonSpeed/PerformanceTips>`
+- take care of performance issues, read
+  `Python performance tips <http://wiki.python.org/moin/PythonSpeed/PerformanceTips>`_
 - cpu intensive parts of Kivy are written in cython, if you are doing a lot of
   computation, consider using it too.
 
