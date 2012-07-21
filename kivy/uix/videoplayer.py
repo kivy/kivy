@@ -350,9 +350,9 @@ class VideoPlayer(GridLayout):
 
     image_stop = StringProperty(
             'atlas://data/images/defaulttheme/media-playback-stop')
-    '''Image filename used for the "Pause" button.
+    '''Image filename used for the "Stop" button.
 
-    :data:`image_pause` a :class:`~kivy.properties.StringProperty`
+    :data:`image_stop` a :class:`~kivy.properties.StringProperty`
     '''
 
     image_volumehigh = StringProperty(
