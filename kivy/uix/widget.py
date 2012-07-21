@@ -230,8 +230,8 @@ class Widget(EventDispatcher):
         parent = widget.parent
         # check if widget is already a child of another widget
         if parent:
-            raise WidgetException(''.join(('Cannot add ', str(widget),\
-                ' It already has a parent: ', str(parent))))
+            raise WidgetException('Cannot add %r, it already has a parent %r'
+                % (widget, parent))
         widget.parent = self
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
