@@ -12,7 +12,7 @@ Only horizontal mode is supported, vertical mode is not available yet.
 
 The progress bar has no interactive elements, It is a display-only widget.
 
-To use it, simply assign a value to indicate the current progress ::
+To use it, simply assign a value to indicate the current progress::
 
     from kivy.uix.progressbar import ProgressBar
     pb = ProgressBar(max=1000)

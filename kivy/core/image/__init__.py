@@ -623,7 +623,7 @@ class Image(EventDispatcher):
 
         .. warning::
             This function can be used only with images loaded with
-            keep_data=True keyword. For examples ::
+            keep_data=True keyword. For examples::
 
                 m = Image.load('image.png', keep_data=True)
                 color = m.read_pixel(150, 150)

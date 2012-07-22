@@ -20,7 +20,7 @@ The :class:`TabbedPanel` provides one default tab.
 Simple example
 --------------
 
-.. include :: ../../examples/widgets/tabbedpanel.py
+.. include:: ../../examples/widgets/tabbedpanel.py
     :literal:
 
 Customize the Tabbed Panel

@@ -835,7 +835,7 @@ cdef class AliasProperty(Property):
     If you didn't find a Property class that fits to your needs, you can still
     create Python getters and setters and create a property with both of them.
 
-    Example from kivy/uix/widget.py ::
+    Example from kivy/uix/widget.py::
 
         def get_right(self):
             return self.x + self.width

@@ -143,7 +143,7 @@ def kivy_register_post_configuration(callback):
 
 
 def kivy_usage():
-    '''Kivy Usage: %s [OPTION...] ::
+    '''Kivy Usage: %s [OPTION...]::
 
         -h, --help
             Prints this help message.

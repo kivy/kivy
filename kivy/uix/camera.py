@@ -40,7 +40,7 @@ class Camera(Image):
 
     play = BooleanProperty(True)
     '''Boolean indicate if the camera is playing.
-    You can start/stop the camera by setting this property. ::
+    You can start/stop the camera by setting this property::
 
         # start the camera playing at creation (default)
         cam = Camera(play=True)
@@ -63,7 +63,7 @@ class Camera(Image):
 
     resolution = ListProperty([-1, -1])
     '''Preferred resolution to use when invoking the camera. If you are using
-    [-1, -1], the resolution will be the default one. ::
+    [-1, -1], the resolution will be the default one::
 
         # create a camera object with the best image available
         cam = Camera()

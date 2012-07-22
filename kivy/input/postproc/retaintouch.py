@@ -18,7 +18,7 @@ class InputPostprocRetainTouch(object):
     touch, to reuse it under certains conditions. This module is designed to
     prevent finger lost on some hardware/setup.
 
-    Retain touch can be configured in the Kivy config file ::
+    Retain touch can be configured in the Kivy config file::
 
         [postproc]
             retain_time = 100

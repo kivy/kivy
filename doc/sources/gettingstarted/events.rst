@@ -57,7 +57,7 @@ Going further
 
 Another thing to note is that if you override an event, you become responsible
 for implementing all its behaviour previously handled by the base class. The
-easiest way to do this is to call `super()`: ::
+easiest way to do this is to call `super()`::
 
     def on_touch_down(self, touch):
         if super(OurClassName, self).on_touch_down(touch):

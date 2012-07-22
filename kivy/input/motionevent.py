@@ -30,7 +30,7 @@ Listen to Motion Event
 ----------------------
 
 If you want to receive all Motion Event, Touch or not, you can bind motion event
-from :class:`~kivy.core.window.Window` to your own callbacks ::
+from :class:`~kivy.core.window.Window` to your own callbacks::
 
     def on_motion(self, etype, motionevent):
         # will receive all motion event.
@@ -64,13 +64,13 @@ pressure       Pressure of the contact. Use property `pressure`
 shape          Contact shape. Use property `shape`
 ============== ================================================================
 
-If yo want to know if the current :class:`MotionEvent` have an angle ::
+If yo want to know if the current :class:`MotionEvent` have an angle::
 
     def on_touch_move(self, touch):
         if 'angle' in touch.profile:
             print 'The touch angle is', touch.a
 
-If you want to select only the fiducials ::
+If you want to select only the fiducials::
 
     def on_touch_move(self, touch):
         if 'markerid' not in touch.profile:
@@ -276,7 +276,7 @@ class MotionEvent(object):
     def grab(self, class_instance, exclusive=False):
         '''Grab this motion event. You can grab a touch if you absolutly want to
         receive on_touch_move() and on_touch_up(), even if the touch is not
-        dispatched by your parent ::
+        dispatched by your parent::
 
             def on_touch_down(self, touch):
                 touch.grab(self)

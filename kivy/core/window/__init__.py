@@ -286,7 +286,7 @@ class WindowBase(EventDispatcher):
             bind=('_clearcolor', ))
     '''Color used to clear window.
 
-    ::
+  ::
         from kivy.core.window import Window
 
         # red background color

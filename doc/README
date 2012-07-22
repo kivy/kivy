@@ -1,9 +1,9 @@
 Kivy - Documentation
 ====================
 
-You can access to the API documentation on web :
+You can access the API documentation on web :
   * last released version : http://kivy.org/docs/api
-  * trunk version, nightly updated : http://kivy.org/docs/api-trunk/
+  * trunk version, updated nightly  : http://kivy.org/docs/api-trunk/
 
 
 How to build the documentation

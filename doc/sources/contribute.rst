@@ -219,6 +219,7 @@ Will result in:
         .. note:: This new feature will likely blow your mind
 
         .. warning:: Please take a seat before trying this feature
+
         """
 
 

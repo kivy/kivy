@@ -12,7 +12,7 @@
     the styleguide checker over your code and abort the commit if there are any
     errors. If that happens, please fix & retry.
 
-    To install ::
+    To install::
 
         cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
         chmod +x .git/hooks/pre-commit

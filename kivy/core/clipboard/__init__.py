@@ -20,8 +20,8 @@ Usage example::
     >>> Clipboard.get('UTF8_STRING')
     'Great'
 
-.. note:: the main implementation rely on Pygame, and works great with
-text/string. Anything else might not work the same on all platform.
+.. note:: The main implementation rely on Pygame, and works great with
+          text/string. Anything else might not work the same on all platform.
 '''
 
 __all__ = ('ClipboardBase', 'Clipboard')
