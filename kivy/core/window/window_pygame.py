@@ -345,7 +345,7 @@ class WindowPygame(WindowBase):
 
     def request_keyboard(self, *largs):
         keyboard = super(WindowPygame, self).request_keyboard(*largs)
-        if android:
+        if android and not self.allow_vkeyboard:
             android.show_keyboard()
         return keyboard
 
