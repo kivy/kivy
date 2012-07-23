@@ -194,18 +194,21 @@ class WindowBase(EventDispatcher):
         `on_keyboard`: key, scancode, codepoint, modifier
             Fired when the keyboard is in action
             .. versionchanged:: 1.3.0
-                The *unicode* parameter has be deprecated in favor of
-                codepoint, and will be removed completely in future versions
+
+            The *unicode* parameter has be deprecated in favor of
+            codepoint, and will be removed completely in future versions
         `on_key_down`: key, scancode, codepoint
             Fired when a key is down
             .. versionchanged:: 1.3.0
-                The *unicode* parameter has be deprecated in favor of
-                codepoint, and will be removed completely in future versions
+
+            The *unicode* parameter has be deprecated in favor of
+            codepoint, and will be removed completely in future versions
         `on_key_up`: key, scancode, codepoint
             Fired when a key is up
             .. versionchanged:: 1.3.0
-                The *unicode* parameter has be deprecated in favor of
-                codepoint, and will be removed completely in future versions
+
+            The *unicode* parameter has be deprecated in favor of
+            codepoint, and will be removed completely in future versions
         `on_dropfile`: str
             Fired when a file is dropped on the application
     '''

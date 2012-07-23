@@ -24,7 +24,7 @@ __all__ = (
     'kivy_configure', 'kivy_register_post_configuration',
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
-    'kivy_icons_dir', 'kivy_home_dir',
+    'kivy_icons_dir', 'kivy_home_dir', 'kivy_userexts_dir',
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
@@ -224,11 +224,14 @@ kivy_shader_dir = join(kivy_data_dir, 'glsl')
 #: Kivy icons config path (don't remove the last '')
 kivy_icons_dir = join(kivy_data_dir, 'icons', '')
 #: Kivy user-home storage directory
-kivy_home_dir = None
+kivy_home_dir = ''
 #: Kivy configuration filename
-kivy_config_fn = None
+kivy_config_fn = ''
 #: Kivy user modules directory
-kivy_usermodules_dir = None
+kivy_usermodules_dir = ''
+#: Kivy user extensions directory
+kivy_userexts_dir = ''
+
 
 # Don't go further if we generate documentation
 if basename(sys.argv[0]) in ('sphinx-build', 'autobuild.py'):
