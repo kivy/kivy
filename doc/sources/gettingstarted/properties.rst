@@ -33,15 +33,15 @@ provides an ``on_<propertyname>`` event that is called whenever the property's
 state/value changes .
 
 Kivy provides the following properties:
-    `NumericProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.NumericProperty>`_,
-    `StringProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.StringProperty>`_,
-    `ListProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.ListProperty>`_,
-    `ObjectProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.ObjectProperty>`_,
-    `BooleanProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.BooleanProperty>`_,
-    `BoundedNumericProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.BoundedNumericProperty>`_,
-    `OptionProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.OptionProperty>`_,
-    `ReferenceListProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.ReferenceListProperty>`_,
-    `AliasProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.AliasProperty>`_,
-    `DictProperty <http://kivy.org/docs/api-kivy.properties.html?highlight=properties#kivy.properties.DictProperty>`_,
+    :mod:`~kivy.properties.NumericProperty`,
+    :mod:`~kivy.properties.StringProperty`,
+    :mod:`~kivy.properties.ListProperty`,
+    :mod:`~kivy.properties.ObjectProperty`,
+    :mod:`~kivy.properties.BooleanProperty`,
+    :mod:`~kivy.properties.BoundedNumericProperty`,
+    :mod:`~kivy.properties.OptionProperty`,
+    :mod:`~kivy.properties.ReferenceListProperty`,
+    :mod:`~kivy.properties.AliasProperty`,
+    :mod:`~kivy.properties.DictProperty`,
 
 For an in-depth explaination, look at :doc:`/api-kivy.properties`
