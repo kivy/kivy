@@ -15,6 +15,11 @@ Remember that the default size of a Widget is size_hint=(1, 1). If you don't
 want your popup to be fullscreen, deactivate the size_hint and use a specific
 size attribute.
 
+
+.. versionchanged:: 1.4.0
+    The :class:`Popup` class now inherits from :class:`~kivy.uix.modalview.ModalView`.
+    The :class:`Popup` offers a default layout with a title and a separation bar.
+
 Examples
 --------
 
@@ -67,10 +72,8 @@ popup from closing by explictly returning True from your callback ::
 
 __all__ = ('Popup', 'PopupException')
 
-from kivy.logger import Logger
-from kivy.animation import Animation
-from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import StringProperty, BooleanProperty, ObjectProperty, \
+from kivy.uix.modalview import ModalView
+from kivy.properties import StringProperty, ObjectProperty, \
     NumericProperty, ListProperty
 
 
@@ -81,7 +84,7 @@ class PopupException(Exception):
     '''
 
 
-class Popup(FloatLayout):
+class Popup(ModalView):
     '''Popup class. See module documentation for more information.
 
     :Events:
@@ -99,21 +102,12 @@ class Popup(FloatLayout):
     title'.
     '''
 
-    auto_dismiss = BooleanProperty(True)
-    '''Default to True, this property determines if the popup is automatically
-    dismissed when the user clicks outside it.
+    background = StringProperty(
+        'atlas://data/images/defaulttheme/popup-background')
+    '''Background image of the view used for the view background.
 
-    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`, default
-    to True.
-    '''
-
-    attach_to = ObjectProperty(None)
-    '''If a widget is set on attach_to, the popup will attach to the nearest
-    parent window of the widget. If none is found, it will attach to the
-    main/global Window.
-
-    :data:`attach_to` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None.
+    :data:`background` is an :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/popup-background'
     '''
 
     content = ObjectProperty(None)
@@ -121,39 +115,6 @@ class Popup(FloatLayout):
 
     :data:`content` is a :class:`~kivy.properties.ObjectProperty`, default to
     None.
-    '''
-
-    background_color = ListProperty([0, 0, 0, .7])
-    '''Background color, in the format (r, g, b, a).
-
-    .. versionadded:: 1.1.0
-
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [0, 0, 0, .7].
-    '''
-
-    background = StringProperty(
-        'atlas://data/images/defaulttheme/popup-background')
-    '''Background image of the popup used for the popup background.
-
-    .. versionadded:: 1.1.0
-
-    :data:`background` is an :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/popup-background'
-    '''
-
-    border = ListProperty([16, 16, 16, 16])
-    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction. Used for :data:`background_normal` and
-    :data:`background_down`. Can be used when using custom background.
-
-    .. versionadded:: 1.1.0
-
-    It must be a list of four values: (top, right, bottom, left). Read the
-    BorderImage instructions for more information about how to use it.
-
-    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
-    16, 16, 16)
     '''
 
     separator_color = ListProperty([47 / 255., 167 / 255., 212 / 255., 1.])
@@ -178,30 +139,6 @@ class Popup(FloatLayout):
 
     _container = ObjectProperty(None)
 
-    _anim_alpha = NumericProperty(0)
-
-    _anim_duration = NumericProperty(.100)
-
-    _window = ObjectProperty(None, allownone=True)
-
-    def __init__(self, **kwargs):
-        self.register_event_type('on_open')
-        self.register_event_type('on_dismiss')
-        self._parent = None
-        super(Popup, self).__init__(**kwargs)
-
-    def _search_window(self):
-        # get window to attach to
-        window = None
-        if self.attach_to is not None:
-            window = self.attach_to.get_parent_window()
-            if not window:
-                window = self.attach_to.get_root_window()
-        if not window:
-            from kivy.core.window import Window
-            window = Window
-        return window
-
     def add_widget(self, widget):
         if self._container:
             if self.content:
@@ -209,82 +146,6 @@ class Popup(FloatLayout):
             self.content = widget
         else:
             super(Popup, self).add_widget(widget)
-
-    def open(self, *largs):
-        '''Show the popup window from the :data:`attach_to` widget. If set, it
-        will attach to the nearest window. If the widget is not attached to any
-        window, the popup will attach to the global
-        :class:`~kivy.core.window.Window`.
-        '''
-        # search window
-        self._window = self._search_window()
-        if not self._window:
-            Logger.warning('Popup: cannot open popup, no window found.')
-            return self
-        self._window.add_widget(self)
-        self._window.bind(on_resize=self._align_center)
-        self.center = self._window.center
-        Animation(_anim_alpha=1., d=self._anim_duration).start(self)
-        self.dispatch('on_open')
-        return self
-
-    def dismiss(self, *largs, **kwargs):
-        '''Close the popup if it is open. If you really want to close the
-        popup, whatever the on_dismiss event returns, you can do this:
-        ::
-
-            popup = Popup(...)
-            popup.dismiss(force=True)
-
-        .. versionchanged:: 1.3.0
-            When the popup is dismissed, it will be faded out, before
-            removal from the parent. If you don't want animation, use:
-            `popup.dismiss(animation=False)`
-
-        '''
-        if self._window is None:
-            return self
-        if self.dispatch('on_dismiss') is True:
-            if kwargs.get('force', False) is not True:
-                return self
-        if kwargs.get('animation', True):
-            Animation(_anim_alpha=0., d=self._anim_duration).start(self)
-        else:
-            self._anim_alpha = 0
-        return self
-
-    def on_size(self, instance, value):
-        self._align_center()
-
-    def _align_center(self, *l):
-        if self._window:
-            self.center = self._window.center
-            # hack to resize dark background on window resize
-            _window = self._window
-            self._window = None
-            self._window = _window
-
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            if self.auto_dismiss:
-                self.dismiss()
-                return True
-        super(Popup, self).on_touch_down(touch)
-        return True
-
-    def on_touch_move(self, touch):
-        super(Popup, self).on_touch_move(touch)
-        return True
-
-    def on_touch_up(self, touch):
-        super(Popup, self).on_touch_up(touch)
-        return True
-
-    def on__anim_alpha(self, instance, value):
-        if value == 0 and self._window is not None:
-            self._window.remove_widget(self)
-            self._window.unbind(on_resize=self._align_center)
-            self._window = None
 
     def on_content(self, instance, value):
         if not hasattr(value, 'popup'):
@@ -300,12 +161,6 @@ class Popup(FloatLayout):
         self._container.clear_widgets()
         self._container.add_widget(self.content)
 
-    def on_open(self):
-        pass
-
-    def on_dismiss(self):
-        pass
-
 
 if __name__ == '__main__':
     from kivy.base import runTouchApp
@@ -313,12 +168,6 @@ if __name__ == '__main__':
     from kivy.uix.label import Label
     from kivy.uix.gridlayout import GridLayout
     from kivy.core.window import Window
-
-    layout = GridLayout(cols=3)
-    for x in xrange(9):
-        btn = Button(text=str(x))
-        layout.add_widget(btn)
-    Window.add_widget(layout)
 
     # add popup
     content = GridLayout(cols=1)
@@ -329,7 +178,14 @@ if __name__ == '__main__':
                   size_hint=(None, None), size=(256, 256),
                   content=content)
     content_cancel.bind(on_release=popup.dismiss)
-    btn.bind(on_release=popup.open)
+
+    layout = GridLayout(cols=3)
+    for x in xrange(9):
+        btn = Button(text=str(x))
+        btn.bind(on_release=popup.open)
+        layout.add_widget(btn)
+
+    Window.add_widget(layout)
 
     popup.open()
 
