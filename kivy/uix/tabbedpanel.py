@@ -252,7 +252,7 @@ class TabbedPanel(GridLayout):
     '''Specifies the text displayed on the default tab header.
 
     :data:`default_tab_text` is a :class:`~kivy.properties.StringProperty`,
-    default to 'default tab'.
+    defaults to 'default tab'.
     '''
 
     default_tab_cls = ObjectProperty(TabbedPanelHeader)
@@ -307,7 +307,7 @@ class TabbedPanel(GridLayout):
     '''Holds the default tab.
 
     .. Note:: For convenience, the automatically provided default tab is deleted
-    when you change default_tab to something else.
+              when you change default_tab to something else.
 
     :data:`default_tab` is a :class:`~kivy.properties.AliasProperty`
     '''

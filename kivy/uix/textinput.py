@@ -1209,7 +1209,7 @@ class TextInput(Widget):
     '''
 
     password = BooleanProperty(False)
-    '''If True, the widget will display its characters as the character *.
+    '''If True, the widget will display its characters as the character '*'.
 
     .. versionadded:: 1.2.0
 

@@ -355,7 +355,8 @@ class TreeView(Widget):
 
     def iterate_open_nodes(self, node=None):
         '''Generator to iterate over expanded nodes.
-        To get all the open nodes:
+
+        To get all the open nodes::
 
             treeview = TreeView()
             # ... add nodes ...
