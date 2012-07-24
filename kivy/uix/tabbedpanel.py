@@ -393,6 +393,9 @@ class TabbedPanel(GridLayout):
         content = self.content
         if content is None:
             return
+        parent = widget.parent
+        if widget.parent:
+            parent.remove_widget(widget)
         if widget == content or widget == self._tab_layout:
             super(TabbedPanel, self).add_widget(widget, index)
         elif isinstance(widget, TabbedPanelHeader):
@@ -491,6 +494,9 @@ class TabbedPanel(GridLayout):
         tab_layout.clear_widgets()
         scrl_v = ScrollView(size_hint=(None, 1))
         tabs = self._tab_strip
+        parent = tabs.parent
+        if parent:
+            parent.remove_widget(tabs)
         scrl_v.add_widget(tabs)
         scrl_v.pos = (0, 0)
         self_update_scrollview = self._update_scrollview
