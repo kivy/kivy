@@ -112,6 +112,7 @@ class VideoPlayerPlayPause(Image):
     video = ObjectProperty(None)
 
     def on_touch_down(self, touch):
+        '''.. versionchanged:: 1.4.0'''
         if self.collide_point(*touch.pos):
             if self.video.state == VideoPlayer.PLAY:
                 self.video.state = VideoPlayer.PAUSE
@@ -121,6 +122,7 @@ class VideoPlayerPlayPause(Image):
 
 
 class VideoPlayerStop(Image):
+    '''.. versionadded:: 1.4.0'''
     video = ObjectProperty(None)
 
     def on_touch_down(self, touch):
@@ -299,6 +301,7 @@ class VideoPlayer(GridLayout):
     '''
 
     STOP, PLAY, PAUSE = range(3)
+    '''.. versionadded:: 1.4.0'''
     state = NumericProperty(0)
     '''Integer, indicates whether the video is stopped, playing, or paused.
     You can play/stop a video by setting this property. ::
@@ -310,8 +313,10 @@ class VideoPlayer(GridLayout):
         # and later
         video.state = VideoPlayer.PLAY
 
-    :data:`state` is a :class:`~kivy.properties.IntegerProperty`, defaults to
-    0.
+    :data:`state` is a :class:`~kivy.properties.IntegerProperty`,
+    defaults to 0.
+
+    .. versionadded:: 1.4.0
     '''
 
     play = BooleanProperty(False)
@@ -353,6 +358,8 @@ class VideoPlayer(GridLayout):
     '''Image filename used for the "Stop" button.
 
     :data:`image_stop` a :class:`~kivy.properties.StringProperty`
+
+    .. versionadded:: 1.4.0
     '''
 
     image_volumehigh = StringProperty(

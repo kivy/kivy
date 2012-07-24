@@ -20,11 +20,15 @@ from kivy.event import EventDispatcher
 class VideoBase(EventDispatcher):
     '''VideoBase, a class to implement a video reader.
 
+    .. versionchanged:: 1.4.0
+
+        :data:`eos` now accepts 'stop'
+
     :Parameters:
         `filename` : str
             Filename of the video. Can be a file or an URI.
         `eos` : str, default to 'pause'
-            Action to do when EOS is hit. Can be one of 'pause' or 'loop'
+            Action to do when EOS is hit. Can be one of 'pause', 'stop' or 'loop'
         `async` : bool, default to True
             Asynchronous loading (may be not supported by all providers)
         `autoplay` : bool, default to False
@@ -139,7 +143,12 @@ class VideoBase(EventDispatcher):
             doc='Get the video playing status')
 
     def _do_eos(self):
+        '''.. versionchanged:: 1.4.0
+            added support to stop vs pause video on eos
+        '''
         if self.eos == 'pause':
+            self.pause()
+        elif self.eos == 'stop':
             self.stop()
         elif self.eos == 'loop':
             self.stop()
