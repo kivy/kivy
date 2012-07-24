@@ -40,7 +40,8 @@ class Video(Image):
 
     action = OptionProperty('play', options=('play', 'pause', 'stop'))
     '''Integer, indicates whether the video is stopped, playing, or paused.
-    You can play/stop a video by setting this property.::
+    You can play/stop a video by setting this property::
+
         # start playing the video at creation
         video = Video(source='movie.mkv', action='play')
 
@@ -58,7 +59,8 @@ class Video(Image):
     play = BooleanProperty(False)
     '''Boolean, indicates whether the video is stopped or playing.
     .. deprecated:: 1.4.0
-       Use :data:`action` instead.
+
+        Use :data:`action` instead.
     '''
 
 

@@ -303,6 +303,7 @@ class VideoPlayer(GridLayout):
     action = OptionProperty('play', options=('play', 'pause', 'stop'))
     '''String, indicates whether the video is stopped, playing, or paused.
     You can play/stop a video by setting this property::
+
         # start playing the video at creation
         video = VideoPlayer(source='movie.mkv', action='play')
 
@@ -311,7 +312,7 @@ class VideoPlayer(GridLayout):
         # and later
         video.action = 'play'
 
-    :data:`action` is a :class:`~kivy.properties.IntegerProperty`,
+    :data:`action` is an :class:`~kivy.properties.OptionProperty`,
     defaults to 0.
 
     .. versionadded:: 1.4.0
@@ -320,7 +321,8 @@ class VideoPlayer(GridLayout):
     play = BooleanProperty(False)
     '''Boolean, indicates whether the video is stopped or playing.
     .. deprecated:: 1.4.0
-       Use :data:`action` instead.
+
+        Use :data:`action` instead.
     '''
 
     image_overlay_play = StringProperty(

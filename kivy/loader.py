@@ -203,17 +203,15 @@ class LoaderBase(object):
                 self._client.remove((c_filename, client))
 
     def image(self, filename, load_callback=None, post_callback=None, **kwargs):
-        '''Load a image using loader. A Proxy image is returned with a loading
-        image.
+        '''
+        Load an image using loader. A Proxy image is returned with a loading
+        image::
 
-     ::
             img = Loader.image(filename)
-            # img will be a ProxyImage.
-            # You'll use it the same as an Image class.
-            # Later, when the image is really loaded,
-            # the loader will change the img.image property
-            # to the new loaded image
 
+        `img` will be a ProxyImage with similar semantics to
+        `kivy.core.image.Image`. Later, when the image is really loadd, the
+        :data:`image` property of `img` will be set to the newly loaded image.
         '''
         data = Cache.get('kivy.loader', filename)
         if data not in (None, False):

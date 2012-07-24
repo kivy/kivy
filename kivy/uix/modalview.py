@@ -171,9 +171,9 @@ class ModalView(AnchorLayout):
         return self
 
     def dismiss(self, *largs, **kwargs):
-        '''Close the view if it is open. If you really want to close the
-        view, whatever the on_dismiss event returns, you can do this:
-       ::
+        '''
+        Close the view if it is open. If you really want to close the
+        view, whatever the on_dismiss event returns, you can do this::
 
             view = ModalView(...)
             view.dismiss(force=True)
