@@ -234,13 +234,14 @@ kivy_userexts_dir = ''
 
 
 # Don't go further if we generate documentation
-if basename(sys.argv[0]) in ('sphinx-build', 'autobuild.py'):
+if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
     environ['KIVY_DOC'] = '1'
-if basename(sys.argv[0]) in ('sphinx-build', ):
+if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
-if basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
+if any('nosetests' in arg for arg in sys.argv):
     environ['KIVY_UNITTEST'] = '1'
-if not 'KIVY_DOC_INCLUDE' in environ:
+
+if not environ.get('KIVY_DOC_INCLUDE'):
     # Configuration management
     user_home_dir = expanduser('~')
     if platform() == 'android':

@@ -255,7 +255,7 @@ class ConfigParser(PythonConfigParser):
         return True
 
 
-if not 'KIVY_DOC_INCLUDE' in environ:
+if not environ.get('KIVY_DOC_INCLUDE'):
 
     #
     # Read, analyse configuration file
