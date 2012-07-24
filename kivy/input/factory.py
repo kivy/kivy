@@ -10,8 +10,8 @@ __all__ = ('MotionEventFactory', )
 
 class MotionEventFactory:
     '''MotionEvent factory is a class who register all availables input
-    factories.  If you create a new input factory, don't forget to register it
-  ::
+    factories.  If you create a new input factory, don't forget to register
+    it::
 
         MotionEventFactory.register('myproviderid', MyInputProvider)
 
