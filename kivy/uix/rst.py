@@ -146,6 +146,7 @@ Builder.load_string('''
 
 <RstTitle>:
     markup: True
+    valign: 'top'
     font_size: 24 - self.section * 2
     size_hint_y: None
     height: self.texture_size[1] + 20
@@ -162,6 +163,7 @@ Builder.load_string('''
 
 <RstParagraph>:
     markup: True
+    valign: 'top'
     size_hint_y: None
     height: self.texture_size[1] + self.my
     text_size: self.width - self.mx, None
@@ -174,6 +176,7 @@ Builder.load_string('''
         id: label
         text: root.text
         markup: True
+        valign: 'top'
         size_hint: None, None
         size: self.texture_size[0] + 10, self.texture_size[1] + 10
 
@@ -210,6 +213,7 @@ Builder.load_string('''
     Label:
         id: content
         markup: True
+        valign: 'top'
         text_size: self.width - 20, None
         font_name: 'data/fonts/DroidSansMono.ttf'
         color: (0, 0, 0, 1)
@@ -296,6 +300,7 @@ Builder.load_string('''
 
 <RstFieldName>:
     markup: True
+    valign: 'top'
     size_hint: None, 1
     color: (0, 0, 0, 1)
     bold: True
@@ -343,6 +348,7 @@ Builder.load_string('''
 
 <RstListBullet>:
     markup: True
+    valign: 'top'
     size_hint_x: None
     width: self.texture_size[0] + 10
     text_size: None, self.height - 10
@@ -431,8 +437,8 @@ class RstDocument(ScrollView):
     when a rst document is explicitly loaded, or where :func:`preload` has been
     called.
 
-    If the document has no filename, e.g., when the document is loaded from a text file,
-    the key will be ''.
+    If the document has no filename, e.g., when the document is loaded from a
+    text file, the key will be ''.
 
     :data:`toctrees` is a :class:`~kivy.properties.DictProperty`, default to {}.
     '''
@@ -541,10 +547,10 @@ class RstDocument(ScrollView):
 
         .. note::
 
-            It is preferable to delay the call of the goto if you just loaded the
-            document, because the layout might not be finished, or if the size
-            of the RstDocument is not fixed yet, then the calculation of the
-            scrolling would be wrong.
+            It is preferable to delay the call of the goto if you just loaded
+            the document, because the layout might not be finished, or if the
+            size of the RstDocument is not fixed yet, then the calculation of
+            the scrolling would be wrong.
 
             However, you can do a direct call if the document is already loaded.
 
@@ -686,6 +692,7 @@ class RstTransition(Widget):
 
 class RstEmptySpace(Widget):
     pass
+
 
 class RstDefinitionSpace(Widget):
     pass
