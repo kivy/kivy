@@ -61,8 +61,8 @@ __all__ = ('VideoPlayer', 'VideoPlayerAnnotation')
 
 from json import load
 from os.path import exists
-from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, \
-        NumericProperty, DictProperty
+from kivy.properties import (ObjectProperty, StringProperty, BooleanProperty,
+    NumericProperty, DictProperty, OptionProperty)
 from kivy.animation import Animation
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -114,10 +114,10 @@ class VideoPlayerPlayPause(Image):
     def on_touch_down(self, touch):
         '''.. versionchanged:: 1.4.0'''
         if self.collide_point(*touch.pos):
-            if self.video.state == VideoPlayer.PLAY:
-                self.video.state = VideoPlayer.PAUSE
+            if self.video.action == 'play':
+                self.video.action = 'pause'
             else:
-                self.video.state = VideoPlayer.PLAY
+                self.video.action = 'play'
             return True
 
 
@@ -127,7 +127,7 @@ class VideoPlayerStop(Image):
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            self.video.state = Video.STOP
+            self.video.action = 'stop'
             self.video.position = 0
 
 
@@ -148,7 +148,7 @@ class VideoPlayerProgressBar(ProgressBar):
 
     def on_video(self, instance, value):
         self.video.bind(position=self._update_bubble,
-                state=self._showhide_bubble)
+                action=self._showhide_bubble)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -223,7 +223,7 @@ class VideoPlayerPreview(FloatLayout):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and not self.click_done:
             self.click_done = True
-            self.video.state = VideoPlayer.PLAY
+            self.video.action = 'play'
         return True
 
 
@@ -300,20 +300,18 @@ class VideoPlayer(GridLayout):
     1.
     '''
 
-    STOP, PLAY, PAUSE = range(3)
-    '''.. versionadded:: 1.4.0'''
-    state = NumericProperty(0)
-    '''Integer, indicates whether the video is stopped, playing, or paused.
-    You can play/stop a video by setting this property. ::
+    action = OptionProperty('play', options=('play', 'pause', 'stop'))
+    '''String, indicates whether the video is stopped, playing, or paused.
+    You can play/stop a video by setting this property::
         # start playing the video at creation
-        video = VideoPlayer(source='movie.mkv', state=VideoPlayer.PLAY)
+        video = VideoPlayer(source='movie.mkv', action='play')
 
         # create the video, and start later
         video = VideoPlayer(source='movie.mkv')
         # and later
-        video.state = VideoPlayer.PLAY
+        video.action = 'play'
 
-    :data:`state` is a :class:`~kivy.properties.IntegerProperty`,
+    :data:`action` is a :class:`~kivy.properties.IntegerProperty`,
     defaults to 0.
 
     .. versionadded:: 1.4.0
@@ -322,7 +320,7 @@ class VideoPlayer(GridLayout):
     play = BooleanProperty(False)
     '''Boolean, indicates whether the video is stopped or playing.
     .. deprecated:: 1.4.0
-       Use :data:`state` instead.
+       Use :data:`action` instead.
     '''
 
     image_overlay_play = StringProperty(
@@ -431,10 +429,6 @@ class VideoPlayer(GridLayout):
     container = ObjectProperty(None)
 
     def __init__(self, **kwargs):
-        if kwargs.get('play'):
-            kwargs['state'] = int(kwargs['play'])
-            del kwargs['play']
-
         self._video = None
         self._image = None
         self._annotations = None
@@ -476,9 +470,9 @@ class VideoPlayer(GridLayout):
                 self._annotations_labels.append(
                     VideoPlayerAnnotation(annotation=ann))
 
-    def on_state(self, instance, value):
+    def on_action(self, instance, value):
         if self._video is None:
-            self._video = Video(source=self.source, state=VideoPlayer.PLAY,
+            self._video = Video(source=self.source, action='play',
                     volume=self.volume, pos_hint={'x': 0, 'y': 0},
                     **self.options)
 
@@ -489,12 +483,18 @@ class VideoPlayer(GridLayout):
 
             return True
 
-        self._video.state = value
+        self._video.action = value
 
     def on_play(self, instance, value):
-        Logger.warn("'play' is deprecated. Use 'state' instead")
+        '''.. deprecated:: 1.4.0'''
+        Logger.warn("'play' is deprecated. Use 'action' instead")
 
-        self.on_state(instance, value)
+        if value in ('play', True, 1):
+            value = 'play'
+        else:
+            value = 'stop'
+
+        self.on_action(instance, value)
 
     def on_volume(self, instance, value):
         if not self._video:

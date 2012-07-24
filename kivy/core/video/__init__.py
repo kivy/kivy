@@ -140,7 +140,7 @@ class VideoBase(EventDispatcher):
         return self._state
 
     state = property(lambda self: self._get_state(),
-            doc='Get the video playing status')
+            doc='Get the video playing state')
 
     def _do_eos(self):
         '''.. versionchanged:: 1.4.0

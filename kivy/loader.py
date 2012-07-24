@@ -206,7 +206,7 @@ class LoaderBase(object):
         '''Load a image using loader. A Proxy image is returned with a loading
         image.
 
-      ::
+     ::
             img = Loader.image(filename)
             # img will be a ProxyImage.
             # You'll use it the same as an Image class.
