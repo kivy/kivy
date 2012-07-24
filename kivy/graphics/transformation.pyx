@@ -29,7 +29,8 @@ cdef extern from "string.h":
 cdef double _EPS = 8.8817841970012523e-16
 
 cdef class Matrix:
-    '''Optimized matrix class for OpenGL::
+    '''
+    Optimized matrix class for OpenGL::
 
         >>> from kivy.graphics.transformation import Matrix
         >>> m = Matrix()
@@ -42,7 +43,7 @@ cdef class Matrix:
         [ 0   1   2   3]
         [ 4   5   6   7]
         [ 8   9  10  11]
-        [12  13  14  15]
+        [ 12  13  14  15]
 
     '''
 
