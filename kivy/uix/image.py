@@ -136,6 +136,14 @@ class Image(Widget):
     :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`,
     default to True
     '''
+    
+    keep_data = BooleanProperty(False)
+    '''If true the underlaying _coreimage have to keep the raw image data. Useful
+    to perform pixel based collision detection
+    
+    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False
+    '''
 
     anim_delay = NumericProperty(.25)
     '''Delay of animation if the image is sequenced (like an animated gif).
@@ -205,7 +213,7 @@ class Image(Widget):
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
-                    anim_delay=self.anim_delay)
+                    anim_delay=self.anim_delay,keep_data=self.keep_data)
             ci.bind(on_texture=self._on_tex_change)
             self.texture = ci.texture
 
