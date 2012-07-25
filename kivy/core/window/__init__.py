@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''
 Window
 ======
@@ -466,7 +467,7 @@ class WindowBase(EventDispatcher):
         self.parent = self
 
         # before creating the window
-        __import__('kivy.core.gl')
+        import kivy.core.gl
 
         # configure the window
         self.create_window()

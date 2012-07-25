@@ -1,9 +1,10 @@
+# pylint: disable=W0611
 __all__ = ('AndroidMotionEventProvider', )
 
 import os
 
 try:
-    __import__('android')
+    import android
 except ImportError:
     if 'KIVY_DOC' not in os.environ:
         raise Exception('android lib not found.')
