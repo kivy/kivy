@@ -81,7 +81,7 @@ cdef class EventDispatcher(object):
     def __init__(self, **kwargs):
         cdef str func, name, key
         cdef dict properties
-        super(EventDispatcher, self).__init__()
+        super(EventDispatcher, self).__init__(**kwargs)
 
         # Auto bind on own handler if exist
         properties = self.properties()

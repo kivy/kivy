@@ -5,7 +5,7 @@ from kivy.properties import ObjectProperty, \
                             NumericProperty, ListProperty, \
                             StringProperty
 from kivy.uix.listview import ListView
-from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 # A "master-detail" view is a good way to experiment with a listview

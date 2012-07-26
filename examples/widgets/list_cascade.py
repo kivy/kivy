@@ -3,7 +3,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.listview import ListView
-from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
 from kivy.properties import ListProperty, StringProperty, ObjectProperty
 
 # This is an expansion on the "master-detail" example to illustrate

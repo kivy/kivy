@@ -6,7 +6,7 @@ from kivy.properties import ObjectProperty, \
                             NumericProperty, ListProperty, \
                             StringProperty
 from kivy.uix.listview import ListView
-from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 # [TODO] NOTE -- This is a copy of the old version of list_master_detail.py,
