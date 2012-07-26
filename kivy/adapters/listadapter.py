@@ -15,8 +15,8 @@ Notes:
 
 from kivy.properties import ListProperty
 from kivy.lang import Builder
-from kivy.uix.mixins.selection import SelectionSupport
 from kivy.adapters.adapter import Adapter
+from kivy.adapters.mixins.selection import SelectionSupport
 
 
 class ListAdapter(SelectionSupport, Adapter):
