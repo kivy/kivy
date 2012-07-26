@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''
 Input management
 ================
@@ -29,7 +30,7 @@ from kivy.input.motionevent import MotionEvent
 from kivy.input.postproc import kivy_postproc_modules
 from kivy.input.provider import MotionEventProvider
 from kivy.input.factory import MotionEventFactory
-__import__('kivy.input.providers')
+import kivy.input.providers
 
 __all__ = (
     MotionEvent.__name__,

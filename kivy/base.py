@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''
 Event loop management
 =====================
@@ -105,7 +106,7 @@ class EventLoopBase(EventDispatcher):
     def ensure_window(self):
         '''Ensure that we have an window
         '''
-        __import__('kivy.core.window')
+        import kivy.core.window
 
     def set_window(self, window):
         '''Set the window used for event loop
