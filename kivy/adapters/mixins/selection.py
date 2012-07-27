@@ -11,7 +11,7 @@ from kivy.properties import ObjectProperty, \
                             ListProperty, BooleanProperty, OptionProperty
 
 
-class SelectableItem:
+class SelectableItem(object):
     '''The :class:`SelectableItem` mixin is used in list item classes that are
     to be instantiated in a ListView. The handle_selection() callback
     interfaces to the ListView. select() and deselect() are to be overridden
