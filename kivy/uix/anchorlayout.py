@@ -61,6 +61,7 @@ class AnchorLayout(Layout):
     def __init__(self, **kwargs):
         super(AnchorLayout, self).__init__(**kwargs)
         self.bind(
+            children = self._trigger_layout,
             parent = self._trigger_layout,
             padding = self._trigger_layout,
             anchor_x = self._trigger_layout,
