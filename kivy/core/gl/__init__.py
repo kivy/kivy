@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''
 OpenGL
 ======
@@ -49,4 +50,4 @@ if 'KIVY_DOC' not in environ:
 
     # To be able to use our GL provider, we must have a window
     # Automaticly import window auto to ensure the default window creation
-    __import__('kivy.core.window')
+    import kivy.core.window

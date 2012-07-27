@@ -21,7 +21,7 @@ from types import TracebackType, CodeType
 
 # on pypy we can take advantage of transparent proxies
 try:
-    tproxy = __import__('__pypy__')
+    import __pypy__ as tproxy
 except ImportError:
     tproxy = None
 

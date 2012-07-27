@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''
 Utils
 =====
@@ -332,7 +333,7 @@ def platform():
 
     if _platform_android is None:
         try:
-            __import__('android')
+            import android
             _platform_android = True
         except ImportError:
             _platform_android = False
