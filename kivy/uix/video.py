@@ -11,7 +11,7 @@ are installed). Our :class:`~kivy.core.video.VideoBase` implementation is used
 under the hood.
 
 Video loading is asynchronous - many properties are not available until
-the video is loaded (when the texture is created). ::
+the video is loaded (when the texture is created)::
 
     def on_position_change(instance, value):
         print 'The position in the video is', value
@@ -38,7 +38,7 @@ class Video(Image):
 
     play = BooleanProperty(False)
     '''Boolean, indicates if the video is playing.
-    You can start/stop the video by setting this property. ::
+    You can start/stop the video by setting this property::
 
         # start playing the video at creation
         video = Video(source='movie.mkv', play=True)

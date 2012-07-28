@@ -50,7 +50,7 @@ the size_hint instructions (x or y) of the child to enable scrolling.
 
 To scroll a :class:`GridLayout` on Y-axis/vertically, set the child's width
 identical to that of the ScrollView (size_hint_x=1, default), and set the
-size_hint_y property to None ::
+size_hint_y property to None::
 
     layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
     #Make sure the height is such that there is something to scroll.

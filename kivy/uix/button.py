@@ -13,7 +13,7 @@ the Label class::
     button = Button(text='Hello world', font_size=14)
 
 To attach a callback when the button is pressed (clicked/touched), use
-:class:`~kivy.uix.widget.Widget.bind` ::
+:class:`~kivy.uix.widget.Widget.bind`::
 
     def callback(instance):
         print 'The button <%s> is being pressed' % instance.text
@@ -24,7 +24,7 @@ To attach a callback when the button is pressed (clicked/touched), use
     btn2.bind(on_press=callback)
 
 If you want to be notified every time the button state changes, you can attach
-to the :data:`Button.state` property ::
+to the :data:`Button.state` property::
 
     def callback(instance, value):
         print 'My button <%s> state is <%s>' % (instance, value)

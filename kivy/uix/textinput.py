@@ -30,7 +30,7 @@ To create a multiline textinput ('enter' key adds a new line)::
     textinput = TextInput(text='Hello world')
 
 To create a monoline textinput, set the multiline property to false ('enter'
-key will defocus the textinput and emit on_text_validate event) ::
+key will defocus the textinput and emit on_text_validate event)::
 
     def on_enter(instance, value):
         print 'User pressed enter in', instance
@@ -38,7 +38,7 @@ key will defocus the textinput and emit on_text_validate event) ::
     textinput = TextInput(text='Hello world', multiline=False)
     textinput.bind(on_text_validate=on_enter)
 
-To run a callback when the text changes ::
+To run a callback when the text changes::
 
     def on_text(instance, value):
         print 'The widget', instance, 'have:', value
@@ -47,13 +47,13 @@ To run a callback when the text changes ::
     textinput.bind(text=on_text)
 
 You can 'focus' a textinput, meaning that the input box will be highlighted,
-and keyboard focus will be requested ::
+and keyboard focus will be requested::
 
     textinput = TextInput(focus=True)
 
 The textinput is defocused if the 'escape' key is pressed, or if another
 widget requests the keyboard. You can bind a callback to the focus property to
-get notified of focus changes ::
+get notified of focus changes::
 
     def on_focus(instance, value):
         if value:
@@ -1243,7 +1243,7 @@ class TextInput(Widget):
     '''
 
     password = BooleanProperty(False)
-    '''If True, the widget will display its characters as the character *.
+    '''If True, the widget will display its characters as the character '*'.
 
     .. versionadded:: 1.2.0
 
@@ -1481,11 +1481,11 @@ class TextInput(Widget):
     text = AliasProperty(_get_text, _set_text, bind=('_lines', ))
     '''Text of the widget.
 
-    Creation of a simple hello world ::
+    Creation of a simple hello world::
 
         widget = TextInput(text='Hello world')
 
-    If you want to create the widget with an unicode string, use ::
+    If you want to create the widget with an unicode string, use::
 
         widget = TextInput(text=u'My unicode string')
 

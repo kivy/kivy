@@ -37,7 +37,7 @@ def difference(set1, set2):
 
 def interpolate(value_from, value_to, step=10):
     '''Interpolate a value to another. Can be useful to smooth some transition.
-    For example ::
+    For example::
 
         # instead of setting directly
         self.pos = pos
@@ -61,7 +61,7 @@ def interpolate(value_from, value_to, step=10):
 def strtotuple(s):
     '''Convert a tuple string into tuple,
     with some security check. Designed to be used
-    with eval() function ::
+    with eval() function::
 
         a = (12, 54, 68)
         b = str(a)         # return '(12, 54, 68)'
@@ -272,7 +272,7 @@ class QueryDict(dict):
 
     .. versionadded:: 1.0.4
 
-    ::
+  ::
 
         d = QueryDict()
         # create a key named toto, with the value 1

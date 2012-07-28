@@ -309,7 +309,7 @@ class App(EventDispatcher):
         widget and added to the window.
 
         :return: None or a root :class:`~kivy.uix.widget.Widget` instance is no
-        self.root exist.
+                 self.root exist.
         '''
         if not self.root:
             return Widget()
