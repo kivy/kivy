@@ -133,6 +133,24 @@ class TextInputCutCopyPaste(Bubble):
 
     textinput = ObjectProperty(None)
 
+    def __init__(self, **kwargs):
+        super(TextInputCutCopyPaste, self).__init__(**kwargs)
+        Clock.schedule_interval(self._check_parent, .5)
+
+    def _check_parent(self, dt):
+        # this is a prevention to get the Bubble staying on the screen, if the
+        # attached textinput is not on the screen anymore.
+        parent = self.textinput
+        while parent is not None:
+            if parent == parent.parent:
+                break
+            parent = parent.parent
+        if parent is None:
+            Clock.unschedule(self._check_parent)
+            if self.textinput:
+                self.textinput._hide_cut_copy_paste()
+
+
     def do(self, action):
         textinput = self.textinput
 
@@ -618,7 +636,10 @@ class TextInput(Widget):
                 self._hide_cut_copy_paste(win)
             return True
 
-    def _hide_cut_copy_paste(self, win):
+    def _hide_cut_copy_paste(self, win=None):
+        win = win or self._win
+        if win is None:
+            return
         bubble = self._bubble
         if bubble is not None:
             win.remove_widget(bubble)
