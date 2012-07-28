@@ -62,7 +62,7 @@ __all__ = ('VideoPlayer', 'VideoPlayerAnnotation')
 from json import load
 from os.path import exists
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, \
-        NumericProperty, DictProperty
+        NumericProperty, DictProperty, OptionProperty
 from kivy.animation import Animation
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -112,6 +112,7 @@ class VideoPlayerPlayPause(Image):
     video = ObjectProperty(None)
 
     def on_touch_down(self, touch):
+        '''.. versionchanged:: 1.4.0'''
         if self.collide_point(*touch.pos):
             if self.video.state == 'play':
                 self.video.state = 'pause'
@@ -123,9 +124,10 @@ class VideoPlayerPlayPause(Image):
 class VideoPlayerStop(Image):
     video = ObjectProperty(None)
 
-    def on_touch_down(sel, touch):
+    def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             self.video.state = 'stop'
+            self.video.position = 0
             return True
 
 
@@ -207,7 +209,7 @@ class VideoPlayerProgressBar(ProgressBar):
         self.bubble.y = self.top
 
     def _showhide_bubble(self, instance, value):
-        if value:
+        if value == 'play':
             self._hide_bubble()
         else:
             self._show_bubble()
@@ -298,20 +300,37 @@ class VideoPlayer(GridLayout):
     1.
     '''
 
+    state = OptionProperty('play', options=('play', 'pause', 'stop'))
+    '''String, indicates whether to play, pause, or stop the video::
+
+        # start playing the video at creation
+        video = Video(source='movie.mkv', state='play')
+
+        # create the video, and start later
+        video = Video(source='movie.mkv')
+        # and later
+        video.state = 'play'
+
+    :data:`state` is a :class:`~kivy.properties.OptionProperty`, default to
+    'play'.
+    '''
+
     play = BooleanProperty(False)
     '''Boolean, indicates if the video is playing.
     You can start/stop the video by setting this property::
 
         # start playing the video at creation
-        video = VideoPlayer(source='movie.mkv', play=True)
+        video = Video(source='movie.mkv', play=True)
 
         # create the video, and start later
-        video = VideoPlayer(source='movie.mkv')
+        video = Video(source='movie.mkv')
         # and later
         video.play = True
 
     :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
+    .. deprecated:: 1.4.0
+    Use `state` instead.
     '''
 
     image_overlay_play = StringProperty(
@@ -332,7 +351,13 @@ class VideoPlayer(GridLayout):
             'atlas://data/images/defaulttheme/media-playback-start')
     '''Image filename used for the "Play" button.
 
-    :data:`image_loading` a :class:`~kivy.properties.StringProperty`
+    :data:`image_play` a :class:`~kivy.properties.StringProperty`
+    '''
+
+    image_stop = StringProperty(
+            'atlas://data/images/defaulttheme/media-playback-stop')
+    '''Image filename used for the "Stop" button.
+    :data:`image_stop` a :class:`~kivy.properties.StringProperty`
     '''
 
     image_pause = StringProperty(
@@ -452,16 +477,20 @@ class VideoPlayer(GridLayout):
                 self._annotations_labels.append(
                     VideoPlayerAnnotation(annotation=ann))
 
-    def on_play(self, instance, value):
+    def on_state(self, instance, value):
         if self._video is None:
-            self._video = Video(source=self.source, play=True,
+            self._video = Video(source=self.source, state='play',
                     volume=self.volume, pos_hint={'x': 0, 'y': 0},
                     **self.options)
             self._video.bind(texture=self._play_started,
                     duration=self.setter('duration'),
                     position=self.setter('position'),
                     volume=self.setter('volume'))
-        self._video.play = value
+        self._video.state = value
+
+    def on_play(self, instance, value):
+        value = 'play' if value else 'stop'
+        return self.on_state(instance, value)
 
     def on_volume(self, instance, value):
         if not self._video:
