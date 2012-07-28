@@ -29,11 +29,27 @@ from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.core.video import Video as CoreVideo
 from kivy.resources import resource_find
-from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty
+from kivy.properties import (BooleanProperty, NumericProperty, ObjectProperty
+    OptionProperty)
 
 
 class Video(Image):
     '''Video class. See module documentation for more information.
+    '''
+
+    state = OptionProperty('play', options=('play', 'pause', 'stop'))
+    '''String, indicates whether to play, pause, or stop the video::
+
+        # start playing the video at creation
+        video = Video(source='movie.mkv', state='play')
+
+        # create the video, and start later
+        video = Video(source='movie.mkv')
+        # and later
+        video.state = 'play'
+
+    :data:`state` is a :class:`~kivy.properties.OptionProperty`, default to
+    'play'.
     '''
 
     play = BooleanProperty(False)
@@ -50,6 +66,8 @@ class Video(Image):
 
     :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
+    .. deprecated:: 1.4.0
+    Use `state` instead.
     '''
 
     eos = BooleanProperty(False)
