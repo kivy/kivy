@@ -761,3 +761,23 @@
     do_rotation: False
     do_scale: False
 	auto_bring_to_front: False
+
+
+# =============================================================================
+# Screen Manager
+# =============================================================================
+
+<ScreenManager>:
+	canvas.before:
+		StencilPush
+		Rectangle:
+			pos: self.pos
+			size: self.size
+		StencilUse
+	canvas.after:
+		StencilUnUse
+		Rectangle:
+			pos: self.pos
+			size: self.size
+		StencilPop
+
