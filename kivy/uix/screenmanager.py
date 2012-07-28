@@ -417,8 +417,8 @@ class SlideTransition(TransitionBase):
             a.y = y - height * (1 - progression)
 
     def on_complete(self):
-        self.screen_in.pos = (0, 0)
-        self.screen_out.pos = (0, 0)
+        self.screen_in.pos = self.manager.pos
+        self.screen_out.pos = self.manager.pos
         super(SlideTransition, self).on_complete()
 
 
@@ -433,8 +433,8 @@ class SwapTransition(TransitionBase):
     def on_complete(self):
         self.screen_in.scale = 1.
         self.screen_out.scale = 1.
-        self.screen_in.pos = (0, 0)
-        self.screen_out.pos = (0, 0)
+        self.screen_in.pos = self.manager.pos
+        self.screen_out.pos = self.manager.pos
         super(SwapTransition, self).on_complete()
 
     def on_progress(self, progression):
