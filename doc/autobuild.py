@@ -208,7 +208,7 @@ for module in m:
         xb = os.path.basename(x)
 
         # add a section !
-        example_output.append('File :download:`%s <%s>` ::' % (
+        example_output.append('File :download:`%s <%s>::' % (
             xb, os.path.join('..', x)))
 
         # put the file in

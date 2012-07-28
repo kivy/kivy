@@ -31,7 +31,7 @@ To manually dismiss/close the view, use :meth:`ModalView.dismiss`::
     ModalView.dismiss()
 
 The :meth:`ModalView.open` and :meth:`ModalView.dismiss` are bindable. That means you
-can directly bind the function to an action, e.g., to a button's on_press ::
+can directly bind the function to an action, e.g., to a button's on_press::
 
     # create content and assign to the view
     content = Button(text='Close me!')
@@ -50,7 +50,7 @@ ModalView Events
 
 There are two events available: `on_open` when the view is opening, and
 `on_dismiss` when it is closed. For `on_dismiss`, you can prevent the
-view from closing by explictly returning True from your callback ::
+view from closing by explictly returning True from your callback::
 
     def my_callback(instance):
         print 'ModalView', instance, 'is being dismissed, but is prevented!'
@@ -171,9 +171,9 @@ class ModalView(AnchorLayout):
         return self
 
     def dismiss(self, *largs, **kwargs):
-        '''Close the view if it is open. If you really want to close the
-        view, whatever the on_dismiss event returns, you can do this:
-        ::
+        '''
+        Close the view if it is open. If you really want to close the
+        view, whatever the on_dismiss event returns, you can do this::
 
             view = ModalView(...)
             view.dismiss(force=True)

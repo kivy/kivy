@@ -511,9 +511,8 @@ class ScreenManager(FloatLayout):
     '''
 
     current = StringProperty(None)
-    '''Name of the screen currently show, or the screen to show.
-
-  ::
+    '''
+    Name of the screen currently show, or the screen to show::
 
         from kivy.uix.screenmanager import ScreenManager, Screen
 

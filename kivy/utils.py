@@ -272,7 +272,7 @@ class QueryDict(dict):
 
     .. versionadded:: 1.0.4
 
-  ::
+ ::
 
         d = QueryDict()
         # create a key named toto, with the value 1
