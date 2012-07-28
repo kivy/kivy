@@ -161,8 +161,8 @@ class TextInput(Widget):
         self._selection_finished = True
         self._selection_touch = None
         self.selection_text = ''
-        self.selection_from = None
-        self.selection_to = None
+        self.__selection_from = None
+        self._selection_to = None
         self._bubble = None
         self._lines_flags = []
         self._lines_labels = []
@@ -259,6 +259,25 @@ class TextInput(Widget):
             i = ni
         return index, row
 
+    def select_text(self, start, end):
+        ''' Select portion of text displayed in this TextInput
+
+        .. versionadded:: 1.4.0
+        '''
+        if end < start:
+            raise Exception('end must be superior to start')
+        m = len(self.text)
+        self._selection_from = boundary(start, 0, m)
+        self._selection_to = boundary(end, 0, m)
+        self._update_selection(True)
+
+    def select_all(self):
+        ''' Select all of the text displayed in this TextInput
+
+        .. versionadded:: 1.4.0
+        '''
+        self.select_text(0, len(self.text))
+
     def insert_text(self, substring, from_undo = False):
         '''Insert new text on the current cursor position.
         '''
@@ -291,14 +310,8 @@ class TextInput(Widget):
         elif count > 0:
             cursor = cursor[0], cursor[1] + count
 
-        self._undo.append({'undo_command': \
-            'self.cursor = (%i, %i)\n' %(cursor[0], cursor[1]) +\
-            'self.selection_from = %i\nself.selection_to = %i\n' %(ci, sci())+
-            'self._selection = True\n'+\
-            'self.delete_selection(True)\n',\
-            'redo_command': \
-            'self.cursor = (%i, %i)\nself.insert_text(u\'%s\', True)'\
-            %(cc, cr, substring.replace('\n', '\\n').replace('\'', '\\\''))})
+        self._undo.append({'undo_command': ('insert', cursor, ci, sci()),
+            'redo_command': (cc, cr, substring)})
         #reset redo when undo is appended to
         self._redo = []
 
@@ -320,7 +333,25 @@ class TextInput(Widget):
         '''
         try:
             x_item = self._redo.pop()
-            exec(x_item['redo_command'])
+            undo_type = x_item['undo_command'][0]
+
+            if undo_type == 'insert':
+                cc, cr, substring = x_item['redo_command']
+                self.cursor = cc, cr
+                self.insert_text(substring, True)
+                #substring.replace('\n', '\\n').replace('\'', '\\\'')
+            elif undo_type == 'bkspc':
+                cc, cr = x_item['redo_command']
+                self.cursor = cc, cr
+                self.do_backspace(True)
+            else:
+                # delsel
+                ci, sci, cc, cr = x_item['redo_command']
+                self._selection_from = ci
+                self._selection_to = sci
+                self._selection = True
+                self.delete_selection(True)
+                self.cursor = (cc, cr)
             self._undo.append(x_item)
         except IndexError:
             # reached at top of undo list
@@ -337,7 +368,22 @@ class TextInput(Widget):
         '''
         try:
             x_item = self._undo.pop()
-            exec(x_item['undo_command'])
+            undo_type = x_item['undo_command'][0]
+            self.cursor = x_item['undo_command'][1]
+
+            if undo_type == 'insert':
+                ci, sci = x_item['undo_command'][2:]
+                self._selection_from = ci
+                self._selection_to = sci
+                self._selection = True
+                self.delete_selection(True)
+            elif undo_type == 'bkspc':
+                substring = x_item['undo_command'][2:]
+                self.insert_text(substring, True)
+            else:
+                # delsel
+                substring = x_item['undo_command'][2:][0]
+                self.insert_text(substring, True)
             self._redo.append(x_item)
         except IndexError:
             # reached at top of undo list
@@ -383,13 +429,9 @@ class TextInput(Widget):
         if from_undo:
             return
 
-        self._undo.append({'undo_command': \
-            'self.cursor = (%i, %i)\n' %(cursor[0], cursor[1]) +\
-            'self.insert_text(u\'%s\', True)'\
-            %(substring.replace('\n', '\\n').replace('\'', '\\\'')),
-            'redo_command': \
-            'self.cursor = (%i, %i)\n' %(cc, cr)+\
-            'self.do_backspace(True)'})
+        self._undo.append({
+            'undo_command': ('bkspc', cursor, substring),
+            'redo_command': (cc, cr)})
         #reset redo when undo is appended to
         self._redo = []
 
@@ -478,7 +520,7 @@ class TextInput(Widget):
         if not self._selection:
             return
         v = self.text
-        a, b = self.selection_from, self.selection_to
+        a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         text = v[:a] + v[b:]
@@ -496,15 +538,9 @@ class TextInput(Widget):
         if from_undo:
             return
 
-        self._undo.append({'undo_command': \
-            'self.cursor = (%i, %i)\n' %(cursor[0], cursor[1]) +\
-            'self.insert_text(u\'%s\', True)'\
-            %(substring.replace('\n', '\\n').replace('\'', '\\\'')),
-            'redo_command': \
-            'self.selection_from = %i\nself.selection_to = %i\n' %(ci, sci)+
-            'self._selection = True\n'+\
-            'self.delete_selection(True)\n'+\
-            'self.cursor = (%i, %i)\n' %(cc, cr)})
+        self._undo.append({
+            'undo_command': ('delsel', cursor, substring),
+            'redo_command': (ci, sci, cc, cr)})
         #reset redo when undo is appended to
         self._redo = []
 
@@ -512,7 +548,7 @@ class TextInput(Widget):
         '''Update selection text and order of from/to if finished is True.
         Can be called multiple times until finished is True.
         '''
-        a, b = self.selection_from, self.selection_to
+        a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         self._selection_finished = finished
@@ -541,7 +577,7 @@ class TextInput(Widget):
         if not self._selection_touch:
             self.cancel_selection()
             self._selection_touch = touch
-            self.selection_from = self.selection_to = self.cursor_index()
+            self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
         return True
 
@@ -555,7 +591,7 @@ class TextInput(Widget):
             return False
         if self._selection_touch is touch:
             self.cursor = self.get_cursor_from_xy(touch.x, touch.y)
-            self.selection_to = self.cursor_index()
+            self._selection_to = self.cursor_index()
             self._update_selection()
             return True
 
@@ -566,7 +602,7 @@ class TextInput(Widget):
         if not self.focus:
             return False
         if self._selection_touch is touch:
-            self.selection_to = self.cursor_index()
+            self._selection_to = self.cursor_index()
             self._update_selection(True)
             # show Bubble
             win = self._win
@@ -576,7 +612,7 @@ class TextInput(Widget):
                 Logger.warning('Textinput: '
                     'Cannot show bubble, unable to get root window')
                 return True
-            if self.selection_to != self.selection_from:
+            if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
             else:
                 self._hide_cut_copy_paste(win)
@@ -915,7 +951,7 @@ class TextInput(Widget):
         maxy = _top - _padding_y
         draw_selection = self._draw_selection
         scroll_y = self.scroll_y
-        a, b = self.selection_from, self.selection_to
+        a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         get_cursor_from_index = self.get_cursor_from_index
@@ -933,7 +969,7 @@ class TextInput(Widget):
 
     def _draw_selection(self, pos, size, line_num):
         # Draw the current selection on the widget.
-        a, b = self.selection_from, self.selection_to
+        a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         get_cursor_from_index = self.get_cursor_from_index
@@ -1097,13 +1133,13 @@ class TextInput(Widget):
             self.insert_text(displayed_str)
         elif internal_action in ('shift', 'shift_L', 'shift_R'):
             if not self._selection:
-                self.selection_from = self.selection_to = self.cursor_index()
+                self._selection_from = self._selection_to = self.cursor_index()
                 self._selection = True
             self._selection_finished = False
         elif internal_action.startswith('cursor_'):
             self.do_cursor_movement(internal_action)
             if self._selection and not self._selection_finished:
-                self.selection_to = self.cursor_index()
+                self._selection_to = self.cursor_index()
                 self._update_selection()
             else:
                 self.cancel_selection()
@@ -1152,9 +1188,7 @@ class TextInput(Widget):
                 elif key == ord('v'): # paste selection
                     self._paste()
                 elif key == ord('a'): # select all
-                    self.selection_from = 0
-                    self.selection_to = len(self.text)
-                    self._update_selection(True)
+                    self.select_all()
                 elif key == ord('z'): # undo
                     self.do_undo()
                 elif key == ord('r'): # redo
@@ -1390,27 +1424,37 @@ class TextInput(Widget):
     default to [0, 0, 0, 1] #Black
     '''
 
-    selection_from = NumericProperty(None, allownone=True)
+    def get_sel_from(self):
+        return self._selection_from
+
+    selection_from = AliasProperty(get_sel_from, None)
     '''If a selection is happening, or finished, this property will represent
     the cursor index where the selection started.
 
-    :data:`selection_from` is a :class:`~kivy.properties.NumericProperty`,
-    default to None
+    .. versionchanged:: 1.4.0
+
+    :data:`selection_from` is a :class:`~kivy.properties.AliasProperty`,
+    default to None, readonly.
     '''
 
-    selection_to = NumericProperty(None, allownone=True)
-    '''If a selection is happening, or finished, this property will represent
-    the cursor index where the selection ended.
+    def get_sel_to(self):
+        return self._selection_to
 
-    :data:`selection_to` is a :class:`~kivy.properties.NumericProperty`,
-    default to None
+    selection_to = AliasProperty(get_sel_to, None)
+    '''If a selection is happening, or finished, this property will represent
+    the cursor index where the selection started.
+
+    .. versionchanged:: 1.4.0
+
+    :data:`selection_to` is a :class:`~kivy.properties.AliasProperty`,
+    default to None, readonly.
     '''
 
     selection_text = StringProperty('')
     '''Current content selection.
 
     :data:`selection_text` is a :class:`~kivy.properties.StringProperty`,
-    default to ''
+    default to '', readonly.
     '''
 
     focus = BooleanProperty(False)
