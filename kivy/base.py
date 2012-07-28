@@ -26,7 +26,7 @@ EventLoop = None
 
 class ExceptionHandler:
     '''Base handler that catch exception in runTouchApp().
-    You can derivate and use it like this ::
+    You can derivate and use it like this::
 
         class E(ExceptionHandler):
             def handle_exception(self, inst):

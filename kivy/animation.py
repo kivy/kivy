@@ -136,7 +136,7 @@ class Animation(EventDispatcher):
         '''Stop all animations that concern a specific widget / list of
         properties.
 
-        Example ::
+        Example::
 
             anim = Animation(x=50)
             anim.start(widget)

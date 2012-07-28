@@ -5,7 +5,7 @@ Layouts
 
     Arranging Your Widgets
 
-Layouts are used to arrange widgets in a perticular manner. ::
+Layouts are used to arrange widgets in a perticular manner::
 
     AnchorLayout:   widgets can be anchored to 'top', 'bottom', 'left', 'right', 'center'
     BoxLayout:      widgets are arranged in a box in either 'vertical' or 'horizontal' orientation

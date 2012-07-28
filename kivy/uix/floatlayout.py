@@ -15,28 +15,27 @@ The :class:`FloatLayout` class will only honor the :data:`Widget.pos_hint` and
     .. image:: images/floatlayout.png
         :align: right
 
-For example, if you create a FloatLayout with size of (300, 300)::
+For example, if you create a FloatLayout with size a of (300, 300)::
 
     layout = FloatLayout(size=(300, 300))
 
-    # By default, all widgets have size_hint=(1, 1)
-    # So this button will have the same size as
-    # the layout
+By default, all widgets have size_hint=(1, 1), so this button will have the
+same size as the layout::
+
     button = Button(text='Hello world')
     layout.add_widget(button)
 
-    # To create a button of 50% width and 25%
-    # height of the layout and positioned at
-    # 20, 20, you can do
+To create a button of 50% width and 25% height of the layout and positioned at
+(20, 20), you can do::
+
     button = Button(
         text='Hello world',
         size_hint=(.5, .25),
         pos=(20, 20))
 
-::
+If you want to create a button that will always be the size of layout minus
+20% on each side::
 
-    # If you want to create a button that will always be the size of layout
-    # minus 20% on each side:
     button = Button(text='Hello world', size_hint=(.6, .6),
                     pos_hint={'x':.2, 'y':.2})
 
@@ -53,7 +52,7 @@ For example, if you create a FloatLayout with size of (300, 300)::
 
 '''
 
-__all__ = ('FloatLayout', 'RelativeFloatLayout')
+__all__ = ('FloatLayout',)
 
 from kivy.uix.layout import Layout
 

@@ -2,7 +2,7 @@
 Image
 =====
 
-The :class:`Image` widget is used to display an image. ::
+The :class:`Image` widget is used to display an image::
 
     wimg = Image(source='mylogo.png')
 
@@ -10,7 +10,7 @@ Asynchronous Loading
 --------------------
 
 To load an image asynchronously (for example from an external webserver), use
-the :class:`AsyncImage` subclass ::
+the :class:`AsyncImage` subclass::
 
     aimg = AsyncImage(source='http://mywebsite.com/logo.png')
 
@@ -21,12 +21,12 @@ By default, the image is centered and fit inside the widget bounding box.
 If you don't want that, you can inherit from Image and create your own style.
 
 For example, if you want your image to take the same size of your widget, you
-can do ::
+can do::
 
     class FullImage(Image):
         pass
 
-And in your kivy language file, you can do ::
+And in your kivy language file, you can do::
 
     <FullImage>:
         canvas:

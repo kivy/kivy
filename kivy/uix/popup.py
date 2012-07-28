@@ -41,7 +41,7 @@ To manually dismiss/close the popup, use :meth:`Popup.dismiss`::
     popup.dismiss()
 
 The :meth:`Popup.open` and :meth:`Popup.dismiss` are bindable. That means you
-can directly bind the function to an action, e.g., to a button's on_press ::
+can directly bind the function to an action, e.g., to a button's on_press::
 
     # create content and assign to the popup
     content = Button(text='Close me!')
@@ -59,7 +59,7 @@ Popup Events
 
 There are two events available: `on_open` when the popup is opening, and
 `on_dismiss` when it is closed. For `on_dismiss`, you can prevent the
-popup from closing by explictly returning True from your callback ::
+popup from closing by explictly returning True from your callback::
 
     def my_callback(instance):
         print 'Popup', instance, 'is being dismissed, but is prevented!'
@@ -73,8 +73,8 @@ popup from closing by explictly returning True from your callback ::
 __all__ = ('Popup', 'PopupException')
 
 from kivy.uix.modalview import ModalView
-from kivy.properties import StringProperty, ObjectProperty, \
-    NumericProperty, ListProperty
+from kivy.properties import (StringProperty, ObjectProperty,
+    NumericProperty, ListProperty)
 
 
 class PopupException(Exception):

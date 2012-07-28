@@ -3,7 +3,7 @@ Label
 =====
 
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
-strings ::
+strings::
 
     # hello world text
     l = Label(text='Hello world')
@@ -211,11 +211,11 @@ class Label(Widget):
     text = StringProperty('')
     '''Text of the label.
 
-    Creation of a simple hello world ::
+    Creation of a simple hello world::
 
         widget = Label(text='Hello world')
 
-    If you want to create the widget with an unicode string, use ::
+    If you want to create the widget with an unicode string, use::
 
         widget = Label(text=u'My unicode string')
 
@@ -365,7 +365,7 @@ class Label(Widget):
 
         The :data:`texture` update is scheduled for the next frame. If you need
         the texture immediately after changing a property, you have to call
-        the :func:`texture_update` function before accessing :data:`texture` ::
+        the :func:`texture_update` function before accessing :data:`texture`::
 
             l = Label(text='Hello world')
             # l.texture is good

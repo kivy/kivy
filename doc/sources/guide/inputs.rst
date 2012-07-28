@@ -2,7 +2,7 @@ Input management
 ================
 
 Input architecture
------------------
+------------------
 
 Kivy is able to handle most types of input: mouse, touchscreen, accelerometer,
 gyroscope, etc. It handles the native multitouch protocols on the following
@@ -96,7 +96,7 @@ profile exists::
         if 'angle' in touch.profile:
             print 'The touch angle is', touch.a
 
-You can find a list of available profiles in the :doc:`api-kivy.input.motionevent`
+You can find a list of available profiles in the :mod:`api-kivy.input.motionevent`
 documentation.
 
 Touch events

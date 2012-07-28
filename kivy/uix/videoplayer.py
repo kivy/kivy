@@ -288,7 +288,7 @@ class VideoPlayer(GridLayout):
 
     play = BooleanProperty(False)
     '''Boolean, indicates if the video is playing.
-    You can start/stop the video by setting this property. ::
+    You can start/stop the video by setting this property::
 
         # start playing the video at creation
         video = VideoPlayer(source='movie.mkv', play=True)

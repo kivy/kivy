@@ -16,7 +16,7 @@ Anchor Layout
 or center.
 
 
-To draw a button in the lower-right corner ::
+To draw a button in the lower-right corner::
 
     layout = AnchorLayout(
         anchor_x='right', anchor_y='bottom')
