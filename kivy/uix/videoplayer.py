@@ -113,7 +113,19 @@ class VideoPlayerPlayPause(Image):
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            self.video.play = not self.video.play
+            if self.video.state == 'play':
+                self.video.state = 'pause'
+            else:
+                self.video.state = 'play'
+            return True
+
+
+class VideoPlayerStop(Image):
+    video = ObjectProperty(None)
+
+    def on_touch_down(sel, touch):
+        if self.collide_point(*touch.pos):
+            self.video.state = 'stop'
             return True
 
 

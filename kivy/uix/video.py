@@ -155,22 +155,29 @@ class Video(Image):
             self._video.bind(on_load=self._on_video_frame,
                              on_frame=self._on_video_frame,
                              on_eos=self._on_eos)
-            if self.play:
+            if self.state == 'play' or self.play:
                 self._video.play()
             self.duration = 1.
             self.position = 0.
 
     def on_play(self, instance, value):
+        value = 'play' if value else 'stop'
+        return self.on_state(instance, value)
+
+    def on_state(self, instance, value):
         if not self._video:
             return
-        if value:
+        if value == 'play':
             if self.eos:
                 self._video.stop()
                 self._video.position = 0.
                 self._video.eos = False
             self.eos = False
             self._video.play()
+        elif value == 'pause':
+            self._video.pause()
         else:
+            #self._video.position = 0
             self._video.stop()
 
     def _on_video_frame(self, *largs):
