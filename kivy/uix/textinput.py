@@ -262,18 +262,19 @@ class TextInput(Widget):
     def select_text(self, start, end):
         ''' Select portion of text displayed in this TextInput
 
-        .. version added:: 1.4.0
-
+        .. versionadded:: 1.4.0
         '''
-        self._selection_from = start
-        self._selection_to = end
+        if end < start:
+            raise Exception('end must be superior to start')
+        m = len(self.text)
+        self._selection_from = boundary(start, 0, m)
+        self._selection_to = boundary(end, 0, m)
         self._update_selection(True)
 
     def select_all(self):
         ''' Select all of the text displayed in this TextInput
 
-        .. version added:: 1.4.0
-
+        .. versionadded:: 1.4.0
         '''
         self.select_text(0, len(self.text))
 
@@ -1453,7 +1454,7 @@ class TextInput(Widget):
     '''Current content selection.
 
     :data:`selection_text` is a :class:`~kivy.properties.StringProperty`,
-    default to ''
+    default to '', readonly.
     '''
 
     focus = BooleanProperty(False)
