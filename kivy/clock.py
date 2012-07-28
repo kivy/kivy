@@ -59,6 +59,8 @@ module::
 
         # and keep the instance of foo, until you don't need it anymore!
 
+.. _schedule-before-frame:
+
 Schedule before frame
 ---------------------
 
@@ -84,6 +86,8 @@ If you need to increase the limit, set the :data:`max_iteration` property::
 
     from kivy.clock import Clock
     Clock.max_iteration = 20
+
+.. _triggered-events:
 
 Triggered Events
 ----------------
