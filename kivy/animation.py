@@ -374,7 +374,7 @@ class Parallel(Animation):
 class AnimationTransition(object):
     '''Collection of animation function, to be used with Animation object.
     Easing Functions ported into Kivy from Clutter Project
-    http://www.clutter-project.org/docs/clutter/stable/ClutterAlpha.html
+    http://docs.clutter-project.org/docs/clutter-cookbook/1.0/animations.html
 
     `progress` parameter in each animation functions is between 0-1 range.
     '''

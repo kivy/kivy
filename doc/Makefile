@@ -3,8 +3,7 @@
 
 # You can set these variables from the command line.
 PYTHON		  = python
-#SPHINXOPTS    = -W
-SPHINXOPTS    =
+SPHINXOPTS    = -W
 SPHINXBUILD   = sphinx-build
 PAPER         =
 
