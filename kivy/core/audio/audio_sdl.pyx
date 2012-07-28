@@ -133,7 +133,8 @@ class SoundSDL(Sound):
         #print '<<< load wav done in %.4fs' % (time() - start)
         if mc.chunk == NULL:
             Logger.warning('AudioSDL: Unable to load %r' % self.filename)
-        mc.chunk.volume = int(self.volume * 128)
+        else:
+            mc.chunk.volume = int(self.volume * 128)
 
     def unload(self):
         cdef MixContainer mc = self.mc
