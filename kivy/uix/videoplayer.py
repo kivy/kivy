@@ -148,7 +148,7 @@ class VideoPlayerProgressBar(ProgressBar):
 
     def on_video(self, instance, value):
         self.video.bind(position=self._update_bubble,
-                play=self._showhide_bubble)
+                state=self._showhide_bubble)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -223,7 +223,7 @@ class VideoPlayerPreview(FloatLayout):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and not self.click_done:
             self.click_done = True
-            self.video.play = True
+            self.video.state = 'play'
         return True
 
 
