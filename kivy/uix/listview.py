@@ -132,7 +132,6 @@ class ListView(AbstractView):
                   pos=self._trigger_populate,
                   adapter=self._trigger_populate)
         self.adapter.bind(data=self._trigger_hard_populate)
-        self.populate()
 
     def _scroll(self, scroll_y):
         if self.row_height is None:
