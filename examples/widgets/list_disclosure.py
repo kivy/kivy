@@ -44,7 +44,6 @@ class ListItemSubButton(SelectableItem, Button):
     deselected_color = None
 
     def __init__(self, **kwargs):
-        kwargs['selection_target'] = self.parent
         super(ListItemSubButton, self).__init__(**kwargs)
 
         # Set deselected_color to be default Button bg color.
@@ -69,7 +68,6 @@ class ListItemSubLabel(SelectableItem, Label):
     deselected_color = ListProperty([.33, .33, .33, 1])
 
     def __init__(self, **kwargs):
-        kwargs['selection_target'] = self.parent
         super(ListItemSubLabel, self).__init__(**kwargs)
 
     # [TODO] Should Label have background_color, like Button, etc.?
@@ -99,15 +97,29 @@ class ListItem(SelectableItem, BoxLayout):
     content_button = ObjectProperty(None)
 
     def __init__(self, **kwargs):
-        super(ListItem, self).__init__(size_hint_y=None, height=25)
+        super(ListItem, self).__init__(**kwargs)
 
         # Now this button just has text '>', but it would be neat to make the
         # left button hold icons -- the list would be heterogeneous, containing
         # different ListItem types that could be filtered perhaps (an option
         # for selecting all of a given type, for example).
-        self.icon_button = ListItemSubButton(
-            text='>', size_hint_x=.05, size_hint_y=None, height=25)
+
+        # For sub list items, set selection_target to self (this is a kind of
+        # composite list item) so that when they are touched, the composite
+        # list item is selected, not the components. Any list item component
+        # that should be selected individually, would need to override this.
+        kwargs['selection_target'] = self
+
+        # Make a copy of kwargs and add specific args for the "disclosure"
+        # icon button.
+        icon_kwargs = kwargs.copy()
+        icon_kwargs['text'] = '>'
+        icon_kwargs['size_hint_x'] = .05
+        self.icon_button = ListItemSubButton(**icon_kwargs)
+
+        # Use the passed in kwargs for the "content" button.
         self.content_button = ListItemSubButton(**kwargs)
+
         self.add_widget(self.icon_button)
         self.add_widget(self.content_button)
 
