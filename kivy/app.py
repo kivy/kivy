@@ -151,7 +151,7 @@ However, you might want to know when a config value has been changed by the
 user, in order to adapt or reload your UI. You can overload the
 :meth:`on_config_change` method::
 
-    class TestApp(self):
+    class TestApp(App):
         # ...
         def on_config_change(self, config, section, key, value):
             if config is self.config:
