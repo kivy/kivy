@@ -11,7 +11,6 @@ from kivy.properties import ListProperty, StringProperty, ObjectProperty
 
 # Generic list item will do fine for both list views:
 
-
 class ListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = None
@@ -108,13 +107,13 @@ class CascadingView(GridLayout):
         #
         self.fruits_list_adapter = \
                 ChainedListAdapter(
-                        observed_list_adapter=self.fruit_categories_list_adapter,
-                        selectable_lists_dict=fruit_categories,
-                        data=fruit_categories[categories[0]],
-                        args_converter=list_item_args_converter,
-                        selection_mode='single',
-                        allow_empty_selection=False,
-                        cls=ListItem)
+                    observed_list_adapter=self.fruit_categories_list_adapter,
+                    selectable_lists_dict=fruit_categories,
+                    data=fruit_categories[categories[0]],
+                    args_converter=list_item_args_converter,
+                    selection_mode='single',
+                    allow_empty_selection=False,
+                    cls=ListItem)
         self.fruits_list_view = \
                 ListView(adapter=self.fruits_list_adapter,
                         size_hint=(.2, 1.0))
@@ -126,19 +125,6 @@ class CascadingView(GridLayout):
                 observed_list_adapter=self.fruits_list_adapter,
                 size_hint=(.6, 1.0))
         self.add_widget(self.detail_view)
-
-        # Manually re-initialize selection of fruit category to fire updates
-        # to observing views in the chain:
-        #
-        #    fruit categories list -> fruits list -> detail view
-        #
-        # These lists are set up for auto-selection, but the dispatching
-        # that happens on instantiation would have already fired.
-        #
-        self.fruit_categories_list_adapter.check_for_empty_selection()
-
-        # [TODO] Why is this call also needed?
-        self.fruits_list_adapter.check_for_empty_selection()
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
