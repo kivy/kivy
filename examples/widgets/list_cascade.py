@@ -41,6 +41,8 @@ class DetailView(SelectionObserver, GridLayout):
         super(DetailView, self).__init__(**kwargs)
         self.bind(fruit_name=self.redraw)
 
+        self.fruit_name = self.observed_list_adapter.selection[0].text
+
     def redraw(self, *args):
         self.clear_widgets()
         self.add_widget(Label(text="Name:", halign='right'))
@@ -116,7 +118,7 @@ class CascadingView(GridLayout):
                     cls=ListItem)
         self.fruits_list_view = \
                 ListView(adapter=self.fruits_list_adapter,
-                        size_hint=(.2, 1.0))
+                    size_hint=(.2, 1.0))
         self.add_widget(self.fruits_list_view)
 
         # Detail view, for a given fruit, on the right:

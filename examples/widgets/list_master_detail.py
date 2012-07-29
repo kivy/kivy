@@ -14,7 +14,6 @@ from kivy.adapters.listadapter import ListAdapter
 # For the master list, we need to create a custom "list item" type that
 # subclasses SelectableItem.
 
-
 class ListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = None
@@ -39,7 +38,6 @@ class ListItem(SelectableItem, Button):
 # so SelectionObserver is mixed in, requiring an override of the
 # observed_selection_changed() method.
 
-
 class DetailView(SelectionObserver, GridLayout):
     fruit_name = StringProperty('')
 
@@ -47,6 +45,8 @@ class DetailView(SelectionObserver, GridLayout):
         kwargs['cols'] = 2
         super(DetailView, self).__init__(**kwargs)
         self.bind(fruit_name=self.redraw)
+
+        self.fruit_name = self.observed_list_adapter.selection[0].text
 
     def redraw(self, *args):
         self.clear_widgets()
