@@ -52,7 +52,7 @@ If you want to create a button that will always be the size of layout minus
 
 '''
 
-__all__ = ('FloatLayout',)
+__all__ = ('FloatLayout', )
 
 from kivy.uix.layout import Layout
 
@@ -65,11 +65,11 @@ class FloatLayout(Layout):
         kwargs.setdefault('size', (1, 1))
         super(FloatLayout, self).__init__(**kwargs)
         self.bind(
-            children = self._trigger_layout,
-            pos = self._trigger_layout,
-            pos_hint = self._trigger_layout,
-            size_hint = self._trigger_layout,
-            size = self._trigger_layout)
+            children=self._trigger_layout,
+            pos=self._trigger_layout,
+            pos_hint=self._trigger_layout,
+            size_hint=self._trigger_layout,
+            size=self._trigger_layout)
 
     def do_layout(self, *largs):
         # optimization, until the size is 1, 1, don't do layout
@@ -109,17 +109,16 @@ class FloatLayout(Layout):
 
     def add_widget(self, widget, index=0):
         widget.bind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout,
-            pos = self._trigger_layout,
-            pos_hint = self._trigger_layout)
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout,
+            pos=self._trigger_layout,
+            pos_hint=self._trigger_layout)
         return super(Layout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout,
-            pos = self._trigger_layout,
-            pos_hint = self._trigger_layout)
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout,
+            pos=self._trigger_layout,
+            pos_hint=self._trigger_layout)
         return super(Layout, self).remove_widget(widget)
-
