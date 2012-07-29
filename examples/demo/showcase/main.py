@@ -277,5 +277,5 @@ class ShowcaseApp(App):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         return tv
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     ShowcaseApp().run()

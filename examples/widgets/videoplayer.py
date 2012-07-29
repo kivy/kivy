@@ -18,5 +18,5 @@ class VideoPlayerApp(App):
         return VideoPlayer(source=filename, play=True)
 
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     VideoPlayerApp().run()

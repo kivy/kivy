@@ -29,5 +29,5 @@ class TestAsyncApp(App):
         return CenteredAsyncImage(
                 source='http://icanhascheezburger.files.wordpress.com/2009/12/funny-pictures-cat-is-expecting-you.jpg')
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     TestAsyncApp().run()
