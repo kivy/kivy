@@ -82,12 +82,11 @@ class ListAdapter(SelectionSupport, Adapter):
         else:
             item_args = item
 
+        item_args['list_adapter'] = self
+
         if self.cls:
             print 'CREATE VIEW FOR', index
-            instance = self.cls(self, **item_args)
+            instance = self.cls(**item_args)
             return instance
         else:
-            # [TODO] However this is done, document it.
-            item_args['list_adapter'] = self
-
             return Builder.template(self.template, **item_args)

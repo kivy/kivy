@@ -13,26 +13,51 @@ from kivy.properties import ObjectProperty, \
 
 class SelectableItem(object):
     '''The :class:`SelectableItem` mixin is used in list item classes that are
-    to be instantiated in a ListView. The handle_selection() callback
-    interfaces to the ListView. select() and deselect() are to be overridden
-    with display code to mark items as selected or not.
+    to be instantiated in a ListView, which uses a ListAdapter. The
+    handle_selection() function interfaces to the ListView, via its
+    ListAdapter, passing the selection_target, the object that is to be
+    selected. select() and deselect() are to be overridden with display code
+    to mark items as selected or not, if desired.
     '''
-    is_selected = BooleanProperty(False)
-    selection_callback = ObjectProperty(None)
+    list_adapter = ObjectProperty(None)
 
-    # The list item must handle the selection AND call the list's
-    # selection_callback.
+    # Usually selection_target would be self, but it could be self.parent
+    # for an element of a composite list item.
+    selection_target = ObjectProperty(None)
+
+    is_selected = BooleanProperty(False)
+
+    def __init__(self, **kwargs):
+        # [TODO] list_adapter is not optional, and should be guaranteed,
+        #        because list_adapter itself makes this __init__ call and
+        #        passes self. OK to assume here?
+        self.list_adapter = kwargs['list_adapter']
+
+        # For simple list items, selection_target will be the list item
+        # itself, but for components of composite list items, the components
+        # could "pass" selection up to their parent. [TODO] Does this usage
+        # make sense?
+        if hasattr(kwargs, 'selection_target'):
+            self.selection_target = kwargs['selection_target']
+        else:
+            self.selection_target = self
+
+        super(SelectableItem, self).__init__(**kwargs)
+
+        self.bind(on_release=self.handle_selection)
+
     def handle_selection(self, *args):
-        self.selection_callback(*args)
+        if self.list_adapter is not None:
+            self.list_adapter.handle_selection(self.selection_target)
 
     # The list item is responsible for updating the display for
-    # being selected.
-    def select(self):
+    # being selected, if desired.
+    def select(self, *args):
         raise NotImplementedError()
 
     # The list item is responsible for updating the display for
-    # being unselected.
-    def deselect(self):
+    # being unselected, if desired.
+    def deselect(self, *args):
         raise NotImplementedError()
 
 

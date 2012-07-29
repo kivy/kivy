@@ -16,17 +16,11 @@ class ListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = None
 
-    def __init__(self, list_adapter, **kwargs):
-        self.list_adapter = list_adapter
+    def __init__(self, **kwargs):
         super(ListItem, self).__init__(**kwargs)
 
         # Set deselected_color to be default Button bg color.
         self.deselected_color = self.background_color
-
-        self.bind(on_release=self.handle_selection)
-
-    def handle_selection(self, button):
-        self.list_adapter.handle_selection(self)
 
     def select(self, *args):
         print self.text, 'is now selected'

@@ -43,18 +43,12 @@ class ListItemSubButton(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = None
 
-    def __init__(self, list_adapter, **kwargs):
-        self.list_adapter = list_adapter
+    def __init__(self, **kwargs):
+        kwargs['selection_target'] = self.parent
         super(ListItemSubButton, self).__init__(**kwargs)
 
         # Set deselected_color to be default Button bg color.
         self.deselected_color = self.background_color
-
-        self.bind(on_release=self.handle_selection)
-
-    def handle_selection(self, button):
-        # Not this "sub" list item, but the list item.
-        self.list_adapter.handle_selection(self.parent)
 
     # [TODO] At least there is some action on this set, but
     #        the color gets somehow composited.
@@ -74,15 +68,9 @@ class ListItemSubLabel(SelectableItem, Label):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = ListProperty([.33, .33, .33, 1])
 
-    def __init__(self, list_adapter, **kwargs):
-        self.list_adapter = list_adapter
+    def __init__(self, **kwargs):
+        kwargs['selection_target'] = self.parent
         super(ListItemSubLabel, self).__init__(**kwargs)
-
-        self.bind(on_release=self.handle_selection)
-
-    def handle_selection(self, button):
-        # Not this "sub" list item, but the list item (parent).
-        self.list_adapter.handle_selection(self.parent)
 
     # [TODO] Should Label have background_color, like Button, etc.?
     # [TODO] Not tested yet.
@@ -110,8 +98,7 @@ class ListItem(SelectableItem, BoxLayout):
     icon_button = ObjectProperty(None)
     content_button = ObjectProperty(None)
 
-    def __init__(self, list_adapter, **kwargs):
-        self.list_adapter = list_adapter
+    def __init__(self, **kwargs):
         super(ListItem, self).__init__(size_hint_y=None, height=25)
 
         # Now this button just has text '>', but it would be neat to make the
@@ -119,17 +106,10 @@ class ListItem(SelectableItem, BoxLayout):
         # different ListItem types that could be filtered perhaps (an option
         # for selecting all of a given type, for example).
         self.icon_button = ListItemSubButton(
-            list_adapter=list_adapter,
             text='>', size_hint_x=.05, size_hint_y=None, height=25)
-        self.content_button = ListItemSubButton(
-            list_adapter=list_adapter, **kwargs)
+        self.content_button = ListItemSubButton(**kwargs)
         self.add_widget(self.icon_button)
         self.add_widget(self.content_button)
-
-        self.bind(on_release=self.handle_selection)
-
-    def handle_selection(self, item):
-        self.list_adapter.handle_selection(self)
 
     def select(self, *args):
         self.background_color = self.selected_color
