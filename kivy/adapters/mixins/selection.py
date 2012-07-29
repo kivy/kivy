@@ -47,8 +47,7 @@ class SelectableItem(object):
         self.bind(on_release=self.handle_selection)
 
     def handle_selection(self, *args):
-        if self.list_adapter is not None:
-            self.list_adapter.handle_selection(self.selection_target)
+        self.list_adapter.handle_selection(self.selection_target)
 
     # The list item is responsible for updating the display for
     # being selected, if desired.
