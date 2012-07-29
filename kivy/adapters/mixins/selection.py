@@ -170,9 +170,11 @@ class SelectionSupport(object):
 
     def check_for_empty_selection(self, *args):
         if self.allow_empty_selection is False:
-            v = self.get_view(0)
-            if v is not None:
-                print 'selecting first data item view', v, v.is_selected
-                self.handle_selection(self.get_view(0))
-            #else:
-                #print 'ERROR: No data, so cannot initialize selection.'
+            if len(self.selection) == 0:
+                # Select the first item if we have it.
+                v = self.get_view(0)
+                if v is not None:
+                    print 'selecting first data item view', v, v.is_selected
+                    self.handle_selection(self.get_view(0))
+                #else:
+                    #print 'ERROR: No data, so cannot initialize selection.'
