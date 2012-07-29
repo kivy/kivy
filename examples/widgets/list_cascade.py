@@ -1,4 +1,4 @@
-from kivy.adapters.listadapter import ListAdapter
+from kivy.adapters.listadapter import ListAdapter, ChainedListAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -32,40 +32,6 @@ class ListItem(SelectableItem, Button):
 
     def __repr__(self):
         return self.text
-
-
-class FruitsListView(SelectionObserver, ListView):
-    # The fruit categories list view can be a simple ListView,
-    # but the fruits list, showing fruits for a given category,
-    # will be a SelectionObserver, changing when fruit category
-    # changes.
-    def __init__(self, **kwargs):
-        super(FruitsListView, self).__init__(**kwargs)
-
-    # Observed selection is fruit categories list.
-    def observed_selection_changed(self, list_adapter, selection):
-        #import pdb; pdb.set_trace();
-        if len(list_adapter.selection) == 0:
-            return
-
-        # Clear the previously built views.
-        self.item_view_instances = {}
-
-        # Single selection is operational for fruit categories list.
-        selected_fruit_category = list_adapter.selection[0]
-
-        if type(selected_fruit_category) is str:
-            fruit_category = selected_fruit_category
-        else:
-            fruit_category = str(selected_fruit_category)
-
-        # Reset data for the adapter. This will trigger a call
-        # to self.adapter.check_for_empty_selection().
-        self.adapter.data = fruit_categories[fruit_category]
-
-        self.populate()
-
-        print 'just added or updated fruit category'
 
 
 class DetailView(SelectionObserver, GridLayout):
@@ -135,34 +101,31 @@ class CascadingView(GridLayout):
                         cls=ListItem)
         self.fruit_categories_list_view = \
                 ListView(adapter=self.fruit_categories_list_adapter,
-                         size_hint=(.2, 1.0))
+                        size_hint=(.2, 1.0))
         self.add_widget(self.fruit_categories_list_view)
 
         # Fruits, for a given category, in the middle:
         #
         self.fruits_list_adapter = \
-                ListAdapter(fruit_categories[categories[0]],
+                ChainedListAdapter(
+                        observed_list_adapter=self.fruit_categories_list_adapter,
+                        selectable_lists_dict=fruit_categories,
+                        data=fruit_categories[categories[0]],
                         args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
                         cls=ListItem)
         self.fruits_list_view = \
-                FruitsListView(adapter=self.fruits_list_adapter,
-                         size_hint=(.2, 1.0))
+                ListView(adapter=self.fruits_list_adapter,
+                        size_hint=(.2, 1.0))
         self.add_widget(self.fruits_list_view)
-
-        # Set the fruits_list_view as an observer of the selection of
-        # the fruit categories list.
-        self.fruit_categories_list_adapter.bind(
-                selection=self.fruits_list_view.observed_selection_changed)
 
         # Detail view, for a given fruit, on the right:
         #
-        self.detail_view = DetailView(size_hint=(.6, 1.0))
+        self.detail_view = DetailView(
+                observed_list_adapter=self.fruits_list_adapter,
+                size_hint=(.6, 1.0))
         self.add_widget(self.detail_view)
-
-        self.fruits_list_adapter.bind(
-                selection=self.detail_view.observed_selection_changed)
 
         # Manually re-initialize selection of fruit category to fire updates
         # to observing views in the chain:

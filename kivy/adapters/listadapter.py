@@ -13,10 +13,10 @@ Notes:
     
 '''
 
-from kivy.properties import ListProperty
+from kivy.properties import ListProperty, DictProperty
 from kivy.lang import Builder
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.mixins.selection import SelectionSupport
+from kivy.adapters.mixins.selection import SelectionSupport, SelectionObserver
 
 
 class ListAdapter(SelectionSupport, Adapter):
@@ -90,3 +90,38 @@ class ListAdapter(SelectionSupport, Adapter):
             return instance
         else:
             return Builder.template(self.template, **item_args)
+
+class ChainedListAdapter(SelectionObserver, ListAdapter):
+    '''ChainedListAdapter is specialized for use in chaining
+    list_adapters in a "cascade, where selection of the first,
+    changes the selection of the next, and so on."
+    '''
+
+    selectable_lists_dict = DictProperty({})
+    '''The selection of the observed_list_adapter, which must be single
+    selection here, is the key into selectable_lists_dict, which is a dict
+    of list item lists.
+    '''
+
+    def __init__(self, observed_list_adapter,
+            selectable_lists_dict, data, **kwargs):
+        self.selectable_lists_dict = selectable_lists_dict
+        super(ChainedListAdapter, self).__init__(
+                observed_list_adapter=observed_list_adapter,
+                data=data,
+                **kwargs)
+
+    def observed_selection_changed(self, *args):
+        observed_selection = self.observed_list_adapter.selection
+
+        if len(observed_selection) == 0:
+            self.data = []
+            return
+
+        self.data = self.selectable_lists_dict[str(observed_selection[0])]
+
+class MultipleSelectionChainedListAdapter(SelectionObserver, ListAdapter):
+    '''Should be easy to make a list adapter whose data is formed by the
+    selection of an observed list adapter, whatever the class is called.
+    '''
+    pass

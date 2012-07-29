@@ -105,13 +105,10 @@ class MasterDetailView(GridLayout):
                                          size_hint=(.3, 1.0))
         self.add_widget(self.master_list_view)
 
-        self.detail_view = DetailView(size_hint=(.7, 1.0))
+        self.detail_view = DetailView(
+                observed_list_adapter=self.list_adapter,
+                size_hint=(.7, 1.0))
         self.add_widget(self.detail_view)
-
-        self.list_adapter.bind(
-                selection=self.detail_view.observed_selection_changed)
-
-        self.list_adapter.check_for_empty_selection()
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\

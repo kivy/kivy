@@ -126,9 +126,12 @@ class ListView(AbstractView):
     def __init__(self, **kwargs):
         super(ListView, self).__init__(**kwargs)
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
+        self._trigger_hard_populate = \
+                Clock.create_trigger(self._hard_spopulate, -1)
         self.bind(size=self._trigger_populate,
                   pos=self._trigger_populate,
                   adapter=self._trigger_populate)
+        self.adapter.bind(data=self._trigger_hard_populate)
         self.populate()
 
     def _scroll(self, scroll_y):
@@ -160,8 +163,12 @@ class ListView(AbstractView):
     def _spopulate(self, *dt):
         self.populate()
 
+    def _hard_spopulate(self, *dt):
+        self.item_view_instances = {}
+        self.populate()
+
     def populate(self, istart=None, iend=None):
-        print 'populate', istart, iend
+        print 'populate', self, istart, iend
         container = self.container
         sizes = self._sizes
         rh = self.row_height
