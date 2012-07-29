@@ -50,6 +50,7 @@ class FruitsListView(SelectionObserver, ListView):
 
     # Observed selection is fruit categories list.
     def observed_selection_changed(self, list_adapter, selection):
+        #import pdb; pdb.set_trace();
         if len(list_adapter.selection) == 0:
             return
 

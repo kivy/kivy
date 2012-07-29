@@ -58,10 +58,6 @@ class SelectionSupport(object):
 
     selection = ListProperty([])
     '''The selection list property is the main observable item for selection.
-    As the primary target for observation, the Kivy bindings system assures
-    that any actions on this list property -- changing it wholesale, adding
-    or removing items, and so on, trigger dispatching to bound observer
-    methods.
     '''
 
     selection_mode = OptionProperty('multiple',
@@ -109,26 +105,26 @@ class SelectionSupport(object):
         obj.is_selected = True
         self.selection.append(obj)
 
-    def select_list(self, l, extend):
+    def select_list(self, obj_list, extend):
         '''Methods for selecting/deselecting a single item are
         straightforward, but here selection is handled for the items in the
-        provided list, l. Keyboard actions or multi-touch gestures may, if
+        provided obj_list. Keyboard actions or multi-touch gestures may, if
         allowed, select multiple items, and may replace or add to an existing
         selction.
 
         Arguments:
 
-            l: the list of objects to become the new selection, or to add to
-               the existing selection
+            obj_list: the list of objects to become the new selection, or to
+            add to the existing selection
 
             extend: boolean for whether or not to extend the existing list
         '''
-        for obj in l:
+        for obj in obj_list:
             self.select_object(obj)
         if extend:
-            self.selection.extend(l)
+            self.selection.extend(obj_list)
         else:
-            self.selection = l
+            self.selection = obj_list
 
     def deselect_object(self, obj):
         obj.deselect()
@@ -154,5 +150,5 @@ class SelectionSupport(object):
             if v is not None:
                 print 'selecting first data item view', v, v.is_selected
                 self.handle_selection(self.get_view(0))
-            else:
-                print 'ERROR: No data, so cannot initialize selection.'
+            #else:
+                #print 'ERROR: No data, so cannot initialize selection.'
