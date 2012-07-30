@@ -206,7 +206,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(selection_observer.fruit_name, 'Banana')
 
 
-class SeletableListsAdapterTestCase(unittest.TestCase):
+class SelectableListsAdapterTestCase(unittest.TestCase):
 
     def setUp(self):
         self.args_converter = lambda x: {'text': x,
@@ -220,7 +220,7 @@ class SeletableListsAdapterTestCase(unittest.TestCase):
         # Categories of fruits:
         #
         categories = sorted(fruit_categories.keys())
-        fruit_categories_list_adapter = \
+        fruit_categories_l_a = \
             ListAdapter(categories,
                         args_converter=self.args_converter,
                         selection_mode='single',
@@ -228,22 +228,25 @@ class SeletableListsAdapterTestCase(unittest.TestCase):
                         cls=FruitListItem)
 
         fruit_categories_list_view = \
-            ListView(adapter=fruit_categories_list_adapter,
+            ListView(adapter=fruit_categories_l_a,
                      size_hint=(.2, 1.0))
 
         # Fruits, for a given category:
         #
-        fruits_list_adapter = \
-            SelectableListsAdapter(observed_list_adapter=\
-                                       fruit_categories_list_adapter,
+        fruits_l_a = \
+            SelectableListsAdapter(observed_list_adapter=fruit_categories_l_a,
                                    selectable_lists_dict=fruit_categories,
                                    data=fruit_categories[categories[0]],
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=FruitListItem)
-        fruits_list_view = ListView(adapter=fruits_list_adapter,
+        fruits_list_view = ListView(adapter=fruits_l_a,
                                     size_hint=(.2, 1.0))
 
-        self.assertEqual(len(fruit_categories_list_adapter.selection), 1)
-        self.assertEqual(len(fruits_list_adapter.selection), 1)
+        self.assertEqual(len(fruit_categories_l_a.selection), 1)
+        self.assertEqual(len(fruits_l_a.selection), 1)
+        self.assertEqual(fruit_categories_l_a.selection[0].background_color, \
+                [1.0, 0., 0., 1.0])
+        self.assertEqual(fruits_l_a.selection[0].background_color, \
+                [1.0, 0., 0., 1.0])
