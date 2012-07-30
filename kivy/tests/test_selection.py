@@ -205,6 +205,11 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(list_adapter.get_view(2).text, 'Banana')
         self.assertEqual(selection_observer.fruit_name, 'Banana')
 
+        # Call count here should be 2, because there was a call initally
+        # from selection triggered by allow_empty_selection=False, and
+        # a second where handle_selection() was called directly.
+        self.assertEqual(selection_observer.call_count, 2)
+
 
 class SelectableListsAdapterTestCase(unittest.TestCase):
 
