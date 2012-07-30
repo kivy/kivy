@@ -92,9 +92,8 @@ class ListAdapter(SelectionSupport, Adapter):
             return Builder.template(self.template, **item_args)
 
 
-class SingleSelectionObservingListAdapter(SingleSelectionObserver,
-                                          ListAdapter):
-    '''SingleSelectionObservingListAdapter is specialized for use in chaining
+class SelectableListsAdapter(SingleSelectionObserver, ListAdapter):
+    '''SelectableListsAdapter is specialized for use in chaining
     list_adapters in a "cascade," where selection of the first,
     changes the selection of the next, and so on.
     '''
@@ -108,7 +107,7 @@ class SingleSelectionObservingListAdapter(SingleSelectionObserver,
     def __init__(self, observed_list_adapter,
             selectable_lists_dict, data, **kwargs):
         self.selectable_lists_dict = selectable_lists_dict
-        super(SingleSelectionObservingListAdapter, self).__init__(
+        super(SelectableListsAdapter, self).__init__(
                 observed_list_adapter=observed_list_adapter,
                 data=data,
                 **kwargs)
@@ -123,20 +122,16 @@ class SingleSelectionObservingListAdapter(SingleSelectionObserver,
         self.data = self.selectable_lists_dict[str(observed_selection[0])]
 
 
-class MultipleSelectionObservingListAdapter(MultipleSelectionObserver,
-                                            ListAdapter):
-    '''MultipleSelectionObservingListAdapter is a list adapter whose
+class AccumulatingListAdapter(MultipleSelectionObserver, ListAdapter):
+    '''AccumulatingListAdapter is a list adapter whose
     data is formed by the selection of an observed list adapter.
-    '''
 
-    accumulate_selection = BooleanProperty(True)
-    '''The default is to allow selection to accumulate as either single or
-    multiple touches happen. If False, each single or multiple touch will
-    refresh selection to [newly selected items]. [TODO] Implement.
+    Selection will accumulate as either single or multiple selection
+    events happen.
     '''
 
     def __init__(self, observed_list_adapter, data, **kwargs):
-        super(MultipleSelectionObservingListAdapter, self).__init__(
+        super(AccumulatingListAdapter, self).__init__(
                 observed_list_adapter=observed_list_adapter,
                 data=data,
                 **kwargs)

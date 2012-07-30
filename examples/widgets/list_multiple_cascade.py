@@ -1,5 +1,5 @@
 from kivy.adapters.listadapter import ListAdapter, \
-        MultipleSelectionObservingListAdapter
+        AccumulatingListAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -66,7 +66,7 @@ class MultipleCascadingView(GridLayout):
         # Selected fruits, on the right
         #
         selected_fruits_list_adapter = \
-                MultipleSelectionObservingListAdapter(
+                AccumulatingListAdapter(
                     observed_list_adapter=fruits_list_adapter,
                     data=[fruits[0]],
                     args_converter=list_item_args_converter,
