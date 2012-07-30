@@ -666,10 +666,10 @@ cdef class BoundedNumericProperty(Property):
         '''
         cdef dict s = obj.__storage[self._name]
         if value is None:
-            s['use_min'] = 0
+            s['use_max'] = 0
         else:
-            s['min'] = value
-            s['use_min'] = 1
+            s['max'] = value
+            s['use_max'] = 1
 
     def get_max(self, obj):
         '''Return the maximum value acceptable for the BoundedNumericProperty in
