@@ -118,10 +118,11 @@ class SelectionSupport(object):
 
     def __init__(self, **kwargs):
         super(SelectionSupport, self).__init__(**kwargs)
-        self.bind(selection_mode=self.initialize_selection,
-                  allow_empty_selection=self.initialize_selection)
-        self.check_for_empty_selection()
+        self.bind(selection_mode=self.check_for_empty_selection,
+                  allow_empty_selection=self.check_for_empty_selection)
 
+    # [TODO] This is not "atomic" yet, as observers of selection will fire
+    #        on each select or deselect op.
     def handle_selection(self, obj):
         if obj not in self.selection:
             if self.selection_mode == 'single' and len(self.selection) > 0:
@@ -167,15 +168,6 @@ class SelectionSupport(object):
     def deselect_list(self, l):
         for obj in l:
             self.deselect_object(obj)
-
-    def initialize_selection(self, *args):
-        '''After emptying the selection list property, check the
-        allow_empty_selection boolean, and maintain selection if required.
-        '''
-        print 'initialize_selection'
-        self.selection = []
-
-        self.check_for_empty_selection(*args)
 
     def check_for_empty_selection(self, *args):
         if self.allow_empty_selection is False:

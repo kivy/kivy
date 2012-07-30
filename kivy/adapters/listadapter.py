@@ -53,9 +53,9 @@ class ListAdapter(SelectionSupport, Adapter):
         super(ListAdapter, self).__init__(**kwargs)
 
         # Reset and update selection, in SelectionSupport, if data changes.
-        self.bind(data=self.initialize_selection)
+        self.bind(data=self.check_for_empty_selection)
 
-        # Do the initial set -- triggers initialize_selection().
+        # Do the initial set -- triggers check_for_empty_selection().
         self.data = data
 
     def get_count(self):
