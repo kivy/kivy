@@ -244,7 +244,7 @@ cdef class Property:
         '''
         cdef list observers = obj.__storage[self._name]['observers']
         for obj in observers[:]:
-            if obj is observer:
+            if obj == observer:
                 observers.remove(obj)
 
     def __set__(self, obj, val):
