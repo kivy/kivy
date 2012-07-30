@@ -81,6 +81,14 @@ class SelectionObserver(object):
         raise NotImplementedError()
 
 
+class SingleSelectionObserver(SelectionObserver):
+    pass
+
+
+class MultipleSelectionObserver(SelectionObserver):
+    pass
+
+
 class SelectionSupport(object):
     '''The :class:`SelectionSupport` mixin is the main one used for selection.
     Any "collection" view, such as ListView, that subclasses it will attain
@@ -168,6 +176,14 @@ class SelectionSupport(object):
     def deselect_list(self, l):
         for obj in l:
             self.deselect_object(obj)
+
+    def initialize_selection(self, *args):
+        '''Called when data changes.
+        '''
+        if len(self.selection) > 0:
+            self.selection = []
+
+        self.check_for_empty_selection(*args)
 
     def check_for_empty_selection(self, *args):
         if self.allow_empty_selection is False:

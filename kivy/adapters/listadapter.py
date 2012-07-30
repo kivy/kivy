@@ -16,7 +16,8 @@ Notes:
 from kivy.properties import ListProperty, DictProperty
 from kivy.lang import Builder
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.mixins.selection import SelectionSupport, SelectionObserver
+from kivy.adapters.mixins.selection import SelectionSupport, \
+        SingleSelectionObserver, MultipleSelectionObserver
 
 
 class ListAdapter(SelectionSupport, Adapter):
@@ -53,7 +54,7 @@ class ListAdapter(SelectionSupport, Adapter):
         super(ListAdapter, self).__init__(**kwargs)
 
         # Reset and update selection, in SelectionSupport, if data changes.
-        self.bind(data=self.check_for_empty_selection)
+        self.bind(data=self.initialize_selection)
 
         # Do the initial set -- triggers check_for_empty_selection().
         self.data = data
@@ -91,10 +92,11 @@ class ListAdapter(SelectionSupport, Adapter):
         else:
             return Builder.template(self.template, **item_args)
 
-class ChainedListAdapter(SelectionObserver, ListAdapter):
-    '''ChainedListAdapter is specialized for use in chaining
-    list_adapters in a "cascade, where selection of the first,
-    changes the selection of the next, and so on."
+class SingleSelectionObservingChainedListAdapter(SingleSelectionObserver,
+                                                 ListAdapter):
+    '''SingleSelectionObservingChainedListAdapter is specialized for use in chaining
+    list_adapters in a "cascade," where selection of the first,
+    changes the selection of the next, and so on.
     '''
 
     selectable_lists_dict = DictProperty({})
@@ -106,7 +108,7 @@ class ChainedListAdapter(SelectionObserver, ListAdapter):
     def __init__(self, observed_list_adapter,
             selectable_lists_dict, data, **kwargs):
         self.selectable_lists_dict = selectable_lists_dict
-        super(ChainedListAdapter, self).__init__(
+        super(SingleSelectionObservingChainedListAdapter, self).__init__(
                 observed_list_adapter=observed_list_adapter,
                 data=data,
                 **kwargs)
@@ -120,7 +122,8 @@ class ChainedListAdapter(SelectionObserver, ListAdapter):
 
         self.data = self.selectable_lists_dict[str(observed_selection[0])]
 
-class MultipleSelectionChainedListAdapter(SelectionObserver, ListAdapter):
+class MultipleSelectionObservingChainedListAdapter(MultipleSelectionObserver,
+                                                   ListAdapter):
     '''Should be easy to make a list adapter whose data is formed by the
     selection of an observed list adapter, whatever the class is called.
     '''

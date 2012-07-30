@@ -5,11 +5,13 @@ from kivy.properties import ObjectProperty, \
                             NumericProperty, ListProperty, \
                             StringProperty
 from kivy.uix.listview import ListView
-from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SingleSelectionObserver, \
+        SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 # A "master-detail" view is a good way to experiment with a listview
-# (the master) and another view (detail view) that gets updated upon selection.
+# (the master) and another view (detail view) that gets updated upon
+# selection.
 
 # For the master list, we need to create a custom "list item" type that
 # subclasses SelectableItem.
@@ -38,7 +40,7 @@ class ListItem(SelectableItem, Button):
 # so SelectionObserver is mixed in, requiring an override of the
 # observed_selection_changed() method.
 
-class DetailView(SelectionObserver, GridLayout):
+class DetailView(SingleSelectionObserver, GridLayout):
     fruit_name = StringProperty('')
 
     def __init__(self, **kwargs):

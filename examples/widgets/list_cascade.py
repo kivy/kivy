@@ -1,9 +1,11 @@
-from kivy.adapters.listadapter import ListAdapter, ChainedListAdapter
+from kivy.adapters.listadapter import ListAdapter, \
+        SingleSelectionObservingChainedListAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.listview import ListView
-from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SingleSelectionObserver, \
+        SelectableItem
 from kivy.properties import ListProperty, StringProperty, ObjectProperty
 
 # This is an expansion on the "master-detail" example to illustrate
@@ -32,8 +34,7 @@ class ListItem(SelectableItem, Button):
     def __repr__(self):
         return self.text
 
-
-class DetailView(SelectionObserver, GridLayout):
+class DetailView(SingleSelectionObserver, GridLayout):
     fruit_name = StringProperty('')
 
     def __init__(self, **kwargs):
@@ -108,7 +109,7 @@ class CascadingView(GridLayout):
         # Fruits, for a given category, in the middle:
         #
         self.fruits_list_adapter = \
-                ChainedListAdapter(
+                SingleSelectionObservingChainedListAdapter(
                     observed_list_adapter=self.fruit_categories_list_adapter,
                     selectable_lists_dict=fruit_categories,
                     data=fruit_categories[categories[0]],
