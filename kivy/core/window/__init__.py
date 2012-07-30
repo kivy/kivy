@@ -764,7 +764,7 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_keyboard(self, key,
-        scancode=None, codepoint=None, modifier=None ,**kwargs):
+        scancode=None, codepoint=None, modifier=None, **kwargs):
         '''Event called when keyboard is in action
 
         .. warning::
@@ -774,7 +774,6 @@ class WindowBase(EventDispatcher):
             Logger.warning("The use of the unicode parameter is deprecated, "
                 "and will be removed in future versions. Use codepoint "
                 "instead, which has identical semantics.")
-
 
     def on_key_down(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
@@ -974,4 +973,3 @@ class WindowBase(EventDispatcher):
 Window = core_select_lib('window', (
     ('pygame', 'window_pygame', 'WindowPygame'),
 ), True)
-

@@ -57,5 +57,5 @@ class AudioApp(App):
 
         return root
 
-if __name__ in ('__android__', '__main__'):
+if __name__ == '__main__':
     AudioApp().run()

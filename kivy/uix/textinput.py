@@ -150,7 +150,6 @@ class TextInputCutCopyPaste(Bubble):
             if self.textinput:
                 self.textinput._hide_cut_copy_paste()
 
-
     def do(self, action):
         textinput = self.textinput
 
@@ -296,7 +295,7 @@ class TextInput(Widget):
         '''
         self.select_text(0, len(self.text))
 
-    def insert_text(self, substring, from_undo = False):
+    def insert_text(self, substring, from_undo=False):
         '''Insert new text on the current cursor position.
         '''
         if self.readonly:
@@ -407,7 +406,7 @@ class TextInput(Widget):
             # reached at top of undo list
             pass
 
-    def do_backspace(self, from_undo = False):
+    def do_backspace(self, from_undo=False):
         '''Do backspace operation from the current cursor position.
         This action might do several things:
 
@@ -430,8 +429,8 @@ class TextInput(Widget):
             substring = '\n'
         else:
             #ch = text[cc-1]
-            substring = text[cc-1]
-            new_text = text[:cc-1] + text[cc:]
+            substring = text[cc - 1]
+            new_text = text[:cc - 1] + text[cc:]
             self._set_line_text(cr, new_text)
 
         # refresh_text seems to be unnecessary here
@@ -503,11 +502,11 @@ class TextInput(Widget):
         dy = self.line_height + self._line_spacing
         cx = x - self.x
         scrl_y = self.scroll_y
-        scrl_y = scrl_y/ dy if scrl_y > 0 else 0
+        scrl_y = scrl_y / dy if scrl_y > 0 else 0
         cy = (self.top - self.padding_y + scrl_y * dy) - y
         cy = int(boundary(round(cy / dy), 0, len(l) - 1))
         dcx = 0
-        for i in xrange(1, len(l[cy])+1):
+        for i in xrange(1, len(l[cy]) + 1):
             if self._get_text_width(l[cy][:i]) >= cx:
                 break
             dcx = i
@@ -525,7 +524,7 @@ class TextInput(Widget):
         self._selection_touch = None
         self._trigger_update_graphics()
 
-    def delete_selection(self, from_undo = False):
+    def delete_selection(self, from_undo=False):
         '''Delete the current text selection (if any).
         '''
         if self.readonly:
@@ -533,8 +532,8 @@ class TextInput(Widget):
         scrl_x = self.scroll_x
         scrl_y = self.scroll_y
         cc, cr = self.cursor
-        sci = self.cursor_index
-        ci = sci()
+        #sci = self.cursor_index
+        #ci = sci()
         if not self._selection:
             return
         v = self.text
@@ -644,7 +643,7 @@ class TextInput(Widget):
         if bubble is not None:
             win.remove_widget(bubble)
 
-    def _show_cut_copy_paste(self, pos, win, parent_changed = False, *l):
+    def _show_cut_copy_paste(self, pos, win, parent_changed=False, *l):
         # Show a bubble with cut copy and paste buttons
         bubble = self._bubble
         if bubble is None:
@@ -670,7 +669,7 @@ class TextInput(Widget):
         # FIXME found a way to have that feature available for everybody
         if bubble_pos[0] < 0:
             # bubble beyond left of window
-            if bubble.pos[1] > (win_size[1]- bubble_size[1]):
+            if bubble.pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble.pos = (0, (t_pos[1]) - (bubble_size[1] + lh + ls))
                 bubble.arrow_pos = 'top_left'
@@ -679,7 +678,7 @@ class TextInput(Widget):
                 bubble.arrow_pos = 'bottom_left'
         elif bubble.right > win_size[0]:
             # bubble beyond right of window
-            if bubble_pos[1] > (win_size[1]- bubble_size[1]):
+            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble.pos = (win_size[0] - bubble_size[0],
                         (t_pos[1]) - (bubble_size[1] + lh + ls))
@@ -688,7 +687,7 @@ class TextInput(Widget):
                 bubble.right = win_size[0]
                 bubble.arrow_pos = 'bottom_right'
         else:
-            if bubble_pos[1] > (win_size[1]- bubble_size[1]):
+            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble.pos = (bubble_pos[0],
                         (t_pos[1]) - (bubble_size[1] + lh + ls))
@@ -743,6 +742,7 @@ class TextInput(Widget):
             return
         if Clipboard is None:
             from kivy.core.clipboard import Clipboard
+            Clipboard
         _platform = platform()
         if _platform == 'win':
             self._clip_mime_type = 'text/plain;charset=utf-8'
@@ -945,7 +945,15 @@ class TextInput(Widget):
                     tch = (vh / float(lh)) * oh
                     size[1] = vh
 
-                texc = (tcx, tcy+tch, tcx+tcw, tcy+tch, tcx+tcw, tcy, tcx, tcy)
+                texc = (
+                        tcx,
+                        tcy + tch,
+                        tcx + tcw,
+                        tcy + tch,
+                        tcx + tcw,
+                        tcy,
+                        tcx,
+                        tcy)
 
                 # add rectangle.
                 r = rects[line_num]
@@ -971,7 +979,7 @@ class TextInput(Widget):
         miny = self.y + _padding_y
         maxy = _top - _padding_y
         draw_selection = self._draw_selection
-        scroll_y = self.scroll_y
+        #scroll_y = self.scroll_y
         a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
@@ -1099,8 +1107,8 @@ class TextInput(Widget):
                 continue
             if oldindex != index:
                 yield text[oldindex:index]
-            yield text[index:index+1]
-            oldindex = index+1
+            yield text[index:index + 1]
+            oldindex = index + 1
         yield text[oldindex:]
 
     def _split_smart(self, text):
@@ -1202,17 +1210,17 @@ class TextInput(Widget):
         if text and not key in (self.interesting_keys.keys() + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
-                if key == ord('x'): # cut selection
+                if key == ord('x'):  # cut selection
                     self._cut(self.selection_text)
-                elif key == ord('c'): # copy selection
+                elif key == ord('c'):  # copy selection
                     self._copy(self.selection_text)
-                elif key == ord('v'): # paste selection
+                elif key == ord('v'):  # paste selection
                     self._paste()
-                elif key == ord('a'): # select all
+                elif key == ord('a'):  # select all
                     self.select_all()
-                elif key == ord('z'): # undo
+                elif key == ord('z'):  # undo
                     self.do_undo()
-                elif key == ord('r'): # redo
+                elif key == ord('r'):  # redo
                     self.do_redo()
             else:
                 if self._selection:
@@ -1221,10 +1229,10 @@ class TextInput(Widget):
             #self._recalc_size()
             return
 
-        if key == 27: # escape
+        if key == 27:  # escape
             self.focus = False
             return True
-        elif key == 9: # tab
+        elif key == 9:  # tab
             self.insert_text('\t')
             return True
 

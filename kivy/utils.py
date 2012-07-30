@@ -356,6 +356,7 @@ def platform():
         return 'linux'
     return 'unknown'
 
+
 def escape_markup(text):
     '''
     Escape markup characters found in the text. Intended to be used when markup

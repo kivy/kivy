@@ -4,8 +4,8 @@ ModalView
 
 .. versionadded:: 1.4.0
 
-The :class:`ModalView` widget is used to create modal views. By default, the view
-will cover the whole "parent" window.
+The :class:`ModalView` widget is used to create modal views. By default, the
+view will cover the whole "parent" window.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
 want your view to be fullscreen, deactivate the size_hint and use a specific
@@ -30,8 +30,9 @@ To manually dismiss/close the view, use :meth:`ModalView.dismiss`::
 
     ModalView.dismiss()
 
-The :meth:`ModalView.open` and :meth:`ModalView.dismiss` are bindable. That means you
-can directly bind the function to an action, e.g., to a button's on_press ::
+The :meth:`ModalView.open` and :meth:`ModalView.dismiss` are bindable. That
+means you can directly bind the function to an action, e.g., to a button's
+on_press ::
 
     # create content and assign to the view
     content = Button(text='Close me!')
@@ -62,7 +63,7 @@ view from closing by explictly returning True from your callback ::
 
 '''
 
-__all__ = ('ModalView',)
+__all__ = ('ModalView', )
 
 from kivy.logger import Logger
 from kivy.animation import Animation
@@ -78,16 +79,16 @@ class ModalView(AnchorLayout):
         `on_open`:
             Fired when the ModalView is opened
         `on_dismiss`:
-            Fired when the ModalView is closed. If the callback returns True, the
-            dismiss will be canceled.
+            Fired when the ModalView is closed. If the callback returns True,
+            the dismiss will be canceled.
     '''
 
     auto_dismiss = BooleanProperty(True)
     '''Default to True, this property determines if the view is automatically
     dismissed when the user clicks outside it.
 
-    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`, default
-    to True.
+    :data:`auto_dismiss` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True.
     '''
 
     attach_to = ObjectProperty(None)

@@ -44,5 +44,5 @@ class PongApp(App):
 
 
 Factory.register("PongBall", PongBall)
-if __name__ in ('__android__', '__main__'):
+if __name__ == '__main__':
     PongApp().run()
