@@ -8,8 +8,9 @@ import unittest
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.properties import NumericProperty, ListProperty, StringProperty
-from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
-from kivy.adapters.listadapter import ListAdapter
+from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.listadapter import ListAdapter, SelectableListsAdapter, \
+        AccumulatingListAdapter
 
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
@@ -105,17 +106,11 @@ class FruitListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = None
 
-    def __init__(self, list_adapter, **kwargs):
-        self.list_adapter = list_adapter
+    def __init__(self, **kwargs):
         super(FruitListItem, self).__init__(**kwargs)
 
         # Set deselected_color to be default Button bg color.
         self.deselected_color = self.background_color
-
-        self.bind(on_release=self.handle_selection)
-
-    def handle_selection(self, button):
-        self.list_adapter.handle_selection(self)
 
     def select(self, *args):
         self.background_color = self.selected_color
@@ -140,10 +135,23 @@ class FruitSelectionObserver(SelectionObserver, Widget):
 class AdaptersTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.selection_observer = FruitSelectionObserver()
         self.args_converter = lambda x: {'text': x,
                                          'size_hint_y': None,
                                          'height': 25}
+
+        categories = sorted(fruit_categories.keys())
+
+        self.fruit_categories_list_adapter = \
+            ListAdapter(categories,
+                        args_converter=self.args_converter,
+                        selection_mode='single',
+                        allow_empty_selection=False,
+                        cls=FruitListItem)
+
+        self.selection_observer = \
+            FruitSelectionObserver(
+                observed_list_adapter=self.fruit_categories_list_adapter)
+
         self.fruits = sorted(fruit_data.keys())
 
     def test_list_adapter_selection_mode_none(self):
@@ -202,19 +210,8 @@ class AdaptersTestCase(unittest.TestCase):
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=FruitListItem)
-        list_adapter.bind(
-            selection=self.selection_observer.observed_selection_changed)
+        # Should this be 0 here?
         self.assertEqual(self.selection_observer.call_count, 0)
-        list_adapter.check_for_empty_selection()
-        # [TODO] On first call to check_for_empty_selection(), which is at the end
-        #        of SelectionSupport.__init__(), there is not yet data, so
-        #        there is an ERROR message, and selection is set to []. This
-        #        should happen before the bind call to selection and
-        #        self.selection_observer.observed_selection_changed. So, we
-        #        should expect that we only get one callback from the second
-        #        call to check_for_empty_selection(), done in this test. Instead,
-        #        the call_count in self.selection_observer is 2 here. Why?
-        self.assertEqual(self.selection_observer.call_count, 2)
 
     def test_list_adapter_selection_handle_selection(self):
         list_adapter = ListAdapter(self.fruits,
@@ -222,7 +219,9 @@ class AdaptersTestCase(unittest.TestCase):
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=FruitListItem)
-        list_adapter.bind(
-            selection=self.selection_observer.observed_selection_changed)
+        selection_observer = FruitSelectionObserver(
+                observed_list_adapter=list_adapter)
+
         list_adapter.handle_selection(list_adapter.get_view(2))
-        self.assertEqual(self.selection_observer.fruit_name, 'Banana')
+        self.assertEqual(list_adapter.get_view(2).text, 'Banana')
+        self.assertEqual(selection_observer.fruit_name, 'Banana')

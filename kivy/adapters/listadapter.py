@@ -104,8 +104,8 @@ class SelectableListsAdapter(SingleSelectionObserver, ListAdapter):
     of list item lists.
     '''
 
-    def __init__(self, observed_list_adapter,
-            selectable_lists_dict, data, **kwargs):
+    def __init__(self, observed_list_adapter, selectable_lists_dict,
+                 data, **kwargs):
         self.selectable_lists_dict = selectable_lists_dict
         super(SelectableListsAdapter, self).__init__(
                 observed_list_adapter=observed_list_adapter,
