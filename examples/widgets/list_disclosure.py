@@ -144,7 +144,7 @@ class DetailView(SelectionObserver, GridLayout):
         super(DetailView, self).__init__(**kwargs)
         self.bind(fruit_name=self.redraw)
 
-        self.fruit_name = self.observed_list_adapter.selection[0].text
+        self.fruit_name = str(self.observed_list_adapter.selection[0])
 
     def redraw(self, *args):
         self.clear_widgets()
