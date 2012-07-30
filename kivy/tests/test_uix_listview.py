@@ -8,7 +8,7 @@ import unittest
 from kivy.uix.button import Button
 from kivy.properties import ListProperty, StringProperty
 from kivy.uix.listview import ListView
-from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 
@@ -130,28 +130,9 @@ class FruitListItem(SelectableItem, Button):
         return self.text
 
 
-class ObservingView(SelectionObserver):
-    fruit_name = StringProperty('')
-
-    def __init__(self, **kwargs):
-        super(ObservingView, self).__init__(**kwargs)
-
-    def observed_selection_changed(self, list_adapter, selection):
-        if len(list_adapter.selection) == 0:
-            return
-
-        selected_object = list_adapter.selection[0]
-
-        if type(selected_object) is str:
-            self.fruit_name = selected_object
-        else:
-            self.fruit_name = str(selected_object)
-
-
 class AdaptersTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.observing_view = ObservingView()
         self.args_converter = lambda x: {'text': x,
                                          'size_hint_y': None,
                                          'height': 25}
@@ -171,10 +152,6 @@ class AdaptersTestCase(unittest.TestCase):
         list_view = ListView(adapter=list_adapter)
 
         self.assertEqual(list_view.adapter, list_adapter)
-        self.assertEqual(list_view.row_height, 25)
-
-        list_adapter.bind(
-                selection=self.observing_view.observed_selection_changed)
 
         list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 0)
@@ -193,10 +170,6 @@ class AdaptersTestCase(unittest.TestCase):
         list_view = ListView(adapter=list_adapter)
 
         self.assertEqual(list_view.adapter, list_adapter)
-        self.assertEqual(list_view.row_height, 25)
-
-        list_adapter.bind(
-                selection=self.observing_view.observed_selection_changed)
 
         list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 0)

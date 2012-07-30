@@ -8,7 +8,7 @@ import unittest
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.properties import NumericProperty, ListProperty
-from kivy.uix.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 
@@ -105,17 +105,11 @@ class FruitListItem(SelectableItem, Button):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = None
 
-    def __init__(self, list_adapter, **kwargs):
-        self.list_adapter = list_adapter
+    def __init__(self, **kwargs):
         super(FruitListItem, self).__init__(**kwargs)
 
         # Set deselected_color to be default Button bg color.
         self.deselected_color = self.background_color
-
-        self.bind(on_release=self.handle_selection)
-
-    def handle_selection(self, button):
-        self.list_adapter.handle_selection(self)
 
     def select(self, *args):
         self.background_color = self.selected_color
@@ -127,17 +121,9 @@ class FruitListItem(SelectableItem, Button):
         return self.text
 
 
-class FruitSelectionObserver(SelectionObserver, Widget):
-    call_count = NumericProperty(0)
-
-    def observed_selection_changed(self, *args):
-        self.call_count += 1
-
-
 class AdaptersTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.selection_observer = FruitSelectionObserver()
         self.args_converter = lambda x: {'text': x,
                                          'size_hint_y': None,
                                          'height': 25}
