@@ -210,8 +210,10 @@ class AdaptersTestCase(unittest.TestCase):
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=FruitListItem)
-        # Should this be 0 here?
-        self.assertEqual(self.selection_observer.call_count, 0)
+        selection_observer = FruitSelectionObserver(
+                observed_list_adapter=list_adapter)
+
+        self.assertEqual(selection_observer.call_count, 1)
 
     def test_list_adapter_selection_handle_selection(self):
         list_adapter = ListAdapter(self.fruits,
