@@ -7,6 +7,7 @@ import unittest
 
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
+from kivy.uix.listview import ListView
 from kivy.properties import NumericProperty, ListProperty, StringProperty
 from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter, SelectableListsAdapter, \
@@ -132,25 +133,12 @@ class FruitSelectionObserver(SelectionObserver, Widget):
         self.call_count += 1
 
 
-class AdaptersTestCase(unittest.TestCase):
+class ListAdapterTestCase(unittest.TestCase):
 
     def setUp(self):
         self.args_converter = lambda x: {'text': x,
                                          'size_hint_y': None,
                                          'height': 25}
-
-        categories = sorted(fruit_categories.keys())
-
-        self.fruit_categories_list_adapter = \
-            ListAdapter(categories,
-                        args_converter=self.args_converter,
-                        selection_mode='single',
-                        allow_empty_selection=False,
-                        cls=FruitListItem)
-
-        self.selection_observer = \
-            FruitSelectionObserver(
-                observed_list_adapter=self.fruit_categories_list_adapter)
 
         self.fruits = sorted(fruit_data.keys())
 
@@ -204,17 +192,6 @@ class AdaptersTestCase(unittest.TestCase):
         list_adapter.handle_selection(list_adapter.get_view(1))
         self.assertEqual(len(list_adapter.selection), 3)
 
-    def test_list_adapter_observed_selection(self):
-        list_adapter = ListAdapter(self.fruits,
-                                   args_converter=self.args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=FruitListItem)
-        selection_observer = FruitSelectionObserver(
-                observed_list_adapter=list_adapter)
-
-        self.assertEqual(selection_observer.call_count, 1)
-
     def test_list_adapter_selection_handle_selection(self):
         list_adapter = ListAdapter(self.fruits,
                                    args_converter=self.args_converter,
@@ -227,3 +204,46 @@ class AdaptersTestCase(unittest.TestCase):
         list_adapter.handle_selection(list_adapter.get_view(2))
         self.assertEqual(list_adapter.get_view(2).text, 'Banana')
         self.assertEqual(selection_observer.fruit_name, 'Banana')
+
+
+class SeletableListsAdapterTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.args_converter = lambda x: {'text': x,
+                                         'size_hint_y': None,
+                                         'height': 25}
+
+        self.fruits = sorted(fruit_data.keys())
+
+    def test_list_adapter_selection_cascade(self):
+
+        # Categories of fruits:
+        #
+        categories = sorted(fruit_categories.keys())
+        fruit_categories_list_adapter = \
+            ListAdapter(categories,
+                        args_converter=self.args_converter,
+                        selection_mode='single',
+                        allow_empty_selection=False,
+                        cls=FruitListItem)
+
+        fruit_categories_list_view = \
+            ListView(adapter=fruit_categories_list_adapter,
+                     size_hint=(.2, 1.0))
+
+        # Fruits, for a given category:
+        #
+        fruits_list_adapter = \
+            SelectableListsAdapter(observed_list_adapter=\
+                                       fruit_categories_list_adapter,
+                                   selectable_lists_dict=fruit_categories,
+                                   data=fruit_categories[categories[0]],
+                                   args_converter=self.args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=FruitListItem)
+        fruits_list_view = ListView(adapter=fruits_list_adapter,
+                                    size_hint=(.2, 1.0))
+
+        self.assertEqual(len(fruit_categories_list_adapter.selection), 1)
+        self.assertEqual(len(fruits_list_adapter.selection), 1)
