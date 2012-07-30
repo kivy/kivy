@@ -231,7 +231,13 @@ class SelectableListsAdapterTestCase(unittest.TestCase):
             ListView(adapter=fruit_categories_l_a,
                      size_hint=(.2, 1.0))
 
-        # Fruits, for a given category:
+        # Fruits, for a given category, are shown based on the fruit category
+        # selected in the first categories list above. The selected item in
+        # the first list is used as the key into a dict of lists of list
+        # items to reset the data in SelectableListsAdapter's
+        # observed_selection_changed() method.
+        #
+        # data is initially set to the first list of list items.
         #
         fruits_l_a = \
             SelectableListsAdapter(observed_list_adapter=fruit_categories_l_a,
@@ -244,8 +250,16 @@ class SelectableListsAdapterTestCase(unittest.TestCase):
         fruits_list_view = ListView(adapter=fruits_l_a,
                                     size_hint=(.2, 1.0))
 
+        # Each list adapter has allow_empty_selection=False, so each should
+        # have one selected item.
         self.assertEqual(len(fruit_categories_l_a.selection), 1)
         self.assertEqual(len(fruits_l_a.selection), 1)
+
+        # The selected list items should show is_selected True.
+        self.assertEqual(fruit_categories_l_a.selection[0].is_selected, True)
+        self.assertEqual(fruits_l_a.selection[0].is_selected, True)
+
+        # And they should be red, for background_color.
         self.assertEqual(fruit_categories_l_a.selection[0].background_color, \
                 [1.0, 0., 0., 1.0])
         self.assertEqual(fruits_l_a.selection[0].background_color, \
