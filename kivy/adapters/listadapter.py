@@ -10,10 +10,9 @@ Notes:
       data -- whether or not editing of item_view_instances is allowed.
       This could be controlled simply with an is_editable boolean, but would
       involve more work in the implementation, of course.
-    
 '''
 
-from kivy.properties import ListProperty, DictProperty
+from kivy.properties import ListProperty, DictProperty, BooleanProperty
 from kivy.lang import Builder
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.mixins.selection import SelectionSupport, \
@@ -92,9 +91,10 @@ class ListAdapter(SelectionSupport, Adapter):
         else:
             return Builder.template(self.template, **item_args)
 
-class SingleSelectionObservingChainedListAdapter(SingleSelectionObserver,
-                                                 ListAdapter):
-    '''SingleSelectionObservingChainedListAdapter is specialized for use in chaining
+
+class SingleSelectionObservingListAdapter(SingleSelectionObserver,
+                                          ListAdapter):
+    '''SingleSelectionObservingListAdapter is specialized for use in chaining
     list_adapters in a "cascade," where selection of the first,
     changes the selection of the next, and so on.
     '''
@@ -108,7 +108,7 @@ class SingleSelectionObservingChainedListAdapter(SingleSelectionObserver,
     def __init__(self, observed_list_adapter,
             selectable_lists_dict, data, **kwargs):
         self.selectable_lists_dict = selectable_lists_dict
-        super(SingleSelectionObservingChainedListAdapter, self).__init__(
+        super(SingleSelectionObservingListAdapter, self).__init__(
                 observed_list_adapter=observed_list_adapter,
                 data=data,
                 **kwargs)
@@ -122,9 +122,30 @@ class SingleSelectionObservingChainedListAdapter(SingleSelectionObserver,
 
         self.data = self.selectable_lists_dict[str(observed_selection[0])]
 
-class MultipleSelectionObservingChainedListAdapter(MultipleSelectionObserver,
-                                                   ListAdapter):
-    '''Should be easy to make a list adapter whose data is formed by the
-    selection of an observed list adapter, whatever the class is called.
+
+class MultipleSelectionObservingListAdapter(MultipleSelectionObserver,
+                                            ListAdapter):
+    '''MultipleSelectionObservingListAdapter is a list adapter whose
+    data is formed by the selection of an observed list adapter.
     '''
-    pass
+
+    accumulate_selection = BooleanProperty(True)
+    '''The default is to allow selection to accumulate as either single or
+    multiple touches happen. If False, each single or multiple touch will
+    refresh selection to [newly selected items]. [TODO] Implement.
+    '''
+
+    def __init__(self, observed_list_adapter, data, **kwargs):
+        super(MultipleSelectionObservingListAdapter, self).__init__(
+                observed_list_adapter=observed_list_adapter,
+                data=data,
+                **kwargs)
+
+    def observed_selection_changed(self, *args):
+        observed_selection = self.observed_list_adapter.selection
+
+        if len(observed_selection) == 0:
+            self.data = []
+            return
+
+        self.data = [str(obj.text) for obj in observed_selection]

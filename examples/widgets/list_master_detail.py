@@ -78,15 +78,9 @@ class MasterDetailView(GridLayout):
     on the left (the master, or source list) and a detail view on the right.
     '''
 
-    list_adapter = ObjectProperty(None)
-
-    master_list_view = ObjectProperty(None)
-
     divider = ObjectProperty(None)
 
     divider_width = NumericProperty(2)
-
-    detail_view = ObjectProperty(None)
 
     def __init__(self, items, **kwargs):
         #kwargs['orientation'] = 'horizontal'
@@ -97,20 +91,20 @@ class MasterDetailView(GridLayout):
         list_item_args_converter = lambda x: {'text': x,
                                               'size_hint_y': None,
                                               'height': 25}
-        self.list_adapter = \
+        list_adapter = \
                 ListAdapter(items,
                             args_converter=list_item_args_converter,
                             selection_mode='single',
                             allow_empty_selection=False,
                             cls=ListItem)
-        self.master_list_view = ListView(adapter=self.list_adapter,
-                                         size_hint=(.3, 1.0))
-        self.add_widget(self.master_list_view)
+        master_list_view = ListView(adapter=list_adapter,
+                                    size_hint=(.3, 1.0))
+        self.add_widget(master_list_view)
 
-        self.detail_view = DetailView(
-                observed_list_adapter=self.list_adapter,
+        detail_view = DetailView(
+                observed_list_adapter=list_adapter,
                 size_hint=(.7, 1.0))
-        self.add_widget(self.detail_view)
+        self.add_widget(detail_view)
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\

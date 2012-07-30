@@ -1,5 +1,5 @@
 from kivy.adapters.listadapter import ListAdapter, \
-        SingleSelectionObservingListAdapter
+        MultipleSelectionObservingListAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -9,12 +9,9 @@ from kivy.adapters.mixins.selection import SingleSelectionObserver, \
 from kivy.properties import ListProperty, StringProperty, ObjectProperty
 
 # This is an expansion on the "master-detail" example to illustrate
-# cascading from the selection of one list view to another. In this
-# example the lists are restricted to single selection. The list on the
-# left is a simple list. The list in the middle is specialized for
-# observing the selection in the first, and using that item as the key
-# into a dict providing its own list items. The view on the right is
-# the sames as the DetailView in the master-detail example.
+# cascading from the selection of one list view to another, this time
+# to have one list allow multiple selection and the other to show the
+# multiple items selected in the first.
 
 # Generic list item will do fine for both list views:
 
@@ -39,92 +36,47 @@ class ListItem(SelectableItem, Button):
     def __repr__(self):
         return self.text
 
-class DetailView(SingleSelectionObserver, GridLayout):
-    fruit_name = StringProperty('')
 
-    def __init__(self, **kwargs):
-        kwargs['cols'] = 2
-        super(DetailView, self).__init__(**kwargs)
-        self.bind(fruit_name=self.redraw)
-
-        self.fruit_name = self.observed_list_adapter.selection[0].text
-
-    def redraw(self, *args):
-        self.clear_widgets()
-        self.add_widget(Label(text="Name:", halign='right'))
-        self.add_widget(Label(text=self.fruit_name))
-        for category in descriptors:
-            self.add_widget(Label(text="{0}:".format(category),
-                                  halign='right'))
-            self.add_widget(
-                    Label(text=str(fruit_data[self.fruit_name][category])))
-
-    def observed_selection_changed(self, list_adapter, selection):
-        if len(list_adapter.selection) == 0:
-            return
-
-        selected_object = list_adapter.selection[0]
-
-        # Resetting self.fruit_name will trigger call to redraw().
-        # [TODO] Why not direct call to redraw here? (And remove binding).
-        if type(selected_object) is str:
-            self.fruit_name = selected_object
-        else:
-            self.fruit_name = str(selected_object)
-        print 'just added or updated detail label'
-
-
-class CascadingView(GridLayout):
+class MultipleCascadingView(GridLayout):
     '''Implementation of a master-detail style view, with a scrollable list
-    of fruit categories on the left (source list), a list of fruits for the
-    selected category in the middle, and a detail view on the right.
+    of fruits on the left and the selection in that list on the right in
+    a second list.
     '''
-
     def __init__(self, **kwargs):
         kwargs['cols'] = 3
         kwargs['size_hint'] = (1.0, 1.0)
-        super(CascadingView, self).__init__(**kwargs)
+        super(MultipleCascadingView, self).__init__(**kwargs)
 
         list_item_args_converter = lambda x: {'text': x,
                                               'size_hint_y': None,
                                               'height': 25}
 
-        # Fruit categories list on the left:
-        #
-        categories = sorted(fruit_categories.keys())
-        fruit_categories_list_adapter = \
-                ListAdapter(categories,
+        fruits = sorted([fruit_dict['name'] for fruit_dict in raw_fruit_data])
+        fruits_list_adapter = \
+                ListAdapter(fruits,
                         args_converter=list_item_args_converter,
-                        selection_mode='single',
+                        selection_mode='multiple',
                         allow_empty_selection=False,
                         cls=ListItem)
-        fruit_categories_list_view = \
-                ListView(adapter=fruit_categories_list_adapter,
-                        size_hint=(.2, 1.0))
-        self.add_widget(fruit_categories_list_view)
-
-        # Fruits, for a given category, in the middle:
-        #
-        fruits_list_adapter = \
-                SingleSelectionObservingListAdapter(
-                    observed_list_adapter=fruit_categories_list_adapter,
-                    selectable_lists_dict=fruit_categories,
-                    data=fruit_categories[categories[0]],
-                    args_converter=list_item_args_converter,
-                    selection_mode='single',
-                    allow_empty_selection=False,
-                    cls=ListItem)
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter,
-                    size_hint=(.2, 1.0))
+                        size_hint=(.2, 1.0))
         self.add_widget(fruits_list_view)
 
-        # Detail view, for a given fruit, on the right:
+        # Selected fruits, on the right
         #
-        detail_view = DetailView(
-                observed_list_adapter=fruits_list_adapter,
-                size_hint=(.6, 1.0))
-        self.add_widget(detail_view)
+        selected_fruits_list_adapter = \
+                MultipleSelectionObservingListAdapter(
+                    observed_list_adapter=fruits_list_adapter,
+                    data=[fruits[0]],
+                    args_converter=list_item_args_converter,
+                    selection_mode='single',
+                    allow_empty_selection=True,
+                    cls=ListItem)
+        selected_fruits_list_view = \
+                ListView(adapter=selected_fruits_list_adapter,
+                    size_hint=(.2, 1.0))
+        self.add_widget(selected_fruits_list_view)
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
@@ -221,4 +173,4 @@ if __name__ == '__main__':
     # All fruit categories will be shown in the left left (first argument),
     # and the first category will be auto-selected -- Melons. So, set the
     # second list to show the melon fruits (second argument).
-    runTouchApp(CascadingView(width=800))
+    runTouchApp(MultipleCascadingView(width=800))
