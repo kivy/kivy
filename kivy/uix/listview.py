@@ -1,8 +1,4 @@
 '''
-
-'''
-
-'''
 List View
 ===========
 
@@ -33,10 +29,10 @@ Here we make a list view with 100 items.
     from kivy.adapters.list_adapter import ListAdapter
     from kivy.uix.listview import ListItem, ListView
 
-    item_strings = ["Item {0}".format(index) for index in xrange(100)]
+    data = ["Item {0}".format(index) for index in xrange(100)]
 
     # A list view needs a list adapter to provide a mediating service to the
-    # data, in the case here our item_strings list, passed as the first
+    # data, in the case here our data list, passed as the first
     # argument. We choose single selection mode. We may also set this for
     # allowing multiple selection. We set allow_empty_selection to False so
     # that there is always an item selected if at least one is in the list.
@@ -44,7 +40,7 @@ Here we make a list view with 100 items.
     # Finally, we pass ListItem as the class (cls) to be instantiated by the
     # list adapter for each list item. ListItem is based on Button. When an
     # item is selected, its background color will change to red.
-    list_adapter = ListAdapter(data=item_strings,
+    list_adapter = ListAdapter(data=data,
                                selection_mode='single',
                                allow_empty_selection=False,
                                cls=ListItem)
@@ -130,8 +126,8 @@ choice of layout, BoxLayout:
             # Here we create a list adapter with some item strings, passing
             # our CompositeListItem as the list item view class, and then we
             # create list view using this adapter:
-            item_strings = ["{0}".format(index) for index in xrange(100)]
-            list_adapter = ListAdapter(data=item_strings,
+            data = ["{0}".format(index) for index in xrange(100)]
+            list_adapter = ListAdapter(data=data,
                                        selection_mode='single',
                                        allow_empty_selection=False,
                                        cls=CompositeListItem)
@@ -157,6 +153,8 @@ from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.mixins.selection import SelectableItem
 from kivy.uix.abstractview import AbstractView
 from kivy.properties import ObjectProperty, DictProperty, \
@@ -198,6 +196,84 @@ class ListItemLabel(SelectableItem, Label):
 
     def __repr__(self):
         return self.text
+
+
+class CompositeListItem(SelectableItem, BoxLayout):
+
+    background_color = ListProperty([1, 1, 1, 1])
+    '''ListItem sublasses Button, which has background_color, but
+    for a composite list item, we must add this property.
+    '''
+
+    selected_color = ListProperty([1., 0., 0., 1])
+    deselected_color = ListProperty([.33, .33, .33, 1])
+
+    representing_cls = ObjectProperty([])
+    '''Which component view class, if any, should represent for the
+    composite list item in __repr__()?
+    '''
+
+    def __init__(self, **kwargs):
+        super(CompositeListItem, self).__init__(**kwargs)
+
+        # Example data:
+        #
+        #    'cls_dicts': [{'cls': ListItemButton,
+        #                   'kwargs': {'text': "Left",
+        #                              'merge_text': True,
+        #                              'delimiter': '-'}},
+        #                   'cls': ListItemLabel,
+        #                   'kwargs': {'text': "Middle",
+        #                              'merge_text': True,
+        #                              'delimiter': '-',
+        #                              'is_representing_cls': True}},
+        #                   'cls': ListItemButton,
+        #                   'kwargs': {'text': "Right",
+        #                              'merge_text': True,
+        #                              'delimiter': '-'}}]}
+
+        for cls_dict in kwargs['cls_dicts']:
+            cls = cls_dict['cls']
+            cls_kwargs = cls_dict['kwargs']
+
+            if 'selection_target' not in cls_kwargs:
+                cls_kwargs['selection_target'] = self
+
+            if 'merge_text' in cls_kwargs:
+                if cls_kwargs['merge_text'] is True:
+                    if 'text' in cls_kwargs:
+                        cls_kwargs['text'] = "{0}{1}{2}".format(
+                                cls_kwargs['text'],
+                                cls_kwargs['delimiter'],
+                                kwargs['text'])
+                elif 'text' not in cls_kwargs:
+                    cls_kwargs['text'] = kwargs['text']
+            elif 'text' not in cls_kwargs:
+                cls_kwargs['text'] = kwargs['text']
+
+            if 'is_representing_cls' in cls_kwargs:
+                self.representing_cls = cls
+
+            # The list_adapter is instantiating this composite list item,
+            # which, as a subclass of SelectableItem, gets a kwargs argument
+            # for list_adapter. Here, we are acting in the same fashion, in
+            # turn, carrying the list_adapter reference down to the component
+            # views.
+            cls_kwargs['list_adapter'] = kwargs['list_adapter']
+
+            self.add_widget(cls(**cls_kwargs))
+
+    def select(self, *args):
+        self.background_color = self.selected_color
+
+    def deselect(self, *args):
+        self.background_color = self.deselected_color
+
+    def __repr__(self):
+        if self.representing_cls is not None:
+            return str(self.representing_cls)
+        else:
+            return 'unknown'
 
 
 Builder.load_string('''
@@ -245,9 +321,30 @@ class ListView(AbstractView):
     _wstart = NumericProperty(0)
     _wend = NumericProperty(None)
 
-    def __init__(self, **kwargs):
+    def __init__(self, item_strings=None, adapter=None, **kwargs):
+        # Intercept for the adapter property, which would pass through to
+        # AbstractView, to check for its existence. If it doesn't exist, we
+        # assume that the data list is to be used with ListAdapter
+        # to make a simple list. If it does exist, and data was also
+        # provided, raise an exception, because if an adapter is provided, it
+        # should be a fully-fledged adapter with its own data.
+        if adapter is None and not hasattr(kwargs, 'adapter'):
+            if item_strings is None:
+                raise Exception('ListView: input needed, or an adapter')
+            list_adapter = ListAdapter(data=item_strings,
+                                       selection_mode='single',
+                                       allow_empty_selection=False,
+                                       cls=ListItemButton)
+            # Note: AbstractView has not __init__(), so we set adapter on self
+            #       here. Otherwise we would send it via kwargs.
+            self.adapter = list_adapter
+        elif adapter is not None:  # See note above. Also needs a set here.
+            self.adapter = adapter
+
         super(ListView, self).__init__(**kwargs)
+
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
+        # [TODO] Is this "hard" scheme needed -- better way?
         self._trigger_hard_populate = \
                 Clock.create_trigger(self._hard_spopulate, -1)
         self.bind(size=self._trigger_populate,

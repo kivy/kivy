@@ -42,9 +42,10 @@ class ListAdapter(SelectionSupport, Adapter):
     '''
 
     data = ListProperty([])
-    '''The data list property contains dict argument sets for individual
-    data items. If an args_converter function is provided, it will be used to
-    instantiate view class (cls) instances for the row items.
+    '''The data list property contains a list of objects that will be used
+    directly if no args_converter function is provided. If there is an
+    args_converter, the data objects will be passed to it, for instantiation
+    of item view class (cls) instances.
     '''
 
     def __init__(self, data, **kwargs):
@@ -144,3 +145,19 @@ class AccumulatingListAdapter(MultipleSelectionObserver, ListAdapter):
             return
 
         self.data = [str(obj.text) for obj in observed_selection]
+
+#class CompositingListAdapter(ListAdapter):
+#    '''CompositingListAdapter is a list adapter which constructs list item
+#    views based on the CompositeListItem, or its subclass, and a list of
+#    kwarg sets for each component of the composite.
+#    '''
+#
+#    item_cls_data = ListProperty([])
+#    '''The item_cls_data list contains the cls to be used for each component
+#    view of the composite list item, along with a kwargs set specific to each
+#    component view cls.
+#    '''
+#
+#    def __init__(self, data, item_cls_data, **kwargs):
+#        self.item_cls_data = item_cls_data
+#        super(CompositingListAdapter, self).__init__(data, **kwargs)
