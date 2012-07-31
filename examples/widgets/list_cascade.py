@@ -2,11 +2,8 @@ from kivy.adapters.listadapter import ListAdapter, \
         SelectableListsAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.button import Button
 from kivy.uix.listview import ListView, ListItemButton
-from kivy.adapters.mixins.selection import SingleSelectionObserver, \
-        SelectableItem
-from kivy.properties import ListProperty, StringProperty, ObjectProperty
+from kivy.properties import StringProperty
 
 # This is an expansion on the "master-detail" example to illustrate
 # cascading from the selection of one list view to another. In this
@@ -16,17 +13,14 @@ from kivy.properties import ListProperty, StringProperty, ObjectProperty
 # into a dict providing its own list items. The view on the right is
 # the sames as the DetailView in the master-detail example.
 
-# Generic list item will do fine for both list views:
 
-class DetailView(SingleSelectionObserver, GridLayout):
+class DetailView(GridLayout):
     fruit_name = StringProperty('')
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 2
         super(DetailView, self).__init__(**kwargs)
         self.bind(fruit_name=self.redraw)
-
-        self.fruit_name = self.observed_list_adapter.selection[0].text
 
     def redraw(self, *args):
         self.clear_widgets()
@@ -38,19 +32,18 @@ class DetailView(SingleSelectionObserver, GridLayout):
             self.add_widget(
                     Label(text=str(fruit_data[self.fruit_name][category])))
 
-    def on_selection_change(self, list_adapter, selection):
+    def on_selection_change(self, list_adapter, *args):
         if len(list_adapter.selection) == 0:
             return
 
         selected_object = list_adapter.selection[0]
 
-        # Resetting self.fruit_name will trigger call to redraw().
-        # [TODO] Why not direct call to redraw here? (And remove binding).
         if type(selected_object) is str:
             self.fruit_name = selected_object
         else:
             self.fruit_name = str(selected_object)
-        print 'just added or updated detail label'
+
+        self.redraw()
 
 
 class CascadingView(GridLayout):
@@ -96,6 +89,8 @@ class CascadingView(GridLayout):
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter,
                     size_hint=(.2, 1.0))
+        fruit_categories_list_adapter.bind(
+                on_selection_change=fruits_list_adapter.on_selection_change)
         self.add_widget(fruits_list_view)
 
         # Detail view, for a given fruit, on the right:
@@ -103,7 +98,10 @@ class CascadingView(GridLayout):
         detail_view = DetailView(
                 observed_list_adapter=fruits_list_adapter,
                 size_hint=(.6, 1.0))
+        fruits_list_adapter.bind(
+                on_selection_change=detail_view.on_selection_change)
         self.add_widget(detail_view)
+
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\

@@ -13,19 +13,12 @@ from kivy.adapters.listadapter import ListAdapter
 # (the master) and another view (detail view) that gets updated upon
 # selection.
 
-# DetailView is an observer of the selection of the associated list view,
-# so SelectionObserver is mixed in, requiring an override of the
-# on_selection_change() method.
-
-class DetailView(SingleSelectionObserver, GridLayout):
+class DetailView(GridLayout):
     fruit_name = StringProperty('')
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 2
         super(DetailView, self).__init__(**kwargs)
-        self.bind(fruit_name=self.redraw)
-
-        self.fruit_name = self.observed_list_adapter.selection[0].text
 
     def redraw(self, *args):
         self.clear_widgets()
@@ -37,7 +30,7 @@ class DetailView(SingleSelectionObserver, GridLayout):
             self.add_widget(
                     Label(text=str(fruit_data[self.fruit_name][category])))
 
-    def on_selection_change(self, list_adapter, selection):
+    def on_selection_change(self, list_adapter, *args):
         if len(list_adapter.selection) == 0:
             return
 
@@ -48,6 +41,7 @@ class DetailView(SingleSelectionObserver, GridLayout):
         else:
             self.fruit_name = str(selected_object)
         print 'just added or updated detail label'
+        self.redraw()
 
 
 class MasterDetailView(GridLayout):
@@ -55,12 +49,7 @@ class MasterDetailView(GridLayout):
     on the left (the master, or source list) and a detail view on the right.
     '''
 
-    divider = ObjectProperty(None)
-
-    divider_width = NumericProperty(2)
-
     def __init__(self, items, **kwargs):
-        #kwargs['orientation'] = 'horizontal'
         kwargs['cols'] = 2
         kwargs['size_hint'] = (1.0, 1.0)
         super(MasterDetailView, self).__init__(**kwargs)
@@ -68,20 +57,19 @@ class MasterDetailView(GridLayout):
         list_item_args_converter = lambda x: {'text': x,
                                               'size_hint_y': None,
                                               'height': 25}
-        list_adapter = \
-                ListAdapter(items,
-                            args_converter=list_item_args_converter,
-                            selection_mode='single',
-                            allow_empty_selection=False,
-                            cls=ListItemButton)
+        list_adapter = ListAdapter(items,
+                                   args_converter=list_item_args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=ListItemButton)
         master_list_view = ListView(adapter=list_adapter,
                                     size_hint=(.3, 1.0))
         self.add_widget(master_list_view)
 
-        detail_view = DetailView(
-                observed_list_adapter=list_adapter,
-                size_hint=(.7, 1.0))
+        detail_view = DetailView(size_hint=(.7, 1.0))
         self.add_widget(detail_view)
+
+        list_adapter.bind(on_selection_change=detail_view.on_selection_change)
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\

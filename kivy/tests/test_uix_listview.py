@@ -8,7 +8,7 @@ import unittest
 from kivy.uix.button import Button
 from kivy.properties import ListProperty, StringProperty
 from kivy.uix.listview import ListView, ListItemButton
-from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 

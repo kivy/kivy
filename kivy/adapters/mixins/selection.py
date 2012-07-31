@@ -60,35 +60,6 @@ class SelectableItem(object):
         pass
 
 
-class SelectionObserver(object):
-    '''The :class:`SelectionObserver` mixin is used to mark classes that wish
-    to observe a ListAdapter -- to observe its selection. Such an observer class
-    must provide the observed_list_adapter argument and must override the
-    on_selection_change() method.
-    '''
-    observed_list_adapter = ObjectProperty(None)
-
-    def __init__(self, observed_list_adapter, **kwargs):
-        self.observed_list_adapter = observed_list_adapter
-        super(SelectionObserver, self).__init__(**kwargs)
-        self.observed_list_adapter.bind(
-                selection=self.on_selection_change)
-
-    def on_selection_change(self, *args):
-        '''Override to take action on selection, which is held in
-        self.observed_list_adapter.selection.
-        '''
-        pass
-
-
-class SingleSelectionObserver(SelectionObserver):
-    pass
-
-
-class MultipleSelectionObserver(SelectionObserver):
-    pass
-
-
 class SelectionSupport(object):
     '''The :class:`SelectionSupport` mixin is the main one used for selection.
     Any "collection" view, such as ListView, that subclasses it will attain
@@ -126,6 +97,8 @@ class SelectionSupport(object):
 
     def __init__(self, **kwargs):
         super(SelectionSupport, self).__init__(**kwargs)
+        self.register_event_type('on_selection_change')
+        
         self.bind(selection_mode=self.check_for_empty_selection,
                   allow_empty_selection=self.check_for_empty_selection)
 
@@ -141,6 +114,7 @@ class SelectionSupport(object):
             self.deselect_object(obj)
 
         print 'selection is now', self.selection
+        self.dispatch('on_selection_change')
 
     def select_object(self, obj):
         obj.select()
@@ -167,6 +141,7 @@ class SelectionSupport(object):
             self.selection.extend(obj_list)
         else:
             self.selection = obj_list
+        self.dispatch('on_selection_change')
 
     def deselect_object(self, obj):
         obj.deselect()
@@ -176,12 +151,14 @@ class SelectionSupport(object):
     def deselect_list(self, l):
         for obj in l:
             self.deselect_object(obj)
+        self.dispatch('on_selection_change')
 
     def initialize_selection(self, *args):
         '''Called when data changes.
         '''
         if len(self.selection) > 0:
             self.selection = []
+            self.dispatch('on_selection_change')
 
         self.check_for_empty_selection(*args)
 

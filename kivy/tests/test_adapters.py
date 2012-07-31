@@ -9,7 +9,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.listview import ListView, ListItemButton
 from kivy.properties import NumericProperty, ListProperty
-from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 

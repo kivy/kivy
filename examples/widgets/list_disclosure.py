@@ -6,7 +6,7 @@ from kivy.properties import ObjectProperty, \
                             NumericProperty, ListProperty, \
                             StringProperty
 from kivy.uix.listview import ListView, ListItemButton
-from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 # [TODO] NOTE -- This is a copy of the old version of list_master_detail.py,
@@ -93,15 +93,12 @@ class CompositeListItem(SelectableItem, BoxLayout):
             return 'empty'
 
 
-class DetailView(SelectionObserver, GridLayout):
+class DetailView(GridLayout):
     fruit_name = StringProperty('')
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 2
         super(DetailView, self).__init__(**kwargs)
-        self.bind(fruit_name=self.redraw)
-
-        self.fruit_name = str(self.observed_list_adapter.selection[0])
 
     def redraw(self, *args):
         self.clear_widgets()
@@ -113,7 +110,7 @@ class DetailView(SelectionObserver, GridLayout):
             self.add_widget(
                     Label(text=str(fruit_data[self.fruit_name][category])))
 
-    def on_selection_change(self, list_adapter, selection):
+    def on_selection_change(self, list_adapter, *args):
         if len(list_adapter.selection) == 0:
             return
 
@@ -124,6 +121,7 @@ class DetailView(SelectionObserver, GridLayout):
         else:
             self.fruit_name = str(selected_object)
         print 'just added or updated detail label'
+        self.redraw()
 
 
 class MasterDetailView(GridLayout):
@@ -131,18 +129,7 @@ class MasterDetailView(GridLayout):
     on the left (the master, or source list) and a detail view on the right.
     '''
 
-    list_adapter = ObjectProperty(None)
-
-    master_list_view = ObjectProperty(None)
-
-    divider = ObjectProperty(None)
-
-    divider_width = NumericProperty(2)
-
-    detail_view = ObjectProperty(None)
-
     def __init__(self, items, **kwargs):
-        #kwargs['orientation'] = 'horizontal'
         kwargs['cols'] = 2
         kwargs['size_hint'] = (1.0, 1.0)
         super(MasterDetailView, self).__init__(**kwargs)
@@ -150,24 +137,18 @@ class MasterDetailView(GridLayout):
         args_converter = lambda x: {'text': x,
                                     'size_hint_y': None,
                                     'height': 25}
-        self.list_adapter = ListAdapter(items,
-                                        args_converter=args_converter,
-                                        selection_mode='single',
-                                        allow_empty_selection=False,
-                                        cls=CompositeListItem)
-        self.master_list_view = ListView(adapter=self.list_adapter,
-                                         size_hint=(.3, 1.0))
-        self.add_widget(self.master_list_view)
+        list_adapter = ListAdapter(items,
+                                   args_converter=args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=CompositeListItem)
+        master_list_view = ListView(adapter=list_adapter, size_hint=(.3, 1.0))
+        self.add_widget(master_list_view)
 
-        self.detail_view = DetailView(
-                observed_list_adapter=self.list_adapter,
-                size_hint=(.7, 1.0))
-        self.add_widget(self.detail_view)
+        detail_view = DetailView(size_hint=(.7, 1.0))
+        self.add_widget(detail_view)
 
-        self.list_adapter.bind(
-                selection=self.detail_view.on_selection_change)
-
-        self.list_adapter.check_for_empty_selection()
+        list_adapter.bind(on_selection_change=detail_view.on_selection_change)
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\

@@ -9,7 +9,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.listview import ListView, ListItemButton
 from kivy.properties import NumericProperty, ListProperty, StringProperty
-from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
+from kivy.adapters.mixins.selection import SelectableItem
 from kivy.adapters.listadapter import ListAdapter, SelectableListsAdapter, \
         AccumulatingListAdapter
 
@@ -103,11 +103,11 @@ for row in raw_fruit_data:
             **dict(zip(descriptors_and_units.keys(), row['data'])))
 
 
-class FruitSelectionObserver(SelectionObserver, Widget):
+class FruitSelectionObserver(Widget):
     fruit_name = StringProperty('')
     call_count = NumericProperty(0)
 
-    def observed_selection_changed(self, list_adapter, selection):
+    def on_selection_change(self, list_adapter, *args):
         if len(list_adapter.selection) > 0:
             self.fruit_name = str(list_adapter.selection[0])
         self.call_count += 1
@@ -178,14 +178,15 @@ class ListAdapterTestCase(unittest.TestCase):
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
-        selection_observer = FruitSelectionObserver(
-                observed_list_adapter=list_adapter)
+        selection_observer = FruitSelectionObserver()
+        list_adapter.bind(
+                on_selection_change=selection_observer.on_selection_change)
 
         list_adapter.handle_selection(list_adapter.get_view(2))
         self.assertEqual(list_adapter.get_view(2).text, 'Banana')
         self.assertEqual(selection_observer.fruit_name, 'Banana')
 
-        # Call count here should be 2, because there was a call initally
+        # Call count here should be 2, because there was a call initially
         # from selection triggered by allow_empty_selection=False, and
         # a second where handle_selection() was called directly.
         self.assertEqual(selection_observer.call_count, 2)

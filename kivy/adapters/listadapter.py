@@ -12,11 +12,10 @@ Notes:
       involve more work in the implementation, of course.
 '''
 
-from kivy.properties import ListProperty, DictProperty, BooleanProperty
+from kivy.properties import ListProperty, DictProperty, ObjectProperty
 from kivy.lang import Builder
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.mixins.selection import SelectionSupport, \
-        SingleSelectionObserver, MultipleSelectionObserver
+from kivy.adapters.mixins.selection import SelectionSupport
 
 
 class ListAdapter(SelectionSupport, Adapter):
@@ -92,8 +91,11 @@ class ListAdapter(SelectionSupport, Adapter):
         else:
             return Builder.template(self.template, **item_args)
 
+    def on_selection_change(self, *args):
+        pass
 
-class SelectableListsAdapter(SingleSelectionObserver, ListAdapter):
+
+class SelectableListsAdapter(ListAdapter):
     '''SelectableListsAdapter is specialized for use in chaining
     list_adapters in a "cascade," where selection of the first,
     changes the selection of the next, and so on.
@@ -105,13 +107,14 @@ class SelectableListsAdapter(SingleSelectionObserver, ListAdapter):
     of list item lists.
     '''
 
-    def __init__(self, observed_list_adapter, selectable_lists_dict,
-                 data, **kwargs):
-        self.selectable_lists_dict = selectable_lists_dict
-        super(SelectableListsAdapter, self).__init__(
-                observed_list_adapter=observed_list_adapter,
-                data=data,
-                **kwargs)
+    observed_list_adapter = ObjectProperty(None)
+
+    selectable_lists_dict = DictProperty({})
+
+    def __init__(self, **kwargs):
+        super(SelectableListsAdapter, self).__init__(**kwargs)
+        self.observed_list_adapter.bind(
+                on_selection_change=self.on_selection_change)
 
     def on_selection_change(self, *args):
         observed_selection = self.observed_list_adapter.selection
@@ -123,7 +126,7 @@ class SelectableListsAdapter(SingleSelectionObserver, ListAdapter):
         self.data = self.selectable_lists_dict[str(observed_selection[0])]
 
 
-class AccumulatingListAdapter(MultipleSelectionObserver, ListAdapter):
+class AccumulatingListAdapter(ListAdapter):
     '''AccumulatingListAdapter is a list adapter whose
     data is formed by the selection of an observed list adapter.
 
@@ -131,11 +134,12 @@ class AccumulatingListAdapter(MultipleSelectionObserver, ListAdapter):
     events happen.
     '''
 
-    def __init__(self, observed_list_adapter, data, **kwargs):
-        super(AccumulatingListAdapter, self).__init__(
-                observed_list_adapter=observed_list_adapter,
-                data=data,
-                **kwargs)
+    observed_list_adapter = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super(AccumulatingListAdapter, self).__init__(**kwargs)
+        self.observed_list_adapter.bind(
+                on_selection_change=self.on_selection_change)
 
     def on_selection_change(self, *args):
         observed_selection = self.observed_list_adapter.selection
@@ -145,19 +149,3 @@ class AccumulatingListAdapter(MultipleSelectionObserver, ListAdapter):
             return
 
         self.data = [str(obj.text) for obj in observed_selection]
-
-#class CompositingListAdapter(ListAdapter):
-#    '''CompositingListAdapter is a list adapter which constructs list item
-#    views based on the CompositeListItem, or its subclass, and a list of
-#    kwarg sets for each component of the composite.
-#    '''
-#
-#    item_cls_data = ListProperty([])
-#    '''The item_cls_data list contains the cls to be used for each component
-#    view of the composite list item, along with a kwargs set specific to each
-#    component view cls.
-#    '''
-#
-#    def __init__(self, data, item_cls_data, **kwargs):
-#        self.item_cls_data = item_cls_data
-#        super(CompositingListAdapter, self).__init__(data, **kwargs)
