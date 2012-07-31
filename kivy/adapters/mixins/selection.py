@@ -52,12 +52,12 @@ class SelectableItem(object):
     # The list item is responsible for updating the display for
     # being selected, if desired.
     def select(self, *args):
-        raise NotImplementedError()
+        pass
 
     # The list item is responsible for updating the display for
     # being unselected, if desired.
     def deselect(self, *args):
-        raise NotImplementedError()
+        pass
 
 
 class SelectionObserver(object):
@@ -78,7 +78,7 @@ class SelectionObserver(object):
         '''Override to take action on selection, which is held in
         self.observed_list_adapter.selection.
         '''
-        raise NotImplementedError()
+        pass
 
 
 class SingleSelectionObserver(SelectionObserver):

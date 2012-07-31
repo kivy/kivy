@@ -50,10 +50,10 @@ class Adapter(EventDispatcher):
             raise Exception('Cannot use cls and template at the same time')
 
     def get_count(self):
-        raise NotImplementedError()
+        pass
 
     def get_item(self, index):
-        raise NotImplementedError()
+        pass
 
     # Returns a view instance for an item.
     def get_view(self, index):
