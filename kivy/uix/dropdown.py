@@ -222,6 +222,11 @@ class DropDown(ScrollView):
             return self.container.remove_widget(*largs)
         return super(DropDown, self).remove_widget(*largs)
 
+    def clear_widgets(self):
+        if self.container:
+            return self.container.clear_widgets()
+        return super(DropDown, self).clear_widgets()
+
     def on_touch_down(self, touch):
         if super(DropDown, self).on_touch_down(touch):
             return True
