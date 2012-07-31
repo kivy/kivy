@@ -1,5 +1,5 @@
 from kivy.adapters.listadapter import ListAdapter, \
-        SelectableListsAdapter
+        ListsAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.listview import ListView, ListItemButton
@@ -78,9 +78,9 @@ class CascadingView(GridLayout):
         # Fruits, for a given category, in the middle:
         #
         fruits_list_adapter = \
-                SelectableListsAdapter(
+                ListsAdapter(
                     observed_list_adapter=fruit_categories_list_adapter,
-                    selectable_lists_dict=fruit_categories,
+                    lists_dict=fruit_categories,
                     data=fruit_categories[categories[0]],
                     args_converter=list_item_args_converter,
                     selection_mode='single',

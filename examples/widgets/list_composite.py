@@ -1,11 +1,8 @@
 from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.mixins.selection import SelectableItem
 from kivy.uix.listview import ListItemButton, ListItemLabel, \
         CompositeListItem, ListView
 
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-from kivy.properties import ObjectProperty, ListProperty
 
 
 class MainView(GridLayout):
@@ -35,7 +32,7 @@ class MainView(GridLayout):
                                       'kwargs': {'text': "Right",
                                                  'merge_text': True,
                                                  'delimiter': '-'}}]}
-                     
+
         # Here we create a list adapter with some item strings, passing our
         # CompositeListItem as the list item view class, and then we create a
         # list view using this adapter:

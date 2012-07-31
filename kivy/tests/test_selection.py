@@ -10,7 +10,7 @@ from kivy.uix.button import Button
 from kivy.uix.listview import ListView, ListItemButton
 from kivy.properties import NumericProperty, ListProperty, StringProperty
 from kivy.adapters.mixins.selection import SelectableItem
-from kivy.adapters.listadapter import ListAdapter, SelectableListsAdapter, \
+from kivy.adapters.listadapter import ListAdapter, ListsAdapter, \
         AccumulatingListAdapter
 
 
@@ -192,7 +192,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(selection_observer.call_count, 2)
 
 
-class SelectableListsAdapterTestCase(unittest.TestCase):
+class ListsAdapterTestCase(unittest.TestCase):
 
     def setUp(self):
         self.args_converter = lambda x: {'text': x,
@@ -220,13 +220,13 @@ class SelectableListsAdapterTestCase(unittest.TestCase):
         # Fruits, for a given category, are shown based on the fruit category
         # selected in the first categories list above. The selected item in
         # the first list is used as the key into a dict of lists of list
-        # items to reset the data in SelectableListsAdapter's
+        # items to reset the data in ListsAdapter's
         # observed_selection_changed() method.
         #
         # data is initially set to the first list of list items.
         #
         fruits_l_a = \
-            SelectableListsAdapter(observed_list_adapter=fruit_categories_l_a,
+            ListsAdapter(observed_list_adapter=fruit_categories_l_a,
                                    selectable_lists_dict=fruit_categories,
                                    data=fruit_categories[categories[0]],
                                    args_converter=self.args_converter,

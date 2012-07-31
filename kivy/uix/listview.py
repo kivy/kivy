@@ -21,10 +21,39 @@ From AbstractView we have these properties and methods:
 Basic Example
 -------------
 
-The list items you put in a list view can be totally custom, but to have a
-simple button, we may use the :class:`ListItem` class.
-
 Here we make a list view with 100 items.
+
+    from kivy.uix.listview import ListView
+    from kivy.uix.gridlayout import GridLayout
+
+
+    class MainView(GridLayout):
+
+        def __init__(self, **kwargs):
+            kwargs['cols'] = 2
+            kwargs['size_hint'] = (1.0, 1.0)
+            super(MainView, self).__init__(**kwargs)
+
+            list_view = ListView([str(index) for index in xrange(100)])
+
+            self.add_widget(list_view)
+
+
+    if __name__ == '__main__':
+        from kivy.base import runTouchApp
+        runTouchApp(MainView(width=800))
+
+Using a ListAdapter
+-------------------
+
+The basic example above uses :class:`SimpleListAdapter` internally, an adapter
+that does not offer selection support.
+
+For most uses of a list, however, selection support is needed. It is built in
+to :class:`ListAdapter`.
+
+The view used for items in a list view can be totally custom, but to have a
+simple button, we may use the :class:`ListItemButton` class.
 
     from kivy.adapters.list_adapter import ListAdapter
     from kivy.uix.listview import ListItem, ListView
@@ -32,18 +61,17 @@ Here we make a list view with 100 items.
     data = ["Item {0}".format(index) for index in xrange(100)]
 
     # A list view needs a list adapter to provide a mediating service to the
-    # data, in the case here our data list, passed as the first
-    # argument. We choose single selection mode. We may also set this for
-    # allowing multiple selection. We set allow_empty_selection to False so
-    # that there is always an item selected if at least one is in the list.
-    # Setting this to true will make the list useful for display only.
-    # Finally, we pass ListItem as the class (cls) to be instantiated by the
-    # list adapter for each list item. ListItem is based on Button. When an
-    # item is selected, its background color will change to red.
+    # data, which is the first argument. We choose single selection mode. We
+    # may also set this for allowing multiple selection. We set
+    # allow_empty_selection to False so that there is always an item
+    # selected if at least one is in the list. Setting this to true will make
+    # the list useful for display only. Finally, we pass ListItem as the class
+    # (cls) to be instantiated by the list adapter for each list item.
+    # When an item is selected, its background color will change to red.
     list_adapter = ListAdapter(data=data,
                                selection_mode='single',
                                allow_empty_selection=False,
-                               cls=ListItem)
+                               cls=ListItemButton)
 
     # The list view is a simple component. Just give it the list adapter that
     # will provide list item views based on its data.
@@ -55,65 +83,13 @@ Composite List Item Example
 Let's say you would like to make a list view with composite list item views
 consisting of a button on the left, a label in the middle, and a second button
 on the right. Perhaps the buttons could be made as toggle buttons for two
-separate properties pertaining to the label. First, we need to make a custom
-list item, which we will base on the required SelectableItem mixin and our
-choice of layout, BoxLayout:
+separate properties pertaining to the label. We add default buttons and a
+label in this example.
 
     from kivy.adapters.listadapter import ListAdapter
-    from kivy.adapters.mixins.selection import SelectableItem
-    from kivy.uix.listview import ListItemButton, ListItemLabel, ListView
-
-    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.listview import ListItemButton, ListItemLabel, \
+            CompositeListItem, ListView
     from kivy.uix.gridlayout import GridLayout
-    from kivy.properties import ObjectProperty, ListProperty
-
-
-    class CompositeListItem(SelectableItem, BoxLayout):
-        # ListItem sublasses Button, which has background_color.
-        # For a composite list item, we must add this property.
-        background_color = ListProperty([1, 1, 1, 1])
-
-        selected_color = ListProperty([1., 0., 0., 1])
-        deselected_color = ListProperty([.33, .33, .33, 1])
-
-        left_button = ObjectProperty(None)
-        middle_label = ObjectProperty(None)
-        right_button = ObjectProperty(None)
-
-        def __init__(self, **kwargs):
-            super(CompositeListItem, self).__init__(**kwargs)
-
-            # For the component list items in our composite list item, we want
-            # their individual selection to select the composite. Here we pass
-            # an argument for the list_adapter, required by the SelectableItem
-            # mixing, and a selection_target argument, setting it to self (to
-            # this composite list item).
-            kwargs['selection_target'] = self
-
-            kwargs['text']="left-{0}".format(kwargs['text'])
-            self.left_button = ListItemButton(**kwargs)
-
-            kwargs['text']="middle-{0}".format(kwargs['text'])
-            self.middle_label = ListItemLabel(**kwargs)
-
-            kwargs['text']="right-{0}".format(kwargs['text'])
-            self.right_button = ListItemButton(**kwargs)
-
-            self.add_widget(self.left_button)
-            self.add_widget(self.middle_label)
-            self.add_widget(self.right_button)
-
-        def select(self, *args):
-            self.background_color = self.selected_color
-
-        def deselect(self, *args):
-            self.background_color = self.deselected_color
-
-        def __repr__(self):
-            if self.middle_label is not None:
-                return self.middle_label.text
-            else:
-                return 'empty'
 
 
     class MainView(GridLayout):
@@ -123,17 +99,49 @@ choice of layout, BoxLayout:
             kwargs['size_hint'] = (1.0, 1.0)
             super(MainView, self).__init__(**kwargs)
 
+            args_converter = \
+                lambda x: \
+                    {'text': x,
+                     'size_hint_y': None,
+                     'height': 25,
+                     'cls_dicts': [{'cls': ListItemButton,
+                                    'kwargs': {'text': "Left",
+                                               'merge_text': True,
+                                               'delimiter': '-'}},
+                                   {'cls': ListItemLabel,
+                                    'kwargs': {'text': "Middle",
+                                               'merge_text': True,
+                                               'delimiter': '-',
+                                               'is_representing_cls': True}},
+                                   {'cls': ListItemButton,
+                                    'kwargs': {'text': "Right",
+                                               'merge_text': True,
+                                               'delimiter': '-'}}]}
+
             # Here we create a list adapter with some item strings, passing
             # our CompositeListItem as the list item view class, and then we
-            # create list view using this adapter:
-            data = ["{0}".format(index) for index in xrange(100)]
-            list_adapter = ListAdapter(data=data,
+            # create a list view using this adapter:
+            item_strings = ["{0}".format(index) for index in xrange(100)]
+
+            # And now the list adapter, constructed with the item_strings as
+            # the data, and our args_converter() that will operate one each
+            # item in the data to produce list item view instances from the
+            # :class:`CompositeListItem` class.
+            list_adapter = ListAdapter(data=item_strings,
+                                       args_converter=args_converter,
                                        selection_mode='single',
                                        allow_empty_selection=False,
                                        cls=CompositeListItem)
+
+            # Pass the adapter to ListView.
             list_view = ListView(adapter=list_adapter)
 
             self.add_widget(list_view)
+
+
+    if __name__ == '__main__':
+        from kivy.base import runTouchApp
+        runTouchApp(MainView(width=800))
 
 Using With kv
 -------------
@@ -333,10 +341,10 @@ class ListView(AbstractView):
         if 'adapter' not in kwargs:
             if item_strings is None:
                 raise Exception('ListView: input needed, or an adapter')
-            list_adapter = ListAdapter(data=item_strings,
-                                       selection_mode='single',
-                                       allow_empty_selection=False,
-                                       cls=ListItemButton)
+            list_adapter = SimpleListAdapter(data=item_strings,
+                                             selection_mode='single',
+                                             allow_empty_selection=False,
+                                             cls=ListItemButton)
             kwargs['adapter'] = list_adapter
 
         super(ListView, self).__init__(**kwargs)
