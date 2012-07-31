@@ -194,8 +194,8 @@ class DropDown(ScrollView):
             self.attach_to = None
 
     def select(self, data, *ignored):
-        '''Call this method to trigger the `on_select` event, with the selection
-        (can be anything you want.)
+        '''Call this method to trigger the `on_select` event, with the `data`
+        selection. The `data` can be anything you want.
         '''
         self.dispatch('on_select', data)
         if self.dismiss_on_select:
