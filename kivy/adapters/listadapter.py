@@ -44,19 +44,18 @@ class ListAdapter(SelectionSupport, Adapter):
     '''The data list property contains a list of objects that will be used
     directly if no args_converter function is provided. If there is an
     args_converter, the data objects will be passed to it, for instantiation
-    of item view class (cls) instances.
+    of item view class (cls) instances from the data.
     '''
 
-    def __init__(self, data, **kwargs):
-        if type(data) not in (tuple, list):
-            raise Exception('ListAdapter: input must be a tuple or list')
+    def __init__(self, **kwargs):
+        if 'data' not in kwargs:
+            raise Exception('ListAdapter: input must include data argument')
+        if type(kwargs['data']) not in (tuple, list):
+            raise Exception('ListAdapter: data must be a tuple or list')
         super(ListAdapter, self).__init__(**kwargs)
 
         # Reset and update selection, in SelectionSupport, if data changes.
         self.bind(data=self.initialize_selection)
-
-        # Do the initial set -- triggers check_for_empty_selection().
-        self.data = data
 
     def get_count(self):
         return len(self.data)

@@ -65,7 +65,7 @@ class CascadingView(GridLayout):
         #
         categories = sorted(fruit_categories.keys())
         fruit_categories_list_adapter = \
-                ListAdapter(categories,
+            ListAdapter(data=categories,
                         args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,

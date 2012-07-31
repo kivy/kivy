@@ -321,25 +321,23 @@ class ListView(AbstractView):
     _wstart = NumericProperty(0)
     _wend = NumericProperty(None)
 
-    def __init__(self, item_strings=None, adapter=None, **kwargs):
+    item_strings = ListProperty([])
+
+    def __init__(self, **kwargs):
         # Intercept for the adapter property, which would pass through to
         # AbstractView, to check for its existence. If it doesn't exist, we
         # assume that the data list is to be used with ListAdapter
         # to make a simple list. If it does exist, and data was also
         # provided, raise an exception, because if an adapter is provided, it
         # should be a fully-fledged adapter with its own data.
-        if adapter is None and not hasattr(kwargs, 'adapter'):
+        if 'adapter' not in kwargs:
             if item_strings is None:
                 raise Exception('ListView: input needed, or an adapter')
             list_adapter = ListAdapter(data=item_strings,
                                        selection_mode='single',
                                        allow_empty_selection=False,
                                        cls=ListItemButton)
-            # Note: AbstractView has not __init__(), so we set adapter on self
-            #       here. Otherwise we would send it via kwargs.
-            self.adapter = list_adapter
-        elif adapter is not None:  # See note above. Also needs a set here.
-            self.adapter = adapter
+            kwargs['adapter'] = list_adapter
 
         super(ListView, self).__init__(**kwargs)
 

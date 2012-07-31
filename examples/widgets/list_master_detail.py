@@ -5,8 +5,7 @@ from kivy.properties import ObjectProperty, \
                             NumericProperty, ListProperty, \
                             StringProperty
 from kivy.uix.listview import ListView, ListItemButton
-from kivy.adapters.mixins.selection import SingleSelectionObserver, \
-        SelectableItem
+from kivy.adapters.mixins.selection import SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 # A "master-detail" view is a good way to experiment with a listview
@@ -57,7 +56,7 @@ class MasterDetailView(GridLayout):
         list_item_args_converter = lambda x: {'text': x,
                                               'size_hint_y': None,
                                               'height': 25}
-        list_adapter = ListAdapter(items,
+        list_adapter = ListAdapter(data=items,
                                    args_converter=list_item_args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,

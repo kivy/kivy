@@ -4,8 +4,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.listview import ListView, ListItemButton
-from kivy.adapters.mixins.selection import SingleSelectionObserver, \
-        SelectableItem
+from kivy.adapters.mixins.selection import SelectableItem
 from kivy.properties import ListProperty, StringProperty, ObjectProperty
 
 # This is an expansion on the "master-detail" example to illustrate
@@ -29,11 +28,11 @@ class MultipleCascadingView(GridLayout):
 
         fruits = sorted([fruit_dict['name'] for fruit_dict in raw_fruit_data])
         fruits_list_adapter = \
-                ListAdapter(fruits,
-                        args_converter=list_item_args_converter,
-                        selection_mode='multiple',
-                        allow_empty_selection=False,
-                        cls=ListItemButton)
+                ListAdapter(data=fruits,
+                            args_converter=list_item_args_converter,
+                            selection_mode='multiple',
+                            allow_empty_selection=False,
+                            cls=ListItemButton)
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter,
                         size_hint=(.2, 1.0))

@@ -123,7 +123,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.fruits = sorted(fruit_data.keys())
 
     def test_list_adapter_selection_mode_none(self):
-        list_adapter = ListAdapter(self.fruits,
+        list_adapter = ListAdapter(data=self.fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='none',
                                    allow_empty_selection=True,
@@ -134,7 +134,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 0)
 
     def test_list_adapter_selection_mode_single(self):
-        list_adapter = ListAdapter(self.fruits,
+        list_adapter = ListAdapter(data=self.fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=True,
@@ -149,7 +149,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_single_auto_selection(self):
-        list_adapter = ListAdapter(self.fruits,
+        list_adapter = ListAdapter(data=self.fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
@@ -160,7 +160,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_multiple_auto_selection(self):
-        list_adapter = ListAdapter(self.fruits,
+        list_adapter = ListAdapter(data=self.fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='multiple',
                                    allow_empty_selection=False,
@@ -173,7 +173,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 3)
 
     def test_list_adapter_selection_handle_selection(self):
-        list_adapter = ListAdapter(self.fruits,
+        list_adapter = ListAdapter(data=self.fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
@@ -207,7 +207,7 @@ class SelectableListsAdapterTestCase(unittest.TestCase):
         #
         categories = sorted(fruit_categories.keys())
         fruit_categories_l_a = \
-            ListAdapter(categories,
+            ListAdapter(data=categories,
                         args_converter=self.args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,

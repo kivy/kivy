@@ -137,7 +137,7 @@ class MasterDetailView(GridLayout):
         args_converter = lambda x: {'text': x,
                                     'size_hint_y': None,
                                     'height': 25}
-        list_adapter = ListAdapter(items,
+        list_adapter = ListAdapter(data=items,
                                    args_converter=args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,

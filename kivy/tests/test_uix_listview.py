@@ -113,7 +113,7 @@ class AdaptersTestCase(unittest.TestCase):
         self.fruits = sorted(fruit_data.keys())
 
     def test_list_adapter_selection_mode_none_allow_empty_selection(self):
-        list_adapter = ListAdapter(self.fruits,
+        list_adapter = ListAdapter(data=self.fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='none',
                                    allow_empty_selection=True,
@@ -131,7 +131,7 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 0)
 
     def test_list_adapter_selection_mode_multiple_allow_empty_selection(self):
-        list_adapter = ListAdapter(self.fruits,
+        list_adapter = ListAdapter(data=self.fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='multiple',
                                    allow_empty_selection=True,
