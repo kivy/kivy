@@ -38,7 +38,7 @@ class DetailView(SingleSelectionObserver, GridLayout):
             self.add_widget(
                     Label(text=str(fruit_data[self.fruit_name][category])))
 
-    def observed_selection_changed(self, list_adapter, selection):
+    def on_selection_change(self, list_adapter, selection):
         if len(list_adapter.selection) == 0:
             return
 

@@ -64,7 +64,7 @@ class SelectionObserver(object):
     '''The :class:`SelectionObserver` mixin is used to mark classes that wish
     to observe a ListAdapter -- to observe its selection. Such an observer class
     must provide the observed_list_adapter argument and must override the
-    observed_selection_changed() method.
+    on_selection_change() method.
     '''
     observed_list_adapter = ObjectProperty(None)
 
@@ -72,9 +72,9 @@ class SelectionObserver(object):
         self.observed_list_adapter = observed_list_adapter
         super(SelectionObserver, self).__init__(**kwargs)
         self.observed_list_adapter.bind(
-                selection=self.observed_selection_changed)
+                selection=self.on_selection_change)
 
-    def observed_selection_changed(self, *args):
+    def on_selection_change(self, *args):
         '''Override to take action on selection, which is held in
         self.observed_list_adapter.selection.
         '''

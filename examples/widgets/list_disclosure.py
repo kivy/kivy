@@ -113,7 +113,7 @@ class DetailView(SelectionObserver, GridLayout):
             self.add_widget(
                     Label(text=str(fruit_data[self.fruit_name][category])))
 
-    def observed_selection_changed(self, list_adapter, selection):
+    def on_selection_change(self, list_adapter, selection):
         if len(list_adapter.selection) == 0:
             return
 
@@ -165,7 +165,7 @@ class MasterDetailView(GridLayout):
         self.add_widget(self.detail_view)
 
         self.list_adapter.bind(
-                selection=self.detail_view.observed_selection_changed)
+                selection=self.detail_view.on_selection_change)
 
         self.list_adapter.check_for_empty_selection()
 

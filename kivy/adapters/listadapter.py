@@ -113,7 +113,7 @@ class SelectableListsAdapter(SingleSelectionObserver, ListAdapter):
                 data=data,
                 **kwargs)
 
-    def observed_selection_changed(self, *args):
+    def on_selection_change(self, *args):
         observed_selection = self.observed_list_adapter.selection
 
         if len(observed_selection) == 0:
@@ -137,7 +137,7 @@ class AccumulatingListAdapter(MultipleSelectionObserver, ListAdapter):
                 data=data,
                 **kwargs)
 
-    def observed_selection_changed(self, *args):
+    def on_selection_change(self, *args):
         observed_selection = self.observed_list_adapter.selection
 
         if len(observed_selection) == 0:

@@ -15,7 +15,7 @@ from kivy.adapters.listadapter import ListAdapter
 
 # DetailView is an observer of the selection of the associated list view,
 # so SelectionObserver is mixed in, requiring an override of the
-# observed_selection_changed() method.
+# on_selection_change() method.
 
 class DetailView(SingleSelectionObserver, GridLayout):
     fruit_name = StringProperty('')
@@ -37,7 +37,7 @@ class DetailView(SingleSelectionObserver, GridLayout):
             self.add_widget(
                     Label(text=str(fruit_data[self.fruit_name][category])))
 
-    def observed_selection_changed(self, list_adapter, selection):
+    def on_selection_change(self, list_adapter, selection):
         if len(list_adapter.selection) == 0:
             return
 
