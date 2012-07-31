@@ -21,7 +21,7 @@ If you want to change the default loading image, you can do::
 
 __all__ = ('Loader', 'LoaderBase', 'ProxyImage')
 
-from kivy import kivy_data_dir
+from kivy import kivy_data_dir, kivy_base_dir
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.cache import Cache
@@ -96,7 +96,8 @@ class LoaderBase(object):
     def error_image(self):
         '''Image used for error (readonly)'''
         if not self._error_image:
-            error_png_fn = join(kivy_data_dir, 'images', 'image-missing.png')
+            error_png_fn = join('atlas://', 'data', 'images', 'defaulttheme',
+                'image-missing')
             self._error_image = ImageLoader.load(filename=error_png_fn)
         return self._error_image
 
