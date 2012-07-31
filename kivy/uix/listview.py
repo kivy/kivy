@@ -120,14 +120,12 @@ choice of layout, BoxLayout:
                 return 'empty'
 
 
-    # A list view with a composite list item class, containing two
-    # buttons and a label.
-    class CompositeListItemListView(GridLayout):
+    class MainView(GridLayout):
 
         def __init__(self, **kwargs):
             kwargs['cols'] = 2
             kwargs['size_hint'] = (1.0, 1.0)
-            super(CompositeListItemListView, self).__init__(**kwargs)
+            super(MainView, self).__init__(**kwargs)
 
             # Here we create a list adapter with some item strings, passing
             # our CompositeListItem as the list item view class, and then we
