@@ -7,7 +7,7 @@ import unittest
 
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
-from kivy.uix.listview import ListView
+from kivy.uix.listview import ListView, ListItemButton
 from kivy.properties import NumericProperty, ListProperty, StringProperty
 from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter, SelectableListsAdapter, \
@@ -103,26 +103,6 @@ for row in raw_fruit_data:
             **dict(zip(descriptors_and_units.keys(), row['data'])))
 
 
-class FruitListItem(SelectableItem, Button):
-    selected_color = ListProperty([1., 0., 0., 1])
-    deselected_color = None
-
-    def __init__(self, **kwargs):
-        super(FruitListItem, self).__init__(**kwargs)
-
-        # Set deselected_color to be default Button bg color.
-        self.deselected_color = self.background_color
-
-    def select(self, *args):
-        self.background_color = self.selected_color
-
-    def deselect(self, *args):
-        self.background_color = self.deselected_color
-
-    def __repr__(self):
-        return self.text
-
-
 class FruitSelectionObserver(SelectionObserver, Widget):
     fruit_name = StringProperty('')
     call_count = NumericProperty(0)
@@ -147,7 +127,7 @@ class ListAdapterTestCase(unittest.TestCase):
                                    args_converter=self.args_converter,
                                    selection_mode='none',
                                    allow_empty_selection=True,
-                                   cls=FruitListItem)
+                                   cls=ListItemButton)
 
         self.assertEqual(len(list_adapter.selection), 0)
         list_adapter.check_for_empty_selection()
@@ -158,7 +138,7 @@ class ListAdapterTestCase(unittest.TestCase):
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=True,
-                                   cls=FruitListItem)
+                                   cls=ListItemButton)
 
         self.assertEqual(len(list_adapter.selection), 0)
         list_adapter.check_for_empty_selection()
@@ -173,7 +153,7 @@ class ListAdapterTestCase(unittest.TestCase):
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
-                                   cls=FruitListItem)
+                                   cls=ListItemButton)
 
         self.assertEqual(len(list_adapter.selection), 1)
         list_adapter.check_for_empty_selection()
@@ -184,7 +164,7 @@ class ListAdapterTestCase(unittest.TestCase):
                                    args_converter=self.args_converter,
                                    selection_mode='multiple',
                                    allow_empty_selection=False,
-                                   cls=FruitListItem)
+                                   cls=ListItemButton)
 
         self.assertEqual(len(list_adapter.selection), 1)
         list_adapter.handle_selection(list_adapter.get_view(1))
@@ -197,7 +177,7 @@ class ListAdapterTestCase(unittest.TestCase):
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
-                                   cls=FruitListItem)
+                                   cls=ListItemButton)
         selection_observer = FruitSelectionObserver(
                 observed_list_adapter=list_adapter)
 
@@ -230,7 +210,7 @@ class SelectableListsAdapterTestCase(unittest.TestCase):
                         args_converter=self.args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
-                        cls=FruitListItem)
+                        cls=ListItemButton)
 
         fruit_categories_list_view = \
             ListView(adapter=fruit_categories_l_a,
@@ -251,7 +231,7 @@ class SelectableListsAdapterTestCase(unittest.TestCase):
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
-                                   cls=FruitListItem)
+                                   cls=ListItemButton)
         fruits_list_view = ListView(adapter=fruits_l_a,
                                     size_hint=(.2, 1.0))
 

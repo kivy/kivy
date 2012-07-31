@@ -3,7 +3,7 @@ from kivy.adapters.listadapter import ListAdapter, \
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.uix.listview import ListView
+from kivy.uix.listview import ListView, ListItemButton
 from kivy.adapters.mixins.selection import SingleSelectionObserver, \
         SelectableItem
 from kivy.properties import ListProperty, StringProperty, ObjectProperty
@@ -12,30 +12,6 @@ from kivy.properties import ListProperty, StringProperty, ObjectProperty
 # cascading from the selection of one list view to another, this time
 # to have one list allow multiple selection and the other to show the
 # multiple items selected in the first.
-
-# Generic list item will do fine for both list views:
-
-class ListItem(SelectableItem, Button):
-    selected_color = ListProperty([1., 0., 0., 1])
-    deselected_color = None
-
-    def __init__(self, **kwargs):
-        super(ListItem, self).__init__(**kwargs)
-
-        # Set deselected_color to be default Button bg color.
-        self.deselected_color = self.background_color
-
-    def select(self, *args):
-        print self.text, 'is now selected'
-        self.background_color = self.selected_color
-
-    def deselect(self, *args):
-        print self.text, 'is now unselected'
-        self.background_color = self.deselected_color
-
-    def __repr__(self):
-        return self.text
-
 
 class MultipleCascadingView(GridLayout):
     '''Implementation of a master-detail style view, with a scrollable list
@@ -57,7 +33,7 @@ class MultipleCascadingView(GridLayout):
                         args_converter=list_item_args_converter,
                         selection_mode='multiple',
                         allow_empty_selection=False,
-                        cls=ListItem)
+                        cls=ListItemButton)
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter,
                         size_hint=(.2, 1.0))
@@ -72,7 +48,7 @@ class MultipleCascadingView(GridLayout):
                     args_converter=list_item_args_converter,
                     selection_mode='single',
                     allow_empty_selection=True,
-                    cls=ListItem)
+                    cls=ListItemButton)
         selected_fruits_list_view = \
                 ListView(adapter=selected_fruits_list_adapter,
                     size_hint=(.2, 1.0))

@@ -25,6 +25,7 @@ Notes:
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
+from kivy.adapters.util import list_item_args_converter
 
 
 class Adapter(EventDispatcher):
@@ -37,6 +38,10 @@ class Adapter(EventDispatcher):
     args_converter = ObjectProperty(None)
 
     def __init__(self, **kwargs):
+        if hasattr(kwargs, 'args_converter'):
+            self.args_converter = kwargs['args_converter']
+        else:
+            self.args_converter = list_item_args_converter
         super(Adapter, self).__init__(**kwargs)
         if self.cls is None and self.template is None:
             raise Exception('A cls or template must be defined')

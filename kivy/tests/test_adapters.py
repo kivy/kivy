@@ -7,6 +7,7 @@ import unittest
 
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
+from kivy.uix.listview import ListView, ListItemButton
 from kivy.properties import NumericProperty, ListProperty
 from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter
@@ -101,26 +102,6 @@ for row in raw_fruit_data:
             **dict(zip(descriptors_and_units.keys(), row['data'])))
 
 
-class FruitListItem(SelectableItem, Button):
-    selected_color = ListProperty([1., 0., 0., 1])
-    deselected_color = None
-
-    def __init__(self, **kwargs):
-        super(FruitListItem, self).__init__(**kwargs)
-
-        # Set deselected_color to be default Button bg color.
-        self.deselected_color = self.background_color
-
-    def select(self, *args):
-        self.background_color = self.selected_color
-
-    def deselect(self, *args):
-        self.background_color = self.deselected_color
-
-    def __repr__(self):
-        return self.text
-
-
 class AdaptersTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -134,9 +115,9 @@ class AdaptersTestCase(unittest.TestCase):
                                    args_converter=self.args_converter,
                                    selection_mode='none',
                                    allow_empty_selection=True,
-                                   cls=FruitListItem)
+                                   cls=ListItemButton)
 
-        self.assertEqual(list_adapter.cls, FruitListItem)
+        self.assertEqual(list_adapter.cls, ListItemButton)
         self.assertEqual(list_adapter.args_converter, self.args_converter)
         self.assertEqual(list_adapter.template, None)
 
@@ -144,4 +125,4 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertTrue(isinstance(apple_data_item, str))
 
         apple_view = list_adapter.get_view(0)
-        self.assertTrue(isinstance(apple_view, FruitListItem))
+        self.assertTrue(isinstance(apple_view, ListItemButton))

@@ -1,4 +1,8 @@
 '''
+
+'''
+
+'''
 List View
 ===========
 
@@ -6,67 +10,172 @@ List View
 
 The :class:`ListView` widget provides a scrollable/pannable viewport that is
 clipped at the scrollview's bounding box, which contains a list of
-item_view_instances.
+list item view instances.
 
-[TODO]:
+:class:`ListView` implements AbstractView as a vertical scrollable list.
+From AbstractView we have these properties and methods:
 
-    - Initial selection is apparently working in the associated ListAdapter,
-      but the list view display does not show the initial selection (red, in
-      example code). After the list view has been clicked for the first manual
-      selection, the updating of selected items (in red) works.
-    - Explain why multiple levels of abstraction are needed. (Adapter,
-      ListAdapter, AbstractView, ListView) -- Tie discussion to inspiration
-      for Adapter and related classes:
+    - adapter (an instance of ListAdapter or one of its subclasses here)
 
-          http://developer.android.com/reference/android/\
-              widget/Adapter.html#getView(int,%20android/\
-              .view.View,%20android.view.ViewGroup)
+    - item_view_instances, a dict with indices as keys to the list item view
+      instances created and held in the ListAdapter
 
-    - Divider isn't used (yet).
-    - Consider adding an associated SortableItem mixin, to be used by list
-      item classes in a manner similar to the SelectableItem mixin.
-    - Consider a sort_by property. Review the use of the items property.
-      (Presently items is a list of strings -- are these just the
-       strings representing the item_view_instances, which are instances of
-       the provided cls input argument?). If so, formalize and document.
-    - Work on item_view_instances marked [TODO] in the code.
+    - set_item_view() and get_item_view() methods to list item view instances
 
-    Examples (in examples/widgets):
+Basic Example
+-------------
 
-    - Improve examples:
-        - Add fruit images.
-    - Add an example where selection doesn't just change background color
-      or font, but animates.
+The list items you put in a list view can be totally custom, but to have a
+simple button, we may use the :class:`ListItem` class.
 
-    Other Possibilities:
+Here we make a list view with 100 items.
 
-    - Consider a horizontally scrolling variant.
-    - Is it possible to have dynamic item_view height, for use in a
-      master-detail list view in this manner?
+    from kivy.adapters.list_adapter import ListAdapter
+    from kivy.uix.listview import ListItem, ListView
 
-        http://www.zkoss.org/zkdemo/grid/master_detail
+    item_strings = ["Item {0}".format(index) for index in xrange(100)]
 
-      (Would this be a new widget called MasterDetailListView, or would the
-       listview widget having a facility for use in this way?)
+    # A list view needs a list adapter to provide a mediating service to the
+    # data, in the case here our item_strings list, passed as the first
+    # argument. We choose single selection mode. We may also set this for
+    # allowing multiple selection. We set allow_empty_selection to False so
+    # that there is always an item selected if at least one is in the list.
+    # Setting this to true will make the list useful for display only.
+    # Finally, we pass ListItem as the class (cls) to be instantiated by the
+    # list adapter for each list item. ListItem is based on Button. When an
+    # item is selected, its background color will change to red.
+    list_adapter = ListAdapter(data=item_strings,
+                               selection_mode='single',
+                               allow_empty_selection=False,
+                               cls=ListItem)
 
-      (See the list_disclosure.py file as a start.)
+    # The list view is a simple component. Just give it the list adapter that
+    # will provide list item views based on its data.
+    list_view = ListView(adapter=list_adapter)
 
-    - Make a separate master-detail example that works like an iphone-style
-      animated "source list" that has "disclosure" buttons per item_view, on
-      the right, that when clicked will expand to fill the entire list view
-      area (useful on mobile devices especially). Similar question as above --
-      would listview be given expanded functionality or would this become
-      another kind of "master-detail" widget?)
+Custom Composite Example
+------------------------
+
+Let's say you would like to make a list view with composite list item views
+consisting of a button on the left, a label in the middle, and a second button
+on the right. Perhaps the buttons could be made as toggle buttons for two
+separate properties pertaining to the label. First, we need to make a custom
+list item, which we will base on the required SelectableItem mixin and our
+choice of layout, BoxLayout:
+
+    from kivy.adapters.list_adapter import ListAdapter
+    from kivy.adapters.mixins.selection import SelectableItem
+    from kivy.uix.listview import ListItemButton, ListItemLabel, ListView
+
+
+    class CompositeListItem(SelectableItem, BoxLayout):
+        # ListItem sublasses Button, which has background_color.
+        # For a composite list item, we must add this property.
+        background_color = ListProperty([1, 1, 1, 1])
+
+        selected_color = ListProperty([1., 0., 0., 1])
+        deselected_color = ListProperty([.33, .33, .33, 1])
+
+        left_button = ObjectProperty(None)
+        middle_label = ObjectProperty(None)
+        right_button = ObjectProperty(None)
+
+        def __init__(self, **kwargs):
+            super(CompositeListItem, self).__init__(**kwargs)
+
+            # For the component list items in our composite list item, we want
+            # their individual selection to select the composite. Here we pass
+            # an argument called selection_target, setting it to self (this
+            # composite list item).
+            self.left_button = ListItemButton(selection_target=self)
+            self.middle_label = ListItemLabel(selection_target=self)
+            self.right_button = ListItemButton(selection_target=self)
+
+            self.add_widget(self.left_button)
+            self.add_widget(self.middle_label)
+            self.add_widget(self.right_button)
+
+        def select(self, *args):
+            self.background_color = self.selected_color
+
+        def deselect(self, *args):
+            self.background_color = self.deselected_color
+
+        def __repr__(self):
+            return self.middle_label.text
+
+    # Here we create a list adapter with some item strings, passing our
+    # CompositeListItem as the list item view class, and then we create a
+    # list view using this adapter:
+    item_strings = ["Item {0}".format(index) for index in xrange(100)]
+    list_adapter = ListAdapter(data=item_strings,
+                               selection_mode='single',
+                               allow_empty_selection=False,
+                               cls=CompositeListItem)
+    list_view = ListView(adapter=list_adapter)
+
+
+Using With kv
+-------------
+
+[TODO]
+
+Cascading Selection Between Lists
+---------------------------------
+
+[TODO]
+
 '''
 
 __all__ = ('ListView', )
 
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.adapters.mixins.selection import SelectableItem
+from kivy.adapters.util import list_item_args_converter
 from kivy.uix.abstractview import AbstractView
-from kivy.properties import ObjectProperty, DictProperty, NumericProperty
+from kivy.properties import ObjectProperty, DictProperty, \
+        NumericProperty, ListProperty
 from kivy.lang import Builder
 from math import ceil, floor
+
+
+class ListItemButton(SelectableItem, Button):
+    selected_color = ListProperty([1., 0., 0., 1])
+    deselected_color = None
+
+    def __init__(self, **kwargs):
+        super(ListItemButton, self).__init__(**kwargs)
+
+        # Set deselected_color to be default Button bg color.
+        self.deselected_color = self.background_color
+
+    def select(self, *args):
+        self.background_color = self.selected_color
+
+    def deselect(self, *args):
+        self.background_color = self.deselected_color
+
+    def __repr__(self):
+        return self.text
+
+
+class ListItemLabel(SelectableItem, Label):
+
+    def __init__(self, **kwargs):
+        super(ListItemLabel, self).__init__(**kwargs)
+
+    def select(self, *args):
+        self.bold = True
+
+    def deselect(self, *args):
+        self.bold = False
+
+    def __repr__(self):
+        return self.text
+
 
 Builder.load_string('''
 <ListView>:
@@ -83,16 +192,6 @@ Builder.load_string('''
 
 
 class ListView(AbstractView):
-    '''Implementation of an Abstract View as a vertical scrollable list.
-
-    From AbstractView we have these properties and methods:
-
-        - adapter (in usage here, a ListAdapter)
-        - item_view_instances, a dictionary with data item indices as keys
-          to the item view instances created and held in the ListAdapter
-        - set_item_view() and get_item_view() methods to item view instances
-
-    '''
 
     divider = ObjectProperty(None)
     '''[TODO] Not used.
@@ -105,10 +204,10 @@ class ListView(AbstractView):
     container = ObjectProperty(None)
     '''The container is a GridLayout widget held within a ScrollView widget.
     (See the associated kv block in the Builder.load_string() setup). Item
-    view instances managed in the ListAdapter are added to this container. The
-    container is cleared with a call to contain.clear_widgets() when the list
-    is rebuilt in the populate() method. A padding Widget instance is also
-    added as needed, depending on the row height calculations.
+    view instances managed and provided by the ListAdapter are added to this
+    container. The container is cleared with a call to clear_widgets() when
+    the list is rebuilt by the populate() method. A padding Widget instance
+    is also added as needed, depending on the row height calculations.
     '''
 
     row_height = NumericProperty(None)
@@ -198,7 +297,6 @@ class ListView(AbstractView):
                     continue
                 sizes[index] = item_view.height
                 container.add_widget(item_view)
-
         else:
             available_height = self.height
             real_height = 0

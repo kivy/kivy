@@ -4,7 +4,7 @@ from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, \
                             NumericProperty, ListProperty, \
                             StringProperty
-from kivy.uix.listview import ListView
+from kivy.uix.listview import ListView, ListItemButton
 from kivy.adapters.mixins.selection import SingleSelectionObserver, \
         SelectableItem
 from kivy.adapters.listadapter import ListAdapter
@@ -12,29 +12,6 @@ from kivy.adapters.listadapter import ListAdapter
 # A "master-detail" view is a good way to experiment with a listview
 # (the master) and another view (detail view) that gets updated upon
 # selection.
-
-# For the master list, we need to create a custom "list item" type that
-# subclasses SelectableItem.
-
-class ListItem(SelectableItem, Button):
-    selected_color = ListProperty([1., 0., 0., 1])
-    deselected_color = None
-
-    def __init__(self, **kwargs):
-        super(ListItem, self).__init__(**kwargs)
-
-        # Set deselected_color to be default Button bg color.
-        self.deselected_color = self.background_color
-
-    def select(self, *args):
-        self.background_color = self.selected_color
-
-    def deselect(self, *args):
-        self.background_color = self.deselected_color
-
-    def __repr__(self):
-        return self.text
-
 
 # DetailView is an observer of the selection of the associated list view,
 # so SelectionObserver is mixed in, requiring an override of the
@@ -96,7 +73,7 @@ class MasterDetailView(GridLayout):
                             args_converter=list_item_args_converter,
                             selection_mode='single',
                             allow_empty_selection=False,
-                            cls=ListItem)
+                            cls=ListItemButton)
         master_list_view = ListView(adapter=list_adapter,
                                     size_hint=(.3, 1.0))
         self.add_widget(master_list_view)

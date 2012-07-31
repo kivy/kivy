@@ -5,7 +5,7 @@ from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, \
                             NumericProperty, ListProperty, \
                             StringProperty
-from kivy.uix.listview import ListView
+from kivy.uix.listview import ListView, ListItemButton
 from kivy.adapters.mixins.selection import SelectionObserver, SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
@@ -33,60 +33,17 @@ from kivy.adapters.listadapter import ListAdapter
 # For the master list, we need to create a custom "list item" type that
 # subclasses SelectableItem.
 
-# "Sub" to indicate that this class is for "sub" list items -- a list item
-# could consist of a button on the left, several labels in the middle, and
-# another button on the right. Not sure of the merit of allowing, perhaps,
-# some "sub" list items to react to touches and others not, if that were to
-# be enabled.
-
-class ListItemSubButton(SelectableItem, Button):
-    selected_color = ListProperty([1., 0., 0., 1])
-    deselected_color = None
-
-    def __init__(self, **kwargs):
-        super(ListItemSubButton, self).__init__(**kwargs)
-
-        # Set deselected_color to be default Button bg color.
-        self.deselected_color = self.background_color
-
-    # [TODO] At least there is some action on this set, but
-    #        the color gets somehow composited.
-    def select(self, *args):
-        self.background_color = self.selected_color
-
-    # [TODO] No effect seen, but it is grey, so might be happening.
-    def deselect(self, *args):
-        self.background_color = self.deselected_color
-
-    def __repr__(self):
-        return self.text
+# A composite list item could consist of a button on the left, several labels
+# in the middle, and another button on the right. Not sure of the merit of
+# allowing, perhaps, some "sub" list items to react to touches and others not,
+# if that were to be enabled.
 
 
-class ListItemSubLabel(SelectableItem, Label):
-    # Same idea as "sub" for button above.
-    selected_color = ListProperty([1., 0., 0., 1])
-    deselected_color = ListProperty([.33, .33, .33, 1])
-
-    def __init__(self, **kwargs):
-        super(ListItemSubLabel, self).__init__(**kwargs)
-
-    # [TODO] Should Label have background_color, like Button, etc.?
-    # [TODO] Not tested yet.
-    def select(self, *args):
-        self.bold = True
-
-    def deselect(self, *args):
-        self.bold = False
-
-    def __repr__(self):
-        return self.text
-
-
-class ListItem(SelectableItem, BoxLayout):
-    # ListItem (BoxLayout) by default uses orientation='horizontal',
+class CompositeListItem(SelectableItem, BoxLayout):
+    # CompositeListItem (BoxLayout) by default uses orientation='horizontal',
     # but could be used also for a side-to-side display of items.
     #
-    # ListItemSubButton sublasses Button, which has background_color.
+    # ListItemButton sublasses Button, which has background_color.
     # Here we must add this property.
     background_color = ListProperty([1, 1, 1, 1])
 
@@ -97,11 +54,11 @@ class ListItem(SelectableItem, BoxLayout):
     content_button = ObjectProperty(None)
 
     def __init__(self, **kwargs):
-        super(ListItem, self).__init__(**kwargs)
+        super(CompositeListItem, self).__init__(**kwargs)
 
         # Now this button just has text '>', but it would be neat to make the
         # left button hold icons -- the list would be heterogeneous, containing
-        # different ListItem types that could be filtered perhaps (an option
+        # different list item types that could be filtered perhaps (an option
         # for selecting all of a given type, for example).
 
         # For sub list items, set selection_target to self (this is a kind of
@@ -115,10 +72,10 @@ class ListItem(SelectableItem, BoxLayout):
         icon_kwargs = kwargs.copy()
         icon_kwargs['text'] = '>'
         icon_kwargs['size_hint_x'] = .05
-        self.icon_button = ListItemSubButton(**icon_kwargs)
+        self.icon_button = ListItemButton(**icon_kwargs)
 
         # Use the passed in kwargs for the "content" button.
-        self.content_button = ListItemSubButton(**kwargs)
+        self.content_button = ListItemButton(**kwargs)
 
         self.add_widget(self.icon_button)
         self.add_widget(self.content_button)
@@ -197,7 +154,7 @@ class MasterDetailView(GridLayout):
                                         args_converter=args_converter,
                                         selection_mode='single',
                                         allow_empty_selection=False,
-                                        cls=ListItem)
+                                        cls=CompositeListItem)
         self.master_list_view = ListView(adapter=self.list_adapter,
                                          size_hint=(.3, 1.0))
         self.add_widget(self.master_list_view)
