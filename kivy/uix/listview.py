@@ -416,7 +416,10 @@ class ListView(AbstractView):
                   adapter=self._trigger_populate)
         self.adapter.bind(data=self._trigger_hard_populate)
 
-        self.adapter.check_for_empty_selection()
+        # If our adapter supports selection, check the allow_empty_selection
+        # property and ensure selection if needed.
+        if hasattr(self.adapter, 'check_for_empty_selection'):
+            self.adapter.check_for_empty_selection()
 
     def _scroll(self, scroll_y):
         if self.row_height is None:
