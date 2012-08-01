@@ -179,6 +179,9 @@ class ListAdapterTestCase(unittest.TestCase):
         list_adapter.bind(
                 on_selection_change=selection_observer.on_selection_change)
 
+        # There should have been a call for initial selection.
+        self.assertEqual(selection_observer.call_count, 1)
+
         list_adapter.handle_selection(list_adapter.get_view(2))
         self.assertEqual(list_adapter.get_view(2).text, 'Banana')
         self.assertEqual(selection_observer.fruit_name, 'Banana')
@@ -230,6 +233,8 @@ class ListsAdapterTestCase(unittest.TestCase):
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
+        fruit_categories_l_a.bind(
+                on_selection_change=fruits_l_a.on_selection_change)
         fruits_list_view = ListView(adapter=fruits_l_a,
                                     size_hint=(.2, 1.0))
 

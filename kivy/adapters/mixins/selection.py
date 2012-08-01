@@ -126,7 +126,7 @@ class SelectionSupport(object):
         straightforward, but here selection is handled for the items in the
         provided obj_list. Keyboard actions or multi-touch gestures may, if
         allowed, select multiple items, and may replace or add to an existing
-        selction.
+        selection.
 
         Arguments:
 
@@ -169,6 +169,6 @@ class SelectionSupport(object):
                 v = self.get_view(0)
                 if v is not None:
                     print 'selecting first data item view', v, v.is_selected
-                    self.handle_selection(self.get_view(0))
+                    self.handle_selection(v)
                 #else:
                     #print 'ERROR: No data, so cannot initialize selection.'
