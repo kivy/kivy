@@ -121,7 +121,8 @@ For most uses of a list, however, selection support is needed. It is built in
 to :class:`ListAdapter`. :class:`ListAdapter` is not so simple. It and its
 subclasses offer support for building moderately to highly complex list views.
 
-Here are descriptions of arguments to :class:`ListAdapter`:
+See the :class:`ListAdapter` docs for details, but here we have synopses of
+the arguments:
 
     - data: the list of objects, be they strings or other objects, that are
             used as the primary source of item data for the list items
@@ -145,30 +146,76 @@ Here are descriptions of arguments to :class:`ListAdapter`:
                            there is data available, or =True, if selection
                            only happens from user action.
 
-The view used for list items can be totally custom, but we can start with a
-simple button, using the :class:`ListItemButton` class.
+In narrative, we can summarize with:
+
+    a listview's list adapter takes data items and uses an args_converter
+    function to transform them into arguments for making list item view
+    classes, using either a provided cls or a kv template.
+
+In a graphic, a summary of the relationship between a list view and its
+list adapter, looks something like this:
+
+    -                    ------------------- ListAdapter --------------------
+    -                    |                                                  |
+    -                    | <list item views> (cls or template) <data items> |
+    -   ListView   -->   |                           [args_converter]       |
+    -                    |                                                  |
+    -                    |           <<< selection handling >>>             |
+    -                    |                                                  |
+    -                    ----------------------------------------------------
+
+The Kivy view used for list items can be totally custom, but for an example,
+we can start with a simple button, using the :class:`ListItemButton` class,
+and the simple list_item_args_converter, available in kivy.adapters.util. Here
+is its definition:
+
+    list_item_args_converter = lambda x: {'text': x,
+                                          'size_hint_y': None,
+                                          'height': 25}
+
+The list_item_args_converter takes a data item (x, a string in this usage),
+and prepares an args dict with x as the text value, and the other two default
+arguments. It is easy to make your own args converter.
+
+Now, to the example code:
 
     from kivy.adapters.list_adapter import ListAdapter
+    from kivy.adapters.util import list_item_args_converter
     from kivy.uix.listview import ListItem, ListView
 
     data = ["Item {0}".format(index) for index in xrange(100)]
 
-    # A list view needs a list adapter to provide a mediating service to the
-    # data, which is the first argument. We choose single selection mode. We
-    # may also set this for allowing multiple selection. We set
-    # allow_empty_selection to False so that there is always an item
-    # selected if at least one is in the list. Setting this to true will make
-    # the list useful for display only. Finally, we pass ListItem as the class
-    # (cls) to be instantiated by the list adapter for each list item.
-    # When an item is selected, its background color will change to red.
     list_adapter = ListAdapter(data=data,
+                               args_converter=list_item_args_converter,
                                selection_mode='single',
                                allow_empty_selection=False,
                                cls=ListItemButton)
-
-    # The list view is a simple component. Just give it the list adapter that
-    # will provide list item views based on its data.
     list_view = ListView(adapter=list_adapter)
+
+This listview will show 100 buttons with an "Item x" label for each. The
+listview will allow only single selection -- additional touches will be
+ignored. When the listview first displays, the first item will be
+automatically selected, because we set allow_empty_selection=False.
+
+Selection in ListAdapter, for ListView
+--------------------------------------
+
+In the previous example, we saw how a listview gains selection support just by
+using ListAdapter. What can we do with selection? The possibilities are wide-
+ranging. We could change the data item strings to be the names of dog breeds,
+and we could bind the selection to the display of details for the selected dog
+breed in another view, which would update in realtime. We could change the
+selection_mode to 'multiple' and put up a list of answers in a multiple-choice
+question that has several correct answers. A realtime color swatch view could
+be bound to selection, turning green as soon as the correct choices are made,
+unless the number of touches exeeds a limit, and it bombs out. And so on.
+
+To bind to selection of a :class:ListAdapter instance, bind to the
+on_selection_change event:
+
+    list_adapter.bind(on_selection_change=my_selection_reactor_function)
+
+We'll have more to say about selection in the other examples.
 
 Composite List Item Example
 ---------------------------
@@ -303,10 +350,86 @@ To make a simple list with labels for 100 integers:
         from kivy.base import runTouchApp
         runTouchApp(MainView(width=800))
 
-Cascading Selection Between Lists
----------------------------------
+Cascading Selection Between Lists and Views
+-------------------------------------------
 
-[TODO]
+A "master-detail" view is a good way to introduce binding of a listview to
+another view. We can call the listview the "master" and the second view,
+the "detail" view, forming a master-detail pairing. This would fit the dog
+breed idea mentioned above, where we wish to show a list of dog breed names,
+from which one is selected, and in the second view show the details of the
+selected dog breed.
+
+    class DetailView(BoxLayout):
+        #
+        # DETAILS NOT SHOWN -- has multiple labels for dog breed details in a
+        # panel. To see a real example, see the on-disk examples, such as:
+        #
+        #    kivy/examples/widgets/lists/list_master_detail.py
+        #
+        # The important point here is that DetailView has this method, which
+        # could be called anything, but this works generally:
+        #
+        #    def selection_changed(self, list_adapter, *args):
+        #        #
+        #        # Code here for taking list_adapter.selection, a dog breed in
+        #        # this case, and populating a bunch of label views with
+        #        # details for the breed, coming from some source, such as a
+        #        # database lookup.
+        #        #
+        #        pass
+        pass
+
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.listview import ListView, ListItemButton
+    from kivy.adapters.listadapter import ListAdapter
+
+
+    class MasterDetailView(GridLayout):
+
+        def __init__(self, items, **kwargs):
+            kwargs['cols'] = 2
+            kwargs['size_hint'] = (1.0, 1.0)
+            super(MasterDetailView, self).__init__(**kwargs)
+
+            args_converter = lambda x: {'text': x,
+                                        'size_hint_y': None,
+                                        'height': 50}
+
+            list_adapter = ListAdapter(data=['Golden Retriever', 'Bulldog',
+                                             'Collie', 'Poodle', 'Bulldog'],
+                                       args_converter=args_converter,
+                                       selection_mode='single',
+                                       allow_empty_selection=False,
+                                       cls=ListItemButton)
+            master_list_view = ListView(adapter=list_adapter,
+                                        size_hint=(.3, 1.0))
+            self.add_widget(master_list_view)
+
+            detail_view = DetailView(size_hint=(.7, 1.0))
+            self.add_widget(detail_view)
+
+            list_adapter.bind(
+                    on_selection_change=detail_view.selection_changed)
+
+            # Force triggering of on_selection_change() for the DetailView, for
+            # correct initial display. [TODO] Remove when a better way found.
+            list_adapter.touch_selection()
+
+
+    if __name__ == '__main__':
+        from kivy.base import runTouchApp
+        master_detail = MasterDetailView(width=800)
+        runTouchApp(master_detail)
+
+More Examples
+-------------
+
+There are so many ways that list views and related functionality can be used,
+that we have only scratched the surface here. For on-disk examples like the
+ones presented above, plus others that show more complicated use, see:
+
+        kivy/examples/widgets/lists/list_*.py
 
 '''
 
