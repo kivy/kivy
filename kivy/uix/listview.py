@@ -1,8 +1,8 @@
 ##[TODO LIST for kivy uix-listview]:
 #
 #    - Initial selection is apparently working in the associated ListAdapter,
-#      but the list view display does not show the initial selection (red, in
-#      example code). After the list view has been clicked for the first manual
+#      but the listview display does not show the initial selection (red, in
+#      example code). After the listview has been clicked for the first manual
 #      selection, the updating of selected items (in red) works.
 #
 #    - Explain why multiple levels of abstraction are needed. (Adapter,
@@ -38,7 +38,7 @@
 #    - Consider a horizontally scrolling variant.
 #
 #    - Is it possible to have dynamic item_view height, for use in a
-#      master-detail list view in this manner?
+#      master-detail listview in this manner?
 #
 #        http://www.zkoss.org/zkdemo/grid/master_detail
 #
@@ -49,7 +49,7 @@
 #
 #    - Make a separate master-detail example that works like an iphone-style
 #      animated "source list" that has "disclosure" buttons per item_view, on
-#      the right, that when clicked will expand to fill the entire list view
+#      the right, that when clicked will expand to fill the entire listview
 #      area (useful on mobile devices especially). Similar question as above --
 #      would listview be given expanded functionality or would this become
 #      another kind of "master-detail" widget?)
@@ -77,7 +77,7 @@ From AbstractView we have these properties and methods:
 Basic Example
 -------------
 
-Here we make a list view with 100 items.
+Here we make a listview with 100 items.
 
     from kivy.uix.listview import ListView
     from kivy.uix.gridlayout import GridLayout
@@ -108,18 +108,21 @@ uses :class:`SimpleListAdapter` behind the scenes. When the constructor for
 it creates an instance of :class:`SimpleListAdapter` with the list of
 strings.
 
-Simple in the example above means: "just string items, and without selection
-support." If you wanted to use :class:`SimpleListAdaper` explicitly, you could
-do something like:
+Simple in the example above means:
+
+    just string items, and WITHOUT SELECTION SUPPORT.
+
+If you wanted to use :class:`SimpleListAdaper` explicitly, you would do
+something like:
 
     simple_list_adapter = \
         SimpleListAdapter(data=["Item #{0}".format(i) for i in xrange(100)],
                           cls=Label)
     list_view = ListView(adapter=simple_list_adapter)
 
-For most uses of a list, however, selection support is needed. It is built in
-to :class:`ListAdapter`. :class:`ListAdapter` is not so simple. It and its
-subclasses offer support for building moderately to highly complex list views.
+For most uses of a list, however, selection support IS needed. Selection
+support is built in to :class:`ListAdapter`. :class:`ListAdapter` and its
+subclasses offer support for building moderately to highly complex listviews.
 
 See the :class:`ListAdapter` docs for details, but here we have synopses of
 the arguments:
@@ -129,30 +132,36 @@ the arguments:
 
     - cls: the Kivy view that is to be instantiated for each list item. There
            are several built-in types available, including ListItemLabel and
-           ListItemButton.
+           ListItemButton, or you can easily make your own.
 
-    - template: another way of building a Kivy view for a list item. Pick one
-                or the other, cls or template, as an argument to
-                :class:`ListAdapter`.
+    - template: another way of building a Kivy view for a list item.
 
-    - args_converer: a function that takes a list item object (which is often
-                     just a string) as input, and operates to use the object
-                     in some fashion to build and return an args dict, ready
-                     to be used in a call to instantiate the item view cls.
+    NOTE: Pick only one, cls or template, as argument to :class:`ListAdapter`.
 
-    - selection arguments: These include selection_mode='single', 'multiple'
-                           or other (See docs), allow_empty_selection=False,
-                           which forces there to always be a selection, if
-                           there is data available, or =True, if selection
-                           only happens from user action.
+    - args_converter: a function that takes a list item object (which is often
+                      just a string) as input, and operates to use the object
+                      in some fashion to build and return an args dict, ready
+                      to be used in a call to instantiate the item view cls
+                      or template.
+
+    - selection arguments: These include:
+
+                                selection_mode='single', 'multiple' or others
+                                    (See docs), and
+
+                                allow_empty_selection=False, which forces
+                                    there to always be a selection, if
+                                    there is data available, or =True, if
+                                    selection is to be restricted to happen
+                                    as a result of user action.
 
 In narrative, we can summarize with:
 
-    a listview's list adapter takes data items and uses an args_converter
+    A listview's list adapter takes data items and uses an args_converter
     function to transform them into arguments for making list item view
     classes, using either a provided cls or a kv template.
 
-In a graphic, a summary of the relationship between a list view and its
+In a graphic, a summary of the relationship between a listview and its
 list adapter, looks something like this:
 
     -                    ------------------- ListAdapter --------------------
@@ -165,15 +174,15 @@ list adapter, looks something like this:
     -                    ----------------------------------------------------
 
 The Kivy view used for list items can be totally custom, but for an example,
-we can start with a simple button, using the :class:`ListItemButton` class,
-and the simple list_item_args_converter, available in kivy.adapters.util. Here
+we can start with a list item as a button, using the :class:`ListItemButton`
+class, and the list_item_args_converter, available in kivy.adapters.util. Here
 is its definition:
 
     list_item_args_converter = lambda x: {'text': x,
                                           'size_hint_y': None,
                                           'height': 25}
 
-The list_item_args_converter takes a data item (x, a string in this usage),
+list_item_args_converter() takes a data item (x, a string in this usage),
 and prepares an args dict with x as the text value, and the other two default
 arguments. It is easy to make your own args converter.
 
@@ -192,23 +201,37 @@ Now, to the example code:
                                cls=ListItemButton)
     list_view = ListView(adapter=list_adapter)
 
-This listview will show 100 buttons with an "Item x" label for each. The
-listview will allow only single selection -- additional touches will be
-ignored. When the listview first displays, the first item will be
-automatically selected, because we set allow_empty_selection=False.
+This listview will show 100 buttons with a "Item 0", "Item 1", etc. labels.
+The listview will only allow single selection -- additional touches will be
+ignored. When the listview is first shown, the first item will already be
+selected, because we set allow_empty_selection=False.
 
 Selection in ListAdapter, for ListView
 --------------------------------------
 
 In the previous example, we saw how a listview gains selection support just by
-using ListAdapter. What can we do with selection? The possibilities are wide-
-ranging. We could change the data item strings to be the names of dog breeds,
-and we could bind the selection to the display of details for the selected dog
-breed in another view, which would update in realtime. We could change the
-selection_mode to 'multiple' and put up a list of answers in a multiple-choice
-question that has several correct answers. A realtime color swatch view could
-be bound to selection, turning green as soon as the correct choices are made,
-unless the number of touches exeeds a limit, and it bombs out. And so on.
+using ListAdapter.
+
+What can we do with selection? The possibilities are wide-
+ranging.
+
+We could change the data item strings to be the names of dog breeds, and we
+could bind the selection to the display of details for the selected dog breed
+in another view, which would update in realtime.
+
+We could change the selection_mode to 'multiple' and put up a list of answers
+in a multiple-choice question that has several correct answers. A realtime
+color swatch view could be bound to selection, turning green as soon as the
+correct choices are made, unless the number of touches exeeds a limit, and it
+bombs out.
+
+We could chain together three listviews, where selection in the first
+controls the items shown in the second, and selection in the second controls
+the items shown in the third. If allow_empty_selection were set to False for
+these listviews, a dynamic system, a "cascade" from one list to the next,
+would result.
+
+And so on.
 
 To bind to selection of a :class:ListAdapter instance, bind to the
 on_selection_change event:
@@ -220,7 +243,7 @@ We'll have more to say about selection in the other examples.
 Composite List Item Example
 ---------------------------
 
-Let's say you would like to make a list view with composite list item views
+Let's say you would like to make a listview with composite list item views
 consisting of a button on the left, a label in the middle, and a second button
 on the right. Perhaps the buttons could be made as toggle buttons for two
 separate properties pertaining to the label. We add default buttons and a
@@ -332,7 +355,7 @@ To make a simple list with labels for 100 integers:
 
             # Here we create a list adapter with some item strings, passing our
             # CompositeListItem kv template for the list item view, and then we
-            # create a list view using this adapter. As we have not provided an
+            # create a listview using this adapter. As we have not provided an
             # args converter to the list adapter, the default args converter
             # will be used. It creates, per list item, an args dict with the
             # text set to the data item (in this case a string label for an
@@ -425,7 +448,7 @@ selected dog breed.
 More Examples
 -------------
 
-There are so many ways that list views and related functionality can be used,
+There are so many ways that listviews and related functionality can be used,
 that we have only scratched the surface here. For on-disk examples like the
 ones presented above, plus others that show more complicated use, see:
 
