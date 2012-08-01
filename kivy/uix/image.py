@@ -282,7 +282,14 @@ class AsyncImage(Image):
         image = self._coreimage.image
         if not image:
             return
-        self.texture = image.texture
+        try:
+            self.texture = image.texture
+        except AttributeError, err:
+            if  repr(image)[1:14] == 'TextureRegion':
+                self.texture = image
+                self._coreimage = CoreImage(image)
+            else:
+                raise AttributeError
 
     def is_uri(self, filename):
         proto = filename.split('://', 1)[0]
