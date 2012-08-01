@@ -400,7 +400,7 @@ class ListView(AbstractView):
             list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
                                              selection_mode='single',
                                              allow_empty_selection=False,
-                                             cls=ListItemButton)
+                                             cls=Button)
             kwargs['adapter'] = list_adapter
 
         super(ListView, self).__init__(**kwargs)
