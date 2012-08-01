@@ -69,6 +69,7 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
     If you wish to have a bare-bones list adapter, without selection, use
     SimpleListAdapter.
     '''
+
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
 
@@ -122,8 +123,6 @@ class ListsAdapter(ListAdapter):
     '''
 
     observed_list_adapter = ObjectProperty(None)
-
-    lists_dict = DictProperty({})
 
     def __init__(self, **kwargs):
         super(ListsAdapter, self).__init__(**kwargs)
