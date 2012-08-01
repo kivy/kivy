@@ -37,7 +37,7 @@ class Video(Image):
     '''Video class. See module documentation for more information.
     '''
 
-    state = OptionProperty('play', options=('play', 'pause', 'stop'))
+    state = OptionProperty('stop', options=('play', 'pause', 'stop'))
     '''String, indicates whether to play, pause, or stop the video::
 
         # start playing the video at creation
@@ -110,12 +110,11 @@ class Video(Image):
 
     def __init__(self, **kwargs):
         self._video = None
-        super(Video, self).__init__(**kwargs)
+        super(Image, self).__init__(**kwargs)
+        self.bind(source=self._trigger_video_load)
 
-    def texture_update(self, *largs):
-        '''This method is a no-op in Video widget.
-        '''
-        pass
+        if self.source:
+            self._trigger_video_load()
 
     def seek(self, percent):
         '''Change the position to a percentage of duration. Percentage must be a
@@ -130,9 +129,6 @@ class Video(Image):
         if self._video is None:
             raise Exception('Video not loaded.')
         self._video.seek(percent)
-
-    def on_source(self, instance, value):
-        self._trigger_video_load()
 
     def _trigger_video_load(self, *largs):
         Clock.unschedule(self._do_video_load)

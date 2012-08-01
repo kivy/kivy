@@ -262,18 +262,20 @@ class VideoPlayer(GridLayout):
     '''VideoPlayer class. See module documentation for more information.
     '''
 
-    source = StringProperty(None)
+    source = StringProperty('')
     '''Source of the video to read.
 
-    :data:`source` a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`source` a :class:`~kivy.properties.StringProperty`, default to ''.
+    .. versionchanged:: 1.4.0
     '''
 
-    thumbnail = StringProperty(None)
+    thumbnail = StringProperty('')
     '''Thumbnail of the video to show. If None, VideoPlayer will try to find
     the thumbnail from the :data:`source` + .png.
 
     :data:`thumbnail` a :class:`~kivy.properties.StringProperty`, default to
-    None.
+    ''.
+    .. versionchanged:: 1.4.0
     '''
 
     duration = NumericProperty(-1)
@@ -300,7 +302,7 @@ class VideoPlayer(GridLayout):
     1.
     '''
 
-    state = OptionProperty('play', options=('play', 'pause', 'stop'))
+    state = OptionProperty('stop', options=('play', 'pause', 'stop'))
     '''String, indicates whether to play, pause, or stop the video::
 
         # start playing the video at creation
@@ -395,7 +397,7 @@ class VideoPlayer(GridLayout):
     :data:`image_volumemuted` a :class:`~kivy.properties.StringProperty`
     '''
 
-    annotations = StringProperty(None)
+    annotations = StringProperty('')
     '''If set, it will be used for reading annotations box.
     '''
 
@@ -438,7 +440,7 @@ class VideoPlayer(GridLayout):
     def __init__(self, **kwargs):
         self._video = None
         self._image = None
-        self._annotations = None
+        self._annotations = ''
         self._annotations_labels = []
         super(VideoPlayer, self).__init__(**kwargs)
         self._load_thumbnail()
@@ -455,7 +457,7 @@ class VideoPlayer(GridLayout):
         self.container.clear_widgets()
         # get the source, remove extension, and use png
         thumbnail = self.thumbnail
-        if thumbnail is None:
+        if not thumbnail:
             filename = self.source.rsplit('.', 1)
             thumbnail = filename[0] + '.png'
         self._image = VideoPlayerPreview(source=thumbnail, video=self)
@@ -466,7 +468,7 @@ class VideoPlayer(GridLayout):
             return
         self._annotations_labels = []
         annotations = self.annotations
-        if annotations is None:
+        if not annotations:
             filename = self.source.rsplit('.', 1)
             annotations = filename[0] + '.jsa'
         if exists(annotations):
