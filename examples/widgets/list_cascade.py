@@ -1,5 +1,4 @@
-from kivy.adapters.listadapter import ListAdapter, \
-        ListsAdapter
+from kivy.adapters.listadapter import ListAdapter, ListsAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.listview import ListView, ListItemButton
