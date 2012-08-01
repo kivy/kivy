@@ -179,7 +179,10 @@ class ListAdapterTestCase(unittest.TestCase):
         list_adapter.bind(
                 on_selection_change=selection_observer.on_selection_change)
 
-        # There should have been a call for initial selection.
+        list_adapter.touch_selection()
+
+        # There should have been a call for initial selection, forced by
+        # the call to touch_selection.
         self.assertEqual(selection_observer.call_count, 1)
 
         list_adapter.handle_selection(list_adapter.get_view(2))
@@ -187,7 +190,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(selection_observer.fruit_name, 'Banana')
 
         # Call count here should be 2, because there was a call initially
-        # from selection triggered by allow_empty_selection=False, and
+        # from selection triggered by the forced touch_selection(), and
         # a second where handle_selection() was called directly.
         self.assertEqual(selection_observer.call_count, 2)
 
