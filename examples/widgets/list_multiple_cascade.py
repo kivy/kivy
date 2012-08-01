@@ -1,16 +1,12 @@
-from kivy.adapters.listadapter import ListAdapter, \
-        AccumulatingListAdapter
+from kivy.adapters.listadapter import ListAdapter, AccumulatingListAdapter
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
 from kivy.uix.listview import ListView, ListItemButton
-from kivy.adapters.mixins.selection import SelectableItem
-from kivy.properties import ListProperty, StringProperty, ObjectProperty
 
 # This is an expansion on the "master-detail" example to illustrate
 # cascading from the selection of one list view to another, this time
 # to have one list allow multiple selection and the other to show the
 # multiple items selected in the first.
+
 
 class MultipleCascadingView(GridLayout):
     '''Implementation of a master-detail style view, with a scrollable list

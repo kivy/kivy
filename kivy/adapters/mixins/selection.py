@@ -98,7 +98,7 @@ class SelectionSupport(object):
     def __init__(self, **kwargs):
         super(SelectionSupport, self).__init__(**kwargs)
         self.register_event_type('on_selection_change')
-        
+
         self.bind(selection_mode=self.check_for_empty_selection,
                   allow_empty_selection=self.check_for_empty_selection)
 

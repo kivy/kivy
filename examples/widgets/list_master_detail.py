@@ -1,16 +1,13 @@
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.properties import ObjectProperty, \
-                            NumericProperty, ListProperty, \
-                            StringProperty
+from kivy.properties import StringProperty
 from kivy.uix.listview import ListView, ListItemButton
-from kivy.adapters.mixins.selection import SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
 # A "master-detail" view is a good way to experiment with a listview
 # (the master) and another view (detail view) that gets updated upon
 # selection.
+
 
 class DetailView(GridLayout):
     fruit_name = StringProperty('')

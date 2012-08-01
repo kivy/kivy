@@ -1,10 +1,7 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.properties import ObjectProperty, \
-                            NumericProperty, ListProperty, \
-                            StringProperty
+from kivy.properties import ObjectProperty, ListProperty, StringProperty
 from kivy.uix.listview import ListView, ListItemButton
 from kivy.adapters.mixins.selection import SelectableItem
 from kivy.adapters.listadapter import ListAdapter
