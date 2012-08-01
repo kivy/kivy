@@ -122,6 +122,7 @@ cdef class Context:
         cdef Shader shader
         cdef Canvas canvas
 
+        image_objects = Cache._objects['kv.image']
         Cache.remove('kv.image')
         Cache.remove('kv.shader')
 
@@ -171,6 +172,8 @@ cdef class Context:
         # Restore texture cache
         texture_objects.update(Cache._objects['kv.texture'])
         Cache._objects['kv.texture'] = texture_objects
+        image_objects.update(Cache._objects['kv.image'])
+        Cache._objects['kv.image'] = image_objects
 
         Logger.debug('Context: Reload vbos')
         for item in self.l_vbo[:]:

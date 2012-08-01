@@ -267,6 +267,8 @@ cdef class BindTexture(ContextInstruction):
         def __set__(self, object texture):
             if not texture:
                 texture = get_default_texture()
+            Logger.trace('BindTexture: setting texture %r (previous is %r)' % (
+                texture, self._texture))
             self._texture = texture
 
     property index:
