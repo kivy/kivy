@@ -38,7 +38,6 @@ Example::
 
 __all__ = ('Spinner', 'SpinnerOption')
 
-from functools import partial
 from kivy.properties import ListProperty, ObjectProperty
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
@@ -121,7 +120,7 @@ class Spinner(Button):
         dp.clear_widgets()
         for value in self.values:
             item = cls(text=value)
-            item.bind(on_release=partial(dp.select, value))
+            item.bind(on_release=lambda option: dp.select(option.text))
             dp.add_widget(item)
 
     def _open_dropdown(self, *largs):
