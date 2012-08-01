@@ -155,6 +155,18 @@ label in this example.
             kwargs['size_hint'] = (1.0, 1.0)
             super(MainView, self).__init__(**kwargs)
 
+            # This is quite an involved args_converter, so we should go
+            # through the details. x here is a data item object, be it
+            # a string for a typical usage, as here, or some other object.
+            # x will become the text value when the class used in this
+            # example, CompositeListItem, is instantiated with the args
+            # returned by this converter. All of the rest, for size_hint_y,
+            # height, and the cls_dicts list, will be passed in the call
+            # to instantiate CompositeListItem for a data item. Inside the
+            # constructor of CompositeListItem is special-handling code that
+            # uses cls_dicts to create, in turn, the component items in the
+            # composite. This is a similar approach to using a kv template,
+            # which you might wish to explore also.
             args_converter = \
                 lambda x: \
                     {'text': x,
@@ -174,9 +186,7 @@ label in this example.
                                                'merge_text': True,
                                                'delimiter': '-'}}]}
 
-            # Here we create a list adapter with some item strings, passing
-            # our CompositeListItem as the list item view class, and then we
-            # create a list view using this adapter:
+            # First, some strings as data items:
             item_strings = ["{0}".format(index) for index in xrange(100)]
 
             # And now the list adapter, constructed with the item_strings as
@@ -189,7 +199,7 @@ label in this example.
                                        allow_empty_selection=False,
                                        cls=CompositeListItem)
 
-            # Pass the adapter to ListView.
+            # Use the adapter in our ListView:
             list_view = ListView(adapter=list_adapter)
 
             self.add_widget(list_view)
@@ -210,7 +220,7 @@ To make a simple list with labels for 100 integers:
     from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
 
-    # Note: If you copy this example, change the triple_quote markers to
+    # Note: If you copy this example, change the triple_quote tag markers to
     #       triple single quotes.
     Builder.load_string(<triple_quotes>
     [CustomListItem@BoxLayout]:
