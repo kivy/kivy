@@ -103,6 +103,7 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
             instance = self.cls(**item_args)
             return instance
         else:
+            print 'item_args', item_args
             return Builder.template(self.template, **item_args)
 
     def on_selection_change(self, *args):
