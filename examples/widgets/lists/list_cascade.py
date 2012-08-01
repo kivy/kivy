@@ -64,9 +64,7 @@ class CascadingView(GridLayout):
 
         # Detail view, for a given fruit, on the right:
         #
-        detail_view = DetailView(
-                observed_list_adapter=fruits_list_adapter,
-                size_hint=(.6, 1.0))
+        detail_view = DetailView(size_hint=(.6, 1.0))
         fruits_list_adapter.bind(
                 on_selection_change=detail_view.on_selection_change)
         self.add_widget(detail_view)

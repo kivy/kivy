@@ -119,10 +119,8 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
                 if v is not None:
                     print 'selecting first data item view', v, v.is_selected
                     self.handle_selection(v)
-                #else:
-                    #print 'ERROR: No data, so cannot initialize selection.'
 
-    def touch_selection(self):
+    def touch_selection(self, *args):
         self.dispatch('on_selection_change')
 
 
