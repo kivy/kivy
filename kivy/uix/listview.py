@@ -102,14 +102,51 @@ Here we make a list view with 100 items.
 Using a ListAdapter
 -------------------
 
-The basic example above uses :class:`SimpleListAdapter` internally, an adapter
-that does not offer selection support.
+If you were to dig deeper into the basic example above, you would find that it
+uses :class:`SimpleListAdapter` behind the scenes. When the constructor for
+:class:`ListView` sees that only a list of strings is provided as an argument,
+it creates an instance of :class:`SimpleListAdapter` with the list of
+strings.
+
+Simple in the example above means: "just string items, and without selection
+support." If you wanted to use :class:`SimpleListAdaper` explicitly, you could
+do something like:
+
+    simple_list_adapter = \
+        SimpleListAdapter(data=["Item #{0}".format(i) for i in xrange(100)],
+                          cls=Label)
+    list_view = ListView(adapter=simple_list_adapter)
 
 For most uses of a list, however, selection support is needed. It is built in
-to :class:`ListAdapter`.
+to :class:`ListAdapter`. :class:`ListAdapter` is not so simple. It and its
+subclasses offer support for building moderately to highly complex list views.
 
-The view used for items in a list view can be totally custom, but to have a
-simple button, we may use the :class:`ListItemButton` class.
+Here are descriptions of arguments to :class:`ListAdapter`:
+
+    - data: the list of objects, be they strings or other objects, that are
+            used as the primary source of item data for the list items
+
+    - cls: the Kivy view that is to be instantiated for each list item. There
+           are several built-in types available, including ListItemLabel and
+           ListItemButton.
+
+    - template: another way of building a Kivy view for a list item. Pick one
+                or the other, cls or template, as an argument to
+                :class:`ListAdapter`.
+
+    - args_converer: a function that takes a list item object (which is often
+                     just a string) as input, and operates to use the object
+                     in some fashion to build and return an args dict, ready
+                     to be used in a call to instantiate the item view cls.
+
+    - selection arguments: These include selection_mode='single', 'multiple'
+                           or other (See docs), allow_empty_selection=False,
+                           which forces there to always be a selection, if
+                           there is data available, or =True, if selection
+                           only happens from user action.
+
+The view used for list items can be totally custom, but we can start with a
+simple button, using the :class:`ListItemButton` class.
 
     from kivy.adapters.list_adapter import ListAdapter
     from kivy.uix.listview import ListItem, ListView
@@ -211,6 +248,14 @@ label in this example.
 
 Using With kv
 -------------
+
+[TODO] What about selection support? Perhaps provide a second kv example, so
+       that we would have "Using With kv for a Simple List" and "Using With
+       kv for a Selectable List".
+
+       Can SimpleListAdapter be used with a template? If so, use it here, for
+       the first example, and use ListAdapter, with selection args, for the
+       second.
 
 To make a simple list with labels for 100 integers:
 
@@ -452,8 +497,6 @@ class ListView(AbstractView):
             if 'item_strings' not in kwargs:
                 raise Exception('ListView: input needed, or an adapter')
             list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
-                                             selection_mode='single',
-                                             allow_empty_selection=False,
                                              cls=Button)
             kwargs['adapter'] = list_adapter
 
