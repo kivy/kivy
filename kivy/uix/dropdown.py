@@ -192,7 +192,7 @@ class DropDown(ScrollView):
             self.attach_to.unbind(pos=self._reposition, size=self._reposition)
             self.attach_to = None
 
-    def select(self, data, *args):
+    def select(self, data):
         '''Call this method to trigger the `on_select` event, with the `data`
         selection. The `data` can be anything you want.
         '''
