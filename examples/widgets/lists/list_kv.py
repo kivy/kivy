@@ -24,13 +24,14 @@ class MainView(GridLayout):
         super(MainView, self).__init__(**kwargs)
 
         # Here we create a list adapter with some item strings, passing our
-        # CompositeListItemTemplate for the list item view, and then we
+        # CompositeListItem kv template for the list item view, and then we
         # create a list view using this adapter. As we have not provided an
-        # args converter, the default will be used. It will create, per
-        # list item, an args dict with the text set to the data item (in
-        # this case a string label for an integer index), and two default
-        # properties: size_hint_y=None and height=25. To customize, make
-        # your own args converter and/or customize the kv template.
+        # args converter to the list adapter, the default args converter
+        # will be used. It creates, per list item, an args dict with the
+        # text set to the data item (in this case a string label for an
+        # integer index), and two default properties: size_hint_y=None and
+        # height=25. To customize, make your own args converter and/or
+        # customize the kv template.
         list_adapter = ListAdapter(data=[str(i) for i in xrange(100)],
                                    template='CustomListItem')
         list_view = ListView(adapter=list_adapter)
