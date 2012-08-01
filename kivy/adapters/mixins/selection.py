@@ -1,6 +1,6 @@
 '''
-SelectableItem, SelectionObserver, SelectionSupport
-===================================================
+SelectableItem, SelectionSupport
+================================
 
 .. versionadded:: 1.4
 
