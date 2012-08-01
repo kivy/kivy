@@ -20,7 +20,6 @@ then, the mainbutton text will display the selection of the dropdown. ::
 
     from kivy.uix.dropdown import DropDown
     from kivy.uix.button import Button
-    from functools import partial
 
     # create a dropdown with 10 button
     dropdown = DropDown()
@@ -30,7 +29,7 @@ then, the mainbutton text will display the selection of the dropdown. ::
         # for each button, attach a callback that will call the select() method
         # on the dropdown. We'll pass the text of the button as the data of the
         # selection.
-        btn.bind(on_release=partial(dropdown.select, btn.text))
+        btn.bind(on_release=lambda btn: dropdown.select(btn.text))
 
         # then add the button inside the dropdown
         dropdown.add_widget(btn)
@@ -193,7 +192,7 @@ class DropDown(ScrollView):
             self.attach_to.unbind(pos=self._reposition, size=self._reposition)
             self.attach_to = None
 
-    def select(self, data, *ignored):
+    def select(self, data):
         '''Call this method to trigger the `on_select` event, with the `data`
         selection. The `data` can be anything you want.
         '''
@@ -284,14 +283,13 @@ class DropDown(ScrollView):
 if __name__ == '__main__':
     from kivy.uix.button import Button
     from kivy.base import runTouchApp
-    from functools import partial
 
     def show_dropdown(button, *largs):
         dp = DropDown()
         dp.bind(on_select=lambda instance, x: setattr(button, 'text', x))
         for i in xrange(10):
             item = Button(text='hello %d' % i, size_hint_y=None, height=44)
-            item.bind(on_release=partial(dp.select, item.text))
+            item.bind(on_release=lambda btn: dp.select(btn.text))
             dp.add_widget(item)
         dp.open(button)
 
