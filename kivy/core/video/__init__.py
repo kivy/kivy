@@ -23,10 +23,10 @@ class VideoBase(EventDispatcher):
     :Parameters:
         `filename` : str
             Filename of the video. Can be a file or an URI.
-        `eos` : str, default to 'stop'
-        .. versionchanged:: defaults to 'stop' instead of 'pause'
-            Action to do when EOS is hit. Can be one of 'stop' or 'loop'
-        .. versionchanged:: renamed 'pause' to 'stop'
+        `eos` : str, default to 'pause'
+            Action to do when EOS is hit. Can be one of 'pause', 'stop' or
+            'loop'
+            .. versionchanged:: added 'pause'
         `async` : bool, default to True
             Asynchronous loading (may be not supported by all providers)
         `autoplay` : bool, default to False
@@ -148,8 +148,7 @@ class VideoBase(EventDispatcher):
         Now dispatches the `on_eos` event.
         '''
         if self.eos == 'pause':
-            Logger.warning("'pause' deprecated. Use 'stop' instead.")
-            self.stop()
+            self.pause()
         elif self.eos == 'stop':
             self.stop()
         elif self.eos == 'loop':
