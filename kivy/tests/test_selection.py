@@ -6,12 +6,9 @@ Selection tests
 import unittest
 
 from kivy.uix.widget import Widget
-from kivy.uix.button import Button
 from kivy.uix.listview import ListView, ListItemButton
-from kivy.properties import NumericProperty, ListProperty, StringProperty
-from kivy.adapters.mixins.selection import SelectableItem
-from kivy.adapters.listadapter import ListAdapter, ListsAdapter, \
-        AccumulatingListAdapter
+from kivy.properties import NumericProperty, StringProperty
+from kivy.adapters.listadapter import ListAdapter, ListsAdapter
 
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
@@ -236,6 +233,11 @@ class ListsAdapterTestCase(unittest.TestCase):
         fruits_list_view = ListView(adapter=fruits_l_a,
                                     size_hint=(.2, 1.0))
 
+        # List views should have adapters set.
+        self.assertEqual(fruit_categories_list_view.adapter,
+                fruit_categories_l_a)
+        self.assertEqual(fruits_list_view.adapter, fruits_l_a)
+
         # Each list adapter has allow_empty_selection=False, so each should
         # have one selected item.
         self.assertEqual(len(fruit_categories_l_a.selection), 1)
@@ -246,7 +248,9 @@ class ListsAdapterTestCase(unittest.TestCase):
         self.assertEqual(fruits_l_a.selection[0].is_selected, True)
 
         # And they should be red, for background_color.
-        self.assertEqual(fruit_categories_l_a.selection[0].background_color, \
+        self.assertEqual(
+                fruit_categories_l_a.selection[0].background_color,
                 [1.0, 0., 0., 1.0])
-        self.assertEqual(fruits_l_a.selection[0].background_color, \
+        self.assertEqual(
+                fruits_l_a.selection[0].background_color,
                 [1.0, 0., 0., 1.0])
