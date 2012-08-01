@@ -122,6 +122,9 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
                 #else:
                     #print 'ERROR: No data, so cannot initialize selection.'
 
+    def touch_selection(self):
+        self.dispatch('on_selection_change')
+
 
 class ListsAdapter(ListAdapter):
     '''ListsAdapter is specialized for managing a dict of lists. It has wide

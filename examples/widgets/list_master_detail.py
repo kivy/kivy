@@ -67,6 +67,10 @@ class MasterDetailView(GridLayout):
 
         list_adapter.bind(on_selection_change=detail_view.on_selection_change)
 
+        # Force triggering of on_selection_change() for the DetailView, for
+        # correct initial display.
+        list_adapter.touch_selection()
+
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
 #                InformationforRestaurantsRetailEstablishments/\

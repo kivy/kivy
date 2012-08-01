@@ -104,8 +104,6 @@ class SelectionSupport(object):
         self.bind(selection_mode=self.check_for_empty_selection,
                   allow_empty_selection=self.check_for_empty_selection)
 
-        #self.check_for_empty_selection()
-
     def handle_selection(self, obj):
         if obj not in self.selection:
             if self.selection_mode == 'single' and len(self.selection) > 0:

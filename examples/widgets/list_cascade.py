@@ -19,7 +19,6 @@ class DetailView(GridLayout):
     def __init__(self, **kwargs):
         kwargs['cols'] = 2
         super(DetailView, self).__init__(**kwargs)
-        self.bind(fruit_name=self.redraw)
 
     def redraw(self, *args):
         self.clear_widgets()
@@ -101,6 +100,9 @@ class CascadingView(GridLayout):
                 on_selection_change=detail_view.on_selection_change)
         self.add_widget(detail_view)
 
+        # Force triggering of on_selection_change() for the DetailView, for
+        # correct initial display.
+        fruits_list_adapter.touch_selection()
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
