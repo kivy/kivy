@@ -405,6 +405,8 @@ class ListView(AbstractView):
 
         super(ListView, self).__init__(**kwargs)
 
+        self.adapter.owning_view = self
+
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
         # [TODO] Is this "hard" scheme needed -- better way?
         self._trigger_hard_populate = \
@@ -413,6 +415,8 @@ class ListView(AbstractView):
                   pos=self._trigger_populate,
                   adapter=self._trigger_populate)
         self.adapter.bind(data=self._trigger_hard_populate)
+
+        self.adapter.check_for_empty_selection()
 
     def _scroll(self, scroll_y):
         if self.row_height is None:

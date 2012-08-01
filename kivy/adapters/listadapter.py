@@ -70,6 +70,8 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
     SimpleListAdapter.
     '''
 
+    owning_view = ObjectProperty(None)
+
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
 
@@ -94,6 +96,7 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
             item_args = item
 
         item_args['list_adapter'] = self
+        item_args['data_index'] = index
 
         if self.cls:
             print 'CREATE VIEW FOR', index
@@ -107,6 +110,17 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
         on_selection_change event, which is registered in SelectionSupport.
         '''
         pass
+
+    def check_for_empty_selection(self, *args):
+        if self.allow_empty_selection is False:
+            if len(self.selection) == 0:
+                # Select the first item if we have it.
+                v = self.owning_view.get_item_view(0)
+                if v is not None:
+                    print 'selecting first data item view', v, v.is_selected
+                    self.handle_selection(v)
+                #else:
+                    #print 'ERROR: No data, so cannot initialize selection.'
 
 
 class ListsAdapter(ListAdapter):

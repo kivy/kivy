@@ -7,7 +7,7 @@ SelectableItem, SelectionSupport
 Mixin classes for giving selection functionality to "collection-style" views.
 '''
 
-from kivy.properties import ObjectProperty, \
+from kivy.properties import ObjectProperty, NumericProperty, \
                             ListProperty, BooleanProperty, OptionProperty
 
 
@@ -26,6 +26,8 @@ class SelectableItem(object):
     selection_target = ObjectProperty(None)
 
     is_selected = BooleanProperty(False)
+
+    data_index = NumericProperty(-1)
 
     def __init__(self, **kwargs):
         # [TODO] list_adapter is not optional, and should be guaranteed,
@@ -102,7 +104,7 @@ class SelectionSupport(object):
         self.bind(selection_mode=self.check_for_empty_selection,
                   allow_empty_selection=self.check_for_empty_selection)
 
-        self.check_for_empty_selection()
+        #self.check_for_empty_selection()
 
     def handle_selection(self, obj):
         if obj not in self.selection:
@@ -161,14 +163,3 @@ class SelectionSupport(object):
             self.dispatch('on_selection_change')
 
         self.check_for_empty_selection(*args)
-
-    def check_for_empty_selection(self, *args):
-        if self.allow_empty_selection is False:
-            if len(self.selection) == 0:
-                # Select the first item if we have it.
-                v = self.get_view(0)
-                if v is not None:
-                    print 'selecting first data item view', v, v.is_selected
-                    self.handle_selection(v)
-                #else:
-                    #print 'ERROR: No data, so cannot initialize selection.'
