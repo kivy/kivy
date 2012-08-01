@@ -1,3 +1,4 @@
+from __future__ import print_function
 '''
 Drop-Down List
 ==============
@@ -193,7 +194,7 @@ class DropDown(ScrollView):
             self.attach_to.unbind(pos=self._reposition, size=self._reposition)
             self.attach_to = None
 
-    def select(self, data, *ignored):
+    def select(self, data):
         '''Call this method to trigger the `on_select` event, with the `data`
         selection. The `data` can be anything you want.
         '''
@@ -291,7 +292,7 @@ if __name__ == '__main__':
         dp.bind(on_select=lambda instance, x: setattr(button, 'text', x))
         for i in xrange(10):
             item = Button(text='hello %d' % i, size_hint_y=None, height=44)
-            item.bind(on_release=partial(dp.select, item.text))
+            item.bind(on_release=lambda button: dp.select(button.text))
             dp.add_widget(item)
         dp.open(button)
 
