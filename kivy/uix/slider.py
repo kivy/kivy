@@ -86,15 +86,6 @@ class Slider(Widget):
     (:data:`min`, :data:`max`)
     '''
 
-    step = NumericProperty(1)
-    '''Step size of the slider
-        Determines the size of each interval or step the slider takes between
-        min and max. If the value range can't be evenly divisible by step the
-        last step will be capped by slider.max
-    :data:`step` is a :class:`~kivy.properties.NumericProperty`, default to
-        1.
-    '''
-
     def get_norm_value(self):
         vmin = self.min
         d = self.max - vmin
@@ -104,11 +95,7 @@ class Slider(Widget):
 
     def set_norm_value(self, value):
         vmin = self.min
-        val = value * (self.max - vmin) + vmin
-        if self.step == 1:
-            self.value = val
-        else:
-            self.value = min(round((val-vmin)/self.step)*self.step,self.max) # value aligned to step or self.max 
+        self.value = value * (self.max - vmin) + vmin
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'min', 'max'))
     '''Normalized value inside the :data:`range` (min/max) to 0-1 range::
