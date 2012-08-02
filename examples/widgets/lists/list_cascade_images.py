@@ -2,7 +2,7 @@ from kivy.adapters.listadapter import ListAdapter, ListsAdapter
 from kivy.adapters.mixins.selection import SelectableItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.listview import ListView, ListItemButton, CompositeListItem
+from kivy.uix.listview import ListView, ListItemButton
 from kivy.lang import Builder
 from kivy.factory import Factory
 

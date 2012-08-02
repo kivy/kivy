@@ -61,12 +61,6 @@ class CompositeListItem(SelectableItem, BoxLayout):
         # different list item types that could be filtered perhaps (an option
         # for selecting all of a given type, for example).
 
-        # For sub list items, set selection_target to self (this is a kind of
-        # composite list item) so that when they are touched, the composite
-        # list item is selected, not the components. Any list item component
-        # that should be selected individually, would need to override this.
-        kwargs['selection_target'] = self
-
         # Make a copy of kwargs and add specific args for the "disclosure"
         # icon button.
         icon_kwargs = kwargs.copy()

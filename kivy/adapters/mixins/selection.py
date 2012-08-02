@@ -11,7 +11,59 @@ from kivy.properties import ObjectProperty, NumericProperty, \
                             ListProperty, BooleanProperty, OptionProperty
 
 
-class SelectableItem(object):
+class ButtonBehavior(object):
+    '''Button behavior. From:
+
+        https://github.com/tito/presemt/blob/master/presemt/behaviours.py
+
+    :Events:
+        `on_press`:
+            Fired when a touch is pressing the widget
+        `on_release`:
+            Fired when the first touch is up
+    '''
+
+    is_hover = BooleanProperty(False)
+
+    button_grab = BooleanProperty(False)
+
+    button_touch = ObjectProperty(None, allownone=True)
+
+    def __init__(self, **kwargs):
+        super(ButtonBehavior, self).__init__(**kwargs)
+        self.register_event_type('on_press')
+        self.register_event_type('on_release')
+        self.bind(
+            on_touch_down=self._button_on_touch_down,
+            on_touch_up=self._button_on_touch_up)
+
+    def on_press(self, *args):
+        pass
+
+    def on_release(self, *args):
+        pass
+
+    def _button_on_touch_down(self, instance, touch):
+        if not self.collide_point(*touch.pos):
+            return
+        touch.ungrab(self)
+        touch.grab(self)
+        self.is_hover = True
+        self.button_touch = touch
+        self.dispatch('on_press', touch)
+        return self.button_grab
+
+    def _button_on_touch_up(self, instance, touch):
+        if touch.grab_current is not self:
+            return
+        touch.ungrab(self)
+        self.is_hover = False
+        self.dispatch('on_release', touch)
+        self.button_touch = None
+        return self.button_grab
+
+
+class SelectableItem(ButtonBehavior):
     '''The :class:`SelectableItem` mixin is used in list item classes that are
     to be instantiated in a ListView, which uses a ListAdapter. The
     handle_selection() function interfaces to the ListView, via its
@@ -98,13 +150,13 @@ class SelectionSupport(object):
         self.bind(selection_mode=self.check_for_empty_selection,
                   allow_empty_selection=self.check_for_empty_selection)
 
-    def handle_selection(self, obj):
-        if obj.selection_target is obj:
+    def _handle_selection(self, obj, *args):
+        if obj.selection_target == obj:
             self._handle_selection(obj)
         else:
             self._handle_selection(obj.selection_target)
 
-    def _handle_selection(self, obj):
+    def handle_selection(self, obj, *args):
         if obj not in self.selection:
             if self.selection_mode == 'single' and len(self.selection) > 0:
                 for selected_obj in self.selection:
