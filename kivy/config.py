@@ -23,24 +23,6 @@ Change the configuration and save it::
 Available configuration tokens
 ------------------------------
 
-.. versionchanged:: 1.0.8
-
-    * `scroll_timeout`, `scroll_distance` and `scroll_friction` have been added
-    * `list_friction`, `list_trigger_distance` and `list_friction_bound` have
-      been removed.
-    * `keyboard_type` and `keyboard_layout` have been removed from widget
-    * `keyboard_mode` and `keyboard_layout` have been added to kivy section
-
-.. versionchanged:: 1.1.0
-
-    * tuio is not listening by default anymore.
-    * windows icons are not copied to user directory anymore. You can still set
-      a new window icon by using ``window_icon`` config setting.
-
-.. versionchanged:: 1.2.0
-
-    * `resizable` has been added to graphics section
-
 :kivy:
 
     `log_level`: (debug, info, warning, error, critical)
@@ -164,6 +146,21 @@ Available configuration tokens
 
     Anything after the = will be passed to the module as arguments.
     Check the specific module's documentation for a list of accepted arguments.
+
+.. versionchanged:: 1.2.0
+    `resizable` has been added to graphics section
+
+.. versionchanged:: 1.1.0
+    tuio is not listening by default anymore. windows icons are not copied to
+    user directory anymore. You can still set a new window icon by using
+    ``window_icon`` config setting.
+
+.. versionchanged:: 1.0.8
+    `scroll_timeout`, `scroll_distance` and `scroll_friction` have been added.
+    `list_friction`, `list_trigger_distance` and `list_friction_bound` have been
+    removed. `keyboard_type` and `keyboard_layout` have been removed from
+    widget.  `keyboard_mode` and `keyboard_layout` have been added to kivy
+    section.
 '''
 
 __all__ = ('Config', 'ConfigParser')
@@ -258,7 +255,7 @@ class ConfigParser(PythonConfigParser):
         return True
 
 
-if not 'KIVY_DOC_INCLUDE' in environ:
+if not environ.get('KIVY_DOC_INCLUDE'):
 
     #
     # Read, analyse configuration file

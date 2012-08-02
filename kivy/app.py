@@ -151,7 +151,7 @@ However, you might want to know when a config value has been changed by the
 user, in order to adapt or reload your UI. You can overload the
 :meth:`on_config_change` method::
 
-    class TestApp(self):
+    class TestApp(App):
         # ...
         def on_config_change(self, config, section, key, value):
             if config is self.config:
@@ -309,7 +309,7 @@ class App(EventDispatcher):
         widget and added to the window.
 
         :return: None or a root :class:`~kivy.uix.widget.Widget` instance is no
-        self.root exist.
+                 self.root exist.
         '''
         if not self.root:
             return Widget()
@@ -370,6 +370,8 @@ class App(EventDispatcher):
         '''
         try:
             default_kv_directory = dirname(getfile(self.__class__))
+            if default_kv_directory == '':
+                default_kv_directory = '.'
         except TypeError:
             # if it's a builtin module.. use the current dir.
             default_kv_directory = '.'
@@ -408,7 +410,6 @@ class App(EventDispatcher):
         '''.. versionadded:: 1.0.7
 
         .. versionchanged:: 1.4.0
-
             Customize the default path for iOS and Android platform. Add
             defaultpath parameter for desktop computer (not applicatable for iOS
             and Android.)
@@ -492,6 +493,8 @@ class App(EventDispatcher):
         if self._app_directory is None:
             try:
                 self._app_directory = dirname(getfile(self.__class__))
+                if self._app_directory == '':
+                    self._app_directory = '.'
             except TypeError:
                 # if it's a builtin module.. use the current dir.
                 self._app_directory = '.'

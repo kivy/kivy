@@ -58,7 +58,7 @@ Examples
 .. |tws_dir| replace:: ./examples/frameworks/twisted
 .. |tws_file| replace:: echo_client_app.py
 .. |tws_file2| replace:: echo_server_app.py
-.. |tws_desc| replace:: A clent and server app using `twisted-inside-kivy <http://kivy.org/docs/guide/other-frameworks.html?highlight=twisted#using-twisted-inside-kivy>`__
+.. |tws_desc| replace:: A clent and server app using :doc:`Twisted inside Kivy </guide/other-frameworks>`
 
 .. |gst_dir| replace:: ./examples/gestures
 .. |gst_file| replace:: gesture_board.py
@@ -66,7 +66,7 @@ Examples
 
 .. |kv_dir| replace:: ./examples/guide/designwithkv
 .. |kv_file| replace:: main.py
-.. |kv_desc| replace:: Programming Guide examples on how to `design with kv lang <http://kivy.org/docs/guide/designwithkv.html>`__.
+.. |kv_desc| replace:: Programming Guide examples on how to :doc:`design with kv lang </guide/designwithkv>`
 
 .. |fwd_dir| replace:: ./examples/guide/firstwidget
 .. |fwd_file| replace:: 1_skeleton.py
@@ -75,11 +75,11 @@ Examples
 .. |fwd_file4| replace:: 4_draw_line.py
 .. |fwd_file5| replace:: 5_random_colors.py
 .. |fwd_file6| replace:: 6_button.py
-.. |fwd_desc| replace:: Programming Guide examples `Your first widget <http://kivy.org/docs/guide/firstwidget.html>`__ .
+.. |fwd_desc| replace:: Programming Guide examples :doc:`Your first widget </guide/firstwidget>`
 
 .. |qst_dir| replace:: ./examples/guide/quickstart
 .. |qst_file| replace:: main.py
-.. |qst_desc| replace:: Programming Guide `guide/quickstart <http://kivy.org/docs/guide/quickstart.html>`__ example.
+.. |qst_desc| replace:: Programming Guide :doc:`guide/quickstart </guide/quickstart>` example.
 
 .. |kin_dir| replace::  ./examples/kinect
 .. |kin_file| replace:: main.py

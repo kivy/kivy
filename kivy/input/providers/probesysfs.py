@@ -9,7 +9,7 @@ be made by other providers like: hidinput, mtdev, linuxwacom. mtdev is used
 prior to other providers. For more information about mtdev, check
 :py:class:`~kivy.input.providers.mtdev`.
 
-Here is an example of auto creation ::
+Here is an example of auto creation::
 
     [input]
     # using mtdev

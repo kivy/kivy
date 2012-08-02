@@ -3,19 +3,11 @@ Test properties attached to a widget
 '''
 
 import unittest
+from kivy.event import EventDispatcher
 
-
-class Widget(object):
-    '''Fake widget class'''
-
-    def __init__(self, **kwargs):
-        super(Widget, self).__init__(**kwargs)
-        self.__dict__['__uid'] = 1
-        self.__dict__['__storage'] = {}
-
-
-wid = Widget()
-
+class TestProperty(EventDispatcher):
+    pass
+wid = TestProperty()
 
 class PropertiesTestCase(unittest.TestCase):
 
@@ -78,7 +70,7 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 'hello')
 
         try:
-            a.set(wid, 88) # number shouldn't be accepted
+            a.set(wid, 88)  # number shouldn't be accepted
             self.fail('string accept number, fail.')
         except ValueError:
             pass
@@ -94,7 +86,7 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 99)
 
         try:
-            a.set(wid, '') # string shouldn't be accepted
+            a.set(wid, '')  # string shouldn't be accepted
             self.fail('number accept string, fail.')
         except ValueError:
             pass
@@ -118,7 +110,6 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), {})
         a.set(wid, {'foo': 'bar'})
         self.assertEqual(a.get(wid), {'foo': 'bar'})
-
 
     def test_propertynone(self):
         from kivy.properties import NumericProperty
@@ -269,4 +260,3 @@ class PropertiesTestCase(unittest.TestCase):
         observe_called = 0
         x.get(wid).update({'bleh': 5})
         self.assertEqual(observe_called, 1)
-

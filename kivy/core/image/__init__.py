@@ -23,9 +23,9 @@ from kivy.resources import resource_find
 from kivy.utils import platform
 import zipfile
 try:
-    SIO = __import__('cStringIO')
+    import cStringIO as SIO
 except ImportError:
-    SIO = __import__('StringIO')
+    import StringIO as SIO
 
 
 # late binding
@@ -137,11 +137,12 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                '_mipmap')
+                '_mipmap', '_nocache')
 
     def __init__(self, filename, **kwargs):
         self._mipmap = kwargs.get('mipmap', False)
         self.keep_data = kwargs.get('keep_data', False)
+        self._nocache = kwargs.get('nocache', False)
         self.filename = filename
         self._data = self.load(filename)
         self._textures = None
@@ -167,7 +168,8 @@ class ImageLoaderBase(object):
             if texture is None:
                 texture = Texture.create_from_data(
                         self._data[count], mipmap=self._mipmap)
-                Cache.append('kv.texture', uid, texture)
+                if not self._nocache:
+                    Cache.append('kv.texture', uid, texture)
 
             # set as our current texture
             self._textures.append(texture)
@@ -364,7 +366,7 @@ class Image(EventDispatcher):
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
-                       '_mipmap')
+                       '_mipmap', '_nocache')
 
     def __init__(self, arg, **kwargs):
         # this event should be fired on animation of sequenced img's
@@ -374,6 +376,7 @@ class Image(EventDispatcher):
 
         self._mipmap = kwargs.get('mipmap', False)
         self._keep_data = kwargs.get('keep_data', False)
+        self._nocache = kwargs.get('nocache', False)
         self._size = [0, 0]
         self._image = None
         self._filename = None
@@ -579,7 +582,7 @@ class Image(EventDispatcher):
         tmpfilename = self._filename
         image = ImageLoader.load(
                 self._filename, keep_data=self._keep_data,
-                mipmap=self._mipmap)
+                mipmap=self._mipmap, nocache=self._nocache)
         self._filename = tmpfilename
 
         # put the image into the cache if needed
@@ -624,7 +627,7 @@ class Image(EventDispatcher):
 
         .. warning::
             This function can be used only with images loaded with
-            keep_data=True keyword. For examples ::
+            keep_data=True keyword. For examples::
 
                 m = Image.load('image.png', keep_data=True)
                 color = m.read_pixel(150, 150)

@@ -28,8 +28,9 @@ Read first: :doc:`api-kivy.uix.widget`
   combinations. We call them complex because the assembly and usages are not as
   generic as the classicals widgets.
 
-    :doc:`api-kivy.uix.bubble`,
+    :doc:`api-kivy.uix.bubble`, :doc:`api-kivy.uix.dropdown`,
     :doc:`api-kivy.uix.filechooser`, :doc:`api-kivy.uix.popup`,
+    :doc:`api-kivy.uix.spinner`,
     :doc:`api-kivy.uix.tabbedpanel`, :doc:`api-kivy.uix.videoplayer`,
     :doc:`api-kivy.uix.vkeyboard`,
 

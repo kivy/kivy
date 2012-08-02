@@ -20,7 +20,7 @@ from kivy.config import Config
 class InputPostprocDejitter(object):
     '''
     Get rid of jitterish BLOBs.
-    Example ::
+    Example::
 
         [postproc]
         jitter_distance = 0.004

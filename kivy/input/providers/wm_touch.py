@@ -119,7 +119,7 @@ else:
     windll.user32.GetTouchInputInfo.restype = BOOL
     windll.user32.GetTouchInputInfo.argtypes = [HANDLE, UINT,
                                                 POINTER(TOUCHINPUT), c_int]
-    
+
     class WM_MotionEventProvider(MotionEventProvider):
 
         def start(self):

@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''
 Event loop management
 =====================
@@ -25,7 +26,7 @@ EventLoop = None
 
 class ExceptionHandler:
     '''Base handler that catch exception in runTouchApp().
-    You can derivate and use it like this ::
+    You can derivate and use it like this::
 
         class E(ExceptionHandler):
             def handle_exception(self, inst):
@@ -105,7 +106,7 @@ class EventLoopBase(EventDispatcher):
     def ensure_window(self):
         '''Ensure that we have an window
         '''
-        __import__('kivy.core.window')
+        import kivy.core.window
 
     def set_window(self, window):
         '''Set the window used for event loop

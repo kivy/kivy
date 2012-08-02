@@ -29,7 +29,7 @@ Usage
 
 By default, the widget does not have a graphical representation. It is a
 container only. The idea is to combine Scatter with another widget, for
-example :class:`~kivy.uix.image.Image` ::
+example :class:`~kivy.uix.image.Image`::
 
     scatter = Scatter()
     image = Image(source='sun.jpg')
@@ -41,15 +41,15 @@ Control Interactions
 By default, all interactions are enabled. You can selectively disable
 them using the do_{rotation, translation, scale} properties.
 
-Disable rotation ::
+Disable rotation::
 
     scatter = Scatter(do_rotation=False)
 
-Allow only translation ::
+Allow only translation::
 
     scatter = Scatter(do_rotation=False, do_scale=False)
 
-Allow only translation on x axis ::
+Allow only translation on x axis::
 
     scatter = Scatter(do_rotation=False, do_scale=False,
                       do_translation_y=False)
@@ -72,7 +72,7 @@ a limit for scaling. You cannot do infinite scale down/up with our
 implementation. Generally, you don't hit the minimum scale (because you don't
 see it on the screen), but the maximum scale is 9.99506983235e+19 (2^66).
 
-You can also limit the minimum and maximum scale allowed. ::
+You can also limit the minimum and maximum scale allowed::
 
     scatter = Scatter(scale_min=.5, scale_max=3.)
 
@@ -80,7 +80,6 @@ Behaviors
 ---------
 
 .. versionchanged:: 1.1.0
-
     If no control interactions are enabled, then touch handler will never return
     True.
 
@@ -204,7 +203,7 @@ class Scatter(Widget):
         return (xmin, ymin), (xmax-xmin, ymax-ymin)
     bbox = AliasProperty(_get_bbox, None, bind=(
         'transform', 'width', 'height'))
-    '''Bounding box of the widget in parent space. ::
+    '''Bounding box of the widget in parent space::
 
         ((x, y), (w, h))
         # x, y = lower left corner

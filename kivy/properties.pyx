@@ -244,7 +244,7 @@ cdef class Property:
         '''
         cdef list observers = obj.__storage[self._name]['observers']
         for obj in observers[:]:
-            if obj is observer:
+            if obj == observer:
                 observers.remove(obj)
 
     def __set__(self, obj, val):
@@ -305,7 +305,6 @@ cdef class Property:
         '''Dispatch the value change to all observers
 
         .. versionchanged:: 1.1.0
-
             The method is now accessible from Python.
 
         This can be used to force the dispatch of the property, even if the
@@ -667,10 +666,10 @@ cdef class BoundedNumericProperty(Property):
         '''
         cdef dict s = obj.__storage[self._name]
         if value is None:
-            s['use_min'] = 0
+            s['use_max'] = 0
         else:
-            s['min'] = value
-            s['use_min'] = 1
+            s['max'] = value
+            s['use_max'] = 1
 
     def get_max(self, obj):
         '''Return the maximum value acceptable for the BoundedNumericProperty in
@@ -836,7 +835,7 @@ cdef class AliasProperty(Property):
     If you didn't find a Property class that fits to your needs, you can still
     create Python getters and setters and create a property with both of them.
 
-    Example from kivy/uix/widget.py ::
+    Example from kivy/uix/widget.py::
 
         def get_right(self):
             return self.x + self.width

@@ -5,6 +5,21 @@ Spelling
 Provide abstracted access to a range of spellchecking backends.  Also provides
 word suggestions. The API is inspired by enchant, but other backends can be
 added that implement the same API.
+
+Spelling currently require `python-enchant` for all platform, except OSX, where
+a native implementation exist.
+
+::
+
+    >>> from kivy.core.spelling import Spelling
+    >>> s = Spelling()
+    >>> s.list_languages()
+    ['en', 'en_CA', 'en_GB', 'en_US']
+    >>> s.select_language('en_US')
+    >>> s.check('helo')
+    [u'hole', u'help', u'helot', u'hello', u'halo', u'hero', u'hell', u'held',
+     u'helm', u'he-lo']
+
 '''
 
 __all__ = ('Spelling', 'SpellingBase', 'NoSuchLangError',

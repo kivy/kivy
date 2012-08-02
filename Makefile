@@ -70,6 +70,7 @@ clean:
 	-rm .coverage
 	-rm .noseids
 	-rm -rf kivy/tests/build
+	-find kivy -iname '*.so' -exec rm {} \;
 	-find kivy -iname '*.pyc' -exec rm {} \;
 	-find kivy -iname '*.pyo' -exec rm {} \;
 

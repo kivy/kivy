@@ -7,7 +7,7 @@ texture, and use your fbo as a texture for another drawing.
 
 Fbo act as a :class:`kivy.graphics.instructions.Canvas`.
 
-Exemple of using an fbo for some color rectangles ::
+Example of using an fbo for some color rectangles::
 
     from kivy.graphics import Fbo, Color, Rectangle
 

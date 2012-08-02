@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''    simpleOSC 0.2
     ixi software - July, 2006
     www.ixi-software.net
@@ -38,7 +39,7 @@ try:
         raise
     use_multiprocessing = True
     from multiprocessing import Process, Queue, Value
-    __import__('multiprocessing.synchronize')
+    import multiprocessing.synchronize
     Logger.info('OSC: using <multiprocessing> for socket')
 except:
     use_multiprocessing = False

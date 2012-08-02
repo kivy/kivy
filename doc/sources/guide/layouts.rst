@@ -25,8 +25,9 @@ BoxLayout:
  .. image:: ../images/boxlayout.gif
 
 GridLayout:
-  Arrange widgets in a grid, you must specifiy at least one dimension of the
-  grid, so kivy can comput size of the elements and how to arrange them
+  Arrange widgets in a grid. You must specifiy at least one dimension of the
+  grid so kivy can compute the size of the elements and how to arrange them.
+
  `pos_hint` not honored
 
   .. image:: ../images/gridlayout.gif

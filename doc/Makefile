@@ -2,7 +2,9 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    =
+PYTHON		  = python
+SPHINXOPTS    = -W
+#SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 
@@ -28,12 +30,14 @@ clean:
 
 html:
 	mkdir -p build/html build/doctrees
+	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
 gettext:
 	mkdir -p build/html build/doctrees_gettext
+	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b gettext $(ALLSPHINXOPTSGT) build/gettext
 	@echo
 	@echo "Build finished. The Gettext pages are in build/gettext."
@@ -41,6 +45,7 @@ gettext:
 
 pickle:
 	mkdir -p build/pickle build/doctrees
+	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) build/pickle
 	@echo
 	@echo "Build finished; now you can process the pickle files or run"
@@ -51,6 +56,7 @@ web: pickle
 
 htmlhelp:
 	mkdir -p build/htmlhelp build/doctrees
+	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) build/htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
@@ -58,6 +64,7 @@ htmlhelp:
 
 latex:
 	mkdir -p build/latex build/doctrees
+	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in build/latex."
@@ -66,12 +73,14 @@ latex:
 
 changes:
 	mkdir -p build/changes build/doctrees
+	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) build/changes
 	@echo
 	@echo "The overview file is in build/changes."
 
 linkcheck:
 	mkdir -p build/linkcheck build/doctrees
+	$(PYTHON) autobuild.py
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) build/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \

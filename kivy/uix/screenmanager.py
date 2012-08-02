@@ -118,7 +118,7 @@ __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
 from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ObjectProperty, \
-        NumericProperty, ListProperty, OptionProperty
+        NumericProperty, ListProperty, OptionProperty, BooleanProperty
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
@@ -151,7 +151,7 @@ class Screen(RelativeLayout):
     None, read-only.
     '''
 
-    transition_alpha = NumericProperty(0.)
+    transition_progress = NumericProperty(0.)
     '''Value that represent the completion of the current transition, if any is
     occuring.
 
@@ -159,7 +159,7 @@ class Screen(RelativeLayout):
     to 1. If you want to know if it's an entering or leaving animation, check
     the :data:`transition_state`
 
-    :data:`transition_alpha` is a :class:`~kivy.properties.NumericProperty`,
+    :data:`transition_progress` is a :class:`~kivy.properties.NumericProperty`,
     default to 0.
     '''
 
@@ -222,6 +222,13 @@ class TransitionBase(EventDispatcher):
     None, read-only.
     '''
 
+    is_active = BooleanProperty()
+    '''Indicate if the transition is currently active
+
+    :data:`is_active` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False, read-only.
+    '''
+
     # privates
 
     _anim = ObjectProperty(allownone=True)
@@ -241,11 +248,12 @@ class TransitionBase(EventDispatcher):
                         on_complete=self._on_complete)
 
         self.add_screen(self.screen_in)
-        self.screen_in.transition_value = 0.
+        self.screen_in.transition_progress = 0.
         self.screen_in.transition_mode = 'in'
-        self.screen_out.transition_value = 0.
+        self.screen_out.transition_progress = 0.
         self.screen_out.transition_mode = 'out'
 
+        self.is_active = True
         self._anim.start(self)
         self.dispatch('on_progress', 0)
 
@@ -257,6 +265,7 @@ class TransitionBase(EventDispatcher):
             self._anim.cancel(self)
             self.dispatch('on_complete')
             self._anim = None
+        self.is_active = False
 
     def add_screen(self, screen):
         '''(internal) Used to add a screen into the :class:`ScreenManager`
@@ -275,12 +284,13 @@ class TransitionBase(EventDispatcher):
         pass
 
     def _on_progress(self, *l):
-        alpha = l[-1]
-        self.screen_in.transition_value = alpha
-        self.screen_out.transition_value = 1. - alpha
-        self.dispatch('on_progress', alpha)
+        progress = l[-1]
+        self.screen_in.transition_progress = progress
+        self.screen_out.transition_progress = 1. - progress
+        self.dispatch('on_progress', progress)
 
     def _on_complete(self, *l):
+        self.is_active = False
         self.dispatch('on_complete')
         self._anim = None
 
@@ -407,8 +417,8 @@ class SlideTransition(TransitionBase):
             a.y = y - height * (1 - progression)
 
     def on_complete(self):
-        self.screen_in.pos = (0, 0)
-        self.screen_out.pos = (0, 0)
+        self.screen_in.pos = self.manager.pos
+        self.screen_out.pos = self.manager.pos
         super(SlideTransition, self).on_complete()
 
 
@@ -423,8 +433,8 @@ class SwapTransition(TransitionBase):
     def on_complete(self):
         self.screen_in.scale = 1.
         self.screen_out.scale = 1.
-        self.screen_in.pos = (0, 0)
-        self.screen_out.pos = (0, 0)
+        self.screen_in.pos = self.manager.pos
+        self.screen_out.pos = self.manager.pos
         super(SwapTransition, self).on_complete()
 
     def on_progress(self, progression):
@@ -503,7 +513,7 @@ class ScreenManager(FloatLayout):
     current = StringProperty(None)
     '''Name of the screen currently show, or the screen to show.
 
-    ::
+  ::
 
         from kivy.uix.screenmanager import ScreenManager, Screen
 
@@ -550,6 +560,10 @@ class ScreenManager(FloatLayout):
     default to None, read-only.
     '''
 
+    def __init__(self, **kwargs):
+        super(ScreenManager, self).__init__(**kwargs)
+        self.bind(pos=self._update_pos)
+
     def add_widget(self, screen):
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
@@ -584,6 +598,7 @@ class ScreenManager(FloatLayout):
             self.transition.screen_out = previous_screen
             self.transition.start(self)
         else:
+            screen.pos = self.pos
             self.real_add_widget(screen)
 
     def get_screen(self, name):
@@ -619,6 +634,14 @@ class ScreenManager(FloatLayout):
             return screens[index].name
         except ValueError:
             return
+
+    def _update_pos(self, instance, value):
+        for child in self.children:
+            if self.transition.is_active and \
+                (child == self.transition.screen_in or \
+                child == self.transition.screen_out):
+                    continue
+            child.pos = value
 
 if __name__ == '__main__':
     from kivy.app import App

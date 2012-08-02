@@ -17,4 +17,4 @@ In both cases the canvas of the MyWidget is re-drawn whenever the ``position`` o
 
 You can use **canvas.before** or **canvas.after** . This allows you to separate your instructions based on when you want them to happen.
 
-For an in-depth look at how Kivy's graphics are handled, look `here. <http://kivy.org/docs/api-kivy.graphics.html>`_
+For an in-depth look at how Kivy's graphics are handled, look :mod:`here. <kivy.graphics>`

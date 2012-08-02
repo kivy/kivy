@@ -30,7 +30,7 @@ To create a multiline textinput ('enter' key adds a new line)::
     textinput = TextInput(text='Hello world')
 
 To create a monoline textinput, set the multiline property to false ('enter'
-key will defocus the textinput and emit on_text_validate event) ::
+key will defocus the textinput and emit on_text_validate event)::
 
     def on_enter(instance, value):
         print 'User pressed enter in', instance
@@ -38,7 +38,7 @@ key will defocus the textinput and emit on_text_validate event) ::
     textinput = TextInput(text='Hello world', multiline=False)
     textinput.bind(on_text_validate=on_enter)
 
-To run a callback when the text changes ::
+To run a callback when the text changes::
 
     def on_text(instance, value):
         print 'The widget', instance, 'have:', value
@@ -47,13 +47,13 @@ To run a callback when the text changes ::
     textinput.bind(text=on_text)
 
 You can 'focus' a textinput, meaning that the input box will be highlighted,
-and keyboard focus will be requested ::
+and keyboard focus will be requested::
 
     textinput = TextInput(focus=True)
 
 The textinput is defocused if the 'escape' key is pressed, or if another
 widget requests the keyboard. You can bind a callback to the focus property to
-get notified of focus changes ::
+get notified of focus changes::
 
     def on_focus(instance, value):
         if value:
@@ -133,6 +133,23 @@ class TextInputCutCopyPaste(Bubble):
 
     textinput = ObjectProperty(None)
 
+    def __init__(self, **kwargs):
+        super(TextInputCutCopyPaste, self).__init__(**kwargs)
+        Clock.schedule_interval(self._check_parent, .5)
+
+    def _check_parent(self, dt):
+        # this is a prevention to get the Bubble staying on the screen, if the
+        # attached textinput is not on the screen anymore.
+        parent = self.textinput
+        while parent is not None:
+            if parent == parent.parent:
+                break
+            parent = parent.parent
+        if parent is None:
+            Clock.unschedule(self._check_parent)
+            if self.textinput:
+                self.textinput._hide_cut_copy_paste()
+
     def do(self, action):
         textinput = self.textinput
 
@@ -161,8 +178,8 @@ class TextInput(Widget):
         self._selection_finished = True
         self._selection_touch = None
         self.selection_text = ''
-        self.selection_from = None
-        self.selection_to = None
+        self.__selection_from = None
+        self._selection_to = None
         self._bubble = None
         self._lines_flags = []
         self._lines_labels = []
@@ -259,7 +276,26 @@ class TextInput(Widget):
             i = ni
         return index, row
 
-    def insert_text(self, substring, from_undo = False):
+    def select_text(self, start, end):
+        ''' Select portion of text displayed in this TextInput
+
+        .. versionadded:: 1.4.0
+        '''
+        if end < start:
+            raise Exception('end must be superior to start')
+        m = len(self.text)
+        self._selection_from = boundary(start, 0, m)
+        self._selection_to = boundary(end, 0, m)
+        self._update_selection(True)
+
+    def select_all(self):
+        ''' Select all of the text displayed in this TextInput
+
+        .. versionadded:: 1.4.0
+        '''
+        self.select_text(0, len(self.text))
+
+    def insert_text(self, substring, from_undo=False):
         '''Insert new text on the current cursor position.
         '''
         if self.readonly:
@@ -291,14 +327,8 @@ class TextInput(Widget):
         elif count > 0:
             cursor = cursor[0], cursor[1] + count
 
-        self._undo.append({'undo_command': \
-            'self.cursor = (%i, %i)\n' %(cursor[0], cursor[1]) +\
-            'self.selection_from = %i\nself.selection_to = %i\n' %(ci, sci())+
-            'self._selection = True\n'+\
-            'self.delete_selection(True)\n',\
-            'redo_command': \
-            'self.cursor = (%i, %i)\nself.insert_text(u\'%s\', True)'\
-            %(cc, cr, substring.replace('\n', '\\n').replace('\'', '\\\''))})
+        self._undo.append({'undo_command': ('insert', cursor, ci, sci()),
+            'redo_command': (cc, cr, substring)})
         #reset redo when undo is appended to
         self._redo = []
 
@@ -320,7 +350,25 @@ class TextInput(Widget):
         '''
         try:
             x_item = self._redo.pop()
-            exec(x_item['redo_command'])
+            undo_type = x_item['undo_command'][0]
+
+            if undo_type == 'insert':
+                cc, cr, substring = x_item['redo_command']
+                self.cursor = cc, cr
+                self.insert_text(substring, True)
+                #substring.replace('\n', '\\n').replace('\'', '\\\'')
+            elif undo_type == 'bkspc':
+                cc, cr = x_item['redo_command']
+                self.cursor = cc, cr
+                self.do_backspace(True)
+            else:
+                # delsel
+                ci, sci, cc, cr = x_item['redo_command']
+                self._selection_from = ci
+                self._selection_to = sci
+                self._selection = True
+                self.delete_selection(True)
+                self.cursor = (cc, cr)
             self._undo.append(x_item)
         except IndexError:
             # reached at top of undo list
@@ -337,13 +385,28 @@ class TextInput(Widget):
         '''
         try:
             x_item = self._undo.pop()
-            exec(x_item['undo_command'])
+            undo_type = x_item['undo_command'][0]
+            self.cursor = x_item['undo_command'][1]
+
+            if undo_type == 'insert':
+                ci, sci = x_item['undo_command'][2:]
+                self._selection_from = ci
+                self._selection_to = sci
+                self._selection = True
+                self.delete_selection(True)
+            elif undo_type == 'bkspc':
+                substring = x_item['undo_command'][2:]
+                self.insert_text(substring, True)
+            else:
+                # delsel
+                substring = x_item['undo_command'][2:][0]
+                self.insert_text(substring, True)
             self._redo.append(x_item)
         except IndexError:
             # reached at top of undo list
             pass
 
-    def do_backspace(self, from_undo = False):
+    def do_backspace(self, from_undo=False):
         '''Do backspace operation from the current cursor position.
         This action might do several things:
 
@@ -366,8 +429,8 @@ class TextInput(Widget):
             substring = '\n'
         else:
             #ch = text[cc-1]
-            substring = text[cc-1]
-            new_text = text[:cc-1] + text[cc:]
+            substring = text[cc - 1]
+            new_text = text[:cc - 1] + text[cc:]
             self._set_line_text(cr, new_text)
 
         # refresh_text seems to be unnecessary here
@@ -383,13 +446,9 @@ class TextInput(Widget):
         if from_undo:
             return
 
-        self._undo.append({'undo_command': \
-            'self.cursor = (%i, %i)\n' %(cursor[0], cursor[1]) +\
-            'self.insert_text(u\'%s\', True)'\
-            %(substring.replace('\n', '\\n').replace('\'', '\\\'')),
-            'redo_command': \
-            'self.cursor = (%i, %i)\n' %(cc, cr)+\
-            'self.do_backspace(True)'})
+        self._undo.append({
+            'undo_command': ('bkspc', cursor, substring),
+            'redo_command': (cc, cr)})
         #reset redo when undo is appended to
         self._redo = []
 
@@ -443,11 +502,11 @@ class TextInput(Widget):
         dy = self.line_height + self._line_spacing
         cx = x - self.x
         scrl_y = self.scroll_y
-        scrl_y = scrl_y/ dy if scrl_y > 0 else 0
+        scrl_y = scrl_y / dy if scrl_y > 0 else 0
         cy = (self.top - self.padding_y + scrl_y * dy) - y
         cy = int(boundary(round(cy / dy), 0, len(l) - 1))
         dcx = 0
-        for i in xrange(1, len(l[cy])+1):
+        for i in xrange(1, len(l[cy]) + 1):
             if self._get_text_width(l[cy][:i]) >= cx:
                 break
             dcx = i
@@ -465,7 +524,7 @@ class TextInput(Widget):
         self._selection_touch = None
         self._trigger_update_graphics()
 
-    def delete_selection(self, from_undo = False):
+    def delete_selection(self, from_undo=False):
         '''Delete the current text selection (if any).
         '''
         if self.readonly:
@@ -473,12 +532,12 @@ class TextInput(Widget):
         scrl_x = self.scroll_x
         scrl_y = self.scroll_y
         cc, cr = self.cursor
-        sci = self.cursor_index
-        ci = sci()
+        #sci = self.cursor_index
+        #ci = sci()
         if not self._selection:
             return
         v = self.text
-        a, b = self.selection_from, self.selection_to
+        a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         text = v[:a] + v[b:]
@@ -496,15 +555,9 @@ class TextInput(Widget):
         if from_undo:
             return
 
-        self._undo.append({'undo_command': \
-            'self.cursor = (%i, %i)\n' %(cursor[0], cursor[1]) +\
-            'self.insert_text(u\'%s\', True)'\
-            %(substring.replace('\n', '\\n').replace('\'', '\\\'')),
-            'redo_command': \
-            'self.selection_from = %i\nself.selection_to = %i\n' %(ci, sci)+
-            'self._selection = True\n'+\
-            'self.delete_selection(True)\n'+\
-            'self.cursor = (%i, %i)\n' %(cc, cr)})
+        self._undo.append({
+            'undo_command': ('delsel', cursor, substring),
+            'redo_command': (ci, sci, cc, cr)})
         #reset redo when undo is appended to
         self._redo = []
 
@@ -512,7 +565,7 @@ class TextInput(Widget):
         '''Update selection text and order of from/to if finished is True.
         Can be called multiple times until finished is True.
         '''
-        a, b = self.selection_from, self.selection_to
+        a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         self._selection_finished = finished
@@ -541,7 +594,7 @@ class TextInput(Widget):
         if not self._selection_touch:
             self.cancel_selection()
             self._selection_touch = touch
-            self.selection_from = self.selection_to = self.cursor_index()
+            self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
         return True
 
@@ -555,7 +608,7 @@ class TextInput(Widget):
             return False
         if self._selection_touch is touch:
             self.cursor = self.get_cursor_from_xy(touch.x, touch.y)
-            self.selection_to = self.cursor_index()
+            self._selection_to = self.cursor_index()
             self._update_selection()
             return True
 
@@ -566,7 +619,7 @@ class TextInput(Widget):
         if not self.focus:
             return False
         if self._selection_touch is touch:
-            self.selection_to = self.cursor_index()
+            self._selection_to = self.cursor_index()
             self._update_selection(True)
             # show Bubble
             win = self._win
@@ -576,18 +629,21 @@ class TextInput(Widget):
                 Logger.warning('Textinput: '
                     'Cannot show bubble, unable to get root window')
                 return True
-            if self.selection_to != self.selection_from:
+            if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
             else:
                 self._hide_cut_copy_paste(win)
             return True
 
-    def _hide_cut_copy_paste(self, win):
+    def _hide_cut_copy_paste(self, win=None):
+        win = win or self._win
+        if win is None:
+            return
         bubble = self._bubble
         if bubble is not None:
             win.remove_widget(bubble)
 
-    def _show_cut_copy_paste(self, pos, win, parent_changed = False, *l):
+    def _show_cut_copy_paste(self, pos, win, parent_changed=False, *l):
         # Show a bubble with cut copy and paste buttons
         bubble = self._bubble
         if bubble is None:
@@ -613,7 +669,7 @@ class TextInput(Widget):
         # FIXME found a way to have that feature available for everybody
         if bubble_pos[0] < 0:
             # bubble beyond left of window
-            if bubble.pos[1] > (win_size[1]- bubble_size[1]):
+            if bubble.pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble.pos = (0, (t_pos[1]) - (bubble_size[1] + lh + ls))
                 bubble.arrow_pos = 'top_left'
@@ -622,7 +678,7 @@ class TextInput(Widget):
                 bubble.arrow_pos = 'bottom_left'
         elif bubble.right > win_size[0]:
             # bubble beyond right of window
-            if bubble_pos[1] > (win_size[1]- bubble_size[1]):
+            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble.pos = (win_size[0] - bubble_size[0],
                         (t_pos[1]) - (bubble_size[1] + lh + ls))
@@ -631,7 +687,7 @@ class TextInput(Widget):
                 bubble.right = win_size[0]
                 bubble.arrow_pos = 'bottom_right'
         else:
-            if bubble_pos[1] > (win_size[1]- bubble_size[1]):
+            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
                 # bubble above window height
                 bubble.pos = (bubble_pos[0],
                         (t_pos[1]) - (bubble_size[1] + lh + ls))
@@ -686,6 +742,7 @@ class TextInput(Widget):
             return
         if Clipboard is None:
             from kivy.core.clipboard import Clipboard
+            Clipboard
         _platform = platform()
         if _platform == 'win':
             self._clip_mime_type = 'text/plain;charset=utf-8'
@@ -888,7 +945,15 @@ class TextInput(Widget):
                     tch = (vh / float(lh)) * oh
                     size[1] = vh
 
-                texc = (tcx, tcy+tch, tcx+tcw, tcy+tch, tcx+tcw, tcy, tcx, tcy)
+                texc = (
+                        tcx,
+                        tcy + tch,
+                        tcx + tcw,
+                        tcy + tch,
+                        tcx + tcw,
+                        tcy,
+                        tcx,
+                        tcy)
 
                 # add rectangle.
                 r = rects[line_num]
@@ -914,8 +979,8 @@ class TextInput(Widget):
         miny = self.y + _padding_y
         maxy = _top - _padding_y
         draw_selection = self._draw_selection
-        scroll_y = self.scroll_y
-        a, b = self.selection_from, self.selection_to
+        #scroll_y = self.scroll_y
+        a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         get_cursor_from_index = self.get_cursor_from_index
@@ -933,7 +998,7 @@ class TextInput(Widget):
 
     def _draw_selection(self, pos, size, line_num):
         # Draw the current selection on the widget.
-        a, b = self.selection_from, self.selection_to
+        a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
         get_cursor_from_index = self.get_cursor_from_index
@@ -1042,8 +1107,8 @@ class TextInput(Widget):
                 continue
             if oldindex != index:
                 yield text[oldindex:index]
-            yield text[index:index+1]
-            oldindex = index+1
+            yield text[index:index + 1]
+            oldindex = index + 1
         yield text[oldindex:]
 
     def _split_smart(self, text):
@@ -1097,13 +1162,13 @@ class TextInput(Widget):
             self.insert_text(displayed_str)
         elif internal_action in ('shift', 'shift_L', 'shift_R'):
             if not self._selection:
-                self.selection_from = self.selection_to = self.cursor_index()
+                self._selection_from = self._selection_to = self.cursor_index()
                 self._selection = True
             self._selection_finished = False
         elif internal_action.startswith('cursor_'):
             self.do_cursor_movement(internal_action)
             if self._selection and not self._selection_finished:
-                self.selection_to = self.cursor_index()
+                self._selection_to = self.cursor_index()
                 self._update_selection()
             else:
                 self.cancel_selection()
@@ -1145,19 +1210,17 @@ class TextInput(Widget):
         if text and not key in (self.interesting_keys.keys() + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
-                if key == ord('x'): # cut selection
+                if key == ord('x'):  # cut selection
                     self._cut(self.selection_text)
-                elif key == ord('c'): # copy selection
+                elif key == ord('c'):  # copy selection
                     self._copy(self.selection_text)
-                elif key == ord('v'): # paste selection
+                elif key == ord('v'):  # paste selection
                     self._paste()
-                elif key == ord('a'): # select all
-                    self.selection_from = 0
-                    self.selection_to = len(self.text)
-                    self._update_selection(True)
-                elif key == ord('z'): # undo
+                elif key == ord('a'):  # select all
+                    self.select_all()
+                elif key == ord('z'):  # undo
                     self.do_undo()
-                elif key == ord('r'): # redo
+                elif key == ord('r'):  # redo
                     self.do_redo()
             else:
                 if self._selection:
@@ -1166,10 +1229,10 @@ class TextInput(Widget):
             #self._recalc_size()
             return
 
-        if key == 27: # escape
+        if key == 27:  # escape
             self.focus = False
             return True
-        elif key == 9: # tab
+        elif key == 9:  # tab
             self.insert_text('\t')
             return True
 
@@ -1209,7 +1272,7 @@ class TextInput(Widget):
     '''
 
     password = BooleanProperty(False)
-    '''If True, the widget will display its characters as the character *.
+    '''If True, the widget will display its characters as the character '*'.
 
     .. versionadded:: 1.2.0
 
@@ -1390,27 +1453,37 @@ class TextInput(Widget):
     default to [0, 0, 0, 1] #Black
     '''
 
-    selection_from = NumericProperty(None, allownone=True)
+    def get_sel_from(self):
+        return self._selection_from
+
+    selection_from = AliasProperty(get_sel_from, None)
     '''If a selection is happening, or finished, this property will represent
     the cursor index where the selection started.
 
-    :data:`selection_from` is a :class:`~kivy.properties.NumericProperty`,
-    default to None
+    .. versionchanged:: 1.4.0
+
+    :data:`selection_from` is a :class:`~kivy.properties.AliasProperty`,
+    default to None, readonly.
     '''
 
-    selection_to = NumericProperty(None, allownone=True)
-    '''If a selection is happening, or finished, this property will represent
-    the cursor index where the selection ended.
+    def get_sel_to(self):
+        return self._selection_to
 
-    :data:`selection_to` is a :class:`~kivy.properties.NumericProperty`,
-    default to None
+    selection_to = AliasProperty(get_sel_to, None)
+    '''If a selection is happening, or finished, this property will represent
+    the cursor index where the selection started.
+
+    .. versionchanged:: 1.4.0
+
+    :data:`selection_to` is a :class:`~kivy.properties.AliasProperty`,
+    default to None, readonly.
     '''
 
     selection_text = StringProperty('')
     '''Current content selection.
 
     :data:`selection_text` is a :class:`~kivy.properties.StringProperty`,
-    default to ''
+    default to '', readonly.
     '''
 
     focus = BooleanProperty(False)
@@ -1437,11 +1510,11 @@ class TextInput(Widget):
     text = AliasProperty(_get_text, _set_text, bind=('_lines', ))
     '''Text of the widget.
 
-    Creation of a simple hello world ::
+    Creation of a simple hello world::
 
         widget = TextInput(text='Hello world')
 
-    If you want to create the widget with an unicode string, use ::
+    If you want to create the widget with an unicode string, use::
 
         widget = TextInput(text=u'My unicode string')
 

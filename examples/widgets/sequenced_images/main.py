@@ -143,5 +143,5 @@ class mainApp(App):
         return upl
 
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     mainApp().run()

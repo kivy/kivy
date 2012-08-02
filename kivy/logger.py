@@ -288,7 +288,8 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
         Logger.addHandler(getattr(sys, '_kivy_logging_handler'))
     else:
         use_color = os.name != 'nt'
-        color_fmt = formatter_message('[%(levelname)-18s] %(message)s', use_color)
+        color_fmt = formatter_message(
+                '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)
         console = ConsoleHandler()
         console.setFormatter(formatter)
@@ -299,4 +300,3 @@ sys.stderr = LogFile('stderr', Logger.warning)
 
 #: Kivy history handler
 LoggerHistory = LoggerHistory
-

@@ -265,7 +265,7 @@ For example, for a list, you'll need to create a entry with a image on the left,
 and a label on the right. You can create a template for making that definition
 more easy to use.
 So, we'll create a template that require 2 entry in the context: a image
-filename and a title ::
+filename and a title::
 
     [IconItem@BoxLayout]:
         Image:
@@ -275,7 +275,7 @@ filename and a title ::
 
 .. highlight:: python
 
-Then in Python, you can create instanciate the template with ::
+Then in Python, you can create instanciate the template with::
 
     from kivy.lang import Builder
 

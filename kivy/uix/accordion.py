@@ -110,8 +110,8 @@ class AccordionItem(FloatLayout):
 
     title = StringProperty('')
     '''Title string of the item. The title might be used in conjuction with the
-    `AccordionItemTitle` template. If you are using a custom template, you can 
-    use that property as a text entry, or not. By default, it's used for the 
+    `AccordionItemTitle` template. If you are using a custom template, you can
+    use that property as a text entry, or not. By default, it's used for the
     title text. See title_template and the example below.
 
     :data:`title` is a :class:`~kivy.properties.StringProperty`, default to ''
@@ -330,11 +330,11 @@ class Accordion(Widget):
         super(Accordion, self).__init__(**kwargs)
         self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         self.bind(
-            orientation = self._trigger_layout,
-            children = self._trigger_layout,
-            size = self._trigger_layout,
-            pos = self._trigger_layout,
-            min_space = self._trigger_layout)
+            orientation=self._trigger_layout,
+            children=self._trigger_layout,
+            size=self._trigger_layout,
+            pos=self._trigger_layout,
+            min_space=self._trigger_layout)
 
     def add_widget(self, widget, *largs):
         if not isinstance(widget, AccordionItem):

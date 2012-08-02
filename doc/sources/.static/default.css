@@ -708,3 +708,22 @@ dl.api-level dt {
 	float: left;
 	margin-right: 22px;
 }
+
+/** Fix list within dt
+ */
+table.field-list dt {
+	margin: 0px;
+	background-color: #eeeeee;
+}
+
+table.field-list dl {
+	margin-top: 0px;
+}
+table.field-list td.field-body {
+	padding-top: 0px;
+}
+table.field-list th.field-name {
+	min-width: 100px;
+}
+
+

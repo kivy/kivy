@@ -108,5 +108,5 @@ class ShaderEditorApp(App):
     def build(self):
         return ShaderEditor()
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     ShaderEditorApp().run()
