@@ -1,9 +1,10 @@
 from kivy.adapters.listadapter import ListAdapter, ListsAdapter
-from kivy.adapters.mixins.selection import SelectableItem
+#from kivy.adapters.mixins.selection import SelectableItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.listview import ListView, ListItemButton
+from kivy.uix.listview import ListView, ListItemButton, CompositeListItem
 from kivy.lang import Builder
+from kivy.factory import Factory
 
 from fruit_data import fruit_categories
 
@@ -11,11 +12,13 @@ from image_detail_view import ImageDetailView
 
 # This is a copy of list_cascade.py with image thumbnails added to the list
 # item views and a larger image shown in the detail view for the selected
-# image. It uses the kv template method for the listview that shows list
-# items with thumbnail images of the fruits.
+# fruit. It uses the kv template method for providing the list item view to
+# the listview showing the list of fruits for a selected category.
+
+Factory.register('CompositeListItem', cls=CompositeListItem)
 
 Builder.load_string('''
-[ThumbnailedListItem@SelectableItem,BoxLayout]:
+[ThumbnailedListItem@CompositeListItem]:
     size_hint_y: ctx.size_hint_y
     height: ctx.height
     Image
@@ -38,7 +41,7 @@ class CascadingView(GridLayout):
 
         list_item_args_converter = lambda x: {'text': x,
                                               'size_hint_y': None,
-                                              'height': 32}
+                                              'height': 25}
 
         # Fruit categories list on the left:
         #
@@ -56,12 +59,15 @@ class CascadingView(GridLayout):
 
         # Fruits, for a given category, in the middle:
         #
+        image_list_item_args_converter = lambda x: {'text': x,
+                                                    'size_hint_y': None,
+                                                    'height': 32}
         fruits_list_adapter = \
                 ListsAdapter(
                     observed_list_adapter=fruit_categories_list_adapter,
                     lists_dict=fruit_categories,
                     data=fruit_categories[categories[0]],
-                    args_converter=list_item_args_converter,
+                    args_converter=image_list_item_args_converter,
                     selection_mode='single',
                     allow_empty_selection=False,
                     template='ThumbnailedListItem')
