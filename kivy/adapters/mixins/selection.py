@@ -32,8 +32,10 @@ class SelectableItem(object):
     def __init__(self, **kwargs):
         # [TODO] list_adapter is not optional, and should be guaranteed,
         #        because list_adapter itself makes this __init__ call and
-        #        passes self. OK to assume here?
-        self.list_adapter = kwargs['list_adapter']
+        #        passes self. OK to assume here? No, it could be set directly
+        #        if a template is used, instead of a cls, in list_adapter.
+        if 'list_adapter' in kwargs:
+            self.list_adapter = kwargs['list_adapter']
 
         # For simple list items, selection_target will be the list item
         # itself, but for components of composite list items, the components

@@ -18,7 +18,9 @@ class ImageDetailView(BoxLayout):
     def redraw(self, *args):
         self.clear_widgets()
 
-        self.add_widget(Image(source=filename, size=(256, 256)))
+        self.add_widget(Image(
+            source="fruit_images/{0}.256.jpg".format(self.fruit_name),
+            size=(256, 256)))
 
         container = GridLayout(cols=2)
         container.add_widget(Label(text="Name:", halign='right'))
@@ -36,9 +38,8 @@ class ImageDetailView(BoxLayout):
 
         selected_object = list_adapter.selection[0]
 
-        if type(selected_object) is str:
-            self.fruit_name = selected_object
-        else:
-            self.fruit_name = str(selected_object)
+        print dir(selected_object)
+
+        self.fruit_name = selected_object.fruit_name
 
         self.redraw()

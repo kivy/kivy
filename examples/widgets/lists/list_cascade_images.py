@@ -1,5 +1,5 @@
 from kivy.adapters.listadapter import ListAdapter, ListsAdapter
-#from kivy.adapters.mixins.selection import SelectableItem
+from kivy.adapters.mixins.selection import SelectableItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton, CompositeListItem
@@ -15,10 +15,12 @@ from image_detail_view import ImageDetailView
 # fruit. It uses the kv template method for providing the list item view to
 # the listview showing the list of fruits for a selected category.
 
-Factory.register('CompositeListItem', cls=CompositeListItem)
+Factory.register('SelectableItem', cls=SelectableItem)
 
 Builder.load_string('''
-[ThumbnailedListItem@CompositeListItem]:
+[ThumbnailedListItem@SelectableItem+BoxLayout]:
+    list_adapter: ctx.list_adapter
+    fruit_name: ctx.text
     size_hint_y: ctx.size_hint_y
     height: ctx.height
     Image

@@ -96,7 +96,6 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
             item_args = item
 
         item_args['list_adapter'] = self
-        item_args['data_index'] = index
 
         if self.cls:
             print 'CREATE VIEW FOR', index
