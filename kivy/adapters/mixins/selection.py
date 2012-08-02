@@ -19,15 +19,12 @@ class SelectableItem(object):
     selected. select() and deselect() are to be overridden with display code
     to mark items as selected or not, if desired.
     '''
-    list_adapter = ObjectProperty(None)
 
     # Usually selection_target would be self, but it could be self.parent
     # for an element of a composite list item.
     selection_target = ObjectProperty(None)
 
     is_selected = BooleanProperty(False)
-
-    data_index = NumericProperty(-1)
 
     def __init__(self, **kwargs):
         # [TODO] list_adapter is not optional, and should be guaranteed,
@@ -47,11 +44,6 @@ class SelectableItem(object):
             self.selection_target = self
 
         super(SelectableItem, self).__init__(**kwargs)
-
-        self.bind(on_release=self.handle_selection)
-
-    def handle_selection(self, *args):
-        self.list_adapter.handle_selection(self.selection_target)
 
     # The list item is responsible for updating the display for
     # being selected, if desired.
@@ -107,6 +99,12 @@ class SelectionSupport(object):
                   allow_empty_selection=self.check_for_empty_selection)
 
     def handle_selection(self, obj):
+        if obj.selection_target is obj:
+            self._handle_selection(obj)
+        else:
+            self._handle_selection(obj.selection_target)
+
+    def _handle_selection(self, obj):
         if obj not in self.selection:
             if self.selection_mode == 'single' and len(self.selection) > 0:
                 for selected_obj in self.selection:

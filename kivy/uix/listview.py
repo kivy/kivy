@@ -563,13 +563,6 @@ class CompositeListItem(SelectableItem, BoxLayout):
             if 'is_representing_cls' in cls_kwargs:
                 self.representing_cls = cls
 
-            # The list_adapter is instantiating this composite list item,
-            # which, as a subclass of SelectableItem, gets a kwargs argument
-            # for list_adapter. Here, we are acting in the same fashion, in
-            # turn, carrying the list_adapter reference down to the component
-            # views.
-            cls_kwargs['list_adapter'] = kwargs['list_adapter']
-
             self.add_widget(cls(**cls_kwargs))
 
     def select(self, *args):

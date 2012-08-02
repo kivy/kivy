@@ -38,8 +38,6 @@ class ImageDetailView(BoxLayout):
 
         selected_object = list_adapter.selection[0]
 
-        print dir(selected_object)
-
         self.fruit_name = selected_object.fruit_name
 
         self.redraw()

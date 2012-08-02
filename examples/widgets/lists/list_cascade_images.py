@@ -19,7 +19,6 @@ Factory.register('SelectableItem', cls=SelectableItem)
 
 Builder.load_string('''
 [ThumbnailedListItem@SelectableItem+BoxLayout]:
-    list_adapter: ctx.list_adapter
     fruit_name: ctx.text
     size_hint_y: ctx.size_hint_y
     height: ctx.height

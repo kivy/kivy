@@ -95,15 +95,15 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
         else:
             item_args = item
 
-        item_args['list_adapter'] = self
-
         if self.cls:
             print 'CREATE VIEW FOR', index
             instance = self.cls(**item_args)
-            return instance
         else:
-            print 'item_args', item_args
-            return Builder.template(self.template, **item_args)
+            instance = Builder.template(self.template, **item_args)
+
+        instance.bind(on_release=self.handle_selection)
+
+        return instance
 
     def on_selection_change(self, *args):
         '''on_selection_change() is the default handler for the
