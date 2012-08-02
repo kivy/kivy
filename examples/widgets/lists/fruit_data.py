@@ -3,13 +3,13 @@
 #                InformationforRestaurantsRetailEstablishments/\
 #                ucm063482.htm
 fruit_categories = \
-        {'Melons': ['Cantaloupe', 'Honeydew Melon', 'Watermelon'],
-         'Tree Fruits': ['Apple', 'Avocado, California', 'Banana', 'Nectarine',
-                         'Peach', 'Pear', 'Pineapple', 'Plums',
-                         'Sweet Cherries'],
+        {'Melons': ['Cantaloupe', 'Honeydew', 'Watermelon'],
+         'Tree Fruits': ['Apple', 'Avocado', 'Banana', 'Nectarine',
+                         'Peach', 'Pear', 'Pineapple', 'Plum',
+                         'Cherry'],
          'Citrus Fruits': ['Grapefruit', 'Lemon', 'Lime', 'Orange',
                            'Tangerine'],
-         'Miscellaneous Fruits': ['Grapes', 'Kiwifruit', 'Strawberries']}
+         'Miscellaneous Fruits': ['Grape', 'Kiwifruit', 'Strawberry']}
 descriptors = """(gram weight/ ounce weight)	Calories	Calories from Fa
 t	Total Fat	Sodium	Potassium	Total Carbo-hydrate	Dietary Fiber	Suga
 rs	Protein	Vitamin A	Vitamin C	Calcium	Iron""".replace('\n', '')
@@ -21,7 +21,7 @@ raw_fruit_data = [
 {'name':'Apple',
  'Serving Size': '1 large (242 g/8 oz)',
  'data': [130, 0, 0, 0, 0, 0, 260, 7, 34, 11, 5, 20, 25, 1, 2, 8, 2, 2]},
-{'name':'Avocado, California',
+{'name':'Avocado',
  'Serving Size': '1/5 medium (30 g/1.1 oz)',
  'data': [50, 35, 4.5, 7, 0, 0, 140, 4, 3, 1, 1, 4, 0, 1, 0, 4, 0, 2]},
 {'name':'Banana',
@@ -33,10 +33,10 @@ raw_fruit_data = [
 {'name':'Grapefruit',
  'Serving Size': '1/2 medium (154 g/5.5 oz)',
  'data': [60, 0, 0, 0, 0, 0, 160, 5, 15, 5, 2, 8, 11, 1, 35, 100, 4, 0]},
-{'name':'Grapes',
+{'name':'Grape',
  'Serving Size': '3/4 cup (126 g/4.5 oz)',
  'data': [90, 0, 0, 0, 15, 1, 240, 7, 23, 8, 1, 4, 20, 0, 0, 2, 2, 0]},
-{'name':'Honeydew Melon',
+{'name':'Honeydew',
  'Serving Size': '1/10 medium melon (134 g/4.8 oz)',
  'data': [50, 0, 0, 0, 30, 1, 210, 6, 12, 4, 1, 4, 11, 1, 2, 45, 2, 2]},
 {'name':'Kiwifruit',
@@ -63,13 +63,13 @@ raw_fruit_data = [
 {'name':'Pineapple',
  'Serving Size': '2 slices, 3" diameter, 3/4" thick (112 g/4 oz)',
  'data': [50, 0, 0, 0, 10, 0, 120, 3, 13, 4, 1, 4, 10, 1, 2, 50, 2, 2]},
-{'name':'Plums',
+{'name':'Plum',
  'Serving Size': '2 medium (151 g/5.4 oz)',
  'data': [70, 0, 0, 0, 0, 0, 230, 7, 19, 6, 2, 8, 16, 1, 8, 10, 0, 2]},
-{'name':'Strawberries',
+{'name':'Strawberry',
  'Serving Size': '8 medium (147 g/5.3 oz)',
  'data': [50, 0, 0, 0, 0, 0, 170, 5, 11, 4, 2, 8, 8, 1, 0, 160, 2, 2]},
-{'name':'Sweet Cherries',
+{'name':'Cherry',
  'Serving Size': '21 cherries; 1 cup (140 g/5.0 oz)',
  'data': [100, 0, 0, 0, 0, 0, 350, 10, 26, 9, 1, 4, 16, 1, 2, 15, 2, 2]},
 {'name':'Tangerine',
