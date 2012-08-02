@@ -1,9 +1,10 @@
 ##[TODO LIST for kivy uix-listview]:
 #
-#    - Initial selection is apparently working in the associated ListAdapter,
-#      but the listview display does not show the initial selection (red, in
-#      example code). After the listview has been clicked for the first manual
-#      selection, the updating of selected items (in red) works.
+#    - *** FIXED *** Initial selection is apparently working in the associated
+#      ListAdapter but the listview display does not show the initial
+#      selection (red, in example code). After the listview has been clicked
+#      for the first manual selection, the updating of selected items (in red)
+#      works.
 #
 #    - Explain why multiple levels of abstraction are needed. (Adapter,
 #      ListAdapter, AbstractView, ListView) -- Tie discussion to inspiration
@@ -12,6 +13,9 @@
 #          http://developer.android.com/reference/android/\
 #              widget/Adapter.html#getView(int,%20android/\
 #              .view.View,%20android.view.ViewGroup)
+#
+#      There is now an ASCII drawing of the relationship between ListView and
+#      ListAdapter, as it is now, in the docs below.
 #
 #    - Divider isn't used (yet).
 #
@@ -28,7 +32,7 @@
 #    Examples (in examples/widgets):
 #
 #    - Improve examples:
-#        - Add fruit images.
+#        - *** DONE *** Add fruit images.
 #
 #    - Add an example where selection doesn't just change background color
 #      or font, but animates.
