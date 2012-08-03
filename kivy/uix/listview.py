@@ -640,7 +640,7 @@ class ListView(AbstractView):
             if 'item_strings' not in kwargs:
                 raise Exception('ListView: input needed, or an adapter')
             list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
-                                             cls=Button)
+                                             cls=Label)
             kwargs['adapter'] = list_adapter
 
         super(ListView, self).__init__(**kwargs)
@@ -691,8 +691,10 @@ class ListView(AbstractView):
         self.populate()
 
     def _hard_spopulate(self, *dt):
+        print 'hard_populate', dt
         self.item_view_instances = {}
         self.populate()
+        self.adapter.check_for_empty_selection()
 
     def populate(self, istart=None, iend=None):
         print 'populate', self, istart, iend

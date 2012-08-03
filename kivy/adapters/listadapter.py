@@ -101,7 +101,14 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
         else:
             instance = Builder.template(self.template, **item_args)
 
+        # [TODO] if instance.handles_event('on_release'):       ?
         instance.bind(on_release=self.handle_selection)
+
+        # [TODO] If the whole composite can't respond, should we try to see
+        #        if the children can? No harm, no foul on setting this?
+        for child in instance.children:
+        #    if child.handles_event('on_release'):  [TODO] ?
+            child.bind(on_release=self.handle_selection)
 
         return instance
 

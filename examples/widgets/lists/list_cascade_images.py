@@ -1,4 +1,4 @@
-from kivy.adapters.listadapter import ListAdapter, ListsAdapter
+from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.mixins.selection import SelectableItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -8,7 +8,7 @@ from kivy.factory import Factory
 
 from fruit_data import fruit_categories
 
-from image_detail_view import ImageDetailView
+from fruit_detail_view import FruitImageDetailView
 
 # This is a copy of list_cascade.py with image thumbnails added to the list
 # item views and a larger image shown in the detail view for the selected
@@ -16,6 +16,7 @@ from image_detail_view import ImageDetailView
 # the listview showing the list of fruits for a selected category.
 
 Factory.register('SelectableItem', cls=SelectableItem)
+Factory.register('ListItemButton', cls=ListItemButton)
 
 Builder.load_string('''
 [ThumbnailedListItem@SelectableItem+BoxLayout]:
@@ -24,9 +25,21 @@ Builder.load_string('''
     height: ctx.height
     Image
         source: "fruit_images/{0}.32.jpg".format(ctx.text)
-    Label:
+    ListItemButton:
         text: ctx.text
 ''')
+
+
+class FruitsListAdapter(ListAdapter):
+
+    def fruit_category_changed(self, fruit_categories_adapter, *args):
+        if len(fruit_categories_adapter.selection) == 0:
+            # Do we need to store previous selection? Need to unselect items?
+            self.data = []
+            return
+
+        self.data = \
+                fruit_categories[str(fruit_categories_adapter.selection[0])]
 
 
 class CascadingView(GridLayout):
@@ -64,9 +77,7 @@ class CascadingView(GridLayout):
                                                     'size_hint_y': None,
                                                     'height': 32}
         fruits_list_adapter = \
-                ListsAdapter(
-                    observed_list_adapter=fruit_categories_list_adapter,
-                    lists_dict=fruit_categories,
+                FruitsListAdapter(
                     data=fruit_categories[categories[0]],
                     args_converter=image_list_item_args_converter,
                     selection_mode='single',
@@ -76,18 +87,18 @@ class CascadingView(GridLayout):
                 ListView(adapter=fruits_list_adapter,
                     size_hint=(.2, 1.0))
         fruit_categories_list_adapter.bind(
-                on_selection_change=fruits_list_adapter.on_selection_change)
+            on_selection_change=fruits_list_adapter.fruit_category_changed)
         self.add_widget(fruits_list_view)
 
         # Detail view, for a given fruit, on the right:
         #
-        detail_view = ImageDetailView(size_hint=(.6, 1.0))
+        detail_view = FruitImageDetailView(size_hint=(.6, 1.0))
         fruits_list_adapter.bind(
-                on_selection_change=detail_view.on_selection_change)
+                on_selection_change=detail_view.fruit_changed)
         self.add_widget(detail_view)
 
         # Force triggering of on_selection_change() for the DetailView, for
-        # correct initial display.
+        # correct initial display. [TODO] Surely there is a way to avoid this.
         fruits_list_adapter.touch_selection()
 
 

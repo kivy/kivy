@@ -4,97 +4,27 @@ SelectableItem, SelectionSupport
 
 .. versionadded:: 1.4
 
-Mixin classes for giving selection functionality to "collection-style" views.
+Mixin classes for giving selection functionality to "collection-style" views,
+such as :class:`ListView`, and their item views, via the intermediating
+control of :class:`ListAdapter`, or one of its subclasses.
 '''
 
-from kivy.properties import ObjectProperty, NumericProperty, \
-                            ListProperty, BooleanProperty, OptionProperty
+from kivy.properties import ObjectProperty, ListProperty, BooleanProperty, \
+        OptionProperty
+from kivy.event import EventDispatcher
 
 
-class ButtonBehavior(object):
-    '''Button behavior. From:
-
-        https://github.com/tito/presemt/blob/master/presemt/behaviours.py
-
-    :Events:
-        `on_press`:
-            Fired when a touch is pressing the widget
-        `on_release`:
-            Fired when the first touch is up
-    '''
-
-    is_hover = BooleanProperty(False)
-
-    button_grab = BooleanProperty(False)
-
-    button_touch = ObjectProperty(None, allownone=True)
-
-    def __init__(self, **kwargs):
-        super(ButtonBehavior, self).__init__(**kwargs)
-        self.register_event_type('on_press')
-        self.register_event_type('on_release')
-        self.bind(
-            on_touch_down=self._button_on_touch_down,
-            on_touch_up=self._button_on_touch_up)
-
-    def on_press(self, *args):
-        pass
-
-    def on_release(self, *args):
-        pass
-
-    def _button_on_touch_down(self, instance, touch):
-        if not self.collide_point(*touch.pos):
-            return
-        touch.ungrab(self)
-        touch.grab(self)
-        self.is_hover = True
-        self.button_touch = touch
-        self.dispatch('on_press', touch)
-        return self.button_grab
-
-    def _button_on_touch_up(self, instance, touch):
-        if touch.grab_current is not self:
-            return
-        touch.ungrab(self)
-        self.is_hover = False
-        self.dispatch('on_release', touch)
-        self.button_touch = None
-        return self.button_grab
-
-
-class SelectableItem(ButtonBehavior):
+class SelectableItem(object):
     '''The :class:`SelectableItem` mixin is used in list item classes that are
     to be instantiated in a ListView, which uses a ListAdapter. The
     handle_selection() function interfaces to the ListView, via its
-    ListAdapter, passing the selection_target, the object that is to be
-    selected. select() and deselect() are to be overridden with display code
+    ListAdapter select() and deselect() are to be overridden with display code
     to mark items as selected or not, if desired.
     '''
-
-    # Usually selection_target would be self, but it could be self.parent
-    # for an element of a composite list item.
-    selection_target = ObjectProperty(None)
 
     is_selected = BooleanProperty(False)
 
     def __init__(self, **kwargs):
-        # [TODO] list_adapter is not optional, and should be guaranteed,
-        #        because list_adapter itself makes this __init__ call and
-        #        passes self. OK to assume here? No, it could be set directly
-        #        if a template is used, instead of a cls, in list_adapter.
-        if 'list_adapter' in kwargs:
-            self.list_adapter = kwargs['list_adapter']
-
-        # For simple list items, selection_target will be the list item
-        # itself, but for components of composite list items, the components
-        # could "pass" selection up to their parent. [TODO] Does this usage
-        # make sense?
-        if hasattr(kwargs, 'selection_target'):
-            self.selection_target = kwargs['selection_target']
-        else:
-            self.selection_target = self
-
         super(SelectableItem, self).__init__(**kwargs)
 
     # The list item is responsible for updating the display for
@@ -108,7 +38,7 @@ class SelectableItem(ButtonBehavior):
         pass
 
 
-class SelectionSupport(object):
+class SelectionSupport(EventDispatcher):
     '''The :class:`SelectionSupport` mixin is the main one used for selection.
     Any "collection" view, such as ListView, that subclasses it will attain
     the selection ListProperty, a selection_mode OptionProperty, and an
@@ -150,12 +80,6 @@ class SelectionSupport(object):
         self.bind(selection_mode=self.check_for_empty_selection,
                   allow_empty_selection=self.check_for_empty_selection)
 
-    def _handle_selection(self, obj, *args):
-        if obj.selection_target == obj:
-            self._handle_selection(obj)
-        else:
-            self._handle_selection(obj.selection_target)
-
     def handle_selection(self, obj, *args):
         if obj not in self.selection:
             if self.selection_mode == 'single' and len(self.selection) > 0:
@@ -165,7 +89,7 @@ class SelectionSupport(object):
         else:
             self.deselect_object(obj)
 
-        print 'selection is now', self.selection
+        print 'selection for', self, 'is now', self.selection
         self.dispatch('on_selection_change')
 
     def select_object(self, obj):
@@ -209,7 +133,10 @@ class SelectionSupport(object):
         '''Called when data changes.
         '''
         if len(self.selection) > 0:
+            # [TODO] What about the previous selection? Just blow it away?
             self.selection = []
             self.dispatch('on_selection_change')
 
-        self.check_for_empty_selection(*args)
+        # NOTE: self.check_for_empty_selection() now called at the end of
+        #       listview.hard_populate(). If called here, it comes before
+        #       the listview builds its new item views.

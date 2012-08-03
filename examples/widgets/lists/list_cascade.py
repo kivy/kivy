@@ -4,7 +4,7 @@ from kivy.uix.listview import ListView, ListItemButton
 
 from fruit_data import fruit_categories
 
-from detail_view import DetailView
+from fruit_detail_view import FruitDetailView
 
 # This is an expansion on the "master-detail" example to illustrate
 # cascading from the selection of one list view to another. In this
@@ -13,6 +13,18 @@ from detail_view import DetailView
 # observing the selection in the first, and using that item as the key
 # into a dict providing its own list items. The view on the right is
 # the sames as the DetailView in the master-detail example.
+
+
+class FruitsListAdapter(ListAdapter):
+
+    def fruit_category_changed(self, fruit_categories_adapter, *args):
+        if len(fruit_categories_adapter.selection) == 0:
+            # Do we need to store previous selection? Need to unselect items?
+            self.data = []
+            return
+
+        self.data = \
+                fruit_categories[str(fruit_categories_adapter.selection[0])]
 
 
 class CascadingView(GridLayout):
@@ -46,31 +58,55 @@ class CascadingView(GridLayout):
 
         # Fruits, for a given category, in the middle:
         #
+
+        # List adapter option #1
+        #
+        #     - use ListsAdapter, which takes observed_list_adapter as an
+        #       argument and sets up the binding for you. You also have to
+        #       pass lists_dict.
+        #
+        #fruits_list_adapter = \
+                #ListsAdapter(
+                    #observed_list_adapter=fruit_categories_list_adapter,
+                    #lists_dict=fruit_categories,
+                    #data=fruit_categories[categories[0]],
+                    #args_converter=list_item_args_converter,
+                    #selection_mode='single',
+                    #allow_empty_selection=False,
+                    #cls=ListItemButton)
+
+        # List adapter option #2
+        #
+        #     - use the custom FruitsListsAdapter, defined above. It has a
+        #       fruit_changed() method, performing the same role as the
+        #       on_selection_change() function of ListsAdapter in Option #1.
+        #       In option #2, you are responsible for setting up the binding
+        #       after the instantiation of the list adapter.
+        #
         fruits_list_adapter = \
-                ListsAdapter(
-                    observed_list_adapter=fruit_categories_list_adapter,
-                    lists_dict=fruit_categories,
+                FruitsListAdapter(
                     data=fruit_categories[categories[0]],
                     args_converter=list_item_args_converter,
                     selection_mode='single',
                     allow_empty_selection=False,
                     cls=ListItemButton)
+        fruit_categories_list_adapter.bind(
+            on_selection_change=fruits_list_adapter.fruit_category_changed)
+
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter,
                     size_hint=(.2, 1.0))
-        fruit_categories_list_adapter.bind(
-                on_selection_change=fruits_list_adapter.on_selection_change)
         self.add_widget(fruits_list_view)
 
         # Detail view, for a given fruit, on the right:
         #
-        detail_view = DetailView(size_hint=(.6, 1.0))
+        detail_view = FruitDetailView(size_hint=(.6, 1.0))
         fruits_list_adapter.bind(
-                on_selection_change=detail_view.on_selection_change)
+                on_selection_change=detail_view.fruit_changed)
         self.add_widget(detail_view)
 
         # Force triggering of on_selection_change() for the DetailView, for
-        # correct initial display.
+        # correct initial display. [TODO] Surely there is a way to avoid this.
         fruits_list_adapter.touch_selection()
 
 

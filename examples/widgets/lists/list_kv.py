@@ -1,14 +1,19 @@
 from kivy.adapters.listadapter import ListAdapter
-from kivy.uix.listview import ListView
+from kivy.adapters.mixins.selection import SelectableItem
+from kivy.uix.listview import ListView, ListItemButton
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
+from kivy.factory import Factory
+
+Factory.register('SelectableItem', cls=SelectableItem)
+Factory.register('ListItemButton', cls=ListItemButton)
 
 Builder.load_string('''
-[CustomListItem@BoxLayout]:
+[CustomListItem@SelectableItem+BoxLayout]:
     size_hint_y: ctx.size_hint_y
     height: ctx.height
-    Button:
+    ListItemButton:
         text: ctx.text
 ''')
 

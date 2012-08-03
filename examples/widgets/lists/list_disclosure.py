@@ -7,7 +7,7 @@ from kivy.adapters.listadapter import ListAdapter
 
 from fruit_data import fruit_data
 
-from detail_view import DetailView
+from fruit_detail_view import FruitDetailView
 
 # [TODO] NOTE -- This is a copy of the old version of list_master_detail.py,
 #                because it contains an example of how to make a custom
@@ -108,10 +108,11 @@ class MasterDetailView(GridLayout):
         master_list_view = ListView(adapter=list_adapter, size_hint=(.3, 1.0))
         self.add_widget(master_list_view)
 
-        detail_view = DetailView(size_hint=(.7, 1.0))
+        detail_view = FruitDetailView(size_hint=(.7, 1.0))
         self.add_widget(detail_view)
 
-        list_adapter.bind(on_selection_change=detail_view.on_selection_change)
+        list_adapter.bind(
+                on_selection_change=detail_view.fruit_changed)
 
         # Force triggering of on_selection_change() for the DetailView, for
         # correct initial display.
