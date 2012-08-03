@@ -1,10 +1,15 @@
+from kivy.adapters.objectadapter import ObjectAdapter
 from kivy.adapters.listadapter import ListAdapter, ListsAdapter
+from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
+from kivy.uix.observerview import ObserverView
+from kivy.properties import ObjectProperty
 
 from fruit_data import fruit_categories
 
-from fruit_detail_view import FruitDetailView
+from fruit_detail_view import FruitObserverDetailView
 
 # This is an expansion on the "master-detail" example to illustrate
 # cascading from the selection of one list view to another. In this
@@ -14,6 +19,11 @@ from fruit_detail_view import FruitDetailView
 # into a dict providing its own list items. The view on the right is
 # the sames as the DetailView in the master-detail example.
 
+
+# What is oo, you say? 
+#
+#     ...  An example featuring ObserverView and ObjectAdapter
+#
 
 class FruitsListAdapter(ListAdapter):
 
@@ -99,12 +109,16 @@ class CascadingView(GridLayout):
 
         self.add_widget(fruits_list_view)
 
-        # Detail view, for a given fruit, on the right:
+        # For the fruit detail view on the right, this is ObserverView, which
+        # uses ObjectAdapter.
         #
-        detail_view = FruitDetailView(size_hint=(.6, 1.0))
-        fruits_list_adapter.bind(
-                on_selection_change=detail_view.fruit_changed)
-        self.add_widget(detail_view)
+        fruit_detail_view = ObserverView(adapter=ObjectAdapter(
+                selection_binding=fruits_list_adapter,
+                args_converter=lambda x: {'fruit_name': str(x),
+                                          'size_hint': (.6, 1.0)},
+                cls=FruitObserverDetailView))
+
+        self.add_widget(fruit_detail_view)
 
         # Force triggering of on_selection_change() for the DetailView, for
         # correct initial display. [TODO] Surely there is a way to avoid this.

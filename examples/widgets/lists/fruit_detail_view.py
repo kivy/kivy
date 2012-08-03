@@ -39,6 +39,40 @@ class FruitDetailView(GridLayout):
         self.redraw()
 
 
+class FruitObserverDetailView(GridLayout):
+    fruit_name = StringProperty('')
+
+    def __init__(self, **kwargs):
+        kwargs['cols'] = 2
+        super(FruitObserverDetailView, self).__init__(**kwargs)
+
+    def redraw(self, *args):
+        self.clear_widgets()
+        if self.fruit_name:
+            self.add_widget(Label(text="Name:", halign='right'))
+            self.add_widget(Label(text=self.fruit_name))
+            for category in descriptors:
+                self.add_widget(Label(text="{0}:".format(category),
+                                      halign='right'))
+                if self.fruit_name == '':
+                    self.add_widget(Label(text=''))
+                else:
+                    self.add_widget(Label(
+                        text=str(fruit_data[self.fruit_name][category])))
+
+    def update(self, object_adapter, *args):
+        print 'updating fodv', object_adapter, object_adapter.obj
+        if object_adapter.obj is None:
+            return
+
+        if type(object_adapter.obj) is str:
+            self.fruit_name = object_adapter.obj
+        else:
+            self.fruit_name = str(object_adapter.obj)
+
+        self.redraw()
+
+
 class FruitImageDetailView(BoxLayout):
     fruit_name = StringProperty('')
 

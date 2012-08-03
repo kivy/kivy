@@ -19,15 +19,17 @@ from kivy.adapters.mixins.selection import SelectionSupport
 
 
 class SimpleListAdapter(Adapter):
-    '''ListAdapter is an adapter around a simple Python list.
+    '''SimpleListAdapter is an adapter around a simple Python list.
 
     From Adapter, SimpleListAdapter gets these properties:
 
-        - cls, for the list item class to use to instantiate row view
-               instances
+        Use only one:
 
-        - template, an optional kv template to use instead of a python class
-                    (to use instead of cls)
+            - cls, for a list item class to use to instantiate item view
+                   instances
+
+            - template, a kv template to use to instantiate item view
+                        instances
 
         - args_converter, an optional function to transform data item argument
                           sets, in preparation for either a cls instantiation,
@@ -80,10 +82,9 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
 
     def get_view(self, index):
         '''This method is identical to the one in Adapter and
-        SimpleListAdapter, but here we pass self to the list item class (cls)
-        instantiation, so that the list item class, required to mix in
-        SelectableItem, will have access to ListAdapter for calling to
-        SelectionSupport methods.
+        SimpleListAdapter, but here we create bindings for the data item,
+        and its children back to self.handle_selection(), in the mixed-in
+        SelectionSupport class.
         '''
         item = self.get_item(index)
         if item is None:
