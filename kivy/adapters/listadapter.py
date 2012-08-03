@@ -35,10 +35,10 @@ class SimpleListAdapter(Adapter):
     '''
 
     data = ListProperty([])
-    '''The data list property contains a list of objects that will be used
-    directly if no args_converter function is provided. If there is an
-    args_converter, the data objects will be passed to it, for instantiation
-    of item view class (cls) instances from the data.
+    '''The data list property contains a list of objects (can be strings) that
+    will be used directly if no args_converter function is provided. If there
+    is an args_converter, the data objects will be passed to it, for
+    instantiation of item view class (cls) instances from the data.
     '''
 
     def __init__(self, **kwargs):

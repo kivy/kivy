@@ -17,7 +17,5 @@ class MainView(GridLayout):
 
 
 if __name__ == '__main__':
-
     from kivy.base import runTouchApp
-
     runTouchApp(MainView(width=800))

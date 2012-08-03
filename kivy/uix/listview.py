@@ -71,10 +71,11 @@ list item view instances.
 :class:`ListView` implements AbstractView as a vertical scrollable list.
 From AbstractView we have these properties and methods:
 
-    - adapter (an instance of ListAdapter or one of its subclasses here)
+    - adapter (an instance of SimpleListAdapter, or ListAdapter or one of its
+      subclasses here)
 
     - item_view_instances, a dict with indices as keys to the list item view
-      instances created and held in the ListAdapter
+      instances created in the ListAdapter
 
     - set_item_view() and get_item_view() methods to list item view instances
 
@@ -94,7 +95,8 @@ Here we make a listview with 100 items.
             kwargs['size_hint'] = (1.0, 1.0)
             super(MainView, self).__init__(**kwargs)
 
-            list_view = ListView([str(index) for index in xrange(100)])
+            list_view = ListView(
+                item_strings=[str(index) for index in xrange(100)])
 
             self.add_widget(list_view)
 
@@ -108,16 +110,16 @@ Using a ListAdapter
 
 If you were to dig deeper into the basic example above, you would find that it
 uses :class:`SimpleListAdapter` behind the scenes. When the constructor for
-:class:`ListView` sees that only a list of strings is provided as an argument,
-it creates an instance of :class:`SimpleListAdapter` with the list of
-strings.
+:class:`ListView` sees that only a list of strings is provided as an argument
+called item_strings, it creates an instance of :class:`SimpleListAdapter` with
+the list of strings. Otherwise, :class:`ListView` must be provide with some
+variant of ListAdapter.
 
-Simple in the example above means:
+Simple in the example above means: WITHOUT SELECTION SUPPORT -- it is just a
+scrollable list of items, which do not respond to touch events.
 
-    just string items, and WITHOUT SELECTION SUPPORT.
-
-If you wanted to use :class:`SimpleListAdaper` explicitly, you would do
-something like:
+If you wanted to use :class:`SimpleListAdaper` explicitly in creating a ListView
+instance, you could do:
 
     simple_list_adapter = \
         SimpleListAdapter(data=["Item #{0}".format(i) for i in xrange(100)],
@@ -126,10 +128,11 @@ something like:
 
 For most uses of a list, however, selection support IS needed. Selection
 support is built in to :class:`ListAdapter`. :class:`ListAdapter` and its
-subclasses offer support for building moderately to highly complex listviews.
+subclasses offer support for building moderately to highly complex listviews
+with selection support.
 
 See the :class:`ListAdapter` docs for details, but here we have synopses of
-the arguments:
+its arguments:
 
     - data: the list of objects, be they strings or other objects, that are
             used as the primary source of item data for the list items
@@ -138,7 +141,8 @@ the arguments:
            are several built-in types available, including ListItemLabel and
            ListItemButton, or you can easily make your own.
 
-    - template: another way of building a Kivy view for a list item.
+    - template: another way of building a Kivy view for a list item, taking
+                adavantage of the flexibility of the kv language.
 
     NOTE: Pick only one, cls or template, as argument to :class:`ListAdapter`.
 
@@ -146,18 +150,20 @@ the arguments:
                       just a string) as input, and operates to use the object
                       in some fashion to build and return an args dict, ready
                       to be used in a call to instantiate the item view cls
-                      or template.
+                      or template. In the case of cls, the args dict acts as a
+                      kwargs object. For a template, it is treated as a
+                      context (ctx), but is essentially similar in form. See
+                      the examples and docs for template operation.
 
     - selection arguments: These include:
 
-                                selection_mode='single', 'multiple' or others
-                                    (See docs), and
+          selection_mode='single', 'multiple' or others (See docs), and
 
-                                allow_empty_selection=False, which forces
-                                    there to always be a selection, if
-                                    there is data available, or =True, if
-                                    selection is to be restricted to happen
-                                    as a result of user action.
+          allow_empty_selection=False, which forces there to always be a
+                                       selection, if there is data available,
+                                       or =True, if selection is to be
+                                       restricted to happen as a result of
+                                       user action.
 
 In narrative, we can summarize with:
 
@@ -186,9 +192,10 @@ is its definition:
                                           'size_hint_y': None,
                                           'height': 25}
 
-list_item_args_converter() takes a data item (x, a string in this usage),
-and prepares an args dict with x as the text value, and the other two default
-arguments. It is easy to make your own args converter.
+list_item_args_converter() takes a data item (x, a string in this usage), and
+prepares an args dict (to be used as kwargs for cls/ctx for template) with x
+as the text value, and the other two default arguments for layout. It is easy
+to make your own args converter, more complicated that this one.
 
 Now, to the example code:
 
@@ -216,8 +223,7 @@ Selection in ListAdapter, for ListView
 In the previous example, we saw how a listview gains selection support just by
 using ListAdapter.
 
-What can we do with selection? The possibilities are wide-
-ranging.
+What can we do with selection? The possibilities are wide-ranging.
 
 We could change the data item strings to be the names of dog breeds, and we
 could bind the selection to the display of details for the selected dog breed
@@ -323,31 +329,28 @@ label in this example.
 Using With kv
 -------------
 
-[TODO] What about selection support? Perhaps provide a second kv example, so
-       that we would have "Using With kv for a Simple List" and "Using With
-       kv for a Selectable List".
-
-       Can SimpleListAdapter be used with a template? If so, use it here, for
-       the first example, and use ListAdapter, with selection args, for the
-       second.
-
 To make a simple list with labels for 100 integers:
 
     from kivy.adapters.listadapter import ListAdapter
-    from kivy.uix.listview import ListView
+    from kivy.adapters.mixins.selection import SelectableItem
+    from kivy.uix.listview import ListView, ListItemButton
     from kivy.uix.gridlayout import GridLayout
     from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
+    from kivy.factory import Factory
+
+    Factory.register('SelectableItem', cls=SelectableItem)
+    Factory.register('ListItemButton', cls=ListItemButton)
 
     # Note: If you copy this example, change the triple_quote tag markers to
     #       triple single quotes.
     Builder.load_string(<triple_quotes>
-    [CustomListItem@BoxLayout]:
+    [CustomListItem@SelectableItem+BoxLayout]:
         size_hint_y: ctx.size_hint_y
         height: ctx.height
-        Button:
+        ListItemButton:
             text: ctx.text
-    </triple_quotes>)
+    <triple_quotes>)
 
 
     class MainView(GridLayout):
@@ -394,15 +397,12 @@ selected dog breed.
         #
         #    kivy/examples/widgets/lists/list_master_detail.py
         #
-        # The important point here is that DetailView has this method, which
-        # could be called anything, but this works generally:
-        #
-        #    def selection_changed(self, list_adapter, *args):
+        #    def dog_breed_changed(self, list_adapter, *args):
         #        #
         #        # Code here for taking list_adapter.selection, a dog breed in
-        #        # this case, and populating a bunch of label views with
-        #        # details for the breed, coming from some source, such as a
-        #        # database lookup.
+        #        # this case, and populating image views, label views with
+        #        # details for the breed, etc., coming from some source, such
+        #        # a database lookup.
         #        #
         #        pass
         pass
@@ -437,7 +437,7 @@ selected dog breed.
             self.add_widget(detail_view)
 
             list_adapter.bind(
-                    on_selection_change=detail_view.selection_changed)
+                    on_selection_change=detail_view.dog_breed_changed)
 
             # Force triggering of on_selection_change() for the DetailView, for
             # correct initial display. [TODO] Remove when a better way found.
