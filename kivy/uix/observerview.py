@@ -28,7 +28,7 @@ class ObserverView(BoxLayout):
     value whose changes trigger refreshing of the contained view.
     '''
 
-    view_instance = ObjectProperty(None)
+    view_instance = ObjectProperty(None, allownone=True)
     '''The view_instance property holds the present contained view.
     '''
 
@@ -46,5 +46,7 @@ class ObserverView(BoxLayout):
     def update(self, object_adapter, *args):
         self.clear_widgets()
         self.view_instance = object_adapter.get_view()
-        self.add_widget(self.get_view())
-        self.view_instance.update(object_adapter, *args)
+        v = self.get_view()
+        if v is not None:
+            self.add_widget(v)
+            v.update(object_adapter, *args)

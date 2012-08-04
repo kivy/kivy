@@ -37,6 +37,8 @@ developer the task of setting the binding up post-instantiation. If the obj is
 not provided directly, a binding has to be set up, but this way it is done
 more explictly, with specification in the arguments.
 
+None is allowed for obj.
+
 :class:`ObjectAdapter` has a get_view() method that works like the one in
 :class:`ListAdapter`. get_view() builds a view instance using either a class
 provided in the cls argument or using a kv template. If an args_converter
@@ -55,7 +57,7 @@ from kivy.adapters.adapter import Adapter
 
 class ObjectAdapter(Adapter):
 
-    obj = ObjectProperty(None)
+    obj = ObjectProperty(None, allownone=True)
     '''The obj property contains the object (can be a string) that will be
     used directly if no args_converter function is provided. If there is an
     args_converter, the object will be passed to it, for instantiation of the
@@ -114,7 +116,7 @@ class ObjectAdapter(Adapter):
         if len(adapter.selection) > 0:
             self.obj = adapter.selection[0]
         else:
-            self.obj = ''
+            self.obj = None
 
     def update_from_property(self, cls, *args):
         print 'update_from_property', cls, args
