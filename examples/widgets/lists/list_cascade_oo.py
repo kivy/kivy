@@ -110,7 +110,15 @@ class CascadingView(GridLayout):
         self.add_widget(fruits_list_view)
 
         # For the fruit detail view on the right, this is ObserverView, which
-        # uses ObjectAdapter.
+        # is tied to an ObjectAdapter instance's obj value. The observed obj
+        # is used as the key to updating the fruit detail view on the right.
+        #
+        # Note the use of the obj_bind_from argument, offering a convenient
+        # alternative to the scheme of manually setting up a required binding
+        # post-instantiation. This way the ObjectAdapter sets up the binding.
+        #
+        # The view creation and use of args_converter and either a cls or
+        # template works the same as for ListAdapter.
         #
         fruit_detail_view = ObserverView(adapter=ObjectAdapter(
                 obj_bind_from=fruits_list_adapter,

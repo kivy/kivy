@@ -42,6 +42,10 @@ more explictly, with specification in the arguments.
 provided in the cls argument or using a kv template. If an args_converter
 function is provided, it is applied to the obj to create obj_args for the
 instantiation. Otherwise, the obj itself is taken as obj_args.
+
+:class:`ObjectAdapter` may be used with the special-made :class:`ObserverView`
+class that is a container for a view centered around the object in an
+:class:`ObjectAdapter` instance.
 '''
 
 from kivy.properties import ObjectProperty
@@ -63,10 +67,11 @@ class ObjectAdapter(Adapter):
     these two choices:
 
         - a tuple with a cls and a property (cls, property), that
-          is used to set up a binding from cls.property to self.update
+          is used to set up a binding from cls.property to
+          self.update_from_property().
 
         - a list adapter, whose selection will be used to set up a binding
-          from list_adapter.selection[0]
+          from list_adapter.selection[0] to self.update_from_selection().
     '''
 
     def __init__(self, **kwargs):
