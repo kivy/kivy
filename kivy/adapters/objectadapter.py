@@ -61,23 +61,23 @@ class ObjectAdapter(Adapter):
     obj_bind_from = ObjectProperty(None)
     '''This is the "from" side of a binding to get obj. It can be one of
     these two choices:
-    
+
         - a tuple with a cls and a property (cls, property), that
           is used to set up a binding from cls.property to self.update
-    
+
         - a list adapter, whose selection will be used to set up a binding
           from list_adapter.selection[0]
     '''
 
     def __init__(self, **kwargs):
         if 'obj' in kwargs and 'obj_bind_from' in kwargs:
-            raise Exception('object adapter args: obj itself or obj_bind_from'
+            raise Exception('object adapter: obj itself or obj_bind_from')
         if 'obj' not in kwargs and 'obj_bind_from' not in kwargs:
-            raise Exception('object adapter: need obj or obj_bind_from arg'
+            raise Exception('object adapter: need obj or obj_bind_from arg')
         super(ObjectAdapter, self).__init__(**kwargs)
 
         if type(self.obj_bind_from) == 'tuple':
-            cls,prop = self.obj_bind_from
+            cls, prop = self.obj_bind_from
             self.obj = cls.prop
             cls.bind(prop=self.update_from_property)
         elif self.obj_bind_from is not None:
@@ -113,5 +113,6 @@ class ObjectAdapter(Adapter):
 
     def update_from_property(self, cls, *args):
         print 'update_from_property', cls, args
+        # [TODO] Untested.
         prop = self.obj_bind_from[1]
         self.obj = cls.prop
