@@ -266,7 +266,7 @@ class MarkupLabel(MarkupLabelBase):
         y = 0
         w, h = self._size
         refs = self._refs
-        no_of_lines = len(self._lines)-1
+        no_of_lines = len(self._lines)
 
         for line in self._lines:
             lh = line[1]
