@@ -56,13 +56,8 @@ class CompositeListItem(SelectableItem, BoxLayout):
     def __init__(self, **kwargs):
         super(CompositeListItem, self).__init__(**kwargs)
 
-        # Now this button just has text '>', but it would be neat to make the
-        # left button hold icons -- the list would be heterogeneous, containing
-        # different list item types that could be filtered perhaps (an option
-        # for selecting all of a given type, for example).
-
         # Make a copy of kwargs and add specific args for the "disclosure"
-        # icon button.
+        # icon button. [TODO] Change to a real icon image.
         icon_kwargs = kwargs.copy()
         icon_kwargs['text'] = '>'
         icon_kwargs['size_hint_x'] = .05

@@ -50,18 +50,19 @@ class SelectionSupport(EventDispatcher):
     '''The selection list property is the main observable item for selection.
     '''
 
-    selection_mode = OptionProperty('multiple',
-            options=('none', 'single', 'multiple', 'filter'))
+    selection_mode = OptionProperty('single',
+            options=('none', 'single', 'multiple'))
     '''Selection modes:
 
-       none -- use the list as a simple list (no select action)
+       none -- use the list as a simple list (no select action). This option
+               is here so that selection can be turned off, momentarily or
+               permanently, for an existing list adapter. :class:`ListAdapter`
+               is not meant to be used as a primary no-selection list adapter.
+               Use :class:`SimpleListAdapter` for that.
 
        single -- multi-touch/click ignored. single item selecting only
 
        multiple -- multi-touch / incremental clicks to select allowed
-
-       filter -- [TODO] idea only now. Could pass in filtering function to
-                 perform associated items selection
     '''
 
     allow_empty_selection = BooleanProperty(True)

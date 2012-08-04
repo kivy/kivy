@@ -248,7 +248,25 @@ on_selection_change event:
 
     list_adapter.bind(on_selection_change=my_selection_reactor_function)
 
-We'll have more to say about selection in the other examples.
+Ideas for Selection Ops
+-----------------------
+
+The examples below, and the on-disk working examples, illustrate ways to use
+:class:`ListView` and list adapters. Here are some other ideas for operations
+that happen when on_selection_change fires:
+
+    - Use a search directive phrase set in a text box, and find items,
+      relative to the current selection, items with time values within a
+      certain range, or items that have a greater length of text than that of
+      the current selection, and so on.
+
+    - Select items that qualify against a hard-wired search directive.
+
+    - Select items by proximity to the current selected item, say for finding
+      three items above and below it.
+
+    - Select items because they are owned by the same user that owns the
+      current selected item.
 
 Composite List Item Example
 ---------------------------
