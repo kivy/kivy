@@ -27,27 +27,26 @@ class SelectableItem(object):
     def __init__(self, **kwargs):
         super(SelectableItem, self).__init__(**kwargs)
 
-    # The list item is responsible for updating the display for
-    # being selected, if desired.
     def select(self, *args):
+        '''The list item is responsible for updating the display for
+        being selected, if desired.
+        '''
         pass
 
-    # The list item is responsible for updating the display for
-    # being unselected, if desired.
     def deselect(self, *args):
+        '''The list item is responsible for updating the display for
+        being unselected, if desired.
+        '''
         pass
 
 
 class SelectionSupport(EventDispatcher):
-    '''The :class:`SelectionSupport` mixin is the main one used for selection.
-    Any "collection" view, such as ListView, that subclasses it will attain
-    the selection ListProperty, a selection_mode OptionProperty, and an
-    allow_empty_selection BooleanProperty, along with methods for the
-    selection machinery tied to these properties.
+    '''The :class:`SelectionSupport` mixin is used for selection. Any
+    "collection" view, such as :class:`ListView`.
     '''
 
     selection = ListProperty([])
-    '''The selection list property is the main observable item for selection.
+    '''The selection list property is the container for selected items.
     '''
 
     selection_mode = OptionProperty('single',
@@ -69,7 +68,7 @@ class SelectionSupport(EventDispatcher):
     '''The allow_empty_selection may be used for cascading selection between
     several list views, or between a list view and an observing view. Such
     automatic maintainence of selection is important for all but simple
-    list displays. Set allow_empty_selection = False, so that selection is
+    list displays. Set allow_empty_selection False, so that selection is
     auto-initialized, and always maintained, and so that any observing views
     may likewise be updated to stay in sync.
     '''
@@ -99,11 +98,7 @@ class SelectionSupport(EventDispatcher):
         self.selection.append(obj)
 
     def select_list(self, obj_list, extend):
-        '''Methods for selecting/deselecting a single item are
-        straightforward, but here selection is handled for the items in the
-        provided obj_list. Keyboard actions or multi-touch gestures may, if
-        allowed, select multiple items, and may replace or add to an existing
-        selection.
+        '''The select call is made for the items in the provided obj_list.
 
         Arguments:
 
@@ -112,12 +107,17 @@ class SelectionSupport(EventDispatcher):
 
             extend: boolean for whether or not to extend the existing list
         '''
+
+        # Select all the objects.
         for obj in obj_list:
             self.select_object(obj)
+
+        # Extend or set selection.
         if extend:
             self.selection.extend(obj_list)
         else:
             self.selection = obj_list
+
         self.dispatch('on_selection_change')
 
     def deselect_object(self, obj):
