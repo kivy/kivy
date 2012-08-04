@@ -113,7 +113,7 @@ class CascadingView(GridLayout):
         # uses ObjectAdapter.
         #
         fruit_detail_view = ObserverView(adapter=ObjectAdapter(
-                selection_binding=fruits_list_adapter,
+                obj_bind_from=fruits_list_adapter,
                 args_converter=lambda x: {'fruit_name': str(x),
                                           'size_hint': (.6, 1.0)},
                 cls=FruitObserverDetailView))

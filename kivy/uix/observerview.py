@@ -1,3 +1,11 @@
+'''
+ObserverView
+============
+
+.. versionadded:: 1.4
+
+'''
+
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 
