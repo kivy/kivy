@@ -123,7 +123,7 @@ from os.path import basename, dirname, join, splitext
 from kivy.event import EventDispatcher
 from kivy.logger import Logger
 from kivy.properties import AliasProperty, DictProperty
-from kivy.utils import platform
+import os
 
 
 # late import to prevent recursion
@@ -167,8 +167,7 @@ class Atlas(EventDispatcher):
         # must be a name finished by .atlas ?
         filename = self._filename
         assert(filename.endswith('.atlas'))
-        if platform() == 'win':
-            filename = filename.replace('/', '\\')
+        filename = filename.replace('/', os.sep)
 
         Logger.debug('Atlas: Load <%s>' % filename)
         with open(filename, 'r') as fd:
