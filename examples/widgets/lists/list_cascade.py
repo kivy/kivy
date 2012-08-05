@@ -2,7 +2,8 @@ from kivy.adapters.listadapter import ListAdapter, ListsAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
 
-from fruit_data import fruit_categories
+from datastore_fruit_data import fruit_categories, datastore_categories, \
+        datastore_fruits
 
 from fruit_detail_view import FruitDetailView
 
@@ -19,12 +20,11 @@ class FruitsListAdapter(ListAdapter):
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
         if len(fruit_categories_adapter.selection) == 0:
-            # Do we need to store previous selection? Need to unselect items?
             self.data = []
             return
 
-        self.data = \
-                fruit_categories[str(fruit_categories_adapter.selection[0])]
+        category = fruit_categories[str(fruit_categories_adapter.selection[0])]
+        self.data = category['fruits']
 
 
 class CascadingView(GridLayout):
@@ -47,6 +47,7 @@ class CascadingView(GridLayout):
         categories = sorted(fruit_categories.keys())
         fruit_categories_list_adapter = \
             ListAdapter(data=categories,
+                        datastore=datastore_categories,
                         args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
@@ -85,7 +86,8 @@ class CascadingView(GridLayout):
         #
         fruits_list_adapter = \
                 FruitsListAdapter(
-                    data=fruit_categories[categories[0]],
+                    data=fruit_categories[categories[0]]['fruits'],
+                    datastore=datastore_fruits,
                     args_converter=list_item_args_converter,
                     selection_mode='single',
                     allow_empty_selection=False,
@@ -107,7 +109,7 @@ class CascadingView(GridLayout):
         self.add_widget(detail_view)
 
         # Force triggering of on_selection_change() for the DetailView, for
-        # correct initial display. [TODO] Surely there is a way to avoid this.
+        # correct initial display.
         fruits_list_adapter.touch_selection()
 
 

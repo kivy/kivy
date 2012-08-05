@@ -5,7 +5,7 @@ from kivy.uix.listview import ListView, ListItemButton
 from kivy.adapters.mixins.selection import SelectableItem
 from kivy.adapters.listadapter import ListAdapter
 
-from fruit_data import fruit_data
+from datastore_fruit_data import fruit_data, datastore_fruits
 
 from fruit_detail_view import FruitDetailView
 
@@ -96,6 +96,7 @@ class MasterDetailView(GridLayout):
                                     'size_hint_y': None,
                                     'height': 25}
         list_adapter = ListAdapter(data=items,
+                                   datastore=datastore_fruits,
                                    args_converter=args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,

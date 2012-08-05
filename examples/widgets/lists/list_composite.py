@@ -3,6 +3,7 @@ from kivy.uix.listview import ListItemButton, ListItemLabel, \
         CompositeListItem, ListView
 from kivy.uix.gridlayout import GridLayout
 
+from datastore_integers import datastore_integers
 
 class MainView(GridLayout):
 
@@ -42,14 +43,15 @@ class MainView(GridLayout):
                                            'merge_text': True,
                                            'delimiter': '-'}}]}
 
-        # First, some strings as data items:
         item_strings = ["{0}".format(index) for index in xrange(100)]
 
         # And now the list adapter, constructed with the item_strings as
-        # the data, and our args_converter() that will operate one each
+        # the data, a datastore to add the required is_selected boolean onto
+        # data records, and our args_converter() that will operate one each
         # item in the data to produce list item view instances from the
         # :class:`CompositeListItem` class.
         list_adapter = ListAdapter(data=item_strings,
+                                   datastore=datastore_integers,
                                    args_converter=args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,

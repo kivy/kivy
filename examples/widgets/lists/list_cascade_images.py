@@ -6,7 +6,8 @@ from kivy.uix.listview import ListView, ListItemButton
 from kivy.lang import Builder
 from kivy.factory import Factory
 
-from fruit_data import fruit_categories
+from datastore_fruit_data import fruit_categories, datastore_categories, \
+        datastore_fruits
 
 from fruit_detail_view import FruitImageDetailView
 
@@ -18,14 +19,21 @@ from fruit_detail_view import FruitImageDetailView
 Factory.register('SelectableItem', cls=SelectableItem)
 Factory.register('ListItemButton', cls=ListItemButton)
 
+# [TODO] Problem: Had to add index here, to get it from ctx. Might need a
+#                 "selection_template" to do this for the dev? Or is this
+#                 the task of the dev to know and follow this need to
+#                 code for index?
+
 Builder.load_string('''
 [ThumbnailedListItem@SelectableItem+BoxLayout]:
+    index: ctx.index
     fruit_name: ctx.text
     size_hint_y: ctx.size_hint_y
     height: ctx.height
     Image
         source: "fruit_images/{0}.32.jpg".format(ctx.text)
     ListItemButton:
+        index: ctx.index
         text: ctx.text
 ''')
 
@@ -34,13 +42,12 @@ class FruitsListAdapter(ListAdapter):
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
         if len(fruit_categories_adapter.selection) == 0:
-            # Do we need to store previous selection? Need to unselect items?
             self.data = []
             return
 
-        self.data = \
-                fruit_categories[str(fruit_categories_adapter.selection[0])]
+        category = fruit_categories[str(fruit_categories_adapter.selection[0])]
 
+        self.data = category['fruits']
 
 class CascadingView(GridLayout):
     '''Implementation of a master-detail style view, with a scrollable list
@@ -62,6 +69,7 @@ class CascadingView(GridLayout):
         categories = sorted(fruit_categories.keys())
         fruit_categories_list_adapter = \
             ListAdapter(data=categories,
+                        datastore=datastore_categories,
                         args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
@@ -78,7 +86,8 @@ class CascadingView(GridLayout):
                                                     'height': 32}
         fruits_list_adapter = \
                 FruitsListAdapter(
-                    data=fruit_categories[categories[0]],
+                    data=fruit_categories[categories[0]]['fruits'],
+                    datastore=datastore_fruits,
                     args_converter=image_list_item_args_converter,
                     selection_mode='single',
                     allow_empty_selection=False,

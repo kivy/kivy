@@ -2,7 +2,7 @@ from kivy.adapters.listadapter import ListAdapter, AccumulatingListAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
 
-from fruit_data import raw_fruit_data
+from datastore_fruit_data import raw_fruit_data, datastore_fruits
 
 # This is an expansion on the "master-detail" example to illustrate
 # cascading from the selection of one list view to another, this time
@@ -27,6 +27,7 @@ class MultipleCascadingView(GridLayout):
         fruits = sorted([fruit_dict['name'] for fruit_dict in raw_fruit_data])
         fruits_list_adapter = \
                 ListAdapter(data=fruits,
+                            datastore=datastore_fruits,
                             args_converter=list_item_args_converter,
                             selection_mode='multiple',
                             allow_empty_selection=False,
@@ -42,6 +43,7 @@ class MultipleCascadingView(GridLayout):
                 AccumulatingListAdapter(
                     observed_list_adapter=fruits_list_adapter,
                     data=[fruits[0]],
+                    datastore=datastore_fruits,
                     args_converter=list_item_args_converter,
                     selection_mode='single',
                     allow_empty_selection=True,

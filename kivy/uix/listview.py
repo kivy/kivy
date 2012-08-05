@@ -458,7 +458,7 @@ selected dog breed.
                     on_selection_change=detail_view.dog_breed_changed)
 
             # Force triggering of on_selection_change() for the DetailView, for
-            # correct initial display. [TODO] Remove when a better way found.
+            # correct initial display.
             list_adapter.touch_selection()
 
 
@@ -563,9 +563,17 @@ class CompositeListItem(SelectableItem, BoxLayout):
         #                              'merge_text': True,
         #                              'delimiter': '-'}}]}
 
+        # There is an index to the data item this composite list item view
+        # represents. Get it from kwargs and pass it along to children in the
+        # loop below.
+        index = kwargs['index']
+        print 'COMPOSITE list item index', index
+
         for cls_dict in kwargs['cls_dicts']:
             cls = cls_dict['cls']
             cls_kwargs = cls_dict['kwargs']
+
+            cls_kwargs['index'] = index
 
             if 'selection_target' not in cls_kwargs:
                 cls_kwargs['selection_target'] = self
@@ -638,14 +646,18 @@ class ListView(AbstractView):
     container and the count of items.
     '''
 
+    item_strings = ListProperty([])
+    '''If item_strings is provided, create an instance of
+    :class:`SimpleListAdapter` with this list of strings, and use it to manage
+    a no-selection list.
+    '''
+
     _index = NumericProperty(0)
     _sizes = DictProperty({})
     _count = NumericProperty(0)
 
     _wstart = NumericProperty(0)
     _wend = NumericProperty(None)
-
-    item_strings = ListProperty([])
 
     def __init__(self, **kwargs):
         # Intercept for the adapter property, which would pass through to

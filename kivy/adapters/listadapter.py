@@ -73,18 +73,40 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
     '''
 
     owning_view = ObjectProperty(None)
+    '''Management of selection requires manipulation of item view instances,
+    which are created here, but cached in the owning_view, such as a
+    :class:`ListView` instance. In some operations at the adapter level,
+    access is needed to the views.
+    '''
+
+    datastore = ObjectProperty(None)
+    '''A function that takes a str key, an item of data, as the single
+    argument, and returns the value to the key stored in the underlying data
+    structure or backing database. This is only used in the case that an item
+    of data is a str.
+    '''
 
     def __init__(self, **kwargs):
+        # Check data for any str items. If found, check for datastore arg,
+        # and if no datastore arg, raise exception. Otherwise break out.
+        #
+        for item in kwargs['data']:
+            if type(item) == 'str':
+                if 'datastore' not in kwargs:
+                    msg = 'ListAdapter: data has str keys; need datastore.'
+                    raise Exception(msg)
+                break
         super(ListAdapter, self).__init__(**kwargs)
 
         # Reset and update selection, in SelectionSupport, if data changes.
         self.bind(data=self.initialize_selection)
 
     def get_view(self, index):
-        '''This method is identical to the one in Adapter and
-        SimpleListAdapter, but here we create bindings for the data item,
+        '''This method is more complicated than the one in Adapter and
+        SimpleListAdapter, because here we create bindings for the data item,
         and its children back to self.handle_selection(), in the mixed-in
-        SelectionSupport class.
+        SelectionSupport class, and do other selection-related tasks to keep
+        item views in sync with the data.
         '''
         item = self.get_item(index)
         if item is None:
@@ -96,11 +118,43 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
         else:
             item_args = item
 
+        item_args['index'] = index
+
         if self.cls:
             print 'CREATE VIEW FOR', index
             instance = self.cls(**item_args)
         else:
+            print 'TEMPLATE item_args', item_args
             instance = Builder.template(self.template, **item_args)
+            print 'TEMPLATE instance.index', instance.index
+
+        # If the data item is a string, it is assumed to be a key into the
+        # datastore, so a lookup is done to check selection. Otherwise, the
+        # data item must be a subclass of SelectableItem, or must have an
+        # is_selected boolean or function, so it has is_selected available.
+        # If is_selected is unavailable on the data item, an exception is
+        # raised.
+        #
+        # A mixture of keys into the datastore and object instances
+        # providing an is_selected() function or is_selected boolean
+        # is allowed.
+        #
+        if type(item) == str:
+            if self.datastore.get(item, 'is_selected'):
+                self.handle_selection(instance)
+        elif type(item) == dict and 'is_selected' in item:
+            if item['is_selected']:
+                self.handle_selection(instance)
+        elif hasattr(item, 'is_selected'):
+            if isfunction(item.is_selected):
+                if item.is_selected():
+                    self.handle_selection(instance)
+            else:
+                if item.is_selected:
+                    self.handle_selection(instance)
+        else:
+            msg = "ListAdapter: record for {0} unselectable".format(item)
+            raise Exception(msg)
 
         # [TODO] if instance.handles_event('on_release'):       ?
         instance.bind(on_release=self.handle_selection)

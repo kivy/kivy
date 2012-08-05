@@ -6,6 +6,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 from kivy.factory import Factory
 
+from datastore_integers import datastore_integers
+
 Factory.register('SelectableItem', cls=SelectableItem)
 Factory.register('ListItemButton', cls=ListItemButton)
 
@@ -38,6 +40,7 @@ class MainView(GridLayout):
         # height=25. To customize, make your own args converter and/or
         # customize the kv template.
         list_adapter = ListAdapter(data=[str(i) for i in xrange(100)],
+                                   datastore=datastore_integers,
                                    template='CustomListItem')
         list_view = ListView(adapter=list_adapter)
 

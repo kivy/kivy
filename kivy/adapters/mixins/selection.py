@@ -10,19 +10,27 @@ control of :class:`ListAdapter`, or one of its subclasses.
 '''
 
 from kivy.properties import ObjectProperty, ListProperty, BooleanProperty, \
-        OptionProperty
+        OptionProperty, NumericProperty
 from kivy.event import EventDispatcher
 
 
 class SelectableItem(object):
     '''The :class:`SelectableItem` mixin is used in list item classes that are
-    to be instantiated in a ListView, which uses a ListAdapter. The
-    handle_selection() function interfaces to the ListView, via its
-    ListAdapter select() and deselect() are to be overridden with display code
+    to be instantiated in a ListView, which uses a list adapter. The
+    handle_selection() function interfaces to :class:`ListView`, via its
+    list adapter. select() and deselect() are to be overridden with display code
     to mark items as selected or not, if desired.
     '''
 
+    index = NumericProperty(-1)
+    '''The index into the underlying data list or the data item this view
+    represents.
+    '''
+
     is_selected = BooleanProperty(False)
+    '''A SelectableItem instance carries this property, and is kept in
+    sync with the equivalent property in the data item it represents.
+    '''
 
     def __init__(self, **kwargs):
         super(SelectableItem, self).__init__(**kwargs)
@@ -92,10 +100,44 @@ class SelectionSupport(EventDispatcher):
         print 'selection for', self, 'is now', self.selection
         self.dispatch('on_selection_change')
 
+    def select_data_item(self, item):
+        self.set_data_item_selection(item, True)
+
+    def deselect_data_item(self, item):
+        self.set_data_item_selection(item, False)
+
+    def set_data_item_selection(self, item, value):
+        print 'set_data_item_selection', item, type(item)
+        if type(item) is str:
+            print 'set_data_item_selection', item, value
+            self.datastore.set(item, 'is_selected', value)
+        elif type(item) is dict and 'is_selected' in item:
+            item['is_selected'] = value
+        elif hasattr(item, 'is_selected'):
+            item.is_selected = value
+
     def select_object(self, obj):
         obj.select()
         obj.is_selected = True
         self.selection.append(obj)
+
+        # [TODO] sibling selection for composite items
+        #        Needed? Or handled from parent?
+        #        (avoid circular, redundant selection)
+        #if hasattr(obj, 'parent') and hasattr(obj.parent, 'children'):
+            #siblings = [child for child in obj.parent.children if child != obj]
+            #for sibling in siblings:
+                #if hasattr(sibling, 'select'):
+                    #sibling.select()
+
+        # child selection
+        for child in obj.children:
+            if hasattr(child, 'select'):
+                child.select()
+
+        print 'select_object, obj.index is:', obj.index
+        item = self.data[obj.index]
+        self.select_data_item(item)
 
     def select_list(self, obj_list, extend):
         '''The select call is made for the items in the provided obj_list.
@@ -125,6 +167,23 @@ class SelectionSupport(EventDispatcher):
         obj.is_selected = False
         self.selection.remove(obj)
 
+        # [TODO] sibling deselection for composite items
+        #        Needed? Or handled from parent?
+        #        (avoid circular, redundant selection)
+        #if hasattr(obj, 'parent') and hasattr(obj.parent, 'children'):
+            #siblings = [child for child in obj.parent.children if child != obj]
+            #for sibling in siblings:
+                #if hasattr(sibling, 'deselect'):
+                    #sibling.deselect()
+
+        # child deselection
+        for child in obj.children:
+            if hasattr(child, 'deselect'):
+                child.deselect()
+
+        item = self.data[obj.index]
+        self.deselect_data_item(item)
+
     def deselect_list(self, l):
         for obj in l:
             self.deselect_object(obj)
@@ -134,7 +193,6 @@ class SelectionSupport(EventDispatcher):
         '''Called when data changes.
         '''
         if len(self.selection) > 0:
-            # [TODO] What about the previous selection? Just blow it away?
             self.selection = []
             self.dispatch('on_selection_change')
 
