@@ -16,10 +16,9 @@ from kivy.event import EventDispatcher
 
 class SelectableItem(object):
     '''The :class:`SelectableItem` mixin is used in list item classes that are
-    to be instantiated in a ListView, which uses a list adapter. The
-    handle_selection() function interfaces to :class:`ListView`, via its
-    list adapter. select() and deselect() are to be overridden with display code
-    to mark items as selected or not, if desired.
+    to be instantiated in a list view, which uses a list adapter.  select()
+    and deselect() are to be overridden with display code to mark items as
+    selected or not, if desired.
     '''
 
     index = NumericProperty(-1)
@@ -69,7 +68,7 @@ class SelectionSupport(EventDispatcher):
 
        single -- multi-touch/click ignored. single item selecting only
 
-       multiple -- multi-touch / incremental clicks to select allowed
+       multiple -- multi-touch / incremental addition to selection allowed
     '''
 
     allow_empty_selection = BooleanProperty(True)
