@@ -177,13 +177,6 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
 
         return instance
 
-    def on_selection_change(self, *args):
-        '''on_selection_change() is the default handler for the
-        on_selection_change event, which is registered in
-        :class:`SelectionSupport`.
-        '''
-        pass
-
     def check_for_empty_selection(self, *args):
         if self.allow_empty_selection is False:
             if len(self.selection) == 0:

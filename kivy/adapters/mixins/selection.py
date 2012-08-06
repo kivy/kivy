@@ -87,6 +87,12 @@ class SelectionSupport(EventDispatcher):
         self.bind(selection_mode=self.check_for_empty_selection,
                   allow_empty_selection=self.check_for_empty_selection)
 
+    def on_selection_change(self, *args):
+        '''on_selection_change() is the default handler for the
+        on_selection_change event.
+        '''
+        pass
+
     def handle_selection(self, obj, *args):
         if obj not in self.selection:
             if self.selection_mode == 'single' and len(self.selection) > 0:

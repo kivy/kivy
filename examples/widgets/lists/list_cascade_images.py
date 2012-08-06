@@ -38,17 +38,6 @@ Builder.load_string('''
 ''')
 
 
-class FruitsListAdapter(ListAdapter):
-
-    def fruit_category_changed(self, fruit_categories_adapter, *args):
-        if len(fruit_categories_adapter.selection) == 0:
-            self.data = []
-            return
-
-        category = fruit_categories[str(fruit_categories_adapter.selection[0])]
-
-        self.data = category['fruits']
-
 class CascadingView(GridLayout):
     '''Implementation of a master-detail style view, with a scrollable list
     of fruit categories on the left (source list), a list of fruits for the
@@ -85,7 +74,7 @@ class CascadingView(GridLayout):
                                                     'size_hint_y': None,
                                                     'height': 32}
         fruits_list_adapter = \
-                FruitsListAdapter(
+                ListAdapter(
                     data=fruit_categories[categories[0]]['fruits'],
                     datastore=datastore_fruits,
                     args_converter=image_list_item_args_converter,
@@ -95,8 +84,12 @@ class CascadingView(GridLayout):
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter,
                     size_hint=(.2, 1.0))
+
+        # Note: Setting up a "setter" type binding here, because we don't need
+        #       a custom list adapter.
         fruit_categories_list_adapter.bind(
-            on_selection_change=fruits_list_adapter.fruit_category_changed)
+            on_selection_change=fruits_list_adapter.setter('data'))
+
         self.add_widget(fruits_list_view)
 
         # Detail view, for a given fruit, on the right:

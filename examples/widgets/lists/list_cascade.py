@@ -16,12 +16,21 @@ from fruit_detail_view import FruitDetailView
 # the sames as the DetailView in the master-detail example.
 
 
+# This is a custom list adapter with a method that is bound to the selection
+# of another list adapter in the example below. This is here for illustration.
+# If you have no need for such a custom list adapter -- if you have nothing
+# special to do when selection changes in the observed list adapter, where
+# noted in the comment "Do something special here" -- use a "setter" type
+# binding as described below.
+#
 class FruitsListAdapter(ListAdapter):
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
         if len(fruit_categories_adapter.selection) == 0:
             self.data = []
             return
+
+        # Do something special here.
 
         category = fruit_categories[str(fruit_categories_adapter.selection[0])]
         self.data = category['fruits']
@@ -92,8 +101,16 @@ class CascadingView(GridLayout):
                     selection_mode='single',
                     allow_empty_selection=False,
                     cls=ListItemButton)
+
         fruit_categories_list_adapter.bind(
             on_selection_change=fruits_list_adapter.fruit_category_changed)
+
+        # If you don't need a custom list adapter like FruitsListAdapter, use
+        # a "setter" type binding to a normal list adapter's data property,
+        # as follows:
+        #
+        # fruit_categories_list_adapter.bind(
+        #     on_selection_change=list_adapter.setter('data'))
 
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter,
@@ -104,6 +121,25 @@ class CascadingView(GridLayout):
         # Detail view, for a given fruit, on the right:
         #
         detail_view = FruitDetailView(size_hint=(.6, 1.0))
+
+        # Each adapter above has a selection_mode property. Here is what
+        # happens for different selection mode arrangements:
+        #
+        #      from side        to side               effect
+        #    --------------   --------------  --------------------------------
+        #      multiple         multiple       to-side is subset of from-side
+        #
+        #       single          multiple       to-side is subset of from-side
+        #
+        #      multiple          single        to-side has most recent
+        #                                      selection of from-side
+        #
+        #       single           single        to-side has most recent
+        #                                      selection of from-side
+        #
+        # [TODO] Is single-selection enforced on the to-side in those last two
+        #        cases?
+        #
         fruits_list_adapter.bind(
                 on_selection_change=detail_view.fruit_changed)
         self.add_widget(detail_view)
