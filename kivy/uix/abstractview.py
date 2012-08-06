@@ -2,7 +2,7 @@
 Abstract View
 =============
 
-.. versionadded:: 1.4
+.. versionadded:: 1.5
 
 The :class:`AbstractView` widget has an adapter property for an adapter that
 mediates to data, and an item_view_instances dict property that holds views

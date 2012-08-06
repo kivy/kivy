@@ -2,7 +2,7 @@
 Adapter
 =======
 
-.. versionadded:: 1.4
+.. versionadded:: 1.5
 
 Notes:
 
@@ -25,7 +25,7 @@ Notes:
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
-from kivy.adapters.util import list_item_args_converter
+from kivy.adapters.args_converters import list_item_args_converter
 
 
 class Adapter(EventDispatcher):

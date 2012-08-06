@@ -2,7 +2,7 @@
 ObserverView
 ============
 
-.. versionadded:: 1.4
+.. versionadded:: 1.5
 
 :class:`ObserverView` is a container for a view that observes an object held
 by an :class:`ObjectAdapter` instance. It is similar to :class:`ListView` in

@@ -2,7 +2,7 @@
 ObjectAdapter
 =============
 
-.. versionadded:: 1.4
+.. versionadded:: 1.5
 
 :class:`ObjectAdapter` is an adapter around a Python object, which can be a
 string, a list, or any sort of object. Often the object is a string used as a

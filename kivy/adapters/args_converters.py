@@ -1,5 +1,11 @@
 '''
-The default list item args converter for list adapters is this simple function
+List Item View Argument Converters
+==================================
+
+.. versionadded:: 1.5
+
+
+The default list item args converter for list adapters is this function
 that takes a string and returns the string as the text argument in a dict,
 along with two properties suited for simple text items with height of 25.
 

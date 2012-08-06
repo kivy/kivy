@@ -62,7 +62,7 @@
 List View
 ===========
 
-.. versionadded:: 1.4
+.. versionadded:: 1.5
 
 The :class:`ListView` widget provides a scrollable/pannable viewport that is
 clipped at the scrollview's bounding box, which contains a list of

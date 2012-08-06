@@ -2,7 +2,7 @@
 SelectableItem, SelectionSupport
 ================================
 
-.. versionadded:: 1.4
+.. versionadded:: 1.5
 
 Mixin classes for giving selection functionality to "collection-style" views,
 such as :class:`ListView`, and their item views, via the intermediating
