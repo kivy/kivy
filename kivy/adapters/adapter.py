@@ -16,10 +16,11 @@ Notes:
 
       Using background in references like these, compare to MVC terminology,
       and how Kivy operates to fulfill the roles of mediating and coordinating
-      controllers, especially.
+      controllers, especially (terminology from the world of Cocoa).
 
-    - Consider an associated "object adapter" (a.k.a., "object controller")
-      that is bound to selection. It can also subclass Adapter?
+    - *** DONE *** Consider an associated "object adapter" (a.k.a., "object
+      controller") that is bound to selection. It can also subclass Adapter?
+      *** DONE *** Yes, the new ObjectAdapter subclasses Adapter.
 '''
 
 from kivy.event import EventDispatcher

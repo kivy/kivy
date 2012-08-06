@@ -4,12 +4,22 @@ ListAdapter
 
 .. versionadded:: 1.5
 
-Notes:
+:class:`SimpleListAdapter` is for simple lists, such as for showing a
+text-only display of strings, or a list of views of some type that have
+no user interaction.
 
-    - Consider adding the functionality for locking changes to the associated
-      data -- whether or not editing of item_view_instances is allowed.
-      This could be controlled simply with an is_editable boolean, but would
-      involve more work in the implementation, of course.
+:class:`ListAdapter` is the main workhorse for broad use, because it adds
+selection.
+
+Several subclasses of :class:`ListAdapter` offer convenience for setting up
+bindings required to connect a list adapter to another one, or to another
+external object that changes selection in some way.
+
+:class:`ListsAdapter` is for use when you have a list of lists, with one
+showing at any given time.
+
+:class:`AccumulatingListAdapter` is used for managing an expanding (or
+contracting) list of items.
 '''
 
 from kivy.properties import ListProperty, DictProperty, ObjectProperty
@@ -19,9 +29,9 @@ from kivy.adapters.mixins.selection import SelectionSupport
 
 
 class SimpleListAdapter(Adapter):
-    '''SimpleListAdapter is an adapter around a simple Python list.
+    ''':class:`SimpleListAdapter` is an adapter around a simple Python list.
 
-    From Adapter, SimpleListAdapter gets these properties:
+    From :class:`Adapter`, :class:`SimpleListAdapter` gets these properties:
 
         Use only one:
 
@@ -60,7 +70,8 @@ class SimpleListAdapter(Adapter):
 
 
 class ListAdapter(SelectionSupport, SimpleListAdapter):
-    '''From the SelectionSupport mixin, ListAdapter has these properties:
+    '''From the :class:`SelectionSupport` mixin, :class:`ListAdapter` has
+    these properties:
 
         - selection
         - selection_mode
@@ -105,8 +116,8 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
         '''This method is more complicated than the one in Adapter and
         SimpleListAdapter, because here we create bindings for the data item,
         and its children back to self.handle_selection(), in the mixed-in
-        SelectionSupport class, and do other selection-related tasks to keep
-        item views in sync with the data.
+        :class:`SelectionSupport` class, and do other selection-related tasks
+        to keep item views in sync with the data.
         '''
         item = self.get_item(index)
         if item is None:
@@ -169,7 +180,8 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
 
     def on_selection_change(self, *args):
         '''on_selection_change() is the default handler for the
-        on_selection_change event, which is registered in SelectionSupport.
+        on_selection_change event, which is registered in
+        :class:`SelectionSupport`.
         '''
         pass
 
@@ -187,10 +199,11 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
 
 
 class ListsAdapter(ListAdapter):
-    '''ListsAdapter is specialized for managing a dict of lists. It has wide
-    application, because a list of lists is a common need. ListsAdapter may
-    be used for chaining several list_adapters in a "cascade," where selection
-    of the first, changes the selection of the next, and so on.
+    ''':class:`ListsAdapter` is specialized for managing a list of lists,
+    which is done internally with use of a dict of lists.
+    :class:`ListsAdapter` may be used for chaining several list_adapters in a
+    "cascade," where selection of the first, changes the selection of the
+    next, and others.
     '''
 
     lists_dict = DictProperty({})
@@ -217,11 +230,11 @@ class ListsAdapter(ListAdapter):
 
 
 class AccumulatingListAdapter(ListAdapter):
-    '''AccumulatingListAdapter is a list adapter whose
+    ''':class:`AccumulatingListAdapter` is a list adapter whose
     data is formed by the selection of an observed list adapter.
 
-    Selection will accumulate as either single or multiple selection
-    events happen.
+    Selection will accumulate or contract as either single or multiple
+    selection events occur.
     '''
 
     observed_list_adapter = ObjectProperty(None)

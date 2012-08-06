@@ -8,7 +8,7 @@ ObjectAdapter
 string, a list, or any sort of object. Often the object is a string used as a
 key for selection operations.
 
-From Adapter, ObjectAdapter gets these properties:
+From :class:`Adapter`, :class:`ObjectAdapter` gets these properties:
 
     Use only one:
 
@@ -23,7 +23,7 @@ From Adapter, ObjectAdapter gets these properties:
                       or a kv template invocation
 
 :class:`ObjectAdapter` gets its obj property from either a direct obj argument
-or the obj_bind_from argument, either a (cls,property) tuple or a
+or from the obj_bind_from argument, either a (cls,property) tuple or a
 list_adapter. If (cls, property) is provided, a binding is set up from
 cls.property to self.update_from_property(). If a list_adapter is provided,
 the first object in the list_adapter's selection, if it exists, is bound to
@@ -33,9 +33,8 @@ multiple objects in the list adapter's selection, only the first is taken as
 obj.
 
 Having the obj binding handled this way generalizes, and relieves from the
-developer the task of setting the binding up post-instantiation. If the obj is
-not provided directly, a binding has to be set up, but this way it is done
-more explictly, with specification in the arguments.
+developer the task of creating the binding post-instantiation. This way it is
+done more explictly, with specification in the arguments.
 
 None is allowed for obj.
 
