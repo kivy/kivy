@@ -96,6 +96,7 @@ class Spinner(Button):
 
     def __init__(self, **kwargs):
         self._dropdown = None
+        self._is_down = False
         super(Spinner, self).__init__(**kwargs)
         self.bind(
             on_release=self._open_dropdown,
@@ -116,7 +117,6 @@ class Spinner(Button):
     def _update_dropdown(self, *largs):
         dp = self._dropdown
         cls = self.option_cls
-
         dp.clear_widgets()
         for value in self.values:
             item = cls(text=value)
@@ -124,8 +124,13 @@ class Spinner(Button):
             dp.add_widget(item)
 
     def _open_dropdown(self, *largs):
-        self._dropdown.open(self)
+        if not self._is_down:
+            self._dropdown.open(self)
+            self._is_down = True
+        else:
+            self._dropdown.dismiss()
+            self._is_down = False
 
     def _on_dropdown_select(self, instance, data, *largs):
         self.text = data
-
+        self._is_down = False
