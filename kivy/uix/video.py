@@ -53,7 +53,11 @@ class Video(Image):
     '''
 
     play = BooleanProperty(False)
-    '''Boolean, indicates if the video is playing.
+    '''
+    .. deprecated:: 1.4.0
+        Use :data:`state` instead.
+
+    Boolean, indicates if the video is playing.
     You can start/stop the video by setting this property::
 
         # start playing the video at creation
@@ -66,8 +70,9 @@ class Video(Image):
 
     :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
+
     .. deprecated:: 1.4.0
-    Use `state` instead.
+        Use :data:`state` instead.
     '''
 
     eos = BooleanProperty(False)

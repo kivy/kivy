@@ -52,7 +52,7 @@ stretched.
 You can allow stretching by passing custom options to a
 :class:`~kivy.uix.video.Video` instance::
 
-    player = VideoPlayer(source='myvideo.avi', play=True,
+    player = VideoPlayer(source='myvideo.avi', state='play',
         options={'allow_stretch': True})
 
 '''
@@ -318,8 +318,12 @@ class VideoPlayer(GridLayout):
     '''
 
     play = BooleanProperty(False)
-    '''Boolean, indicates if the video is playing.
-    You can start/stop the video by setting this property::
+    '''
+    .. deprecated:: 1.4.0
+        Use :data:`state` instead.
+
+    Boolean, indicates if the video is playing. You can start/stop the video by
+    setting this property::
 
         # start playing the video at creation
         video = Video(source='movie.mkv', play=True)
@@ -331,8 +335,6 @@ class VideoPlayer(GridLayout):
 
     :data:`play` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
-    .. deprecated:: 1.4.0
-    Use `state` instead.
     '''
 
     image_overlay_play = StringProperty(
