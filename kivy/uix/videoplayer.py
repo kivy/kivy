@@ -52,7 +52,7 @@ stretched.
 You can allow stretching by passing custom options to a
 :class:`~kivy.uix.video.Video` instance::
 
-    player = VideoPlayer(source='myvideo.avi', play=True,
+    player = VideoPlayer(source='myvideo.avi', state='play',
         options={'allow_stretch': True})
 
 '''
@@ -62,7 +62,7 @@ __all__ = ('VideoPlayer', 'VideoPlayerAnnotation')
 from json import load
 from os.path import exists
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty, \
-        NumericProperty, DictProperty
+        NumericProperty, DictProperty, OptionProperty
 from kivy.animation import Animation
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -112,8 +112,22 @@ class VideoPlayerPlayPause(Image):
     video = ObjectProperty(None)
 
     def on_touch_down(self, touch):
+        '''.. versionchanged:: 1.4.0'''
         if self.collide_point(*touch.pos):
-            self.video.play = not self.video.play
+            if self.video.state == 'play':
+                self.video.state = 'pause'
+            else:
+                self.video.state = 'play'
+            return True
+
+
+class VideoPlayerStop(Image):
+    video = ObjectProperty(None)
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.video.state = 'stop'
+            self.video.position = 0
             return True
 
 
@@ -134,7 +148,7 @@ class VideoPlayerProgressBar(ProgressBar):
 
     def on_video(self, instance, value):
         self.video.bind(position=self._update_bubble,
-                play=self._showhide_bubble)
+                state=self._showhide_bubble)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -195,7 +209,7 @@ class VideoPlayerProgressBar(ProgressBar):
         self.bubble.y = self.top
 
     def _showhide_bubble(self, instance, value):
-        if value:
+        if value == 'play':
             self._hide_bubble()
         else:
             self._show_bubble()
@@ -209,7 +223,7 @@ class VideoPlayerPreview(FloatLayout):
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos) and not self.click_done:
             self.click_done = True
-            self.video.play = True
+            self.video.state = 'play'
         return True
 
 
@@ -248,18 +262,20 @@ class VideoPlayer(GridLayout):
     '''VideoPlayer class. See module documentation for more information.
     '''
 
-    source = StringProperty(None)
+    source = StringProperty('')
     '''Source of the video to read.
 
-    :data:`source` a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`source` a :class:`~kivy.properties.StringProperty`, default to ''.
+    .. versionchanged:: 1.4.0
     '''
 
-    thumbnail = StringProperty(None)
+    thumbnail = StringProperty('')
     '''Thumbnail of the video to show. If None, VideoPlayer will try to find
     the thumbnail from the :data:`source` + .png.
 
     :data:`thumbnail` a :class:`~kivy.properties.StringProperty`, default to
-    None.
+    ''.
+    .. versionchanged:: 1.4.0
     '''
 
     duration = NumericProperty(-1)
@@ -286,15 +302,34 @@ class VideoPlayer(GridLayout):
     1.
     '''
 
-    play = BooleanProperty(False)
-    '''Boolean, indicates if the video is playing.
-    You can start/stop the video by setting this property::
+    state = OptionProperty('stop', options=('play', 'pause', 'stop'))
+    '''String, indicates whether to play, pause, or stop the video::
 
         # start playing the video at creation
-        video = VideoPlayer(source='movie.mkv', play=True)
+        video = Video(source='movie.mkv', state='play')
 
         # create the video, and start later
-        video = VideoPlayer(source='movie.mkv')
+        video = Video(source='movie.mkv')
+        # and later
+        video.state = 'play'
+
+    :data:`state` is a :class:`~kivy.properties.OptionProperty`, default to
+    'play'.
+    '''
+
+    play = BooleanProperty(False)
+    '''
+    .. deprecated:: 1.4.0
+        Use :data:`state` instead.
+
+    Boolean, indicates if the video is playing. You can start/stop the video by
+    setting this property::
+
+        # start playing the video at creation
+        video = Video(source='movie.mkv', play=True)
+
+        # create the video, and start later
+        video = Video(source='movie.mkv')
         # and later
         video.play = True
 
@@ -320,7 +355,13 @@ class VideoPlayer(GridLayout):
             'atlas://data/images/defaulttheme/media-playback-start')
     '''Image filename used for the "Play" button.
 
-    :data:`image_loading` a :class:`~kivy.properties.StringProperty`
+    :data:`image_play` a :class:`~kivy.properties.StringProperty`
+    '''
+
+    image_stop = StringProperty(
+            'atlas://data/images/defaulttheme/media-playback-stop')
+    '''Image filename used for the "Stop" button.
+    :data:`image_stop` a :class:`~kivy.properties.StringProperty`
     '''
 
     image_pause = StringProperty(
@@ -358,7 +399,7 @@ class VideoPlayer(GridLayout):
     :data:`image_volumemuted` a :class:`~kivy.properties.StringProperty`
     '''
 
-    annotations = StringProperty(None)
+    annotations = StringProperty('')
     '''If set, it will be used for reading annotations box.
     '''
 
@@ -401,7 +442,7 @@ class VideoPlayer(GridLayout):
     def __init__(self, **kwargs):
         self._video = None
         self._image = None
-        self._annotations = None
+        self._annotations = ''
         self._annotations_labels = []
         super(VideoPlayer, self).__init__(**kwargs)
         self._load_thumbnail()
@@ -418,7 +459,7 @@ class VideoPlayer(GridLayout):
         self.container.clear_widgets()
         # get the source, remove extension, and use png
         thumbnail = self.thumbnail
-        if thumbnail is None:
+        if not thumbnail:
             filename = self.source.rsplit('.', 1)
             thumbnail = filename[0] + '.png'
         self._image = VideoPlayerPreview(source=thumbnail, video=self)
@@ -429,7 +470,7 @@ class VideoPlayer(GridLayout):
             return
         self._annotations_labels = []
         annotations = self.annotations
-        if annotations is None:
+        if not annotations:
             filename = self.source.rsplit('.', 1)
             annotations = filename[0] + '.jsa'
         if exists(annotations):
@@ -440,16 +481,20 @@ class VideoPlayer(GridLayout):
                 self._annotations_labels.append(
                     VideoPlayerAnnotation(annotation=ann))
 
-    def on_play(self, instance, value):
+    def on_state(self, instance, value):
         if self._video is None:
-            self._video = Video(source=self.source, play=True,
+            self._video = Video(source=self.source, state='play',
                     volume=self.volume, pos_hint={'x': 0, 'y': 0},
                     **self.options)
             self._video.bind(texture=self._play_started,
                     duration=self.setter('duration'),
                     position=self.setter('position'),
                     volume=self.setter('volume'))
-        self._video.play = value
+        self._video.state = value
+
+    def on_play(self, instance, value):
+        value = 'play' if value else 'stop'
+        return self.on_state(instance, value)
 
     def on_volume(self, instance, value):
         if not self._video:
