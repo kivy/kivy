@@ -16,12 +16,8 @@ from fruit_detail_view import FruitDetailView
 # the sames as the DetailView in the master-detail example.
 
 
-# This is a custom list adapter with a method that is bound to the selection
-# of another list adapter in the example below. This is here for illustration.
-# If you have no need for such a custom list adapter -- if you have nothing
-# special to do when selection changes in the observed list adapter, where
-# noted in the comment "Do something special here" -- use a "setter" type
-# binding as described below.
+# A custom adapter is needed here, because we must transform the selected
+# fruit category into the list of fruits for that category.
 #
 class FruitsListAdapter(ListAdapter):
 
@@ -29,8 +25,6 @@ class FruitsListAdapter(ListAdapter):
         if len(fruit_categories_adapter.selection) == 0:
             self.data = []
             return
-
-        # Do something special here.
 
         category = fruit_categories[str(fruit_categories_adapter.selection[0])]
         self.data = category['fruits']
@@ -104,13 +98,6 @@ class CascadingView(GridLayout):
 
         fruit_categories_list_adapter.bind(
             on_selection_change=fruits_list_adapter.fruit_category_changed)
-
-        # If you don't need a custom list adapter like FruitsListAdapter, use
-        # a "setter" type binding to a normal list adapter's data property,
-        # as follows:
-        #
-        # fruit_categories_list_adapter.bind(
-        #     on_selection_change=list_adapter.setter('data'))
 
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter,

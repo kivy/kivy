@@ -38,6 +38,20 @@ Builder.load_string('''
 ''')
 
 
+# A custom adapter is needed here, because we must transform the selected
+# fruit category into the list of fruits for that category.
+#
+class FruitsListAdapter(ListAdapter):
+
+    def fruit_category_changed(self, fruit_categories_adapter, *args):
+        if len(fruit_categories_adapter.selection) == 0:
+            self.data = []
+            return
+
+        category = fruit_categories[str(fruit_categories_adapter.selection[0])]
+        self.data = category['fruits']
+
+
 class CascadingView(GridLayout):
     '''Implementation of a master-detail style view, with a scrollable list
     of fruit categories on the left (source list), a list of fruits for the
@@ -49,7 +63,7 @@ class CascadingView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(CascadingView, self).__init__(**kwargs)
 
-        list_item_args_converter = lambda x: {'text': x,
+        list_item_args_converter = lambda x: {'text': str(x),
                                               'size_hint_y': None,
                                               'height': 25}
 
@@ -70,11 +84,11 @@ class CascadingView(GridLayout):
 
         # Fruits, for a given category, in the middle:
         #
-        image_list_item_args_converter = lambda x: {'text': x,
+        image_list_item_args_converter = lambda x: {'text': str(x),
                                                     'size_hint_y': None,
                                                     'height': 32}
         fruits_list_adapter = \
-                ListAdapter(
+                FruitsListAdapter(
                     data=fruit_categories[categories[0]]['fruits'],
                     datastore=datastore_fruits,
                     args_converter=image_list_item_args_converter,
@@ -85,10 +99,8 @@ class CascadingView(GridLayout):
                 ListView(adapter=fruits_list_adapter,
                     size_hint=(.2, 1.0))
 
-        # Note: Setting up a "setter" type binding here, because we don't need
-        #       a custom list adapter.
         fruit_categories_list_adapter.bind(
-            on_selection_change=fruits_list_adapter.setter('data'))
+                on_selection_change=fruits_list_adapter.fruit_category_changed)
 
         self.add_widget(fruits_list_view)
 
