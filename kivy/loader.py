@@ -96,8 +96,8 @@ class LoaderBase(object):
     def error_image(self):
         '''Image used for error (readonly)'''
         if not self._error_image:
-            error_png_fn = join(kivy_base_dir, 'tools/theming/defaulttheme',
-                    'image-missing.png')
+            error_png_fn = join(
+                'atlas://data/images/defaulttheme/image-missing')
             self._error_image = ImageLoader.load(filename=error_png_fn)
         return self._error_image
 
@@ -168,6 +168,8 @@ class LoaderBase(object):
             data = self._load_local(_out_filename)
         except Exception:
             Logger.exception('Failed to load image <%s>' % filename)
+            # close file when remote file not found or download error
+            close(_out_osfd)
             return self.error_image
         finally:
             if _out_filename != '':
