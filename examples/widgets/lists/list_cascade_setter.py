@@ -9,6 +9,10 @@ from datastore_fruit_data import raw_fruit_data, datastore_fruits
 # to have one list allow multiple selection and the other to show the
 # multiple items selected in the first.
 
+# This example uses a binding set from the selection of the first list to the
+# data of the second, by use of the setter() method on the "to" side of the
+# binding.
+
 class MultipleCascadingView(GridLayout):
     '''Implementation of a master-detail style view, with a scrollable list
     of fruits on the left and the selection in that list on the right in
@@ -20,7 +24,7 @@ class MultipleCascadingView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(MultipleCascadingView, self).__init__(**kwargs)
 
-        list_item_args_converter = lambda x: {'text': x,
+        list_item_args_converter = lambda x: {'text': str(x),
                                               'size_hint_y': None,
                                               'height': 25}
 
@@ -40,8 +44,7 @@ class MultipleCascadingView(GridLayout):
         # Selected fruits, on the right
         #
         selected_fruits_list_adapter = \
-                AccumulatingListAdapter(
-                    observed_list_adapter=fruits_list_adapter,
+                ListAdapter(
                     data=[fruits[0]],
                     datastore=datastore_fruits,
                     args_converter=list_item_args_converter,
@@ -51,6 +54,8 @@ class MultipleCascadingView(GridLayout):
         selected_fruits_list_view = \
                 ListView(adapter=selected_fruits_list_adapter,
                     size_hint=(.2, 1.0))
+        fruits_list_adapter.bind(
+                selection=selected_fruits_list_adapter.setter('data'))
         self.add_widget(selected_fruits_list_view)
 
 

@@ -17,15 +17,14 @@ external object that changes selection in some way.
 
 :class:`ListsAdapter` is for use when you have a list of lists, with one
 showing at any given time.
-
-:class:`AccumulatingListAdapter` is used for managing an expanding (or
-contracting) list of items.
 '''
 
 from kivy.properties import ListProperty, DictProperty, ObjectProperty
 from kivy.lang import Builder
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.mixins.selection import SelectionSupport
+
+from inspect import isfunction, ismethod
 
 
 class SimpleListAdapter(Adapter):
@@ -157,7 +156,7 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
             if item['is_selected']:
                 self.handle_selection(instance)
         elif hasattr(item, 'is_selected'):
-            if isfunction(item.is_selected):
+            if isfunction(item.is_selected) or ismethod(item.is_selected):
                 if item.is_selected():
                     self.handle_selection(instance)
             else:
@@ -227,28 +226,3 @@ class ListsAdapter(ListAdapter):
             return
 
         self.data = self.lists_dict[str(observed_selection[0])]
-
-
-class AccumulatingListAdapter(ListAdapter):
-    ''':class:`AccumulatingListAdapter` is a list adapter whose
-    data is formed by the selection of an observed list adapter.
-
-    Selection will accumulate or contract as either single or multiple
-    selection events occur.
-    '''
-
-    observed_list_adapter = ObjectProperty(None)
-
-    def __init__(self, **kwargs):
-        super(AccumulatingListAdapter, self).__init__(**kwargs)
-        self.observed_list_adapter.bind(
-                on_selection_change=self.on_selection_change)
-
-    def on_selection_change(self, *args):
-        observed_selection = self.observed_list_adapter.selection
-
-        if len(observed_selection) == 0:
-            self.data = []
-            return
-
-        self.data = [str(obj.text) for obj in observed_selection]
