@@ -20,7 +20,7 @@ size in percent, not in pixels. The format is::
 
     widget.size_hint = (width_percent, height_percent)
 
-The percent is specified as a floating point number in the range 0-1. For 
+The percent is specified as a floating point number in the range 0-1. For
 example, 0.5 is 50%, 1 is 100%.
 
 If you want a widget's width to be half of the parent's width and the

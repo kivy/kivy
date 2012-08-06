@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''
 Window
 ======
@@ -194,18 +195,21 @@ class WindowBase(EventDispatcher):
         `on_keyboard`: key, scancode, codepoint, modifier
             Fired when the keyboard is in action
             .. versionchanged:: 1.3.0
-                The *unicode* parameter has be deprecated in favor of
-                codepoint, and will be removed completely in future versions
+
+            The *unicode* parameter has be deprecated in favor of
+            codepoint, and will be removed completely in future versions
         `on_key_down`: key, scancode, codepoint
             Fired when a key is down
             .. versionchanged:: 1.3.0
-                The *unicode* parameter has be deprecated in favor of
-                codepoint, and will be removed completely in future versions
+
+            The *unicode* parameter has be deprecated in favor of
+            codepoint, and will be removed completely in future versions
         `on_key_up`: key, scancode, codepoint
             Fired when a key is up
             .. versionchanged:: 1.3.0
-                The *unicode* parameter has be deprecated in favor of
-                codepoint, and will be removed completely in future versions
+
+            The *unicode* parameter has be deprecated in favor of
+            codepoint, and will be removed completely in future versions
         `on_dropfile`: str
             Fired when a file is dropped on the application
     '''
@@ -238,6 +242,8 @@ class WindowBase(EventDispatcher):
     You must take care of it if you are doing recursive check.
     '''
 
+    icon = StringProperty()
+
     def _get_modifiers(self):
         return self._modifiers
 
@@ -248,17 +254,22 @@ class WindowBase(EventDispatcher):
     def _get_size(self):
         r = self._rotation
         w, h = self._size
-        if r == 0 or r == 180:
+        if r in (0, 180):
             return w, h
         return h, w
 
     def _set_size(self, size):
-        if super(WindowBase, self)._set_size(size):
-            Logger.debug('Window: Resize window to %s' % str(self.size))
+        if self._size != size:
+            r = self._rotation
+            if r in (0, 180):
+                self._size = size
+            else:
+                self._size = size[1], size[0]
+
             self.dispatch('on_resize', *size)
             return True
-        return False
-
+        else:
+            return False
     size = AliasProperty(_get_size, _set_size)
     '''Get the rotated size of the window. If :data:`rotation` is set, then the
     size will change to reflect the rotation.
@@ -279,7 +290,7 @@ class WindowBase(EventDispatcher):
             bind=('_clearcolor', ))
     '''Color used to clear window.
 
-    ::
+  ::
         from kivy.core.window import Window
 
         # red background color
@@ -459,7 +470,7 @@ class WindowBase(EventDispatcher):
         self.parent = self
 
         # before creating the window
-        __import__('kivy.core.gl')
+        import kivy.core.gl
 
         # configure the window
         self.create_window()
@@ -591,7 +602,7 @@ class WindowBase(EventDispatcher):
 
         .. versionadded:: 1.0.5
         '''
-        pass
+        self.icon = filename
 
     def to_widget(self, x, y, initial=True, relative=False):
         return (x, y)
@@ -753,7 +764,7 @@ class WindowBase(EventDispatcher):
         pass
 
     def on_keyboard(self, key,
-        scancode=None, codepoint=None, modifier=None ,**kwargs):
+        scancode=None, codepoint=None, modifier=None, **kwargs):
         '''Event called when keyboard is in action
 
         .. warning::
@@ -763,7 +774,6 @@ class WindowBase(EventDispatcher):
             Logger.warning("The use of the unicode parameter is deprecated, "
                 "and will be removed in future versions. Use codepoint "
                 "instead, which has identical semantics.")
-
 
     def on_key_down(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
@@ -881,7 +891,6 @@ class WindowBase(EventDispatcher):
             and if configuration allowed it, a VKeyboard instance.
 
         .. versionchanged:: 1.0.8
-
             `target` have been added, and must be the widget source that request
             the keyboard. If set, the widget must have one method named
             `on_keyboard_text`, that will be called from the vkeyboard.
@@ -964,4 +973,3 @@ class WindowBase(EventDispatcher):
 Window = core_select_lib('window', (
     ('pygame', 'window_pygame', 'WindowPygame'),
 ), True)
-

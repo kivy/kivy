@@ -255,41 +255,48 @@
 			TextInput:
 				text: 'Monoline textinput'
 				size_hint_y: None
-				height: 50
+				height: 30
 
 			TextInput:
 				text: 'This is a password'
 				size_hint_y: None
-				height: 50
+				height: 30
 				password: True
 
 			TextInput:
 				text: 'Readonly textinput'
 				size_hint_y: None
-				height: 50
+				height: 30
 				readonly: True
 
 			TextInput:
 				text: 'Multiline textinput\nSecond line'
 
 			HSeparator:
+				text: 'Spinner'
+
+			Spinner:
+				size_hint_y: None
+				height: 44
+				values: ('Work', 'Home', 'Other', 'Custom')
+				text: 'Home'
+
+			HSeparator:
 				text: 'Checkbox'
 
 			GridLayout:
 				rows: 1
-				CheckBox
+				CheckBox:
+					active: True
 				CheckBox
 
 			GridLayout:
 				cols: 2
 				CheckBox:
 					group: 'group1'
+					active: True
 				CheckBox:
 					group: 'group1'
-				CheckBox:
-					group: 'group2'
-				CheckBox:
-					group: 'group2'
 
 
 

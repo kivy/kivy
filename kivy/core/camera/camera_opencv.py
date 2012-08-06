@@ -14,10 +14,10 @@ from kivy.graphics.texture import Texture
 from kivy.core.camera import CameraBase
 
 try:
-    cv = __import__('opencv', fromlist='.')
-    hg = __import__('opencv.highgui', fromlist='.')
+    import opencv as cv
+    import opencv.highgui as hg
 except ImportError:
-    cv = __import__('cv')
+    import cv
 
     class Hg(object):
         '''

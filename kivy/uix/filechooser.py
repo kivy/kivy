@@ -6,13 +6,12 @@ FileChooser
 
 .. warning::
 
-    This is experimental and subject to change as long as this warning notice is
-    present.
+    This is experimental and subject to change as long as this warning notice
+    is present.
 
 .. versionchanged:: 1.2.0
-
-    In chooser template, the `controller` is not a direct reference anymore, but
-    a weak-reference.
+    In chooser template, the `controller` is not a direct reference anymore,
+    but a weak-reference.
     You must update all the notation `root.controller.xxx` to
     `root.controller().xxx`.
 
@@ -140,19 +139,29 @@ class FileChooserController(FloatLayout):
 
     filters = ListProperty([])
     ''':class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
-    The filters to be applied to the files in the directory, e.g. ['\*.png'].
+    The filters to be applied to the files in the directory.
+
     The filters are not reset when the path changes. You need to do that
-    yourself if desired. You can use the following patterns:
+    yourself if desired.
 
-      ========== =================================
-      Pattern     Meaning
-      ========== =================================
-      \*         matches everything
-      ?          matches any single character
-      [seq]      matches any character in seq
-      [!seq]     matches any character not in seq
-      ========== =================================
+    There are two kinds of filters :
 
+    filename patterns : e.g. ['\*.png'].
+    You can use the following patterns:
+
+        ========== =================================
+        Pattern     Meaning
+        ========== =================================
+        \*         matches everything
+        ?          matches any single character
+        [seq]      matches any character in seq
+        [!seq]     matches any character not in seq
+        ========== =================================
+
+    .. versionchanged:: 1.4.0
+        if the filter is a callable (function or method). It will be called
+        with the path and the file name as arguments for each file in dir. The
+        callable should returns True to indicate a match and False overwise.
     '''
 
     filter_dirs = BooleanProperty(False)
@@ -164,8 +173,8 @@ class FileChooserController(FloatLayout):
     sort_func = ObjectProperty(alphanumeric_folders_first)
     '''
     :class:`~kivy.properties.ObjectProperty`.
-    Provides a function to be called with a list of filenames as the only argument.
-    Returns a list of filenames sorted for display in the view.
+    Provides a function to be called with a list of filenames as the only
+    argument.  Returns a list of filenames sorted for display in the view.
     '''
 
     files = ListProperty([])
@@ -204,9 +213,9 @@ class FileChooserController(FloatLayout):
     rootpath = StringProperty(None, allownone=True)
     '''
     Root path to use, instead of the system root path. If set, it will not show
-    a ".." directory to go upper the root path. For example, if you set rootpath
-    to /Users/foo, the user will be unable to go to /Users, or to any other
-    directory not starting with /Users/foo.
+    a ".." directory to go upper the root path. For example, if you set
+    rootpath to /Users/foo, the user will be unable to go to /Users, or to any
+    other directory not starting with /Users/foo.
 
     .. versionadded:: 1.2.0
 
@@ -221,7 +230,6 @@ class FileChooserController(FloatLayout):
     :class:`~kivy.properties.ObjectProperty`, defaults to
     :class:`FileChooserProgress`
     '''
-
 
     file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
     '''Possible encodings for decoding a filename to unicode. In the case that
@@ -360,7 +368,10 @@ class FileChooserController(FloatLayout):
             return files
         filtered = []
         for filter in self.filters:
-            filtered.extend([fn for fn in files if fnmatch(fn, filter)])
+            if callable(filter):
+                filtered.extend([fn for fn in files if filter(self.path, fn)])
+            else:
+                filtered.extend([fn for fn in files if fnmatch(fn, filter)])
         if not self.filter_dirs:
             dirs = [fn for fn in files if isdir(fn)]
             filtered.extend(dirs)
@@ -405,8 +416,8 @@ class FileChooserController(FloatLayout):
 
     def _create_files_entries(self, *args):
         # create maximum entries during 50ms max, or 10 minimum (slow system)
-        # (on a "fast system" (core i7 2700K), we can create up to 40 entries in
-        # 50 ms. So 10 is fine for low system.
+        # (on a "fast system" (core i7 2700K), we can create up to 40 entries
+        # in 50 ms. So 10 is fine for low system.
         start = time()
         finished = False
         index = total = count = 1
@@ -447,16 +458,17 @@ class FileChooserController(FloatLayout):
         return False
 
     def cancel(self, *largs):
-        '''Cancel any background action started by filechooser, such as loading a
-        new directory.
+        '''Cancel any background action started by filechooser, such as loading
+        a new directory.
 
         .. versionadded:: 1.2.0
         '''
         Clock.unschedule(self._create_files_entries)
         self._hide_progress()
         if len(self._previous_path) > 1:
-            # if we cancel any action, the path will be set same as the previous
-            # one, so we can safely cancel the update of the previous path.
+            # if we cancel any action, the path will be set same as the
+            # previous one, so we can safely cancel the update of the previous
+            # path.
             self.path = self._previous_path[-2]
             Clock.unschedule(self._update_files)
 
@@ -558,8 +570,8 @@ class FileChooserController(FloatLayout):
             yield index, total, entry
 
     def _force_unicode(self, s):
-        # the idea is, whatever is the filename, unicode or str, even if the str
-        # can't be directly returned as a unicode, return something.
+        # the idea is, whatever is the filename, unicode or str, even if the
+        # str can't be directly returned as a unicode, return something.
         if type(s) is unicode:
             return s
         encodings = self.file_encodings

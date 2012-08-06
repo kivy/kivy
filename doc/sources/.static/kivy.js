@@ -280,13 +280,14 @@ $(document).ready(function () {
 	//----------------------------------------------------------------------------
 	// Make the navigation always in view
 	//----------------------------------------------------------------------------
-	$(window).scroll(function() {
-		gs_scroll();
-	});
 
-	scrollingDiv = $('div.sphinxsidebarwrapper');
-	scrolltop = $('div.sphinxsidebarwrapper h3:eq(1)').position().top;
-	setTimeout('gs_enable_scroll()', 50);
+	// XXX temporary avoid scrolling
+	//$(window).scroll(function() {
+	//	gs_scroll();
+	//});
+	//scrollingDiv = $('div.sphinxsidebarwrapper');
+	//scrolltop = $('div.sphinxsidebarwrapper h3:eq(1)').position().top;
+	//setTimeout('gs_enable_scroll()', 50);
 
 
 	//----------------------------------------------------------------------------

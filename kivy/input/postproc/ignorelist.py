@@ -14,7 +14,7 @@ from kivy.utils import strtotuple
 class InputPostprocIgnoreList(object):
     '''
     InputPostprocIgnoreList is a post-processor who remove touch in ignore list.
-    Ignore list can be configured in the Kivy config file ::
+    Ignore list can be configured in the Kivy config file::
 
         [postproc]
         # Format: [(xmin, ymin, xmax, ymax), ...]

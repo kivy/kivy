@@ -2,7 +2,7 @@
 Native support of Wacom tablet from linuxwacom driver
 =====================================================
 
-To configure LinuxWacom, put in your configuration ::
+To configure LinuxWacom, put in your configuration::
 
     [input]
     pen = linuxwacom,/dev/input/event2,mode=pen

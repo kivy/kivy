@@ -222,10 +222,8 @@ if reply.lower().strip() in ('', 'y'):
     payload = {
         'public': True, 'files': {
             'benchmark.txt': {
-                'content': '\n'.join(report)
-            }
-        }
-    }
+                'content': '\n'.join(report)}}}
+
     r = requests.post('https://api.github.com/gists', data=json.dumps(payload))
 
 

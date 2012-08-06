@@ -3,7 +3,7 @@ Label
 =====
 
 The :class:`Label` widget is for rendering text. It supports ascii and unicode
-strings ::
+strings::
 
     # hello world text
     l = Label(text='Hello world')
@@ -78,7 +78,7 @@ to detect when the user clicks on part of the text, and to react.
 The tag ``[ref=xxx]`` is used for that.
 
 In this example, we are creating a reference on the word "World". When a click
-happens on it, the function ``print_it`` will be called with the name of the 
+happens on it, the function ``print_it`` will be called with the name of the
 reference::
 
     def print_it(instance, value):
@@ -211,11 +211,11 @@ class Label(Widget):
     text = StringProperty('')
     '''Text of the label.
 
-    Creation of a simple hello world ::
+    Creation of a simple hello world::
 
         widget = Label(text='Hello world')
 
-    If you want to create the widget with an unicode string, use ::
+    If you want to create the widget with an unicode string, use::
 
         widget = Label(text=u'My unicode string')
 
@@ -354,7 +354,7 @@ class Label(Widget):
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the text.
     The text is rendered automatically when a property changes. The OpenGL texture
-    created in this operation is stored in this property. You can use this 
+    created in this operation is stored in this property. You can use this
     :data:`texture` for any graphics elements.
 
     Depending on the texture creation, the value will be a
@@ -365,7 +365,7 @@ class Label(Widget):
 
         The :data:`texture` update is scheduled for the next frame. If you need
         the texture immediately after changing a property, you have to call
-        the :func:`texture_update` function before accessing :data:`texture` ::
+        the :func:`texture_update` function before accessing :data:`texture`::
 
             l = Label(text='Hello world')
             # l.texture is good
@@ -467,7 +467,7 @@ class Label(Widget):
             [anchor=content]Hello world
         """
 
-    Then, all the ``[anchor=]`` references will be removed, and you'll get all 
+    Then, all the ``[anchor=]`` references will be removed, and you'll get all
     the anchor positions in this property (only after rendering)::
 
         >>> widget = Label(text=text, markup=True)
@@ -481,4 +481,3 @@ class Label(Widget):
         True.
 
     '''
-

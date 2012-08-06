@@ -6,9 +6,7 @@ All objects that produce events in Kivy implement :class:`EventDispatcher`,
 providing a consistent interface for registering and manipulating event
 handlers.
 
-
 .. versionchanged:: 1.0.9
-
     Properties discovering and methods have been moved from
     :class:`~kivy.uix.widget.Widget` to :class:`EventDispatcher`
 

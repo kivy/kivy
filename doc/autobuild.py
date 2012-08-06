@@ -61,8 +61,13 @@ examples_framework_dir = os.path.join(base_dir, '..', 'examples', 'framework')
 
 def writefile(filename, data):
     global dest_dir
-    print 'write', filename
+    # avoid to rewrite the file if the content didn't change
     f = os.path.join(dest_dir, filename)
+    print 'write', filename
+    if os.path.exists(f):
+        with open(f) as fd:
+            if fd.read() == data:
+                return
     h = open(f, 'w')
     h.write(data)
     h.close()
@@ -170,7 +175,7 @@ for package in packages:
 
     # search modules
     m = modules.keys()
-    m.sort()
+    m.sort(key=lambda x: extract_summary_line(sys.modules[x].__doc__))
     for module in m:
         packagemodule = module.rsplit('.', 1)[0]
         if packagemodule != package:

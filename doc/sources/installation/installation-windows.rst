@@ -111,6 +111,31 @@ Also, all other scripts and binaries are available, such as:
     * gst-inspect-0.10
 
 
+Use development Kivy
+--------------------
+
+.. warning::
+
+    Using the latest development version can be risky. You might encounter
+    issue during the development. If you hit any bug, please report it.
+
+If you want to use the latest development version of Kivy, you can follow theses step:
+
+#. Download and install Kivy for windows as the explained before
+#. Go into the portable Kivy directory, where is located Python, Mingw, kivy.bat etc.
+#. Rename the kivy directory to kivy.stable
+#. Go on github, and download the `latest development version of Kivy <https://github.com/kivy/kivy/zipball/master>`_
+#. Extract the zip into the Kivy portable directory
+#. Rename the directory named "kivy-<some hash>" to just "kivy"
+#. Launch kivy.bat
+#. Go to the Kivy portable directory/kivy
+#. Type::
+
+    make force
+
+#. That's all, you have a latest development version!
+
+
 .. _winpackagecontents:
 
 Package Contents

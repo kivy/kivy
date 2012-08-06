@@ -141,7 +141,7 @@ Uninstalling Kivy
 If you are mixing multiple Kivy installations, you might be confused about where each Kivy version is
 located.  Please note that you might need to follow these steps multiple times, if you have multiple kivy versions 
 installed in the Python library path.
-To find your current installed version, you can use the command line: ::
+To find your current installed version, you can use the command line::
 
     $ python -c 'import kivy; print kivy.__path__'
 

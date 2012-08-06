@@ -6,12 +6,12 @@ Installation
     Installing Kivy
 
 With Kivy, you can use your favourite development environment to start
-coding your App.
-
-- To get started, you need to download the latest version of Kivy:
+coding your App. To get started, you need to download the latest version of
+Kivy:
 
     http://kivy.org/#download
-- Please refer to the installation instructions for your specific platform.
+
+After download, please refer to the installation instructions for your specific platform:
 
 .. image:: ../images/windows.png
     :alt: Windows
@@ -34,13 +34,10 @@ coding your App.
     :height: 128px
     :width: 30%
 
-::
-::
-
-
 **Development Version**
 
-- If you want the development version of Kivy, so you can use the latest additions to the framework, you can get the source code from github::
+If you want the development version of Kivy, so you can use the latest
+additions to the framework, you can get the source code from github::
 
     git clone http://github.com/kivy/kivy
 

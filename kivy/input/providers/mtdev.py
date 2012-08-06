@@ -8,7 +8,7 @@ You can read more on http://wiki.ubuntu.com/Multitouch
 To configure MTDev, it's preferable to use probesysfs providers.
 Check :py:class:`~kivy.input.providers.probesysfs` for more information.
 
-Otherwise, you can put in your configuration ::
+Otherwise, you can put in your configuration::
 
     [input]
     # devicename = hidinput,/dev/input/eventXX

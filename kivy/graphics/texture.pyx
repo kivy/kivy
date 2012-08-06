@@ -184,11 +184,8 @@ include "config.pxi"
 include "common.pxi"
 include "opengl_utils_def.pxi"
 
-from os import environ
 from array import array
 from kivy.weakmethod import WeakMethod
-from kivy.logger import Logger
-from kivy.cache import Cache
 from kivy.graphics.context cimport get_context
 
 from kivy.graphics.c_opengl cimport *
@@ -761,7 +758,7 @@ cdef class Texture:
             self._id = texture.id
         else:
             from kivy.core.image import Image
-            image = Image(self._source)
+            image = Image(self._source, nocache=True)
             self._id = image.texture.id
             texture = image.texture
             texture._nofree = 1

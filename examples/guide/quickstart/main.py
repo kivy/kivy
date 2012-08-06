@@ -10,5 +10,5 @@ class MyApp(App):
     def build(self):
         return Button(text='Hello World')
 
-if __name__ in ('__android__', '__main__'):
+if __name__ == '__main__':
     MyApp().run()

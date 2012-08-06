@@ -102,6 +102,17 @@ development):
 FAQ
 ---
 
+Application quit abnormally!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, all the print on the console and files are avoided. If you have an
+issue when running your application, you can activate the log by commenting the
+line in the main.m::
+
+    putenv("KIVY_NO_CONSOLELOG=1");
+
+Then, you should see all the Kivy log on the Xcode console.
+
 How Apple can accept a python app ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -112,5 +123,7 @@ dynamically loaded.
 Did you already submit a Kivy application to the App store ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes, check `Defletouch on iTunes <http://itunes.apple.com/us/app/deflectouch/id505729681>`_
+Yes, check:
 
+- `Defletouch on iTunes <http://itunes.apple.com/us/app/deflectouch/id505729681>`_, 
+- `ProcessCraft on iTunes <http://itunes.apple.com/us/app/processcraft/id526377075>`_

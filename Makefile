@@ -48,6 +48,7 @@ clean:
 	-rm .coverage
 	-rm .noseids
 	-rm -rf kivy/tests/build
+	-find kivy -iname '*.so' -exec rm {} \;
 	-find kivy -iname '*.pyc' -exec rm {} \;
 	-find kivy -iname '*.pyo' -exec rm {} \;
 
@@ -55,5 +56,5 @@ distclean: clean
 	-git clean -dxf
 
 theming:
-	python -m kivy.atlas kivy/data/images/defaulttheme 512 kivy/tools/theming/defaulttheme/*.png
+	$(PYTHON) -m kivy.atlas kivy/data/images/defaulttheme 512 kivy/tools/theming/defaulttheme/*.png
 

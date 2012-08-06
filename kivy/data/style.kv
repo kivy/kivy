@@ -388,9 +388,9 @@
             size: 43, 32
             pos: int(self.center_x - 41 + self.active_norm_pos * 41), int(self.center_y - 16)
 
-# Popup widget
-<Popup>:
-    _container: container
+
+# ModalView widget
+<ModalView>:
     canvas:
         Color:
             rgba: root.background_color[:3] + [root.background_color[-1] * self._anim_alpha]
@@ -405,6 +405,10 @@
             pos: self.pos
             size: self.size
 
+
+# Popup widget
+<Popup>:
+    _container: container
     GridLayout:
         padding: 12
         cols: 1
@@ -710,11 +714,17 @@
         size_hint_y: None
         height: 44
 
+        VideoPlayerStop:
+            size_hint_x: None
+            video: root
+            width: 44
+            source: root.image_stop
+
         VideoPlayerPlayPause:
             size_hint_x: None
             video: root
             width: 44
-            source: root.image_play if not root.play else root.image_pause
+            source: root.image_pause if root.state == 'play' else root.image_play
 
         VideoPlayerVolume:
             video: root
@@ -747,4 +757,33 @@
             source: 'atlas://data/images/defaulttheme/checkbox%s_%s' % (('_radio' if self.group else ''), ('on' if self.active else 'off'))
             size: 32, 32
             pos: int(self.center_x - 16), int(self.center_y - 16)
+
+# =============================================================================
+# Relative Layout
+# =============================================================================
+
+<RelativeLayout>:
+    do_translation: False
+    do_rotation: False
+    do_scale: False
+	auto_bring_to_front: False
+
+
+# =============================================================================
+# Screen Manager
+# =============================================================================
+
+<ScreenManager>:
+	canvas.before:
+		StencilPush
+		Rectangle:
+			pos: self.pos
+			size: self.size
+		StencilUse
+	canvas.after:
+		StencilUnUse
+		Rectangle:
+			pos: self.pos
+			size: self.size
+		StencilPop
 

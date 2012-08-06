@@ -4,7 +4,7 @@ Native support of HID input from linux kernel
 
 Support start from 2.6.32-ubuntu, or 2.6.34.
 
-To configure HIDInput, put in your configuration ::
+To configure HIDInput, put in your configuration::
 
     [input]
     # devicename = hidinput,/dev/input/eventXX
@@ -29,7 +29,7 @@ To fix that, you can add one of theses options on the argument line :
 
 For example, on Asus T101M, the touchscreen report a range from 0-4095 for X and
 Y value, but real value are in a range from 0-32768. You can put it on
-configuration ::
+configuration::
 
     [input]
     t101m = hidinput,/dev/input/event7,max_position_x=32768,max_position_y=32768
