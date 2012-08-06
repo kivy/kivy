@@ -201,7 +201,7 @@ class Image(Widget):
         super(Image, self).__init__(**kwargs)
         self.bind(source=self.texture_update,
                   mipmap=self.texture_update)
-        if self.source is not None:
+        if self.source:
             self.texture_update()
 
     def texture_update(self, *largs):

@@ -727,7 +727,7 @@ cdef class OptionProperty(Property):
 
     def __init__(self, *largs, **kw):
         self.options = <list>(kw.get('options', []))
-        Property.__init__(self, *largs, **kw)
+        super(OptionProperty, self).__init__(*largs, **kw)
 
     cdef init_storage(self, dict storage):
         Property.init_storage(self, storage)
