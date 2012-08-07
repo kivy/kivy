@@ -43,6 +43,11 @@ class DataStore(object):
         raise Exception(msg)
         return None
 
+    def reset_to_defaults(self):
+        for key in self.db_dict:
+            self.set(key, 'is_selected', False)
+
+
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
 #                InformationforRestaurantsRetailEstablishments/\
@@ -189,6 +194,9 @@ class ListAdapterTestCase(unittest.TestCase):
 
         self.fruits = sorted(fruit_data.keys())
 
+        datastore_categories.reset_to_defaults()
+        datastore_fruits.reset_to_defaults()
+
     def test_list_adapter_selection_mode_none(self):
         list_adapter = ListAdapter(data=self.fruits,
                                    datastore=datastore_fruits,
@@ -196,6 +204,12 @@ class ListAdapterTestCase(unittest.TestCase):
                                    selection_mode='none',
                                    allow_empty_selection=True,
                                    cls=ListItemButton)
+
+        self.assertEqual(list_adapter.data, ['Apple', 'Avocado', 'Banana',
+            'Cantaloupe', 'Cherry', 'Grape', 'Grapefruit', 'Honeydew',
+            'Kiwifruit', 'Lemon', 'Lime', 'Nectarine', 'Orange', 'Peach',
+            'Pear', 'Pineapple', 'Plum', 'Strawberry', 'Tangerine',
+            'Watermelon'])
 
         # The reason why len(selection) == 0 here is because it is ListView,
         # at the end of its __init__(), that calls check_for_empty_selection()
@@ -213,27 +227,26 @@ class ListAdapterTestCase(unittest.TestCase):
                                    cls=ListItemButton)
         list_view = ListView(adapter=list_adapter)
 
-        # The reason why len(selection) == 1 here is because ListView,
+        # The reason why len(selection) == 0 here is because ListView,
         # at the end of its __init__(), calls check_for_empty_selection()
-        # and triggers the initial selection.
-        self.assertEqual(len(list_adapter.selection), 1)
+        # and does NOT trigger the initial selection, because we set
+        # allow_empty_selection = True.
+        self.assertEqual(len(list_adapter.selection), 0)
         list_adapter.check_for_empty_selection()
 
-        # Nothing should have changed by that call, because we already had a
-        # selection.
-        self.assertEqual(len(list_adapter.selection), 1)
-
-        # The first item is selected now. handling selection on it again
-        # should deselect it, decreasing len.
-        list_adapter.handle_selection(list_view.get_view(0))
+        # Nothing should have changed by that call, because still we have
+        # allow_empty_selection = True, so no action in that check.
         self.assertEqual(len(list_adapter.selection), 0)
 
-        # Select one.
-        list_adapter.handle_selection(list_view.get_view(1))
+        # Still no selection, but handling a selection should make len = 1.
+        apple = list_view.get_item_view(0)
+        self.assertEqual(apple.text, 'Apple')
+        list_adapter.handle_selection(apple)
+        self.assertTrue(apple.is_selected)
         self.assertEqual(len(list_adapter.selection), 1)
 
-        # Single-selection, so len should stay 1 is another selected.
-        list_adapter.handle_selection(list_view.get_view(1))
+        # Single-selection, so len should stay 1 if another selected.
+        list_adapter.handle_selection(list_view.get_item_view(2))
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_single_auto_selection(self):
@@ -247,11 +260,14 @@ class ListAdapterTestCase(unittest.TestCase):
 
         # The reason why len(selection) == 1 here is because ListView,
         # at the end of its __init__(), calls check_for_empty_selection()
-        # and triggers the initial selection.
+        # and triggers the initial selection, because allow_empty_selection is
+        # False.
+        apple = list_view.get_item_view(0)
+        self.assertEqual(list_adapter.selection[0], apple)
         self.assertEqual(len(list_adapter.selection), 1)
         list_adapter.check_for_empty_selection()
 
-        # Nothing should have changed.
+        # Nothing should have changed for len, as we already have a selection.
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_multiple_auto_selection(self):
@@ -265,24 +281,35 @@ class ListAdapterTestCase(unittest.TestCase):
 
         # The reason why len(selection) == 1 here is because ListView,
         # at the end of its __init__(), calls check_for_empty_selection()
-        # and triggers the initial selection.
+        # and triggers the initial selection, because allow_empty_selection is
+        # False.
         self.assertEqual(len(list_adapter.selection), 1)
-        list_adapter.handle_selection(list_view.get_item_view(1))
+        apple = list_adapter.selection[0]
+        self.assertEqual(apple.text, 'Apple')
+        avocado = list_view.get_item_view(1)
+        self.assertEqual(avocado.text, 'Avocado')
+        list_adapter.handle_selection(avocado)
         self.assertEqual(len(list_adapter.selection), 2)
 
         # Re-selection of the same item should decrease the len by 1.
-        list_adapter.handle_selection(list_view.get_item_view(1))
+        list_adapter.handle_selection(avocado)
         self.assertEqual(len(list_adapter.selection), 1)
+        # And now only apple should be in selection.
+        self.assertEqual(list_adapter.selection, [apple])
 
-        # But selection of several different items should increment, because
-        # we have selection_mode as multiple.
+        # Selection of several different items should increment len,
+        # because we have selection_mode as multiple.
         #
-        # This one has been unselected, so select it again.
-        list_adapter.handle_selection(list_view.get_item_view(1))
+        # avocado has been unselected. Select it again.
+        list_adapter.handle_selection(avocado)
         self.assertEqual(len(list_adapter.selection), 2)
+        self.assertEqual(list_adapter.selection, [apple, avocado])
 
         # And select some different ones.
-        list_adapter.handle_selection(list_view.get_item_view(2))
+        banana = list_view.get_item_view(2)
+        self.assertEqual(banana.text, 'Banana')
+        list_adapter.handle_selection(banana)
+        self.assertEqual(list_adapter.selection, [apple, avocado, banana])
         self.assertEqual(len(list_adapter.selection), 3)
         list_adapter.handle_selection(list_view.get_item_view(3))
         self.assertEqual(len(list_adapter.selection), 4)

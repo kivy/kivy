@@ -178,7 +178,7 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
         return instance
 
     def check_for_empty_selection(self, *args):
-        if self.allow_empty_selection is False:
+        if not self.allow_empty_selection:
             if len(self.selection) == 0:
                 # Select the first item if we have it.
                 v = self.owning_view.get_item_view(0)
