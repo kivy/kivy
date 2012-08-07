@@ -218,4 +218,4 @@ class ListsAdapter(ListAdapter):
             self.data = []
             return
 
-        self.data = self.lists_dict[str(observed_selection[0])]
+        self.data = self.lists_dict[str(observed_selection[0])]['fruits']

@@ -10,94 +10,164 @@ from kivy.uix.listview import ListView, ListItemButton
 from kivy.properties import NumericProperty, StringProperty
 from kivy.adapters.listadapter import ListAdapter, ListsAdapter
 
+from kivy.properties import StringProperty, DictProperty
+
+
+class DataStore(object):
+
+    def __init__(self, name, db_dict):
+        self.name = name
+        self.db_dict = db_dict
+
+    def set(self, key, prop, val):
+        if key in self.db_dict:
+            if prop in self.db_dict[key]:
+                self.db_dict[key][prop] = val
+                return
+            msg = "DataStore {0} set: no property {1} in record[{2}]".format(
+                    self.name, prop, key)
+            raise Exception(msg)
+        msg = "DataStore {0} set: unknown record for key: {1}".format(
+                self.name, key)
+        raise Exception(msg)
+
+    def get(self, key, prop):
+        if key in self.db_dict:
+            if prop in self.db_dict[key]:
+                return self.db_dict[key][prop]
+            msg = "DataStore {0} get: no property {1} in record[{2}]".format(
+                    self.name, prop, key)
+            raise Exception(msg)
+        msg = "DataStore {0} get: unknown record for key: {1}".format(
+                self.name, key)
+        raise Exception(msg)
+        return None
 
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
 #                InformationforRestaurantsRetailEstablishments/\
 #                ucm063482.htm
 fruit_categories = \
-        {'Melons': ['Cantaloupe', 'Honeydew Melon', 'Watermelon'],
-         'Tree Fruits': ['Apple', 'Avocado, California', 'Banana', 'Nectarine',
-                         'Peach', 'Pear', 'Pineapple', 'Plums',
-                         'Sweet Cherries'],
-         'Citrus Fruits': ['Grapefruit', 'Lemon', 'Lime', 'Orange',
-                           'Tangerine'],
-         'Miscellaneous Fruits': ['Grapes', 'Kiwifruit', 'Strawberries']}
+        {'Melons': {'fruits': ['Cantaloupe', 'Honeydew', 'Watermelon'],
+                    'is_selected': False},
+         'Tree Fruits': {'fruits': ['Apple', 'Avocado', 'Banana', 'Nectarine',
+                                    'Peach', 'Pear', 'Pineapple', 'Plum',
+                                    'Cherry'],
+                         'is_selected': False},
+         'Citrus Fruits': {'fruits': ['Grapefruit', 'Lemon', 'Lime', 'Orange',
+                                      'Tangerine'],
+                           'is_selected': False},
+         'Miscellaneous Fruits': {'fruits': ['Grape', 'Kiwifruit',
+                                             'Strawberry'],
+                                  'is_selected': False}}
+
 descriptors = """(gram weight/ ounce weight)	Calories	Calories from Fa
 t	Total Fat	Sodium	Potassium	Total Carbo-hydrate	Dietary Fiber	Suga
 rs	Protein	Vitamin A	Vitamin C	Calcium	Iron""".replace('\n', '')
+
 descriptors = [item.strip() for item in descriptors.split('\t')]
+
 units = """(g) 	(%DV)	(mg) 	(%DV)	(mg) 	(%DV)	 (g) 	(%DV)	 (g)
 (%DV)	 (g) 	 (g) 	(%DV)	(%DV)	(%DV)	(%DV)""".replace('\n', '')
+
 units = [item.strip() for item in units.split('\t')]
+
 raw_fruit_data = [
 {'name':'Apple',
  'Serving Size': '1 large (242 g/8 oz)',
- 'data': [130, 0, 0, 0, 0, 0, 260, 7, 34, 11, 5, 20, 25, 1, 2, 8, 2, 2]},
-{'name':'Avocado, California',
+ 'data': [130, 0, 0, 0, 0, 0, 260, 7, 34, 11, 5, 20, 25, 1, 2, 8, 2, 2],
+ 'is_selected': False},
+{'name':'Avocado',
  'Serving Size': '1/5 medium (30 g/1.1 oz)',
- 'data': [50, 35, 4.5, 7, 0, 0, 140, 4, 3, 1, 1, 4, 0, 1, 0, 4, 0, 2]},
+ 'data': [50, 35, 4.5, 7, 0, 0, 140, 4, 3, 1, 1, 4, 0, 1, 0, 4, 0, 2],
+ 'is_selected': False},
 {'name':'Banana',
  'Serving Size': '1 medium (126 g/4.5 oz)',
- 'data': [110, 0, 0, 0, 0, 0, 450, 13, 30, 10, 3, 12, 19, 1, 2, 15, 0, 2]},
+ 'data': [110, 0, 0, 0, 0, 0, 450, 13, 30, 10, 3, 12, 19, 1, 2, 15, 0, 2],
+ 'is_selected': False},
 {'name':'Cantaloupe',
  'Serving Size': '1/4 medium (134 g/4.8 oz)',
- 'data': [50, 0, 0, 0, 20, 1, 240, 7, 12, 4, 1, 4, 11, 1, 120, 80, 2, 2]},
+ 'data': [50, 0, 0, 0, 20, 1, 240, 7, 12, 4, 1, 4, 11, 1, 120, 80, 2, 2],
+ 'is_selected': False},
 {'name':'Grapefruit',
  'Serving Size': '1/2 medium (154 g/5.5 oz)',
- 'data': [60, 0, 0, 0, 0, 0, 160, 5, 15, 5, 2, 8, 11, 1, 35, 100, 4, 0]},
-{'name':'Grapes',
+ 'data': [60, 0, 0, 0, 0, 0, 160, 5, 15, 5, 2, 8, 11, 1, 35, 100, 4, 0],
+ 'is_selected': False},
+{'name':'Grape',
  'Serving Size': '3/4 cup (126 g/4.5 oz)',
- 'data': [90, 0, 0, 0, 15, 1, 240, 7, 23, 8, 1, 4, 20, 0, 0, 2, 2, 0]},
-{'name':'Honeydew Melon',
+ 'data': [90, 0, 0, 0, 15, 1, 240, 7, 23, 8, 1, 4, 20, 0, 0, 2, 2, 0],
+ 'is_selected': False},
+{'name':'Honeydew',
  'Serving Size': '1/10 medium melon (134 g/4.8 oz)',
- 'data': [50, 0, 0, 0, 30, 1, 210, 6, 12, 4, 1, 4, 11, 1, 2, 45, 2, 2]},
+ 'data': [50, 0, 0, 0, 30, 1, 210, 6, 12, 4, 1, 4, 11, 1, 2, 45, 2, 2],
+ 'is_selected': False},
 {'name':'Kiwifruit',
  'Serving Size': '2 medium (148 g/5.3 oz)',
- 'data': [90, 10, 1, 2, 0, 0, 450, 13, 20, 7, 4, 16, 13, 1, 2, 240, 4, 2]},
+ 'data': [90, 10, 1, 2, 0, 0, 450, 13, 20, 7, 4, 16, 13, 1, 2, 240, 4, 2],
+ 'is_selected': False},
 {'name':'Lemon',
  'Serving Size': '1 medium (58 g/2.1 oz)',
- 'data': [15, 0, 0, 0, 0, 0, 75, 2, 5, 2, 2, 8, 2, 0, 0, 40, 2, 0]},
+ 'data': [15, 0, 0, 0, 0, 0, 75, 2, 5, 2, 2, 8, 2, 0, 0, 40, 2, 0],
+ 'is_selected': False},
 {'name':'Lime',
  'Serving Size': '1 medium (67 g/2.4 oz)',
- 'data': [20, 0, 0, 0, 0, 0, 75, 2, 7, 2, 2, 8, 0, 0, 0, 35, 0, 0]},
+ 'data': [20, 0, 0, 0, 0, 0, 75, 2, 7, 2, 2, 8, 0, 0, 0, 35, 0, 0],
+ 'is_selected': False},
 {'name':'Nectarine',
  'Serving Size': '1 medium (140 g/5.0 oz)',
- 'data': [60, 5, 0.5, 1, 0, 0, 250, 7, 15, 5, 2, 8, 11, 1, 8, 15, 0, 2]},
+ 'data': [60, 5, 0.5, 1, 0, 0, 250, 7, 15, 5, 2, 8, 11, 1, 8, 15, 0, 2],
+ 'is_selected': False},
 {'name':'Orange',
  'Serving Size': '1 medium (154 g/5.5 oz)',
- 'data': [80, 0, 0, 0, 0, 0, 250, 7, 19, 6, 3, 12, 14, 1, 2, 130, 6, 0]},
+ 'data': [80, 0, 0, 0, 0, 0, 250, 7, 19, 6, 3, 12, 14, 1, 2, 130, 6, 0],
+ 'is_selected': False},
 {'name':'Peach',
  'Serving Size': '1 medium (147 g/5.3 oz)',
- 'data': [60, 0, 0.5, 1, 0, 0, 230, 7, 15, 5, 2, 8, 13, 1, 6, 15, 0, 2]},
+ 'data': [60, 0, 0.5, 1, 0, 0, 230, 7, 15, 5, 2, 8, 13, 1, 6, 15, 0, 2],
+ 'is_selected': False},
 {'name':'Pear',
  'Serving Size': '1 medium (166 g/5.9 oz)',
- 'data': [100, 0, 0, 0, 0, 0, 190, 5, 26, 9, 6, 24, 16, 1, 0, 10, 2, 0]},
+ 'data': [100, 0, 0, 0, 0, 0, 190, 5, 26, 9, 6, 24, 16, 1, 0, 10, 2, 0],
+ 'is_selected': False},
 {'name':'Pineapple',
  'Serving Size': '2 slices, 3" diameter, 3/4" thick (112 g/4 oz)',
- 'data': [50, 0, 0, 0, 10, 0, 120, 3, 13, 4, 1, 4, 10, 1, 2, 50, 2, 2]},
-{'name':'Plums',
+ 'data': [50, 0, 0, 0, 10, 0, 120, 3, 13, 4, 1, 4, 10, 1, 2, 50, 2, 2],
+ 'is_selected': False},
+{'name':'Plum',
  'Serving Size': '2 medium (151 g/5.4 oz)',
- 'data': [70, 0, 0, 0, 0, 0, 230, 7, 19, 6, 2, 8, 16, 1, 8, 10, 0, 2]},
-{'name':'Strawberries',
+ 'data': [70, 0, 0, 0, 0, 0, 230, 7, 19, 6, 2, 8, 16, 1, 8, 10, 0, 2],
+ 'is_selected': False},
+{'name':'Strawberry',
  'Serving Size': '8 medium (147 g/5.3 oz)',
- 'data': [50, 0, 0, 0, 0, 0, 170, 5, 11, 4, 2, 8, 8, 1, 0, 160, 2, 2]},
-{'name':'Sweet Cherries',
+ 'data': [50, 0, 0, 0, 0, 0, 170, 5, 11, 4, 2, 8, 8, 1, 0, 160, 2, 2],
+ 'is_selected': False},
+{'name':'Cherry',
  'Serving Size': '21 cherries; 1 cup (140 g/5.0 oz)',
- 'data': [100, 0, 0, 0, 0, 0, 350, 10, 26, 9, 1, 4, 16, 1, 2, 15, 2, 2]},
+ 'data': [100, 0, 0, 0, 0, 0, 350, 10, 26, 9, 1, 4, 16, 1, 2, 15, 2, 2],
+ 'is_selected': False},
 {'name':'Tangerine',
  'Serving Size': '1 medium (109 g/3.9 oz)',
- 'data': [50, 0, 0, 0, 0, 0, 160, 5, 13, 4, 2, 8, 9, 1, 6, 45, 4, 0]},
+ 'data': [50, 0, 0, 0, 0, 0, 160, 5, 13, 4, 2, 8, 9, 1, 6, 45, 4, 0],
+ 'is_selected': False},
 {'name':'Watermelon',
  'Serving Size': '1/18 medium melon; 2 cups diced pieces (280 g/10.0 oz)',
- 'data': [80, 0, 0, 0, 0, 0, 270, 8, 21, 7, 1, 4, 20, 1, 30, 25, 2, 4]}]
+ 'data': [80, 0, 0, 0, 0, 0, 270, 8, 21, 7, 1, 4, 20, 1, 30, 25, 2, 4],
+ 'is_selected': False}]
 
 fruit_data = {}
 descriptors_and_units = dict(zip(descriptors, units))
 for row in raw_fruit_data:
     fruit_data[row['name']] = {}
-    fruit_data[row['name']] = dict({'Serving Size': row['Serving Size']},
+    fruit_data[row['name']] = dict({'Serving Size': row['Serving Size'],
+                                    'is_selected': row['is_selected']},
             **dict(zip(descriptors_and_units.keys(), row['data'])))
+
+# See the dictionary definitions above for fruit category and raw data
+# creation. From those dictionaries, we define two datastores that will be
+# used in the examples:
+
+datastore_categories = DataStore(name='categories', db_dict=fruit_categories)
+datastore_fruits = DataStore(name='fruits', db_dict=fruit_data)
 
 
 class FruitSelectionObserver(Widget):
@@ -121,78 +191,135 @@ class ListAdapterTestCase(unittest.TestCase):
 
     def test_list_adapter_selection_mode_none(self):
         list_adapter = ListAdapter(data=self.fruits,
+                                   datastore=datastore_fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='none',
                                    allow_empty_selection=True,
                                    cls=ListItemButton)
 
+        # The reason why len(selection) == 0 here is because it is ListView,
+        # at the end of its __init__(), that calls check_for_empty_selection()
+        # and triggers the initial selection, and we didn't make a ListView.
         self.assertEqual(len(list_adapter.selection), 0)
         list_adapter.check_for_empty_selection()
         self.assertEqual(len(list_adapter.selection), 0)
 
     def test_list_adapter_selection_mode_single(self):
         list_adapter = ListAdapter(data=self.fruits,
+                                   datastore=datastore_fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=True,
                                    cls=ListItemButton)
+        list_view = ListView(adapter=list_adapter)
 
-        self.assertEqual(len(list_adapter.selection), 0)
-        list_adapter.check_for_empty_selection()
-        self.assertEqual(len(list_adapter.selection), 0)
-        list_adapter.handle_selection(list_adapter.get_view(0))
+        # The reason why len(selection) == 1 here is because ListView,
+        # at the end of its __init__(), calls check_for_empty_selection()
+        # and triggers the initial selection.
         self.assertEqual(len(list_adapter.selection), 1)
-        list_adapter.handle_selection(list_adapter.get_view(1))
+        list_adapter.check_for_empty_selection()
+
+        # Nothing should have changed by that call, because we already had a
+        # selection.
+        self.assertEqual(len(list_adapter.selection), 1)
+
+        # The first item is selected now. handling selection on it again
+        # should deselect it, decreasing len.
+        list_adapter.handle_selection(list_view.get_view(0))
+        self.assertEqual(len(list_adapter.selection), 0)
+
+        # Select one.
+        list_adapter.handle_selection(list_view.get_view(1))
+        self.assertEqual(len(list_adapter.selection), 1)
+
+        # Single-selection, so len should stay 1 is another selected.
+        list_adapter.handle_selection(list_view.get_view(1))
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_single_auto_selection(self):
         list_adapter = ListAdapter(data=self.fruits,
+                                   datastore=datastore_fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
+        list_view = ListView(adapter=list_adapter)
 
+        # The reason why len(selection) == 1 here is because ListView,
+        # at the end of its __init__(), calls check_for_empty_selection()
+        # and triggers the initial selection.
         self.assertEqual(len(list_adapter.selection), 1)
         list_adapter.check_for_empty_selection()
+
+        # Nothing should have changed.
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_multiple_auto_selection(self):
         list_adapter = ListAdapter(data=self.fruits,
+                                   datastore=datastore_fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='multiple',
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
+        list_view = ListView(adapter=list_adapter)
 
+        # The reason why len(selection) == 1 here is because ListView,
+        # at the end of its __init__(), calls check_for_empty_selection()
+        # and triggers the initial selection.
         self.assertEqual(len(list_adapter.selection), 1)
-        list_adapter.handle_selection(list_adapter.get_view(1))
+        list_adapter.handle_selection(list_view.get_item_view(1))
         self.assertEqual(len(list_adapter.selection), 2)
-        list_adapter.handle_selection(list_adapter.get_view(1))
+
+        # Re-selection of the same item should decrease the len by 1.
+        list_adapter.handle_selection(list_view.get_item_view(1))
+        self.assertEqual(len(list_adapter.selection), 1)
+
+        # But selection of several different items should increment, because
+        # we have selection_mode as multiple.
+        #
+        # This one has been unselected, so select it again.
+        list_adapter.handle_selection(list_view.get_item_view(1))
+        self.assertEqual(len(list_adapter.selection), 2)
+
+        # And select some different ones.
+        list_adapter.handle_selection(list_view.get_item_view(2))
         self.assertEqual(len(list_adapter.selection), 3)
+        list_adapter.handle_selection(list_view.get_item_view(3))
+        self.assertEqual(len(list_adapter.selection), 4)
 
     def test_list_adapter_selection_handle_selection(self):
         list_adapter = ListAdapter(data=self.fruits,
+                                   datastore=datastore_fruits,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
+
         selection_observer = FruitSelectionObserver()
         list_adapter.bind(
                 on_selection_change=selection_observer.on_selection_change)
 
+        list_view = ListView(adapter=list_adapter)
+
         list_adapter.touch_selection()
 
-        # There should have been a call for initial selection, forced by
-        # the call to touch_selection.
-        self.assertEqual(selection_observer.call_count, 1)
+        # There should have been a call for initial selection, triggered by
+        # the check_for_empty_selection() at the end of ListView.__init__()
+        # followed by the forced dispatch from the call to touch_selection.
+        self.assertEqual(selection_observer.call_count, 2)
 
-        list_adapter.handle_selection(list_adapter.get_view(2))
-        self.assertEqual(list_adapter.get_view(2).text, 'Banana')
+        list_adapter.handle_selection(list_view.get_item_view(2))
+        self.assertEqual(list_view.get_item_view(2).text, 'Banana')
         self.assertEqual(selection_observer.fruit_name, 'Banana')
 
-        # Call count here should be 2, because there was a call initially
-        # from selection triggered by the forced touch_selection(), and
-        # a second where handle_selection() was called directly.
-        self.assertEqual(selection_observer.call_count, 2)
+        # Apple got unselected, and Banana got selected, so len should be 1,
+        # but there should have been only one dispatch of on_selection_change
+        # at the end of that unselect/select, adding 1 to the call count we
+        # already have.
+        self.assertEqual(len(list_adapter.selection), 1)
+
+        # [TODO] Why would this be 4 here?
+        self.assertEqual(selection_observer.call_count, 3)
 
 
 class ListsAdapterTestCase(unittest.TestCase):
@@ -211,6 +338,7 @@ class ListsAdapterTestCase(unittest.TestCase):
         categories = sorted(fruit_categories.keys())
         fruit_categories_l_a = \
             ListAdapter(data=categories,
+                        datastore=datastore_categories,
                         args_converter=self.args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
@@ -230,14 +358,13 @@ class ListsAdapterTestCase(unittest.TestCase):
         #
         fruits_l_a = \
             ListsAdapter(observed_list_adapter=fruit_categories_l_a,
-                                   selectable_lists_dict=fruit_categories,
-                                   data=fruit_categories[categories[0]],
-                                   args_converter=self.args_converter,
-                                   selection_mode='single',
-                                   allow_empty_selection=False,
-                                   cls=ListItemButton)
-        fruit_categories_l_a.bind(
-                on_selection_change=fruits_l_a.on_selection_change)
+                         lists_dict=fruit_categories,
+                         data=fruit_categories[categories[0]]['fruits'],
+                         datastore=datastore_fruits,
+                         args_converter=self.args_converter,
+                         selection_mode='single',
+                         allow_empty_selection=False,
+                         cls=ListItemButton)
         fruits_list_view = ListView(adapter=fruits_l_a,
                                     size_hint=(.2, 1.0))
 

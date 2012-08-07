@@ -95,12 +95,19 @@ class SelectionSupport(EventDispatcher):
 
     def handle_selection(self, obj, *args):
         if obj not in self.selection:
-            if self.selection_mode == 'single' and len(self.selection) > 0:
+            if (self.selection_mode == 'none' or \
+                        self.selection_mode == 'single') \
+                    and len(self.selection) > 0:
                 for selected_obj in self.selection:
                     self.deselect_object(selected_obj)
-            self.select_object(obj)
+            if self.selection_mode != 'none':
+                self.select_object(obj)
         else:
-            self.deselect_object(obj)
+            if self.selection_mode == 'none':
+                for selected_obj in self.selection:
+                    self.deselect_object(selected_obj)
+            else:
+                self.deselect_object(obj)
 
         print 'selection for', self, 'is now', self.selection
         self.dispatch('on_selection_change')
