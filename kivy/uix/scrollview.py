@@ -198,8 +198,8 @@ class ScrollView(StencilView):
         if widget is self._viewport:
             self._viewport = None
 
-    def _get_uid(self):
-        return 'sv.%d' % id(self)
+    def _get_uid(self, prefix='sv'):
+        return '{0}.{1}'.format(prefix, self.uid)
 
     def _change_touch_mode(self, *largs):
         if not self._touch:
@@ -287,10 +287,11 @@ class ScrollView(StencilView):
             return False
 
     def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            touch.ud[self._get_uid('svavoid')] = True
+            return
         if self._touch:
             return super(ScrollView, self).on_touch_down(touch)
-        if not self.collide_point(*touch.pos):
-            return
         # support scrolling !
         if self._viewport and 'button' in touch.profile and \
                 touch.button.startswith('scroll'):
@@ -323,6 +324,8 @@ class ScrollView(StencilView):
         return True
 
     def on_touch_move(self, touch):
+        if self._get_uid('svavoid') in touch.ud:
+            return
         if self._touch is not touch:
             super(ScrollView, self).on_touch_move(touch)
             return self._get_uid() in touch.ud
@@ -370,6 +373,10 @@ class ScrollView(StencilView):
         # never ungrabed, cause their on_touch_up will be never called.
         # base.py: the me.grab_list[:] => it's a copy, and we are already
         # iterate on it.
+
+        if self._get_uid('svavoid') in touch.ud:
+            return
+
         if 'button' in touch.profile and not touch.button.startswith('scroll'):
             self._scroll_y_mouse = self.scroll_y
 
@@ -385,7 +392,7 @@ class ScrollView(StencilView):
             elif self.auto_scroll:
                 self._do_animation(touch)
         else:
-            if self._touch is not touch:
+            if self._touch is not touch and self.uid not in touch.ud:
                 super(ScrollView, self).on_touch_up(touch)
 
         # if we do mouse scrolling, always accept it
