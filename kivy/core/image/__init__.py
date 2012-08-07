@@ -316,6 +316,10 @@ class ImageLoader(object):
         # extract extensions
         ext = filename.split('.')[-1].lower()
 
+        # prevent url querystrings
+        if filename.startswith((('http://', 'https://'))):
+            ext = ext.split('?')[0]
+
         # special case. When we are trying to load a "zip" file with image, we
         # will use the special zip_loader in ImageLoader. This might return a
         # sequence of images contained in the zip.
