@@ -116,7 +116,6 @@ class Spinner(Button):
     def _update_dropdown(self, *largs):
         dp = self._dropdown
         cls = self.option_cls
-
         dp.clear_widgets()
         for value in self.values:
             item = cls(text=value)
@@ -124,8 +123,13 @@ class Spinner(Button):
             dp.add_widget(item)
 
     def _open_dropdown(self, *largs):
-        self._dropdown.open(self)
+        if not self._dropdown.is_open:
+            self._dropdown.open(self)
+            self._dropdown.is_open = True
+        else:
+            self._dropdown.dismiss()
+            self._dropdown.is_open = False
 
     def _on_dropdown_select(self, instance, data, *largs):
         self.text = data
-
+        self._dropdown.is_open = False
