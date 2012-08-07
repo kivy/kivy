@@ -370,6 +370,8 @@ class App(EventDispatcher):
         '''
         try:
             default_kv_directory = dirname(getfile(self.__class__))
+            if default_kv_directory == '':
+                default_kv_directory = '.'
         except TypeError:
             # if it's a builtin module.. use the current dir.
             default_kv_directory = '.'
@@ -491,6 +493,8 @@ class App(EventDispatcher):
         if self._app_directory is None:
             try:
                 self._app_directory = dirname(getfile(self.__class__))
+                if self._app_directory == '':
+                    self._app_directory = '.'
             except TypeError:
                 # if it's a builtin module.. use the current dir.
                 self._app_directory = '.'

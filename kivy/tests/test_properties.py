@@ -3,19 +3,11 @@ Test properties attached to a widget
 '''
 
 import unittest
+from kivy.event import EventDispatcher
 
-
-class Widget(object):
-    '''Fake widget class'''
-
-    def __init__(self, **kwargs):
-        super(Widget, self).__init__(**kwargs)
-        self.__dict__['__uid'] = 1
-        self.__dict__['__storage'] = {}
-
-
-wid = Widget()
-
+class TestProperty(EventDispatcher):
+    pass
+wid = TestProperty()
 
 class PropertiesTestCase(unittest.TestCase):
 

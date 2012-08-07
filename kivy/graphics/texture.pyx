@@ -758,7 +758,7 @@ cdef class Texture:
             self._id = texture.id
         else:
             from kivy.core.image import Image
-            image = Image(self._source)
+            image = Image(self._source, nocache=True)
             self._id = image.texture.id
             texture = image.texture
             texture._nofree = 1

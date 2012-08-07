@@ -244,7 +244,7 @@ cdef class Property:
         '''
         cdef list observers = obj.__storage[self._name]['observers']
         for obj in observers[:]:
-            if obj is observer:
+            if obj == observer:
                 observers.remove(obj)
 
     def __set__(self, obj, val):
@@ -666,10 +666,10 @@ cdef class BoundedNumericProperty(Property):
         '''
         cdef dict s = obj.__storage[self._name]
         if value is None:
-            s['use_min'] = 0
+            s['use_max'] = 0
         else:
-            s['min'] = value
-            s['use_min'] = 1
+            s['max'] = value
+            s['use_max'] = 1
 
     def get_max(self, obj):
         '''Return the maximum value acceptable for the BoundedNumericProperty in
@@ -727,7 +727,7 @@ cdef class OptionProperty(Property):
 
     def __init__(self, *largs, **kw):
         self.options = <list>(kw.get('options', []))
-        Property.__init__(self, *largs, **kw)
+        super(OptionProperty, self).__init__(*largs, **kw)
 
     cdef init_storage(self, dict storage):
         Property.init_storage(self, storage)

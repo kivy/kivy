@@ -125,7 +125,13 @@ class VideoGStreamer(VideoBase):
         self._playbin.set_state(gst.STATE_READY)
 
     def stop(self):
+        '''.. versionchanged:: 1.4.0'''
         self._state = ''
+        self._playbin.set_state(gst.STATE_READY)
+
+    def pause(self):
+        '''.. versionadded:: 1.4.0'''
+        self._state = 'paused'
         self._playbin.set_state(gst.STATE_PAUSED)
 
     def play(self):
@@ -151,11 +157,6 @@ class VideoGStreamer(VideoBase):
                 'http', 'https', 'file', 'udp', 'rtp', 'rtsp'):
             uri = 'file:' + pathname2url(path.realpath(uri))
         return uri
-
-    def _do_eos(self, *args):
-        self.seek(0)
-        self.dispatch('on_eos')
-        super(VideoGStreamer, self)._do_eos()
 
     def _get_position(self):
         try:

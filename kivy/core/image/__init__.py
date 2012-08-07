@@ -136,11 +136,12 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                '_mipmap')
+                '_mipmap', '_nocache')
 
     def __init__(self, filename, **kwargs):
         self._mipmap = kwargs.get('mipmap', False)
         self.keep_data = kwargs.get('keep_data', False)
+        self._nocache = kwargs.get('nocache', False)
         self.filename = filename
         self._data = self.load(filename)
         self._textures = None
@@ -166,7 +167,8 @@ class ImageLoaderBase(object):
             if texture is None:
                 texture = Texture.create_from_data(
                         self._data[count], mipmap=self._mipmap)
-                Cache.append('kv.texture', uid, texture)
+                if not self._nocache:
+                    Cache.append('kv.texture', uid, texture)
 
             # set as our current texture
             self._textures.append(texture)
@@ -291,7 +293,7 @@ class ImageLoader(object):
                 fn = 'atlas://%s/%s' % (rfn, uid)
                 cid = '%s|%s|%s' % (fn, False, 0)
                 Cache.append('kv.texture', cid, texture)
-                return texture
+                return Image(texture)
 
             # search with resource
             afn = rfn
@@ -309,7 +311,7 @@ class ImageLoader(object):
                 cid = '%s|%s|%s' % (fn, False, 0)
                 #print 'register', cid
                 Cache.append('kv.texture', cid, texture)
-            return atlas[uid]
+            return Image(atlas[uid])
 
         # extract extensions
         ext = filename.split('.')[-1].lower()
@@ -363,7 +365,7 @@ class Image(EventDispatcher):
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
-                       '_mipmap')
+                       '_mipmap', '_nocache')
 
     def __init__(self, arg, **kwargs):
         # this event should be fired on animation of sequenced img's
@@ -373,6 +375,7 @@ class Image(EventDispatcher):
 
         self._mipmap = kwargs.get('mipmap', False)
         self._keep_data = kwargs.get('keep_data', False)
+        self._nocache = kwargs.get('nocache', False)
         self._size = [0, 0]
         self._image = None
         self._filename = None
@@ -388,6 +391,9 @@ class Image(EventDispatcher):
             for attr in Image.copy_attributes:
                 self.__setattr__(attr, arg.__getattribute__(attr))
         elif type(arg) in (Texture, TextureRegion):
+            if not hasattr(self, 'textures'):
+                self.textures = []
+                self.textures.append(arg)
             self._texture = arg
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
@@ -578,7 +584,7 @@ class Image(EventDispatcher):
         tmpfilename = self._filename
         image = ImageLoader.load(
                 self._filename, keep_data=self._keep_data,
-                mipmap=self._mipmap)
+                mipmap=self._mipmap, nocache=self._nocache)
         self._filename = tmpfilename
 
         # put the image into the cache if needed

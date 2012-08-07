@@ -387,6 +387,11 @@ class ScrollView(StencilView):
         else:
             if self._touch is not touch:
                 super(ScrollView, self).on_touch_up(touch)
+
+        # if we do mouse scrolling, always accept it
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
+            return True
+
         return self._get_uid() in touch.ud
 
 
