@@ -139,14 +139,6 @@ class DropDown(ScrollView):
     default to True.
     '''
 
-    is_open = BooleanProperty(False)
-    '''By default, the dropdown is not open.  Set to True to expand the dropdown
-    by default.
-
-    :data: `is_open` is a :class: `~kivy.properties.BooleanProperty`,
-    default to False.
-    '''
-
     attach_to = ObjectProperty(allownone=True)
     '''(internal) Property that will be set to the widget on which the drop down
     list is attached to.
