@@ -97,8 +97,8 @@ class Spinner(Button):
     is_open = BooleanProperty(False)
     '''By default, the spinner is not open. Set to true to open it.
 
-    :data: `is_open` is a :class: `~kivy.properties.BooleanProperty`,
-    default to False.
+    :data:`is_open` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False.
 
     .. versionadded:: 1.4.0
     '''
