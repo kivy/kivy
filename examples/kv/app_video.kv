@@ -1,42 +1,42 @@
 BoxLayout:
 
-	orientation: 'vertical'
-	spacing: 5
-	padding: 5
+    orientation: 'vertical'
+    spacing: 5
+    padding: 5
 
-	Video:
-		id: myvideo
-		source: '../widgets/softboy.avi'
-		allow_stretch: True
-		on_eos: self.play = True; print 'woot we are looping!'
+    Video:
+        id: myvideo
+        source: '../widgets/softboy.avi'
+        allow_stretch: True
+        on_eos: self.play = True; print 'woot we are looping!'
 
-	BoxLayout:
-		size_hint_y: None
-		height: 30
+    BoxLayout:
+        size_hint_y: None
+        height: 30
 
-		Label:
-			id: mylabel
-			text: str(myvideo.position)
+        Label:
+            id: mylabel
+            text: str(myvideo.position)
 
-		Slider:
-			value: myvideo.position
-			max: myvideo.duration
-			on_value: print args[1]
+        Slider:
+            value: myvideo.position
+            max: myvideo.duration
+            on_value: print args[1]
 
-	BoxLayout:
-		size_hint_y: None
-		height: 50
-		spacing: 5
+    BoxLayout:
+        size_hint_y: None
+        height: 50
+        spacing: 5
 
-		ToggleButton:
-			group: 'video'
-			text: 'Play'
-			state: 'down' if myvideo.play else 'normal'
-			on_press: myvideo.play = True
+        ToggleButton:
+            group: 'video'
+            text: 'Play'
+            state: 'down' if myvideo.play else 'normal'
+            on_press: myvideo.play = True
 
-		ToggleButton:
-			group: 'video'
-			text: 'Stop'
-			state: 'down' if not myvideo.play else 'normal'
-			on_press: myvideo.play = False
+        ToggleButton:
+            group: 'video'
+            text: 'Stop'
+            state: 'down' if not myvideo.play else 'normal'
+            on_press: myvideo.play = False
 
