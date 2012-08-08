@@ -714,11 +714,17 @@
         size_hint_y: None
         height: 44
 
+        VideoPlayerStop:
+            size_hint_x: None
+            video: root
+            width: 44
+            source: root.image_stop
+
         VideoPlayerPlayPause:
             size_hint_x: None
             video: root
             width: 44
-            source: root.image_play if not root.play else root.image_pause
+            source: root.image_pause if root.state == 'play' else root.image_play
 
         VideoPlayerVolume:
             video: root

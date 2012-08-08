@@ -24,7 +24,9 @@ class VideoBase(EventDispatcher):
         `filename` : str
             Filename of the video. Can be a file or an URI.
         `eos` : str, default to 'pause'
-            Action to do when EOS is hit. Can be one of 'pause' or 'loop'
+            Action to do when EOS is hit. Can be one of 'pause', 'stop' or
+            'loop'
+            .. versionchanged:: added 'pause'
         `async` : bool, default to True
             Asynchronous loading (may be not supported by all providers)
         `autoplay` : bool, default to False
@@ -45,7 +47,7 @@ class VideoBase(EventDispatcher):
 
     def __init__(self, **kwargs):
         kwargs.setdefault('filename', None)
-        kwargs.setdefault('eos', 'pause')
+        kwargs.setdefault('eos', 'stop')
         kwargs.setdefault('async', True)
         kwargs.setdefault('autoplay', False)
 
@@ -65,6 +67,9 @@ class VideoBase(EventDispatcher):
         self._autoplay = kwargs.get('autoplay')
         self._async = kwargs.get('async')
         self.eos = kwargs.get('eos')
+        if self.eos == 'pause':
+            Logger.warning("'pause' is deprecated. Use 'stop' instead.")
+            self.eos = 'stop'
         self.filename = kwargs.get('filename')
 
         Clock.schedule_interval(self._update, 1 / 30.)
@@ -139,11 +144,18 @@ class VideoBase(EventDispatcher):
             doc='Get the video playing status')
 
     def _do_eos(self):
+        '''.. versionchanged:: 1.4.0
+        Now dispatches the `on_eos` event.
+        '''
         if self.eos == 'pause':
+            self.pause()
+        elif self.eos == 'stop':
             self.stop()
         elif self.eos == 'loop':
             self.stop()
             self.play()
+
+        self.dispatch('on_eos')
 
     def _update(self):
         '''Update the video content to texture.
@@ -157,6 +169,12 @@ class VideoBase(EventDispatcher):
     def stop(self):
         '''Stop the video playing'''
         self._state = ''
+
+    def pause(self):
+        '''Pause the video
+        .. versionadded:: 1.4.0
+        '''
+        self._state = 'paused'
 
     def play(self):
         '''Play the video'''

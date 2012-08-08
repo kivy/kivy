@@ -496,7 +496,7 @@ class FadeTransition(ShaderTransition):
     void main(void) {
         vec4 cin = vec4(texture2D(tex_in, tex_coord0.st));
         vec4 cout = vec4(texture2D(tex_out, tex_coord0.st));
-        vec4 frag_col = vec4(t*cout) + vec4((1.0-t)*cin);
+        vec4 frag_col = vec4(t * cin) + vec4((1.0 - t) * cout);
         gl_FragColor = frag_col;
     }
     '''
@@ -580,6 +580,9 @@ class ScreenManager(FloatLayout):
             self.current = screen.name
 
     def real_add_widget(self, *l):
+        # ensure screen is removed from it's previous parent before adding'
+        if l[0].parent:
+            l[0].parent.remove_widget(l[0])
         super(ScreenManager, self).add_widget(*l)
 
     def real_remove_widget(self, *l):
