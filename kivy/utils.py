@@ -24,16 +24,16 @@ def boundary(value, minvalue, maxvalue):
     '''Limit a value between a minvalue and maxvalue'''
     return min(max(value, minvalue), maxvalue)
 
-
 def intersection(set1, set2):
     '''Return intersection between 2 list'''
-    return filter(lambda s: s in set2, set1)
+    return [s for s in set1 if s in set2]
 
-
-def difference(set1, set2):
+def difference(set1, set2, both=False):
     '''Return difference between 2 list'''
-    return filter(lambda s: s not in set2, set1)
-
+    if not both:
+        return [s for s in set1 if s not in set2]
+    else:
+        return [s for s in set1 + set2 if s not in set1 or s not in set2]
 
 def interpolate(value_from, value_to, step=10):
     '''Interpolate a value to another. Can be useful to smooth some transition.
@@ -107,13 +107,9 @@ def get_random_color(alpha=1.0):
         return [random(), random(), random(), alpha]
 
 
-def is_color_transparent(c):
+def is_color_transparent2(color):
     '''Return true if alpha channel is 0'''
-    if len(c) < 4:
-        return False
-    if float(c[3]) == 0.:
-        return True
-    return False
+    return len(color) == 4 and color[3] == 0
 
 
 DEPRECATED_CALLERS = []
