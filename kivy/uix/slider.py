@@ -22,7 +22,7 @@ __all__ = ('Slider', )
 
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, AliasProperty, OptionProperty, \
-        ReferenceListProperty
+        ReferenceListProperty, BoundedNumericProperty
 
 
 class Slider(Widget):
@@ -86,11 +86,14 @@ class Slider(Widget):
     (:data:`min`, :data:`max`)
     '''
 
-    step = NumericProperty(1)
+    step = BoundedNumericProperty(0, min=0)
     '''Step size of the slider
         Determines the size of each interval or step the slider takes between
         min and max. If the value range can't be evenly divisible by step the
         last step will be capped by slider.max
+        
+    .. versionadded:: 1.4.0
+    
     :data:`step` is a :class:`~kivy.properties.NumericProperty`, default to
         1.
     '''
@@ -105,7 +108,7 @@ class Slider(Widget):
     def set_norm_value(self, value):
         vmin = self.min
         val = value * (self.max - vmin) + vmin
-        if self.step == 1:
+        if self.step > 0:
             self.value = val
         else:
             self.value = min(round((val-vmin)/self.step)*self.step,self.max)
