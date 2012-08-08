@@ -153,6 +153,9 @@ __all__ = ('Property',
 
 from weakref import ref
 
+EventLoop = None
+
+
 cdef class Property:
     '''Base class for building more complex properties.
 
@@ -348,6 +351,44 @@ cdef class NumericProperty(Property):
             raise ValueError('%s.%s accept only int/float' % (
                 obj.__class__.__name__,
                 self.name))
+
+    cdef convert(self, obj, x):
+        tp = type(x)
+        if tp is int or tp is float:
+            return x
+        if tp is tuple or tp is list:
+            if len(x) != 2:
+                raise ValueError('%s.%s must have 2 components' % (
+                    obj.__class__.__name__,
+                    self.name))
+            return self.parse_list(x[0], x[1])
+        elif tp is str:
+            return self.parse_str(x)
+        else:
+            raise ValueError('%s.%s have an invalid format' % (
+                obj.__class__.__name__,
+                self.name))
+
+    cdef float parse_str(self, value):
+        return self.parse_list(value[:-2], value[-2:])
+
+    cdef float parse_list(self, value, ext):
+        # 1in = 2.54cm = 25.4mm = 72pt = 12pc
+        global EventLoop
+        if EventLoop is None:
+            from kivy.base import EventLoop
+        cdef float rv = float(value)
+        cdef float dpi = EventLoop.dpi
+        if ext == 'in':
+            return rv * dpi
+        elif ext == 'px':
+            return rv
+        elif ext == 'pt':
+            return rv * dpi / 72.
+        elif ext == 'cm':
+            return rv * dpi / 2.54
+        elif ext == 'mm':
+            return rv * dpi / 25.4
 
 
 cdef class StringProperty(Property):

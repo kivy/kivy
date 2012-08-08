@@ -804,6 +804,12 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
+    def get_dpi(self):
+        '''Return the DPI of the screen. If the implementation doesn't support
+        any DPI lookup, it will just return 75.
+        '''
+        return 75.
+
     def configure_keyboards(self):
         # Configure how to provide keyboards (virtual or not)
 

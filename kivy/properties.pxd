@@ -15,7 +15,8 @@ cdef class Property:
     cpdef dispatch(self, obj)
 
 cdef class NumericProperty(Property):
-    pass
+    cdef float parse_str(self, value)
+    cdef float parse_list(self, value, ext)
 
 cdef class StringProperty(Property):
     pass

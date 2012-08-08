@@ -19,6 +19,7 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from kivy.utils import platform
 
 # private vars
 EventLoop = None
@@ -85,6 +86,7 @@ class EventLoopBase(EventDispatcher):
 
     def __init__(self):
         super(EventLoopBase, self).__init__()
+        self._dpi = None
         self.quit = False
         self.input_events = []
         self.postproc_modules = []
@@ -102,6 +104,22 @@ class EventLoopBase(EventDispatcher):
         '''Return the list of all touches currently in down or move state
         '''
         return self.me_list
+
+    @property
+    def dpi(self):
+        '''Return the DPI of the screen.
+
+        .. versionadded:: 1.4.0
+        '''
+        if self._dpi is None:
+            # first call, resolve the dpi
+            plat = platform()
+            if plat == 'android':
+                self._dpi = self.get_dpi()
+            else:
+                self.ensure_window()
+                self._dpi = self.window.get_dpi()
+        return self._dpi
 
     def ensure_window(self):
         '''Ensure that we have an window
