@@ -108,7 +108,7 @@ class Slider(Widget):
     def set_norm_value(self, value):
         vmin = self.min
         val = value * (self.max - vmin) + vmin
-        if self.step > 0:
+        if self.step == 0:
             self.value = val
         else:
             self.value = min(round((val-vmin)/self.step)*self.step,self.max)
