@@ -84,7 +84,7 @@ pairs to the properties of that class, i.e., "title": "Windows" sets the
 :data:`SettingTitle.title` property to "Windows".
 
 To load the JSON example to a :class:`Settings` instance, use the
-:data:`Settings.add_json_panel` method. It will automatically instantiate
+:meth:`Settings.add_json_panel` method. It will automatically instantiate
 :class:`SettingsPanel` and add it to :class:`Settings`::
 
     from kivy.config import ConfigParser

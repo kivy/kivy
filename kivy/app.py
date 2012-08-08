@@ -299,8 +299,8 @@ class App(EventDispatcher):
         #: configuration. Can be used to query some config token in the build()
         self.config = None
 
-        #: Root widget set by the :func:`build` method or by the
-        #: :func:`load_kv` method if the kv file contains a root widget.
+        #: Root widget set by the :methc:`build` method or by the
+        #: :meth:`load_kv` method if the kv file contains a root widget.
         self.root = None
 
     def build(self):

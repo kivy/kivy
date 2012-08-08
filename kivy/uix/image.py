@@ -56,7 +56,7 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`source` is a :class:`~kivy.properties.StringProperty`, default to None.
     '''
 
     texture = ObjectProperty(None, allownone=True)
