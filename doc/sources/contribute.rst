@@ -249,6 +249,15 @@ Will result in:
 `:doc:` and `:mod:` are essentially the same, except for an anchor in the url,
 this makes `:doc:` prefered, for the cleaner url.
 
+To build your documentation, run::
+
+ make html
+
+If you updated your kivy install, and have some trouble compiling docs, run::
+
+ make clean && make force && make html
+
+The doc will be generated in ``build/html``.
 
 Unit tests contributions
 ------------------------
