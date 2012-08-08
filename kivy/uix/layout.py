@@ -64,7 +64,7 @@ class Layout(Widget):
     def do_layout(self, *largs):
         '''This function is called when a layout is needed, by a trigger.
         If you are doing a new Layout subclass, don't call this function
-        directly, use :data:`_trigger_layout` instead.
+        directly, use :meth:`_trigger_layout` instead.
 
         .. versionadded:: 1.0.8
         '''
@@ -72,13 +72,12 @@ class Layout(Widget):
 
     def add_widget(self, widget, index=0):
         widget.bind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout)
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout)
         return super(Layout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout)
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout)
         return super(Layout, self).remove_widget(widget)
-
