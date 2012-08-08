@@ -105,8 +105,7 @@ from functools import partial
 class RecorderMotionEvent(MotionEvent):
 
     def depack(self, args):
-        for key, value in args.iteritems():
-            setattr(self, key, value)
+        [setattr(self, key, value) for key, value in args.items()]
         super(RecorderMotionEvent, self).depack(args)
 
 
@@ -183,10 +182,10 @@ class Recorder(EventDispatcher):
     def on_motion(self, window, etype, motionevent):
         if not self.record:
             return
-        args = {}
-        for arg in self.record_attrs:
-            if hasattr(motionevent, arg):
-                args[arg] = getattr(motionevent, arg)
+
+        args = dict((arg, getattr(motionevent, arg))
+                for arg in self.record_attrs if hasattr(motionevent, arg))
+
         args['profile'] = [x for x in motionevent.profile if x in
                 self.record_profile_mask]
         self.record_fd.write('%r\n' % (
@@ -200,7 +199,7 @@ class Recorder(EventDispatcher):
             (time() - self.record_time, etype, 0, {
                 'key': key,
                 'scancode': kwargs.get('scancode'),
-                'codepoint': kwargs.get('codepoint') or kwargs.get('unicode'),
+                'codepoint': kwargs.get('codepoint', kwargs.get('unicode')),
                 'modifier': kwargs.get('modifier'),
                 'is_touch': False}), ))
         self.counter += 1
@@ -263,12 +262,12 @@ class Recorder(EventDispatcher):
         EventLoop.add_input_provider(self)
 
     def update(self, dispatch_fn):
-        if len(self.play_data) == 0:
+        if not self.play_data:
             Logger.info('Recorder: Playing finished.')
             self.play = False
 
         dt = time() - self.play_time
-        while len(self.play_data):
+        while self.play_data:
             event = self.play_data[0]
             assert(len(event) == 4)
             if event[0] > dt:
@@ -290,21 +289,21 @@ class Recorder(EventDispatcher):
                         'on_key_down',
                         args['key'],
                         args['scancode'],
-                        args['codepoint'] or args['unicode'],
+                        args['codepoint'],
                         args['modifier'])
             elif etype == 'keyup':
                 self.window.dispatch(
                         'on_key_up',
                         args['key'],
                         args['scancode'],
-                        args['codepoint'] or args['unicode'],
+                        args['codepoint'],
                         args['modifier'])
             elif etype == 'keyboard':
                 self.window.dispatch(
                         'on_keyboard',
                         args['key'],
                         args['scancode'],
-                        args['codepoint'] or args['unicode'],
+                        args['codepoint'],
                         args['modifier'])
 
             if me:
