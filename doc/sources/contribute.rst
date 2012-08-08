@@ -251,11 +251,11 @@ this makes `:doc:` prefered, for the cleaner url.
 
 To build your documentation, run::
 
- make html
+    make html
 
 If you updated your kivy install, and have some trouble compiling docs, run::
 
- make clean && make force && make html
+    make clean force html
 
 The doc will be generated in ``build/html``.
 
