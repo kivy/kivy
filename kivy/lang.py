@@ -452,10 +452,9 @@ from os.path import join
 from copy import copy
 from types import ClassType, CodeType
 from functools import partial
-from collections import OrderedDict
 from kivy.factory import Factory
 from kivy.logger import Logger
-from kivy.utils import QueryDict
+from kivy.utils import OrderedDict, QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback

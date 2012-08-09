@@ -8,7 +8,8 @@ Utils
 __all__ = ('intersection', 'difference', 'strtotuple',
            'get_color_from_hex', 'get_random_color',
            'is_color_transparent', 'boundary',
-           'interpolate', 'QueryDict', 'platform', 'escape_markup')
+           'interpolate', 'OrderedDict', 'QueryDict',
+           'platform', 'escape_markup')
 
 from sys import platform as _sys_platform
 from re import match, split
@@ -21,22 +22,6 @@ _platform_ios = None
 def boundary(value, minvalue, maxvalue):
     '''Limit a value between a minvalue and maxvalue'''
     return min(max(value, minvalue), maxvalue)
-
-def intersection(set1, set2):
-    '''Return intersection between 2 list'''
-    return [s for s in set1 if s in set2]
-
-def difference(set1, set2, both=False):
-    '''Return difference between 2 list
-    .. versionchanged: 1.4.0
-        added :data:`both` argument. If true, includes differences
-        from both lists
-    '''
-
-    if not both:
-        return [s for s in set1 if s not in set2]
-    else:
-        return [s for s in set1 + set2 if s not in set1 or s not in set2]
 
 def interpolate(value_from, value_to, step=10):
     '''Interpolate a value to another. Can be useful to smooth some transition.
@@ -114,6 +99,104 @@ def is_color_transparent(color):
     '''Return true if alpha channel is 0'''
     return len(color) == 4 and color[3] == 0
 
+class OrderedDict(dict, DictMixin):
+
+    def __init__(self, *args, **kwds):
+        if len(args) > 1:
+            raise TypeError('expected at most 1 arguments, got %d' % len(args))
+        try:
+            self.__end
+        except AttributeError:
+            self.clear()
+        self.update(*args, **kwds)
+
+    def clear(self):
+        self.__end = end = []
+        end += [None, end, end]         # sentinel node for doubly linked list
+        self.__map = {}                 # key --> [key, prev, next]
+        dict.clear(self)
+
+    def __setitem__(self, key, value):
+        if key not in self:
+            end = self.__end
+            curr = end[1]
+            curr[2] = end[1] = self.__map[key] = [key, curr, end]
+        dict.__setitem__(self, key, value)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        key, prev, next = self.__map.pop(key)
+        prev[2] = next
+        next[1] = prev
+
+    def __iter__(self):
+        end = self.__end
+        curr = end[2]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[2]
+
+    def __reversed__(self):
+        end = self.__end
+        curr = end[1]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[1]
+
+    def popitem(self, last=True):
+        if not self:
+            raise KeyError('dictionary is empty')
+        if last:
+            key = reversed(self).next()
+        else:
+            key = iter(self).next()
+        value = self.pop(key)
+        return key, value
+
+    def __reduce__(self):
+        items = [[k, self[k]] for k in self]
+        tmp = self.__map, self.__end
+        del self.__map, self.__end
+        inst_dict = vars(self).copy()
+        self.__map, self.__end = tmp
+        if inst_dict:
+            return (self.__class__, (items, ), inst_dict)
+        return self.__class__, (items, )
+
+    def keys(self):
+        return list(self)
+
+    setdefault = DictMixin.setdefault
+    update = DictMixin.update
+    pop = DictMixin.pop
+    values = DictMixin.values
+    items = DictMixin.items
+    iterkeys = DictMixin.iterkeys
+    itervalues = DictMixin.itervalues
+    iteritems = DictMixin.iteritems
+
+    def __repr__(self):
+        if not self:
+            return '%s()' % (self.__class__.__name__, )
+        return '%s(%r)' % (self.__class__.__name__, self.items())
+
+    def copy(self):
+        return self.__class__(self)
+
+    @classmethod
+    def fromkeys(cls, iterable, value=None):
+        d = cls()
+        for key in iterable:
+            d[key] = value
+        return d
+
+    def __eq__(self, other):
+        if isinstance(other, OrderedDict):
+            return len(self)==len(other) and self.items() == other.items()
+        return dict.__eq__(self, other)
+
+    def __ne__(self, other):
+        return not self == other
 
 class QueryDict(dict):
     '''QueryDict is a dict() that can be queried with dot.

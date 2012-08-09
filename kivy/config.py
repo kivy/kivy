@@ -169,9 +169,9 @@ from ConfigParser import ConfigParser as PythonConfigParser
 from sys import platform
 from os import environ
 from os.path import exists
-from collections import OrderedDict
 from kivy import kivy_config_fn
 from kivy.logger import Logger
+from kivy.utils import OrderedDict
 
 # Version number of current configuration format
 KIVY_CONFIG_VERSION = 6
