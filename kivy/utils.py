@@ -27,7 +27,12 @@ def intersection(set1, set2):
     return [s for s in set1 if s in set2]
 
 def difference(set1, set2, both=False):
-    '''Return difference between 2 list'''
+    '''Return difference between 2 list
+    .. versionchanged: 1.4.0
+        added :data:`both` argument. If true, includes differences
+        from both lists
+    '''
+
     if not both:
         return [s for s in set1 if s not in set2]
     else:
@@ -172,33 +177,24 @@ def platform():
 
     .. warning:: ios is not currently reported.
     '''
-    global _platform_ios, _platform_android
 
-    if _platform_android is None:
-        try:
-            import android
-            _platform_android = True
-        except ImportError:
-            _platform_android = False
-
-    if _platform_ios is None:
-        # TODO implement ios support here
-        _platform_ios = False
-
-    # On android, _sys_platform return 'linux2', so prefer to check the import
-    # of Android module than trying to rely on _sys_platform.
-    if _platform_android is True:
+    try:
+        import android
         return 'android'
-    elif _platform_ios is True:
-        return 'ios'
-    elif _sys_platform in ('win32', 'cygwin'):
-        return 'win'
-    elif _sys_platform in ('darwin', ):
-        return 'macosx'
-    elif _sys_platform in ('linux2', 'linux3'):
-        return 'linux'
-    return 'unknown'
-
+    except ImportError:
+        #TODO: implement ios support here
+        try:
+            import ios
+            return 'ios'
+        except ImportError:
+            if _sys_platform in ('win32', 'cygwin'):
+                return 'win'
+            elif _sys_platform in ('darwin', ):
+                return 'macosx'
+            elif _sys_platform in ('linux2', 'linux3'):
+                return 'linux'
+            else:
+                return 'unknown'
 
 def escape_markup(text):
     '''
