@@ -74,8 +74,9 @@ called ``pong.kv`` in the same directory that will be automatically loaded
 when the application is run.  So create a new file called ``*pong.kv*`` and add
 the following contents.
 
-.. include:: ../../../examples/tutorials/pong/steps/step2/pong.kv
-    :literal:
+.. literalinclude:: ../../../examples/tutorials/pong/steps/step2/pong.kv
+    :language: kv
+    :linenos:
 
 If you run the app now, you should see a vertical bar in the middle, and two
 zeros where the player scores will be displayed.
@@ -127,7 +128,9 @@ child widgets that will be automatically added, or a `canvas` section in
 which you can add Graphics instructions that define how the widget itself is
 rendered.
 
-The first block inside the ``<PongGame>`` rule we have is a canvas block::
+The first block inside the ``<PongGame>`` rule we have is a canvas block:
+
+.. code-block:: kv
 
     <PongGame>:
         canvas:
@@ -150,10 +153,12 @@ score once we have the logic for that implemented.  But the labels already
 look good, since we set a bigger font_size, and positioned them relatively
 to the root widget. The ``root`` keyword can be used inside child block to
 refer back to the parent/root widget the rule applies to (``PongGame`` in this
-case)::
+case):
+
+.. code-block:: kv
 
     <PongGame>:
-        ...
+        # ...
         
         Label:
             font_size: 70  
@@ -207,7 +212,9 @@ Here is the python code for the PongBall class::
             self.pos = Vector(*self.velocity) + self.pos  
             
             
-And here is the kv rule used to draw the ball as a white circle::
+And here is the kv rule used to draw the ball as a white circle:
+
+.. code-block:: kv
 
     <PongBall>:
         size: 50, 50 
@@ -232,8 +239,9 @@ Here is the entire updated python code and kv file for this step:
             :literal:
 
     pong.kv:
-        .. include:: ../../../examples/tutorials/pong/steps/step3/pong.kv
-            :literal:
+        .. literalinclude:: ../../../examples/tutorials/pong/steps/step3/pong.kv
+            :language: kv
+            :linenos:
 
 
 Adding ball animation
@@ -308,7 +316,9 @@ inside the ``update`` method and even make it bounce of the edges::
                 self.ball.velocity_x *= -1
                 
 Don't forget to hook it up in the kv file, by giving the child widget an id
-and setting the games property to that id::
+and setting the games property to that id:
+
+.. code-block:: kv
 
     <PongGame>:
         ball: pong_ball
@@ -337,8 +347,9 @@ Here is the entire code for this step:
         :literal:
 
     pong.kv:
-       .. include:: ../../../examples/tutorials/pong/steps/step4/pong.kv
-        :literal:
+       .. literalinclude:: ../../../examples/tutorials/pong/steps/step4/pong.kv
+        :language: kv
+        :linenos:
 
 Connect input event
 -------------------
@@ -401,8 +412,9 @@ And here it is in context. Pretty much done:
 
     pong.kv:
 
-       .. include:: ../../../examples/tutorials/pong/steps/step5/pong.kv
-        :literal:
+       .. literalinclude:: ../../../examples/tutorials/pong/steps/step5/pong.kv
+        :language: kv
+        :linenos:
 
 
 Where to go now?
