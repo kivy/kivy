@@ -198,6 +198,7 @@ class MarkupLabel(MarkupLabelBase):
 
         # verify that each glyph have size
         glyphs = list(set(word))
+        glyphs.append(' ')
         get_extents = self.get_extents
         for glyph in glyphs:
             if not glyph in cache:
@@ -219,7 +220,7 @@ class MarkupLabel(MarkupLabelBase):
         for part in re.split(r'( |\n)', word):
 
             if part == '':
-                continue
+                part = ' '
 
             if part == '\n':
                 # put a new line!
@@ -266,7 +267,7 @@ class MarkupLabel(MarkupLabelBase):
         y = 0
         w, h = self._size
         refs = self._refs
-        no_of_lines = len(self._lines)
+        txt_height = sum(line[1] for line in self._lines)
 
         for line in self._lines:
             lh = line[1]
@@ -283,9 +284,9 @@ class MarkupLabel(MarkupLabelBase):
             # vertical alignement
             if y == 0:
                 if av == 1:
-                    y = int((h - (lh*no_of_lines))/2)
+                    y = int((h - txt_height)/2)
                 elif av == 2:
-                    y = h - (lh*(no_of_lines))
+                    y = h - (txt_height)
 
 
             for pw, ph, part, options in line[2]:
