@@ -107,7 +107,7 @@ def get_random_color(alpha=1.0):
         return [random(), random(), random(), alpha]
 
 
-def is_color_transparent2(color):
+def is_color_transparent(color):
     '''Return true if alpha channel is 0'''
     return len(color) == 4 and color[3] == 0
 
