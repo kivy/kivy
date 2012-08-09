@@ -27,8 +27,9 @@ create the UI around the ``Controller`` class in a file named `controller.kv`,
 which will be loaded when we run the ``ControllerApp``. How this is done and
 what files are loaded is described in the :func:`kivy.app.App.load_kv` method.
 
-.. include:: ../../../examples/guide/designwithkv/controller.kv
-    :literal:
+.. literalinclude:: ../../../examples/guide/designwithkv/controller.kv
+    :language: kv
+    :linenos:
 
 One label and one button in a vertical ``BoxLayout``. Seems very simple. There
 are 3 things going on here:
@@ -52,7 +53,9 @@ are 3 things going on here:
           the current widget.
 
         * You can use any id declared in the rule the same as ``root`` and
-          ``self``. For example, you could do this in the ``on_press()``::
+          ``self``. For example, you could do this in the ``on_press()``:
+
+        .. code-block:: kv
 
             Button:
                 on_press: root.do_action(); my_custom_label.font_size = 18

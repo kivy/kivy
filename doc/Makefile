@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-PYTHON		  = python2
+PYTHON		  = python
 SPHINXOPTS    = -W
 #SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
