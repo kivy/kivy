@@ -22,9 +22,9 @@ Then open the webbrowser on http://localhost:5000/
 import threading
 import json
 from gc import get_objects, garbage
+from collections import OrderedDict
 from kivy.clock import Clock
 from kivy.cache import Cache
-from kivy.utils import OrderedDict
 from kivy.logger import Logger
 
 try:
