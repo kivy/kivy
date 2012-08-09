@@ -115,9 +115,10 @@ __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
     'TransitionBase', 'ShaderTransition', 'SlideTransition', 'SwapTransition',
     'FadeTransition', 'WipeTransition')
 
+from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import StringProperty, ObjectProperty, \
+from kivy.properties import StringProperty, ObjectProperty, AliasProperty, \
         NumericProperty, ListProperty, OptionProperty, BooleanProperty
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
@@ -560,21 +561,37 @@ class ScreenManager(FloatLayout):
     default to None, read-only.
     '''
 
+    def _get_screen_names(self):
+        return [s.name for s in self.screens]
+
+    screen_names = AliasProperty(_get_screen_names, None, bind=('screens',))
+    '''List of the names of all the :class:`Screen` widgets added. The list
+    is read only.
+
+    :data:`screens_names` is a :class:`~kivy.properties.AliasProperty`, 
+    it is read-only and updated if the screen list changes, or the name
+    of a screen changes.
+    '''
+
+
     def __init__(self, **kwargs):
         super(ScreenManager, self).__init__(**kwargs)
         self.bind(pos=self._update_pos)
+
+    def _screen_name_changed(self, screen, name):
+        self.property('screen_names').dispatch(self)
+        if screen == self.current_screen:
+            self.current = name
 
     def add_widget(self, screen):
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
                     'ScreenManager accept only Screen widget.')
-        if screen.name in [s.name for s in self.screens]:
-            raise ScreenManagerException(
-                    'Name %r already used' % screen.name)
         if screen.manager:
             raise ScreenManagerException(
                     'Screen already managed by another ScreenManager.')
         screen.manager = self
+        screen.bind(name=self._screen_name_changed)
         self.screens.append(screen)
         if self.current is None:
             self.current = screen.name
@@ -592,6 +609,8 @@ class ScreenManager(FloatLayout):
         screen = self.get_screen(value)
         if not screen:
             return
+        if screen == self.current_screen:
+            return
 
         previous_screen = self.current_screen
         self.current_screen = screen
@@ -608,9 +627,13 @@ class ScreenManager(FloatLayout):
         '''Return the screen widget associated to the name, or None if not
         found.
         '''
-        for screen in self.screens:
-            if screen.name == name:
-                return screen
+        matches = [s for s in self.screens if s.name == name]
+        num_matches = len(matches)
+        if num_matches == 0:
+            raise ScreenManagerException('No Screen with name "%s".' % name)
+        if num_matches > 1:
+            Logger.warn('Multiple screens named "%s": %s' % (name, matches))
+        return matches[0]
 
     def next(self):
         '''Return the name of the next screen from the screen list.
