@@ -98,7 +98,8 @@ You can bind to events on the :class:`Recognizer` instance to track all calls
 to recognize(). `res.status` in the callback can be used to determine if the
 search was completed, stopped by the user etc::
 
-    from kivy.multistroke import Recognizer, Vector
+    from kivy.vector import Vector
+    from kivy.multistroke import Recognizer
 
     gdb = Recognizer()
 
