@@ -154,7 +154,8 @@ Note that you can also use the result from the `recognize` function ::
     print result.progress # = 1
 '''
 
-__all__ = ('Recognizer', 'GestureSearch', 'Multistroke', 'Template', 'Candidate')
+__all__ = (
+    'Recognizer', 'GestureSearch', 'Multistroke', 'Template', 'Candidate')
 
 import pickle
 import base64
@@ -216,7 +217,7 @@ class Recognizer(EventDispatcher):
         super(Recognizer, self).__init__(**kwargs)
 
     def filter(self, name=None, priority=None, numpoints=None, numstrokes=None,
-        orientation_dep=None, db=None, force_sort=None, **kwargs):
+               orientation_dep=None, db=None, force_sort=None, **kwargs):
         '''`filter` provides a window to the Multistroke objects in self.db. It
         is used to return a subset of objects according to given criteria, ie
         metadata. This function does not perform any template matching. It
@@ -298,8 +299,8 @@ class Recognizer(EventDispatcher):
         force_on = force_sort and True
         force_off = (not force_sort) and True
         tasklist = (((priority or force_on) and not force_off)
-           and sorted(db or self.db, key=lambda n: n.priority)
-            or (db or self.db))
+                    and sorted(db or self.db, key=lambda n: n.priority)
+                    or (db or self.db))
 
         # FIXME: I did this to avoid calling .reverse on the list later, ie for
         # popleft(). I don't really know which one is better. I considered
@@ -310,8 +311,8 @@ class Recognizer(EventDispatcher):
         # Now test each gesture against the candidate
         for gesture in tasklist:
 
-            if orientation_dep is not None and \
-               orientation_dep != gesture.orientation_dep:
+            if (orientation_dep is not None and
+                    orientation_dep != gesture.orientation_dep):
                 continue
 
             if numpoints and gesture.numpoints not in numpoints:
@@ -356,7 +357,8 @@ class Recognizer(EventDispatcher):
         multistrokes = []
         for multistroke in p.load():
             strokes = multistroke['strokes']
-            multistroke['strokes'] = [[Vector(x, y) for x, y in line] for line in strokes]
+            multistroke['strokes'] = [[Vector(
+                x, y) for x, y in line] for line in strokes]
             multistrokes.append(Multistroke(**multistroke))
         return multistrokes
 
@@ -379,7 +381,8 @@ class Recognizer(EventDispatcher):
                 current = getattr(multistroke, attr)
                 if current != value:
                     m[attr] = current
-            m['strokes'] = tuple([(p.x, p.y) for p in line] for line in multistroke.strokes)
+            m['strokes'] = tuple([(p.x, p.y) for p in line]
+                                 for line in multistroke.strokes)
             multistrokes.append(m)
         p.dump(multistrokes)
 
@@ -436,7 +439,7 @@ class Recognizer(EventDispatcher):
                 tpl.prepare(n)
 
     def recognize(self, strokes, use_protractor=True, goodscore=None,
-        timeout=0, delay=0, **kwargs):
+                  timeout=0, delay=0, **kwargs):
         '''Search for candidate gesture in the database. Returns a
         :class:`GestureSearch` instance or None if invalid parameters are
         given. This method accepts optional `filter` arguments.
@@ -523,7 +526,8 @@ class Recognizer(EventDispatcher):
 
             while not stop_now and _criteria():
 
-                if timeout and Clock.get_time() - result._start_time >= timeout:
+                if (timeout and
+                        Clock.get_time() - result._start_time >= timeout):
                     result.status = 'timeout'
                     stop_now = True
                     break
@@ -535,7 +539,7 @@ class Recognizer(EventDispatcher):
 
                 if tpl is not None:
                     score = result._add_result(gesture, d, tpl, res,
-                        use_protractor)
+                                               use_protractor)
 
                     if goodscore is not None and score >= goodscore:
                         result.status = 'goodscore'
@@ -581,9 +585,9 @@ class Recognizer(EventDispatcher):
         if isinstance(strokes, Candidate):
             return strokes
 
-        if not isinstance(strokes, list) or not len(strokes) or \
-           not isinstance(strokes[0], list):
-            raise MultistrokeError('recognize() needs strokes= ' \
+        if (not isinstance(strokes, list) or not len(strokes) or not
+                isinstance(strokes[0], list)):
+            raise MultistrokeError('recognize() needs strokes= '
                                    'list or Candidate')
 
         cand = Candidate(strokes)
@@ -593,9 +597,9 @@ class Recognizer(EventDispatcher):
             cand.skip_protractor = True
 
         o_filter = kwargs.get('orientation', None)
-        if o_filter == False:
+        if o_filter is False:
             cand.skip_bounded = True
-        elif o_filter == True:
+        elif o_filter is True:
             cand.skip_invariant = True
 
         return cand
@@ -702,8 +706,8 @@ class GestureSearch(EventDispatcher):
             return {'name': None, 'dist': None, 'score': 0}
         b = max(results, key=lambda r: results[r]['score'])
         return {
-            'name':  results[b]['name'],
-            'dist':  results[b]['dist'],
+            'name': results[b]['name'],
+            'dist': results[b]['dist'],
             'score': results[b]['score']
         }
 
@@ -731,7 +735,7 @@ class GestureSearch(EventDispatcher):
             def score_distance(d):
                 return use_protractor \
                     and (1.0 / (d or .0001 ** 2)) \
-                     or 1.0 - d / HALFDIAGONAL
+                    or 1.0 - d / HALFDIAGONAL
 
             # Score the best distance; store in 'dist'
             self.results[n]['score'] = score_distance(dist)
@@ -910,8 +914,8 @@ class Multistroke(object):
             if cand.skip_invariant and not tpl.orientation_dep:
                 continue
 
-            if self.use_strokelen and \
-               len(self.strokes) != len(cand.strokes):
+            if (self.use_strokelen and
+                    len(self.strokes) != len(cand.strokes)):
                 continue
 
             # Count as a match operation now, since the call to get_
@@ -932,7 +936,7 @@ class Multistroke(object):
 
             # Get the distance between cand/tpl paths
             d = self.get_distance(cand, tpl, numpoints=n,
-                     use_protractor=use_protractor)
+                                  use_protractor=use_protractor)
 
             out[idx] = d
 
@@ -969,10 +973,10 @@ class Multistroke(object):
 
         # Generate unistroke permutations
         self.templates = [Template(
-              self.name,
-              points=permutation,
-              numpoints=self.numpoints,
-              orientation_dep=self.orientation_dep
+            self.name,
+            points=permutation,
+            numpoints=self.numpoints,
+            orientation_dep=self.orientation_dep
         ) for permutation in self._make_unistrokes()]
         del self._orders
 
@@ -1109,10 +1113,11 @@ class Template(object):
         # recomputed. Implicitly, you must reset self.db or call prepare() for
         # all the keys once you manipulate self.points.
         self.db[n] = {
-          # Compute STARTANGLEINDEX as n/8:
-          'startv': start_unit_vector(p, (n / 8)),
-          'vector': self.skip_protractor or vectorize(p, self.orientation_dep),
-          'points': self.skip_phi or p
+            # Compute STARTANGLEINDEX as n/8:
+            'startv': start_unit_vector(p, (n / 8)),
+            'vector': (self.skip_protractor or
+                       vectorize(p, self.orientation_dep)),
+            'points': self.skip_phi or p
         }
 
 
@@ -1199,7 +1204,7 @@ class Candidate(object):
         n = kwargs.get('numpoints', self.numpoints)
         return angle_between_unit_vectors(
             self.get_start_unit_vector(n, tpl.orientation_dep),
-             tpl.get_start_unit_vector(n))
+            tpl.get_start_unit_vector(n))
 
     def prepare(self, numpoints=None):
         '''Prepare the Candidate vectors. self.strokes is combined to a single
@@ -1322,12 +1327,10 @@ def scale_dim(points, size, oneDratio):
 
     newpoints = []
     for p in points:
-        qx = uniformly and \
-                p.x * (size / max(bbox_w, bbox_h)) \
-             or p.x * (size / bbox_w)
-        qy = uniformly and \
-                p.y * (size / max(bbox_w, bbox_h)) \
-             or p.y * (size / bbox_h)
+        qx = (uniformly and p.x * (size / max(bbox_w, bbox_h)) or
+              p.x * (size / bbox_w))
+        qy = (uniformly and p.y * (size / max(bbox_w, bbox_h)) or
+              p.y * (size / bbox_h))
         newpoints.append(Vector(qx, qy))
 
     return newpoints
