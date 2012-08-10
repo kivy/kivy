@@ -212,16 +212,19 @@ class GestureBrowser(GridLayout):
             content=l, size_hint=(None, None), size=(400, 400))
 
         def confirm_export(*largs):
-            if filename.text == '':
+            path = filename.text
+            if not path:
                 label.text = 'You must specify a filename for export'
                 return
-            else:
-                self.save_selection_to_file(filename.text + '.kg')
-                l.clear_widgets()
-                label.text = 'Gestures exported'
-                cancel.text = 'Close'
-                l.add_widget(label)
-                l.add_widget(cancel)
+            elif not path.endswith('.kg'):
+                path += '.kg'
+
+            self.save_selection_to_file(filename.text + '.kg')
+            l.clear_widgets()
+            label.text = 'Gestures exported'
+            cancel.text = 'Close'
+            l.add_widget(label)
+            l.add_widget(cancel)
 
         do_save.bind(on_press=confirm_export)
         cancel.bind(on_press=p.dismiss)

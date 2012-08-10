@@ -5,10 +5,10 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.lang import Builder
+import kivy.uix.touchanalyzer as TA
+from kivy.uix.touchanalyzer import TouchAnalyzer
 
 # Local libraries
-import touchanalyzer as TA
-from touchanalyzer import TouchAnalyzer
 from samplehistory import HistoryBrowser
 from gesturebrowser import GestureBrowser
 from appoptions import AppOptions
