@@ -440,9 +440,9 @@ class App(EventDispatcher):
         '''
 
         if platform == 'android':
-            defaultpath = '/sdcard/.%(appname).ini'
+            defaultpath = '/sdcard/.%(appname)s.ini'
         elif platform == 'ios':
-            defaultpath = '~/Documents/%(appname).ini'
+            defaultpath = '~/Documents/%(appname)s.ini'
         elif platform == 'win':
             defaultpath = defaultpath.replace('/', sep)
         return expanduser(defaultpath) % {
