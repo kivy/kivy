@@ -243,6 +243,8 @@ class TransitionBase(EventDispatcher):
         '''(internal) Start the transition. This is automatically called by the
         :class:`ScreenManager`.
         '''
+        if self.is_active:
+            raise ScreenManagerException('start() is called twice!')
         self.manager = manager
         self._anim = Animation(d=self.duration, s=0)
         self._anim.bind(on_progress=self._on_progress,
@@ -564,15 +566,15 @@ class ScreenManager(FloatLayout):
     def _get_screen_names(self):
         return [s.name for s in self.screens]
 
-    screen_names = AliasProperty(_get_screen_names, None, bind=('screens',))
+    screen_names = AliasProperty(_get_screen_names,
+            None, bind=('screens', ))
     '''List of the names of all the :class:`Screen` widgets added. The list
     is read only.
 
-    :data:`screens_names` is a :class:`~kivy.properties.AliasProperty`, 
+    :data:`screens_names` is a :class:`~kivy.properties.AliasProperty`,
     it is read-only and updated if the screen list changes, or the name
     of a screen changes.
     '''
-
 
     def __init__(self, **kwargs):
         super(ScreenManager, self).__init__(**kwargs)
