@@ -152,6 +152,27 @@ class Animation(EventDispatcher):
             for animation in set(Animation._instances):
                 animation.stop(widget)
 
+    @staticmethod
+    def cancel_all(widget, *largs):
+        '''Stop all animations that concern a specific widget / list of
+        properties.
+
+        Example::
+
+            anim = Animation(x=50)
+            anim.start(widget)
+
+            # and later
+            Animation.stop_all(widget, 'x')
+        '''
+        if len(largs):
+            for animation in list(Animation._instances):
+                for x in largs:
+                    animation.cancel_property(widget, x)
+        else:
+            for animation in set(Animation._instances):
+                animation.cancel(widget)
+
     def start(self, widget):
         '''Start the animation on a widget
         '''
@@ -180,7 +201,22 @@ class Animation(EventDispatcher):
 
     def stop_property(self, widget, prop):
         '''Even if an animation is running, remove a property. It will not be
-        animated further.
+        animated further. If it was the only/last property being animated on.
+        the widget, the animation will be stopped (see :data:`stop`)
+        '''
+        props = self._widgets.get(widget, None)
+        if not props:
+            return
+        props['properties'].pop(prop, None)
+
+        # no more properties to animation ? kill the animation.
+        if not props['properties']:
+            self.stop(widget)
+
+    def cancel_property(self, widget, prop):
+        '''Even if an animation is running, remove a property. It will not be
+        animated further. If it was the only/last property being animated on.
+        the widget, the animation will be canceled (see :data:`cancel`)
         '''
         props = self._widgets.get(widget, None)
         if not props:
