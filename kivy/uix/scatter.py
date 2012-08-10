@@ -21,8 +21,8 @@ constraints that you should consider:
 
 For touch events, the scatter converts from the parent matrix to the scatter matrix
 automatically in on_touch_down/move/up events. If you are doing things
-manually, you will need to use :func:`~kivy.uix.widget.Widget.to_parent`,
-:func:`~kivy.uix.widget.Widget.to_local`.
+manually, you will need to use :meth:`~kivy.uix.widget.Widget.to_parent`,
+:meth:`~kivy.uix.widget.Widget.to_local`.
 
 Usage
 -----

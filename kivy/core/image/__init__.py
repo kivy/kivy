@@ -316,6 +316,10 @@ class ImageLoader(object):
         # extract extensions
         ext = filename.split('.')[-1].lower()
 
+        # prevent url querystrings
+        if filename.startswith((('http://', 'https://'))):
+            ext = ext.split('?')[0]
+
         # special case. When we are trying to load a "zip" file with image, we
         # will use the special zip_loader in ImageLoader. This might return a
         # sequence of images contained in the zip.
@@ -565,7 +569,10 @@ class Image(EventDispatcher):
         if image:
             # we found an image, yeah ! but reset the texture now.
             self.image = image
-            if not image.keep_data and self._keep_data:
+            # if image.__class__ is core image then it's a texture
+            # from atlas or other sources and has no data so skip
+            if (image.__class__ != self.__class__ and
+                not image.keep_data and self._keep_data):
                 self.remove_from_cache()
                 self._filename = ''
                 self._set_filename(value)

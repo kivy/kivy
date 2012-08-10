@@ -169,7 +169,7 @@ class Label(Widget):
     def texture_update(self, *largs):
         '''Force texture recreation with the current Label properties.
 
-        After this function call, the :data:`texture` and :data`texture_size`
+        After this function call, the :data:`texture` and :data:`texture_size`
         will be updated in this order.
         '''
         self.texture = None
@@ -365,7 +365,7 @@ class Label(Widget):
 
         The :data:`texture` update is scheduled for the next frame. If you need
         the texture immediately after changing a property, you have to call
-        the :func:`texture_update` function before accessing :data:`texture`::
+        the :meth:`texture_update` method before accessing :data:`texture`::
 
             l = Label(text='Hello world')
             # l.texture is good
@@ -383,9 +383,9 @@ class Label(Widget):
 
     .. warning::
 
-        The data:`texture_size` is set after the :data:`texture` property. If
+        The :data:`texture_size` is set after the :data:`texture` property. If
         you listen for changes to :data:`texture`, :data:`texture_size` will not
-        be up-to-date in your callback. Bind to data:`texture_size` instead.
+        be up-to-date in your callback. Bind to :data:`texture_size` instead.
     '''
 
     mipmap = BooleanProperty(False)

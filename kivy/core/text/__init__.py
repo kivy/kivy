@@ -287,6 +287,8 @@ class LabelBase(object):
 
                 # calculate the word width
                 ww, wh = 0, 0
+                if word == '':
+                    ww, wh = get_extents(' ')
                 for glyph in word:
                     gw, gh = cache[glyph]
                     ww += gw

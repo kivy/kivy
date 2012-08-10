@@ -128,6 +128,12 @@ class VKeyboard(Scatter):
     VKeyboard is an onscreen keyboard with multitouch support.
     Its layout is entirely customizable and you can switch between available
     layouts using a button in the bottom right of the widget.
+
+    :Events:
+        `on_key_down`: keycode, internal, modifiers
+            Fired when the keyboard received a key down event (key press).
+        `on_key_up`: keycode, internal, modifiers
+            Fired when the keyboard received a key up event (key release).
     '''
 
     target = ObjectProperty(None, allownone=True)
@@ -434,7 +440,6 @@ class VKeyboard(Scatter):
         # the goal now is to map both point, calculate the diff between them
         diff = dpos - cpos
 
-
         # we still have an issue, self.pos represent the bounding box, not the
         # 0,0 coordinate of the scatter. we need to apply also the diff between
         # them (inside and outside coordinate matrix). It's hard to explain, but
@@ -582,7 +587,7 @@ class VKeyboard(Scatter):
             key_nb = 0
             for pos, size in layout_geometry['LINE_%d' % line_nb]:
                 # retrieve the relative text
-                text = layout[layout_mode +'_'+ str(line_nb)][key_nb][0]
+                text = layout[layout_mode + '_' + str(line_nb)][key_nb][0]
                 l = Label(text=text, font_size=font_size, pos=pos, size=size,
                         font_name=self.font_name)
                 self.add_widget(l)
@@ -604,8 +609,8 @@ class VKeyboard(Scatter):
         mtop, mright, mbottom, mleft = self.margin_hint
 
         # get the line of the layout
-        e_height = h - (mbottom + mtop) * h # efficient height in pixels
-        line_height = e_height / layout_rows # line height in px
+        e_height = h - (mbottom + mtop) * h  # efficient height in pixels
+        line_height = e_height / layout_rows  # line height in px
         y = y - mbottom * h
         line_nb = layout_rows - int(y / line_height)
 
@@ -616,13 +621,13 @@ class VKeyboard(Scatter):
 
         # get the key within the line
         key_index = ''
-        current_key_index =0
+        current_key_index = 0
         for key in layout_geometry['LINE_HINT_%d' % line_nb]:
             if x_hint >= key[0][0] and x_hint < key[0][0] + key[1][0]:
                 key_index = current_key_index
                 break
             else:
-                current_key_index +=1
+                current_key_index += 1
         if key_index == '':
             return None
 

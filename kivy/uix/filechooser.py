@@ -127,6 +127,20 @@ class FileChooserController(FloatLayout):
     '''Base for implementing a FileChooser. Don't use that class directly,
     preferring to use an implementation like :class:`FileChooserListView` or
     :class:`FileChooserIconView`.
+
+    :Events:
+        `on_entry_added`: entry, parent
+            Fired when a root-level entry is added to the file list.
+        `on_entries_cleared`
+            Fired when the the entries list is cleared. Usally when the
+            root is refreshed.
+        `on_subentry_to_entry`: entry, parent
+            Fired when a sub-entry is added to an existing entry.
+        `on_remove_subentry`: entry, parent
+            Fired when entries are removed from an entry. Usually when
+            a node is closed.
+        `on_submit`: selection, touch
+            Fired when a file has been selected with a double-tap.
     '''
     _ENTRY_TEMPLATE = None
 

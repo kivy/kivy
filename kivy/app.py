@@ -299,8 +299,8 @@ class App(EventDispatcher):
         #: configuration. Can be used to query some config token in the build()
         self.config = None
 
-        #: Root widget set by the :func:`build` method or by the
-        #: :func:`load_kv` method if the kv file contains a root widget.
+        #: Root widget set by the :meth:`build` method or by the
+        #: :meth:`load_kv` method if the kv file contains a root widget.
         self.root = None
 
     def build(self):
@@ -440,9 +440,9 @@ class App(EventDispatcher):
         '''
 
         if platform == 'android':
-            defaultpath = '/sdcard/.%(appname).ini'
+            defaultpath = '/sdcard/.%(appname)s.ini'
         elif platform == 'ios':
-            defaultpath = '~/Documents/%(appname).ini'
+            defaultpath = '~/Documents/%(appname)s.ini'
         elif platform == 'win':
             defaultpath = defaultpath.replace('/', sep)
         return expanduser(defaultpath) % {
