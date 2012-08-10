@@ -13,7 +13,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.slider import Slider
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, Line, Rectangle
-from kivy.multistroke import GPoint
+from kivy.vector import Vector
 
 __all__ = ('HistoryBrowser', 'HistoryItem', 'AddTemplateForm')
 
@@ -267,7 +267,7 @@ class AddTemplateForm(GridLayout):
         else:
             cand = []
             for tuid, line in self.hi.g.strokes.items():
-                cand.append([GPoint(*pts) for pts in \
+                cand.append([Vector(*pts) for pts in \
                     zip(line.points[::2], line.points[1::2])])
 
             r_inv = self.use_bri.state == 'down' and True or False

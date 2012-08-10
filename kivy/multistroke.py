@@ -98,7 +98,7 @@ You can bind to events on the :class:`Recognizer` instance to track all calls
 to recognize(). `res.status` in the callback can be used to determine if the
 search was completed, stopped by the user etc::
 
-    from kivy.multistroke import Recognizer, GPoint
+    from kivy.multistroke import Recognizer, Vector
 
     gdb = Recognizer()
 
@@ -121,14 +121,14 @@ search was completed, stopped by the user etc::
     # Note that each path is two points, ie a straight line; if you plot them
     # it looks like a T.
     gdb.add_gesture('T', [
-        [GPoint(30, 7), GPoint(103, 7)],
-        [GPoint(66, 7), GPoint(66, 87)]])
+        [Vector(30, 7), Vector(103, 7)],
+        [Vector(66, 7), Vector(66, 87)]])
 
     # And you can find shapes that are similar; this will trigger both of
     # the callbacks.
     gdb.recognize([
-        [GPoint(45, 8), GPoint(110, 12)],
-        [GPoint(88, 9), GPoint(85, 95)]])
+        [Vector(45, 8), Vector(110, 12)],
+        [Vector(88, 9), Vector(85, 95)]])
 
 On the next :class:`kivy.clock.Clock` tick, the matching process starts (and,
 in this case, completes). The above program outputs::
@@ -140,8 +140,8 @@ Note that you can also use the result from the `recognize` function ::
 
     # Same as above, but keep track of progress using 'result'
     result = gdb.recognize([
-        [GPoint(45, 8), GPoint(110, 12)],
-        [GPoint(88, 9), GPoint(85, 95)]])
+        [Vector(45, 8), Vector(110, 12)],
+        [Vector(88, 9), Vector(85, 95)]])
 
     result.bind(on_progress=my_other_callback)
     print result.progress # = 0
@@ -153,8 +153,7 @@ Note that you can also use the result from the `recognize` function ::
     print result.progress # = 1
 '''
 
-__all__ = ('GPoint', 'Recognizer', 'GestureSearch', 'Multistroke', 'Template',
-           'Candidate')
+__all__ = ('Recognizer', 'GestureSearch', 'Multistroke', 'Template', 'Candidate')
 
 import pickle
 import base64
@@ -164,6 +163,7 @@ from collections import deque
 from math import sqrt, pi, radians, acos, atan, atan2, pow, floor
 from math import sin as math_sin, cos as math_cos
 from cStringIO import StringIO
+from kivy.vector import Vector
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty
@@ -175,25 +175,11 @@ DEFAULT_GPF = 10
 # for both algorithms
 SQUARESIZE = 250.0
 ONEDTHRESHOLD = 0.25
+ORIGIN = Vector(0, 0)
 
 # only for golden section search:
 PHI = 0.5 * (-1.0 + sqrt(5.0))
 HALFDIAGONAL = 0.5 * sqrt(SQUARESIZE ** 2 + SQUARESIZE ** 2)
-
-
-class GPoint:
-    '''Basic Point object'''
-
-    def __init__(self, x, y):
-        #. x coordinate
-        self.x = float(x)
-        #. y coordinate
-        self.y = float(y)
-
-    def __repr__(self):
-        return 'GPoint(%f, %f)' % (self.x, self.y)
-
-ORIGIN = GPoint(0, 0)
 
 
 class MultistrokeError(Exception):
@@ -369,7 +355,7 @@ class Recognizer(EventDispatcher):
         multistrokes = []
         for multistroke in p.load():
             strokes = multistroke['strokes']
-            multistroke['strokes'] = [[GPoint(x, y) for x, y in line] for line in strokes]
+            multistroke['strokes'] = [[Vector(x, y) for x, y in line] for line in strokes]
             multistrokes.append(Multistroke(**multistroke))
         return multistrokes
 
@@ -454,7 +440,7 @@ class Recognizer(EventDispatcher):
         :class:`GestureSearch` instance or None if invalid parameters are
         given. This method accepts optional `filter` arguments.
 
-        `strokes` is a list of strokes (a stroke is a list of GPoint objects),
+        `strokes` is a list of strokes (a stroke is a list of Vector objects),
         or a Candidate object. Note that if you manually supply a Candidate
         that uses :data:`Candidate.skip_*` flags, you have to make sure that
         the correct arguments are set to avoid requesting vectors that have
@@ -780,11 +766,11 @@ class Multistroke(object):
             unistroke permutations. Required, no default.
         `strokes`:
             A list of paths that represents the gesture. A path is a list of
-            GPoint objects::
+            Vector objects::
 
                 gesture = Multistroke('tpl', strokes=[
-                  [GPoint(x1, y1), GPoint(x2, y2), ...... ], # stroke 1
-                  [GPoint(), GPoint(), GPoint(), GPoint() ]  # stroke 2
+                  [Vector(x1, y1), Vector(x2, y2), ...... ], # stroke 1
+                  [Vector(), Vector(), Vector(), Vector() ]  # stroke 2
                   #, [stroke 3], [stroke 4], ...
                 ])
 
@@ -1030,7 +1016,7 @@ class Multistroke(object):
 # -----------------------------------------------------------------------------
 
 class Template(object):
-    '''Represents a (uni)stroke path as a list of GPoints. Normally, this class
+    '''Represents a (uni)stroke path as a list of Vectors. Normally, this class
     is instantiated by Multistroke and not by the programmer directly. However,
     it is possible to manually compose Template objects. Please write module
     documentation for more information.
@@ -1289,7 +1275,7 @@ def resample(points, n):
         if D + d >= interval:
             qx = p1.x + ((interval - D) / d) * (p2.x - p1.x)
             qy = p1.y + ((interval - D) / d) * (p2.y - p1.y)
-            q = GPoint(qx, qy)
+            q = Vector(qx, qy)
             newpoints.append(q)
             workpoints.insert(i, q)  # q is the next i
             newpoints_len += 1
@@ -1322,7 +1308,7 @@ def rotate_by(points, radians):
     for i in xrange(0, len(points)):
         qx = (points[i].x - c.x) * cos - (points[i].y - c.y) * sin + c.x
         qy = (points[i].x - c.x) * sin + (points[i].y - c.y) * cos + c.y
-        newpoints.append(GPoint(qx, qy))
+        newpoints.append(Vector(qx, qy))
 
     return newpoints
 
@@ -1341,7 +1327,7 @@ def scale_dim(points, size, oneDratio):
         qy = uniformly and \
                 p.y * (size / max(bbox_w, bbox_h)) \
              or p.y * (size / bbox_h)
-        newpoints.append(GPoint(qx, qy))
+        newpoints.append(Vector(qx, qy))
 
     return newpoints
 
@@ -1353,7 +1339,7 @@ def translate_to(points, pt):
     for p in points:
         qx = p.x + pt.x - c.x
         qy = p.y + pt.y - c.y
-        newpoints.append(GPoint(qx, qy))
+        newpoints.append(Vector(qx, qy))
     return newpoints
 
 
@@ -1455,7 +1441,7 @@ def centroid(points):
     x /= points_len
     y /= points_len
 
-    return GPoint(x, y)
+    return Vector(x, y)
 
 
 def bounding_box(points):
@@ -1498,9 +1484,9 @@ def distance(p1, p2):
 
 
 def start_unit_vector(points, index):
-    v = GPoint(points[index].x - points[0].x, points[index].y - points[0].y)
+    v = Vector(points[index].x - points[0].x, points[index].y - points[0].y)
     length = sqrt(v.x ** 2 + v.y ** 2)
-    return GPoint(v.x / length, v.y / length)
+    return Vector(v.x / length, v.y / length)
 
 
 def angle_between_unit_vectors(v1, v2):

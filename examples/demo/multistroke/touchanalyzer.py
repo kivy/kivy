@@ -8,7 +8,8 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, Line, Rectangle
 from kivy.properties import ObjectProperty
-from kivy.multistroke import Recognizer, GPoint
+from kivy.multistroke import Recognizer
+from kivy.vector import Vector
 
 __all__ = ('TouchAnalyzer', 'GContainer')
 
@@ -293,10 +294,10 @@ class TouchAnalyzer(FloatLayout):
             return
 
         # Convert the data to acceptable input for recognize, ie a list of
-        # GPoint objects with the coordinates from on_touch_* events.
+        # Vector objects with the coordinates from on_touch_* events.
         cand = []
         for tuid, l in g.strokes.items():
-            cand.append([GPoint(*pts) for pts in \
+            cand.append([Vector(*pts) for pts in \
                 zip(l.points[::2], l.points[1::2])])
 
         # Create a callback that dispatches the event when the actual search
@@ -304,9 +305,10 @@ class TouchAnalyzer(FloatLayout):
         def _recognize_complete(result):
             self.dispatch('on_gesture_recognize', g, result)
 
-        import cProfile
-        print cProfile.runctx('self.gdb.recognize(cand);Clock.tick()',
-                                  globals(), locals())
+        #XXX: Remove when not useful anymore
+        #import cProfile
+        #print cProfile.runctx('self.gdb.recognize(cand);Clock.tick()',
+        #                          globals(), locals())
         res = self.gdb.recognize(cand)
         res.bind(on_complete=_recognize_complete)
 

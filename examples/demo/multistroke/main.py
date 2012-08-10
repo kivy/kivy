@@ -27,17 +27,6 @@ Builder.load_string('''
 ''' % (MENU_SIZE_HINT))
 
 
-# Override default ToggleButton behavior so it's not deselectable. Should
-# probably be added as a feature in core, unless it is and I missed it
-
-class RadioButton(ToggleButton):
-
-    def _do_press(self):
-        self._release_group(self)
-        if self.state != 'down':
-            self.state = 'down'
-
-
 # Main menu - positioned at bottom of screen
 # This entire app is an experiment, I'm sure there are better ways ^^
 
@@ -65,7 +54,7 @@ class MainMenu(GridLayout):
     def _button(self, **kwargs):
         kwargs.setdefault('group', 'mainmenu')
         kwargs.setdefault('size_hint', (.25, 1))
-        r = RadioButton(**kwargs)
+        r = ToggleButton(**kwargs)
         r.bind(on_press=self.menu_press)
         if kwargs.get('default', False):
             r.state = 'down'
