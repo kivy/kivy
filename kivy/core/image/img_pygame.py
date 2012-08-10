@@ -5,7 +5,7 @@ Pygame: Pygame image loader
 __all__ = ('ImageLoaderPygame', )
 
 from kivy.logger import Logger
-from . import ImageLoaderBase, ImageData, ImageLoader
+from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 try:
     import pygame
@@ -52,9 +52,13 @@ class ImageLoaderPygame(ImageLoaderBase):
                 imc = im.convert(32)
                 fmt = 'rgba'
             except:
-                Logger.warning(
-                    'Image: Unable to convert image <%s> to rgba (was %s)' %
-                    filename, im.fmt)
+                try:
+                    imc = im.convert_alpha()
+                    fmt = 'rgba'
+                except:
+                    Logger.warning(
+                        'Image: Unable to convert image %r to rgba (was %r)' %
+                        (filename, im.fmt))
                 raise
             im = imc
 

@@ -54,7 +54,7 @@ Traversing the tree
 -------------------
 
 The widget class has a :data:`~kivy.uix.widget.Widget.children` list property
-that contains all the children. You can easily traverse the tree by doing ::
+that contains all the children. You can easily traverse the tree by doing::
 
     root = BoxLayout()
     # ... add widgets to root ...

@@ -8,6 +8,7 @@ benchmark_version = '1'
 
 import os
 import sys
+import json
 import kivy
 import gc
 from time import clock, time, ctime
@@ -205,20 +206,30 @@ if __name__ == '__main__':
 
 try:
     reply = raw_input(
-        'Do you want to send benchmark to paste.pocoo.org (Y/n) : ')
+        'Do you want to send benchmark to gist.github.com (Y/n) : ')
 except EOFError:
     sys.exit(0)
 
 if reply.lower().strip() in ('', 'y'):
     print 'Please wait while sending the benchmark...'
 
-    from xmlrpclib import ServerProxy
-    s = ServerProxy('http://paste.pocoo.org/xmlrpc/')
-    r = s.pastes.newPaste('text', '\n'.join(report))
+    try:
+        import requests
+    except ImportError:
+        print "`requests` module not found, no benchmark posted."
+        sys.exit(1)
+
+    payload = {
+        'public': True, 'files': {
+            'benchmark.txt': {
+                'content': '\n'.join(report)}}}
+
+    r = requests.post('https://api.github.com/gists', data=json.dumps(payload))
+
 
     print
     print
-    print 'REPORT posted at http://paste.pocoo.org/show/%s/' % r
+    print 'REPORT posted at {0}'.format(r.json['html_url'])
     print
     print
 else:

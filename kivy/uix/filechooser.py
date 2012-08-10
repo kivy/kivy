@@ -6,13 +6,12 @@ FileChooser
 
 .. warning::
 
-    This is experimental and subject to change as long as this warning notice is
-    present.
+    This is experimental and subject to change as long as this warning notice
+    is present.
 
 .. versionchanged:: 1.2.0
-
-    In chooser template, the `controller` is not a direct reference anymore, but
-    a weak-reference.
+    In chooser template, the `controller` is not a direct reference anymore,
+    but a weak-reference.
     You must update all the notation `root.controller.xxx` to
     `root.controller().xxx`.
 
@@ -87,19 +86,19 @@ class FileChooserProgressBase(FloatLayout):
     '''
 
     path = StringProperty('')
-    '''Current path of the FileChooser, read-only
+    '''Current path of the FileChooser, read-only.
     '''
 
     index = NumericProperty(0)
-    '''Current index of :data:`total` entries to be loaded
+    '''Current index of :data:`total` entries to be loaded.
     '''
 
     total = NumericProperty(1)
-    '''Total number of entries to load
+    '''Total number of entries to load.
     '''
 
     def cancel(self, *largs):
-        '''Cancel any action from the FileChooserController
+        '''Cancel any action from the FileChooserController.
         '''
         if self.parent:
             self.parent.cancel()
@@ -126,8 +125,22 @@ class FileChooserProgress(FileChooserProgressBase):
 
 class FileChooserController(FloatLayout):
     '''Base for implementing a FileChooser. Don't use that class directly,
-    prefer to use one implementation like :class:`FileChooserListView` or
+    preferring to use an implementation like :class:`FileChooserListView` or
     :class:`FileChooserIconView`.
+
+    :Events:
+        `on_entry_added`: entry, parent
+            Fired when a root-level entry is added to the file list.
+        `on_entries_cleared`
+            Fired when the the entries list is cleared. Usally when the
+            root is refreshed.
+        `on_subentry_to_entry`: entry, parent
+            Fired when a sub-entry is added to an existing entry.
+        `on_remove_subentry`: entry, parent
+            Fired when entries are removed from an entry. Usually when
+            a node is closed.
+        `on_submit`: selection, touch
+            Fired when a file has been selected with a double-tap.
     '''
     _ENTRY_TEMPLATE = None
 
@@ -135,38 +148,47 @@ class FileChooserController(FloatLayout):
     '''
     :class:`~kivy.properties.StringProperty`, defaults to current working
     directory as unicode string. Specifies the path on the filesystem that
-    this controller should look at.
+    this controller should refer to.
     '''
 
     filters = ListProperty([])
     ''':class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
-    The filters to be applied to the files in the directory, e.g. ['\*.png'].
-    The filters are not reset when the path changes, you need to do that
-    yourself if you want that. You can use the following patterns:
+    The filters to be applied to the files in the directory.
 
-      ========== =================================
-      Pattern     Meaning
-      ========== =================================
-      \*         matches everything
-      ?          matches any single character
-      [seq]      matches any character in seq
-      [!seq]     matches any character not in seq
-      ========== =================================
+    The filters are not reset when the path changes. You need to do that
+    yourself if desired.
 
+    There are two kinds of filters :
+
+    filename patterns : e.g. ['\*.png'].
+    You can use the following patterns:
+
+        ========== =================================
+        Pattern     Meaning
+        ========== =================================
+        \*         matches everything
+        ?          matches any single character
+        [seq]      matches any character in seq
+        [!seq]     matches any character not in seq
+        ========== =================================
+
+    .. versionchanged:: 1.4.0
+        if the filter is a callable (function or method). It will be called
+        with the path and the file name as arguments for each file in dir. The
+        callable should returns True to indicate a match and False overwise.
     '''
 
     filter_dirs = BooleanProperty(False)
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
-    Indicate whether filters should also apply to directories.
+    Indicates whether filters should also apply to directories.
     '''
 
     sort_func = ObjectProperty(alphanumeric_folders_first)
     '''
     :class:`~kivy.properties.ObjectProperty`.
-    Provide a function to be called with a list of filenames as only argument.
-    Return a list of filenames in such a manner that the new list is sorted and
-    represents in which order files are supposed to be displayed in the view.
+    Provides a function to be called with a list of filenames as the only
+    argument.  Returns a list of filenames sorted for display in the view.
     '''
 
     files = ListProperty([])
@@ -205,9 +227,9 @@ class FileChooserController(FloatLayout):
     rootpath = StringProperty(None, allownone=True)
     '''
     Root path to use, instead of the system root path. If set, it will not show
-    a ".." directory to go upper the root path. For example, if you set rootpath
-    to /Users/foo, the user will be unable to goes to /Users, or any other
-    directory not starting with /Users/foo.
+    a ".." directory to go upper the root path. For example, if you set
+    rootpath to /Users/foo, the user will be unable to go to /Users, or to any
+    other directory not starting with /Users/foo.
 
     .. versionadded:: 1.2.0
 
@@ -215,7 +237,7 @@ class FileChooserController(FloatLayout):
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
-    '''Class to use for display a progression of the filechooser loading.
+    '''Class to use for displaying a progress indicator for filechooser loading.
 
     .. versionadded:: 1.2.0
 
@@ -223,14 +245,13 @@ class FileChooserController(FloatLayout):
     :class:`FileChooserProgress`
     '''
 
-
     file_encodings = ListProperty(['utf-8', 'latin1', 'cp1252'])
-    '''Possible encodings for decoding a filename to unicode. It might be
-    possible than user have a weird filename, undecodable without knowing it's
-    initial encoding. We have no other choice to guess it.
+    '''Possible encodings for decoding a filename to unicode. In the case that
+    the user has a weird filename, undecodable without knowing it's
+    initial encoding, we have no other choice than to guess it.
 
-    Please note that if you encounter an issue cause of a missing encodings
-    here, we'll be glad to add it in this list.
+    Please note that if you encounter an issue because of a missing encoding
+    here, we'll be glad to add it to this list.
 
     .. versionadded:: 1.3.0
 
@@ -346,6 +367,7 @@ class FileChooserController(FloatLayout):
             try:
                 path = entry.path.decode('utf-8')
             except UnicodeEncodeError:
+                path = entry.path
                 pass
             listdir(path)
         except OSError:
@@ -360,7 +382,10 @@ class FileChooserController(FloatLayout):
             return files
         filtered = []
         for filter in self.filters:
-            filtered.extend([fn for fn in files if fnmatch(fn, filter)])
+            if callable(filter):
+                filtered.extend([fn for fn in files if filter(self.path, fn)])
+            else:
+                filtered.extend([fn for fn in files if fnmatch(fn, filter)])
         if not self.filter_dirs:
             dirs = [fn for fn in files if isdir(fn)]
             filtered.extend(dirs)
@@ -368,7 +393,7 @@ class FileChooserController(FloatLayout):
 
     def get_nice_size(self, fn):
         '''Pass the filepath. Returns the size in the best human readable
-        format or '' if it's a directory (Don't recursively calculate size.).
+        format or '' if it is a directory (Don't recursively calculate size.).
         '''
         if isdir(fn):
             return ''
@@ -405,8 +430,8 @@ class FileChooserController(FloatLayout):
 
     def _create_files_entries(self, *args):
         # create maximum entries during 50ms max, or 10 minimum (slow system)
-        # (on a "fast system" (core i7 2700K), we can create up to 40 entries in
-        # 50 ms. So 10 is fine for low system.
+        # (on a "fast system" (core i7 2700K), we can create up to 40 entries
+        # in 50 ms. So 10 is fine for low system.
         start = time()
         finished = False
         index = total = count = 1
@@ -447,16 +472,17 @@ class FileChooserController(FloatLayout):
         return False
 
     def cancel(self, *largs):
-        '''Cancel any background action started by filechooser, like loading a
-        new directory.
+        '''Cancel any background action started by filechooser, such as loading
+        a new directory.
 
         .. versionadded:: 1.2.0
         '''
         Clock.unschedule(self._create_files_entries)
         self._hide_progress()
         if len(self._previous_path) > 1:
-            # if we cancel any action, the path will be set same as the previous
-            # one, so we can safely cancel the update of the previous path.
+            # if we cancel any action, the path will be set same as the
+            # previous one, so we can safely cancel the update of the previous
+            # path.
             self.path = self._previous_path[-2]
             Clock.unschedule(self._update_files)
 
@@ -558,8 +584,8 @@ class FileChooserController(FloatLayout):
             yield index, total, entry
 
     def _force_unicode(self, s):
-        # the idea is, whatever is the filename, unicode or str, even if the str
-        # can't be directly returned as a unicode, return something.
+        # the idea is, whatever is the filename, unicode or str, even if the
+        # str can't be directly returned as a unicode, return something.
         if type(s) is unicode:
             return s
         encodings = self.file_encodings
@@ -583,13 +609,13 @@ class FileChooserController(FloatLayout):
 
 
 class FileChooserListView(FileChooserController):
-    '''Implementation of :class:`FileChooserController` using a list view
+    '''Implementation of :class:`FileChooserController` using a list view.
     '''
     _ENTRY_TEMPLATE = 'FileListEntry'
 
 
 class FileChooserIconView(FileChooserController):
-    '''Implementation of :class:`FileChooserController` using an icon view
+    '''Implementation of :class:`FileChooserController` using an icon view.
     '''
     _ENTRY_TEMPLATE = 'FileIconEntry'
 

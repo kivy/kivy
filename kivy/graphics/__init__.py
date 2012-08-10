@@ -82,7 +82,8 @@ from kivy.graphics.context_instructions import BindTexture, Color, \
 from kivy.graphics.vertex_instructions import Bezier, BorderImage, Ellipse, \
     GraphicException, Line, Mesh, Point, Quad, Rectangle, Triangle
 from kivy.graphics.stencil_instructions import StencilPop, StencilPush, \
-    StencilUse
+    StencilUse, StencilUnUse
+from kivy.graphics.gl_instructions import ClearColor, ClearBuffers
 from kivy.graphics.fbo import Fbo
 
 # very hacky way to avoid pyflakes warning...
@@ -94,7 +95,8 @@ __all__ = (Bezier.__name__, BindTexture.__name__, BorderImage.__name__,
     Mesh.__name__, Point.__name__, PopMatrix.__name__, PushMatrix.__name__,
     Quad.__name__, Rectangle.__name__, RenderContext.__name__,
     Rotate.__name__, Scale.__name__, StencilPop.__name__,
-    StencilPush.__name__, StencilUse.__name__, Translate.__name__,
-    Triangle.__name__, VertexInstruction.__name__,
+    StencilPush.__name__, StencilUse.__name__, StencilUnUse.__name__,
+    Translate.__name__, Triangle.__name__, VertexInstruction.__name__,
+    ClearColor.__name__, ClearBuffers.__name__,
     gl_init_resources.__name__)
 

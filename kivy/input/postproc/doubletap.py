@@ -16,7 +16,7 @@ class InputPostprocDoubleTap(object):
     '''
     InputPostProcDoubleTap is a post-processor to check if
     a touch is a double tap or not.
-    Double tap can be configured in the Kivy config file ::
+    Double tap can be configured in the Kivy config file::
 
         [postproc]
             double_tap_time = 250

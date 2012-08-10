@@ -63,7 +63,7 @@ def callback_docstring(app, what, name, obj, options, lines):
         line = lines.pop(0)
 
         # trick to realign the first line to the second one.
-        # FIXME: fail if we finishing with ::
+        # FIXME: fail if we finishing with::
         line_with_text = [x for x in lines if len(x.strip())]
         if len(line_with_text) and line is not None and len(lines):
             l = len(line_with_text[0]) - len(line_with_text[0].lstrip())

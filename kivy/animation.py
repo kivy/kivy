@@ -75,6 +75,8 @@ class Animation(EventDispatcher):
         `transition` or `t`: str or func
             Transition function for animate properties. It can be the name of a
             method from :class:`AnimationTransition`
+        `step` or `s`: float
+            Step in milliseconds of the animation. Default to 1 / 60.
 
     :Events:
         `on_start`: widget
@@ -83,6 +85,10 @@ class Animation(EventDispatcher):
             Fired when the animation is completed or stopped on a widget
         `on_progress`: widget, progression
             Fired when the progression of the animation is changing
+
+    .. versionchanged:: 1.4.0
+        Added s/step parameter.
+
     '''
 
     _instances = set()
@@ -99,9 +105,10 @@ class Animation(EventDispatcher):
         self._clock_installed = False
         self._duration = kw.get('d', kw.get('duration', 1.))
         self._transition = kw.get('t', kw.get('transition', 'linear'))
+        self._step = kw.get('s', kw.get('step', 1. / 60.))
         if isinstance(self._transition, basestring):
             self._transition = getattr(AnimationTransition, self._transition)
-        for key in ('d', 't', 'duration', 'transition'):
+        for key in ('d', 't', 's', 'step', 'duration', 'transition'):
             kw.pop(key, None)
         self._animated_properties = kw
         self._widgets = {}
@@ -129,7 +136,7 @@ class Animation(EventDispatcher):
         '''Stop all animations that concern a specific widget / list of
         properties.
 
-        Example ::
+        Example::
 
             anim = Animation(x=50)
             anim.start(widget)
@@ -142,7 +149,7 @@ class Animation(EventDispatcher):
                 for x in largs:
                     animation.stop_property(widget, x)
         else:
-            for animation in Animation._instances[:]:
+            for animation in set(Animation._instances):
                 animation.stop(widget)
 
     def start(self, widget):
@@ -154,11 +161,19 @@ class Animation(EventDispatcher):
         self.dispatch('on_start', widget)
 
     def stop(self, widget):
-        '''Stop the animation previously applied on a widget
-        '''
+        '''Stop the animation previously applied on a widget, triggering
+        `on_complete` event '''
         props = self._widgets.pop(widget, None)
         if props:
             self.dispatch('on_complete', widget)
+        self.cancel(widget)
+
+    def cancel(self, widget):
+        '''Stop the animation previously applied on a widget
+
+        .. versionadded:: 1.4.0
+        '''
+        self._widgets.pop(widget, None)
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
@@ -202,7 +217,7 @@ class Animation(EventDispatcher):
     def _clock_install(self):
         if self._clock_installed:
             return
-        Clock.schedule_interval(self._update, 1 / 60.)
+        Clock.schedule_interval(self._update, self._step)
         self._clock_installed = True
 
     def _clock_uninstall(self):
@@ -464,13 +479,13 @@ class AnimationTransition(object):
     def in_sine(progress):
         '''.. image:: images/anim_in_sine.png
         '''
-        return -1.0 * cos(progress * (pi/2.0)) + 1.0
+        return -1.0 * cos(progress * (pi / 2.0)) + 1.0
 
     @staticmethod
     def out_sine(progress):
         '''.. image:: images/anim_out_sine.png
         '''
-        return sin(progress * (pi/2.0))
+        return sin(progress * (pi / 2.0))
 
     @staticmethod
     def in_out_sine(progress):
@@ -565,7 +580,7 @@ class AnimationTransition(object):
             return 1.0
         if q < 1:
             q -= 1.0
-            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 *pi) / p))
+            return -.5 * (pow(2, 10 * q) * sin((q - s) * (2.0 * pi) / p))
         else:
             q -= 1.0
             return pow(2, -10 * q) * sin((q - s) * (2.0 * pi) / p) * .5 + 1.0
@@ -633,4 +648,3 @@ class AnimationTransition(object):
         if p < 1.:
             return AnimationTransition._in_bounce_internal(p, 1.) * .5
         return AnimationTransition._out_bounce_internal(p - 1., 1.) * .5 + .5
-

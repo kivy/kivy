@@ -64,6 +64,12 @@ class Touchtracer(FloatLayout):
                 pass
 
         ud['label'].pos = touch.pos
+        import time
+        t = int(time.time())
+        if t not in ud:
+            ud[t] = 1
+        else:
+            ud[t] += 1
         self.update_touch_label(ud['label'], touch)
 
     def on_touch_up(self, touch):
@@ -92,5 +98,5 @@ class TouchtracerApp(App):
     def on_pause(self):
         return True
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     TouchtracerApp().run()

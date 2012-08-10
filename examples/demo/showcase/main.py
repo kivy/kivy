@@ -138,7 +138,7 @@ class StackLayoutShowcase(FloatLayout):
                 self.txt = self.slayout.orientation = 'lr-tb'
             else:
                 self.txt = self.slayout.orientation = 'tb-lr'
-        self.slayout.add_widget(Button(text = self.txt))
+        self.slayout.add_widget(Button(text=self.txt, size_hint=(.30, .20)))
         Clock.schedule_once(self.add_button, 1)
 
 
@@ -277,5 +277,5 @@ class ShowcaseApp(App):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         return tv
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     ShowcaseApp().run()

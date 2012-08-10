@@ -6,11 +6,11 @@ Support of WM_TOUCH message (Window platform)
 __all__ = ('WM_MotionEventProvider', 'WM_MotionEvent')
 
 import os
-from kivy.input.providers.wm_common import WM_TABLET_QUERYSYSTEMGESTURE, \
-        GWL_WNDPROC, QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE, \
-        WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE, \
-        PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN, \
-        TOUCHEVENTF_MOVE
+from kivy.input.providers.wm_common import (WM_TABLET_QUERYSYSTEMGESTURE,
+        GWL_WNDPROC, QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE,
+        WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE,
+        PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN,
+        TOUCHEVENTF_MOVE)
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 
@@ -41,9 +41,10 @@ if 'KIVY_DOC' in os.environ:
     WM_MotionEventProvider = None
 
 else:
-    from ctypes.wintypes import ULONG, HANDLE, DWORD, LONG
-    from ctypes import windll, WINFUNCTYPE, c_long, c_int, \
-            Structure, pointer, sizeof, byref
+    from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
+            WPARAM, LPARAM, POINTER, BOOL)
+    from ctypes import (windll, WINFUNCTYPE, c_int,
+                        Structure, pointer, sizeof, byref)
     from collections import deque
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
@@ -52,7 +53,8 @@ else:
     if not hasattr(windll.user32, 'RegisterTouchWindow'):
         raise Exception('Unsupported Window version')
 
-    WNDPROC = WINFUNCTYPE(c_long, c_int, c_int, c_int, c_int)
+    LRESULT = LPARAM
+    WNDPROC = WINFUNCTYPE(LRESULT, HANDLE, UINT, WPARAM, LPARAM)
 
     class TOUCHINPUT(Structure):
         _fields_ = [
@@ -63,7 +65,7 @@ else:
             ('flags', DWORD),
             ('mask', DWORD),
             ('time', DWORD),
-            ('extraInfo', ULONG),
+            ('extraInfo', POINTER(ULONG)),
             ('size_x', DWORD),
             ('size_y', DWORD)]
 
@@ -97,6 +99,27 @@ else:
         w = property(lambda self: self.right-self.left)
         h = property(lambda self: self.bottom-self.top)
 
+    windll.user32.SetWindowLongPtrW.restype = WNDPROC
+    windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
+    windll.user32.GetMessageExtraInfo.restype = LPARAM
+    windll.user32.GetMessageExtraInfo.argtypes = []
+    windll.user32.GetClientRect.restype = BOOL
+    windll.user32.GetClientRect.argtypes = [HANDLE, POINTER(RECT)]
+    windll.user32.GetWindowRect.restype = BOOL
+    windll.user32.GetWindowRect.argtypes = [HANDLE, POINTER(RECT)]
+    windll.user32.CallWindowProcW.restype = LRESULT
+    windll.user32.CallWindowProcW.argtypes = [WNDPROC, HANDLE, UINT, WPARAM,
+                                              LPARAM]
+    windll.user32.GetActiveWindow.restype = HANDLE
+    windll.user32.GetActiveWindow.argtypes = []
+    windll.user32.RegisterTouchWindow.restype = BOOL
+    windll.user32.RegisterTouchWindow.argtypes = [HANDLE, ULONG]
+    windll.user32.UnregisterTouchWindow.restype = BOOL
+    windll.user32.UnregisterTouchWindow.argtypes = [HANDLE]
+    windll.user32.GetTouchInputInfo.restype = BOOL
+    windll.user32.GetTouchInputInfo.argtypes = [HANDLE, UINT,
+                                                POINTER(TOUCHINPUT), c_int]
+
     class WM_MotionEventProvider(MotionEventProvider):
 
         def start(self):
@@ -111,7 +134,7 @@ else:
             # inject our own wndProc to handle messages
             # before window manager does
             self.new_windProc = WNDPROC(self._touch_wndProc)
-            self.old_windProc = windll.user32.SetWindowLongW(
+            self.old_windProc = windll.user32.SetWindowLongPtrW(
                 self.hwnd,
                 GWL_WNDPROC,
                 self.new_windProc)
@@ -150,7 +173,7 @@ else:
 
         def stop(self):
             windll.user32.UnregisterTouchWindow(self.hwnd)
-            self.new_windProc = windll.user32.SetWindowLongW(
+            self.new_windProc = windll.user32.SetWindowLongPtrW(
                 self.hwnd,
                 GWL_WNDPROC,
                 self.old_windProc)
@@ -173,7 +196,6 @@ else:
                                                 hwnd, msg, wParam, lParam)
             return 1
 
-
         # this on pushes WM_TOUCH messages onto our event stack
         def _touch_handler(self, msg, wParam, lParam):
             touches = (TOUCHINPUT * wParam)()
@@ -185,7 +207,6 @@ else:
                 self.touch_events.appendleft(touches[i])
             return True
 
-
         # filter fake mouse events, because touch and stylus
         # also make mouse events
         def _mouse_handler(self, msg, wparam, lParam):
@@ -194,6 +215,5 @@ else:
             if (info & PEN_OR_TOUCH_MASK) == PEN_OR_TOUCH_SIGNATURE:
                 if info & PEN_EVENT_TOUCH_MASK:
                     return True
-
 
     MotionEventFactory.register('wm_touch', WM_MotionEventProvider)

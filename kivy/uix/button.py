@@ -13,7 +13,7 @@ the Label class::
     button = Button(text='Hello world', font_size=14)
 
 To attach a callback when the button is pressed (clicked/touched), use
-:class:`~kivy.uix.widget.Widget.bind` ::
+:class:`~kivy.uix.widget.Widget.bind`::
 
     def callback(instance):
         print 'The button <%s> is being pressed' % instance.text
@@ -24,7 +24,7 @@ To attach a callback when the button is pressed (clicked/touched), use
     btn2.bind(on_press=callback)
 
 If you want to be notified every time the button state changes, you can attach
-to the :data:`Button.state` property ::
+to the :data:`Button.state` property::
 
     def callback(instance, value):
         print 'My button <%s> state is <%s>' % (instance, value)
@@ -91,11 +91,11 @@ class Button(Label):
 
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
-    graphics instruction, used itself for :data:`background_normal` and
-    :data:`background_down`. Can be used when using custom background.
+    graphics instruction. Used with :data:`background_normal` and
+    :data:`background_down`. Can be used for a custom background.
 
-    It must be a list of 4 value: (top, right, bottom, left). Read the
-    BorderImage instruction for more information about how to play with it.
+    It must be a list of four values: (top, right, bottom, left). Read the
+    BorderImage instruction for more information about how to use it.
 
     :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
     16, 16, 16)
@@ -115,6 +115,9 @@ class Button(Label):
     def on_touch_down(self, touch):
         if super(Button, self).on_touch_down(touch):
             return True
+        if 'button' in touch.profile and touch.button in ('scrolldown', 
+                                                          'scrollup'):
+            return False
         if not self.collide_point(touch.x, touch.y):
             return False
         if self in touch.ud:

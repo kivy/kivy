@@ -12,7 +12,7 @@
     the styleguide checker over your code and abort the commit if there are any
     errors. If that happens, please fix & retry.
 
-    To install ::
+    To install::
 
         cp kivy/tools/pep8checker/pre-commit.githook .git/hooks/pre-commit
         chmod +x .git/hooks/pre-commit
@@ -32,7 +32,7 @@ proc = Popen(['git', 'diff', '--cached', '--name-only', 'HEAD'], stdout=PIPE)
 proc.wait()
 targets = [join(kivydir, target) for target in proc.stdout]
 call(['git', 'stash', 'save', '--keep-index', '--quiet'])
-retval = call(['python', script, srcdir] + targets)
+retval = call([sys.executable, script, srcdir] + targets)
 call(['git', 'stash', 'pop', '--quiet'])
 
 if retval:

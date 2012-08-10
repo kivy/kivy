@@ -32,6 +32,5 @@ class TestApp(App):
         button.bind(on_press=self.animate)
         return button
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     TestApp().run()
-

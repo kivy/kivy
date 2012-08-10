@@ -1569,9 +1569,12 @@ def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
 
 IF USE_GLEW:
     cdef extern from "gl_redirect.h":
-        void glewInit()
+        int glewInit()
+        void glew_dynamic_binding()
     def gl_init_symbols():
         glewInit()
+        glew_dynamic_binding()
+
 ELSE:
     def gl_init_symbols():
         pass

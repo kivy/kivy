@@ -22,6 +22,16 @@ Configuration
 KIVY_USE_DEFAULTCONFIG
     If this name is found in environ, Kivy will not read the user config file.
 
+KIVY_NO_CONFIG
+    If set, no configuration file will be read or write, and no user
+    configuration directory too.
+
+KIVY_NO_FILELOG
+    If set, logs will be not print on a file
+
+KIVY_NO_CONSOLELOG
+    If set, logs will be not print on the console
+
 Path control
 ------------
 

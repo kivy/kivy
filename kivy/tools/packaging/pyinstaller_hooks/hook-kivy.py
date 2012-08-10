@@ -35,12 +35,17 @@ _kivy_modules = [
     'pygame',
 
     # external modules
+    'kivy.cache',
+    'kivy.atlas',
+    'kivy.network',
+    'kivy.network.urlrequest',
     'kivy.lib.osc',
     'kivy.lib.osc.OSC',
     'kivy.lib.osc.oscAPI',
     'kivy.lib.mtdev',
     'kivy.lib.debug',
     'kivy.factory_registers',
+    'kivy.input.recorder',
     'kivy.input.providers',
     'kivy.input.providers.tuio',
     'kivy.input.providers.mouse',

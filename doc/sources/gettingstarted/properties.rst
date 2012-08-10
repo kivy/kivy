@@ -1,35 +1,47 @@
 Properties
 ----------
+.. container:: title
 
-Kivy properties are an implementation of the observer pattern, they give you a way to bind events to the changing of their value.
+    Using Kivy's Properties
 
-To use them, you have to create them at class level, they will take care of their instanciation when the class is instanciated.
+Kivy introduce a new way of declaring the properties within a class.
+Before::
 
-class MyWidget(Widget):
-    # definition at class level
-    my_property = StringProperty('world')
+    class MyClass(object):
+        def __init__(self):
+            super(MyClass, self).__init__()
+            self.numeric_var = 1
 
-    # create a callback for when the property is changed,
-    # due to its name, it will be bound to my_property
-    # you can bind any callback to the property using my_property.bind(callback)
+After, using Kivy's properties::
 
-    def on_my_property(self, value, \*others):
-        print 'hello',self.my_property
+    class MyClass(EventDispatcher):
+        numeric_var = NumericProperty(1)
 
-Kivy’s Properties are not to be confused with Python’s properties (i.e. the @property decorator and the <property> type).
+Theses properties implement the `Observer pattern
+<http://en.wikipedia.org/wiki/Observer_pattern>`_. You can:
 
-Kivy’s property classes support:
+- Allow manipulating your widgets in kv language more easily
+- Automatically observe any changes and dispatch functions/code accordingly
+- Check and validate values
+- Optimize memory management
 
-    Value Checking / Validation
-        When you assign a new value to a property, the value is checked to pass some constraints implemented in the class. I.e., validation is performed. 
-        For example, an OptionProperty will make sure that the value is in a predefined list of possibilities. A NumericProperty will check that your value is a numeric type, 
-        i.e. int, float, etc. This prevents many errors early on.
-    Observer Pattern
-        You can specify what should happen when a property’s value changes. You can bind your own function as a callback to changes of a Property. 
-        If, for example, you want a piece of code to be called when a widget’s pos property changes, you can bind a function to it.
-    Better Memory Management
-        The same instance of a property is shared across multiple widget instances.
 
-Each property by default provides a ``on_property`` event in the class it is defined in.
+To use them, **you have to declare them at class level**. That is, directly in
+the class, not in any method of the class. A property is a class attribute
+that will automatically create instance attributes. Each property by default
+provides an ``on_<propertyname>`` event that is called whenever the property's
+state/value changes .
 
-For a in-depth look into kivy properties look in http://kivy.org/docs/api-kivy.properties.html
+Kivy provides the following properties:
+    :mod:`~kivy.properties.NumericProperty`,
+    :mod:`~kivy.properties.StringProperty`,
+    :mod:`~kivy.properties.ListProperty`,
+    :mod:`~kivy.properties.ObjectProperty`,
+    :mod:`~kivy.properties.BooleanProperty`,
+    :mod:`~kivy.properties.BoundedNumericProperty`,
+    :mod:`~kivy.properties.OptionProperty`,
+    :mod:`~kivy.properties.ReferenceListProperty`,
+    :mod:`~kivy.properties.AliasProperty`,
+    :mod:`~kivy.properties.DictProperty`,
+
+For an in-depth explaination, look at :doc:`/api-kivy.properties`

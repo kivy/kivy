@@ -2,11 +2,21 @@
 Grid Layout
 ===========
 
+.. only:: html
+
+    .. image:: images/gridlayout.gif
+        :align: right
+
+.. only:: latex
+
+    .. image:: images/gridlayout.png
+        :align: right
+
 .. versionadded:: 1.0.4
 
 :class:`GridLayout` arranges children in a matrix. It takes the available space
-and divides it in columns and rows, then adds widgets to the resulting "cells".
-
+and divides it into columns and rows, then adds widgets to the resulting 
+"cells".
 
 .. versionadded:: 1.0.7
     The implementation has changed to use widget size_hint for calculating
@@ -20,20 +30,20 @@ Unlike many other toolkits, you cannot explicitly place a widget at a specific
 column/row. Each child is automatically assigned a position, depending on the
 layout configuration and the child's index in the children list.
 
-A GridLayout must always have at least one restriction: :data:`GridLayout.cols`
-or :data:`GridLayout.rows`. If you do not specify a restriction, the Layout
-will throw an exception.
+A GridLayout must always have at least one input constraint: 
+:data:`GridLayout.cols` or :data:`GridLayout.rows`. If you do not specify cols
+or rows, the Layout will throw an exception.
 
-Column width and row height
+Column Width and Row Height
 ---------------------------
 
 The column width/row height are determined in 3 steps:
 
     - The initial size is given by the :data:`col_default_width` and
       :data:`row_default_height` properties. To customize the size of a single
-      column or row, use :data:`cols_minimum` or :data:`rows_minimum`
+      column or row, use :data:`cols_minimum` or :data:`rows_minimum`.
     - Then the `size_hint_x`/`size_hint_y` of the child are taken into account.
-      If no widgets have a size hint, the maximum size is used for all children
+      If no widgets have a size hint, the maximum size is used for all children.
     - You can force the default size by setting the :data:`col_force_default`
       or :data:`row_force_default` property. This will force the layout to
       ignore the `width` and `size_hint` properties of children and use the
@@ -43,7 +53,7 @@ Usage of GridLayout
 -------------------
 
 In the example below, all widgets will get an equal size. By default,
-`size_hint` is (1, 1) so a Widget will take the full size of the parent::
+`size_hint` is (1, 1), so a Widget will take the full size of the parent::
 
     layout = GridLayout(cols=2)
     layout.add_widget(Button(text='Hello 1'))
@@ -85,7 +95,7 @@ from math import ceil
 
 
 class GridLayoutException(Exception):
-    '''Exception for errors in the grid layout manipulation
+    '''Exception for errors in the grid layout manipulation.
     '''
     pass
 
@@ -109,7 +119,7 @@ class GridLayout(Layout):
     '''
 
     cols = BoundedNumericProperty(None, min=0, allow_none=True)
-    '''Number of columns in the grid
+    '''Number of columns in the grid.
 
     .. versionadded:: 1.0.8
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
@@ -119,7 +129,7 @@ class GridLayout(Layout):
     '''
 
     rows = BoundedNumericProperty(None, min=0, allow_none=True)
-    '''Number of rows in the grid
+    '''Number of rows in the grid.
 
     .. versionadded:: 1.0.8
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
@@ -129,7 +139,7 @@ class GridLayout(Layout):
     '''
 
     col_default_width = NumericProperty(0)
-    '''Default minimum size to use for column
+    '''Default minimum size to use for column.
 
     .. versionadded:: 1.0.7
 
@@ -138,7 +148,7 @@ class GridLayout(Layout):
     '''
 
     row_default_height = NumericProperty(0)
-    '''Default minimum size to use for row
+    '''Default minimum size to use for row.
 
     .. versionadded:: 1.0.7
 
@@ -185,7 +195,7 @@ class GridLayout(Layout):
     '''
 
     minimum_width = NumericProperty(0)
-    '''Minimum width needed to contain all childrens.
+    '''Minimum width needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -194,7 +204,7 @@ class GridLayout(Layout):
     '''
 
     minimum_height = NumericProperty(0)
-    '''Minimum height needed to contain all childrens.
+    '''Minimum height needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -203,7 +213,7 @@ class GridLayout(Layout):
     '''
 
     minimum_size = ReferenceListProperty(minimum_width, minimum_height)
-    '''Minimum size needed to contain all childrens.
+    '''Minimum size needed to contain all children.
 
     .. versionadded:: 1.0.8
 
@@ -256,7 +266,7 @@ class GridLayout(Layout):
         smax = self.get_max_widgets()
         if smax and len(value) > smax:
             raise GridLayoutException(
-                    'Too much children in GridLayout. Increase your rows/cols!')
+                    'Too many children in GridLayout. Increase rows/cols!')
 
     def update_minimum_size(self, *largs):
         # the goal here is to calculate the minimum size of every cols/rows
@@ -270,7 +280,7 @@ class GridLayout(Layout):
         # the grid must be contrained at least on one side
         if not current_cols and not current_rows:
             Logger.warning('%r have no cols or rows set, '
-                'layout are not triggered.' % self)
+                'layout is not triggered.' % self)
             return None
         if current_cols is None:
             current_cols = int(ceil(len_children / float(current_rows)))
@@ -344,7 +354,7 @@ class GridLayout(Layout):
         if self._cols is None:
             return
         if self.cols is None and self.rows is None:
-            raise GridLayoutException('Need at least cols or rows restriction.')
+            raise GridLayoutException('Need at least cols or rows constraint.')
 
         children = self.children
         len_children = len(children)

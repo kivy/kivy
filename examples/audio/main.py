@@ -47,7 +47,7 @@ class AudioApp(App):
     def build(self):
 
         root = AudioBackground(spacing=5)
-        root.add_widget(Label(text='Audio example', font_size=32))
+        root.add_widget(Label(text='Audio example', font_size=32, size_hint_y=None))
         for fn in glob(join(dirname(__file__), '*.wav')):
             btn = AudioButton(
                 text=basename(fn[:-4]).replace('_', ' '), filename=fn,
@@ -57,5 +57,5 @@ class AudioApp(App):
 
         return root
 
-if __name__ in ('__android__', '__main__'):
+if __name__ == '__main__':
     AudioApp().run()

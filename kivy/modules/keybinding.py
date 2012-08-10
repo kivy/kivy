@@ -12,7 +12,7 @@ This module force the mapping of some keys to functions:
 __all__ = ('start', 'stop')
 
 
-def _on_keyboard_handler(instance, key, scancode, unicode, modifier):
+def _on_keyboard_handler(instance, key, scancode, codepoint, modifier):
     if key == 293: # F12
         instance.screenshot()
     elif key == 292: # F11

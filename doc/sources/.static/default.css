@@ -41,6 +41,7 @@ a:hover {
 	width: 840px;
 }
 
+#content dd,
 #content p,
 #content ul,
 #content pre {
@@ -267,13 +268,20 @@ div.seealso {
 }
 
 div.warning {
-    background-color: #ffe4e4;
-    border: 1px solid #f66;
+    border: 1px solid #fb9d43;
+	background: #fbddbf url('icon-warning.png') 8px 5px no-repeat;
+	padding-left: 42px;
 }
 
 div.note {
-    background-color: #eee;
-    border: 1px solid #ccc;
+	border: 1px solid #dbd286;
+	background: #f7f0b9 url('icon-note.png') 8px 5px no-repeat;
+	padding-left: 42px;
+}
+
+div.warning .admonition-title,
+div.note .admonition-title {
+	display: none;
 }
 
 p.admonition-title {
@@ -429,7 +437,17 @@ tt.descclassname {
 
 tt.xref, a tt {
     background-color: transparent;
-    font-weight: bold;
+	font: inherit;
+}
+
+div.body a.reference {
+	text-decoration: none !important;
+	font-style: italic;
+	color: #d97400;
+}
+
+div.body a.reference:hover {
+	color: #af541e;
 }
 
 .footnote:target  { background-color: #ffa }
@@ -685,3 +703,27 @@ dl.api-level dt {
 .gs-osimage-last {
 	clear: right;
 }
+
+.gs-eleft {
+	float: left;
+	margin-right: 22px;
+}
+
+/** Fix list within dt
+ */
+table.field-list dt {
+	margin: 0px;
+	background-color: #eeeeee;
+}
+
+table.field-list dl {
+	margin-top: 0px;
+}
+table.field-list td.field-body {
+	padding-top: 0px;
+}
+table.field-list th.field-name {
+	min-width: 100px;
+}
+
+

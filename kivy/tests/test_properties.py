@@ -3,19 +3,11 @@ Test properties attached to a widget
 '''
 
 import unittest
+from kivy.event import EventDispatcher
 
-
-class Widget(object):
-    '''Fake widget class'''
-
-    def __init__(self, **kwargs):
-        super(Widget, self).__init__(**kwargs)
-        self.__dict__['__uid'] = 1
-        self.__dict__['__storage'] = {}
-
-
-wid = Widget()
-
+class TestProperty(EventDispatcher):
+    pass
+wid = TestProperty()
 
 class PropertiesTestCase(unittest.TestCase):
 
@@ -70,7 +62,7 @@ class PropertiesTestCase(unittest.TestCase):
     def test_stringcheck(self):
         from kivy.properties import StringProperty
 
-        a = StringProperty('')
+        a = StringProperty()
         a.link(wid, 'a')
         a.link_deps(wid, 'a')
         self.assertEqual(a.get(wid), '')
@@ -78,7 +70,7 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 'hello')
 
         try:
-            a.set(wid, 88) # number shouldn't be accepted
+            a.set(wid, 88)  # number shouldn't be accepted
             self.fail('string accept number, fail.')
         except ValueError:
             pass
@@ -86,7 +78,7 @@ class PropertiesTestCase(unittest.TestCase):
     def test_numericcheck(self):
         from kivy.properties import NumericProperty
 
-        a = NumericProperty(0)
+        a = NumericProperty()
         a.link(wid, 'a')
         a.link_deps(wid, 'a')
         self.assertEqual(a.get(wid), 0)
@@ -94,10 +86,30 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(a.get(wid), 99)
 
         try:
-            a.set(wid, '') # string shouldn't be accepted
+            a.set(wid, '')  # string shouldn't be accepted
             self.fail('number accept string, fail.')
         except ValueError:
             pass
+
+    def test_listcheck(self):
+        from kivy.properties import ListProperty
+
+        a = ListProperty()
+        a.link(wid, 'a')
+        a.link_deps(wid, 'a')
+        self.assertEqual(a.get(wid), [])
+        a.set(wid, [1, 2, 3])
+        self.assertEqual(a.get(wid), [1, 2, 3])
+
+    def test_dictcheck(self):
+        from kivy.properties import DictProperty
+
+        a = DictProperty()
+        a.link(wid, 'a')
+        a.link_deps(wid, 'a')
+        self.assertEqual(a.get(wid), {})
+        a.set(wid, {'foo': 'bar'})
+        self.assertEqual(a.get(wid), {'foo': 'bar'})
 
     def test_propertynone(self):
         from kivy.properties import NumericProperty
@@ -215,7 +227,7 @@ class PropertiesTestCase(unittest.TestCase):
     def test_dict(self):
         from kivy.properties import DictProperty
 
-        x = DictProperty({})
+        x = DictProperty()
         x.link(wid, 'x')
         x.link_deps(wid, 'x')
 
@@ -248,4 +260,3 @@ class PropertiesTestCase(unittest.TestCase):
         observe_called = 0
         x.get(wid).update({'bleh': 5})
         self.assertEqual(observe_called, 1)
-

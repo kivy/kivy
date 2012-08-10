@@ -4,13 +4,9 @@ Create a package for Android
 ============================
 
 .. versionchanged:: 1.1.0
-
-    Starting from 1.1.0, we are not providing anymore a Kivy-XXX-android.zip.
-    We are using `python-for-android <http://https://github.com/kivy/python-for-android>`_
-    project.
-
-    The whole packaging is explained at
-    `http://python-for-android.readthedocs.org/en/latest/index.html`_
+    Kivy-XXX-android.zip is not provided anymore.  We are using
+    `python-for-android <http://github.com/kivy/python-for-android>`_
+    (`doc <http://python-for-android.readthedocs.org/en/latest/index.html>`_)
 
 Packaging your application into APK
 -----------------------------------
@@ -78,6 +74,11 @@ For example, if we imagine that the touchtracer demo of Kivy is in the directory
     ./build.py --dir ~/kivy/examples/demo/touchtracer \
         --package org.demo.touchtracer \
         --name "Kivy Touchtracer" --version 1.1.0 debug installd
+
+You need to be aware that the default target Android SDK version for the build 
+will be SDK v.8, which is the minimum required SDK version for kivy. You should 
+either install this API version, or change the AndroidManifest.xml file (under 
+dist/.../) to match your own target SDK requirements.
 
 The debug binary will be generated in bin/KivyTouchtracer-1.1.0-debug.apk.  The
 `debug` and `installd` are commands from android project itself. It say it will

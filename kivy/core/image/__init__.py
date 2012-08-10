@@ -22,9 +22,9 @@ from kivy.atlas import Atlas
 from kivy.resources import resource_find
 import zipfile
 try:
-    SIO = __import__('cStringIO')
+    import cStringIO as SIO
 except ImportError:
-    SIO = __import__('StringIO')
+    import StringIO as SIO
 
 
 # late binding
@@ -136,11 +136,12 @@ class ImageLoaderBase(object):
     '''Base to implement an image loader.'''
 
     __slots__ = ('_texture', '_data', 'filename', 'keep_data',
-                '_mipmap')
+                '_mipmap', '_nocache')
 
     def __init__(self, filename, **kwargs):
         self._mipmap = kwargs.get('mipmap', False)
         self.keep_data = kwargs.get('keep_data', False)
+        self._nocache = kwargs.get('nocache', False)
         self.filename = filename
         self._data = self.load(filename)
         self._textures = None
@@ -166,7 +167,8 @@ class ImageLoaderBase(object):
             if texture is None:
                 texture = Texture.create_from_data(
                         self._data[count], mipmap=self._mipmap)
-                Cache.append('kv.texture', uid, texture)
+                if not self._nocache:
+                    Cache.append('kv.texture', uid, texture)
 
             # set as our current texture
             self._textures.append(texture)
@@ -291,7 +293,7 @@ class ImageLoader(object):
                 fn = 'atlas://%s/%s' % (rfn, uid)
                 cid = '%s|%s|%s' % (fn, False, 0)
                 Cache.append('kv.texture', cid, texture)
-                return texture
+                return Image(texture)
 
             # search with resource
             afn = rfn
@@ -309,10 +311,14 @@ class ImageLoader(object):
                 cid = '%s|%s|%s' % (fn, False, 0)
                 #print 'register', cid
                 Cache.append('kv.texture', cid, texture)
-            return atlas[uid]
+            return Image(atlas[uid])
 
         # extract extensions
         ext = filename.split('.')[-1].lower()
+
+        # prevent url querystrings
+        if filename.startswith((('http://', 'https://'))):
+            ext = ext.split('?')[0]
 
         # special case. When we are trying to load a "zip" file with image, we
         # will use the special zip_loader in ImageLoader. This might return a
@@ -353,8 +359,6 @@ class Image(EventDispatcher):
             image object will be returned.
         `keep_data` : bool, default to False
             Keep the image data when texture is created
-        `opacity` : float, default to 1.0
-            Opacity of the image
         `scale` : float, default to 1.0
             Scale of the image
         `mipmap` : bool, default to False
@@ -365,7 +369,7 @@ class Image(EventDispatcher):
     '''
 
     copy_attributes = ('_size', '_filename', '_texture', '_image',
-                       '_mipmap')
+                       '_mipmap', '_nocache')
 
     def __init__(self, arg, **kwargs):
         # this event should be fired on animation of sequenced img's
@@ -375,6 +379,7 @@ class Image(EventDispatcher):
 
         self._mipmap = kwargs.get('mipmap', False)
         self._keep_data = kwargs.get('keep_data', False)
+        self._nocache = kwargs.get('nocache', False)
         self._size = [0, 0]
         self._image = None
         self._filename = None
@@ -390,6 +395,9 @@ class Image(EventDispatcher):
             for attr in Image.copy_attributes:
                 self.__setattr__(attr, arg.__getattribute__(attr))
         elif type(arg) in (Texture, TextureRegion):
+            if not hasattr(self, 'textures'):
+                self.textures = []
+                self.textures.append(arg)
             self._texture = arg
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
@@ -401,6 +409,29 @@ class Image(EventDispatcher):
 
         # check if the image hase sequences for animation in it
         self._img_iterate()
+
+    def remove_from_cache(self):
+        '''Remove the Image from cache. This facilitates re-loading of
+        image from disk in case of contents having been changed.
+
+        .. versionadded:: 1.3.0
+
+        Usage::
+
+            im = CoreImage('1.jpg')
+            # -- do something --
+            im.remove_from_cache()
+            im = CoreImage('1.jpg')
+            # this time image will be re-loaded from disk
+
+        '''
+        count = 0
+        uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
+        Cache.remove("kv.image", uid)
+        while Cache.get("kv.texture", uid):
+            Cache.remove("kv.texture", uid)
+            count += 1
+            uid = '%s|%s|%s' % (self.filename, self._mipmap, count)
 
     def _anim(self, *largs):
         if not self._image:
@@ -538,8 +569,16 @@ class Image(EventDispatcher):
         if image:
             # we found an image, yeah ! but reset the texture now.
             self.image = image
-            self._texture = None
-            self._img_iterate()
+            # if image.__class__ is core image then it's a texture
+            # from atlas or other sources and has no data so skip
+            if (image.__class__ != self.__class__ and
+                not image.keep_data and self._keep_data):
+                self.remove_from_cache()
+                self._filename = ''
+                self._set_filename(value)
+            else:
+                self._texture = None
+                self._img_iterate()
             return
         else:
             # if we already got a texture, it will be automatically reloaded.
@@ -552,7 +591,7 @@ class Image(EventDispatcher):
         tmpfilename = self._filename
         image = ImageLoader.load(
                 self._filename, keep_data=self._keep_data,
-                mipmap=self._mipmap)
+                mipmap=self._mipmap, nocache=self._nocache)
         self._filename = tmpfilename
 
         # put the image into the cache if needed
@@ -597,7 +636,7 @@ class Image(EventDispatcher):
 
         .. warning::
             This function can be used only with images loaded with
-            keep_data=True keyword. For examples ::
+            keep_data=True keyword. For examples::
 
                 m = Image.load('image.png', keep_data=True)
                 color = m.read_pixel(150, 150)

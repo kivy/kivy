@@ -2,6 +2,16 @@
 Box Layout
 ==========
 
+.. only:: html
+
+    .. image:: images/boxlayout.gif
+        :align: right
+
+.. only:: latex
+
+    .. image:: images/boxlayout.png
+        :align: right
+
 :class:`BoxLayout` arranges children in a vertical or horizontal box.
 
 To position widgets above/below each other, use a vertical BoxLayout::
@@ -33,7 +43,7 @@ example, we use 10 pixel spacing between children; the first button covers
     btn3 = Button(text='World', size_hint=(.5, 1))
 
     The first button will be 200px wide as specified, the second and third
-    will be 300px each, ie (800-200)*0.5
+    will be 300px each, e.g., (800-200)*0.5
 
 '''
 

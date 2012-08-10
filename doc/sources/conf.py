@@ -23,7 +23,7 @@ sys.path.append(os.path.abspath('sphinxext'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'preprocess']
+extensions = ['autodoc', 'sphinx.ext.todo', 'preprocess']
 
 # Todo configuration
 todo_include_todos = True
@@ -62,12 +62,8 @@ release = kivy.__version__
 # Else, today_fmt is used as the format for a strftime call.
 today_fmt = '%B %d, %Y'
 
-# List of documents that shouldn't be included in the build.
-#unused_docs = []
-
-# List of directories, relative to source directories, that shouldn't be searched
-# for source files.
-#exclude_dirs = []
+# suppress exclusion warnings
+exclude_patterns = ['gettingstarted/*', 'guide/layouts.rst']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None

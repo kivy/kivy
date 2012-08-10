@@ -7,12 +7,12 @@ Slider
 The :class:`Slider` widget looks like a scrollbar. It supports horizontal and
 vertical orientation, min/max and a default value.
 
-To create a slider from -100 to 100 starting at 25 ::
+To create a slider from -100 to 100 starting at 25::
 
     from kivy.uix.slider import Slider
     s = Slider(min=-100, max=100, value=25)
 
-To create a vertical slider ::
+To create a vertical slider::
 
     from kivy.uix.slider import Slider
     s = Slider(orientation='vertical')
@@ -51,11 +51,11 @@ class Slider(Widget):
 
     padding = NumericProperty(10)
     '''Padding of the slider. The padding is used for graphical representation
-    and interaction. It prevent the cursor to go out of the bounds of the slider
+    and interaction. It prevents the cursor from going out of the bounds of the slider
     bounding box.
 
     By default, padding is 10. The range of the slider is reduced from padding *
-    2 on the screen. It allow to draw a cursor of 20px width, without having the
+    2 on the screen. It allows drawing a cursor of 20px width, without having the
     cursor going out of the widget.
 
     :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
@@ -71,7 +71,7 @@ class Slider(Widget):
     '''
 
     range = ReferenceListProperty(min, max)
-    '''Range of the slider, in the format (minimum value, maximum value). ::
+    '''Range of the slider, in the format (minimum value, maximum value)::
 
         >>> slider = Slider(min=10, max=80)
         >>> slider.range
@@ -98,7 +98,7 @@ class Slider(Widget):
         self.value = value * (self.max - vmin) + vmin
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'min', 'max'))
-    '''Normalized value inside the :data:`range` (min/max) to 0-1 range. ::
+    '''Normalized value inside the :data:`range` (min/max) to 0-1 range::
 
         >>> slider = Slider(value=50, min=0, max=100)
         >>> slider.value
@@ -113,7 +113,7 @@ class Slider(Widget):
         1
 
     You can also use it for setting the real value without knowing the minimum
-    and maximum. ::
+    and maximum::
 
         >>> slider = Slider(min=0, max=200)
         >>> slider.value_normalized = .5

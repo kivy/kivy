@@ -45,6 +45,7 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 # Setup classes
+
 class KivyBuildExt(build_ext):
 
     def build_extensions(self):
@@ -80,7 +81,7 @@ import kivy
 from kivy.tools.packaging.factory import FactoryBuild
 cmdclass = {
     'build_factory': FactoryBuild,
-    'build_ext': KivyBuildExt }
+    'build_ext': KivyBuildExt}
 
 try:
     # add build rules for portable packages to cmdclass
@@ -116,6 +117,7 @@ else:
 
 # -----------------------------------------------------------------------------
 # declare flags
+
 def get_modulename_from_file(filename):
     filename = filename.replace(sep, '/')
     pyx = '.'.join(filename.split('.')[:-1])
@@ -126,17 +128,19 @@ def get_modulename_from_file(filename):
         pyxl.pop(0)
     return '.'.join(pyxl)
 
+
 class CythonExtension(Extension):
 
     def __init__(self, *args, **kwargs):
         Extension.__init__(self, *args, **kwargs)
         self.pyrex_directives = {
             'profile': 'USE_PROFILE' in environ,
-            'embedsignature': True}
+            'embedsignature': 'USE_EMBEDSIGNATURE' in environ}
         # XXX with pip, setuptools is imported before distutils, and change
         # our pyx to c, then, cythonize doesn't happen. So force again our
         # sources
         self.sources = args[1]
+
 
 def merge(d1, *args):
     d1 = deepcopy(d1)
@@ -148,6 +152,7 @@ def merge(d1, *args):
                 d1[key] = value
     return d1
 
+
 def determine_gl_flags():
     flags = {'libraries': []}
     if platform == 'win32':
@@ -158,6 +163,7 @@ def determine_gl_flags():
     elif platform.startswith('freebsd'):
         flags['include_dirs'] = ['/usr/local/include']
         flags['extra_link_args'] = ['-L', '/usr/local/lib']
+        flags['libraries'] = ['GL']
     elif platform.startswith('openbsd'):
         flags['include_dirs'] = ['/usr/X11R6/include']
         flags['extra_link_args'] = ['-L', '/usr/X11R6/lib']
@@ -174,6 +180,7 @@ def determine_gl_flags():
         else:
             flags['libraries'] += ['GLEW']
     return flags
+
 
 def determine_graphics_pxd():
     flags = {'depends': [join(dirname(__file__), 'kivy', x) for x in [
@@ -207,26 +214,43 @@ sources = {
     '_event.pyx': base_flags,
     'properties.pyx': base_flags,
     'graphics/buffer.pyx': base_flags,
-    'graphics/context.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/c_opengl_debug.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/compiler.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/context_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/fbo.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/opengl.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/opengl_utils.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/shader.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/stencil_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/texture.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/transformation.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/vbo.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/vertex.pyx': merge(base_flags, gl_flags, graphics_flags),
-    'graphics/vertex_instructions.pyx': merge(base_flags, gl_flags, graphics_flags),
-}
+    'graphics/context.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/c_opengl_debug.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/compiler.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/context_instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/fbo.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/gl_instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/opengl.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/opengl_utils.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/shader.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/stencil_instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/texture.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/transformation.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/vbo.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/vertex.pyx': merge(
+            base_flags, gl_flags, graphics_flags),
+    'graphics/vertex_instructions.pyx': merge(
+            base_flags, gl_flags, graphics_flags)}
 
 
 # -----------------------------------------------------------------------------
 # extension modules
+
 def get_extensions_from_sources(sources):
     ext_modules = []
     for pyx, flags in sources.iteritems():
@@ -301,6 +325,9 @@ setup(
         'kivy.tools',
         'kivy.tools.packaging',
         'kivy.tools.packaging.pyinstaller_hooks',
+        'kivy.tools.highlight',
+        'kivy.tools.highlight.pygments',
+        'kivy.tools.extensions',
         'kivy.uix', ],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
@@ -316,10 +343,14 @@ setup(
         'data/glsl/*.png',
         'data/glsl/*.vs',
         'data/glsl/*.fs',
+        'tools/highlight/*.vim',
+        'tools/highlight/*.el',
         'tools/packaging/README.txt',
         'tools/packaging/win32/kivy.bat',
         'tools/packaging/win32/kivyenv.sh',
         'tools/packaging/win32/README.txt',
+        'tools/packaging/osx/Info.plist',
+        'tools/packaging/osx/InfoPlist.strings',
         'tools/packaging/osx/kivy.sh']},
     data_files=examples.items(),
     classifiers=[

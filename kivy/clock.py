@@ -3,7 +3,7 @@ Clock object
 ============
 
 The :class:`Clock` object allows you to schedule a function call in the
-future; once or on interval. ::
+future; once or on interval::
 
     def my_callback(dt):
         pass
@@ -33,6 +33,34 @@ module::
 
     Clock.schedule_interval(partial(my_callback, 'my value', 'my key'), 0.5)
 
+.. important::
+
+    The callback is weak-referenced: you are responsible to keep a reference to
+    your original object/callback. If you don't keep a reference, the Clock will
+    never execute your callback. For example::
+
+        class Foo(object):
+            def start(self):
+                Clock.schedule_interval(self.callback)
+
+            def callback(self, dt):
+                print 'In callback'
+
+        # a Foo object is created, the method start is called,
+        # and the instance of foo is deleted
+        # Because nobody keep a reference to the instance returned from Foo(),
+        # the object will be collected by Python Garbage Collector. And you're
+        # callback will be never called.
+        Foo().start()
+
+        # So you must do:
+        foo = Foo()
+        foo.start()
+
+        # and keep the instance of foo, until you don't need it anymore!
+
+.. _schedule-before-frame:
+
 Schedule before frame
 ---------------------
 
@@ -59,6 +87,8 @@ If you need to increase the limit, set the :data:`max_iteration` property::
     from kivy.clock import Clock
     Clock.max_iteration = 20
 
+.. _triggered-events:
+
 Triggered Events
 ----------------
 
@@ -67,7 +97,7 @@ Triggered Events
 A triggered event is a way to defer a callback exactly like schedule_once(),
 but with some added convenience. The callback will only be scheduled once per
 frame, even if you call the trigger twice (or more). This is not the case
-with :func:`Clock.schedule_once` ::
+with :func:`Clock.schedule_once`::
 
     # will run the callback twice before the next frame
     Clock.schedule_once(my_callback)
@@ -78,7 +108,7 @@ with :func:`Clock.schedule_once` ::
     t()
     t()
 
-Before triggered events, you may have used this approach in a widget ::
+Before triggered events, you may have used this approach in a widget::
 
     def trigger_callback(self, *largs):
         Clock.unschedule(self.callback)
@@ -86,7 +116,7 @@ Before triggered events, you may have used this approach in a widget ::
 
 As soon as you call `trigger_callback()`, it will correctly schedule the
 callback once in the next frame. It is more convenient to create and bind to
-the triggered event than using :func:`Clock.schedule_once` in a function ::
+the triggered event than using :func:`Clock.schedule_once` in a function::
 
     from kivy.clock import Clock
     from kivy.uix.widget import Widget
@@ -327,7 +357,6 @@ class ClockBase(object):
         '''Schedule an event in <timeout> seconds.
 
         .. versionchanged:: 1.0.5
-
             If the timeout is -1, the callback will be called before the next
             frame (at :func:`tick_draw`).
 

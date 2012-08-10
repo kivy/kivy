@@ -265,7 +265,7 @@ For example, for a list, you'll need to create a entry with a image on the left,
 and a label on the right. You can create a template for making that definition
 more easy to use.
 So, we'll create a template that require 2 entry in the context: a image
-filename and a title ::
+filename and a title::
 
     [IconItem@BoxLayout]:
         Image:
@@ -275,7 +275,7 @@ filename and a title ::
 
 .. highlight:: python
 
-Then in Python, you can create instanciate the template with ::
+Then in Python, you can create instanciate the template with::
 
     from kivy.lang import Builder
 
@@ -1043,6 +1043,8 @@ class BuilderBase(object):
     that you can use to load other kv file in addition to the default one.
     '''
 
+    _cache_match = {}
+
     def __init__(self):
         super(BuilderBase, self).__init__()
         self.templates = {}
@@ -1088,6 +1090,7 @@ class BuilderBase(object):
         '''
         # remove rules and templates
         self.rules = [x for x in self.rules if x[1].ctx.filename != filename]
+        self._clear_matchcache()
         templates = {}
         for x, y in self.templates.iteritems():
             if y[2] != filename:
@@ -1110,6 +1113,7 @@ class BuilderBase(object):
 
             # merge rules with our rules
             self.rules.extend(parser.rules)
+            self._clear_matchcache()
 
             # add the template found by the parser into ours
             for name, cls, template in parser.templates:
@@ -1166,6 +1170,9 @@ class BuilderBase(object):
             return
         for rule in rules:
             self._apply_rule(widget, rule, rule)
+
+    def _clear_matchcache(self):
+        BuilderBase._match_cache = {}
 
     def _apply_rule(self, widget, rule, rootrule, template_ctx=None):
         # widget: the current instanciated widget
@@ -1224,21 +1231,19 @@ class BuilderBase(object):
                 ctx = {}
                 idmap = copy(global_idmap)
                 idmap.update({'root': rctx['ids']['root']})
-                for prule in crule.properties.itervalues():
-                    value = prule.co_value
-                    if type(value) is CodeType:
-                        try:
-                            value = eval(value, idmap)
-                        except Exception, e:
-                            raise BuilderException(
-                                    prule.ctx, prule.line, str(e))
-                    ctx[prule.name] = value
-                for prule in crule.handlers:
-                    try:
+                if 'ctx' in rctx['ids']:
+                    idmap.update({'ctx': rctx['ids']['ctx']})
+                try:
+                    for prule in crule.properties.itervalues():
+                        value = prule.co_value
+                        if type(value) is CodeType:
+                                value = eval(value, idmap)
+                        ctx[prule.name] = value
+                    for prule in crule.handlers:
                         value = eval(prule.value, idmap)
-                    except Exception, e:
-                        raise BuilderException(prule.ctx, prule.line, str(e))
-                    ctx[prule.name] = value
+                        ctx[prule.name] = value
+                except Exception, e:
+                    raise BuilderException(prule.ctx, prule.line, str(e))
 
                 # create the template with an explicit ctx
                 child = cls(**ctx)
@@ -1301,10 +1306,15 @@ class BuilderBase(object):
     def match(self, widget):
         '''Return a list of :class:`ParserRule` matching the widget.
         '''
+        cache = BuilderBase._match_cache
+        k = (widget.__class__, widget.id, tuple(widget.cls))
+        if k in cache:
+            return cache[k]
         rules = []
         for selector, rule in self.rules:
             if selector.match(widget):
                 rules.append(rule)
+        cache[k] = rules
         return rules
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
@@ -1321,16 +1331,16 @@ class BuilderBase(object):
             if not isinstance(instr, Instruction):
                 raise BuilderException(crule.ctx, crule.line,
                     'You can add only graphics Instruction in canvas.')
-            for prule in crule.properties.itervalues():
-                try:
+            try:
+                for prule in crule.properties.itervalues():
                     key = prule.name
                     value = prule.co_value
                     if type(value) is CodeType:
                         value = create_handler(
                             widget, instr, key, value, prule, idmap)
                     setattr(instr, key, value)
-                except Exception, e:
-                    raise BuilderException(prule.ctx, prule.line, str(e))
+            except Exception, e:
+                raise BuilderException(prule.ctx, prule.line, str(e))
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = BuilderBase()

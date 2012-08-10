@@ -4,41 +4,17 @@ Drawing
 
     Graphics Instructions, Canvas
 
-Each widget has a canvas, that is, a place to draw on. The canvas is a group of instructions that are executed whenever needed to keep the widget representation up to date. You can add two types of instructions to the canvas, context instructions and vertex instructions. You can put instructions either from python or from kv. If you add them from kv, the advantage is that they are automatically updated when any property they depend on change, in python, you need to do this yourself.
+Each widget has a canvas, i.e. a place to draw on. The canvas is a group of instructions that should be executed 
+whenever there is a change to the widget's graphics representation. 
+You can add two types of instructions to the canvas, *context* instructions and *vertex* instructions. 
+You can add instructions either from Python or from kv (the preferred way). 
+If you add them from kv, the advantage is that they are automatically updated when any property they depend on changes. 
+In Python, you need to do this yourself.
 
-python:
+.. image:: ../images/gs-drawing.png
 
-class MyWidget(Widget):
-    def __init__(self, \*args):
-        super(MyWidget, self).__init__(\*args)
-        self.bind(pos=self.update_canvas)
-        self.bind(size=self.update_canvas)
-        self.update_canvas()
+In both cases the canvas of the MyWidget is re-drawn whenever the ``position`` or the ``size`` of the widget changes.
 
-    def update_canvas(self, \*args):
-        self.clear_canvas() # need to reset everything
-        with self.canvas:
-            Color(0.5, 0.5, 0.5, 0.5) # context instruction
-            Rectangle(self.pos, self.size) # vertex instruction
+You can use **canvas.before** or **canvas.after** . This allows you to separate your instructions based on when you want them to happen.
 
-However, doing all that in kv is just:
-
-.. code-block:: kv
-
-    MyWidget:
-        canvas:
-            Color:
-                rgba: 0.5, 0.5, 0.5. 0.5
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-Much easier, right? :)
-
-Oh about canvas, It's actually three groups of instuctions.
-
-canvas.before
-canvas
-canvas.after
-
-They work the same but this allows you to seperate your instructions based on when you want each to happen.
+For an in-depth look at how Kivy's graphics are handled, look :mod:`here. <kivy.graphics>`

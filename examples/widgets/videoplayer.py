@@ -15,8 +15,8 @@ class VideoPlayerApp(App):
         else:
             curdir = dirname(__file__)
             filename = join(curdir, 'softboy.avi')
-        return VideoPlayer(source=filename, play=True)
+        return VideoPlayer(source=filename, state='play')
 
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     VideoPlayerApp().run()

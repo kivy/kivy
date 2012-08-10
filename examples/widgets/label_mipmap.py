@@ -22,5 +22,5 @@ class LabelMipmapTest(App):
         s.add_widget(l2)
         return s
 
-if __name__ in ('__main__', '__android__'):
+if __name__ == '__main__':
     LabelMipmapTest().run()

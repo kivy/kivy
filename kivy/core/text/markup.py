@@ -30,6 +30,9 @@ The following tags are availables:
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`MarkupLabel.anchors`
+
+If you need to escape the markup from the current text, use
+:func:`kivy.utils.escape_markup`.
 '''
 
 __all__ = ('MarkupLabel', )
@@ -39,7 +42,7 @@ from kivy.utils import platform
 from kivy.parser import parse_color
 from kivy.logger import Logger
 import re
-from . import Label, LabelBase
+from kivy.core.text import Label, LabelBase
 from copy import copy
 
 # We need to do this trick when documentation is generated
@@ -195,6 +198,7 @@ class MarkupLabel(MarkupLabelBase):
 
         # verify that each glyph have size
         glyphs = list(set(word))
+        glyphs.append(' ')
         get_extents = self.get_extents
         for glyph in glyphs:
             if not glyph in cache:
@@ -216,7 +220,7 @@ class MarkupLabel(MarkupLabelBase):
         for part in re.split(r'( |\n)', word):
 
             if part == '':
-                continue
+                part = ' '
 
             if part == '\n':
                 # put a new line!
@@ -257,22 +261,33 @@ class MarkupLabel(MarkupLabelBase):
         r = self._render_text
 
         # convert halign/valign to int, faster comparaison
-        #av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
+        av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
         ah = {'left': 0, 'center': 1, 'right': 2}[self.options['halign']]
 
         y = 0
         w, h = self._size
         refs = self._refs
+        txt_height = sum(line[1] for line in self._lines)
+
         for line in self._lines:
             lh = line[1]
+            lw = line[0]
 
             # horizontal alignement
             if ah == 0:
                 x = 0
             elif ah == 1:
-                x = int((w - line[0]) / 2)
+                x = int((w - lw) / 2)
             else:
-                x = w - line[0]
+                x = w - lw
+
+            # vertical alignement
+            if y == 0:
+                if av == 1:
+                    y = int((h - txt_height)/2)
+                elif av == 2:
+                    y = h - (txt_height)
+
 
             for pw, ph, part, options in line[2]:
                 self.options = options

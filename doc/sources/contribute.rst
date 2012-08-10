@@ -24,6 +24,8 @@ feel encouraged to report any obstacles you encountered such as missing
 documentation, misleading directions or similar.
 We are perfectionists, so even if it's just a typo, let us know.
 
+.. _reporting_issues:
+
 Reporting an Issue
 ------------------
 
@@ -35,8 +37,8 @@ spelling, weird example, please take 2 minutes to report the issue.
     [kivy]
     log_level = debug
 
-#. Execute again your code, and copy/paste the complete output to http://paste.pocoo.org/,
-   including the log from kivy and the python backtrace.
+#. Execute again your code, and copy/paste the complete output to http://gist.github.com/,
+   including the log from Kivy and the python backtrace.
 #. Open https://github.com/kivy/kivy/issues/
 #. Write a title of your issue
 #. Explain how we can do to reproduce the issue + paste the link of the output previously sent on pocoo
@@ -55,6 +57,30 @@ workflow to most efficiently work with us. Adhering to our workflow ensures that
 your contribution won't be forgotten or lost. Also, your name will always be
 associated with the change you made, which basically means eternal fame in our
 code history (you can opt-out if you don't want that).
+
+
+Coding style
+~~~~~~~~~~~~
+
+- If you didn't do it yet, read the
+  `PEP8 <http://www.python.org/dev/peps/pep-0008/>`_ about coding style in python.
+
+- Activate pep8 check on git commit like this::
+
+    make hook
+
+This will pass the code added to git staging zone (about to be committed)
+thought a pep8 checker program when you do a commit, and check that you didn't
+introduce pep8 errors, if so, the commit will be rejected, correct the errors,
+and try again.
+
+Performances
+~~~~~~~~~~~~
+
+- take care of performance issues, read
+  `Python performance tips <http://wiki.python.org/moin/PythonSpeed/PerformanceTips>`_
+- cpu intensive parts of Kivy are written in cython, if you are doing a lot of
+  computation, consider using it too.
 
 Git & GitHub
 ~~~~~~~~~~~~
@@ -88,9 +114,13 @@ but the fork you create with the following steps:
        the git remote name 'origin' and you will be on branch 'master'.
     #. Compile and set up PYTHONPATH or install (see :ref:`dev-install`).
     #. Install our pre-commit hook that ensures your code doesn't violate our
-       styleguide by executing 'make hook' in your clone. This will run our
-       styleguide check whenever you do a commit, and if there are violations in
-       the parts that you changed, your commit will be aborted. Fix & retry.
+       styleguide by executing `make hook` from the root directory of your
+       clone. This will run our styleguide check whenever you do a commit,
+       and if there are violations in the parts that you changed, your commit
+       will be aborted. Fix & retry.
+    #. Add kivy repo as a remote source::
+
+        git remote add kivy https://github.com/kivy/kivy.git
 
 Now, whenever you want to create a patch, you follow the following steps:
 
@@ -99,7 +129,10 @@ Now, whenever you want to create a patch, you follow the following steps:
     #. Create a new, appropriately named branch in your local repository for
        that specific feature or bugfix.
        (Keeping a new branch per feature makes sure we can easily pull in your
-       changes without pulling any other stuff that is not supposed to be pulled.)
+       changes without pulling any other stuff that is not supposed to be pulled.)::
+
+        git checkout -b new_feature
+
     #. Modify the code to do what you want (e.g., fix it).
     #. Test the code. Try to do this even for small fixes. You never know
        whether you have introduced some weird bug without testing.
@@ -111,8 +144,14 @@ Now, whenever you want to create a patch, you follow the following steps:
        not familiar with the matter get a good idea of what you changed.
     #. Once you are satisfied with your changes, merge with our upstream
        repository. We can pull your stuff, but since you know best what you
-       changed, you should do the merge.
-    #. Push to your remote repository on GitHub.
+       changed, you should do the merge::
+
+        git pull kivy master
+
+    #. Push to your remote repository on GitHub::
+
+        git push
+
     #. Send a *Pull Request* with a description of what you changed via the button
        in the GitHub interface of your repository. (This is why we forked
        initially. Your repository is linked against ours.)
@@ -142,11 +181,89 @@ hassle just to correct a single typo. For more complex contributions, please
 consider following the suggested workflow though.
 
 
+Docstrings
+~~~~~~~~~~
+
+Every module/class/method/function need a docstring, use the following keyword
+when relevant
+
+- ``.. versionadded::`` to mark the version the feature was added.
+- ``.. versionchanged::`` to mark the version behaviour of the feature was
+  changed.
+- ``.. note::`` to add additional info about how to use the feature or related
+  feature.
+- ``.. warning::`` to indicate a potential issue the user might run into using
+  the feature.
+
+Examples::
+
+    def my_new_feature(self, arg):
+        """
+        New feature is awesome
+
+        .. versionadded:: 1.1.4
+
+        .. note:: This new feature will likely blow your mind
+
+        .. warning:: Please take a seat before trying this feature
+        """
+
+Will result in:
+
+    def my_new_feature(self, arg):
+        """
+        New feature is awesome
+
+        .. versionadded:: 1.1.4
+
+        .. note:: This new feature will likely blow your mind
+
+        .. warning:: Please take a seat before trying this feature
+
+        """
+
+
+When refering to other parts of the api use:
+
+- ``:mod:`~kivy.module``` to refer to a module
+- ``:class:`~kivy.module.Class``` to refer to a class
+- ``:meth:`~kivy.module.Class.method``` to refer to a method
+- ``:doc:`api-kivy.module``` to refer to the documentation of a module (same
+  for a class and a method)
+
+Obviously replacing `module` `class` and `method` with their real name, and
+using using '.' to separate modules refering to imbricated modules, e.g::
+
+    :mod:`~kivy.uix.floatlayout`
+    :class:`~kivy.uix.floatlayout.FloatLayout`
+    :meth:`~kivy.core.window.WindowBase.toggle_fullscreen`
+    :doc:`/api-kivy.core.window`
+
+Will result in:
+
+    :mod:`~kivy.uix.floatlayout`
+    :class:`~kivy.uix.floatlayout.FloatLayout`
+    :meth:`~kivy.core.window.WindowBase.toggle_fullscreen`
+    :doc:`/api-kivy.core.window`
+
+`:doc:` and `:mod:` are essentially the same, except for an anchor in the url,
+this makes `:doc:` prefered, for the cleaner url.
+
+To build your documentation, run::
+
+    make html
+
+If you updated your kivy install, and have some trouble compiling docs, run::
+
+    make clean force html
+
+The doc will be generated in ``build/html``.
+
 Unit tests contributions
 ------------------------
 
 For testing team, we have the document :doc:`contribute-unittest` that
-explain how kivy unit test is working, and how you can create your own. Use the
+explain how Kivy unit test is working, and how you can create your own. Use the
 same approach as the `Code Workflow` to submit new tests.
 
 .. toctree::

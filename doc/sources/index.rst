@@ -1,5 +1,6 @@
 :orphan:
 
+
 Welcome to Kivy
 ===============
 
@@ -18,6 +19,28 @@ If you want to contribute to Kivy, make sure to read :ref:`contributing`. If you
 concern isn't addressed in the documentation, feel free to :ref:`contact`.
 
 .. include:: contents.rst.inc
+
+.. Suppress warnings about documents not being included in toc, but don't
+   actually show them. 
+.. toctree::
+    :hidden:
+
+    api-index
+    api-kivy.lib.osc.OSC
+    api-kivy.lib.osc.oscAPI
+..  gettingstarted/diving
+    gettingstarted/drawing
+    gettingstarted/events
+    gettingstarted/examples
+    gettingstarted/first_app
+    gettingstarted/framework
+    gettingstarted/installation
+    gettingstarted/intro
+    gettingstarted/layouts
+    gettingstarted/packaging
+    gettingstarted/properties
+    gettingstarted/rules
+    guide/layouts
 
 
 Appendix

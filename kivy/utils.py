@@ -1,3 +1,4 @@
+# pylint: disable=W0611
 '''
 Utils
 =====
@@ -9,7 +10,7 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'OrderedDict', 'QueryDict',
-           'platform')
+           'platform', 'escape_markup')
 
 from sys import platform as _sys_platform
 from re import match, split
@@ -36,7 +37,7 @@ def difference(set1, set2):
 
 def interpolate(value_from, value_to, step=10):
     '''Interpolate a value to another. Can be useful to smooth some transition.
-    For example ::
+    For example::
 
         # instead of setting directly
         self.pos = pos
@@ -60,7 +61,7 @@ def interpolate(value_from, value_to, step=10):
 def strtotuple(s):
     '''Convert a tuple string into tuple,
     with some security check. Designed to be used
-    with eval() function ::
+    with eval() function::
 
         a = (12, 54, 68)
         b = str(a)         # return '(12, 54, 68)'
@@ -271,7 +272,7 @@ class QueryDict(dict):
 
     .. versionadded:: 1.0.4
 
-    ::
+  ::
 
         d = QueryDict()
         # create a key named toto, with the value 1
@@ -332,7 +333,7 @@ def platform():
 
     if _platform_android is None:
         try:
-            __import__('android')
+            import android
             _platform_android = True
         except ImportError:
             _platform_android = False
@@ -354,4 +355,18 @@ def platform():
     elif _sys_platform in ('linux2', 'linux3'):
         return 'linux'
     return 'unknown'
+
+
+def escape_markup(text):
+    '''
+    Escape markup characters found in the text. Intended to be used when markup
+    text is activated on the Label::
+
+        untrusted_text = escape_markup('Look at the example [1]')
+        text = '[color=ff0000]' + untrusted_text + '[/color]'
+        w = Label(text=text, markup=True)
+
+    .. versionadded:: 1.3.0
+    '''
+    return text.replace('[', '&bl;').replace(']', '&br;').replace('&', '&amp;')
 

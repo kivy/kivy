@@ -3,7 +3,12 @@ from os import environ, chdir
 import sys
 
 root = 'kivy_install'
-if '_MEIPASS2' in environ:
+if hasattr(sys, '_MEIPASS'):
+    # PyInstaller >= 1.6
+    chdir(sys._MEIPASS)
+    root = join(sys._MEIPASS, root)
+elif '_MEIPASS2' in environ:
+    # PyInstaller < 1.6 (tested on 1.5 only)
     chdir(environ['_MEIPASS2'])
     root = join(environ['_MEIPASS2'], root)
 else:

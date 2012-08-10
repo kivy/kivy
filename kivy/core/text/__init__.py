@@ -5,9 +5,9 @@ Text
 Abstraction of text creation. Depending of the selected backend, the text
 rendering can be more or less accurate.
 
-.. versionadded::
-    Starting to 1.0.7, the :class:`LabelBase` don't generate any texture is the
-    text have a width <= 1.
+.. versionchanged:: 1.0.7
+    The :class:`LabelBase` don't generate any texture is the text have a width
+    <= 1.
 '''
 
 __all__ = ('LabelBase', 'Label')
@@ -17,7 +17,6 @@ import os
 from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
-from kivy.utils import platform
 from kivy.resources import resource_find
 
 DEFAULT_FONT = 'DroidSans'
@@ -52,14 +51,14 @@ class LabelBase(object):
             Activate "bold" text style
         `italic`: bool, default to False
             Activate "italic" text style
-        `text_size`: list, default to (None, None)
+        `text_size`: tuple, default to (None, None)
             Add constraint to render the text (inside a bounding box)
             If no size is given, the label size will be set to the text size.
-        `padding`: int, default to None
-            If it's a integer, it will set padding_x and padding_y
-        `padding_x`: int, default to 0
+        `padding`: float, default to None
+            If it's a float, it will set padding_x and padding_y
+        `padding_x`: float, default to 0.0
             Left/right padding
-        `padding_y`: int, default to 0
+        `padding_y`: float, default to 0.0
             Top/bottom padding
         `halign`: str, default to "left"
             Horizontal text alignement inside bounding box
@@ -82,55 +81,43 @@ class LabelBase(object):
 
     _fonts_cache = {}
 
-    def __init__(self, **kwargs):
-        kwargs.setdefault('font_size', 12)
-        kwargs.setdefault('font_name', DEFAULT_FONT)
-        kwargs.setdefault('bold', False)
-        kwargs.setdefault('italic', False)
-        kwargs.setdefault('halign', 'left')
-        kwargs.setdefault('valign', 'bottom')
-        kwargs.setdefault('padding', None)
-        kwargs.setdefault('padding_x', None)
-        kwargs.setdefault('padding_y', None)
-        kwargs.setdefault('shorten', False)
-        kwargs.setdefault('mipmap', False)
-        kwargs.setdefault('color', (1, 1, 1, 1))
+    def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
+                 bold=False, italic=False, halign='left', valign='bottom',
+                 shorten=False, text_size=None, mipmap=False, color=None,
+                 **kwargs):
 
-        padding = kwargs.get('padding', None)
-        if not kwargs.get('padding_x', None):
-            if type(padding) in (tuple, list):
-                kwargs['padding_x'] = float(padding[0])
-            elif padding is not None:
-                kwargs['padding_x'] = float(padding)
+        options = {'text': text, 'font_size': font_size,
+            'font_name': font_name, 'bold': bold, 'italic': italic,
+            'halign': halign, 'valign': valign, 'shorten': shorten,
+            'mipmap': mipmap}
+
+        options['color'] = color or (1, 1, 1, 1)
+        options['padding'] = kwargs.get('padding', 0)
+        options['padding_x'] = kwargs.get('padding_x', options['padding'])
+        options['padding_y'] = kwargs.get('padding_y', options['padding'])
+
+        if 'size' in kwargs:
+            options['text_size'] = kwargs['size']
+        else:
+            if text_size is None:
+                options['text_size'] = (None, None)
             else:
-                kwargs['padding_x'] = 0
-        if not kwargs.get('padding_y', None):
-            if type(padding) in (tuple, list):
-                kwargs['padding_y'] = float(padding[1])
-            elif padding is not None:
-                kwargs['padding_y'] = float(padding)
-            else:
-                kwargs['padding_y'] = 0
+                options['text_size'] = text_size
 
-        self._text_size = (None, None)
-        if 'text_size' in kwargs:
-            self._text_size = kwargs['text_size']
-        elif 'size' in kwargs:
-            self._text_size = kwargs['size']
+        text_width, text_height = options['text_size']
+        if text_width is not None:
+            self._text_size = (
+                text_width - options['padding_x'] * 2,
+                text_height)
+        else:
+            self._text_size = options['text_size']
 
-        uw, uh = self._text_size
-        if uw is not None:
-            self._text_size = uw - kwargs['padding_x'] * 2, uh
-
-        super(LabelBase, self).__init__()
-
-        self._text = None
+        self._text = options['text']
         self._internal_height = 0
 
-        self.options = kwargs
+        self.options = options
         self.texture = None
         self.resolve_font_name()
-        self.text = kwargs.get('text', '')
 
     @staticmethod
     def register(name, fn_regular, fn_italic=None, fn_bold=None,
@@ -139,7 +126,7 @@ class LabelBase(object):
 
         .. versionadded:: 1.1.0
 
-        If you're using directly a ttf, you might not be able to use bold/italic
+        If you're using a ttf directly, you might not be able to use bold/italic
         of the ttf version. If the font is delivered with different version of
         it (one regular, one italic and one bold), then you need to register it
         and use the alias instead.
@@ -148,52 +135,38 @@ class LabelBase(object):
         :func:`kivy.resources.resource_find`. If fn_italic/fn_bold are None,
         fn_regular will be used instead.
         '''
-        _fn_regular = resource_find(fn_regular)
-        if _fn_regular is None:
-            raise IOError('File %r not found' % fn_regular)
-        if fn_italic is None:
-            _fn_italic = _fn_regular
-        else:
-            _fn_italic = resource_find(fn_italic)
-            if _fn_italic is None:
-                raise IOError('File %r not found' % fn_italic)
-        if fn_bold is None:
-            _fn_bold = _fn_regular
-        else:
-            _fn_bold = resource_find(fn_bold)
-            if _fn_bold is None:
-                raise IOError('File %r not found' % fn_bold)
-        if fn_bolditalic is None:
-            _fn_bolditalic = _fn_regular
-        else:
-            _fn_bolditalic = resource_find(fn_bolditalic)
-            if _fn_bolditalic is None:
-                raise IOError('Label: File %r not found' % fn_bolditalic)
-        LabelBase._fonts[name] = (_fn_regular, _fn_italic, _fn_bold,
-                _fn_bolditalic)
+
+        fonts = []
+
+        for font_type in fn_regular, fn_italic, fn_bold, fn_bolditalic:
+            if font_type is not None:
+                font = resource_find(font_type)
+
+                if font is None:
+                    raise IOError('File {0}s not found'.format(font_type))
+                else:
+                    fonts.append(font)
+            else:
+                fonts.append(fonts[-1]) # add regular font to list again
+
+        LabelBase._fonts[name] = tuple(fonts)
 
     def resolve_font_name(self):
         options = self.options
-        if 'font_name' not in options:
-            return
-        fontname = options['font_name']
+        fontname = self.options['font_name']
         fonts = self._fonts
         fontscache = self._fonts_cache
 
         # is the font is registered ?
         if fontname in fonts:
             # return the prefered font for the current bold/italic combinaison
-            bold = options['bold']
-            italic = options['italic']
-            font = fonts[fontname]
-            if not bold and not italic:
-                options['font_name_r'] = font[FONT_REGULAR]
-            elif bold and italic:
-                options['font_name_r'] = font[FONT_BOLDITALIC]
-            elif bold:
-                options['font_name_r'] = font[FONT_BOLD]
+            italic = int(options['italic'])
+            if options['bold']:
+                bold = FONT_BOLD
             else:
-                options['font_name'] = font[FONT_ITALIC]
+                bold = FONT_REGULAR
+
+            options['font_name_r'] = fonts[fontname][italic | bold]
 
         elif fontname in fontscache:
             options['font_name_r'] = fontscache[fontname]
@@ -203,9 +176,7 @@ class LabelBase(object):
                 # XXX for compatibility, check directly in the data dir
                 filename = os.path.join(kivy_data_dir, fontname)
                 if not os.path.exists(filename):
-                    filename = None
-            if filename is None:
-                raise IOError('Label: File %r not found' % fontname)
+                    raise IOError('Label: File %r not found' % fontname)
             fontscache[fontname] = filename
             options['font_name_r'] = filename
 
@@ -222,27 +193,26 @@ class LabelBase(object):
     def _render_end(self):
         pass
 
-    def shorten(self, text):
+    def shorten(self, text, margin=2):
         # Just a tiny shortcut
         textwidth = lambda txt: self.get_extents(txt)[0]
-        mid = len(text)/2
-        begin = text[:mid].strip()
-        end = text[mid:].strip()
-        steps = 1
-        middle = '...'
-        width = textwidth(begin+end) + textwidth(middle)
-        last_width = width
-        while width > self.text_size[0]:
-            begin = text[:mid - steps].strip()
-            end = text[mid + steps:].strip()
-            steps += 1
-            width = textwidth(begin+end) + textwidth(middle)
-            if width == last_width:
-                # No more shortening possible. This is the best we can
-                # do. :-( -- Prevent infinite while loop.
-                break
-            last_width = width
-        return begin + middle + end
+        if self.text_size[0] is None:
+            width = 0
+        else:
+            width = int(self.text_size[0])
+
+        letters = text + '...'
+        letter_width = textwidth(letters) // len(letters)
+        max_letters = width // letter_width
+        segment = (max_letters // 2)
+
+        if segment - margin > 5:
+            segment -= margin
+            return u'{0}...{1}'.format(text[:segment].strip(),
+                text[-segment:].strip())
+        else:
+            segment = max_letters - 3 # length of '...'
+            return u'{0}...'.format(text[:segment].strip())
 
     def render(self, real=False):
         '''Return a tuple(width, height) to create the image
@@ -317,6 +287,8 @@ class LabelBase(object):
 
                 # calculate the word width
                 ww, wh = 0, 0
+                if word == '':
+                    ww, wh = get_extents(' ')
                 for glyph in word:
                     gw, gh = cache[glyph]
                     ww += gw
@@ -393,30 +365,14 @@ class LabelBase(object):
         # create texture is necessary
         texture = self.texture
         mipmap = options['mipmap']
-        if texture is None:
-            if data is None:
-                if platform() in ('android', 'ios'):
-                    colorfmt = 'rgba'
-                else:
-                    colorfmt = 'luminance_alpha'
-                texture = Texture.create(
-                        size=self.size, colorfmt=colorfmt,
-                        mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
-                data = None
+        if texture is None or \
+                self.width != texture.width or \
+                self.height != texture.height:
+            texture = Texture.create_from_data(data, mipmap=mipmap)
+            data = None
             texture.flip_vertical()
             texture.add_reload_observer(self._texture_refresh)
-        elif self.width != texture.width or self.height != texture.height:
-            if data is None:
-                texture = Texture.create(size=self.size, mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
-                data = None
-            texture.flip_vertical()
-            texture.add_reload_observer(self._texture_refresh)
-
-        self.texture = texture
+            self.texture = texture
 
         # update texture
         # If the text is 1px width, usually, the data is black.

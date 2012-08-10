@@ -6,7 +6,7 @@ The :class:`Widget` class is the base class required to create a Widget.
 Our widget class is designed with a couple of principles in mind:
 
     Event Driven
-        The widget interaction is build on top of events that occur.
+        The widget interaction is built on top of events that occur.
         If a property changes, the widget can do something. If nothing changes
         in the widget, nothing will be done. That's the main goal of the
         :class:`~kivy.properties.Property` class.
@@ -25,13 +25,13 @@ Our widget class is designed with a couple of principles in mind:
         Often you want to know if a certain point is within the bounds of your
         widget. An example would be a button widget where you want to only
         trigger an action when the button itself is actually touched.
-        For this, you can use the :func:`Widget.collide_point` method, which
+        For this, you can use the :meth:`Widget.collide_point` method, which
         will return True if the point you pass it is inside the axis-aligned
-        bounding box defined by the widgets position and size.
+        bounding box defined by the widget's position and size.
         If a simple AABB is not sufficient, you can override the method to
-        perform the collision checks with more complex shapes (e.g. a polygon).
+        perform the collision checks with more complex shapes, e.g., a polygon.
         You can also check if a widget collides with another widget with
-        :func:`Widget.collide_widget`.
+        :meth:`Widget.collide_widget`.
 
 Using Properties
 ----------------
@@ -45,8 +45,8 @@ For example::
     :data:`Widget.pos` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`Widget.x`, :data:`Widget.y`) properties.
 
-If you want to be notified when the pos attribute changes (i.e. when the
-widget moves), you can bind your own function (callback) like this::
+If you want to be notified when the pos attribute changes, i.e., when the
+widget moves, you can bind your own callback function like this::
 
     def callback_pos(instance, value):
         print 'The widget', instance, 'moved to', value
@@ -68,7 +68,7 @@ from kivy.lang import Builder
 
 
 class WidgetException(Exception):
-    '''Fired when the widget got an exception
+    '''Fired when the widget gets an exception.
     '''
     pass
 
@@ -78,17 +78,16 @@ class Widget(EventDispatcher):
 
     :Events:
         `on_touch_down`:
-            Fired when a new touch appear
+            Fired when a new touch happens
         `on_touch_move`:
             Fired when an existing touch is moved
         `on_touch_up`:
             Fired when an existing touch disappears
 
     .. versionchanged:: 1.0.9
-
-        Everything related to properties have been moved in
-        :class:`~kivy.event.EventDispatcher`. Properties can now be used for
-        contruct simple class, without inherit of :class:`Widget`.
+        Everything related to event properties has been moved to
+        :class:`~kivy.event.EventDispatcher`. Event properties can now be used
+        in contructing a simple class, without subclassing :class:`Widget`.
 
     '''
 
@@ -188,7 +187,7 @@ class Widget(EventDispatcher):
     def on_touch_move(self, touch):
         '''Receive a touch move event.
 
-        See :func:`on_touch_down` for more information
+        See :meth:`on_touch_down` for more information
         '''
         for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
@@ -197,7 +196,7 @@ class Widget(EventDispatcher):
     def on_touch_up(self, touch):
         '''Receive a touch up event.
 
-        See :func:`on_touch_down` for more information
+        See :meth:`on_touch_down` for more information
         '''
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
@@ -227,6 +226,11 @@ class Widget(EventDispatcher):
         if not isinstance(widget, Widget):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
+        parent = widget.parent
+        # check if widget is already a child of another widget
+        if parent:
+            raise WidgetException('Cannot add %r, it already has a parent %r'
+                % (widget, parent))
         widget.parent = self
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
@@ -383,7 +387,7 @@ class Widget(EventDispatcher):
         self.x = value - self.width
 
     right = AliasProperty(get_right, set_right, bind=('x', 'width'))
-    '''Right position of the widget
+    '''Right position of the widget.
 
     :data:`right` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`x` + :data:`width`)
@@ -396,7 +400,7 @@ class Widget(EventDispatcher):
         self.y = value - self.height
 
     top = AliasProperty(get_top, set_top, bind=('y', 'height'))
-    '''Top position of the widget
+    '''Top position of the widget.
 
     :data:`top` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`y` + :data:`height`)
@@ -408,7 +412,7 @@ class Widget(EventDispatcher):
     def set_center_x(self, value):
         self.x = value - self.width / 2.
     center_x = AliasProperty(get_center_x, set_center_x, bind=('x', 'width'))
-    '''X center position of the widget
+    '''X center position of the widget.
 
     :data:`center_x` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`x` + :data:`width` / 2.)
@@ -420,14 +424,14 @@ class Widget(EventDispatcher):
     def set_center_y(self, value):
         self.y = value - self.height / 2.
     center_y = AliasProperty(get_center_y, set_center_y, bind=('y', 'height'))
-    '''Y center position of the widget
+    '''Y center position of the widget.
 
     :data:`center_y` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`y` + :data:`height` / 2.)
     '''
 
     center = ReferenceListProperty(center_x, center_y)
-    '''Center position of the widget
+    '''Center position of the widget.
 
     :data:`center` is a :class:`~kivy.properties.ReferenceListProperty` of
     (:data:`center_x`, :data:`center_y`)
@@ -459,34 +463,34 @@ class Widget(EventDispatcher):
     '''
 
     children = ListProperty([])
-    '''List of children of this widget
+    '''List of children of this widget.
 
     :data:`children` is a :class:`~kivy.properties.ListProperty` instance,
     default to an empty list.
 
-    Use :func:`add_widget` and :func:`remove_widget` for manipulate children
-    list. Don't manipulate children list directly until you know what you are
-    doing.
+    Use :meth:`add_widget` and :meth:`remove_widget` for manipulating the
+    children list. Don't manipulate the children list directly until you know
+    what you are doing.
     '''
 
     parent = ObjectProperty(None, allownone=True)
-    '''Parent of this widget
+    '''Parent of this widget.
 
     :data:`parent` is a :class:`~kivy.properties.ObjectProperty` instance,
     default to None.
 
     The parent of a widget is set when the widget is added to another one, and
-    unset when the widget is removed from his parent.
+    unset when the widget is removed from its parent.
     '''
 
     size_hint_x = NumericProperty(1, allownone=True)
-    '''X size hint. It represents how much space the widget should use in the
+    '''X size hint. Represents how much space the widget should use in the
     direction of the X axis, relative to its parent's width.
     Only :class:`~kivy.uix.layout.Layout` and
     :class:`~kivy.core.window.Window` make use of the hint.
 
     The value is in percent as a float from 0. to 1., where 1. means the full
-    size of his parent, i.e. 100%. 0.5 represents 50%.
+    size of his parent. 0.5 represents 50%.
 
     :data:`size_hint_x` is a :class:`~kivy.properties.NumericProperty`, default
     to 1.
@@ -522,7 +526,7 @@ class Widget(EventDispatcher):
     The keys 'x', 'right', 'center_x', will use the parent width.
     The keys 'y', 'top', 'center_y', will use the parent height.
 
-    Check :doc:`api-kivy.uix.floatlayout` for further reference.
+    See :doc:`api-kivy.uix.floatlayout` for further reference.
 
     Position hint is only used in :class:`~kivy.uix.floatlayout.FloatLayout` and
     :class:`~kivy.core.window.Window`.
@@ -536,5 +540,13 @@ class Widget(EventDispatcher):
 
     The canvas is a graphics object that contains all the drawing instructions
     for the graphical representation of the widget.
-    Check :class:`~kivy.graphics.Canvas` for more information about the usage.
+
+    There are no general properties for the Widget class, such as background
+    color, to keep the design simple and lean. Some derived classes, such as
+    Button, do add such convenience properties, but generally the developer is
+    responsible for implementing the graphics representation for a custom
+    widget from the ground up. See the derived widget classes for patterns to
+    follow and extend.
+
+    See :class:`~kivy.graphics.Canvas` for more information about the usage.
     '''

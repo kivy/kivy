@@ -24,11 +24,11 @@ __all__ = (
     'kivy_configure', 'kivy_register_post_configuration',
     'kivy_options', 'kivy_base_dir',
     'kivy_modules_dir', 'kivy_data_dir', 'kivy_shader_dir',
-    'kivy_icons_dir', 'kivy_home_dir',
+    'kivy_icons_dir', 'kivy_home_dir', 'kivy_userexts_dir',
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.3.0-dev'
+__version__ = '1.4.0-dev'
 
 import sys
 import shutil
@@ -143,7 +143,7 @@ def kivy_register_post_configuration(callback):
 
 
 def kivy_usage():
-    '''Kivy Usage: %s [OPTION...] ::
+    '''Kivy Usage: %s [OPTION...]::
 
         -h, --help
             Prints this help message.
@@ -224,44 +224,46 @@ kivy_shader_dir = join(kivy_data_dir, 'glsl')
 #: Kivy icons config path (don't remove the last '')
 kivy_icons_dir = join(kivy_data_dir, 'icons', '')
 #: Kivy user-home storage directory
-kivy_home_dir = None
+kivy_home_dir = ''
 #: Kivy configuration filename
-kivy_config_fn = None
+kivy_config_fn = ''
 #: Kivy user modules directory
-kivy_usermodules_dir = None
+kivy_usermodules_dir = ''
+#: Kivy user extensions directory
+kivy_userexts_dir = ''
+
 
 # Don't go further if we generate documentation
-if basename(sys.argv[0]) in ('sphinx-build', 'autobuild.py'):
+if any(name in sys.argv[0] for name in ('sphinx-build', 'autobuild.py')):
     environ['KIVY_DOC'] = '1'
-if basename(sys.argv[0]) in ('sphinx-build', ):
+if 'sphinx-build' in sys.argv[0]:
     environ['KIVY_DOC_INCLUDE'] = '1'
-if basename(sys.argv[0]) in ('nosetests', ) or 'nosetests' in sys.argv:
+if any('nosetests' in arg for arg in sys.argv):
     environ['KIVY_UNITTEST'] = '1'
-if not 'KIVY_DOC_INCLUDE' in environ:
+
+if not environ.get('KIVY_DOC_INCLUDE'):
     # Configuration management
     user_home_dir = expanduser('~')
     if platform() == 'android':
         user_home_dir = environ['ANDROID_APP_PATH']
     kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
-
-    if not exists(kivy_home_dir):
-        mkdir(kivy_home_dir)
-
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
-    if not exists(kivy_usermodules_dir):
-        mkdir(kivy_usermodules_dir)
-
     kivy_userexts_dir = join(kivy_home_dir, 'extensions')
-    if not exists(kivy_userexts_dir):
-        mkdir(kivy_userexts_dir)
-
     icon_dir = join(kivy_home_dir, 'icon')
-    if not exists(icon_dir):
-        try:
-            shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-        except shutil.Error, e:
-            Logger.exception('Error when copying logo directory')
+
+    if 'KIVY_NO_CONFIG' not in environ:
+        if not exists(kivy_home_dir):
+            mkdir(kivy_home_dir)
+        if not exists(kivy_usermodules_dir):
+            mkdir(kivy_usermodules_dir)
+        if not exists(kivy_userexts_dir):
+            mkdir(kivy_userexts_dir)
+        if not exists(icon_dir):
+            try:
+                shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
+            except shutil.Error, e:
+                Logger.exception('Error when copying logo directory')
 
     # configuration
     from kivy.config import Config
@@ -269,6 +271,8 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     # Set level of logger
     level = LOG_LEVELS.get(Config.get('kivy', 'log_level'))
     Logger.setLevel(level=level)
+    Logger.setLevel(level=LOG_LEVELS.get('debug'))
+
 
     # Can be overrided in command line
     if 'KIVY_UNITTEST' not in environ:
@@ -352,7 +356,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
             level = LOG_LEVELS.get('debug')
             Logger.setLevel(level=level)
 
-    if need_save:
+    if need_save and 'KIVY_NO_CONFIG' not in environ:
         try:
             with open(kivy_config_fn, 'w') as fd:
                 Config.write(fd)

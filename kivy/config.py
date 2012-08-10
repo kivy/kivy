@@ -23,24 +23,6 @@ Change the configuration and save it::
 Available configuration tokens
 ------------------------------
 
-.. versionchanged:: 1.0.8
-
-    * `scroll_timeout`, `scroll_distance` and `scroll_friction` have been added
-    * `list_friction`, `list_trigger_distance` and `list_friction_bound` have
-      been removed.
-    * `keyboard_type` and `keyboard_layout` have been removed from widget
-    * `keyboard_mode` and `keyboard_layout` have been added to kivy section
-
-.. versionchanged:: 1.1.0
-
-    * tuio is not listening by default anymore.
-    * windows icons are not copied to user directory anymore. You can still set
-      a new window icon by using ``window_icon`` config setting.
-
-.. versionchanged:: 1.2.0
-
-    * `resizable` has been added to graphics section
-
 :kivy:
 
     `log_level`: (debug, info, warning, error, critical)
@@ -164,6 +146,21 @@ Available configuration tokens
 
     Anything after the = will be passed to the module as arguments.
     Check the specific module's documentation for a list of accepted arguments.
+
+.. versionchanged:: 1.2.0
+    `resizable` has been added to graphics section
+
+.. versionchanged:: 1.1.0
+    tuio is not listening by default anymore. windows icons are not copied to
+    user directory anymore. You can still set a new window icon by using
+    ``window_icon`` config setting.
+
+.. versionchanged:: 1.0.8
+    `scroll_timeout`, `scroll_distance` and `scroll_friction` have been added.
+    `list_friction`, `list_trigger_distance` and `list_friction_bound` have been
+    removed. `keyboard_type` and `keyboard_layout` have been removed from
+    widget.  `keyboard_mode` and `keyboard_layout` have been added to kivy
+    section.
 '''
 
 __all__ = ('Config', 'ConfigParser')
@@ -204,6 +201,12 @@ class ConfigParser(PythonConfigParser):
             raise Exception('Only one filename is accepted (str or unicode)')
         self.filename = filename
         PythonConfigParser.read(self, filename)
+
+    def set(self, section, option, value):
+        '''Functions similarly to PythonConfigParser's set method, except that
+        the value is implicitly converted to a string.
+        '''
+        return PythonConfigParser.set(self, section, option, str(value))
 
     def setdefaults(self, section, keyvalues):
         '''Set a lot of keys/values in one section at the same time
@@ -252,7 +255,7 @@ class ConfigParser(PythonConfigParser):
         return True
 
 
-if not 'KIVY_DOC_INCLUDE' in environ:
+if not environ.get('KIVY_DOC_INCLUDE'):
 
     #
     # Read, analyse configuration file
@@ -263,7 +266,9 @@ if not 'KIVY_DOC_INCLUDE' in environ:
     Config = ConfigParser()
 
     # Read config file if exist
-    if exists(kivy_config_fn) and not 'KIVY_USE_DEFAULTCONFIG' in environ:
+    if exists(kivy_config_fn) and \
+        'KIVY_USE_DEFAULTCONFIG' not in environ and \
+        'KIVY_NO_CONFIG' not in environ:
         try:
             Config.read(kivy_config_fn)
         except Exception, e:
@@ -282,7 +287,7 @@ if not 'KIVY_DOC_INCLUDE' in environ:
 
     # Upgrade default configuration until we have the current version
     need_save = False
-    if version != KIVY_CONFIG_VERSION:
+    if version != KIVY_CONFIG_VERSION and 'KIVY_NO_CONFIG' not in environ:
         Logger.warning('Config: Older configuration version detected'
                        ' (%d instead of %d)' % (
                             version, KIVY_CONFIG_VERSION))
@@ -396,7 +401,8 @@ if not 'KIVY_DOC_INCLUDE' in environ:
         Logger.logfile_activated = True
 
     # If no configuration exist, write the default one.
-    if not exists(kivy_config_fn) or need_save:
+    if (not exists(kivy_config_fn) or need_save) and \
+        'KIVY_NO_CONFIG' not in environ:
         try:
             Config.filename = kivy_config_fn
             Config.write()

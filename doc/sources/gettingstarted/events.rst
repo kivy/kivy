@@ -1,58 +1,71 @@
-Touch events
-------------
+Events
+------
+.. container:: title
 
-Kivy is event oriented, this mean your widgets will get events and you will be able to respond to them. The most basic events you will work with are touch events, there are three of them:
+    Events
 
-on_touch_down: which is dispatched at the begining of a touch
-on_touch_move: which is dispatched every time a touch is moving
-on_touch_up: which is dispatched when the end of the touch
+Kivy is mostly event-based, that's mean the flow of the program is determined
+by events.
 
-An important note is that all widgets get all of these events whatever there position, it's useful as this allow for widget to react to any event, but most of the time you want to check the position of the event when you get it.
+Clock events
+~~~~~~~~~~~~
 
-    def on_touch_down(self, touch, \*args):
-        # test if the event is on us
-        if self.collide_point(\*touch.pos):
-            print "I got touched!"
+.. image:: ../images/gs-events-clock.png
+    :class: gs-eleft
 
-Another thing to understand is that if you handle an event, you become responsible of its dispatching, the easiest way to do that is to use the Widget on_touch_ method, thanks to super(), which propagate to all children until one of them return a non-false value.
+The :doc:`/api-kivy.clock` allows you to schedule a function call in the
+future, as a one-time event with :meth:`~kivy.clock.ClockBase.schedule_once`,
+or as a repetitive event with :meth:`~kivy.clock.ClockBase.schedule_interval`.
 
-    def on_touch_down(self, touch, \*args):
-        # test if the event is on us
-        if self.collide_point(\*touch.pos):
-            print "I got touched!"
-            return True # propagatior will stop
-        else:
-            return super(OurClass, self).on_touch_down(touch, \*args)
+You can also create Triggered events with
+:meth:`~kivy.clock.ClockBase.create_trigger`, multiple call to a trigger will
+schedule a function call only once.
 
-Note that the touch object passed to all these callbacks is the same for all events associated with one touch, so you can keep information in it, the best place to do so is in the `ud` member, of the touch.
+Input events
+~~~~~~~~~~~~
 
-    def on_touch_down(self, touch, \*args):
-        touch.ud['moves'] = 0
-        return super(OurClass. self).on_touch_down(touch, \*args)
+.. image:: ../images/gs-events-input.png
+    :class: gs-eleft
 
-    def on_touch_move(self, touch, \*args):
-        touch['moves'] += 1
-        return super(OurClass. self).on_touch_move(touch, \*args)
+All the mouses click, touchs, scroll wheel are part of the
+:class:`~kivy.input.motionevent.MotionEvent`, extended by
+:doc:`/api-kivy.input.postproc`, dispatched through the `on_motion` in
+:class:`~kivy.core.window.Window`, then in the
+:meth:`~kivy.uix.widget.Widget.on_touch_down`,
+:meth:`~kivy.uix.widget.Widget.on_touch_move`,
+:meth:`~kivy.uix.widget.Widget.on_touch_up` in :class:`~kivy.uix.widget.Widget`
 
-    def on_touch_up(self, touch, \*args):
-        print "this event got %s moves" % touch.ud['moves']
-        return super(OurClass. self).on_touch_up(touch, \*args)
+For an in-depth explaination, have a look at :doc:`/api-kivy.input`.
 
+Class events
+~~~~~~~~~~~~
 
-If you want to be sure the following events of a touch will be dispatched to you no matter what (for example it moves out of your parent zone, which stops dispatching it, but you need to react to the end of the touch), you can grab it, that doesn't mean you'll be the only one to get it, that means you'll get _at least_ on time each event associated to this touch.
+.. image:: ../images/gs-events-class.png
+    :class: gs-eleft
 
-    class OurWidget(Widget):
-        def on_touch_down(self, touch, \*args):
-            touch.grab(self)
-            return super(OurClass, self).on_touch_down(touch, \*args)
+Our base class :class:`~kivy.event.EventDispatcher`, used by
+:class:`~kivy.uix.widget.Widget`, use the power of ours
+:doc:`/api-kivy.properties` for dispatching changes. IE, when a widget changes
+its position or size, an event is fired.
 
-    def on_touch_up(self, touch, \*args):
-        if touch.current_grab == self:
-            print "got this dipatch because of the grab"
-        else:
-            print "got this dispatch throught parent dispatching"
-            return super(OurClass, self).on_touch_down(touch, \*args)
+In addition, you have the possibility to create your own event using
+:meth:`~kivy.event.EventDispatcher.register_event_type`, as the
+`on_press`/`on_release` in :class:`~kivy.uix.button.Button`.
 
-Lastly touch events have a lot of information bundled inside them, about time, position (as seen earlier), about the device that produce them and so on, it's useful to look at the %
-`touch_event` documentation.
+Going further
+~~~~~~~~~~~~~
+
+Another thing to note is that if you override an event, you become responsible
+for implementing all its behaviour previously handled by the base class. The
+easiest way to do this is to call `super()`::
+
+    def on_touch_down(self, touch):
+        if super(OurClassName, self).on_touch_down(touch):
+            return True
+        if not self.collide_point(touch.x, touch.y):
+            return False
+        print 'you touched me!'
+        return True
+
+Get more familiar with events by reading the :doc:`/guide/events` documentation.
 

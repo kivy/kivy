@@ -127,11 +127,11 @@ class CameraBase(EventDispatcher):
 # Load the appropriate providers
 providers = ()
 
-if sys.platform != 'darwin':
-    providers += (('gstreamer', 'camera_gstreamer', 'CameraGStreamer'), )
 if sys.platform == 'win32':
     providers += (('videocapture', 'camera_videocapture',
         'CameraVideoCapture'), )
+if sys.platform != 'darwin':
+    providers += (('gstreamer', 'camera_gstreamer', 'CameraGStreamer'), )
 
 providers += (('opencv', 'camera_opencv', 'CameraOpenCV'), )
 

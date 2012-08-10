@@ -33,12 +33,12 @@
             id: content
 
 <KivyImageScatter>:
-	scale_min: 1
+    scale_min: 1
     Image:
         source: 'data/logo/kivy-icon-512.png'
 
 <ButtonsScatter>:
-	scale_min: 1
+    scale_min: 1
     canvas:
         Color:
             rgba: .5, .5, .5, .2
@@ -142,241 +142,262 @@
                 pos: self.pos
 
 [VSeparator@Widget]:
-	size_hint_x: None
-	width: 10
-	canvas:
-		Color:
-			rgba: .8, .8, .8, .3
-		Rectangle:
-			size: 1, self.height
-			pos: self.center_x, self.y
+    size_hint_x: None
+    width: 10
+    canvas:
+        Color:
+            rgba: .8, .8, .8, .3
+        Rectangle:
+            size: 1, self.height
+            pos: self.center_x, self.y
 
 [HSeparator@Label]:
-	size_hint_y: None
-	height: 45
-	text: ctx.text if 'text' in ctx else ''
-	text_size: self.size
-	valign: 'middle'
-	halign: 'center'
-	canvas.before:
-		Color:
-			rgba: .2, .2, .2, .8
-		Rectangle:
-			size: self.size
-			pos: self.pos
+    size_hint_y: None
+    height: 45
+    text: ctx.text if 'text' in ctx else ''
+    text_size: self.size
+    valign: 'middle'
+    halign: 'center'
+    canvas.before:
+        Color:
+            rgba: .2, .2, .2, .8
+        Rectangle:
+            size: self.size
+            pos: self.pos
 
 <StandardWidgets>:
-	BoxLayout:
-		pos_hint: {'x': 0, 'y': 0}
+    BoxLayout:
+        pos_hint: {'x': 0, 'y': 0}
 
-		BoxLayout:
-			orientation: 'vertical'
-			padding: 10
-			spacing: 10
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+            spacing: 10
 
-			HSeparator:
-				text: 'Buttons'
+            HSeparator:
+                text: 'Buttons'
 
-			Button:
-				text: 'Button ' + self.state
+            Button:
+                text: 'Button ' + self.state
 
-			Button:
-				text: 'Button ' + self.state
-				state: 'down'
+            Button:
+                text: 'Button ' + self.state
+                state: 'down'
 
-			ToggleButton:
-				text: 'Toggle ' + self.state
+            ToggleButton:
+                text: 'Toggle ' + self.state
 
-			HSeparator:
-				text: 'Toggle buttons with group'
+            HSeparator:
+                text: 'Toggle buttons with group'
 
-			ToggleButton:
-				text: 'Toggle 1'
-				group: 'tgroup'
+            ToggleButton:
+                text: 'Toggle 1'
+                group: 'tgroup'
 
-			ToggleButton:
-				text: 'Toggle 2'
-				group: 'tgroup'
-
-
-		BoxLayout:
-			orientation: 'vertical'
-			padding: 10
-			spacing: 10
-
-			HSeparator:
-				text: 'Sliders'
-
-			Slider:
-				value: 33
-				size_hint_y: None
-				height: 50
-
-			Slider:
-				value: 66
-				size_hint_y: None
-				height: 50
+            ToggleButton:
+                text: 'Toggle 2'
+                group: 'tgroup'
 
 
-			BoxLayout:
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+            spacing: 10
 
-				Slider:
-					orientation: 'vertical'
-					value: 33
+            HSeparator:
+                text: 'Sliders'
 
-				Slider:
-					orientation: 'vertical'
-					value: 66
+            Slider:
+                value: 33
+                size_hint_y: None
+                height: 50
 
-			HSeparator:
-				text: 'Progress Bar'
-
-			ProgressBar:
-				value: (20 * root.value) % (1 + self.max)
-				size_hint_y: None
-				height: 50
-
-			HSeparator:
-				text: 'Switch'
-
-			Switch:
-				size_hint_y: None
-				height: 50
+            Slider:
+                value: 66
+                size_hint_y: None
+                height: 50
 
 
-		BoxLayout:
-			orientation: 'vertical'
-			padding: 10
-			spacing: 10
+            BoxLayout:
 
-			HSeparator:
-				text: 'Text inputs'
+                Slider:
+                    orientation: 'vertical'
+                    value: 33
 
-			TextInput:
-				text: 'Monoline textinput'
-				size_hint_y: None
-				height: 50
+                Slider:
+                    orientation: 'vertical'
+                    value: 66
 
-			TextInput:
-				text: 'This is a password'
-				size_hint_y: None
-				height: 50
-				password: True
+            HSeparator:
+                text: 'Progress Bar'
 
-			TextInput:
-				text: 'Readonly textinput'
-				size_hint_y: None
-				height: 50
-				readonly: True
+            ProgressBar:
+                value: (20 * root.value) % (1 + self.max)
+                size_hint_y: None
+                height: 50
 
-			TextInput:
-				text: 'Multiline textinput\nSecond line'
+            HSeparator:
+                text: 'Switch'
+
+            Switch:
+                size_hint_y: None
+                height: 50
+
+
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+            spacing: 10
+
+            HSeparator:
+                text: 'Text inputs'
+
+            TextInput:
+                text: 'Monoline textinput'
+                size_hint_y: None
+                height: 30
+
+            TextInput:
+                text: 'This is a password'
+                size_hint_y: None
+                height: 30
+                password: True
+
+            TextInput:
+                text: 'Readonly textinput'
+                size_hint_y: None
+                height: 30
+                readonly: True
+
+            TextInput:
+                text: 'Multiline textinput\nSecond line'
+
+            HSeparator:
+                text: 'Checkbox'
+
+            GridLayout:
+                rows: 1
+                CheckBox
+                CheckBox
+
+            GridLayout:
+                cols: 2
+                CheckBox:
+                    group: 'group1'
+                CheckBox:
+                    group: 'group1'
+                CheckBox:
+                    group: 'group2'
+                CheckBox:
+                    group: 'group2'
+
+
 
 <ComplexWidgets>:
-	BoxLayout:
-		pos_hint: {'x': 0, 'y': 0}
+    BoxLayout:
+        pos_hint: {'x': 0, 'y': 0}
 
-		BoxLayout:
-			orientation: 'vertical'
-			padding: 10
-			spacing: 10
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+            spacing: 10
 
-			HSeparator:
-				text: 'Accordions'
+            HSeparator:
+                text: 'Accordions'
 
-			Accordion:
+            Accordion:
 
-				AccordionItem:
-					title: 'Panel 1'
-					Label:
-						text: 'This is a label fit to the content view'
+                AccordionItem:
+                    title: 'Panel 1'
+                    Label:
+                        text: 'This is a label fit to the content view'
 
-				AccordionItem:
-					title: 'Panel 2'
-					Button:
-						text: 'A button, what else?'
+                AccordionItem:
+                    title: 'Panel 2'
+                    Button:
+                        text: 'A button, what else?'
 
-				AccordionItem:
-					title: 'Panel 3'
-					Label:
-						text: 'This is a label fit to the content view'
-
-
-			Accordion:
-
-				orientation: 'vertical'
-
-				AccordionItem:
-					title: 'Panel 1'
-					Label:
-						text: 'This is a label fit to the content view'
-
-				AccordionItem:
-					title: 'Panel 2'
-					Button:
-						text: 'A button, what else?'
-
-				AccordionItem:
-					title: 'Panel 3'
-					Label:
-						text: 'This is a label fit to the content view'
+                AccordionItem:
+                    title: 'Panel 3'
+                    Label:
+                        text: 'This is a label fit to the content view'
 
 
-		VSeparator
+            Accordion:
 
-		BoxLayout:
-			orientation: 'vertical'
-			padding: 10
-			spacing: 10
+                orientation: 'vertical'
 
-			HSeparator:
-				text: 'File choosers'
+                AccordionItem:
+                    title: 'Panel 1'
+                    Label:
+                        text: 'This is a label fit to the content view'
 
-			FileChooserListView
+                AccordionItem:
+                    title: 'Panel 2'
+                    Button:
+                        text: 'A button, what else?'
 
-			FileChooserIconView
+                AccordionItem:
+                    title: 'Panel 3'
+                    Label:
+                        text: 'This is a label fit to the content view'
+
+
+        VSeparator
+
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+            spacing: 10
+
+            HSeparator:
+                text: 'File choosers'
+
+            FileChooserListView
+
+            FileChooserIconView
 
 <TreeViewWidgets>:
-	treeview1: treeview1
-	treeview2: treeview2
+    treeview1: treeview1
+    treeview2: treeview2
 
-	BoxLayout:
-		pos_hint: {'x': 0, 'y': 0}
+    BoxLayout:
+        pos_hint: {'x': 0, 'y': 0}
 
-		BoxLayout:
-			orientation: 'vertical'
-			padding: 10
-			spacing: 10
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+            spacing: 10
 
-			HSeparator:
-				text: 'Treeview with root'
+            HSeparator:
+                text: 'Treeview with root'
 
-			TreeView:
-				id: treeview1
+            TreeView:
+                id: treeview1
 
-			Button:
-				text: 'Remove first node'
-				size_hint_y: None
-				height: 50
-				on_release: treeview1.remove_node(treeview1.root.nodes[0]) if not treeview1.root.is_leaf else None
+            Button:
+                text: 'Remove first node'
+                size_hint_y: None
+                height: 50
+                on_release: treeview1.remove_node(treeview1.root.nodes[0]) if not treeview1.root.is_leaf else None
 
-		BoxLayout:
-			orientation: 'vertical'
-			padding: 10
-			spacing: 10
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 10
+            spacing: 10
 
-			HSeparator:
-				text: 'Treeview without root'
+            HSeparator:
+                text: 'Treeview without root'
 
-			TreeView:
-				id: treeview2
-				hide_root: True
+            TreeView:
+                id: treeview2
+                hide_root: True
 
-			Button:
-				text: 'Remove first node'
-				size_hint_y: None
-				height: 50
-				on_release: treeview2.remove_node(treeview2.root.nodes[0]) if not treeview2.root.is_leaf else None
+            Button:
+                text: 'Remove first node'
+                size_hint_y: None
+                height: 50
+                on_release: treeview2.remove_node(treeview2.root.nodes[0]) if not treeview2.root.is_leaf else None
 
 
 

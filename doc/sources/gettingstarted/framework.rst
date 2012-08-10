@@ -1,14 +1,37 @@
-Non widgets stuff
+Non-widget stuff
 -----------------
 
-.. container:: Non widgets stuff
+.. container:: title
 
-what is an animation (and a gif to go with it)
+    Kivy FrameWork
 
-**Animation** and AnimationTransition are used to animate Widget properties(size/pos/center...), in a sequential http://kivy.org/docs/api-kivy.animation.html#sequential-animation or parallel http://kivy.org/docs/api-kivy.animation.html#parallel-animation order.
+.. |animation_img| image:: ../images/gs-animation.gif
 
-**Atlas**: Atlas is a class for managing textures atlases: packing multiple texture into one. With it, you are reducing the number of image to load and speedup the application loading. For an in-depth look at the atlas look in http://kivy.org/docs/api-kivy.atlas.html
+.. |animation_text| replace:: :class:`Animation <kivy.animation.Animation>` is used to change a Widget's properties (size/pos/center...), to a target value, in a target time.
+    Various :class:`transition <kivy.animation.AnimationTransition>` functions are provided. 
+    Using them, you can animate widgets and build very smooth UI behaviours.
 
-**Clock** http://kivy.org/docs/api-kivy.clock.htm
-Clock provides you with a convinenient way to do jobs at set intervals and is preffered over sleep() as sleep tends to block kivy's Event Loop. These intervals can be also set relative to the OpenGL Drawing instructions, a.k.a draw before/after frame http://kivy.org/docs/api-kivy.clock.html#schedule-before-frame . Clock also provides you with a way to create triggered events http://kivy.org/docs/api-kivy.clock.html#triggered-events , that are clubbed togeather and only called once before the next frame.
+.. |atlas_img| image:: ../images/gs-atlas.png
 
+.. |atlas_text| replace:: :class:`Atlas <kivy.atlas.Atlas>` is a class for managing texture maps, i.e. packing multiple textures into one image. Using it allows you to reduce the number of images to load and speed up the application start.
+
+.. |clock_text| replace:: :class:`Clock <kivy.clock.Clock>` provides you with a convenient way to do jobs at set time intervals and is preferred over *sleep()*  which would block the kivy Event Loop. These intervals can be set relative to the OpenGL Drawing instructions, :ref:`before <schedule-before-frame>` or :ref:`after <schedule-before-frame>` frame.  Clock also provides you with a way to create :ref:`triggered events <triggered-events>` that are grouped together and only called once before the next frame.
+
+.. |sched_once| replace:: :meth:`~kivy.clock.ClockBase.schedule_once`
+.. |sched_intrvl| replace:: :meth:`~kivy.clock.ClockBase.schedule_interval`
+.. |unsched| replace:: :meth:`~kivy.clock.ClockBase.unschedule`
+.. |trigger| replace:: :meth:`~kivy.clock.ClockBase.create_trigger`
+.. |urlreq| replace:: :class:`UrlRequest <kivy.network.urlrequest.UrlRequest>` is useful to do asynchronous requests without blocking the event loop, and manage the result and progress with callbacks.
+
++------------------+------------------+
+| |animation_text| |   |animation_img||
++------------------+------------------+
+| |atlas_text|     |     |atlas_img|  |
++------------------+------------------+
+| |clock_text|     | - |sched_once|   |
+|                  | - |sched_intrvl| |
+|                  | - |unsched|      |
+|                  | - |trigger|      |
++------------------+------------------+
+| |urlreq|         |                  |
++------------------+------------------+

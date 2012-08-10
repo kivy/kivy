@@ -88,6 +88,30 @@
             size: self.norm_image_size
             pos: self.center_x - self.norm_image_size[0] / 2., self.center_y - self.norm_image_size[1] / 2.
 
+<TabbedPanelContent>
+    rows: 1
+    padding: 3
+    canvas:
+        Color:
+            rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
+        BorderImage:
+            border: self.parent.border if self.parent else (16, 16, 16, 16)
+            texture: root.parent._bk_img.texture if root.parent else None
+            size: self.size
+            pos: self.pos
+
+<TabbedPanelStrip>
+    rows: 1
+
+<TabbedPanelHeader>:
+    halign: 'center'
+    valign: 'middle'
+    background_normal: 'atlas://data/images/defaulttheme/tab_btn'
+    background_down: 'atlas://data/images/defaulttheme/tab_btn_pressed'
+    border: (8, 8, 8, 8)
+    font_size: 11
+
+
 <TextInput>:
     padding_x: 6
     padding_y: 6
@@ -156,6 +180,10 @@
         StencilUse
 
     canvas.after:
+        StencilUnUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
         StencilPop
 
 
@@ -320,18 +348,18 @@
         pos_hint: {'x': .2, 'y': .4}
         size_hint: .6, .2
         ProgressBar:
-			id: pb
+            id: pb
             pos_hint: {'x': 0, 'center_y': .5}
             max: root.total
             value: root.index
         Label:
             pos_hint: {'x': 0}
             text: '%d / %d' % (root.index, root.total)
-			size_hint_y: None
-			height: self.texture_size[1]
-			y: pb.center_y - self.height - 8
-			font_size: 10
-			color: (.8, .8, .8, .8)
+            size_hint_y: None
+            height: self.texture_size[1]
+            y: pb.center_y - self.height - 8
+            font_size: 10
+            color: (.8, .8, .8, .8)
 
     AnchorLayout:
         pos_hint: {'x': .2, 'y': .2}
@@ -360,9 +388,9 @@
             size: 43, 32
             pos: int(self.center_x - 41 + self.active_norm_pos * 41), int(self.center_y - 16)
 
-# Popup widget
-<Popup>:
-    _container: container
+
+# ModalView widget
+<ModalView>:
     canvas:
         Color:
             rgba: root.background_color[:3] + [root.background_color[-1] * self._anim_alpha]
@@ -377,6 +405,10 @@
             pos: self.pos
             size: self.size
 
+
+# Popup widget
+<Popup>:
+    _container: container
     GridLayout:
         padding: 12
         cols: 1
@@ -682,11 +714,17 @@
         size_hint_y: None
         height: 44
 
+        VideoPlayerStop:
+            size_hint_x: None
+            video: root
+            width: 44
+            source: root.image_stop
+
         VideoPlayerPlayPause:
             size_hint_x: None
             video: root
             width: 44
-            source: root.image_play if not root.play else root.image_pause
+            source: root.image_pause if root.state == 'play' else root.image_play
 
         VideoPlayerVolume:
             video: root
@@ -706,3 +744,46 @@
         Widget:
             size_hint_x: None
             width: 10
+
+# =============================================================================
+# Checkbox
+# =============================================================================
+
+<CheckBox>:
+    canvas:
+        Color:
+            rgb: 1, 1, 1
+        Rectangle:
+            source: 'atlas://data/images/defaulttheme/checkbox%s_%s' % (('_radio' if self.group else ''), ('on' if self.active else 'off'))
+            size: 32, 32
+            pos: int(self.center_x - 16), int(self.center_y - 16)
+
+# =============================================================================
+# Relative Layout
+# =============================================================================
+
+<RelativeLayout>:
+    do_translation: False
+    do_rotation: False
+    do_scale: False
+	auto_bring_to_front: False
+
+
+# =============================================================================
+# Screen Manager
+# =============================================================================
+
+<ScreenManager>:
+	canvas.before:
+		StencilPush
+		Rectangle:
+			pos: self.pos
+			size: self.size
+		StencilUse
+	canvas.after:
+		StencilUnUse
+		Rectangle:
+			pos: self.pos
+			size: self.size
+		StencilPop
+

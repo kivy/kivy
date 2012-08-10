@@ -2,31 +2,31 @@
 Image
 =====
 
-The :class:`Image` widget is used to display an image. ::
+The :class:`Image` widget is used to display an image::
 
     wimg = Image(source='mylogo.png')
 
-Asynchronous loading
+Asynchronous Loading
 --------------------
 
 To load an image asynchronously (for example from an external webserver), use
-the :class:`AsyncImage` subclass ::
+the :class:`AsyncImage` subclass::
 
     aimg = AsyncImage(source='http://mywebsite.com/logo.png')
 
-Alignement
-----------
+Alignment
+---------
 
-By default, the image is centered and fitted inside the widget bounding box.
+By default, the image is centered and fit inside the widget bounding box.
 If you don't want that, you can inherit from Image and create your own style.
 
 For example, if you want your image to take the same size of your widget, you
-can do ::
+can do::
 
     class FullImage(Image):
         pass
 
-And in your kivy language file, you can do ::
+And in your kivy language file, you can do::
 
     <FullImage>:
         canvas:
@@ -56,7 +56,7 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`source` is a :class:`~kivy.properties.StringProperty`, default to None.
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -76,8 +76,8 @@ class Image(Widget):
     .. warning::
 
         The texture size is set after the texture property. So if you listen on
-        the change to :data:`texture`, the property texture_size will be not yet
-        updated. Use self.texture.size instead.
+        the change to :data:`texture`, the property texture_size will not be
+        up-to-date. Use self.texture.size instead.
     '''
 
     def get_image_ratio(self):
@@ -86,7 +86,7 @@ class Image(Widget):
         return 1.
 
     mipmap = BooleanProperty(False)
-    '''Indicate if you want OpenGL mipmapping to be apply on the texture or not.
+    '''Indicate if you want OpenGL mipmapping to be applied on the texture.
     Read :ref:`mipmap` for more information.
 
     .. versionadded:: 1.0.7
@@ -96,14 +96,14 @@ class Image(Widget):
     '''
 
     image_ratio = AliasProperty(get_image_ratio, None, bind=('texture', ))
-    '''Ratio of the image (width / float(height)
+    '''Ratio of the image (width / float(height).
 
     :data:`image_ratio` is a :class:`~kivy.properties.AliasProperty`, and is
     read-only.
     '''
 
     color = ListProperty([1, 1, 1, 1])
-    '''Image color, in the format (r, g, b, a). This attribute can be used for
+    '''Image color, in the format (r, g, b, a). This attribute can be used to
     'tint' an image. Be careful, if the source image is not gray/white, the
     color will not really work as expected.
 
@@ -115,8 +115,8 @@ class Image(Widget):
 
     allow_stretch = BooleanProperty(False)
     '''If True, the normalized image size will be maximized to fit in the image
-    box. Otherwise, if the box is too tall, the image will not be streched more
-    than 1:1 pixels
+    box. Otherwise, if the box is too tall, the image will not be stretched more
+    than 1:1 pixels.
 
     .. versionadded:: 1.0.7
 
@@ -126,10 +126,10 @@ class Image(Widget):
 
     keep_ratio = BooleanProperty(True)
     '''If False along with allow_stretch being True, the normalized image
-    size will be maximized to fit in the image box disregarding the aspect
+    size will be maximized to fit in the image box, disregarding the aspect
     ratio of the image.
-    Otherwise, if the box is too tall, the image will not be streched more
-    than 1:1 pixels
+    Otherwise, if the box is too tall, the image will not be stretched more
+    than 1:1 pixels.
 
     .. versionadded:: 1.0.8
 
@@ -137,8 +137,18 @@ class Image(Widget):
     default to True
     '''
 
+    keep_data = BooleanProperty(False)
+    '''If true the underlaying _coreimage have to keep the raw image data.
+    Useful to perform pixel based collision detection
+
+    .. versionadded:: 1.3.0
+
+    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`, default
+    to False
+    '''
+
     anim_delay = NumericProperty(.25)
-    '''Delay of animation if the image is sequenced (like animated gif).
+    '''Delay of animation if the image is sequenced (like an animated gif).
     If the anim_delay is set to -1, the animation will be stopped.
 
     .. versionadded:: 1.0.8
@@ -177,9 +187,9 @@ class Image(Widget):
 
     norm_image_size = AliasProperty(get_norm_image_size, None, bind=(
         'texture', 'size', 'image_ratio', 'allow_stretch'))
-    '''Normalized image size withing the widget box.
+    '''Normalized image size within the widget box.
 
-    This size will be always fitted to the widget size, and preserve the image
+    This size will always be fit to the widget size, and will preserve the image
     ratio.
 
     :data:`norm_image_size` is a :class:`~kivy.properties.AliasProperty`, and is
@@ -191,7 +201,7 @@ class Image(Widget):
         super(Image, self).__init__(**kwargs)
         self.bind(source=self.texture_update,
                   mipmap=self.texture_update)
-        if self.source is not None:
+        if self.source:
             self.texture_update()
 
     def texture_update(self, *largs):
@@ -205,7 +215,7 @@ class Image(Widget):
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
-                    anim_delay=self.anim_delay)
+                    anim_delay=self.anim_delay, keep_data=self.keep_data)
             ci.bind(on_texture=self._on_tex_change)
             self.texture = ci.texture
 
@@ -224,9 +234,28 @@ class Image(Widget):
         # update texture from core image
         self.texture = self._coreimage.texture
 
+    def reload(self):
+        '''Reload image from disk. This facilitates re-loading of
+        image from disk in case contents change.
+
+        .. versionadded:: 1.3.0
+
+        Usage::
+
+            im = Image(source = '1.jpg')
+            # -- do something --
+            im.reload()
+            # image will be re-loaded from disk
+
+        '''
+        self._coreimage.remove_from_cache()
+        olsource = self.source
+        self.source = ''
+        self.source = olsource
+
 
 class AsyncImage(Image):
-    '''Asynchronous Image class, see module documentation for more information.
+    '''Asynchronous Image class. See module documentation for more information.
     '''
 
     def __init__(self, **kwargs):
