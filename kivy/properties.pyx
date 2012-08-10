@@ -191,10 +191,18 @@ cdef class Property:
         self._name = ''
         self.allownone = 0
         self.defaultvalue = None
+        self.errorvalue = None
+        self.errorhandler = None
+        self.errorvalue_set = 0
+
 
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
+        self.errorvalue = kw.get('errorvalue', None)
+        self.errorhandler = kw.get('errorhandler', None)
+        if 'errorvalue' in kw: self.errorvalue_set = 1
+
 
     property name:
         def __get__(self):
@@ -203,7 +211,11 @@ cdef class Property:
     cdef init_storage(self, dict storage):
         storage['value'] = self.defaultvalue
         storage['allownone'] = self.allownone
+        storage['errorvalue'] = self.errorvalue
+        storage['errorhandler'] = self.errorhandler
+        storage['errorvalue_set'] = self.errorvalue_set
         storage['observers'] = []
+
 
     cpdef link(self, object obj, str name):
         '''Link the instance with its real name.
@@ -266,7 +278,22 @@ cdef class Property:
         realvalue = d['value']
         if self.compare_value(realvalue, value):
             return False
-        self.check(obj, value)
+
+        try:
+            self.check(obj, value)            
+        except ValueError as e:
+            errorvalue = obj.__storage[self._name]['errorvalue']
+            errorhandler = obj.__storage[self._name]['errorhandler']
+            errorvalue_set = obj.__storage[self._name]['errorvalue_set']
+            if errorvalue_set == 1:
+                value = errorvalue
+                self.check(obj, value)
+            elif errorhandler is not None:
+                value = errorhandler(value)
+                self.check(obj, value)
+            else:
+                raise e
+
         d['value'] = value
         self.dispatch(obj)
         return True
