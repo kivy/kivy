@@ -8,7 +8,6 @@ Utils
 __all__ = ('intersection', 'difference', 'strtotuple',
            'get_color_from_hex', 'get_random_color',
            'is_color_transparent', 'boundary',
-           'deprecated', 'SafeList',
            'interpolate', 'OrderedDict', 'QueryDict',
            'platform', 'escape_markup')
 
@@ -23,17 +22,6 @@ _platform_ios = None
 def boundary(value, minvalue, maxvalue):
     '''Limit a value between a minvalue and maxvalue'''
     return min(max(value, minvalue), maxvalue)
-
-
-def intersection(set1, set2):
-    '''Return intersection between 2 list'''
-    return filter(lambda s: s in set2, set1)
-
-
-def difference(set1, set2):
-    '''Return difference between 2 list'''
-    return filter(lambda s: s not in set2, set1)
-
 
 def interpolate(value_from, value_to, step=10):
     '''Interpolate a value to another. Can be useful to smooth some transition.
@@ -107,65 +95,9 @@ def get_random_color(alpha=1.0):
         return [random(), random(), random(), alpha]
 
 
-def is_color_transparent(c):
+def is_color_transparent(color):
     '''Return true if alpha channel is 0'''
-    if len(c) < 4:
-        return False
-    if float(c[3]) == 0.:
-        return True
-    return False
-
-
-DEPRECATED_CALLERS = []
-
-
-def deprecated(func):
-    '''This is a decorator which can be used to mark functions
-    as deprecated. It will result in a warning being emitted the first time
-    the function is used.'''
-
-    import inspect
-    import functools
-
-    @functools.wraps(func)
-    def new_func(*args, **kwargs):
-        file, line, caller = inspect.stack()[1][1:4]
-        caller_id = "%s:%s:%s" % (file, line, caller)
-        # We want to print deprecated warnings only once:
-        if caller_id not in DEPRECATED_CALLERS:
-            DEPRECATED_CALLERS.append(caller_id)
-            warning = (
-                'Call to deprecated function %s in %s line %d.'
-                'Called from %s line %d'
-                ' by %s().') % (
-                func.__name__,
-                func.func_code.co_filename,
-                func.func_code.co_firstlineno + 1,
-                file, line, caller)
-            from kivy.logger import Logger
-            Logger.warn(warning)
-            if func.__doc__:
-                Logger.warn(func.__doc__)
-        return func(*args, **kwargs)
-    return new_func
-
-
-class SafeList(list):
-    '''List with clear() method
-
-    .. warning::
-        Usage of iterate() function will decrease your performance.
-    '''
-
-    def clear(self):
-        del self[:]
-
-    @deprecated
-    def iterate(self, reverse=False):
-        if reverse:
-            return reversed(iter(self))
-        return iter(self)
-
+    return len(color) == 4 and color[3] == 0
 
 class OrderedDict(dict, DictMixin):
 
@@ -266,7 +198,6 @@ class OrderedDict(dict, DictMixin):
     def __ne__(self, other):
         return not self == other
 
-
 class QueryDict(dict):
     '''QueryDict is a dict() that can be queried with dot.
 
@@ -329,33 +260,24 @@ def platform():
 
     .. warning:: ios is not currently reported.
     '''
-    global _platform_ios, _platform_android
 
-    if _platform_android is None:
-        try:
-            import android
-            _platform_android = True
-        except ImportError:
-            _platform_android = False
-
-    if _platform_ios is None:
-        # TODO implement ios support here
-        _platform_ios = False
-
-    # On android, _sys_platform return 'linux2', so prefer to check the import
-    # of Android module than trying to rely on _sys_platform.
-    if _platform_android is True:
+    try:
+        import android
         return 'android'
-    elif _platform_ios is True:
-        return 'ios'
-    elif _sys_platform in ('win32', 'cygwin'):
-        return 'win'
-    elif _sys_platform in ('darwin', ):
-        return 'macosx'
-    elif _sys_platform in ('linux2', 'linux3'):
-        return 'linux'
-    return 'unknown'
-
+    except ImportError:
+        #TODO: implement ios support here
+        try:
+            import ios
+            return 'ios'
+        except ImportError:
+            if _sys_platform in ('win32', 'cygwin'):
+                return 'win'
+            elif _sys_platform in ('darwin', ):
+                return 'macosx'
+            elif _sys_platform in ('linux2', 'linux3'):
+                return 'linux'
+            else:
+                return 'unknown'
 
 def escape_markup(text):
     '''
