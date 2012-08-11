@@ -33,6 +33,7 @@ cdef class Context:
 
     def __init__(self):
         self.observers = []
+        self.observers_before = []
         self.l_texture = []
         self.l_canvas = []
         self.l_vbo = []
@@ -96,23 +97,34 @@ cdef class Context:
             self.lr_fbo.append((fbo.buffer_id, fbo.depthbuffer_id))
             self.trigger_gl_dealloc()
 
-    def add_reload_observer(self, callback):
+    def add_reload_observer(self, callback, before=False):
         '''Add a callback to be called after the whole graphics context have
         been reloaded. This is where you can reupload your custom data in GPU.
 
         :Parameters:
             `callback`: func(context) -> return None
                 The first parameter will be the context itself
-        '''
-        self.observers.append(WeakMethod(callback))
+            `before`: boolean, default to False
+                If True, the callback will be executed before the whole
+                reloading processus. Use it if you want to clear your cache for
+                example.
 
-    def remove_reload_observer(self, callback):
+        .. versionchanged:: 1.4.0
+            `before` parameter added.
+        '''
+        if before:
+            self.observers_before.append(WeakMethod(callback))
+        else:
+            self.observers.append(WeakMethod(callback))
+
+    def remove_reload_observer(self, callback, before=False):
         '''Remove a callback from the observer list, previously added by
         :func:`add_reload_observer`. 
         '''
-        for cb in self.observers[:]:
+        lst = self.observers_before if before else self.observers
+        for cb in lst[:]:
             if cb.is_dead() or cb() is callback:
-                self.observers.remove(cb)
+                lst.remove(cb)
                 continue
 
     def reload(self):
@@ -121,6 +133,14 @@ cdef class Context:
         cdef Texture texture
         cdef Shader shader
         cdef Canvas canvas
+
+        # call reload observers that want to do something after a whole gpu
+        # reloading.
+        for callback in self.observers_before[:]:
+            if callback.is_dead():
+                self.observers_before.remove(callback)
+                continue
+            callback()(self)
 
         image_objects = Cache._objects['kv.image']
         Cache.remove('kv.image')

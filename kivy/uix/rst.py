@@ -434,7 +434,7 @@ class RstDocument(ScrollView):
 
     toctrees = DictProperty({})
     '''Toctree of all loaded or preloaded documents. This dictionary is filled
-    when a rst document is explicitly loaded, or where :func:`preload` has been
+    when a rst document is explicitly loaded, or where :meth:`preload` has been
     called.
 
     If the document has no filename, e.g., when the document is loaded from a

@@ -727,7 +727,7 @@ cdef class OptionProperty(Property):
 
     def __init__(self, *largs, **kw):
         self.options = <list>(kw.get('options', []))
-        Property.__init__(self, *largs, **kw)
+        super(OptionProperty, self).__init__(*largs, **kw)
 
     cdef init_storage(self, dict storage):
         Property.init_storage(self, storage)
@@ -850,10 +850,17 @@ cdef class AliasProperty(Property):
             Function to use as a property setter
         `bind`: list/tuple
             List of properties to observe for changes
+        `cache`: boolean
+            If True, the value will be cached, until one of the binded elements
+            will changes
+
+    .. versionchanged:: 1.4.0
+        Parameter `cache` added.
     '''
     def __cinit__(self):
         self.getter = None
         self.setter = None
+        self.use_cache = 0
         self.bind_objects = list()
 
     def __init__(self, getter, setter, **kwargs):
@@ -862,11 +869,13 @@ cdef class AliasProperty(Property):
         self.setter = setter
         v = kwargs.get('bind')
         self.bind_objects = list(v) if v is not None else []
+        self.use_cache = 1 if kwargs.get('cache') else 0
 
     cdef init_storage(self, dict storage):
         Property.init_storage(self, storage)
         storage['getter'] = self.getter
         storage['setter'] = self.setter
+        storage['initial'] = True
 
     cpdef link_deps(self, object obj, str name):
         cdef Property oprop
@@ -875,17 +884,25 @@ cdef class AliasProperty(Property):
             oprop.bind(obj, self.trigger_change)
 
     cpdef trigger_change(self, obj, value):
-        cvalue = obj.__storage[self._name]['value']
+        cdef dict storage = obj.__storage[self.name]
+        storage['initial'] = True
+        cvalue = storage['value']
         dvalue = self.get(obj)
         if cvalue != dvalue:
-            obj.__storage[self._name]['value'] = dvalue
+            storage['value'] = dvalue
             self.dispatch(obj)
 
     cdef check(self, obj, value):
         return True
 
     cpdef get(self, obj):
-        return obj.__storage[self._name]['getter'](obj)
+        cdef dict storage = obj.__storage[self._name]
+        if self.use_cache:
+            if storage['initial']:
+                storage['value'] = storage['getter'](obj)
+                storage['initial'] = False
+            return storage['value']
+        return storage['getter'](obj)
 
     cpdef set(self, obj, value):
         if obj.__storage[self._name]['setter'](obj, value):

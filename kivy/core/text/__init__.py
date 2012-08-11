@@ -208,11 +208,11 @@ class LabelBase(object):
 
         if segment - margin > 5:
             segment -= margin
-            return '{0}...{1}'.format(text[:segment].strip(),
+            return u'{0}...{1}'.format(text[:segment].strip(),
                 text[-segment:].strip())
         else:
             segment = max_letters - 3 # length of '...'
-            return '{0}...'.format(text[:segment].strip())
+            return u'{0}...'.format(text[:segment].strip())
 
     def render(self, real=False):
         '''Return a tuple(width, height) to create the image
@@ -287,6 +287,8 @@ class LabelBase(object):
 
                 # calculate the word width
                 ww, wh = 0, 0
+                if word == '':
+                    ww, wh = get_extents(' ')
                 for glyph in word:
                     gw, gh = cache[glyph]
                     ww += gw

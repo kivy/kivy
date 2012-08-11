@@ -294,7 +294,7 @@ class ImageLoader(object):
                 fn = 'atlas://%s/%s' % (rfn, uid)
                 cid = '%s|%s|%s' % (fn, False, 0)
                 Cache.append('kv.texture', cid, texture)
-                return texture
+                return Image(texture)
 
             # search with resource
             afn = rfn
@@ -312,10 +312,14 @@ class ImageLoader(object):
                 cid = '%s|%s|%s' % (fn, False, 0)
                 #print 'register', cid
                 Cache.append('kv.texture', cid, texture)
-            return atlas[uid]
+            return Image(atlas[uid])
 
         # extract extensions
         ext = filename.split('.')[-1].lower()
+
+        # prevent url querystrings
+        if filename.startswith((('http://', 'https://'))):
+            ext = ext.split('?')[0]
 
         # special case. When we are trying to load a "zip" file with image, we
         # will use the special zip_loader in ImageLoader. This might return a
@@ -392,6 +396,9 @@ class Image(EventDispatcher):
             for attr in Image.copy_attributes:
                 self.__setattr__(attr, arg.__getattribute__(attr))
         elif type(arg) in (Texture, TextureRegion):
+            if not hasattr(self, 'textures'):
+                self.textures = []
+                self.textures.append(arg)
             self._texture = arg
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
@@ -563,7 +570,10 @@ class Image(EventDispatcher):
         if image:
             # we found an image, yeah ! but reset the texture now.
             self.image = image
-            if not image.keep_data and self._keep_data:
+            # if image.__class__ is core image then it's a texture
+            # from atlas or other sources and has no data so skip
+            if (image.__class__ != self.__class__ and
+                not image.keep_data and self._keep_data):
                 self.remove_from_cache()
                 self._filename = ''
                 self._set_filename(value)

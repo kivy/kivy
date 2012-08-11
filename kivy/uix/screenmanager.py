@@ -115,9 +115,10 @@ __all__ = ('Screen', 'ScreenManager', 'ScreenManagerException',
     'TransitionBase', 'ShaderTransition', 'SlideTransition', 'SwapTransition',
     'FadeTransition', 'WipeTransition')
 
+from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import StringProperty, ObjectProperty, \
+from kivy.properties import StringProperty, ObjectProperty, AliasProperty, \
         NumericProperty, ListProperty, OptionProperty, BooleanProperty
 from kivy.animation import Animation, AnimationTransition
 from kivy.uix.relativelayout import RelativeLayout
@@ -242,6 +243,8 @@ class TransitionBase(EventDispatcher):
         '''(internal) Start the transition. This is automatically called by the
         :class:`ScreenManager`.
         '''
+        if self.is_active:
+            raise ScreenManagerException('start() is called twice!')
         self.manager = manager
         self._anim = Animation(d=self.duration, s=0)
         self._anim.bind(on_progress=self._on_progress,
@@ -496,7 +499,7 @@ class FadeTransition(ShaderTransition):
     void main(void) {
         vec4 cin = vec4(texture2D(tex_in, tex_coord0.st));
         vec4 cout = vec4(texture2D(tex_out, tex_coord0.st));
-        vec4 frag_col = vec4(t*cout) + vec4((1.0-t)*cin);
+        vec4 frag_col = vec4(t * cin) + vec4((1.0 - t) * cout);
         gl_FragColor = frag_col;
     }
     '''
@@ -560,26 +563,45 @@ class ScreenManager(FloatLayout):
     default to None, read-only.
     '''
 
+    def _get_screen_names(self):
+        return [s.name for s in self.screens]
+
+    screen_names = AliasProperty(_get_screen_names,
+            None, bind=('screens', ))
+    '''List of the names of all the :class:`Screen` widgets added. The list
+    is read only.
+
+    :data:`screens_names` is a :class:`~kivy.properties.AliasProperty`,
+    it is read-only and updated if the screen list changes, or the name
+    of a screen changes.
+    '''
+
     def __init__(self, **kwargs):
         super(ScreenManager, self).__init__(**kwargs)
         self.bind(pos=self._update_pos)
+
+    def _screen_name_changed(self, screen, name):
+        self.property('screen_names').dispatch(self)
+        if screen == self.current_screen:
+            self.current = name
 
     def add_widget(self, screen):
         if not isinstance(screen, Screen):
             raise ScreenManagerException(
                     'ScreenManager accept only Screen widget.')
-        if screen.name in [s.name for s in self.screens]:
-            raise ScreenManagerException(
-                    'Name %r already used' % screen.name)
         if screen.manager:
             raise ScreenManagerException(
                     'Screen already managed by another ScreenManager.')
         screen.manager = self
+        screen.bind(name=self._screen_name_changed)
         self.screens.append(screen)
         if self.current is None:
             self.current = screen.name
 
     def real_add_widget(self, *l):
+        # ensure screen is removed from it's previous parent before adding'
+        if l[0].parent:
+            l[0].parent.remove_widget(l[0])
         super(ScreenManager, self).add_widget(*l)
 
     def real_remove_widget(self, *l):
@@ -588,6 +610,8 @@ class ScreenManager(FloatLayout):
     def on_current(self, instance, value):
         screen = self.get_screen(value)
         if not screen:
+            return
+        if screen == self.current_screen:
             return
 
         previous_screen = self.current_screen
@@ -605,9 +629,13 @@ class ScreenManager(FloatLayout):
         '''Return the screen widget associated to the name, or None if not
         found.
         '''
-        for screen in self.screens:
-            if screen.name == name:
-                return screen
+        matches = [s for s in self.screens if s.name == name]
+        num_matches = len(matches)
+        if num_matches == 0:
+            raise ScreenManagerException('No Screen with name "%s".' % name)
+        if num_matches > 1:
+            Logger.warn('Multiple screens named "%s": %s' % (name, matches))
+        return matches[0]
 
     def next(self):
         '''Return the name of the next screen from the screen list.

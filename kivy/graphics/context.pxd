@@ -6,6 +6,7 @@ from kivy.graphics.fbo cimport Fbo
 
 cdef class Context:
     cdef list observers
+    cdef list observers_before
     cdef list l_texture
     cdef list l_canvas
     cdef list l_vbo
