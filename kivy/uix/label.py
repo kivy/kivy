@@ -328,7 +328,8 @@ class Label(Widget):
 
         This doesn't change the position of the text texture of the Label
         (centered), only the position of the text in this texture. You probably
-        want to bind the size of the Label to the texture_size or set a text_size.
+        want to bind the size of the Label to the :data:`texture_size` or set a
+        :data:`text_size`.
     '''
 
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
@@ -341,7 +342,8 @@ class Label(Widget):
 
         This doesn't change the position of the text texture of the Label
         (centered), only the position of the text in this texture. You probably
-        want to bind the size of the Label to the texture_size or set a text_size.
+        want to bind the size of the Label to the :data:`texture_size` or set a
+        :data:`text_size`.
     '''
 
     color = ListProperty([1, 1, 1, 1])
@@ -353,9 +355,9 @@ class Label(Widget):
 
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the text.
-    The text is rendered automatically when a property changes. The OpenGL texture
-    created in this operation is stored in this property. You can use this
-    :data:`texture` for any graphics elements.
+    The text is rendered automatically when a property changes. The OpenGL
+    texture created in this operation is stored in this property. You can use
+    this :data:`texture` for any graphics elements.
 
     Depending on the texture creation, the value will be a
     :class:`~kivy.graphics.texture.Texture` or
@@ -400,9 +402,9 @@ class Label(Widget):
 
     shorten = BooleanProperty(False)
     '''
-    Indicates whether the label should attempt to shorten its textual contents as
-    much as possible if a `text_size` is given. Setting this to True without an
-    appropriately set `text_size` will lead to unexpected results.
+    Indicates whether the label should attempt to shorten its textual contents
+    as much as possible if a `text_size` is given. Setting this to True without
+    an appropriately set `text_size` will lead to unexpected results.
 
     :data:`shorten` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
@@ -436,10 +438,10 @@ class Label(Widget):
 
         {'hello': ((64, 0, 78, 16), )}
 
-    You know that the reference "hello" have a bounding box set at (x1, y1,
-    x2, y2). The current Label implementation uses these references if they exist
-    in your markup text, automatically doing the collision with the touch, and
-    dispatching an ``on_ref_press`` event.
+    You know that the reference "hello" have a bounding box set at (x1, y1, x2,
+    y2). The current Label implementation uses these references if they exist in
+    your markup text, automatically doing the collision with the touch, and
+    dispatching an `on_ref_press` event.
 
     You can bind a ref event like this::
 

@@ -17,8 +17,9 @@ size attribute.
 
 
 .. versionchanged:: 1.4.0
-    The :class:`Popup` class now inherits from :class:`~kivy.uix.modalview.ModalView`.
-    The :class:`Popup` offers a default layout with a title and a separation bar.
+    The :class:`Popup` class now inherits from
+    :class:`~kivy.uix.modalview.ModalView`.  The :class:`Popup` offers a default
+    layout with a title and a separation bar.
 
 Examples
 --------
@@ -142,7 +143,8 @@ class Popup(ModalView):
     def add_widget(self, widget):
         if self._container:
             if self.content:
-                raise PopupException('Popup can have only one widget as content')
+                raise PopupException(
+                        'Popup can have only one widget as content')
             self.content = widget
         else:
             super(Popup, self).add_widget(widget)

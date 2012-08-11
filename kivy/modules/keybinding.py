@@ -13,9 +13,9 @@ __all__ = ('start', 'stop')
 
 
 def _on_keyboard_handler(instance, key, scancode, codepoint, modifier):
-    if key == 293: # F12
+    if key == 293:  # F12
         instance.screenshot()
-    elif key == 292: # F11
+    elif key == 292:  # F11
         instance.rotation += 90
 
 

@@ -246,7 +246,7 @@ class Atlas(EventDispatcher):
             imw += padding
             imh += padding
             if imw > size or imh > size:
-                Logger.error('Atlas: image %s is larger than the atlas size!'%\
+                Logger.error('Atlas: image %s is larger than the atlas size!' %
                     imageinfo[0])
                 return
 
@@ -310,7 +310,7 @@ class Atlas(EventDispatcher):
             # as the uniq id.
             uid = splitext(basename(fb[6]))[0]
             x, y, w, h = fb[2:6]
-            d[uid] = x, size-y-h, w, h
+            d[uid] = x, size - y - h, w, h
 
         outfn = '%s.atlas' % outname
         with open(outfn, 'w') as fd:

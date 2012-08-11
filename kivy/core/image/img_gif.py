@@ -65,7 +65,7 @@ class ImageLoaderGIF(ImageLoaderBase):
         ls_height = im.ls_height
         im_images = im.images
         im_palette = im.palette
-        pixel_map = array('B', [0]*(ls_width*ls_height*4))
+        pixel_map = array('B', [0] * (ls_width * ls_height * 4))
         for img in im_images:
             palette = img.palette if img.local_color_table_flag\
                 else im_palette
@@ -74,7 +74,7 @@ class ImageLoaderGIF(ImageLoaderBase):
             #draw_method_restore_previous =  1 \
             #    if img.draw_method == 'restore previous' else 0
             draw_method_replace = 1 \
-                if ((img.draw_method == 'replace') or\
+                if ((img.draw_method == 'replace') or
                     (img.draw_method == 'restore background')) else 0
             pixels = img.pixels
             img_height = img.height
@@ -125,17 +125,17 @@ class ImageLoaderGIF(ImageLoaderBase):
                                 continue
                            # this pixel isn't transparent
                         #doesn't have transparent color
-                        (pixel_map[rgba_pos], pixel_map[rgba_pos + 1],\
-                            pixel_map[rgba_pos + 2]) = (r, g, b)
+                        (pixel_map[rgba_pos], pixel_map[rgba_pos + 1],
+                                pixel_map[rgba_pos + 2]) = (r, g, b)
                         pixel_map[rgba_pos + 3] = 255
                     # if magic pink move to next pixel
                     rgba_pos += 4
                     i += 1
 
-            img_data_append(ImageData(ls_width, ls_height, \
+            img_data_append(ImageData(ls_width, ls_height,
                 'rgba', pixel_map.tostring()))
             if draw_method_replace:
-                pixel_map = array('B', [0]*(ls_width*ls_height*4))
+                pixel_map = array('B', [0] * (ls_width * ls_height * 4))
 
         self.filename = filename
 
@@ -160,7 +160,7 @@ class Gif(object):
     LABEL_COMMENT = 0xFE
     LABEL_PLAINTEXT = 0x01
 
-    FMT_EXT_GRAPHIC_CONTROL = '<BBHB' #89a
+    FMT_EXT_GRAPHIC_CONTROL = '<BBHB'  # 89a
 
     def __init__(self, data, debug):
         self.data = data
@@ -319,7 +319,7 @@ class GifDecoder(Gif):
         self.color_table_flag = self.flags[7]
         self.sort_flag = self.flags[3]
         #3 bit
-        self.color_resolution = pack_bits(self.flags[4:7]) # 7 not included
+        self.color_resolution = pack_bits(self.flags[4:7])  # 7 not included
         #3 bit
         self.global_color_table_size = 2 ** (pack_bits(self.flags[:3]) + 1)
 
@@ -351,7 +351,7 @@ class GifDecoder(Gif):
             try:
                 nextbyte = self_pops('<B', self_data)[0]
             except:
-                nextbyte = 0x3b # force end
+                nextbyte = 0x3b  # force end
 
             #20. Image Descriptor
             if nextbyte == Gif_IMAGE_SEPARATOR:
@@ -383,8 +383,8 @@ class GifDecoder(Gif):
                     print 'LZW length:', len(image_lzwcode)
 
                 image.lzwcode = image_lzwcode
-                image.pixels = self_lzw_decode(image.lzwcode, image.codesize, \
-                    table_size)
+                image.pixels = self_lzw_decode(image.lzwcode, image.codesize,
+                        table_size)
 
             # Extensions
             elif nextbyte == Gif_EXTENSION_INTRODUCER:
@@ -439,8 +439,8 @@ class GifDecoder(Gif):
         i = 0
         for bit in bits:
             if bit:
-                i+= 2**(c-1)
-            c +=1
+                i += 2 ** (c - 1)
+            c += 1
         return i
 
     def get_color_table(self, size):
@@ -451,10 +451,10 @@ class GifDecoder(Gif):
         palette = []
         palette_append = palette.append
 
-        while pos + 3 < (size+1):
+        while pos + 3 < (size + 1):
             red = raw_color_table[pos]
-            green = raw_color_table[pos+1]
-            blue = raw_color_table[pos+2]
+            green = raw_color_table[pos + 1]
+            blue = raw_color_table[pos + 2]
             palette_append((red, green, blue))
             pos += 3
         return palette
@@ -476,7 +476,7 @@ class GifDecoder(Gif):
         clearcode, end_of_info = color_table_size, color_table_size + 1
 
         if Debug:
-            print 'codesize: %d' %codesize
+            print 'codesize: %d' % codesize
             print 'clearcode %d, end_of_info: %d' % (clearcode, end_of_info)
 
         def pop(size, _bits):
@@ -559,7 +559,7 @@ def get_bits(flags, reverse=False, bits=8):
 
     mybits = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048)[:bits]
 
-    rev_num=1
+    rev_num = 1
     if reverse:
         rev_num = -1
     ret = array('B')

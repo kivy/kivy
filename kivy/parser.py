@@ -30,7 +30,7 @@ def parse_filename(filename):
 
 
 def color_error(text):
-    #show warning and return a sane value
+    # show warning and return a sane value
     Logger.warning(text)
     return (0, 0, 0, 1)
 
@@ -55,10 +55,12 @@ def parse_color(text):
                 if len(value) < 3:
                     #in case of invalid input like rgb()/rgb(r)/rgb(r, g)
                     raise ValueError
-            except ValueError, AttributeError:
-                return color_error('Color Parser:Invalid color for %r' % text)
+            except ValueError:
+                return color_error('ColorParser: Invalid color for %r' % text)
+            except AttributeError:
+                return color_error('ColorParser: Invalid color for %r' % text)
         else:
-            return color_error('Color Parser:Invalid color for %r' % text)
+            return color_error('ColorParser: Invalid color for %r' % text)
         if len(value) == 3:
             value.append(1.)
     elif len(text):
@@ -70,11 +72,13 @@ def parse_color(text):
             res = ''.join([x + x for x in res])
         elif lres != 6 and lres != 8:
             #raise ColorException('Invalid color format for %r' % text)
-            return color_error('Color Parser:Invalid color format for %r' %text)
+            return color_error(
+                    'ColorParser: Invalid color format for %r' % text)
         try:
-            value = [int(res[i:i+2], 16) / 255. for i in xrange(0, len(res), 2)]
+            value = [int(res[i:i + 2], 16) / 255.
+                     for i in xrange(0, len(res), 2)]
         except ValueError:
-            return color_error('Color Parser:Invalid color for %r' % text)
+            return color_error('ColorParser: Invalid color for %r' % text)
         if lres == 6:
             value.append(1.)
     return value

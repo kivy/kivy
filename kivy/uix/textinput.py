@@ -148,7 +148,6 @@ if 'KIVY_DOC' not in environ:
     get_context().add_reload_observer(_textinput_clear_cache, True)
 
 
-
 class TextInputCutCopyPaste(Bubble):
     # Internal class used for showing the little bubble popup when
     # copy/cut/paste happen.
@@ -248,7 +247,6 @@ class TextInput(Widget):
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
-
 
     def on_text_validate(self):
         pass
@@ -883,8 +881,8 @@ class TextInput(Widget):
         _create_label = self._create_line_label
         _lines_labels = self._lines_labels =\
             [_create_label(x) for x in _lines]
-        self._lines_rects = [Rectangle(texture=x, size=( \
-                             x.size if x else (0, 0))) \
+        self._lines_rects = [Rectangle(texture=x, size=(
+                             x.size if x else (0, 0)))
                              for x in _lines_labels]
         line_label = _lines_labels[0]
         if line_label is None:
@@ -1530,7 +1528,7 @@ class TextInput(Widget):
     def _get_text(self):
         lf = self._lines_flags
         l = self._lines
-        text = ''.join([('\n' if (lf[i] & FL_IS_NEWLINE) else '') + l[i] \
+        text = ''.join([('\n' if (lf[i] & FL_IS_NEWLINE) else '') + l[i]
                         for i in xrange(len(l))])
         return text
 

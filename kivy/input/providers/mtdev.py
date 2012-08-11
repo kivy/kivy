@@ -295,5 +295,4 @@ else:
             except:
                 pass
 
-
     MotionEventFactory.register('mtdev', MTDMotionEventProvider)

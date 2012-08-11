@@ -166,7 +166,6 @@ class Widget(EventDispatcher):
             return False
         return True
 
-
     #
     # Default event handlers
     #
@@ -201,7 +200,6 @@ class Widget(EventDispatcher):
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
-
 
     #
     # Tree management
@@ -338,7 +336,6 @@ class Widget(EventDispatcher):
         if relative:
             return (x - self.x, y - self.y)
         return (x, y)
-
 
     x = NumericProperty(0)
     '''X position of the widget.
