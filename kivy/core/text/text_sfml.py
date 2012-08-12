@@ -1,8 +1,12 @@
 '''
 Text SFML: Draw text with SFML
+
+.. warning::
+    This class is still incomplete and not ready for production use.
+    Issues with OpenGL on Intel based graphics cards prevent its completion.
 '''
 
-__all__ = ('LabelSFML', )
+__all__ = () # empty until module is ready
 
 try:
     import sfml.graphics as sf

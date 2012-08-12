@@ -466,6 +466,7 @@ class LabelBase(object):
 Label = core_select_lib('text', (
     ('pygame', 'text_pygame', 'LabelPygame'),
     ('pil', 'text_pil', 'LabelPIL'),
+    #('sfml', 'text_sfml', 'LabelSFML'),
 ))
 
 # For the first initalization, register the default font
