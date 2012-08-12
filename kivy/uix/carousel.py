@@ -77,10 +77,15 @@ class Carousel(StencilView):
     '''
 
     def _get_index(self):
-        return self._index%len(self.slides)
+        if self.slides:
+            return self._index % len(self.slides)
+        return float('nan')
 
     def _set_index(self, value):
-        self._index = value%len(self.slides)
+        if self.slides:
+            self._index = value % len(self.slides)
+        else:
+            self._index = float('nan')
     index = AliasProperty(_get_index, _set_index, bind=('_index', 'slides'))
     '''Get/Set the current visible slide based on index.
 
@@ -89,7 +94,7 @@ class Carousel(StencilView):
     '''
 
     def _prev_slide(self):
-        if len(self.slides) < 2: #None, or 1 slide
+        if len(self.slides) < 2:  # None, or 1 slide
             return None
         if len(self.slides) == 2:
             if self.index == 0:
@@ -121,22 +126,22 @@ class Carousel(StencilView):
     '''
 
     def _next_slide(self):
-        if len(self.slides) < 2: #None, or 1 slide
+        if len(self.slides) < 2:  # None, or 1 slide
             return None
         if len(self.slides) == 2:
             if self.index == 0:
                 return self.slides[1]
             if self.index == 1:
                 return None
-        if self.loop and self.index == len(self.slides)-1:
+        if self.loop and self.index == len(self.slides) - 1:
             return self.slides[0]
-        if self.index < len(self.slides)-1:
+        if self.index < len(self.slides) - 1:
             return self.slides[self.index + 1]
     next_slide = AliasProperty(_next_slide, None, bind=('slides', 'index'))
     '''The next slide in the Carousel, is None if the current slide is
     the last slide in the carousel.  If :data:`orientation` is 'horizontal',
     the next slide is to the right. If :data:`orientation` is 'vertical',
-    the previous slide is towards teh top.
+    the previous slide is towards the top.
 
     :data:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
     '''
@@ -173,19 +178,19 @@ class Carousel(StencilView):
         if self.orientation == 'horizontal':
             x_off = self.x + self._offset
             if self._prev:
-                self._prev.x = x_off - self.width
+                self._prev.pos = (x_off - self.width, self.y)
             if self._current:
-                self._current.x = x_off
+                self._current.pos = (x_off, self.y)
             if self._next:
-                self._next.x = x_off + self.width
+                self._next.pos = (x_off + self.width, self.y)
         if self.orientation == 'vertical':
             y_off = self.y + self._offset
             if self._prev:
-                self._prev.y = y_off - self.height
+                self._prev.pos = (self.x, y_off - self.height)
             if self._current:
-                self._current.y = y_off
+                self._current.pos = (self.x, y_off)
             if self._next:
-                self._next.y = y_off + self.height
+                self._next.pos = (self.x, y_off + self.height)
 
     def on_size(self, *args):
         for slide in self.slides:
@@ -206,19 +211,19 @@ class Carousel(StencilView):
         self._position_visible_slides()
         #if reached full offset, switche index to next or prev
         if self._offset <= self._extent * -1:
-            self.index = self.index+1
+            self.index = self.index + 1
         if self._offset >= self._extent:
             self.index = self.index - 1
 
     def on__drag_touches(self, *args):
         #only when user lets go completly, start animation
         Animation.cancel_all(self)
-        if len(self._drag_touches) == 0:
+        if not self._drag_touches:
             new_offset = 0
             dur = self.anim_move_duration
             if self._offset < self.min_move * self._extent * -1:
-                if self.loop or self.index < len(self.slides)-1:
-                    new_offset = self._extent * -1
+                if self.loop or self.index < len(self.slides) - 1:
+                    new_offset = self._extent * - 1
             elif self._offset > self.min_move * self._extent:
                 if self.loop or self.index > 0:
                     new_offset = self._extent
@@ -230,11 +235,10 @@ class Carousel(StencilView):
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
-        if super(Carousel, self).on_touch_down(touch):
-            return True
-        else:
+        if not super(Carousel, self).on_touch_down(touch):
             self._drag_touches.append(touch.uid)
             touch.grab(self)
+        return True
 
     def on_touch_move(self, touch):
         if touch.grab_current is self:
@@ -259,7 +263,7 @@ class Carousel(StencilView):
             return super(Carousel, self).on_touch_move(touch)
 
     def add_widget(self, *args, **kwargs):
-        slide = RelativeLayout(size=self.size, x=self.x-self.width, y=self.y)
+        slide = RelativeLayout(size=self.size, x=self.x - self.width, y=self.y)
         slide.add_widget(*args, **kwargs)
         super(Carousel, self).add_widget(slide)
         self.slides.append(slide)
@@ -280,7 +284,9 @@ if __name__ == '__main__':
         def build(self):
             carousel = Carousel()
             for i in range(10):
-                carousel.add_widget(Factory.Label(text="slide %d"%i))
+                src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
+                image = Factory.AsyncImage(source=src, allow_stretch=True)
+                carousel.add_widget(image)
             return carousel
 
     Example1().run()
