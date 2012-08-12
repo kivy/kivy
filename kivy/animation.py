@@ -154,8 +154,8 @@ class Animation(EventDispatcher):
 
     @staticmethod
     def cancel_all(widget, *largs):
-        '''Stop all animations that concern a specific widget / list of
-        properties.
+        '''Cancel all animations that concern a specific widget / list of
+        properties. see :data:`cancel`
 
         Example::
 
@@ -163,7 +163,9 @@ class Animation(EventDispatcher):
             anim.start(widget)
 
             # and later
-            Animation.stop_all(widget, 'x')
+            Animation.cancel_all(widget, 'x')
+
+        .. versionadded:: 1.4.0
         '''
         if len(largs):
             for animation in list(Animation._instances):
@@ -190,7 +192,9 @@ class Animation(EventDispatcher):
         self.cancel(widget)
 
     def cancel(self, widget):
-        '''Stop the animation previously applied on a widget
+        '''Cancel the animation previously applied on a widget. Same
+        effect as :data:`stop`, except the `on_complete` event will
+        *not* be triggered!
 
         .. versionadded:: 1.4.0
         '''
@@ -217,6 +221,8 @@ class Animation(EventDispatcher):
         '''Even if an animation is running, remove a property. It will not be
         animated further. If it was the only/last property being animated on.
         the widget, the animation will be canceled (see :data:`cancel`)
+
+        .. versionadded:: 1.4.0
         '''
         props = self._widgets.get(widget, None)
         if not props:
