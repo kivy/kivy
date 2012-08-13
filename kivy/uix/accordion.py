@@ -16,8 +16,9 @@ The Accordion widget is a form of menu where the options are stacked either
 vertically or horizontally, and the item in focus/when touched opens up
 displaying his content.
 
-The :class:`Accordion` will contain one or many :class:`AccordionItem` instances,
-that will contain one root content widget. You'll have a Tree like this:
+The :class:`Accordion` will contain one or many :class:`AccordionItem`
+instances, that will contain one root content widget. You'll have a Tree like
+this:
 
 - Accordion
 
@@ -76,8 +77,8 @@ Or change the orientation to vertical::
 
     root = Accordion(orientation='vertical')
 
-AccordionItem is more configurable, and you can set your own title background when
-the item is collapsed or opened::
+AccordionItem is more configurable, and you can set your own title background
+when the item is collapsed or opened::
 
     item = AccordionItem(background_normal='image_when_collapsed.png',
         background_selected='image_when_selected.png')

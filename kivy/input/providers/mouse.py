@@ -141,7 +141,7 @@ class MouseMotionEventProvider(MotionEventProvider):
     def find_touch(self, x, y):
         factor = 10. / EventLoop.window.system_size[0]
         for t in self.touches.itervalues():
-            if abs(x-t.sx) < factor and abs(y-t.sy) < factor:
+            if abs(x - t.sx) < factor and abs(y - t.sy) < factor:
                 return t
         return False
 

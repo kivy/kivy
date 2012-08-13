@@ -15,7 +15,7 @@ Grid Layout
 .. versionadded:: 1.0.4
 
 :class:`GridLayout` arranges children in a matrix. It takes the available space
-and divides it into columns and rows, then adds widgets to the resulting 
+and divides it into columns and rows, then adds widgets to the resulting
 "cells".
 
 .. versionadded:: 1.0.7
@@ -30,7 +30,7 @@ Unlike many other toolkits, you cannot explicitly place a widget at a specific
 column/row. Each child is automatically assigned a position, depending on the
 layout configuration and the child's index in the children list.
 
-A GridLayout must always have at least one input constraint: 
+A GridLayout must always have at least one input constraint:
 :data:`GridLayout.cols` or :data:`GridLayout.rows`. If you do not specify cols
 or rows, the Layout will throw an exception.
 
@@ -226,29 +226,29 @@ class GridLayout(Layout):
         super(GridLayout, self).__init__(**kwargs)
 
         self.bind(
-            col_default_width = self._trigger_layout,
-            row_default_height = self._trigger_layout,
-            col_force_default = self._trigger_layout,
-            row_force_default = self._trigger_layout,
-            cols = self._trigger_layout,
-            rows = self._trigger_layout,
-            parent = self._trigger_layout,
-            spacing = self._trigger_layout,
-            padding = self._trigger_layout,
-            children = self._trigger_layout,
-            size = self._trigger_layout,
-            pos = self._trigger_layout)
+            col_default_width=self._trigger_layout,
+            row_default_height=self._trigger_layout,
+            col_force_default=self._trigger_layout,
+            row_force_default=self._trigger_layout,
+            cols=self._trigger_layout,
+            rows=self._trigger_layout,
+            parent=self._trigger_layout,
+            spacing=self._trigger_layout,
+            padding=self._trigger_layout,
+            children=self._trigger_layout,
+            size=self._trigger_layout,
+            pos=self._trigger_layout)
 
     def add_widget(self, widget, index=0):
         widget.bind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout)
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout)
         return super(Layout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout)
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout)
         return super(Layout, self).remove_widget(widget)
 
     def get_max_widgets(self):

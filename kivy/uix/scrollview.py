@@ -320,7 +320,8 @@ class ScrollView(StencilView):
             'sy': self.scroll_y,
             'dt': None,
             'time': touch.time_start}
-        Clock.schedule_once(self._change_touch_mode, self.scroll_timeout/1000.)
+        Clock.schedule_once(self._change_touch_mode,
+                self.scroll_timeout / 1000.)
         return True
 
     def on_touch_move(self, touch):
@@ -400,8 +401,6 @@ class ScrollView(StencilView):
             return True
 
         return self._get_uid() in touch.ud
-
-
 
     #
     # Properties

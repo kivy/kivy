@@ -290,7 +290,7 @@ class Vector(list):
         -157.7920283010705
 
         '''
-        angle = -(180/math.pi) * math.atan2(
+        angle = -(180 / math.pi) * math.atan2(
             self[0] * a[1] - self[1] * a[0],
             self[0] * a[0] + self[1] * a[1])
         return angle

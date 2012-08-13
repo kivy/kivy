@@ -210,7 +210,7 @@ class SafeMembrane(object):
             return SafeMembrane(r)
 
     def __getattribute__(self, attr, oga=object.__getattribute__):
-        if attr.startswith('__') or attr =='_ref':
+        if attr.startswith('__') or attr == '_ref':
             subject = oga(self, '_ref')
             if attr == '_ref':
                 return subject

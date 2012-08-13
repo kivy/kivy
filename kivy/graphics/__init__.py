@@ -75,7 +75,7 @@ You should cover theses cases yourself:
 
 from kivy.graphics.instructions import Callback, Canvas, CanvasBase, \
     ContextInstruction, Instruction, InstructionGroup, RenderContext, \
-    VertexInstruction # pyflakes.ignore
+    VertexInstruction
 from kivy.graphics.context_instructions import BindTexture, Color, \
     MatrixInstruction, PopMatrix, PushMatrix, Rotate, Scale, \
     Translate, gl_init_resources

@@ -80,7 +80,7 @@ else:
             long_bit = getconf("LONG_BIT")
             for i, word in enumerate(line.split(" ")):
                 word = int(word, 16)
-                subcapabilities = [bool(word & 1<<i) for i in range(long_bit)]
+                subcapabilities = [bool(word & 1 << i) for i in range(long_bit)]
                 capabilities[:0] = subcapabilities
 
             return capabilities
@@ -155,11 +155,11 @@ else:
         def probe(self):
             inputs = get_inputs(self.input_path)
             if not self.select_all:
-                inputs = [x for x in inputs if \
+                inputs = [x for x in inputs if
                           x.has_capability(ABS_MT_POSITION_X)]
             for device in inputs:
                 Logger.debug('ProbeSysfs: found device: %s at %s' % (
-                                 device.name, device.device))
+                    device.name, device.device))
 
                 # must ignore ?
                 if self.match:
@@ -193,6 +193,5 @@ else:
                 if instance:
                     from kivy.base import EventLoop
                     EventLoop.add_input_provider(instance)
-
 
     MotionEventFactory.register('probesysfs', ProbeSysfsHardwareProbe)
