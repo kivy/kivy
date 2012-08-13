@@ -1,37 +1,45 @@
-from kivy.properties import StringProperty, DictProperty
+# ----------------------------------------------------------------------------
+# A dictionary of dicts, with only the minimum required is_selected attribute,
+# for use with examples using a simple list of integers in a list view.
+integers_dict = \
+        { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
-from datastore import DataStore
 
+# ----------------------------------------------------------------------------
+# A dataset of fruit category and fruit data for use in examples.
+#
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
 #                InformationforRestaurantsRetailEstablishments/\
 #                ucm063482.htm
+#
+# Available items for import are:
+#
+#     fruit_categories
+#     fruit_data_attributes
+#     fruit_data_attribute_units
+#     fruit_data_list_of_dicts
+#     fruit_data
+#
 fruit_categories = \
-        {'Melons': {'fruits': ['Cantaloupe', 'Honeydew', 'Watermelon'],
+        {'Melons': {'name': 'Melons',
+                    'fruits': ['Cantaloupe', 'Honeydew', 'Watermelon'],
                     'is_selected': False},
-         'Tree Fruits': {'fruits': ['Apple', 'Avocado', 'Banana', 'Nectarine',
+         'Tree Fruits': {'name': 'Tree Fruits',
+                         'fruits': ['Apple', 'Avocado', 'Banana', 'Nectarine',
                                     'Peach', 'Pear', 'Pineapple', 'Plum',
                                     'Cherry'],
                          'is_selected': False},
-         'Citrus Fruits': {'fruits': ['Grapefruit', 'Lemon', 'Lime', 'Orange',
+         'Citrus Fruits': {'name': 'Citrus Fruits',
+                           'fruits': ['Grapefruit', 'Lemon', 'Lime', 'Orange',
                                       'Tangerine'],
                            'is_selected': False},
-         'Miscellaneous Fruits': {'fruits': ['Grape', 'Kiwifruit',
-                                             'Strawberry'],
-                                  'is_selected': False}}
+         'Other Fruits': {'name': 'Other Fruits',
+                          'fruits': ['Grape', 'Kiwifruit',
+                                     'Strawberry'],
+                          'is_selected': False}}
 
-descriptors = """(gram weight/ ounce weight)	Calories	Calories from Fa
-t	Total Fat	Sodium	Potassium	Total Carbo-hydrate	Dietary Fiber	Suga
-rs	Protein	Vitamin A	Vitamin C	Calcium	Iron""".replace('\n', '')
-
-descriptors = [item.strip() for item in descriptors.split('\t')]
-
-units = """(g) 	(%DV)	(mg) 	(%DV)	(mg) 	(%DV)	 (g) 	(%DV)	 (g)
-(%DV)	 (g) 	 (g) 	(%DV)	(%DV)	(%DV)	(%DV)""".replace('\n', '')
-
-units = [item.strip() for item in units.split('\t')]
-
-raw_fruit_data = [
+fruit_data_list_of_dicts = [
 {'name':'Apple',
  'Serving Size': '1 large (242 g/8 oz)',
  'data': [130, 0, 0, 0, 0, 0, 260, 7, 34, 11, 5, 20, 25, 1, 2, 8, 2, 2],
@@ -113,17 +121,44 @@ raw_fruit_data = [
  'data': [80, 0, 0, 0, 0, 0, 270, 8, 21, 7, 1, 4, 20, 1, 30, 25, 2, 4],
  'is_selected': False}]
 
+fruit_data_attributes = ['(gram weight/ ounce weight)',
+                         'Calories',
+                         'Calories from Fat',
+                         'Total Fat',
+                         'Sodium',
+                         'Potassium',
+                         'Total Carbo-hydrate',
+                         'Dietary Fiber',
+                         'Sugars',
+                         'Protein',
+                         'Vitamin A',
+                         'Vitamin C',
+                         'Calcium',
+                         'Iron']
+
+fruit_data_attribute_units = ['(g)',
+                              '(%DV)',
+                              '(mg)',
+                              '(%DV)',
+                              '(mg)',
+                              '(%DV)',
+                              '(g)',
+                              '(%DV)',
+                              '(g)(%DV)',
+                              '(g)',
+                              '(g)',
+                              '(%DV)',
+                              '(%DV)',
+                              '(%DV)',
+                              '(%DV)']
+
+attributes_and_units = dict(zip(fruit_data_attributes, fruit_data_attribute_units))
+
 fruit_data = {}
-descriptors_and_units = dict(zip(descriptors, units))
-for row in raw_fruit_data:
-    fruit_data[row['name']] = {}
-    fruit_data[row['name']] = dict({'Serving Size': row['Serving Size'],
-                                    'is_selected': row['is_selected']},
-            **dict(zip(descriptors_and_units.keys(), row['data'])))
-
-# See the dictionary definitions above for fruit category and raw data
-# creation. From those dictionaries, we define two datastores that will be
-# used in the examples:
-
-datastore_categories = DataStore(name='categories', db_dict=fruit_categories)
-datastore_fruits = DataStore(name='fruits', db_dict=fruit_data)
+for fruit_record in fruit_data_list_of_dicts:
+    fruit_data[fruit_record['name']] = {}
+    fruit_data[fruit_record['name']] = \
+            dict({'name': fruit_record['name'],
+                  'Serving Size': fruit_record['Serving Size'],
+                  'is_selected': fruit_record['is_selected']},
+            **dict(zip(attributes_and_units.keys(), fruit_record['data'])))

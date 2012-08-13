@@ -1,9 +1,9 @@
-from kivy.adapters.listadapter import ListAdapter, ListsAdapter
+from kivy.adapters.listadapter import ListAdapter
+from kivy.adapters.mixins.selection import SelectableDataItem
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
 
-from datastore_fruit_data import fruit_categories, datastore_categories, \
-        datastore_fruits
+from fixtures import fruit_categories, fruit_data_list_of_dicts
 
 from fruit_detail_view import FruitDetailView
 
@@ -15,10 +15,10 @@ from fruit_detail_view import FruitDetailView
 # into a dict providing its own list items. The view on the right is
 # the sames as the DetailView in the master-detail example.
 
-
 # A custom adapter is needed here, because we must transform the selected
 # fruit category into the list of fruits for that category.
-#
+
+
 class FruitsListAdapter(ListAdapter):
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
@@ -26,14 +26,66 @@ class FruitsListAdapter(ListAdapter):
             self.data = []
             return
 
-        category = fruit_categories[str(fruit_categories_adapter.selection[0])]
-        self.data = category['fruits']
+        category = \
+                fruit_categories[str(fruit_categories_adapter.selection[0])]
+
+        # We are responsible with resetting the data. In this example, we are
+        # using lists of instances of the classes defined below, CategoryItem
+        # and FruitItem. We assume that the names of the fruits are unique,
+        # so we look up items by name.
+        #
+        self.data = \
+            [f for f in fruit_data_objects if f.name in category['fruits']]
+
+        # Also, see the examples that use dict records.
+
+
+# FruitsListAdapter subclasses ListAdapter, which has SelectionSupport mixed
+# in. SelectionSupport requires that data items handle selection operations.
+# This means that we can't have simple strings as data items, nor can we have
+# items that don't comply with SelectionSupport needs. It is not difficult to
+# make your own data items, however, because you can define custom data item
+# classes that subclass SelectableDataItem:
+#
+class CategoryItem(SelectableDataItem):
+    def __init__(self, **kwargs):
+        super(CategoryItem, self).__init__(**kwargs)
+        self.name = kwargs.get('name', '')
+        self.fruits = kwargs.get('fruits', [])
+        self.is_selected = kwargs.get('is_selected', False)
+
+
+class FruitItem(SelectableDataItem):
+    def __init__(self, **kwargs):
+        super(FruitItem, self).__init__(**kwargs)
+        self.name = kwargs.get('name', '')
+        self.serving_size = kwargs.get('Serving Size', '')
+        self.data = kwargs.get('data', [])
+        self.is_selected = kwargs.get('is_selected', False)
+
+
+# To instantiate CategoryItem and FruitItem instances, we use the dictionary-
+# style fixtures data in fruit_data (See import above), which is
+# also used by other list examples. The double asterisk usage here is for
+# setting arguments from a dict in calls to instantiate the custom data item
+# classes defined above.
+
+# fruit_categories is a dict of dicts.
+category_data_objects = \
+    [CategoryItem(**fruit_categories[c]) for c in sorted(fruit_categories)]
+
+# fruit_data_list_of_dicts is a list of dicts, already sorted.
+fruit_data_objects = \
+    [FruitItem(**fruit_dict) for fruit_dict in fruit_data_list_of_dicts]
+
+# We end up with two normal lists of objects, to be used for two list views
+# defined below.
 
 
 class CascadingView(GridLayout):
     '''Implementation of a master-detail style view, with a scrollable list
-    of fruit categories on the left (source list), a list of fruits for the
-    selected category in the middle, and a detail view on the right.
+    of fruit categories on the left, a list of fruits for the selected
+    category in the middle, and a detail view on the right.
     '''
 
     def __init__(self, **kwargs):
@@ -41,67 +93,58 @@ class CascadingView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(CascadingView, self).__init__(**kwargs)
 
-        list_item_args_converter = lambda x: {'text': x,
-                                              'size_hint_y': None,
-                                              'height': 25}
+        list_item_args_converter = \
+                lambda selectable: {'text': selectable.name,
+                                    'size_hint_y': None,
+                                    'height': 25}
 
-        # Fruit categories list on the left:
+        # Add a fruit categories list on the left. We use ListAdapter, for
+        # which we set the data argument to the list of CategoryItem
+        # instances from above. The args_converter only pulls the name
+        # property from these instances, adding also size_hint_y and height.
+        # selection_mode is single, because this list will "drive" the second
+        # list defined below. allow_empty_selection is False, because we
+        # always want a selected category, so that the second list will be
+        # populated. Finally, we instruct ListAdapter to build list item views
+        # using the provided cls, ListItemButton.
         #
-        categories = sorted(fruit_categories.keys())
         fruit_categories_list_adapter = \
-            ListAdapter(data=categories,
-                        datastore=datastore_categories,
+            ListAdapter(data=category_data_objects,
                         args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
                         cls=ListItemButton)
+
         fruit_categories_list_view = \
                 ListView(adapter=fruit_categories_list_adapter,
-                        size_hint=(.2, 1.0))
+                         size_hint=(.2, 1.0))
+
         self.add_widget(fruit_categories_list_view)
 
-        # Fruits, for a given category, in the middle:
+        # Fruits, for a given category, are in a list in the middle, which
+        # uses FruitsListsAdapter, defined above. FruitsListAdapter has a
+        # fruit_changed() method that updates the data list. The binding
+        # to the fruit_categories_list_adapter is set up after
+        # instantiation of the fruit_list_adapter.
         #
+        first_category_fruits = \
+            fruit_categories[fruit_categories.keys()[0]]['fruits']
 
-        # List adapter option #1
-        #
-        #     - use ListsAdapter, which takes observed_list_adapter as an
-        #       argument and sets up the binding for you. You also have to
-        #       pass lists_dict.
-        #
-        #fruits_list_adapter = \
-                #ListsAdapter(
-                    #observed_list_adapter=fruit_categories_list_adapter,
-                    #lists_dict=fruit_categories,
-                    #data=fruit_categories[categories[0]],
-                    #args_converter=list_item_args_converter,
-                    #selection_mode='single',
-                    #allow_empty_selection=False,
-                    #cls=ListItemButton)
+        first_category_fruit_data_objects = \
+            [f for f in fruit_data_objects if f.name in first_category_fruits]
 
-        # List adapter option #2
-        #
-        #     - use the custom FruitsListsAdapter, defined above. It has a
-        #       fruit_changed() method, performing the same role as the
-        #       on_selection_change() function of ListsAdapter in Option #1.
-        #       In option #2, you are responsible for setting up the binding
-        #       after the instantiation of the list adapter.
-        #
         fruits_list_adapter = \
-                FruitsListAdapter(
-                    data=fruit_categories[categories[0]]['fruits'],
-                    datastore=datastore_fruits,
-                    args_converter=list_item_args_converter,
-                    selection_mode='single',
-                    allow_empty_selection=False,
-                    cls=ListItemButton)
+                FruitsListAdapter(data=first_category_fruit_data_objects,
+                                  args_converter=list_item_args_converter,
+                                  selection_mode='single',
+                                  allow_empty_selection=False,
+                                  cls=ListItemButton)
 
         fruit_categories_list_adapter.bind(
             on_selection_change=fruits_list_adapter.fruit_category_changed)
 
         fruits_list_view = \
-                ListView(adapter=fruits_list_adapter,
-                    size_hint=(.2, 1.0))
+                ListView(adapter=fruits_list_adapter, size_hint=(.2, 1.0))
 
         self.add_widget(fruits_list_view)
 
@@ -109,24 +152,6 @@ class CascadingView(GridLayout):
         #
         detail_view = FruitDetailView(size_hint=(.6, 1.0))
 
-        # Each adapter above has a selection_mode property. Here is what
-        # happens for different selection mode arrangements:
-        #
-        #      from side        to side               effect
-        #    --------------   --------------  --------------------------------
-        #      multiple         multiple       to-side is subset of from-side
-        #
-        #       single          multiple       to-side is subset of from-side
-        #
-        #      multiple          single        to-side has most recent
-        #                                      selection of from-side
-        #
-        #       single           single        to-side has most recent
-        #                                      selection of from-side
-        #
-        # [TODO] Is single-selection enforced on the to-side in those last two
-        #        cases?
-        #
         fruits_list_adapter.bind(
                 on_selection_change=detail_view.fruit_changed)
         self.add_widget(detail_view)
@@ -140,7 +165,4 @@ if __name__ == '__main__':
 
     from kivy.base import runTouchApp
 
-    # All fruit categories will be shown in the left left (first argument),
-    # and the first category will be auto-selected -- Melons. So, set the
-    # second list to show the melon fruits (second argument).
     runTouchApp(CascadingView(width=800))

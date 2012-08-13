@@ -19,15 +19,16 @@
 #
 #    - Divider isn't used (yet).
 #
-#    - Consider adding an associated SortableItem mixin, to be used by list
-#      item classes in a manner similar to the SelectableItem mixin.
+#    - *** DONE *** Consider adding an associated SortableDataItem mixin, to
+#                   be used by list item classes in a manner similar to the
+#                   SelectableView mixin.
 #
-#    - Consider a sort_by property. Review the use of the items property.
-#      (Presently items is a list of strings -- are these just the
-#       strings representing the item_view_instances, which are instances of
-#       the provided cls input argument?). If so, formalize and document.
+#    - *** DONE *** (By adding DictAdapter, which as a sorted_keys argument)
 #
-#    - Work on item_view_instances marked [TODO] in the code.
+#                   Consider a sort_by property. Review the use of the items
+#                   property.
+#
+#    - Work on [TODO]s in the code.
 #
 #    Examples (in examples/widgets):
 #
@@ -71,11 +72,10 @@ list item view instances.
 :class:`ListView` implements AbstractView as a vertical scrollable list.
 From AbstractView we have these properties and methods:
 
-    - adapter (an instance of SimpleListAdapter, or ListAdapter or one of its
-      subclasses here)
+    - adapter, an instance of SimpleListAdapter, ListAdapter, or DictAdapter
 
     - item_view_instances, a dict with indices as keys to the list item view
-      instances created in the ListAdapter
+      instances created in the adapter
 
     - set_item_view() and get_item_view() methods to list item view instances
 
@@ -112,13 +112,13 @@ If you were to dig deeper into the basic example above, you would find that it
 uses :class:`SimpleListAdapter` behind the scenes. When the constructor for
 :class:`ListView` sees that only a list of strings is provided as an argument
 called item_strings, it creates an instance of :class:`SimpleListAdapter` with
-the list of strings. Otherwise, :class:`ListView` must be provide with some
-variant of ListAdapter.
+the list of strings. Otherwise, :class:`ListView` must be explicitly provided
+with an instance of SimpleListAdapter, ListAdapter or DictAdapter.
 
-Simple in the example above means: WITHOUT SELECTION SUPPORT -- it is just a
-scrollable list of items, which do not respond to touch events.
+Simple in :class:`SimpleListAdapter` means: WITHOUT SELECTION SUPPORT -- it is
+just a scrollable list of items, which do not respond to touch events.
 
-If you wanted to use :class:`SimpleListAdaper` explicitly in creating a ListView
+If you want to use :class:`SimpleListAdaper` explicitly in creating a ListView
 instance, you could do:
 
     simple_list_adapter = \
@@ -126,16 +126,35 @@ instance, you could do:
                           cls=Label)
     list_view = ListView(adapter=simple_list_adapter)
 
-For most uses of a list, however, selection support IS needed. Selection
-support is built in to :class:`ListAdapter`. :class:`ListAdapter` and its
-subclasses offer support for building moderately to highly complex listviews
-with selection support.
+SelectionSupport: ListAdapter and DictAdapter
+---------------------------------------------
+
+For many uses of a list selection functionality is needed. It is built in to
+:class:`ListAdapter` and :class:`DictAdapter` by subclassing
+:class:`SelectionSupport`.
 
 See the :class:`ListAdapter` docs for details, but here we have synopses of
 its arguments:
 
-    - data: the list of objects, be they strings or other objects, that are
-            used as the primary source of item data for the list items
+    - data: a list of objects (Python class instance) or dicts that must have
+            a text property and an is_selected property. The text property
+            needs to be programmed into your list data items, whether they are
+            objects or dicts, but for working with objects as data items, the
+            is_selected property is provided by :class:`SelectableDataItem`,
+            which is intended to be used as a mixin:
+
+                MyCustomDataItem(SelectableDataItem):
+                    def __init__(self, **kwargs):
+                        super(MyCustomDataItem, self).__init__(**kwargs)
+                        self.text = kwargs.get('name', '')
+                        # etc.
+
+                data = [MyCustomDataItem(name=n) for n in ['Bill', 'Sally']
+
+            Or, you may wish to provide a simple list of dicts:
+
+                data = \
+                    [{'text': str(i), 'is_selected': False} for i in [1,2,3]]
 
     - cls: the Kivy view that is to be instantiated for each list item. There
            are several built-in types available, including ListItemLabel and
@@ -144,32 +163,32 @@ its arguments:
     - template: another way of building a Kivy view for a list item, taking
                 adavantage of the flexibility of the kv language.
 
-    NOTE: Pick only one, cls or template, as argument to :class:`ListAdapter`.
+    NOTE: Pick only one, cls or template, to provide as an argument.
 
-    - args_converter: a function that takes a list item object (which is often
-                      just a string) as input, and operates to use the object
-                      in some fashion to build and return an args dict, ready
-                      to be used in a call to instantiate the item view cls
-                      or template. In the case of cls, the args dict acts as a
-                      kwargs object. For a template, it is treated as a
-                      context (ctx), but is essentially similar in form. See
-                      the examples and docs for template operation.
+    - args_converter: a function that takes a list item object as input, and
+                      operates to use the object in some fashion to build and
+                      return an args dict, ready to be used in a call to
+                      instantiate the item view cls or template. In the case
+                      of cls, the args dict acts as a kwargs object. For a
+                      template, it is treated as a context (ctx), but is
+                      essentially similar in form. See the examples and docs
+                      for template operation.
 
-    - selection arguments: These include:
+    - selection arguments:
 
           selection_mode='single', 'multiple' or others (See docs), and
 
           allow_empty_selection=False, which forces there to always be a
                                        selection, if there is data available,
                                        or =True, if selection is to be
-                                       restricted to happen as a result of
-                                       user action.
+                                       restricted to happen only as a result
+                                       of user action.
 
 In narrative, we can summarize with:
 
     A listview's list adapter takes data items and uses an args_converter
     function to transform them into arguments for making list item view
-    classes, using either a provided cls or a kv template.
+    instances, using either a cls or a kv template.
 
 In a graphic, a summary of the relationship between a listview and its
 list adapter, looks something like this:
@@ -183,298 +202,103 @@ list adapter, looks something like this:
     -                    |                                                  |
     -                    ----------------------------------------------------
 
+:class:`DictAdapter` has the same arguments and requirements as ListAdapter,
+except for two things:
+
+    1) There is an additional argument, sorted_keys, which must meet the
+       requirements of normal python dictionary keys.
+
+    2) The data argument is not a list of objects, it is, as you would expect,
+       a dict. Keys in the dict must correspond to the keys in the sorted_keys
+       argument. Values may be objects or dicts too -- these are are just like
+       the items of the data argument, described above for
+       :class:`ListAdapter`.
+
+Using an Args Converter
+-----------------------
+
 The Kivy view used for list items can be totally custom, but for an example,
-we can start with a list item as a button, using the :class:`ListItemButton`
-class, and the list_item_args_converter, available in kivy.adapters.util. Here
-is its definition:
+we can start with a button as a list item view, using :class:`ListItemButton`.
+We need an args_converter function:
 
-    list_item_args_converter = lambda x: {'text': x,
-                                          'size_hint_y': None,
-                                          'height': 25}
+    args_converter = lambda obj: {'text': obj.text,
+                                  'size_hint_y': None,
+                                  'height': 25}
 
-list_item_args_converter() takes a data item (x, a string in this usage), and
-prepares an args dict (to be used as kwargs for cls/ctx for template) with x
-as the text value, and the other two default arguments for layout. It is easy
-to make your own args converter, more complicated that this one.
+args_converter() takes a data item, either as an object (Python class
+instance) or as a dict, and prepares for a call to instantiate the item view
+class for it. The item view class, recall, is instantiated either with a cls
+or with a kv template. In the case of cls, the args converter prepares an
+args dict that is used as cls(**args_converter(data_item)). In the case of a
+template, the args_converter will provide essentially the same thing, but as
+the context for the template, not really an args dict strictly speaking:
+template(**args_converter(data_item). Looks the same, but is not.
 
-Now, to the example code:
+Now, to some example code:
 
     from kivy.adapters.list_adapter import ListAdapter
-    from kivy.adapters.util import list_item_args_converter
-    from kivy.uix.listview import ListItem, ListView
+    from kivy.uix.listview import ListItemButton, ListView
 
-    data = ["Item {0}".format(index) for index in xrange(100)]
+    data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]
+
+    args_converter = lambda rec: {'text': rec['text'],
+                                  'size_hint_y': None,
+                                  'height': 25}
 
     list_adapter = ListAdapter(data=data,
-                               args_converter=list_item_args_converter,
+                               args_converter=args_converter,
                                selection_mode='single',
                                allow_empty_selection=False,
                                cls=ListItemButton)
+
     list_view = ListView(adapter=list_adapter)
 
-This listview will show 100 buttons with a "Item 0", "Item 1", etc. labels.
-The listview will only allow single selection -- additional touches will be
-ignored. When the listview is first shown, the first item will already be
-selected, because we set allow_empty_selection=False.
+This listview will show 100 buttons with 0..100 labels. The listview will only
+allow single selection -- additional touches will be ignored. When the
+listview is first shown, the first item will already be selected, because we
+set allow_empty_selection=False.
 
-Selection in ListAdapter, for ListView
---------------------------------------
+Selection
+---------
 
 In the previous example, we saw how a listview gains selection support just by
 using ListAdapter.
 
 What can we do with selection? The possibilities are wide-ranging.
 
-We could change the data item strings to be the names of dog breeds, and we
-could bind the selection to the display of details for the selected dog breed
-in another view, which would update in realtime.
+We could change the data items to contain the names of dog breeds, and connect
+the selection of dog breed to the display of details in another view, which
+would update automatically. This is done via a binding to the
+on_selection_change event:
 
-We could change the selection_mode to 'multiple' and put up a list of answers
-in a multiple-choice question that has several correct answers. A realtime
-color swatch view could be bound to selection, turning green as soon as the
-correct choices are made, unless the number of touches exeeds a limit, and it
-bombs out.
+    list_adapter.bind(on_selection_change=my_selection_reactor_function)
+
+where my_selection_reaction_function() does whatever is needed for the update
+(examples shown below).
+
+We could change the selection_mode of the listview to 'multiple' for a list of
+answers to a multiple-choice question that has several correct answers. A
+color swatch view could be bound to selection change, as above, so that it
+turns green as soon as the correct choices are made, unless the number of
+touches exeeds a limit, and it bombs out.
 
 We could chain together three listviews, where selection in the first
 controls the items shown in the second, and selection in the second controls
 the items shown in the third. If allow_empty_selection were set to False for
 these listviews, a dynamic system, a "cascade" from one list to the next,
-would result.
-
-And so on.
-
-To bind to selection of a :class:ListAdapter instance, bind to the
-on_selection_change event:
-
-    list_adapter.bind(on_selection_change=my_selection_reactor_function)
-
-Ideas for Selection Ops
------------------------
-
-The examples below, and the on-disk working examples, illustrate ways to use
-:class:`ListView` and list adapters. Here are some other ideas for operations
-that happen when on_selection_change fires:
-
-    - Use a search directive phrase set in a text box, and find items,
-      relative to the current selection, items with time values within a
-      certain range, or items that have a greater length of text than that of
-      the current selection, and so on.
-
-    - Select items that qualify against a hard-wired search directive.
-
-    - Select items by proximity to the current selected item, say for finding
-      three items above and below it.
-
-    - Select items because they are owned by the same user that owns the
-      current selected item.
-
-Composite List Item Example
----------------------------
-
-Let's say you would like to make a listview with composite list item views
-consisting of a button on the left, a label in the middle, and a second button
-on the right. Perhaps the buttons could be made as toggle buttons for two
-separate properties pertaining to the label. We add default buttons and a
-label in this example.
-
-    from kivy.adapters.listadapter import ListAdapter
-    from kivy.uix.listview import ListItemButton, ListItemLabel, \
-            CompositeListItem, ListView
-    from kivy.uix.gridlayout import GridLayout
-
-
-    class MainView(GridLayout):
-
-        def __init__(self, **kwargs):
-            kwargs['cols'] = 2
-            kwargs['size_hint'] = (1.0, 1.0)
-            super(MainView, self).__init__(**kwargs)
-
-            # This is quite an involved args_converter, so we should go
-            # through the details. x here is a data item object, be it
-            # a string for a typical usage, as here, or some other object.
-            # x will become the text value when the class used in this
-            # example, CompositeListItem, is instantiated with the args
-            # returned by this converter. All of the rest, for size_hint_y,
-            # height, and the cls_dicts list, will be passed in the call
-            # to instantiate CompositeListItem for a data item. Inside the
-            # constructor of CompositeListItem is special-handling code that
-            # uses cls_dicts to create, in turn, the component items in the
-            # composite. This is a similar approach to using a kv template,
-            # which you might wish to explore also.
-            args_converter = \
-                lambda x: \
-                    {'text': x,
-                     'size_hint_y': None,
-                     'height': 25,
-                     'cls_dicts': [{'cls': ListItemButton,
-                                    'kwargs': {'text': "Left",
-                                               'merge_text': True,
-                                               'delimiter': '-'}},
-                                   {'cls': ListItemLabel,
-                                    'kwargs': {'text': "Middle",
-                                               'merge_text': True,
-                                               'delimiter': '-',
-                                               'is_representing_cls': True}},
-                                   {'cls': ListItemButton,
-                                    'kwargs': {'text': "Right",
-                                               'merge_text': True,
-                                               'delimiter': '-'}}]}
-
-            # First, some strings as data items:
-            item_strings = ["{0}".format(index) for index in xrange(100)]
-
-            # And now the list adapter, constructed with the item_strings as
-            # the data, and our args_converter() that will operate one each
-            # item in the data to produce list item view instances from the
-            # :class:`CompositeListItem` class.
-            list_adapter = ListAdapter(data=item_strings,
-                                       args_converter=args_converter,
-                                       selection_mode='single',
-                                       allow_empty_selection=False,
-                                       cls=CompositeListItem)
-
-            # Use the adapter in our ListView:
-            list_view = ListView(adapter=list_adapter)
-
-            self.add_widget(list_view)
-
-
-    if __name__ == '__main__':
-        from kivy.base import runTouchApp
-        runTouchApp(MainView(width=800))
-
-Using With kv
--------------
-
-To make a simple list with labels for 100 integers:
-
-    from kivy.adapters.listadapter import ListAdapter
-    from kivy.adapters.mixins.selection import SelectableItem
-    from kivy.uix.listview import ListView, ListItemButton
-    from kivy.uix.gridlayout import GridLayout
-    from kivy.uix.boxlayout import BoxLayout
-    from kivy.lang import Builder
-    from kivy.factory import Factory
-
-    Factory.register('SelectableItem', cls=SelectableItem)
-    Factory.register('ListItemButton', cls=ListItemButton)
-
-    # Note: If you copy this example, change the triple_quote tag markers to
-    #       triple single quotes.
-    Builder.load_string(<triple_quotes>
-    [CustomListItem@SelectableItem+BoxLayout]:
-        size_hint_y: ctx.size_hint_y
-        height: ctx.height
-        ListItemButton:
-            text: ctx.text
-    <triple_quotes>)
-
-
-    class MainView(GridLayout):
-
-        def __init__(self, **kwargs):
-            kwargs['cols'] = 1
-            kwargs['size_hint'] = (1.0, 1.0)
-            super(MainView, self).__init__(**kwargs)
-
-            # Here we create a list adapter with some item strings, passing our
-            # CompositeListItem kv template for the list item view, and then we
-            # create a listview using this adapter. As we have not provided an
-            # args converter to the list adapter, the default args converter
-            # will be used. It creates, per list item, an args dict with the
-            # text set to the data item (in this case a string label for an
-            # integer index), and two default properties: size_hint_y=None and
-            # height=25. To customize, make your own args converter and/or
-            # customize the kv template.
-            list_adapter = ListAdapter(data=[str(i) for i in xrange(100)],
-                                       template='CustomListItem')
-            list_view = ListView(adapter=list_adapter)
-
-            self.add_widget(list_view)
-
-
-    if __name__ == '__main__':
-        from kivy.base import runTouchApp
-        runTouchApp(MainView(width=800))
-
-Cascading Selection Between Lists and Views
--------------------------------------------
-
-A "master-detail" view is a good way to introduce binding of a listview to
-another view. We can call the listview the "master" and the second view,
-the "detail" view, forming a master-detail pairing. This would fit the dog
-breed idea mentioned above, where we wish to show a list of dog breed names,
-from which one is selected, and in the second view show the details of the
-selected dog breed.
-
-    class DetailView(BoxLayout):
-        #
-        # DETAILS NOT SHOWN -- has multiple labels for dog breed details in a
-        # panel. To see a real example, see the on-disk examples, such as:
-        #
-        #    kivy/examples/widgets/lists/list_master_detail.py
-        #
-        #    def dog_breed_changed(self, list_adapter, *args):
-        #        #
-        #        # Code here for taking list_adapter.selection, a dog breed in
-        #        # this case, and populating image views, label views with
-        #        # details for the breed, etc., coming from some source, such
-        #        # a database lookup.
-        #        #
-        #        pass
-        pass
-
-    from kivy.uix.gridlayout import GridLayout
-    from kivy.uix.listview import ListView, ListItemButton
-    from kivy.adapters.listadapter import ListAdapter
-
-
-    class MasterDetailView(GridLayout):
-
-        def __init__(self, items, **kwargs):
-            kwargs['cols'] = 2
-            kwargs['size_hint'] = (1.0, 1.0)
-            super(MasterDetailView, self).__init__(**kwargs)
-
-            args_converter = lambda x: {'text': x,
-                                        'size_hint_y': None,
-                                        'height': 50}
-
-            list_adapter = ListAdapter(data=['Golden Retriever', 'Bulldog',
-                                             'Collie', 'Poodle', 'Bulldog'],
-                                       args_converter=args_converter,
-                                       selection_mode='single',
-                                       allow_empty_selection=False,
-                                       cls=ListItemButton)
-            master_list_view = ListView(adapter=list_adapter,
-                                        size_hint=(.3, 1.0))
-            self.add_widget(master_list_view)
-
-            detail_view = DetailView(size_hint=(.7, 1.0))
-            self.add_widget(detail_view)
-
-            list_adapter.bind(
-                    on_selection_change=detail_view.dog_breed_changed)
-
-            # Force triggering of on_selection_change() for the DetailView, for
-            # correct initial display.
-            list_adapter.touch_selection()
-
-
-    if __name__ == '__main__':
-        from kivy.base import runTouchApp
-        master_detail = MasterDetailView(width=800)
-        runTouchApp(master_detail)
+would result. Several examples show such "cascading" behavior.
 
 More Examples
 -------------
 
 There are so many ways that listviews and related functionality can be used,
-that we have only scratched the surface here. For on-disk examples like the
-ones presented above, plus others that show more complicated use, see:
+that we have only scratched the surface here. For on-disk examples, see:
 
-        kivy/examples/widgets/lists/list_*.py
+    kivy/examples/widgets/lists/list_*.py
+
+These include:
+
+    - list_cascade.py -- the example described above.
 
 '''
 
@@ -486,7 +310,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.adapters.listadapter import SimpleListAdapter
-from kivy.adapters.mixins.selection import SelectableItem
+from kivy.adapters.mixins.selection import SelectableView
 from kivy.uix.abstractview import AbstractView
 from kivy.properties import ObjectProperty, DictProperty, \
         NumericProperty, ListProperty
@@ -494,7 +318,7 @@ from kivy.lang import Builder
 from math import ceil, floor
 
 
-class ListItemButton(SelectableItem, Button):
+class ListItemButton(SelectableView, Button):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = None
 
@@ -514,7 +338,7 @@ class ListItemButton(SelectableItem, Button):
         return self.text
 
 
-class ListItemLabel(SelectableItem, Label):
+class ListItemLabel(SelectableView, Label):
 
     def __init__(self, **kwargs):
         super(ListItemLabel, self).__init__(**kwargs)
@@ -529,7 +353,7 @@ class ListItemLabel(SelectableItem, Label):
         return self.text
 
 
-class CompositeListItem(SelectableItem, BoxLayout):
+class CompositeListItem(SelectableView, BoxLayout):
 
     background_color = ListProperty([1, 1, 1, 1])
     '''ListItem sublasses Button, which has background_color, but
@@ -635,7 +459,7 @@ class ListView(AbstractView):
     container = ObjectProperty(None)
     '''The container is a GridLayout widget held within a ScrollView widget.
     (See the associated kv block in the Builder.load_string() setup). Item
-    view instances managed and provided by the ListAdapter are added to this
+    view instances managed and provided by the adapter are added to this
     container. The container is cleared with a call to clear_widgets() when
     the list is rebuilt by the populate() method. A padding Widget instance
     is also added as needed, depending on the row height calculations.
@@ -662,7 +486,7 @@ class ListView(AbstractView):
     def __init__(self, **kwargs):
         # Intercept for the adapter property, which would pass through to
         # AbstractView, to check for its existence. If it doesn't exist, we
-        # assume that the data list is to be used with ListAdapter
+        # assume that the data list is to be used with SimpleListAdapter
         # to make a simple list. If it does exist, and data was also
         # provided, raise an exception, because if an adapter is provided, it
         # should be a fully-fledged adapter with its own data.
@@ -684,7 +508,13 @@ class ListView(AbstractView):
         self.bind(size=self._trigger_populate,
                   pos=self._trigger_populate,
                   adapter=self._trigger_populate)
-        self.adapter.bind(data=self._trigger_hard_populate)
+
+        # The adapter does not necessarily use the data property for its
+        # primary key, so we let it set up the binding. This is associated
+        # with selection operations, which :class:`SimpleListAdapter` does
+        # not support, so we check if the function is available.
+        if hasattr(self.adapter, 'bind_primary_key_to_func'):
+            self.adapter.bind_primary_key_to_func(self._trigger_hard_populate)
 
         # If our adapter supports selection, check the allow_empty_selection
         # property and ensure selection if needed.

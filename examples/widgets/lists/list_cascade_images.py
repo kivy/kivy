@@ -1,13 +1,12 @@
-from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.mixins.selection import SelectableItem
+from kivy.adapters.dictadapter import DictAdapter
+from kivy.adapters.mixins.selection import SelectableView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
 from kivy.lang import Builder
 from kivy.factory import Factory
 
-from datastore_fruit_data import fruit_categories, datastore_categories, \
-        datastore_fruits
+from fixtures import fruit_categories, fruit_data
 
 from fruit_detail_view import FruitImageDetailView
 
@@ -16,7 +15,7 @@ from fruit_detail_view import FruitImageDetailView
 # fruit. It uses the kv template method for providing the list item view to
 # the listview showing the list of fruits for a selected category.
 
-Factory.register('SelectableItem', cls=SelectableItem)
+Factory.register('SelectableView', cls=SelectableView)
 Factory.register('ListItemButton', cls=ListItemButton)
 
 # [TODO] Problem: Had to add index here, to get it from ctx. Might need a
@@ -25,7 +24,7 @@ Factory.register('ListItemButton', cls=ListItemButton)
 #                 code for index?
 
 Builder.load_string('''
-[ThumbnailedListItem@SelectableItem+BoxLayout]:
+[ThumbnailedListItem@SelectableView+BoxLayout]:
     index: ctx.index
     fruit_name: ctx.text
     size_hint_y: ctx.size_hint_y
@@ -39,17 +38,18 @@ Builder.load_string('''
 
 
 # A custom adapter is needed here, because we must transform the selected
-# fruit category into the list of fruits for that category.
+# fruit category into the list of fruit keys for that category.
 #
-class FruitsListAdapter(ListAdapter):
+class FruitsDictAdapter(DictAdapter):
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
         if len(fruit_categories_adapter.selection) == 0:
-            self.data = []
+            self.data = {}
             return
 
-        category = fruit_categories[str(fruit_categories_adapter.selection[0])]
-        self.data = category['fruits']
+        category = \
+                fruit_categories[str(fruit_categories_adapter.selection[0])]
+        self.sorted_keys = category['fruits']
 
 
 class CascadingView(GridLayout):
@@ -63,20 +63,21 @@ class CascadingView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(CascadingView, self).__init__(**kwargs)
 
-        list_item_args_converter = lambda x: {'text': str(x),
-                                              'size_hint_y': None,
-                                              'height': 25}
+        list_item_args_converter = lambda rec: {'text': rec['name'],
+                                                'size_hint_y': None,
+                                                'height': 25}
 
         # Fruit categories list on the left:
         #
         categories = sorted(fruit_categories.keys())
         fruit_categories_list_adapter = \
-            ListAdapter(data=categories,
-                        datastore=datastore_categories,
-                        args_converter=list_item_args_converter,
-                        selection_mode='single',
-                        allow_empty_selection=False,
-                        cls=ListItemButton)
+            DictAdapter(
+                    sorted_keys=categories,
+                    data=fruit_categories,
+                    args_converter=list_item_args_converter,
+                    selection_mode='single',
+                    allow_empty_selection=False,
+                    cls=ListItemButton)
         fruit_categories_list_view = \
                 ListView(adapter=fruit_categories_list_adapter,
                         size_hint=(.2, 1.0))
@@ -84,13 +85,13 @@ class CascadingView(GridLayout):
 
         # Fruits, for a given category, in the middle:
         #
-        image_list_item_args_converter = lambda x: {'text': str(x),
-                                                    'size_hint_y': None,
-                                                    'height': 32}
+        image_list_item_args_converter = lambda rec: {'text': rec['name'],
+                                                      'size_hint_y': None,
+                                                      'height': 32}
         fruits_list_adapter = \
-                FruitsListAdapter(
-                    data=fruit_categories[categories[0]]['fruits'],
-                    datastore=datastore_fruits,
+                FruitsDictAdapter(
+                    sorted_keys=fruit_categories[categories[0]]['fruits'],
+                    data=fruit_data,
                     args_converter=image_list_item_args_converter,
                     selection_mode='single',
                     allow_empty_selection=False,

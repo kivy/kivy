@@ -1,9 +1,10 @@
-from kivy.adapters.listadapter import ListAdapter
+from kivy.adapters.dictadapter import DictAdapter
 from kivy.uix.listview import ListItemButton, ListItemLabel, \
         CompositeListItem, ListView
 from kivy.uix.gridlayout import GridLayout
 
-from datastore_integers import datastore_integers
+from fixtures import integers_dict
+
 
 class MainView(GridLayout):
 
@@ -25,8 +26,8 @@ class MainView(GridLayout):
         # composite. This is a similar approach to using a kv template,
         # which you might wish to explore also.
         args_converter = \
-            lambda x: \
-                {'text': x,
+            lambda rec: \
+                {'text': rec['text'],
                  'size_hint_y': None,
                  'height': 25,
                  'cls_dicts': [{'cls': ListItemButton,
@@ -46,19 +47,19 @@ class MainView(GridLayout):
         item_strings = ["{0}".format(index) for index in xrange(100)]
 
         # And now the list adapter, constructed with the item_strings as
-        # the data, a datastore to add the required is_selected boolean onto
+        # the data, a dict to add the required is_selected boolean onto
         # data records, and our args_converter() that will operate one each
         # item in the data to produce list item view instances from the
         # :class:`CompositeListItem` class.
-        list_adapter = ListAdapter(data=item_strings,
-                                   datastore=datastore_integers,
+        dict_adapter = DictAdapter(sorted_keys=item_strings,
+                                   data=integers_dict,
                                    args_converter=args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
                                    cls=CompositeListItem)
 
         # Use the adapter in our ListView:
-        list_view = ListView(adapter=list_adapter)
+        list_view = ListView(adapter=dict_adapter)
 
         self.add_widget(list_view)
 

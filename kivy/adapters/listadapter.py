@@ -8,21 +8,20 @@ ListAdapter
 text-only display of strings, or a list of views of some type that have
 no user interaction.
 
-:class:`ListAdapter` is the main workhorse for broad use, because it adds
-selection.
+:class:`ListAdapter` is has broader application, because it adds selection.
+Its data items cannot be simple strings; they must be objects conforming to
+the model of selection, handling is_selected.
 
-Several subclasses of :class:`ListAdapter` offer convenience for setting up
-bindings required to connect a list adapter to another one, or to another
-external object that changes selection in some way.
-
-:class:`ListsAdapter` is for use when you have a list of lists, with one
-showing at any given time.
+[TODO] Need to distinguish between SelectableView, which pertains to views,
+       probably renaming it to SelectableView, and the need for data items
+       to conform -- perhaps a SelectableDataItem class?
 '''
 
 from kivy.properties import ListProperty, DictProperty, ObjectProperty
 from kivy.lang import Builder
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.mixins.selection import SelectionSupport
+from kivy.adapters.mixins.selection import SelectionSupport, \
+        SelectableDataItem
 
 from inspect import isfunction, ismethod
 
@@ -79,7 +78,11 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
     and several methods used in selection operations.
 
     If you wish to have a bare-bones list adapter, without selection, use
-    SimpleListAdapter.
+    :class:`SimpleListAdapter`.
+
+    :class:`ListAdapter`, by adding selection, has the requirement that data
+    items be instances of a subclass of :class:`SelectableView` (Do not use
+    simple strings as data items).
     '''
 
     owning_view = ObjectProperty(None)
@@ -89,27 +92,14 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
     access is needed to the views.
     '''
 
-    datastore = ObjectProperty(None)
-    '''A function that takes a str key, an item of data, as the single
-    argument, and returns the value to the key stored in the underlying data
-    structure or backing database. This is only used in the case that an item
-    of data is a str.
-    '''
-
     def __init__(self, **kwargs):
-        # Check data for any str items. If found, check for datastore arg,
-        # and if no datastore arg, raise exception. Otherwise break out.
-        #
-        for item in kwargs['data']:
-            if type(item) == 'str':
-                if 'datastore' not in kwargs:
-                    msg = 'ListAdapter: data has str keys; need datastore.'
-                    raise Exception(msg)
-                break
         super(ListAdapter, self).__init__(**kwargs)
 
         # Reset and update selection, in SelectionSupport, if data changes.
         self.bind(data=self.initialize_selection)
+
+    def bind_primary_key_to_func(self, func):
+        self.bind(data=func)
 
     def get_view(self, index):
         '''This method is more complicated than the one in Adapter and
@@ -138,19 +128,15 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
             instance = Builder.template(self.template, **item_args)
             print 'TEMPLATE instance.index', instance.index
 
-        # If the data item is a string, it is assumed to be a key into the
-        # datastore, so a lookup is done to check selection. Otherwise, the
-        # data item must be a subclass of SelectableItem, or must have an
+        # The data item must be a subclass of SelectableView, or must have an
         # is_selected boolean or function, so it has is_selected available.
         # If is_selected is unavailable on the data item, an exception is
         # raised.
         #
-        # A mixture of keys into the datastore and object instances
-        # providing an is_selected() function or is_selected boolean
-        # is allowed.
+        # [TODO] Only tested boolean is_selected.
         #
-        if type(item) == str:
-            if self.datastore.get(item, 'is_selected'):
+        if issubclass(item.__class__, SelectableDataItem):
+            if item.is_selected:
                 self.handle_selection(instance)
         elif type(item) == dict and 'is_selected' in item:
             if item['is_selected']:
@@ -163,7 +149,7 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
                 if item.is_selected:
                     self.handle_selection(instance)
         else:
-            msg = "ListAdapter: record for {0} unselectable".format(item)
+            msg = "ListAdapter: unselectable data item for {0}".format(item)
             raise Exception(msg)
 
         # [TODO] if instance.handles_event('on_release'):       ?
@@ -188,34 +174,3 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
 
     def touch_selection(self, *args):
         self.dispatch('on_selection_change')
-
-
-class ListsAdapter(ListAdapter):
-    ''':class:`ListsAdapter` is specialized for managing a list of lists,
-    which is done internally with use of a dict of lists.
-    :class:`ListsAdapter` may be used for chaining several list_adapters in a
-    "cascade," where selection of the first, changes the selection of the
-    next, and others.
-    '''
-
-    lists_dict = DictProperty({})
-    '''The selection of the observed_list_adapter, which must be single
-    selection here, is the key into lists_dict, which is a dict
-    of list item lists.
-    '''
-
-    observed_list_adapter = ObjectProperty(None)
-
-    def __init__(self, **kwargs):
-        super(ListsAdapter, self).__init__(**kwargs)
-        self.observed_list_adapter.bind(
-                on_selection_change=self.on_selection_change)
-
-    def on_selection_change(self, *args):
-        observed_selection = self.observed_list_adapter.selection
-
-        if len(observed_selection) == 0:
-            self.data = []
-            return
-
-        self.data = self.lists_dict[str(observed_selection[0])]['fruits']

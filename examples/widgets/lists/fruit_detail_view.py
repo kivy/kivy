@@ -4,8 +4,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.properties import StringProperty
 
-from datastore_fruit_data import descriptors
-from datastore_fruit_data import fruit_data
+from fixtures import fruit_data_attributes
+from fixtures import fruit_data
 
 
 # Used in list_cascade.py example.
@@ -22,11 +22,11 @@ class FruitDetailView(GridLayout):
         if self.fruit_name:
             self.add_widget(Label(text="Name:", halign='right'))
             self.add_widget(Label(text=self.fruit_name))
-            for descriptor in descriptors:
-                self.add_widget(Label(text="{0}:".format(descriptor),
+            for attribute in fruit_data_attributes:
+                self.add_widget(Label(text="{0}:".format(attribute),
                                       halign='right'))
                 self.add_widget(
-                    Label(text=str(fruit_data[self.fruit_name][descriptor])))
+                    Label(text=str(fruit_data[self.fruit_name][attribute])))
 
     def fruit_changed(self, list_adapter, *args):
         if len(list_adapter.selection) == 0:
@@ -56,14 +56,14 @@ class FruitObserverDetailView(GridLayout):
         if self.fruit_name:
             self.add_widget(Label(text="Name:", halign='right'))
             self.add_widget(Label(text=self.fruit_name))
-            for descriptor in descriptors:
-                self.add_widget(Label(text="{0}:".format(descriptor),
+            for attribute in fruit_data_attributes:
+                self.add_widget(Label(text="{0}:".format(attribute),
                                       halign='right'))
                 if self.fruit_name == '':
                     self.add_widget(Label(text=''))
                 else:
                     self.add_widget(Label(
-                        text=str(fruit_data[self.fruit_name][descriptor])))
+                        text=str(fruit_data[self.fruit_name][attribute])))
 
     def update(self, object_adapter, *args):
         print 'updating fodv', object_adapter, object_adapter.obj
@@ -97,12 +97,12 @@ class FruitImageDetailView(BoxLayout):
             container = GridLayout(cols=2)
             container.add_widget(Label(text="Name:", halign='right'))
             container.add_widget(Label(text=self.fruit_name))
-            for descriptor in descriptors:
-                container.add_widget(Label(text="{0}:".format(descriptor),
+            for attribute in fruit_data_attributes:
+                container.add_widget(Label(text="{0}:".format(attribute),
                                       halign='right'))
                 print 'fruit_name', self.fruit_name
                 container.add_widget(
-                        Label(text=str(fruit_data[self.fruit_name][descriptor])))
+                        Label(text=str(fruit_data[self.fruit_name][attribute])))
             self.add_widget(container)
 
     def fruit_changed(self, list_adapter, *args):

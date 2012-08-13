@@ -1,5 +1,5 @@
 '''
-SelectableItem, SelectionSupport
+SelectableView, SelectionSupport
 ================================
 
 .. versionadded:: 1.5
@@ -14,8 +14,17 @@ from kivy.properties import ObjectProperty, ListProperty, BooleanProperty, \
 from kivy.event import EventDispatcher
 
 
-class SelectableItem(object):
-    '''The :class:`SelectableItem` mixin is used in list item classes that are
+class SelectableDataItem(object):
+    def __init__(self, **kwargs):
+        super(SelectableDataItem, self).__init__()
+        if 'is_selected' in kwargs:
+            self.is_selected = kwargs['is_selected']
+        else:
+            self.is_selected = False
+
+
+class SelectableView(object):
+    '''The :class:`SelectableView` mixin is used in list item classes that are
     to be instantiated in a list view, which uses a list adapter.  select()
     and deselect() are to be overridden with display code to mark items as
     selected or not, if desired.
@@ -27,12 +36,12 @@ class SelectableItem(object):
     '''
 
     is_selected = BooleanProperty(False)
-    '''A SelectableItem instance carries this property, and is kept in
+    '''A SelectableView instance carries this property, and is kept in
     sync with the equivalent property in the data item it represents.
     '''
 
     def __init__(self, **kwargs):
-        super(SelectableItem, self).__init__(**kwargs)
+        super(SelectableView, self).__init__(**kwargs)
 
     def select(self, *args):
         '''The list item is responsible for updating the display for
@@ -54,6 +63,11 @@ class SelectionSupport(EventDispatcher):
 
     selection = ListProperty([])
     '''The selection list property is the container for selected items.
+    '''
+
+    selected_indices = ListProperty([])
+    '''The selected_indices property is maintained in parallel with the
+    selection list.
     '''
 
     selection_mode = OptionProperty('single',
@@ -94,13 +108,15 @@ class SelectionSupport(EventDispatcher):
         pass
 
     def handle_selection(self, obj, *args):
+        print 'handle_selection for', obj
         if obj not in self.selection:
-            if (self.selection_mode == 'none' or \
-                        self.selection_mode == 'single') \
-                    and len(self.selection) > 0:
+            print 'obj', obj, 'is not in selection'
+            if self.selection_mode in ['none', 'single'] and \
+                    len(self.selection) > 0:
                 for selected_obj in self.selection:
                     self.deselect_object(selected_obj)
             if self.selection_mode != 'none':
+                print 'selecting', obj
                 self.select_object(obj)
         else:
             if self.selection_mode == 'none':
@@ -108,6 +124,15 @@ class SelectionSupport(EventDispatcher):
                     self.deselect_object(selected_obj)
             else:
                 self.deselect_object(obj)
+                # If the deselection makes selection empty, the following call
+                # will check allows_empty_selection, and if False, will
+                # select the first item. If obj happens to be the first item,
+                # this will be a reselection, and the user will notice no
+                # change, except perhaps a flicker.
+                #
+                # [TODO] Is this approach OK?
+                #
+                self.check_for_empty_selection()
 
         print 'selection for', self, 'is now', self.selection
         self.dispatch('on_selection_change')
@@ -119,19 +144,24 @@ class SelectionSupport(EventDispatcher):
         self.set_data_item_selection(item, False)
 
     def set_data_item_selection(self, item, value):
-        print 'set_data_item_selection', item, type(item)
-        if type(item) is str:
-            print 'set_data_item_selection', item, value
-            self.datastore.set(item, 'is_selected', value)
-        elif type(item) is dict and 'is_selected' in item:
+        #print 'set_data_item_selection', item, type(item)
+        if issubclass(item.__class__, SelectableDataItem):
+            #print 'ListAdapter set_data_item_selection', item, type(item), value
+            item.is_selected = value
+        elif type(item) is dict:
+            #print 'DictAdapter, dict set_data_item_selection', item, value
             item['is_selected'] = value
         elif hasattr(item, 'is_selected'):
             item.is_selected = value
+        else:
+            raise Exception('Selection: data item is not selectable')
 
     def select_object(self, obj):
         obj.select()
         obj.is_selected = True
+        print 'selected', obj, obj.is_selected
         self.selection.append(obj)
+        self.selected_indices.append(obj.index)
 
         # [TODO] sibling selection for composite items
         #        Needed? Or handled from parent?
@@ -147,9 +177,8 @@ class SelectionSupport(EventDispatcher):
             if hasattr(child, 'select'):
                 child.select()
 
-        print 'select_object, obj.index is:', obj.index
-        item = self.data[obj.index]
-        self.select_data_item(item)
+        data_item = self.get_item(obj.index)
+        self.select_data_item(data_item)
 
     def select_list(self, obj_list, extend):
         '''The select call is made for the items in the provided obj_list.
@@ -178,6 +207,7 @@ class SelectionSupport(EventDispatcher):
         obj.deselect()
         obj.is_selected = False
         self.selection.remove(obj)
+        self.selected_indices.remove(obj.index)
 
         # [TODO] sibling deselection for composite items
         #        Needed? Or handled from parent?
@@ -193,7 +223,7 @@ class SelectionSupport(EventDispatcher):
             if hasattr(child, 'deselect'):
                 child.deselect()
 
-        item = self.data[obj.index]
+        item = self.get_item(obj.index)
         self.deselect_data_item(item)
 
     def deselect_list(self, l):

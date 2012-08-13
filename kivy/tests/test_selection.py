@@ -1,6 +1,12 @@
 '''
 Selection tests
 ===============
+
+NOTE: In tests, take care calling list_view.get_item_view(0), because this
+      will call list_adapter.get_item_view(0), which does a selection. Instead, you
+      can get the cached view with list_view.item_view_instances[0], paying
+      attention to when one should be available. If you want to trigger a
+      selection as a user touch would do, call get_item_view().
 '''
 
 import unittest
@@ -8,76 +14,58 @@ import unittest
 from kivy.uix.widget import Widget
 from kivy.uix.listview import ListView, ListItemButton
 from kivy.properties import NumericProperty, StringProperty
-from kivy.adapters.listadapter import ListAdapter, ListsAdapter
+from kivy.adapters.listadapter import ListAdapter
+from kivy.adapters.dictadapter import DictAdapter
+from kivy.adapters.mixins.selection import SelectableDataItem
 
 from kivy.properties import StringProperty, DictProperty
 
+# The following integers_dict and fruit categories / fruit data dictionaries
+# are from kivy/examples/widgets/lists/fixtures.py, and the classes are from
+# examples there.
 
-class DataStore(object):
-
-    def __init__(self, name, db_dict):
-        self.name = name
-        self.db_dict = db_dict
-
-    def set(self, key, prop, val):
-        if key in self.db_dict:
-            if prop in self.db_dict[key]:
-                self.db_dict[key][prop] = val
-                return
-            msg = "DataStore {0} set: no property {1} in record[{2}]".format(
-                    self.name, prop, key)
-            raise Exception(msg)
-        msg = "DataStore {0} set: unknown record for key: {1}".format(
-                self.name, key)
-        raise Exception(msg)
-
-    def get(self, key, prop):
-        if key in self.db_dict:
-            if prop in self.db_dict[key]:
-                return self.db_dict[key][prop]
-            msg = "DataStore {0} get: no property {1} in record[{2}]".format(
-                    self.name, prop, key)
-            raise Exception(msg)
-        msg = "DataStore {0} get: unknown record for key: {1}".format(
-                self.name, key)
-        raise Exception(msg)
-        return None
-
-    def reset_to_defaults(self):
-        for key in self.db_dict:
-            self.set(key, 'is_selected', False)
+# ----------------------------------------------------------------------------
+# A dictionary of dicts, with only the minimum required is_selected attribute,
+# for use with examples using a simple list of integers in a list view.
+integers_dict = \
+        { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
 
+# ----------------------------------------------------------------------------
+# A dataset of fruit category and fruit data for use in examples.
+#
 # Data from http://www.fda.gov/Food/LabelingNutrition/\
 #                FoodLabelingGuidanceRegulatoryInformation/\
 #                InformationforRestaurantsRetailEstablishments/\
 #                ucm063482.htm
+#
+# Available items for import are:
+#
+#     fruit_categories
+#     fruit_data_attributes
+#     fruit_data_attribute_units
+#     fruit_data_list_of_dicts
+#     fruit_data
+#
 fruit_categories = \
-        {'Melons': {'fruits': ['Cantaloupe', 'Honeydew', 'Watermelon'],
+        {'Melons': {'name': 'Melons',
+                    'fruits': ['Cantaloupe', 'Honeydew', 'Watermelon'],
                     'is_selected': False},
-         'Tree Fruits': {'fruits': ['Apple', 'Avocado', 'Banana', 'Nectarine',
+         'Tree Fruits': {'name': 'Tree Fruits',
+                         'fruits': ['Apple', 'Avocado', 'Banana', 'Nectarine',
                                     'Peach', 'Pear', 'Pineapple', 'Plum',
                                     'Cherry'],
                          'is_selected': False},
-         'Citrus Fruits': {'fruits': ['Grapefruit', 'Lemon', 'Lime', 'Orange',
+         'Citrus Fruits': {'name': 'Citrus Fruits',
+                           'fruits': ['Grapefruit', 'Lemon', 'Lime', 'Orange',
                                       'Tangerine'],
                            'is_selected': False},
-         'Miscellaneous Fruits': {'fruits': ['Grape', 'Kiwifruit',
-                                             'Strawberry'],
-                                  'is_selected': False}}
+         'Other Fruits': {'name': 'Other Fruits',
+                          'fruits': ['Grape', 'Kiwifruit',
+                                     'Strawberry'],
+                          'is_selected': False}}
 
-descriptors = """(gram weight/ ounce weight)	Calories	Calories from Fa
-t	Total Fat	Sodium	Potassium	Total Carbo-hydrate	Dietary Fiber	Suga
-rs	Protein	Vitamin A	Vitamin C	Calcium	Iron""".replace('\n', '')
-
-descriptors = [item.strip() for item in descriptors.split('\t')]
-
-units = """(g) 	(%DV)	(mg) 	(%DV)	(mg) 	(%DV)	 (g) 	(%DV)	 (g)
-(%DV)	 (g) 	 (g) 	(%DV)	(%DV)	(%DV)	(%DV)""".replace('\n', '')
-
-units = [item.strip() for item in units.split('\t')]
-
-raw_fruit_data = [
+fruit_data_list_of_dicts = [
 {'name':'Apple',
  'Serving Size': '1 large (242 g/8 oz)',
  'data': [130, 0, 0, 0, 0, 0, 260, 7, 34, 11, 5, 20, 25, 1, 2, 8, 2, 2],
@@ -159,21 +147,79 @@ raw_fruit_data = [
  'data': [80, 0, 0, 0, 0, 0, 270, 8, 21, 7, 1, 4, 20, 1, 30, 25, 2, 4],
  'is_selected': False}]
 
+fruit_data_attributes = ['(gram weight/ ounce weight)',
+                         'Calories',
+                         'Calories from Fat',
+                         'Total Fat',
+                         'Sodium',
+                         'Potassium',
+                         'Total Carbo-hydrate',
+                         'Dietary Fiber',
+                         'Sugars',
+                         'Protein',
+                         'Vitamin A',
+                         'Vitamin C',
+                         'Calcium',
+                         'Iron']
+
+fruit_data_attribute_units = ['(g)',
+                              '(%DV)',
+                              '(mg)',
+                              '(%DV)',
+                              '(mg)',
+                              '(%DV)',
+                              '(g)',
+                              '(%DV)',
+                              '(g)(%DV)',
+                              '(g)',
+                              '(g)',
+                              '(%DV)',
+                              '(%DV)',
+                              '(%DV)',
+                              '(%DV)']
+
+attributes_and_units = dict(zip(fruit_data_attributes, fruit_data_attribute_units))
+
 fruit_data = {}
-descriptors_and_units = dict(zip(descriptors, units))
-for row in raw_fruit_data:
-    fruit_data[row['name']] = {}
-    fruit_data[row['name']] = dict({'Serving Size': row['Serving Size'],
-                                    'is_selected': row['is_selected']},
-            **dict(zip(descriptors_and_units.keys(), row['data'])))
+for fruit_record in fruit_data_list_of_dicts:
+    fruit_data[fruit_record['name']] = {}
+    fruit_data[fruit_record['name']] = \
+            dict({'name': fruit_record['name'],
+                  'Serving Size': fruit_record['Serving Size'],
+                  'is_selected': fruit_record['is_selected']},
+            **dict(zip(attributes_and_units.keys(), fruit_record['data'])))
 
-# See the dictionary definitions above for fruit category and raw data
-# creation. From those dictionaries, we define two datastores that will be
-# used in the examples:
 
-datastore_categories = DataStore(name='categories', db_dict=fruit_categories)
-datastore_fruits = DataStore(name='fruits', db_dict=fruit_data)
+class CategoryItem(SelectableDataItem):
+    def __init__(self, **kwargs):
+        super(CategoryItem, self).__init__(**kwargs)
+        self.name = kwargs.get('name', '')
+        self.fruits = kwargs.get('fruits', [])
+        self.is_selected = kwargs.get('is_selected', False)
 
+
+class FruitItem(SelectableDataItem):
+    def __init__(self, **kwargs):
+        super(FruitItem, self).__init__(**kwargs)
+        self.name = kwargs.get('name', '')
+        self.serving_size = kwargs.get('Serving Size', '')
+        self.data = kwargs.get('data', [])
+        self.is_selected = kwargs.get('is_selected', False)
+
+
+def reset_to_defaults(data):
+    if type(data) is 'dict':
+        for key in data:
+            data[key]['is_selected'] = False
+    elif type(data) is 'list':
+        for obj in data:
+            obj.is_selected = False
+
+category_data_objects = \
+    [CategoryItem(**fruit_categories[c]) for c in sorted(fruit_categories)]
+
+fruit_data_objects = \
+    [FruitItem(**fruit_dict) for fruit_dict in fruit_data_list_of_dicts]
 
 class FruitSelectionObserver(Widget):
     fruit_name = StringProperty('')
@@ -188,28 +234,28 @@ class FruitSelectionObserver(Widget):
 class ListAdapterTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.args_converter = lambda x: {'text': x,
-                                         'size_hint_y': None,
-                                         'height': 25}
+        self.args_converter = \
+                lambda selectable: {'text': selectable.name,
+                                    'size_hint_y': None,
+                                    'height': 25}
 
-        self.fruits = sorted(fruit_data.keys())
-
-        datastore_categories.reset_to_defaults()
-        datastore_fruits.reset_to_defaults()
+        reset_to_defaults(category_data_objects)
+        reset_to_defaults(fruit_data_objects)
+        reset_to_defaults(fruit_categories)
+        reset_to_defaults(fruit_data)
 
     def test_list_adapter_selection_mode_none(self):
-        list_adapter = ListAdapter(data=self.fruits,
-                                   datastore=datastore_fruits,
+        list_adapter = ListAdapter(data=fruit_data_objects,
                                    args_converter=self.args_converter,
                                    selection_mode='none',
                                    allow_empty_selection=True,
                                    cls=ListItemButton)
 
-        self.assertEqual(list_adapter.data, ['Apple', 'Avocado', 'Banana',
-            'Cantaloupe', 'Cherry', 'Grape', 'Grapefruit', 'Honeydew',
-            'Kiwifruit', 'Lemon', 'Lime', 'Nectarine', 'Orange', 'Peach',
-            'Pear', 'Pineapple', 'Plum', 'Strawberry', 'Tangerine',
-            'Watermelon'])
+        self.assertEqual(sorted([obj.name for obj in list_adapter.data]),
+            ['Apple', 'Avocado', 'Banana', 'Cantaloupe', 'Cherry', 'Grape',
+             'Grapefruit', 'Honeydew', 'Kiwifruit', 'Lemon', 'Lime',
+             'Nectarine', 'Orange', 'Peach', 'Pear', 'Pineapple', 'Plum',
+             'Strawberry', 'Tangerine', 'Watermelon'])
 
         # The reason why len(selection) == 0 here is because it is ListView,
         # at the end of its __init__(), that calls check_for_empty_selection()
@@ -219,8 +265,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 0)
 
     def test_list_adapter_selection_mode_single(self):
-        list_adapter = ListAdapter(data=self.fruits,
-                                   datastore=datastore_fruits,
+        list_adapter = ListAdapter(data=fruit_data_objects,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=True,
@@ -238,20 +283,20 @@ class ListAdapterTestCase(unittest.TestCase):
         # allow_empty_selection = True, so no action in that check.
         self.assertEqual(len(list_adapter.selection), 0)
 
-        # Still no selection, but handling a selection should make len = 1.
+        # Still no selection, but triggering a selection should make len = 1.
+        # Calling get_item_view(0)) here will, in turn, call
+        # list_adapter.get_item_view(0), which does a selection if the
+        # associated data item is selected. So, first we need to select the
+        # associated data item.
+        self.assertEqual(fruit_data_objects[0].name, 'Apple')
+        fruit_data_objects[0].is_selected = True
         apple = list_view.get_item_view(0)
         self.assertEqual(apple.text, 'Apple')
-        list_adapter.handle_selection(apple)
         self.assertTrue(apple.is_selected)
         self.assertEqual(len(list_adapter.selection), 1)
 
-        # Single-selection, so len should stay 1 if another selected.
-        list_adapter.handle_selection(list_view.get_item_view(2))
-        self.assertEqual(len(list_adapter.selection), 1)
-
     def test_list_adapter_selection_mode_single_auto_selection(self):
-        list_adapter = ListAdapter(data=self.fruits,
-                                   datastore=datastore_fruits,
+        list_adapter = ListAdapter(data=fruit_data_objects,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
@@ -262,7 +307,7 @@ class ListAdapterTestCase(unittest.TestCase):
         # at the end of its __init__(), calls check_for_empty_selection()
         # and triggers the initial selection, because allow_empty_selection is
         # False.
-        apple = list_view.get_item_view(0)
+        apple = list_view.item_view_instances[0]
         self.assertEqual(list_adapter.selection[0], apple)
         self.assertEqual(len(list_adapter.selection), 1)
         list_adapter.check_for_empty_selection()
@@ -271,8 +316,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_multiple_auto_selection(self):
-        list_adapter = ListAdapter(data=self.fruits,
-                                   datastore=datastore_fruits,
+        list_adapter = ListAdapter(data=fruit_data_objects,
                                    args_converter=self.args_converter,
                                    selection_mode='multiple',
                                    allow_empty_selection=False,
@@ -286,9 +330,12 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 1)
         apple = list_adapter.selection[0]
         self.assertEqual(apple.text, 'Apple')
-        avocado = list_view.get_item_view(1)
+
+        # Add Avocado to the selection, doing necessary steps on data first.
+        self.assertEqual(fruit_data_objects[1].name, 'Avocado')
+        fruit_data_objects[1].is_selected = True
+        avocado = list_view.get_item_view(1)  # does selection
         self.assertEqual(avocado.text, 'Avocado')
-        list_adapter.handle_selection(avocado)
         self.assertEqual(len(list_adapter.selection), 2)
 
         # Re-selection of the same item should decrease the len by 1.
@@ -306,17 +353,14 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(list_adapter.selection, [apple, avocado])
 
         # And select some different ones.
-        banana = list_view.get_item_view(2)
-        self.assertEqual(banana.text, 'Banana')
-        list_adapter.handle_selection(banana)
+        self.assertEqual(fruit_data_objects[2].name, 'Banana')
+        fruit_data_objects[2].is_selected = True
+        banana = list_view.get_item_view(2)  # does selection
         self.assertEqual(list_adapter.selection, [apple, avocado, banana])
         self.assertEqual(len(list_adapter.selection), 3)
-        list_adapter.handle_selection(list_view.get_item_view(3))
-        self.assertEqual(len(list_adapter.selection), 4)
 
     def test_list_adapter_selection_handle_selection(self):
-        list_adapter = ListAdapter(data=self.fruits,
-                                   datastore=datastore_fruits,
+        list_adapter = ListAdapter(data=fruit_data_objects,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
@@ -335,84 +379,118 @@ class ListAdapterTestCase(unittest.TestCase):
         # followed by the forced dispatch from the call to touch_selection.
         self.assertEqual(selection_observer.call_count, 2)
 
-        list_adapter.handle_selection(list_view.get_item_view(2))
-        self.assertEqual(list_view.get_item_view(2).text, 'Banana')
-        self.assertEqual(selection_observer.fruit_name, 'Banana')
-
-        # Apple got unselected, and Banana got selected, so len should be 1,
-        # but there should have been only one dispatch of on_selection_change
-        # at the end of that unselect/select, adding 1 to the call count we
-        # already have.
+        # From the check for initial selection, we should have apple selected.
+        self.assertEqual(list_adapter.selection[0].text, 'Apple')
         self.assertEqual(len(list_adapter.selection), 1)
 
-        # [TODO] Why would this be 4 here?
-        self.assertEqual(selection_observer.call_count, 3)
+        # Go throught the tests routine to trigger selection of banana.
+        # (See notes above about triggering selection in tests.)
+        self.assertEqual(fruit_data_objects[2].name, 'Banana')
+        fruit_data_objects[2].is_selected = True
+        banana = list_view.get_item_view(2)  # does selection
+        self.assertTrue(banana.is_selected)
+
+        # Now unselect it with handle_selection().
+        list_adapter.handle_selection(banana)
+        self.assertFalse(banana.is_selected)
+
+        # But, since we have allow_empty_selection=False, Apple will be
+        # reselected.
+        self.assertEqual(selection_observer.fruit_name, 'Apple')
+
+        # Call count:
+        #
+        # Apple got selected initally (1), then unselected (2) when Banana was
+        # selected (3). Then banana was unselected(4), causing reselection of
+        # Apple (5). len should be 1.
+        self.assertEqual(selection_observer.call_count, 5)
+        self.assertEqual(len(list_adapter.selection), 1)
 
 
-class ListsAdapterTestCase(unittest.TestCase):
+class FruitsDictAdapter(DictAdapter):
+
+    def fruit_category_changed(self, fruit_categories_adapter, *args):
+        if len(fruit_categories_adapter.selection) == 0:
+            self.data = {}
+            return
+
+        category = \
+                fruit_categories[str(fruit_categories_adapter.selection[0])]
+        self.sorted_keys = category['fruits']
+
+
+class DictAdapterTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.args_converter = lambda x: {'text': x,
-                                         'size_hint_y': None,
-                                         'height': 25}
+        self.args_converter = lambda rec: {'text': rec['name'],
+                                           'size_hint_y': None,
+                                           'height': 25}
 
         self.fruits = sorted(fruit_data.keys())
 
-    def test_list_adapter_selection_cascade(self):
+        reset_to_defaults(fruit_categories)
+        reset_to_defaults(fruit_data)
+
+    def test_dict_adapter_selection_cascade(self):
 
         # Categories of fruits:
         #
         categories = sorted(fruit_categories.keys())
-        fruit_categories_l_a = \
-            ListAdapter(data=categories,
-                        datastore=datastore_categories,
+        categories_dict_adapter = \
+            DictAdapter(sorted_keys=categories,
+                        data=fruit_categories,
                         args_converter=self.args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
                         cls=ListItemButton)
 
         fruit_categories_list_view = \
-            ListView(adapter=fruit_categories_l_a,
+            ListView(adapter=categories_dict_adapter,
                      size_hint=(.2, 1.0))
 
         # Fruits, for a given category, are shown based on the fruit category
         # selected in the first categories list above. The selected item in
         # the first list is used as the key into a dict of lists of list
-        # items to reset the data in ListsAdapter's
-        # observed_selection_changed() method.
+        # items to reset the data in FruitsDictAdapter's
+        # fruit_category_changed() method.
         #
         # data is initially set to the first list of list items.
         #
-        fruits_l_a = \
-            ListsAdapter(observed_list_adapter=fruit_categories_l_a,
-                         lists_dict=fruit_categories,
-                         data=fruit_categories[categories[0]]['fruits'],
-                         datastore=datastore_fruits,
-                         args_converter=self.args_converter,
-                         selection_mode='single',
-                         allow_empty_selection=False,
-                         cls=ListItemButton)
-        fruits_list_view = ListView(adapter=fruits_l_a,
+        fruits_dict_adapter = \
+                FruitsDictAdapter(
+                    sorted_keys=fruit_categories[categories[0]]['fruits'],
+                    data=fruit_data,
+                    args_converter=self.args_converter,
+                    selection_mode='single',
+                    allow_empty_selection=False,
+                    cls=ListItemButton)
+
+        categories_dict_adapter.bind(
+            on_selection_change=fruits_dict_adapter.fruit_category_changed)
+
+        fruits_list_view = ListView(adapter=fruits_dict_adapter,
                                     size_hint=(.2, 1.0))
 
         # List views should have adapters set.
         self.assertEqual(fruit_categories_list_view.adapter,
-                fruit_categories_l_a)
-        self.assertEqual(fruits_list_view.adapter, fruits_l_a)
+                categories_dict_adapter)
+        self.assertEqual(fruits_list_view.adapter, fruits_dict_adapter)
 
         # Each list adapter has allow_empty_selection=False, so each should
         # have one selected item.
-        self.assertEqual(len(fruit_categories_l_a.selection), 1)
-        self.assertEqual(len(fruits_l_a.selection), 1)
+        self.assertEqual(len(categories_dict_adapter.selection), 1)
+        self.assertEqual(len(fruits_dict_adapter.selection), 1)
 
         # The selected list items should show is_selected True.
-        self.assertEqual(fruit_categories_l_a.selection[0].is_selected, True)
-        self.assertEqual(fruits_l_a.selection[0].is_selected, True)
+        self.assertEqual(categories_dict_adapter.selection[0].is_selected,
+                True)
+        self.assertEqual(fruits_dict_adapter.selection[0].is_selected,
+                True)
 
         # And they should be red, for background_color.
         self.assertEqual(
-                fruit_categories_l_a.selection[0].background_color,
+                categories_dict_adapter.selection[0].background_color,
                 [1.0, 0., 0., 1.0])
         self.assertEqual(
-                fruits_l_a.selection[0].background_color,
+                fruits_dict_adapter.selection[0].background_color,
                 [1.0, 0., 0., 1.0])
