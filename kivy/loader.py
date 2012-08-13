@@ -126,7 +126,7 @@ class LoaderBase(object):
             return
         if load_callback is not None:
             data = load_callback(filename)
-        elif proto in ('http', 'https', 'ftp'):
+        elif proto in ('http', 'https', 'ftp', 'smb'):
             data = self._load_urllib(filename)
         else:
             data = self._load_local(filename)
@@ -147,6 +147,13 @@ class LoaderBase(object):
         '''(internal) Loading a network file. First download it, save it to a
         temporary file, and pass it to _load_local()'''
         import urllib2
+        proto = filename.split(':', 1)[0]
+        if proto == 'smb':
+            try:
+                from smb.SMBHandler import SMBHandler
+            except ImportError:
+                Logger.Info('Loader: PySMB not installed')
+                return
         import tempfile
         data = None
         try:
@@ -155,8 +162,12 @@ class LoaderBase(object):
             _out_osfd, _out_filename = tempfile.mkstemp(
                     prefix='kivyloader', suffix=suffix)
 
-            # read from internet
-            fd = urllib2.urlopen(filename)
+            if proto == 'smb':
+                # read from network
+                fd = urllib2.build_opener(SMBHandler).open(filename)
+            else:
+                # read from internet
+                fd = urllib2.urlopen(filename)
             idata = fd.read()
             fd.close()
 
