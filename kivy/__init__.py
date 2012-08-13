@@ -184,7 +184,7 @@ else:
 
 #: Global settings options for kivy
 kivy_options = {
-    'window': ('pygame', ),
+    'window': ('pygame', 'x11'),
     'text': ('pil', 'pygame'),
     'video': ('ffmpeg', 'gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', ),
