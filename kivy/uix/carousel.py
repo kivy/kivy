@@ -31,13 +31,17 @@ class Carousel(StencilView):
     widgets containing the content added through add_widget.
     '''
 
-    orientation = OptionProperty('horizontal',
-            options=('horizontal', 'vertical'))
-    '''Specifies the orientation in which you can scroll the carousel
-    Can be `horizontal` or `vertical`.
+    direction = OptionProperty('right',
+            options=('right', 'left', 'top', 'bottom'))
+    '''Specifies the direction in which the slides are orderd / from
+    which the user swipes to go from one to the next slide.
+    Can be `right`, `left`, 'top', or `bottom`.  For example, with
+    the default value of `right`, the second slide, is to the right
+    of the first, and the user would swipe from the right towards the
+    left, to get to the second slide.
 
-    :data:`orientation` is a :class:`~kivy.properties.OptionProperty`,
-    default to 'horizontal'.
+    :data:`direction` is a :class:`~kivy.properties.OptionProperty`,
+    default to 'right'.
     '''
 
     min_move = NumericProperty(0.2)
@@ -154,13 +158,6 @@ class Carousel(StencilView):
     _offset = NumericProperty(0)
     _drag_touches = ListProperty([])
 
-    def _get_extent(self):
-        if self.orientation == 'horizontal':
-            return self.width
-        if self.orientation == 'vertical':
-            return self.height
-    _extent = AliasProperty(_get_extent, None, bind=('orientation', 'size'))
-
     def _insert_visible_slides(self):
         self._prev = self.previous_slide
         self._current = self.current_slide
@@ -175,22 +172,26 @@ class Carousel(StencilView):
             super(Carousel, self).add_widget(self._current)
 
     def _position_visible_slides(self):
-        if self.orientation == 'horizontal':
-            x_off = self.x + self._offset
+        if self.direction in ['right', 'left']:
+            xoff = self.x + self._offset
+            x_prev = {'left': xoff + self.width, 'right': xoff - self.width}
+            x_next = {'left': xoff - self.width, 'right': xoff + self.width}
             if self._prev:
-                self._prev.pos = (x_off - self.width, self.y)
+                self._prev.pos = (x_prev[self.direction], self.y)
             if self._current:
-                self._current.pos = (x_off, self.y)
+                self._current.pos = (xoff, self.y)
             if self._next:
-                self._next.pos = (x_off + self.width, self.y)
-        if self.orientation == 'vertical':
-            y_off = self.y + self._offset
+                self._next.pos = (x_next[self.direction], self.y)
+        if self.direction in ['top', 'bottom']:
+            yoff = self.y + self._offset
+            y_prev = {'top': yoff - self.height, 'bottom': yoff + self.height}
+            y_next = {'top': yoff + self.height, 'bottom': yoff - self.height}
             if self._prev:
-                self._prev.pos = (self.x, y_off - self.height)
+                self._prev.pos = (self.x, y_prev[self.direction])
             if self._current:
-                self._current.pos = (self.x, y_off)
+                self._current.pos = (self.x, yoff)
             if self._next:
-                self._next.pos = (self.x, y_off + self.height)
+                self._next.pos = (self.x, y_next[self.direction])
 
     def on_size(self, *args):
         for slide in self.slides:
@@ -210,27 +211,60 @@ class Carousel(StencilView):
     def on__offset(self, *args):
         self._position_visible_slides()
         #if reached full offset, switche index to next or prev
-        if self._offset <= self._extent * -1:
-            self.index = self.index + 1
-        if self._offset >= self._extent:
-            self.index = self.index - 1
+        if self.direction == 'right':
+            if self._offset <= -self.width:
+                self.index = self.index + 1
+            if self._offset >= self.width:
+                self.index = self.index - 1
+        if self.direction == 'left':
+            if self._offset <= -self.width:
+                self.index = self.index - 1
+            if self._offset >= self.width:
+                self.index = self.index + 1
+        if self.direction == 'top':
+            if self._offset <= -self.height:
+                self.index = self.index + 1
+            if self._offset >= self.height:
+                self.index = self.index - 1
+        if self.direction == 'bottom':
+            if self._offset <= -self.height:
+                self.index = self.index - 1
+            if self._offset >= self.height:
+                self.index = self.index + 1
 
     def on__drag_touches(self, *args):
-        #only when user lets go completly, start animation
         Animation.cancel_all(self)
-        if not self._drag_touches:
-            new_offset = 0
-            dur = self.anim_move_duration
-            if self._offset < self.min_move * self._extent * -1:
-                if self.loop or self.index < len(self.slides) - 1:
-                    new_offset = self._extent * - 1
-            elif self._offset > self.min_move * self._extent:
-                if self.loop or self.index > 0:
-                    new_offset = self._extent
-            else:
-                dur = self.anim_cancel_duration
-            anim = Animation(_offset=new_offset, d=dur, t='out_quad')
-            anim.start(self)
+        if self._drag_touches:
+            return
+
+        # compute target offset for ease back, next or prev
+        new_offset = 0
+        is_horizontal = self.direction in ['right', 'left']
+        extent = self.width if is_horizontal else self.height
+        if self._offset < self.min_move * -extent:
+            new_offset = -extent
+        elif self._offset > self.min_move * extent:
+            new_offset = extent
+
+        # if new_offset is 0, it wasnt enough to go next/prev
+        dur = self.anim_move_duration
+        if new_offset == 0:
+            dur = self.anim_cancel_duration
+
+        if not self.loop:  # detect edge cases if not looping
+            is_first = (self.index == 0)
+            is_last = (self.index == len(self.slides) - 1)
+            if self.direction in ['right', 'top']:
+                towards_prev = (new_offset > 0)
+                towards_next = (new_offset < 0)
+            if self.direction in ['left', 'bottom']:
+                towards_prev = (new_offset < 0)
+                towards_next = (new_offset > 0)
+            if (is_first and towards_prev) or (is_last and towards_next):
+                new_offset = 0
+
+        anim = Animation(_offset=new_offset, d=dur, t='out_quad')
+        anim.start(self)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -244,9 +278,9 @@ class Carousel(StencilView):
         if touch.grab_current is self:
             if self._drag_touches.index(touch.uid) > 0:
                 return True
-            if self.orientation == "horizontal":
+            if self.direction in ['right', 'left']:
                 self._offset += touch.dx
-            if self.orientation == "vertical":
+            if self.direction in ['top', 'bottom']:
                 self._offset += touch.dy
             return True
 
@@ -282,7 +316,7 @@ if __name__ == '__main__':
     class Example1(App):
 
         def build(self):
-            carousel = Carousel()
+            carousel = Carousel(direction='right')
             for i in range(10):
                 src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
                 image = Factory.AsyncImage(source=src, allow_stretch=True)
