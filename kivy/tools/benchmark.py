@@ -176,7 +176,7 @@ if __name__ == '__main__':
         # force gc before next test
         gc.collect()
 
-        log('%2d/%-2d %-60s' % (benchs.index(x)+1,
+        log('%2d/%-2d %-60s' % (benchs.index(x) + 1,
             len(benchs), x.__doc__), False)
         try:
             sys.stderr.write('.')
@@ -225,7 +225,6 @@ if reply.lower().strip() in ('', 'y'):
                 'content': '\n'.join(report)}}}
 
     r = requests.post('https://api.github.com/gists', data=json.dumps(payload))
-
 
     print
     print

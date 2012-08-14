@@ -192,7 +192,7 @@ class LoaderBase(object):
                 return
 
             # create the image
-            image = data#ProxyImage(data)
+            image = data  # ProxyImage(data)
             Cache.append('kivy.loader', filename, image)
 
             # update client

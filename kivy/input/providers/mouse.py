@@ -141,7 +141,7 @@ class MouseMotionEventProvider(MotionEventProvider):
     def find_touch(self, x, y):
         factor = 10. / EventLoop.window.system_size[0]
         for t in self.touches.itervalues():
-            if abs(x-t.sx) < factor and abs(y-t.sy) < factor:
+            if abs(x - t.sx) < factor and abs(y - t.sy) < factor:
                 return t
         return False
 
@@ -206,10 +206,7 @@ class MouseMotionEventProvider(MotionEventProvider):
                 self.remove_touch(cur)
             self.current_drag = None
 
-        width, height = EventLoop.window.system_size
-        rx = x / float(width)
-        ry = 1. - y / float(height)
-        cur = self.find_touch(rx, ry)
+        cur = self.current_drag
         if (button in ('left', 'scrollup', 'scrolldown') or
                 self.disable_multitouch) and cur and not ('ctrl' in modifiers):
             self.remove_touch(cur)

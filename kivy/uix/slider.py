@@ -51,12 +51,12 @@ class Slider(Widget):
 
     padding = NumericProperty(10)
     '''Padding of the slider. The padding is used for graphical representation
-    and interaction. It prevents the cursor from going out of the bounds of the slider
-    bounding box.
+    and interaction. It prevents the cursor from going out of the bounds of the
+    slider bounding box.
 
     By default, padding is 10. The range of the slider is reduced from padding *
-    2 on the screen. It allows drawing a cursor of 20px width, without having the
-    cursor going out of the widget.
+    2 on the screen. It allows drawing a cursor of 20px width, without having
+    the cursor going out of the widget.
 
     :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
     10.

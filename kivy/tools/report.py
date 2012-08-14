@@ -89,8 +89,7 @@ for x in (
     'opencv',
     'opencv.cv',
     'opencv.highgui',
-    'cython',
-    ):
+    'cython'):
     testimport(x)
 
 title('Configuration')

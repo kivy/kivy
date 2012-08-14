@@ -147,7 +147,7 @@ class LabelBase(object):
                 else:
                     fonts.append(font)
             else:
-                fonts.append(fonts[-1]) # add regular font to list again
+                fonts.append(fonts[-1])  # add regular font to list again
 
         LabelBase._fonts[name] = tuple(fonts)
 
@@ -211,7 +211,7 @@ class LabelBase(object):
             return u'{0}...{1}'.format(text[:segment].strip(),
                 text[-segment:].strip())
         else:
-            segment = max_letters - 3 # length of '...'
+            segment = max_letters - 3  # length of '...'
             return u'{0}...'.format(text[:segment].strip())
 
     def render(self, real=False):
@@ -273,7 +273,6 @@ class LabelBase(object):
                     if not glyph in cache:
                         cache[glyph] = get_extents(glyph)
 
-
             # Shorten the text that we actually display
             text = self.text
             if options['shorten'] and get_extents(text)[0] > uw:
@@ -287,6 +286,8 @@ class LabelBase(object):
 
                 # calculate the word width
                 ww, wh = 0, 0
+                if word == '':
+                    ww, wh = get_extents(' ')
                 for glyph in word:
                     gw, gh = cache[glyph]
                     ww += gw

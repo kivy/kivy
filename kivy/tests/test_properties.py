@@ -5,9 +5,13 @@ Test properties attached to a widget
 import unittest
 from kivy.event import EventDispatcher
 
+
 class TestProperty(EventDispatcher):
     pass
+
+
 wid = TestProperty()
+
 
 class PropertiesTestCase(unittest.TestCase):
 
@@ -260,3 +264,50 @@ class PropertiesTestCase(unittest.TestCase):
         observe_called = 0
         x.get(wid).update({'bleh': 5})
         self.assertEqual(observe_called, 1)
+
+    def test_aliasproperty_with_cache(self):
+        from kivy.properties import NumericProperty, AliasProperty
+        global observe_called
+
+        class CustomAlias(EventDispatcher):
+            basevalue = NumericProperty(1)
+
+            def _get_prop(self):
+                global observe_called
+                observe_called += 1
+                return self.basevalue * 2
+
+            def _set_prop(self, value):
+                self.basevalue = value / 2
+
+            prop = AliasProperty(_get_prop, _set_prop,
+                    bind=('basevalue', ), cache=True)
+
+        # initial checks
+        wid = CustomAlias()
+        self.assertEqual(observe_called, 0)
+        self.assertEqual(wid.basevalue, 1)
+        self.assertEqual(observe_called, 0)
+
+        # first call, goes in cache
+        self.assertEqual(wid.prop, 2)
+        self.assertEqual(observe_called, 1)
+
+        # second call, cache used
+        self.assertEqual(wid.prop, 2)
+        self.assertEqual(observe_called, 1)
+
+        # change the base value, should trigger an update for the cache
+        wid.basevalue = 4
+        self.assertEqual(observe_called, 2)
+
+        # now read the value again, should use the cache too
+        self.assertEqual(wid.prop, 8)
+        self.assertEqual(observe_called, 2)
+
+        # change the prop itself, should trigger an update for the cache
+        wid.prop = 4
+        self.assertEqual(observe_called, 3)
+        self.assertEqual(wid.basevalue, 2)
+        self.assertEqual(wid.prop, 4)
+        self.assertEqual(observe_called, 3)

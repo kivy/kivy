@@ -87,7 +87,7 @@ def get_color_from_hex(s):
     if s.startswith('#'):
         return get_color_from_hex(s[1:])
 
-    value = [int(x, 16)/255. for x in split('([0-9a-f]{2})', s) if x != '']
+    value = [int(x, 16) / 255. for x in split('([0-9a-f]{2})', s) if x != '']
     if len(value) == 3:
         value.append(1)
     return value
@@ -135,13 +135,13 @@ def deprecated(func):
         if caller_id not in DEPRECATED_CALLERS:
             DEPRECATED_CALLERS.append(caller_id)
             warning = (
-                'Call to deprecated function %s in %s line %d.'
-                'Called from %s line %d'
-                ' by %s().') % (
-                func.__name__,
-                func.func_code.co_filename,
-                func.func_code.co_firstlineno + 1,
-                file, line, caller)
+                    'Call to deprecated function %s in %s line %d.'
+                    'Called from %s line %d'
+                    ' by %s().') % (
+                            func.__name__,
+                            func.func_code.co_filename,
+                            func.func_code.co_firstlineno + 1,
+                            file, line, caller)
             from kivy.logger import Logger
             Logger.warn(warning)
             if func.__doc__:
@@ -260,7 +260,7 @@ class OrderedDict(dict, DictMixin):
 
     def __eq__(self, other):
         if isinstance(other, OrderedDict):
-            return len(self)==len(other) and self.items() == other.items()
+            return len(self) == len(other) and self.items() == other.items()
         return dict.__eq__(self, other)
 
     def __ne__(self, other):

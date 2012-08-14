@@ -434,7 +434,7 @@ class RstDocument(ScrollView):
 
     toctrees = DictProperty({})
     '''Toctree of all loaded or preloaded documents. This dictionary is filled
-    when a rst document is explicitly loaded, or where :func:`preload` has been
+    when a rst document is explicitly loaded, or where :meth:`preload` has been
     called.
 
     If the document has no filename, e.g., when the document is loaded from a
@@ -453,8 +453,7 @@ class RstDocument(ScrollView):
         self._trigger_load = Clock.create_trigger(self._load_from_text, -1)
         self._parser = rst.Parser()
         self._settings = frontend.OptionParser(
-            components=(rst.Parser, )
-            ).get_default_values()
+                components=(rst.Parser, )).get_default_values()
         super(RstDocument, self).__init__(**kwargs)
 
     def on_source(self, instance, value):

@@ -435,7 +435,6 @@ class VideoPlayer(GridLayout):
     default to {}
     '''
 
-
     # internals
     container = ObjectProperty(None)
 

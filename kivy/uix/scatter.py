@@ -7,8 +7,8 @@ rotated and scaled with two or more fingers on a multitouch system.
 
 Scatter has its own matrix transformation: the modelview matrix is changed
 before the child is drawn, and the previous matrix is restored when the
-drawing is finished. That makes possible the rotation / scale / translation of the
-entire children tree, without changing them.
+drawing is finished. That makes possible the rotation / scale / translation of
+the entire children tree, without changing them.
 
 That specific behavior makes the scatter unique, and there are some advantages /
 constraints that you should consider:
@@ -19,10 +19,10 @@ constraints that you should consider:
 #. The scatter is not a layout. You must take care of size of children
    yourself.
 
-For touch events, the scatter converts from the parent matrix to the scatter matrix
-automatically in on_touch_down/move/up events. If you are doing things
-manually, you will need to use :func:`~kivy.uix.widget.Widget.to_parent`,
-:func:`~kivy.uix.widget.Widget.to_local`.
+For touch events, the scatter converts from the parent matrix to the scatter
+matrix automatically in on_touch_down/move/up events. If you are doing things
+manually, you will need to use :meth:`~kivy.uix.widget.Widget.to_parent`,
+:meth:`~kivy.uix.widget.Widget.to_local`.
 
 Usage
 -----
@@ -200,7 +200,7 @@ class Scatter(Widget):
                 xmax = x
             if y > ymax:
                 ymax = y
-        return (xmin, ymin), (xmax-xmin, ymax-ymin)
+        return (xmin, ymin), (xmax - xmin, ymax - ymin)
     bbox = AliasProperty(_get_bbox, None, bind=(
         'transform', 'width', 'height'))
     '''Bounding box of the widget in parent space::
@@ -215,7 +215,7 @@ class Scatter(Widget):
         v1 = Vector(0, 10)
         tp = self.to_parent
         v2 = Vector(*tp(*self.pos)) - tp(self.x, self.y + 10)
-        return -1.0 *(v1.angle(v2) + 180) % 360
+        return -1.0 * (v1.angle(v2) + 180) % 360
 
     def _set_rotation(self, rotation):
         angle_change = self.rotation - rotation
@@ -246,8 +246,8 @@ class Scatter(Widget):
     '''
 
     def _get_center(self):
-        return (self.bbox[0][0] + self.bbox[1][0]/2.0,
-                self.bbox[0][1] + self.bbox[1][1]/2.0)
+        return (self.bbox[0][0] + self.bbox[1][0] / 2.0,
+                self.bbox[0][1] + self.bbox[1][1] / 2.0)
 
     def _set_center(self, center):
         if center == self.center:
@@ -341,7 +341,8 @@ class Scatter(Widget):
 
     def apply_transform(self, trans, post_multiply=False, anchor=(0, 0)):
         '''
-        Transforms scatter by trans (on top of its current transformation state).
+        Transforms scatter by trans (on top of its current transformation
+        state).
 
         :Parameters:
             `trans`: transformation matrix from transformation lib.

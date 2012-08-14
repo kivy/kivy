@@ -543,7 +543,7 @@ class TreeView(Widget):
 
     selected_node = AliasProperty(get_selected_node, None,
                                   bind=('_selected_node', ))
-    '''Node selected by :func:`TreeView.select_node`, or by touch.
+    '''Node selected by :meth:`TreeView.select_node`, or by touch.
 
     :data:`selected_node` is a :class:`~kivy.properties.AliasProperty`, defaults
     to None, and is read-only.

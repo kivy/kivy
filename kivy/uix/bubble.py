@@ -236,7 +236,7 @@ class Bubble(GridLayout):
             self.rows = 2
             self_arrow_layout.rows = 1
             self_arrow_layout.cols = 3
-            self_arrow_img.width = self.width/3
+            self_arrow_img.width = self.width / 3
             self_arrow_layout.size_hint = (1, None)
             self_arrow_layout.height = self_arrow_img.height
             if self_arrow_pos[0] == 'b':
@@ -250,12 +250,12 @@ class Bubble(GridLayout):
                         arrow_list = (Widget(), Widget(), self_arrow_img)
                     widget_list = (self_content, self_arrow_layout)
             else:
-                sctr = Scatter(do_translation = False,
-                               rotation = 180,
-                               do_rotation = False,
-                               do_scale = False,
-                               size_hint = (None, None),
-                               size = self_arrow_img.size)
+                sctr = Scatter(do_translation=False,
+                               rotation=180,
+                               do_rotation=False,
+                               do_scale=False,
+                               size_hint=(None, None),
+                               size=self_arrow_img.size)
                 sctr.add_widget(self_arrow_img)
                 if self_arrow_pos == 'top_mid':
                     #add two dummy widgets
@@ -268,31 +268,31 @@ class Bubble(GridLayout):
         elif self_arrow_pos[0] == 'l' or self_arrow_pos[0] == 'r':
             self.cols = 2
             self.rows = 1
-            self_arrow_img.width = self.height/3
+            self_arrow_img.width = self.height / 3
             self_arrow_layout.rows = 3
             self_arrow_layout.cols = 1
             self_arrow_layout.size_hint = (None, 1)
             self_arrow_layout.width = self_arrow_img.height
 
             rotation = -90 if self_arrow_pos[0] == 'l' else 90
-            sctr = Scatter(do_translation = False,
-                               rotation = rotation,
-                               do_rotation = False,
-                               do_scale = False,
-                               size_hint = (None, None),
-                               size = self_arrow_img.size)
+            sctr = Scatter(do_translation=False,
+                               rotation=rotation,
+                               do_rotation=False,
+                               do_scale=False,
+                               size_hint=(None, None),
+                               size=self_arrow_img.size)
             sctr.add_widget(self_arrow_img)
 
             lenarrow_pos = len(self_arrow_pos)
-            if self_arrow_pos[lenarrow_pos-4:] == '_top':
-                arrow_list = (Widget(size_hint = (1, .07)),
-                              sctr, Widget(size_hint = (1, .3)))
-            elif self_arrow_pos[lenarrow_pos-4:] == '_mid':
+            if self_arrow_pos[lenarrow_pos - 4:] == '_top':
+                arrow_list = (Widget(size_hint=(1, .07)),
+                              sctr, Widget(size_hint=(1, .3)))
+            elif self_arrow_pos[lenarrow_pos - 4:] == '_mid':
                 arrow_list = (Widget(), sctr, Widget())
-            elif self_arrow_pos[lenarrow_pos-7:] == '_bottom':
+            elif self_arrow_pos[lenarrow_pos - 7:] == '_bottom':
                 arrow_list = (Widget(), Widget(), sctr)
 
-            if self_arrow_pos[0] =='l':
+            if self_arrow_pos[0] == 'l':
                 widget_list = (self_arrow_layout, self_content)
             else:
                 widget_list = (self_content, self_arrow_layout)

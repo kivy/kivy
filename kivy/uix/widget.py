@@ -25,13 +25,13 @@ Our widget class is designed with a couple of principles in mind:
         Often you want to know if a certain point is within the bounds of your
         widget. An example would be a button widget where you want to only
         trigger an action when the button itself is actually touched.
-        For this, you can use the :func:`Widget.collide_point` method, which
+        For this, you can use the :meth:`Widget.collide_point` method, which
         will return True if the point you pass it is inside the axis-aligned
         bounding box defined by the widget's position and size.
         If a simple AABB is not sufficient, you can override the method to
         perform the collision checks with more complex shapes, e.g., a polygon.
         You can also check if a widget collides with another widget with
-        :func:`Widget.collide_widget`.
+        :meth:`Widget.collide_widget`.
 
 Using Properties
 ----------------
@@ -166,7 +166,6 @@ class Widget(EventDispatcher):
             return False
         return True
 
-
     #
     # Default event handlers
     #
@@ -187,7 +186,7 @@ class Widget(EventDispatcher):
     def on_touch_move(self, touch):
         '''Receive a touch move event.
 
-        See :func:`on_touch_down` for more information
+        See :meth:`on_touch_down` for more information
         '''
         for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
@@ -196,12 +195,11 @@ class Widget(EventDispatcher):
     def on_touch_up(self, touch):
         '''Receive a touch up event.
 
-        See :func:`on_touch_down` for more information
+        See :meth:`on_touch_down` for more information
         '''
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
-
 
     #
     # Tree management
@@ -339,7 +337,6 @@ class Widget(EventDispatcher):
             return (x - self.x, y - self.y)
         return (x, y)
 
-
     x = NumericProperty(0)
     '''X position of the widget.
 
@@ -468,7 +465,7 @@ class Widget(EventDispatcher):
     :data:`children` is a :class:`~kivy.properties.ListProperty` instance,
     default to an empty list.
 
-    Use :func:`add_widget` and :func:`remove_widget` for manipulating the
+    Use :meth:`add_widget` and :meth:`remove_widget` for manipulating the
     children list. Don't manipulate the children list directly until you know
     what you are doing.
     '''

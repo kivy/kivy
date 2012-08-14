@@ -56,7 +56,8 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`source` is a :class:`~kivy.properties.StringProperty`, default to
+    None.
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -183,7 +184,6 @@ class Image(Widget):
             iw = ih * ratio
 
         return iw, ih
-
 
     norm_image_size = AliasProperty(get_norm_image_size, None, bind=(
         'texture', 'size', 'image_ratio', 'allow_stretch'))

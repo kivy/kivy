@@ -238,13 +238,13 @@ def unzip_extensions():
 
             already_unzipped = False
             if extdir in files:
-                Logger.trace(("Extension '%s' has already been " % extname) + \
+                Logger.trace(("Extension '%s' has already been " % extname) +
                               "extracted manually, just moving the zip.")
                 already_unzipped = True
 
             # Filter the namelist of zipfile to take only the members that start
             # with the extension name (MyExt/...)
-            members = [x for x in zipf.namelist() \
+            members = [x for x in zipf.namelist()
                        if x.startswith(extname + '/')]
 
             if not already_unzipped:
@@ -270,7 +270,7 @@ def unzip_extensions():
                             fd.write(zipf.read(member))
                 except Exception, e:
                     # Catch any error, e.g. non-writable directory, etc.
-                    Logger.error("Failed installing extension " + \
+                    Logger.error("Failed installing extension " +
                                  "'%s' %s." % (extname, e))
                     return
                 finally:
