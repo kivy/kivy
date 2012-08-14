@@ -4,16 +4,10 @@ from kivy.uix.listview import ListView, ListItemButton
 
 from fixtures import fruit_data
 
-# This is an expansion on the "master-detail" example to illustrate
-# cascading from the selection of one list view to another, this time
-# to have one list allow multiple selection and the other to show the
-# multiple items selected in the first.
-
 
 class ReceivingFruitsDictAdapter(DictAdapter):
 
     def fruits_changed(self, fruits_dict_adapter, *args):
-        print 'fruits_changed called'
         if len(fruits_dict_adapter.selection) == 0:
             self.data = {}
             return
@@ -22,19 +16,19 @@ class ReceivingFruitsDictAdapter(DictAdapter):
         for key in fruits_dict_adapter.selected_keys:
             data[key] = fruits_dict_adapter.data[key]
         self.data = data
-        print 'data just set', data
 
 
-class CascadingView(GridLayout):
-    '''Implementation of a master-detail style view, with a scrollable list
-    of fruit categories on the left, a list of fruits for the selected
-    category in the middle, and a detail view on the right.
+class TwoUpView(GridLayout):
+    '''Implementation of a two-list widget, with a scrollable list of fruits
+    on the left and a list on the right that shows items selected in the
+    first list. It illustrates multiple selection in the left list and binding
+    to a custom list adapter.
     '''
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 3
         kwargs['size_hint'] = (1.0, 1.0)
-        super(CascadingView, self).__init__(**kwargs)
+        super(TwoUpView, self).__init__(**kwargs)
 
         list_item_args_converter = lambda rec: {'text': rec['name'],
                                                 'size_hint_y': None,
@@ -73,7 +67,5 @@ class CascadingView(GridLayout):
 
 
 if __name__ == '__main__':
-
     from kivy.base import runTouchApp
-
-    runTouchApp(CascadingView(width=800))
+    runTouchApp(TwoUpView(width=800))

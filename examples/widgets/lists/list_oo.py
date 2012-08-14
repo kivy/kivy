@@ -4,78 +4,39 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
 from kivy.uix.observerview import ObserverView
 
-from fixtures import fruit_categories, fruit_data
+from fixtures import fruit_data
 
 from fruit_detail_view import FruitObserverDetailView
 
-# What is oo, you say?
-#
-#     ...  An example featuring ObserverView and ObjectAdapter
-#
-#          There are two cascading list views, and on the right is an
-#          ObserverView(ObjectAdapter) that shows a detail view of the
-#          selected fruit. Compare to the list_cascade.py example that uses
-#          a custom detail view on the right.
-#
 
-# A custom adapter is needed here, because we must transform the selected
-# fruit category into the list of fruit keys for that category.
+class OOView(GridLayout):
+    '''What is oo, you say?
 
+         ...  An example featuring ObserverView and ObjectAdapter
 
-class FruitsDictAdapter(DictAdapter):
-
-    def fruit_category_changed(self, fruit_categories_adapter, *args):
-        if len(fruit_categories_adapter.selection) == 0:
-            self.data = {}
-            return
-
-        category = \
-                fruit_categories[str(fruit_categories_adapter.selection[0])]
-        self.sorted_keys = category['fruits']
-
-
-class CascadingView(GridLayout):
-    '''Implementation of a master-detail style view, with a scrollable list
-    of fruit categories on the left, a list of fruits for the selected
-    category in the middle, and a detail view on the right.
+              There is a list view on the left showing fruits, and on the
+              right is an ObserverView(ObjectAdapter) that shows a detail
+              view of the selected fruit. Compare to the list_cascade.py
+              example that uses a custom detail view on the right.
     '''
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 3
         kwargs['size_hint'] = (1.0, 1.0)
-        super(CascadingView, self).__init__(**kwargs)
+        super(OOView, self).__init__(**kwargs)
 
         list_item_args_converter = lambda rec: {'text': rec['name'],
                                                 'size_hint_y': None,
                                                 'height': 25}
 
-        # Fruit categories list on the left:
-        #
-        categories = sorted(fruit_categories.keys())
-        fruit_categories_list_adapter = \
-            DictAdapter(
-                    sorted_keys=categories,
-                    data=fruit_categories,
-                    args_converter=list_item_args_converter,
-                    selection_mode='single',
-                    allow_empty_selection=False,
-                    cls=ListItemButton)
-        fruit_categories_list_view = \
-                ListView(adapter=fruit_categories_list_adapter,
-                        size_hint=(.2, 1.0))
-        self.add_widget(fruit_categories_list_view)
-
         fruits_list_adapter = \
-                FruitsDictAdapter(
-                    sorted_keys=fruit_categories[categories[0]]['fruits'],
+                DictAdapter(
+                    sorted_keys=sorted(fruit_data.keys()),
                     data=fruit_data,
                     args_converter=list_item_args_converter,
                     selection_mode='single',
                     allow_empty_selection=False,
                     cls=ListItemButton)
-
-        fruit_categories_list_adapter.bind(
-            on_selection_change=fruits_list_adapter.fruit_category_changed)
 
         fruits_list_view = \
                 ListView(adapter=fruits_list_adapter,
@@ -108,7 +69,5 @@ class CascadingView(GridLayout):
 
 
 if __name__ == '__main__':
-
     from kivy.base import runTouchApp
-
-    runTouchApp(CascadingView(width=800))
+    runTouchApp(OOView(width=800))
