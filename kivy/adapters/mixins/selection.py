@@ -82,7 +82,8 @@ class SelectionSupport(EventDispatcher):
 
        single -- multi-touch/click ignored. single item selecting only
 
-       multiple -- multi-touch / incremental addition to selection allowed
+       multiple -- multi-touch / incremental addition to selection allowed;
+                   may be limited to a count by selection_limit
     '''
 
     allow_empty_selection = BooleanProperty(True)
@@ -92,6 +93,14 @@ class SelectionSupport(EventDispatcher):
     list displays. Set allow_empty_selection False, so that selection is
     auto-initialized, and always maintained, and so that any observing views
     may likewise be updated to stay in sync.
+    '''
+
+    selection_limit = NumericProperty(0)
+    '''When selection_mode is multiple, if selection_limit is non-zero, this
+    number will limit the number of selected items. It can even be 1, which is
+    equivalent to single selection. This is because a program could be
+    programmatically changing selection_limit on the fly, and all possible
+    values should be included.
     '''
 
     def __init__(self, **kwargs):
@@ -116,8 +125,18 @@ class SelectionSupport(EventDispatcher):
                 for selected_obj in self.selection:
                     self.deselect_object(selected_obj)
             if self.selection_mode != 'none':
-                print 'selecting', obj
-                self.select_object(obj)
+                if self.selection_mode == 'multiple':
+                    if self.allow_empty_selection == True:
+                        if self.selection_limit > 0:
+                            if len(self.selection) < self.selection_limit:
+                                print 'selecting', obj
+                                self.select_object(obj)
+                    else:
+                        print 'selecting', obj
+                        self.select_object(obj)
+                else:
+                    print 'selecting', obj
+                    self.select_object(obj)
         else:
             if self.selection_mode == 'none':
                 for selected_obj in self.selection:

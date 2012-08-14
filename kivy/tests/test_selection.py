@@ -3,10 +3,11 @@ Selection tests
 ===============
 
 NOTE: In tests, take care calling list_view.get_item_view(0), because this
-      will call list_adapter.get_item_view(0), which does a selection. Instead, you
-      can get the cached view with list_view.item_view_instances[0], paying
-      attention to when one should be available. If you want to trigger a
-      selection as a user touch would do, call get_item_view().
+      will call list_adapter.get_item_view(0), which does a selection.
+      Instead, you can get the cached view with
+      list_view.item_view_instances[0], paying attention to when one should be
+      available. If you want to trigger a selection as a user touch would do,
+      call get_item_view().
 '''
 
 import unittest
@@ -18,8 +19,6 @@ from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.adapters.mixins.selection import SelectableDataItem
 
-from kivy.properties import StringProperty, DictProperty
-
 # The following integers_dict and fruit categories / fruit data dictionaries
 # are from kivy/examples/widgets/lists/fixtures.py, and the classes are from
 # examples there.
@@ -28,7 +27,7 @@ from kivy.properties import StringProperty, DictProperty
 # A dictionary of dicts, with only the minimum required is_selected attribute,
 # for use with examples using a simple list of integers in a list view.
 integers_dict = \
-        { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
+        {str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
 
 # ----------------------------------------------------------------------------
@@ -178,7 +177,8 @@ fruit_data_attribute_units = ['(g)',
                               '(%DV)',
                               '(%DV)']
 
-attributes_and_units = dict(zip(fruit_data_attributes, fruit_data_attribute_units))
+attributes_and_units = \
+        dict(zip(fruit_data_attributes, fruit_data_attribute_units))
 
 fruit_data = {}
 for fruit_record in fruit_data_list_of_dicts:
@@ -191,6 +191,7 @@ for fruit_record in fruit_data_list_of_dicts:
 
 
 class CategoryItem(SelectableDataItem):
+
     def __init__(self, **kwargs):
         super(CategoryItem, self).__init__(**kwargs)
         self.name = kwargs.get('name', '')
@@ -199,6 +200,7 @@ class CategoryItem(SelectableDataItem):
 
 
 class FruitItem(SelectableDataItem):
+
     def __init__(self, **kwargs):
         super(FruitItem, self).__init__(**kwargs)
         self.name = kwargs.get('name', '')
@@ -220,6 +222,7 @@ category_data_objects = \
 
 fruit_data_objects = \
     [FruitItem(**fruit_dict) for fruit_dict in fruit_data_list_of_dicts]
+
 
 class FruitSelectionObserver(Widget):
     fruit_name = StringProperty('')
@@ -358,6 +361,23 @@ class ListAdapterTestCase(unittest.TestCase):
         banana = list_view.get_item_view(2)  # does selection
         self.assertEqual(list_adapter.selection, [apple, avocado, banana])
         self.assertEqual(len(list_adapter.selection), 3)
+
+    def test_list_adapter_selection_mode_multiple_and_limited(self):
+        list_adapter = ListAdapter(data=fruit_data_objects,
+                                   args_converter=self.args_converter,
+                                   selection_mode='multiple',
+                                   selection_limit=3,
+                                   allow_empty_selection=True,
+                                   cls=ListItemButton)
+        list_view = ListView(adapter=list_adapter)
+
+        # Selection should be limited to 3 items, because selection_limit = 3.
+        for i in range(5):
+            # Add item to the selection, doing necessary steps on data first.
+            fruit_data_objects[i].is_selected = True
+            list_view.get_item_view(i)  # does selection
+            self.assertEqual(len(list_adapter.selection),
+                             i + 1 if i < 3 else 3)
 
     def test_list_adapter_selection_handle_selection(self):
         list_adapter = ListAdapter(data=fruit_data_objects,
