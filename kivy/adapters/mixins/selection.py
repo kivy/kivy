@@ -9,12 +9,13 @@ such as :class:`ListView`, and their item views, via the intermediating
 control of :class:`ListAdapter`, or one of its subclasses.
 '''
 
-from kivy.properties import ObjectProperty, ListProperty, BooleanProperty, \
+from kivy.properties import ListProperty, BooleanProperty, \
         OptionProperty, NumericProperty
 from kivy.event import EventDispatcher
 
 
 class SelectableDataItem(object):
+
     def __init__(self, **kwargs):
         super(SelectableDataItem, self).__init__()
         if 'is_selected' in kwargs:
@@ -116,36 +117,36 @@ class SelectionSupport(EventDispatcher):
         '''
         pass
 
-    def handle_selection(self, obj, *args):
-        print 'handle_selection for', obj
-        if obj not in self.selection:
-            print 'obj', obj, 'is not in selection'
+    def handle_selection(self, view, *args):
+        print 'handle_selection for', view
+        if view not in self.selection:
+            print 'view', view, 'is not in selection'
             if self.selection_mode in ['none', 'single'] and \
                     len(self.selection) > 0:
-                for selected_obj in self.selection:
-                    self.deselect_object(selected_obj)
+                for selected_view in self.selection:
+                    self.deselect_item_view(selected_view)
             if self.selection_mode != 'none':
                 if self.selection_mode == 'multiple':
-                    if self.allow_empty_selection == True:
+                    if self.allow_empty_selection:
                         if self.selection_limit > 0:
                             if len(self.selection) < self.selection_limit:
-                                print 'selecting', obj
-                                self.select_object(obj)
+                                print 'selecting', view
+                                self.select_item_view(view)
                     else:
-                        print 'selecting', obj
-                        self.select_object(obj)
+                        print 'selecting', view
+                        self.select_item_view(view)
                 else:
-                    print 'selecting', obj
-                    self.select_object(obj)
+                    print 'selecting', view
+                    self.select_item_view(view)
         else:
             if self.selection_mode == 'none':
-                for selected_obj in self.selection:
-                    self.deselect_object(selected_obj)
+                for selected_view in self.selection:
+                    self.deselect_item_view(selected_view)
             else:
-                self.deselect_object(obj)
+                self.deselect_item_view(view)
                 # If the deselection makes selection empty, the following call
                 # will check allows_empty_selection, and if False, will
-                # select the first item. If obj happens to be the first item,
+                # select the first item. If view happens to be the first item,
                 # this will be a reselection, and the user will notice no
                 # change, except perhaps a flicker.
                 #
@@ -163,91 +164,88 @@ class SelectionSupport(EventDispatcher):
         self.set_data_item_selection(item, False)
 
     def set_data_item_selection(self, item, value):
-        #print 'set_data_item_selection', item, type(item)
         if issubclass(item.__class__, SelectableDataItem):
-            #print 'ListAdapter set_data_item_selection', item, type(item), value
             item.is_selected = value
         elif type(item) is dict:
-            #print 'DictAdapter, dict set_data_item_selection', item, value
             item['is_selected'] = value
         elif hasattr(item, 'is_selected'):
             item.is_selected = value
         else:
             raise Exception('Selection: data item is not selectable')
 
-    def select_object(self, obj):
-        obj.select()
-        obj.is_selected = True
-        print 'selected', obj, obj.is_selected
-        self.selection.append(obj)
-        self.selected_indices.append(obj.index)
+    def select_item_view(self, view):
+        view.select()
+        view.is_selected = True
+        print 'selected', view, view.is_selected
+        self.selection.append(view)
+        self.selected_indices.append(view.index)
 
         # [TODO] sibling selection for composite items
         #        Needed? Or handled from parent?
         #        (avoid circular, redundant selection)
-        #if hasattr(obj, 'parent') and hasattr(obj.parent, 'children'):
-            #siblings = [child for child in obj.parent.children if child != obj]
-            #for sibling in siblings:
-                #if hasattr(sibling, 'select'):
-                    #sibling.select()
+        #if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
+         #siblings = [child for child in view.parent.children if child != view]
+         #for sibling in siblings:
+             #if hasattr(sibling, 'select'):
+                 #sibling.select()
 
         # child selection
-        for child in obj.children:
+        for child in view.children:
             if hasattr(child, 'select'):
                 child.select()
 
-        data_item = self.get_item(obj.index)
+        data_item = self.get_item(view.index)
         self.select_data_item(data_item)
 
-    def select_list(self, obj_list, extend):
-        '''The select call is made for the items in the provided obj_list.
+    def select_list(self, view_list, extend):
+        '''The select call is made for the items in the provided view_list.
 
         Arguments:
 
-            obj_list: the list of objects to become the new selection, or to
+            view_list: the list of objects to become the new selection, or to
             add to the existing selection
 
             extend: boolean for whether or not to extend the existing list
         '''
 
         # Select all the objects.
-        for obj in obj_list:
-            self.select_object(obj)
+        for view in view_list:
+            self.select_item_view(view)
 
         # Extend or set selection.
         if extend:
-            self.selection.extend(obj_list)
+            self.selection.extend(view_list)
         else:
-            self.selection = obj_list
+            self.selection = view_list
 
         self.dispatch('on_selection_change')
 
-    def deselect_object(self, obj):
-        obj.deselect()
-        obj.is_selected = False
-        self.selection.remove(obj)
-        self.selected_indices.remove(obj.index)
+    def deselect_item_view(self, view):
+        view.deselect()
+        view.is_selected = False
+        self.selection.remove(view)
+        self.selected_indices.remove(view.index)
 
         # [TODO] sibling deselection for composite items
         #        Needed? Or handled from parent?
         #        (avoid circular, redundant selection)
-        #if hasattr(obj, 'parent') and hasattr(obj.parent, 'children'):
-            #siblings = [child for child in obj.parent.children if child != obj]
-            #for sibling in siblings:
-                #if hasattr(sibling, 'deselect'):
-                    #sibling.deselect()
+        #if hasattr(view, 'parent') and hasattr(view.parent, 'children'):
+         #siblings = [child for child in view.parent.children if child != view]
+         #for sibling in siblings:
+             #if hasattr(sibling, 'deselect'):
+                 #sibling.deselect()
 
         # child deselection
-        for child in obj.children:
+        for child in view.children:
             if hasattr(child, 'deselect'):
                 child.deselect()
 
-        item = self.get_item(obj.index)
+        item = self.get_item(view.index)
         self.deselect_data_item(item)
 
     def deselect_list(self, l):
-        for obj in l:
-            self.deselect_object(obj)
+        for view in l:
+            self.deselect_item_view(view)
         self.dispatch('on_selection_change')
 
     def initialize_selection(self, *args):
