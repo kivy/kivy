@@ -40,6 +40,7 @@ from kivy.lang import Builder
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.mixins.selection import SelectionSupport
 
+
 class DictAdapter(SelectionSupport, Adapter):
 
     owning_view = ObjectProperty(None)
@@ -90,15 +91,14 @@ class DictAdapter(SelectionSupport, Adapter):
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        self.bind(sorted_keys=self.initialize_selection,
-                  data=self.initialize_data,
+        self.bind(data=self.initialize_data,
                   selection=self.update_selected_keys)
 
     def bind_primary_key_to_func(self, func):
         self.bind(sorted_keys=func)
 
     def sort_keys(self):
-        self.sorted_keys = sorted(self.data.keys())
+        self.sorted_keys = sorted(self.sorted_keys)
 
     def initialize_data(self, *args):
         self.sort_keys()
