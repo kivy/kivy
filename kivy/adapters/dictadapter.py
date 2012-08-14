@@ -101,7 +101,7 @@ class DictAdapter(SelectionSupport, Adapter):
         self.sorted_keys = sorted(self.sorted_keys)
 
     def initialize_data(self, *args):
-        self.sort_keys()
+        self.sorted_keys = sorted(self.data.keys())
         self.initialize_selection()
 
     def update_selected_keys(self, *args):
