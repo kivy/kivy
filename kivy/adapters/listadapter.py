@@ -135,6 +135,8 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
         #
         # [TODO] Only tested boolean is_selected.
         #
+        # [TODO] Wouldn't use of getattr help a lot here?
+        #
         if issubclass(item.__class__, SelectableDataItem):
             if item.is_selected:
                 self.handle_selection(instance)

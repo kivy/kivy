@@ -201,10 +201,10 @@ def reset_to_defaults(db_dict):
     for key in db_dict:
         db_dict[key]['is_selected'] = False
 
-category_data_objects = \
+category_data_items = \
     [CategoryItem(**fruit_categories[c]) for c in sorted(fruit_categories)]
 
-fruit_data_objects = \
+fruit_data_items = \
     [FruitItem(**fruit_dict) for fruit_dict in fruit_data_list_of_dicts]
 
 
@@ -218,7 +218,7 @@ class AdaptersTestCase(unittest.TestCase):
         reset_to_defaults(fruit_data)
 
     def test_list_adapter_selection_mode_none(self):
-        list_adapter = ListAdapter(data=fruit_data_objects,
+        list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='none',
                                    allow_empty_selection=True,

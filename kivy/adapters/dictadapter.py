@@ -51,8 +51,8 @@ class DictAdapter(SelectionSupport, Adapter):
     '''
 
     sorted_keys = ListProperty([])
-    '''The sorted_keys list property contains a list of objects (can be
-    strings) that will be used directly if no args_converter function is
+    '''The sorted_keys list property contains a list of hashable objects (can
+    be strings) that will be used directly if no args_converter function is
     provided. If there is an args_converter, the record received from a
     lookup in the data, using key from sorted_keys, will be passed
     to it, for instantiation of key view class (cls) instances from the
@@ -70,10 +70,10 @@ class DictAdapter(SelectionSupport, Adapter):
 
     selected_keys = ListProperty([])
     '''The selected_keys list of keys mirrors the selection list of selected
-    objects. This is useful for binding the selection for a dict adaptor to
-    another dict adaptor, or to some observer needing the keys, and not the
-    objects selected. The selection list is bound to update_selected_keys(),
-    the method that updates selected_keys.
+    view instances. This is useful for binding the selection for a dict
+    adaptor to another dict adaptor, or to some observer needing the keys, and
+    not the view instances selected. The selection list is bound to
+    update_selected_keys(), the method that updates selected_keys.
 
     [TODO] Evaluate for usefulness.
     '''
@@ -104,6 +104,11 @@ class DictAdapter(SelectionSupport, Adapter):
         self.sorted_keys = sorted(self.data.keys())
         self.initialize_selection()
 
+    # [TODO] This update happens after selection has changed and the
+    #        on_selection_change event has fired, so there will be a
+    #        lag. Can selected_indices be used instead of this for
+    #        known uses?
+    #
     def update_selected_keys(self, *args):
         if len(self.selection) > 0 and len(self.selected_indices) > 0:
             self.selected_keys = \

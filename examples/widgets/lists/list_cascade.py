@@ -35,7 +35,7 @@ class FruitsListAdapter(ListAdapter):
         # so we look up items by name.
         #
         self.data = \
-            [f for f in fruit_data_objects if f.name in category['fruits']]
+            [f for f in fruit_data_items if f.name in category['fruits']]
 
         # Also, see the examples that use dict records.
 
@@ -71,11 +71,11 @@ class FruitItem(SelectableDataItem):
 # classes defined above.
 
 # fruit_categories is a dict of dicts.
-category_data_objects = \
+category_data_items = \
     [CategoryItem(**fruit_categories[c]) for c in sorted(fruit_categories)]
 
 # fruit_data_list_of_dicts is a list of dicts, already sorted.
-fruit_data_objects = \
+fruit_data_items = \
     [FruitItem(**fruit_dict) for fruit_dict in fruit_data_list_of_dicts]
 
 # We end up with two normal lists of objects, to be used for two list views
@@ -109,7 +109,7 @@ class CascadingView(GridLayout):
         # using the provided cls, ListItemButton.
         #
         fruit_categories_list_adapter = \
-            ListAdapter(data=category_data_objects,
+            ListAdapter(data=category_data_items,
                         args_converter=list_item_args_converter,
                         selection_mode='single',
                         allow_empty_selection=False,
@@ -130,11 +130,11 @@ class CascadingView(GridLayout):
         first_category_fruits = \
             fruit_categories[fruit_categories.keys()[0]]['fruits']
 
-        first_category_fruit_data_objects = \
-            [f for f in fruit_data_objects if f.name in first_category_fruits]
+        first_category_fruit_data_items = \
+            [f for f in fruit_data_items if f.name in first_category_fruits]
 
         fruits_list_adapter = \
-                FruitsListAdapter(data=first_category_fruit_data_objects,
+                FruitsListAdapter(data=first_category_fruit_data_items,
                                   args_converter=list_item_args_converter,
                                   selection_mode='single',
                                   allow_empty_selection=False,

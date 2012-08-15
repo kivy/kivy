@@ -217,10 +217,10 @@ def reset_to_defaults(data):
         for obj in data:
             obj.is_selected = False
 
-category_data_objects = \
+category_data_items = \
     [CategoryItem(**fruit_categories[c]) for c in sorted(fruit_categories)]
 
-fruit_data_objects = \
+fruit_data_items = \
     [FruitItem(**fruit_dict) for fruit_dict in fruit_data_list_of_dicts]
 
 
@@ -242,13 +242,13 @@ class ListAdapterTestCase(unittest.TestCase):
                                     'size_hint_y': None,
                                     'height': 25}
 
-        reset_to_defaults(category_data_objects)
-        reset_to_defaults(fruit_data_objects)
+        reset_to_defaults(category_data_items)
+        reset_to_defaults(fruit_data_items)
         reset_to_defaults(fruit_categories)
         reset_to_defaults(fruit_data)
 
     def test_list_adapter_selection_mode_none(self):
-        list_adapter = ListAdapter(data=fruit_data_objects,
+        list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='none',
                                    allow_empty_selection=True,
@@ -268,7 +268,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 0)
 
     def test_list_adapter_selection_mode_single(self):
-        list_adapter = ListAdapter(data=fruit_data_objects,
+        list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=True,
@@ -291,15 +291,15 @@ class ListAdapterTestCase(unittest.TestCase):
         # list_adapter.get_item_view(0), which does a selection if the
         # associated data item is selected. So, first we need to select the
         # associated data item.
-        self.assertEqual(fruit_data_objects[0].name, 'Apple')
-        fruit_data_objects[0].is_selected = True
+        self.assertEqual(fruit_data_items[0].name, 'Apple')
+        fruit_data_items[0].is_selected = True
         apple = list_view.get_item_view(0)
         self.assertEqual(apple.text, 'Apple')
         self.assertTrue(apple.is_selected)
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_single_auto_selection(self):
-        list_adapter = ListAdapter(data=fruit_data_objects,
+        list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
@@ -319,7 +319,7 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 1)
 
     def test_list_adapter_selection_mode_multiple_auto_selection(self):
-        list_adapter = ListAdapter(data=fruit_data_objects,
+        list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='multiple',
                                    allow_empty_selection=False,
@@ -335,8 +335,8 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(apple.text, 'Apple')
 
         # Add Avocado to the selection, doing necessary steps on data first.
-        self.assertEqual(fruit_data_objects[1].name, 'Avocado')
-        fruit_data_objects[1].is_selected = True
+        self.assertEqual(fruit_data_items[1].name, 'Avocado')
+        fruit_data_items[1].is_selected = True
         avocado = list_view.get_item_view(1)  # does selection
         self.assertEqual(avocado.text, 'Avocado')
         self.assertEqual(len(list_adapter.selection), 2)
@@ -356,14 +356,14 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(list_adapter.selection, [apple, avocado])
 
         # And select some different ones.
-        self.assertEqual(fruit_data_objects[2].name, 'Banana')
-        fruit_data_objects[2].is_selected = True
+        self.assertEqual(fruit_data_items[2].name, 'Banana')
+        fruit_data_items[2].is_selected = True
         banana = list_view.get_item_view(2)  # does selection
         self.assertEqual(list_adapter.selection, [apple, avocado, banana])
         self.assertEqual(len(list_adapter.selection), 3)
 
     def test_list_adapter_selection_mode_multiple_and_limited(self):
-        list_adapter = ListAdapter(data=fruit_data_objects,
+        list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='multiple',
                                    selection_limit=3,
@@ -374,13 +374,13 @@ class ListAdapterTestCase(unittest.TestCase):
         # Selection should be limited to 3 items, because selection_limit = 3.
         for i in range(5):
             # Add item to the selection, doing necessary steps on data first.
-            fruit_data_objects[i].is_selected = True
+            fruit_data_items[i].is_selected = True
             list_view.get_item_view(i)  # does selection
             self.assertEqual(len(list_adapter.selection),
                              i + 1 if i < 3 else 3)
 
     def test_list_adapter_selection_handle_selection(self):
-        list_adapter = ListAdapter(data=fruit_data_objects,
+        list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
                                    allow_empty_selection=False,
@@ -405,8 +405,8 @@ class ListAdapterTestCase(unittest.TestCase):
 
         # Go throught the tests routine to trigger selection of banana.
         # (See notes above about triggering selection in tests.)
-        self.assertEqual(fruit_data_objects[2].name, 'Banana')
-        fruit_data_objects[2].is_selected = True
+        self.assertEqual(fruit_data_items[2].name, 'Banana')
+        fruit_data_items[2].is_selected = True
         banana = list_view.get_item_view(2)  # does selection
         self.assertTrue(banana.is_selected)
 

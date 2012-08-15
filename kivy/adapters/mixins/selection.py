@@ -202,13 +202,13 @@ class SelectionSupport(EventDispatcher):
 
         Arguments:
 
-            view_list: the list of objects to become the new selection, or to
-            add to the existing selection
+            view_list: the list of item views to become the new selection, or
+            to add to the existing selection
 
             extend: boolean for whether or not to extend the existing list
         '''
 
-        # Select all the objects.
+        # Select all the item views.
         for view in view_list:
             self.select_item_view(view)
 

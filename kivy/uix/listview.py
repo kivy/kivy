@@ -136,12 +136,13 @@ For many uses of a list selection functionality is needed. It is built in to
 See the :class:`ListAdapter` docs for details, but here we have synopses of
 its arguments:
 
-    - data: a list of objects (Python class instance) or dicts that must have
+    - data: a list of Python class instances or dicts that must have
             a text property and an is_selected property. The text property
             needs to be programmed into your list data items, whether they are
-            objects or dicts, but for working with objects as data items, the
-            is_selected property is provided by :class:`SelectableDataItem`,
-            which is intended to be used as a mixin:
+            class instances or dicts. For working with classes as data items,
+            the is_selected property is provided by
+            :class:`SelectableDataItem`, which is intended to be used as a
+            mixin:
 
                 MyCustomDataItem(SelectableDataItem):
                     def __init__(self, **kwargs):
@@ -208,10 +209,10 @@ except for two things:
     1) There is an additional argument, sorted_keys, which must meet the
        requirements of normal python dictionary keys.
 
-    2) The data argument is not a list of objects, it is, as you would expect,
-       a dict. Keys in the dict must correspond to the keys in the sorted_keys
-       argument. Values may be objects or dicts too -- these are are just like
-       the items of the data argument, described above for
+    2) The data argument is not a list of class instances, it is, as you would
+       expect, a dict. Keys in the dict must correspond to the keys in the
+       sorted_keys argument. Values may be class instances or dicts -- these
+       are the same as the items of the data argument, described above for
        :class:`ListAdapter`.
 
 Using an Args Converter
