@@ -150,14 +150,13 @@ class LoaderBase(object):
         proto = filename.split(':', 1)[0]
         if proto == 'smb':
             try:
-                # note: it's important to load SMBHandler for every time
+                # note: it's important to load SMBHandler every time
                 # otherwise the data is occasionaly not loaded
                 from smb.SMBHandler import SMBHandler
             except ImportError:
                 Logger.warning(
                     'Loader: can not load PySMB: make sure it is installed')
                 return
-            self._smb_initialized = True
         import tempfile
         data = None
         try:
@@ -167,7 +166,7 @@ class LoaderBase(object):
                     prefix='kivyloader', suffix=suffix)
 
             if proto == 'smb':
-                # read from network
+                # read from samba shares
                 fd = urllib2.build_opener(SMBHandler).open(filename)
             else:
                 # read from internet
