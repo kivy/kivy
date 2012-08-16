@@ -63,7 +63,8 @@ release = kivy.__version__
 today_fmt = '%B %d, %Y'
 
 # suppress exclusion warnings
-exclude_patterns = ['gettingstarted/*', 'guide/layouts.rst']
+exclude_patterns = ['gettingstarted/*', 'guide/layouts.rst', 'api-index.rst',
+        'api-kivy.lib.osc*']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
