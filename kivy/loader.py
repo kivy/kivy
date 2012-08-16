@@ -150,10 +150,14 @@ class LoaderBase(object):
         proto = filename.split(':', 1)[0]
         if proto == 'smb':
             try:
+                # note: it's important to load SMBHandler for every time
+                # otherwise the data is occasionaly not loaded
                 from smb.SMBHandler import SMBHandler
             except ImportError:
-                Logger.Info('Loader: PySMB not installed')
+                Logger.warning(
+                    'Loader: can not load PySMB: make sure it is installed')
                 return
+            self._smb_initialized = True
         import tempfile
         data = None
         try:
