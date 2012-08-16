@@ -33,12 +33,16 @@ function gs_check_hash() {
 	if ( location.hash.substring(0, 5) == '#doc-' ) {
 		gs_show_section(location.hash.substring(5), 1);
 	} else {
-		console.log($(location.hash).parent('.panelstep'));
-		var id = $(location.hash).parent('.panelstep').attr('id');
-		if ( typeof(id) != 'undefined' )
-			gs_show_section(id, 0);
-		else
-			gs_show_section(sections_key[0], 1);
+		var search = $('div.panelstep' + location.hash);
+		if ( search && location.hash ) {
+			gs_show_section(location.hash.substring(1));
+		} else {
+			var id = $(location.hash).parent('.panelstep').attr('id');
+			if ( typeof(id) != 'undefined' )
+				gs_show_section(id, 0);
+			else
+				gs_show_section(sections_key[0], 1);
+		}
 	}
 	setTimeout('gs_check_hash()', 250);
 }
@@ -55,11 +59,11 @@ function gs_show_section(gsid, changehash) {
 				$(sections[key][0]).show('slide', {direction: 'right'}, 150);
 			sections[key][1].attr({'font-weight': 'bold'});
 			sections[key][2].animate({'stroke-width': '8', 'fill': '#f80'}, 300);
-			console.log($(sections[key][0]).height());
 			$('#content').css('min-height', function(){
 				return $(sections[key][0]).height() + 180;
 			});
-			console.log($(sections[key][0]).height());
+			$('a.current').removeClass('current');
+			$('a[href="#' + gsid + '"]').addClass('current');
 		}
 		else if ( key == prev_gsid )
 		{
@@ -96,7 +100,6 @@ function gs_start(firstsection) {
 
 	jQuery(document).bind('keydown', function (evt){
 		var nid = '';
-		console.log(prev_gsid);
 		if ( event.which == 37 ) {
 			nid = $('div.panelstep[id="' + prev_gsid + '"]').prev().attr('id');
 		}
@@ -246,7 +249,6 @@ $(document).ready(function () {
 			$(this).html('Hide Descriptions &uArr;');
 			$.cookie('kivy.toggledesc', 'false');
 		}
-		console.log($.cookie('kivy.toggledesc'));
 	});
 
 	$('div.body dl dt').click(function() {

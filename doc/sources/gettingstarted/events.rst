@@ -7,8 +7,7 @@ Events
 Kivy is mostly event-based, that's mean the flow of the program is determined
 by events.
 
-Clock events
-~~~~~~~~~~~~
+**Clock events**
 
 .. image:: ../images/gs-events-clock.png
     :class: gs-eleft
@@ -21,8 +20,7 @@ You can also create Triggered events with
 :meth:`~kivy.clock.ClockBase.create_trigger`, multiple call to a trigger will
 schedule a function call only once.
 
-Input events
-~~~~~~~~~~~~
+**Input events**
 
 .. image:: ../images/gs-events-input.png
     :class: gs-eleft
@@ -37,8 +35,7 @@ All the mouses click, touchs, scroll wheel are part of the
 
 For an in-depth explaination, have a look at :doc:`/api-kivy.input`.
 
-Class events
-~~~~~~~~~~~~
+**Class events**
 
 .. image:: ../images/gs-events-class.png
     :class: gs-eleft
@@ -51,9 +48,6 @@ its position or size, an event is fired.
 In addition, you have the possibility to create your own event using
 :meth:`~kivy.event.EventDispatcher.register_event_type`, as the
 `on_press`/`on_release` in :class:`~kivy.uix.button.Button`.
-
-Going further
-~~~~~~~~~~~~~
 
 Another thing to note is that if you override an event, you become responsible
 for implementing all its behaviour previously handled by the base class. The

@@ -10,6 +10,7 @@ stunning applications in short time using the framework.
 .. toctree::
     :maxdepth: 2
 
+    gettingstarted/index
     philosophy
     installation/installation
     guide-index
