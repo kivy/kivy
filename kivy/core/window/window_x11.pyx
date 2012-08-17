@@ -144,15 +144,16 @@ class WindowX11(WindowBase):
 
         fullscreen = False
         border = True
-        size = self.system_size
+        size = list(self.system_size)
         if self.fullscreen == 'fake':
+            fullscreen = True
             Logger.debug('WinX11: Set window to fake fullscreen mode')
             border = False
-            if self._pos is None:
-                pos = (0, 0)
+            pos = (0, 0)
 
         elif self.fullscreen == 'auto':
-            size = -1, -1
+            size = [-1, -1]
+            fullscreen = True
 
         elif self.fullscreen is True:
             Logger.debug('WinX11: Set window to fullscreen mode')
@@ -165,6 +166,7 @@ class WindowX11(WindowBase):
 
         size[0] = x11_get_width()
         size[1] = x11_get_height()
+        print size
 
         self._pos = (0, 0)
         self.system_size = size
