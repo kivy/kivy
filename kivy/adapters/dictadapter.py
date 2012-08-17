@@ -37,18 +37,11 @@ If you wish to have a bare-bones list adapter, without selection, use
 from kivy.properties import ListProperty, ObjectProperty, StringProperty, \
         DictProperty
 from kivy.lang import Builder
-from kivy.adapters.adapter import Adapter
+from kivy.adapters.collectionadapter import CollectionAdapter
 from kivy.adapters.mixins.selection import SelectionSupport
 
 
-class DictAdapter(SelectionSupport, Adapter):
-
-    owning_view = ObjectProperty(None)
-    '''Management of selection requires manipulation of key view instances,
-    which are created here, but cached in the owning_view, such as a
-    :class:`ListView` instance. In some operations at the adapter level,
-    access is needed to the views.
-    '''
+class DictAdapter(SelectionSupport, CollectionAdapter):
 
     sorted_keys = ListProperty([])
     '''The sorted_keys list property contains a list of hashable objects (can
@@ -59,29 +52,12 @@ class DictAdapter(SelectionSupport, Adapter):
     sorted_keys.
     '''
 
-    sort_on = StringProperty('')
-    '''The sort_on string is the name of the property in the record to use for
-    sorting records. This is used to maintain the sorted_keys list.
-    '''
-
     data = DictProperty(None)
-    '''A dict object indexes records by a key in sorted_keys.
-    '''
-
-    selected_keys = ListProperty([])
-    '''The selected_keys list of keys mirrors the selection list of selected
-    view instances. This is useful for binding the selection for a dict
-    adaptor to another dict adaptor, or to some observer needing the keys, and
-    not the view instances selected. The selection list is bound to
-    update_selected_keys(), the method that updates selected_keys.
-
-    [TODO] Evaluate for usefulness.
+    '''A dict that indexes records by keys that are equivalent in content
+    to the keys in sorted_keys.
     '''
 
     def __init__(self, **kwargs):
-        #if 'sort_on' not in kwargs:
-            #raise Exception('data adapter: input must include sort_on')
-        # sorted_keys can be passed in, but needs checking:
         if 'sorted_keys' in kwargs:
             if type(kwargs['sorted_keys']) not in (tuple, list):
                 msg = 'DictAdapter: sorted_keys must be tuple or list'
@@ -91,8 +67,8 @@ class DictAdapter(SelectionSupport, Adapter):
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        self.bind(data=self.initialize_data,
-                  selection=self.update_selected_keys)
+        self.bind(sorted_keys=self.initialize_sorted_keys,
+                  data=self.initialize_data)
 
     def bind_primary_key_to_func(self, func):
         self.bind(sorted_keys=func)
@@ -100,26 +76,19 @@ class DictAdapter(SelectionSupport, Adapter):
     def sort_keys(self):
         self.sorted_keys = sorted(self.sorted_keys)
 
+    def initialize_sorted_keys(self, *args):
+        self.initialize_selection()
+
     def initialize_data(self, *args):
         self.sorted_keys = sorted(self.data.keys())
         self.initialize_selection()
-
-    # [TODO] This update happens after selection has changed and the
-    #        on_selection_change event has fired, so there will be a
-    #        lag. Can selected_indices be used instead of this for
-    #        known uses?
-    #
-    def update_selected_keys(self, *args):
-        if len(self.selection) > 0 and len(self.selected_indices) > 0:
-            self.selected_keys = \
-                [self.sorted_keys[i] for i in self.selected_indices]
-        else:
-            self.selected_keys = []
 
     def get_count(self):
         return len(self.sorted_keys)
 
     def get_item(self, index):
+        #print 'DictAdapter, get_item', index
+        #print 'DictAdapter, get_item, sorted_keys', self.sorted_keys
         if index < 0 or index >= len(self.sorted_keys):
             return None
         return self.data[self.sorted_keys[index]]
@@ -138,12 +107,12 @@ class DictAdapter(SelectionSupport, Adapter):
         item_args['index'] = index
 
         if self.cls:
-            print 'CREATE VIEW FOR', index
+            #print 'CREATE VIEW FOR', index
             instance = self.cls(**item_args)
         else:
-            print 'TEMPLATE item_args', item_args
+            #print 'TEMPLATE item_args', item_args
             instance = Builder.template(self.template, **item_args)
-            print 'TEMPLATE instance.index', instance.index
+            #print 'TEMPLATE instance.index', instance.index
 
         if item['is_selected']:
             self.handle_selection(instance)
@@ -165,8 +134,39 @@ class DictAdapter(SelectionSupport, Adapter):
                 # Select the first key if we have it.
                 v = self.owning_view.get_item_view(0)
                 if v is not None:
-                    print 'selecting first list item view', v, v.is_selected
+                    #print 'selecting first list item view', v, v.is_selected
                     self.handle_selection(v)
 
     def touch_selection(self, *args):
         self.dispatch('on_selection_change')
+
+    # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
+    #        scroll_to_sel_middle.
+
+    def trim_left_of_sel(self, *args):
+        if len(self.selection) > 0:
+            selected_keys = [sel.text for sel in self.selection]
+            first_sel_index = self.sorted_keys.index(selected_keys[0])
+            desired_keys = self.sorted_keys[first_sel_index:]
+            self.data = {key: self.data[key] for key in desired_keys}
+
+    def trim_right_of_sel(self, *args):
+        if len(self.selection) > 0:
+            selected_keys = [sel.text for sel in self.selection]
+            last_sel_index = self.sorted_keys.index(selected_keys[-1])
+            desired_keys = self.sorted_keys[:last_sel_index+1]
+            self.data = {key: self.data[key] for key in desired_keys}
+
+    def trim_to_sel(self, *args):
+        if len(self.selection) > 0:
+            selected_keys = [sel.text for sel in self.selection]
+            first_sel_index = self.sorted_keys.index(selected_keys[0])
+            last_sel_index = self.sorted_keys.index(selected_keys[-1])
+            desired_keys = self.sorted_keys[first_sel_index:last_sel_index+1]
+            self.data = {key: self.data[key] for key in desired_keys}
+
+    def cut_to_sel(self, *args):
+        if len(self.selection) > 0:
+            selected_keys = [sel.text for sel in self.selection]
+            self.data = {key: self.data[key] for key in selected_keys}
+

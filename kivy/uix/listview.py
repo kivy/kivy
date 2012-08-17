@@ -305,6 +305,7 @@ These include:
 
 __all__ = ('ListView', )
 
+from kivy.event import EventDispatcher
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
@@ -314,7 +315,7 @@ from kivy.adapters.listadapter import SimpleListAdapter
 from kivy.adapters.mixins.selection import SelectableView
 from kivy.uix.abstractview import AbstractView
 from kivy.properties import ObjectProperty, DictProperty, \
-        NumericProperty, ListProperty
+        NumericProperty, ListProperty, BooleanProperty
 from kivy.lang import Builder
 from math import ceil, floor
 
@@ -447,7 +448,7 @@ Builder.load_string('''
 ''')
 
 
-class ListView(AbstractView):
+class ListView(AbstractView, EventDispatcher):
 
     divider = ObjectProperty(None)
     '''[TODO] Not used.
@@ -477,6 +478,13 @@ class ListView(AbstractView):
     a no-selection list.
     '''
 
+    scrolling = BooleanProperty(False)
+    '''If the scroll_to() method is called while scrolling operations are
+    happening, a call recursion error can occur. scroll_to() checks to see that
+    scrolling is False before calling populate(). scroll_to() dispatches a
+    scrolling_complete event, which sets scrolling back to False.
+    '''
+    
     _index = NumericProperty(0)
     _sizes = DictProperty({})
     _count = NumericProperty(0)
@@ -509,6 +517,8 @@ class ListView(AbstractView):
         self.bind(size=self._trigger_populate,
                   pos=self._trigger_populate,
                   adapter=self._trigger_populate)
+
+        self.register_event_type('on_scroll_complete')
 
         # The adapter does not necessarily use the data property for its
         # primary key, so we let it set up the binding. This is associated
@@ -583,6 +593,7 @@ class ListView(AbstractView):
             # now fill with real item_view
             index = istart
             while index <= iend:
+                print '----- ListView get_item_view, iend, index', iend, index
                 item_view = self.get_item_view(index)
                 index += 1
                 if item_view is None:
@@ -595,6 +606,7 @@ class ListView(AbstractView):
             index = self._index
             count = 0
             while available_height > 0:
+                print '----- ListView get_item_view, index', index
                 item_view = self.get_item_view(index)
                 if item_view is None:
                     break
@@ -614,3 +626,13 @@ class ListView(AbstractView):
                     real_height / count * self.adapter.get_count()
                 if self.row_height is None:
                     self.row_height = real_height / count
+
+    def scroll_to(self, index=0):
+        if not self.scrolling:
+            self.scrolling = True
+            self._index = index
+            self.populate()
+            self.dispatch('on_scroll_complete')
+
+    def on_scroll_complete(self, *args):
+        self.scrolling = False

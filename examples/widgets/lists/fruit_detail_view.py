@@ -50,6 +50,7 @@ class FruitObserverDetailView(GridLayout):
     def __init__(self, **kwargs):
         kwargs['cols'] = 2
         super(FruitObserverDetailView, self).__init__(**kwargs)
+        self.bind(fruit_name=self.redraw)
 
     def redraw(self, *args):
         self.clear_widgets()

@@ -11,22 +11,18 @@ no user interaction.
 :class:`ListAdapter` is has broader application, because it adds selection.
 Its data items cannot be simple strings; they must be objects conforming to
 the model of selection, handling is_selected.
-
-[TODO] Need to distinguish between SelectableView, which pertains to views,
-       probably renaming it to SelectableView, and the need for data items
-       to conform -- perhaps a SelectableDataItem class?
 '''
 
 from kivy.properties import ListProperty, DictProperty, ObjectProperty
 from kivy.lang import Builder
-from kivy.adapters.adapter import Adapter
+from kivy.adapters.collectionadapter import CollectionAdapter
 from kivy.adapters.mixins.selection import SelectionSupport, \
         SelectableDataItem
 
 from inspect import isfunction, ismethod
 
 
-class SimpleListAdapter(Adapter):
+class SimpleListAdapter(CollectionAdapter):
     ''':class:`SimpleListAdapter` is an adapter around a simple Python list.
 
     From :class:`Adapter`, :class:`SimpleListAdapter` gets these properties:
@@ -83,13 +79,6 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
     :class:`ListAdapter`, by adding selection, has the requirement that data
     items be instances of a subclass of :class:`SelectableView` (Do not use
     simple strings as data items).
-    '''
-
-    owning_view = ObjectProperty(None)
-    '''Management of selection requires manipulation of item view instances,
-    which are created here, but cached in the owning_view, such as a
-    :class:`ListView` instance. In some operations at the adapter level,
-    access is needed to the views.
     '''
 
     def __init__(self, **kwargs):
@@ -176,3 +165,18 @@ class ListAdapter(SelectionSupport, SimpleListAdapter):
 
     def touch_selection(self, *args):
         self.dispatch('on_selection_change')
+
+    # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
+    #        scroll_to_sel_middle.
+
+    def trim_left_of_sel(self, *args):
+        pass
+
+    def trim_right_of_sel(self, *args):
+        pass
+
+    def trim_to_sel(self, *args):
+        pass
+
+    def cut_to_sel(self, *args):
+        pass

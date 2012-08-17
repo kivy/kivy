@@ -51,7 +51,7 @@ class CascadingView(GridLayout):
                     cls=ListItemButton)
         fruit_categories_list_view = \
                 ListView(adapter=fruit_categories_dict_adapter,
-                        size_hint=(.2, 1.0))
+                         size_hint=(.2, 1.0))
         self.add_widget(fruit_categories_list_view)
 
         fruits_dict_adapter = \

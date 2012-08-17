@@ -13,8 +13,8 @@ class ReceivingFruitsDictAdapter(DictAdapter):
             return
 
         data = {}
-        for key in fruits_dict_adapter.selected_keys:
-            data[key] = fruits_dict_adapter.data[key]
+        for sel in fruits_dict_adapter.selection:
+            data[sel.text] = fruits_dict_adapter.data[sel.text]
         self.data = data
 
 

@@ -66,11 +66,6 @@ class SelectionSupport(EventDispatcher):
     '''The selection list property is the container for selected items.
     '''
 
-    selected_indices = ListProperty([])
-    '''The selected_indices property is maintained in parallel with the
-    selection list.
-    '''
-
     selection_mode = OptionProperty('single',
             options=('none', 'single', 'multiple'))
     '''Selection modes:
@@ -118,31 +113,36 @@ class SelectionSupport(EventDispatcher):
         pass
 
     def handle_selection(self, view, *args):
-        print 'handle_selection for', view
+        #print 'handle_selection for', view
         if view not in self.selection:
-            print 'view', view, 'is not in selection'
+            #print '    handle_selection, view is not in selection ->', view
             if self.selection_mode in ['none', 'single'] and \
                     len(self.selection) > 0:
                 for selected_view in self.selection:
+                    #print '        handle_selection: mode is none or single, deselecting in selection'
                     self.deselect_item_view(selected_view)
             if self.selection_mode != 'none':
                 if self.selection_mode == 'multiple':
                     if self.allow_empty_selection:
+                        #print '            handle_selection: selecting, mode is multiple, empty selection allowed ->', view
                         if self.selection_limit > 0:
                             if len(self.selection) < self.selection_limit:
-                                print 'selecting', view
+                                #print '                handle_selection: selecting, within the limit ->', view
                                 self.select_item_view(view)
                     else:
-                        print 'selecting', view
+                        #print '            handle_selection: selecting, mode is multiple, empty selection NOT allowed ->', view
                         self.select_item_view(view)
                 else:
-                    print 'selecting', view
+                    #print '        handle_selection: selecting, mode is not none, is not multiple ->', view
                     self.select_item_view(view)
         else:
+            #print '    handle_selection, view is already in selection ->', view
             if self.selection_mode == 'none':
                 for selected_view in self.selection:
+                    #print '        handle_selection: mode is none, deselecting in selection'
                     self.deselect_item_view(selected_view)
             else:
+                #print '    handle_selection: mode is NOT none, deselecting in selection'
                 self.deselect_item_view(view)
                 # If the deselection makes selection empty, the following call
                 # will check allows_empty_selection, and if False, will
@@ -152,6 +152,7 @@ class SelectionSupport(EventDispatcher):
                 #
                 # [TODO] Is this approach OK?
                 #
+                #print '    handle_selection: checking for empty selection'
                 self.check_for_empty_selection()
 
         print 'selection for', self, 'is now', self.selection
@@ -164,6 +165,7 @@ class SelectionSupport(EventDispatcher):
         self.set_data_item_selection(item, False)
 
     def set_data_item_selection(self, item, value):
+        #print 'set_data_item_selection', item, value
         if issubclass(item.__class__, SelectableDataItem):
             item.is_selected = value
         elif type(item) is dict:
@@ -176,9 +178,8 @@ class SelectionSupport(EventDispatcher):
     def select_item_view(self, view):
         view.select()
         view.is_selected = True
-        print 'selected', view, view.is_selected
+        #print 'selected', view, view.is_selected
         self.selection.append(view)
-        self.selected_indices.append(view.index)
 
         # [TODO] sibling selection for composite items
         #        Needed? Or handled from parent?
@@ -224,7 +225,6 @@ class SelectionSupport(EventDispatcher):
         view.deselect()
         view.is_selected = False
         self.selection.remove(view)
-        self.selected_indices.remove(view.index)
 
         # [TODO] sibling deselection for composite items
         #        Needed? Or handled from parent?
