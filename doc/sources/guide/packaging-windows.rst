@@ -8,11 +8,15 @@ Windows Seven, using the portable package of Kivy.
 The package will be 32 bits, and can be run on both 32/64 bits windows
 platform.
 
+.. _packaging-windows-requirements:
+
 Requirements
 ------------
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
     * PyInstaller 1.5: http://www.pyinstaller.org/#Downloads
+
+.. _Install-configure-PyInstaller:
 
 Install and configure PyInstaller
 ---------------------------------
@@ -23,6 +27,8 @@ Install and configure PyInstaller
 
     cd pyinstaller-1.5
     python Configure.py
+
+.. _Create-the-spec-file:
 
 Create the spec file
 --------------------
@@ -61,6 +67,8 @@ file is named `main.py`
                    )
 
 #. This is done, your spec is ready to be executed !
+
+.. _Build-the-spec:
 
 Build the spec
 --------------
