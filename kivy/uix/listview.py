@@ -210,17 +210,18 @@ except for two things:
        requirements of normal python dictionary keys.
 
     2) The data argument is not a list of class instances, it is, as you would
-       expect, a dict. Keys in the dict must correspond to the keys in the
-       sorted_keys argument. Values may be class instances or dicts -- these
-       are the same as the items of the data argument, described above for
+       expect, a dict. Keys in the dict must include to the keys in the
+       sorted_keys argument, but they more form a superset of the keys in
+       sorted_keys. Values may be class instances or dicts -- these follow the
+       same rules as the items of the data argument, described above for
        :class:`ListAdapter`.
 
 Using an Args Converter
 -----------------------
 
 The Kivy view used for list items can be totally custom, but for an example,
-we can start with a button as a list item view, using :class:`ListItemButton`.
-We need an args_converter function:
+we can start with a button as a list item view, using the class for this
+purpose, :class:`ListItemButton`.  We need an args_converter function:
 
     args_converter = lambda obj: {'text': obj.text,
                                   'size_hint_y': None,
@@ -228,12 +229,15 @@ We need an args_converter function:
 
 args_converter() takes a data item, either as an object (Python class
 instance) or as a dict, and prepares for a call to instantiate the item view
-class for it. The item view class, recall, is instantiated either with a cls
-or with a kv template. In the case of cls, the args converter prepares an
-args dict that is used as cls(**args_converter(data_item)). In the case of a
-template, the args_converter will provide essentially the same thing, but as
-the context for the template, not really an args dict strictly speaking:
-template(**args_converter(data_item). Looks the same, but is not.
+class for it. In the args_converter() function above, the lambda expects
+the list data item to be a class instance, fitting for the reference obj.text.
+
+The item view class, recall, is instantiated either with a cls or with a kv
+template. In the case of cls, the args converter prepares an args dict that is
+used as cls(**args_converter(data_item)). In the case of a template, the
+args_converter will provide essentially the same thing, but as the context for
+the template, not really an args dict strictly speaking:
+template(**args_converter(data_item)). Looks the same, but is not exactly.
 
 Now, to some example code:
 
@@ -258,6 +262,9 @@ This listview will show 100 buttons with 0..100 labels. The listview will only
 allow single selection -- additional touches will be ignored. When the
 listview is first shown, the first item will already be selected, because we
 set allow_empty_selection=False.
+
+The args_converter function used expects a dict (rec), fitting the reference
+to rec['text'].
 
 Selection
 ---------
@@ -296,11 +303,6 @@ There are so many ways that listviews and related functionality can be used,
 that we have only scratched the surface here. For on-disk examples, see:
 
     kivy/examples/widgets/lists/list_*.py
-
-These include:
-
-    - list_cascade.py -- the example described above.
-
 '''
 
 __all__ = ('ListView', )

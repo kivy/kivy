@@ -47,13 +47,12 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
     be strings) that will be used directly if no args_converter function is
     provided. If there is an args_converter, the record received from a
     lookup in the data, using key from sorted_keys, will be passed
-    to it, for instantiation of key view class (cls) instances from the
-    sorted_keys.
+    to it, for instantiation of list item view class instances.
     '''
 
     data = DictProperty(None)
-    '''A dict that indexes records by keys that are equivalent in content
-    to the keys in sorted_keys.
+    '''A dict that indexes records by keys that are equivalent to the keys in
+    sorted_keys, or they are a superset of the keys in sorted_keys.
     '''
 
     def __init__(self, **kwargs):
@@ -86,8 +85,6 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
         return len(self.sorted_keys)
 
     def get_item(self, index):
-        #print 'DictAdapter, get_item', index
-        #print 'DictAdapter, get_item, sorted_keys', self.sorted_keys
         if index < 0 or index >= len(self.sorted_keys):
             return None
         return self.data[self.sorted_keys[index]]
@@ -143,6 +140,9 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
     #        scroll_to_sel_middle.
 
     def trim_left_of_sel(self, *args):
+        '''Cut list items with indices in sorted_keys that are less than the
+        index of the first selected item, if there is selection.
+        '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
             first_sel_index = self.sorted_keys.index(selected_keys[0])
@@ -150,6 +150,9 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
             self.data = {key: self.data[key] for key in desired_keys}
 
     def trim_right_of_sel(self, *args):
+        '''Cut list items with indices in sorted_keys that are greater than
+        the index of the last selected item, if there is selection.
+        '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
             last_sel_index = self.sorted_keys.index(selected_keys[-1])
@@ -157,6 +160,11 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
             self.data = {key: self.data[key] for key in desired_keys}
 
     def trim_to_sel(self, *args):
+        '''Cut list items with indices in sorted_keys that are les than or
+        greater than the index of the last selected item, if there is
+        selection. This preserves intervening list items within the selected
+        range.
+        '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
             first_sel_index = self.sorted_keys.index(selected_keys[0])
@@ -165,6 +173,9 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
             self.data = {key: self.data[key] for key in desired_keys}
 
     def cut_to_sel(self, *args):
+        '''Same as trim_to_sel, but intervening list items within the selected
+        range are cut also, leaving only list items that are selected.
+        '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
             self.data = {key: self.data[key] for key in selected_keys}
