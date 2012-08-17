@@ -113,36 +113,26 @@ class SelectionSupport(EventDispatcher):
         pass
 
     def handle_selection(self, view, *args):
-        #print 'handle_selection for', view
         if view not in self.selection:
-            #print '    handle_selection, view is not in selection ->', view
             if self.selection_mode in ['none', 'single'] and \
                     len(self.selection) > 0:
                 for selected_view in self.selection:
-                    #print '        handle_selection: mode is none or single, deselecting in selection'
                     self.deselect_item_view(selected_view)
             if self.selection_mode != 'none':
                 if self.selection_mode == 'multiple':
                     if self.allow_empty_selection:
-                        #print '            handle_selection: selecting, mode is multiple, empty selection allowed ->', view
                         if self.selection_limit > 0:
                             if len(self.selection) < self.selection_limit:
-                                #print '                handle_selection: selecting, within the limit ->', view
                                 self.select_item_view(view)
                     else:
-                        #print '            handle_selection: selecting, mode is multiple, empty selection NOT allowed ->', view
                         self.select_item_view(view)
                 else:
-                    #print '        handle_selection: selecting, mode is not none, is not multiple ->', view
                     self.select_item_view(view)
         else:
-            #print '    handle_selection, view is already in selection ->', view
             if self.selection_mode == 'none':
                 for selected_view in self.selection:
-                    #print '        handle_selection: mode is none, deselecting in selection'
                     self.deselect_item_view(selected_view)
             else:
-                #print '    handle_selection: mode is NOT none, deselecting in selection'
                 self.deselect_item_view(view)
                 # If the deselection makes selection empty, the following call
                 # will check allows_empty_selection, and if False, will
@@ -152,7 +142,6 @@ class SelectionSupport(EventDispatcher):
                 #
                 # [TODO] Is this approach OK?
                 #
-                #print '    handle_selection: checking for empty selection'
                 self.check_for_empty_selection()
 
         print 'selection for', self, 'is now', self.selection

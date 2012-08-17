@@ -34,8 +34,7 @@ If you wish to have a bare-bones list adapter, without selection, use
 
 '''
 
-from kivy.properties import ListProperty, ObjectProperty, StringProperty, \
-        DictProperty
+from kivy.properties import ListProperty, DictProperty
 from kivy.lang import Builder
 from kivy.adapters.collectionadapter import CollectionAdapter
 from kivy.adapters.mixins.selection import SelectionSupport
@@ -154,7 +153,7 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
             last_sel_index = self.sorted_keys.index(selected_keys[-1])
-            desired_keys = self.sorted_keys[:last_sel_index+1]
+            desired_keys = self.sorted_keys[:last_sel_index + 1]
             self.data = {key: self.data[key] for key in desired_keys}
 
     def trim_to_sel(self, *args):
@@ -162,11 +161,10 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
             selected_keys = [sel.text for sel in self.selection]
             first_sel_index = self.sorted_keys.index(selected_keys[0])
             last_sel_index = self.sorted_keys.index(selected_keys[-1])
-            desired_keys = self.sorted_keys[first_sel_index:last_sel_index+1]
+            desired_keys = self.sorted_keys[first_sel_index:last_sel_index + 1]
             self.data = {key: self.data[key] for key in desired_keys}
 
     def cut_to_sel(self, *args):
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
             self.data = {key: self.data[key] for key in selected_keys}
-

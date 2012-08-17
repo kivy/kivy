@@ -484,7 +484,7 @@ class ListView(AbstractView, EventDispatcher):
     scrolling is False before calling populate(). scroll_to() dispatches a
     scrolling_complete event, which sets scrolling back to False.
     '''
-    
+
     _index = NumericProperty(0)
     _sizes = DictProperty({})
     _count = NumericProperty(0)

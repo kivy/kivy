@@ -64,8 +64,8 @@ fruit_categories = \
                                      'Strawberry'],
                           'is_selected': False}}
 
-fruit_data_list_of_dicts = [
-{'name':'Apple',
+fruit_data_list_of_dicts = \
+[{'name':'Apple',
  'Serving Size': '1 large (242 g/8 oz)',
  'data': [130, 0, 0, 0, 0, 0, 260, 7, 34, 11, 5, 20, 25, 1, 2, 8, 2, 2],
  'is_selected': False},
