@@ -40,7 +40,7 @@ class VideoPyglet(VideoBase):
         self._fbo = None
 
     def load(self):
-        self.unload() #make sure we unload an resources
+        self.unload()  # make sure we unload an resources
 
         #load media file and set size of video
         self._source = source = pyglet.media.load(self._filename)
@@ -61,7 +61,7 @@ class VideoPyglet(VideoBase):
         self.time = self._player.time
 
     def _update(self, dt):
-        if self._source.duration - self.time < 0.1: #we are at the end
+        if self._source.duration - self.time < 0.1:  # we are at the end
             self.seek(0)
         if self.state == 'playing':
             # keep track of time into video

@@ -488,12 +488,12 @@ class ParserException(Exception):
         sc = ['...']
         sc += ['   %4d:%s' % x for x in sourcecode[sc_start:line]]
         sc += ['>> %4d:%s' % (line, sourcecode[line][1])]
-        sc += ['   %4d:%s' % x for x in sourcecode[line+1:sc_stop]]
+        sc += ['   %4d:%s' % x for x in sourcecode[line + 1:sc_stop]]
         sc += ['...']
         sc = '\n'.join(sc)
 
         message = 'Parser: File "%s", line %d:\n%s\n%s' % (
-            self.filename, self.line+1, sc, message)
+                self.filename, self.line + 1, sc, message)
         super(ParserException, self).__init__(message)
 
 
@@ -507,7 +507,7 @@ class ParserRuleProperty(object):
     '''Represent a property inside a rule
     '''
 
-    __slots__ = ('ctx', 'line', 'name', 'value', 'co_value', \
+    __slots__ = ('ctx', 'line', 'name', 'value', 'co_value',
             'watched_keys', 'mode')
 
     def __init__(self, ctx, line, name, value):
@@ -559,8 +559,8 @@ class ParserRuleProperty(object):
     def __repr__(self):
         return '<ParserRuleProperty name=%r filename=%s:%d' \
                'value=%r watched_keys=%r>' % (
-                self.name, self.ctx.filename, self.line + 1,
-                self.value, self.watched_keys)
+                       self.name, self.ctx.filename, self.line + 1,
+                       self.value, self.watched_keys)
 
 
 class ParserRule(object):
@@ -825,7 +825,7 @@ class Parser(object):
             tmp = content.lstrip(' \t')
 
             # Replace any tab with 4 spaces
-            tmp = content[:len(content)-len(tmp)]
+            tmp = content[:len(content) - len(tmp)]
             tmp = tmp.replace('\t', '    ')
             count = len(tmp)
 
@@ -838,7 +838,7 @@ class Parser(object):
 
             # Level finished
             if count < indent:
-                return objects, lines[i-1:]
+                return objects, lines[i - 1:]
 
             # Current level, create an object
             elif count == indent:
@@ -1029,7 +1029,7 @@ class ParserSelectorName(ParserSelector):
         parents = ParserSelectorName.parents
         cls = widget.__class__
         if not cls in parents:
-            classes = [x.__name__.lower() for x in \
+            classes = [x.__name__.lower() for x in
                        [cls] + list(self.get_bases(cls))]
             parents[cls] = classes
         return self.key in parents[cls]

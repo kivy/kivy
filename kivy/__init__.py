@@ -43,7 +43,7 @@ __kivy_post_configuration = []
 
 
 if platform() == 'macosx' and sys.maxint < 9223372036854775807:
-    r ='''Unsupported Python version detected!:
+    r = '''Unsupported Python version detected!:
     Kivy requires a 64 bit version of Python to run on OS X. We strongly advise
     you to use the version of Python that is provided by Apple (don't use ports,
     fink or homebrew unless you know what you're doing).
@@ -112,7 +112,7 @@ def require(version):
     if tag == 'dev' and systag != 'dev':
         Logger.warning('Application requested a -dev version of Kivy. '
                        '(You have %s, but the application requires %s)' % (
-                            __version__, version))
+                           __version__, version))
     # not tag rev (-alpha-1, -beta-x) allowed.
     if tagrev is not None:
         raise Exception('Revision format must not contain any tagrevision')
@@ -273,7 +273,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Logger.setLevel(level=level)
     Logger.setLevel(level=LOG_LEVELS.get('debug'))
 
-
     # Can be overrided in command line
     if 'KIVY_UNITTEST' not in environ:
 
@@ -297,7 +296,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     else:
         opts = []
         args = []
-
 
     need_save = False
     for opt, arg in opts:

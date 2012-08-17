@@ -52,8 +52,8 @@ def _on_gst_message(bus, message):
     # log all error messages
     if message.type == gst.MESSAGE_ERROR:
         error, debug = map(str, message.parse_error())
-        Logger.error('gstreamer_video: %s'%error)
-        Logger.debug('gstreamer_video: %s'%debug)
+        Logger.error('gstreamer_video: %s' % error)
+        Logger.debug('gstreamer_video: %s' % debug)
 
 
 def _on_gst_eos(obj, *largs):
@@ -119,7 +119,7 @@ class VideoGStreamer(VideoBase):
         self._texture = None
 
     def load(self):
-        Logger.debug('gstreamer_video: Load <%s>'% self._filename)
+        Logger.debug('gstreamer_video: Load <%s>' % self._filename)
         self._playbin.set_state(gst.STATE_NULL)
         self._playbin.set_property('uri', self._get_uri())
         self._playbin.set_state(gst.STATE_READY)

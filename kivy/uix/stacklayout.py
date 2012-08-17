@@ -93,12 +93,12 @@ class StackLayout(Layout):
     def __init__(self, **kwargs):
         super(StackLayout, self).__init__(**kwargs)
         self.bind(
-            padding = self._trigger_layout,
-            spacing = self._trigger_layout,
-            children = self._trigger_layout,
-            orientation = self._trigger_layout,
-            size = self._trigger_layout,
-            pos = self._trigger_layout)
+            padding=self._trigger_layout,
+            spacing=self._trigger_layout,
+            children=self._trigger_layout,
+            orientation=self._trigger_layout,
+            size=self._trigger_layout,
+            pos=self._trigger_layout)
 
     def do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop

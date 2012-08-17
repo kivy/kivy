@@ -127,18 +127,20 @@ Examples
 .. |wdg_desc11| replace:: Usage and showase of :mod:`ScreenManager <kivy.uix.screenmanager>` Module.
 .. |wdg_file12| replace:: scrollview.py
 .. |wdg_desc12| replace:: Usage and Showcase of :class:`ScrollView <kivy.uix.scrollview>` Widget.
-.. |wdg_file14| replace:: tabbedpanel.py
-.. |wdg_desc14| replace:: Usage of a simple :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
-.. |wdg_file15| replace:: tabbed_panel_showcase.py
-.. |wdg_desc15| replace:: Advanced Showcase of :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
-.. |wdg_file16| replace:: textalign.py
-.. |wdg_desc16| replace:: Usage of text alignment in :class:`Label <kivy.uix.label>` widget.
-.. |wdg_file17| replace:: textinput.py
-.. |wdg_desc17| replace:: Usage and Showcase of :class:`TextInput <kivy.uix.textinput>` Widget.
-.. |wdg_file18| replace:: unicode_textinput.py
-.. |wdg_desc18| replace:: Showcase of unicode text in :class:`TextInput <kivy.uix.textinput>` Widget.
-.. |wdg_file19| replace:: videoplayer.py
-.. |wdg_desc19| replace:: Usage and options of :class:`VideoPlayer <kivy.uix.videoplayer>` Widget.
+.. |wdg_file14| replace:: spinner.py
+.. |wdg_desc14| replace:: Usage and Showcase of :class:`Spinner <kivy.uix.spinner>` Widget.
+.. |wdg_file15| replace:: tabbedpanel.py
+.. |wdg_desc15| replace:: Usage of a simple :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
+.. |wdg_file16| replace:: tabbed_panel_showcase.py
+.. |wdg_desc16| replace:: Advanced Showcase of :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
+.. |wdg_file17| replace:: textalign.py
+.. |wdg_desc17| replace:: Usage of text alignment in :class:`Label <kivy.uix.label>` widget.
+.. |wdg_file18| replace:: textinput.py
+.. |wdg_desc18| replace:: Usage and Showcase of :class:`TextInput <kivy.uix.textinput>` Widget.
+.. |wdg_file19| replace:: unicode_textinput.py
+.. |wdg_desc19| replace:: Showcase of unicode text in :class:`TextInput <kivy.uix.textinput>` Widget.
+.. |wdg_file20| replace:: videoplayer.py
+.. |wdg_desc20| replace:: Usage and options of :class:`VideoPlayer <kivy.uix.videoplayer>` Widget.
 .. |seq_dir| replace::  ./examples/widgets/sequenced_images:
 .. |seq_file| replace:: main.py
 .. |seq_desc| replace:: Showcase usage of **sequenced images**: gif, images in .zip.
@@ -212,6 +214,7 @@ Examples
 |            | - |wdg_file17||- |wdg_desc17|          |
 |            | - |wdg_file18||- |wdg_desc18|          |
 |            | - |wdg_file19||- |wdg_desc19|          |
+|            | - |wdg_file20||- |wdg_desc20|          |
 +------------+---------------+------------------------+
 |- |seq_dir| | - |seq_file|  |- |seq_desc|            |
 +------------+---------------+------------------------+

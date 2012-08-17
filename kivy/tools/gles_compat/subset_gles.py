@@ -24,9 +24,9 @@
 '''
 
 
-gl = open("/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/" + \
+gl = open("/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/" +
           "OpenGL.framework/Versions/A/Headers/gl.h", 'r')
-glext = open("/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/" + \
+glext = open("/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/" +
              "OpenGL.framework/Versions/A/Headers/glext.h", 'r')
 gles = open("gl2.h", 'r')
 
@@ -84,8 +84,6 @@ def extract_common_symbols(symbols1, symbols2, already_extracted):
                 print "// Different Name; Redefine"
                 print line2
                 print "#define %s %s" % (symbol1, symbol2)
-
-
 
 # Generate ------------------------------------------------
 # pipe to kivy/kivy/graphics/common_subset.h

@@ -96,8 +96,8 @@ else:
 
         x = property(lambda self: self.left)
         y = property(lambda self: self.top)
-        w = property(lambda self: self.right-self.left)
-        h = property(lambda self: self.bottom-self.top)
+        w = property(lambda self: self.right - self.left)
+        h = property(lambda self: self.bottom - self.top)
 
     windll.user32.SetWindowLongPtrW.restype = WNDPROC
     windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
@@ -150,8 +150,8 @@ else:
                     break
 
                 # adjust x,y to window coordinates (0.0 to 1.0)
-                x = (t.screen_x()-win_rect.x)/float(win_rect.w)
-                y = 1.0 - (t.screen_y()-win_rect.y)/float(win_rect.h)
+                x = (t.screen_x() - win_rect.x) / float(win_rect.w)
+                y = 1.0 - (t.screen_y() - win_rect.y) / float(win_rect.h)
 
                 # actually dispatch input
                 if t.event_type == 'begin':

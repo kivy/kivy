@@ -35,8 +35,6 @@ Follow this guide to get the tools you need, understand the major concepts and
 learn best practices. As this is an introduction, pointers to more information
 will be provided at the end of each section.
 
-You may also want to look at the :doc:`/gettingstarted/index` guide.
-
 As you proceed through the guide, you will, using Kivy:
 
 - **Learn**:    The basics of programming with the Kivy language.

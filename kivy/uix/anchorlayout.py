@@ -61,13 +61,13 @@ class AnchorLayout(Layout):
     def __init__(self, **kwargs):
         super(AnchorLayout, self).__init__(**kwargs)
         self.bind(
-            children = self._trigger_layout,
-            parent = self._trigger_layout,
-            padding = self._trigger_layout,
-            anchor_x = self._trigger_layout,
-            anchor_y = self._trigger_layout,
-            size = self._trigger_layout,
-            pos = self._trigger_layout)
+            children=self._trigger_layout,
+            parent=self._trigger_layout,
+            padding=self._trigger_layout,
+            anchor_x=self._trigger_layout,
+            anchor_y=self._trigger_layout,
+            size=self._trigger_layout,
+            pos=self._trigger_layout)
 
     def do_layout(self, *largs):
         _x, _y = self.pos
@@ -86,7 +86,7 @@ class AnchorLayout(Layout):
             elif not self.size_hint[0]:
                 width = max(width, c.width)
             if c.size_hint[1]:
-                h = c.size_hint[1]*height
+                h = c.size_hint[1] * height
             elif not self.size_hint[1]:
                 height = max(height, c.height)
 
@@ -105,4 +105,4 @@ class AnchorLayout(Layout):
 
             reposition_child(c, pos=(x, y), size=(w, h))
 
-        self.size = (width, height) # might have changed inside loop
+        self.size = (width, height)  # might have changed inside loop
