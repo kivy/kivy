@@ -13,6 +13,7 @@ from kivy.logger import Logger
 from kivy.config import Config
 from kivy.base import stopTouchApp, EventLoop, ExceptionManager
 from kivy.utils import platform
+from os import environ
 
 cdef extern from "X11/Xutil.h":
     int KeyPress
@@ -159,6 +160,9 @@ class WindowX11(WindowBase):
             Logger.debug('WinX11: Set window to fullscreen mode')
             fullscreen = True
 
+        if 'KIVY_WINDOW_NO_BORDER' in environ:
+            border = False
+
         if x11_create_window(size[0], size[1], pos[0], pos[1],
                 resizable, fullscreen, border, <char *><bytes>self.title) < 0:
             Logger.critical('WinX11: Unable to create the window')
@@ -166,7 +170,6 @@ class WindowX11(WindowBase):
 
         size[0] = x11_get_width()
         size[1] = x11_get_height()
-        print size
 
         self._pos = (0, 0)
         self.system_size = size
@@ -196,7 +199,7 @@ class WindowX11(WindowBase):
 
     def on_keyboard(self, key,
         scancode=None, codepoint=None, modifier=None, **kwargs):
-        print 'on_keyboard', key, scancode
+        #print 'on_keyboard', key, scancode
 
         codepoint = codepoint or kwargs.get('unicode')
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
