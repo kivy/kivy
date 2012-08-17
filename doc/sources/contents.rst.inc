@@ -6,11 +6,16 @@ and why you'd want to use it.
 It goes on with a discussion of the architecture and shows you how to create
 stunning applications in short time using the framework.
 
+.. ifconfig:: format == 'html'
+
+	.. toctree::
+		:maxdepth: 1
+
+		gettingstarted/index
 
 .. toctree::
     :maxdepth: 2
 
-    gettingstarted/index
     philosophy
     installation/installation
     guide-index
