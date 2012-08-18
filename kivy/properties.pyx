@@ -24,8 +24,8 @@ Kivy's property classes support:
         You can bind your own function as a callback to changes of a
         :class:`Property`. If, for example, you want a piece of code to be
         called when a widget's :class:`~kivy.uix.widget.Widget.pos` property
-        changes, you can :class:`~kivy.event.EventDispatcher.bind` a function to
-        it.
+        changes, you can :class:`~kivy.event.EventDispatcher.bind` a function
+        to it.
 
     Better Memory Management
         The same instance of a property is shared across multiple widget
@@ -217,9 +217,9 @@ cdef class Property:
                 uid = NumericProperty(0)
 
         In this example, the uid will be a NumericProperty() instance, but the
-        property instance doesn't know its name. That's why :func:`link` is used
-        in Widget.__new__. The link function is also used to create the storage
-        space of the property for this specific widget instance.
+        property instance doesn't know its name. That's why :func:`link` is
+        used in Widget.__new__. The link function is also used to create the
+        storage space of the property for this specific widget instance.
         '''
         d = dict()
         self._name = name
@@ -332,11 +332,11 @@ cdef class NumericProperty(Property):
     42
     >>> Widget.x = "plop"
     Traceback (most recent call last):
-        File "<stdin>", line 1, in <module>
-        File "properties.pyx", line 93, in kivy.properties.Property.__set__
-        File "properties.pyx", line 111, in kivy.properties.Property.set
-        File "properties.pyx", line 159, in kivy.properties.NumericProperty.check
-        ValueError: NumericProperty accept only int/float
+     File "<stdin>", line 1, in <module>
+     File "properties.pyx", line 93, in kivy.properties.Property.__set__
+     File "properties.pyx", line 111, in kivy.properties.Property.set
+     File "properties.pyx", line 159, in kivy.properties.NumericProperty.check
+     ValueError: NumericProperty accept only int/float
     '''
     def __init__(self, defaultvalue=0, **kw):
         super(NumericProperty, self).__init__(defaultvalue, **kw)
@@ -372,6 +372,7 @@ cdef inline void observable_list_dispatch(object self):
     obj = self.obj()
     if obj is not None:
         prop.dispatch(obj)
+
 
 class ObservableList(list):
     # Internal class to observe changes inside a native python list.
@@ -465,6 +466,7 @@ cdef inline void observable_dict_dispatch(object self):
     cdef Property prop = self.prop
     prop.dispatch(self.obj)
 
+
 class ObservableDict(dict):
     # Internal class to observe changes inside a native python dict.
     def __init__(self, *largs):
@@ -505,7 +507,6 @@ class ObservableDict(dict):
     def update(self, *largs):
         dict.update(self, *largs)
         observable_dict_dispatch(self)
-
 
 
 cdef class DictProperty(Property):
@@ -905,4 +906,3 @@ cdef class AliasProperty(Property):
         if obj.__storage[self._name]['setter'](obj, value):
             obj.__storage[self._name]['value'] = self.get(obj)
             self.dispatch(obj)
-
