@@ -12,12 +12,11 @@ The *Properties* classes are used when you create a
 Kivy's property classes support:
 
     Value Checking / Validation
-        When you assign a new value to a property, the value is checked to pass
-        some constraints implemented in the class. I.e., validation is
-        performed. For example, an :class:`OptionProperty` will make sure that
-        the value is in a predefined list of possibilities.
-        A :class:`NumericProperty` will check that your value is a numeric type,
-        i.e. int, float, etc.
+        When you assign a new value to a property, the value is checked to
+        pass constraints implemented in the class such as validation. For
+        example, validation for :class:`OptionProperty` will make sure that
+        the value is in a predefined list of possibilities. Validation for
+        :class:`NumericProperty` will check that your value is a numeric type.
         This prevents many errors early on.
 
     Observer Pattern
@@ -32,30 +31,30 @@ Kivy's property classes support:
         The same instance of a property is shared across multiple widget
         instances.
 
-Comparaison Python / Kivy
--------------------------
+Comparison Python / Kivy
+------------------------
 
 Basic example
 ~~~~~~~~~~~~~
 
-As an example, let's see some comparaison between Python and Kivy properties.
-Let's create a Python class with 'a' as a float::
+Let's compare Python and Kivy properties by creating a Python class with 'a'
+as a float::
 
     class MyClass(object):
-        def __init__(self, a=1):
+        def __init__(self, a=1.0):
             super(MyClass, self).__init__()
             self.a = a
 
 With Kivy, you can do::
 
     class MyClass(EventDispatcher):
-        a = NumericProperty(1)
+        a = NumericProperty(1.0)
 
 
 Value checking
 ~~~~~~~~~~~~~~
 
-If you wanted to add some check like a minimum / maximum value allowed for a
+If you wanted to add a check such a minimum / maximum value allowed for a
 property, here is a possible implementation in Python::
 
     class MyClass(object):
@@ -74,8 +73,8 @@ property, here is a possible implementation in Python::
             self._a = a
         a = property(_get_a, _set_a)
 
-The disadvantage is you have to do that work yourself. And it start to be
-complex if you have lot of properties.
+The disadvantage is you have to do that work yourself. And it becomes
+laborious and complex if you have many properties.
 With Kivy, you can simplify like this::
 
     class MyClass(EventDispatcher):
@@ -87,18 +86,17 @@ That's all!
 Conclusion
 ~~~~~~~~~~
 
-Even if we don't show a in-depth comparaison, you can understand how it's easier
-to create Kivy properties and use it than the standard one. See the next chapter
-to see how to use them :)
+Kivy properties are easier to use than the standard ones. See the next chapter
+for examples of how to use them :)
 
 
 Observe Properties changes
 --------------------------
 
 As we said in the beginning, Kivy's Properties implement the `Observer pattern
-<http://en.wikipedia.org/wiki/Observer_pattern>`_. That's mean you can
-:meth:`~kivy.event.EventDispatcher.bind` to a property, and have your own
-callback called when the value change.
+<http://en.wikipedia.org/wiki/Observer_pattern>`_. That means you can
+:meth:`~kivy.event.EventDispatcher.bind` to a property and have your own
+function called when the value changes.
 
 Multiple ways are available to observe the changes.
 
@@ -118,10 +116,10 @@ class::
     ins = MyClass()
     ins.bind(a=callback)
 
-    # at this point, any change to the a property will call your callback
-    ins.a = 5 # callback called
-    ins.a = 5 # callback not called, because the value didnt change
-    ins.a = -1 # callback called
+    # At this point, any change to the a property will call your callback.
+    ins.a = 5    # callback called
+    ins.a = 5    # callback not called, because the value didnt change
+    ins.a = -1   # callback called
 
 Observe using 'on_<propname>'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,8 +134,8 @@ If you created the class yourself, you can use the 'on_<propname>' callback::
 
 .. warning::
 
-    Be careful with 'on_<propname>'. If you are creating a such callback on a
-    property you are inherit, you must not forget to call the possible subclass
+    Be careful with 'on_<propname>'. If you are creating such a callback on a
+    property you are inherit, you must not forget to call the subclass
     function too.
 
 
@@ -162,20 +160,19 @@ cdef class Property:
     the observer list and storage initialisation. This class should not be
     directly instantiated.
 
-    By default, a :class:`Property` always take a default value::
+    By default, a :class:`Property` always takes a default value::
 
         class MyObject(Widget):
 
             hello = Property('Hello world')
 
-    The default value must be a value that agreed about the Property type. For
+    The default value must be a value that agrees with the Property type. For
     example, you can't set a list to a :class:`StringProperty`, because the
     StringProperty will check the default value.
 
-    None is a special case: you can set the default value of a Property to None,
-    but you can't set None to a property afterwise.
-    If you really want to do that, you must declare the Property with
-    `allownone=True`::
+    None is a special case: you can set the default value of a Property to
+    None, but you can't set None to a property afterward.  If you really want
+    to do that, you must declare the Property with `allownone=True`::
 
         class MyObject(Widget):
 
@@ -233,14 +230,14 @@ cdef class Property:
         pass
 
     cpdef bind(self, obj, observer):
-        '''Add a new observer to be called only when the value is changed
+        '''Add a new observer to be called only when the value is changed.
         '''
         cdef list observers = obj.__storage[self._name]['observers']
         if not observer in observers:
             observers.append(observer)
 
     cpdef unbind(self, obj, observer):
-        '''Remove the observer from our widget observer list
+        '''Remove the observer from our widget observer list.
         '''
         cdef list observers = obj.__storage[self._name]['observers']
         for obj in observers[:]:
@@ -259,7 +256,7 @@ cdef class Property:
         return a == b
 
     cpdef set(self, obj, value):
-        '''Set a new value for the property
+        '''Set a new value for the property.
         '''
         value = self.convert(obj, value)
         d = obj.__storage[self._name]
@@ -272,7 +269,7 @@ cdef class Property:
         return True
 
     cpdef get(self, obj):
-        '''Return the value of the property
+        '''Return the value of the property.
         '''
         return obj.__storage[self._name]['value']
 
@@ -297,18 +294,18 @@ cdef class Property:
 
     cdef convert(self, obj, x):
         '''Convert the initial value to a correctly validating value.
-        Can be used for multiple types of argument, and simplify into only one.
+        Can be used for multiple types of arguments, simplifying to only one.
         '''
         return x
 
     cpdef dispatch(self, obj):
-        '''Dispatch the value change to all observers
+        '''Dispatch the value change to all observers.
 
         .. versionchanged:: 1.1.0
             The method is now accessible from Python.
 
         This can be used to force the dispatch of the property, even if the
-        value didn't changed::
+        value didn't change::
 
             button = Button()
             # get the Property class instance
@@ -326,9 +323,9 @@ cdef class Property:
 
 
 cdef class NumericProperty(Property):
-    '''Property that represents a numeric value
+    '''Property that represents a numeric value.
 
-    The NumericProperty accept only int or float.
+    The NumericProperty accepts only int or float.
 
     >>> Widget.x = 42
     >>> print Widget.x
@@ -356,7 +353,7 @@ cdef class NumericProperty(Property):
 cdef class StringProperty(Property):
     '''Property that represents a string value.
 
-    Only string or unicode are accepted.
+    Only a string or unicode is accepted.
     '''
 
     def __init__(self, defaultvalue='', **kw):
@@ -440,7 +437,7 @@ class ObservableList(list):
 cdef class ListProperty(Property):
     '''Property that represents a list.
 
-    Only lists are allowed, tuple or any other classes are forbidden.
+    Only lists are allowed. Tuple or any other classes are forbidden.
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
@@ -514,7 +511,7 @@ class ObservableDict(dict):
 cdef class DictProperty(Property):
     '''Property that represents a dict.
 
-    Only dict are allowed, any other classes are forbidden.
+    Only dict are allowed. Any other classes are forbidden.
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or {}
@@ -558,7 +555,7 @@ cdef class ObjectProperty(Property):
                 self.name))
 
 cdef class BooleanProperty(Property):
-    '''Property that represents only boolean
+    '''Property that represents only a boolean value.
     '''
 
     def __init__(self, defaultvalue=True, **kw):
@@ -574,7 +571,7 @@ cdef class BooleanProperty(Property):
 
 cdef class BoundedNumericProperty(Property):
     '''Property that represents a numeric value within a minimum bound and/or
-    maximum bound (i.e. a numeric range).
+    maximum bound -- within a numeric range.
 
     :Parameters:
         `min`: numeric
@@ -611,8 +608,8 @@ cdef class BoundedNumericProperty(Property):
         storage['use_max'] = self.use_max
 
     def set_min(self, obj, value):
-        '''Change the minimum value acceptable for the BoundedNumericProperty, only
-        for the `obj` instance, None if you want to disable it::
+        '''Change the minimum value acceptable for the BoundedNumericProperty,
+        only for the `obj` instance. Set to None if you want to disable it::
 
             class MyWidget(Widget):
                 number = BoundedNumericProperty(0, min=-5, max=5)
@@ -637,8 +634,8 @@ cdef class BoundedNumericProperty(Property):
             s['use_min'] = 1
 
     def get_min(self, obj):
-        '''Return the minimum value acceptable for the BoundedNumericProperty in
-        `obj`, None if no minimum value are set::
+        '''Return the minimum value acceptable for the BoundedNumericProperty
+        in `obj`. Return None if no minimum value is set::
 
             class MyWidget(Widget):
                 number = BoundedNumericProperty(0, min=-5, max=5)
@@ -654,9 +651,9 @@ cdef class BoundedNumericProperty(Property):
             return s['min']
 
     def set_max(self, obj, value):
-        '''Change the maximum value acceptable for the BoundedNumericProperty, only
-        for the `obj` instance, None if you want to disable it. Check
-        :data:`set_min` for an usage example.
+        '''Change the maximum value acceptable for the BoundedNumericProperty,
+        only for the `obj` instance. Set to None if you want to disable it.
+        Check :data:`set_min` for a usage example.
 
         .. warning::
 
@@ -672,9 +669,9 @@ cdef class BoundedNumericProperty(Property):
             s['use_max'] = 1
 
     def get_max(self, obj):
-        '''Return the maximum value acceptable for the BoundedNumericProperty in
-        `obj`, None if no maximum value are set. Check :data:`get_min` for an
-        usage example.
+        '''Return the maximum value acceptable for the BoundedNumericProperty
+        in `obj`. Return None if no maximum value is set. Check
+        :data:`get_min` for a usage example.
 
         .. versionadded:: 1.1.0
         '''
@@ -701,7 +698,7 @@ cdef class BoundedNumericProperty(Property):
         return True
 
     property bounds:
-        '''Return min/max of the value
+        '''Return min/max of the value.
 
         .. versionadded:: 1.0.9
         '''
@@ -755,7 +752,7 @@ cdef class OptionProperty(Property):
 
 
 cdef class ReferenceListProperty(Property):
-    '''Property that allows to create a tuple of other properties.
+    '''Property that allows the creaton of a tuple of other properties.
 
     For example, if `x` and `y` are :class:`NumericProperty`s, we can create a
     :class:`ReferenceListProperty` for the `pos`. If you change the value of
@@ -832,8 +829,8 @@ cdef class ReferenceListProperty(Property):
 cdef class AliasProperty(Property):
     '''Create a property with a custom getter and setter.
 
-    If you didn't find a Property class that fits to your needs, you can still
-    create Python getters and setters and create a property with both of them.
+    If you don't find a Property class that fits to your needs, you can make
+    your own by creating custom Python getter and setter methods.
 
     Example from kivy/uix/widget.py::
 
