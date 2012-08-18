@@ -839,7 +839,7 @@ cdef class AliasProperty(Property):
             return self.x + self.width
         def set_right(self, value):
             self.x = value - self.width
-        right = AliasProperty(get_right, set_right, bind=(x, width))
+        right = AliasProperty(get_right, set_right, bind=('x', 'width'))
 
     :Parameters:
         `getter`: function
@@ -847,7 +847,7 @@ cdef class AliasProperty(Property):
         `setter`: function
             Function to use as a property setter
         `bind`: list/tuple
-            List of properties to observe for changes
+            Properties to observe for changes, as property name strings
         `cache`: boolean
             If True, the value will be cached, until one of the binded elements
             will changes
