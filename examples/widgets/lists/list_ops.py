@@ -1,9 +1,3 @@
-# list_control.py
-#
-# Demonstrates listview and adapter ops, such as limiting selection to a
-# certain number, changing scroll position on the fly, and trimming the list.
-#
-
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.properties import NumericProperty, ListProperty, \
         BooleanProperty, AliasProperty
@@ -114,7 +108,12 @@ listview_selection_buttons = {}
 
 
 class OpsView(BoxLayout):
-
+    '''Seven list views are shown at the bottom, each focusing on one of the
+    available operations for collection adapters: scroll_to, trim_to_sel,
+    trim_left_of_sel, etc.  At the top is a display that shows individual
+    items selected across the seven lists, along with a total of all selected
+    items for the lists.
+    '''
     def __init__(self, **kwargs):
         kwargs['orientation'] = 'vertical'
         kwargs['size_hint'] = (1.0, 1.0)

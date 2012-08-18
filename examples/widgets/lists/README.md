@@ -39,7 +39,7 @@ These include:
                            comprised by two :class:`ListItemButton`s and one
                            :class:`ListItemLabel`. Illustrates how to construct
                            the fairly involved args_converter used with
-                           :class:`CustomListItem`.
+                           :class:`CompositeListItem`.
 
     - list_two_up -- Presents two list views, each using :class:`DictAdapter`.
                      list view on the left is configured for multiple

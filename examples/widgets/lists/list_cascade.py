@@ -13,7 +13,7 @@ from fruit_detail_view import FruitDetailView
 # left is a simple list. The list in the middle is specialized for
 # observing the selection in the first, and using that item as the key
 # into a dict providing its own list items. The view on the right is
-# the sames as the DetailView in the master-detail example.
+# the same as the DetailView in the master-detail example.
 
 # A custom adapter is needed here, because we must transform the selected
 # fruit category into the list of fruits for that category.
@@ -86,6 +86,9 @@ class CascadingView(GridLayout):
     '''Implementation of a master-detail style view, with a scrollable list
     of fruit categories on the left, a list of fruits for the selected
     category in the middle, and a detail view on the right.
+
+    This example uses :class:`ListAdapter`. See an equivalent treatment that
+    uses :class:`DictAdapter` in list_cascade_dict.py.
     '''
 
     def __init__(self, **kwargs):

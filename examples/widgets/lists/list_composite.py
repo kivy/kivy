@@ -7,6 +7,11 @@ from fixtures import integers_dict
 
 
 class MainView(GridLayout):
+    '''Uses :class:`CompositeListItem` for list item views comprised by two
+    :class:`ListItemButton`s and one :class:`ListItemLabel`. Illustrates how
+    to construct the fairly involved args_converter used with
+    :class:`CompositeListItem`.
+    '''
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 2

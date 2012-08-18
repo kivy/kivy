@@ -22,7 +22,7 @@ class TwoUpView(GridLayout):
     '''Implementation of a two-list widget, with a scrollable list of fruits
     on the left and a list on the right that shows items selected in the
     first list. It illustrates multiple selection in the left list and binding
-    to a custom list adapter.
+    to a custom dict adapter.
     '''
 
     def __init__(self, **kwargs):

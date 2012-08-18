@@ -24,9 +24,16 @@ class FruitsDictAdapter(DictAdapter):
 
 
 class CascadingView(GridLayout):
-    '''Implementation of a master-detail style view, with a scrollable list
-    of fruit categories on the left, a list of fruits for the selected
-    category in the middle, and a detail view on the right.
+    '''Implementation of a cascading style display, with a scrollable list of
+    fruit categories on the left, a list of fruits for the selected category
+    in the middle, and a fruit detail view on the right.
+
+    This examples uses :class:`DictAdapter`. See an equivalent treatment done
+    with :class:`ListAdapter` in list_cascade.py.
+
+    See list_cascade_images.py for the same example, also using
+    :class:`DictAdapter`, and with images of fruit in fruit list items and in
+    the detail view.
     '''
 
     def __init__(self, **kwargs):

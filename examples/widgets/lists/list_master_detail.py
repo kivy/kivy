@@ -6,14 +6,12 @@ from fixtures import fruit_data
 
 from fruit_detail_view import FruitDetailView
 
-# A "master-detail" view is a good way to experiment with a listview
-# (the master) and another view (detail view) that gets updated upon
-# selection.
-
 
 class MasterDetailView(GridLayout):
-    '''Implementation of an MasterDetailView with a vertical scrollable list
+    '''Implementation of an master-detail view with a vertical scrollable list
     on the left (the master, or source list) and a detail view on the right.
+    When selection changes in the master list, the content of the detail view
+    is updated.
     '''
 
     def __init__(self, items, **kwargs):
