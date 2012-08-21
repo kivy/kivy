@@ -165,6 +165,14 @@ def load_image_data(bytes _url):
 
     r_data = PyString_FromStringAndSize(<char *> myData, width * height * 4)
 
+    # Release image ref to avoid memory leak
+    CFRelease(url)
+    CGImageRelease(myImageSourceRef)
+    CFRelease(myImageRef)
+    CGContextRelease(myBitmapContext)
+    CGColorSpaceRelease(space)
+    free(myData)
+
     # XXX
     # kivy doesn't like to process 'bgra' data. we swap manually to 'rgba'.
     # would be better to fix this in texture.pyx
@@ -185,7 +193,7 @@ def save_image_rgba(filename, width, height, data):
 
     cdef char *rgba = <char *>malloc(int(width * height * 4))
     memcpy(rgba, <void *>source, int(width * height * 4))
-    
+
     cdef CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB()
     cdef CGContextRef bitmapContext = CGBitmapContextCreate(
         rgba,
