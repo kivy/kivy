@@ -23,6 +23,8 @@ from libc.string cimport memcpy
 ctypedef unsigned long size_t
 ctypedef signed long CFIndex
 
+cdef unsigned int kCFStringEncodingUTF8 = 0x08000100
+
 cdef extern from "stdlib.h":
     void* calloc(size_t, size_t)
 
@@ -36,28 +38,6 @@ cdef extern from "CoreGraphics/CGDataProvider.h":
     CFDataRef CGDataProviderCopyData(CGDataProviderRef)
     ctypedef void *CGDataProviderRef
     CFDataRef CGDataProviderCopyData(CGDataProviderRef)
-    ctypedef void *CGImageRef
-    CGDataProviderRef CGImageGetDataProvider(CGImageRef)
-    size_t CGImageGetWidth(CGImageRef)
-    size_t CGImageGetHeight(CGImageRef)
-    size_t CGImageGetBitsPerPixel(CGImageRef)
-    int CGImageGetAlphaInfo(CGImageRef)
-    int kCGImageAlphaNone
-    int kCGImageAlphaNoneSkipLast
-    int kCGImageAlphaNoneSkipFirst
-    int kCGImageAlphaFirst
-    int kCGImageAlphaLast
-    int kCGImageAlphaPremultipliedLast
-    int kCGImageAlphaPremultipliedFirst
-    int kCGBitmapByteOrder32Host
-
-    ctypedef void *CGColorSpaceRef
-    CGColorSpaceRef CGImageGetColorSpace(CGImageRef image)
-    CGColorSpaceRef CGColorSpaceCreateDeviceRGB()
-
-    ctypedef void *CGContextRef
-    void CGContextTranslateCTM(CGContextRef, float, float)
-    void CGContextScaleCTM (CGContextRef, float, float)
 
     ctypedef struct CGPoint:
         float x
@@ -73,21 +53,6 @@ cdef extern from "CoreGraphics/CGDataProvider.h":
 
     CGRect CGRectMake(float, float, float, float)
 
-    CGContextRef CGBitmapContextCreate(
-       void *data,
-       size_t width,
-       size_t height,
-       size_t bitsPerComponent,
-       size_t bytesPerRow,
-       CGColorSpaceRef colorspace,
-       unsigned int bitmapInfo
-    )
-
-    void CGContextDrawImage(CGContextRef, CGRect, CGImageRef)
-    int kCGBlendModeCopy
-    void CGContextSetBlendMode(CGContextRef, int)
-
-
 cdef extern from "CoreFoundation/CFBase.h":
     ctypedef void *CFAllocatorRef
     ctypedef void *CFStringRef
@@ -97,8 +62,6 @@ cdef extern from "CoreFoundation/CFBase.h":
             int encoding)
 
     void CFRelease(CFTypeRef cf)
-
-cdef unsigned int kCFStringEncodingUTF8 = 0x08000100
 
 cdef extern from "CoreFoundation/CFURL.h":
     ctypedef void *CFURLRef
@@ -116,11 +79,40 @@ cdef extern from "CoreFoundation/CFDictionary.h":
 cdef extern from "CoreGraphics/CGImage.h":
     ctypedef void *CGImageRef
     CGDataProviderRef CGImageGetDataProvider(CGImageRef)
+    void CGImageRelease(CGImageRef image)
+    size_t CGImageGetWidth(CGImageRef)
+    size_t CGImageGetHeight(CGImageRef)
+    size_t CGImageGetBitsPerPixel(CGImageRef)
     int CGImageGetAlphaInfo(CGImageRef)
     int kCGImageAlphaNone
+    int kCGImageAlphaNoneSkipLast
+    int kCGImageAlphaNoneSkipFirst
+    int kCGImageAlphaFirst
+    int kCGImageAlphaLast
+    int kCGImageAlphaPremultipliedLast
+    int kCGImageAlphaPremultipliedFirst
+    int kCGBitmapByteOrder32Host
+
+cdef extern from "CoreGraphics/CGColorSpace.h": 
+    ctypedef void *CGColorSpaceRef
+    CGColorSpaceRef CGImageGetColorSpace(CGImageRef image)
+    CGColorSpaceRef CGColorSpaceCreateDeviceRGB()
+    void CGColorSpaceRelease(CGColorSpaceRef cs)
+
+cdef extern from "CoreGraphics/CGContext.h": 
+    ctypedef void *CGContextRef
+    void CGContextTranslateCTM(CGContextRef, float, float)
+    void CGContextScaleCTM (CGContextRef, float, float)
+    void CGContextRelease(CGContextRef c)
+    void CGContextDrawImage(CGContextRef, CGRect, CGImageRef)
+    int kCGBlendModeCopy
+    void CGContextSetBlendMode(CGContextRef, int)
 
 cdef extern from "CoreGraphics/CGBitmapContext.h":
     CGImageRef CGBitmapContextCreateImage(CGColorSpaceRef)
+    CGContextRef CGBitmapContextCreate(
+       void *data, size_t width, size_t height, size_t bitsPerComponent,
+       size_t bytesPerRow, CGColorSpaceRef colorspace, unsigned int bitmapInfo)
 
 cdef extern from "ImageIO/CGImageSource.h":
     ctypedef void *CGImageSourceRef
@@ -136,7 +128,6 @@ cdef extern from "ImageIO/CGImageDestination.h":
     void CGImageDestinationAddImage (CGImageDestinationRef idst,
         CGImageRef image, CFDictionaryRef properties)
     int CGImageDestinationFinalize (CGImageDestinationRef idst)
-
 
 def load_image_data(bytes _url):
     cdef CFURLRef url
@@ -161,7 +152,6 @@ def load_image_data(bytes _url):
 
     CGContextSetBlendMode(myBitmapContext, kCGBlendModeCopy)
     CGContextDrawImage(myBitmapContext, rect, myImageRef)
-    #CGContextRelease(myBitmapContext)
 
     r_data = PyString_FromStringAndSize(<char *> myData, width * height * 4)
 
