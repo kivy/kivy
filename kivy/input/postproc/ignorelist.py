@@ -43,5 +43,5 @@ class InputPostprocIgnoreList(object):
                 continue
             if self.collide_ignore(touch):
                 touch.ud.__pp_ignore__ = True
-        return [(etype, touch) for etype, touch in events \
+        return [(etype, touch) for etype, touch in events
                 if not '__pp_ignore__' in touch.ud]

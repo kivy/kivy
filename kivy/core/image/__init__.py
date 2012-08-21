@@ -98,10 +98,10 @@ class ImageData(object):
         return len(self.mipmaps) > 1
 
     def __repr__(self):
-        return '<ImageData width=%d height=%d fmt=%s ' \
-               'source=%r with %d images>' % (
-                self.width, self.height, self.fmt,
-                self.source, len(self.mipmaps))
+        return ('<ImageData width=%d height=%d fmt=%s '
+                'source=%r with %d images>' % (
+                    self.width, self.height, self.fmt,
+                    self.source, len(self.mipmaps)))
 
     def add_mipmap(self, level, width, height, data):
         '''Add a image for a specific mipmap level.
@@ -663,7 +663,7 @@ class Image(EventDispatcher):
         assert data.fmt in ImageData._supported_fmts
         size = 3 if data.fmt in ('rgb', 'bgr') else 4
         index = y * data.width * size + x * size
-        raw = data.data[index:index+size]
+        raw = data.data[index:index + size]
         color = map(lambda c: ord(c) / 255.0, raw)
 
         # conversion for BGR->RGB, BGR->RGBA format

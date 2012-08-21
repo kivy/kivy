@@ -666,7 +666,7 @@ class ScreenManager(FloatLayout):
     def _update_pos(self, instance, value):
         for child in self.children:
             if self.transition.is_active and \
-                (child == self.transition.screen_in or \
+                (child == self.transition.screen_in or
                 child == self.transition.screen_out):
                     continue
             child.pos = value

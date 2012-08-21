@@ -56,7 +56,8 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` is a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`source` is a :class:`~kivy.properties.StringProperty`, default to
+    None.
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -184,7 +185,6 @@ class Image(Widget):
 
         return iw, ih
 
-
     norm_image_size = AliasProperty(get_norm_image_size, None, bind=(
         'texture', 'size', 'image_ratio', 'allow_stretch'))
     '''Normalized image size within the widget box.
@@ -286,7 +286,7 @@ class AsyncImage(Image):
 
     def is_uri(self, filename):
         proto = filename.split('://', 1)[0]
-        return proto in ('http', 'https', 'ftp')
+        return proto in ('http', 'https', 'ftp', 'smb')
 
     def _on_tex_change(self, *largs):
         if self._coreimage:

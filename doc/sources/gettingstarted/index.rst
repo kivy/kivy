@@ -15,3 +15,20 @@ Getting Started
 .. include:: packaging.rst
 .. include:: examples.rst
 .. include:: diving.rst
+
+.. toctree::
+    :hidden:
+
+    intro
+    installation
+    first_app
+    properties
+    rules
+    events
+    framework
+    layouts
+    drawing
+    packaging
+    examples
+    diving
+

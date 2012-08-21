@@ -284,10 +284,9 @@ class MarkupLabel(MarkupLabelBase):
             # vertical alignement
             if y == 0:
                 if av == 1:
-                    y = int((h - txt_height)/2)
+                    y = int((h - txt_height) / 2)
                 elif av == 2:
                     y = h - (txt_height)
-
 
             for pw, ph, part, options in line[2]:
                 self.options = options

@@ -326,18 +326,18 @@ class TabbedPanel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        self._tab_layout = GridLayout(rows = 1)
+        self._tab_layout = GridLayout(rows=1)
         self._bk_img = Image(
             source=self.background_image, allow_stretch=True,
             keep_ratio=False, color=self.background_color)
         self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel=self,
-            rows=1, cols=99, size_hint=(None, None),\
+            rows=1, cols=99, size_hint=(None, None),
             height=self.tab_height, width=self.tab_width)
 
         self._partial_update_scrollview = None
         self.content = content = TabbedPanelContent()
 
-        self._current_tab = default_tab = self._original_tab\
+        self._current_tab = default_tab = self._original_tab \
             = self._default_tab = TabbedPanelHeader()
         super(TabbedPanel, self).__init__(**kwargs)
 
@@ -352,7 +352,7 @@ class TabbedPanel(GridLayout):
         default_tab = self.default_tab
         default_tab.text = self.default_tab_text
         default_tab.height = self.tab_height
-        default_tab.group = '__tab%r__' %_tabs.uid
+        default_tab.group = '__tab%r__' % _tabs.uid
         default_tab.state = 'down'
         default_tab.width = self.tab_width if self.tab_width else 100
         default_tab.content = content
@@ -565,13 +565,13 @@ class TabbedPanel(GridLayout):
 
             # rotate the scatter for vertical positions
             rotation = 90 if tab_pos[0] == 'l' else -90
-            sctr = Scatter(do_translation = False,
-                               rotation = rotation,
-                               do_rotation = False,
-                               do_scale = False,
-                               size_hint = (None, None),
-                               auto_bring_to_front = False,
-                               size=scrl_v.size)
+            sctr = Scatter(do_translation=False,
+                    rotation=rotation,
+                    do_rotation=False,
+                    do_scale=False,
+                    size_hint=(None, None),
+                    auto_bring_to_front=False,
+                    size=scrl_v.size)
             sctr.add_widget(scrl_v)
 
             lentab_pos = len(tab_pos)
@@ -584,16 +584,16 @@ class TabbedPanel(GridLayout):
             # scatter. Without clock.schedule_once the positions would look
             # fine but touch won't translate to the correct position
 
-            if tab_pos[lentab_pos-4:] == '_top':
+            if tab_pos[lentab_pos - 4:] == '_top':
                 #on positions 'left_top' and 'right_top'
-                sctr.bind(pos = partial(self._update_top, sctr, 'top', None))
+                sctr.bind(pos=partial(self._update_top, sctr, 'top', None))
                 tab_list = (sctr, )
-            elif tab_pos[lentab_pos-4:] == '_mid':
+            elif tab_pos[lentab_pos - 4:] == '_mid':
                 #calculate top of scatter
-                sctr.bind(pos = partial(self._update_top, sctr, 'mid',
+                sctr.bind(pos=partial(self._update_top, sctr, 'mid',
                     scrl_v.width))
                 tab_list = (Widget(), sctr, Widget())
-            elif tab_pos[lentab_pos-7:] == '_bottom':
+            elif tab_pos[lentab_pos - 7:] == '_bottom':
                 tab_list = (Widget(), Widget(), sctr)
 
             if pos_letter == 'l':
@@ -620,7 +620,7 @@ class TabbedPanel(GridLayout):
         if top[0] == 't':
             sctr.top = self.top
         else:
-            sctr.top = self.top - (self.height - scrl_v_width)/2
+            sctr.top = self.top - (self.height - scrl_v_width) / 2
 
     def _update_scrollview(self, scrl_v, *l):
         self_tab_pos = self.tab_pos

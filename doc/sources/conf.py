@@ -23,7 +23,7 @@ sys.path.append(os.path.abspath('sphinxext'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['autodoc', 'sphinx.ext.todo', 'preprocess']
+extensions = ['autodoc', 'sphinx.ext.todo', 'preprocess', 'sphinx.ext.ifconfig']
 
 # Todo configuration
 todo_include_todos = True
@@ -63,7 +63,8 @@ release = kivy.__version__
 today_fmt = '%B %d, %Y'
 
 # suppress exclusion warnings
-exclude_patterns = ['gettingstarted/*', 'guide/layouts.rst']
+exclude_patterns = ['guide/layouts.rst', 'api-index.rst',
+        'api-kivy.lib.osc*']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None

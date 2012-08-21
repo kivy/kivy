@@ -162,7 +162,7 @@ class FileHandler(logging.Handler):
             if not os.path.exists(filename):
                 break
             n += 1
-            if n > 10000: # prevent maybe flooding ?
+            if n > 10000:  # prevent maybe flooding ?
                 raise Exception('Too many logfile, remove them')
 
         FileHandler.filename = filename

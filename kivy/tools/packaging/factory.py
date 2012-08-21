@@ -78,10 +78,7 @@ class FactoryBuild(Command):
                     if symbol.startswith('_'):
                         continue
                     attr = getattr(m, symbol)
-                    if type(attr) not in (
-                            types.TypeType,
-                            types.ClassType,
-                        ):
+                    if type(attr) not in (types.TypeType, types.ClassType):
                         continue
                     symbols.append((symbol, module))
                     print symbol,
