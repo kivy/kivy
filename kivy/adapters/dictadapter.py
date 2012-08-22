@@ -104,25 +104,25 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
 
         if self.cls:
             #print 'CREATE VIEW FOR', index
-            instance = self.cls(**item_args)
+            view_instance = self.cls(**item_args)
         else:
             #print 'TEMPLATE item_args', item_args
-            instance = Builder.template(self.template, **item_args)
-            #print 'TEMPLATE instance.index', instance.index
+            view_instance = Builder.template(self.template, **item_args)
+            #print 'TEMPLATE view_instance.index', view_instance.index
 
         if item['is_selected']:
-            self.handle_selection(instance)
+            self.handle_selection(view_instance)
 
-        # [TODO] if instance.handles_event('on_release'):       ?
-        instance.bind(on_release=self.handle_selection)
+        # [TODO] if view_instance.handles_event('on_release'):       ?
+        view_instance.bind(on_release=self.handle_selection)
 
         # [TODO] If the whole composite can't respond, should we try to see
         #        if the children can? No harm, no foul on setting this?
-        for child in instance.children:
+        for child in view_instance.children:
         #    if child.handles_event('on_release'):  [TODO] ?
             child.bind(on_release=self.handle_selection)
 
-        return instance
+        return view_instance
 
     def check_for_empty_selection(self, *args):
         if not self.allow_empty_selection:

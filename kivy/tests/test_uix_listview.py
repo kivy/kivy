@@ -58,3 +58,13 @@ class ListViewTestCase(unittest.TestCase):
         self.assertTrue(hasattr(list_view.adapter, 'selection'))
         self.assertEqual(len(list_view.adapter.data), 100)
         self.assertEqual(type(list_view.get_item_view(0)), ListItemButton)
+
+    def test_simple_list_view_deletion(self):
+
+        list_view = \
+                ListView(item_strings=[str(index) for index in xrange(100)])
+
+        self.assertEqual(len(list_view.adapter.data), 100)
+        del list_view.adapter.data[49]
+        self.assertEqual(len(list_view.adapter.data), 99)
+
