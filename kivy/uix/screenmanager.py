@@ -224,7 +224,7 @@ class TransitionBase(EventDispatcher):
     None, read-only.
     '''
 
-    is_active = BooleanProperty()
+    is_active = BooleanProperty(False)
     '''Indicate if the transition is currently active
 
     :data:`is_active` is a :class:`~kivy.properties.BooleanProperty`, default
@@ -687,6 +687,21 @@ class ScreenManager(FloatLayout):
                 child == self.transition.screen_out):
                     continue
             child.pos = value
+
+    def on_touch_down(self, touch):
+        if self.transition.is_active:
+            return False
+        return super(ScreenManager, self).on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if self.transition.is_active:
+            return False
+        return super(ScreenManager, self).on_touch_move(touch)
+
+    def on_touch_up(self, touch):
+        if self.transition.is_active:
+            return False
+        return super(ScreenManager, self).on_touch_up(touch)
 
 if __name__ == '__main__':
     from kivy.app import App
