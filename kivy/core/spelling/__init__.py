@@ -95,7 +95,7 @@ class SpellingBase(object):
         Return a list of all languages supported by the registered languages.
         E.g.: ['en', 'en_GB', 'en_US', 'de', ...]
         '''
-        raise NotImplementedError('list_languages() is not implemented ' + \
+        raise NotImplementedError('list_languages() is not implemented '
                                   'by abstract spelling base class!')
 
     def check(self, word):
@@ -109,7 +109,7 @@ class SpellingBase(object):
                 If the word shouldn't be checked, return None (e.g. for '').
 
         '''
-        raise NotImplementedError('check() not implemented by abstract ' + \
+        raise NotImplementedError('check() not implemented by abstract ' +
                                   'spelling base class!')
 
     def suggest(self, fragment):
@@ -124,7 +124,7 @@ class SpellingBase(object):
                 E.g.: 'foo' might become 'of', 'food' or 'foot'.
 
         '''
-        raise NotImplementedError('suggest() not implemented by abstract ' + \
+        raise NotImplementedError('suggest() not implemented by abstract ' +
                                   'spelling base class!')
 
 

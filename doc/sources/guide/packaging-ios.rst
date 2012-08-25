@@ -31,6 +31,8 @@ use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install thoses dependencie
 
 Ensure that everything is ok before starting the second step!
 
+.. _Compile the distribution:
+
 Compile the distribution
 ------------------------
 
@@ -45,6 +47,7 @@ If you don't want to compile all the things needed for kivy, edit and change
 
 Most of the python distribution will be packed into a `python27.zip`.
 
+.. _Create an Xcode project:
 
 Create an Xcode project
 -----------------------
@@ -58,6 +61,7 @@ Now you can open the Xcode project::
 
     $ open app-test/test.xcodeproj
 
+.. _Customize:
 
 Customize
 ---------
@@ -75,6 +79,7 @@ You can customize the build in many ways:
    triple-check that they are all set to NO. Stripping is not working with
    Python dynamic modules, and will strip needed symbols.
 
+.. _Known issues:
 
 Known issues
 ------------
@@ -98,6 +103,8 @@ development):
   possible cause kivy project need it.
 
 - And more, just too technical to be written here.
+
+.. _ios_packaging_faq:
 
 FAQ
 ---

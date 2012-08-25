@@ -52,4 +52,5 @@ cdef class AliasProperty(Property):
     cdef object getter
     cdef object setter
     cdef list bind_objects
+    cdef int use_cache
     cpdef trigger_change(self, obj, value)

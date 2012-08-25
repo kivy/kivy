@@ -117,7 +117,7 @@ def install_android():
                 Logger.info('Android: Android resumed, resume the app')
                 app.dispatch('on_resume')
                 Window.canvas.ask_update()
-                g_android_redraw_count = 25 # 5 frames/seconds, during 5 seconds
+                g_android_redraw_count = 25  # 5 frames/seconds during 5 seconds
                 Clock.unschedule(_android_ask_redraw)
                 Clock.schedule_interval(_android_ask_redraw, 1 / 5)
                 Logger.info('Android: App resume completed.')

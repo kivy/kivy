@@ -42,15 +42,15 @@ else:
 
     class RECT(Structure):
         _fields_ = [
-        ('left', ULONG),
-        ('top', ULONG),
-        ('right', ULONG),
-        ('bottom', ULONG)]
+            ('left', ULONG),
+            ('top', ULONG),
+            ('right', ULONG),
+            ('bottom', ULONG)]
 
         x = property(lambda self: self.left)
         y = property(lambda self: self.top)
-        w = property(lambda self: self.right-self.left)
-        h = property(lambda self: self.bottom-self.top)
+        w = property(lambda self: self.right - self.left)
+        h = property(lambda self: self.bottom - self.top)
     win_rect = RECT()
 
     windll.user32.SetWindowLongPtrW.restype = WNDPROC

@@ -8,11 +8,15 @@ MacOSX 10.6, using the portable package of Kivy.
 The package will be only for 64 bits MacOSX. We have no way to do 32 bits right
 now, since we are not supporting 32 bits MacOSX platform.
 
+.. _mac_osx_requirements:
+
 Requirements
 ------------
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
     * PyInstaller 1.5: http://www.pyinstaller.org/#Downloads
+
+.. _mac_Install-configure-PyInstaller:
 
 Install and configure PyInstaller
 ---------------------------------
@@ -35,6 +39,8 @@ able to package your Kivy application.
     popd
 
 Now, your pyinstaller installation is ready to be used !
+
+.. _mac_Create-the-spec-file:
 
 Create the spec file
 --------------------
@@ -69,6 +75,8 @@ file is named `main.py`. Replace both path/filename according to your system.
                    )
 
 #. This is done, your spec is ready to be executed !
+
+.. _Build the spec and create DMG:
 
 Build the spec and create DMG
 -----------------------------

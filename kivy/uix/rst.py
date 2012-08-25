@@ -453,8 +453,7 @@ class RstDocument(ScrollView):
         self._trigger_load = Clock.create_trigger(self._load_from_text, -1)
         self._parser = rst.Parser()
         self._settings = frontend.OptionParser(
-            components=(rst.Parser, )
-            ).get_default_values()
+                components=(rst.Parser, )).get_default_values()
         super(RstDocument, self).__init__(**kwargs)
 
     def on_source(self, instance, value):

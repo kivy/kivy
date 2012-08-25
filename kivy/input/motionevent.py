@@ -159,7 +159,7 @@ class MotionEvent(object):
         #: dx, dy, dz, ox, oy, oz, px, py, pz.
         self.push_attrs_stack = []
         self.push_attrs = ('x', 'y', 'z', 'dx', 'dy', 'dz', 'ox', 'oy', 'oz',
-                           'px', 'py', 'pz')
+                           'px', 'py', 'pz', 'pos')
 
         #: Uniq ID of the touch. You can safely use this property, it will be
         #: never the same accross all existing touches.
@@ -238,6 +238,8 @@ class MotionEvent(object):
         self.dy = None
         #: Delta between self.z and self.pz, in window range
         self.dz = None
+        #: Position (X, Y), in window range
+        self.pos = (0.0, 0.0)
 
         #: Initial time of the touch creation
         self.time_start = time()
@@ -356,6 +358,9 @@ class MotionEvent(object):
         self.dy = self.y - self.py
         self.dz = self.z - self.pz
 
+        # cache position
+        self.pos = self.x, self.y
+
     def push(self, attrs=None):
         '''Push attributes values in `attrs` in the stack
         '''
@@ -375,7 +380,7 @@ class MotionEvent(object):
         '''Apply a transformation on x, y, z, px, py, pz,
         ox, oy, oz, dx, dy, dz
         '''
-        self.x, self.y = transform(self.x, self.y)
+        self.x, self.y = self.pos = transform(self.x, self.y)
         self.px, self.py = transform(self.px, self.py)
         self.ox, self.oy = transform(self.ox, self.oy)
         self.dx = self.x - self.px
@@ -395,12 +400,6 @@ class MotionEvent(object):
         self.time_end = time()
 
     # facilities
-    @property
-    def pos(self):
-        '''Return position of the touch in the screen coordinate
-        system (self.x, self.y)'''
-        return self.x, self.y
-
     @property
     def dpos(self):
         '''Return delta between last position and current position, in the

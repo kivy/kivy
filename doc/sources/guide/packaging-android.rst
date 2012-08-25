@@ -8,6 +8,8 @@ Create a package for Android
     `python-for-android <http://github.com/kivy/python-for-android>`_
     (`doc <http://python-for-android.readthedocs.org/en/latest/index.html>`_)
 
+.. _Packaging your application into APK:
+
 Packaging your application into APK
 -----------------------------------
 
@@ -99,6 +101,7 @@ http://developer.android.com/guide/publishing/app-signing.html
 The release binary will be generated in
 bin/KivyTouchtracer-1.1.0-release-unsigned.apk (for the previous touchtracer example.)
 
+.. _Packaging your application for Kivy Launcher:
 
 Packaging your application for Kivy Launcher
 --------------------------------------------
