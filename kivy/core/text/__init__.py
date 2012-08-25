@@ -399,16 +399,13 @@ class LabelBase(object):
         return self._text
 
     def _set_text(self, text):
+        if type(text) == str:
+            text = unicode(text, 'utf8')
+        if type(self.text) == str:
+            self._text = unicode(self._text, 'utf8')
         if text == self._text:
             return
-        # try to automaticly decode unicode
-        try:
-            self._text = text.decode('utf8')
-        except:
-            try:
-                self._text = str(text)
-            except:
-                self._text = text
+        self._text = text
     text = property(_get_text, _set_text, doc='Get/Set the text')
     label = property(_get_text, _set_text, doc='Get/Set the text')
 

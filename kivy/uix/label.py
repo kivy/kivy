@@ -132,6 +132,7 @@ class Label(Widget):
 
         self._label = None
         self._create_label()
+        self._label.text = self.text
 
         # force the texture creation
         self._trigger_texture()
