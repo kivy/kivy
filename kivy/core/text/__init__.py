@@ -401,6 +401,8 @@ class LabelBase(object):
         except AttributeError:
             # python 3 support
             return str(self._text)
+        except UnicodeEncodeError:
+            return self._text
 
     def _set_text(self, text):
         if text != self._text:
