@@ -129,7 +129,7 @@ one .)
 Kivy tests are based on nosetest, that you can install from your package
 manager or using pip :
 
-  $ pip install nosetest
+  $ pip install nose
 
 to run the test suite, do :
 
