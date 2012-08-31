@@ -396,19 +396,18 @@ class LabelBase(object):
                      sz[1] + self.options['padding_y'] * 2
 
     def _get_text(self):
-        return self._text
+        try:
+            return self._text.decode('utf8')
+        except AttributeError:
+            # python 3 support
+            return str(self._text)
+        except UnicodeEncodeError:
+            return self._text
 
     def _set_text(self, text):
-        if text == self._text:
-            return
-        # try to automaticly decode unicode
-        try:
-            self._text = text.decode('utf8')
-        except:
-            try:
-                self._text = str(text)
-            except:
-                self._text = text
+        if text != self._text:
+            self._text = text
+
     text = property(_get_text, _set_text, doc='Get/Set the text')
     label = property(_get_text, _set_text, doc='Get/Set the text')
 
