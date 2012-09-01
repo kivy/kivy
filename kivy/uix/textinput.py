@@ -873,7 +873,6 @@ class TextInput(Widget):
 
     def _delete_line(self, idx):
         # Delete current line, and fix cursor position
-        print 'delete lines'
         assert(idx < len(self._lines))
         self._lines.pop(idx)
         self._lines_flags.pop(idx)
