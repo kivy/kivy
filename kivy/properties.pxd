@@ -2,6 +2,9 @@ cdef class Property:
     cdef str _name
     cdef int allownone
     cdef object defaultvalue
+    cdef object errorvalue
+    cdef object errorhandler
+    cdef int errorvalue_set
     cdef init_storage(self, dict storage)
     cpdef link(self, object obj, str name)
     cpdef link_deps(self, object obj, str name)

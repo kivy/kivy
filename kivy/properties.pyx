@@ -83,6 +83,27 @@ With Kivy, you can simplify like this::
 That's all!
 
 
+Error Handling
+~~~~~~~~~~~~~~
+
+If setting a value would otherwise raise a ValueError, you have two options to
+handle the error gracefully within the property.  An errorvalue is a substitute
+for the invalid value.  An errorhandler is a callable (single argument function
+or lambda) which can return a valid substitute::
+
+
+errorhandler parameter::
+    # simply returns 0 if the value exceeds the bounds
+    bnp = BoundedNumericProperty(0, min=-500, max=500, errorvalue=0)
+
+
+errorvalue parameter::
+    # returns a the boundary value when exceeded
+    bnp = BoundedNumericProperty(0, min=-500, max=500, 
+        errorhandler=lambda x: 500 if x > 500 else -500)
+
+
+
 Conclusion
 ~~~~~~~~~~
 
@@ -182,16 +203,38 @@ cdef class Property:
         a = MyObject()
         a.hello = 'bleh' # working
         a.hello = None # working too, because allownone is True.
+
+    :Parameters:
+        `errorhandler`: callable
+            If set, must take a single argument and return a valid substitute value
+        `errorvalue`: object
+            If set, will replace an invalid property value (overrides errorhandler)
+
+    .. versionchanged:: 1.4.0
+        Parameters errorhandler and errorvalue added    
     '''
 
     def __cinit__(self):
         self._name = ''
         self.allownone = 0
         self.defaultvalue = None
+        self.errorvalue = None
+        self.errorhandler = None
+        self.errorvalue_set = 0
+
 
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
+        self.errorvalue = kw.get('errorvalue', None)
+        self.errorhandler = kw.get('errorhandler', None)
+
+        if 'errorvalue' in kw:
+            self.errorvalue_set = 1
+
+        if 'errorhandler' in kw and not callable(self.errorhandler):
+            raise ValueError('errorhandler %s not callable' % self.errorhandler)
+
 
     property name:
         def __get__(self):
@@ -200,7 +243,11 @@ cdef class Property:
     cdef init_storage(self, dict storage):
         storage['value'] = self.defaultvalue
         storage['allownone'] = self.allownone
+        storage['errorvalue'] = self.errorvalue
+        storage['errorhandler'] = self.errorhandler
+        storage['errorvalue_set'] = self.errorvalue_set
         storage['observers'] = []
+
 
     cpdef link(self, object obj, str name):
         '''Link the instance with its real name.
@@ -263,7 +310,22 @@ cdef class Property:
         realvalue = d['value']
         if self.compare_value(realvalue, value):
             return False
-        self.check(obj, value)
+
+        try:
+            self.check(obj, value)            
+        except ValueError as e:
+            errorvalue = obj.__storage[self._name]['errorvalue']
+            errorhandler = obj.__storage[self._name]['errorhandler']
+            errorvalue_set = obj.__storage[self._name]['errorvalue_set']
+            if errorvalue_set == 1:
+                value = errorvalue
+                self.check(obj, value)
+            elif errorhandler is not None:
+                value = errorhandler(value)
+                self.check(obj, value)
+            else:
+                raise e
+
         d['value'] = value
         self.dispatch(obj)
         return True
