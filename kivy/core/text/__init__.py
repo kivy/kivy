@@ -153,7 +153,7 @@ class LabelBase(object):
 
     def resolve_font_name(self):
         options = self.options
-        fontname = self.options['font_name']
+        fontname = options['font_name']
         fonts = self._fonts
         fontscache = self._fonts_cache
 
