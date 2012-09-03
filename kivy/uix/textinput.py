@@ -206,7 +206,7 @@ class TextInput(Widget):
         self._selection_finished = True
         self._selection_touch = None
         self.selection_text = ''
-        self.__selection_from = None
+        self._selection_from = None
         self._selection_to = None
         self._bubble = None
         self._lines_flags = []

@@ -106,7 +106,7 @@ class ScrollView(StencilView):
     def __init__(self, **kwargs):
         self._touch = False
         self._tdx = self._tdy = self._ts = self._tsn = 0
-        self._scroll_y_mouse = 0
+        self._scroll_y_mouse = 1
         super(ScrollView, self).__init__(**kwargs)
         self.bind(scroll_x=self.update_from_scroll,
                   scroll_y=self.update_from_scroll,
