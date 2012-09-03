@@ -40,10 +40,10 @@ class Carousel(StencilView):
     '''
 
     slides = ListProperty([])
-    ''' List of slides inside the carousel.  The slides are added when a
-    widget is added to Carousel using add_widget().
+    '''List of slides inside the carousel. The slides are added when a widget is
+    added to Carousel using add_widget().
 
-    :data: `slides` is a list of `~kivy.ui.relativelayout.RelativeLayout`
+    :data:`slides` is a list of :class:`~kivy.ui.relativelayout.RelativeLayout`
     widgets containing the content added through add_widget.
     '''
 
