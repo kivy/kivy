@@ -9,6 +9,20 @@ where you can swipe between slides.
 You can add any content to the carousel and use it horizontally or verticaly.
 The carousel can display pages in loop or not.
 
+Example::
+
+    class Example1(App):
+
+        def build(self):
+            carousel = Carousel(direction='right')
+            for i in range(10):
+                src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
+                image = Factory.AsyncImage(source=src, allow_stretch=True)
+                carousel.add_widget(image)
+            return carousel
+
+    Example1().run()
+
 '''
 
 __all__ = ('Carousel', )
@@ -22,6 +36,8 @@ from kivy.properties import BooleanProperty, OptionProperty, AliasProperty, \
 
 
 class Carousel(StencilView):
+    '''Carousel class. See module documentation for more information.
+    '''
 
     slides = ListProperty([])
     ''' List of slides inside the carousel.  The slides are added when a
