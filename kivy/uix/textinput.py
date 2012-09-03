@@ -199,7 +199,7 @@ class TextInput(Widget):
         self._selection_finished = True
         self._selection_touch = None
         self.selection_text = ''
-        self.__selection_from = None
+        self._selection_from = None
         self._selection_to = None
         self._bubble = None
         self._lines_flags = []
@@ -419,7 +419,7 @@ class TextInput(Widget):
                 self._selection = True
                 self.delete_selection(True)
             elif undo_type == 'bkspc':
-                substring = x_item['undo_command'][2:]
+                substring = x_item['undo_command'][2:][0]
                 self.insert_text(substring, True)
             else:
                 # delsel
