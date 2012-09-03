@@ -240,12 +240,12 @@ class TextInput(Widget):
         self.bind(font_size=self._trigger_refresh_line_options,
                   font_name=self._trigger_refresh_line_options)
 
-        self.bind(padding_x=self._trigger_refresh_text,
-                  padding_y=self._trigger_refresh_text,
-                  tab_width=self._trigger_refresh_text,
-                  font_size=self._trigger_refresh_text,
-                  font_name=self._trigger_refresh_text,
-                  size=self._trigger_refresh_text)
+        self.bind(padding_x=self._update_text_options,
+                  padding_y=self._update_text_options,
+                  tab_width=self._update_text_options,
+                  font_size=self._update_text_options,
+                  font_name=self._update_text_options,
+                  size=self._update_text_options)
 
         self.bind(pos=self._trigger_update_graphics)
 
@@ -902,6 +902,10 @@ class TextInput(Widget):
         Clock.schedule_once(
             lambda *args: self._refresh_text_from_property(*largs))
 
+    def _update_text_options(self, *largs):
+        Cache_remove('textinput.width')
+        self._trigger_refresh_text()
+
     def _refresh_text_from_property(self, *largs):
         self._refresh_text(self.text, *largs)
 
@@ -1096,7 +1100,6 @@ class TextInput(Widget):
         miny = self.y + _padding_y
         maxy = _top - _padding_y
         draw_selection = self._draw_selection
-        #scroll_y = self.scroll_y
         a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
