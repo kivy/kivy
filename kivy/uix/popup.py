@@ -103,14 +103,6 @@ class Popup(ModalView):
     title'.
     '''
 
-    background = StringProperty(
-        'atlas://data/images/defaulttheme/popup-background')
-    '''Background image of the view used for the view background.
-
-    :data:`background` is an :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/popup-background'
-    '''
-
     content = ObjectProperty(None)
     '''Content of the popup that is displayed just under the title.
 
