@@ -20,7 +20,7 @@ class LabelPIL(LabelBase):
     _cache = {}
 
     def _select_font(self):
-        fontsize = int(self.options['font_size'] * 1.333)
+        fontsize = int(self.options['font_size'])
         fontname = self.options['font_name_r']
         id = '%s.%s' % (unicode(fontname), unicode(fontsize))
         if not id in self._cache:
