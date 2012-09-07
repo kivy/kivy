@@ -16,7 +16,7 @@ cdef class Property:
 
 cdef class NumericProperty(Property):
     cdef float parse_str(self, object obj, value)
-    cdef float parse_list(self, object obj, value, bytes ext)
+    cdef float parse_list(self, object obj, value, str ext)
 
 cdef class StringProperty(Property):
     pass

@@ -374,7 +374,7 @@ cdef class NumericProperty(Property):
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
                     self.name, x))
-            return self.parse_list(obj, x[0], <bytes>x[1])
+            return self.parse_list(obj, x[0], <str>x[1])
         elif tp is str:
             return self.parse_str(obj, x)
         else:
@@ -383,9 +383,9 @@ cdef class NumericProperty(Property):
                 self.name, x))
 
     cdef float parse_str(self, object obj, value):
-        return self.parse_list(obj, value[:-2], <bytes>value[-2:])
+        return self.parse_list(obj, value[:-2], <str>value[-2:])
 
-    cdef float parse_list(self, object obj, value, bytes ext):
+    cdef float parse_list(self, object obj, value, str ext):
         # 1in = 2.54cm = 25.4mm = 72pt = 12pc
         global EventLoop
         if EventLoop is None:
