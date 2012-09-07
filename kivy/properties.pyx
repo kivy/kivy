@@ -153,6 +153,9 @@ __all__ = ('Property',
 
 from weakref import ref
 
+EventLoop = None
+
+
 cdef class Property:
     '''Base class for building more complex properties.
 
@@ -197,8 +200,8 @@ cdef class Property:
         def __get__(self):
             return self._name
 
-    cdef init_storage(self, dict storage):
-        storage['value'] = self.defaultvalue
+    cdef init_storage(self, object obj, dict storage):
+        storage['value'] = self.convert(obj, self.defaultvalue)
         storage['allownone'] = self.allownone
         storage['observers'] = []
 
@@ -223,8 +226,8 @@ cdef class Property:
         '''
         d = dict()
         self._name = name
-        self.init_storage(d)
         obj.__storage[name] = d
+        self.init_storage(obj, d)
 
     cpdef link_deps(self, object obj, str name):
         pass
@@ -327,27 +330,87 @@ cdef class NumericProperty(Property):
 
     The NumericProperty accepts only int or float.
 
-    >>> Widget.x = 42
-    >>> print Widget.x
+    >>> wid = Widget()
+    >>> wid.x = 42
+    >>> print wid.x
     42
-    >>> Widget.x = "plop"
-    Traceback (most recent call last):
-     File "<stdin>", line 1, in <module>
-     File "properties.pyx", line 93, in kivy.properties.Property.__set__
-     File "properties.pyx", line 111, in kivy.properties.Property.set
-     File "properties.pyx", line 159, in kivy.properties.NumericProperty.check
+    >>> wid.x = "plop"
+     Traceback (most recent call last):
+       File "<stdin>", line 1, in <module>
+       File "properties.pyx", line 93, in kivy.properties.Property.__set__
+       File "properties.pyx", line 111, in kivy.properties.Property.set
+       File "properties.pyx", line 159, in kivy.properties.NumericProperty.check
      ValueError: NumericProperty accept only int/float
+
+    .. versionchanged:: 1.4.1
+        NumericProperty can now accept custom text and tuple value to indicate a
+        type, like "in", "pt", "px", "cm", "mm", in the format: '10pt' or (10,
+        'pt').
+
     '''
     def __init__(self, defaultvalue=0, **kw):
         super(NumericProperty, self).__init__(defaultvalue, **kw)
+
+    cdef init_storage(self, object obj, dict storage):
+        storage['format'] = 'px'
+        Property.init_storage(self, obj, storage)
 
     cdef check(self, obj, value):
         if Property.check(self, obj, value):
             return True
         if type(value) not in (int, float):
-            raise ValueError('%s.%s accept only int/float' % (
+            raise ValueError('%s.%s accept only int/float (got %r)' % (
                 obj.__class__.__name__,
-                self.name))
+                self.name, value))
+
+    cdef convert(self, obj, x):
+        if x is None:
+            return x
+        tp = type(x)
+        if tp is int or tp is float:
+            return x
+        if tp is tuple or tp is list:
+            if len(x) != 2:
+                raise ValueError('%s.%s must have 2 components (got %r)' % (
+                    obj.__class__.__name__,
+                    self.name, x))
+            return self.parse_list(obj, x[0], <bytes>x[1])
+        elif tp is str:
+            return self.parse_str(obj, x)
+        else:
+            raise ValueError('%s.%s have an invalid format (got %r)' % (
+                obj.__class__.__name__,
+                self.name, x))
+
+    cdef float parse_str(self, object obj, value):
+        return self.parse_list(obj, value[:-2], <bytes>value[-2:])
+
+    cdef float parse_list(self, object obj, value, bytes ext):
+        # 1in = 2.54cm = 25.4mm = 72pt = 12pc
+        global EventLoop
+        if EventLoop is None:
+            from kivy.base import EventLoop
+        cdef float rv = float(value)
+        cdef float dpi = EventLoop.dpi
+        obj.__storage[self.name]['format'] = ext
+        if ext == 'in':
+            return rv * dpi
+        elif ext == 'px':
+            return rv
+        elif ext == 'pt':
+            return rv * dpi / 72.
+        elif ext == 'cm':
+            return rv * dpi / 2.54
+        elif ext == 'mm':
+            return rv * dpi / 25.4
+
+    def get_format(self, obj):
+        '''
+        Return the format used for Numeric calculation. Default is px (mean
+        the value have not been changed at all). Otherwise, it can be one of
+        'in', 'pt', 'cm', 'mm'.
+        '''
+        return obj.__storage[self.name]['format']
 
 
 cdef class StringProperty(Property):
@@ -601,8 +664,8 @@ cdef class BoundedNumericProperty(Property):
             self.max = value
         Property.__init__(self, *largs, **kw)
 
-    cdef init_storage(self, dict storage):
-        Property.init_storage(self, storage)
+    cdef init_storage(self, object obj, dict storage):
+        Property.init_storage(self, obj, storage)
         storage['min'] = self.min
         storage['max'] = self.max
         storage['use_min'] = self.use_min
@@ -727,8 +790,8 @@ cdef class OptionProperty(Property):
         self.options = <list>(kw.get('options', []))
         super(OptionProperty, self).__init__(*largs, **kw)
 
-    cdef init_storage(self, dict storage):
-        Property.init_storage(self, storage)
+    cdef init_storage(self, object obj, dict storage):
+        Property.init_storage(self, obj, storage)
         storage['options'] = self.options[:]
 
     cdef check(self, obj, value):
@@ -769,8 +832,8 @@ cdef class ReferenceListProperty(Property):
             self.properties.append(prop)
         Property.__init__(self, largs, **kw)
 
-    cdef init_storage(self, dict storage):
-        Property.init_storage(self, storage)
+    cdef init_storage(self, object obj, dict storage):
+        Property.init_storage(self, obj, storage)
         storage['properties'] = self.properties
         storage['stop_event'] = 0
 
@@ -869,8 +932,8 @@ cdef class AliasProperty(Property):
         self.bind_objects = list(v) if v is not None else []
         self.use_cache = 1 if kwargs.get('cache') else 0
 
-    cdef init_storage(self, dict storage):
-        Property.init_storage(self, storage)
+    cdef init_storage(self, object obj, dict storage):
+        Property.init_storage(self, obj, storage)
         storage['getter'] = self.getter
         storage['setter'] = self.setter
         storage['initial'] = True
