@@ -10,7 +10,7 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'OrderedDict', 'QueryDict',
-           'platform', 'escape_markup')
+           'platform', 'escape_markup', 'reify')
 
 from sys import platform as _sys_platform
 from re import match, split
@@ -369,4 +369,29 @@ def escape_markup(text):
     .. versionadded:: 1.3.0
     '''
     return text.replace('[', '&bl;').replace(']', '&br;').replace('&', '&amp;')
+
+
+class reify(object):
+    '''
+    Put the result of a method which uses this (non-data) descriptor decorator
+    in the instance dict after the first call, effectively replacing the
+    decorator with an instance variable.
+
+    It acts like @property, except that the function is only ever called once;
+    after that, the value is cached as a regular attribute. This gives you lazy
+    attribute creation on objects that are meant to be immutable.
+
+    Taken from Pyramid project.
+    '''
+
+    def __init__(self, func):
+        self.func = func
+        self.__doc__ = func.__doc__
+
+    def __get__(self, inst, cls):
+        if inst is None:
+            return self
+        retval = self.func(inst)
+        setattr(inst, self.func.__name__, retval)
+        return retval
 
