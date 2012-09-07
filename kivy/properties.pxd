@@ -2,7 +2,7 @@ cdef class Property:
     cdef str _name
     cdef int allownone
     cdef object defaultvalue
-    cdef init_storage(self, dict storage)
+    cdef init_storage(self, object obj, dict storage)
     cpdef link(self, object obj, str name)
     cpdef link_deps(self, object obj, str name)
     cpdef bind(self, obj, observer)
@@ -15,8 +15,8 @@ cdef class Property:
     cpdef dispatch(self, obj)
 
 cdef class NumericProperty(Property):
-    cdef float parse_str(self, value)
-    cdef float parse_list(self, value, ext)
+    cdef float parse_str(self, object obj, value)
+    cdef float parse_list(self, object obj, value, bytes ext)
 
 cdef class StringProperty(Property):
     pass

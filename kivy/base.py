@@ -15,11 +15,12 @@ __all__ = (
     'stopTouchApp',
 )
 
+from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
-from kivy.utils import platform
+from kivy.utils import platform, reify
 
 # private vars
 EventLoop = None
@@ -86,7 +87,6 @@ class EventLoopBase(EventDispatcher):
 
     def __init__(self):
         super(EventLoopBase, self).__init__()
-        self._dpi = None
         self.quit = False
         self.input_events = []
         self.postproc_modules = []
@@ -105,21 +105,31 @@ class EventLoopBase(EventDispatcher):
         '''
         return self.me_list
 
-    @property
+    @reify
     def dpi(self):
-        '''Return the DPI of the screen.
+        '''Return the DPI of the screen. Depending of the platform, the DPI can
+        be taken from the Window provider (Desktop mainly), or from
+        platform-specific module (like android/ios).
+
+        On desktop, you can overload the value returned by the Window object
+        (96 by default), by setting the environ KIVY_DPI::
+
+            KIVY_DPI=200 python main.py
 
         .. versionadded:: 1.4.0
         '''
-        if self._dpi is None:
-            # first call, resolve the dpi
-            plat = platform()
-            if plat == 'android':
-                self._dpi = self.get_dpi()
-            else:
-                self.ensure_window()
-                self._dpi = self.window.get_dpi()
-        return self._dpi
+        custom_dpi = environ.get('KIVY_DPI')
+        if custom_dpi:
+            return float(custom_dpi)
+
+        plat = platform()
+        if plat == 'android':
+            import android
+            return android.get_dpi()
+
+        # for all other platforms..
+        self.ensure_window()
+        return self.window.dpi
 
     def ensure_window(self):
         '''Ensure that we have an window

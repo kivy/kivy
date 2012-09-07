@@ -21,7 +21,7 @@ from kivy.modules import Modules
 from kivy.event import EventDispatcher
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
         NumericProperty, OptionProperty, StringProperty
-from kivy.utils import platform
+from kivy.utils import platform, reify
 
 # late import
 VKeyboard = None
@@ -804,11 +804,17 @@ class WindowBase(EventDispatcher):
         '''
         pass
 
-    def get_dpi(self):
+    @reify
+    def dpi(self):
         '''Return the DPI of the screen. If the implementation doesn't support
-        any DPI lookup, it will just return 100.
+        any DPI lookup, it will just return 96.
+
+        .. warning::
+
+            This value is not cross-platform. Use
+            :data:`kivy.base.EventLoop.dpi` instead.
         '''
-        return 100.
+        return 96.
 
     def configure_keyboards(self):
         # Configure how to provide keyboards (virtual or not)
