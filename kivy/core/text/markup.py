@@ -217,14 +217,15 @@ class MarkupLabel(MarkupLabelBase):
         uw, uh = self.text_size
 
         # split the word
+        default_line_height = get_extents(' ')[1]
         for part in re.split(r'( |\n)', word):
 
             if part == '':
-                part = ' '
+                continue
 
             if part == '\n':
                 # put a new line!
-                line = [0, 0, []]
+                line = [0, default_line_height, []]
                 lines.append(line)
                 continue
 
