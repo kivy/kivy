@@ -310,26 +310,18 @@ class MarkupLabel(MarkupLabelBase):
         # create texture is necessary
         texture = self.texture
         mipmap = self.options['mipmap']
-        if texture is None:
-            if data is None:
-                if platform() in ('android', 'ios'):
-                    colorfmt = 'rgba'
-                else:
-                    colorfmt = 'luminance_alpha'
-                texture = Texture.create(
-                        size=self.size, colorfmt=colorfmt,
-                        mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
+        if texture is None or \
+                self.width != texture.width or \
+                self.height != texture.height:
+            texture = Texture.create_from_data(data, mipmap=mipmap)
+            data = None
             texture.flip_vertical()
-        elif self.width != texture.width or self.height != texture.height:
-            if data is None:
-                texture = Texture.create(size=self.size, mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
-            texture.flip_vertical()
+            texture.add_reload_observer(self._texture_refresh)
+            self.texture = texture
 
         # update texture
-        self.texture = texture
-        self.texture.blit_data(data)
+        # If the text is 1px width, usually, the data is black.
+        # Don't blit that kind of data, otherwise, you have a little black bar.
+        if data is not None and data.width > 1:
+            texture.blit_data(data)
 
