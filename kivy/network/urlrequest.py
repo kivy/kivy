@@ -155,7 +155,8 @@ class UrlRequest(Thread):
         else:
             q(('success', resp, result))
 
-        self._trigger_result()
+        # using trigger can result in a missed on_success event
+        self._dispatch_result(0)
 
     def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
@@ -219,6 +220,10 @@ class UrlRequest(Thread):
                 # report progress to user
                 q(('progress', resp, (bytes_so_far, total_size)))
                 trigger()
+            # ensure that restults are dispatch for the last chunk,
+            # avaoid trigger
+            self._dispatch_result(0)
+            q(('progress', resp, (bytes_so_far, total_size)))
         else:
             result = resp.read()
         req.close()
