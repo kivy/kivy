@@ -1,7 +1,7 @@
 cdef class Property:
     cdef str _name
     cdef int allownone
-    cdef object defaultvalue
+    cdef public object defaultvalue
     cdef init_storage(self, object obj, dict storage)
     cpdef link(self, object obj, str name)
     cpdef link_deps(self, object obj, str name)
