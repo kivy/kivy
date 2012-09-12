@@ -59,6 +59,8 @@ else:
         windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
         SetWindowLong_wrapper = windll.user32.SetWindowLongPtrW
     else:
+        windll.user32.SetWindowLongW.restype = WNDPROC
+        windll.user32.SetWindowLongW.argtypes = [HANDLE, c_int, WNDPROC]
         SetWindowLong_wrapper = windll.user32.SetWindowLongW
 
     windll.user32.GetMessageExtraInfo.restype = LPARAM

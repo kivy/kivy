@@ -43,8 +43,7 @@ if 'KIVY_DOC' in os.environ:
 else:
     from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
             WPARAM, LPARAM, POINTER, BOOL)
-    from ctypes import (windll, WINFUNCTYPE, c_int,
-                        Structure, pointer, sizeof, byref)
+    from ctypes import windll, WINFUNCTYPE, c_int, Structure, sizeof, byref
     from collections import deque
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
@@ -104,6 +103,8 @@ else:
         windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
         SetWindowLong_wrapper = windll.user32.SetWindowLongPtrW
     else:
+        windll.user32.SetWindowLongW.restype = WNDPROC
+        windll.user32.SetWindowLongW.argtypes = [HANDLE, c_int, WNDPROC]
         SetWindowLong_wrapper = windll.user32.SetWindowLongW
 
     windll.user32.GetMessageExtraInfo.restype = LPARAM
@@ -202,7 +203,7 @@ else:
             touches = (TOUCHINPUT * wParam)()
             windll.user32.GetTouchInputInfo(HANDLE(lParam),
                                             wParam,
-                                            pointer(touches),
+                                            touches,
                                             sizeof(TOUCHINPUT))
             for i in xrange(wParam):
                 self.touch_events.appendleft(touches[i])
