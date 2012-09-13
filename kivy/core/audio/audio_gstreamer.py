@@ -1,4 +1,4 @@
- '''
+'''
 AudioGstreamer: implementation of Sound with GStreamer
 '''
 
