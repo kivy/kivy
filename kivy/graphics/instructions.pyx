@@ -499,6 +499,7 @@ cdef class Canvas(CanvasBase):
     def __init__(self, **kwargs):
         get_context().register_canvas(self)
         CanvasBase.__init__(self, **kwargs)
+        self._opacity = kwargs.get('opacity', 1.0)
         self._before = None
         self._after = None
 
@@ -529,6 +530,19 @@ cdef class Canvas(CanvasBase):
         '''Apply the instruction on our window.
         '''
         self.apply()
+
+    cdef void apply(self):
+        cdef float opacity = self._opacity
+        cdef float rc_opacity
+        cdef RenderContext rc
+        if opacity != 1.0:
+            rc = getActiveContext()
+            rc_opacity = rc['opacity']
+            rc.push_state('opacity')
+            rc['opacity'] = rc_opacity * opacity
+        InstructionGroup.apply(self)
+        if opacity != 1.0:
+            rc.pop_state('opacity')
 
     cpdef add(self, Instruction c):
         # the after group must remain the last one.
@@ -568,6 +582,15 @@ cdef class Canvas(CanvasBase):
                 self.add(c)
                 self._after = c
             return self._after
+
+    property opacity:
+        '''Property for getting the opacity value
+        '''
+        def __get__(self):
+            return self._opacity
+        def __set__(self, value):
+            self._opacity = value
+            self.flag_update()
 
 # Active Canvas and getActiveCanvas function is used
 # by instructions, so they know which canvas to add
@@ -629,8 +652,8 @@ cdef class RenderContext(Canvas):
         self.default_texture = tex
 
         self.state_stacks = {
+            'opacity': [1.0],
             'texture0' : [0],
-            'linewidth': [1.0],
             'color'    : [[1.0,1.0,1.0,1.0]],
             'projection_mat': [Matrix()],
             'modelview_mat' : [Matrix()],
