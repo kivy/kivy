@@ -537,8 +537,8 @@ class Widget(EventDispatcher):
 
     .. versionadded:: 1.4.1
 
-    The opacity attribute control the opacity of the widget and the children.
-    Take care, it's a cumulative attribute: the value is multiplied to the
+    The opacity attribute controls the opacity of the widget and its children.
+    Be careful, it's a cumulative attribute: the value is multiplied to the
     current global opacity, and the result is applied to the current context
     color.
 

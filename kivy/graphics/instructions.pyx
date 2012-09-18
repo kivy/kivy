@@ -584,7 +584,22 @@ cdef class Canvas(CanvasBase):
             return self._after
 
     property opacity:
-        '''Property for getting the opacity value
+        '''Property for get/set the opacity value of the canvas.
+
+        .. versionadded:: 1.4.1
+
+        The opacity attribute controls the opacity of the canvas and its
+        children.  Be careful, it's a cumulative attribute: the value is
+        multiplied to the current global opacity, and the result is applied to
+        the current context color.
+
+        For example: if your parent have an opacity of 0.5, and one children have an
+        opacity of 0.2, the real opacity of the children will be 0.5 * 0.2 = 0.1.
+
+        Then, the opacity is applied on the shader as::
+
+            frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
+
         '''
         def __get__(self):
             return self._opacity
