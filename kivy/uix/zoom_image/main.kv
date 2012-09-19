@@ -1,0 +1,66 @@
+#:kivy 1.0.8
+
+<ZoomImage>:
+	size_hint:(None, None)
+	size: self.size
+	pos: self.pos
+	scatter:scatter
+	im:im
+	
+	ZIScatter:
+		id: scatter
+		zoom_image: root
+		do_translation: True
+		do_scale: True
+		do_rotation: False
+		size_hint:(None, None)
+		size: self.parent.size
+		scale_min: 1
+		scale_max: 6
+		init_pos: root.center
+
+		Image:
+			id: im
+			keep_ratio: False
+			color: [1., 1., 1., .2]
+			source: root.source
+			size_hint:(None, None)
+			size: self.parent.size
+			
+
+
+	BoxLayout:
+		id: image
+		size_hint:(None, None)
+		size: root.size
+		pos:root.pos      
+
+		canvas.before:	
+			Color:
+				rgba: 1, 0, 0, 0
+			Rectangle:
+				size: root.size
+				pos: root.pos 	
+			StencilPush
+			#add mask
+			Rectangle:
+				size:  image.size
+				pos: root.pos
+			StencilUse
+			#add content to the mask
+			Color:
+				rgba: 1, 1, 1, root.opacity
+			Rectangle:
+				size: scatter.width * scatter.scale, scatter.height * scatter.scale			
+				pos: scatter.x, scatter.y	
+				texture: im.texture
+			
+			StencilPop
+
+		
+
+					
+
+	
+	
+
