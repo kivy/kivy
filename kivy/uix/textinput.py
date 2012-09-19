@@ -1472,6 +1472,40 @@ class TextInput(Widget):
     to [0.1843, 0.6549, 0.8313, .5]
     '''
 
+    border = ListProperty([16, 16, 16, 16])
+    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
+    graphics instruction. Used with :data:`background_normal` and
+    :data:`background_active`. Can be used for a custom background.
+
+    .. versionadded:: 1.4.1
+
+    It must be a list of four values: (top, right, bottom, left). Read the
+    BorderImage instruction for more information about how to use it.
+
+    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (16,
+    16, 16, 16)
+    '''
+
+    background_normal = StringProperty(
+        'atlas://data/images/defaulttheme/textinput')
+    '''Background image of the TextInput when it's not in focus'.
+
+    .. versionadded:: 1.4.1
+
+    :data:`background_normal` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/textinput'
+    '''
+
+    background_active = StringProperty(
+        'atlas://data/images/defaulttheme/textinput_active')
+    '''Background image of the TextInput when it's in focus'.
+
+    .. versionadded:: 1.4.1
+
+    :data:`background_active` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/textinput_active'
+    '''
+
     background_color = ListProperty([1, 1, 1, 1])
     '''Current color of the background, in (r, g, b, a) format.
 
