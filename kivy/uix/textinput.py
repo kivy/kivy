@@ -1477,6 +1477,8 @@ class TextInput(Widget):
     graphics instruction. Used with :data:`background_normal` and
     :data:`background_active`. Can be used for a custom background.
 
+    .. versionadded:: 1.4.1
+
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instruction for more information about how to use it.
 
