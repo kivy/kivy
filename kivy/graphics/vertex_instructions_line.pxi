@@ -60,6 +60,7 @@ cdef class Line(VertexInstruction):
             self.batch.clear_data()
             return
 
+        self.batch.set_mode('line_strip')
         if self._dash_offset != 0:
             if texture is None or texture._width != \
                 (self._dash_length + self._dash_offset) or \
@@ -119,6 +120,189 @@ cdef class Line(VertexInstruction):
         cdef float tex_x
         cdef char *buf = NULL
         cdef Texture texture = self.texture
+
+        if count < 2:
+            self.batch.clear_data()
+            return
+
+        self.batch.set_mode('triangles')
+        cdef unsigned int vertices_count = (count - 1) * 4
+        cdef unsigned int indices_count = (count - 1) * 6
+        cdef unsigned int iv = 0, ii = 0
+
+        if self._joint == LINE_JOINT_BEVEL:
+            indices_count += (count - 2) * 3
+            vertices_count += (count - 2)
+
+        if self._cap == LINE_CAP_SQUARE:
+            indices_count += 12
+            vertices_count += 4
+
+        vertices = <vertex_t *>malloc(vertices_count * sizeof(vertex_t))
+        if vertices == NULL:
+            raise MemoryError('vertices')
+
+        indices = <unsigned short *>malloc(indices_count * sizeof(unsigned short))
+        if indices == NULL:
+            free(vertices)
+            raise MemoryError('indices')
+
+        cdef double ax, ay, bx, by, cx, cy, angle, a1, a2
+        cdef double x1, y1, x2, y2, x3, y3, x4, y4
+        cdef double sx1, sy1, sx4, sy4, sangle
+        cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle
+        cdef double w = self._width
+        cdef unsigned int pii, piv, pii2, piv2
+        cdef double jangle
+        pii = piv = pcx = pcy = cx = cy = ii = iv = 0
+        for i in range(0, count - 1):
+            ax = p[i * 2]
+            ay = p[i * 2 + 1]
+            bx = p[i * 2 + 2]
+            by = p[i * 2 + 3]
+
+            if i > 0 and self._joint != LINE_JOINT_NONE:
+                pcx = cx
+                pcy = cy
+                px1 = x1
+                px2 = x2
+                px3 = x3
+                px4 = x4
+                py1 = y1
+                py2 = y2
+                py3 = y3
+                py4 = y4
+
+            pii2 = pii
+            piv2 = piv
+            pii = ii
+            piv = iv
+            pangle = angle
+
+            # calculate the orientation of the segment, between pi and -pi
+            cx = bx - ax
+            cy = by - ay
+            angle = atan2(cy, cx)
+            a1 = angle - PI2
+            a2 = angle + PI2
+
+            # calculate the position of the segment
+            x1 = ax + cos(a1) * w
+            y1 = ay + sin(a1) * w
+            x4 = ax + cos(a2) * w
+            y4 = ay + sin(a2) * w
+            x2 = bx + cos(a1) * w
+            y2 = by + sin(a1) * w
+            x3 = bx + cos(a2) * w
+            y3 = by + sin(a2) * w
+
+            if i == 0:
+                sx1 = x1
+                sy1 = y1
+                sx4 = x4
+                sy4 = y4
+                sangle = angle
+
+            indices[ii    ] = iv
+            indices[ii + 1] = iv + 1
+            indices[ii + 2] = iv + 2
+            indices[ii + 3] = iv
+            indices[ii + 4] = iv + 2
+            indices[ii + 5] = iv + 3
+            ii += 6
+
+            vertices[iv].x = x1
+            vertices[iv].y = y1
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            iv += 1
+            vertices[iv].x = x2
+            vertices[iv].y = y2
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            iv += 1
+            vertices[iv].x = x3
+            vertices[iv].y = y3
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            iv += 1
+            vertices[iv].x = x4
+            vertices[iv].y = y4
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            iv += 1
+
+            # joint generation
+            if i == 0 or self._joint == LINE_JOINT_NONE:
+                continue
+
+            # calculate the angle of the previous and current segment
+            jangle = atan2(
+                cx * pcy - cy * pcx,
+                cx * pcx + cy * pcy)
+
+            # in case of the angle is NULL, avoid the generation
+            if jangle == 0 or jangle == PI or jangle == -PI:
+                if self._joint == LINE_JOINT_BEVEL:
+                    vertices_count -= 1
+                    indices_count -= 3
+                continue
+
+            if self._joint == LINE_JOINT_BEVEL:
+                vertices[iv].x = ax
+                vertices[iv].y = ay
+                vertices[iv].s0 = 0
+                vertices[iv].t0 = 0
+                if jangle < 0:
+                    indices[ii] = piv2 + 1
+                    indices[ii + 1] = piv
+                    indices[ii + 2] = iv
+                else:
+                    indices[ii] = piv2 + 2
+                    indices[ii + 1] = piv + 3
+                    indices[ii + 2] = iv
+                ii += 3
+                iv += 1
+
+        # caps
+        if self._cap == LINE_CAP_SQUARE:
+            vertices[iv].x = x2 + cos(angle) * w
+            vertices[iv].y = y2 + sin(angle) * w
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            vertices[iv + 1].x = x3 + cos(angle) * w
+            vertices[iv + 1].y = y3 + sin(angle) * w
+            vertices[iv + 1].s0 = 0
+            vertices[iv + 1].t0 = 0
+            indices[ii] = piv + 1
+            indices[ii + 1] = piv + 2
+            indices[ii + 2] = iv + 1
+            indices[ii + 3] = piv + 1
+            indices[ii + 4] = iv
+            indices[ii + 5] = iv + 1
+            ii += 6
+            iv += 2
+            vertices[iv].x = sx1 - cos(sangle) * w
+            vertices[iv].y = sy1 - sin(sangle) * w
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            vertices[iv + 1].x = sx4 - cos(sangle) * w
+            vertices[iv + 1].y = sy4 - sin(sangle) * w
+            vertices[iv + 1].s0 = 0
+            vertices[iv + 1].t0 = 0
+            indices[ii] = 0
+            indices[ii + 1] = 3
+            indices[ii + 2] = iv + 1
+            indices[ii + 3] = 0
+            indices[ii + 4] = iv
+            indices[ii + 5] = iv + 1
+            ii += 6
+            iv += 2
+
+        self.batch.set_data(vertices, vertices_count, indices, indices_count)
+
+        free(vertices)
+        free(indices)
 
 
 
@@ -188,12 +372,12 @@ cdef class Line(VertexInstruction):
                 return 'square'
             elif self._cap == LINE_CAP_ROUND:
                 return 'round'
-            return None
+            return 'none'
 
         def __set__(self, value):
-            if value not in (None, 'square', 'round'):
+            if value not in ('none', 'square', 'round'):
                 raise GraphicException('Invalid cap, must be one of '
-                        'None, "square", "round"')
+                        '"none", "square", "round"')
             if value == 'square':
                 self._cap = LINE_CAP_SQUARE
             elif value == 'round':
@@ -215,12 +399,12 @@ cdef class Line(VertexInstruction):
                 return 'bevel'
             elif self._joint == LINE_JOINT_MITER:
                 return 'miter'
-            return None
+            return 'none'
 
         def __set__(self, value):
-            if value not in (None, 'miter', 'bevel', 'round'):
+            if value not in ('none', 'miter', 'bevel', 'round'):
                 raise GraphicException('Invalid joint, must be one of '
-                    'None, "miter", "bevel", "round"')
+                    '"none", "miter", "bevel", "round"')
             if value == 'round':
                 self._joint = LINE_JOINT_ROUND
             elif value == 'bevel':

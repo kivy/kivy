@@ -19,7 +19,7 @@ from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.logger import Logger
-from kivy.graphics.texture import Texture
+from kivy.graphics.texture cimport Texture
 
 
 class GraphicException(Exception):
