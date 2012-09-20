@@ -415,7 +415,7 @@ class CompositeListItem(SelectableView, BoxLayout):
                                     cls_kwargs['delimiter'],
                                     kwargs['text'])
                         else:
-                            cls_kwargs['text'] = "{0}{2}".format(
+                            cls_kwargs['text'] = "{0}{1}".format(
                                     cls_kwargs['text'],
                                     kwargs['text'])
                 elif 'text' not in cls_kwargs:
