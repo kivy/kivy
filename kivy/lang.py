@@ -1300,6 +1300,10 @@ class BuilderBase(object):
                 widget_set.bind(**{key: partial(custom_callback,
                     crule, idmap)})
 
+                #hack for on_parent
+                if crule.name == 'on_parent':
+                    Factory.Widget.parent.dispatch(widget_set)
+
         # rule finished, forget it
         del self.rulectx[rootrule]
 
