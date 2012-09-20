@@ -409,10 +409,15 @@ class CompositeListItem(SelectableView, BoxLayout):
             if 'merge_text' in cls_kwargs:
                 if cls_kwargs['merge_text'] is True:
                     if 'text' in cls_kwargs:
-                        cls_kwargs['text'] = "{0}{1}{2}".format(
-                                cls_kwargs['text'],
-                                cls_kwargs['delimiter'],
-                                kwargs['text'])
+                        if 'delimiter' in cls_kwargs:
+                            cls_kwargs['text'] = "{0}{1}{2}".format(
+                                    cls_kwargs['text'],
+                                    cls_kwargs['delimiter'],
+                                    kwargs['text'])
+                        else:
+                            cls_kwargs['text'] = "{0}{2}".format(
+                                    cls_kwargs['text'],
+                                    kwargs['text'])
                 elif 'text' not in cls_kwargs:
                     cls_kwargs['text'] = kwargs['text']
             elif 'text' not in cls_kwargs:
