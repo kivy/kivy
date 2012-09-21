@@ -41,7 +41,7 @@ cdef class Line(VertexInstruction):
         self._width = kwargs.get('width') or 1.0
         self.joint = kwargs.get('joint') or 'round'
         self.cap = kwargs.get('cap') or 'round'
-        self._cap_precision = kwargs.get('cap_precision') or 20
+        self._cap_precision = kwargs.get('cap_precision') or 10
 
     cdef void build(self):
         if self._width == 1.0:
@@ -115,7 +115,7 @@ cdef class Line(VertexInstruction):
 
     cdef void build_extended(self):
         # TODO: current implementation doesn't support alpha well.
-        cdef int i, count = len(self.points) / 2
+        cdef int i, j, count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
@@ -135,6 +135,9 @@ cdef class Line(VertexInstruction):
         if self._joint == LINE_JOINT_BEVEL:
             indices_count += (count - 2) * 3
             vertices_count += (count - 2)
+        elif self._joint == LINE_JOINT_ROUND:
+            indices_count += (self._cap_precision * 3) * (count - 2)
+            vertices_count += (self._cap_precision + 1) * (count - 2)
 
         if self._cap == LINE_CAP_SQUARE:
             indices_count += 12
@@ -155,7 +158,7 @@ cdef class Line(VertexInstruction):
         cdef double ax, ay, bx, by, cx, cy, angle, a1, a2
         cdef double x1, y1, x2, y2, x3, y3, x4, y4
         cdef double sx1, sy1, sx4, sy4, sangle
-        cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle
+        cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2
         cdef double w = self._width
         cdef unsigned int pii, piv, pii2, piv2
         cdef double jangle
@@ -182,6 +185,7 @@ cdef class Line(VertexInstruction):
             piv2 = piv
             pii = ii
             piv = iv
+            pangle2 = pangle
             pangle = angle
 
             # calculate the orientation of the segment, between pi and -pi
@@ -268,6 +272,49 @@ cdef class Line(VertexInstruction):
                     indices[ii + 2] = iv
                 ii += 3
                 iv += 1
+
+            elif self._joint == LINE_JOINT_ROUND:
+
+                # cap end
+                if jangle < 0:
+                    a1 = pangle2 - PI2
+                    a2 = angle + PI2
+                    a0 = a2
+                    step = (abs(jangle)) / float(self._cap_precision)
+                    pivstart = piv + 3
+                    pivend = piv2 + 1
+                else:
+                    a1 = angle - PI2
+                    a2 = pangle2 + PI2
+                    a0 = a1
+                    step = -(abs(jangle)) / float(self._cap_precision)
+                    pivstart = piv
+                    pivend = piv2 + 2
+                siv = iv
+                vertices[iv].x = ax
+                vertices[iv].y = ay
+                vertices[iv].s0 = 0
+                vertices[iv].t0 = 0
+                iv += 1
+                for j in xrange(0, self._cap_precision - 1):
+                    vertices[iv].x = ax - cos(a0 - step * j) * w
+                    vertices[iv].y = ay - sin(a0 - step * j) * w
+                    vertices[iv].s0 = 0
+                    vertices[iv].t0 = 0
+                    if j == 0:
+                        indices[ii] = siv
+                        indices[ii + 1] = pivstart
+                        indices[ii + 2] = iv
+                    else:
+                        indices[ii] = siv
+                        indices[ii + 1] = iv - 1
+                        indices[ii + 2] = iv
+                    iv += 1
+                    ii += 3
+                indices[ii] = siv
+                indices[ii + 1] = iv - 1
+                indices[ii + 2] = pivend
+                ii += 3
 
         # caps
         if self._cap == LINE_CAP_SQUARE:
@@ -368,6 +415,10 @@ cdef class Line(VertexInstruction):
             indices[ii] = siv
             indices[ii + 1] = iv - 1
             indices[ii + 2] = piv + 2
+            ii += 3
+
+        print 'ii=', ii, 'indices_count=', indices_count
+        print 'iv=', iv, 'vertices_count', vertices_count
 
         self.batch.set_data(vertices, vertices_count, indices, indices_count)
 
