@@ -334,8 +334,18 @@ class ListItemButton(SelectableView, Button):
 
     def select(self, *args):
         self.background_color = self.selected_color
+        if type(self.parent) is CompositeListItem:
+            self.parent.select_from_child(self, *args)
 
     def deselect(self, *args):
+        self.background_color = self.deselected_color
+        if type(self.parent) is CompositeListItem:
+            self.parent.deselect_from_child(self, *args)
+
+    def select_from_composite(self, *args):
+        self.background_color = self.selected_color
+
+    def deselect_from_composite(self, *args):
         self.background_color = self.deselected_color
 
     def __repr__(self):
@@ -349,8 +359,18 @@ class ListItemLabel(SelectableView, Label):
 
     def select(self, *args):
         self.bold = True
+        if type(self.parent) is CompositeListItem:
+            self.parent.select_from_child(self, *args)
 
     def deselect(self, *args):
+        self.bold = False
+        if type(self.parent) is CompositeListItem:
+            self.parent.deselect_from_child(self, *args)
+
+    def select_from_composite(self, *args):
+        self.bold = True
+
+    def deselect_from_composite(self, *args):
         self.bold = False
 
     def __repr__(self):
@@ -433,6 +453,16 @@ class CompositeListItem(SelectableView, BoxLayout):
 
     def deselect(self, *args):
         self.background_color = self.deselected_color
+
+    def select_from_child(self, child, *args):
+        for c in self.children:
+            if c is not child:
+                c.select_from_composite(*args)
+
+    def deselect_from_child(self, child, *args):
+        for c in self.children:
+            if c is not child:
+                c.deselect_from_composite(*args)
 
     def __repr__(self):
         if self.representing_cls is not None:

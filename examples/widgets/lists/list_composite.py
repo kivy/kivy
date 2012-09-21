@@ -36,18 +36,14 @@ class MainView(GridLayout):
                  'size_hint_y': None,
                  'height': 25,
                  'cls_dicts': [{'cls': ListItemButton,
-                                'kwargs': {'text': "Left",
-                                           'merge_text': True,
-                                           'delimiter': '-'}},
+                                'kwargs': {'text': rec['text']}},
                                {'cls': ListItemLabel,
                                 'kwargs': {'text': "Middle",
                                            'merge_text': True,
                                            'delimiter': '-',
                                            'is_representing_cls': True}},
-                               {'cls': ListItemButton,
-                                'kwargs': {'text': "Right",
-                                           'merge_text': True,
-                                           'delimiter': '-'}}]}
+                               {'cls': ListItemButton, 
+                                'kwargs': {'text': rec['text']}}]}
 
         item_strings = ["{0}".format(index) for index in xrange(100)]
 
