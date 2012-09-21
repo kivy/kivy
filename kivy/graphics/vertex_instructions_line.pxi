@@ -174,7 +174,6 @@ cdef class Line(VertexInstruction):
         free(indices)
 
     cdef void build_extended(self):
-        # TODO: current implementation doesn't support alpha well.
         cdef int i, j, count = len(self.points) / 2
         cdef list p = self.points
         cdef vertex_t *vertices = NULL

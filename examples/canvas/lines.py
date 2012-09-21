@@ -2,6 +2,8 @@ from kivy.app import App
 from kivy.properties import OptionProperty, NumericProperty, ListProperty
 from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
+from kivy.clock import Clock
+from math import cos, sin
 
 Builder.load_string('''
 <LinePlayground>:
@@ -17,6 +19,13 @@ Builder.load_string('''
             rgba: .8, .8, .8, root.alpha_controlline
         Line:
             points: self.points
+        Color:
+            rgba: 1, .4, .4, root.alpha
+        Line:
+            points: self.points2
+            joint: self.joint
+            cap: self.cap
+            width: self.linewidth
 
     GridLayout:
         cols: 2
@@ -85,11 +94,20 @@ Builder.load_string('''
                     on_press: root.joint = self.text
 
         AnchorLayout:
-            Button:
+            GridLayout:
+                cols: 1
                 size_hint: None, None
-                size: 100, 44
-                text: 'Clear'
-                on_press: root.points = []
+                size: self.minimum_size
+                ToggleButton:
+                    size_hint: None, None
+                    size: 100, 44
+                    text: 'Animate'
+                    on_state: root.animate(self.state == 'down')
+                Button:
+                    size_hint: None, None
+                    size: 100, 44
+                    text: 'Clear'
+                    on_press: root.points = root.points2 = []
 
 ''')
 
@@ -98,9 +116,11 @@ class LinePlayground(FloatLayout):
     alpha_controlline = NumericProperty(1.0)
     alpha = NumericProperty(0.5)
     points = ListProperty([500, 500, 300, 300, 500, 300, 500, 400, 600, 400])
+    points2 = ListProperty([])
     joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
     cap = OptionProperty('none', options=('round', 'square', 'none'))
     linewidth = NumericProperty(10.0)
+    dt = NumericProperty(0)
 
     def on_touch_down(self, touch):
         if super(LinePlayground, self).on_touch_down(touch):
@@ -120,6 +140,29 @@ class LinePlayground(FloatLayout):
             touch.ungrab(self)
             return True
         return super(LinePlayground, self).on_touch_up(touch)
+
+    def animate(self, do_animation):
+        if do_animation:
+            Clock.schedule_interval(self.update_points_animation, 0)
+        else:
+            Clock.unschedule(self.update_points_animation)
+
+    def update_points_animation(self, dt):
+        cy = self.height * 0.6
+        cx = self.width * 0.1
+        w = self.width * 0.8
+        step = 20
+        points = []
+        points2 = []
+        self.dt += dt
+        for i in xrange(int(w / step)):
+            x = i * step
+            points.append(cx + x)
+            points.append(cy + cos(x / w * 8. + self.dt) * self.height * 0.2)
+            points2.append(cx + x)
+            points2.append(cy + sin(x / w * 8. + self.dt) * self.height * 0.2)
+        self.points = points
+        self.points2 = points2
 
 
 class TestLineApp(App):
