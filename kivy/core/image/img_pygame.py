@@ -64,7 +64,8 @@ class ImageLoaderPygame(ImageLoaderBase):
 
         # update internals
         self.filename = filename
-        data = pygame.image.tostring(im, fmt.upper(), True)
+        #data = pygame.image.tostring(im, fmt.upper(), True)
+        data = buffer(im.get_buffer())
         return [ImageData(im.get_width(), im.get_height(),
             fmt, data, source=filename)]
 

@@ -78,7 +78,7 @@ class LabelPygame(LabelBase):
     def _render_end(self):
         w, h = self._size
         data = ImageData(w, h,
-            'rgba', self._pygame_surface.get_buffer().raw)
+            'rgba', buffer(self._pygame_surface.get_buffer()))
 
         del self._pygame_surface
 

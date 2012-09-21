@@ -563,6 +563,10 @@ def texture_create_from_data(im, mipmap=False):
 
     return texture
 
+from cpython.buffer cimport PyObject_CheckBuffer, PyObject_GetBuffer, PyBUF_C_CONTIGUOUS
+from cpython.oldbuffer cimport PyBuffer_Check
+cdef extern from "Python.h":
+    int PyObject_AsReadBuffer(object, void **, int *)
 
 cdef class Texture:
     '''Handle a OpenGL texture. This class can be used to create simple texture
@@ -714,19 +718,45 @@ cdef class Texture:
             size = self.size
         bufferfmt = _buffer_fmt_to_gl(bufferfmt)
 
+        # c types
+        cdef int datasize = len(pbuffer)
+        cdef char *cdata = NULL
+
         # need conversion ?
+        '''
         cdef bytes data
         data = pbuffer
         data, colorfmt = _convert_buffer(data, colorfmt)
+        '''
+        cdef bytes data = None
+        cdef Py_buffer bufview
+
+        if PyBuffer_Check(pbuffer):
+            # old buffer given
+            if PyObject_AsReadBuffer(pbuffer, <void **>&cdata, &datasize) == -1:
+                # failed, return to the normal cdata
+                cdata = <bytes>pbuffer
+        elif PyObject_CheckBuffer(pbuffer):
+            # new buffer given
+            if PyObject_GetBuffer(pbuffer, &bufview, PyBUF_C_CONTIGUOUS) == -1:
+                cdata = <bytes>pbuffer
+            else:
+                cdata = <char *>bufview.buf
+                datasize = bufview.len
+        else:
+            # mostly a string ?
+            cdata = <bytes>pbuffer
+            #print 'string'
+
+        #print '-> datasize is', datasize
+        #print '-> cdata is', <unsigned int>cdata
 
         # prepare nogil
         cdef int glfmt = _color_fmt_to_gl(colorfmt)
-        cdef int datasize = len(pbuffer)
         cdef int x = pos[0]
         cdef int y = pos[1]
         cdef int w = size[0]
         cdef int h = size[1]
-        cdef char *cdata = <char *>data
         cdef int glbufferfmt = bufferfmt
         cdef int is_allocated = self._is_allocated
         cdef int is_compressed = _is_compressed_fmt(colorfmt)

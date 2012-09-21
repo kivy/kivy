@@ -167,6 +167,7 @@ class ImageLoaderBase(object):
             if texture is None:
                 texture = Texture.create_from_data(
                         self._data[count], mipmap=self._mipmap)
+                texture.flip_vertical()
                 if not self._nocache:
                     Cache.append('kv.texture', uid, texture)
 
