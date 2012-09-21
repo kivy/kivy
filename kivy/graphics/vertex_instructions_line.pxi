@@ -37,6 +37,7 @@ cdef class Line(VertexInstruction):
     '''
     cdef int _cap
     cdef int _cap_precision
+    cdef int _joint_precision
     cdef int _joint
     cdef list _points
     cdef float _width
@@ -53,6 +54,7 @@ cdef class Line(VertexInstruction):
         self.joint = kwargs.get('joint') or 'round'
         self.cap = kwargs.get('cap') or 'round'
         self._cap_precision = kwargs.get('cap_precision') or 10
+        self._joint_precision = kwargs.get('joint_precision') or 10
 
     cdef void build(self):
         if self._width == 1.0:
@@ -147,8 +149,8 @@ cdef class Line(VertexInstruction):
             indices_count += (count - 2) * 3
             vertices_count += (count - 2)
         elif self._joint == LINE_JOINT_ROUND:
-            indices_count += (self._cap_precision * 3) * (count - 2)
-            vertices_count += (self._cap_precision + 1) * (count - 2)
+            indices_count += (self._joint_precision * 3) * (count - 2)
+            vertices_count += (self._joint_precision) * (count - 2)
         elif self._joint == LINE_JOINT_MITER:
             indices_count += (count - 2) * 6
             vertices_count += (count - 2) * 2
@@ -158,7 +160,7 @@ cdef class Line(VertexInstruction):
             vertices_count += 4
         elif self._cap == LINE_CAP_ROUND:
             indices_count += (self._cap_precision * 3) * 2
-            vertices_count += (self._cap_precision + 1) * 2
+            vertices_count += (self._cap_precision) * 2
 
         vertices = <vertex_t *>malloc(vertices_count * sizeof(vertex_t))
         if vertices == NULL:
@@ -340,14 +342,14 @@ cdef class Line(VertexInstruction):
                     a1 = pangle2 - PI2
                     a2 = angle + PI2
                     a0 = a2
-                    step = (abs(jangle)) / float(self._cap_precision)
+                    step = (abs(jangle)) / float(self._joint_precision)
                     pivstart = piv + 3
                     pivend = piv2 + 1
                 else:
                     a1 = angle - PI2
                     a2 = pangle2 + PI2
                     a0 = a1
-                    step = -(abs(jangle)) / float(self._cap_precision)
+                    step = -(abs(jangle)) / float(self._joint_precision)
                     pivstart = piv
                     pivend = piv2 + 2
                 siv = iv
@@ -356,7 +358,7 @@ cdef class Line(VertexInstruction):
                 vertices[iv].s0 = 0
                 vertices[iv].t0 = 0
                 iv += 1
-                for j in xrange(0, self._cap_precision - 1):
+                for j in xrange(0, self._joint_precision - 1):
                     vertices[iv].x = ax - cos(a0 - step * j) * w
                     vertices[iv].y = ay - sin(a0 - step * j) * w
                     vertices[iv].s0 = 0
@@ -477,8 +479,8 @@ cdef class Line(VertexInstruction):
             indices[ii + 2] = piv + 2
             ii += 3
 
-        #print 'ii=', ii, 'indices_count=', indices_count
-        #print 'iv=', iv, 'vertices_count', vertices_count
+        print 'ii=', ii, 'indices_count=', indices_count
+        print 'iv=', iv, 'vertices_count', vertices_count
 
         self.batch.set_data(vertices, vertices_count, indices, indices_count)
 
