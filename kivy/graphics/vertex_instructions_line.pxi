@@ -7,6 +7,17 @@ DEF LINE_JOINT_MITER = 1
 DEF LINE_JOINT_BEVEL = 2
 DEF LINE_JOINT_ROUND = 3
 
+cdef inline int line_intersection(double x1, double y1, double x2, double y2,
+        double x3, double y3, double x4, double y4, double *px, double *py):
+    cdef double u = (x1 * y2 - y1 * x2)
+    cdef double v = (x3 * y4 - y3 * x4)
+    cdef double denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    if denom == 0:
+        return 0
+    px[0] = (u * (x3 - x4) - (x1 - x2) * v) / denom
+    py[0] = (u * (y3 - y4) - (y1 - y2) * v) / denom
+    return 1
+
 cdef class Line(VertexInstruction):
     '''A 2d line.
 
@@ -138,6 +149,9 @@ cdef class Line(VertexInstruction):
         elif self._joint == LINE_JOINT_ROUND:
             indices_count += (self._cap_precision * 3) * (count - 2)
             vertices_count += (self._cap_precision + 1) * (count - 2)
+        elif self._joint == LINE_JOINT_MITER:
+            indices_count += (count - 2) * 6
+            vertices_count += (count - 2) * 2
 
         if self._cap == LINE_CAP_SQUARE:
             indices_count += 12
@@ -160,9 +174,10 @@ cdef class Line(VertexInstruction):
         cdef double sx1, sy1, sx4, sy4, sangle
         cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2
         cdef double w = self._width
+        cdef double ix, iy
         cdef unsigned int pii, piv, pii2, piv2
         cdef double jangle
-        pii = piv = pcx = pcy = cx = cy = ii = iv = 0
+        pii = piv = pcx = pcy = cx = cy = ii = iv = ix = iy = 0
         for i in range(0, count - 1):
             ax = p[i * 2]
             ay = p[i * 2 + 1]
@@ -255,6 +270,9 @@ cdef class Line(VertexInstruction):
                 if self._joint == LINE_JOINT_BEVEL:
                     vertices_count -= 1
                     indices_count -= 3
+                elif self._joint == LINE_JOINT_MITER:
+                    vertices_count -= 2
+                    indices_count -= 6
                 continue
 
             if self._joint == LINE_JOINT_BEVEL:
@@ -272,6 +290,48 @@ cdef class Line(VertexInstruction):
                     indices[ii + 2] = iv
                 ii += 3
                 iv += 1
+
+            elif self._joint == LINE_JOINT_MITER:
+                vertices[iv].x = ax
+                vertices[iv].y = ay
+                vertices[iv].s0 = 0
+                vertices[iv].t0 = 0
+                if jangle < 0:
+                    if line_intersection(px1, py1, px2, py2, x1, y1, x2, y2, &ix, &iy) == 0:
+                        vertices_count -= 2
+                        indices_count -= 6
+                        continue
+                    vertices[iv + 1].x = ix
+                    vertices[iv + 1].y = iy
+                    vertices[iv + 1].s0 = 0
+                    vertices[iv + 1].t0 = 0
+                    indices[ii] = iv
+                    indices[ii + 1] = iv + 1
+                    indices[ii + 2] = piv2 + 1
+                    indices[ii + 3] = iv
+                    indices[ii + 4] = piv
+                    indices[ii + 5] = iv + 1
+                    ii += 6
+                    iv += 2
+                else:
+                    if line_intersection(px3, py3, px4, py4, x3, y3, x4, y4, &ix, &iy) == 0:
+                        vertices_count -= 2
+                        indices_count -= 6
+                        continue
+                    vertices[iv + 1].x = ix
+                    vertices[iv + 1].y = iy
+                    vertices[iv + 1].s0 = 0
+                    vertices[iv + 1].t0 = 0
+                    indices[ii] = iv
+                    indices[ii + 1] = iv + 1
+                    indices[ii + 2] = piv2 + 2
+                    indices[ii + 3] = iv
+                    indices[ii + 4] = piv + 3
+                    indices[ii + 5] = iv + 1
+                    ii += 6
+                    iv += 2
+
+
 
             elif self._joint == LINE_JOINT_ROUND:
 
@@ -417,8 +477,8 @@ cdef class Line(VertexInstruction):
             indices[ii + 2] = piv + 2
             ii += 3
 
-        print 'ii=', ii, 'indices_count=', indices_count
-        print 'iv=', iv, 'vertices_count', vertices_count
+        #print 'ii=', ii, 'indices_count=', indices_count
+        #print 'iv=', iv, 'vertices_count', vertices_count
 
         self.batch.set_data(vertices, vertices_count, indices, indices_count)
 
