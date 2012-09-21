@@ -7,6 +7,8 @@ DEF LINE_JOINT_MITER = 1
 DEF LINE_JOINT_BEVEL = 2
 DEF LINE_JOINT_ROUND = 3
 
+from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
+
 cdef inline int line_intersection(double x1, double y1, double x2, double y2,
         double x3, double y3, double x4, double y4, double *px, double *py):
     cdef double u = (x1 * y2 - y1 * x2)
@@ -42,6 +44,13 @@ cdef class Line(VertexInstruction):
     cdef list _points
     cdef float _width
     cdef int _dash_offset, _dash_length
+    cdef int _use_stencil
+    cdef Instruction _stencil_rect
+    cdef Instruction _stencil_push
+    cdef Instruction _stencil_use
+    cdef Instruction _stencil_unuse
+    cdef Instruction _stencil_pop
+    cdef double _bxmin, _bxmax, _bymin, _bymax
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -55,12 +64,50 @@ cdef class Line(VertexInstruction):
         self.cap = kwargs.get('cap') or 'round'
         self._cap_precision = kwargs.get('cap_precision') or 10
         self._joint_precision = kwargs.get('joint_precision') or 10
+        self._stencil_rect = None
+        self._stencil_push = None
+        self._stencil_use = None
+        self._stencil_unuse = None
+        self._stencil_pop = None
+        self._use_stencil = 0
 
     cdef void build(self):
         if self._width == 1.0:
             self.build_legacy()
         else:
             self.build_extended()
+
+    cdef void ensure_stencil(self):
+        if self._stencil_rect == None:
+            self._stencil_rect = Rectangle()
+            self._stencil_push = StencilPush()
+            self._stencil_pop = StencilPop()
+            self._stencil_use = StencilUse(op=GL_LEQUAL)
+            self._stencil_unuse = StencilUnUse()
+
+    cdef void apply(self):
+        if self._width == 1.:
+            VertexInstruction.apply(self)
+            return
+
+        cdef double alpha = getActiveContext()['color'][-1]
+        self._use_stencil = alpha < 1
+        if self._use_stencil:
+            self.ensure_stencil()
+
+            self._stencil_push.apply()
+            VertexInstruction.apply(self)
+            self._stencil_use.apply()
+            self._stencil_rect.pos = self._bxmin, self._bymin
+            self._stencil_rect.size = self._bxmax - self._bxmin, self._bymax - self._bymin
+            self._stencil_rect.apply()
+            self._stencil_unuse.apply()
+            VertexInstruction.apply(self)
+            self._stencil_pop.apply()
+        else:
+            VertexInstruction.apply(self)
+
+
 
     cdef void build_legacy(self):
         cdef int i, count = len(self.points) / 2
@@ -135,6 +182,11 @@ cdef class Line(VertexInstruction):
         cdef float tex_x
         cdef char *buf = NULL
         cdef Texture texture = self.texture
+
+        self._bxmin = 999999999
+        self._bymin = 999999999
+        self._bxmax = -999999999
+        self._bymax = -999999999
 
         if count < 2:
             self.batch.clear_data()
@@ -479,8 +531,19 @@ cdef class Line(VertexInstruction):
             indices[ii + 2] = piv + 2
             ii += 3
 
-        print 'ii=', ii, 'indices_count=', indices_count
-        print 'iv=', iv, 'vertices_count', vertices_count
+        #print 'ii=', ii, 'indices_count=', indices_count
+        #print 'iv=', iv, 'vertices_count', vertices_count
+
+        # compute bbox
+        for i in xrange(vertices_count):
+            if vertices[i].x < self._bxmin:
+                self._bxmin = vertices[i].x
+            if vertices[i].x > self._bxmax:
+                self._bxmax = vertices[i].x
+            if vertices[i].y < self._bymin:
+                self._bymin = vertices[i].y
+            if vertices[i].y > self._bymax:
+                self._bymax = vertices[i].y
 
         self.batch.set_data(vertices, vertices_count, indices, indices_count)
 
