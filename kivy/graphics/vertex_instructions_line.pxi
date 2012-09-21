@@ -25,6 +25,7 @@ cdef class Line(VertexInstruction):
             Width of the line, default 1.0
     '''
     cdef int _cap
+    cdef int _cap_precision
     cdef int _joint
     cdef list _points
     cdef float _width
@@ -40,6 +41,7 @@ cdef class Line(VertexInstruction):
         self._width = kwargs.get('width') or 1.0
         self.joint = kwargs.get('joint') or 'round'
         self.cap = kwargs.get('cap') or 'round'
+        self._cap_precision = kwargs.get('cap_precision') or 20
 
     cdef void build(self):
         if self._width == 1.0:
@@ -137,6 +139,9 @@ cdef class Line(VertexInstruction):
         if self._cap == LINE_CAP_SQUARE:
             indices_count += 12
             vertices_count += 4
+        elif self._cap == LINE_CAP_ROUND:
+            indices_count += (self._cap_precision * 3) * 2
+            vertices_count += (self._cap_precision + 1) * 2
 
         vertices = <vertex_t *>malloc(vertices_count * sizeof(vertex_t))
         if vertices == NULL:
@@ -298,6 +303,71 @@ cdef class Line(VertexInstruction):
             indices[ii + 5] = iv + 1
             ii += 6
             iv += 2
+
+        elif self._cap == LINE_CAP_ROUND:
+
+            # cap start
+            a1 = sangle - PI2
+            a2 = sangle + PI2
+            step = (a1 - a2) / float(self._cap_precision)
+            siv = iv
+            cx = p[0]
+            cy = p[1]
+            vertices[iv].x = cx
+            vertices[iv].y = cy
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            iv += 1
+            for i in xrange(0, self._cap_precision - 1):
+                vertices[iv].x = cx + cos(a1 + step * i) * w
+                vertices[iv].y = cy + sin(a1 + step * i) * w
+                vertices[iv].s0 = 0
+                vertices[iv].t0 = 0
+                if i == 0:
+                    indices[ii] = siv
+                    indices[ii + 1] = 0
+                    indices[ii + 2] = iv
+                else:
+                    indices[ii] = siv
+                    indices[ii + 1] = iv - 1
+                    indices[ii + 2] = iv
+                iv += 1
+                ii += 3
+            indices[ii] = siv
+            indices[ii + 1] = iv - 1
+            indices[ii + 2] = 3
+            ii += 3
+
+            # cap end
+            a1 = angle - PI2
+            a2 = angle + PI2
+            step = (a2 - a1) / float(self._cap_precision)
+            siv = iv
+            cx = p[-2]
+            cy = p[-1]
+            vertices[iv].x = cx
+            vertices[iv].y = cy
+            vertices[iv].s0 = 0
+            vertices[iv].t0 = 0
+            iv += 1
+            for i in xrange(0, self._cap_precision - 1):
+                vertices[iv].x = cx + cos(a1 + step * i) * w
+                vertices[iv].y = cy + sin(a1 + step * i) * w
+                vertices[iv].s0 = 0
+                vertices[iv].t0 = 0
+                if i == 0:
+                    indices[ii] = siv
+                    indices[ii + 1] = piv + 1
+                    indices[ii + 2] = iv
+                else:
+                    indices[ii] = siv
+                    indices[ii + 1] = iv - 1
+                    indices[ii + 2] = iv
+                iv += 1
+                ii += 3
+            indices[ii] = siv
+            indices[ii + 1] = iv - 1
+            indices[ii + 2] = piv + 2
 
         self.batch.set_data(vertices, vertices_count, indices, indices_count)
 
