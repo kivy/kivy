@@ -23,8 +23,22 @@ cdef inline int line_intersection(double x1, double y1, double x2, double y2,
 cdef class Line(VertexInstruction):
     '''A 2d line.
 
-    .. versionadded:: 1.0.8
-        `dash_offset` and `dash_length` have been added
+    Drawing a line can be done easily::
+
+        with self.canvas:
+            Line(points=[100, 100, 200, 100, 100, 200], width=10)
+
+    Actually, the line have 3 internal drawing mode that you should know about
+    if you want to get the best performance of it:
+
+    #. If the :data:`width` is 1.0, then we will use standard GL_LINE drawing
+       from OpenGL. :data:`dash_length` and :data:`dash_offset` works, while
+       properties for cap and joint have no sense for this.
+    #. If the :data:`width` is > 1.0, then we will use a custom drawing method,
+       based on triangles. :data:`dash_length` and :data:`dash_offset` is not
+       working on that mode.
+       Additionally, if the current color have an alpha < 1.0, stencil will be
+       used internally to draw the line.
 
     :Parameters:
         `points`: list
@@ -36,6 +50,21 @@ cdef class Line(VertexInstruction):
             next one, default 0, changing this makes it dashed.
         `width`: float
             Width of the line, default 1.0
+        `cap`: str, default to 'round'
+            See :data:`cap` for more information.
+        `joint`: str, default to 'round'
+            See :data:`joint` for more information.
+        `cap_precision`: int, default to 10
+            See :data:`cap_precision` for more information
+        `joint_precision`: int, default to 10
+            See :data:`joint_precision` for more information
+
+    .. versionadded:: 1.0.8
+        `dash_offset` and `dash_length` have been added
+
+    .. versionadded:: 1.4.1
+        `width`, `cap`, `joint`, `cap_precision`, `joint_precision` have been
+        added.
     '''
     cdef int _cap
     cdef int _cap_precision
@@ -230,7 +259,11 @@ cdef class Line(VertexInstruction):
         cdef double ix, iy
         cdef unsigned int pii, piv, pii2, piv2
         cdef double jangle
+        sangle = 0
         pii = piv = pcx = pcy = cx = cy = ii = iv = ix = iy = 0
+        px1 = px2 = px3 = px4 = py1 = py2 = py3 = py4 = 0
+        sx1 = sy1 = sx4 = sy4 = 0
+        x1 = x2 = x3 = x4 = y1 = y2 = y3 = y4 = 0
         for i in range(0, count - 1):
             ax = p[i * 2]
             ay = p[i * 2 + 1]
@@ -608,7 +641,8 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property cap:
-        '''Determine the cap of the line, default to "round"
+        '''Determine the cap of the line, default to 'round'. Can be one of
+        'none', 'square' or 'round'
 
         .. versionadded:: 1.4.1
         '''
@@ -632,7 +666,8 @@ cdef class Line(VertexInstruction):
             self.flag_update()
 
     property joint:
-        '''Determine the join of the line, default to "round"
+        '''Determine the join of the line, default to 'round'. Can be one of
+        'none', 'round', 'bevel', 'miter'.
 
         .. versionadded:: 1.4.1
         '''
@@ -658,4 +693,36 @@ cdef class Line(VertexInstruction):
                 self._joint = LINE_JOINT_MITER
             else:
                 self._joint = LINE_JOINT_NONE
+            self.flag_update()
+
+    property cap_precision:
+        '''Number of iteration for drawing the "round" cap, default to 10.
+        The cap_precision must be at least 1.
+
+        .. versionadded:: 1.4.1
+        '''
+
+        def __get__(self):
+            return self._cap_precision
+
+        def __set__(self, value):
+            if value < 1:
+                raise GraphicException('Invalid cap_precision value, must be >= 1')
+            self._cap_precision = int(value)
+            self.flag_update()
+
+    property joint_precision:
+        '''Number of iteration for drawing the "round" joint, default to 10.
+        The joint_precision must be at least 1.
+
+        .. versionadded:: 1.4.1
+        '''
+
+        def __get__(self):
+            return self._joint_precision
+
+        def __set__(self, value):
+            if value < 1:
+                raise GraphicException('Invalid cap_precision value, must be >= 1')
+            self._joint_precision = int(value)
             self.flag_update()
