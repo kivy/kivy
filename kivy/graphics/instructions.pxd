@@ -114,3 +114,4 @@ cdef class RenderContext(Canvas):
     cpdef draw(self)
     cdef void reload(self)
 
+cdef RenderContext getActiveContext()
