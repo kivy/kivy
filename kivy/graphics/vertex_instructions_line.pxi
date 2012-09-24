@@ -40,6 +40,9 @@ cdef class Line(VertexInstruction):
        Additionally, if the current color have an alpha < 1.0, stencil will be
        used internally to draw the line.
 
+    .. image:: images/line-instruction.png
+        :align: center
+
     :Parameters:
         `points`: list
             List of points in the format (x1, y1, x2, y2...)
