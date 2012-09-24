@@ -58,13 +58,15 @@ cdef class Line(VertexInstruction):
             See :data:`cap_precision` for more information
         `joint_precision`: int, default to 10
             See :data:`joint_precision` for more information
+        `close`: bool, default to False
+            If True, the line will be closed.
 
     .. versionadded:: 1.0.8
         `dash_offset` and `dash_length` have been added
 
     .. versionadded:: 1.4.1
-        `width`, `cap`, `joint`, `cap_precision`, `joint_precision` have been
-        added.
+        `width`, `cap`, `joint`, `cap_precision`, `joint_precision`, `close`
+        have been added.
     '''
     cdef int _cap
     cdef int _cap_precision
@@ -74,6 +76,7 @@ cdef class Line(VertexInstruction):
     cdef float _width
     cdef int _dash_offset, _dash_length
     cdef int _use_stencil
+    cdef int _close
     cdef Instruction _stencil_rect
     cdef Instruction _stencil_push
     cdef Instruction _stencil_use
@@ -93,6 +96,7 @@ cdef class Line(VertexInstruction):
         self.cap = kwargs.get('cap') or 'round'
         self._cap_precision = kwargs.get('cap_precision') or 10
         self._joint_precision = kwargs.get('joint_precision') or 10
+        self._close = int(bool(kwargs.get('close', 0)))
         self._stencil_rect = None
         self._stencil_push = None
         self._stencil_use = None
@@ -151,6 +155,10 @@ cdef class Line(VertexInstruction):
             self.batch.clear_data()
             return
 
+        if self._close:
+            p = p + [p[0], p[1]]
+            count += 1
+
         self.batch.set_mode('line_strip')
         if self._dash_offset != 0:
             if texture is None or texture._width != \
@@ -208,6 +216,7 @@ cdef class Line(VertexInstruction):
         cdef vertex_t *vertices = NULL
         cdef unsigned short *indices = NULL
         cdef float tex_x
+        cdef int cap
         cdef char *buf = NULL
         cdef Texture texture = self.texture
 
@@ -219,6 +228,12 @@ cdef class Line(VertexInstruction):
         if count < 2:
             self.batch.clear_data()
             return
+
+        cap = self._cap
+        if self._close and count > 2:
+            p = p + p[0:4]
+            count += 2
+            cap = LINE_CAP_NONE
 
         self.batch.set_mode('triangles')
         cdef unsigned int vertices_count = (count - 1) * 4
@@ -235,10 +250,10 @@ cdef class Line(VertexInstruction):
             indices_count += (count - 2) * 6
             vertices_count += (count - 2) * 2
 
-        if self._cap == LINE_CAP_SQUARE:
+        if cap == LINE_CAP_SQUARE:
             indices_count += 12
             vertices_count += 4
-        elif self._cap == LINE_CAP_ROUND:
+        elif cap == LINE_CAP_ROUND:
             indices_count += (self._cap_precision * 3) * 2
             vertices_count += (self._cap_precision) * 2
 
@@ -257,13 +272,14 @@ cdef class Line(VertexInstruction):
         cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2
         cdef double w = self._width
         cdef double ix, iy
-        cdef unsigned int pii, piv, pii2, piv2
+        cdef unsigned int piv, pii2, piv2
         cdef double jangle
         sangle = 0
-        pii = piv = pcx = pcy = cx = cy = ii = iv = ix = iy = 0
+        piv = pcx = pcy = cx = cy = ii = iv = ix = iy = 0
         px1 = px2 = px3 = px4 = py1 = py2 = py3 = py4 = 0
         sx1 = sy1 = sx4 = sy4 = 0
         x1 = x2 = x3 = x4 = y1 = y2 = y3 = y4 = 0
+        cdef double cos1 = 0, cos2 = 0, sin1 = 0, sin2 = 0
         for i in range(0, count - 1):
             ax = p[i * 2]
             ay = p[i * 2 + 1]
@@ -282,9 +298,7 @@ cdef class Line(VertexInstruction):
                 py3 = y3
                 py4 = y4
 
-            pii2 = pii
             piv2 = piv
-            pii = ii
             piv = iv
             pangle2 = pangle
             pangle = angle
@@ -297,14 +311,18 @@ cdef class Line(VertexInstruction):
             a2 = angle + PI2
 
             # calculate the position of the segment
-            x1 = ax + cos(a1) * w
-            y1 = ay + sin(a1) * w
-            x4 = ax + cos(a2) * w
-            y4 = ay + sin(a2) * w
-            x2 = bx + cos(a1) * w
-            y2 = by + sin(a1) * w
-            x3 = bx + cos(a2) * w
-            y3 = by + sin(a2) * w
+            cos1 = cos(a1) * w
+            sin1 = sin(a1) * w
+            cos2 = cos(a2) * w
+            sin2 = sin(a2) * w
+            x1 = ax + cos1
+            y1 = ay + sin1
+            x4 = ax + cos2
+            y4 = ay + sin2
+            x2 = bx + cos1
+            y2 = by + sin1
+            x3 = bx + cos2
+            y3 = by + sin2
 
             if i == 0:
                 sx1 = x1
@@ -353,7 +371,10 @@ cdef class Line(VertexInstruction):
 
             # in case of the angle is NULL, avoid the generation
             if jangle == 0 or jangle == PI or jangle == -PI:
-                if self._joint == LINE_JOINT_BEVEL:
+                if self._joint == LINE_JOINT_ROUND:
+                    vertices_count -= self._joint_precision
+                    indices_count -= self._joint_precision * 3
+                elif self._joint == LINE_JOINT_BEVEL:
                     vertices_count -= 1
                     indices_count -= 3
                 elif self._joint == LINE_JOINT_MITER:
@@ -463,7 +484,7 @@ cdef class Line(VertexInstruction):
                 ii += 3
 
         # caps
-        if self._cap == LINE_CAP_SQUARE:
+        if cap == LINE_CAP_SQUARE:
             vertices[iv].x = x2 + cos(angle) * w
             vertices[iv].y = y2 + sin(angle) * w
             vertices[iv].s0 = 0
@@ -497,7 +518,7 @@ cdef class Line(VertexInstruction):
             ii += 6
             iv += 2
 
-        elif self._cap == LINE_CAP_ROUND:
+        elif cap == LINE_CAP_ROUND:
 
             # cap start
             a1 = sangle - PI2
@@ -725,4 +746,17 @@ cdef class Line(VertexInstruction):
             if value < 1:
                 raise GraphicException('Invalid cap_precision value, must be >= 1')
             self._joint_precision = int(value)
+            self.flag_update()
+
+    property close:
+        '''If True, the line will be closed.
+
+        .. versionadded:: 1.4.1
+        '''
+
+        def __get__(self):
+            return self._close
+
+        def __set__(self, value):
+            self._close = int(bool(value))
             self.flag_update()

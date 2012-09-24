@@ -1,5 +1,6 @@
 from kivy.app import App
-from kivy.properties import OptionProperty, NumericProperty, ListProperty
+from kivy.properties import OptionProperty, NumericProperty, ListProperty, \
+        BooleanProperty
 from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
 from kivy.clock import Clock
@@ -15,10 +16,12 @@ Builder.load_string('''
             joint: self.joint
             cap: self.cap
             width: self.linewidth
+            close: self.close
         Color:
             rgba: .8, .8, .8, root.alpha_controlline
         Line:
             points: self.points
+            close: self.close
         Color:
             rgba: 1, .4, .4, root.alpha
         Line:
@@ -26,6 +29,7 @@ Builder.load_string('''
             joint: self.joint
             cap: self.cap
             width: self.linewidth
+            close: self.close
 
     GridLayout:
         cols: 2
@@ -93,6 +97,12 @@ Builder.load_string('''
                     text: 'bevel'
                     on_press: root.joint = self.text
 
+            Label:
+                text: 'Close'
+            ToggleButton:
+                text: 'Close line'
+                on_press: root.close = self.state == 'down'
+
         AnchorLayout:
             GridLayout:
                 cols: 1
@@ -115,6 +125,7 @@ Builder.load_string('''
 class LinePlayground(FloatLayout):
     alpha_controlline = NumericProperty(1.0)
     alpha = NumericProperty(0.5)
+    close = BooleanProperty(False)
     points = ListProperty([500, 500, 300, 300, 500, 300, 500, 400, 600, 400])
     points2 = ListProperty([])
     joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
