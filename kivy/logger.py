@@ -272,6 +272,11 @@ class LogFile(object):
     def flush(self):
         return
 
+def logger_config_update(section, key, value):
+    if LOG_LEVELS.get(value) is None:
+        raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
+    Logger.setLevel(level=LOG_LEVELS.get(value))
+
 #: Kivy default logger instance
 Logger = logging.getLogger('kivy')
 Logger.logfile_activated = False
