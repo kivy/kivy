@@ -80,3 +80,27 @@ Build the spec and create DMG
 
 #. You will have a Touchtracer.dmg available in the `touchtracer/dist` directory
 
+Including Gstreamer
+-------------------
+
+If you wanted to read video files, audio, or camera, you would need to include
+gstreamer. By default, only pygst/gst are discovered, but all the gst plugins
+and libraries are missing. You need to include them in your .spec file too, by
+adding one more argument to the `COLLECT()` method::
+
+    import os
+    gst_plugin_path = os.environ.get('GST_PLUGIN_PATH')[:0].split(':')
+
+    coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
+                   Tree(gst_plugin_path + '/../'),
+                   a.binaries,
+                   #...
+                   )
+
+For Kivy.app < 1.4.1, you also need to update one script included in our
+Kivy.app. Go to
+`/Applications/Kivy.app/Contents/Resources/kivy/kivy/tools/packaging/pyinstaller_hooks/`,
+and edit the file named `rt-hook-kivy.py`, and add this line at the end::
+
+    environ['GST_PLUGIN_PATH'] = join(root, '..', 'gst-plugins')
+
