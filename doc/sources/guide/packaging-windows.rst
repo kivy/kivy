@@ -77,4 +77,4 @@ Including Gstreamer
 -------------------
 
 If you wish to use Gstreamer, refer to the most up-to-date documentation in the
-:doc:`/guide/packaging-macosx.rst`.
+:doc:`packaging-macosx`.
