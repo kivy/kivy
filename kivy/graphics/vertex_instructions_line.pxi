@@ -277,7 +277,7 @@ cdef class Line(VertexInstruction):
         cdef double ix, iy
         cdef unsigned int piv, pii2, piv2
         cdef double jangle
-        sangle = 0
+        angle = sangle = 0
         piv = pcx = pcy = cx = cy = ii = iv = ix = iy = 0
         px1 = px2 = px3 = px4 = py1 = py2 = py3 = py4 = 0
         sx1 = sy1 = sx4 = sy4 = 0
