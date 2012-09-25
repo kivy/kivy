@@ -92,7 +92,7 @@ adding one more argument to the `COLLECT()` method::
     gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split(':')[0]
 
     coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
-                   Tree(gst_plugin_path + '/../'),
+                   Tree(join(gst_plugin_path, '..')),
                    a.binaries,
                    #...
                    )
