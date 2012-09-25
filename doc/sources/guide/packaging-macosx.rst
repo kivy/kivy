@@ -89,7 +89,7 @@ and libraries are missing. You need to include them in your .spec file too, by
 adding one more argument to the `COLLECT()` method::
 
     import os
-    gst_plugin_path = os.environ.get('GST_PLUGIN_PATH')[:0].split(':')
+    gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split(':')[0]
 
     coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
                    Tree(gst_plugin_path + '/../'),
