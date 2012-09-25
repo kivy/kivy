@@ -174,10 +174,6 @@ class Slider(Widget):
     :data:`value_pos` is an :class:`~kivy.properties.AliasProperty`.
     '''
 
-    def __init__(self, **kwargs):
-        super(Slider, self).__init__(**kwargs)
-        self.value_normalized = 0.1
-
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             touch.grab(self)
