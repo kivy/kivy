@@ -791,16 +791,16 @@ cdef class Line(VertexInstruction):
         The argument must be a tuple of (x, y, width, height, angle_start,
         angle_end, segments):
 
-            * x and y represent the bottom left of the ellipse
-            * width and height represent the size of the ellipse
-            * (optional) angle_start and angle_end are in degree. The default
-              value is 0 and 360.
-            * (optional) segments is the precision of the ellipse. The default
-              value is calculated from the range between angle.
+        * x and y represent the bottom left of the ellipse
+        * width and height represent the size of the ellipse
+        * (optional) angle_start and angle_end are in degree. The default
+            value is 0 and 360.
+        * (optional) segments is the precision of the ellipse. The default
+            value is calculated from the range between angle.
 
         Note that it's up to you to :data:`close` the ellipse or not.
 
-        For example, for building a simple ellipse, in python:
+        For example, for building a simple ellipse, in python::
 
             # simple ellipse
             Line(ellipse=(0, 0, 150, 150))
@@ -871,16 +871,16 @@ cdef class Line(VertexInstruction):
         The argument must be a tuple of (center_x, center_y, radius, angle_start,
         angle_end, segments):
 
-            * center_x and center_y represent the center of the circle
-            * radius represent the radius of the circle
-            * (optional) angle_start and angle_end are in degree. The default
-              value is 0 and 360.
-            * (optional) segments is the precision of the ellipse. The default
-              value is calculated from the range between angle.
+        * center_x and center_y represent the center of the circle
+        * radius represent the radius of the circle
+        * (optional) angle_start and angle_end are in degree. The default
+            value is 0 and 360.
+        * (optional) segments is the precision of the ellipse. The default
+            value is calculated from the range between angle.
 
         Note that it's up to you to :data:`close` the circle or not.
 
-        For example, for building a simple ellipse, in python:
+        For example, for building a simple ellipse, in python::
 
             # simple circle
             Line(circle=(150, 150, 50))
@@ -947,8 +947,8 @@ cdef class Line(VertexInstruction):
         The argument must be a tuple of (x, y, width, height)
         angle_end, segments):
 
-            * x and y represent the bottom-left position of the rectangle
-            * width and height represent the size
+        * x and y represent the bottom-left position of the rectangle
+        * width and height represent the size
 
         The line is automatically closed.
 
