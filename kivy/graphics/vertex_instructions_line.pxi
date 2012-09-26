@@ -7,6 +7,11 @@ DEF LINE_JOINT_MITER = 1
 DEF LINE_JOINT_BEVEL = 2
 DEF LINE_JOINT_ROUND = 3
 
+DEF LINE_MODE_POINTS = 0
+DEF LINE_MODE_ELLIPSE = 1
+DEF LINE_MODE_CIRCLE = 2
+DEF LINE_MODE_RECTANGLE = 3
+
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
 
 cdef inline int line_intersection(double x1, double y1, double x2, double y2,
@@ -63,13 +68,22 @@ cdef class Line(VertexInstruction):
             See :data:`joint_precision` for more information
         `close`: bool, default to False
             If True, the line will be closed.
+        `circle`: list
+            If set, the :data:`points` will be set to build a circle. Check
+            :data:`circle` for more information.
+        `ellipse`: list
+            If set, the :data:`points` will be set to build an ellipse. Check
+            :data:`ellipse` for more information.
+        `rectangle`: list
+            If set, the :data:`points` will be set to build a rectangle. Check
+            :data:`rectangle` for more information.
 
     .. versionadded:: 1.0.8
         `dash_offset` and `dash_length` have been added
 
     .. versionadded:: 1.4.1
-        `width`, `cap`, `joint`, `cap_precision`, `joint_precision`, `close`
-        have been added.
+        `width`, `cap`, `joint`, `cap_precision`, `joint_precision`, `close`,
+        `ellipse`, `rectangle` have been added.
     '''
     cdef int _cap
     cdef int _cap_precision
@@ -80,12 +94,14 @@ cdef class Line(VertexInstruction):
     cdef int _dash_offset, _dash_length
     cdef int _use_stencil
     cdef int _close
+    cdef int _mode
     cdef Instruction _stencil_rect
     cdef Instruction _stencil_push
     cdef Instruction _stencil_use
     cdef Instruction _stencil_unuse
     cdef Instruction _stencil_pop
     cdef double _bxmin, _bxmax, _bymin, _bymax
+    cdef tuple _mode_args
 
     def __init__(self, **kwargs):
         VertexInstruction.__init__(self, **kwargs)
@@ -108,6 +124,12 @@ cdef class Line(VertexInstruction):
         self._use_stencil = 0
 
     cdef void build(self):
+        if self._mode == LINE_MODE_ELLIPSE:
+            self.prebuild_ellipse()
+        elif self._mode == LINE_MODE_CIRCLE:
+            self.prebuild_circle()
+        elif self._mode == LINE_MODE_RECTANGLE:
+            self.prebuild_rectangle()
         if self._width == 1.0:
             self.build_legacy()
         else:
@@ -142,8 +164,6 @@ cdef class Line(VertexInstruction):
             self._stencil_pop.apply()
         else:
             VertexInstruction.apply(self)
-
-
 
     cdef void build_legacy(self):
         cdef int i, count = len(self.points) / 2
@@ -763,3 +783,207 @@ cdef class Line(VertexInstruction):
         def __set__(self, value):
             self._close = int(bool(value))
             self.flag_update()
+
+    property ellipse:
+        '''Use this property to build an ellipse, without calculate the
+        :data:`points`. You can only set this property, not get it.
+
+        The argument must be a tuple of (x, y, width, height, angle_start,
+        angle_end, segments):
+
+            * x and y represent the bottom left of the ellipse
+            * width and height represent the size of the ellipse
+            * (optional) angle_start and angle_end are in degree. The default
+              value is 0 and 360.
+            * (optional) segments is the precision of the ellipse. The default
+              value is calculated from the range between angle.
+
+        Note that it's up to you to :data:`close` the ellipse or not.
+
+        For example, for building a simple ellipse, in python:
+
+            # simple ellipse
+            Line(ellipse=(0, 0, 150, 150))
+
+            # only from 90 to 180 degrees
+            Line(ellipse=(0, 0, 150, 150, 90, 180))
+
+            # only from 90 to 180 degrees, with few segments
+            Line(ellipse=(0, 0, 150, 150, 90, 180, 20))
+
+        .. versionadded:: 1.4.1
+        '''
+
+        def __set__(self, args):
+            if args == None:
+                raise GraphicException(
+                        'Invalid ellipse value: {0!r}'.format(args))
+            if len(args) not in (4, 6, 7):
+                raise GraphicException('Invalid number of arguments: '
+                        '{0} instead of 4, 6 or 7.'.format(len(args)))
+            self._mode_args = tuple(args)
+            self._mode = LINE_MODE_ELLIPSE
+            self.flag_update()
+
+    cdef void prebuild_ellipse(self):
+        cdef double x, y, w, h, angle_start = 0, angle_end = 360
+        cdef int angle_dir, segments = 0
+        cdef double angle_range
+        cdef tuple args = self._mode_args
+
+        if len(args) == 4:
+            x, y, w, h = args
+        elif len(args) == 6:
+            x, y, w, h, angle_start, angle_end = args
+        elif len(args) == 7:
+            x, y, w, h, angle_start, angle_end, segments = args
+            segments += 2
+        else:
+            assert(0)
+
+        if angle_end > angle_start:
+            angle_dir = 1
+        else:
+            angle_dir = -1
+        if segments == 0:
+            segments = int(abs(angle_end - angle_start) / 2) + 3
+        # rad = deg * (pi / 180), where pi/180 = 0.0174...
+        angle_start = angle_start * 0.017453292519943295
+        angle_end = angle_end * 0.017453292519943295
+        angle_range = abs(angle_end - angle_start) / (segments - 2)
+
+        cdef list points = [0, 0] * segments
+        cdef double angle
+        cdef double rx = w * 0.5
+        cdef double ry = h * 0.5
+        for i in xrange(0, segments * 2, 2):
+            angle = angle_start + (angle_dir * (i - 1) * angle_range)
+            points[i] = (x + rx) + (rx * sin(angle))
+            points[i + 1] = (y + ry) + (ry * cos(angle))
+
+        self._points = points
+
+
+    property circle:
+        '''Use this property to build a circle, without calculate the
+        :data:`points`. You can only set this property, not get it.
+
+        The argument must be a tuple of (center_x, center_y, radius, angle_start,
+        angle_end, segments):
+
+            * center_x and center_y represent the center of the circle
+            * radius represent the radius of the circle
+            * (optional) angle_start and angle_end are in degree. The default
+              value is 0 and 360.
+            * (optional) segments is the precision of the ellipse. The default
+              value is calculated from the range between angle.
+
+        Note that it's up to you to :data:`close` the circle or not.
+
+        For example, for building a simple ellipse, in python:
+
+            # simple circle
+            Line(circle=(150, 150, 50))
+
+            # only from 90 to 180 degrees
+            Line(circle=(150, 150, 50, 90, 180))
+
+            # only from 90 to 180 degrees, with few segments
+            Line(circle=(150, 150, 50, 90, 180, 20))
+
+        .. versionadded:: 1.4.1
+        '''
+
+        def __set__(self, args):
+            if args == None:
+                raise GraphicException(
+                        'Invalid circle value: {0!r}'.format(args))
+            if len(args) not in (3, 5, 6):
+                raise GraphicException('Invalid number of arguments: '
+                        '{0} instead of 3, 5 or 6.'.format(len(args)))
+            self._mode_args = tuple(args)
+            self._mode = LINE_MODE_CIRCLE
+            self.flag_update()
+
+    cdef void prebuild_circle(self):
+        cdef double x, y, r, angle_start = 0, angle_end = 360
+        cdef int angle_dir, segments = 0
+        cdef double angle_range
+        cdef tuple args = self._mode_args
+
+        if len(args) == 3:
+            x, y, r = args
+        elif len(args) == 5:
+            x, y, r, angle_start, angle_end = args
+        elif len(args) == 6:
+            x, y, r, angle_start, angle_end, segments = args
+            segments += 2
+        else:
+            assert(0)
+
+        if angle_end > angle_start:
+            angle_dir = 1
+        else:
+            angle_dir = -1
+        if segments == 0:
+            segments = int(abs(angle_end - angle_start) / 2) + 3
+        # rad = deg * (pi / 180), where pi/180 = 0.0174...
+        angle_start = angle_start * 0.017453292519943295
+        angle_end = angle_end * 0.017453292519943295
+        angle_range = abs(angle_end - angle_start) / (segments - 2)
+
+        cdef list points = [0, 0] * segments
+        cdef double angle
+        for i in xrange(0, segments * 2, 2):
+            angle = angle_start + (angle_dir * (i - 1) * angle_range)
+            points[i] = x + (r * sin(angle))
+            points[i + 1] = y + (r * cos(angle))
+        self._points = points
+
+    property rectangle:
+        '''Use this property to build a rectangle, without calculate the
+        :data:`points`. You can only set this property, not get it.
+
+        The argument must be a tuple of (x, y, width, height)
+        angle_end, segments):
+
+            * x and y represent the bottom-left position of the rectangle
+            * width and height represent the size
+
+        The line is automatically closed.
+
+        Usage::
+
+            Line(rectangle=(0, 0, 200, 200))
+
+        .. versionadded:: 1.4.1
+        '''
+
+        def __set__(self, args):
+            if args == None:
+                raise GraphicException(
+                        'Invalid rectangle value: {0!r}'.format(args))
+            if len(args) != 4:
+                raise GraphicException('Invalid number of arguments: '
+                        '{0} instead of 4.'.format(len(args)))
+            self._mode_args = tuple(args)
+            self._mode = LINE_MODE_RECTANGLE
+            self.flag_update()
+
+    cdef void prebuild_rectangle(self):
+        cdef double x, y, width, height
+        cdef int angle_dir, segments = 0
+        cdef double angle_range
+        cdef tuple args = self._mode_args
+
+        if args == None:
+            raise GraphicException(
+                    'Invalid ellipse value: {0!r}'.format(args))
+
+        if len(args) == 4:
+            x, y, width, height = args
+        else:
+            assert(0)
+
+        self._points = [x, y, x + width, y, x + width, y + height, x, y + height]
+        self._close = 1
