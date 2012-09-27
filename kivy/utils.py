@@ -10,7 +10,7 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'OrderedDict', 'QueryDict',
-           'platform', 'escape_markup', 'reify', 
+           'platform', 'escape_markup', 'reify',
            'MainThread')
 
 from sys import platform as _sys_platform
@@ -425,5 +425,3 @@ class MainThread(object):
             if not MainThread.main_set:
                 MainThread.main_set = True
                 MainThread.local.main_thread = True
-
-            

@@ -219,6 +219,7 @@ from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.resources import resource_find
 from kivy.utils import platform as core_platform
+from kivy.utils import MainThread
 from kivy.uix.widget import Widget
 
 
@@ -517,6 +518,10 @@ class App(EventDispatcher):
     def run(self):
         '''Launches the app in standalone mode.
         '''
+
+        #Set this thread as the main thread()
+        MainThread.set_main_thread()
+
         if not self.built:
             self.load_config()
             self.load_kv()

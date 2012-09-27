@@ -20,7 +20,7 @@ class TestMainThread(unittest.TestCase):
                 MainThread.set_main_thread()
                 success = MainThread.is_main_thread()
                 return success
-                
+
             def run(self):
                 #This thread is *NOT* the main thread
                 #test1() and test2() should both be False
@@ -39,4 +39,3 @@ class TestMainThread(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-            

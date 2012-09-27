@@ -69,6 +69,7 @@ except ImportError:
 
 from urlparse import urlparse
 from kivy.clock import Clock
+from kivy.utils import MainThread
 
 
 class UrlRequest(Thread):
@@ -260,6 +261,10 @@ class UrlRequest(Thread):
         return result
 
     def _dispatch_result(self, dt):
+        #Don't run unless it's in the main thread
+        if not MainThread.is_main_thread():
+            return
+
         while True:
             # Read the result pushed on the queue, and dispatch to the client
             try:
@@ -354,6 +359,8 @@ if __name__ == '__main__':
     def on_error(req, error):
         pprint('Got an error:')
         pprint(error)
+
+    MainThread.set_main_thread()
 
     req = UrlRequest('http://api.twitter.com/1/trends.json',
             on_success, on_error)
