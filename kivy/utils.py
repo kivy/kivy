@@ -10,11 +10,13 @@ __all__ = ('intersection', 'difference', 'strtotuple',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'OrderedDict', 'QueryDict',
-           'platform', 'escape_markup', 'reify')
+           'platform', 'escape_markup', 'reify', 
+           'MainThread')
 
 from sys import platform as _sys_platform
 from re import match, split
 from UserDict import DictMixin
+import threading
 
 _platform_android = None
 _platform_ios = None
@@ -135,13 +137,13 @@ def deprecated(func):
         if caller_id not in DEPRECATED_CALLERS:
             DEPRECATED_CALLERS.append(caller_id)
             warning = (
-                    'Call to deprecated function %s in %s line %d.'
-                    'Called from %s line %d'
-                    ' by %s().') % (
-                            func.__name__,
-                            func.func_code.co_filename,
-                            func.func_code.co_firstlineno + 1,
-                            file, line, caller)
+                'Call to deprecated function %s in %s line %d.'
+                'Called from %s line %d'
+                ' by %s().') % (
+                    func.__name__,
+                    func.func_code.co_filename,
+                    func.func_code.co_firstlineno + 1,
+                    file, line, caller)
             from kivy.logger import Logger
             Logger.warn(warning)
             if func.__doc__:
@@ -395,3 +397,33 @@ class reify(object):
         setattr(inst, self.func.__name__, retval)
         return retval
 
+
+class MainThread(object):
+    '''
+    Utility class that checks for the main thread.
+
+    Either initialize the class with main_thread = True, or set the
+    context using set_main_thread().
+
+    Only one thread can be the main thread.
+    '''
+
+    local = threading.local()
+    main_set = False
+    lock = threading.Lock()
+
+    @staticmethod
+    def is_main_thread():
+        with MainThread.lock:
+            result = hasattr(MainThread.local, "main_thread") \
+                and MainThread.local.main_thread
+        return result
+
+    @staticmethod
+    def set_main_thread():
+        with MainThread.lock:
+            if not MainThread.main_set:
+                MainThread.main_set = True
+                MainThread.local.main_thread = True
+
+            
