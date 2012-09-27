@@ -2,20 +2,23 @@
 Splitter
 ======
 
-.. image:: images/Splitter.jpg
-:align: right
+.. versionadded:: 1.4.1
 
-:class:`Splitter` is a :class:`~kivy.uix.widget.Widget` with associated actions
-that are triggered when it's pressed and moved.
-To configure, you can set 'adjust_from' to 'left' or 'right' or 'top'
+.. image:: images/splitter.jpg
+    :align: right
+
+The :class:`Splitter` is a :class:`~kivy.uix.boxlayout.BoxLayout` with
+associated actions that are triggered when it's pressed and moved.
+
+To configure, you can set 'sizable_from' to 'left' or 'right' or 'top'
 or 'bottom'.
 
-Usage:
+Usage::
 
-splitter = Splitter(sizable_from = 'right')
-splitter.add_widget(layout_or_widget_instance)
-splitter.min_size = 100
-splitter.max_size = 250
+    splitter = Splitter(sizable_from = 'right')
+    splitter.add_widget(layout_or_widget_instance)
+    splitter.min_size = 100
+    splitter.max_size = 250
 '''
 
 
@@ -48,7 +51,7 @@ class Splitter(BoxLayout):
     strip_cls = ObjectProperty(SplitterStrip)
     '''Specifies the class of the resize Strip
 
-    :data: `strip_cls` is a :class:`kivy.properties.ObjectProperty`
+    :data:`strip_cls` is a :class:`kivy.properties.ObjectProperty`
     defaults to SplitterStrip
     '''
 
