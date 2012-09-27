@@ -71,6 +71,14 @@
             size: self.width * (self.value / float(self.max)), 24
             source: 'atlas://data/images/defaulttheme/progressbar'
 
+<SplitterStrip>:
+    canvas.after:
+        Color:
+            rgba: self.parent.color if self.parent else (1, 1, 1, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
 <Scatter>:
     canvas.before:
         PushMatrix
