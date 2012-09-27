@@ -72,6 +72,7 @@
             source: 'atlas://data/images/defaulttheme/progressbar'
 
 <SplitterStrip>:
+    border: self.parent.border if self.parent else (0, 0, 0, 0)
     canvas.after:
         Color:
             rgba: self.parent.color if self.parent else (1, 1, 1, 1)

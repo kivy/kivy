@@ -45,7 +45,18 @@ class Splitter(BoxLayout):
     '''color, in the format (r, g, b, a).
 
     :data:`color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 1, 1, 1].
+    default to [1, 0, 0, .5].
+    '''
+
+    border = ListProperty([0, 0, 0, 0])
+    '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
+    graphics instruction.
+
+    It must be a list of four values: (top, right, bottom, left). Read the
+    BorderImage instruction for more information about how to use it.
+
+    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (0,
+    0, 0, 0)
     '''
 
     strip_cls = ObjectProperty(SplitterStrip)
@@ -91,40 +102,40 @@ class Splitter(BoxLayout):
         super(Splitter, self).__init__(**kwargs)
 
     def on_sizable_from(self, instance, sizable_from):
-        if not self._container:
+        if not instance._container:
             return
 
-        sup = super(Splitter, self)
-        _strp = self._strip
+        sup = super(Splitter, instance)
+        _strp = instance._strip
         if _strp:
-            sup.remove_widget(self._strip)
+            sup.remove_widget(instance._strip)
         else:
-            self._strip = _strp = self.strip_cls()
+            instance._strip = _strp = instance.strip_cls()
 
-        sz_frm = self.sizable_from[0]
+        sz_frm = instance.sizable_from[0]
         if sz_frm in ('l', 'r'):
             _strp.size_hint = None, 1
-            _strp.width = self.strip_size
-            self.unbind(strip_size=_strp.setter('width'))
-            self.bind(strip_size=_strp.setter('width'))
+            _strp.width = instance.strip_size
+            instance.unbind(strip_size=_strp.setter('width'))
+            instance.bind(strip_size=_strp.setter('width'))
         else:
             _strp.size_hint = 1, None
-            _strp.height = self.strip_size
-            self.orientation = 'vertical'
-            self.unbind(strip_size=_strp.setter('height'))
-            self.bind(strip_size=_strp.setter('height'))
+            _strp.height = instance.strip_size
+            instance.orientation = 'vertical'
+            instance.unbind(strip_size=_strp.setter('height'))
+            instance.bind(strip_size=_strp.setter('height'))
 
         index = 1
         if sz_frm in ('r', 'b'):
             index = 0
         sup.add_widget(_strp, index)
 
-        _strp.unbind(on_touch_down=self.strip_down)
-        _strp.unbind(on_touch_move=self.strip_move)
-        _strp.unbind(on_touch_up=self.strip_up)
-        _strp.bind(on_touch_down=self.strip_down)
-        _strp.bind(on_touch_move=self.strip_move)
-        _strp.bind(on_touch_up=self.strip_up)
+        _strp.unbind(on_touch_down=instance.strip_down)
+        _strp.unbind(on_touch_move=instance.strip_move)
+        _strp.unbind(on_touch_up=instance.strip_up)
+        _strp.bind(on_touch_down=instance.strip_down)
+        _strp.bind(on_touch_move=instance.strip_move)
+        _strp.bind(on_touch_up=instance.strip_up)
 
     def add_widget(self, widget, index=0):
         if self._container or not widget:
