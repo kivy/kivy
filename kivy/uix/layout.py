@@ -15,8 +15,10 @@ The :class:`Layout` class itself cannot be used directly. You must use one of:
 Understanding `size_hint` Property in `Widget`
 ----------------------------------------------
 
-The :data:`~kivy.uix.Widget.size_hint` is mostly used in Layout. This is the
-size in percent, not in pixels. The format is::
+The :data:`~kivy.uix.Widget.size_hint` is a tupple of values used by
+layouts to manage the size of their children. It indicate the size
+relatively to the layout size, instead of absolutely (in
+pixels/points/cm/etc). The format is::
 
     widget.size_hint = (width_percent, height_percent)
 
