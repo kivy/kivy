@@ -438,16 +438,6 @@ class Widget(EventDispatcher):
     '''Class of the widget, used for styling.
     '''
 
-    def get_uid(self):
-        return self.__dict__['__uid']
-    uid = AliasProperty(get_uid, None)
-    '''Unique identifier of the widget in the whole Kivy instance.
-
-    .. versionadded:: 1.0.7
-
-    :data:`uid` is a :class:`~kivy.properties.AliasProperty`, read-only.
-    '''
-
     id = StringProperty(None, allownone=True)
     '''Unique identifier of the widget in the tree.
 
