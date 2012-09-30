@@ -107,6 +107,8 @@ Examples
 .. |wdg_desc1| replace:: Usage and Showcase of :class:`Accordion <kivy.uix.accordion>`  Widget.
 .. |wdg_file2| replace:: asyncimage.py
 .. |wdg_desc2| replace:: Usage and Showcase of :class:`AsyncImage <kivy.uix.image.AsyncImage>` Widget.
+.. |wdg_file25| replace:: boxlayout_pos_hint.py
+.. |wdg_desc25| replace:: Showcase of pos_hint under BoxLayout :class:`BoxLayout <kivy.uix.boxlayout>`
 .. |wdg_file3| replace:: bubble_test.py
 .. |wdg_desc3| replace:: Usage and Showcase of :class:`Bubble <kivy.uix.bubble>`  Widget.
 .. |wdg_file4| replace:: customcollide.py
@@ -118,7 +120,11 @@ Examples
 .. |wdg_file7| replace:: keyboardlistener.py
 .. |wdg_desc7| replace:: listen to the keyboard input and spew result to console.
 .. |wdg_file8| replace:: label_mipmap.py
-.. |wdg_desc8| replace:: How to use :class:`Label <kivy.uix.label>` widget with mipmap.
+.. |wdg_desc8| replace:: How to use :class:`Label <kivy.uix.label>` widget with
+.. |wdg_file81| replace:: label_with_markup.py
+.. |wdg_desc81| replace:: Useage of :class:`Label <kivy.uix.label>` widget with markup.
+.. |wdg_file82| replace:: popup_with_kv.py
+.. |wdg_desc82| replace:: Useage of :class:`Popup <kivy.uix.popup>` widget with ``kv`` language
 .. |wdg_file9| replace:: rstexample.py
 .. |wdg_desc9| replace:: Usage and Showcase of :class:`RstDocument <kivy.uix.rst.RstDocument>` Widget.
 .. |wdg_file10| replace:: scatter.py
@@ -198,12 +204,15 @@ Examples
 +------------+---------------+------------------------+
 |- |wdg_dir| | - |wdg_file1| |- |wdg_desc1|           |
 |            | - |wdg_file2| |- |wdg_desc2|           |
+|            | - |wdg_file25||- |wdg_desc25|          |
 |            | - |wdg_file3| |- |wdg_desc3|           |
 |            | - |wdg_file4| |- |wdg_desc4|           |
 |            | - |wdg_file5| |- |wdg_desc5|           |
 |            | - |wdg_file6| |- |wdg_desc6|           |
 |            | - |wdg_file7| |- |wdg_desc7|           |
 |            | - |wdg_file8| |- |wdg_desc8|           |
+|            | - |wdg_file81||- |wdg_desc81|          |
+|            | - |wdg_file82||- |wdg_desc82|          |
 |            | - |wdg_file9| |- |wdg_desc9|           |
 |            | - |wdg_file10||- |wdg_desc10|          |
 |            | - |wdg_file11||- |wdg_desc11|          |
