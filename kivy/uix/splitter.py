@@ -7,11 +7,15 @@ Splitter
 .. image:: images/splitter.jpg
     :align: right
 
-The :class:`Splitter` is a :class:`~kivy.uix.boxlayout.BoxLayout` with
-associated actions that are triggered when it's pressed and moved.
+.. warning::
 
-To configure, you can set 'sizable_from' to 'left' or 'right' or 'top'
-or 'bottom'.
+    This widget is still experimental, and its API is subject to change in
+    a future version.
+
+The :class:`Splitter` is a widget that helps you re-size it's child \
+widget/layout by letting the user control the size of it's child  by \
+dragging the boundary. This widget like :class:`~kivy.uix.scrollview.Scrollview`
+allows only one child widget.
 
 Usage::
 
@@ -19,6 +23,26 @@ Usage::
     splitter.add_widget(layout_or_widget_instance)
     splitter.min_size = 100
     splitter.max_size = 250
+
+Change size of the strip/border used to resize::
+
+    splitter.strip_size = '10pt'
+
+Change appearance::
+
+    splitter.strip_cls = your_custom_class
+
+You could also change the appearance of the `strip_cls` which defaults to
+:class:`SplitterStrip` by overriding the `kv` rule for like so in your app::
+
+    <SplitterStrip>:
+        horizontal: True if self.parent and self.parent.sizable_from \
+in ('t', 'b') else False
+        background_normal: 'path to normal horizontal image' \
+if self.horizontal else 'path to vertical normal image'
+        background_down: 'path to pressed horizontal image' \
+if self.horizontal else 'path to vertical pressed image'
+
 '''
 
 
@@ -31,14 +55,14 @@ from kivy.uix.boxlayout import BoxLayout
 
 
 class SplitterStrip(Button):
+    '''class used for graphical representation of \
+    :class:`kivy.uix.splitter.SplitterStripe`
+    '''
     pass
 
 
 class Splitter(BoxLayout):
-    '''This is a Splitter widget used for resizing it's children
-    set `adjust_from to` `left`/`right`/`top` or `bottom`
-    The parent Layout will now be re-sizable by clicking/touching
-    on this resize widget and moving.
+    '''see module documentation.
     '''
 
     border = ListProperty([4, 4, 4, 4])
@@ -48,15 +72,16 @@ class Splitter(BoxLayout):
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instruction for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (4,
-    4, 4, 4)
+    :data:`border` is a :class:`~kivy.properties.ListProperty`, \
+    default to (4, 4, 4, 4)
     '''
 
     strip_cls = ObjectProperty(SplitterStrip)
     '''Specifies the class of the resize Strip
 
     :data:`strip_cls` is a :class:`kivy.properties.ObjectProperty`
-    defaults to SplitterStrip
+    defaults to :class:`~kivy.uix.splitter.SplitterStrip` which is of type\
+    :class:`~kivy.uix.button.Button`
     '''
 
     sizable_from = OptionProperty('left',
@@ -212,7 +237,6 @@ class Splitter(BoxLayout):
 
 if __name__ == '__main__':
     from kivy.app import App
-    from kivy.uix.boxlayout import BoxLayout
     from kivy.uix.button import Button
     from kivy.uix.floatlayout import FloatLayout
 
