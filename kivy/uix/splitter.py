@@ -41,22 +41,15 @@ class Splitter(BoxLayout):
     on this resize widget and moving.
     '''
 
-    color = ListProperty([1, 0, 0, .5])
-    '''color, in the format (r, g, b, a).
-
-    :data:`color` is a :class:`~kivy.properties.ListProperty`,
-    default to [1, 0, 0, .5].
-    '''
-
-    border = ListProperty([0, 0, 0, 0])
+    border = ListProperty([4, 4, 4, 4])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction.
 
     It must be a list of four values: (top, right, bottom, left). Read the
     BorderImage instruction for more information about how to use it.
 
-    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (0,
-    0, 0, 0)
+    :data:`border` is a :class:`~kivy.properties.ListProperty`, default to (4,
+    4, 4, 4)
     '''
 
     strip_cls = ObjectProperty(SplitterStrip)
