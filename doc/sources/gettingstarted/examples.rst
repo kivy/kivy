@@ -107,6 +107,8 @@ Examples
 .. |wdg_desc1| replace:: Usage and Showcase of :class:`Accordion <kivy.uix.accordion>`  Widget.
 .. |wdg_file2| replace:: asyncimage.py
 .. |wdg_desc2| replace:: Usage and Showcase of :class:`AsyncImage <kivy.uix.image.AsyncImage>` Widget.
+.. |wdg_file25| replace:: boxlayout_pos_hint.py
+.. |wdg_desc25| replace:: Usage and Showcase of :class:`BoxLayout <kivy.uix.boxlayout>`
 .. |wdg_file3| replace:: bubble_test.py
 .. |wdg_desc3| replace:: Usage and Showcase of :class:`Bubble <kivy.uix.bubble>`  Widget.
 .. |wdg_file4| replace:: customcollide.py
@@ -198,6 +200,7 @@ Examples
 +------------+---------------+------------------------+
 |- |wdg_dir| | - |wdg_file1| |- |wdg_desc1|           |
 |            | - |wdg_file2| |- |wdg_desc2|           |
+|            | - |wdg_file25||- |wdg_desc25|          |
 |            | - |wdg_file3| |- |wdg_desc3|           |
 |            | - |wdg_file4| |- |wdg_desc4|           |
 |            | - |wdg_file5| |- |wdg_desc5|           |
