@@ -123,6 +123,13 @@ cdef class Line(VertexInstruction):
         self._stencil_pop = None
         self._use_stencil = 0
 
+        if 'ellipse' in kwargs:
+            self.ellipse = kwargs['ellipse']
+        if 'circle' in kwargs:
+            self.circle = kwargs['circle']
+        if 'rectangle' in kwargs:
+            self.rectangle = kwargs['rectangle']
+
     cdef void build(self):
         if self._mode == LINE_MODE_ELLIPSE:
             self.prebuild_ellipse()
