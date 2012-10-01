@@ -38,7 +38,8 @@ height, do::
     widget.width = 250
 
 .. versionchanged:: 1.4.1
-    `reposition_child` internal method (made public by mistake) have been removed.
+    `reposition_child` internal method (made public by mistake) have
+    been removed.
 
 '''
 

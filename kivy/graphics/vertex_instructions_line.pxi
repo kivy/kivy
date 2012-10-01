@@ -140,6 +140,8 @@ cdef class Line(VertexInstruction):
             self.circle = kwargs['circle']
         if 'rectangle' in kwargs:
             self.rectangle = kwargs['rectangle']
+        if 'bezier' in kwargs:
+            self.bezier = kwargs['bezier']
 
     cdef void build(self):
         if self._mode == LINE_MODE_ELLIPSE:
