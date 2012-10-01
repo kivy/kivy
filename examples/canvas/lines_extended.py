@@ -83,6 +83,20 @@ Builder.load_string('''
     Label:
         center: root.center
         text: 'Rectangle'
+
+
+<LineBezier>:
+    canvas:
+        Color:
+            rgba: .1, .1, 1, .9
+        Line:
+            width: 2.
+            bezier: (self.x, self.y, self.center_x - 40, self.y + 100, self.center_x + 40, self.y - 100, self.right, self.y) 
+    Label:
+        center: root.center
+        text: 'Bezier'
+
+
 ''')
 
 
@@ -107,6 +121,9 @@ class LineCircle3(Widget):
 class LineRectangle(Widget):
     pass
 
+class LineBezier(Widget):
+    pass
+
 class LineExtendedApp(App):
     def build(self):
         root = GridLayout(cols=2, padding=50, spacing=50)
@@ -117,6 +134,7 @@ class LineExtendedApp(App):
         root.add_widget(LineCircle2())
         root.add_widget(LineCircle3())
         root.add_widget(LineRectangle())
+        root.add_widget(LineBezier())
         return root
 
 if __name__ == '__main__':
