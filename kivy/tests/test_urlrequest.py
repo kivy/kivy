@@ -9,6 +9,7 @@ from kivy.network.urlrequest import UrlRequest
 from time import sleep
 from kivy.clock import Clock
 
+
 class UrlRequestTest(unittest.TestCase):
 
     def _on_success(self, req, *args):
@@ -20,13 +21,12 @@ class UrlRequestTest(unittest.TestCase):
     def _on_progress(self, req, *args):
         self.queue.append((thread.get_ident(), 'progress', args))
 
-
     def test_callbacks(self):
         self.queue = []
         req = UrlRequest('http://google.com',
-                on_success=self._on_success,
-                on_progress=self._on_progress,
-                on_error=self._on_error)
+                         on_success=self._on_success,
+                         on_progress=self._on_progress,
+                         on_error=self._on_error)
 
         # don't use wait, but maximum 10s timeout
         for i in xrange(50):
