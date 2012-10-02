@@ -175,11 +175,43 @@ get instant karma. Congratulations, you're a hero!
 Documentation Contributions
 ---------------------------
 
-Documentation contributions generally follow the same workflow as code
-contributions, just a bit more lax. We don't ask you to go through all the
-hassle just to correct a single typo. For more complex contributions, please
-consider following the suggested workflow though.
+Documentation contributions generally follow the same workflow as code contributions, just a bit more lax. 
 
+    #. Following the instructions above,
+
+        #. Fork the repository.
+
+        #. Clone your fork to your computer.
+
+        #. Setup kivy repo as a remote source.
+
+    #. Install python-sphinx. (See docs/sources/README for assistance.) 
+
+    #. Use ReStructuredText_Markup_ to make changes to the HTML documentation in docs/sources. 
+
+.. _ReStructuredText_Markup: http://docutils.sourceforge.net/rst.html 
+
+To submit a documentation update, use the following steps:
+
+    #. Create a new, appropriately named branch in your local repository.::
+
+        git checkout -b my_docs_update
+
+    #. Modify the documentation with your correction or improvement. 
+    #. Re-generate the HTML pages, and review your update.::
+
+			make html
+
+    #. Give each commit an appropriate commit message, so that others who are not familiar with the matter get a good idea of what you changed.
+    #. Keep each commit focused on a single related theme. Don't commit other stuff that doesn't logically belong to this update.
+
+    #. Push to your remote repository on GitHub::
+
+        git push
+
+    #. Send a *Pull Request* with a description of what you changed via the button in the GitHub interface of your repository. 
+
+We don't ask you to go through all the hassle just to correct a single typo, but for more complex contributions, please follow the suggested workflow.
 
 Docstrings
 ~~~~~~~~~~
