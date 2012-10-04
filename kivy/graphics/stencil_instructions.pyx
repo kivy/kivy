@@ -147,11 +147,14 @@ cdef class StencilUse(Instruction):
     '''Use current stencil buffer as a mask. Check module documentation for more
     information.
     '''
+    def __init__(self, **kwargs):
+        super(StencilUse, self).__init__(**kwargs)
+        self._op = kwargs.get('op') or GL_EQUAL
     cdef void apply(self):
         global _stencil_in_push
         _stencil_in_push = 0
         glColorMask(1, 1, 1, 1)
-        glStencilFunc(GL_EQUAL, _stencil_level, 0xff)
+        glStencilFunc(self._op, _stencil_level, 0xff)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 
 cdef class StencilUnUse(Instruction):

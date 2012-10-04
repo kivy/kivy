@@ -15,10 +15,12 @@ __all__ = (
     'stopTouchApp',
 )
 
+from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from kivy.utils import platform, reify
 
 # private vars
 EventLoop = None
@@ -102,6 +104,32 @@ class EventLoopBase(EventDispatcher):
         '''Return the list of all touches currently in down or move state
         '''
         return self.me_list
+
+    @reify
+    def dpi(self):
+        '''Return the DPI of the screen. Depending of the platform, the DPI can
+        be taken from the Window provider (Desktop mainly), or from
+        platform-specific module (like android/ios).
+
+        On desktop, you can overload the value returned by the Window object
+        (96 by default), by setting the environ KIVY_DPI::
+
+            KIVY_DPI=200 python main.py
+
+        .. versionadded:: 1.4.0
+        '''
+        custom_dpi = environ.get('KIVY_DPI')
+        if custom_dpi:
+            return float(custom_dpi)
+
+        plat = platform()
+        if plat == 'android':
+            import android
+            return android.get_dpi()
+
+        # for all other platforms..
+        self.ensure_window()
+        return self.window.dpi
 
     def ensure_window(self):
         '''Ensure that we have an window

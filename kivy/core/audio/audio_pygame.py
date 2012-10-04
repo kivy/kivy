@@ -78,6 +78,11 @@ class SoundPygame(Sound):
         # Unable to seek in pygame...
         pass
 
+    def get_pos(self):
+        if self._data is not None:
+            return mixer.music.get_pos()
+        return 0
+
     def _get_volume(self):
         if self._data is not None:
             self._volume = self._data.get_volume()

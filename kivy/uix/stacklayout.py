@@ -102,7 +102,6 @@ class StackLayout(Layout):
 
     def do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop
-        reposition_child = self.reposition_child
         selfx, selfy = self.pos
         selfw, selfh = self.size
         orientation = self.orientation
@@ -136,7 +135,8 @@ class StackLayout(Layout):
                 y -= lh
                 height += lh + spacing
                 for c2 in lc:
-                    reposition_child(c2, pos=(x, y))
+                    c2.x = x
+                    c2.y = y
                     x += c2.width + spacing
                 y -= spacing
                 lc = [c]
@@ -148,7 +148,8 @@ class StackLayout(Layout):
                 y -= lh
                 height += lh + padding
                 for c2 in lc:
-                    reposition_child(c2, pos=(x, y))
+                    c2.x = x
+                    c2.y = y
                     x += c2.width + spacing
             self.minimum_height = height
 
@@ -174,7 +175,8 @@ class StackLayout(Layout):
                 x -= lw
                 width += lw + spacing
                 for c2 in lc:
-                    reposition_child(c2, pos=(x, y))
+                    c2.x = x
+                    c2.y = y
                     y += c2.height + spacing
                 x -= spacing
                 lc = [c]
@@ -186,6 +188,7 @@ class StackLayout(Layout):
                 x -= lw
                 width += lw
                 for c2 in lc:
-                    reposition_child(c2, pos=(x, y))
+                    c2.x = x
+                    c2.y = y
                     y += c2.height + spacing
             self.minimum_width = width

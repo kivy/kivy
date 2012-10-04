@@ -43,8 +43,7 @@ if 'KIVY_DOC' in os.environ:
 else:
     from ctypes.wintypes import (ULONG, HANDLE, DWORD, LONG, UINT,
             WPARAM, LPARAM, POINTER, BOOL)
-    from ctypes import (windll, WINFUNCTYPE, c_int,
-                        Structure, pointer, sizeof, byref)
+    from ctypes import windll, WINFUNCTYPE, c_int, Structure, sizeof, byref
     from collections import deque
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
@@ -99,8 +98,15 @@ else:
         w = property(lambda self: self.right - self.left)
         h = property(lambda self: self.bottom - self.top)
 
-    windll.user32.SetWindowLongPtrW.restype = WNDPROC
-    windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
+    if hasattr(windll.user32, 'SetWindowLongPtrW'):
+        windll.user32.SetWindowLongPtrW.restype = WNDPROC
+        windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
+        SetWindowLong_wrapper = windll.user32.SetWindowLongPtrW
+    else:
+        windll.user32.SetWindowLongW.restype = WNDPROC
+        windll.user32.SetWindowLongW.argtypes = [HANDLE, c_int, WNDPROC]
+        SetWindowLong_wrapper = windll.user32.SetWindowLongW
+
     windll.user32.GetMessageExtraInfo.restype = LPARAM
     windll.user32.GetMessageExtraInfo.argtypes = []
     windll.user32.GetClientRect.restype = BOOL
@@ -134,10 +140,8 @@ else:
             # inject our own wndProc to handle messages
             # before window manager does
             self.new_windProc = WNDPROC(self._touch_wndProc)
-            self.old_windProc = windll.user32.SetWindowLongPtrW(
-                self.hwnd,
-                GWL_WNDPROC,
-                self.new_windProc)
+            self.old_windProc = SetWindowLong_wrapper(
+                self.hwnd, GWL_WNDPROC, self.new_windProc)
 
         def update(self, dispatch_fn):
             win_rect = RECT()
@@ -173,10 +177,8 @@ else:
 
         def stop(self):
             windll.user32.UnregisterTouchWindow(self.hwnd)
-            self.new_windProc = windll.user32.SetWindowLongPtrW(
-                self.hwnd,
-                GWL_WNDPROC,
-                self.old_windProc)
+            self.new_windProc = SetWindowLong_wrapper(
+                self.hwnd, GWL_WNDPROC, self.old_windProc)
 
         # we inject this wndProc into our main window, to process
         # WM_TOUCH and mouse messages before the window manager does
@@ -201,7 +203,7 @@ else:
             touches = (TOUCHINPUT * wParam)()
             windll.user32.GetTouchInputInfo(HANDLE(lParam),
                                             wParam,
-                                            pointer(touches),
+                                            touches,
                                             sizeof(TOUCHINPUT))
             for i in xrange(wParam):
                 self.touch_events.appendleft(touches[i])

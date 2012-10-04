@@ -438,16 +438,6 @@ class Widget(EventDispatcher):
     '''Class of the widget, used for styling.
     '''
 
-    def get_uid(self):
-        return self.__dict__['__uid']
-    uid = AliasProperty(get_uid, None)
-    '''Unique identifier of the widget in the whole Kivy instance.
-
-    .. versionadded:: 1.0.7
-
-    :data:`uid` is a :class:`~kivy.properties.AliasProperty`, read-only.
-    '''
-
     id = StringProperty(None, allownone=True)
     '''Unique identifier of the widget in the tree.
 
@@ -531,6 +521,30 @@ class Widget(EventDispatcher):
     :data:`pos_hint` is a :class:`~kivy.properties.ObjectProperty` containing a
     dict.
     '''
+
+    opacity = NumericProperty(1.0)
+    '''Opacity of the widget and all the children.
+
+    .. versionadded:: 1.4.1
+
+    The opacity attribute controls the opacity of the widget and its children.
+    Be careful, it's a cumulative attribute: the value is multiplied to the
+    current global opacity, and the result is applied to the current context
+    color.
+
+    For example: if your parent have an opacity of 0.5, and one children have an
+    opacity of 0.2, the real opacity of the children will be 0.5 * 0.2 = 0.1.
+
+    Then, the opacity is applied on the shader as::
+
+        frag_color = color * vec4(1.0, 1.0, 1.0, opacity);
+
+    :data:`opacity` is a :class:`~kivy.properties.NumericProperty`, default to
+    1.0.
+    '''
+
+    def on_opacity(self, instance, value):
+        self.canvas.opacity = value
 
     canvas = None
     '''Canvas of the widget.

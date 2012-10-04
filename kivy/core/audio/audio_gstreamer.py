@@ -94,6 +94,16 @@ class SoundGstreamer(Sound):
         self._data.seek_simple(gst.FORMAT_TIME, gst.SEEK_FLAG_SKIP,
                                position / 1000000000.)
 
+    def get_pos(self):
+        if self._data is not None:
+            if self._data.get_state()[1] == gst.STATE_PLAYING:
+                try:
+                    return self._data.query_position(gst.Format
+                        (gst.FORMAT_TIME))[0] / 1000000000.
+                except:
+                    pass
+        return 0
+
     def _get_volume(self):
         if self._data is not None:
             self._volume = self._data.get_property('volume')

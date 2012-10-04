@@ -130,6 +130,14 @@ class Sound(EventDispatcher):
             return
         self.load()
 
+    def get_pos(self):
+        '''
+        get the current position of the audio file. returns 0 if not playing
+
+        .. versionadded:: 1.4.1
+        '''
+        return 0
+
     def _get_length(self):
         return 0
 

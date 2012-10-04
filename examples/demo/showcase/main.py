@@ -16,6 +16,7 @@ from kivy.properties import StringProperty
 from kivy.clock import Clock
 import random
 
+
 class Showcase(FloatLayout):
     pass
 
@@ -60,6 +61,7 @@ class BoxLayoutShowcase(FloatLayout):
         super(BoxLayoutShowcase, self).__init__(**kwargs)
         self.buttons = 0
         self.txt = 'horizontal'
+        self.text_size = self.size
         Clock.schedule_once(self.add_button, 1)
 
     def add_button(self, *l):
@@ -71,7 +73,10 @@ class BoxLayoutShowcase(FloatLayout):
                 self.txt = self.blayout.orientation = 'horizontal'
             else:
                 self.txt = self.blayout.orientation = 'vertical'
-        self.blayout.add_widget(Button(text = self.txt))
+
+        btn = Button(text=self.txt, halign='center', valign='middle')
+        btn.bind(size=btn.setter('text_size'))
+        self.blayout.add_widget(btn)
         Clock.schedule_once(self.add_button, 1)
 
 
@@ -87,9 +92,9 @@ class FloatLayoutShowcase(FloatLayout):
         if self.buttons > 5:
             self.buttons = 0
             self.flayout.clear_widgets()
-        self.flayout.add_widget(Button(text = 'no restrictions\n what so ever',
-            size_hint = (None, None), size = (150, 40),
-            pos_hint = {'x':random.random(), 'y': random.random()}))
+        self.flayout.add_widget(Button(text='no restrictions\n what so ever',
+            size_hint=(None, None), size=(150, 40),
+            pos_hint={'x': random.random(), 'y': random.random()}))
         Clock.schedule_once(self.add_button, 1)
 
 
@@ -106,7 +111,7 @@ class GridLayoutShowcase(FloatLayout):
 
     def add_button(self, *l):
         self.buttons += 1
-        if self.buttons > 20:
+        if self.buttons > 10:
             self.buttons = 0
             self.glayout.clear_widgets()
             if self.txt == "rows = 3":
@@ -117,7 +122,7 @@ class GridLayoutShowcase(FloatLayout):
                 self.glayout.rows = 3
                 self.glayout.cols = 7
                 self.txt = "rows = 3"
-        self.glayout.add_widget(Button(text = self.txt))
+        self.glayout.add_widget(Button(text=self.txt))
         Clock.schedule_once(self.add_button, 1)
 
 
@@ -157,8 +162,10 @@ class StandardWidgets(FloatLayout):
 class ComplexWidgets(FloatLayout):
     pass
 
+
 class TreeViewWidgets(FloatLayout):
     pass
+
 
 class ShowcaseApp(App):
 

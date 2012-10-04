@@ -9,6 +9,20 @@ where you can swipe between slides.
 You can add any content to the carousel and use it horizontally or verticaly.
 The carousel can display pages in loop or not.
 
+Example::
+
+    class Example1(App):
+
+        def build(self):
+            carousel = Carousel(direction='right')
+            for i in range(10):
+                src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
+                image = Factory.AsyncImage(source=src, allow_stretch=True)
+                carousel.add_widget(image)
+            return carousel
+
+    Example1().run()
+
 '''
 
 __all__ = ('Carousel', )
@@ -22,12 +36,14 @@ from kivy.properties import BooleanProperty, OptionProperty, AliasProperty, \
 
 
 class Carousel(StencilView):
+    '''Carousel class. See module documentation for more information.
+    '''
 
     slides = ListProperty([])
-    ''' List of slides inside the carousel.  The slides are added when a
-    widget is added to Carousel using add_widget().
+    '''List of slides inside the carousel. The slides are added when a widget is
+    added to Carousel using add_widget().
 
-    :data: `slides` is a list of `~kivy.ui.relativelayout.RelativeLayout`
+    :data:`slides` is a list of :class:`~kivy.ui.relativelayout.RelativeLayout`
     widgets containing the content added through add_widget.
     '''
 
@@ -302,12 +318,15 @@ class Carousel(StencilView):
         super(Carousel, self).add_widget(slide)
         self.slides.append(slide)
 
-    def remove_widget(self, widget, *l, **kwargs):
+    def remove_widget(self, widget, *args, **kwargs):
+        # XXX be careful, the widget.parent.parent refer to the RelativeLayout
+        # added in add_widget(). But it will break if RelativeLayout
+        # implementation change.
         if widget.parent.parent in self.slides:
-            slide = widget.parent
+            slide = widget.parent.parent
             self.slides.remove(slide)
-            return slide.remove_widget(widget, *l, **kwargs)
-        return super(Carousel, self).remove_widget(widget, *l, **kwargs)
+            return slide.remove_widget(widget, *args, **kwargs)
+        return super(Carousel, self).remove_widget(widget, *args, **kwargs)
 
 
 if __name__ == '__main__':

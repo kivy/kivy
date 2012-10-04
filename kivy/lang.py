@@ -475,6 +475,51 @@ lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 
 
+class ProxyApp(object):
+    # proxy app object
+    # taken from http://code.activestate.com/recipes/496741-object-proxying/
+
+    __slots__ = ['_obj']
+
+    def __init__(self):
+        object.__init__(self)
+        object.__setattr__(self, '_obj', None)
+
+    def _ensure_app(self):
+        app = object.__getattribute__(self, '_obj')
+        if app is None:
+            from kivy.app import App
+            app = App.get_running_app()
+            object.__setattr__(self, '_obj', app)
+        return app
+
+    def __getattribute__(self, name):
+        object.__getattribute__(self, '_ensure_app')()
+        return getattr(object.__getattribute__(self, '_obj'), name)
+
+    def __delattr__(self, name):
+        object.__getattribute__(self, '_ensure_app')()
+        delattr(object.__getattribute__(self, '_obj'), name)
+
+    def __setattr__(self, name, value):
+        object.__getattribute__(self, '_ensure_app')()
+        setattr(object.__getattribute__(self, '_obj'), name, value)
+
+    def __nonzero__(self):
+        object.__getattribute__(self, '_ensure_app')()
+        return bool(object.__getattribute__(self, '_obj'))
+
+    def __str__(self):
+        object.__getattribute__(self, '_ensure_app')()
+        return str(object.__getattribute__(self, '_obj'))
+
+    def __repr__(self):
+        object.__getattribute__(self, '_ensure_app')()
+        return repr(object.__getattribute__(self, '_obj'))
+
+global_idmap['app'] = ProxyApp()
+
+
 class ParserException(Exception):
     '''Exception raised when something wrong happened in a kv file.
     '''
@@ -1299,6 +1344,10 @@ class BuilderBase(object):
                 idmap['self'] = widget_set
                 widget_set.bind(**{key: partial(custom_callback,
                     crule, idmap)})
+
+                #hack for on_parent
+                if crule.name == 'on_parent':
+                    Factory.Widget.parent.dispatch(widget_set)
 
         # rule finished, forget it
         del self.rulectx[rootrule]

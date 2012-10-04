@@ -79,8 +79,14 @@ necessary packages:
 ::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
-      python-gst0.10 python-enchant gstreamer0.10-plugins-good cython python-dev \
-      build-essential libgl1-mesa-dev libgles2-mesa-dev
+      python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
+      build-essential libgl1-mesa-dev libgles2-mesa-dev python-pip
+
+Kivy require a recent version of cython, so it's better to use the last
+version published on pypi.
+
+::
+    $ sudo pip install --upgrade cython
 
 .. _dev-install:
 
@@ -129,7 +135,7 @@ one .)
 Kivy tests are based on nosetest, that you can install from your package
 manager or using pip :
 
-  $ pip install nosetest
+  $ pip install nose
 
 to run the test suite, do :
 
