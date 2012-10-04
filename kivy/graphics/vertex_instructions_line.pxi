@@ -311,7 +311,7 @@ cdef class Line(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
-        cdef double ax, ay, bx, by, cx, cy, angle, a1, a2
+        cdef double ax, ay, bx, _by, cx, cy, angle, a1, a2
         cdef double x1, y1, x2, y2, x3, y3, x4, y4
         cdef double sx1, sy1, sx4, sy4, sangle
         cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2
@@ -329,7 +329,7 @@ cdef class Line(VertexInstruction):
             ax = p[i * 2]
             ay = p[i * 2 + 1]
             bx = p[i * 2 + 2]
-            by = p[i * 2 + 3]
+            _by = p[i * 2 + 3]
 
             if i > 0 and self._joint != LINE_JOINT_NONE:
                 pcx = cx
@@ -350,7 +350,7 @@ cdef class Line(VertexInstruction):
 
             # calculate the orientation of the segment, between pi and -pi
             cx = bx - ax
-            cy = by - ay
+            cy = _by - ay
             angle = atan2(cy, cx)
             a1 = angle - PI2
             a2 = angle + PI2
@@ -365,9 +365,9 @@ cdef class Line(VertexInstruction):
             x4 = ax + cos2
             y4 = ay + sin2
             x2 = bx + cos1
-            y2 = by + sin1
+            y2 = _by + sin1
             x3 = bx + cos2
-            y3 = by + sin2
+            y3 = _by + sin2
 
             if i == 0:
                 sx1 = x1
