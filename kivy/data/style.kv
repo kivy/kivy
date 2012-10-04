@@ -71,6 +71,12 @@
             size: self.width * (self.value / float(self.max)), 24
             source: 'atlas://data/images/defaulttheme/progressbar'
 
+<SplitterStrip>:
+    border: self.parent.border if self.parent else (3, 3, 3, 3)
+    horizontal: '_h' if self.parent and self.parent.sizable_from[0] in  ('t', 'b') else ''
+    background_normal: 'atlas://data/images/defaulttheme/splitter' + self.horizontal
+    background_down: 'atlas://data/images/defaulttheme/splitter_down' + self.horizontal
+
 <Scatter>:
     canvas.before:
         PushMatrix
