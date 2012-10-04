@@ -2,7 +2,7 @@
 Splitter
 ======
 
-.. versionadded:: 1.4.1
+.. versionadded:: 1.5.0
 
 .. image:: images/splitter.jpg
     :align: right
@@ -157,7 +157,7 @@ class Splitter(BoxLayout):
 
     def add_widget(self, widget, index=0):
         if self._container or not widget:
-            return Exception('Splitter accepts only one Widget')
+            return Exception('Splitter accepts only one Child')
         self._container = widget
         sz_frm = self.sizable_from[0]
         if sz_frm in ('l', 'r'):
@@ -183,7 +183,6 @@ class Splitter(BoxLayout):
         if (not self.collide_point(*touch.pos)):
             return False
         touch.grab(self)
-        pos = touch.pos
 
     def strip_move(self, instance, touch):
         if touch.grab_current is not self._strip:
@@ -205,11 +204,9 @@ class Splitter(BoxLayout):
             else:
                 diff = (diff_y / self.parent.height)
                 self.size_hint_y += sign * (diff)
+
             height = self.height
-            if height > max_size:
-                self.height = max_size
-            elif height < min_size:
-                self.height = min_size
+            self.height = max(min_size, min(height, max_size))
         else:
             diff_x = (touch.dx)
             if sz_frm == 'l':
@@ -224,15 +221,12 @@ class Splitter(BoxLayout):
                 self.size_hint_x += sign * (diff)
 
             width = self.width
-            if width > max_size:
-                self.width = max_size
-            elif width < min_size:
-                self.width = min_size
+            self.width = max(min_size, min(width, max_size))
 
     def strip_down(self, instance, touch):
-        if touch.grab_current is not self:
+        if touch.grab_current is not self._strip:
             return
-        touch.ungrab(self)
+        touch.ungrab(self._strip)
 
 
 if __name__ == '__main__':
