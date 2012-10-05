@@ -126,7 +126,7 @@ class Animation(EventDispatcher):
         return self._transition
 
     @property
-    def animated_animated_properties(self):
+    def animated_properties(self):
         '''Return the properties used to animate
         '''
         return self._animated_properties
@@ -231,7 +231,7 @@ class Animation(EventDispatcher):
 
         # no more properties to animation ? kill the animation.
         if not props['properties']:
-            self.stop(widget)
+            self.cancel(widget)
 
     #
     # Private
