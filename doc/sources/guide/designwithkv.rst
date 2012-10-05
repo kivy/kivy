@@ -6,6 +6,9 @@
 Designing with the Kivy Language
 ================================
 
+The code goes in main.py
+~~~~~~~~~~~~~~~~~~~~~~~~
+
 Let's start with a little example. First, the Python file named `main.py`:
 
 .. include:: ../../../examples/guide/designwithkv/main.py
@@ -19,6 +22,9 @@ In this example, we are creating a Controller class, with 2 properties:
 In addition, we are creating a ``do_action()`` method, that will use both of
 these properties. It will change the ``info`` text, and change text in the
 ``label_wid`` widget.
+
+The layout goes in controller.kv
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Executing this application without a corresponding `.kv` file will work, but
 nothing will be shown on the screen. This is expected, because the
