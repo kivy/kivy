@@ -253,9 +253,9 @@ class TransitionBase(EventDispatcher):
 
         self.add_screen(self.screen_in)
         self.screen_in.transition_progress = 0.
-        self.screen_in.transition_mode = 'in'
+        self.screen_in.transition_state = 'in'
         self.screen_out.transition_progress = 0.
-        self.screen_out.transition_mode = 'out'
+        self.screen_out.transition_state = 'out'
 
         self.is_active = True
         self._anim.start(self)
