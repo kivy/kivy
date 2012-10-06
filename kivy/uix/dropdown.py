@@ -8,7 +8,7 @@ A versatile drop-down list, that can be used with custom widget. It allow you to
 display a list of widgets under a displayed widget. Unlike others toolkits, the
 list of widgets is what you want, it can be simple button, or images etc.
 
-The positionning of the drop-down list is fully automatic: we will always try to
+The positioning of the drop-down list is fully automatic: we will always try to
 place the dropdown list in a way that the user can select an item in the list.
 
 Basic example
@@ -16,7 +16,7 @@ Basic example
 
 A button with a dropdown list of 10 possibles values. All the button within the
 dropdown list will trigger the dropdown :meth:`DropDown.select` method. And
-then, the mainbutton text will display the selection of the dropdown. ::
+then, the main button text will display the selection of the dropdown. ::
 
     from kivy.uix.dropdown import DropDown
     from kivy.uix.button import Button
@@ -43,8 +43,8 @@ then, the mainbutton text will display the selection of the dropdown. ::
     # dropdown.open.).
     mainbutton.bind(on_release=dropdown.open)
 
-    # one last thing, listen to the selection done in the dropdown list. assign
-    # the data to the button text.
+    # one last thing, listen to the selection done in the dropdown list.
+    # Assign the data to the button text.
     dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
 
 
@@ -162,7 +162,7 @@ class DropDown(ScrollView):
     def open(self, widget):
         '''Open the dropdown list, and attach to a specific widget.
         Depending the position of the widget on the window and the height of the
-        dropdown, the placement might be lower or upper to that widget.
+        dropdown, the placement might be lower or higher off that widget.
         '''
         # ensure we are not already attached
         if self.attach_to is not None:
