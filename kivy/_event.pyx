@@ -19,7 +19,6 @@ from functools import partial
 from kivy.weakmethod import WeakMethod
 from kivy.properties cimport Property, ObjectProperty
 
-cdef tuple forbidden_properties = ('touch_down', 'touch_move', 'touch_up')
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
 
@@ -29,18 +28,17 @@ cdef class EventDispatcher(object):
     See the module docstring for usage.
     '''
 
-    cdef dict __event_stack
-    cdef dict __properties
-
     def __cinit__(self, *largs, **kwargs):
         global widget_uid, cache_properties
-        cdef dict widget_dict = self.__dict__
         cdef dict cp = cache_properties
         cdef dict attrs_found
         cdef list attrs
         cdef Property attr
         cdef str k
+
         self.__event_stack = {}
+        self.__storage = {}
+
         __cls__ = self.__class__
 
         # XXX for the moment, we need to create a uniq id for properties.
@@ -48,8 +46,7 @@ cdef class EventDispatcher(object):
         # are longer than using a custom __uid. I hope we can figure out a way
         # of doing that without require any python code. :)
         widget_uid += 1
-        widget_dict['__uid'] = widget_uid
-        widget_dict['__storage'] = {}
+        self.uid = widget_uid
 
         if __cls__ not in cp:
             attrs_found = cp[__cls__] = {}
@@ -58,7 +55,7 @@ cdef class EventDispatcher(object):
                 uattr = getattr(__cls__, k)
                 if not isinstance(uattr, Property):
                     continue
-                if k in forbidden_properties:
+                if k == 'touch_down' or k == 'touch_move' or k == 'touch_up':
                     raise Exception('The property <%s> have a forbidden name' % k)
                 attrs_found[k] = uattr
         else:
@@ -175,6 +172,7 @@ cdef class EventDispatcher(object):
                     print 'press on button', obj, 'with date:', value
 
         '''
+        cdef Property prop
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
                 if key not in self.__event_stack:
@@ -183,13 +181,15 @@ cdef class EventDispatcher(object):
                 handler = WeakMethod(value)
                 self.__event_stack[key].append(handler)
             else:
-                self.__properties[key].bind(self, value)
+                prop = self.__properties[key]
+                prop.bind(self, value)
 
     def unbind(self, **kwargs):
         '''Unbind properties from callback functions.
 
         Same usage as :func:`bind`.
         '''
+        cdef Property prop
         for key, value in kwargs.iteritems():
             if key[:3] == 'on_':
                 if key not in self.__event_stack:
@@ -201,7 +201,8 @@ cdef class EventDispatcher(object):
                     self.__event_stack[key].remove(handler)
                     break
             else:
-                self.__properties[key].unbind(self, value)
+                prop = self.__properties[key]
+                prop.unbind(self, value)
 
     def dispatch(self, str event_type, *largs):
         '''Dispatch an event across all the handler added in bind().
@@ -224,11 +225,13 @@ cdef class EventDispatcher(object):
     #
     # Properties
     #
-    def __proxy_setter(self, dstinstance, name, instance, value):
-        self.__properties[name].__set__(dstinstance, value)
+    def __proxy_setter(self, EventDispatcher dstinstance, name, instance, value):
+        cdef Property prop = self.__properties[name]
+        prop.set(dstinstance, value)
 
-    def __proxy_getter(self, dstinstance, name, instance):
-        return self.__properties[name].__get__(dstinstance)
+    def __proxy_getter(self, EventDispatcher dstinstance, name, instance):
+        cdef Property prop = self.__properties[name]
+        return prop.get(dstinstance)
 
     def setter(self, name):
         '''Return the setter of a property. Useful if you want to directly bind
@@ -261,7 +264,7 @@ cdef class EventDispatcher(object):
         '''
         return self.__properties[name]
 
-    cpdef dict properties(self):
+    cpdef dict properties(EventDispatcher self):
         '''Return all the properties in that class in a dictionnary of
         key/property class. Can be used for introspection.
 
@@ -270,7 +273,7 @@ cdef class EventDispatcher(object):
         cdef dict ret, p
         ret = {}
         p = self.__properties
-        for x in self.__dict__['__storage'].keys():
+        for x in self.__storage:
             ret[x] = p[x]
         return ret
 

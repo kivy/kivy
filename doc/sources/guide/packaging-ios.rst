@@ -52,6 +52,9 @@ Most of the python distribution will be packed into a `python27.zip`.
 Create an Xcode project
 -----------------------
 
+Before doing the next step, ensure your application entry point is a file named
+`main.py`.
+
 We provide a script that create an initial xcode project to start with (replace
 test with that you want. Must be a name without any space / weird chars)::
 

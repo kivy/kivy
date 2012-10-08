@@ -32,6 +32,13 @@ example, we use 10 pixel spacing between children; the first button covers
     layout.add_widget(btn1)
     layout.add_widget(btn2)
 
+Position hint are also partially working, depending the orientation:
+
+* If the orientation is `vertical`: `x`, `right` and `center_x` will be used
+* If the orientation is `horizontal`: `y`, `top` and `center_y` will be used
+
+You can check the `examples/widgets/boxlayout_poshint.py` for a live example.
+
 .. note::
 
     The `size_hint` uses the available space after subtracting all the
@@ -44,6 +51,10 @@ example, we use 10 pixel spacing between children; the first button covers
 
     The first button will be 200px wide as specified, the second and third
     will be 300px each, e.g., (800-200)*0.5
+
+
+.. versionchanged:: 1.4.1
+    Added support for `pos_hint`.
 
 '''
 
@@ -95,9 +106,10 @@ class BoxLayout(Layout):
         len_children = len(self.children)
         if len_children == 0:
             return
-        reposition_child = self.reposition_child
-        selfx, selfy = self.pos
-        selfw, selfh = self.size
+        selfx = self.x
+        selfy = self.y
+        selfw = self.width
+        selfh = self.height
         padding = self.padding
         spacing = self.spacing
         orientation = self.orientation
@@ -109,7 +121,8 @@ class BoxLayout(Layout):
         minimum_size_x = padding2 + spacing * (len_children - 1)
         minimum_size_y = minimum_size_x
         for w in self.children:
-            shw, shh = w.size_hint
+            shw = w.size_hint_x
+            shh = w.size_hint_y
             if shw is None:
                 minimum_size_x += w.width
             else:
@@ -123,27 +136,74 @@ class BoxLayout(Layout):
             x = y = padding
             stretch_space = max(0.0, selfw - minimum_size_x)
             for c in reversed(self.children):
-                shw, shh = c.size_hint
-                c_pos = selfx + x, selfy + y
-                c_size = list(c.size)
+                shw = c.size_hint_x
+                shh = c.size_hint_y
+                w = c.width
+                h = c.height
+                cx = selfx + x
+                cy = selfy + y
+
                 if shw:
-                    #its sizehint * available space
-                    c_size[0] = stretch_space * shw / stretch_weight_x
+                    w = stretch_space * shw / stretch_weight_x
                 if shh:
-                    c_size[1] = shh * (selfh - padding2)
-                reposition_child(c, pos=c_pos, size=c_size)
-                x += c_size[0] + spacing
+                    h = shh * (selfh - padding2)
+
+                for key, value in c.pos_hint.iteritems():
+                    posy = value * (selfh - padding2)
+                    if key == 'y':
+                        cy = y + posy
+                    elif key == 'top':
+                        cy = y + posy - h
+                    elif key == 'center_y':
+                        cy = y - h / 2. + posy
+
+                c.x = cx
+                c.y = cy
+                c.width = w
+                c.height = h
+                x += w + spacing
 
         if orientation == 'vertical':
             x = y = padding
             stretch_space = max(0.0, selfh - minimum_size_y)
             for c in self.children:
-                shw, shh = c.size_hint
-                c_pos = selfx + x, selfy + y
-                c_size = list(c.size)
+                shw = c.size_hint_x
+                shh = c.size_hint_y
+                w = c.width
+                h = c.height
+                cx = selfx + x
+                cy = selfy + y
+
                 if shh:
-                    c_size[1] = stretch_space * shh / stretch_weight_y
+                    h = stretch_space * shh / stretch_weight_y
                 if shw:
-                    c_size[0] = shw * (selfw - padding2)
-                reposition_child(c, pos=c_pos, size=c_size)
-                y += c_size[1] + spacing
+                    w = shw * (selfw - padding2)
+
+                for key, value in c.pos_hint.iteritems():
+                    posx = value * (selfw - padding2)
+                    if key == 'x':
+                        cx = x + posx
+                    elif key == 'right':
+                        cx = x + posx - w
+                    elif key == 'center_x':
+                        cx = x - w / 2. + posx
+
+                c.x = cx
+                c.y = cy
+                c.width = w
+                c.height = h
+                y += h + spacing
+
+    def add_widget(self, widget, index=0):
+        widget.bind(
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout,
+            pos_hint=self._trigger_layout)
+        return super(Layout, self).add_widget(widget, index)
+
+    def remove_widget(self, widget):
+        widget.unbind(
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout,
+            pos_hint=self._trigger_layout)
+        return super(Layout, self).remove_widget(widget)

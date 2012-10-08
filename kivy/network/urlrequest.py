@@ -69,6 +69,11 @@ except ImportError:
 
 from urlparse import urlparse
 from kivy.clock import Clock
+from kivy.weakmethod import WeakMethod
+
+
+# list to save UrlRequest and prevent GC on un-referenced objects
+g_requests = []
 
 
 class UrlRequest(Thread):
@@ -113,9 +118,9 @@ class UrlRequest(Thread):
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
         self.daemon = True
-        self.on_success = on_success
-        self.on_error = on_error
-        self.on_progress = on_progress
+        self.on_success = WeakMethod(on_success) if on_success else None
+        self.on_error = WeakMethod(on_error) if on_error else None
+        self.on_progress = WeakMethod(on_progress) if on_progress else None
         self._result = None
         self._error = None
         self._is_finished = False
@@ -134,6 +139,9 @@ class UrlRequest(Thread):
 
         #: Request headers passed in __init__
         self.req_headers = req_headers
+
+        # save our request to prevent GC
+        g_requests.append(self)
 
         self.start()
 
@@ -155,7 +163,17 @@ class UrlRequest(Thread):
         else:
             q(('success', resp, result))
 
+        # using trigger can result in a missed on_success event
         self._trigger_result()
+
+        # clean ourself when the queue is empty
+        while len(self._queue):
+            sleep(.1)
+            self._trigger_result()
+
+        # ok, authorize the GC to clean us.
+        if self in g_requests:
+            g_requests.remove(self)
 
     def _fetch_url(self, url, body, headers, q):
         # Parse and fetch the current url
@@ -219,6 +237,10 @@ class UrlRequest(Thread):
                 # report progress to user
                 q(('progress', resp, (bytes_so_far, total_size)))
                 trigger()
+            # ensure that restults are dispatch for the last chunk,
+            # avaoid trigger
+            q(('progress', resp, (bytes_so_far, total_size)))
+            trigger()
         else:
             result = resp.read()
         req.close()
@@ -272,15 +294,21 @@ class UrlRequest(Thread):
                 self._is_finished = True
                 self._result = data
                 if self.on_success:
-                    self.on_success(self, data)
+                    func = self.on_success()
+                    if func:
+                        func(self, data)
             elif result == 'error':
                 self._is_finished = True
                 self._error = data
                 if self.on_error:
-                    self.on_error(self, data)
+                    func = self.on_error()
+                    if func:
+                        func(self, data)
             elif result == 'progress':
                 if self.on_progress:
-                    self.on_progress(self, data[0], data[1])
+                    func = self.on_progress()
+                    if func:
+                        func(self, data[0], data[1])
             else:
                 assert(0)
 
@@ -330,6 +358,11 @@ class UrlRequest(Thread):
         '''If you want a sync request, you can call the wait() method. It will
         wait for the request to be finished (until :data:`resp_status` is not
         None)
+
+        .. note::
+            This method is intended to be used in the main thread, and the
+            callback will be dispatched from the same thread as the thread
+            you're calling it.
 
         .. versionadded:: 1.1.0
         '''

@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.4.0-dev'
+__version__ = '1.4.2-dev'
 
 import sys
 import shutil
@@ -171,6 +171,8 @@ def kivy_usage():
             Save current Kivy configuration.
         --size=640x480
             Size of window geometry.
+        --dpi=96
+            Manually overload the Window DPI (for testing only.)
     '''
     print kivy_usage.__doc__ % (basename(sys.argv[0]))
 
@@ -284,7 +286,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             opts, args = getopt(sys_argv[1:], 'hp:fkawFem:sr:dc:',
                 ['help', 'fullscreen', 'windowed', 'fps', 'event',
                  'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
-                 'display=', 'size=', 'rotate=', 'config=', 'debug'])
+                 'display=', 'size=', 'rotate=', 'config=', 'debug',
+                 'dpi='])
 
         except GetoptError, err:
             Logger.error('Core: %s' % str(err))
@@ -353,6 +356,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif opt in ('-d', '--debug'):
             level = LOG_LEVELS.get('debug')
             Logger.setLevel(level=level)
+        elif opt == '--dpi':
+            environ['KIVY_DPI'] = arg
 
     if need_save and 'KIVY_NO_CONFIG' not in environ:
         try:

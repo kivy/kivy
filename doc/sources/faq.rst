@@ -63,6 +63,15 @@ This message error can happen in many cases. Ensure that:
 In case of USB Mass Storage mode error, and if you don't want to keep
 unplugging the device, set the usb option to Power.
 
+Crash on touch interaction on Android 2.3.x
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There have been reports of crashes on Adreno 200/205 based devices.
+Apps otherwise run fine but crash when interacted with/through the screen.
+
+These reports also mentioned the issue being resolved when moving to a ICS or
+higher rom.
+
 Is it possible to have a kiosk app on android 3.0 ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

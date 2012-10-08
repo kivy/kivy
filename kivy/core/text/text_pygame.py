@@ -35,7 +35,7 @@ class LabelPygame(LabelBase):
             if ext.lower() == 'ttf':
                 # fontobject
                 fontobject = pygame.font.Font(fontname,
-                                int(self.options['font_size'] * 1.333))
+                                int(self.options['font_size']))
 
             # fallback to search a system font
             if fontobject is None:
@@ -47,7 +47,7 @@ class LabelPygame(LabelBase):
 
                 # fontobject
                 fontobject = pygame.font.Font(font,
-                                int(self.options['font_size'] * 1.333))
+                                int(self.options['font_size']))
             pygame_cache[fontid] = fontobject
             pygame_cache_order.append(fontid)
 
