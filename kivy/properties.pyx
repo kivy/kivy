@@ -213,8 +213,8 @@ cdef class Property:
         `errorvalue`: object
             If set, will replace an invalid property value (overrides errorhandler)
 
-    .. versionchanged:: 1.4.0
-        Parameters errorhandler and errorvalue added    
+    .. versionchanged:: 1.4.2
+        Parameters errorhandler and errorvalue added
     '''
 
     def __cinit__(self):
