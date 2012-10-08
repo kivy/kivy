@@ -289,10 +289,11 @@ class EventLoopBase(EventDispatcher):
             self.input_events = mod.process(events=self.input_events)
 
         # real dispatch input
-        for etype, me in self.input_events:
-            self.post_dispatch_input(etype, me)
-
-        self.input_events = []
+        input_events = self.input_events
+        pop = input_events.pop
+        post_dispatch_input = self.post_dispatch_input
+        while input_events:
+            post_dispatch_input(*pop(0))
 
     def idle(self):
         '''This function is called every frames. By default :
