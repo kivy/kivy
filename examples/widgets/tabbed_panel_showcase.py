@@ -172,27 +172,19 @@ Builder.load_string('''
     pos_hint: {'center_x': .25, 'y': .02}
     default_tab_text: 'Settings'
     default_tab_content: default_content
-    FloatLayout:
-        RstDocument:
-            id: default_content
-            text: '\\n'.join(("Normal tabs", "-------------",\
-                "Tabs in \\'%s\\' position" %root.tab_pos))
-        Image:
-            id: tab_2_content
-            pos: self.parent.pos
-            size: self.parent.size
-            source: 'data/images/defaulttheme-0.png'
-        Image:
-            id: tab_3_content
-            pos:self.parent.pos
-            size: self.parent.size
-            source: 'data/images/image-loading.gif'
-    TabbedPanelHeader:
+
+    RstDocument:
+        id: default_content
+        text: '\\n'.join(("Normal tabs", "-------------",\
+            "Tabs in \\'%s\\' position" %root.tab_pos))
+    TabbedPanelItem:
         text: 'tab2'
-        content: tab_2_content
-    TabbedPanelHeader:
+        Image:
+            source: 'data/images/defaulttheme-0.png'
+    TabbedPanelItem:
         text: 'tab3'
-        content: tab_3_content
+        Image:
+            source: 'data/images/image-loading.gif'
 
 <PanelbRight>
     tab_pos: 'right_top'

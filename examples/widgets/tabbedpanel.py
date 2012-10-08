@@ -21,24 +21,19 @@ Builder.load_string("""
         id: set1_content
         text: 'First tab content area'
 
-    BoxLayout:
-        id: set2_content
-        Label:
-            text: 'Second tab content area'
-        Button:
-            text: 'Button that does nothing'
+    TabbedPanelItem:
+        text: 'tab2'
+        BoxLayout:
+            Label:
+                text: 'Second tab content area'
+            Button:
+                text: 'Button that does nothing'
+    TabbedPanelItem:
+        text: 'tab3'
+        RstDocument:
+            id: set3_content
+            text: '\\n'.join(("Hello world", "-----------", "You are in the third tab."))
 
-    RstDocument:
-        id: set3_content
-        text: '\\n'.join(("Hello world", "-----------", "You are in the third tab."))
-
-    # now categorize widgets inserted above in a specific header
-    TabbedPanelHeader:
-        text: 'Tab 2'
-        content: set2_content
-    TabbedPanelHeader:
-        text: 'Tab 3'
-        content: set3_content
 """)
 
 class Test(TabbedPanel):

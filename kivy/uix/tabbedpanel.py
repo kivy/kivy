@@ -108,7 +108,7 @@ tabbed panel's background_image and background_color.
 '''
 
 __all__ = ('TabbedPanel', 'TabbedPanelContent', 'TabbedPanelHeader',
-    'TabbedPanelStrip', 'TabbedPanelException')
+    'TabbedPanelItem', 'TabbedPanelStrip', 'TabbedPanelException')
 
 from functools import partial
 from kivy.clock import Clock
@@ -154,13 +154,57 @@ class TabbedPanelHeader(ToggleButton):
         else:
             super(TabbedPanelHeader, self).on_touch_down(touch)
 
-    def on_release(self, *l):
+    def on_release(self, *largs):
         parent = self.parent
         while parent is not None and not isinstance(parent, TabbedPanel):
             parent = parent.parent
         if not parent:
             return
         parent.switch_to(self)
+
+
+class TabbedPanelItem(Widget):
+    '''This is a convenience widget that provides a header of type
+    TabbedPanelHeader and links the widget added to it with the header setting
+    the content automatically. Thus facilitating you to simply do the following
+    in kv language::
+
+        <TabbedPanel>:
+            ...other settings
+            TabbedPanelItem:
+                BoxLayout:
+                    Label:
+                        text: 'Second tab content area'
+                    Button:
+                        text: 'Button that does nothing'
+
+    .. versionadded:: 1.5.0
+    '''
+
+    text = StringProperty('')
+    '''text displayed on the tab head associated with this item.
+
+    :data:`text` is a :class:`~kivy.properties.StringProperty` default
+    to ''.
+    '''
+
+    def add_widget(self, widget, index=0):
+        if not hasattr(self, 'header'):
+            self.header = TabbedPanelHeader(content=widget)
+            self.parent.add_widget(self.header)
+        elif self.header.content:
+            Logger.warning('TabbedPanel: TabbedPanelItem supports only' +
+                ' one child')
+            return
+        self.header.content = widget
+
+    def remove_widget(self, widget):
+        if hasattr(self, 'header'):
+            self.header.content = None
+
+    def on_text(self, instance, value):
+        if hasattr(self, 'header'):
+            self.header.text = value
 
 
 class TabbedPanelStrip(GridLayout):
@@ -396,13 +440,15 @@ class TabbedPanel(GridLayout):
         parent = widget.parent
         if widget.parent:
             parent.remove_widget(widget)
-        if widget == content or widget == self._tab_layout:
+        if widget in (content, self._tab_layout):
             super(TabbedPanel, self).add_widget(widget, index)
         elif isinstance(widget, TabbedPanelHeader):
             self_tabs = self._tab_strip
             self_tabs.add_widget(widget)
             widget.group = '__tab%r__' % self_tabs.uid
             self.on_tab_width()
+        elif isinstance(widget, TabbedPanelItem):
+            widget.parent = self
         else:
             widget.pos_hint = {'x': 0, 'top': 1}
             content.add_widget(widget, index)
