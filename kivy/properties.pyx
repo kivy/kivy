@@ -245,9 +245,6 @@ cdef class Property:
     cdef init_storage(self, EventDispatcher obj, dict storage):
         storage['value'] = self.convert(obj, self.defaultvalue)
         storage['allownone'] = self.allownone
-        storage['errorvalue'] = self.errorvalue
-        storage['errorhandler'] = self.errorhandler
-        storage['errorvalue_set'] = self.errorvalue_set
         storage['observers'] = []
 
     cpdef link(self, EventDispatcher obj, str name):
@@ -315,14 +312,11 @@ cdef class Property:
         try:
             self.check(obj, value)
         except ValueError as e:
-            errorvalue = obj.__storage[self._name]['errorvalue']
-            errorhandler = obj.__storage[self._name]['errorhandler']
-            errorvalue_set = obj.__storage[self._name]['errorvalue_set']
-            if errorvalue_set == 1:
-                value = errorvalue
+            if self.errorvalue_set == 1:
+                value = self.errorvalue
                 self.check(obj, value)
-            elif errorhandler is not None:
-                value = errorhandler(value)
+            elif self.errorhandler is not None:
+                value = self.errorhandler(value)
                 self.check(obj, value)
             else:
                 raise e
