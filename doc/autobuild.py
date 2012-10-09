@@ -50,7 +50,7 @@ import kivy.interactive
 from kivy.factory import Factory
 
 # force loading of all classes from factory
-for x in Factory.classes:
+for x in Factory.classes.keys()[:]:
     getattr(Factory, x)
 
 
