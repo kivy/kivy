@@ -105,3 +105,9 @@ class CheckBox(Widget):
                 group.remove(wk)
                 break
 
+    def set_ustate(self, val):
+        self.active = bool(val)
+
+    def get_ustate(self):
+        return self.active
+

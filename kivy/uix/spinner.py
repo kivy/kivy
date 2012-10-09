@@ -144,3 +144,9 @@ class Spinner(Button):
         else:
             self._dropdown.dismiss()
 
+    def set_ustate(self, val):
+        self.text = val
+
+    def get_ustate(self):
+        return self.text
+

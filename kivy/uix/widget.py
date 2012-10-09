@@ -204,7 +204,7 @@ class Widget(EventDispatcher):
     #
     # Unified State setter and getter abstract methods
     #
-    def set_ustate(self, st):
+    def set_ustate(self, val):
         ''' Abstract method to set the ustate of the widget'''
 
     def get_ustate(self):

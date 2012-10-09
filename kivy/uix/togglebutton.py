@@ -115,8 +115,8 @@ class ToggleButton(Button):
             return []
         return [x() for x in groups[groupname] if x()][:]
 
-    def set_ustate(self, st):
-        self.state = 'down' if st=='down' else 'normal'
+    def set_ustate(self, val):
+        self.state = 'down' if val=='down' else 'normal'
 
     def get_ustate(self):
         return self.state

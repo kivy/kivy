@@ -1721,6 +1721,11 @@ class TextInput(Widget):
     10.
     '''
 
+    def set_ustate(self, val):
+        self.text = str(val)
+
+    def get_ustate(self):
+        return self.text
 
 if __name__ == '__main__':
     from kivy.app import App
