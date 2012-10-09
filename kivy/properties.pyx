@@ -88,20 +88,19 @@ Error Handling
 
 If setting a value would otherwise raise a ValueError, you have two options to
 handle the error gracefully within the property.  An errorvalue is a substitute
-for the invalid value.  An errorhandler is a callable (single argument function
-or lambda) which can return a valid substitute::
-
+for the invalid value. An errorhandler is a callable (single argument function
+or lambda) which can return a valid substitute.
 
 errorhandler parameter::
+
     # simply returns 0 if the value exceeds the bounds
     bnp = BoundedNumericProperty(0, min=-500, max=500, errorvalue=0)
 
-
 errorvalue parameter::
-    # returns a the boundary value when exceeded
-    bnp = BoundedNumericProperty(0, min=-500, max=500, 
-        errorhandler=lambda x: 500 if x > 500 else -500)
 
+    # returns a the boundary value when exceeded
+    bnp = BoundedNumericProperty(0, min=-500, max=500,
+        errorhandler=lambda x: 500 if x > 500 else -500)
 
 
 Conclusion
@@ -314,7 +313,7 @@ cdef class Property:
             return False
 
         try:
-            self.check(obj, value)            
+            self.check(obj, value)
         except ValueError as e:
             errorvalue = obj.__storage[self._name]['errorvalue']
             errorhandler = obj.__storage[self._name]['errorhandler']
