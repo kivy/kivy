@@ -244,7 +244,6 @@ cdef class Property:
 
     cdef init_storage(self, EventDispatcher obj, dict storage):
         storage['value'] = self.convert(obj, self.defaultvalue)
-        storage['allownone'] = self.allownone
         storage['observers'] = []
 
     cpdef link(self, EventDispatcher obj, str name):
@@ -342,7 +341,7 @@ cdef class Property:
             bool, True if the value correctly validates.
         '''
         if x is None:
-            if not obj.__storage[self._name]['allownone']:
+            if not self.allownone:
                 raise ValueError('None is not allowed for %s.%s' % (
                     obj.__class__.__name__,
                     self.name))
