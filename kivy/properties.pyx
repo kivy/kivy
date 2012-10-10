@@ -88,20 +88,19 @@ Error Handling
 
 If setting a value would otherwise raise a ValueError, you have two options to
 handle the error gracefully within the property.  An errorvalue is a substitute
-for the invalid value.  An errorhandler is a callable (single argument function
-or lambda) which can return a valid substitute::
-
+for the invalid value. An errorhandler is a callable (single argument function
+or lambda) which can return a valid substitute.
 
 errorhandler parameter::
+
     # simply returns 0 if the value exceeds the bounds
     bnp = BoundedNumericProperty(0, min=-500, max=500, errorvalue=0)
 
-
 errorvalue parameter::
-    # returns a the boundary value when exceeded
-    bnp = BoundedNumericProperty(0, min=-500, max=500, 
-        errorhandler=lambda x: 500 if x > 500 else -500)
 
+    # returns a the boundary value when exceeded
+    bnp = BoundedNumericProperty(0, min=-500, max=500,
+        errorhandler=lambda x: 500 if x > 500 else -500)
 
 
 Conclusion
@@ -245,10 +244,6 @@ cdef class Property:
 
     cdef init_storage(self, EventDispatcher obj, dict storage):
         storage['value'] = self.convert(obj, self.defaultvalue)
-        storage['allownone'] = self.allownone
-        storage['errorvalue'] = self.errorvalue
-        storage['errorhandler'] = self.errorhandler
-        storage['errorvalue_set'] = self.errorvalue_set
         storage['observers'] = []
 
     cpdef link(self, EventDispatcher obj, str name):
@@ -314,16 +309,13 @@ cdef class Property:
             return False
 
         try:
-            self.check(obj, value)            
+            self.check(obj, value)
         except ValueError as e:
-            errorvalue = obj.__storage[self._name]['errorvalue']
-            errorhandler = obj.__storage[self._name]['errorhandler']
-            errorvalue_set = obj.__storage[self._name]['errorvalue_set']
-            if errorvalue_set == 1:
-                value = errorvalue
+            if self.errorvalue_set == 1:
+                value = self.errorvalue
                 self.check(obj, value)
-            elif errorhandler is not None:
-                value = errorhandler(value)
+            elif self.errorhandler is not None:
+                value = self.errorhandler(value)
                 self.check(obj, value)
             else:
                 raise e
@@ -349,7 +341,7 @@ cdef class Property:
             bool, True if the value correctly validates.
         '''
         if x is None:
-            if not obj.__storage[self._name]['allownone']:
+            if not self.allownone:
                 raise ValueError('None is not allowed for %s.%s' % (
                     obj.__class__.__name__,
                     self.name))

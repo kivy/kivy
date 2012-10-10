@@ -59,6 +59,7 @@ widget moves, you can bind your own callback function like this::
 __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
+from kivy.factory import Factory
 from kivy.properties import NumericProperty, StringProperty, \
         AliasProperty, ReferenceListProperty, ObjectProperty, \
         ListProperty
@@ -71,6 +72,17 @@ class WidgetException(Exception):
     '''Fired when the widget gets an exception.
     '''
     pass
+
+
+class WidgetMetaclass(type):
+    '''Metaclass to auto register new widget into :class:`~kivy.factory.Factory`
+
+    .. warning::
+        This metaclass is used for Widget. Don't use it directly !
+    '''
+    def __init__(mcs, name, bases, attrs):
+        super(WidgetMetaclass, mcs).__init__(name, bases, attrs)
+        Factory.register(name, cls=mcs)
 
 
 class Widget(EventDispatcher):
@@ -90,6 +102,8 @@ class Widget(EventDispatcher):
         in contructing a simple class, without subclassing :class:`Widget`.
 
     '''
+
+    __metaclass__ = WidgetMetaclass
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
