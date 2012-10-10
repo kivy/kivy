@@ -115,6 +115,10 @@ is where the Kivy language can be useful.
 Usage of the Kivy language for graphics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note::
+
+    By default the name of the ``.kv`` file to be loaded is decided by the name of your main class. So if you main class's name is ``MyTestApp`` or ``MultiMapMayhem`` then ``mytest.kv`` or ``multimapmayhem.kv`` file will be auto-loaded respectively.
+
 The Kivy language has a lot of benefits for this example ``Button``. You can
 create a rule that will match your widget, create graphics instructions, and
 update their properties according to a python expression. Here is the complete

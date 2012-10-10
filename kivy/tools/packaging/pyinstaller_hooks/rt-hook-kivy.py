@@ -17,6 +17,7 @@ else:
 
 sys.path += [join(root, '_libs')]
 
+environ['GST_PLUGIN_PATH'] = join(root, '..', 'gst-plugins')
 environ['KIVY_DATA_DIR'] = join(root, 'data')
 environ['KIVY_EXTS_DIR'] = join(root, 'extensions')
 environ['KIVY_MODULES_DIR'] = join(root, 'modules')

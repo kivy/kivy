@@ -84,7 +84,7 @@ reference::
     def print_it(instance, value):
         print 'User clicked on', value
     widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
-    widget.on_ref_press(print_it)
+    widget.bind(on_ref_press=print_it)
 
 For a better rendering, you could add a color for the reference. Replace the
 ``text=`` in the previous example with::
@@ -148,6 +148,9 @@ class Label(Widget):
             # markup have change, we need to change our rendering method.
             d = Label._font_properties
             dkw = dict(zip(d, [getattr(self, x) for x in d]))
+            # XXX font_size core provider compatibility
+            if Label.font_size.get_format(self) == 'px':
+                dkw['font_size'] *= 1.333
             if markup:
                 self._label = CoreMarkupLabel(**dkw)
             else:
@@ -162,6 +165,11 @@ class Label(Widget):
                 self._label.text = value
             elif name == 'text_size':
                 self._label.usersize = value
+            elif name == 'font_size':
+                # XXX font_size core provider compatibility
+                if Label.font_size.get_format(self) == 'px':
+                    value *= 1.333
+                self._label.options[name] = value
             else:
                 self._label.options[name] = value
         self._trigger_texture()
@@ -266,7 +274,7 @@ class Label(Widget):
     'DroidSans'.
     '''
 
-    font_size = NumericProperty(12)
+    font_size = NumericProperty('12px')
     '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to

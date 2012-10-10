@@ -170,7 +170,7 @@ from sys import platform
 from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
-from kivy.logger import Logger
+from kivy.logger import Logger, logger_config_update
 from kivy.utils import OrderedDict
 
 # Version number of current configuration format
@@ -191,6 +191,28 @@ class ConfigParser(PythonConfigParser):
         PythonConfigParser.__init__(self)
         self._sections = OrderedDict()
         self.filename = None
+        self._callbacks = []
+
+    def add_callback(self, callback, section=None, key=None):
+        '''Add a callback to be called when a specific section/key changed. If
+        you don't specify a section or a key, it will call the callback for all
+        section/keys.
+
+        Callbacks will receive 3 arguments: the section, key and value.
+
+        .. versionadded:: 1.4.1
+        '''
+        if section is None and key is not None:
+            raise Exception('You cannot specify a key without a section')
+        self._callbacks.append((callback, section, key))
+
+    def _do_callbacks(self, section, key, value):
+        for callback, csection, ckey in self._callbacks:
+            if csection is not None and csection != section:
+                continue
+            elif ckey is not None and ckey != key:
+                continue
+            callback(section, key, value)
 
     def read(self, filename):
         '''Read only one filename. In contrast to the original ConfigParser of
@@ -206,7 +228,9 @@ class ConfigParser(PythonConfigParser):
         '''Functions similarly to PythonConfigParser's set method, except that
         the value is implicitly converted to a string.
         '''
-        return PythonConfigParser.set(self, section, option, str(value))
+        ret = PythonConfigParser.set(self, section, option, str(value))
+        self._do_callbacks(section, option, str(value))
+        return ret
 
     def setdefaults(self, section, keyvalues):
         '''Set a lot of keys/values in one section at the same time
@@ -264,6 +288,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
     # Create default configuration
     Config = ConfigParser()
+    Config.add_callback(logger_config_update, 'kivy', 'log_level')
 
     # Read config file if exist
     if exists(kivy_config_fn) and \

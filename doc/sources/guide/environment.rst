@@ -32,6 +32,11 @@ KIVY_NO_FILELOG
 KIVY_NO_CONSOLELOG
     If set, logs will be not print on the console
 
+KIVY_DPI
+    If set, the value will be used instead of the value returned by the window.
+
+    .. versionadded:: 1.4.0
+
 Path control
 ------------
 
@@ -95,3 +100,4 @@ KIVY_CLIPBOARD
     Implementation to use for clipboard management
 
     Values: pygame, dummy
+

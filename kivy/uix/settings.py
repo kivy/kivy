@@ -455,9 +455,15 @@ class SettingNumeric(SettingString):
     '''
 
     def _validate(self, instance):
+        # we know the type just by checking if there is a '.' in the original
+        # value
+        is_float = '.' in str(self.value)
         self._dismiss()
         try:
-            self.value = int(self.textinput.text)
+            if is_float:
+                self.value = float(self.textinput.text)
+            else:
+                self.value = int(self.textinput.text)
         except ValueError:
             return
 

@@ -11,8 +11,8 @@ Screen Manager
 
 The screen manager is a widget dedicated to manage multiple screens on your
 application. The default :class:`ScreenManager` displays only one
-:class:`Screen` at time, and use a :class:`TransitionBase` to switch from one to
-another Screen.
+:class:`Screen` at time, and use a :class:`TransitionBase` to switch from one
+to another Screen.
 
 Multiple transitions are supported, based of moving the screen coordinate /
 scale, or even do fancy animation using custom shaders.
@@ -102,9 +102,10 @@ You can easily switch to a new transition by changing the
 .. note::
 
     Currently, all Shader based Transition doesn't have any anti-aliasing. This
-    is because we are using FBO, and don't have any logic to do supersampling on
-    them. This is a know issue, and working to have a transparent implementation
-    that will give the same result as it would be rendered on the screen.
+    is because we are using FBO, and don't have any logic to do supersampling
+    on them. This is a know issue, and working to have a transparent
+    implementation that will give the same result as it would be rendered on
+    the screen.
 
     To be more concrete, if you see sharped-text during the animation, it's
     normal.
@@ -145,7 +146,7 @@ class Screen(RelativeLayout):
     :data:`name` is a :class:`~kivy.properties.StringProperty`, default to ''
     '''
 
-    manager = ObjectProperty()
+    manager = ObjectProperty(None, allownone=True)
     '''Screen manager object, set when the screen is added within a manager.
 
     :data:`manager` is a :class:`~kivy.properties.ObjectProperty`, default to
@@ -156,8 +157,8 @@ class Screen(RelativeLayout):
     '''Value that represent the completion of the current transition, if any is
     occuring.
 
-    If a transition is going on, whatever is the mode, the value will got from 0
-    to 1. If you want to know if it's an entering or leaving animation, check
+    If a transition is going on, whatever is the mode, the value will got from
+    0 to 1. If you want to know if it's an entering or leaving animation, check
     the :data:`transition_state`
 
     :data:`transition_progress` is a :class:`~kivy.properties.NumericProperty`,
@@ -212,8 +213,8 @@ class TransitionBase(EventDispatcher):
     duration = NumericProperty(.7)
     '''Duration in seconds of the transition.
 
-    :class:`duration` is a :class:`~kivy.properties.NumericProperty`, default to
-    .7 (= 700ms)
+    :class:`duration` is a :class:`~kivy.properties.NumericProperty`, default
+    to .7 (= 700ms)
     '''
 
     manager = ObjectProperty()
@@ -223,11 +224,11 @@ class TransitionBase(EventDispatcher):
     None, read-only.
     '''
 
-    is_active = BooleanProperty()
+    is_active = BooleanProperty(False)
     '''Indicate if the transition is currently active
 
-    :data:`is_active` is a :class:`~kivy.properties.BooleanProperty`, default to
-    False, read-only.
+    :data:`is_active` is a :class:`~kivy.properties.BooleanProperty`, default
+    to False, read-only.
     '''
 
     # privates
@@ -252,9 +253,9 @@ class TransitionBase(EventDispatcher):
 
         self.add_screen(self.screen_in)
         self.screen_in.transition_progress = 0.
-        self.screen_in.transition_mode = 'in'
+        self.screen_in.transition_state = 'in'
         self.screen_out.transition_progress = 0.
-        self.screen_out.transition_mode = 'out'
+        self.screen_out.transition_state = 'out'
 
         self.is_active = True
         self._anim.start(self)
@@ -299,12 +300,11 @@ class TransitionBase(EventDispatcher):
 
 
 class ShaderTransition(TransitionBase):
-    '''Transition class that use a Shader for animating the transition between 2
-    screens. By default, this class doesn't any assign fragment/vertex shader.
-
-    If you want to create your own fragment shader for transition, you need to
-    declare the header yourself, and include the "t", "tex_in" and "tex_out"
-    uniform::
+    '''Transition class that use a Shader for animating the transition between
+    2 screens. By default, this class doesn't any assign fragment/vertex
+    shader. If you want to create your own fragment shader for transition, you
+    need to declare the header yourself, and include the "t", "tex_in" and
+    "tex_out" uniform::
 
         # Create your own transition. This is shader implement a "fading"
         # transition.
@@ -389,8 +389,8 @@ class SlideTransition(TransitionBase):
     direction = OptionProperty('left', options=('left', 'right', 'up', 'down'))
     '''Direction of the transition.
 
-    :data:`direction` is an :class:`~kivy.properties.OptionProperty`, default to
-    left. Can be one of 'left', 'right', 'up' or 'down'.
+    :data:`direction` is an :class:`~kivy.properties.OptionProperty`, default
+    to left. Can be one of 'left', 'right', 'up' or 'down'.
     '''
 
     def on_progress(self, progression):
@@ -524,8 +524,8 @@ class ScreenManager(FloatLayout):
         sm.add_widget(Screen(name='first'))
         sm.add_widget(Screen(name='second'))
 
-        # by default, the first added screen will be showed. If you want to show
-        # another one, just set the current string:
+        # by default, the first added screen will be showed. If you want to
+        show # another one, just set the current string:
         sm.current = 'second'
     '''
 
@@ -536,15 +536,15 @@ class ScreenManager(FloatLayout):
 
     For example, if you want to change to a :class:`WipeTransition`::
 
-        from kivy.uix.screenmanager import ScreenManager, Screen, WipeTransition
+        from kivy.uix.screenmanager import ScreenManager, Screen,
+        WipeTransition
 
         sm = ScreenManager(transition=WipeTransition())
         sm.add_widget(Screen(name='first'))
         sm.add_widget(Screen(name='second'))
 
-        # by default, the first added screen will be showed. If you want to show
-        # another one, just set the current string:
-        sm.current = 'second'
+        # by default, the first added screen will be showed. If you want to
+        show another one, just set the current string: sm.current = 'second'
     '''
 
     screens = ListProperty()
@@ -597,6 +597,23 @@ class ScreenManager(FloatLayout):
         self.screens.append(screen)
         if self.current is None:
             self.current = screen.name
+
+    def remove_widget(self, *l):
+        screen = l[0]
+        if not isinstance(screen, Screen):
+            raise ScreenManagerException(
+                    'ScreenManager uses remove_widget only to remove' +
+                    'screens added via add_widget! use real_remove_widget.')
+
+        if not screen in self.screens:
+            return
+        if self.current_screen == screen:
+            other = self.next()
+            if other:
+                self.current = other
+        screen.manager = None
+        screen.unbind(name=self._screen_name_changed)
+        self.screens.remove(screen)
 
     def real_add_widget(self, *l):
         # ensure screen is removed from it's previous parent before adding'
@@ -671,10 +688,24 @@ class ScreenManager(FloatLayout):
                     continue
             child.pos = value
 
+    def on_touch_down(self, touch):
+        if self.transition.is_active:
+            return False
+        return super(ScreenManager, self).on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if self.transition.is_active:
+            return False
+        return super(ScreenManager, self).on_touch_move(touch)
+
+    def on_touch_up(self, touch):
+        if self.transition.is_active:
+            return False
+        return super(ScreenManager, self).on_touch_up(touch)
+
 if __name__ == '__main__':
     from kivy.app import App
     from kivy.uix.button import Button
-    from kivy.lang import Builder
     Builder.load_string('''
 <Screen>:
     canvas:
@@ -701,7 +732,10 @@ if __name__ == '__main__':
             #d = ('left', 'up', 'down', 'right')
             #di = d.index(self.sm.transition.direction)
             #self.sm.transition.direction = d[(di + 1) % len(d)]
-            self.sm.current = 'test2' if self.sm.current == 'test1' else 'test1'
+            self.sm.current = self.sm.next()
+
+        def remove_screen(self, *l):
+            self.sm.remove_widget(self.sm.get_screen('test1'))
 
         def build(self):
             root = FloatLayout()
@@ -712,9 +746,13 @@ if __name__ == '__main__':
 
             btn = Button(size_hint=(None, None))
             btn.bind(on_release=self.change_view)
+
+            btn2 = Button(size_hint=(None, None), x=100)
+            btn2.bind(on_release=self.remove_screen)
+
             root.add_widget(sm)
             root.add_widget(btn)
+            root.add_widget(btn2)
             return root
 
     TestApp().run()
-

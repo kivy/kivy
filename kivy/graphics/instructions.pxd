@@ -82,6 +82,7 @@ cdef class CanvasBase(InstructionGroup):
 
 cdef class Canvas(CanvasBase):
     cdef object __weakref__
+    cdef float _opacity
     cdef CanvasBase _before
     cdef CanvasBase _after
     cdef void reload(self)
@@ -89,6 +90,7 @@ cdef class Canvas(CanvasBase):
     cpdef add(self, Instruction c)
     cpdef remove(self, Instruction c)
     cpdef draw(self)
+    cdef void apply(self)
 
 
 cdef class RenderContext(Canvas):
@@ -112,3 +114,4 @@ cdef class RenderContext(Canvas):
     cpdef draw(self)
     cdef void reload(self)
 
+cdef RenderContext getActiveContext()

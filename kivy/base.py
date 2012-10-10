@@ -15,10 +15,12 @@ __all__ = (
     'stopTouchApp',
 )
 
+from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from kivy.utils import platform, reify
 
 # private vars
 EventLoop = None
@@ -84,24 +86,51 @@ class EventLoopBase(EventDispatcher):
     '''
 
     def __init__(self):
+        self.register_event_type('on_start')
+        self.register_event_type('on_pause')
+        self.register_event_type('on_stop')
         super(EventLoopBase, self).__init__()
         self.quit = False
         self.input_events = []
         self.postproc_modules = []
         self.status = 'idle'
         self.input_providers = []
+        self.input_providers_autoremove = []
         self.event_listeners = []
         self.window = None
         self.me_list = []
-        self.register_event_type('on_start')
-        self.register_event_type('on_pause')
-        self.register_event_type('on_stop')
 
     @property
     def touches(self):
         '''Return the list of all touches currently in down or move state
         '''
         return self.me_list
+
+    @reify
+    def dpi(self):
+        '''Return the DPI of the screen. Depending of the platform, the DPI can
+        be taken from the Window provider (Desktop mainly), or from
+        platform-specific module (like android/ios).
+
+        On desktop, you can overload the value returned by the Window object
+        (96 by default), by setting the environ KIVY_DPI::
+
+            KIVY_DPI=200 python main.py
+
+        .. versionadded:: 1.4.0
+        '''
+        custom_dpi = environ.get('KIVY_DPI')
+        if custom_dpi:
+            return float(custom_dpi)
+
+        plat = platform()
+        if plat == 'android':
+            import android
+            return android.get_dpi()
+
+        # for all other platforms..
+        self.ensure_window()
+        return self.window.dpi
 
     def ensure_window(self):
         '''Ensure that we have an window
@@ -113,11 +142,13 @@ class EventLoopBase(EventDispatcher):
         '''
         self.window = window
 
-    def add_input_provider(self, provider):
+    def add_input_provider(self, provider, auto_remove=False):
         '''Add a new input provider to listen for touch event
         '''
-        if not provider in self.input_providers:
+        if provider not in self.input_providers:
             self.input_providers.append(provider)
+            if auto_remove:
+                self.input_providers_autoremove.append(provider)
 
     def remove_input_provider(self, provider):
         '''Remove an input provider
@@ -156,19 +187,27 @@ class EventLoopBase(EventDispatcher):
     def stop(self):
         '''Stop all input providers and call callbacks registered using
         EventLoop.add_stop_callback()'''
-        #stop in reverse order that we started them!! (liek push pop),
-        #very important becasue e.g. wm_touch and WM_PEN both store
-        #old window proc and teh restore, if order is messed big problem
-        #happens, crashing badly without error
-        for provider in reversed(self.input_providers):
+
+        # XXX stop in reverse order that we started them!! (like push pop), very
+        # important because e.g. wm_touch and WM_PEN both store old window proc
+        # and the restore, if order is messed big problem happens, crashing
+        # badly without error
+        for provider in reversed(self.input_providers[:]):
             provider.stop()
+            if provider in self.input_providers_autoremove:
+                self.input_providers_autoremove.remove(provider)
+                self.input_providers.remove(provider)
+
+        # ensure any restart will not break anything later.
+        self.input_events = []
 
         self.status = 'stopped'
         self.dispatch('on_stop')
 
     def add_postproc_module(self, mod):
         '''Add a postproc input module (DoubleTap, RetainTouch are default)'''
-        self.postproc_modules.append(mod)
+        if mod not in self.postproc_modules:
+            self.postproc_modules.append(mod)
 
     def remove_postproc_module(self, mod):
         '''Remove a postproc module'''
@@ -261,10 +300,11 @@ class EventLoopBase(EventDispatcher):
             self.input_events = mod.process(events=self.input_events)
 
         # real dispatch input
-        for etype, me in self.input_events:
-            self.post_dispatch_input(etype, me)
-
-        self.input_events = []
+        input_events = self.input_events
+        pop = input_events.pop
+        post_dispatch_input = self.post_dispatch_input
+        while input_events:
+            post_dispatch_input(*pop(0))
 
     def idle(self):
         '''This function is called every frames. By default :
@@ -392,7 +432,7 @@ def runTouchApp(widget=None, slave=False):
         # create provider
         p = provider(key, args)
         if p:
-            EventLoop.add_input_provider(p)
+            EventLoop.add_input_provider(p, True)
 
     # add postproc modules
     for mod in kivy_postproc_modules.values():
@@ -400,7 +440,8 @@ def runTouchApp(widget=None, slave=False):
 
     # add main widget
     if widget and EventLoop.window:
-        EventLoop.window.add_widget(widget)
+        if widget not in EventLoop.window.children:
+            EventLoop.window.add_widget(widget)
 
     # start event loop
     Logger.info('Base: Start application main loop')

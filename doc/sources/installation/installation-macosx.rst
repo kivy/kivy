@@ -21,7 +21,7 @@ file that contains:
 
 To install Kivy, you must:
 
-    1. Download the latest version from http://kivy.org/#downloads
+    1. Download the latest version from http://kivy.org/#download
     2. Double-click to open it
     3. Drag the Kivy.app into your Applications folder
     4. Make sure to read the Readme.txt

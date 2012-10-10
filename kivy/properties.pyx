@@ -12,12 +12,11 @@ The *Properties* classes are used when you create a
 Kivy's property classes support:
 
     Value Checking / Validation
-        When you assign a new value to a property, the value is checked to pass
-        some constraints implemented in the class. I.e., validation is
-        performed. For example, an :class:`OptionProperty` will make sure that
-        the value is in a predefined list of possibilities.
-        A :class:`NumericProperty` will check that your value is a numeric type,
-        i.e. int, float, etc.
+        When you assign a new value to a property, the value is checked to
+        pass constraints implemented in the class such as validation. For
+        example, validation for :class:`OptionProperty` will make sure that
+        the value is in a predefined list of possibilities. Validation for
+        :class:`NumericProperty` will check that your value is a numeric type.
         This prevents many errors early on.
 
     Observer Pattern
@@ -25,37 +24,37 @@ Kivy's property classes support:
         You can bind your own function as a callback to changes of a
         :class:`Property`. If, for example, you want a piece of code to be
         called when a widget's :class:`~kivy.uix.widget.Widget.pos` property
-        changes, you can :class:`~kivy.event.EventDispatcher.bind` a function to
-        it.
+        changes, you can :class:`~kivy.event.EventDispatcher.bind` a function
+        to it.
 
     Better Memory Management
         The same instance of a property is shared across multiple widget
         instances.
 
-Comparaison Python / Kivy
--------------------------
+Comparison Python / Kivy
+------------------------
 
 Basic example
 ~~~~~~~~~~~~~
 
-As an example, let's see some comparaison between Python and Kivy properties.
-Let's create a Python class with 'a' as a float::
+Let's compare Python and Kivy properties by creating a Python class with 'a'
+as a float::
 
     class MyClass(object):
-        def __init__(self, a=1):
+        def __init__(self, a=1.0):
             super(MyClass, self).__init__()
             self.a = a
 
 With Kivy, you can do::
 
     class MyClass(EventDispatcher):
-        a = NumericProperty(1)
+        a = NumericProperty(1.0)
 
 
 Value checking
 ~~~~~~~~~~~~~~
 
-If you wanted to add some check like a minimum / maximum value allowed for a
+If you wanted to add a check such a minimum / maximum value allowed for a
 property, here is a possible implementation in Python::
 
     class MyClass(object):
@@ -74,8 +73,8 @@ property, here is a possible implementation in Python::
             self._a = a
         a = property(_get_a, _set_a)
 
-The disadvantage is you have to do that work yourself. And it start to be
-complex if you have lot of properties.
+The disadvantage is you have to do that work yourself. And it becomes
+laborious and complex if you have many properties.
 With Kivy, you can simplify like this::
 
     class MyClass(EventDispatcher):
@@ -84,21 +83,40 @@ With Kivy, you can simplify like this::
 That's all!
 
 
+Error Handling
+~~~~~~~~~~~~~~
+
+If setting a value would otherwise raise a ValueError, you have two options to
+handle the error gracefully within the property.  An errorvalue is a substitute
+for the invalid value. An errorhandler is a callable (single argument function
+or lambda) which can return a valid substitute.
+
+errorhandler parameter::
+
+    # simply returns 0 if the value exceeds the bounds
+    bnp = BoundedNumericProperty(0, min=-500, max=500, errorvalue=0)
+
+errorvalue parameter::
+
+    # returns a the boundary value when exceeded
+    bnp = BoundedNumericProperty(0, min=-500, max=500,
+        errorhandler=lambda x: 500 if x > 500 else -500)
+
+
 Conclusion
 ~~~~~~~~~~
 
-Even if we don't show a in-depth comparaison, you can understand how it's easier
-to create Kivy properties and use it than the standard one. See the next chapter
-to see how to use them :)
+Kivy properties are easier to use than the standard ones. See the next chapter
+for examples of how to use them :)
 
 
 Observe Properties changes
 --------------------------
 
 As we said in the beginning, Kivy's Properties implement the `Observer pattern
-<http://en.wikipedia.org/wiki/Observer_pattern>`_. That's mean you can
-:meth:`~kivy.event.EventDispatcher.bind` to a property, and have your own
-callback called when the value change.
+<http://en.wikipedia.org/wiki/Observer_pattern>`_. That means you can
+:meth:`~kivy.event.EventDispatcher.bind` to a property and have your own
+function called when the value changes.
 
 Multiple ways are available to observe the changes.
 
@@ -118,10 +136,10 @@ class::
     ins = MyClass()
     ins.bind(a=callback)
 
-    # at this point, any change to the a property will call your callback
-    ins.a = 5 # callback called
-    ins.a = 5 # callback not called, because the value didnt change
-    ins.a = -1 # callback called
+    # At this point, any change to the a property will call your callback.
+    ins.a = 5    # callback called
+    ins.a = 5    # callback not called, because the value didnt change
+    ins.a = -1   # callback called
 
 Observe using 'on_<propname>'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,8 +154,8 @@ If you created the class yourself, you can use the 'on_<propname>' callback::
 
 .. warning::
 
-    Be careful with 'on_<propname>'. If you are creating a such callback on a
-    property you are inherit, you must not forget to call the possible subclass
+    Be careful with 'on_<propname>'. If you are creating such a callback on a
+    property you are inherit, you must not forget to call the subclass
     function too.
 
 
@@ -155,6 +173,9 @@ __all__ = ('Property',
 
 from weakref import ref
 
+EventLoop = None
+
+
 cdef class Property:
     '''Base class for building more complex properties.
 
@@ -162,20 +183,19 @@ cdef class Property:
     the observer list and storage initialisation. This class should not be
     directly instantiated.
 
-    By default, a :class:`Property` always take a default value::
+    By default, a :class:`Property` always takes a default value::
 
         class MyObject(Widget):
 
             hello = Property('Hello world')
 
-    The default value must be a value that agreed about the Property type. For
+    The default value must be a value that agrees with the Property type. For
     example, you can't set a list to a :class:`StringProperty`, because the
     StringProperty will check the default value.
 
-    None is a special case: you can set the default value of a Property to None,
-    but you can't set None to a property afterwise.
-    If you really want to do that, you must declare the Property with
-    `allownone=True`::
+    None is a special case: you can set the default value of a Property to
+    None, but you can't set None to a property afterward.  If you really want
+    to do that, you must declare the Property with `allownone=True`::
 
         class MyObject(Widget):
 
@@ -185,27 +205,48 @@ cdef class Property:
         a = MyObject()
         a.hello = 'bleh' # working
         a.hello = None # working too, because allownone is True.
+
+    :Parameters:
+        `errorhandler`: callable
+            If set, must take a single argument and return a valid substitute value
+        `errorvalue`: object
+            If set, will replace an invalid property value (overrides errorhandler)
+
+    .. versionchanged:: 1.4.2
+        Parameters errorhandler and errorvalue added
     '''
 
     def __cinit__(self):
         self._name = ''
         self.allownone = 0
         self.defaultvalue = None
+        self.errorvalue = None
+        self.errorhandler = None
+        self.errorvalue_set = 0
+
 
     def __init__(self, defaultvalue, **kw):
         self.defaultvalue = defaultvalue
         self.allownone = <int>kw.get('allownone', 0)
+        self.errorvalue = kw.get('errorvalue', None)
+        self.errorhandler = kw.get('errorhandler', None)
+
+        if 'errorvalue' in kw:
+            self.errorvalue_set = 1
+
+        if 'errorhandler' in kw and not callable(self.errorhandler):
+            raise ValueError('errorhandler %s not callable' % self.errorhandler)
+
 
     property name:
         def __get__(self):
             return self._name
 
-    cdef init_storage(self, dict storage):
-        storage['value'] = self.defaultvalue
-        storage['allownone'] = self.allownone
+    cdef init_storage(self, EventDispatcher obj, dict storage):
+        storage['value'] = self.convert(obj, self.defaultvalue)
         storage['observers'] = []
 
-    cpdef link(self, object obj, str name):
+    cpdef link(self, EventDispatcher obj, str name):
         '''Link the instance with its real name.
 
         .. warning::
@@ -220,37 +261,37 @@ cdef class Property:
                 uid = NumericProperty(0)
 
         In this example, the uid will be a NumericProperty() instance, but the
-        property instance doesn't know its name. That's why :func:`link` is used
-        in Widget.__new__. The link function is also used to create the storage
-        space of the property for this specific widget instance.
+        property instance doesn't know its name. That's why :func:`link` is
+        used in Widget.__new__. The link function is also used to create the
+        storage space of the property for this specific widget instance.
         '''
         d = dict()
         self._name = name
-        self.init_storage(d)
         obj.__storage[name] = d
+        self.init_storage(obj, d)
 
-    cpdef link_deps(self, object obj, str name):
+    cpdef link_deps(self, EventDispatcher obj, str name):
         pass
 
-    cpdef bind(self, obj, observer):
-        '''Add a new observer to be called only when the value is changed
+    cpdef bind(self, EventDispatcher obj, observer):
+        '''Add a new observer to be called only when the value is changed.
         '''
         cdef list observers = obj.__storage[self._name]['observers']
         if not observer in observers:
             observers.append(observer)
 
-    cpdef unbind(self, obj, observer):
-        '''Remove the observer from our widget observer list
+    cpdef unbind(self, EventDispatcher obj, observer):
+        '''Remove the observer from our widget observer list.
         '''
         cdef list observers = obj.__storage[self._name]['observers']
-        for obj in observers[:]:
-            if obj == observer:
-                observers.remove(obj)
+        for item in observers[:]:
+            if item == observer:
+                observers.remove(item)
 
-    def __set__(self, obj, val):
+    def __set__(self, EventDispatcher obj, val):
         self.set(obj, val)
 
-    def __get__(self, obj, objtype):
+    def __get__(self, EventDispatcher obj, objtype):
         if obj is None:
             return self
         return self.get(obj)
@@ -258,21 +299,33 @@ cdef class Property:
     cdef compare_value(self, a, b):
         return a == b
 
-    cpdef set(self, obj, value):
-        '''Set a new value for the property
+    cpdef set(self, EventDispatcher obj, value):
+        '''Set a new value for the property.
         '''
         value = self.convert(obj, value)
         d = obj.__storage[self._name]
         realvalue = d['value']
         if self.compare_value(realvalue, value):
             return False
-        self.check(obj, value)
+
+        try:
+            self.check(obj, value)
+        except ValueError as e:
+            if self.errorvalue_set == 1:
+                value = self.errorvalue
+                self.check(obj, value)
+            elif self.errorhandler is not None:
+                value = self.errorhandler(value)
+                self.check(obj, value)
+            else:
+                raise e
+
         d['value'] = value
         self.dispatch(obj)
         return True
 
-    cpdef get(self, obj):
-        '''Return the value of the property
+    cpdef get(self, EventDispatcher obj):
+        '''Return the value of the property.
         '''
         return obj.__storage[self._name]['value']
 
@@ -280,7 +333,7 @@ cdef class Property:
     # Private part
     #
 
-    cdef check(self, obj, x):
+    cdef check(self, EventDispatcher obj, x):
         '''Check if the value is correct or not, depending on the settings of
         the property class.
 
@@ -288,27 +341,27 @@ cdef class Property:
             bool, True if the value correctly validates.
         '''
         if x is None:
-            if not obj.__storage[self._name]['allownone']:
+            if not self.allownone:
                 raise ValueError('None is not allowed for %s.%s' % (
                     obj.__class__.__name__,
                     self.name))
             else:
                 return True
 
-    cdef convert(self, obj, x):
+    cdef convert(self, EventDispatcher obj, x):
         '''Convert the initial value to a correctly validating value.
-        Can be used for multiple types of argument, and simplify into only one.
+        Can be used for multiple types of arguments, simplifying to only one.
         '''
         return x
 
-    cpdef dispatch(self, obj):
-        '''Dispatch the value change to all observers
+    cpdef dispatch(self, EventDispatcher obj):
+        '''Dispatch the value change to all observers.
 
         .. versionchanged:: 1.1.0
             The method is now accessible from Python.
 
         This can be used to force the dispatch of the property, even if the
-        value didn't changed::
+        value didn't change::
 
             button = Button()
             # get the Property class instance
@@ -326,43 +379,103 @@ cdef class Property:
 
 
 cdef class NumericProperty(Property):
-    '''Property that represents a numeric value
+    '''Property that represents a numeric value.
 
-    The NumericProperty accept only int or float.
+    The NumericProperty accepts only int or float.
 
-    >>> Widget.x = 42
-    >>> print Widget.x
+    >>> wid = Widget()
+    >>> wid.x = 42
+    >>> print wid.x
     42
-    >>> Widget.x = "plop"
-    Traceback (most recent call last):
-        File "<stdin>", line 1, in <module>
-        File "properties.pyx", line 93, in kivy.properties.Property.__set__
-        File "properties.pyx", line 111, in kivy.properties.Property.set
-        File "properties.pyx", line 159, in kivy.properties.NumericProperty.check
-        ValueError: NumericProperty accept only int/float
+    >>> wid.x = "plop"
+     Traceback (most recent call last):
+       File "<stdin>", line 1, in <module>
+       File "properties.pyx", line 93, in kivy.properties.Property.__set__
+       File "properties.pyx", line 111, in kivy.properties.Property.set
+       File "properties.pyx", line 159, in kivy.properties.NumericProperty.check
+     ValueError: NumericProperty accept only int/float
+
+    .. versionchanged:: 1.4.1
+        NumericProperty can now accept custom text and tuple value to indicate a
+        type, like "in", "pt", "px", "cm", "mm", in the format: '10pt' or (10,
+        'pt').
+
     '''
     def __init__(self, defaultvalue=0, **kw):
         super(NumericProperty, self).__init__(defaultvalue, **kw)
 
-    cdef check(self, obj, value):
+    cdef init_storage(self, EventDispatcher obj, dict storage):
+        storage['format'] = 'px'
+        Property.init_storage(self, obj, storage)
+
+    cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
         if type(value) not in (int, float):
-            raise ValueError('%s.%s accept only int/float' % (
+            raise ValueError('%s.%s accept only int/float (got %r)' % (
                 obj.__class__.__name__,
-                self.name))
+                self.name, value))
+
+    cdef convert(self, EventDispatcher obj, x):
+        if x is None:
+            return x
+        tp = type(x)
+        if tp is int or tp is float:
+            return x
+        if tp is tuple or tp is list:
+            if len(x) != 2:
+                raise ValueError('%s.%s must have 2 components (got %r)' % (
+                    obj.__class__.__name__,
+                    self.name, x))
+            return self.parse_list(obj, x[0], <str>x[1])
+        elif tp is str:
+            return self.parse_str(obj, x)
+        else:
+            raise ValueError('%s.%s have an invalid format (got %r)' % (
+                obj.__class__.__name__,
+                self.name, x))
+
+    cdef float parse_str(self, EventDispatcher obj, value):
+        return self.parse_list(obj, value[:-2], <str>value[-2:])
+
+    cdef float parse_list(self, EventDispatcher obj, value, str ext):
+        # 1in = 2.54cm = 25.4mm = 72pt = 12pc
+        global EventLoop
+        if EventLoop is None:
+            from kivy.base import EventLoop
+        cdef float rv = float(value)
+        cdef float dpi = EventLoop.dpi
+        obj.__storage[self.name]['format'] = ext
+        if ext == 'in':
+            return rv * dpi
+        elif ext == 'px':
+            return rv
+        elif ext == 'pt':
+            return rv * dpi / 72.
+        elif ext == 'cm':
+            return rv * dpi / 2.54
+        elif ext == 'mm':
+            return rv * dpi / 25.4
+
+    def get_format(self, EventDispatcher obj):
+        '''
+        Return the format used for Numeric calculation. Default is px (mean
+        the value have not been changed at all). Otherwise, it can be one of
+        'in', 'pt', 'cm', 'mm'.
+        '''
+        return obj.__storage[self.name]['format']
 
 
 cdef class StringProperty(Property):
     '''Property that represents a string value.
 
-    Only string or unicode are accepted.
+    Only a string or unicode is accepted.
     '''
 
     def __init__(self, defaultvalue='', **kw):
         super(StringProperty, self).__init__(defaultvalue, **kw)
 
-    cdef check(self, obj, value):
+    cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, basestring):
@@ -375,6 +488,7 @@ cdef inline void observable_list_dispatch(object self):
     obj = self.obj()
     if obj is not None:
         prop.dispatch(obj)
+
 
 class ObservableList(list):
     # Internal class to observe changes inside a native python list.
@@ -440,19 +554,19 @@ class ObservableList(list):
 cdef class ListProperty(Property):
     '''Property that represents a list.
 
-    Only lists are allowed, tuple or any other classes are forbidden.
+    Only lists are allowed. Tuple or any other classes are forbidden.
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or []
 
         super(ListProperty, self).__init__(defaultvalue, **kw)
 
-    cpdef link(self, object obj, str name):
+    cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         storage = obj.__storage[self._name]
         storage['value'] = ObservableList(self, obj, storage['value'])
 
-    cdef check(self, obj, value):
+    cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
         if type(value) is not ObservableList:
@@ -460,13 +574,14 @@ cdef class ListProperty(Property):
                 obj.__class__.__name__,
                 self.name))
 
-    cpdef set(self, obj, value):
+    cpdef set(self, EventDispatcher obj, value):
         value = ObservableList(self, obj, value)
         Property.set(self, obj, value)
 
 cdef inline void observable_dict_dispatch(object self):
     cdef Property prop = self.prop
     prop.dispatch(self.obj)
+
 
 class ObservableDict(dict):
     # Internal class to observe changes inside a native python dict.
@@ -510,23 +625,22 @@ class ObservableDict(dict):
         observable_dict_dispatch(self)
 
 
-
 cdef class DictProperty(Property):
     '''Property that represents a dict.
 
-    Only dict are allowed, any other classes are forbidden.
+    Only dict are allowed. Any other classes are forbidden.
     '''
     def __init__(self, defaultvalue=None, **kw):
         defaultvalue = defaultvalue or {}
 
         super(DictProperty, self).__init__(defaultvalue, **kw)
 
-    cpdef link(self, object obj, str name):
+    cpdef link(self, EventDispatcher obj, str name):
         Property.link(self, obj, name)
         storage = obj.__storage[self._name]
         storage['value'] = ObservableDict(self, obj, storage['value'])
 
-    cdef check(self, obj, value):
+    cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
         if type(value) is not ObservableDict:
@@ -534,7 +648,7 @@ cdef class DictProperty(Property):
                 obj.__class__.__name__,
                 self.name))
 
-    cpdef set(self, obj, value):
+    cpdef set(self, EventDispatcher obj, value):
         value = ObservableDict(self, obj, value)
         Property.set(self, obj, value)
 
@@ -549,7 +663,7 @@ cdef class ObjectProperty(Property):
     def __init__(self, defaultvalue=None, **kw):
         super(ObjectProperty, self).__init__(defaultvalue, **kw)
 
-    cdef check(self, obj, value):
+    cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, object):
@@ -558,13 +672,13 @@ cdef class ObjectProperty(Property):
                 self.name))
 
 cdef class BooleanProperty(Property):
-    '''Property that represents only boolean
+    '''Property that represents only a boolean value.
     '''
 
     def __init__(self, defaultvalue=True, **kw):
         super(BooleanProperty, self).__init__(defaultvalue, **kw)
 
-    cdef check(self, obj, value):
+    cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
         if not isinstance(value, object):
@@ -574,7 +688,7 @@ cdef class BooleanProperty(Property):
 
 cdef class BoundedNumericProperty(Property):
     '''Property that represents a numeric value within a minimum bound and/or
-    maximum bound (i.e. a numeric range).
+    maximum bound -- within a numeric range.
 
     :Parameters:
         `min`: numeric
@@ -603,16 +717,16 @@ cdef class BoundedNumericProperty(Property):
             self.max = value
         Property.__init__(self, *largs, **kw)
 
-    cdef init_storage(self, dict storage):
-        Property.init_storage(self, storage)
+    cdef init_storage(self, EventDispatcher obj, dict storage):
+        Property.init_storage(self, obj, storage)
         storage['min'] = self.min
         storage['max'] = self.max
         storage['use_min'] = self.use_min
         storage['use_max'] = self.use_max
 
-    def set_min(self, obj, value):
-        '''Change the minimum value acceptable for the BoundedNumericProperty, only
-        for the `obj` instance, None if you want to disable it::
+    def set_min(self, EventDispatcher obj, value):
+        '''Change the minimum value acceptable for the BoundedNumericProperty,
+        only for the `obj` instance. Set to None if you want to disable it::
 
             class MyWidget(Widget):
                 number = BoundedNumericProperty(0, min=-5, max=5)
@@ -636,9 +750,9 @@ cdef class BoundedNumericProperty(Property):
             s['min'] = value
             s['use_min'] = 1
 
-    def get_min(self, obj):
-        '''Return the minimum value acceptable for the BoundedNumericProperty in
-        `obj`, None if no minimum value are set::
+    def get_min(self, EventDispatcher obj):
+        '''Return the minimum value acceptable for the BoundedNumericProperty
+        in `obj`. Return None if no minimum value is set::
 
             class MyWidget(Widget):
                 number = BoundedNumericProperty(0, min=-5, max=5)
@@ -653,10 +767,10 @@ cdef class BoundedNumericProperty(Property):
         if s['use_min'] == 1:
             return s['min']
 
-    def set_max(self, obj, value):
-        '''Change the maximum value acceptable for the BoundedNumericProperty, only
-        for the `obj` instance, None if you want to disable it. Check
-        :data:`set_min` for an usage example.
+    def set_max(self, EventDispatcher obj, value):
+        '''Change the maximum value acceptable for the BoundedNumericProperty,
+        only for the `obj` instance. Set to None if you want to disable it.
+        Check :data:`set_min` for a usage example.
 
         .. warning::
 
@@ -671,10 +785,10 @@ cdef class BoundedNumericProperty(Property):
             s['max'] = value
             s['use_max'] = 1
 
-    def get_max(self, obj):
-        '''Return the maximum value acceptable for the BoundedNumericProperty in
-        `obj`, None if no maximum value are set. Check :data:`get_min` for an
-        usage example.
+    def get_max(self, EventDispatcher obj):
+        '''Return the maximum value acceptable for the BoundedNumericProperty
+        in `obj`. Return None if no maximum value is set. Check
+        :data:`get_min` for a usage example.
 
         .. versionadded:: 1.1.0
         '''
@@ -682,7 +796,7 @@ cdef class BoundedNumericProperty(Property):
         if s['use_max'] == 1:
             return s['max']
 
-    cdef check(self, obj, value):
+    cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
         s = obj.__storage[self._name]
@@ -701,7 +815,7 @@ cdef class BoundedNumericProperty(Property):
         return True
 
     property bounds:
-        '''Return min/max of the value
+        '''Return min/max of the value.
 
         .. versionadded:: 1.0.9
         '''
@@ -729,11 +843,11 @@ cdef class OptionProperty(Property):
         self.options = <list>(kw.get('options', []))
         super(OptionProperty, self).__init__(*largs, **kw)
 
-    cdef init_storage(self, dict storage):
-        Property.init_storage(self, storage)
+    cdef init_storage(self, EventDispatcher obj, dict storage):
+        Property.init_storage(self, obj, storage)
         storage['options'] = self.options[:]
 
-    cdef check(self, obj, value):
+    cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
         valid_options = obj.__storage[self._name]['options']
@@ -755,7 +869,7 @@ cdef class OptionProperty(Property):
 
 
 cdef class ReferenceListProperty(Property):
-    '''Property that allows to create a tuple of other properties.
+    '''Property that allows the creaton of a tuple of other properties.
 
     For example, if `x` and `y` are :class:`NumericProperty`s, we can create a
     :class:`ReferenceListProperty` for the `pos`. If you change the value of
@@ -771,18 +885,18 @@ cdef class ReferenceListProperty(Property):
             self.properties.append(prop)
         Property.__init__(self, largs, **kw)
 
-    cdef init_storage(self, dict storage):
-        Property.init_storage(self, storage)
+    cdef init_storage(self, EventDispatcher obj, dict storage):
+        Property.init_storage(self, obj, storage)
         storage['properties'] = self.properties
         storage['stop_event'] = 0
 
-    cpdef link_deps(self, object obj, str name):
+    cpdef link_deps(self, EventDispatcher obj, str name):
         cdef Property prop
         Property.link_deps(self, obj, name)
         for prop in self.properties:
             prop.bind(obj, self.trigger_change)
 
-    cpdef trigger_change(self, obj, value):
+    cpdef trigger_change(self, EventDispatcher obj, value):
         cdef dict s = obj.__storage[self._name]
         if s['stop_event']:
             return
@@ -790,20 +904,20 @@ cdef class ReferenceListProperty(Property):
         s['value'] = [p[x].get(obj) for x in xrange(len(p))]
         self.dispatch(obj)
 
-    cdef convert(self, obj, value):
+    cdef convert(self, EventDispatcher obj, value):
         if not isinstance(value, (list, tuple)):
             raise ValueError('%s.%s must be a list or a tuple' % (
                 obj.__class__.__name__,
                 self.name))
         return list(value)
 
-    cdef check(self, obj, value):
+    cdef check(self, EventDispatcher obj, value):
         if len(value) != len(obj.__storage[self._name]['properties']):
             raise ValueError('%s.%s value length is immutable' % (
                 obj.__class__.__name__,
                 self.name))
 
-    cpdef set(self, obj, _value):
+    cpdef set(self, EventDispatcher obj, _value):
         cdef int idx
         cdef list value
         storage = obj.__storage[self._name]
@@ -823,7 +937,7 @@ cdef class ReferenceListProperty(Property):
         self.dispatch(obj)
         return True
 
-    cpdef get(self, obj):
+    cpdef get(self, EventDispatcher obj):
         cdef dict s = obj.__storage[self._name]
         p = s['properties']
         s['value'] = [p[x].get(obj) for x in xrange(len(p))]
@@ -832,8 +946,8 @@ cdef class ReferenceListProperty(Property):
 cdef class AliasProperty(Property):
     '''Create a property with a custom getter and setter.
 
-    If you didn't find a Property class that fits to your needs, you can still
-    create Python getters and setters and create a property with both of them.
+    If you don't find a Property class that fits to your needs, you can make
+    your own by creating custom Python getter and setter methods.
 
     Example from kivy/uix/widget.py::
 
@@ -841,7 +955,7 @@ cdef class AliasProperty(Property):
             return self.x + self.width
         def set_right(self, value):
             self.x = value - self.width
-        right = AliasProperty(get_right, set_right, bind=(x, width))
+        right = AliasProperty(get_right, set_right, bind=('x', 'width'))
 
     :Parameters:
         `getter`: function
@@ -849,7 +963,7 @@ cdef class AliasProperty(Property):
         `setter`: function
             Function to use as a property setter
         `bind`: list/tuple
-            List of properties to observe for changes
+            Properties to observe for changes, as property name strings
         `cache`: boolean
             If True, the value will be cached, until one of the binded elements
             will changes
@@ -871,19 +985,19 @@ cdef class AliasProperty(Property):
         self.bind_objects = list(v) if v is not None else []
         self.use_cache = 1 if kwargs.get('cache') else 0
 
-    cdef init_storage(self, dict storage):
-        Property.init_storage(self, storage)
+    cdef init_storage(self, EventDispatcher obj, dict storage):
+        Property.init_storage(self, obj, storage)
         storage['getter'] = self.getter
         storage['setter'] = self.setter
         storage['initial'] = True
 
-    cpdef link_deps(self, object obj, str name):
+    cpdef link_deps(self, EventDispatcher obj, str name):
         cdef Property oprop
         for prop in self.bind_objects:
             oprop = getattr(obj.__class__, prop)
             oprop.bind(obj, self.trigger_change)
 
-    cpdef trigger_change(self, obj, value):
+    cpdef trigger_change(self, EventDispatcher obj, value):
         cdef dict storage = obj.__storage[self.name]
         storage['initial'] = True
         cvalue = storage['value']
@@ -892,10 +1006,10 @@ cdef class AliasProperty(Property):
             storage['value'] = dvalue
             self.dispatch(obj)
 
-    cdef check(self, obj, value):
+    cdef check(self, EventDispatcher obj, value):
         return True
 
-    cpdef get(self, obj):
+    cpdef get(self, EventDispatcher obj):
         cdef dict storage = obj.__storage[self._name]
         if self.use_cache:
             if storage['initial']:
@@ -904,8 +1018,7 @@ cdef class AliasProperty(Property):
             return storage['value']
         return storage['getter'](obj)
 
-    cpdef set(self, obj, value):
+    cpdef set(self, EventDispatcher obj, value):
         if obj.__storage[self._name]['setter'](obj, value):
             obj.__storage[self._name]['value'] = self.get(obj)
             self.dispatch(obj)
-
