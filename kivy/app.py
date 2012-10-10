@@ -543,8 +543,8 @@ class App(EventDispatcher):
         self.dispatch('on_stop')
 
         # Clear the window children
-        for child in Window.children:
-            Window.remove_widget(child)
+        for child in window.children:
+            window.remove_widget(child)
 
     def stop(self, *largs):
         '''Stop the application.
