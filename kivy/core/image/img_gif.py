@@ -133,7 +133,7 @@ class ImageLoaderGIF(ImageLoaderBase):
                     i += 1
 
             img_data_append(ImageData(ls_width, ls_height,
-                'rgba', pixel_map.tostring()))
+                'rgba', pixel_map.tostring(), flip_vertical=False))
             if draw_method_replace:
                 pixel_map = array('B', [0] * (ls_width * ls_height * 4))
 
