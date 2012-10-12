@@ -468,8 +468,8 @@ class App(EventDispatcher):
         self.build_config(config)
         # if no sections are created, that's mean the user don't have
         # configuration.
-        if len(config.sections()) == 0:
-            return
+        #if len(config.sections()) == 0:
+        #    return
         # ok, the user have some sections, read the default file if exist
         # or write it !
         filename = self.get_application_config()
@@ -478,6 +478,7 @@ class App(EventDispatcher):
         if exists(filename):
             try:
                 config.read(filename)
+                Logger.debug('App: Loaded config <%s>' % filename)
             except:
                 Logger.error('App: Corrupted config file, ignored.')
                 self.config = config = ConfigParser()
@@ -684,6 +685,7 @@ class App(EventDispatcher):
 
         self.config.setdefaults(module, {key: default})
         value = self.config.get(module, key)
+        print ">>>", (module, key, value, default)
         self._autoconf_widgets[widget] = (module, key, value, default)
         return value
 
@@ -694,6 +696,7 @@ class App(EventDispatcher):
         '''
         for widget, c in self._autoconf_widgets.items():
             module, key, value, default = c
+            print "==>", c
             widget.set_autoconf(value)
 
     def save_autoconf(self):
@@ -702,7 +705,7 @@ class App(EventDispatcher):
         '''
         for widget, c in self._autoconf_widgets.items():
             module, key, value, default = c
-            print "<<<",c
+            print "<<<", c, widget.get_autoconf()
             self.config.set(module, key, widget.get_autoconf())
         self.config.write()
 
