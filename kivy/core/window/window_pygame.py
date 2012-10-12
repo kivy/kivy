@@ -312,8 +312,6 @@ class WindowPygame(WindowBase):
                 else:
                     pass
 
-        # force deletion of window
-        pygame.display.quit()
 
     #
     # Pygame wrapper

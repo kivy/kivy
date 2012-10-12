@@ -176,12 +176,14 @@ class ModuleBase:
 
     def register_window(self, win):
         '''Add window in window list'''
-        self.wins.append(win)
+        if win not in self.wins:
+            self.wins.append(win)
         self.update()
 
     def unregister_window(self, win):
         '''Remove window from window list'''
-        self.wins.remove(win)
+        if win in self.wins:
+            self.wins.remove(win)
         self.update()
 
     def update(self):

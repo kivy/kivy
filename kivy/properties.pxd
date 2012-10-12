@@ -3,6 +3,9 @@ from kivy._event cimport EventDispatcher
 cdef class Property:
     cdef str _name
     cdef int allownone
+    cdef object errorvalue
+    cdef object errorhandler
+    cdef int errorvalue_set
     cdef public object defaultvalue
     cdef init_storage(self, EventDispatcher obj, dict storage)
     cpdef link(self, EventDispatcher obj, str name)

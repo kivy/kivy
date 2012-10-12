@@ -550,6 +550,10 @@ class App(EventDispatcher):
         self.dispatch('on_stop')
         self.save_autoconf()
 
+        # Clear the window children
+        for child in window.children:
+            window.remove_widget(child)
+
     def stop(self, *largs):
         '''Stop the application.
 
