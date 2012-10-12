@@ -1721,10 +1721,10 @@ class TextInput(Widget):
     10.
     '''
 
-    def set_ustate(self, val):
+    def set_autoconf(self, val):
         self.text = str(val)
 
-    def get_ustate(self):
+    def get_autoconf(self):
         return self.text
 
 if __name__ == '__main__':

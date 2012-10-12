@@ -1,0 +1,38 @@
+#:kivy 1.4.1
+#
+BoxLayout:
+    orientation: 'vertical'
+    padding: 40
+
+    Label:
+        text: 'Slider value is %s' % s1.value
+    Slider:
+        id: s1
+        range: (0,20)
+        step: 2
+        _: app.autoconf(self, "root", "s1_value", 10)
+
+    Accordion:
+        orientation: 'horizontal'
+        #_: app.autoconf(self, 'root', 'panel', 'Extra')
+
+        AccordionItem
+            title: 'Normal'
+
+            TextInput:
+                #text: app.autoconf(self, 'panels', 'input', 'Normal Panel')
+
+        AccordionItem
+            title: 'Extra'
+
+            ToggleButton:
+                text: 'Extra Panel'
+                #value: app.autoconf(self, 'panels', 'tbutton', 'Extra Panel')
+
+    CheckBox:
+        group: 'radio1'
+        #_: app.autoconf(self, 'root', 'cb1', True)
+
+    CheckBox:
+        group: 'radio1'
+        #_: app.autoconf(self, 'root', 'cb2', False)
