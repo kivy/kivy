@@ -107,10 +107,10 @@ class Switch(Widget):
         self.touch_control = None
         return True
 
-    def set_ustate(self, val):
+    def set_autoconf(self, val):
         self.active = bool(val)
 
-    def get_ustate(self):
+    def get_autoconf(self):
         return self.active
 
 if __name__ == '__main__':

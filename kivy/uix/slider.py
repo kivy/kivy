@@ -190,10 +190,10 @@ class Slider(Widget):
             self.value_pos = touch.pos
             return True
 
-    def set_ustate(self, val):
+    def set_autoconf(self, val):
         self.value = float(val)
 
-    def get_ustate(self):
+    def get_autoconf(self):
         return self.value
 
 
