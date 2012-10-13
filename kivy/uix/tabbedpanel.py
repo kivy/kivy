@@ -504,6 +504,9 @@ class TabbedPanel(GridLayout):
         # update scrlv width when tab width changes depends on tab_pos
         if self._partial_update_scrollview is not None:
             tabs.unbind(width=self._partial_update_scrollview)
+            self.unbind(
+                width=self._partial_update_scrollview,
+                height=self._partial_update_scrollview)
         self._partial_update_scrollview = partial(
             self_update_scrollview, scrl_v)
         tabs.bind(width=self._partial_update_scrollview)
