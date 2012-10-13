@@ -507,6 +507,9 @@ class TabbedPanel(GridLayout):
         self._partial_update_scrollview = partial(
             self_update_scrollview, scrl_v)
         tabs.bind(width=self._partial_update_scrollview)
+        self.bind(
+            width=self._partial_update_scrollview,
+            height=self._partial_update_scrollview)
 
         # remove all widgets from the tab_strip
         self.clear_widgets(do_super=True)
