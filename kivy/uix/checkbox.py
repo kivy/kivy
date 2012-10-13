@@ -106,7 +106,7 @@ class CheckBox(Widget):
                 break
 
     def set_autoconf(self, val):
-        self.active = bool(val)
+        self.active = (val == "True")
 
     def get_autoconf(self):
         return self.active
