@@ -101,8 +101,6 @@ cdef extern from "CoreGraphics/CGColorSpace.h":
 
 cdef extern from "CoreGraphics/CGContext.h": 
     ctypedef void *CGContextRef
-    void CGContextTranslateCTM(CGContextRef, float, float)
-    void CGContextScaleCTM (CGContextRef, float, float)
     void CGContextRelease(CGContextRef c)
     void CGContextDrawImage(CGContextRef, CGRect, CGImageRef)
     int kCGBlendModeCopy
@@ -145,10 +143,6 @@ def load_image_data(bytes _url):
     cdef CGContextRef myBitmapContext = CGBitmapContextCreate(
             myData, width, height, 8, width*4, space,
             kCGBitmapByteOrder32Host | kCGImageAlphaNoneSkipFirst)
-
-    # This is necessary as the image would be vertically flipped otherwise
-    CGContextTranslateCTM(myBitmapContext, 0, height)
-    CGContextScaleCTM(myBitmapContext, 1, -1)
 
     CGContextSetBlendMode(myBitmapContext, kCGBlendModeCopy)
     CGContextDrawImage(myBitmapContext, rect, myImageRef)
