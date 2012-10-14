@@ -8,6 +8,9 @@ cdef extern from "SDL.h":
     ctypedef void *SDL_GLContext
     ctypedef void *SDL_Surface
 
+    ctypedef enum SDL_bool:
+        pass
+
     ctypedef struct SDL_DisplayMode:
         int w
         int h
@@ -133,7 +136,7 @@ cdef extern from "SDL.h":
 
 cdef extern int SDL_iPhoneKeyboardShow(SDL_Window * window) 
 cdef extern int SDL_iPhoneKeyboardHide(SDL_Window * window) 
-cdef extern int SDL_iPhoneKeyboardIsShown(SDL_Window * window) 
+cdef extern SDL_bool SDL_iPhoneKeyboardIsShown(SDL_Window * window)
 cdef SDL_Window *win = NULL
 cdef SDL_GLContext ctx = NULL
 cdef SDL_Surface *surface = NULL
