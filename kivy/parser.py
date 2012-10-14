@@ -25,7 +25,7 @@ def parse_filename(filename):
     filename = parse_string(filename)
     result = resource_find(filename)
     if result is None:
-        Logger.error('Resource: unable to found <%s>' % filename)
+        Logger.error('Resource: unable to find <%s>' % filename)
     return result or filename
 
 

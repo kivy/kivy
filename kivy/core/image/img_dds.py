@@ -24,7 +24,8 @@ class ImageLoaderDDS(ImageLoaderBase):
 
         self.filename = filename
         width, height = dds.size
-        im = ImageData(width, height, dds.dxt, dds.images[0], source=filename)
+        im = ImageData(width, height, dds.dxt, dds.images[0], source=filename,
+                flip_vertical=False)
         if len(dds.images) > 1:
             images = dds.images
             images_size = dds.images_size

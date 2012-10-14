@@ -57,8 +57,6 @@ class ImageLoaderPIL(ImageLoaderBase):
                 raise
             _img_tmp = imc
 
-        # image are not in the good direction, flip !
-        _img_tmp = _img_tmp.transpose(PILImage.FLIP_TOP_BOTTOM)
         return _img_tmp
 
     def _img_read(self, im):

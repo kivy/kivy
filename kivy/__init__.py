@@ -203,7 +203,7 @@ for option in kivy_options:
     if key in environ:
         try:
             if type(kivy_options[option]) in (list, tuple):
-                kivy_options[option] = (str(environ[key]), )
+                kivy_options[option] = environ[key].split(',')
             else:
                 kivy_options[option] = environ[key].lower() in \
                     ('true', '1', 'yes', 'yup')
@@ -373,12 +373,13 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
 
-if platform() in ('android', 'ios'):
-    from kivy.config import Config
-    Config.set('graphics', 'fullscreen', 'auto')
-    Config.remove_section('input')
-    Config.add_section('input')
+    # android hooks: force fullscreen and add android touch input provider
+    if platform() in ('android', 'ios'):
+        from kivy.config import Config
+        Config.set('graphics', 'fullscreen', 'auto')
+        Config.remove_section('input')
+        Config.add_section('input')
 
-if platform() == 'android': 
-    Config.set('input', 'androidtouch', 'android')
+    if platform() == 'android': 
+        Config.set('input', 'androidtouch', 'android')
 

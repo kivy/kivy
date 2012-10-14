@@ -91,9 +91,9 @@ from kivy.animation import Animation
 from kivy.uix.floatlayout import FloatLayout
 from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty, \
-        BooleanProperty, NumericProperty, ListProperty, OptionProperty, \
-        DictProperty
+from kivy.properties import (ObjectProperty, StringProperty,
+                             BooleanProperty, NumericProperty,
+                             ListProperty, OptionProperty, DictProperty)
 from kivy.uix.widget import Widget
 from kivy.logger import Logger
 
@@ -236,8 +236,8 @@ class AccordionItem(FloatLayout):
         self._anim_collapse = None
         super(AccordionItem, self).__init__(**kwargs)
         self.bind(title=self._trigger_title,
-                title_template=self._trigger_title,
-                title_args=self._trigger_title)
+                  title_template=self._trigger_title,
+                  title_args=self._trigger_title)
         self._trigger_title()
 
     def add_widget(self, widget):
@@ -285,7 +285,9 @@ class AccordionItem(FloatLayout):
         c = self.container_title
         c.clear_widgets()
         instance = Builder.template(self.title_template,
-            title=self.title, item=self, **self.title_args)
+                                    title=self.title,
+                                    item=self,
+                                    **self.title_args)
         c.add_widget(instance)
 
 
@@ -340,12 +342,9 @@ class Accordion(Widget):
     def add_widget(self, widget, *largs):
         if not isinstance(widget, AccordionItem):
             raise AccordionException('Accordion accept only AccordionItem')
+
         widget.accordion = self
         ret = super(Accordion, self).add_widget(widget, *largs)
-        all_collapsed = \
-            list(set(([x.collapse for x in self.children]))) == [True]
-        if all_collapsed:
-            widget.collapse = False
         return ret
 
     def select(self, instance):
@@ -360,6 +359,11 @@ class Accordion(Widget):
 
     def _do_layout(self, dt):
         children = self.children
+        all_collapsed = all(x.collapse for x in children)
+
+        if all_collapsed:
+            children[0].collapse = False
+
         orientation = self.orientation
         min_space = self.min_space
         min_space_total = len(children) * self.min_space
@@ -380,6 +384,7 @@ class Accordion(Widget):
 
         if orientation == 'horizontal':
             children = reversed(children)
+
         for child in children:
             child_space = min_space
             child_space += display_space * (1 - child.collapse_alpha)

@@ -1,0 +1,3 @@
+title=Compass
+author=Nik Klever
+orientation=portrait

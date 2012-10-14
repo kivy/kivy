@@ -84,7 +84,7 @@ reference::
     def print_it(instance, value):
         print 'User clicked on', value
     widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
-    widget.on_ref_press(print_it)
+    widget.bind(on_ref_press=print_it)
 
 For a better rendering, you could add a color for the reference. Replace the
 ``text=`` in the previous example with::

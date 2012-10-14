@@ -25,4 +25,9 @@ stunning applications in short time using the framework.
     contact
 
 
+.. toctree::
+	:maxdepth: 3
+
+	guide2-index
+
 .. include:: api-index.rst

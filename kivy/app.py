@@ -542,6 +542,10 @@ class App(EventDispatcher):
         runTouchApp()
         self.dispatch('on_stop')
 
+        # Clear the window children
+        for child in window.children:
+            window.remove_widget(child)
+
     def stop(self, *largs):
         '''Stop the application.
 
