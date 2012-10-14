@@ -1329,7 +1329,8 @@ class BuilderBase(object):
                 if type(value) is CodeType:
                     value = create_handler(widget_set, widget_set, key,
                             value, rule, rctx['ids'])
-                setattr(widget_set, key, value)
+                if key != '_':
+                    setattr(widget_set, key, value)
 
         # build handlers
         for widget_set, rules in rctx['hdl']:
