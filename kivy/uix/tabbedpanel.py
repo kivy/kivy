@@ -108,7 +108,7 @@ tabbed panel's background_image and background_color.
 '''
 
 __all__ = ('TabbedPanel', 'TabbedPanelContent', 'TabbedPanelHeader',
-    'TabbedPanelStrip', 'TabbedPanelException')
+    'TabbedPanelItem', 'TabbedPanelStrip', 'TabbedPanelException')
 
 from functools import partial
 from kivy.clock import Clock
@@ -121,7 +121,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
-        ListProperty, NumericProperty, AliasProperty
+        ListProperty, NumericProperty, AliasProperty, BooleanProperty
 
 
 class TabbedPanelException(Exception):
@@ -154,13 +154,62 @@ class TabbedPanelHeader(ToggleButton):
         else:
             super(TabbedPanelHeader, self).on_touch_down(touch)
 
-    def on_release(self, *l):
+    def on_release(self, *largs):
         parent = self.parent
         while parent is not None and not isinstance(parent, TabbedPanel):
             parent = parent.parent
         if not parent:
             return
         parent.switch_to(self)
+
+
+class TabbedPanelItem(Widget):
+    '''This is a convenience widget that provides a header of type
+    TabbedPanelHeader and links the widget added to it with the header setting
+    the content automatically. Thus facilitating you to simply do the following
+    in kv language::
+
+        <TabbedPanel>:
+            ...other settings
+            TabbedPanelItem:
+                BoxLayout:
+                    Label:
+                        text: 'Second tab content area'
+                    Button:
+                        text: 'Button that does nothing'
+
+    .. versionadded:: 1.5.0
+    '''
+
+    text = StringProperty('')
+    '''text displayed on the tab head associated with this item.
+
+    :data:`text` is a :class:`~kivy.properties.StringProperty` default
+    to ''.
+    '''
+
+    def add_widget(self, widget, index=0):
+        if not hasattr(self, 'header'):
+            self.header = TabbedPanelHeader(text=self.text, content=widget)
+            if self.parent:
+                self.parent.add_widget(self.header)
+        elif self.header.content:
+            Logger.warning('TabbedPanel: TabbedPanelItem supports only' +
+                ' one child')
+            return
+        self.header.content = widget
+
+    def remove_widget(self, widget):
+        if hasattr(self, 'header'):
+            header = self.header
+            if header.content == widget:
+                if widget.parent:
+                    widget.parent.remove_widget(widget)
+                header.content = None
+
+    def on_text(self, instance, value):
+        if hasattr(self, 'header'):
+            self.header.text = value
 
 
 class TabbedPanelStrip(GridLayout):
@@ -248,6 +297,15 @@ class TabbedPanel(GridLayout):
     default to 100.
     '''
 
+    do_default_tab = BooleanProperty(True)
+    '''Specifies weather a default_tab head is provided.
+
+    .. versionadded:: 1.5.0
+
+    :data:`do_default_tab` is a :class:`~kivy.properties.BooleanProperty`,
+    defaults to 'True'.
+    '''
+
     default_tab_text = StringProperty('Default tab')
     '''Specifies the text displayed on the default tab header.
 
@@ -326,29 +384,38 @@ class TabbedPanel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
+        # these variables need to be initialised the kv lang is processed
+        # setup the base layout for the tabbed panel
         self._tab_layout = GridLayout(rows=1)
+        self.rows = 1
+        # bakground_image
         self._bk_img = Image(
             source=self.background_image, allow_stretch=True,
             keep_ratio=False, color=self.background_color)
         self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel=self,
             rows=1, cols=99, size_hint=(None, None),
             height=self.tab_height, width=self.tab_width)
-
         self._partial_update_scrollview = None
         self.content = content = TabbedPanelContent()
-
         self._current_tab = default_tab = self._original_tab \
             = self._default_tab = TabbedPanelHeader()
+
         super(TabbedPanel, self).__init__(**kwargs)
+
+        if not self.do_default_tab:
+            Clock.schedule_once(self._switch_to_first_tab)
+            return
 
         content = self._default_tab.content
         cls = self.default_tab_cls
+
         if not issubclass(cls, TabbedPanelHeader):
             raise TabbedPanelException('`default_tab_class` should be\
                 subclassed from `TabbedPanelHeader`')
 
-        if cls != type(default_tab):
-            self._default_tab = cls()
+        # no need to instanciate if class is TabbedPanelHeader
+        if cls != TabbedPanelHeader:
+            self._current_tab = self._original_tab = self._default_tab = cls()
         default_tab = self.default_tab
         default_tab.text = self.default_tab_text
         default_tab.height = self.tab_height
@@ -367,7 +434,13 @@ class TabbedPanel(GridLayout):
         else:
             Clock.schedule_once(self._load_default_tab_content)
         self._current_tab = default_tab
-        self.on_tab_pos()
+
+    def _switch_to_first_tab(self, *l):
+        ltl = len(self.tab_list) - 1
+        if ltl > 1:
+            self._current_tab = dt = self._original_tab \
+                = self.tab_list[ltl]
+            self.switch_to(dt)
 
     def _load_default_tab_content(self, dt):
         self.switch_to(self.default_tab)
@@ -378,7 +451,12 @@ class TabbedPanel(GridLayout):
     def switch_to(self, header):
         '''Switch to a specific panel header.
         '''
+        # if TabbedPaneItem: header = item.header
+        if hasattr(header, 'header'):
+            header = header.header
         header_content = header.content
+        self._current_tab.state = 'normal'
+        header.state = 'down'
         self._current_tab = header
         self.clear_widgets()
         if header_content is None:
@@ -394,15 +472,19 @@ class TabbedPanel(GridLayout):
         if content is None:
             return
         parent = widget.parent
-        if widget.parent:
+        if parent:
             parent.remove_widget(widget)
-        if widget == content or widget == self._tab_layout:
+        if widget in (content, self._tab_layout):
             super(TabbedPanel, self).add_widget(widget, index)
         elif isinstance(widget, TabbedPanelHeader):
             self_tabs = self._tab_strip
             self_tabs.add_widget(widget)
             widget.group = '__tab%r__' % self_tabs.uid
             self.on_tab_width()
+        elif isinstance(widget, TabbedPanelItem):
+            widget.parent = self
+            if hasattr(widget, 'header'):
+                self.add_widget(widget.header)
         else:
             widget.pos_hint = {'x': 0, 'top': 1}
             content.add_widget(widget, index)
@@ -411,7 +493,7 @@ class TabbedPanel(GridLayout):
         content = self.content
         if content is None:
             return
-        if widget == content or widget == self._tab_layout:
+        if widget in (content, self._tab_layout):
             super(TabbedPanel, self).remove_widget(widget)
         elif isinstance(widget, TabbedPanelHeader):
             if widget != self._default_tab:
@@ -419,13 +501,23 @@ class TabbedPanel(GridLayout):
                 self_tabs.width -= widget.width
                 self_tabs.remove_widget(widget)
                 if widget.state == 'down':
-                    self._default_tab.on_release()
+                    if self.do_default_tab:
+                        self._default_tab.on_release()
                 self.reposition_tabs()
             else:
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
                     'Change `default_tab` to a different tab.')
+        elif isinstance(widget, TabbedPanelItem):
+            content = widget.header.content
+            parent = content.parent
+            if content and parent:
+                parent.remove_widget(content)
+            self.remove_widget(widget.header)
+            widget.parent = None
+            widget.header = None
         else:
-            content.remove_widget(widget)
+            if widget in content.children:
+                content.remove_widget(widget)
 
     def clear_widgets(self, **kwargs):
         content = self.content
@@ -439,52 +531,17 @@ class TabbedPanel(GridLayout):
     def clear_tabs(self, *l):
         self_tabs = self._tab_strip
         self_tabs.clear_widgets()
-        self_default_tab = self._default_tab
-        self_tabs.add_widget(self_default_tab)
-        self_tabs.width = self_default_tab.width
+        if self.do_default_tab:
+            self_default_tab = self._default_tab
+            self_tabs.add_widget(self_default_tab)
+            self_tabs.width = self_default_tab.width
         self.reposition_tabs()
 
     def reposition_tabs(self, *l):
-        Clock.unschedule(self.on_tab_pos)
-        Clock.schedule_once(self.on_tab_pos, 0)
+        Clock.unschedule(self._update_tabs)
+        Clock.schedule_once(self._update_tabs, 0)
 
-    def on_background_image(self, *l):
-        self._bk_img.source = self.background_image
-
-    def on_background_color(self, *l):
-        if self.content is None:
-            return
-        self._bk_img.color = self.background_color
-
-    def on_tab_width(self, *l):
-        Clock.unschedule(self.update_tab_width)
-        Clock.schedule_once(self.update_tab_width, 0)
-
-    def update_tab_width(self, *l):
-        if self.tab_width:
-            for tab in self.tab_list:
-                tab.size_hint_x = 1
-            tsw = self.tab_width * len(self._tab_strip.children)
-        else:
-            # tab_width = None
-            tsw = 0
-            for tab in self.tab_list:
-                if tab.size_hint_x:
-                    # size_hint_x: x/.xyz
-                    tab.size_hint_x = 1
-                    #drop to default tab_width
-                    tsw += 100
-                else:
-                    # size_hint_x: None
-                    tsw += tab.width
-        self._tab_strip.width = tsw
-        self.reposition_tabs()
-
-    def on_tab_height(self, *l):
-        self._tab_layout.height = self._tab_strip.height = self.tab_height
-        self.reposition_tabs()
-
-    def on_tab_pos(self, *l):
+    def _update_tabs(self, *l):
         self_content = self.content
         if not self_content:
             return
@@ -616,6 +673,46 @@ class TabbedPanel(GridLayout):
         add = self.add_widget
         for widg in widget_list:
             add(widg)
+
+    def on_background_image(self, *l):
+        self._bk_img.source = self.background_image
+
+    def on_background_color(self, *l):
+        if self.content is None:
+            return
+        self._bk_img.color = self.background_color
+
+    def on_tab_width(self, *l):
+        Clock.unschedule(self.update_tab_width)
+        Clock.schedule_once(self.update_tab_width, 0)
+
+    def update_tab_width(self, *l):
+        if self.tab_width:
+            for tab in self.tab_list:
+                tab.size_hint_x = 1
+            tsw = self.tab_width * len(self._tab_strip.children)
+        else:
+            # tab_width = None
+            tsw = 0
+            for tab in self.tab_list:
+                if tab.size_hint_x:
+                    # size_hint_x: x/.xyz
+                    tab.size_hint_x = 1
+                    #drop to default tab_width
+                    tsw += 100
+                else:
+                    # size_hint_x: None
+                    tsw += tab.width
+        self._tab_strip.width = tsw
+        self.reposition_tabs()
+
+    def on_tab_height(self, *l):
+        self._tab_layout.height = self._tab_strip.height = self.tab_height
+        self.reposition_tabs()
+
+    def on_tab_pos(self, *l):
+        # ensure canvas
+        self.reposition_tabs()
 
     def _update_top(self, *args):
         sctr, top, scrl_v_width, x, y = args
