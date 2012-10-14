@@ -689,7 +689,6 @@ class App(EventDispatcher):
 
         self.config.setdefaults(module, {key: default})
         value = self.config.get(module, key)
-        print ">>>", (module, key, value, default)
         self._autoconf_widgets[widget] = (module, key, value, default)
         return value
 
@@ -700,7 +699,6 @@ class App(EventDispatcher):
         '''
         for widget, c in self._autoconf_widgets.items():
             module, key, value, default = c
-            print "==>", c
             widget.set_autoconf(value)
 
     def save_autoconf(self):
@@ -709,7 +707,6 @@ class App(EventDispatcher):
         '''
         for widget, c in self._autoconf_widgets.items():
             module, key, value, default = c
-            print "<<<", c, widget.get_autoconf()
             self.config.set(module, key, widget.get_autoconf())
         self.config.write()
 
