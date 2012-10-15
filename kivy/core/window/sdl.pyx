@@ -1,3 +1,4 @@
+from os import environ
 from libcpp cimport bool
 
 cdef extern from "Python.h":
@@ -161,7 +162,11 @@ def setup_window(width, height, use_fake, use_fullscreen):
         die()
 
     # Set default orientation (force landscape for now)
-    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight")
+    cdef bytes orientations
+    orientations = <bytes>environ.get('KIVY_ORIENTATION',
+            'LandscapeLeft LandscapeRight');
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations);
+
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16)
