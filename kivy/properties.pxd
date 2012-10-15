@@ -43,6 +43,8 @@ cdef class BoundedNumericProperty(Property):
     cdef int use_max
     cdef long min
     cdef long max
+    cdef float f_min
+    cdef float f_max
 
 cdef class OptionProperty(Property):
     cdef list options
