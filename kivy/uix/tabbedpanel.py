@@ -23,6 +23,13 @@ Simple example
 .. include:: ../../examples/widgets/tabbedpanel.py
     :literal:
 
+.. note::
+
+    A new Class :class:`TabbedPanelItem` has been introduced in 1.5.0 for
+    convineance. So now one can simply add a :class:`TabbedPanelItem` to a
+    :class:`TabbedPanel` and the `content` to the :class:`TabbedPanelItem`
+    like in the example provided above.
+
 Customize the Tabbed Panel
 --------------------------
 
@@ -45,22 +52,29 @@ button::
 
     th.content = your_content_instance
 
-Note: There is one "shared" main content area, active at a given time, for all
+There is one "shared" main content area, active at a given time, for all
 the tabs. Your app is responsible for adding the content of individual tabs,
 and for managing it, but not for doing the content switching. The tabbed panel
 handles switching of the main content object, per user action.
 
-There is always a default tab added when the tabbed panel is instantiated.
+There is a default tab added when the tabbed panel is instantiated.
 Tabs that you add individually as above, are added in addition to the default
 tab. Thus, depending on your needs and design, you will want to customize the
-default tab, including its text::
+default tab::
 
     tp.default_tab_text = 'Something Specific To Your Use'
+
 
 The default tab machinery requires special consideration and management.
 Accordingly, an `on_default_tab` event is provided for associating a callback::
 
     tp.bind(on_default_tab = my_default_tab_callback)
+
+It's important to note that as by default :data:`default_tab_cls` is of type
+:class:`TabbedPanelHeader` it has the same properties as other tabs.
+
+Since 1.5.0 it is now possible to disable the creation of the
+:data:`default_tab` by setting :data:`do_default_tab` to False
 
 Tabs and content can be removed in several ways::
 
@@ -162,10 +176,9 @@ class TabbedPanelHeader(ToggleButton):
 
 
 class TabbedPanelItem(TabbedPanelHeader):
-    '''This is a convenience widget that provides a header of type
-    TabbedPanelHeader and links the widget added to it with the header setting
-    the content automatically. Thus facilitating you to simply do the following
-    in kv language::
+    '''This is a convenience class that provides a header of type
+    TabbedPanelHeader and links it with the content automatically. Thus
+    facilitating you to simply do the following in kv language::
 
         <TabbedPanel>:
             ...other settings
@@ -422,11 +435,11 @@ class TabbedPanel(GridLayout):
 
     def on_do_default_tab(self, instance, value):
         if not value:
-            dft, tl = self.default_tab, self.tab_list
-            if dft in tl:
+            dft = self.default_tab
+            if dft in self.tab_list:
                 self._default_tab = None
                 self.remove_widget(dft)
-                self.switch_to(tl[len(tl) - 1])
+                self._switch_to_first_tab
 
     def _switch_to_first_tab(self, *l):
         ltl = len(self.tab_list) - 1
