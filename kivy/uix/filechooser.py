@@ -28,7 +28,7 @@ from kivy.logger import Logger
 from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
-                            ObjectProperty, NumericProperty
+                            ObjectProperty, NumericProperty, AliasProperty
 from os import listdir
 from os.path import basename, getsize, isdir, join, sep, normpath, \
                     expanduser, altsep, splitdrive, realpath
@@ -204,9 +204,18 @@ class FileChooserController(FloatLayout):
     Determines whether hidden files and folders should be shown.
     '''
 
-    selection = ListProperty([])
+    def _get_selection(self):
+        return self._selection
+
+    selection = AliasProperty(_get_selection, None)
     '''
     Read-only :class:`~kivy.properties.ListProperty`.
+    The list of files that are currently selected.
+    '''
+
+    _selection = ListProperty([])
+    '''
+    private list :class:`~kivy.properties.ListProperty`.
     The list of files that are currently selected.
     '''
 
@@ -269,7 +278,7 @@ class FileChooserController(FloatLayout):
         super(FileChooserController, self).__init__(**kwargs)
 
         self._items = []
-        self.bind(selection=self._update_item_selection)
+        self.bind(_selection=self._update_item_selection)
 
         if platform in ('macosx', 'linux', 'android', 'ios'):
             self.is_hidden = is_hidden_unix
@@ -330,15 +339,15 @@ class FileChooserController(FloatLayout):
                 self.open_entry(entry)
             else:
                 if entry.path in self.selection:
-                    self.selection.remove(entry.path)
+                    self._selection.remove(entry.path)
                 else:
-                    self.selection.append(entry.path)
+                    self._selection.append(entry.path)
         else:
             if isdir(entry.path):
                 if self.dirselect:
-                    self.selection = [entry.path, ]
+                    self._selection = [entry.path, ]
             else:
-                self.selection = [entry.path, ]
+                self._selection = [entry.path, ]
 
     def entry_released(self, entry, touch):
         '''(internal) This method must be called by the template when an entry
@@ -375,7 +384,7 @@ class FileChooserController(FloatLayout):
             entry.locked = True
         else:
             self.path = join(self.path, entry.path)
-            self.selection = []
+            self._selection = []
 
     def _apply_filters(self, files):
         if not self.filters:
@@ -485,6 +494,13 @@ class FileChooserController(FloatLayout):
             # path.
             self.path = self._previous_path[-2]
             Clock.unschedule(self._update_files)
+
+    def clear_selection(self):
+        '''Clear the current selection/s
+
+        .. versionadded:: 1.5.0
+        '''
+        self._selection = []
 
     def _show_progress(self):
         if self._progress:
