@@ -1,0 +1,162 @@
+#:kivy 1.4
+
+
+<Catalog>:
+    language_box: language_box
+    BoxLayout:
+        spacing: 5
+        TabbedPanel:
+            size_hint: .6, 1
+            tab_pos: "left_top"
+            default_tab_text: "Introduction"
+            default_tab_content: introduction_tab
+            on_default_tab: root.show_kv(*args)
+
+
+            Accordion:
+                id: introduction_tab
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Playground"
+                    kv_container: playground
+                    PlaygroundContainer:
+                        id: playground
+                AccordionItem:
+                    title: "Welcome"
+                    Label:
+                        text_size: self.width-60, self.height-60
+                        valign: "middle"
+                        text: "The Kivy Catalog is an interactive showcase of Kivy Widgets defined in the Kivy language. For each widget you see, you can directly edit the .kv language syntax to see what effects your changes have on the widget.\n\nThere is also a playground on this tab where you can test your Kivy language code directly. This is beta software. The basics seem to work, but some widgets are missing or don't have the ideal .kv representation. Not all widgets are represented yet. It is trivial to add a new .kv file to the interface.\n\nPull requests are welcome."
+
+            TabbedPanelHeader:
+                text: 'Layouts'
+                content: layout_tab
+                on_state: root.show_kv(*args)
+            TabbedPanelHeader:
+                text: 'UX Widgets'
+                content: basic_widgets
+                on_state: root.show_kv(*args)
+            TabbedPanelHeader:
+                text: 'Complex'
+                content: complex_widgets
+                on_state: root.show_kv(*args)
+
+            Accordion:
+                id: layout_tab
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "FloatLayout"
+                    kv_container: floatlayoutcontainer
+                    FloatLayoutContainer:
+                        id: floatlayoutcontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "BoxLayout"
+                    kv_container: boxlayoutcontainer
+                    BoxLayoutContainer:
+                        id: boxlayoutcontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "AnchorLayout"
+                    kv_container: anchorlayoutcontainer
+                    AnchorLayoutContainer:
+                        id: anchorlayoutcontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "GridLayout"
+                    kv_container: gridlayoutcontainer
+                    GridLayoutContainer:
+                        id: gridlayoutcontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "StackLayout"
+                    kv_container: stacklayoutcontainer
+                    StackLayoutContainer:
+                        id: stacklayoutcontainer
+            Accordion:
+                id: basic_widgets
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Buttons"
+                    kv_container: buttoncontainer
+                    ButtonContainer:
+                        id: buttoncontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Labels"
+                    kv_container: labelcontainer
+                    LabelContainer:
+                        id: labelcontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Booleans"
+                    kv_container: checkboxcontainer
+                    CheckBoxContainer:
+                        id: checkboxcontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Progress Bar"
+                    kv_container: progressbarcontainer
+                    ProgressBarContainer:
+                        id: progressbarcontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Media"
+                    kv_container: mediacontainer
+                    MediaContainer:
+                        id: mediacontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Text"
+                    kv_container: textcontainer
+                    TextContainer:
+                        id: textcontainer
+            Accordion:
+                id: complex_widgets
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Popups"
+                    kv_container: popupcontainer
+                    PopupContainer:
+                        id: popupcontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Selectors"
+                    kv_container: selectorscontainer
+                    SelectorsContainer:
+                        id: selectorscontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "FileChoosers"
+                    kv_container: filechoosercontainer
+                    FileChooserContainer:
+                        id: filechoosercontainer
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "Scatter"
+                    kv_container: scatter
+                    ScatterContainer:
+                        id: scatter
+                AccordionItem:
+                    on_collapse: root.show_kv(*args)
+                    title: "ReST"
+                    kv_container: rest
+                    RestContainer:
+                        id: rest
+
+        BoxLayout:
+            id: bl
+            orientation: "vertical"
+            size_hint: .4, 1
+            TextInput:
+                text_size: self.width-20, self.height-20
+                font_name: "DroidSansMono.ttf"
+                valign: "top"
+                id: language_box
+                text: "This box will display the kivy language for whatever has been selected"
+            Button:
+                size_hint: 1, None
+                height: 50
+                text: "Render"
+                on_press: root.change_kv(*args)
+
