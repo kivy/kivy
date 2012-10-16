@@ -318,13 +318,13 @@ put many Image that will react to on_touch_down::
  root.create_image()
 
             Image:
-                nput: 'data/video.png'
+                source: 'data/video.png'
                 size: self.texture_size
                 size_hint: None, None
                 on_touch_down: self.collide_point(*args[1].pos) and\
  root.create_video()
 
-We can see that the side and size_hint attribute are exactly the same.
+We can see that the size and size_hint attribute are exactly the same.
 More than that, the callback in on_touch_down and the image are changing.
 Theses can be the variable part of the template that we can put into a context.
 Let's try to create a template for the Image::
