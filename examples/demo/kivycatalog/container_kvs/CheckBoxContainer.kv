@@ -1,0 +1,27 @@
+#:kivy 1.4
+
+GridLayout:
+    cols: 2
+    CheckBox:
+    Label:
+        text: "A checkbox"
+        active: True
+    CheckBox:
+    Label:
+        text: "Another checkbox"
+    CheckBox:
+        group: "money"
+    Label:
+        text: "A radio in a group"
+    CheckBox:
+        group: "money"
+    Label:
+        text: "Another radio in same group"
+        active: True
+    Switch:
+    Label:
+        text: "A Switch"
+    Switch:
+        active: True
+    Label:
+        text: "An active switch"
