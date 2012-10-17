@@ -201,7 +201,7 @@ for option in kivy_options:
     if key in environ:
         try:
             if type(kivy_options[option]) in (list, tuple):
-                kivy_options[option] = (str(environ[key]), )
+                kivy_options[option] = environ[key].split(',')
             else:
                 kivy_options[option] = environ[key].lower() in \
                     ('true', '1', 'yes', 'yup')

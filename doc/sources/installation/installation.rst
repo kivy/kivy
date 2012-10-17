@@ -4,7 +4,7 @@ Installation
 ============
 
 We try not to reinvent the wheel, but to bring something innovative to the
-market. As a consequence, we're focused on our own code and use pre-existing, 
+market. As a consequence, we're focused on our own code and use pre-existing,
 high-quality third-party libraries where possible.
 To support the full, rich set of features that Kivy offers, several other libraries are
 required. If you do not use a specific feature (e.g. video playback) you
@@ -12,7 +12,7 @@ don't need the corresponding dependency, however.
 That said, there is one dependency that Kivy **does** require:
 `Cython <http://cython.org>`_.
 
-In addition, you need a `Python <http://python.org/>`_ 2.x (**not**  3.x)
+In addition, you need a `Python <http://python.org/>`_ 2.x (2.6 <= x < 3.0)
 interpreter. If you want to enable features like windowing (i.e., open a Window),
 audio/video playback or spelling correction, additional dependencies must
 be available. For these, we recommend `Pygame <http://pygame.org>`_, `Gst-Python

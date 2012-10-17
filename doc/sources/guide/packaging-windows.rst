@@ -68,7 +68,7 @@ Build the spec
 #. Go to the pyinstaller directory, and build the spec::
 
     cd pyinstaller-2.0
-    python Build.py touchtracer\\touchtracer.spec
+    python pyinstaller.py touchtracer\\touchtracer.spec
 
 #. The package will be in the `touchtracer\\dist\\touchtracer` directory !
 

@@ -41,11 +41,11 @@ class ImageData(object):
     The container will always have at least the mipmap level 0.
     '''
 
-    __slots__ = ('fmt', 'mipmaps', 'source')
+    __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical')
     _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra',
             's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5')
 
-    def __init__(self, width, height, fmt, data, source=None):
+    def __init__(self, width, height, fmt, data, source=None, flip_vertical=True):
         assert fmt in ImageData._supported_fmts
 
         #: Decoded image format, one of a available texture format
@@ -57,6 +57,9 @@ class ImageData(object):
 
         #: Image source, if available
         self.source = source
+
+        #: Indicate if the texture will need to be vertically flipped
+        self.flip_vertical = flip_vertical
 
     def release_data(self):
         mm = self.mipmaps
@@ -165,10 +168,13 @@ class ImageLoaderBase(object):
 
             # if not create it and append to the cache
             if texture is None:
+                imagedata = self._data[count]
                 texture = Texture.create_from_data(
-                        self._data[count], mipmap=self._mipmap)
+                        imagedata, mipmap=self._mipmap)
                 if not self._nocache:
                     Cache.append('kv.texture', uid, texture)
+                if imagedata.flip_vertical:
+                    texture.flip_vertical()
 
             # set as our current texture
             self._textures.append(texture)
