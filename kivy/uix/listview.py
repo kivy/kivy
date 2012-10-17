@@ -1,64 +1,3 @@
-##[TODO LIST for kivy uix-listview]:
-#
-#    - *** FIXED *** Initial selection is apparently working in the associated
-#      ListAdapter but the listview display does not show the initial
-#      selection (red, in example code). After the listview has been clicked
-#      for the first manual selection, the updating of selected items (in red)
-#      works.
-#
-#    - Explain why multiple levels of abstraction are needed. (Adapter,
-#      ListAdapter, AbstractView, ListView) -- Tie discussion to inspiration
-#      for Adapter and related classes:
-#
-#          http://developer.android.com/reference/android/\
-#              widget/Adapter.html#getView(int,%20android/\
-#              .view.View,%20android.view.ViewGroup)
-#
-#      There is now an ASCII drawing of the relationship between ListView and
-#      ListAdapter, as it is now, in the docs below.
-#
-#    - Divider isn't used (yet).
-#
-#    - *** DONE *** Consider adding an associated SortableDataItem mixin, to
-#                   be used by list item classes in a manner similar to the
-#                   SelectableView mixin.
-#
-#    - *** DONE *** (By adding DictAdapter, which as a sorted_keys argument)
-#
-#                   Consider a sort_by property. Review the use of the items
-#                   property.
-#
-#    - Work on [TODO]s in the code.
-#
-#    Examples (in examples/widgets):
-#
-#    - Improve examples:
-#        - *** DONE *** Add fruit images.
-#
-#    - Add an example where selection doesn't just change background color
-#      or font, but animates.
-#
-#    Other Possibilities:
-#
-#    - Consider a horizontally scrolling variant.
-#
-#    - Is it possible to have dynamic item_view height, for use in a
-#      master-detail listview in this manner?
-#
-#        http://www.zkoss.org/zkdemo/grid/master_detail
-#
-#      (Would this be a new widget called MasterDetailListView, or would the
-#       listview widget having a facility for use in this way?)
-#
-#      (See the list_disclosure.py file as a start.)
-#
-#    - Make a separate master-detail example that works like an iphone-style
-#      animated "source list" that has "disclosure" buttons per item_view, on
-#      the right, that when clicked will expand to fill the entire listview
-#      area (useful on mobile devices especially). Similar question as above --
-#      would listview be given expanded functionality or would this become
-#      another kind of "master-detail" widget?)
-
 '''
 List View
 ===========
@@ -112,7 +51,7 @@ Behind the scenes, the basic example above uses
 uses :class:`SimpleListAdapter`. When the constructor for
 :class:`ListView` sees that only a list of strings is provided as an argument,
 called item_strings, it creates an instance of :class:`SimpleListAdapter` with
-the list of strings. 
+the list of strings.
 
 Simple in :class:`SimpleListAdapter` means: WITHOUT SELECTION SUPPORT -- it is
 just a scrollable list of items, which do not respond to touch events.
@@ -137,7 +76,7 @@ its arguments:
 
     - data: a list of Python class instances or dicts that must have
             a text property and an is_selected property.
-            
+
             When working with classes as data items, the is_selected property
             is provided by :class:`SelectableDataItem`, which is intended to
             be used as a mixin:
@@ -250,10 +189,10 @@ according to the data at hand.
 **An args converter used with cls argument**
 
 Inside the :class:`ListView` code, the args converter function is used with the
-provided view argument, in this case cls: 
+provided view argument, in this case cls:
 
     cls(**args_converter(data_item))
-    
+
 Here, if cls is ListItemButton, it would be equivalent to:
 
     ListItemButton(text=an_obj.text, size_hint_y=None, height=25)

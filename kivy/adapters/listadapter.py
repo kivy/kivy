@@ -10,7 +10,7 @@ no user interaction.
 
 :class:`ListAdapter` is has broader application, because it adds selection.
 Its data items cannot be simple strings; they must be objects conforming to
-the model of selection, handling is_selected.
+the model of selection, providing text and is_selected properties.
 '''
 
 from kivy.properties import ListProperty, DictProperty, ObjectProperty

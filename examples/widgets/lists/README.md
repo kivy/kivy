@@ -54,3 +54,81 @@ These include:
                      selected across the seven lists, along with a total of
                      all selected items for the lists.
  
+#[TODO LIST for kivy uix-listview]:
+#
+#    - *** FIXED *** Initial selection is apparently working in the associated
+#      ListAdapter but the listview display does not show the initial
+#      selection (red, in example code). After the listview has been clicked
+#      for the first manual selection, the updating of selected items (in red)
+#      works.
+#
+#    - Explain why multiple levels of abstraction are needed. (Adapter,
+#      ListAdapter, AbstractView, ListView) -- Tie discussion to inspiration
+#      for Adapter and related classes:
+#
+#          http://developer.android.com/reference/android/\
+#              widget/Adapter.html#getView(int,%20android/\
+#              .view.View,%20android.view.ViewGroup)
+#
+#      There is now an ASCII drawing of the relationship between ListView and
+#      ListAdapter, as it is now, in the docs below.
+#
+#    - Divider isn't used (yet).
+#
+#    - *** DONE *** Consider adding an associated SortableDataItem mixin, to
+#                   be used by list item classes in a manner similar to the
+#                   SelectableView mixin.
+#
+#    - *** DONE *** (By adding DictAdapter, which as a sorted_keys argument)
+#
+#                   Consider a sort_by property. Review the use of the items
+#                   property.
+#
+#    - Work on [TODO]s in the code.
+#
+#    Examples (in examples/widgets):
+#
+#    - Improve examples:
+#        - *** DONE *** Add fruit images.
+#
+#    - Add an example where selection doesn't just change background color
+#      or font, but animates.
+#
+#    Other Possibilities:
+#
+#    - Consider a horizontally scrolling variant.
+#
+#    - Is it possible to have dynamic item_view height, for use in a
+#      master-detail listview in this manner?
+#
+#        http://www.zkoss.org/zkdemo/grid/master_detail
+#
+#      (Would this be a new widget called MasterDetailListView, or would the
+#       listview widget having a facility for use in this way?)
+#
+#      (See the list_disclosure.py file as a start.)
+#
+#    - Make a separate master-detail example that works like an iphone-style
+#      animated "source list" that has "disclosure" buttons per item_view, on
+#      the right, that when clicked will expand to fill the entire listview
+#      area (useful on mobile devices especially). Similar question as above --
+#      would listview be given expanded functionality or would this become
+#      another kind of "master-detail" widget?)
+
+Notes from Adapter.py:
+
+    - Explain the design philosophy used here -- something like model-view-
+      adapter (MVA) as described here:
+
+          http://en.wikipedia.org/wiki/Model-view-adapter (and link to
+            basis article about Java Swing design)
+
+      Using background in references like these, compare to MVC terminology,
+      and how Kivy operates to fulfill the roles of mediating and coordinating
+      controllers, especially (terminology from the world of Cocoa).
+
+    - *** DONE *** Consider an associated "object adapter" (a.k.a., "object
+      controller") that is bound to selection. It can also subclass Adapter?
+
+    - *** DONE *** Yes, the new ObjectAdapter subclasses Adapter.
+
