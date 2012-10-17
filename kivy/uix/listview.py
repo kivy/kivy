@@ -108,18 +108,17 @@ Here we make a listview with 100 items.
 Using a ListAdapter
 -------------------
 
-If you were to dig deeper into the basic example above, you would find that it
-uses :class:`SimpleListAdapter` behind the scenes. When the constructor for
-:class:`ListView` sees that only a list of strings is provided as an argument
+Behind the scenes, the basic example above uses
+uses :class:`SimpleListAdapter`. When the constructor for
+:class:`ListView` sees that only a list of strings is provided as an argument,
 called item_strings, it creates an instance of :class:`SimpleListAdapter` with
-the list of strings. Otherwise, :class:`ListView` must be explicitly provided
-with an instance of SimpleListAdapter, ListAdapter or DictAdapter.
+the list of strings. 
 
 Simple in :class:`SimpleListAdapter` means: WITHOUT SELECTION SUPPORT -- it is
 just a scrollable list of items, which do not respond to touch events.
 
-If you want to use :class:`SimpleListAdaper` explicitly in creating a ListView
-instance, you could do:
+To use :class:`SimpleListAdaper` explicitly in creating a ListView instance,
+do:
 
     simple_list_adapter = \
         SimpleListAdapter(data=["Item #{0}".format(i) for i in xrange(100)],
@@ -129,20 +128,19 @@ instance, you could do:
 SelectionSupport: ListAdapter and DictAdapter
 ---------------------------------------------
 
-For many uses of a list selection functionality is needed. It is built in to
-:class:`ListAdapter` and :class:`DictAdapter` by subclassing
-:class:`SelectionSupport`.
+For many uses of a list, the data is more than a simple list or strings, or
+selection functionality is needed.  :class:`ListAdapter` and
+:class:`DictAdapter` each subclass :class:`SelectionSupport`.
 
 See the :class:`ListAdapter` docs for details, but here we have synopses of
 its arguments:
 
     - data: a list of Python class instances or dicts that must have
-            a text property and an is_selected property. The text property
-            needs to be programmed into your list data items, whether they are
-            class instances or dicts. For working with classes as data items,
-            the is_selected property is provided by
-            :class:`SelectableDataItem`, which is intended to be used as a
-            mixin:
+            a text property and an is_selected property.
+            
+            When working with classes as data items, the is_selected property
+            is provided by :class:`SelectableDataItem`, which is intended to
+            be used as a mixin:
 
                 MyCustomDataItem(SelectableDataItem):
                     def __init__(self, **kwargs):
@@ -157,33 +155,31 @@ its arguments:
                 data = \
                     [{'text': str(i), 'is_selected': False} for i in [1,2,3]]
 
-    - cls: the Kivy view that is to be instantiated for each list item. There
+    - cls: a Kivy view that is to be instantiated for each list item. There
            are several built-in types available, including ListItemLabel and
            ListItemButton, or you can easily make your own.
 
-    - template: another way of building a Kivy view for a list item, taking
-                adavantage of the flexibility of the kv language.
+    or
+
+    - template: the name of a Kivy language (kv) template that defines the
+                view
 
     NOTE: Pick only one, cls or template, to provide as an argument.
 
     - args_converter: a function that takes a list item object as input, and
-                      operates to use the object in some fashion to build and
-                      return an args dict, ready to be used in a call to
-                      instantiate the item view cls or template. In the case
-                      of cls, the args dict acts as a kwargs object. For a
-                      template, it is treated as a context (ctx), but is
-                      essentially similar in form. See the examples and docs
-                      for template operation.
+                      uses the object to build and return an args dict, ready
+                      to be used in a call to instantiate the item view cls or
+                      template. In the case of cls, the args dict acts as a
+                      kwargs object. For a template, it is treated as a context
+                      (ctx), but is essentially similar in form. See the
+                      examples and docs for template operation.
 
-    - selection arguments:
+    - selection_mode: a string for: 'single', 'multiple' or others (See docs).
 
-          selection_mode='single', 'multiple' or others (See docs), and
-
-          allow_empty_selection=False, which forces there to always be a
-                                       selection, if there is data available,
-                                       or =True, if selection is to be
-                                       restricted to happen only as a result
-                                       of user action.
+    - allow_empty_selection: a boolean, which if False, the default, forces
+                             there to always be a selection, if there is data
+                             available. If True, selection happens only as a
+                             result of user action.
 
 In narrative, we can summarize with:
 
@@ -192,7 +188,7 @@ In narrative, we can summarize with:
     instances, using either a cls or a kv template.
 
 In a graphic, a summary of the relationship between a listview and its
-list adapter, looks something like this:
+list adapter, looks like this:
 
     -                    ------------------- ListAdapter --------------------
     -                    |                                                  |
@@ -210,8 +206,8 @@ except for two things:
        requirements of normal python dictionary keys.
 
     2) The data argument is not a list of class instances, it is, as you would
-       expect, a dict. Keys in the dict must include to the keys in the
-       sorted_keys argument, but they more form a superset of the keys in
+       expect, a dict. Keys in the dict must include the keys in the
+       sorted_keys argument, but they may form a superset of the keys in
        sorted_keys. Values may be class instances or dicts -- these follow the
        same rules as the items of the data argument, described above for
        :class:`ListAdapter`.
@@ -219,25 +215,65 @@ except for two things:
 Using an Args Converter
 -----------------------
 
-The Kivy view used for list items can be totally custom, but for an example,
-we can start with a button as a list item view, using the class for this
-purpose, :class:`ListItemButton`.  We need an args_converter function:
+:class:`ListView` allows use of built-in list item views, such as
+:class:`ListItemButton`, your own custom item view class, or a custom kv
+template. Whichever type of list item view is used, an args_converter function
+is needed to prepare, per list data item, args for either a cls or template.
 
-    args_converter = lambda obj: {'text': obj.text,
+Here is an args_converter for use with the built-in :class:`ListItemButton`,
+specified as a normal Python function:
+
+    def args_converter(an_obj):
+        return {'text': an_obj.text,
+                'size_hint_y': None,
+                'height': 25}
+
+    and as a lambda:
+
+    args_converter = lambda an_obj: {'text': an_obj.text,
+                                     'size_hint_y': None,
+                                     'height': 25}
+
+In args converter example above, the data item is assumed to be an object
+(class instance), hence the reference an_obj.text.
+
+Here is an example of an args converter that works with list data items that
+are dicts:
+
+    args_converter = lambda obj: {'text': a_dict['text'],
                                   'size_hint_y': None,
                                   'height': 25}
 
-args_converter() takes a data item, either as an object (Python class
-instance) or as a dict, and prepares for a call to instantiate the item view
-class for it. In the args_converter() function above, the lambda expects
-the list data item to be a class instance, fitting for the reference obj.text.
+So, it is the responsibility of the developer to code the args_converter
+according to the data at hand.
 
-The item view class, recall, is instantiated either with a cls or with a kv
-template. In the case of cls, the args converter prepares an args dict that is
-used as cls(**args_converter(data_item)). In the case of a template, the
-args_converter will provide essentially the same thing, but as the context for
-the template, not really an args dict strictly speaking:
-template(**args_converter(data_item)). Looks the same, but is not exactly.
+**An args converter used with cls argument**
+
+Inside the :class:`ListView` code, the args converter function is used with the
+provided view argument, in this case cls: 
+
+    cls(**args_converter(data_item))
+    
+Here, if cls is ListItemButton, it would be equivalent to:
+
+    ListItemButton(text=an_obj.text, size_hint_y=None, height=25)
+
+for each list data item.
+
+**An args converter used with a template argument**
+
+In the case of a kv template used as a list item view, the args_converter will
+provide the context for the template, not really an args dict strictly
+speaking, but it looks the same inside :class:`ListView`:
+
+    template(**args_converter(data_item))
+
+The only difference between this args converter and the one above is
+that the reference is to a dictionary (a_dict['text']), vs. reference to a
+class instance (an_obj.text).
+
+An Example ListView
+-------------------
 
 Now, to some example code:
 
@@ -252,27 +288,27 @@ Now, to some example code:
 
     list_adapter = ListAdapter(data=data,
                                args_converter=args_converter,
+                               cls=ListItemButton,
                                selection_mode='single',
-                               allow_empty_selection=False,
-                               cls=ListItemButton)
+                               allow_empty_selection=False)
 
     list_view = ListView(adapter=list_adapter)
 
-This listview will show 100 buttons with 0..100 labels. The listview will only
-allow single selection -- additional touches will be ignored. When the
-listview is first shown, the first item will already be selected, because we
-set allow_empty_selection=False.
+This listview will show 100 buttons with 0..100 labels. The args converter
+function works on dict items in the data. ListItemButton views will be
+intantiated from the args converted by args_converter for each data item. The
+listview will only allow single selection -- additional touches will be
+ignored. When the listview is first shown, the first item will already be
+selected, because allow_empty_selection is False.
 
-The args_converter function used expects a dict (rec), fitting the reference
-to rec['text'].
-
-Selection
----------
+Uses for Selection
+------------------
 
 In the previous example, we saw how a listview gains selection support just by
-using ListAdapter.
+using ListAdapter, which subclasses SelectionSupport.
 
-What can we do with selection? The possibilities are wide-ranging.
+What can we do with selection? Combining selection with the system of bindings
+in Kivy, we can build a wide range of user interface designs.
 
 We could change the data items to contain the names of dog breeds, and connect
 the selection of dog breed to the display of details in another view, which
@@ -281,8 +317,7 @@ on_selection_change event:
 
     list_adapter.bind(on_selection_change=my_selection_reactor_function)
 
-where my_selection_reaction_function() does whatever is needed for the update
-(examples shown below).
+where my_selection_reaction_function() does whatever is needed for the update.
 
 We could change the selection_mode of the listview to 'multiple' for a list of
 answers to a multiple-choice question that has several correct answers. A
