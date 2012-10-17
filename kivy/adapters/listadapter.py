@@ -62,6 +62,25 @@ class SimpleListAdapter(CollectionAdapter):
             return None
         return self.data[index]
 
+    # Returns a view instance for an item.
+    def get_view(self, index):
+        item = self.get_item(index)
+        if item is None:
+            return None
+
+        item_args = None
+        if self.args_converter:
+            item_args = self.args_converter(item)
+        else:
+            item_args = item
+
+        if self.cls:
+            print 'CREATE VIEW FOR', index
+            instance = self.cls(**item_args)
+            return instance
+        else:
+            return Builder.template(self.template, **item_args)
+
 
 class ListAdapter(SelectionSupport, SimpleListAdapter):
     '''From the :class:`SelectionSupport` mixin, :class:`ListAdapter` has

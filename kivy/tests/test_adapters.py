@@ -6,8 +6,10 @@ Adapter tests
 import unittest
 
 from kivy.uix.listview import ListItemButton
+from kivy.adapters.adapter import Adapter
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.mixins.selection import SelectableDataItem
+from kivy.lang import Builder
 
 
 # The following integers_dict and fruit categories / fruit data dictionaries
@@ -209,6 +211,39 @@ fruit_data_items = \
     [FruitItem(**fruit_dict) for fruit_dict in fruit_data_list_of_dicts]
 
 
+class FruitsListAdapter(ListAdapter):
+
+    def __init__(self, **kwargs):
+        kwargs['args_converter'] = lambda rec: {'text': rec['name'],
+                                               'size_hint_y': None,
+                                               'height': 25}
+        super(FruitsListAdapter, self).__init__(**kwargs)
+
+    def fruit_category_changed(self, fruit_categories_adapter, *args):
+        if len(fruit_categories_adapter.selection) == 0:
+            self.data = []
+            return
+
+        category = \
+                fruit_categories[str(fruit_categories_adapter.selection[0])]
+
+        self.data = \
+            [f for f in fruit_data_items if f.name in category['fruits']]
+
+
+Builder.load_string('''
+[CustomListItem@SelectableView+BoxLayout]:
+    index: ctx.index
+    size_hint_y: ctx.size_hint_y
+    height: ctx.height
+    is_selected: ctx.is_selected
+    ListItemButton:
+        index: ctx.index
+        text: ctx.text
+        is_selected: ctx.is_selected
+''')
+
+
 class AdaptersTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -260,3 +295,116 @@ class AdaptersTestCase(unittest.TestCase):
 
         data_item = list_adapter.get_item(0)
         self.assertTrue(type(data_item), dict)
+
+    def test_list_adapter_bindings(self):
+        list_item_args_converter = \
+                lambda selectable: {'text': selectable.name,
+                                    'size_hint_y': None,
+                                    'height': 25}
+
+        fruit_categories_list_adapter = \
+            ListAdapter(data=category_data_items,
+                        args_converter=list_item_args_converter,
+                        selection_mode='single',
+                        allow_empty_selection=False,
+                        cls=ListItemButton)
+
+        first_category_fruits = \
+            fruit_categories[fruit_categories.keys()[0]]['fruits']
+
+        first_category_fruit_data_items = \
+            [f for f in fruit_data_items if f.name in first_category_fruits]
+
+        fruits_list_adapter = \
+                FruitsListAdapter(data=first_category_fruit_data_items,
+                                  args_converter=list_item_args_converter,
+                                  selection_mode='single',
+                                  allow_empty_selection=False,
+                                  cls=ListItemButton)
+
+        fruit_categories_list_adapter.bind(
+            on_selection_change=fruits_list_adapter.fruit_category_changed)
+
+    def test_instantiating_adapters_with_both_cls_and_template(self):
+        list_item_args_converter = \
+                lambda rec: {'text': rec['text'],
+                             'is_selected': rec['is_selected'],
+                             'size_hint_y': None,
+                             'height': 25}
+
+        # First, for a plain Adapter:
+        with self.assertRaises(Exception) as cm:
+            fruit_categories_list_adapter = \
+                Adapter(args_converter=list_item_args_converter,
+                        template='CustomListItem',
+                        cls=ListItemButton)
+
+        msg = 'Cannot use cls and template at the same time'
+        self.assertEqual(str(cm.exception), msg)
+
+        # And now for a ListAdapter:
+        with self.assertRaises(Exception) as cm:
+            fruit_categories_list_adapter = \
+                ListAdapter(data=category_data_items,
+                            args_converter=list_item_args_converter,
+                            selection_mode='single',
+                            allow_empty_selection=False,
+                            template='CustomListItem',
+                            cls=ListItemButton)
+
+        msg = 'Cannot use cls and template at the same time'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_view_from_adapter(self):
+        list_item_args_converter = \
+                lambda selectable: {'text': selectable.name,
+                                    'size_hint_y': None,
+                                    'height': 25}
+
+        fruit_categories_list_adapter = \
+            ListAdapter(data=category_data_items,
+                        args_converter=list_item_args_converter,
+                        selection_mode='single',
+                        allow_empty_selection=False,
+                        cls=ListItemButton)
+
+        view = fruit_categories_list_adapter.get_view(0)
+        self.assertTrue(isinstance(view, ListItemButton))
+
+    def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
+        def dummy_converter():
+            pass
+
+        with self.assertRaises(Exception) as cm:
+            fruit_categories_list_adapter = \
+                Adapter(args_converter=dummy_converter)
+
+        msg = 'A cls or template must be defined'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_instantiating_list_adapter_with_kwargs(self):
+        from kivy.adapters.args_converters import list_item_args_converter
+
+        def dummy_converter():
+            pass
+
+        class Adapter_1(Adapter):
+            def __init__(self, **kwargs):
+                kwargs['args_converter'] = dummy_converter
+                super(Adapter_1, self).__init__(**kwargs)
+
+        kwargs = {}
+        kwargs['args_converter'] = dummy_converter
+        kwargs['cls'] = ListItemButton
+
+        my_adapter = Adapter(**kwargs)
+        self.assertEqual(my_adapter.args_converter, dummy_converter)
+
+        my_adapter = Adapter_1(**kwargs)
+        self.assertEqual(my_adapter.args_converter, dummy_converter)
+
+        kwargs_2 = {}
+        kwargs_2['cls'] = ListItemButton
+
+        adapter_2 = Adapter(**kwargs_2)
+        self.assertEqual(adapter_2.args_converter, list_item_args_converter)

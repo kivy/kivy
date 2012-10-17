@@ -22,38 +22,23 @@ class Adapter(EventDispatcher):
     args_converter = ObjectProperty(None)
 
     def __init__(self, **kwargs):
-        if hasattr(kwargs, 'args_converter'):
+        if 'args_converter' in kwargs:
             self.args_converter = kwargs['args_converter']
         else:
             self.args_converter = list_item_args_converter
+
         super(Adapter, self).__init__(**kwargs)
+
         if self.cls is None and self.template is None:
             raise Exception('A cls or template must be defined')
-        if self.cls is not None \
-                and self.template is not None:
+        if self.cls is not None and self.template is not None:
             raise Exception('Cannot use cls and template at the same time')
 
-    def get_count(self):
-        pass
+    def get_count(self):  #pragma: no cover
+        raise NotImplementedError
 
-    def get_item(self, index):
-        pass
+    def get_item(self, index):  #pragma: no cover
+        raise NotImplementedError
 
-    # Returns a view instance for an item.
-    def get_view(self, index):
-        item = self.get_item(index)
-        if item is None:
-            return None
-
-        item_args = None
-        if self.args_converter:
-            item_args = self.args_converter(item)
-        else:
-            item_args = item
-
-        if self.cls:
-            print 'CREATE VIEW FOR', index
-            instance = self.cls(**item_args)
-            return instance
-        else:
-            return Builder.template(self.template, **item_args)
+    def get_view(self, index):  #pragma: no cover
+        raise NotImplementedError
