@@ -11,7 +11,6 @@ python main.py and browse or edit widgets to your heart's content.
 Known bugs:
 * StackLayout is misbehaving
 * The DropDown item I had tested completely crashes Kivy
-* Scatter seems to do some weird translation on multitouch. This is probably an Accordion related bug
 * The GridLayout example could use some extra features
 * If you try to start the app with focused set to true, weird stuff happens.
     but it works fine if you set focused to true and press render.
