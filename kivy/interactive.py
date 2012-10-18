@@ -43,7 +43,7 @@ can be quickly listed by using the '.' operator and pressing 'tab.'  Try this
 code in an Ipython shell.::
 
     from kivy.interactive import InteractiveLauncher
-    from kivy.app imort App
+    from kivy.app import App
     from kivy.uix.widget import Widget
     from kivy.graphics import Color, Ellipse
 
