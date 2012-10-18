@@ -37,7 +37,9 @@ class SimpleListAdapter(CollectionAdapter):
 
         - args_converter, an optional function to transform data item argument
                           sets, in preparation for either a cls instantiation,
-                          or a kv template invocation
+                          or a kv template invocation (If an args_converter is
+                          not provided, a default one that assumes simple
+                          strings content is set)
     '''
 
     data = ListProperty([])

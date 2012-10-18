@@ -257,6 +257,115 @@ class AdaptersTestCase(unittest.TestCase):
 
         reset_to_defaults(fruit_data)
 
+    @raises(Exception)
+    def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
+        def dummy_converter():
+            pass
+
+        fruit_categories_list_adapter = \
+            Adapter(data='cat',
+                    args_converter=dummy_converter)
+
+    def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
+        def dummy_converter():
+            pass
+
+        with self.assertRaises(Exception) as cm:
+            fruit_categories_list_adapter = \
+                Adapter(data='cat',
+                        args_converter=dummy_converter)
+
+        msg = 'adapter: a cls or template must be defined'
+        self.assertEqual(str(cm.exception), msg)
+
+        with self.assertRaises(Exception) as cm:
+            fruit_categories_list_adapter = \
+                Adapter(data='cat',
+                        args_converter=dummy_converter,
+                        cls=None,
+                        template=None)
+
+        msg = 'adapter: cannot use cls and template at the same time'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_instantiating_an_adapter_with_no_data(self):
+        # with no data
+        with self.assertRaises(Exception) as cm:
+            adapter = Adapter()
+
+        msg = 'adapter: input must include data argument'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_instantiating_an_adapter_with_both_cls_and_template(self):
+        from kivy.adapters.args_converters import list_item_args_converter
+
+        with self.assertRaises(Exception) as cm:
+            adapter = Adapter(data='cat',
+                              args_converter=list_item_args_converter,
+                              template='CustomListItem',
+                              cls=ListItemButton)
+
+        msg = 'adapter: cannot use cls and template at the same time'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_instantiating_adapter(self):
+        from kivy.adapters.args_converters import list_item_args_converter
+
+        def dummy_converter():
+            pass
+
+        class Adapter_1(Adapter):
+            def __init__(self, **kwargs):
+                kwargs['args_converter'] = dummy_converter
+                super(Adapter_1, self).__init__(**kwargs)
+
+        kwargs = {}
+        kwargs['data'] = 'cat'
+        kwargs['args_converter'] = dummy_converter
+        kwargs['cls'] = ListItemButton
+
+        my_adapter = Adapter(**kwargs)
+        self.assertEqual(my_adapter.args_converter, dummy_converter)
+
+        my_adapter = Adapter_1(**kwargs)
+        self.assertEqual(my_adapter.args_converter, dummy_converter)
+
+        kwargs_2 = {}
+        kwargs_2['data'] = 'cat'
+        kwargs_2['cls'] = ListItemButton
+
+        adapter_2 = Adapter(**kwargs_2)
+        self.assertEqual(adapter_2.args_converter, list_item_args_converter)
+
+    def test_instantiating_simple_list_adapter(self):
+        # with no data
+        with self.assertRaises(Exception) as cm:
+            simple_list_adapter = SimpleListAdapter()
+
+        msg = 'list adapter: input must include data argument'
+        self.assertEqual(str(cm.exception), msg)
+
+        # with data of wrong type
+        with self.assertRaises(Exception) as cm:
+            simple_list_adapter = SimpleListAdapter(data=dict)
+
+        msg = 'list adapter: data must be a tuple or list'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_simple_list_adapter_methods(self):
+        simple_list_adapter = SimpleListAdapter(data=['cat', 'dog'],
+                                                cls=Label)
+        self.assertEqual(simple_list_adapter.get_count(), 2)
+        self.assertEqual(simple_list_adapter.get_item(0), 'cat')
+        self.assertEqual(simple_list_adapter.get_item(1), 'dog')
+        self.assertIsNone(simple_list_adapter.get_item(-1))
+        self.assertIsNone(simple_list_adapter.get_item(2))
+
+        view = simple_list_adapter.get_view(0)
+        self.assertTrue(isinstance(view, Label))
+        self.assertIsNone(simple_list_adapter.get_view(-1))
+        self.assertIsNone(simple_list_adapter.get_view(2))
+
     def test_list_adapter_selection_mode_none(self):
         list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
@@ -329,7 +438,7 @@ class AdaptersTestCase(unittest.TestCase):
         fruit_categories_list_adapter.bind(
             on_selection_change=fruits_list_adapter.fruit_category_changed)
 
-    def test_instantiating_adapters_with_both_cls_and_template(self):
+    def test_instantiating_list_adapters_with_both_cls_and_template(self):
         list_item_args_converter = \
                 lambda rec: {'text': rec['text'],
                              'is_selected': rec['is_selected'],
@@ -339,11 +448,12 @@ class AdaptersTestCase(unittest.TestCase):
         # First, for a plain Adapter:
         with self.assertRaises(Exception) as cm:
             fruit_categories_list_adapter = \
-                Adapter(args_converter=list_item_args_converter,
+                Adapter(data='cat',
+                        args_converter=list_item_args_converter,
                         template='CustomListItem',
                         cls=ListItemButton)
 
-        msg = 'Cannot use cls and template at the same time'
+        msg = 'adapter: cannot use cls and template at the same time'
         self.assertEqual(str(cm.exception), msg)
 
         # And now for a ListAdapter:
@@ -356,10 +466,10 @@ class AdaptersTestCase(unittest.TestCase):
                             template='CustomListItem',
                             cls=ListItemButton)
 
-        msg = 'Cannot use cls and template at the same time'
+        msg = 'adapter: cannot use cls and template at the same time'
         self.assertEqual(str(cm.exception), msg)
 
-    def test_view_from_adapter(self):
+    def test_view_from_list_adapter(self):
         list_item_args_converter = \
                 lambda selectable: {'text': selectable.name,
                                     'size_hint_y': None,
@@ -374,78 +484,3 @@ class AdaptersTestCase(unittest.TestCase):
 
         view = fruit_categories_list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
-
-    @raises(Exception)
-    def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
-        def dummy_converter():
-            pass
-
-        fruit_categories_list_adapter = \
-            Adapter(args_converter=dummy_converter)
-
-    def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
-        def dummy_converter():
-            pass
-
-        with self.assertRaises(Exception) as cm:
-            fruit_categories_list_adapter = \
-                Adapter(args_converter=dummy_converter)
-
-        msg = 'A cls or template must be defined'
-        self.assertEqual(str(cm.exception), msg)
-
-    def test_instantiating_list_adapter_with_kwargs(self):
-        from kivy.adapters.args_converters import list_item_args_converter
-
-        def dummy_converter():
-            pass
-
-        class Adapter_1(Adapter):
-            def __init__(self, **kwargs):
-                kwargs['args_converter'] = dummy_converter
-                super(Adapter_1, self).__init__(**kwargs)
-
-        kwargs = {}
-        kwargs['args_converter'] = dummy_converter
-        kwargs['cls'] = ListItemButton
-
-        my_adapter = Adapter(**kwargs)
-        self.assertEqual(my_adapter.args_converter, dummy_converter)
-
-        my_adapter = Adapter_1(**kwargs)
-        self.assertEqual(my_adapter.args_converter, dummy_converter)
-
-        kwargs_2 = {}
-        kwargs_2['cls'] = ListItemButton
-
-        adapter_2 = Adapter(**kwargs_2)
-        self.assertEqual(adapter_2.args_converter, list_item_args_converter)
-
-    def test_instantiating_simple_list_adapter(self):
-        # with no data
-        with self.assertRaises(Exception) as cm:
-            simple_list_adapter = SimpleListAdapter()
-
-        msg = 'list adapter: input must include data argument'
-        self.assertEqual(str(cm.exception), msg)
-
-        # with data of wrong type
-        with self.assertRaises(Exception) as cm:
-            simple_list_adapter = SimpleListAdapter(data=dict)
-
-        msg = 'list adapter: data must be a tuple or list'
-        self.assertEqual(str(cm.exception), msg)
-
-    def test_simple_list_adapter_methods(self):
-        simple_list_adapter = SimpleListAdapter(data=['cat', 'dog'],
-                                                cls=Label)
-        self.assertEqual(simple_list_adapter.get_count(), 2)
-        self.assertEqual(simple_list_adapter.get_item(0), 'cat')
-        self.assertEqual(simple_list_adapter.get_item(1), 'dog')
-        self.assertIsNone(simple_list_adapter.get_item(-1))
-        self.assertIsNone(simple_list_adapter.get_item(2))
-
-        view = simple_list_adapter.get_view(0)
-        self.assertTrue(isinstance(view, Label))
-        self.assertIsNone(simple_list_adapter.get_view(-1))
-        self.assertIsNone(simple_list_adapter.get_view(2))
