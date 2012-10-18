@@ -94,58 +94,56 @@ class Catalog(BoxLayout):
     You do not need to edit any python code, just .kv language files!
     '''
     language_box = ObjectProperty()
+    screen_manager = ObjectProperty()
 
     def __init__(self, **kwargs):
         super(Catalog, self).__init__(**kwargs)
-        self.kv_container = None
-        from kivy.clock import Clock
-        Clock.schedule_once(self.show_kv)
+        self.show_kv(None)
 
-    def show_kv(self, object, collapsed=None):
+    def show_kv(self, object):
         '''Called when an accordionitem is collapsed or expanded. If it
         was expanded, we need to show the .kv language file associated with
         the newly revealed container.'''
-        if collapsed == "down":  # a tabbed panel was clicked, not an accordion
-            object = object.content.children[0]
-            collapsed = False
-        if collapsed is False and hasattr(object, "kv_container"):
-            with open(object.kv_container.kv_file) as file:
-                self.language_box.background_color = (1, 1, 1, 1)
-                self.language_box.readonly = False
-                self.language_box.text = file.read()
-                self.kv_container = object.kv_container
-        else:
-            self.language_box.background_color = (1, 1, 1, .5)
-            self.language_box.text = ""
-            self.language_box.readonly = True
-            self.kv_container = None
+
+        # if object is not passed, it's initialization, we just need to load
+        # the file
+        if object:
+            # one button must always be pressed, even if user presses it again
+            if object.state == "normal":
+                object.state = "down"
+
+            self.screen_manager.current = object.text
+
+        with open(self.screen_manager.current_screen.content.children[
+                    0].kv_file) as file:
+            self.language_box.text = file.read()
 
     def change_kv(self, button):
         '''Called when the update button is clicked. Needs to update the
         interface for the currently active kv widget, if there is one based
         on the kv file the user entered. If there is an error in their kv
         syntax, show a nice popup.'''
-        if self.kv_container:
-            try:
-                parser = Parser(content=self.language_box.text.encode('utf8'))
-                self.kv_container.clear_widgets()
-                widget = Factory.get(parser.root.name)()
-                Builder._apply_rule(widget, parser.root, parser.root)
-                self.kv_container.add_widget(widget)
-            except (SyntaxError, ParserException) as e:
-                content = Label(text=str(e), text_size=(350, None))
-                popup = Popup(title="Parse Error in Kivy Language Markup",
-                    content=content, text_size=(350, None),
-                    size_hint=(None, None), size=(400, 400))
-                popup.open()
-            except:
-                import traceback
-                traceback.print_exc()
-                popup = Popup(title="Boom",
-                    content=Label(text="Something horrible happened while parsing your Kivy Language", text_size=(350, None)),
-                    text_size=(350, None),
-                    size_hint=(None, None), size=(400, 400))
-                popup.open()
+        kv_container = self.screen_manager.current_screen.content.children[0]
+        try:
+            parser = Parser(content=self.language_box.text.encode('utf8'))
+            kv_container.clear_widgets()
+            widget = Factory.get(parser.root.name)()
+            Builder._apply_rule(widget, parser.root, parser.root)
+            kv_container.add_widget(widget)
+        except (SyntaxError, ParserException) as e:
+            content = Label(text=str(e), text_size=(350, None))
+            popup = Popup(title="Parse Error in Kivy Language Markup",
+                content=content, text_size=(350, None),
+                size_hint=(None, None), size=(400, 400))
+            popup.open()
+        except:
+            import traceback
+            traceback.print_exc()
+            popup = Popup(title="Boom",
+                content=Label(text="Something horrible happened while parsing your Kivy Language", text_size=(350, None)),
+                text_size=(350, None),
+                size_hint=(None, None), size=(400, 400))
+            popup.open()
 
 
 class KivyCatalogApp(App):
