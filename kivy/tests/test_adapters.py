@@ -6,10 +6,14 @@ Adapter tests
 import unittest
 
 from kivy.uix.listview import ListItemButton
+from kivy.uix.label import Label
 from kivy.adapters.adapter import Adapter
+from kivy.adapters.listadapter import SimpleListAdapter
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.mixins.selection import SelectableDataItem
 from kivy.lang import Builder
+
+from nose.tools import raises
 
 
 # The following integers_dict and fruit categories / fruit data dictionaries
@@ -371,6 +375,14 @@ class AdaptersTestCase(unittest.TestCase):
         view = fruit_categories_list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
 
+    @raises(Exception)
+    def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
+        def dummy_converter():
+            pass
+
+        fruit_categories_list_adapter = \
+            Adapter(args_converter=dummy_converter)
+
     def test_instantiating_an_adapter_with_neither_cls_nor_template(self):
         def dummy_converter():
             pass
@@ -408,3 +420,32 @@ class AdaptersTestCase(unittest.TestCase):
 
         adapter_2 = Adapter(**kwargs_2)
         self.assertEqual(adapter_2.args_converter, list_item_args_converter)
+
+    def test_instantiating_simple_list_adapter(self):
+        # with no data
+        with self.assertRaises(Exception) as cm:
+            simple_list_adapter = SimpleListAdapter()
+
+        msg = 'list adapter: input must include data argument'
+        self.assertEqual(str(cm.exception), msg)
+
+        # with data of wrong type
+        with self.assertRaises(Exception) as cm:
+            simple_list_adapter = SimpleListAdapter(data=dict)
+
+        msg = 'list adapter: data must be a tuple or list'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_simple_list_adapter_methods(self):
+        simple_list_adapter = SimpleListAdapter(data=['cat', 'dog'],
+                                                cls=Label)
+        self.assertEqual(simple_list_adapter.get_count(), 2)
+        self.assertEqual(simple_list_adapter.get_item(0), 'cat')
+        self.assertEqual(simple_list_adapter.get_item(1), 'dog')
+        self.assertIsNone(simple_list_adapter.get_item(-1))
+        self.assertIsNone(simple_list_adapter.get_item(2))
+
+        view = simple_list_adapter.get_view(0)
+        self.assertTrue(isinstance(view, Label))
+        self.assertIsNone(simple_list_adapter.get_view(-1))
+        self.assertIsNone(simple_list_adapter.get_view(2))

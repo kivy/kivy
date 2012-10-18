@@ -24,28 +24,28 @@ class CollectionAdapter(Adapter):
     def __init__(self, **kwargs):
         super(CollectionAdapter, self).__init__(**kwargs)
 
-    def trim_left_of_sel(self, *args):
+    def trim_left_of_sel(self, *args):  #pragma: no cover
         '''Cut list items with indices in sorted_keys that are less than the
         index of the first selected item, if there is selection.
         '''
-        pass
+        raise NotImplementedError
 
-    def trim_right_of_sel(self, *args):
+    def trim_right_of_sel(self, *args):  #pragma: no cover
         '''Cut list items with indices in sorted_keys that are greater than
         the index of the last selected item, if there is selection.
         '''
-        pass
+        raise NotImplementedError
 
-    def trim_to_sel(self, *args):
+    def trim_to_sel(self, *args):  #pragma: no cover
         '''Cut list items with indices in sorted_keys that are les than or
         greater than the index of the last selected item, if there is
         selection. This preserves intervening list items within the selected
         range.
         '''
-        pass
+        raise NotImplementedError
 
-    def cut_to_sel(self, *args):
+    def cut_to_sel(self, *args):  #pragma: no cover
         '''Same as trim_to_sel, but intervening list items within the selected
         range are cut also, leaving only list items that are selected.
         '''
-        pass
+        raise NotImplementedError

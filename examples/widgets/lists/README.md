@@ -134,3 +134,7 @@ Notes from Adapter.py:
 
     - *** DONE *** Yes, the new ObjectAdapter subclasses Adapter.
 
+    - interfaces instead of subclassing?
+
+    - rename get_item to get_data_item to be more explicit? (to distinguish
+      from view item)
