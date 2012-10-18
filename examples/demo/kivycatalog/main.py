@@ -1,14 +1,22 @@
+import kivy
+kivy.require('1.4.2')
 import os
 import sys
 from kivy.app import App
 from kivy.factory import Factory
 from kivy.lang import Builder, Parser, ParserException
 from kivy.properties import ObjectProperty
+from kivy.config import Config
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
+
+print Config.get('graphics', 'width')
+
+Config.set('graphics', 'width', '1024')
+Config.set('graphics', 'height', '768')
 
 '''List of classes that need to be instantiated in the factory from .kv files.
 '''
