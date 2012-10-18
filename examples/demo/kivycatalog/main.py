@@ -14,16 +14,17 @@ CONTAINER_CLASSES = [c[:-3] for c in os.listdir('container_kvs')
     if c.endswith('.kv')]
 
 
-def factoryable(class_name, parents, attrs):
-    '''Metaclass that automatically records the resultant class in the Factory.
-    This allows the class to be accessed inside the .kv language file in the
-    Builder.
+def factoryable(cls):
+    '''Class decorator that automatically records
+    the resultant class in the Factory.
+    This allows the class to be accessed
+    inside the .kv language file in the Builder.
     '''
-    cls = type(class_name, parents, attrs)
-    Factory.register(class_name, cls)
+    Factory.register(cls.__name__, cls)
     return cls
 
 
+@factoryable
 class Container(BoxLayout):
     '''A container is essentially a class that loads its root from a known
     .kv file.
@@ -33,7 +34,6 @@ class Container(BoxLayout):
     in the interface and reloaded by the user.
     See :meth: change_kv where this happens.
     '''
-    __metaclass__ = factoryable
 
     def __init__(self, **kwargs):
         super(Container, self).__init__(**kwargs)
