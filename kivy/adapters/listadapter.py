@@ -65,17 +65,13 @@ class SimpleListAdapter(CollectionAdapter):
     # Returns a view instance for an item.
     def get_view(self, index):
         item = self.get_item(index)
+
         if item is None:
             return None
 
-        item_args = None
-        if self.args_converter:
-            item_args = self.args_converter(item)
-        else:
-            item_args = item
+        item_args = self.args_converter(item)
 
         if self.cls:
-            print 'CREATE VIEW FOR', index
             instance = self.cls(**item_args)
             return instance
         else:

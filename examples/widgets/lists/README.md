@@ -138,3 +138,7 @@ Notes from Adapter.py:
 
     - rename get_item to get_data_item to be more explicit? (to distinguish
       from view item)
+
+    - Might there be other useful converters to put in
+      kivy/adapters/args_converters.py, in addition to the default simple
+      string converter?
