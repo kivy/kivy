@@ -1,4 +1,5 @@
 import os
+import sys
 from kivy.app import App
 from kivy.factory import Factory
 from kivy.lang import Builder, Parser, ParserException
@@ -7,6 +8,7 @@ from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 
 '''List of classes that need to be instantiated in the factory from .kv files.
 '''
@@ -51,6 +53,25 @@ class Container(BoxLayout):
 
 for class_name in CONTAINER_CLASSES:
     globals()[class_name] = type(class_name, (Container,), {})
+
+
+@factoryable
+class KivyRenderTextInput(TextInput):
+    def _keyboard_on_key_down(self, window, keycode, text, modifiers):
+        is_osx = sys.platform == 'darwin'
+        # Keycodes on OSX:
+        ctrl, cmd = 64, 1024
+        key, key_str = keycode
+
+        if text and not key in (self.interesting_keys.keys() + [27]):
+            # This allows *either* ctrl *or* cmd, but not both.
+            if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
+                if key == ord('s'):
+                    self.parent.parent.parent.change_kv(True)
+                    return
+
+        super(KivyRenderTextInput, self)._keyboard_on_key_down(
+            window, keycode, text, modifiers)
 
 
 class Catalog(BoxLayout):
