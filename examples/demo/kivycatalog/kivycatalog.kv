@@ -50,7 +50,6 @@
                 text: "ReST"
         ScreenManager:
             id: screen_manager
-            size_hint: 1, 1
             Screen:
                 name: "Welcome"
                 PlaygroundContainer:
@@ -106,7 +105,8 @@
         BoxLayout:
             id: bl
             orientation: "vertical"
-            size_hint: 1, 1
+            size_hint: None, 1
+            width: 400
             KivyRenderTextInput:
                 text_size: self.width-20, self.height-20
                 font_name: "DroidSansMono.ttf"
