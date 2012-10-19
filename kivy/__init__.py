@@ -97,8 +97,7 @@ def require(version):
                 raise Exception('Revision format must be X.Y.Z[-tag]')
 
         # check x y z
-        splitter = str('.')
-        l = version.split(splitter)
+        l = version.split('.')
         if len(l) != 3:
             raise Exception('Revision format must be X.Y.Z[-tag]')
         return [int(x) for x in l], tag, tagrev
