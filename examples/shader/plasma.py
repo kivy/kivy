@@ -64,7 +64,7 @@ class ShaderWidget(FloatLayout):
         super(ShaderWidget, self).__init__(**kwargs)
 
         # We'll update our glsl variables in a clock
-        Clock.schedule_interval(self.update_glsl, 1. / 60.)
+        Clock.schedule_interval(self.update_glsl, 1 / 60.)
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code

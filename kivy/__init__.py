@@ -93,7 +93,6 @@ def require(version):
             elif len(l) == 3:
                 version, tag, tagrev = l
             else:
-                print 'got:', l
                 raise Exception('Revision format must be X.Y.Z[-tag]')
 
         # check x y z
