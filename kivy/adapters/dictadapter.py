@@ -18,7 +18,9 @@ From :class:`Adapter`, :class:`SimpleListAdapter` gets these properties:
 
     - args_converter, an optional function to transform data item argument
                       sets, in preparation for either a cls instantiation,
-                      or a kv template invocation
+                      or a kv template invocation. If no args_converter is
+                      provided, a default one is set, that assumes that the
+                      data items are strings.
 
 From the :class:`SelectionSupport` mixin, :class:`DictAdapter` has
 these properties:

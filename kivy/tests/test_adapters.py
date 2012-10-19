@@ -5,12 +5,16 @@ Adapter tests
 
 import unittest
 
+from kivy.adapters.mixins.selection import SelectableDataItem
+from kivy.uix.selectableview import SelectableView
 from kivy.uix.listview import ListItemButton
 from kivy.uix.label import Label
+
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.listadapter import SimpleListAdapter
 from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.mixins.selection import SelectableDataItem
+
+from kivy.factory import Factory
 from kivy.lang import Builder
 
 from nose.tools import raises
@@ -235,6 +239,10 @@ class FruitsListAdapter(ListAdapter):
             [f for f in fruit_data_items if f.name in category['fruits']]
 
 
+# [TODO] Needed if setup.py run normally, after merge to master?
+Factory.register('SelectableView', cls=SelectableView)
+Factory.register('ListItemButton', cls=ListItemButton)
+
 Builder.load_string('''
 [CustomListItem@SelectableView+BoxLayout]:
     index: ctx.index
@@ -274,6 +282,24 @@ class AdaptersTestCase(unittest.TestCase):
             fruit_categories_list_adapter = \
                 Adapter(data='cat',
                         args_converter=dummy_converter)
+
+        msg = 'adapter: a cls or template must be defined'
+        self.assertEqual(str(cm.exception), msg)
+
+        with self.assertRaises(Exception) as cm:
+            fruit_categories_list_adapter = \
+                Adapter(data='cat',
+                        args_converter=dummy_converter,
+                        cls=None)
+
+        msg = 'adapter: a cls or template must be defined'
+        self.assertEqual(str(cm.exception), msg)
+
+        with self.assertRaises(Exception) as cm:
+            fruit_categories_list_adapter = \
+                Adapter(data='cat',
+                        args_converter=dummy_converter,
+                        template=None)
 
         msg = 'adapter: a cls or template must be defined'
         self.assertEqual(str(cm.exception), msg)
@@ -336,6 +362,14 @@ class AdaptersTestCase(unittest.TestCase):
 
         adapter_2 = Adapter(**kwargs_2)
         self.assertEqual(adapter_2.args_converter, list_item_args_converter)
+
+        adapter = Adapter(data='cat', cls=Label)
+        self.assertEqual(adapter.get_count(), 1)
+        self.assertEqual(adapter.get_item(0), 'cat')
+
+        adapter = Adapter(data=None, cls=Label)
+        self.assertEqual(adapter.get_count(), 0)
+        self.assertEqual(adapter.get_item(0), None)
 
     def test_instantiating_simple_list_adapter(self):
         # with no data
@@ -470,6 +504,8 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertEqual(str(cm.exception), msg)
 
     def test_view_from_list_adapter(self):
+
+        # First with a class.
         list_item_args_converter = \
                 lambda selectable: {'text': selectable.name,
                                     'size_hint_y': None,
@@ -484,3 +520,21 @@ class AdaptersTestCase(unittest.TestCase):
 
         view = fruit_categories_list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
+
+        # Now with a template.
+        list_item_args_converter = \
+            lambda selectable: {'text': selectable.name,
+                                'is_selected': selectable.is_selected,
+                                'size_hint_y': None,
+                                'height': 25}
+
+        fruit_categories_list_adapter = \
+            ListAdapter(data=category_data_items,
+                        args_converter=list_item_args_converter,
+                        selection_mode='single',
+                        allow_empty_selection=False,
+                        template='CustomListItem')
+
+        view = fruit_categories_list_adapter.get_view(0)
+        self.assertEqual(view.__class__.__name__, 'CustomListItem')
+

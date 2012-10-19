@@ -288,8 +288,8 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.adapters.listadapter import SimpleListAdapter
-from kivy.adapters.mixins.selection import SelectableView
 from kivy.uix.abstractview import AbstractView
+from kivy.uix.selectableview import SelectableView
 from kivy.properties import ObjectProperty, DictProperty, \
         NumericProperty, ListProperty, BooleanProperty
 from kivy.lang import Builder

@@ -1,5 +1,5 @@
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.adapters.mixins.selection import SelectableView
+from kivy.uix.selectableview import SelectableDataItem
 from kivy.uix.listview import ListView, ListItemButton
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -8,6 +8,8 @@ from kivy.factory import Factory
 
 from fixtures import integers_dict
 
+# [TODO] Will SelectableView be in the kivy/factory_registers.py,
+#        as a result of setup.py? ListItemButton? others?
 Factory.register('SelectableView', cls=SelectableView)
 Factory.register('ListItemButton', cls=ListItemButton)
 

@@ -142,3 +142,17 @@ Notes from Adapter.py:
     - Might there be other useful converters to put in
       kivy/adapters/args_converters.py, in addition to the default simple
       string converter?
+
+- SelectableView was moved out of adapters.mixins and into uix/listview. Was
+  this the correct thing to do? Are there other cases of view definitions
+  outside of uix?
+
+- Clean up Factory registrations in examples -- when needed? which classes
+  have been added to kivy/factory_registers.py.
+
+- CustomListItem, the name for the class created in the examples, list_kv.py,
+  and list_cascade.py, and also in the test_adapters.py file, is defined only
+  in the Builder.load_string() call. Better document the special nature of
+  this in API explanations. (You can't refer to it as a normal class).
+
+
