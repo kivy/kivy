@@ -701,26 +701,39 @@ cdef class BoundedNumericProperty(Property):
         self.use_max = 0
         self.min = 0
         self.max = 0
+        self.f_min = 0.0
+        self.f_max = 0.0
 
     def __init__(self, *largs, **kw):
         value = kw.get('min', None)
         if value is None:
             self.use_min = 0
+        elif type(value) is float:
+                self.use_min = 2
+                self.f_min = value
         else:
             self.use_min = 1
             self.min = value
+
         value = kw.get('max', None)
         if value is None:
             self.use_max = 0
+        elif type(value) is float:
+            self.use_max = 2
+            self.f_max = value
         else:
             self.use_max = 1
             self.max = value
+
         Property.__init__(self, *largs, **kw)
 
     cdef init_storage(self, EventDispatcher obj, dict storage):
         Property.init_storage(self, obj, storage)
         storage['min'] = self.min
         storage['max'] = self.max
+        storage['f_min'] = self.f_min
+        storage['f_max'] = self.f_max
+
         storage['use_min'] = self.use_min
         storage['use_max'] = self.use_max
 
@@ -746,6 +759,9 @@ cdef class BoundedNumericProperty(Property):
         cdef dict s = obj.__storage[self._name]
         if value is None:
             s['use_min'] = 0
+        elif type(value) is float:
+            s['f_min'] = value
+            s['use_min'] = 2
         else:
             s['min'] = value
             s['use_min'] = 1
@@ -766,6 +782,8 @@ cdef class BoundedNumericProperty(Property):
         cdef dict s = obj.__storage[self._name]
         if s['use_min'] == 1:
             return s['min']
+        elif s['use_min'] == 2:
+            return s['f_min']
 
     def set_max(self, EventDispatcher obj, value):
         '''Change the maximum value acceptable for the BoundedNumericProperty,
@@ -781,6 +799,9 @@ cdef class BoundedNumericProperty(Property):
         cdef dict s = obj.__storage[self._name]
         if value is None:
             s['use_max'] = 0
+        elif type(value) is float:
+            s['f_max'] = value
+            s['use_max'] = 2
         else:
             s['max'] = value
             s['use_max'] = 1
@@ -795,19 +816,33 @@ cdef class BoundedNumericProperty(Property):
         cdef dict s = obj.__storage[self._name]
         if s['use_max'] == 1:
             return s['max']
+        if s['use_max'] == 2:
+            return s['f_max']
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
         s = obj.__storage[self._name]
-        if s['use_min']:
+        if s['use_min'] == 1:
             _min = s['min']
             if value < _min:
                 raise ValueError('%s.%s is below the minimum bound (%d)' % (
                     obj.__class__.__name__,
                     self.name, _min))
-        if s['use_max']:
+        elif s['use_min'] == 2:
+            _min = s['f_min']
+            if value < _min:
+                raise ValueError('%s.%s is below the minimum bound (%d)' % (
+                    obj.__class__.__name__,
+                    self.name, _min))
+        if s['use_max'] == 1:
             _max = s['max']
+            if value > _max:
+                raise ValueError('%s.%s is above the maximum bound (%d)' % (
+                    obj.__class__.__name__,
+                    self.name, _max))
+        elif s['use_max'] == 2:
+            _max = s['f_max']
             if value > _max:
                 raise ValueError('%s.%s is above the maximum bound (%d)' % (
                     obj.__class__.__name__,
@@ -821,8 +856,21 @@ cdef class BoundedNumericProperty(Property):
         '''
 
         def __get__(self):
-            return self.min if self.use_min else None, \
-                    self.max if self.use_max else None
+            if self.use_min == 1:
+                _min = self.min
+            elif self.use_min == 2:
+                _min = self.f_min
+            else:
+                _min = None
+
+            if self.use_max == 1:
+                _max = self.max
+            elif self.use_max == 2:
+                _max = self.f_max
+            else:
+                _max = None
+
+            return _min, _max
 
 
 cdef class OptionProperty(Property):
