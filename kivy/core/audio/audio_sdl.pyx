@@ -2,7 +2,12 @@
 SDL audio provider
 ==================
 
-.. note:: Require SDL_mixer
+This core audio implementation require SDL_mixer library (doesn't care if SDL
+1.2 or 1.3 is installed). It might conflict with any other library that are
+using SDL_mixer, such as ffmpeg-android.
+
+Currently, this audio provider compilation is activated only for kivy-ios
+project.
 '''
 
 __all__ = ('SoundSDL', )

@@ -2,6 +2,8 @@
 ImageIO OSX framework
 =====================
 
+Image loader implementation based on CoreGraphics OSX framework.
+
 .. todo::
 
     clean all unused definitions
@@ -34,10 +36,6 @@ cdef extern from "Python.h":
 cdef extern from "CoreGraphics/CGDataProvider.h":
     ctypedef void *CFDataRef
     unsigned char *CFDataGetBytePtr(CFDataRef)
-    ctypedef void *CGDataProviderRef
-    CFDataRef CGDataProviderCopyData(CGDataProviderRef)
-    ctypedef void *CGDataProviderRef
-    CFDataRef CGDataProviderCopyData(CGDataProviderRef)
 
     ctypedef struct CGPoint:
         float x
@@ -58,7 +56,7 @@ cdef extern from "CoreFoundation/CFBase.h":
     ctypedef void *CFStringRef
     ctypedef void *CFURLRef
     ctypedef void *CFTypeRef
-    CFStringRef CFStringCreateWithCString (CFAllocatorRef alloc, char *cStr,
+    CFStringRef CFStringCreateWithCString(CFAllocatorRef alloc, char *cStr,
             int encoding)
 
     void CFRelease(CFTypeRef cf)
@@ -67,7 +65,6 @@ cdef extern from "CoreFoundation/CFURL.h":
     ctypedef void *CFURLRef
     ctypedef int CFURLPathStyle
     int kCFURLPOSIXPathStyle
-    CFAllocatorRef kCFAllocatorDefault
     CFURLRef CFURLCreateFromFileSystemRepresentation(
             CFAllocatorRef, unsigned char *, CFIndex, bool)
     CFURLRef CFURLCreateWithFileSystemPath(CFAllocatorRef allocator,
@@ -78,13 +75,9 @@ cdef extern from "CoreFoundation/CFDictionary.h":
 
 cdef extern from "CoreGraphics/CGImage.h":
     ctypedef void *CGImageRef
-    CGDataProviderRef CGImageGetDataProvider(CGImageRef)
     void CGImageRelease(CGImageRef image)
     size_t CGImageGetWidth(CGImageRef)
     size_t CGImageGetHeight(CGImageRef)
-    size_t CGImageGetBitsPerPixel(CGImageRef)
-    int CGImageGetAlphaInfo(CGImageRef)
-    int kCGImageAlphaNone
     int kCGImageAlphaNoneSkipLast
     int kCGImageAlphaNoneSkipFirst
     int kCGImageAlphaFirst
@@ -95,7 +88,6 @@ cdef extern from "CoreGraphics/CGImage.h":
 
 cdef extern from "CoreGraphics/CGColorSpace.h": 
     ctypedef void *CGColorSpaceRef
-    CGColorSpaceRef CGImageGetColorSpace(CGImageRef image)
     CGColorSpaceRef CGColorSpaceCreateDeviceRGB()
     void CGColorSpaceRelease(CGColorSpaceRef cs)
 
@@ -104,6 +96,7 @@ cdef extern from "CoreGraphics/CGContext.h":
     void CGContextRelease(CGContextRef c)
     void CGContextDrawImage(CGContextRef, CGRect, CGImageRef)
     int kCGBlendModeCopy
+    int kCGBlendModeNormal
     void CGContextSetBlendMode(CGContextRef, int)
 
 cdef extern from "CoreGraphics/CGBitmapContext.h":
@@ -123,11 +116,13 @@ cdef extern from "ImageIO/CGImageDestination.h":
     ctypedef void *CGImageDestinationRef
     CGImageDestinationRef CGImageDestinationCreateWithURL(
         CFURLRef, CFStringRef, size_t, CFDictionaryRef)
-    void CGImageDestinationAddImage (CGImageDestinationRef idst,
+    void CGImageDestinationAddImage(CGImageDestinationRef idst,
         CGImageRef image, CFDictionaryRef properties)
-    int CGImageDestinationFinalize (CGImageDestinationRef idst)
+    int CGImageDestinationFinalize(CGImageDestinationRef idst)
+
 
 def load_image_data(bytes _url):
+    # load an image from the _url with CoreGraphics, and output an RGBA string.
     cdef CFURLRef url
     url = CFURLCreateFromFileSystemRepresentation(NULL, <bytes> _url, len(_url), 0)
     cdef CGImageSourceRef myImageSourceRef = CGImageSourceCreateWithURL(url, NULL)
@@ -146,7 +141,6 @@ def load_image_data(bytes _url):
 
     CGContextSetBlendMode(myBitmapContext, kCGBlendModeCopy)
     CGContextDrawImage(myBitmapContext, rect, myImageRef)
-
     r_data = PyString_FromStringAndSize(<char *> myData, width * height * 4)
 
     # Release image ref to avoid memory leak
@@ -168,7 +162,16 @@ def load_image_data(bytes _url):
     return (width, height, imgtype, r_data)
 
 def save_image_rgba(filename, width, height, data):
+    # save a RGBA string into filename using CoreGraphics
+
+    # FIXME only png output are accepted.
+    # the day we want to support another output format, we need to adapt the
+    # ctype variable: "public.png" is not a name, but a domain that represent
+    # the type of the output file. So we need to map the extension of the
+    # filename into a CoreGraphics image domain type.
+
     assert(len(data) == width * height * 4)
+    assert(filename.endswith('.png'))
 
     cdef char *source = NULL
     if type(data) is array:
@@ -192,6 +195,7 @@ def save_image_rgba(filename, width, height, data):
     cdef char *cfilename = <char *>malloc(len(filename) + 1)
     memcpy(cfilename, <char *><bytes>filename, len(filename));
     cfilename[len(filename)] = <char>0
+
     cdef CFStringRef sfilename = CFStringCreateWithCString(NULL,
             cfilename, kCFStringEncodingUTF8)
     cdef CFURLRef url = CFURLCreateWithFileSystemPath(NULL,
@@ -202,13 +206,13 @@ def save_image_rgba(filename, width, height, data):
     cdef CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url,
             ctype, 1, NULL)
 
+    # release everything
     CGImageDestinationAddImage(dest, cgImage, NULL)
-
     CFRelease(cgImage)
     CFRelease(bitmapContext)
     CFRelease(colorSpace)
-
     CGImageDestinationFinalize(dest)
+    free(rgba)
 
 class ImageLoaderImageIO(ImageLoaderBase):
     '''Image loader based on ImageIO MacOSX Framework
