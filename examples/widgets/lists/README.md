@@ -155,4 +155,8 @@ Notes from Adapter.py:
   in the Builder.load_string() call. Better document the special nature of
   this in API explanations. (You can't refer to it as a normal class).
 
+- In docs, for first introduction of args_converter, could use
+  list_item_args_converter, as used in many examples and tests, to help show
+  the context for use.
+
 

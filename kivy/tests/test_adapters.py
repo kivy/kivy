@@ -13,6 +13,7 @@ from kivy.uix.label import Label
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.listadapter import SimpleListAdapter
 from kivy.adapters.listadapter import ListAdapter
+from kivy.adapters.dictadapter import DictAdapter
 
 from kivy.factory import Factory
 from kivy.lang import Builder
@@ -538,3 +539,29 @@ class AdaptersTestCase(unittest.TestCase):
         view = fruit_categories_list_adapter.get_view(0)
         self.assertEqual(view.__class__.__name__, 'CustomListItem')
 
+    def test_dict_adapter_selection_mode_none(self):
+
+        list_item_args_converter = lambda rec: {'text': rec['name'],
+                                                'size_hint_y': None,
+                                                'height': 25}
+
+        dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
+                                   data=fruit_data,
+                                   args_converter=list_item_args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=ListItemButton)
+
+        self.assertEqual(sorted(dict_adapter.data),
+            ['Apple', 'Avocado', 'Banana', 'Cantaloupe', 'Cherry', 'Grape',
+             'Grapefruit', 'Honeydew', 'Kiwifruit', 'Lemon', 'Lime',
+             'Nectarine', 'Orange', 'Peach', 'Pear', 'Pineapple', 'Plum',
+             'Strawberry', 'Tangerine', 'Watermelon'])
+
+        self.assertEqual(dict_adapter.cls, ListItemButton)
+        self.assertEqual(dict_adapter.args_converter, list_item_args_converter)
+        self.assertEqual(dict_adapter.template, None)
+
+        apple_data_item = dict_adapter.get_item(0)
+        self.assertTrue(isinstance(apple_data_item, dict))
+        self.assertEqual(apple_data_item['name'], 'Apple')
