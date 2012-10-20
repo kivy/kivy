@@ -443,6 +443,11 @@ cdef class NumericProperty(Property):
         global EventLoop
         if EventLoop is None:
             from kivy.base import EventLoop
+            try:
+                EventLoop.dpi
+            except AttributeError:
+                return float(value)
+
         cdef float rv = float(value)
         cdef float dpi = EventLoop.dpi
         obj.__storage[self.name]['format'] = ext
