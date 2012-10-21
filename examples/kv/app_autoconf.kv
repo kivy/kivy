@@ -10,34 +10,34 @@ BoxLayout:
         id: s1
         range: (0,20)
         step: 2
-        _: app.autoconf(self, "root", "s1_value", 10)
+        autoconf: ("root", "s1_value", 10)
 
     Accordion:
         orientation: 'horizontal'
-        _: app.autoconf(self, 'root', 'panel', 'Extra')
+        autoconf: ('root', 'panel', 'Extra')
 
         AccordionItem
             title: 'Normal'
 
             TextInput:
-                _: app.autoconf(self, 'panels', 'input', 'Normal Panel')
+                autoconf: ('panels', 'input', 'Normal Panel')
 
         AccordionItem
             title: 'Extra'
 
             ToggleButton:
                 text: 'Extra Panel'
-                _: app.autoconf(self, 'panels', 'tbutton', 'Extra Panel')
+                autoconf: ('panels', 'tbutton', 'Extra Panel')
 
     BoxLayout:
         CheckBox:
-            _: app.autoconf(self, 'root', 'cb0', False)
+            autoconf: ('root', 'cb0', False)
 
         CheckBox:
             group: 'radio1'
-            _: app.autoconf(self, 'root', 'cb1', True)
+            autoconf: ('root', 'cb1', True)
 
         CheckBox:
             group: 'radio1'
-            _: app.autoconf(self, 'root', 'cb2', False)
+            autoconf: ('root', 'cb2', False)
 

@@ -1329,8 +1329,9 @@ class BuilderBase(object):
                 if type(value) is CodeType:
                     value = create_handler(widget_set, widget_set, key,
                             value, rule, rctx['ids'])
-                if key != '_':
-                    setattr(widget_set, key, value)
+                setattr(widget_set, key, value)
+                if key == 'autoconf':
+                    global_idmap['app'].autoconf(widget_set, value)
 
         # build handlers
         for widget_set, rules in rctx['hdl']:

@@ -683,10 +683,11 @@ class App(EventDispatcher):
         if key == 27:
             return self.close_settings()
 
-    def autoconf(self, widget, module, key, default):
+    def autoconf(self, widget, conf):
         '''The function called by the .kv file to register each widget to be autoconf-ed
         '''
 
+        module, key, default = conf
         self.config.setdefaults(module, {key: default})
         value = self.config.get(module, key)
         self._autoconf_widgets[widget] = (module, key, value, default)
