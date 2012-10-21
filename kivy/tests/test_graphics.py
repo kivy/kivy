@@ -5,7 +5,7 @@ Graphics tests
 Testing the simple vertex instructions
 '''
 
-from common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest
 
 
 class VertexInstructionTestCase(GraphicUnitTest):
