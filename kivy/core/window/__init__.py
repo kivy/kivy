@@ -984,4 +984,5 @@ class WindowBase(EventDispatcher):
 #: Instance of a :class:`WindowBase` implementation
 Window = core_select_lib('window', (
     ('pygame', 'window_pygame', 'WindowPygame'),
+    ('sfml', 'window_sfml', 'WindowSFML'),
 ), True)

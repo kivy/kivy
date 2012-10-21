@@ -1,63 +1,196 @@
 '''
-Window Pygame: windowing provider based on Pygame
-.. versionadded: 1.4.0
+SFML Window: Windowing provider directly based on our own wrapped version of SFML
 '''
 
-__all__ = ('WindowSFML', )
+__all__ = ('WindowSDL', )
 
-import os
-import sfml.window as sf
-from kivy.base import stopTouchApp, EventLoop, ExceptionManager
-from kivy.core.window import WindowBase
-from kivy.core  import CoreCriticalException
-from kivy.config import Config
 from kivy.logger import Logger
+from kivy.core.window import WindowBase
+from kivy.base import EventLoop, ExceptionManager, stopTouchApp
 from kivy.clock import Clock
-from kivy.utils import platform
+import sys
 
-android = None
-if platform() == 'android':
-    import android
+try:
+    import sfml.window as sf
+    from sfml.graphics import Image
+except:
+    Logger.warning('WinSFML: SFML module failed to load!')
+    raise
 
-    glReadPixels = GL_RGBA = GL_UNSIGNED_BYTE = None
+
+from kivy.input.provider import MotionEventProvider
+from kivy.input.motionevent import MotionEvent
+from collections import deque
+
+class SFMLMotionEvent(MotionEvent):
+    def depack(self, args):
+        self.is_touch = True
+        self.profile = ('pos', )
+        self.sx, self.sy = args
+
+        super(SFMLMotionEvent, self).depack(args)
+
+class SFMLMotionEventProvider(MotionEventProvider):
+    win = None
+    q = deque()
+    touchmap = {}
+
+    def update(self, dispatch_fn):
+        touchmap = self.touchmap
+        while True:
+            try:
+                value = self.q.pop()
+            except IndexError:
+                return
+
+            action, fid, x, y = value
+            x = x / 32768.
+            y = 1 - (y / 32768.)
+            if fid not in touchmap:
+                touchmap[fid] = me = SFMLMotionEvent('sdl', fid, (x, y))
+            else:
+                me = touchmap[fid]
+                me.move((x, y))
+            if action == 'fingerdown':
+                dispatch_fn('begin', me)
+            elif action == 'fingerup':
+                me.update_time_end()
+                dispatch_fn('end', me)
+                del touchmap[fid]
+            else:
+                dispatch_fn('update', me)
+
 
 class WindowSFML(WindowBase):
 
-    def create_window(self, *largs):
-        self.dispatch('on_mouse_up', 0, 0, 'all', [])
-        self._prepare_window()
-        self._prepare_keyboard()
+    def create_window(self):
+        use_fake = True
+        use_fullscreen = False
 
-    def _prepare_window(self, *largs):
+        # never stay with a None pos, application using w.center will be fired.
+        self._pos = (0, 0)
 
-        mode = sf.VideoMode.get_desktop_mode()
-        title = self.title
-        self.flags = sf.Style.DEFAULT
-        if (platform() in ('linux', 'macosx', 'win')
-            and Config.getint('graphics', 'resizable')):
-            self.style |= sf.Style.RESIZE
+        # setup !
+        self._window = sf.RenderWindow(
+            sf.VideoMode.get_desktop_mode(), 'SFML Window', sf.Style.NONE,
+            sf.ContextSettings(depth=16, stencil=1))
+        self._size = tuple(self._window.size)
 
-        multisamples = Config.getint('graphics', 'multisamples')
-        settings = sf.ContextSettings(
-            depth=16, stencil=1, antialiasing=multisamples)
+        super(WindowSFML, self).create_window()
 
-        # TODO: move to WindowBase
-        if self.position == 'auto':
-            self._pos = None
-        elif self.position == 'custom':
-            self._pos = self.left, self.top
-        else:
-            raise ValueError('position token in configuration accept only '
-                             '"auto" or "custom"')
+        # auto add input provider
+        Logger.info('Window: auto add sfml input provider')
+        SFMLMotionEventProvider.win = self
+        EventLoop.add_input_provider(SFMLMotionEventProvider('sfml', ''))
 
-        if self.fullscreen == 'fake':
-            Logger.debug('WinSFML: Set window to fake fullscreen mode.')
-            self.flags = sf.Style.NONE | sf.Style.FULL
-        elif self.fullscreen is True:
-            Logger.debug('WinSFML: Set window to fullscreen mode')
-            self.flags = sf.Style.F
+    def close(self):
+        self._window.close()
+        self.dispatch('on_close')
 
-        self._pos = self._pos or (0, 0)
-        self._window = sf.RenderWindow(mode, title, self.fl, settings)
+    def set_title(self, title):
+        self._window.title = title
 
-    def _prepare_keyboard(self, *largs):
+    def set_icon(self, filename):
+        image = Image.load_from_file(filename)
+        self._window.icon = image.pixels
+
+    def _mainloop(self):
+        """ TODO:
+                - implement touch events
+                - implement minimize event
+                - impolement restore event
+        """
+        EventLoop.idle()
+
+        while True:
+            try:
+                event = self._window.events.next()
+            except StopIteration:
+                break
+
+            #print 'sdl received', event
+            action, args = event[0], event[1:]
+            if event == sf.CloseEvent:
+                EventLoop.quit = True
+                self.close()
+                break
+            elif event == sf.MouseMoveEvent:
+                x, y = event.position
+                self.dispatch('on_mouse_move', x, y, self.modifiers)
+
+            elif event == sf.MouseButtonEvent:
+                x, y = event.position
+
+                if event.button == 1:
+                    btn = 'left'
+                elif event.button == 2:
+                    btn = 'middle'
+                elif event.button == 3:
+                    btn = 'right'
+
+                if event.pressed:
+                    name = 'on_mouse_down'
+                elif event.released:
+                    name = 'on_mouse_up'
+
+                self.dispatch(name, x, y, btn, self.modifiers)
+
+            elif event == sf.ResizeEvent:
+                self._size = tuple(event.size)
+                cb = self._do_resize
+                Clock.unschedule(cb)
+                Clock.schedule_once(cb, .1)
+                self.canvas.ask_update()
+
+            elif event == sf.KeyEvent:
+            elif action in ('keydown', 'keyup'):
+                key = event.code
+                # WHAT DOES THIS DO?
+                #self._pygame_update_modifiers(mod)
+
+                if event.released:
+                    # ios passes key AND scancode
+                    self.dispatch('on_key_up', key)
+                    continue
+
+                if self.dispatch('on_key_down', key, self.modifiers):
+                    continue
+
+                self.dispatch('on_keyboard', key, self.modifiers)
+
+    def _do_resize(self, dt):
+        Logger.debug('Window: Resize window to %s' % str(self._size))
+        self._window.size = self._size
+        self.dispatch('on_resize', *self._size)
+
+    def mainloop(self):
+        # don't known why, but pygame required a resize event
+        # for opengl, before mainloop... window reinit ?
+        self.dispatch('on_resize', *self.size)
+        #print 'dispatched on_resize, size is', self.size
+
+        while not EventLoop.quit and EventLoop.status == 'started':
+            try:
+                self._mainloop()
+            except BaseException, inst:
+                # use exception manager first
+                r = ExceptionManager.handle_exception(inst)
+                if r == ExceptionManager.RAISE:
+                    stopTouchApp()
+                    raise
+                else:
+                    pass
+
+        # force deletion of window
+        self._window.close()
+
+    def on_keyboard(self, key, modifier=None):
+        # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
+        # TODO If just CMD+w is pressed, only the window should be closed.
+        is_osx = sys.platform == 'darwin'
+        if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
+            stopTouchApp()
+            self.close()  #not sure what to do here
+            return True
+
+        super(WindowSDL, self).on_keyboard(key=key, modifier=modifier)
