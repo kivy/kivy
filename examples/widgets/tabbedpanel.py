@@ -15,17 +15,14 @@ Builder.load_string("""
 <Test>:
     size_hint: .5, .5
     pos_hint: {'center_x': .5, 'center_y': .5}
-    #do_default_tab: False
-    default_tab: tab2
+    do_default_tab: False
 
     TabbedPanelItem:
-        id: first_tab
         text: 'first tab'
         Label:
             id: set1_content
             text: 'First tab content area'
     TabbedPanelItem:
-        id: tab2
         text: 'tab2'
         BoxLayout:
             Label:

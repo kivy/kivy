@@ -440,7 +440,7 @@ class TabbedPanel(GridLayout):
             if dft in self.tab_list:
                 self._default_tab = None
                 self.remove_widget(dft)
-                self._switch_to_first_tab
+                self._switch_to_first_tab()
 
     def _switch_to_first_tab(self, *l):
         ltl = len(self.tab_list) - 1
