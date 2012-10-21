@@ -210,7 +210,6 @@ class OSCServer(_OSCServer):
                 if error == errno.EADDRINUSE:
                     Logger.error('OSC: Address %s:%i already in use, retry in 2 second' % (self.ipAddr, self.port))
                 else:
-                    Logger.exception(e)
                 self.haveSocket = False
 
                 # sleep 2 second before retry
@@ -225,8 +224,7 @@ class OSCServer(_OSCServer):
             except Exception, e:
                 if type(e) == socket.timeout:
                     continue
-                Logger.error('OSC: Error in Tuio recv()')
-                Logger.exception(e)
+                Logger.exception('OSC: Error in Tuio recv()')
                 return 'no data arrived'
 
 def listen(ipAddr='127.0.0.1', port=9001):
