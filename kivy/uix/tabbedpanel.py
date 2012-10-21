@@ -57,6 +57,10 @@ the tabs. Your app is responsible for adding the content of individual tabs,
 and for managing it, but not for doing the content switching. The tabbed panel
 handles switching of the main content object, per user action.
 
+.. note::
+    The default_tab functionality is turned off by default since 1.5.0 to
+    turn it back on set `do_default_tab` = True.
+
 There is a default tab added when the tabbed panel is instantiated.
 Tabs that you add individually as above, are added in addition to the default
 tab. Thus, depending on your needs and design, you will want to customize the
@@ -294,13 +298,13 @@ class TabbedPanel(GridLayout):
     default to 100.
     '''
 
-    do_default_tab = BooleanProperty(True)
+    do_default_tab = BooleanProperty(False)
     '''Specifies weather a default_tab head is provided.
 
     .. versionadded:: 1.5.0
 
     :data:`do_default_tab` is a :class:`~kivy.properties.BooleanProperty`,
-    defaults to 'True'.
+    defaults to 'False'.
     '''
 
     default_tab_text = StringProperty('Default tab')
@@ -441,6 +445,11 @@ class TabbedPanel(GridLayout):
                 self._default_tab = None
                 self.remove_widget(dft)
                 self._switch_to_first_tab()
+        else:
+            self.default_tab = self.tab_list[-1]
+            Logger.info(
+                'TabbedPanel: setting `{0}` as `default_tab`'.format(
+                    self.default_tab.text))
 
     def _switch_to_first_tab(self, *l):
         ltl = len(self.tab_list) - 1

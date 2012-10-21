@@ -15,7 +15,6 @@ Builder.load_string("""
 <Test>:
     size_hint: .5, .5
     pos_hint: {'center_x': .5, 'center_y': .5}
-    do_default_tab: False
 
     TabbedPanelItem:
         text: 'first tab'
