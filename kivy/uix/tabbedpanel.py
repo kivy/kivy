@@ -415,7 +415,8 @@ class TabbedPanel(GridLayout):
         if cls != TabbedPanelHeader:
             self._current_tab = self._original_tab = self._default_tab = cls()
         default_tab = self.default_tab
-        default_tab.text = self.default_tab_text
+        if self._original_tab == self.default_tab:
+            default_tab.text = self.default_tab_text
         default_tab.height = self.tab_height
         default_tab.group = '__tab%r__' % _tabs.uid
         default_tab.state = 'down'
@@ -443,7 +444,7 @@ class TabbedPanel(GridLayout):
 
     def _switch_to_first_tab(self, *l):
         ltl = len(self.tab_list) - 1
-        if ltl > 1:
+        if ltl > -1:
             self._current_tab = dt = self._original_tab \
                 = self.tab_list[ltl]
             self.switch_to(dt)
