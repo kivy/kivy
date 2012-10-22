@@ -388,9 +388,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 3:
             # add token for scrollview
-            Config.setdefault('widgets', 'scroll_timeout', '250')
+            Config.setdefault('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_distance', '20')
             Config.setdefault('widgets', 'scroll_friction', '1.')
+            Config.setdefualt('widgets', 'scroll_stoptime', '300')
+            Config.setdefault('widgets', 'scroll_moves', '5')
 
             # remove old list_* token
             Config.remove_option('widgets', 'list_friction')
