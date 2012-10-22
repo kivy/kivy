@@ -138,6 +138,16 @@ Available configuration tokens
         property in :class:`~kivy.uix.scrollview.Scrollview` widget.
         Check the widget documentation for more information.
 
+    `scroll_stoptime`: int
+        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_stoptime`
+        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Check the widget documentation for more information.
+
+    `scroll_moves`: int
+        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_moves`
+        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Check the widget documentation for more information.
+
 :modules:
 
     You can activate modules with this syntax::
