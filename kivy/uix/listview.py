@@ -13,11 +13,6 @@ From AbstractView we have these properties and methods:
 
     - adapter, an instance of SimpleListAdapter, ListAdapter, or DictAdapter
 
-    - item_view_instances, a dict with indices as keys to the list item view
-      instances created in the adapter
-
-    - set_item_view() and get_item_view() methods to list item view instances
-
 Basic Example
 -------------
 
@@ -47,11 +42,10 @@ Here we make a listview with 100 items.
 Using a ListAdapter
 -------------------
 
-Behind the scenes, the basic example above uses
-uses :class:`SimpleListAdapter`. When the constructor for
-:class:`ListView` sees that only a list of strings is provided as an argument,
-called item_strings, it creates an instance of :class:`SimpleListAdapter` with
-the list of strings.
+Behind the scenes, the basic example above uses :class:`SimpleListAdapter`.
+When the constructor for :class:`ListView` sees that only a list of strings is
+provided as an argument, called item_strings, it creates an instance of
+:class:`SimpleListAdapter` with the list of strings.
 
 Simple in :class:`SimpleListAdapter` means: WITHOUT SELECTION SUPPORT -- it is
 just a scrollable list of items, which do not respond to touch events.
@@ -64,35 +58,23 @@ do:
                           cls=Label)
     list_view = ListView(adapter=simple_list_adapter)
 
-SelectionSupport: ListAdapter and DictAdapter
+The instance of :class:`SimpleListAdapter` has a required data argument, which
+contains data items to use as the basis for list items, along with a cls
+argument for the class to be instantiated for each list item from the data.
+
+CollectionAdapter: ListAdapter and DictAdapter
 ---------------------------------------------
 
-For many uses of a list, the data is more than a simple list or strings, or
+For many uses of a list, the data is more than a simple list of strings and
 selection functionality is needed.  :class:`ListAdapter` and
-:class:`DictAdapter` each subclass :class:`SelectionSupport`.
+:class:`DictAdapter` each subclass :class:`CollectionAdapter`, extending its
+base functionality for selection.
 
-See the :class:`ListAdapter` docs for details, but here we have synopses of
+See the :class:`ListAdapter` docs for details, but here are synopses of
 its arguments:
 
-    - data: a list of Python class instances or dicts that must have
-            a text property and an is_selected property.
-
-            When working with classes as data items, the is_selected property
-            is provided by :class:`SelectableDataItem`, which is intended to
-            be used as a mixin:
-
-                MyCustomDataItem(SelectableDataItem):
-                    def __init__(self, **kwargs):
-                        super(MyCustomDataItem, self).__init__(**kwargs)
-                        self.text = kwargs.get('name', '')
-                        # etc.
-
-                data = [MyCustomDataItem(name=n) for n in ['Bill', 'Sally']
-
-            Or, you may wish to provide a simple list of dicts:
-
-                data = \
-                    [{'text': str(i), 'is_selected': False} for i in [1,2,3]]
+    - data: strings, class instances, dicts, etc. that form the basis data
+            for instantiating view item classes.
 
     - cls: a Kivy view that is to be instantiated for each list item. There
            are several built-in types available, including ListItemLabel and
@@ -101,17 +83,17 @@ its arguments:
     or
 
     - template: the name of a Kivy language (kv) template that defines the
-                view
+                Kivy view for each list item.
 
     NOTE: Pick only one, cls or template, to provide as an argument.
 
-    - args_converter: a function that takes a list item object as input, and
-                      uses the object to build and return an args dict, ready
+    - args_converter: a function that takes a data item object as input, and
+                      uses it to build and return an args dict, ready
                       to be used in a call to instantiate the item view cls or
                       template. In the case of cls, the args dict acts as a
                       kwargs object. For a template, it is treated as a context
                       (ctx), but is essentially similar in form. See the
-                      examples and docs for template operation.
+                      examples and docs for template use.
 
     - selection_mode: a string for: 'single', 'multiple' or others (See docs).
 
@@ -144,12 +126,10 @@ except for two things:
     1) There is an additional argument, sorted_keys, which must meet the
        requirements of normal python dictionary keys.
 
-    2) The data argument is not a list of class instances, it is, as you would
-       expect, a dict. Keys in the dict must include the keys in the
-       sorted_keys argument, but they may form a superset of the keys in
-       sorted_keys. Values may be class instances or dicts -- these follow the
-       same rules as the items of the data argument, described above for
-       :class:`ListAdapter`.
+    2) The data argument is, as you would expect, a dict. Keys in the dict
+       must include the keys in the sorted_keys argument, but they may form a
+       superset of the keys in sorted_keys. Values may be strings, class
+       instances, dicts, etc. (The args_converter uses it, accordingly).
 
 Using an Args Converter
 -----------------------
@@ -173,7 +153,7 @@ specified as a normal Python function:
                                      'size_hint_y': None,
                                      'height': 25}
 
-In args converter example above, the data item is assumed to be an object
+In the args converter example above, the data item is assumed to be an object
 (class instance), hence the reference an_obj.text.
 
 Here is an example of an args converter that works with list data items that
@@ -185,31 +165,6 @@ are dicts:
 
 So, it is the responsibility of the developer to code the args_converter
 according to the data at hand.
-
-**An args converter used with cls argument**
-
-Inside the :class:`ListView` code, the args converter function is used with the
-provided view argument, in this case cls:
-
-    cls(**args_converter(data_item))
-
-Here, if cls is ListItemButton, it would be equivalent to:
-
-    ListItemButton(text=an_obj.text, size_hint_y=None, height=25)
-
-for each list data item.
-
-**An args converter used with a template argument**
-
-In the case of a kv template used as a list item view, the args_converter will
-provide the context for the template, not really an args dict strictly
-speaking, but it looks the same inside :class:`ListView`:
-
-    template(**args_converter(data_item))
-
-The only difference between this args converter and the one above is
-that the reference is to a dictionary (a_dict['text']), vs. reference to a
-class instance (an_obj.text).
 
 An Example ListView
 -------------------
@@ -244,7 +199,7 @@ Uses for Selection
 ------------------
 
 In the previous example, we saw how a listview gains selection support just by
-using ListAdapter, which subclasses SelectionSupport.
+using ListAdapter, which subclasses CollectionAdapter.
 
 What can we do with selection? Combining selection with the system of bindings
 in Kivy, we can build a wide range of user interface designs.
@@ -287,7 +242,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
-from kivy.adapters.listadapter import SimpleListAdapter
+from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.uix.abstractview import AbstractView
 from kivy.uix.selectableview import SelectableView
 from kivy.properties import ObjectProperty, DictProperty, \
@@ -389,7 +344,6 @@ class CompositeListItem(SelectableView, BoxLayout):
         # represents. Get it from kwargs and pass it along to children in the
         # loop below.
         index = kwargs['index']
-        print 'COMPOSITE list item index', index
 
         for cls_dict in kwargs['cls_dicts']:
             cls = cls_dict['cls']
@@ -504,44 +458,34 @@ class ListView(AbstractView, EventDispatcher):
     _wend = NumericProperty(None)
 
     def __init__(self, **kwargs):
-        # Intercept for the adapter property, which would pass through to
-        # AbstractView, to check for its existence. If it doesn't exist, we
-        # assume that the data list is to be used with SimpleListAdapter
-        # to make a simple list. If it does exist, and data was also
-        # provided, raise an exception, because if an adapter is provided, it
-        # should be a fully-fledged adapter with its own data.
+        # Check for an adapter argument. If it doesn't exist, we
+        # assume that item_strings is to be used with SimpleListAdapter
+        # to make a simple list. In this case, if item_strings was not
+        # provided, raise an exception.
         if 'adapter' not in kwargs:
             if 'item_strings' not in kwargs:
                 raise Exception('ListView: input needed, or an adapter')
+
             list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
                                              cls=Label)
             kwargs['adapter'] = list_adapter
 
         super(ListView, self).__init__(**kwargs)
 
-        self.adapter.owning_view = self
+        self.register_event_type('on_scroll_complete')
 
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
-        # [TODO] Is this "hard" scheme needed -- better way?
-        self._trigger_hard_populate = \
-                Clock.create_trigger(self._hard_spopulate, -1)
+
         self.bind(size=self._trigger_populate,
                   pos=self._trigger_populate,
                   adapter=self._trigger_populate)
 
-        self.register_event_type('on_scroll_complete')
-
-        # The adapter does not necessarily use the data property for its
-        # primary key, so we let it set up the binding. This is associated
-        # with selection operations, which :class:`SimpleListAdapter` does
-        # not support, so we check if the function is available.
-        if hasattr(self.adapter, 'bind_primary_key_to_func'):
-            self.adapter.bind_primary_key_to_func(self._trigger_hard_populate)
-
-        # If our adapter supports selection, check the allow_empty_selection
-        # property and ensure selection if needed.
-        if hasattr(self.adapter, 'check_for_empty_selection'):
-            self.adapter.check_for_empty_selection()
+        # The bindings setup above sets self._trigger_populate() to fire
+        # when the adapter changes, but we also need this binding for when
+        # adapter.data and other possible triggers change for view updating.
+        # We don't know that these are, so we ask the adapter to set up the
+        # bindings back to the view updating function here.
+        self.adapter.bind_triggers_to_view(self._trigger_populate)
 
     def _scroll(self, scroll_y):
         if self.row_height is None:
@@ -572,14 +516,7 @@ class ListView(AbstractView, EventDispatcher):
     def _spopulate(self, *dt):
         self.populate()
 
-    def _hard_spopulate(self, *dt):
-        print 'hard_populate', dt
-        self.item_view_instances = {}
-        self.populate()
-        self.adapter.check_for_empty_selection()
-
     def populate(self, istart=None, iend=None):
-        print 'populate', self, istart, iend
         container = self.container
         sizes = self._sizes
         rh = self.row_height
@@ -604,8 +541,7 @@ class ListView(AbstractView, EventDispatcher):
             # now fill with real item_view
             index = istart
             while index <= iend:
-                print '----- ListView get_item_view, iend, index', iend, index
-                item_view = self.get_item_view(index)
+                item_view = self.adapter.get_view(index)
                 index += 1
                 if item_view is None:
                     continue
@@ -617,8 +553,7 @@ class ListView(AbstractView, EventDispatcher):
             index = self._index
             count = 0
             while available_height > 0:
-                print '----- ListView get_item_view, index', index
-                item_view = self.get_item_view(index)
+                item_view = self.adapter.get_view(index)
                 if item_view is None:
                     break
                 sizes[index] = item_view.height
@@ -631,7 +566,7 @@ class ListView(AbstractView, EventDispatcher):
             self._count = count
 
             # extrapolate the full size of the container from the size
-            # of item_view_instances
+            # of view instances in the adapter
             if count:
                 container.height = \
                     real_height / count * self.adapter.get_count()

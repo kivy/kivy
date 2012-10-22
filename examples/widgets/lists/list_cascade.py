@@ -1,5 +1,5 @@
 from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.mixins.selection import SelectableDataItem
+from kivy.adapters.models import SelectableDataItem
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
 

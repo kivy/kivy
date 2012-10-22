@@ -6,7 +6,7 @@ DictAdapter
 
 :class:`DictAdapter` is an adapter around a python dictionary of records.
 
-From :class:`Adapter`, :class:`SimpleListAdapter` gets these properties:
+From :class:`Adapter`, :class:`DictAdapter` gets these properties:
 
     Use only one:
 
@@ -22,7 +22,7 @@ From :class:`Adapter`, :class:`SimpleListAdapter` gets these properties:
                       provided, a default one is set, that assumes that the
                       data items are strings.
 
-From the :class:`SelectionSupport` mixin, :class:`DictAdapter` has
+From the :class:`CollectionAdapter` mixin, :class:`DictAdapter` has
 these properties:
 
     - selection
@@ -39,10 +39,10 @@ If you wish to have a bare-bones list adapter, without selection, use
 from kivy.properties import ListProperty, DictProperty
 from kivy.lang import Builder
 from kivy.adapters.collectionadapter import CollectionAdapter
-from kivy.adapters.mixins.selection import SelectionSupport
+from kivy.adapters.models import SelectableDataItem
 
 
-class DictAdapter(SelectionSupport, CollectionAdapter):
+class DictAdapter(CollectionAdapter):
 
     sorted_keys = ListProperty([])
     '''The sorted_keys list property contains a list of hashable objects (can
@@ -55,6 +55,8 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
     data = DictProperty(None)
     '''A dict that indexes records by keys that are equivalent to the keys in
     sorted_keys, or they are a superset of the keys in sorted_keys.
+
+    The values can be strings, class instances, dicts, etc.
     '''
 
     def __init__(self, **kwargs):
@@ -67,76 +69,46 @@ class DictAdapter(SelectionSupport, CollectionAdapter):
 
         super(DictAdapter, self).__init__(**kwargs)
 
-        self.bind(sorted_keys=self.initialize_sorted_keys,
-                  data=self.initialize_data)
+        self.bind(sorted_keys=self.initialize_sorted_keys)
 
-    def bind_primary_key_to_func(self, func):
+    def bind_triggers_to_view(self, func):
         self.bind(sorted_keys=func)
-
-    def sort_keys(self):
-        self.sorted_keys = sorted(self.sorted_keys)
+        self.bind(data=func)
 
     def initialize_sorted_keys(self, *args):
-        self.initialize_selection()
-
-    def initialize_data(self, *args):
-        self.sorted_keys = sorted(self.data.keys())
+        self.delete_cache()
         self.initialize_selection()
 
     def get_count(self):
         return len(self.sorted_keys)
 
-    def get_item(self, index):
+    def get_data_item(self, index):
         if index < 0 or index >= len(self.sorted_keys):
             return None
         return self.data[self.sorted_keys[index]]
 
-    def get_view(self, index):
-        item = self.get_item(index)
-        if item is None:
-            return None
-
-        item_args = None
-        if self.args_converter:
-            item_args = self.args_converter(item)
+    def select_data_item(self, item):
+        # The data item must be a subclass of SelectableDataItem, or must have
+        # an is_selected boolean or function, so it has is_selected available.
+        # If is_selected is unavailable on the data item, an exception is
+        # raised.
+        #
+        if issubclass(item.__class__, SelectableDataItem):
+            item.is_selected = True
+        elif type(item) == dict and 'is_selected' in item:
+            item['is_selected'] = True
+        elif hasattr(item, 'is_selected'):
+            if isfunction(item.is_selected) or ismethod(item.is_selected):
+                item.is_selected()
+            else:
+                item.is_selected = True
         else:
-            item_args = item
-
-        item_args['index'] = index
-
-        if self.cls:
-            #print 'CREATE VIEW FOR', index
-            view_instance = self.cls(**item_args)
-        else:
-            #print 'TEMPLATE item_args', item_args
-            view_instance = Builder.template(self.template, **item_args)
-            #print 'TEMPLATE view_instance.index', view_instance.index
-
-        if item['is_selected']:
-            self.handle_selection(view_instance)
-
-        # [TODO] if view_instance.handles_event('on_release'):       ?
-        view_instance.bind(on_release=self.handle_selection)
-
-        # [TODO] If the whole composite can't respond, should we try to see
-        #        if the children can? No harm, no foul on setting this?
-        for child in view_instance.children:
-        #    if child.handles_event('on_release'):  [TODO] ?
-            child.bind(on_release=self.handle_selection)
-
-        return view_instance
-
-    def check_for_empty_selection(self, *args):
-        if not self.allow_empty_selection:
-            if len(self.selection) == 0:
-                # Select the first key if we have it.
-                v = self.owning_view.get_item_view(0)
-                if v is not None:
-                    #print 'selecting first list item view', v, v.is_selected
-                    self.handle_selection(v)
+            msg = "ListAdapter: unselectable data item for {0}".format(item)
+            raise Exception(msg)
 
     def touch_selection(self, *args):
         self.dispatch('on_selection_change')
+                  
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
     #        scroll_to_sel_middle.

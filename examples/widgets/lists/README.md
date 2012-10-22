@@ -159,4 +159,6 @@ Notes from Adapter.py:
   list_item_args_converter, as used in many examples and tests, to help show
   the context for use.
 
+- Make kwargs handling follow nice style in models.py, SimpleDataItem
+
 

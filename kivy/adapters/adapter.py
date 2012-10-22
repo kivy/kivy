@@ -74,13 +74,16 @@ class Adapter(EventDispatcher):
 
         super(Adapter, self).__init__(**kwargs)
 
+    def bind_triggers_to_view(self, func):
+        self.bind(data=func)
+
     def get_count(self):
         if self.data:
             return 1
         else:
             return 0
 
-    def get_item(self, index):
+    def get_data_item(self, index):
         return self.data
 
     def get_view(self, index):  #pragma: no cover

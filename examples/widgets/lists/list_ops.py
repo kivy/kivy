@@ -1,6 +1,6 @@
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.properties import NumericProperty, ListProperty, \
-        BooleanProperty, AliasProperty
+        BooleanProperty, AliasProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
@@ -12,6 +12,7 @@ from kivy.uix.widget import Widget
 class OpsDictAdapter(DictAdapter):
 
     listview_id = NumericProperty(0)
+    owning_view = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self.listview_id = kwargs['listview_id']
@@ -225,6 +226,8 @@ class OpsView(BoxLayout):
 
             letters_list_view = ListView(adapter=letters_dict_adapter,
                                          size_hint=(1.0, 1.0))
+
+            letters_dict_adapter.owning_view = letters_list_view
 
             box_layout.add_widget(listview_header_widgets[listview_id])
             box_layout.add_widget(letters_list_view)

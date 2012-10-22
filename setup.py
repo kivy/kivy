@@ -306,7 +306,6 @@ setup(
     packages=[
         'kivy',
         'kivy.adapters',
-        'kivy.adapters.mixins',
         'kivy.core',
         'kivy.core.audio',
         'kivy.core.camera',

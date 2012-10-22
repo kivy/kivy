@@ -5,13 +5,13 @@ Adapter tests
 
 import unittest
 
-from kivy.adapters.mixins.selection import SelectableDataItem
 from kivy.uix.selectableview import SelectableView
 from kivy.uix.listview import ListItemButton
 from kivy.uix.label import Label
 
+from kivy.adapters.models import SelectableDataItem
 from kivy.adapters.adapter import Adapter
-from kivy.adapters.listadapter import SimpleListAdapter
+from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.dictadapter import DictAdapter
 
@@ -197,7 +197,7 @@ class CategoryItem(SelectableDataItem):
         super(CategoryItem, self).__init__(**kwargs)
         self.name = kwargs.get('name', '')
         self.fruits = kwargs.get('fruits', [])
-        self.is_selected = kwargs.get('is_selected', False)
+        #self.is_selected = kwargs.get('is_selected', False)
 
 
 class FruitItem(SelectableDataItem):
@@ -206,7 +206,7 @@ class FruitItem(SelectableDataItem):
         self.name = kwargs.get('name', '')
         self.serving_size = kwargs.get('Serving Size', '')
         self.data = kwargs.get('data', [])
-        self.is_selected = kwargs.get('is_selected', False)
+        #self.is_selected = kwargs.get('is_selected', False)
 
 
 def reset_to_defaults(db_dict):
@@ -223,9 +223,10 @@ fruit_data_items = \
 class FruitsListAdapter(ListAdapter):
 
     def __init__(self, **kwargs):
-        kwargs['args_converter'] = lambda rec: {'text': rec['name'],
-                                               'size_hint_y': None,
-                                               'height': 25}
+        kwargs['args_converter'] = \
+                lambda selectable: {'text': selectable.name,
+                                    'size_hint_y': None,
+                                    'height': 25}
         super(FruitsListAdapter, self).__init__(**kwargs)
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
@@ -366,11 +367,11 @@ class AdaptersTestCase(unittest.TestCase):
 
         adapter = Adapter(data='cat', cls=Label)
         self.assertEqual(adapter.get_count(), 1)
-        self.assertEqual(adapter.get_item(0), 'cat')
+        self.assertEqual(adapter.get_data_item(0), 'cat')
 
         adapter = Adapter(data=None, cls=Label)
         self.assertEqual(adapter.get_count(), 0)
-        self.assertEqual(adapter.get_item(0), None)
+        self.assertEqual(adapter.get_data_item(0), None)
 
     def test_instantiating_simple_list_adapter(self):
         # with no data
@@ -391,10 +392,10 @@ class AdaptersTestCase(unittest.TestCase):
         simple_list_adapter = SimpleListAdapter(data=['cat', 'dog'],
                                                 cls=Label)
         self.assertEqual(simple_list_adapter.get_count(), 2)
-        self.assertEqual(simple_list_adapter.get_item(0), 'cat')
-        self.assertEqual(simple_list_adapter.get_item(1), 'dog')
-        self.assertIsNone(simple_list_adapter.get_item(-1))
-        self.assertIsNone(simple_list_adapter.get_item(2))
+        self.assertEqual(simple_list_adapter.get_data_item(0), 'cat')
+        self.assertEqual(simple_list_adapter.get_data_item(1), 'dog')
+        self.assertIsNone(simple_list_adapter.get_data_item(-1))
+        self.assertIsNone(simple_list_adapter.get_data_item(2))
 
         view = simple_list_adapter.get_view(0)
         self.assertTrue(isinstance(view, Label))
@@ -418,7 +419,7 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertEqual(list_adapter.args_converter, self.args_converter)
         self.assertEqual(list_adapter.template, None)
 
-        apple_data_item = list_adapter.get_item(0)
+        apple_data_item = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(apple_data_item, FruitItem))
 
     def test_list_adapter_with_dicts_as_data(self):
@@ -441,7 +442,7 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertEqual(list_adapter.cls, ListItemButton)
         self.assertEqual(list_adapter.args_converter, args_converter)
 
-        data_item = list_adapter.get_item(0)
+        data_item = list_adapter.get_data_item(0)
         self.assertTrue(type(data_item), dict)
 
     def test_list_adapter_bindings(self):
@@ -539,7 +540,7 @@ class AdaptersTestCase(unittest.TestCase):
         view = fruit_categories_list_adapter.get_view(0)
         self.assertEqual(view.__class__.__name__, 'CustomListItem')
 
-    def test_dict_adapter_selection_mode_none(self):
+    def test_dict_adapter_selection_mode_single_without_propagation(self):
 
         list_item_args_converter = lambda rec: {'text': rec['name'],
                                                 'size_hint_y': None,
@@ -562,6 +563,97 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertEqual(dict_adapter.args_converter, list_item_args_converter)
         self.assertEqual(dict_adapter.template, None)
 
-        apple_data_item = dict_adapter.get_item(0)
+        apple_data_item = dict_adapter.get_data_item(0)
         self.assertTrue(isinstance(apple_data_item, dict))
         self.assertEqual(apple_data_item['name'], 'Apple')
+
+        apple_view = dict_adapter.get_view(0)
+        self.assertTrue(isinstance(apple_view, ListItemButton))
+
+        self.assertEqual(len(dict_adapter.selection), 1)
+        self.assertTrue(apple_view.is_selected)
+        self.assertFalse(apple_data_item['is_selected'])
+
+    def test_dict_adapter_selection_mode_single_with_propagation(self):
+
+        list_item_args_converter = lambda rec: {'text': rec['name'],
+                                                'size_hint_y': None,
+                                                'height': 25}
+
+        dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
+                                   data=fruit_data,
+                                   args_converter=list_item_args_converter,
+                                   propagate_selection_to_data=True,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=ListItemButton)
+
+        self.assertEqual(sorted(dict_adapter.data),
+            ['Apple', 'Avocado', 'Banana', 'Cantaloupe', 'Cherry', 'Grape',
+             'Grapefruit', 'Honeydew', 'Kiwifruit', 'Lemon', 'Lime',
+             'Nectarine', 'Orange', 'Peach', 'Pear', 'Pineapple', 'Plum',
+             'Strawberry', 'Tangerine', 'Watermelon'])
+
+        self.assertEqual(dict_adapter.cls, ListItemButton)
+        self.assertEqual(dict_adapter.args_converter, list_item_args_converter)
+        self.assertEqual(dict_adapter.template, None)
+
+        apple_data_item = dict_adapter.get_data_item(0)
+        self.assertTrue(isinstance(apple_data_item, dict))
+        self.assertEqual(apple_data_item['name'], 'Apple')
+
+        apple_view = dict_adapter.get_view(0)
+        self.assertTrue(isinstance(apple_view, ListItemButton))
+
+        self.assertEqual(len(dict_adapter.selection), 1)
+        self.assertTrue(apple_view.is_selected)
+        self.assertTrue(apple_data_item['is_selected'])
+
+    def test_dict_adapter_sorted_keys(self):
+
+        list_item_args_converter = lambda rec: {'text': rec['name'],
+                                                'size_hint_y': None,
+                                                'height': 25}
+
+        dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
+                                   data=fruit_data,
+                                   args_converter=list_item_args_converter,
+                                   propagate_selection_to_data=True,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=ListItemButton)
+
+        self.assertEqual(sorted(dict_adapter.data),
+            ['Apple', 'Avocado', 'Banana', 'Cantaloupe', 'Cherry', 'Grape',
+             'Grapefruit', 'Honeydew', 'Kiwifruit', 'Lemon', 'Lime',
+             'Nectarine', 'Orange', 'Peach', 'Pear', 'Pineapple', 'Plum',
+             'Strawberry', 'Tangerine', 'Watermelon'])
+
+
+        apple_view = dict_adapter.get_view(0)
+        self.assertEqual(apple_view.text, 'Apple')
+
+        avocado_view = dict_adapter.get_view(1)
+        self.assertEqual(avocado_view.text, 'Avocado')
+
+        banana_view = dict_adapter.get_view(2)
+        self.assertEqual(banana_view.text, 'Banana')
+
+        dict_adapter.sorted_keys = ['Lemon', 'Pear', 'Tangerine']
+
+        self.assertEqual(len(dict_adapter.sorted_keys), 3)
+
+        self.assertEqual(sorted(dict_adapter.data),
+            ['Apple', 'Avocado', 'Banana', 'Cantaloupe', 'Cherry', 'Grape',
+             'Grapefruit', 'Honeydew', 'Kiwifruit', 'Lemon', 'Lime',
+             'Nectarine', 'Orange', 'Peach', 'Pear', 'Pineapple', 'Plum',
+             'Strawberry', 'Tangerine', 'Watermelon'])
+
+        lemon_view = dict_adapter.get_view(0)
+        self.assertEqual(lemon_view.text, 'Lemon')
+
+        pear_view = dict_adapter.get_view(1)
+        self.assertEqual(pear_view.text, 'Pear')
+
+        tangerine_view = dict_adapter.get_view(2)
+        self.assertEqual(tangerine_view.text, 'Tangerine')

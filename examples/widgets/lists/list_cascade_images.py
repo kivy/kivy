@@ -1,5 +1,5 @@
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.uix.selectableview import SelectableDataItem
+from kivy.uix.selectableview import SelectableView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
