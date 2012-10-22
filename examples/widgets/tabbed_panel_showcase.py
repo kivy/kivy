@@ -55,8 +55,8 @@ Builder.load_string('''
     size_hint: (.45, .45)
     pos_hint: {'center_x': .25, 'y': .55}
     #replace the default tab with our custom tab class
-    do_default_tab: True
     default_tab_cls: sh.__class__
+    do_default_tab: True
     default_tab_content: default_content
     tab_width: 40
     tab_height: 70

@@ -403,67 +403,11 @@ class TabbedPanel(GridLayout):
 
         super(TabbedPanel, self).__init__(**kwargs)
 
-        self.bind(width=self.reposition_tabs, height=self.reposition_tabs)
+        self.bind(size=self._reposition_tabs)
         if not self.do_default_tab:
             Clock.schedule_once(self._switch_to_first_tab)
             return
-
-        content = self._default_tab.content
-        cls = self.default_tab_cls
-
-        if not issubclass(cls, TabbedPanelHeader):
-            raise TabbedPanelException('`default_tab_class` should be\
-                subclassed from `TabbedPanelHeader`')
-
-        # no need to instanciate if class is TabbedPanelHeader
-        if cls != TabbedPanelHeader:
-            self._current_tab = self._original_tab = self._default_tab = cls()
-        default_tab = self.default_tab
-        if self._original_tab == self.default_tab:
-            default_tab.text = self.default_tab_text
-        default_tab.height = self.tab_height
-        default_tab.group = '__tab%r__' % _tabs.uid
-        default_tab.state = 'down'
-        default_tab.width = self.tab_width if self.tab_width else 100
-        default_tab.content = content
-
-        tl = self.tab_list
-        if default_tab not in tl:
-            _tabs.add_widget(default_tab, len(tl))
-
-        if default_tab.content:
-            self.clear_widgets()
-            self.add_widget(self.default_tab.content)
-        else:
-            Clock.schedule_once(self._load_default_tab_content)
-        self._current_tab = default_tab
-
-    def on_do_default_tab(self, instance, value):
-        if not value:
-            dft = self.default_tab
-            if dft in self.tab_list:
-                self._default_tab = None
-                self.remove_widget(dft)
-                self._switch_to_first_tab()
-        else:
-            self.default_tab = self.tab_list[-1]
-            Logger.info(
-                'TabbedPanel: setting `{0}` as `default_tab`'.format(
-                    self.default_tab.text))
-
-    def _switch_to_first_tab(self, *l):
-        ltl = len(self.tab_list) - 1
-        if ltl > -1:
-            self._current_tab = dt = self._original_tab \
-                = self.tab_list[ltl]
-            self.switch_to(dt)
-
-    def _load_default_tab_content(self, dt):
-        if self.default_tab:
-            self.switch_to(self.default_tab)
-
-    def on_default_tab_text(self, *args):
-        self._default_tab.text = self.default_tab_text
+        self._setup_default_tab()
 
     def switch_to(self, header):
         '''Switch to a specific panel header.
@@ -480,6 +424,15 @@ class TabbedPanel(GridLayout):
         if parent:
             parent.remove_widget(header_content)
         self.add_widget(header_content)
+
+    def clear_tabs(self, *l):
+        self_tabs = self._tab_strip
+        self_tabs.clear_widgets()
+        if self.do_default_tab:
+            self_default_tab = self._default_tab
+            self_tabs.add_widget(self_default_tab)
+            self_tabs.width = self_default_tab.width
+        self._reposition_tabs()
 
     def add_widget(self, widget, index=0):
         content = self.content
@@ -513,7 +466,7 @@ class TabbedPanel(GridLayout):
                 if widget.state == 'down':
                     if self.do_default_tab:
                         self._default_tab.on_release()
-                self.reposition_tabs()
+                self._reposition_tabs()
             else:
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
                     'Change `default_tab` to a different tab.')
@@ -530,16 +483,88 @@ class TabbedPanel(GridLayout):
         else:
             content.clear_widgets()
 
-    def clear_tabs(self, *l):
-        self_tabs = self._tab_strip
-        self_tabs.clear_widgets()
-        if self.do_default_tab:
-            self_default_tab = self._default_tab
-            self_tabs.add_widget(self_default_tab)
-            self_tabs.width = self_default_tab.width
-        self.reposition_tabs()
+    def on_background_image(self, *l):
+        self._bk_img.source = self.background_image
 
-    def reposition_tabs(self, *l):
+    def on_background_color(self, *l):
+        if self.content is None:
+            return
+        self._bk_img.color = self.background_color
+
+    def on_do_default_tab(self, instance, value):
+        if not value:
+            dft = self.default_tab
+            if dft in self.tab_list:
+                self._default_tab = None
+                self.remove_widget(dft)
+                self._switch_to_first_tab()
+        else:
+            self._current_tab.state = 'normal'
+            self._setup_default_tab()
+
+    def on_default_tab_text(self, *args):
+        self._default_tab.text = self.default_tab_text
+
+    def on_tab_width(self, *l):
+        Clock.unschedule(self._update_tab_width)
+        Clock.schedule_once(self._update_tab_width, 0)
+
+    def on_tab_height(self, *l):
+        self._tab_layout.height = self._tab_strip.height = self.tab_height
+        self._reposition_tabs()
+
+    def on_tab_pos(self, *l):
+        # ensure canvas
+        self._reposition_tabs()
+
+    def _setup_default_tab(self):
+        if self._default_tab in self.tab_list:
+            return
+        content = self._default_tab.content
+        _tabs = self._tab_strip
+        cls = self.default_tab_cls
+
+        if not issubclass(cls, TabbedPanelHeader):
+            raise TabbedPanelException('`default_tab_class` should be\
+                subclassed from `TabbedPanelHeader`')
+
+        # no need to instanciate if class is TabbedPanelHeader
+        if cls != TabbedPanelHeader:
+            self._current_tab = self._original_tab = self._default_tab = cls()
+
+        default_tab = self.default_tab
+        if self._original_tab == self.default_tab:
+            default_tab.text = self.default_tab_text
+
+        default_tab.height = self.tab_height
+        default_tab.group = '__tab%r__' % _tabs.uid
+        default_tab.state = 'down'
+        default_tab.width = self.tab_width if self.tab_width else 100
+        default_tab.content = content
+
+        tl = self.tab_list
+        if default_tab not in tl:
+            _tabs.add_widget(default_tab, len(tl))
+
+        if default_tab.content:
+            self.clear_widgets()
+            self.add_widget(self.default_tab.content)
+        else:
+            Clock.schedule_once(self._load_default_tab_content)
+        self._current_tab = default_tab
+
+    def _switch_to_first_tab(self, *l):
+        ltl = len(self.tab_list) - 1
+        if ltl > -1:
+            self._current_tab = dt = self._original_tab \
+                = self.tab_list[ltl]
+            self.switch_to(dt)
+
+    def _load_default_tab_content(self, dt):
+        if self.default_tab:
+            self.switch_to(self.default_tab)
+
+    def _reposition_tabs(self, *l):
         Clock.unschedule(self._update_tabs)
         Clock.schedule_once(self._update_tabs, 0)
 
@@ -670,19 +695,7 @@ class TabbedPanel(GridLayout):
         for widg in widget_list:
             add(widg)
 
-    def on_background_image(self, *l):
-        self._bk_img.source = self.background_image
-
-    def on_background_color(self, *l):
-        if self.content is None:
-            return
-        self._bk_img.color = self.background_color
-
-    def on_tab_width(self, *l):
-        Clock.unschedule(self.update_tab_width)
-        Clock.schedule_once(self.update_tab_width, 0)
-
-    def update_tab_width(self, *l):
+    def _update_tab_width(self, *l):
         if self.tab_width:
             for tab in self.tab_list:
                 tab.size_hint_x = 1
@@ -700,15 +713,7 @@ class TabbedPanel(GridLayout):
                     # size_hint_x: None
                     tsw += tab.width
         self._tab_strip.width = tsw
-        self.reposition_tabs()
-
-    def on_tab_height(self, *l):
-        self._tab_layout.height = self._tab_strip.height = self.tab_height
-        self.reposition_tabs()
-
-    def on_tab_pos(self, *l):
-        # ensure canvas
-        self.reposition_tabs()
+        self._reposition_tabs()
 
     def _update_top(self, *args):
         sctr, top, scrl_v_width, x, y = args

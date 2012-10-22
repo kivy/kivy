@@ -19,7 +19,6 @@ Builder.load_string("""
     TabbedPanelItem:
         text: 'first tab'
         Label:
-            id: set1_content
             text: 'First tab content area'
     TabbedPanelItem:
         text: 'tab2'
