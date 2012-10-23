@@ -23,13 +23,13 @@ To create a CodeInput with highliting for `KV language`::
 
     from kivy.uix.codeinput import CodeInput
     from kivy.extras.highlight import KivyLexer
-    codeinput = CodeInput(lexer=KivyLexer)
+    codeinput = CodeInput(lexer=KivyLexer())
 
 To create a CodeInput with highliting for `Cython`::
 
     from kivy.uix.codeinput import CodeInput
     from pygments.lexers import CythonLexer
-    codeinput = CodeInput(lexer=CythonLexer)
+    codeinput = CodeInput(lexer=CythonLexer())
 
 '''
 
@@ -41,7 +41,7 @@ from kivy.extras.highlight import KivyLexer
 from pygments.formatters import BBCodeFormatter
 
 from kivy.uix.textinput import TextInput
-from kivy.uix.label import Label
+from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
 from kivy.properties import BooleanProperty, ObjectProperty
 
@@ -56,7 +56,7 @@ class CodeInput(TextInput):
     '''CodeInput class, used for displaying highlited code.
     '''
 
-    lexer = ObjectProperty(lexers.PythonLexer)
+    lexer = ObjectProperty(None)
     '''This holds the selected Lexer used by pygments to highlite the code
 
 
@@ -65,17 +65,18 @@ class CodeInput(TextInput):
     '''
 
     def __init__(self, **kwargs):
+        self.formatter = BBCodeFormatter()
+        self.lexer = lexers.PythonLexer()
+        self.text_color = (0, 0, 0, 1)
+        self._label_cached = Label()
         super(CodeInput, self).__init__(**kwargs)
         self._line_options = kw = self._get_line_options()
-        self._markup_label_cached = Label(**kw)
-        self.formatter = BBCodeFormatter()
-        text_color = kwargs.get('foreground_color')
+        self._label_cached = Label(**kw)
         #use text_color as foreground color
+        text_color = kwargs.get('foreground_color')
         if text_color:
             self.text_color = (text_color[0], text_color[1], text_color[2],
                 text_color[3])
-        else:
-            self.text_color = (0, 0, 0, 1)
         # set foreground to white to allow text colors to show
         # use text_color as the default color in bbcodes
         self.foreground_color = [1, 1, 1, 1]
@@ -101,7 +102,10 @@ class CodeInput(TextInput):
                 label.text = ''
             else:
                 label.text = ntext
-            label.texture_update()
+            try:
+                label.refresh()
+            except ValueError:
+                pass
 
             # ok, we found it.
             texture = label.texture
@@ -124,7 +128,7 @@ class CodeInput(TextInput):
             # if at some time support for braille is added then replace these
             # characters with something else
             ntext = ntext.replace('[', u'⣿;').replace(']', u'⣾;')
-            ntext = highlight(ntext, self.lexer(), self.formatter)
+            ntext = highlight(ntext, self.lexer, self.formatter)
             ntext = ntext.replace(u'⣿;', '&bl;').replace(u'⣾;', '&br;')
             # replace special chars with &bl; and &br;
             ntext = ''.join(('[color=rgba', str(self.text_color), ']',
@@ -133,28 +137,6 @@ class CodeInput(TextInput):
             return ntext
         except IndexError:
             return ''
-
-    # overriden to get accurate cursor position for markup text
-    def _get_text_width(self, text, tab_width, label_cached):
-        # fix cursor placement diff cause of markup
-        kw = self._get_line_options()
-        cid = '%s\0%s' % (text, str(kw))
-        width = Cache_get('textinput.width', cid)
-        if not width:
-            _markup_label_cached = Label(**kw)
-            if text == '\n' or text.find('\n') > 0:
-                width = 0
-            else:
-                _markup_label_cached.text = self._get_bbcode(text)
-                _markup_label_cached.texture_update()
-                texture = _markup_label_cached.texture
-                # use width of texture of '.' instead of ' ' in start of line
-                # which is of 0 width in markup
-                width = texture.width if texture else\
-                    label_cached.get_extents('.')[0] * len(text)
-            Cache.append('textinput.width', cid, width)
-            _markup_label_cached.text = ''
-        return width
 
     # overriden to prevent cursor position off screen
     def _cursor_offset(self):
@@ -169,3 +151,27 @@ class CodeInput(TextInput):
             pass
         finally:
             return offset
+
+    def on_lexer(self, instance, value):
+        self._trigger_refresh_text()
+
+if __name__ == '__main__':
+    from kivy.extras.highlight import KivyLexer
+    from kivy.app import App
+
+    class CodeInputTest(App):
+        def build(self):
+            return CodeInput(lexer=KivyLexer(),
+                font_name='data/fonts/DroidSansMono.ttf', font_size=12,
+                text='''
+#:kivy 1.0
+
+<YourWidget>:
+    canvas:
+        Color:
+            rgb: .5, .5, .5
+        Rectangle:
+            pos: self.pos
+            size: self.size''')
+
+    CodeInputTest().run()
