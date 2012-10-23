@@ -9,7 +9,6 @@ a la http://kivy.org/docs/installation/installation.html Then run
 python main.py and browse or edit widgets to your heart's content.
 
 Known bugs:
-* StackLayout is misbehaving
 * The DropDown item I had tested completely crashes Kivy
 * The GridLayout example could use some extra features
 * If you try to start the app with focused set to true, weird stuff happens.
