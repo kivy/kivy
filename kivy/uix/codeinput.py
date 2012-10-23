@@ -37,13 +37,12 @@ __all__ = ('CodeInput', )
 
 from pygments import highlight
 from pygments import lexers
-from kivy.extras.highlight import KivyLexer
 from pygments.formatters import BBCodeFormatter
 
 from kivy.uix.textinput import TextInput
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
-from kivy.properties import BooleanProperty, ObjectProperty
+from kivy.properties import ObjectProperty
 
 Cache_get = Cache.get
 Cache_append = Cache.append
@@ -76,7 +75,7 @@ class CodeInput(TextInput):
         text_color = kwargs.get('foreground_color')
         if text_color:
             self.text_color = (text_color[0], text_color[1], text_color[2],
-                text_color[3])
+                               text_color[3])
         # set foreground to white to allow text colors to show
         # use text_color as the default color in bbcodes
         self.foreground_color = [1, 1, 1, 1]
@@ -132,7 +131,7 @@ class CodeInput(TextInput):
             ntext = ntext.replace(u'⣿;', '&bl;').replace(u'⣾;', '&br;')
             # replace special chars with &bl; and &br;
             ntext = ''.join(('[color=rgba', str(self.text_color), ']',
-            ntext, '[/color]'))
+                             ntext, '[/color]'))
             ntext = ntext.replace('\n', '')
             return ntext
         except IndexError:
