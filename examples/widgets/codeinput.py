@@ -1,6 +1,5 @@
 from kivy.app import App
 from kivy.extras.highlight import KivyLexer
-from kivy.uix.codeinput import CodeInput
 from kivy.factory import Factory
 import pygments
 
@@ -60,7 +59,7 @@ class CodeInputTest(App):
         languages.bind(text=self.change_lang)
         b.add_widget(languages)
 
-        self.codeinput = CodeInput(
+        self.codeinput = Factory.CodeInput(
             lexer=KivyLexer(),
             font_name='data/fonts/DroidSansMono.ttf', font_size=12,
             text=example_text)
