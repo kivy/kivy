@@ -401,7 +401,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_distance', '20')
             Config.setdefault('widgets', 'scroll_friction', '1.')
-            Config.setdefualt('widgets', 'scroll_stoptime', '300')
+            Config.setdefault('widgets', 'scroll_stoptime', '300')
             Config.setdefault('widgets', 'scroll_moves', '5')
 
             # remove old list_* token
