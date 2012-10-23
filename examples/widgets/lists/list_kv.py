@@ -19,12 +19,9 @@ Factory.register('ListItemButton', cls=ListItemButton)
 
 Builder.load_string('''
 [CustomListItem@SelectableView+BoxLayout]:
-    index: ctx.index
     size_hint_y: ctx.size_hint_y
     height: ctx.height
-    is_selected: ctx.is_selected
     ListItemButton:
-        index: ctx.index
         text: ctx.text
         is_selected: ctx.is_selected
 ''')

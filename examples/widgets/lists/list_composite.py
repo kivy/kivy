@@ -18,18 +18,12 @@ class MainView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(MainView, self).__init__(**kwargs)
 
-        # This is quite an involved args_converter, so we should go
-        # through the details. x here is a data item object, be it
-        # a string for a typical usage, as here, or some other object.
-        # x will become the text value when the class used in this
-        # example, CompositeListItem, is instantiated with the args
-        # returned by this converter. All of the rest, for size_hint_y,
-        # height, and the cls_dicts list, will be passed in the call
-        # to instantiate CompositeListItem for a data item. Inside the
-        # constructor of CompositeListItem is special-handling code that
-        # uses cls_dicts to create, in turn, the component items in the
-        # composite. This is a similar approach to using a kv template,
-        # which you might wish to explore also.
+        # This is quite an involved args_converter, so we should go through the
+        # details. A CompositeListItem instance is made with the args
+        # returned by this converter. The first three, text, size_hint_y,
+        # height are arguments for CompositeListItem. The cls_dicts list contains
+        # argument sets for each of the member widgets for this composite:
+        # ListItemButton and ListItemLabel.
         args_converter = \
             lambda rec: \
                 {'text': rec['text'],
@@ -45,11 +39,6 @@ class MainView(GridLayout):
 
         item_strings = ["{0}".format(index) for index in xrange(100)]
 
-        # And now the list adapter, constructed with the item_strings as
-        # the data, a dict to add the required is_selected boolean onto
-        # data records, and our args_converter() that will operate one each
-        # item in the data to produce list item view instances from the
-        # :class:`CompositeListItem` class.
         dict_adapter = DictAdapter(sorted_keys=item_strings,
                                    data=integers_dict,
                                    args_converter=args_converter,

@@ -39,7 +39,7 @@ Here we make a listview with 100 items.
         from kivy.base import runTouchApp
         runTouchApp(MainView(width=800))
 
-Using a ListAdapter
+Using an Adapter
 -------------------
 
 Behind the scenes, the basic example above uses :class:`SimpleListAdapter`.
@@ -66,7 +66,7 @@ ListAdapter and DictAdapter
 ---------------------------
 
 For many uses of a list, the data is more than a simple list of strings and
-selection functionality is needed.  :class:`ListAdapter` and
+selection functionality is often needed.  :class:`ListAdapter` and
 :class:`DictAdapter` each contain functionality for selection.
 
 See the :class:`ListAdapter` docs for details, but here are synopses of
@@ -103,14 +103,14 @@ its arguments:
 
 In narrative, we can summarize with:
 
-    A listview's list adapter takes data items and uses an args_converter
+    A listview's adapter takes data items and uses an args_converter
     function to transform them into arguments for making list item view
     instances, using either a cls or a kv template.
 
 In a graphic, a summary of the relationship between a listview and its
 list adapter, looks like this:
 
-    -                    ------------------- ListAdapter --------------------
+    -                    ------------ ListAdapter or DictAdapter ------------
     -                    |                                                  |
     -                    | <list item views> (cls or template) <data items> |
     -   ListView   -->   |                           [args_converter]       |
@@ -193,6 +193,166 @@ intantiated from the args converted by args_converter for each data item. The
 listview will only allow single selection -- additional touches will be
 ignored. When the listview is first shown, the first item will already be
 selected, because allow_empty_selection is False.
+
+:class:`ListItemLabel` works much the same way as :class:`ListItemButton`.
+
+Using a Custom Item View Class
+------------------------------
+
+The data used in an adapter can be any of the normal Python types, such as
+strings, class instances, dictionaries, etc. It is up to the programmer to
+assure that the args_converter has appropriate functionality.
+
+Here we make a simple DataItem class that has the required text and
+is_selected properties:
+
+    from kivy.uix.listview import ListItemButton
+
+    class DataItem(object):
+        def __init__(self, text='', is_selected=False):
+            self.text = text
+            self.is_selected = is_selected
+
+    data_items = []
+    data_items.append(DataItem(text='cat')
+    data_items.append(DataItem(text='dog')
+    data_items.append(DataItem(text='frog')
+
+    list_item_args_converter = lambda obj: {'text': obj.text,
+                                            'size_hint_y': None,
+                                            'height': 25}
+
+    # We will set this data in a ListAdapter along with the list item
+    # args_converter function above (lambda), and we set arguments about
+    # selection. We will allow single selection, selection in the listview
+    # will propagate to the data items -- the is_selected for each data item
+    # will be set. And, by having allow_empty_selection=False, when the
+    # listview first appears, the first item, 'cat', will already be
+    # selected. The list adapter will instantiate a ListItemButton class
+    # instance for each data item, using the assigned args_converter.
+    list_adapter = ListAdapter(data=data_items,
+                               args_converter=list_item_args_converter,
+                               selection_mode='single',
+                               propagate_selection_to_data=True,
+                               allow_empty_selection=False,
+                               cls=ListItemButton)
+
+    list_view = ListView(adapter=list_adapter)
+
+The list_vew would then be added to a view with add_widget().
+
+You may also use the provided :class:`SelectableDataItem` mixin to make a
+custom class. Instead of the "manually-constructed" DataItem class above,
+we could do:
+
+    from kivy.adapters.models import SelectableDataItem
+
+    class DataItem(SelectableDataItem):
+        pass
+
+:class:`SelectableDataItem` is a simple mixin class that has the text and
+is_selected properties.
+
+Using an Item View Template
+---------------------------
+
+:class:`SelectableView` is another simple mixin class that has required
+properties for a list item: text, and is_selected. To make your own template,
+mix it in as follows:
+
+    from kivy.uix.listview import ListItemButton
+    from kivy.uix.listview import SelectableView
+
+    Builder.load_string(<triplequotes>
+    [CustomListItem@SelectableView+BoxLayout]:
+        size_hint_y: ctx.size_hint_y
+        height: ctx.height
+        ListItemButton:
+            text: ctx.text
+            is_selected: ctx.is_selected
+    </triplequotes>)
+
+A class called CustomListItem will be instantiated for each list item. Note that
+it is a layout, BoxLayout, and is thus a kind of container. It contains a
+:class:`ListItemButton` instance.
+
+Using the power of the Kivy language (kv), you can easily build composite list
+items -- in addition to ListItemButton, you could have a ListItemLabel, or a
+custom class you have defined and registered with the system.
+
+An args_converter needs to be constructed that goes along with such a kv
+template. For example, to use the kv template above:
+
+    list_item_args_converter = \
+            lambda rec: {'text': rec['text'],
+                         'is_selected': rec['is_selected'],
+                         'size_hint_y': None,
+                         'height': 25}
+    integers_dict = \
+        { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
+
+    # Here we create a dict adapter with 1..100 integer strings as
+    # sorted_keys, and an integers_dict as data, passing our
+    # CompositeListItem kv template for the list item view.
+    dict_adapter = DictAdapter(sorted_keys=[str(i) for i in xrange(100)],
+                               data=integers_dict,
+                               args_converter=list_item_args_converter,
+                               template='CustomListItem')
+
+    # Now we create a list view using this adapter. The args_converter above
+    # converts dict attributes to ctx attributes.
+    list_view = ListView(adapter=dict_adapter)
+
+The list_vew would then be added to a view with add_widget().
+
+
+Using CompositeItemView
+-----------------------
+
+The class :class:`CompositeItemView` is another option for building complex
+composite list items. The kv language approach has its advantages, but here we
+build a composite list view using a straight Kivy widget method:
+
+    # This is quite an involved args_converter, so we should go through the
+    # details. A CompositeListItem instance is made with the args
+    # returned by this converter. The first three, text, size_hint_y,
+    # height are arguments for CompositeListItem. The cls_dicts list contains
+    # argument sets for each of the member widgets for this composite:
+    # ListItemButton and ListItemLabel. This is a similar approach to using a
+    # kv template described above.
+    args_converter = \
+        lambda rec: \
+            {'text': rec['text'],
+             'size_hint_y': None,
+             'height': 25,
+             'cls_dicts': [{'cls': ListItemButton,
+                            'kwargs': {'text': rec['text']}},
+                           {'cls': ListItemLabel,
+                            'kwargs': {'text': "Middle-{0}".format(rec['text']),
+                                       'is_representing_cls': True}},
+                           {'cls': ListItemButton,
+                            'kwargs': {'text': rec['text']}}]}
+
+    item_strings = ["{0}".format(index) for index in xrange(100)]
+
+    integers_dict = \
+        { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
+
+    # And now the dict adapter, constructed with the item_strings as
+    # the sorted_keys, the integers_dict as data, and our args_converter()
+    # that produce list item view instances from the
+    # :class:`CompositeListItem` class.
+    dict_adapter = DictAdapter(sorted_keys=item_strings,
+                               data=integers_dict,
+                               args_converter=args_converter,
+                               selection_mode='single',
+                               allow_empty_selection=False,
+                               cls=CompositeListItem)
+
+    list_view = ListView(adapter=dict_adapter)
+
+For details on how :class:`CompositeListItem` works, view the code and look
+for parsing of the cls_dicts list and kwargs processing.
 
 Uses for Selection
 ------------------

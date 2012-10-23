@@ -571,7 +571,38 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertTrue(isinstance(view, ListItemButton))
         self.assertTrue(view.is_selected)
 
-    def test_list_adapter_with_custom_class(self):
+    def test_list_adapter_with_custom_data_item_class(self):
+
+        class DataItem(object):
+            def __init__(self, text='', is_selected=False):
+                self.text = text
+                self.is_selected = is_selected
+
+        data_items = []
+        data_items.append(DataItem(text='cat'))
+        data_items.append(DataItem(text='dog'))
+        data_items.append(DataItem(text='frog'))
+
+        list_item_args_converter = lambda obj: {'text': obj.text,
+                                                'size_hint_y': None,
+                                                'height': 25}
+
+        list_adapter = ListAdapter(data=data_items,
+                                   args_converter=list_item_args_converter,
+                                   selection_mode='single',
+                                   propagate_selection_to_data=True,
+                                   allow_empty_selection=False,
+                                   cls=ListItemButton)
+
+        data_item = list_adapter.get_data_item(0)
+        self.assertTrue(isinstance(data_item, DataItem))
+        self.assertTrue(data_item.is_selected)
+
+        view = list_adapter.get_view(0)
+        self.assertTrue(isinstance(view, ListItemButton))
+        self.assertTrue(view.is_selected)
+
+    def test_list_adapter_with_widget_as_data_item_class(self):
         
         # Use a widget as data item.
         class DataItem(Label):
@@ -608,9 +639,9 @@ class AdaptersTestCase(unittest.TestCase):
                          list_item_args_converter)
         self.assertEqual(list_adapter.template, None)
 
-        apple_data_item = list_adapter.get_data_item(0)
-        self.assertTrue(isinstance(apple_data_item, DataItem))
-        self.assertTrue(apple_data_item.is_selected)
+        data_item = list_adapter.get_data_item(0)
+        self.assertTrue(isinstance(data_item, DataItem))
+        self.assertTrue(data_item.is_selected)
 
         view = list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
