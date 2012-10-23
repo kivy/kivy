@@ -1,0 +1,18 @@
+This is the Kivy Catalog viewer. It serves two purposes:
+
+1. To showcase the various widgets available in Kivy
+2. To allow interactive editing of Kivy language files
+    to get immediate feedback as to how they work
+
+To use it, you'll need to install Kivy and it's dependencies
+a la http://kivy.org/docs/installation/installation.html Then run
+python main.py and browse or edit widgets to your heart's content.
+
+Known bugs:
+* The DropDown item I had tested completely crashes Kivy
+* The GridLayout example could use some extra features
+* If you try to start the app with focused set to true, weird stuff happens.
+    but it works fine if you set focused to true and press render.
+* Video playback doesn't work for me, but this may be a dependency issue
+* Popups are displayed inline
+* Some widgets are still missing

@@ -1,0 +1,21 @@
+#:kivy 1.4
+
+GridLayout:
+    rows: 2
+    Label:
+        text: "Label 1"
+    Label:
+        text: "Label with\nmultiple lines"
+    Label:
+        text: "Label [color=ff3333]with[/color] [color=3333ff][b]markup[/b][/color]"
+        markup: True
+    Label:
+        text: "Label with [ref=reference]reference[/ref]"
+        markup: True
+        on_ref_press: self.text = "ref clicked"
+    Label:
+        text: "different font"
+        bold: True
+        font_name: "DroidSansMono.ttf"
+        font_size: 32
+        valign: "bottom"

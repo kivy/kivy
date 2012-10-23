@@ -1,3 +1,5 @@
+'''Pygments lexer for kv language
+'''
 from pygments.lexer import RegexLexer, bygroups, using
 from pygments.lexers.agile import PythonLexer
 from pygments import highlight

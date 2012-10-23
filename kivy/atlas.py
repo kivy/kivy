@@ -192,7 +192,7 @@ class Atlas(EventDispatcher):
         self.textures = textures
 
     @staticmethod
-    def create(outname, filenames, size, padding=1):
+    def create(outname, filenames, size, padding=2):
         '''This method can be used to create manually an atlas from a set of
         images.
 
@@ -204,11 +204,17 @@ class Atlas(EventDispatcher):
                 List of filename to put in the atlas
             `size`: int
                 Size of an atlas image
-            `padding`: int, default to 1
-                Padding to put around each image. Care, if you put 0, they might
-                be some issues with OpenGL, because by default, Kivy texture are
-                using GL_CLAMP_TO_EDGE, and the edge is another image than
-                the image you'll want to display.
+            `padding`: int, default to 2
+                Padding to put around each image.
+
+                Be careful. If you're using a padding < 2, you might get issues
+                with border of the images. Because of the OpenGL linearization,
+                it might take the pixels of the adjacent image.
+
+                If you're using a padding >= 2, we'll automatically generate a
+                "border" of 1px of your image, around the image. If you look at
+                the result, don't be scared if the image inside it are not
+                exactly the same as yours :).
         '''
         # Thanks to
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
@@ -232,7 +238,6 @@ class Atlas(EventDispatcher):
         # the freebox tuple format is: outidx, x, y, w, h
         freeboxes = [(0, 0, 0, size, size)]
         numoutimages = 1
-        padding = 1
 
         # full boxes are areas where we have placed images in the atlas
         # the full box tuple format is: image, outidx, x, y, w, h, filename
@@ -291,7 +296,16 @@ class Atlas(EventDispatcher):
         outimages = [Image.new('RGBA', (size, size))
                 for i in range(0, int(numoutimages))]
         for fb in fullboxes:
-            outimages[fb[1]].paste(fb[0], (fb[2], fb[3]))
+            x, y = fb[2], fb[3]
+            out = outimages[fb[1]]
+            out.paste(fb[0], (fb[2], fb[3]))
+            w, h = fb[0].size
+            if padding > 1:
+                out.paste(fb[0].crop((0, 0, w, 1)), (x, y - 1))
+                out.paste(fb[0].crop((0, h - 1, w, h)), (x, y + h))
+                out.paste(fb[0].crop((0, 0, 1, h)), (x - 1, y))
+                out.paste(fb[0].crop((w - 1, 0, w, h)), (x + w, y))
+
 
         # save the output images
         for idx, outimage in enumerate(outimages):
