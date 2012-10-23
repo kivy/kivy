@@ -62,13 +62,12 @@ The instance of :class:`SimpleListAdapter` has a required data argument, which
 contains data items to use as the basis for list items, along with a cls
 argument for the class to be instantiated for each list item from the data.
 
-CollectionAdapter: ListAdapter and DictAdapter
----------------------------------------------
+ListAdapter and DictAdapter
+---------------------------
 
 For many uses of a list, the data is more than a simple list of strings and
 selection functionality is needed.  :class:`ListAdapter` and
-:class:`DictAdapter` each subclass :class:`CollectionAdapter`, extending its
-base functionality for selection.
+:class:`DictAdapter` each contain functionality for selection.
 
 See the :class:`ListAdapter` docs for details, but here are synopses of
 its arguments:
@@ -198,9 +197,6 @@ selected, because allow_empty_selection is False.
 Uses for Selection
 ------------------
 
-In the previous example, we saw how a listview gains selection support just by
-using ListAdapter, which subclasses CollectionAdapter.
-
 What can we do with selection? Combining selection with the system of bindings
 in Kivy, we can build a wide range of user interface designs.
 
@@ -244,11 +240,44 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.uix.abstractview import AbstractView
-from kivy.uix.selectableview import SelectableView
 from kivy.properties import ObjectProperty, DictProperty, \
         NumericProperty, ListProperty, BooleanProperty
 from kivy.lang import Builder
 from math import ceil, floor
+
+
+class SelectableView(object):
+    '''The :class:`SelectableView` mixin is used in list item and other
+    classes that are to be instantiated in a list view, or another class
+    which uses a selection-enabled adapter such as ListAdapter.  select() and
+    deselect() are to be overridden with display code to mark items as
+    selected or not, if desired.
+    '''
+
+    index = NumericProperty(-1)
+    '''The index into the underlying data list or the data item this view
+    represents.
+    '''
+
+    is_selected = BooleanProperty(False)
+    '''A SelectableView instance carries this property, which should be kept
+    in sync with the equivalent property in the data item it represents.
+    '''
+
+    def __init__(self, **kwargs):
+        super(SelectableView, self).__init__(**kwargs)
+
+    def select(self, *args):
+        '''The list item is responsible for updating the display for
+        being selected, if desired.
+        '''
+        self.is_selected = True
+
+    def deselect(self, *args):
+        '''The list item is responsible for updating the display for
+        being unselected, if desired.
+        '''
+        self.is_selected = False
 
 
 class ListItemButton(SelectableView, Button):
@@ -316,7 +345,7 @@ class CompositeListItem(SelectableView, BoxLayout):
     selected_color = ListProperty([1., 0., 0., 1])
     deselected_color = ListProperty([.33, .33, .33, 1])
 
-    representing_cls = ObjectProperty([])
+    representing_cls = ObjectProperty(None)
     '''Which component view class, if any, should represent for the
     composite list item in __repr__()?
     '''
@@ -327,18 +356,12 @@ class CompositeListItem(SelectableView, BoxLayout):
         # Example data:
         #
         #    'cls_dicts': [{'cls': ListItemButton,
-        #                   'kwargs': {'text': "Left",
-        #                              'merge_text': True,
-        #                              'delimiter': '-'}},
+        #                   'kwargs': {'text': "Left"}},
         #                   'cls': ListItemLabel,
         #                   'kwargs': {'text': "Middle",
-        #                              'merge_text': True,
-        #                              'delimiter': '-',
         #                              'is_representing_cls': True}},
         #                   'cls': ListItemButton,
-        #                   'kwargs': {'text': "Right",
-        #                              'merge_text': True,
-        #                              'delimiter': '-'}}]}
+        #                   'kwargs': {'text': "Right"}]
 
         # There is an index to the data item this composite list item view
         # represents. Get it from kwargs and pass it along to children in the
@@ -347,34 +370,26 @@ class CompositeListItem(SelectableView, BoxLayout):
 
         for cls_dict in kwargs['cls_dicts']:
             cls = cls_dict['cls']
-            cls_kwargs = cls_dict['kwargs']
+            cls_kwargs = cls_dict.get('kwargs', None)
 
-            cls_kwargs['index'] = index
+            if cls_kwargs:
+                cls_kwargs['index'] = index
 
-            if 'selection_target' not in cls_kwargs:
-                cls_kwargs['selection_target'] = self
+                if 'selection_target' not in cls_kwargs:
+                    cls_kwargs['selection_target'] = self
 
-            if 'merge_text' in cls_kwargs:
-                if cls_kwargs['merge_text'] is True:
-                    if 'text' in cls_kwargs:
-                        if 'delimiter' in cls_kwargs:
-                            cls_kwargs['text'] = "{0}{1}{2}".format(
-                                    cls_kwargs['text'],
-                                    cls_kwargs['delimiter'],
-                                    kwargs['text'])
-                        else:
-                            cls_kwargs['text'] = "{0}{1}".format(
-                                    cls_kwargs['text'],
-                                    kwargs['text'])
-                elif 'text' not in cls_kwargs:
+                if 'text' not in cls_kwargs:
                     cls_kwargs['text'] = kwargs['text']
-            elif 'text' not in cls_kwargs:
-                cls_kwargs['text'] = kwargs['text']
 
-            if 'is_representing_cls' in cls_kwargs:
-                self.representing_cls = cls
+                if 'is_representing_cls' in cls_kwargs:
+                    self.representing_cls = cls
 
-            self.add_widget(cls(**cls_kwargs))
+                self.add_widget(cls(**cls_kwargs))
+            else:
+                cls_kwargs = {}
+                if 'text' in kwargs:
+                    cls_kwargs['text'] = kwargs['text']
+                self.add_widget(cls(**cls_kwargs))
 
     def select(self, *args):
         self.background_color = self.selected_color
@@ -396,7 +411,7 @@ class CompositeListItem(SelectableView, BoxLayout):
         if self.representing_cls is not None:
             return str(self.representing_cls)
         else:
-            return 'unknown'
+            return super(CompositeListItem, self).__repr__()
 
 
 Builder.load_string('''
@@ -464,7 +479,7 @@ class ListView(AbstractView, EventDispatcher):
         # provided, raise an exception.
         if 'adapter' not in kwargs:
             if 'item_strings' not in kwargs:
-                raise Exception('ListView: input needed, or an adapter')
+                raise Exception('ListView: item_strings needed or an adapter')
 
             list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
                                              cls=Label)

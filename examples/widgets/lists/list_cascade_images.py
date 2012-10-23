@@ -110,14 +110,13 @@ class CascadingView(GridLayout):
 
         # Detail view, for a given fruit, on the right:
         #
-        detail_view = FruitImageDetailView(size_hint=(.6, 1.0))
+        detail_view = FruitImageDetailView(
+                fruit_name=fruits_list_adapter.selection[0].fruit_name,
+                size_hint=(.6, 1.0))
+
         fruits_list_adapter.bind(
                 on_selection_change=detail_view.fruit_changed)
         self.add_widget(detail_view)
-
-        # Force triggering of on_selection_change() for the DetailView, for
-        # correct initial display. [TODO] Surely there is a way to avoid this.
-        fruits_list_adapter.touch_selection()
 
 
 if __name__ == '__main__':

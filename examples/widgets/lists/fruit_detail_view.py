@@ -15,7 +15,10 @@ class FruitDetailView(GridLayout):
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 2
+        self.fruit_name = kwargs.get('fruit_name', '')
         super(FruitDetailView, self).__init__(**kwargs)
+        if self.fruit_name:
+            self.redraw()
 
     def redraw(self, *args):
         self.clear_widgets()
@@ -85,7 +88,10 @@ class FruitImageDetailView(BoxLayout):
 
     def __init__(self, **kwargs):
         kwargs['orientation'] = 'vertical'
+        self.fruit_name = kwargs.get('fruit_name', '')
         super(FruitImageDetailView, self).__init__(**kwargs)
+        if self.fruit_name:
+            self.redraw()
 
     def redraw(self, *args):
         self.clear_widgets()

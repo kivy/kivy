@@ -6,7 +6,7 @@ DictAdapter
 
 :class:`DictAdapter` is an adapter around a python dictionary of records.
 
-From :class:`Adapter`, :class:`DictAdapter` gets these properties:
+From :class:`ListAdapter`, :class:`DictAdapter` gets these properties:
 
     Use only one:
 
@@ -22,9 +22,6 @@ From :class:`Adapter`, :class:`DictAdapter` gets these properties:
                       provided, a default one is set, that assumes that the
                       data items are strings.
 
-From the :class:`CollectionAdapter` mixin, :class:`DictAdapter` has
-these properties:
-
     - selection
     - selection_mode
     - allow_empty_selection
@@ -38,11 +35,11 @@ If you wish to have a bare-bones list adapter, without selection, use
 
 from kivy.properties import ListProperty, DictProperty
 from kivy.lang import Builder
-from kivy.adapters.collectionadapter import CollectionAdapter
+from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.models import SelectableDataItem
 
 
-class DictAdapter(CollectionAdapter):
+class DictAdapter(ListAdapter):
 
     sorted_keys = ListProperty([])
     '''The sorted_keys list property contains a list of hashable objects (can
@@ -75,10 +72,26 @@ class DictAdapter(CollectionAdapter):
         self.bind(sorted_keys=func)
         self.bind(data=func)
 
+    # self.data is paramount to self.sorted_keys. If sorted_keys is reset to
+    # mismatch data, force a reset of sorted_keys to data.keys(). So, in order
+    # to do a complete reset of data and sorted_keys, data must be reset
+    # first, followed by a reset of sorted_keys, if needed.
     def initialize_sorted_keys(self, *args):
+        stale_sorted_keys = False
+        for key in self.sorted_keys:
+            if not key in self.data:
+                stale_sorted_keys = True
+                break
+        if stale_sorted_keys:
+            self.sorted_keys = sorted(self.data.keys())
         self.delete_cache()
         self.initialize_selection()
 
+    # Override ListAdapter.update_for_new_data().
+    def update_for_new_data(self, *args):
+        self.initialize_sorted_keys()
+
+    # Note: this is not len(self.data).
     def get_count(self):
         return len(self.sorted_keys)
 
@@ -86,29 +99,6 @@ class DictAdapter(CollectionAdapter):
         if index < 0 or index >= len(self.sorted_keys):
             return None
         return self.data[self.sorted_keys[index]]
-
-    def select_data_item(self, item):
-        # The data item must be a subclass of SelectableDataItem, or must have
-        # an is_selected boolean or function, so it has is_selected available.
-        # If is_selected is unavailable on the data item, an exception is
-        # raised.
-        #
-        if issubclass(item.__class__, SelectableDataItem):
-            item.is_selected = True
-        elif type(item) == dict and 'is_selected' in item:
-            item['is_selected'] = True
-        elif hasattr(item, 'is_selected'):
-            if isfunction(item.is_selected) or ismethod(item.is_selected):
-                item.is_selected()
-            else:
-                item.is_selected = True
-        else:
-            msg = "ListAdapter: unselectable data item for {0}".format(item)
-            raise Exception(msg)
-
-    def touch_selection(self, *args):
-        self.dispatch('on_selection_change')
-                  
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,
     #        scroll_to_sel_middle.

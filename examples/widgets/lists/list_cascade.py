@@ -153,15 +153,13 @@ class CascadingView(GridLayout):
 
         # Detail view, for a given fruit, on the right:
         #
-        detail_view = FruitDetailView(size_hint=(.6, 1.0))
+        detail_view = FruitDetailView(
+                fruit_name=fruits_list_adapter.selection[0].text,
+                size_hint=(.6, 1.0))
 
         fruits_list_adapter.bind(
                 on_selection_change=detail_view.fruit_changed)
         self.add_widget(detail_view)
-
-        # Force triggering of on_selection_change() for the DetailView, for
-        # correct initial display.
-        fruits_list_adapter.touch_selection()
 
 
 if __name__ == '__main__':

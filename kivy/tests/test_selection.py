@@ -2,12 +2,6 @@
 Selection tests
 ===============
 
-NOTE: In tests, take care calling list_view.get_item_view(0), because this
-      will call list_adapter.get_view(0), which does a selection.
-      Instead, you can get the cached view with direct references such as
-      list_view.item_view_instances[0], paying attention to when one should be
-      available. If you want to trigger a selection as a user touch would do,
-      call list_item_view.get_item_view().
 '''
 
 import unittest
@@ -17,7 +11,7 @@ from kivy.uix.listview import ListView, ListItemButton
 from kivy.properties import NumericProperty, StringProperty
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.dictadapter import DictAdapter
-from kivy.adapters.mixins.selection import SelectableDataItem
+from kivy.adapters.models import SelectableDataItem
 
 # The following integers_dict and fruit categories / fruit data dictionaries
 # are from kivy/examples/widgets/lists/fixtures.py, and the classes are from
@@ -275,6 +269,7 @@ class ListAdapterTestCase(unittest.TestCase):
         list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
+                                   propagate_selection_to_data=True,
                                    allow_empty_selection=True,
                                    cls=ListItemButton)
         list_view = ListView(adapter=list_adapter)
@@ -291,13 +286,10 @@ class ListAdapterTestCase(unittest.TestCase):
         self.assertEqual(len(list_adapter.selection), 0)
 
         # Still no selection, but triggering a selection should make len = 1.
-        # Calling get_item_view(0)) here will, in turn, call
-        # list_adapter.get_item_view(0), which does a selection if the
-        # associated data item is selected. So, first we need to select the
-        # associated data item.
+        # So, first we need to select the associated data item.
         self.assertEqual(fruit_data_items[0].name, 'Apple')
         fruit_data_items[0].is_selected = True
-        apple = list_view.get_item_view(0)
+        apple = list_view.adapter.get_view(0)
         self.assertEqual(apple.text, 'Apple')
         self.assertTrue(apple.is_selected)
         self.assertEqual(len(list_adapter.selection), 1)
@@ -314,7 +306,7 @@ class ListAdapterTestCase(unittest.TestCase):
         # at the end of its __init__(), calls check_for_empty_selection()
         # and triggers the initial selection, because allow_empty_selection is
         # False.
-        apple = list_view.item_view_instances[0]
+        apple = list_view.adapter.cached_views[0]
         self.assertEqual(list_adapter.selection[0], apple)
         self.assertEqual(len(list_adapter.selection), 1)
         list_adapter.check_for_empty_selection()
@@ -326,6 +318,7 @@ class ListAdapterTestCase(unittest.TestCase):
         list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='multiple',
+                                   propagate_selection_to_data=True,
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
         list_view = ListView(adapter=list_adapter)
@@ -341,7 +334,7 @@ class ListAdapterTestCase(unittest.TestCase):
         # Add Avocado to the selection, doing necessary steps on data first.
         self.assertEqual(fruit_data_items[1].name, 'Avocado')
         fruit_data_items[1].is_selected = True
-        avocado = list_view.get_item_view(1)  # does selection
+        avocado = list_view.adapter.get_view(1)  # does selection
         self.assertEqual(avocado.text, 'Avocado')
         self.assertEqual(len(list_adapter.selection), 2)
 
@@ -362,7 +355,7 @@ class ListAdapterTestCase(unittest.TestCase):
         # And select some different ones.
         self.assertEqual(fruit_data_items[2].name, 'Banana')
         fruit_data_items[2].is_selected = True
-        banana = list_view.get_item_view(2)  # does selection
+        banana = list_view.adapter.get_view(2)  # does selection
         self.assertEqual(list_adapter.selection, [apple, avocado, banana])
         self.assertEqual(len(list_adapter.selection), 3)
 
@@ -370,6 +363,7 @@ class ListAdapterTestCase(unittest.TestCase):
         list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='multiple',
+                                   propagate_selection_to_data=True,
                                    selection_limit=3,
                                    allow_empty_selection=True,
                                    cls=ListItemButton)
@@ -379,7 +373,7 @@ class ListAdapterTestCase(unittest.TestCase):
         for i in range(5):
             # Add item to the selection, doing necessary steps on data first.
             fruit_data_items[i].is_selected = True
-            list_view.get_item_view(i)  # does selection
+            list_view.adapter.get_view(i)  # does selection
             self.assertEqual(len(list_adapter.selection),
                              i + 1 if i < 3 else 3)
 
@@ -387,6 +381,7 @@ class ListAdapterTestCase(unittest.TestCase):
         list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=self.args_converter,
                                    selection_mode='single',
+                                   propagate_selection_to_data=True,
                                    allow_empty_selection=False,
                                    cls=ListItemButton)
 
@@ -396,22 +391,17 @@ class ListAdapterTestCase(unittest.TestCase):
 
         list_view = ListView(adapter=list_adapter)
 
-        list_adapter.touch_selection()
-
-        # There should have been a call for initial selection, triggered by
-        # the check_for_empty_selection() at the end of ListView.__init__()
-        # followed by the forced dispatch from the call to touch_selection.
-        self.assertEqual(selection_observer.call_count, 2)
+        self.assertEqual(selection_observer.call_count, 0)
 
         # From the check for initial selection, we should have apple selected.
         self.assertEqual(list_adapter.selection[0].text, 'Apple')
         self.assertEqual(len(list_adapter.selection), 1)
 
-        # Go throught the tests routine to trigger selection of banana.
+        # Go through the tests routine to trigger selection of banana.
         # (See notes above about triggering selection in tests.)
         self.assertEqual(fruit_data_items[2].name, 'Banana')
         fruit_data_items[2].is_selected = True
-        banana = list_view.get_item_view(2)  # does selection
+        banana = list_view.adapter.get_view(2)  # does selection
         self.assertTrue(banana.is_selected)
 
         # Now unselect it with handle_selection().
@@ -424,10 +414,10 @@ class ListAdapterTestCase(unittest.TestCase):
 
         # Call count:
         #
-        # Apple got selected initally (1), then unselected (2) when Banana was
-        # selected (3). Then banana was unselected(4), causing reselection of
-        # Apple (5). len should be 1.
-        self.assertEqual(selection_observer.call_count, 5)
+        # Apple got selected initally (0), then unselected when Banana was
+        # selected (1). Then banana was unselected, causing reselection of
+        # Apple (3). len should be 1.
+        self.assertEqual(selection_observer.call_count, 3)
         self.assertEqual(len(list_adapter.selection), 1)
 
 

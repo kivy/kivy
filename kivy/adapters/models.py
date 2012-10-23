@@ -52,8 +52,3 @@ class SelectableDataItem(object):
     @is_selected.setter
     def is_selected(self, value):
         self._is_selected = value
-
-    @is_selected.deleter
-    def is_selected(self):
-        self._is_selected = None
-

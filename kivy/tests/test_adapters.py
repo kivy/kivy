@@ -5,8 +5,10 @@ Adapter tests
 
 import unittest
 
-from kivy.uix.selectableview import SelectableView
+from kivy.uix.listview import SelectableView
 from kivy.uix.listview import ListItemButton
+from kivy.uix.listview import ListItemLabel
+from kivy.uix.listview import CompositeListItem
 from kivy.uix.label import Label
 
 from kivy.adapters.models import SelectableDataItem
@@ -14,6 +16,9 @@ from kivy.adapters.adapter import Adapter
 from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.adapters.listadapter import ListAdapter
 from kivy.adapters.dictadapter import DictAdapter
+
+from kivy.properties import BooleanProperty
+from kivy.properties import StringProperty
 
 from kivy.factory import Factory
 from kivy.lang import Builder
@@ -148,6 +153,7 @@ fruit_data_list_of_dicts = \
       'data': [80, 0, 0, 0, 0, 0, 270, 8, 21, 7, 1, 4, 20, 1, 30, 25, 2, 4],
       'is_selected': False}]
 
+
 fruit_data_attributes = ['(gram weight/ ounce weight)',
                          'Calories',
                          'Calories from Fat',
@@ -162,6 +168,7 @@ fruit_data_attributes = ['(gram weight/ ounce weight)',
                          'Vitamin C',
                          'Calcium',
                          'Iron']
+
 
 fruit_data_attribute_units = ['(g)',
                               '(%DV)',
@@ -197,7 +204,7 @@ class CategoryItem(SelectableDataItem):
         super(CategoryItem, self).__init__(**kwargs)
         self.name = kwargs.get('name', '')
         self.fruits = kwargs.get('fruits', [])
-        #self.is_selected = kwargs.get('is_selected', False)
+        self.is_selected = kwargs.get('is_selected', False)
 
 
 class FruitItem(SelectableDataItem):
@@ -206,7 +213,7 @@ class FruitItem(SelectableDataItem):
         self.name = kwargs.get('name', '')
         self.serving_size = kwargs.get('Serving Size', '')
         self.data = kwargs.get('data', [])
-        #self.is_selected = kwargs.get('is_selected', False)
+        self.is_selected = kwargs.get('is_selected', False)
 
 
 def reset_to_defaults(db_dict):
@@ -257,6 +264,14 @@ Builder.load_string('''
         is_selected: ctx.is_selected
 ''')
 
+Builder.load_string('''
+[CustomSimpleListItem@SelectableView+BoxLayout]:
+    size_hint_y: ctx.size_hint_y
+    height: ctx.height
+    ListItemButton:
+        text: ctx.text
+''')
+
 
 class AdaptersTestCase(unittest.TestCase):
 
@@ -264,6 +279,28 @@ class AdaptersTestCase(unittest.TestCase):
         self.args_converter = lambda rec: {'text': rec['name'],
                                            'size_hint_y': None,
                                            'height': 25}
+
+        self.integers_dict = \
+         {str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
+
+        # The third of the four cls_dict items has no kwargs nor text, so
+        # rec['text'] will be set for it. Likewise, the fifth item has kwargs,
+        # but it has no 'text' key/value, so should receive the same treatment.
+        self.composite_args_converter = \
+            lambda rec: \
+                {'text': rec['text'],
+                 'size_hint_y': None,
+                 'height': 25,
+                 'cls_dicts': [{'cls': ListItemButton,
+                                'kwargs': {'text': rec['text']}},
+                               {'cls': ListItemLabel,
+                                'kwargs': {'text': "Middle-{0}".format(rec['text']),
+                                           'is_representing_cls': True}},
+                               {'cls': ListItemButton}, 
+                               {'cls': ListItemButton,
+                                'kwargs': {'some key': 'some value'}},
+                               {'cls': ListItemButton, 
+                                'kwargs': {'text': rec['text']}}]}
 
         reset_to_defaults(fruit_data)
 
@@ -366,14 +403,29 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertEqual(adapter_2.args_converter, list_item_args_converter)
 
         adapter = Adapter(data='cat', cls=Label)
-        self.assertEqual(adapter.get_count(), 1)
-        self.assertEqual(adapter.get_data_item(0), 'cat')
+        self.assertEqual(adapter.get_data_item(), 'cat')
 
         adapter = Adapter(data=None, cls=Label)
-        self.assertEqual(adapter.get_count(), 0)
-        self.assertEqual(adapter.get_data_item(0), None)
+        self.assertEqual(adapter.get_data_item(), None)
 
-    def test_instantiating_simple_list_adapter(self):
+    def test_instantiating_adapter_bind_triggers_to_view(self):
+        class PetListener(object):
+            def __init__(self, pet):
+                self.current_pet = pet
+
+            def callback(self, *args):
+                self.current_pet = args[1]
+
+        pet_listener = PetListener('cat')
+
+        adapter = Adapter(data='cat', cls=Label)
+        adapter.bind_triggers_to_view(pet_listener.callback)
+
+        self.assertEqual(pet_listener.current_pet, 'cat')
+        adapter.data = 'dog'
+        self.assertEqual(pet_listener.current_pet, 'dog')
+
+    def test_simple_list_adapter_for_exceptions(self):
         # with no data
         with self.assertRaises(Exception) as cm:
             simple_list_adapter = SimpleListAdapter()
@@ -387,6 +439,23 @@ class AdaptersTestCase(unittest.TestCase):
 
         msg = 'list adapter: data must be a tuple or list'
         self.assertEqual(str(cm.exception), msg)
+
+    def test_simple_list_adapter_with_template(self):
+        list_item_args_converter = \
+                lambda obj: {'text': str(obj),
+                             'size_hint_y': None,
+                             'height': 25}
+
+        simple_list_adapter = \
+                SimpleListAdapter(data=['cat', 'dog'],
+                                  args_converter=list_item_args_converter,
+                                  template='CustomSimpleListItem')
+
+        view = simple_list_adapter.get_view(0)
+        self.assertEqual(view.__class__.__name__, 'CustomSimpleListItem')
+
+        # For coverage of __repr__:
+        self.assertEqual(type(str(view)), str)
 
     def test_simple_list_adapter_methods(self):
         simple_list_adapter = SimpleListAdapter(data=['cat', 'dog'],
@@ -402,9 +471,196 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertIsNone(simple_list_adapter.get_view(-1))
         self.assertIsNone(simple_list_adapter.get_view(2))
 
-    def test_list_adapter_selection_mode_none(self):
+    def test_instantiating_list_adapter(self):
+        str_args_converter = lambda rec: {'text': rec,
+                                          'size_hint_y': None,
+                                          'height': 25}
+
+        list_adapter = ListAdapter(data=['cat', 'dog'],
+                                         args_converter=str_args_converter,
+                                         cls=ListItemButton)
+
+        self.assertEqual([obj for obj in list_adapter.data],
+                         ['cat', 'dog'])
+        self.assertEqual(list_adapter.get_count(), 2)
+
+        self.assertEqual(list_adapter.cls, ListItemButton)
+        self.assertEqual(list_adapter.args_converter, str_args_converter)
+        self.assertEqual(list_adapter.template, None)
+
+        cat_data_item = list_adapter.get_data_item(0)
+        self.assertEqual(cat_data_item, 'cat')
+        self.assertTrue(isinstance(cat_data_item, str))
+
+        view = list_adapter.get_view(0)
+        self.assertTrue(isinstance(view, ListItemButton))
+
+        view = list_adapter.create_view(0)
+        self.assertTrue(isinstance(view, ListItemButton))
+
+        view = list_adapter.create_view(-1)
+        self.assertIsNone(view)
+
+        view = list_adapter.create_view(100)
+        self.assertIsNone(view)
+
+    def test_list_adapter_selection_mode_single(self):
+        fruit_data_items[0].is_selected = True
+
+        list_item_args_converter = \
+                lambda selectable: {'text': selectable.name,
+                                    'size_hint_y': None,
+                                    'height': 25}
+
         list_adapter = ListAdapter(data=fruit_data_items,
-                                   args_converter=self.args_converter,
+                                   args_converter=list_item_args_converter,
+                                   selection_mode='single',
+                                   propagate_selection_to_data=True,
+                                   allow_empty_selection=False,
+                                   cls=ListItemButton)
+
+        self.assertEqual(sorted([obj.name for obj in list_adapter.data]),
+            ['Apple', 'Avocado', 'Banana', 'Cantaloupe', 'Cherry', 'Grape',
+             'Grapefruit', 'Honeydew', 'Kiwifruit', 'Lemon', 'Lime',
+             'Nectarine', 'Orange', 'Peach', 'Pear', 'Pineapple', 'Plum',
+             'Strawberry', 'Tangerine', 'Watermelon'])
+
+        self.assertEqual(list_adapter.cls, ListItemButton)
+        self.assertEqual(list_adapter.args_converter,
+                         list_item_args_converter)
+        self.assertEqual(list_adapter.template, None)
+
+        apple_data_item = list_adapter.get_data_item(0)
+        self.assertTrue(isinstance(apple_data_item, FruitItem))
+        self.assertTrue(isinstance(apple_data_item, SelectableDataItem))
+        self.assertTrue(apple_data_item.is_selected)
+
+        view = list_adapter.get_view(0)
+        self.assertTrue(isinstance(view, ListItemButton))
+        self.assertTrue(view.is_selected)
+
+    def test_list_adapter_with_dict_data(self):
+        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+        letters_dicts = \
+           [{'text': l, 'is_selected': False} for l in alphabet]
+
+        letters_dicts[0]['is_selected'] = True
+
+        list_item_args_converter = lambda rec: {'text': rec['text'],
+                                                'size_hint_y': None,
+                                                'height': 25}
+
+        list_adapter = ListAdapter(data=letters_dicts,
+                                   args_converter=list_item_args_converter,
+                                   selection_mode='single',
+                                   propagate_selection_to_data=True,
+                                   allow_empty_selection=False,
+                                   cls=ListItemButton)
+
+        self.assertEqual(list_adapter.cls, ListItemButton)
+        self.assertEqual(list_adapter.args_converter,
+                         list_item_args_converter)
+        self.assertEqual(list_adapter.template, None)
+
+        apple_data_item = list_adapter.get_data_item(0)
+        self.assertTrue(isinstance(apple_data_item, dict))
+        self.assertTrue(apple_data_item['is_selected'])
+
+        view = list_adapter.get_view(0)
+        self.assertTrue(isinstance(view, ListItemButton))
+        self.assertTrue(view.is_selected)
+
+    def test_list_adapter_with_custom_class(self):
+        
+        # Use a widget as data item.
+        class DataItem(Label):
+            is_selected = BooleanProperty(True)
+            text = StringProperty('')
+
+        class DataItemWithMethod(DataItem):
+            _is_selected = BooleanProperty(True)
+
+            def is_selected(self):
+                return self._is_selected
+
+        class BadDataItem(Label):
+            text = StringProperty('')
+
+        data_items = []
+        data_items.append(DataItem(text='cat'))
+        data_items.append(DataItemWithMethod(text='dog'))
+        data_items.append(BadDataItem(text='frog'))
+
+        list_item_args_converter = lambda obj: {'text': obj.text,
+                                                'size_hint_y': None,
+                                                'height': 25}
+
+        list_adapter = ListAdapter(data=data_items,
+                                   args_converter=list_item_args_converter,
+                                   selection_mode='single',
+                                   propagate_selection_to_data=True,
+                                   allow_empty_selection=False,
+                                   cls=ListItemButton)
+
+        self.assertEqual(list_adapter.cls, ListItemButton)
+        self.assertEqual(list_adapter.args_converter,
+                         list_item_args_converter)
+        self.assertEqual(list_adapter.template, None)
+
+        apple_data_item = list_adapter.get_data_item(0)
+        self.assertTrue(isinstance(apple_data_item, DataItem))
+        self.assertTrue(apple_data_item.is_selected)
+
+        view = list_adapter.get_view(0)
+        self.assertTrue(isinstance(view, ListItemButton))
+        self.assertTrue(view.is_selected)
+
+        view = list_adapter.get_view(1)
+        self.assertTrue(isinstance(view, ListItemButton))
+        self.assertTrue(view.is_selected)
+
+        with self.assertRaises(Exception) as cm:
+            view = list_adapter.get_view(2)
+
+        msg = "ListAdapter: unselectable data item for 2"
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_instantiating_list_adapter_no_args_converter(self):
+        list_adapter = \
+                ListAdapter(data=['cat', 'dog'],
+                            cls=ListItemButton)
+
+        self.assertEqual(list_adapter.get_count(), 2)
+
+        self.assertEqual(list_adapter.cls, ListItemButton)
+        self.assertIsNotNone(list_adapter.args_converter)
+        self.assertEqual(list_adapter.template, None)
+
+        cat_data_item = list_adapter.get_data_item(0)
+        self.assertEqual(cat_data_item, 'cat')
+        self.assertTrue(isinstance(cat_data_item, str))
+
+        view = list_adapter.get_view(0)
+        self.assertTrue(isinstance(view, ListItemButton))
+
+        view = list_adapter.create_view(0)
+        self.assertTrue(isinstance(view, ListItemButton))
+
+        view = list_adapter.create_view(-1)
+        self.assertIsNone(view)
+
+        view = list_adapter.create_view(100)
+        self.assertIsNone(view)
+
+    def test_list_adapter_selection_mode_none(self):
+        list_item_args_converter = \
+                lambda selectable: {'text': selectable.name,
+                                    'size_hint_y': None,
+                                    'height': 25}
+
+        list_adapter = ListAdapter(data=fruit_data_items,
+                                   args_converter=list_item_args_converter,
                                    selection_mode='none',
                                    allow_empty_selection=True,
                                    cls=ListItemButton)
@@ -416,11 +672,53 @@ class AdaptersTestCase(unittest.TestCase):
              'Strawberry', 'Tangerine', 'Watermelon'])
 
         self.assertEqual(list_adapter.cls, ListItemButton)
-        self.assertEqual(list_adapter.args_converter, self.args_converter)
+        self.assertEqual(list_adapter.args_converter, list_item_args_converter)
         self.assertEqual(list_adapter.template, None)
 
         apple_data_item = list_adapter.get_data_item(0)
         self.assertTrue(isinstance(apple_data_item, FruitItem))
+
+    def test_list_adapter_selection_mode_multiple_select_list(self):
+        list_item_args_converter = \
+                lambda selectable: {'text': selectable.name,
+                                    'size_hint_y': None,
+                                    'height': 25}
+
+        list_adapter = ListAdapter(data=fruit_data_items,
+                                   args_converter=list_item_args_converter,
+                                   selection_mode='multiple',
+                                   allow_empty_selection=True,
+                                   cls=ListItemButton)
+
+        views = []
+        views.append(list_adapter.get_view(0))
+        views.append(list_adapter.get_view(1))
+        views.append(list_adapter.get_view(2))
+
+        self.assertEqual(len(views), 3)
+        list_adapter.select_list(views)
+        self.assertEqual(len(list_adapter.selection), 3)
+
+        views = []
+        views.append(list_adapter.get_view(3))
+        views.append(list_adapter.get_view(4))
+        views.append(list_adapter.get_view(5))
+
+        self.assertEqual(len(views), 3)
+        list_adapter.select_list(views)
+        self.assertEqual(len(list_adapter.selection), 6)
+
+        views = []
+        views.append(list_adapter.get_view(0))
+        views.append(list_adapter.get_view(1))
+        views.append(list_adapter.get_view(2))
+
+        self.assertEqual(len(views), 3)
+        list_adapter.select_list(views, extend=False)
+        self.assertEqual(len(list_adapter.selection), 3)
+
+        list_adapter.deselect_list(views)
+        self.assertEqual(len(list_adapter.selection), 0)
 
     def test_list_adapter_with_dicts_as_data(self):
         bare_minimum_dicts = \
@@ -444,6 +742,46 @@ class AdaptersTestCase(unittest.TestCase):
 
         data_item = list_adapter.get_data_item(0)
         self.assertTrue(type(data_item), dict)
+
+        # Utility calls for coverage:
+
+        self.assertEqual(list_adapter.get_count(), 100)
+
+        # Bad index:
+        self.assertIsNone(list_adapter.get_data_item(-1))
+        self.assertIsNone(list_adapter.get_data_item(101))
+
+    def test_list_adapter_with_dicts_as_data_multiple_selection(self):
+        bare_minimum_dicts = \
+            [{'text': str(i), 'is_selected': False} for i in xrange(100)]
+
+        args_converter = lambda rec: {'text': rec['text'],
+                                      'size_hint_y': None,
+                                      'height': 25}
+
+        list_adapter = ListAdapter(data=bare_minimum_dicts,
+                                   args_converter=args_converter,
+                                   selection_mode='multiple',
+                                   allow_empty_selection=False,
+                                   cls=ListItemButton)
+
+        self.assertEqual([rec['text'] for rec in list_adapter.data],
+            [str(i) for i in xrange(100)])
+
+        self.assertEqual(list_adapter.cls, ListItemButton)
+        self.assertEqual(list_adapter.args_converter, args_converter)
+
+        for i in range(50):
+            list_adapter.handle_selection(list_adapter.get_view(i))
+
+        self.assertEqual(len(list_adapter.selection), 50)
+
+        # This is for code coverage:
+        list_adapter.selection_mode = 'none'
+        list_adapter.handle_selection(list_adapter.get_view(25))
+        list_adapter.selection_mode = 'single'
+        list_adapter.handle_selection(list_adapter.get_view(24))
+        list_adapter.handle_selection(list_adapter.get_view(24))
 
     def test_list_adapter_bindings(self):
         list_item_args_converter = \
@@ -539,6 +877,228 @@ class AdaptersTestCase(unittest.TestCase):
 
         view = fruit_categories_list_adapter.get_view(0)
         self.assertEqual(view.__class__.__name__, 'CustomListItem')
+
+        second_view = fruit_categories_list_adapter.get_view(1)
+        fruit_categories_list_adapter.handle_selection(second_view)
+        self.assertEqual(len(fruit_categories_list_adapter.selection), 1)
+
+    def test_list_adapter_operations_trimming(self):
+        alphabet = [l for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
+
+        list_item_args_converter = lambda letter: {'text': letter,
+                                                   'size_hint_y': None,
+                                                   'height': 25}
+
+        # trim right of sel
+
+        alphabet_adapter = ListAdapter(
+                        data=alphabet,
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        selection_limit=1000,
+                        allow_empty_selection=True,
+                        cls=ListItemButton)
+
+        a_view = alphabet_adapter.get_view(0)
+        self.assertEqual(a_view.text, 'A')
+
+        alphabet_adapter.handle_selection(a_view)
+        self.assertEqual(len(alphabet_adapter.selection), 1)
+        self.assertTrue(a_view.is_selected)
+
+        alphabet_adapter.trim_right_of_sel()
+        self.assertEqual(len(alphabet_adapter.data), 1)
+
+        # trim left of sel
+
+        alphabet_adapter = ListAdapter(
+                        data=alphabet,
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        selection_limit=1000,
+                        allow_empty_selection=True,
+                        cls=ListItemButton)
+
+        z_view = alphabet_adapter.get_view(25)
+        self.assertEqual(z_view.text, 'Z')
+
+        alphabet_adapter.handle_selection(z_view)
+        self.assertEqual(len(alphabet_adapter.selection), 1)
+        self.assertTrue(z_view.is_selected)
+
+        alphabet_adapter.trim_left_of_sel()
+        self.assertEqual(len(alphabet_adapter.data), 1)
+
+        # trim to sel
+
+        alphabet_adapter = ListAdapter(
+                        data=alphabet,
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        selection_limit=1000,
+                        allow_empty_selection=True,
+                        cls=ListItemButton)
+
+        g_view = alphabet_adapter.get_view(6)
+        self.assertEqual(g_view.text, 'G')
+        alphabet_adapter.handle_selection(g_view)
+
+        m_view = alphabet_adapter.get_view(12)
+        self.assertEqual(m_view.text, 'M')
+        alphabet_adapter.handle_selection(m_view)
+
+        alphabet_adapter.trim_to_sel()
+        self.assertEqual(len(alphabet_adapter.data), 7)
+
+        # cut to sel
+
+        alphabet_adapter = ListAdapter(
+                        data=alphabet,
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        selection_limit=1000,
+                        allow_empty_selection=True,
+                        cls=ListItemButton)
+
+        g_view = alphabet_adapter.get_view(6)
+        self.assertEqual(g_view.text, 'G')
+        alphabet_adapter.handle_selection(g_view)
+
+        m_view = alphabet_adapter.get_view(12)
+        self.assertEqual(m_view.text, 'M')
+        alphabet_adapter.handle_selection(m_view)
+
+        alphabet_adapter.cut_to_sel()
+        self.assertEqual(len(alphabet_adapter.data), 2)
+
+    def test_dict_adapter_composite(self):
+        item_strings = ["{0}".format(index) for index in xrange(100)]
+
+        # And now the list adapter, constructed with the item_strings as
+        # the data, a dict to add the required is_selected boolean onto
+        # data records, and the args_converter above that will operate one
+        # each item in the data to produce list item view instances from the
+        # CompositeListItem class.
+        dict_adapter = DictAdapter(sorted_keys=item_strings,
+                                   data=self.integers_dict,
+                                   args_converter=self.composite_args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=CompositeListItem)
+
+        self.assertEqual(len(dict_adapter.selection), 1)
+
+        view = dict_adapter.get_view(1)
+        dict_adapter.handle_selection(view)
+
+        self.assertEqual(len(dict_adapter.selection), 1)
+
+    # test that sorted_keys is built, if not provided.
+    def test_dict_adapter_no_sorted_keys(self):
+        dict_adapter = DictAdapter(data=self.integers_dict,
+                                   args_converter=self.composite_args_converter,
+                                   selection_mode='single',
+                                   allow_empty_selection=False,
+                                   cls=CompositeListItem)
+
+        self.assertEqual(len(dict_adapter.sorted_keys), 100)
+
+        self.assertEqual(len(dict_adapter.selection), 1)
+
+        view = dict_adapter.get_view(1)
+        dict_adapter.handle_selection(view)
+
+        self.assertEqual(len(dict_adapter.selection), 1)
+
+    def test_dict_adapter_bad_sorted_keys(self):
+        with self.assertRaises(Exception) as cm:
+            dict_adapter = DictAdapter(sorted_keys={},
+                                       data=self.integers_dict,
+                                       args_converter=self.composite_args_converter,
+                                       selection_mode='single',
+                                       allow_empty_selection=False,
+                                       cls=CompositeListItem)
+
+        msg = 'DictAdapter: sorted_keys must be tuple or list'
+        self.assertEqual(str(cm.exception), msg)
+
+    def test_instantiating_dict_adapter_bind_triggers_to_view(self):
+        class PetListener(object):
+            def __init__(self, pets):
+                self.current_pets = pets
+
+            def callback(self, *args):
+                self.current_pets = args[1]
+
+        pet_listener = PetListener(['cat'])
+
+        list_item_args_converter = lambda rec: {'text': rec['text'],
+                                                'size_hint_y': None,
+                                                'height': 25}
+
+        dict_adapter = DictAdapter(sorted_keys=['cat'],
+                data={'cat': {'text': 'cat', 'is_selected': False},
+                      'dog': {'text': 'dog', 'is_selected': False}},
+                args_converter=list_item_args_converter,
+                propagate_selection_to_data=True,
+                selection_mode='single',
+                allow_empty_selection=False,
+                cls=ListItemButton)
+
+        dict_adapter.bind_triggers_to_view(pet_listener.callback)
+
+        self.assertEqual(pet_listener.current_pets, ['cat'])
+        dict_adapter.sorted_keys = ['dog']
+        self.assertEqual(pet_listener.current_pets, ['dog'])
+
+    def test_dict_adapter_reset_data(self):
+        class PetListener(object):
+            def __init__(self, pet):
+                self.current_pet = pet
+
+            # This can happen as a result of sorted_keys changing,
+            # or data changing.
+            def callback(self, *args):
+                self.current_pet = args[1]
+
+        pet_listener = PetListener('cat')
+
+        list_item_args_converter = lambda rec: {'text': rec['text'],
+                                                'size_hint_y': None,
+                                                'height': 25}
+
+        dict_adapter = DictAdapter(
+                sorted_keys=['cat'],
+                data={'cat': {'text': 'cat', 'is_selected': False}},
+                args_converter=list_item_args_converter,
+                propagate_selection_to_data=True,
+                selection_mode='single',
+                allow_empty_selection=False,
+                cls=ListItemButton)
+
+        dict_adapter.bind_triggers_to_view(pet_listener.callback)
+
+        self.assertEqual(pet_listener.current_pet, 'cat')
+        dog_data = {'dog': {'text': 'dog', 'is_selected': False}}
+        dict_adapter.data = dog_data
+        self.assertEqual(dict_adapter.sorted_keys, ['dog'])
+        self.assertEqual(pet_listener.current_pet, dog_data)
+        cat_dog_data = {'cat': {'text': 'cat', 'is_selected': False},
+                        'dog': {'text': 'dog', 'is_selected': False}}
+        dict_adapter.data = cat_dog_data
+        # sorted_keys should remain ['dog'], as it still matches data.
+        self.assertEqual(dict_adapter.sorted_keys, ['dog'])
+        dict_adapter.sorted_keys = ['cat']
+        self.assertEqual(pet_listener.current_pet, ['cat'])
+
+        # Make some utility calls for coverage:
+
+        # 1, because get_count() does len(self.sorted_keys).
+        self.assertEqual(dict_adapter.get_count(), 1)
+
+        # Bad index:
+        self.assertIsNone(dict_adapter.get_data_item(-1))
+        self.assertIsNone(dict_adapter.get_data_item(2))
 
     def test_dict_adapter_selection_mode_single_without_propagation(self):
 
@@ -657,3 +1217,102 @@ class AdaptersTestCase(unittest.TestCase):
 
         tangerine_view = dict_adapter.get_view(2)
         self.assertEqual(tangerine_view.text, 'Tangerine')
+
+    def test_dict_adapter_operations_trimming(self):
+        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+        letters_dict = \
+           {l: {'text': l, 'is_selected': False} for l in alphabet}
+
+        list_item_args_converter = lambda rec: {'text': rec['text'],
+                                                'size_hint_y': None,
+                                                'height': 25}
+
+        letters = [l for l in alphabet]
+
+        # trim left of sel
+
+        letters_dict_adapter = DictAdapter(
+                        sorted_keys=letters[:],
+                        data=letters_dict,
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        selection_limit=1000,
+                        allow_empty_selection=True,
+                        cls=ListItemButton)
+
+        a_view = letters_dict_adapter.get_view(0)
+        self.assertEqual(a_view.text, 'A')
+
+        letters_dict_adapter.handle_selection(a_view)
+        self.assertEqual(len(letters_dict_adapter.selection), 1)
+        self.assertTrue(a_view.is_selected)
+
+        letters_dict_adapter.trim_right_of_sel()
+        self.assertEqual(len(letters_dict_adapter.data), 1)
+
+        # trim right of sel
+
+        letters_dict_adapter = DictAdapter(
+                        sorted_keys=letters[:],
+                        data=letters_dict,
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        selection_limit=1000,
+                        allow_empty_selection=True,
+                        cls=ListItemButton)
+
+        z_view = letters_dict_adapter.get_view(25)
+        self.assertEqual(z_view.text, 'Z')
+
+        letters_dict_adapter.handle_selection(z_view)
+        self.assertEqual(len(letters_dict_adapter.selection), 1)
+        self.assertTrue(z_view.is_selected)
+
+        letters_dict_adapter.trim_left_of_sel()
+        self.assertEqual(len(letters_dict_adapter.data), 1)
+
+        # trim to sel
+
+        letters_dict_adapter = DictAdapter(
+                        sorted_keys=letters[:],
+                        data=letters_dict,
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        selection_limit=1000,
+                        allow_empty_selection=True,
+                        cls=ListItemButton)
+
+        g_view = letters_dict_adapter.get_view(6)
+        self.assertEqual(g_view.text, 'G')
+        letters_dict_adapter.handle_selection(g_view)
+
+        m_view = letters_dict_adapter.get_view(12)
+        self.assertEqual(m_view.text, 'M')
+        letters_dict_adapter.handle_selection(m_view)
+
+        letters_dict_adapter.trim_to_sel()
+        self.assertEqual(len(letters_dict_adapter.data), 7)
+
+        # cut to sel
+
+        letters_dict_adapter = DictAdapter(
+                        sorted_keys=letters[:],
+                        data=letters_dict,
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        selection_limit=1000,
+                        allow_empty_selection=True,
+                        cls=ListItemButton)
+
+        g_view = letters_dict_adapter.get_view(6)
+        self.assertEqual(g_view.text, 'G')
+        letters_dict_adapter.handle_selection(g_view)
+
+        m_view = letters_dict_adapter.get_view(12)
+        self.assertEqual(m_view.text, 'M')
+        letters_dict_adapter.handle_selection(m_view)
+
+        letters_dict_adapter.cut_to_sel()
+        self.assertEqual(len(letters_dict_adapter.data), 2)
+
