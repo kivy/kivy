@@ -7,6 +7,7 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install python-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl1.2-dev libsmpeg-dev python-numpy libportmidi-dev ffmpeg libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libx11-6 libX11-dev
   - sudo apt-get install python-setuptools python-opengl gstreamer0.10-plugins-good build-essential libgl1-mesa-dev libgles2-mesa-dev mercurial
+  - sudo apt-get install xvfb
 
 install:
   - pip install hg+http://bitbucket.org/pygame/pygame
@@ -15,4 +16,4 @@ install:
 
 # command to run tests
 script:
-  - make test
+  - xvfb-run -s "+extension GLX" make test
