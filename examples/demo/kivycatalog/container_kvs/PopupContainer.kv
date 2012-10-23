@@ -1,0 +1,23 @@
+#:kivy 1.4
+
+BoxLayout:
+    orientation: "vertical"
+    Bubble:
+        size_hint: (None, None)
+        size: (150, 50)
+        pos_hint: {'center_x': .5, 'y': .6}
+        arrow_pos: 'bottom_mid'
+        orientation: 'horizontal'
+        BubbleButton:
+            text: 'Click'
+        BubbleButton:
+            text: 'A'
+        BubbleButton:
+            text: 'Bubble'
+    Popup:
+        id: popup
+        title: "An example popup"
+        content: popupcontent
+        Label:
+            id: popupcontent
+            text: "Some text\nin the popup"
