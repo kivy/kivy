@@ -148,9 +148,8 @@ class Catalog(BoxLayout):
             traceback.print_exc()
             popup = Popup(title="Boom",
                 content=Label(text='Something horrible happened while parsing'
-                        + 'your Kivy Language", text_size=(350, None)),
-                text_size=(350, None),
-                size_hint=(None, None), size=(400, 400))
+                        + 'your Kivy Language', text_size=(350, None),
+                size_hint=(None, None), size=(400, 400)))
             popup.open()
 
 
