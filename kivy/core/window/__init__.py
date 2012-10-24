@@ -476,8 +476,8 @@ class WindowBase(EventDispatcher):
         self.create_window()
 
         # attach modules + listener event
-        Modules.register_window(self)
         EventLoop.set_window(self)
+        Modules.register_window(self)
         EventLoop.add_event_listener(self)
 
         # manage keyboard(s)

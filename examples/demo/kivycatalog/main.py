@@ -11,7 +11,9 @@ from kivy.config import Config
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
+from kivy.uix.codeinput import CodeInput
+from kivy.animation import Animation
+from kivy.clock import Clock
 
 print Config.get('graphics', 'width')
 
@@ -43,7 +45,9 @@ class Container(BoxLayout):
 
     @property
     def kv_file(self):
-        '''Get the name of the kv file, a lowercase version of the class name.'''
+        '''Get the name of the kv file, a lowercase version of the class
+        name.
+        '''
         return os.path.join('container_kvs',
             self.__class__.__name__ + ".kv")
 
@@ -52,7 +56,7 @@ for class_name in CONTAINER_CLASSES:
     globals()[class_name] = type(class_name, (Container,), {})
 
 
-class KivyRenderTextInput(TextInput):
+class KivyRenderTextInput(CodeInput):
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
         is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:
@@ -75,8 +79,9 @@ class Catalog(BoxLayout):
     a tabbed pain of widgets that can be displayed and a textbox where .kv
     language files for widgets being demoed can be edited.
 
-    The entire interface for the Catalog is defined in kivycatalog.kv, although
-    individual containers are defined in the container_kvs directory.
+    The entire interface for the Catalog is defined in kivycatalog.kv,
+    although individual containers are defined in the container_kvs
+    directory.
 
     To add a container to the catalog,
     first create the .kv file in container_kvs
@@ -114,11 +119,17 @@ class Catalog(BoxLayout):
                     0].kv_file) as file:
             self.language_box.text = file.read()
 
-    def change_kv(self, button):
+    def schedule_reload(self):
+        if self.auto_reload:
+            Clock.unschedule(self.change_kv)
+            Clock.schedule_once(self.change_kv, 2)
+
+    def change_kv(self, *largs):
         '''Called when the update button is clicked. Needs to update the
         interface for the currently active kv widget, if there is one based
         on the kv file the user entered. If there is an error in their kv
         syntax, show a nice popup.'''
+
         kv_container = self.screen_manager.current_screen.content.children[0]
         try:
             parser = Parser(content=self.language_box.text.encode('utf8'))
@@ -127,18 +138,18 @@ class Catalog(BoxLayout):
             Builder._apply_rule(widget, parser.root, parser.root)
             kv_container.add_widget(widget)
         except (SyntaxError, ParserException) as e:
-            content = Label(text=str(e), text_size=(350, None))
-            popup = Popup(title="Parse Error in Kivy Language Markup",
-                content=content, text_size=(350, None),
-                size_hint=(None, None), size=(400, 400))
-            popup.open()
+            self.info_label.text = str(e)
+            self.anim = Animation(top=190.0, opacity=1, d=2, t='in_back') +\
+                Animation(top=190.0, d=2) +\
+                Animation(top=0, opacity=0, d=2)
+            self.anim.start(self.info_label)
         except:
             import traceback
             traceback.print_exc()
             popup = Popup(title="Boom",
-                content=Label(text="Something horrible happened while parsing your Kivy Language", text_size=(350, None)),
-                text_size=(350, None),
-                size_hint=(None, None), size=(400, 400))
+                content=Label(text='Something horrible happened while parsing'
+                        + 'your Kivy Language', text_size=(350, None),
+                size_hint=(None, None), size=(400, 400)))
             popup.open()
 
 

@@ -1,4 +1,5 @@
 #:kivy 1.4
+#:import KivyLexer kivy.extras.highlight.KivyLexer
 
 [ContainerToggle@ToggleButton]:
     group: "container_toggle"
@@ -9,6 +10,9 @@
 <Catalog>:
     language_box: language_box
     screen_manager: screen_manager
+    auto_reload: chkbx.active
+    info_label: info_lbl
+    orientation: 'vertical'
     BoxLayout:
         BoxLayout:
             size_hint: None, 1
@@ -108,13 +112,36 @@
             size_hint: None, 1
             width: 400
             KivyRenderTextInput:
+                lexer: KivyLexer()
                 text_size: self.width-20, self.height-20
-                font_name: "DroidSansMono.ttf"
+                font_name: "data/fonts/DroidSansMono.ttf"
                 valign: "top"
                 id: language_box
                 text: "This box will display the kivy language for whatever has been selected"
-            Button:
+                on_text: root.schedule_reload()
+            BoxLayout:
                 size_hint: 1, None
-                height: 50
-                text: "Render"
-                on_press: root.change_kv(*args)    
+                height: '30pt'
+                BoxLayout:
+                    CheckBox:
+                        id: chkbx
+                        active: True
+                    Label:
+                        text: "Auto Reload"
+                Button:
+                    text: 'Render Now'
+                    on_release: root.change_kv(*args)
+    FloatLayout:
+        size_hint: 1, None
+        height: 0
+        TextInput:
+            id:info_lbl
+            readonly: True
+            font_size: 11
+            background_color: (0, 0, 0, 1)
+            foreground_color: (1, 1, 1, 1)
+            opacity:0
+            size_hint: 1, None
+            text_size: self.size
+            height: '150pt'
+            top: 0
