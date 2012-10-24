@@ -245,14 +245,6 @@ is_selected properties::
                                             'size_hint_y': None,
                                             'height': 25}
 
-    # We will set this data in a ListAdapter along with the list item
-    # args_converter function above (lambda), and we set arguments about
-    # selection. We will allow single selection, selection in the listview
-    # will propagate to the data items -- the is_selected for each data item
-    # will be set. And, by having allow_empty_selection=False, when the
-    # listview first appears, the first item, 'cat', will already be
-    # selected. The list adapter will instantiate a ListItemButton class
-    # instance for each data item, using the assigned args_converter.
     list_adapter = ListAdapter(data=data_items,
                                args_converter=list_item_args_converter,
                                selection_mode='single',
@@ -262,7 +254,18 @@ is_selected properties::
 
     list_view = ListView(adapter=list_adapter)
 
-The list_vew would then be added to a view with add_widget().
+The data was set in a :class:`~kivy.adapters.listadapter.ListAdapter` along
+with a list item args_converter function above (lambda) and arguments
+concerning selection: only single selection is allowed, and selection in the
+listview will propagate to the data items. The propagation setting means that
+the is_selected property for each data item will be set and kept in sync with
+the list item views. By having allow_empty_selection=False, when the listview
+first appears, the first item, 'cat', will already be selected. The list
+adapter will instantiate a :class:`~kivy.uix.listview.ListItemButton` class
+instance for each data item, using the assigned args_converter.
+
+The list_vew would be added to a view with add_widget() after the last line,
+where it is created.
 
 You may also use the provided :class:`SelectableDataItem` mixin to make a
 custom class. Instead of the "manually-constructed" DataItem class above,
@@ -313,19 +316,23 @@ template. For example, to use the kv template above::
     integers_dict =
         { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
-    # Here we create a dict adapter with 1..100 integer strings as
-    # sorted_keys, and an integers_dict as data, passing our
-    # CompositeListItem kv template for the list item view.
     dict_adapter = DictAdapter(sorted_keys=[str(i) for i in xrange(100)],
                                data=integers_dict,
                                args_converter=list_item_args_converter,
                                template='CustomListItem')
 
-    # Now we create a list view using this adapter. The args_converter above
-    # converts dict attributes to ctx attributes.
     list_view = ListView(adapter=dict_adapter)
 
-The list_vew would then be added to a view with add_widget().
+A dict adapter is created with 1..100 integer strings as sorted_keys, and an
+integers_dict as data. integers_dict has the integer strings as keys and dicts
+with text and is_selected properties. The CustomListItem defined above in the
+Builder.load_string() call is set as the kv template for the list item views.
+The list_item_args_converter lambda function will take each dict in
+integers_dict and will return an args dict, ready for passing as the context
+(ctx) for the template.
+
+The list_vew would be added to a view with add_widget() after the last line,
+where it is created.
 
 Using CompositeListItem
 -----------------------
@@ -335,13 +342,6 @@ building complex composite list items. The kv language approach has its
 advantages, but here we build a composite list view using a straight Kivy
 widget method::
 
-    # This is quite an involved args_converter, so we should go through the
-    # details. A CompositeListItem instance is made with the args
-    # returned by this converter. The first three, text, size_hint_y,
-    # height are arguments for CompositeListItem. The cls_dicts list contains
-    # argument sets for each of the member widgets for this composite:
-    # ListItemButton and ListItemLabel. This is a similar approach to using a
-    # kv template described above.
     args_converter = lambda rec:
             {'text': rec['text'],
              'size_hint_y': None,
@@ -359,10 +359,6 @@ widget method::
     integers_dict =
         { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
-    # And now the dict adapter, constructed with the item_strings as
-    # the sorted_keys, the integers_dict as data, and our args_converter()
-    # that produce list item view instances from the
-    # :class:`~kivy.uix.listview.CompositeListItem` class.
     dict_adapter = DictAdapter(sorted_keys=item_strings,
                                data=integers_dict,
                                args_converter=args_converter,
@@ -371,6 +367,20 @@ widget method::
                                cls=CompositeListItem)
 
     list_view = ListView(adapter=dict_adapter)
+
+The args_converter is somewhat complicated, so we should go through the
+details. Observe in the :class:`~kivy.adapters.dictadapter.DictAdapter`
+instantiation that :class:`~kivy.uix.listview.CompositeListItem` instance is
+set as the cls to be instantiated for each list item. The args_converter will
+make args dicts for this cls.  In the args_converter, the first three items,
+text, size_hint_y, and height, are arguments for CompositeListItem itself.
+After that you see a cls_dicts list that contains argument sets for each of the
+member widgets for this composite: :class:`~kivy.uix.listview.ListItemButton`
+and :class:`~kivy.uix.listview.ListItemLabel`. This is a similar approach to
+using a kv template described above.
+
+The sorted_keys and data arguments for the dict adapter are the same as in the
+previous code example.
 
 For details on how :class:`~kivy.uix.listview.CompositeListItem` works, view
 the code and look for parsing of the cls_dicts list and kwargs processing.
@@ -381,31 +391,35 @@ Uses for Selection
 What can we do with selection? Combining selection with the system of bindings
 in Kivy, we can build a wide range of user interface designs.
 
-We could change the data items to contain the names of dog breeds, and connect
+We could make data items that contain the names of dog breeds, and connect
 the selection of dog breed to the display of details in another view, which
-would update automatically. This is done via a binding to the
+would update automatically on selection. This is done via a binding to the
 on_selection_change event::
 
-    list_adapter.bind(on_selection_change=my_selection_reactor_function)
+    list_adapter.bind(on_selection_change=callback_function)
 
-where my_selection_reaction_function() does whatever is needed for the update.
+where callback_function() does whatever is needed for the update.
 
-We could change the selection_mode of the listview to 'multiple' for a list of
-answers to a multiple-choice question that has several correct answers. A
-color swatch view could be bound to selection change, as above, so that it
-turns green as soon as the correct choices are made, unless the number of
-touches exeeds a limit, and it bombs out.
+In another example, we could set the selection_mode of a listview to
+'multiple', and load it with a list of answers to a multiple-choice question.
+The question could have several correct answers. A color swatch view could be
+bound to selection change, as above, so that it turns green as soon as the
+correct choices are made, unless the number of touches exeeds a limit, when the
+answer session would be terminated.
 
-We could chain together three listviews, where selection in the first
-controls the items shown in the second, and selection in the second controls
-the items shown in the third. If allow_empty_selection were set to False for
-these listviews, a dynamic system, a "cascade" from one list to the next,
-would result. Several examples show such "cascading" behavior.
+In a more involved example, we could chain together three listviews, where
+selection in the first controls the items shown in the second, and selection in
+the second controls the items shown in the third. If allow_empty_selection were
+set to False for these listviews, a dynamic system of selection "cascading"
+from one list to the next, would result.
 
-There are so many ways that listviews and related functionality can be used,
-that we have only scratched the surface here. For on-disk examples, see:
+There are so many ways that listviews and Kivy bindings functionality can be
+used, that we have only scratched the surface here. For on-disk examples, see:
 
     kivy/examples/widgets/lists/list_*.py
+
+Several examples show the "cascading" behavior described above. Others
+demonstrate the use of kv templates and composite list views.
 
 '''
 
