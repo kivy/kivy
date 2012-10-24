@@ -67,6 +67,12 @@ class ProgressBar(Widget):
     :data:`max` is a :class:`~kivy.properties.NumericProperty`, default to 100.
     '''
 
+    def set_autoconf(self, val):
+        self.value = float(val)
+
+    def get_autoconf(self):
+        return self.value
+
 
 if __name__ == '__main__':
 

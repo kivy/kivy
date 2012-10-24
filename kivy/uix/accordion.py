@@ -403,6 +403,18 @@ class Accordion(Widget):
                 child.height = child_space
                 y += child_space
 
+    def set_autoconf(self, val):
+        for w in self.children:
+            if w.title == val:
+                w.collapse = False
+            else:
+                w.collapse = True
+
+    def get_autoconf(self):
+        for w in self.children:
+            if not w.collapse:
+                return w.title
+
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     from kivy.uix.button import Button

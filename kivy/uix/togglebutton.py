@@ -115,3 +115,9 @@ class ToggleButton(Button):
             return []
         return [x() for x in groups[groupname] if x()][:]
 
+    def set_autoconf(self, val):
+        self.state = 'down' if val=='down' else 'normal'
+
+    def get_autoconf(self):
+        return self.state
+

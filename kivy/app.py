@@ -280,6 +280,9 @@ class App(EventDispatcher):
     # Return the current running App instance
     _running_app = None
 
+    # Widgets that requested use of autoconf
+    _autoconf_widgets = {}
+
     def __init__(self, **kwargs):
         App._running_app = self
         self._app_directory = None
@@ -465,8 +468,8 @@ class App(EventDispatcher):
         self.build_config(config)
         # if no sections are created, that's mean the user don't have
         # configuration.
-        if len(config.sections()) == 0:
-            return
+        #if len(config.sections()) == 0:
+        #    return
         # ok, the user have some sections, read the default file if exist
         # or write it !
         filename = self.get_application_config()
@@ -475,6 +478,7 @@ class App(EventDispatcher):
         if exists(filename):
             try:
                 config.read(filename)
+                Logger.debug('App: Loaded config <%s>' % filename)
             except:
                 Logger.error('App: Corrupted config file, ignored.')
                 self.config = config = ConfigParser()
@@ -520,6 +524,8 @@ class App(EventDispatcher):
         if not self.built:
             self.load_config()
             self.load_kv()
+            if self.config.filename is None and len(self._autoconf_widgets) == 0:
+                self.config.filename = self.get_application_config()
             root = self.build()
             if root:
                 self.root = root
@@ -538,9 +544,11 @@ class App(EventDispatcher):
                 window.set_icon(icon)
             self._install_settings_keys(window)
 
+        self._apply_autoconf()
         self.dispatch('on_start')
         runTouchApp()
         self.dispatch('on_stop')
+        self.save_autoconf()
 
         # Clear the window children
         for child in window.children:
@@ -674,3 +682,32 @@ class App(EventDispatcher):
             return True
         if key == 27:
             return self.close_settings()
+
+    def autoconf(self, widget, conf):
+        '''The function called by the .kv file to register each widget to be autoconf-ed
+        '''
+
+        module, key, default = conf
+        self.config.setdefaults(module, {key: default})
+        value = self.config.get(module, key)
+        self._autoconf_widgets[widget] = (module, key, value, default)
+        return value
+
+    def _apply_autoconf(self):
+        '''Nested widgets needs delayed init to allow for instantiation of children
+        so we apply the initialization to all autoconf-ed widget right before
+        on_start, after all the widgets have been instanciated.
+        '''
+        for widget, c in self._autoconf_widgets.items():
+            module, key, value, default = c
+            widget.set_autoconf(value)
+
+    def save_autoconf(self):
+        '''Write the config file on disk. This is applied right after on_stop,
+        but it can also be called by the app.
+        '''
+        for widget, c in self._autoconf_widgets.items():
+            module, key, value, default = c
+            self.config.set(module, key, widget.get_autoconf())
+        self.config.write()
+

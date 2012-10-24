@@ -107,6 +107,12 @@ class Switch(Widget):
         self.touch_control = None
         return True
 
+    def set_autoconf(self, val):
+        self.active = bool(val)
+
+    def get_autoconf(self):
+        return self.active
+
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     runTouchApp(Switch())

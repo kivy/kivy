@@ -144,3 +144,9 @@ class Spinner(Button):
         else:
             self._dropdown.dismiss()
 
+    def set_autoconf(self, val):
+        self.text = val
+
+    def get_autoconf(self):
+        return self.text
+

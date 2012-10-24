@@ -216,6 +216,17 @@ class Widget(EventDispatcher):
                 return True
 
     #
+    # Unified State setter and getter abstract methods
+    #
+    def set_autoconf(self, val):
+        ''' Abstract method to set the ustate of the widget'''
+        raise NotImplemented()
+
+    def get_autoconf(self):
+        ''' Abstract method to get the ustate of the widget'''
+        raise NotImplemented()
+
+    #
     # Tree management
     #
     def add_widget(self, widget, index=0):

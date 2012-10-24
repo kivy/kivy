@@ -105,3 +105,9 @@ class CheckBox(Widget):
                 group.remove(wk)
                 break
 
+    def set_autoconf(self, val):
+        self.active = (val == "True")
+
+    def get_autoconf(self):
+        return self.active
+

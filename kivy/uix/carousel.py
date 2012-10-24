@@ -328,6 +328,11 @@ class Carousel(StencilView):
             return slide.remove_widget(widget, *args, **kwargs)
         return super(Carousel, self).remove_widget(widget, *args, **kwargs)
 
+    def set_autoconf(self, val):
+        self._set_index(self, int(val))
+
+    def get_autoconf(self):
+        return self._get_index()
 
 if __name__ == '__main__':
     from kivy.app import App
