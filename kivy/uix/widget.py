@@ -101,6 +101,9 @@ class Widget(EventDispatcher):
         :class:`~kivy.event.EventDispatcher`. Event properties can now be used
         in contructing a simple class, without subclassing :class:`Widget`.
 
+    .. versionchanged:: 1.5.0
+        Constructor now accept on_* arguments to automatically bind callbacks to
+        properties or events, as the Kv language.
     '''
 
     __metaclass__ = WidgetMetaclass
