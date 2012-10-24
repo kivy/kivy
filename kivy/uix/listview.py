@@ -75,9 +75,12 @@ do::
     list_view = ListView(adapter=simple_list_adapter)
 
 The instance of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` has
-a required data argument, which contains data items to use as the basis for
-list items, along with a cls argument for the class to be instantiated for each
-list item from the data.
+a required data argument, which contains data items to use for instantiating
+Label (cls argument) views for the list view. The data items are simply
+strings.  Each item string is set by
+:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` as the *text*
+argument for each Label instantiation. The list adapter is thus a "workhorse"
+for the list view.
 
 ListAdapter and DictAdapter
 ---------------------------
@@ -85,14 +88,17 @@ ListAdapter and DictAdapter
 For many uses of a list, the data is more than a simple list of strings and
 selection functionality is often needed.
 :class:`~kivy.adapters.listadapter.ListAdapter` and
-:class:`~kivy.adapters.dictadapter.DictAdapter` each contain functionality for
-selection.
+:class:`~kivy.adapters.dictadapter.DictAdapter` cover these more elaborate
+needs. Each contains functionality for selection, also.
+
+:class:`~kivy.adapters.listadapter.ListAdapter` is the base class for
+:class:`~kivy.adapters.dictadapter.DictAdapter`, so we can start with it.
 
 See the :class:`~kivy.adapters.listadapter.ListAdapter` docs for details, but
 here are synopses of its arguments:
 
 * *data*: strings, class instances, dicts, etc. that form the basis data
-  for instantiating view item classes.
+  for instantiating views.
 
 * *cls*: a Kivy view that is to be instantiated for each list item. There
   are several built-in types available, including ListItemLabel and
@@ -110,8 +116,7 @@ here are synopses of its arguments:
   to be used in a call to instantiate the item view cls or
   template. In the case of cls, the args dict acts as a
   kwargs object. For a template, it is treated as a context
-  (ctx), but is essentially similar in form. See the
-  examples and docs for template use.
+  (ctx), but is essentially similar in form to kwargs usage.
 
 * *selection_mode*: a string for: 'single', 'multiple' or others (See docs).
 
