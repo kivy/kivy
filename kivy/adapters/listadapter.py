@@ -13,39 +13,27 @@ ListAdapter
 
 Selection operations are a main concern for the class.
 
-From :class:`Adapter`, :class:`ListAdapter` gets these properties:
-
-    Use only one:
-
-        - cls, for a list key class to use to instantiate key view
-               instances
-
-        - template, a kv template to use to instantiate key view
-                    instances
-
-    - args_converter, an optional function to transform data item argument
-                      sets, in preparation for either a cls instantiation,
-                      or a kv template invocation. If no args_converter is
-                      provided, a default one is set, that assumes that the
-                      data items are strings.
+From :class:`Adapter`, :class:`ListAdapter` gets cls, template, and
+args_converter properties.
 
 and adds several for selection:
 
-    - selection, a list of selected items.
+* *selection*, a list of selected items.
 
-    - selection_mode, 'single', 'multiple', 'none'
+* *selection_mode*, 'single', 'multiple', 'none'
 
-    - allow_empty_selection, a boolean -- False, and a selection is forced;
-                             True, and only user or programmatic action will
-                             change selection, and it can be empty.
+* *allow_empty_selection*, a boolean -- False, and a selection is forced;
+  True, and only user or programmatic action will change selection, and it can
+  be empty.
 
 and several methods used in selection operations.
 
 If you wish to have a bare-bones list adapter, without selection, use
-:class:`SimpleListAdapter`.
+:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
 
-:class:`DictAdapter` is a subclass of :class:`ListAdapter`. They both dispatch
-the on_selection_change event.
+:class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of
+:class:`~kivy.adapters.listadapter.ListAdapter`. They both dispatch the
+*on_selection_change* event.
 
     :Events:
         `on_selection_change`: (view, view list )
@@ -86,16 +74,17 @@ class ListAdapter(Adapter, EventDispatcher):
             options=('none', 'single', 'multiple'))
     '''Selection modes:
 
-       none -- use the list as a simple list (no select action). This option
-               is here so that selection can be turned off, momentarily or
-               permanently, for an existing list adapter. :class:`ListAdapter`
-               is not meant to be used as a primary no-selection list adapter.
-               Use :class:`SimpleListAdapter` for that.
+       * *none*, use the list as a simple list (no select action). This option is
+         here so that selection can be turned off, momentarily or permanently,
+         for an existing list adapter.
+         :class:`~kivy.adapters.listadapter.ListAdapter` is not meant to be
+         used as a primary no-selection list adapter.  Use
+         :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` for that.
 
-       single -- multi-touch/click ignored. single item selecting only
+       * *single*, multi-touch/click ignored. single item selecting only
 
-       multiple -- multi-touch / incremental addition to selection allowed;
-                   may be limited to a count by selection_limit
+       * *multiple*, multi-touch / incremental addition to selection allowed;
+         may be limited to a count by selection_limit
 
     :data:`selection_mode` is an :class:`~kivy.properties.OptionProperty`,
     default to 'single'.
@@ -106,10 +95,11 @@ class ListAdapter(Adapter, EventDispatcher):
     might not have an is_selected boolean property -- only the item view for a
     given data item is selected/deselected, as part of the maintained selection
     list. However, if the data items do have an is_selected property, or if
-    they mix in :class:`SelectableDataItem`, the selection machinery can
-    propagate selection to data items. This can be useful for storing selection
-    state in a local database or backend database for maintaining state in game
-    play or other similar needs. It is a convenience function.
+    they mix in :class:`~kivy.adapters.models.SelectableDataItem`, the
+    selection machinery can propagate selection to data items. This can be
+    useful for storing selection state in a local database or backend database
+    for maintaining state in game play or other similar needs. It is a
+    convenience function.
 
     To propagate selection or not?
 
@@ -213,10 +203,12 @@ class ListAdapter(Adapter, EventDispatcher):
         return item_view
 
     def create_view(self, index):
-        '''This method is more complicated than the one in Adapter and
-        SimpleListAdapter, because here we create bindings for the data item,
-        and its children back to self.handle_selection(), and do other
-        selection-related tasks to keep item views in sync with the data.
+        '''This method is more complicated than the one in
+        :class:`kivy.adapters.adapter.Adapter` and
+        :class:`kivy.adapters.simplelistadapter.SimpleListAdapter`, because
+        here we create bindings for the data item, and its children back to
+        self.handle_selection(), and do other selection-related tasks to keep
+        item views in sync with the data.
         '''
         item = self.get_data_item(index)
         if item is None:

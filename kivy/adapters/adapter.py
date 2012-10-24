@@ -9,6 +9,30 @@ Adapter
     This widget is still experimental, and his API is subject to change in a
     future version.
 
+:class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
+:class:`~kivy.uix.abstractview.AbstractView` or one of its subclasses, such as
+:class:`~kivy.uix.listview.ListView`.
+
+Arguments:
+
+* *data*, for any sort of data to be used in a view. In
+  :class:`~kivy.adapters.adapter.Adapter`, data can be an object, as well as a
+  list, dict, etc. For :class:`~kivy.adapters.listadapter.ListAdapter`, data
+  is a list, and for :class:`~kivy.adapters.dictadapter.DictAdapter`, it is a
+  dict.
+
+* *cls*, for a list key class to use to instantiate key view
+  instances (Use this or the template argument)
+
+* *template*, a kv template to use to instantiate key view instances (Use
+  this or the cls argument)
+
+* *args_converter*, a function to transform data item argument
+  sets, in preparation for either a cls instantiation, or a kv template
+  invocation. If no args_converter is provided, a default one is set, that
+  assumes that the data items are strings.
+
+
 '''
 
 __all__ = ('Adapter', )
@@ -20,7 +44,9 @@ from kivy.adapters.args_converters import list_item_args_converter
 
 
 class Adapter(EventDispatcher):
-    '''Adapter is a bridge between an AbstractView and data.
+    ''':class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
+    :class:`~kivy.uix.abstractview.AbstractView` or one of its subclasses,
+    such as :class:`~kivy.uix.listview.ListView`.
     '''
 
     data = ObjectProperty(None)
@@ -32,9 +58,11 @@ class Adapter(EventDispatcher):
     In this base class, data is an ObjectProperty, so it could be used for a
     wide variety of single-view needs.
 
-    Subclasses may override to another data type, such as ListProperty or
-    DictProperty, as appropriate. For example, in ListAdapter, data is a
-    ListProperty.
+    Subclasses may override to another data type, such as
+    :class:`~kivy.properties.ListProperty` or
+    :class:`~kivy.properties.DictProperty, as appropriate. For example, in
+    :class:`~.kivy.adapters.listadapter.ListAdapter, data is a
+    :class:`~kivy.properties.ListProperty`.
 
     :data:`data` is an :class:`~kivy.properties.ObjectProperty`, default
     to None.

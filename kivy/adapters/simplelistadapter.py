@@ -9,9 +9,9 @@ SimpleListAdapter
     This widget is still experimental, and his API is subject to change in a
     future version.
 
-:class:`SimpleListAdapter` is for simple lists, such as for showing a
-text-only display of strings, or a list of views of some type that have
-no user interaction.
+:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is for simple
+lists, such as for showing a text-only display of strings, or a list of views
+of some type that have no user interaction.
 
 '''
 
@@ -22,30 +22,19 @@ from kivy.properties import ListProperty
 from kivy.lang import Builder
 
 class SimpleListAdapter(Adapter):
-    ''':class:`SimpleListAdapter` is an adapter around a simple Python list.
+    ''':class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is an 
+    adapter around a simple Python list.
 
-    From :class:`Adapter`, :class:`SimpleListAdapter` gets these properties:
-
-        Use only one:
-
-            - cls, for a list item class to use to instantiate item view
-                   instances
-
-            - template, a kv template to use to instantiate item view
-                        instances
-
-        - args_converter, an optional function to transform data item argument
-                          sets, in preparation for either a cls instantiation,
-                          or a kv template invocation (If an args_converter is
-                          not provided, a default one that assumes simple
-                          strings content is set)
+    From :class:`~kivy.adapters.adapter.Adapter`,
+    :class:`~kivy.adapters.simplelistadapter.ListAdapter` gets cls, template,
+    and args_converter properties.
     '''
 
     data = ListProperty([])
     '''The data list property contains a list of objects (can be strings) that
     will be used directly if no args_converter function is provided. If there
     is an args_converter, the data objects will be passed to it, for
-    instantiation of item view class (cls) instances from the data.
+    instantiation of item view class instances from the data.
 
     :data:`data` is a :class:`~kivy.properties.ListProperty`,
     default to [].

@@ -9,32 +9,12 @@ DictAdapter
     This widget is still experimental, and his API is subject to change in a
     future version.
 
-:class:`DictAdapter` is an adapter around a python dictionary of records.
-
-From :class:`ListAdapter`, :class:`DictAdapter` gets these properties:
-
-    Use only one:
-
-        - cls, for a list key class to use to instantiate key view
-               instances
-
-        - template, a kv template to use to instantiate key view
-                    instances
-
-    - args_converter, an optional function to transform data item argument
-                      sets, in preparation for either a cls instantiation,
-                      or a kv template invocation. If no args_converter is
-                      provided, a default one is set, that assumes that the
-                      data items are strings.
-
-    - selection
-    - selection_mode
-    - allow_empty_selection
-
-and several methods used in selection operations.
+:class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a python
+dictionary of records. It extends the list-like capabilities of
+:class:`~kivy.adapters.listadapter.ListAdapter`.
 
 If you wish to have a bare-bones list adapter, without selection, use
-:class:`SimpleListAdapter`.
+:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
 
 '''
 
@@ -47,6 +27,10 @@ from kivy.adapters.models import SelectableDataItem
 
 
 class DictAdapter(ListAdapter):
+    ''':class:`~kivy.adapters.dictadapter.DictAdapter` is an adapter around a
+    python dictionary of records. It extends the list-like capabilities of
+    :class:`~kivy.adapters.listadapter.ListAdapter`.
+    '''
 
     sorted_keys = ListProperty([])
     '''The sorted_keys list property contains a list of hashable objects (can
