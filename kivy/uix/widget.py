@@ -130,6 +130,11 @@ class Widget(EventDispatcher):
             #else:
             #    Builder.idmap.pop('root')
 
+        # Bind all the events
+        for argument, value in kwargs.items():
+            if argument.startswith('on_'):
+                self.bind(**{argument: value})
+
     #
     # Collision
     #
