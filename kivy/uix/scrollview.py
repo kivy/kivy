@@ -493,6 +493,8 @@ class ScrollView(StencilView):
 
     :data:`scroll_moves` is a :class:`~kivy.properties.NumericProperty`,
     default to 5.
+
+    .. versionadded:: 1.5.0
     '''
 
     scroll_stoptime = NumericProperty(_scroll_stoptime)
@@ -501,9 +503,11 @@ class ScrollView(StencilView):
     start.
     This is to prevent autoscroll to trigger while the user has slowed down
     on purpose to prevent this.
-    
+
     :data:`scroll_stoptime` is a :class:`~kivy.properties.NumericProperty`,
     default to 300 (milliseconds)
+
+    .. versionadded:: 1.5.0
     '''
 
     scroll_distance = NumericProperty(_scroll_distance)
@@ -526,6 +530,9 @@ class ScrollView(StencilView):
     :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty`,
     default to 55 (milliseconds), according to the default value in user
     configuration.
+
+    .. versionchanged:: 1.5.0
+        Default value changed from 250 to 55.
     '''
 
     scroll_x = NumericProperty(0.)

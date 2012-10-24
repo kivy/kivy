@@ -184,7 +184,7 @@ from kivy.logger import Logger, logger_config_update
 from kivy.utils import OrderedDict
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 6
+KIVY_CONFIG_VERSION = 7
 
 #: Kivy configuration object
 Config = None
@@ -401,8 +401,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_distance', '20')
             Config.setdefault('widgets', 'scroll_friction', '1.')
-            Config.setdefault('widgets', 'scroll_stoptime', '300')
-            Config.setdefault('widgets', 'scroll_moves', '5')
 
             # remove old list_* token
             Config.remove_option('widgets', 'list_friction')
@@ -419,6 +417,13 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 5:
             Config.setdefault('graphics', 'resizable', '1')
+
+        elif version == 6:
+            # if the timeout is still the default value, change it
+            if Config.getint('widgets', 'scroll_timeout') == 250:
+                Config.set('widgets', 'scroll_timeout', '55')
+            Config.setdefault('widgets', 'scroll_stoptime', '300')
+            Config.setdefault('widgets', 'scroll_moves', '5')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
