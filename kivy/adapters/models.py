@@ -1,12 +1,22 @@
 '''
+SelectableDataItem
+==================
+
+.. versionadded:: 1.5
+
+.. warning::
+
+    This widget is still experimental, and his API is subject to change in a
+    future version.
+
 Data Models
-===========
+-----------
 
 Kivy is open about the type of data used in applications built with
 the system. However, base classes are optionally needed to conform data to
 requirements of some parts of the system.
 
-:class:`SelectableDataItem` is a basic `Python data model`_ class that can be
+:class:`SelectableDataItem` is a basic Python data model class that can be
 used as a mixin to build data objects that are compatible with Kivy's adapter
 and selection system, which works with views such as ListView. The boolean
 property is_selected is the requirement.
@@ -17,20 +27,20 @@ view-only operation. However, in some cases, it is useful to propogate
 selection to the actual data items.
 
 You may, of course, build your own Python data model system as the backend for
-a Kivy application. For instance, to use the `Google App Engine datamodeling`_
-system with Kivy, this class could be redefined as:
+a Kivy application. For instance, to use the Google App Engine datamodeling
+system with Kivy, this class could be redefined as::
 
     from google.appengine.ext import db
 
-    class SelectableDataItem(db.Model):
+    class MySelectableDataItem(db.Model):
         ... other properties
         is_selected = db.BooleanProperty()
 
-.. _Python data model: http://docs.python.org/reference/datamodel.html
+It is easy to build such a class with plain Python, also.
 
-.. _Google App Engine datamodeling:
-https://developers.google.com/appengine/docs/python/datastore/datamodeling
 '''
+
+__all__ = ('SelectableDataItem', )
 
 class SelectableDataItem(object):
     '''

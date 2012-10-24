@@ -4,10 +4,18 @@ SimpleListAdapter
 
 .. versionadded:: 1.5
 
+.. warning::
+
+    This widget is still experimental, and his API is subject to change in a
+    future version.
+
 :class:`SimpleListAdapter` is for simple lists, such as for showing a
 text-only display of strings, or a list of views of some type that have
 no user interaction.
+
 '''
+
+__all__ = ('SimpleListAdapter', )
 
 from kivy.adapters.adapter import Adapter
 from kivy.properties import ListProperty
@@ -38,6 +46,9 @@ class SimpleListAdapter(Adapter):
     will be used directly if no args_converter function is provided. If there
     is an args_converter, the data objects will be passed to it, for
     instantiation of item view class (cls) instances from the data.
+
+    :data:`data` is a :class:`~kivy.properties.ListProperty`,
+    default to [].
     '''
 
     def __init__(self, **kwargs):

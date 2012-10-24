@@ -4,10 +4,10 @@ ListAdapter
 
 .. versionadded:: 1.5
 
-ListAdapter
-===========
+.. warning::
 
-.. versionadded:: 1.5
+    This widget is still experimental, and his API is subject to change in a
+    future version.
 
 :class:`ListAdapter` is an adapter around a python list.
 
@@ -44,9 +44,16 @@ and several methods used in selection operations.
 If you wish to have a bare-bones list adapter, without selection, use
 :class:`SimpleListAdapter`.
 
-:class:`DictAdapter` is a subclass of :class:`ListAdapter`.
+:class:`DictAdapter` is a subclass of :class:`ListAdapter`. They both dispatch
+the on_selection_change event.
+
+    :Events:
+        `on_selection_change`: (view, view list )
+            Fired when selection changes
 
 '''
+
+__all__ = ('ListAdapter', )
 
 import inspect
 from kivy.event import EventDispatcher
@@ -70,6 +77,9 @@ class ListAdapter(Adapter, EventDispatcher):
 
     selection = ListProperty([])
     '''The selection list property is the container for selected items.
+
+    :data:`selection` is a :class:`~kivy.properties.ListProperty`, default
+    to [].
     '''
 
     selection_mode = OptionProperty('single',
@@ -86,6 +96,9 @@ class ListAdapter(Adapter, EventDispatcher):
 
        multiple -- multi-touch / incremental addition to selection allowed;
                    may be limited to a count by selection_limit
+
+    :data:`selection_mode` is an :class:`~kivy.properties.OptionProperty`,
+    default to 'single'.
     '''
 
     propagate_selection_to_data = BooleanProperty(False)
@@ -117,6 +130,10 @@ class ListAdapter(Adapter, EventDispatcher):
     data. You could accomplish the same functionality by writing code to
     operate on list selection, but having selection stored on the data might
     prove convenient in some cases.
+
+    :data:`propagate_selection_to_data` is a 
+    :class:`~kivy.properties.BooleanProperty`,
+    default to False.
     '''
 
     allow_empty_selection = BooleanProperty(True)
@@ -126,6 +143,10 @@ class ListAdapter(Adapter, EventDispatcher):
     list displays. Set allow_empty_selection False, so that selection is
     auto-initialized, and always maintained, and so that any observing views
     may likewise be updated to stay in sync.
+
+    :data:`allow_empty_selection` is a 
+    :class:`~kivy.properties.BooleanProperty`,
+    default to True.
     '''
 
     selection_limit = NumericProperty(-1)
@@ -137,6 +158,9 @@ class ListAdapter(Adapter, EventDispatcher):
 
     If selection_limit is not set, the default is -1, meaning that no limit
     will be enforced.
+
+    :data:`selection_limit` is a :class:`~kivy.properties.NumericProperty`,
+    default to -1 (no limit).
     '''
 
     cached_views = DictProperty({})
@@ -146,6 +170,9 @@ class ListAdapter(Adapter, EventDispatcher):
 
     This dictionary works as a cache. get_view() only asks for a view from
     the adapter if one is not already stored for the requested index.
+
+    :data:`cached_views` is a :class:`~kivy.properties.DictProperty`,
+    default to {}.
     '''
 
     def __init__(self, **kwargs):

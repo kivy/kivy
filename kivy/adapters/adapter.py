@@ -4,7 +4,14 @@ Adapter
 
 .. versionadded:: 1.5
 
+.. warning::
+
+    This widget is still experimental, and his API is subject to change in a
+    future version.
+
 '''
+
+__all__ = ('Adapter', )
 
 from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty
@@ -28,16 +35,25 @@ class Adapter(EventDispatcher):
     Subclasses may override to another data type, such as ListProperty or
     DictProperty, as appropriate. For example, in ListAdapter, data is a
     ListProperty.
+
+    :data:`data` is an :class:`~kivy.properties.ObjectProperty`, default
+    to None.
     '''
 
     cls = ObjectProperty(None)
     '''
     A class for instantiating a given view item. (Use this or template).
+
+    :data:`cls` is an :class:`~kivy.properties.ObjectProperty`, default
+    to None.
     '''
 
     template = ObjectProperty(None)
     '''
     A kv template for instantiating a given view item. (Use this or cls).
+
+    :data:`template` is an :class:`~kivy.properties.ObjectProperty`, default
+    to None.
     '''
 
     args_converter = ObjectProperty(None)
@@ -47,6 +63,9 @@ class Adapter(EventDispatcher):
 
     If an args_converter is not provided, a default one is set that assumes
     simple content in the form of a list of strings.
+
+    :data:`args_converter` is an :class:`~kivy.properties.ObjectProperty`,
+    default to None.
     '''
 
     def __init__(self, **kwargs):

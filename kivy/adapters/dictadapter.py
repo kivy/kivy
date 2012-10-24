@@ -4,6 +4,11 @@ DictAdapter
 
 .. versionadded:: 1.5
 
+.. warning::
+
+    This widget is still experimental, and his API is subject to change in a
+    future version.
+
 :class:`DictAdapter` is an adapter around a python dictionary of records.
 
 From :class:`ListAdapter`, :class:`DictAdapter` gets these properties:
@@ -33,6 +38,8 @@ If you wish to have a bare-bones list adapter, without selection, use
 
 '''
 
+__all__ = ('DictAdapter', )
+
 from kivy.properties import ListProperty, DictProperty
 from kivy.lang import Builder
 from kivy.adapters.listadapter import ListAdapter
@@ -47,6 +54,9 @@ class DictAdapter(ListAdapter):
     provided. If there is an args_converter, the record received from a
     lookup in the data, using key from sorted_keys, will be passed
     to it, for instantiation of list item view class instances.
+
+    :data:`sorted_keys` is a :class:`~kivy.properties.ListProperty`, default
+    to [].
     '''
 
     data = DictProperty(None)
@@ -54,6 +64,9 @@ class DictAdapter(ListAdapter):
     sorted_keys, or they are a superset of the keys in sorted_keys.
 
     The values can be strings, class instances, dicts, etc.
+
+    :data:`data` is a :class:`~kivy.properties.DictProperty`, default
+    to None.
     '''
 
     def __init__(self, **kwargs):
