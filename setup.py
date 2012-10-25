@@ -326,7 +326,7 @@ setup(
         'kivy.tools.packaging',
         'kivy.tools.packaging.pyinstaller_hooks',
         'kivy.tools.highlight',
-        'kivy.tools.highlight.pygments',
+        'kivy.extras',
         'kivy.tools.extensions',
         'kivy.uix', ],
     package_dir={'kivy': 'kivy'},
