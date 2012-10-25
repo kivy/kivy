@@ -210,7 +210,7 @@ class OSCServer(_OSCServer):
                 if error == errno.EADDRINUSE:
                     Logger.error('OSC: Address %s:%i already in use, retry in 2 second' % (self.ipAddr, self.port))
                 else:
-                self.haveSocket = False
+                    self.haveSocket = False
 
                 # sleep 2 second before retry
                 time.sleep(2)
