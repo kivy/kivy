@@ -37,7 +37,7 @@ Syntax of a kv File
 
 .. highlight:: kv
 
-A Kivy language file must have ``.kv`` as filename extension.
+A Kivy language file must have ``.kv`` as filename extension, encoded in UTF-8.
 
 The content of the file must always start with the Kivy header, where `version`
 must be replaced with the Kivy language version you're using. For now, use
@@ -1106,20 +1106,9 @@ class BuilderBase(object):
         '''
         if __debug__:
             trace('Builder: load file %s' % filename)
-        with open(filename, 'r') as fd:
+        with codecs.open(filename, 'r', 'utf8') as fd:
             kwargs['filename'] = filename
             data = fd.read()
-
-            # remove bom ?
-            if data.startswith(codecs.BOM_UTF16_LE) or \
-                data.startswith(codecs.BOM_UTF16_BE):
-                raise ValueError('Unsupported UTF16 for kv files.')
-            if data.startswith(codecs.BOM_UTF32_LE) or \
-                data.startswith(codecs.BOM_UTF32_BE):
-                raise ValueError('Unsupported UTF32 for kv files.')
-            if data.startswith(codecs.BOM_UTF8):
-                data = data[len(codecs.BOM_UTF8):]
-
             return self.load_string(data, **kwargs)
 
     def unload_file(self, filename):
