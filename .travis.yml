@@ -5,12 +5,15 @@ python:
 # command to install dependencies
 before_install:
   - sudo apt-get update
-  - sudo apt-get install python-setuptools python-pygame python-opengl python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev build-essential libgl1-mesa-dev libgles2-mesa-dev
+  - sudo apt-get install python-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl1.2-dev libsmpeg-dev python-numpy libportmidi-dev ffmpeg libswscale-dev libavformat-dev libavcodec-dev libjpeg-dev libtiff4-dev libx11-6 libX11-dev
+  - sudo apt-get install python-setuptools python-opengl gstreamer0.10-plugins-good build-essential libgl1-mesa-dev libgles2-mesa-dev mercurial
+  - sudo apt-get install xvfb
 
 install:
-  - pip install --upgrade cython --use-mirrors
+  - pip install hg+http://bitbucket.org/pygame/pygame
+  - pip install --upgrade cython pil --use-mirrors
   - make
 
 # command to run tests
 script:
-  - make test
+  - xvfb-run -s "+extension GLX" make test
