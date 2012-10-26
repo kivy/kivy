@@ -11,8 +11,7 @@ from kivy.clock import Clock
 import sys
 
 try:
-    import sfml.window as sf
-    from sfml.graphics import Image
+    import sfml as sf
 except:
     Logger.warning('WinSFML: SFML module failed to load!')
     raise
@@ -72,7 +71,7 @@ class WindowSFML(WindowBase):
 
         # setup !
         self._window = sf.RenderWindow(
-            sf.VideoMode.get_desktop_mode(), 'SFML Window', sf.Style.NONE,
+            sf.VideoMode.get_desktop_mode(), 'SFML Window', sf.Style.DEFAULT,
             sf.ContextSettings(depth=16, stencil=1))
         self._size = tuple(self._window.size)
 
@@ -83,6 +82,8 @@ class WindowSFML(WindowBase):
         SFMLMotionEventProvider.win = self
         EventLoop.add_input_provider(SFMLMotionEventProvider('sfml', ''))
 
+        self._window.display()
+
     def close(self):
         self._window.close()
         self.dispatch('on_close')
@@ -91,7 +92,7 @@ class WindowSFML(WindowBase):
         self._window.title = title
 
     def set_icon(self, filename):
-        image = Image.load_from_file(filename)
+        image = sf.Image.load_from_file(filename)
         self._window.icon = image.pixels
 
     def _mainloop(self):
@@ -108,8 +109,6 @@ class WindowSFML(WindowBase):
             except StopIteration:
                 break
 
-            #print 'sdl received', event
-            action, args = event[0], event[1:]
             if event == sf.CloseEvent:
                 EventLoop.quit = True
                 self.close()
@@ -119,6 +118,7 @@ class WindowSFML(WindowBase):
                 self.dispatch('on_mouse_move', x, y, self.modifiers)
 
             elif event == sf.MouseButtonEvent:
+                self._update_modifiers(event)
                 x, y = event.position
 
                 if event.button == 1:
@@ -143,10 +143,8 @@ class WindowSFML(WindowBase):
                 self.canvas.ask_update()
 
             elif event == sf.KeyEvent:
-            elif action in ('keydown', 'keyup'):
+                self._update_modifiers(event)
                 key = event.code
-                # WHAT DOES THIS DO?
-                #self._pygame_update_modifiers(mod)
 
                 if event.released:
                     # ios passes key AND scancode
@@ -157,6 +155,18 @@ class WindowSFML(WindowBase):
                     continue
 
                 self.dispatch('on_keyboard', key, self.modifiers)
+
+    def _update_modifiers(self, event):
+        self._modifiers = []
+
+        if event.alt:
+            self._modifiers.append('alt')
+        if event.control:
+            self._modifiers.append('ctrl')
+        if event.shift:
+            self._modifiers.append('shift')
+        if event.system:
+            self._modifiers.append('meta')
 
     def _do_resize(self, dt):
         Logger.debug('Window: Resize window to %s' % str(self._size))
@@ -182,7 +192,7 @@ class WindowSFML(WindowBase):
                     pass
 
         # force deletion of window
-        self._window.close()
+        #self._window.close()
 
     def on_keyboard(self, key, modifier=None):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w

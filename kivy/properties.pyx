@@ -411,7 +411,7 @@ cdef class NumericProperty(Property):
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if type(value) not in (int, float):
+        if type(value) not in (int, float, long):
             raise ValueError('%s.%s accept only int/float (got %r)' % (
                 obj.__class__.__name__,
                 self.name, value))
@@ -420,9 +420,9 @@ cdef class NumericProperty(Property):
         if x is None:
             return x
         tp = type(x)
-        if tp is int or tp is float:
+        if tp in (int, float, long):
             return x
-        if tp is tuple or tp is list:
+        if tp in (tuple, list):
             if len(x) != 2:
                 raise ValueError('%s.%s must have 2 components (got %r)' % (
                     obj.__class__.__name__,
