@@ -21,8 +21,9 @@ from kivy.adapters.adapter import Adapter
 from kivy.properties import ListProperty
 from kivy.lang import Builder
 
+
 class SimpleListAdapter(Adapter):
-    ''':class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is an 
+    ''':class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is an
     adapter around a simple Python list.
 
     From :class:`~kivy.adapters.adapter.Adapter`,

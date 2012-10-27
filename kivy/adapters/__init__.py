@@ -25,9 +25,9 @@ On the view side is :class:`AbstractView`, which is the base view for
 
     :doc:`api-kivy.adapters.models`,
 
-- **Args Converters**: Argument converters are made by the application programmer
-  to do the work of converting data items to argument dictionaries suitable for
-  instantiating views.
+- **Args Converters**: Argument converters are made by the application
+  programmer to do the work of converting data items to argument dictionaries
+  suitable for instantiating views.
 
     :doc:`api-kivy.adapters.args_converters`,
 

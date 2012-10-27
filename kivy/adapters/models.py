@@ -42,6 +42,7 @@ It is easy to build such a class with plain Python, also.
 
 __all__ = ('SelectableDataItem', )
 
+
 class SelectableDataItem(object):
     '''
     A mixin class containing requirements for selection operations.

@@ -103,16 +103,17 @@ class Adapter(EventDispatcher):
 
         if 'cls' in kwargs:
             if 'template' in kwargs:
-                raise Exception('adapter: cannot use cls and template at the same time')
+                msg = 'adapter: cannot use cls and template at the same time'
+                raise Exception(msg)
             elif not kwargs['cls']:
                 raise Exception('adapter: a cls or template must be defined')
         else:
             if 'template' in kwargs:
                 if not kwargs['template']:
-                    raise Exception('adapter: a cls or template must be defined')
+                    msg = 'adapter: a cls or template must be defined'
+                    raise Exception(msg)
             else:
                 raise Exception('adapter: a cls or template must be defined')
-
 
         if 'args_converter' in kwargs:
             self.args_converter = kwargs['args_converter']
@@ -127,7 +128,7 @@ class Adapter(EventDispatcher):
     def get_data_item(self):
         return self.data
 
-    def get_view(self, index):  #pragma: no cover
+    def get_view(self, index):  # pragma: no cover
         item_args = self.args_converter(self.data)
 
         if self.cls:

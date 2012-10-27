@@ -74,9 +74,9 @@ class ListAdapter(Adapter, EventDispatcher):
             options=('none', 'single', 'multiple'))
     '''Selection modes:
 
-       * *none*, use the list as a simple list (no select action). This option is
-         here so that selection can be turned off, momentarily or permanently,
-         for an existing list adapter.
+       * *none*, use the list as a simple list (no select action). This option
+         is here so that selection can be turned off, momentarily or
+         permanently, for an existing list adapter.
          :class:`~kivy.adapters.listadapter.ListAdapter` is not meant to be
          used as a primary no-selection list adapter.  Use
          :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` for that.
@@ -121,7 +121,7 @@ class ListAdapter(Adapter, EventDispatcher):
     operate on list selection, but having selection stored on the data might
     prove convenient in some cases.
 
-    :data:`propagate_selection_to_data` is a 
+    :data:`propagate_selection_to_data` is a
     :class:`~kivy.properties.BooleanProperty`,
     default to False.
     '''
@@ -134,7 +134,7 @@ class ListAdapter(Adapter, EventDispatcher):
     auto-initialized, and always maintained, and so that any observing views
     may likewise be updated to stay in sync.
 
-    :data:`allow_empty_selection` is a 
+    :data:`allow_empty_selection` is a
     :class:`~kivy.properties.BooleanProperty`,
     default to True.
     '''
@@ -167,7 +167,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
-  
+
         self.register_event_type('on_selection_change')
 
         self.bind(selection_mode=self.selection_mode_changed,
@@ -224,10 +224,10 @@ class ListAdapter(Adapter, EventDispatcher):
             view_instance = Builder.template(self.template, **item_args)
 
         if self.propagate_selection_to_data:
-            # The data item must be a subclass of SelectableDataItem, or must have
-            # an is_selected boolean or function, so it has is_selected available.
-            # If is_selected is unavailable on the data item, an exception is
-            # raised.
+            # The data item must be a subclass of SelectableDataItem, or must
+            # have an is_selected boolean or function, so it has is_selected
+            # available.  If is_selected is unavailable on the data item, an
+            # exception is raised.
             #
             if isinstance(item, SelectableDataItem):
                 if item.is_selected:
@@ -236,7 +236,7 @@ class ListAdapter(Adapter, EventDispatcher):
                 if item['is_selected']:
                     self.handle_selection(view_instance)
             elif hasattr(item, 'is_selected'):
-                if (inspect.isfunction(item.is_selected) 
+                if (inspect.isfunction(item.is_selected)
                         or inspect.ismethod(item.is_selected)):
                     if item.is_selected():
                         self.handle_selection(view_instance)
@@ -305,7 +305,7 @@ class ListAdapter(Adapter, EventDispatcher):
         elif type(item) == dict:
             item['is_selected'] = value
         elif hasattr(item, 'is_selected'):
-            if (inspect.isfunction(item.is_selected) 
+            if (inspect.isfunction(item.is_selected)
                     or inspect.ismethod(item.is_selected)):
                 item.is_selected()
             else:
@@ -421,7 +421,7 @@ class ListAdapter(Adapter, EventDispatcher):
         if len(self.selection) > 0:
             last_sel_index = max([sel.index for sel in self.selection])
             print 'last_sel_index', last_sel_index
-            self.data = self.data[:last_sel_index+1]
+            self.data = self.data[:last_sel_index + 1]
 
     def trim_to_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are les than or
@@ -433,7 +433,7 @@ class ListAdapter(Adapter, EventDispatcher):
             sel_indices = [sel.index for sel in self.selection]
             first_sel_index = min(sel_indices)
             last_sel_index = max(sel_indices)
-            self.data = self.data[first_sel_index:last_sel_index+1]
+            self.data = self.data[first_sel_index:last_sel_index + 1]
 
     def cut_to_sel(self, *args):
         '''Same as trim_to_sel, but intervening list items within the selected

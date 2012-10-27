@@ -294,12 +294,12 @@ class AdaptersTestCase(unittest.TestCase):
                  'cls_dicts': [{'cls': ListItemButton,
                                 'kwargs': {'text': rec['text']}},
                                {'cls': ListItemLabel,
-                                'kwargs': {'text': "Middle-{0}".format(rec['text']),
+                                'kwargs': {'text': "#-{0}".format(rec['text']),
                                            'is_representing_cls': True}},
-                               {'cls': ListItemButton}, 
+                               {'cls': ListItemButton},
                                {'cls': ListItemButton,
                                 'kwargs': {'some key': 'some value'}},
-                               {'cls': ListItemButton, 
+                               {'cls': ListItemButton,
                                 'kwargs': {'text': rec['text']}}]}
 
         reset_to_defaults(fruit_data)
@@ -603,7 +603,7 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertTrue(view.is_selected)
 
     def test_list_adapter_with_widget_as_data_item_class(self):
-        
+
         # Use a widget as data item.
         class DataItem(Label):
             is_selected = BooleanProperty(True)
@@ -1043,12 +1043,13 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_dict_adapter_bad_sorted_keys(self):
         with self.assertRaises(Exception) as cm:
-            dict_adapter = DictAdapter(sorted_keys={},
-                                       data=self.integers_dict,
-                                       args_converter=self.composite_args_converter,
-                                       selection_mode='single',
-                                       allow_empty_selection=False,
-                                       cls=CompositeListItem)
+            dict_adapter = DictAdapter(
+                    sorted_keys={},
+                    data=self.integers_dict,
+                    args_converter=self.composite_args_converter,
+                    selection_mode='single',
+                    allow_empty_selection=False,
+                    cls=CompositeListItem)
 
         msg = 'DictAdapter: sorted_keys must be tuple or list'
         self.assertEqual(str(cm.exception), msg)
@@ -1219,7 +1220,6 @@ class AdaptersTestCase(unittest.TestCase):
              'Grapefruit', 'Honeydew', 'Kiwifruit', 'Lemon', 'Lime',
              'Nectarine', 'Orange', 'Peach', 'Pear', 'Pineapple', 'Plum',
              'Strawberry', 'Tangerine', 'Watermelon'])
-
 
         apple_view = dict_adapter.get_view(0)
         self.assertEqual(apple_view.text, 'Apple')
