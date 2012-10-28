@@ -1,4 +1,4 @@
-from common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest
 
 
 class FileChooserTestCase(GraphicUnitTest):

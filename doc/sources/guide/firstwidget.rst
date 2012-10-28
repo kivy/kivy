@@ -169,17 +169,15 @@ This is what has changed:
       :class:`~kivy.graphics.vertex_instructions.Line`, you will see that
       it accepts a ``points`` argument that has to be a list of 2D point
       coordinates, like ``(x1, y1, x2, y2, ..., xN, yN)``.
-    * Line 8: This is where it gets interesting. ``touch.ud`` is a Python
+    * Line 13: This is where it gets interesting. ``touch.ud`` is a Python
       dictionary (type <dict>) that allows us to store *custom attributes*
-      for a touch. On this line we simply get a reference to it to make it
-      more clear that ``ud`` stands for ``userdata``. You could just as
-      well write ``touch.ud`` instead of ``userdata``.
+      for a touch.
     * Line 13: We make use of the Line instruction that we imported and
       set a Line up for drawing. Since this is done in ``on_touch_down``,
       there will be a new line for every new touch. By creating the line
       inside the ``with`` block, the canvas automatically knows about the
       line and will draw it. We just want to modify the line later, so we
-      store a reference to it in the ``userdata`` dictionary under the
+      store a reference to it in the ``touch.ud`` dictionary under the
       arbitrarily chosen but aptly named key 'line'.
       We pass the line that we're creating the initial touch position
       because that's where our line will begin.
@@ -193,13 +191,13 @@ This is what has changed:
       shortly see why.
     * Line 16: Remember: This is the same touch object that we got in
       ``on_touch_down``, so we can simply access the data we stored away
-      in the userdata dictionary!
+      in the ``touch.ud`` dictionary!
       To the line we set up for this touch earlier, we now add the current
       position of the touch as a new point. We know that we need to extend
       the line because this happens in ``on_touch_move``, which is only
       called when the touch has moved, which is exactly why we want to
       update the line.
-      Storing the line in the userdata makes it a whole lot
+      Storing the line in the ``touch.ud`` makes it a whole lot
       easier for us as we don't have to maintain our own touch-to-line
       bookkeeping.
 
@@ -218,13 +216,11 @@ Here are the changes:
 
     * Line 1: We import Python's random() function that will give us
       random values in the range of [0., 1.).
-    * Line 10: We want to memorize the color for this touch, so we store
-      it in the touch's userdata dictionary.
-      In this case we simply create a new tuple of 3 random
+    * Line 10: In this case we simply create a new tuple of 3 random
       float values that will represent a random RGB color. Since we do
       this in ``on_touch_down``, every new touch will get its own color.
       Don't get confused by the use of two ``=`` operators. We're just
-      binding the tuple to ``c`` as well as a shortcut for use within this
+      binding the tuple to ``color`` as well as a shortcut for use within this
       method because we're lazy.
     * Line 12: As before, we set the color for the canvas. Only this time
       we use the random values we generated and feed them to the color
@@ -248,7 +244,7 @@ might even be able to create a nice little drawing!
    There is a nice trick to prevent this: Instead of creating a tuple with
    three random values, create a tuple like this: ``(random(), 1., 1.)``.
    Then, when passing it to the color instruction, set the mode to HSV
-   color space: ``Color(*c, mode='hsv')``. This way you will have a
+   color space: ``Color(*color, mode='hsv')``. This way you will have a
    smaller number of possible colors, but the colors that you get will
    always be equally bright. Only the hue changes.
 

@@ -7,10 +7,10 @@ Input Postprocessing
 __all__ = ('kivy_postproc_modules', )
 
 import os
-from doubletap import InputPostprocDoubleTap
-from ignorelist import InputPostprocIgnoreList
-from retaintouch import InputPostprocRetainTouch
-from dejitter import InputPostprocDejitter
+from kivy.input.postproc.doubletap import InputPostprocDoubleTap
+from kivy.input.postproc.ignorelist import InputPostprocIgnoreList
+from kivy.input.postproc.retaintouch import InputPostprocRetainTouch
+from kivy.input.postproc.dejitter import InputPostprocDejitter
 
 # Mapping of ID to module
 kivy_postproc_modules = {}
