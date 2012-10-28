@@ -561,6 +561,7 @@ class VKeyboard(Scatter):
 
         background = resource_find(self.background)
         texture = Image(background, mipmap=True).texture
+        self.background_key_layer.clear()
         with self.background_key_layer:
             Color(*self.background_color)
             BorderImage(texture=texture, size=self.size,
@@ -572,12 +573,11 @@ class VKeyboard(Scatter):
         # first draw keys without the font
         key_normal = resource_find(self.key_background_normal)
         texture = Image(key_normal, mipmap=True).texture
-        for line_nb in xrange(1, layout_rows + 1):
-            for pos, size in layout_geometry['LINE_%d' % line_nb]:
-                with self.background_key_layer:
-                    Color(self.key_background_color)
-                    BorderImage(texture=texture, pos=pos, size=size,
-                            border=self.key_border)
+        with self.background_key_layer:
+            for line_nb in xrange(1, layout_rows + 1):
+                for pos, size in layout_geometry['LINE_%d' % line_nb]:
+                        BorderImage(texture=texture, pos=pos, size=size,
+                                border=self.key_border)
 
         # then draw the text
         # calculate font_size
