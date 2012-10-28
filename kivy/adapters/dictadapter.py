@@ -103,6 +103,8 @@ class DictAdapter(ListAdapter):
     def trim_left_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are less than the
         index of the first selected item, if there is selection.
+
+        sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
@@ -113,6 +115,8 @@ class DictAdapter(ListAdapter):
     def trim_right_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are greater than
         the index of the last selected item, if there is selection.
+
+        sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
@@ -125,6 +129,8 @@ class DictAdapter(ListAdapter):
         greater than the index of the last selected item, if there is
         selection. This preserves intervening list items within the selected
         range.
+
+        sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
@@ -136,6 +142,8 @@ class DictAdapter(ListAdapter):
     def cut_to_sel(self, *args):
         '''Same as trim_to_sel, but intervening list items within the selected
         range are cut also, leaving only list items that are selected.
+
+        sorted_keys will be updated by update_for_new_data().
         '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
