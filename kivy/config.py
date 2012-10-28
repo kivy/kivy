@@ -138,6 +138,16 @@ Available configuration tokens
         property in :class:`~kivy.uix.scrollview.Scrollview` widget.
         Check the widget documentation for more information.
 
+    `scroll_stoptime`: int
+        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_stoptime`
+        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Check the widget documentation for more information.
+
+    `scroll_moves`: int
+        Default value of :data:`~kivy.uix.scrollview.Scrollview.scroll_moves`
+        property in :class:`~kivy.uix.scrollview.Scrollview` widget.
+        Check the widget documentation for more information.
+
 :modules:
 
     You can activate modules with this syntax::
@@ -388,9 +398,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 3:
             # add token for scrollview
-            Config.setdefault('widgets', 'scroll_timeout', '250')
+            Config.setdefault('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_distance', '20')
             Config.setdefault('widgets', 'scroll_friction', '1.')
+            Config.setdefault('widgets', 'scroll_stoptime', '300')
+            Config.setdefault('widgets', 'scroll_moves', '5')
 
             # remove old list_* token
             Config.remove_option('widgets', 'list_friction')
