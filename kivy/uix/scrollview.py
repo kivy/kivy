@@ -82,21 +82,45 @@ If you want to reduce the default timeout, you can set::
 
 __all__ = ('ScrollView', )
 
+from copy import copy
 from functools import partial
 from kivy.animation import Animation
 from kivy.config import Config
 from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
-        ObjectProperty, ListProperty
+    ObjectProperty, ListProperty
 
 
 # When we are generating documentation, Config doesn't exist
-_scroll_timeout = _scroll_distance = _scroll_friction = 0
+_scroll_timeout = _scroll_stoptime = _scroll_distance = _scroll_friction = 0
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
+    _scroll_stoptime = Config.getint('widgets', 'scroll_stoptime')
     _scroll_distance = Config.getint('widgets', 'scroll_distance')
+    _scroll_moves = Config.getint('widgets', 'scroll_moves')
     _scroll_friction = Config.getfloat('widgets', 'scroll_friction')
+
+
+class FixedList(list):
+    '''A list. In addition, you can specify the maximum length.
+    This will save memory.
+    '''
+    def __init__(self, maxlength=0, *args, **kwargs):
+        super(FixedList, self).__init__(*args, **kwargs)
+        self.maxlength = maxlength
+
+    def append(self, x):
+        super(FixedList, self).append(x)
+        self._cut()
+
+    def extend(self, L):
+        super(FixedList, self).append(L)
+        self._cut()
+
+    def _cut(self):
+        while len(self) > self.maxlength:
+            self.pop(0)
 
 
 class ScrollView(StencilView):
@@ -206,10 +230,12 @@ class ScrollView(StencilView):
             return
         uid = self._get_uid()
         touch = self._touch
-        mode = touch.ud[uid]['mode']
-        if mode == 'unknown':
-            touch.ungrab(self)
-            self._touch = None
+        ud = touch.ud[uid]
+        if ud['mode'] == 'unknown' and \
+                not ud['user_stopped'] and \
+                touch.dx + touch.dy == 0:
+            #touch.ungrab(self)
+            #self._touch = None
             # correctly calculate the position of the touch inside the
             # scrollview
             touch.push()
@@ -231,31 +257,40 @@ class ScrollView(StencilView):
             super(ScrollView, self).on_touch_up(touch)
         touch.grab_current = None
 
-    def _do_animation(self, touch):
+    def _do_animation(self, touch, *largs):
         uid = self._get_uid()
         ud = touch.ud[uid]
         dt = touch.time_end - ud['time']
-        if dt > self.scroll_timeout / 1000.:
-            self._tdx = self._tdy = self._ts = 0
+        avgdx = sum([move.dx for move in ud['moves']]) / len(ud['moves'])
+        avgdy = sum([move.dy for move in ud['moves']]) / len(ud['moves'])
+        if ud['user_stopped'] and \
+                abs(avgdy) < self.scroll_distance and \
+                abs(avgdx) < self.scroll_distance:
+            return
+        if ud['same'] > self.scroll_stoptime / 1000.:
             return
         dt = ud['dt']
         if dt == 0:
             self._tdx = self._tdy = self._ts = 0
             return
-        dx = touch.dx
-        dy = touch.dy
+        dx = avgdx
+        dy = avgdy
         self._sx = ud['sx']
         self._sy = ud['sy']
         self._tdx = dx = dx / dt
         self._tdy = dy = dy / dt
-        if abs(dx) < 10 and abs(dy) < 10:
-            return
         self._ts = self._tsn = touch.time_update
+
         Clock.unschedule(self._update_animation)
         Clock.schedule_interval(self._update_animation, 0)
 
     def _update_animation(self, dt):
         if self._touch is not None or self._ts == 0:
+            touch = self._touch
+            uid = self._get_uid()
+            ud = touch.ud[uid]
+            # scrolling stopped by user input
+            ud['user_stopped'] = True
             return False
         self._tsn += dt
         global_dt = self._tsn - self._ts
@@ -268,6 +303,7 @@ class ScrollView(StencilView):
            (self.do_scroll_y and not self.do_scroll_x and test_dy) or\
            (self.do_scroll_x and self.do_scroll_y and test_dx and test_dy):
             self._ts = 0
+            # scrolling stopped by friction
             return False
         dx *= dt
         dy *= dt
@@ -284,7 +320,17 @@ class ScrollView(StencilView):
             self.scroll_y -= sy
         self._scroll_y_mouse = self.scroll_y
         if ssx == self.scroll_x and ssy == self.scroll_y:
+            # scrolling stopped by end of box
             return False
+
+    def _update_delta(self, dt):
+        touch = self._touch
+        uid = self._get_uid()
+        ud = touch.ud[uid]
+        if touch.dx + touch.dy != 0:
+            ud['same'] += dt
+        else:
+            ud['same'] = 0
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -299,12 +345,10 @@ class ScrollView(StencilView):
             vp = self._viewport
             if vp.height > self.height:
                 # let's say we want to move over 40 pixels each scroll
-                d = (vp.height - self.height)
-                d = self.scroll_distance / float(d)
                 if touch.button == 'scrollup':
-                    syd = self._scroll_y_mouse - d
+                    syd = self._scroll_y_mouse
                 elif touch.button == 'scrolldown':
-                    syd = self._scroll_y_mouse + d
+                    syd = self._scroll_y_mouse
                 self._scroll_y_mouse = scroll_y = min(max(syd, 0), 1)
                 Animation.stop_all(self, 'scroll_y')
                 Animation(scroll_y=scroll_y, d=.3, t='out_quart').start(self)
@@ -319,9 +363,14 @@ class ScrollView(StencilView):
             'sx': self.scroll_x,
             'sy': self.scroll_y,
             'dt': None,
-            'time': touch.time_start}
+            'time': touch.time_start,
+            'user_stopped': False,
+            'same': 0,
+            'moves': FixedList(self.scroll_moves)}
+
+        Clock.schedule_interval(self._update_delta, 0)
         Clock.schedule_once(self._change_touch_mode,
-                self.scroll_timeout / 1000.)
+                            self.scroll_timeout / 1000.)
         return True
 
     def on_touch_move(self, touch):
@@ -335,23 +384,22 @@ class ScrollView(StencilView):
         uid = self._get_uid()
         ud = touch.ud[uid]
         mode = ud['mode']
+        ud['moves'].append(copy(touch))
 
         # seperate the distance to both X and Y axis.
         # if a distance is reach, but on the inverse axis, stop scroll mode !
         if mode == 'unknown':
             distance = abs(touch.ox - touch.x)
-            if distance > self.scroll_distance:
-                if not self.do_scroll_x:
-                    self._change_touch_mode()
-                    return
-                mode = 'scroll'
+            if not self.do_scroll_x:
+                self._change_touch_mode()
+                return
+            mode = 'scroll'
 
             distance = abs(touch.oy - touch.y)
-            if distance > self.scroll_distance:
-                if not self.do_scroll_y:
-                    self._change_touch_mode()
-                    return
-                mode = 'scroll'
+            if not self.do_scroll_y:
+                self._change_touch_mode()
+                return
+            mode = 'scroll'
 
         if mode == 'scroll':
             ud['mode'] = mode
@@ -374,7 +422,7 @@ class ScrollView(StencilView):
         # never ungrabed, cause their on_touch_up will be never called.
         # base.py: the me.grab_list[:] => it's a copy, and we are already
         # iterate on it.
-
+        Clock.unschedule(self._update_delta)
         if self._get_uid('svavoid') in touch.ud:
             return
 
@@ -385,10 +433,12 @@ class ScrollView(StencilView):
             touch.ungrab(self)
             self._touch = None
             uid = self._get_uid()
-            mode = touch.ud[uid]['mode']
-            if mode == 'unknown':
+            ud = touch.ud[uid]
+            if ud['mode'] == 'unknown':
                 # we must do the click at least..
-                super(ScrollView, self).on_touch_down(touch)
+                # only send the click if it was not a click to stop autoscrolling
+                if not ud['user_stopped']:
+                    super(ScrollView, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
             elif self.auto_scroll:
                 self._do_animation(touch)
@@ -433,10 +483,35 @@ class ScrollView(StencilView):
     default to 1, according to the default value in user configuration.
     '''
 
+    scroll_moves = NumericProperty(_scroll_moves)
+    '''The speed of automatic scrolling is based on previous touch moves. This
+    is to prevent accidental slowing down by the user at the end of the swipe
+    to slow down the automatic scrolling.
+    The moves property specifies the amount of previous scrollmoves that
+    should be taken into consideration when calculating the automatic scrolling
+    speed.
+
+    :data:`scroll_moves` is a :class:`~kivy.properties.NumericProperty`,
+    default to 5.
+    '''
+
+    scroll_stoptime = NumericProperty(_scroll_stoptime)
+    '''Time after which user input not moving will disable autoscroll for that
+    move. If the user has not moved within the stoptime, autoscroll will not
+    start.
+    This is to prevent autoscroll to trigger while the user has slowed down
+    on purpose to prevent this.
+    
+    :data:`scroll_stoptime` is a :class:`~kivy.properties.NumericProperty`,
+    default to 300 (milliseconds)
+    '''
+
     scroll_distance = NumericProperty(_scroll_distance)
     '''Distance to move before scrolling the :class:`ScrollView`, in pixels. As
     soon as the distance has been traveled, the :class:`ScrollView` will start
     to scroll, and no touch event will go to children.
+    It is advisable that you base this value on the dpi of your target device's
+    screen.
 
     :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty`,
     default to 20 (pixels), according to the default value in user
@@ -445,11 +520,11 @@ class ScrollView(StencilView):
 
     scroll_timeout = NumericProperty(_scroll_timeout)
     '''Timeout allowed to trigger the :data:`scroll_distance`, in milliseconds.
-    If the timeout is reached, the scrolling will be disabled, and the touch
-    event will go to the children.
+    If the user has not moved :data:`scroll_distance` within the timeout,
+    the scrolling will be disabled, and the touch event will go to the children.
 
     :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty`,
-    default to 250 (milliseconds), according to the default value in user
+    default to 55 (milliseconds), according to the default value in user
     configuration.
     '''
 
@@ -601,4 +676,3 @@ class ScrollView(StencilView):
         if value:
             value.bind(size=self._set_viewport_size)
             self._viewport_size = value.size
-
