@@ -141,7 +141,7 @@ class Widget(EventDispatcher):
 
         # Create the default canvas if not exist
         if self.canvas is None:
-            self.canvas = Canvas()
+            self.canvas = Canvas(opacity=self.opacity)
 
         # Apply all the styles
         if '__no_builder' not in kwargs:
@@ -586,7 +586,9 @@ class Widget(EventDispatcher):
     '''
 
     def on_opacity(self, instance, value):
-        self.canvas.opacity = value
+        canvas = self.canvas
+        if canvas is not None:
+            canvas.opacity = value
 
     canvas = None
     '''Canvas of the widget.
