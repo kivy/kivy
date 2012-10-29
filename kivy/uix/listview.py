@@ -6,7 +6,7 @@ List View
 
 .. warning::
 
-    This widget is still experimental, and his API is subject to change in a
+    This code is still experimental, and its API is subject to change in a
     future version.
 
 The :class:`~kivy.uix.listview.ListView` widget provides a scrollable/pannable

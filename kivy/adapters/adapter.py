@@ -6,7 +6,7 @@ Adapter
 
 .. warning::
 
-    This widget is still experimental, and his API is subject to change in a
+    This code is still experimental, and its API is subject to change in a
     future version.
 
 :class:`~kivy.adapters.adapter.Adapter` is a bridge between data and
