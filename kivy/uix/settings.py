@@ -654,12 +654,12 @@ class Settings(BoxLayout):
         '''
         self._types[tp] = cls
 
-    def add_json_panel(self, title, config, filename=None, data=None):
-        '''Create and add a new :class:`SettingsPanel` using the configuration
-        `config`, with the JSON definition `filename`.
+    def create_json_panel(self, title, config, filename=None, data=None):
+        '''Create new :class:`SettingsPanel`.
 
-        Check the :ref:`settings_json` section in the documentation for more
-        information about JSON format, and the usage of this function.
+        .. versionadded:: 1.5.0
+
+        Check the documentation of :meth:`add_json_panel` for more information.
         '''
         if filename is None and data is None:
             raise Exception('You must specify either the filename or data')
@@ -671,7 +671,6 @@ class Settings(BoxLayout):
         if type(data) != list:
             raise ValueError('The first element must be a list')
         panel = SettingsPanel(title=title, settings=self, config=config)
-        self.add_widget(panel)
 
         for setting in data:
             # determine the type and the class to use
@@ -695,6 +694,16 @@ class Settings(BoxLayout):
             panel.add_widget(instance)
 
         return panel
+
+    def add_json_panel(self, title, config, filename=None, data=None):
+        '''Create and add a new :class:`SettingsPanel` using the configuration
+        `config`, with the JSON definition `filename`.
+
+        Check the :ref:`settings_json` section in the documentation for more
+        information about JSON format, and the usage of this function.
+        '''
+        panel = self.create_json_panel(title, config, filename, data)
+        self.add_widget(panel)
 
     def add_kivy_panel(self):
         '''Add a panel for configuring Kivy. This panel acts directly on the
