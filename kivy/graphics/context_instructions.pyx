@@ -41,7 +41,7 @@ cdef object get_default_texture():
 
 # register Image cache
 Cache.register('kv.texture', limit=1000, timeout=60)
-Cache.register('kv.shader', limit=1000, timeout=60)
+Cache.register('kv.shader', limit=1000, timeout=3600)
 
 # ensure that our resources are cleaned
 def gl_init_resources():
