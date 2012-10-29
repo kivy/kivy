@@ -367,7 +367,7 @@ class ShaderTransition(TransitionBase):
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
-            Rectangle(size=(1, 1))
+            Rectangle(size=(1, -1), pos=(0, 1))
         self.render_ctx['projection_mat'] = Matrix().\
             view_clip(0, 1, 0, 1, 0, 1, 0)
         self.render_ctx['tex_out'] = 1
