@@ -112,7 +112,7 @@ Builder.load_string('''
     tab_pos: 'top_right'
     size_hint: (.45, .45)
     pos_hint: {'center_x': .75, 'y': .55}
-    #replace the default tab with our custom tab
+    # replace the default tab with our custom tab
     default_tab: def_tab
     #allow variable tab width
     tab_width: None

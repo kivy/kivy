@@ -298,13 +298,13 @@ class TabbedPanel(GridLayout):
     default to 100.
     '''
 
-    do_default_tab = BooleanProperty(False)
+    do_default_tab = BooleanProperty(True)
     '''Specifies weather a default_tab head is provided.
 
     .. versionadded:: 1.5.0
 
     :data:`do_default_tab` is a :class:`~kivy.properties.BooleanProperty`,
-    defaults to 'False'.
+    defaults to 'True'.
     '''
 
     default_tab_text = StringProperty('Default tab')
@@ -408,6 +408,7 @@ class TabbedPanel(GridLayout):
             Clock.schedule_once(self._switch_to_first_tab)
             return
         self._setup_default_tab()
+        self.switch_to(self.default_tab)
 
     def switch_to(self, header):
         '''Switch to a specific panel header.
