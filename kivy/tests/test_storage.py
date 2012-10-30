@@ -25,6 +25,13 @@ class StorageTestCase(unittest.TestCase):
         finally:
             unlink(tmpfn)
 
+    def test_redis_storage(self):
+        from kivy.storage.redisstore import RedisStore
+
+        params = dict(db=15)
+        self._do_store_test_empty(RedisStore(params))
+        self._do_store_test_filled(RedisStore(params))
+
     def _do_store_test_empty(self, store):
         store.clear()
         self.assertTrue(store.count() == 0)

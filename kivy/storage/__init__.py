@@ -16,8 +16,11 @@ The idea behind the Storage module is to be able to load/store keys/values. The
 default model is abstract, and you cannot use it directly. We provide some
 implementation like:
 
-- :class:`kivy.storage.jsonstore.DictStore`: use a python dict as a storage
+- :class:`kivy.storage.dictstore.DictStore`: use a python dict as a storage
 - :class:`kivy.storage.jsonstore.JsonStore`: use a JSON file as a storage
+- :class:`kivy.storage.redistore.RedisStore`: use a `Redis <http://redis.io>`_
+  database with `redis-py <https://github.com/andymccurdy/redis-py>`_
+
 
 
 Examples
