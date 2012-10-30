@@ -78,14 +78,39 @@ With callback (Asynchronous API):
     mystore.get('plop', callback=my_callback)
 
 
-The callback signature is `callback(store, key, result)`:
+The callback signature is (for almost all methods) `callback(store, key,
+result)`:
 
 #. `store` is the `Store` instance currently used
 #. `key` is the key searched
 #. `entry` is the result of the lookup for the `key`
 
 
+Synchronous container type
+--------------------------
 
+The storage API is also emulating the container type for the synchronous API::
+
+    store = JsonStore('hello.json')
+
+    # original: store.get('tito')
+    store['tito']
+
+    # original: store.put('tito', name='Mathieu')
+    store['tito'] = {'name': 'Mathieu'}
+
+    # original: store.delete('tito')
+    del store['tito']
+
+    # original: store.count()
+    len(store)
+
+    # original: store.exists('tito')
+    'tito' in store
+
+    # original: for key in store.keys()
+    for key in store:
+        pass
 
 '''
 
@@ -102,11 +127,22 @@ class AbstractStore(EventDispatcher):
         super(AbstractStore, self).__init__(**kwargs)
         self.store_load()
 
-    def exists(self, key, callback=None):
+    def exists(self, key):
         '''Check if a key exist in the storage.
         '''
-        if callback is None:
-            return self.store_exists(key)
+        return self.store_exists(key)
+
+    def async_exists(self, callback, key):
+        '''Asynchronous version of :meth:`exists`.
+
+        :Callback arguments:
+            `store`: :class:`AbstractStore` instance
+                Store instance
+            `key`: string
+                Name of the key to search for
+            `result`: bool
+                Result of the query, None if any error
+        '''
         self._schedule(self.store_exists_async,
                 key=key, callback=callback)
 
@@ -117,8 +153,15 @@ class AbstractStore(EventDispatcher):
         return self.store_get(key)
 
     def async_get(self, callback, key):
-        '''Asynchronously get the value stored at `key`. The result will be sent
-        through the `callback`.
+        '''Asynchronous version of :meth:`get`.
+
+        :Callback arguments:
+            `store`: :class:`AbstractStore` instance
+                Store instance
+            `key`: string
+                Name of the key to search for
+            `result`: dict
+                Result of the query, None if any error
         '''
         self._schedule(self.store_get_async, key=key, callback=callback)
 
@@ -131,7 +174,16 @@ class AbstractStore(EventDispatcher):
         return need_sync
 
     def async_put(self, callback, key, **values):
-        '''Asynchronously put values in the `key` identifier.
+        '''Asynchronous version of :meth:`put`.
+
+        :Callback arguments:
+            `store`: :class:`AbstractStore` instance
+                Store instance
+            `key`: string
+                Name of the key to search for
+            `result`: bool
+                Indicate True if the storage has been updated, or False if
+                nothing has been done (no changes.). None if any error.
         '''
         self._schedule(self.store_put_async,
                 key=key, value=values, callback=callback)
@@ -145,7 +197,16 @@ class AbstractStore(EventDispatcher):
         return need_sync
 
     def async_delete(self, callback, key):
-        '''Asynchronously delete the `key`.
+        '''Asynchronous version of :meth:`delete`.
+
+        :Callback arguments:
+            `store`: :class:`AbstractStore` instance
+                Store instance
+            `key`: string
+                Name of the key to search for
+            `result`: bool
+                Indicate True if the storage has been updated, or False if
+                nothing has been done (no changes.). None if any error.
         '''
         self._schedule(self.store_delete_async, key=key,
                 callback=callback)
@@ -167,10 +228,19 @@ class AbstractStore(EventDispatcher):
         return self.store_find(filters)
 
     def async_find(self, callback, **filters):
-        '''Asynchronously return all the entries matching the filters. The
-        callback will be called for every result found. When all the result have
-        been returned, the callback will be called with 'None' as `key` and
-        `entry`.
+        '''Asynchronous version of :meth:`find`.
+
+        The callback will be called for each entries in the result.
+
+        :Callback arguments:
+            `store`: :class:`AbstractStore` instance
+                Store instance
+            `key`: string
+                Name of the key to search for, or None if we reach the end of
+                the result
+            `result`: bool
+                Indicate True if the storage has been updated, or False if
+                nothing has been done (no changes.). None if any error.
         '''
         self._schedule(self.store_find_async,
                 callback=callback, filters=filters)
@@ -194,6 +264,31 @@ class AbstractStore(EventDispatcher):
         '''Asynchronously return the number of entries in the storage
         '''
         self._schedule(self.store_count_async, callback=callback)
+
+    #
+    # Operators
+    #
+
+    def __setitem__(self, key, values):
+        if not isinstance(values, dict):
+            raise Exception('Only dict are accepted for the store[key] = dict')
+        self.put(key, **values)
+
+    def __getitem__(self, key):
+        return self.get(key)
+
+    def __delitem__(self, key):
+        return self.keys()
+
+    def __contains__(self, key):
+        return self.exists(key)
+
+    def __len__(self):
+        return self.count()
+
+    def __iter__(self):
+        for key in self.keys():
+            yield key
 
     #
     # Used for implementation
