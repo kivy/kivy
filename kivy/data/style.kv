@@ -499,7 +499,8 @@
             size: self.width, 1
 
 <SettingItem>:
-    size_hint_x: .25
+    size_hint: .25, None
+	height: max(50, labellayout.height)
     content: content
     canvas:
         Color:
@@ -516,25 +517,13 @@
     BoxLayout:
         pos: root.pos
 
-        FloatLayout:
+        Label:
+            size_hint: .5, None
             id: labellayout
-            orientation: 'vertical'
-            size_hint_x: .5
-
-            Label:
-                pos_hint: {'y': .5, 'x': 0}
-                text: root.title
-                text_size: self.width - 32, None
-                size_hint_y: None
-                height: self.texture_size[1]
-            Label:
-                pos_hint: {'top': .5, 'x': 0}
-                text: root.desc if root.desc else ''
-                text_size: self.width - 32, None
-                size_hint_y: None
-                height: self.texture_size[1]
-                font_size: 10
-                color: (.7, .7, .7, 1) if root.selected_alpha < 0.5 else (.3, .3, .3, 1)
+            markup: True
+            text: '{0}\n[size=10pt]{1}[/size]{2}'.format(root.title or '', root.desc or '', self.height)
+            text_size: self.width - 32, None
+			height: self.texture_size[1] + 10
 
         BoxLayout:
             id: content
@@ -565,6 +554,8 @@
 
 <SettingTitle>:
     text_size: self.width - 32, None
+	size_hint_y: None
+	height: max(50, self.texture_size[1] + 20)
     color: (.9, .9, .9, 1)
     canvas:
         Color:
@@ -592,14 +583,16 @@
 <SettingsPanel>:
     spacing: 5
     padding: 5
-    row_default_height: 48
-    row_force_default: True
+    #row_default_height: 48
+    #row_force_default: True
     size_hint_y: None
     height: self.minimum_height
 
     Label:
+		size_hint_y: None
         text: root.title
         text_size: self.width - 32, None
+		height: max(50, self.texture_size[1] + 20)
         color: (.5, .5, .5, 1)
 
         canvas.after:
@@ -766,7 +759,7 @@
     do_translation: False
     do_rotation: False
     do_scale: False
-	auto_bring_to_front: False
+    auto_bring_to_front: False
 
 
 # =============================================================================
@@ -774,16 +767,16 @@
 # =============================================================================
 
 <ScreenManager>:
-	canvas.before:
-		StencilPush
-		Rectangle:
-			pos: self.pos
-			size: self.size
-		StencilUse
-	canvas.after:
-		StencilUnUse
-		Rectangle:
-			pos: self.pos
-			size: self.size
-		StencilPop
+    canvas.before:
+        StencilPush
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilUse
+    canvas.after:
+        StencilUnUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilPop
 

@@ -38,7 +38,7 @@ If you need to escape the markup from the current text, use
 __all__ = ('MarkupLabel', )
 
 from kivy.graphics.texture import Texture
-from kivy.utils import platform
+from kivy.properties import dpi2px
 from kivy.parser import parse_color
 from kivy.logger import Logger
 import re
@@ -138,9 +138,14 @@ class MarkupLabel(MarkupLabelBase):
                 spop('italic')
                 self.resolve_font_name()
             elif item[:6] == '[size=':
+                item = item[6:-1]
                 try:
-                    size = int(item[6:-1])
+                    if item[-2:] in ('px', 'pt', 'in', 'cm', 'mm'):
+                        size = dpi2px(item[:-2], item[-2:])
+                    else:
+                        size = int(item)
                 except ValueError:
+                    raise
                     size = options['font_size']
                 spush('font_size')
                 options['font_size'] = size
