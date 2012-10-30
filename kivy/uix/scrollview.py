@@ -235,8 +235,8 @@ class ScrollView(StencilView):
         if ud['mode'] == 'unknown' and \
                 not ud['user_stopped'] and \
                 touch.dx + touch.dy == 0:
-            #touch.ungrab(self)
-            #self._touch = None
+            touch.ungrab(self)
+            self._touch = None
             # correctly calculate the position of the touch inside the
             # scrollview
             touch.push()
@@ -264,10 +264,6 @@ class ScrollView(StencilView):
         dt = touch.time_end - ud['time']
         avgdx = sum([move.dx for move in ud['moves']]) / len(ud['moves'])
         avgdy = sum([move.dy for move in ud['moves']]) / len(ud['moves'])
-        if ud['user_stopped'] and \
-                abs(avgdy) < self.scroll_distance and \
-                abs(avgdx) < self.scroll_distance:
-            return
         if ud['same'] > self.scroll_stoptime / 1000.:
             return
         dt = ud['dt']
@@ -308,10 +304,6 @@ class ScrollView(StencilView):
             return False
         dx *= dt
         dy *= dt
-        '''
-        print 'move by %.3f %.3f | dt=%.3f, divider=%.3f, tdXY=(%.3f, %.3f)' % (
-            dx, dy, global_dt, divider, self._tdx, self._tdy)
-        '''
         sx, sy = self.convert_distance_to_scroll(dx, dy)
         ssx = self.scroll_x
         ssy = self.scroll_y
@@ -326,6 +318,8 @@ class ScrollView(StencilView):
 
     def _update_delta(self, dt):
         touch = self._touch
+        if not touch:
+            return False
         uid = self._get_uid()
         ud = touch.ud[uid]
         if touch.dx + touch.dy != 0:
@@ -346,10 +340,13 @@ class ScrollView(StencilView):
             vp = self._viewport
             if vp.height > self.height:
                 # let's say we want to move over 40 pixels each scroll
+                d = (vp.height - self.height)
+                if d != 0:
+                    d = self.scroll_distance / float(d)
                 if touch.button == 'scrollup':
-                    syd = self._scroll_y_mouse
+                    syd = self._scroll_y_mouse - d
                 elif touch.button == 'scrolldown':
-                    syd = self._scroll_y_mouse
+                    syd = self._scroll_y_mouse + d
                 self._scroll_y_mouse = scroll_y = min(max(syd, 0), 1)
                 Animation.stop_all(self, 'scroll_y')
                 Animation(scroll_y=scroll_y, d=.3, t='out_quart').start(self)
@@ -391,16 +388,18 @@ class ScrollView(StencilView):
         # if a distance is reach, but on the inverse axis, stop scroll mode !
         if mode == 'unknown':
             distance = abs(touch.ox - touch.x)
-            if not self.do_scroll_x:
-                self._change_touch_mode()
-                return
-            mode = 'scroll'
+            if distance > self.scroll_distance:
+                if not self.do_scroll_x:
+                    self._change_touch_mode()
+                    return
+                mode = 'scroll'
 
             distance = abs(touch.oy - touch.y)
-            if not self.do_scroll_y:
-                self._change_touch_mode()
-                return
-            mode = 'scroll'
+            if distance > self.scroll_distance:
+                if not self.do_scroll_y:
+                    self._change_touch_mode()
+                    return
+                mode = 'scroll'
 
         if mode == 'scroll':
             ud['mode'] = mode
@@ -413,6 +412,7 @@ class ScrollView(StencilView):
                 self.scroll_y = ud['sy'] + sy
             ud['dt'] = touch.time_update - ud['time']
             ud['time'] = touch.time_update
+            ud['user_stopped'] = True
 
         return True
 
