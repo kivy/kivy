@@ -34,3 +34,15 @@ class DictStore(AbstractStore):
         del self.data[key]
         return True
 
+    def store_find(self, filters):
+        for key, values in self.data.iteritems():
+            found = True
+            for fkey, fvalue in filters.iteritems():
+                if fkey not in values:
+                    found = False
+                    break
+                if values[fkey] != fvalue:
+                    found = False
+                    break
+            if found:
+                yield key, values
