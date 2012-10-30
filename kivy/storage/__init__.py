@@ -175,6 +175,26 @@ class AbstractStore(EventDispatcher):
         self._schedule(self.store_find_async,
                 callback=callback, filters=filters)
 
+    def keys(self):
+        '''Return a list of all the keys in the storage
+        '''
+        return self.store_keys()
+
+    def async_keys(self, callback):
+        '''Asynchronously return all the keys in the storage
+        '''
+        self._schedule(self.store_keys_async, callback=callback)
+
+    def count(self):
+        '''Return the number of entries in the storage
+        '''
+        return self.store_count()
+
+    def async_count(self, callback):
+        '''Asynchronously return the number of entries in the storage
+        '''
+        self._schedule(self.store_count_async, callback=callback)
+
     #
     # Used for implementation
     #
@@ -191,11 +211,17 @@ class AbstractStore(EventDispatcher):
     def store_delete(self, key):
         raise NotImplemented()
 
-    def store_load(self):
-        pass
-
     def store_find(self, filters):
         return []
+
+    def store_keys(self):
+        return []
+
+    def store_count(self):
+        return 0
+
+    def store_load(self):
+        pass
 
     def store_sync(self):
         pass
@@ -232,6 +258,20 @@ class AbstractStore(EventDispatcher):
         for key, entry in self.store_find(filters):
             callback(self, filters, key, entry)
         callback(self, filters, None, None)
+
+    def store_count_async(self, callback):
+        try:
+            value = self.store_count()
+            callback(self, value)
+        except:
+            callback(self, 0)
+
+    def store_keys_async(self, callback):
+        try:
+            keys = self.store_keys()
+            callback(self, keys)
+        except:
+            callback(self, [])
 
     #
     # Privates

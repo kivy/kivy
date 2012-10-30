@@ -26,17 +26,21 @@ class StorageTestCase(unittest.TestCase):
             unlink(tmpfn)
 
     def _do_store_test_empty(self, store):
+        self.assertTrue(store.count() == 0)
         self.assertFalse(store.exists('plop'))
         self.assertRaises(KeyError, lambda: store.get('plop'))
         self.assertTrue(store.put('plop', name='Hello', age=30))
         self.assertTrue(store.exists('plop'))
         self.assertTrue(store.get('plop').get('name') == 'Hello')
         self.assertTrue(store.get('plop').get('age') == 30)
+        self.assertTrue(store.count() == 1)
+        self.assertTrue('plop' in store.keys())
 
         # test queries
         store.put('key1', name='Name1', attr1='Common')
         store.put('key2', name='Name2', attr1='Common', attr2='bleh')
         store.put('key3', name='Name3', attr1='Common', attr2='bleh')
+        self.assertTrue(store.count() == 4)
         self.assertTrue(store.exists('key1'))
         self.assertTrue(store.exists('key2'))
         self.assertTrue(store.exists('key3'))
@@ -50,6 +54,7 @@ class StorageTestCase(unittest.TestCase):
         self.assertTrue(len(list(store.find(name='Name1', attr2='bleh'))) == 0)
 
     def _do_store_test_filled(self, store):
+        self.assertTrue(store.count() == 4)
         self.assertRaises(KeyError, lambda: store.get('plop2'))
         self.assertRaises(KeyError, lambda: store.delete('plop2'))
         self.assertTrue(store.exists('plop'))

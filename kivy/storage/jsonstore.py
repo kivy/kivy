@@ -67,3 +67,9 @@ class JsonStore(AbstractStore):
                     break
             if found:
                 yield key, values
+
+    def store_count(self):
+        return len(self._data)
+
+    def store_keys(self):
+        return self._data.keys()
