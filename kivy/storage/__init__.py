@@ -265,6 +265,16 @@ class AbstractStore(EventDispatcher):
         '''
         self._schedule(self.store_count_async, callback=callback)
 
+    def clear(self):
+        '''Wipe the whole storage.
+        '''
+        return self.store_clear()
+
+    def async_clear(self, callback):
+        '''Asynchronous version of :meth:`clear`.
+        '''
+        self._schedule(self.store_clear_async, callback=callback)
+
     #
     # Operators
     #
@@ -294,6 +304,12 @@ class AbstractStore(EventDispatcher):
     # Used for implementation
     #
 
+    def store_load(self):
+        pass
+
+    def store_sync(self):
+        pass
+
     def store_get(self, key):
         raise NotImplemented()
 
@@ -313,13 +329,11 @@ class AbstractStore(EventDispatcher):
         return []
 
     def store_count(self):
-        return 0
+        return len(self.store_keys())
 
-    def store_load(self):
-        pass
-
-    def store_sync(self):
-        pass
+    def store_clear(self):
+        for key in self.store_keys():
+            self.store_delete(key)
 
     def store_get_async(self, key, callback):
         try:
@@ -367,6 +381,10 @@ class AbstractStore(EventDispatcher):
             callback(self, keys)
         except:
             callback(self, [])
+
+    def store_clear_async(self, callback):
+        self.store_clear()
+        callback(self)
 
     #
     # Privates

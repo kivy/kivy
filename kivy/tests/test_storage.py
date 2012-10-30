@@ -26,6 +26,7 @@ class StorageTestCase(unittest.TestCase):
             unlink(tmpfn)
 
     def _do_store_test_empty(self, store):
+        store.clear()
         self.assertTrue(store.count() == 0)
         self.assertFalse(store.exists('plop'))
         self.assertRaises(KeyError, lambda: store.get('plop'))
