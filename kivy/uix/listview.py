@@ -636,6 +636,7 @@ class CompositeListItem(SelectableView, BoxLayout):
                 self.add_widget(cls(**cls_kwargs))
             else:
                 cls_kwargs = {}
+                cls_kwargs['index'] = index
                 if 'text' in kwargs:
                     cls_kwargs['text'] = kwargs['text']
                 self.add_widget(cls(**cls_kwargs))
