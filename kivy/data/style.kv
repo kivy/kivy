@@ -500,7 +500,7 @@
 
 <SettingItem>:
     size_hint: .25, None
-	height: max(50, labellayout.height)
+    height: max(50, labellayout.height)
     content: content
     canvas:
         Color:
@@ -518,16 +518,17 @@
         pos: root.pos
 
         Label:
-            size_hint: .5, None
+            size_hint: .66, None
             id: labellayout
             markup: True
-            text: '{0}\n[size=10pt]{1}[/size]{2}'.format(root.title or '', root.desc or '', self.height)
+            text: '{0}\n[size=10pt][color=999999]{1}[/color][/size]'.format(root.title or '', root.desc or '')
+            font_size: '11.5pt'
             text_size: self.width - 32, None
-			height: self.texture_size[1] + 10
+            height: self.texture_size[1] + 10
 
         BoxLayout:
             id: content
-            size_hint_x: .5
+            size_hint_x: .33
 
 
 <SettingBoolean>:
@@ -541,22 +542,26 @@
     Label:
         text: str(root.value)
         pos: root.pos
+        font_size: '11.5pt'
 
 <SettingPath>:
     Label:
         text: str(root.value)
         pos: root.pos
+        font_size: '11.5pt'
 
 <SettingOptions>:
     Label:
         text: str(root.value)
         pos: root.pos
+        font_size: '11.5pt'
 
 <SettingTitle>:
     text_size: self.width - 32, None
-	size_hint_y: None
-	height: max(50, self.texture_size[1] + 20)
+    size_hint_y: None
+    height: max(50, self.texture_size[1] + 20)
     color: (.9, .9, .9, 1)
+    font_size: '11.5pt'
     canvas:
         Color:
             rgba: .15, .15, .15, .5
@@ -572,7 +577,8 @@
 <SettingSidebarLabel>:
     size_hint: 1, None
     text_size: self.width - 32, None
-    height: max(48, self.texture_size[1] + 8)
+    height: max(50, self.texture_size[1] + 10)
+    font_size: '11.5pt'
     canvas.before:
         Color:
             rgba: 47 / 255., 167 / 255., 212 / 255., int(self.selected)
@@ -583,17 +589,16 @@
 <SettingsPanel>:
     spacing: 5
     padding: 5
-    #row_default_height: 48
-    #row_force_default: True
     size_hint_y: None
     height: self.minimum_height
 
     Label:
-		size_hint_y: None
+        size_hint_y: None
         text: root.title
         text_size: self.width - 32, None
-		height: max(50, self.texture_size[1] + 20)
+        height: max(50, self.texture_size[1] + 20)
         color: (.5, .5, .5, 1)
+        font_size: '11.5pt'
 
         canvas.after:
             Color:
@@ -634,9 +639,10 @@
             text: 'Close'
             size_hint: None, None
             width: 180
-            height: 50
+            height: max(50, self.texture_size[1] + 10)
             pos: root.x + 10, root.y + 10
             on_release: root.dispatch('on_close')
+            font_size: '11.5pt'
 
     ScrollView:
         do_scroll_x: False
