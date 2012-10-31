@@ -141,6 +141,11 @@ class ModalView(AnchorLayout):
         self._parent = None
         super(ModalView, self).__init__(**kwargs)
 
+    def _handle_keyboard(self, window, key, *largs):
+        if key == 27:
+            self.dismiss()
+            return True
+
     def _search_window(self):
         # get window to attach to
         window = None
@@ -166,6 +171,7 @@ class ModalView(AnchorLayout):
             return self
         self._window.add_widget(self)
         self._window.bind(on_resize=self._align_center)
+        self._window.bind(on_keyboard=self._handle_keyboard)
         self.center = self._window.center
         Animation(_anim_alpha=1., d=self._anim_duration).start(self)
         self.dispatch('on_open')
@@ -187,6 +193,7 @@ class ModalView(AnchorLayout):
         '''
         if self._window is None:
             return self
+        self._window.unbind(on_keyboard=self._handle_keyboard)
         if self.dispatch('on_dismiss') is True:
             if kwargs.get('force', False) is not True:
                 return self
