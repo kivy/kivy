@@ -110,6 +110,7 @@ import json
 import os
 from kivy.config import ConfigParser
 from kivy.animation import Animation
+from kivy.base import EventLoop
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserListView
@@ -240,6 +241,11 @@ class SettingItem(FloatLayout):
         super(SettingItem, self).__init__(**kwargs)
         self.value = self.panel.get_value(self.section, self.key)
 
+    def _handle_keyboard(self, window, key, *largs):
+        if key == 27:
+            self._dismiss()
+            return True
+
     def add_widget(self, *largs):
         if self.content is None:
             return super(SettingItem, self).add_widget(*largs)
@@ -329,6 +335,7 @@ class SettingString(SettingItem):
         if self.popup:
             self.popup.dismiss()
         self.popup = None
+        EventLoop.window.unbind(on_keyboard=self._handle_keyboard)
 
     def _validate(self, instance):
         self._dismiss()
@@ -364,6 +371,9 @@ class SettingString(SettingItem):
         btn.bind(on_release=self._dismiss)
         btnlayout.add_widget(btn)
         content.add_widget(btnlayout)
+
+        # bind esc to self._dismiss()
+        EventLoop.window.bind(on_keyboard=self._handle_keyboard)
 
         # all done, open the popup !
         popup.open()
@@ -405,6 +415,7 @@ class SettingPath(SettingItem):
         if self.popup:
             self.popup.dismiss()
         self.popup = None
+        EventLoop.window.unbind(on_keyboard=self._handle_keyboard)
 
     def _validate(self, instance):
         self._dismiss()
@@ -441,6 +452,9 @@ class SettingPath(SettingItem):
         btn.bind(on_release=self._dismiss)
         btnlayout.add_widget(btn)
         content.add_widget(btnlayout)
+
+        # bind esc to self._dismiss()
+        EventLoop.window.bind(on_keyboard=self._handle_keyboard)
 
         # all done, open the popup !
         popup.open()
@@ -494,9 +508,13 @@ class SettingOptions(SettingItem):
             return
         self.bind(on_release=self._create_popup)
 
+    def _dismiss(self, *largs):
+        self.popup.dismiss()
+        EventLoop.window.unbind(on_keyboard=self._handle_keyboard)
+
     def _set_option(self, instance):
         self.value = instance.text
-        self.popup.dismiss()
+        self._dismiss()
 
     def _create_popup(self, instance):
         # create the popup
@@ -517,8 +535,11 @@ class SettingOptions(SettingItem):
         # finally, add a cancel button to return on the previous panel
         content.add_widget(SettingSpacer())
         btn = Button(text='Cancel', size_hint_y=None, height=50)
-        btn.bind(on_release=popup.dismiss)
+        btn.bind(on_release=self._dismiss)
         content.add_widget(btn)
+
+        # bind esc to self._dismiss()
+        EventLoop.window.bind(on_keyboard=self._handle_keyboard)
 
         # and open the popup !
         popup.open()
