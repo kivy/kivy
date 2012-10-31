@@ -39,13 +39,8 @@ class MasterDetailView(GridLayout):
                 fruit_name=dict_adapter.selection[0].text,
                 size_hint=(.7, 1.0))
 
-        self.add_widget(detail_view)
-
         dict_adapter.bind(on_selection_change=detail_view.fruit_changed)
-
-        # Force triggering of on_selection_change() for the DetailView, for
-        # correct initial display.
-        dict_adapter.touch_selection()
+        self.add_widget(detail_view)
 
 
 if __name__ == '__main__':

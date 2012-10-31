@@ -325,11 +325,6 @@ class ListAdapter(Adapter, EventDispatcher):
              #if hasattr(sibling, 'select'):
                  #sibling.select()
 
-        # child selection
-        for child in view.children:
-            if hasattr(child, 'select'):
-                child.select()
-
         if self.propagate_selection_to_data:
             data_item = self.get_data_item(view.index)
             self.select_data_item(data_item)
@@ -365,11 +360,6 @@ class ListAdapter(Adapter, EventDispatcher):
          #for sibling in siblings:
              #if hasattr(sibling, 'deselect'):
                  #sibling.deselect()
-
-        # child deselection
-        for child in view.children:
-            if hasattr(child, 'deselect'):
-                child.deselect()
 
         if self.propagate_selection_to_data:
             item = self.get_data_item(view.index)
