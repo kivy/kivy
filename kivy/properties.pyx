@@ -173,25 +173,31 @@ __all__ = ('Property',
 
 from weakref import ref
 
-EventLoop = None
+cdef float g_dpi = -1
+cdef float g_dpi_rounded = -1
+cdef float g_dpi_density = -1
 
 cpdef float dpi2px(value, ext):
     # 1in = 2.54cm = 25.4mm = 72pt = 12pc
-    global EventLoop
-    if EventLoop is None:
+    global g_dpi, g_dpi_rounded, g_dpi_density
+    if g_dpi == -1:
         from kivy.base import EventLoop
+        g_dpi = EventLoop.dpi
+        g_dpi_rounded = EventLoop.dpi_rounded
+        g_dpi_density = EventLoop.dpi_density
     cdef float rv = float(value)
-    cdef float dpi = EventLoop.dpi
     if ext == 'in':
-        return rv * dpi
+        return rv * g_dpi
     elif ext == 'px':
         return rv
+    elif ext == 'dp':
+        return rv * g_dpi_density
     elif ext == 'pt':
-        return rv * dpi / 72.
+        return rv * g_dpi / 72.
     elif ext == 'cm':
-        return rv * dpi / 2.54
+        return rv * g_dpi / 2.54
     elif ext == 'mm':
-        return rv * dpi / 25.4
+        return rv * g_dpi / 25.4
 
 
 cdef class Property:

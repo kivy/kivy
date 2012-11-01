@@ -132,6 +132,30 @@ class EventLoopBase(EventDispatcher):
         self.ensure_window()
         return self.window.dpi
 
+    @reify
+    def dpi_rounded(self):
+        '''Return the dpi of the screen, rounded to the nearest of 120, 160,
+        240, 320.
+
+        .. versionadded:: 1.5.0
+        '''
+        dpi = self.dpi
+        if dpi < 140:
+            return 120
+        elif dpi < 200:
+            return 160
+        elif dpi < 280:
+            return 240
+        return 320
+
+    @reify
+    def dpi_density(self):
+        if platform() == 'android':
+            import jnius
+            Hardware = jnius.autoclass('org.renpy.android.Hardware')
+            return Hardware.metrics.scaledDensity
+        return float(environ.get('KIVY_DPI_DENSITY', '1.0'))
+
     def ensure_window(self):
         '''Ensure that we have an window
         '''
