@@ -458,6 +458,8 @@ from kivy.utils import OrderedDict, QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
+from kivy.properties import dpi2px
+import kivy.metrics as metrics
 
 
 trace = Logger.trace
@@ -517,7 +519,13 @@ class ProxyApp(object):
         object.__getattribute__(self, '_ensure_app')()
         return repr(object.__getattribute__(self, '_obj'))
 
+
 global_idmap['app'] = ProxyApp()
+global_idmap['pt'] = metrics.pt
+global_idmap['inch'] = metrics.inch
+global_idmap['cm'] = metrics.cm
+global_idmap['mm'] = metrics.mm
+global_idmap['dp'] = metrics.dp
 
 
 class ParserException(Exception):
