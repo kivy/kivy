@@ -458,7 +458,6 @@ from kivy.utils import OrderedDict, QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
-from kivy.properties import dpi2px
 import kivy.metrics as metrics
 
 
@@ -526,6 +525,7 @@ global_idmap['inch'] = metrics.inch
 global_idmap['cm'] = metrics.cm
 global_idmap['mm'] = metrics.mm
 global_idmap['dp'] = metrics.dp
+global_idmap['sp'] = metrics.sp
 
 
 class ParserException(Exception):
