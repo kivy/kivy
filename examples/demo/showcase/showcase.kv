@@ -154,9 +154,9 @@
 
 [HSeparator@Label]:
     size_hint_y: None
-    height: 45
+    height: max(dp(45), self.texture_size[1] + dp(10))
     text: ctx.text if 'text' in ctx else ''
-    text_size: self.size
+    text_size: self.width, None
     valign: 'middle'
     halign: 'center'
     canvas.before:
@@ -258,18 +258,18 @@
             TextInput:
                 text: 'Monoline textinput'
                 size_hint_y: None
-                height: 30
+                height: sp(30)
 
             TextInput:
                 text: 'This is a password'
                 size_hint_y: None
-                height: 30
+                height: sp(30)
                 password: True
 
             TextInput:
                 text: 'Readonly textinput'
                 size_hint_y: None
-                height: 30
+                height: sp(30)
                 readonly: True
 
             TextInput:

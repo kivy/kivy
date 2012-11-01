@@ -252,7 +252,7 @@
 
     orientation: 'horizontal'
     size_hint_y: None
-    height: 24
+    height: '24sp'
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
@@ -260,12 +260,13 @@
     BoxLayout:
         pos: root.pos
         Label:
-            text_size: self.size
+			id: filename
+            text_size: self.width, None
             halign: 'left'
             shorten: True
             text: unicode(ctx.name)
         Label:
-            text_size: self.size
+            text_size: self.width, None
             size_hint_x: None
             halign: 'right'
             text: unicode(ctx.get_nice_size())
@@ -291,8 +292,8 @@
                 width: scrollview.width
                 size_hint_y: None
                 height: self.minimum_height
-                spacing: 10
-                padding: 10
+                spacing: '10dp'
+                padding: '10dp'
 
 [FileIconEntry@Widget]:
     locked: False
@@ -302,6 +303,7 @@
 
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
+	size: '100dp', '100dp'
 
     canvas:
         Color:
@@ -313,22 +315,22 @@
             source: 'atlas://data/images/defaulttheme/filechooser_selected'
 
     Image:
-        size: 48, 48
+        size: '48dp', '48dp'
         source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if ctx.isdir else 'file')
-        pos: root.x + 24, root.y + 40
+        pos: root.x + dp(24), root.y + dp(40)
     Label:
         text: unicode(ctx.name)
         text_size: (root.width, self.height)
         halign: 'center'
         shorten: True
-        size: 100, 16
-        pos: root.x, root.y + 16
+        size: '100dp', '16dp'
+        pos: root.x, root.y + dp(16)
 
     Label:
         text: unicode(ctx.get_nice_size())
         font_size: '11sp'
         color: .8, .8, .8, 1
-        size: 100, 16
+        size: '100dp', '16sp'
         pos: root.pos
         halign: 'center'
 
