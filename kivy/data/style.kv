@@ -109,7 +109,7 @@
     background_normal: 'atlas://data/images/defaulttheme/tab_btn'
     background_down: 'atlas://data/images/defaulttheme/tab_btn_pressed'
     border: (8, 8, 8, 8)
-    font_size: 11
+    font_size: '14dp'
 
 
 <TextInput>:
@@ -167,7 +167,7 @@
 
 <TreeViewLabel>:
     width: self.texture_size[0]
-    height: max(self.texture_size[1], 24)
+    height: max(self.texture_size[1] + dp(10), dp(24))
     text_size: self.width, None
 
 
@@ -326,7 +326,7 @@
 
     Label:
         text: unicode(ctx.get_nice_size())
-        font_size: 8
+        font_size: '11dp'
         color: .8, .8, .8, 1
         size: 100, 16
         pos: root.pos
@@ -358,7 +358,7 @@
             size_hint_y: None
             height: self.texture_size[1]
             y: pb.center_y - self.height - 8
-            font_size: 10
+            font_size: '13dp'
             color: (.8, .8, .8, .8)
 
     AnchorLayout:
@@ -500,7 +500,7 @@
 
 <SettingItem>:
     size_hint: .25, None
-    height: max(50, labellayout.height)
+    height: labellayout.texture_size[1] + dp(10)
     content: content
     canvas:
         Color:
@@ -518,13 +518,12 @@
         pos: root.pos
 
         Label:
-            size_hint: .66, None
+            size_hint_x: .66
             id: labellayout
             markup: True
-            text: '{0}\n[size=10pt][color=999999]{1}[/color][/size]'.format(root.title or '', root.desc or '')
-            font_size: '11.5pt'
+            text: '{0}\n[size=13dp][color=999999]{1}[/color][/size]{2}'.format(root.title or '', root.desc or '', self.font_size)
+            font_size: '15dp'
             text_size: self.width - 32, None
-            height: self.texture_size[1] + 10
 
         BoxLayout:
             id: content
@@ -542,26 +541,26 @@
     Label:
         text: str(root.value)
         pos: root.pos
-        font_size: '11.5pt'
+        font_size: '15dp'
 
 <SettingPath>:
     Label:
         text: str(root.value)
         pos: root.pos
-        font_size: '11.5pt'
+        font_size: '15dp'
 
 <SettingOptions>:
     Label:
         text: str(root.value)
         pos: root.pos
-        font_size: '11.5pt'
+        font_size: '15dp'
 
 <SettingTitle>:
     text_size: self.width - 32, None
     size_hint_y: None
-    height: max(50, self.texture_size[1] + 20)
+    height: max(dp(20), self.texture_size[1] + dp(20))
     color: (.9, .9, .9, 1)
-    font_size: '11.5pt'
+    font_size: '15dp'
     canvas:
         Color:
             rgba: .15, .15, .15, .5
@@ -577,8 +576,8 @@
 <SettingSidebarLabel>:
     size_hint: 1, None
     text_size: self.width - 32, None
-    height: max(50, self.texture_size[1] + 10)
-    font_size: '11.5pt'
+    height: self.texture_size[1] + dp(20)
+    font_size: '15dp'
     canvas.before:
         Color:
             rgba: 47 / 255., 167 / 255., 212 / 255., int(self.selected)
@@ -598,7 +597,7 @@
         text_size: self.width - 32, None
         height: max(50, self.texture_size[1] + 20)
         color: (.5, .5, .5, 1)
-        font_size: '11.5pt'
+        font_size: '15dp'
 
         canvas.after:
             Color:
@@ -620,7 +619,7 @@
 
     FloatLayout:
         size_hint_x: None
-        width: 200
+        width: '200dp'
         GridLayout:
             pos: root.pos
             cols: 1
@@ -638,11 +637,11 @@
         Button:
             text: 'Close'
             size_hint: None, None
-            width: 180
-            height: max(50, self.texture_size[1] + 10)
-            pos: root.x + 10, root.y + 10
+            width: '180dp'
+            height: max(50, self.texture_size[1] + dp(20))
+            pos: root.x + dp(10), root.y + dp(10)
             on_release: root.dispatch('on_close')
-            font_size: '11.5pt'
+            font_size: '15dp'
 
     ScrollView:
         do_scroll_x: False
