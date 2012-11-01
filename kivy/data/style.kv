@@ -109,7 +109,7 @@
     background_normal: 'atlas://data/images/defaulttheme/tab_btn'
     background_down: 'atlas://data/images/defaulttheme/tab_btn_pressed'
     border: (8, 8, 8, 8)
-    font_size: '14dp'
+    font_size: '14sp'
 
 
 <TextInput>:
@@ -326,7 +326,7 @@
 
     Label:
         text: unicode(ctx.get_nice_size())
-        font_size: '11dp'
+        font_size: '11sp'
         color: .8, .8, .8, 1
         size: 100, 16
         pos: root.pos
@@ -358,7 +358,7 @@
             size_hint_y: None
             height: self.texture_size[1]
             y: pb.center_y - self.height - 8
-            font_size: '13dp'
+            font_size: '13sp'
             color: (.8, .8, .8, .8)
 
     AnchorLayout:
@@ -521,8 +521,8 @@
             size_hint_x: .66
             id: labellayout
             markup: True
-            text: '{0}\n[size=13dp][color=999999]{1}[/color][/size]{2}'.format(root.title or '', root.desc or '', self.font_size)
-            font_size: '15dp'
+            text: '{0}\n[size=13sp][color=999999]{1}[/color][/size]{2}'.format(root.title or '', root.desc or '', self.font_size)
+            font_size: '15sp'
             text_size: self.width - 32, None
 
         BoxLayout:
@@ -541,26 +541,26 @@
     Label:
         text: str(root.value)
         pos: root.pos
-        font_size: '15dp'
+        font_size: '15sp'
 
 <SettingPath>:
     Label:
         text: str(root.value)
         pos: root.pos
-        font_size: '15dp'
+        font_size: '15sp'
 
 <SettingOptions>:
     Label:
         text: str(root.value)
         pos: root.pos
-        font_size: '15dp'
+        font_size: '15sp'
 
 <SettingTitle>:
     text_size: self.width - 32, None
     size_hint_y: None
     height: max(dp(20), self.texture_size[1] + dp(20))
     color: (.9, .9, .9, 1)
-    font_size: '15dp'
+    font_size: '15sp'
     canvas:
         Color:
             rgba: .15, .15, .15, .5
@@ -577,7 +577,7 @@
     size_hint: 1, None
     text_size: self.width - 32, None
     height: self.texture_size[1] + dp(20)
-    font_size: '15dp'
+    font_size: '15sp'
     canvas.before:
         Color:
             rgba: 47 / 255., 167 / 255., 212 / 255., int(self.selected)
@@ -597,7 +597,7 @@
         text_size: self.width - 32, None
         height: max(50, self.texture_size[1] + 20)
         color: (.5, .5, .5, 1)
-        font_size: '15dp'
+        font_size: '15sp'
 
         canvas.after:
             Color:
@@ -641,7 +641,7 @@
             height: max(50, self.texture_size[1] + dp(20))
             pos: root.x + dp(10), root.y + dp(10)
             on_release: root.dispatch('on_close')
-            font_size: '15dp'
+            font_size: '15sp'
 
     ScrollView:
         do_scroll_x: False

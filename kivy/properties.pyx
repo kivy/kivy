@@ -174,24 +174,26 @@ __all__ = ('Property',
 from weakref import ref
 
 cdef float g_dpi = -1
-cdef float g_dpi_rounded = -1
-cdef float g_dpi_density = -1
+cdef float g_density = -1
+cdef float g_fontscale = -1
 
 cpdef float dpi2px(value, ext):
     # 1in = 2.54cm = 25.4mm = 72pt = 12pc
-    global g_dpi, g_dpi_rounded, g_dpi_density
+    global g_dpi, g_density, g_fontscale
     if g_dpi == -1:
-        from kivy.base import EventLoop
-        g_dpi = EventLoop.dpi
-        g_dpi_rounded = EventLoop.dpi_rounded
-        g_dpi_density = EventLoop.dpi_density
+        from kivy.metrics import metrics
+        g_dpi = metrics.dpi
+        g_density = metrics.density
+        g_fontscale = metrics.fontscale
     cdef float rv = float(value)
     if ext == 'in':
         return rv * g_dpi
     elif ext == 'px':
         return rv
     elif ext == 'dp':
-        return rv * g_dpi_density
+        return rv * g_density
+    elif ext == 'sp':
+        return rv * g_density * g_fontscale
     elif ext == 'pt':
         return rv * g_dpi / 72.
     elif ext == 'cm':

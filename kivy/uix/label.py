@@ -15,7 +15,7 @@ strings::
     l = Label(text='Multi\\nLine')
 
     # size
-    l = Label(text='Hello world', font_size='20dp')
+    l = Label(text='Hello world', font_size='20sp')
 
 Markup text
 -----------
@@ -268,7 +268,7 @@ class Label(Widget):
     'DroidSans'.
     '''
 
-    font_size = NumericProperty('14dp')
+    font_size = NumericProperty('14sp')
     '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
@@ -373,7 +373,7 @@ class Label(Widget):
 
             l = Label(text='Hello world')
             # l.texture is good
-            l.font_size = '50dp'
+            l.font_size = '50sp'
             # l.texture is not updated yet
             l.update_texture()
             # l.texture is good now.

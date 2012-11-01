@@ -140,7 +140,7 @@ class MarkupLabel(MarkupLabelBase):
             elif item[:6] == '[size=':
                 item = item[6:-1]
                 try:
-                    if item[-2:] in ('px', 'pt', 'in', 'cm', 'mm', 'dp'):
+                    if item[-2:] in ('px', 'pt', 'in', 'cm', 'mm', 'dp', 'sp'):
                         size = dpi2px(item[:-2], item[-2:])
                     else:
                         size = int(item)
