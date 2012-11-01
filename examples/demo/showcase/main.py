@@ -250,16 +250,16 @@ class ShowcaseApp(App):
         return col
 
     def show_popup(self):
-        btnclose = Button(text='Close this popup', size_hint_y=None, height=50)
+        btnclose = Button(text='Close this popup', size_hint_y=None, height='50dp')
         content = BoxLayout(orientation='vertical')
         content.add_widget(Label(text='Hello world'))
         content.add_widget(btnclose)
         popup = Popup(content=content, title='Modal popup example',
-                      size_hint=(None, None), size=(300, 300),
+                      size_hint=(None, None), size=('300dp', '300dp'),
                       auto_dismiss=False)
         btnclose.bind(on_release=popup.dismiss)
         button = Button(text='Open popup', size_hint=(None, None),
-                        size=(150, 70))
+                        size=('150dp', '70dp'))
         button.bind(on_release=popup.open)
         popup.open()
         col = AnchorLayout()
