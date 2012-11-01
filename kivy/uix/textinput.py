@@ -1171,15 +1171,9 @@ class TextInput(Widget):
 
     def _get_line_options(self):
         # Get or create line options, to be used for Label creation
-
-        # XXX font_size core label compatibility
-        factor = 1.
-        if TextInput.font_size.get_format(self) == 'px':
-            factor = 1.333
-
         if self._line_options is None:
             self._line_options = kw = {
-                'font_size': self.font_size * factor,
+                'font_size': self.font_size,
                 'font_name': self.font_name,
                 'anchor_x': 'left',
                 'anchor_y': 'top',
@@ -1714,7 +1708,7 @@ class TextInput(Widget):
     'DroidSans'.
     '''
 
-    font_size = NumericProperty(10)
+    font_size = NumericProperty('13dp')
     '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
