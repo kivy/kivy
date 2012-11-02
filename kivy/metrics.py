@@ -193,8 +193,9 @@ class Metrics(object):
             Hardware = jnius.autoclass('org.renpy.android.Hardware')
             return Hardware.metrics.scaledDensity
         elif platform() == 'ios':
+            # 0.75 is for mapping the same density as android tablet
             import ios
-            return ios.get_scale()
+            return ios.get_scale() * 0.75
 
         return 1.0
 
