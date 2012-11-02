@@ -276,7 +276,7 @@ class VKeyboard(Scatter):
     have_capslock = BooleanProperty(False)
     have_shift = BooleanProperty(False)
     active_keys = DictProperty({})
-    font_size = NumericProperty(15)
+    font_size = NumericProperty('20dp')
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
 
     def __init__(self, **kwargs):

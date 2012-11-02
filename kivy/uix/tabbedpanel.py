@@ -234,14 +234,14 @@ class TabbedPanel(GridLayout):
     default to 'bottom_mid'.
     '''
 
-    tab_height = NumericProperty(40)
+    tab_height = NumericProperty('40dp')
     '''Specifies the height of the tab header.
 
     :data:`tab_height` is a :class:`~kivy.properties.NumericProperty`,
     default to 40.
     '''
 
-    tab_width = NumericProperty(100, allownone=True)
+    tab_width = NumericProperty('100dp', allownone=True)
     '''Specifies the width of the tab header.
 
     :data:`tab_width` is a :class:`~kivy.properties.NumericProperty`,

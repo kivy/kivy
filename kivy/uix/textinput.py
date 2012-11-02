@@ -1708,7 +1708,7 @@ class TextInput(Widget):
     'DroidSans'.
     '''
 
-    font_size = NumericProperty('13sp')
+    font_size = NumericProperty('15sp')
     '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
