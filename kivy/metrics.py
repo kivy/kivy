@@ -156,6 +156,9 @@ class Metrics(object):
         if platform() == 'android':
             import android
             return android.get_dpi()
+        elif platform() == 'ios':
+            import ios
+            return ios.get_dpi()
 
         # for all other platforms..
         from kivy.base import EventLoop
@@ -189,6 +192,9 @@ class Metrics(object):
             import jnius
             Hardware = jnius.autoclass('org.renpy.android.Hardware')
             return Hardware.metrics.scaledDensity
+        elif platform() == 'ios':
+            import ios
+            return ios.get_scale()
 
         return 1.0
 
