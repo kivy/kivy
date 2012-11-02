@@ -651,7 +651,7 @@ class ScrollView(StencilView):
     [.7, .7, .7, .9].
     '''
 
-    bar_width = NumericProperty(2)
+    bar_width = NumericProperty('2dp')
     '''Width of the horizontal / vertical scroll bar. The width is interpreted
     as a height for the horizontal bar.
 

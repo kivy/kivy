@@ -212,7 +212,7 @@ class AccordionItem(FloatLayout):
     '''Link to the :attr:`Accordion.orientation` property.
     '''
 
-    min_space = NumericProperty(44)
+    min_space = NumericProperty('44dp')
     '''Link to the :attr:`Accordion.min_space` property.
     '''
 
@@ -321,7 +321,7 @@ class Accordion(Widget):
     easing function.
     '''
 
-    min_space = NumericProperty(44)
+    min_space = NumericProperty('44dp')
     '''Minimum space to use for title of each item. This value is automatically
     set on each children, each time the layout happens.
 

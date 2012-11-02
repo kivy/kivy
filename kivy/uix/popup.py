@@ -119,13 +119,13 @@ class Popup(ModalView):
     default to [47 / 255., 167 / 255., 212 / 255., 1.]
     '''
 
-    separator_height = NumericProperty(2)
+    separator_height = NumericProperty('2dp')
     '''Height of the separator.
 
     .. versionadded:: 1.1.0
 
     :data:`separator_height` is a :class:`~kivy.properties.NumericProperty`,
-    default to 2.
+    default to 2dp.
     '''
 
     # Internals properties used for graphical representation.

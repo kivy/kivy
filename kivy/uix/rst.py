@@ -147,9 +147,9 @@ Builder.load_string('''
 <RstTitle>:
     markup: True
     valign: 'top'
-    font_size: 24 - self.section * 2
+    font_size: sp(31 - self.section * 2)
     size_hint_y: None
-    height: self.texture_size[1] + 20
+    height: self.texture_size[1] + dp(20)
     text_size: self.width, None
     bold: True
 
@@ -178,7 +178,7 @@ Builder.load_string('''
         markup: True
         valign: 'top'
         size_hint: None, None
-        size: self.texture_size[0] + 10, self.texture_size[1] + 10
+        size: self.texture_size[0] + dp(10), self.texture_size[1] + dp(10)
 
 <RstBlockQuote>:
     cols: 2
@@ -198,7 +198,7 @@ Builder.load_string('''
     cols: 1
     content: content
     size_hint_y: None
-    height: content.texture_size[1] + 20
+    height: content.texture_size[1] + dp(20)
     canvas:
         Color:
             rgb: parse_color('#cccccc')
@@ -277,11 +277,11 @@ Builder.load_string('''
 
 <RstImage>:
     size_hint: None, None
-    size: self.texture_size[0], self.texture_size[1] + 10
+    size: self.texture_size[0], self.texture_size[1] + dp(10)
 
 <RstAsyncImage>:
     size_hint: None, None
-    size: self.texture_size[0], self.texture_size[1] + 10
+    size: self.texture_size[0], self.texture_size[1] + dp(10)
 
 <RstDefinitionList>:
     cols: 1
@@ -350,8 +350,8 @@ Builder.load_string('''
     markup: True
     valign: 'top'
     size_hint_x: None
-    width: self.texture_size[0] + 10
-    text_size: None, self.height - 10
+    width: self.texture_size[0] + dp(10)
+    text_size: None, self.height - dp(10)
 
 <RstEmptySpace>:
     size_hint: 0.01, 0.01
