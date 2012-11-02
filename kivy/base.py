@@ -15,12 +15,10 @@ __all__ = (
     'stopTouchApp',
 )
 
-from os import environ
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
-from kivy.utils import platform, reify
 
 # private vars
 EventLoop = None
