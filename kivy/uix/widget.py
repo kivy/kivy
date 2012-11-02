@@ -33,6 +33,24 @@ Our widget class is designed with a couple of principles in mind:
         You can also check if a widget collides with another widget with
         :meth:`Widget.collide_widget`.
 
+
+We also have some defaults that you should be aware of:
+
+* A :class:`Widget` is not a :class:`Layout`: it will not change the position
+  nor the size of its children. If you want a better positionning / sizing, use
+  a :class:`Layout`.
+
+* The default size is (100, 100), if the parent is not a :class:`Layout`. For
+  example, adding a widget inside a :class:`Button`, :class:`Label`, will not
+  inherit from the parent size or pos.
+
+* The default size_hint is (1, 1). If the parent is a :class:`Layout`, then the
+  widget size will be the parent/layout size.
+
+* All the :meth:`Widget.on_touch_down`, :meth:`Widget.on_touch_move`,
+  :meth:`Widget.on_touch_up` doesn't do any sort of collisions. If you want to
+  know if the touch is inside your widget, use :meth:`Widget.collide_point`.
+
 Using Properties
 ----------------
 
@@ -53,6 +71,8 @@ widget moves, you can bind your own callback function like this::
 
     wid = Widget()
     wid.bind(pos=callback_pos)
+
+Read more about the :doc:`/api-kivy.properties`.
 
 '''
 
@@ -121,7 +141,7 @@ class Widget(EventDispatcher):
 
         # Create the default canvas if not exist
         if self.canvas is None:
-            self.canvas = Canvas()
+            self.canvas = Canvas(opacity=self.opacity)
 
         # Apply all the styles
         if '__no_builder' not in kwargs:
@@ -566,7 +586,9 @@ class Widget(EventDispatcher):
     '''
 
     def on_opacity(self, instance, value):
-        self.canvas.opacity = value
+        canvas = self.canvas
+        if canvas is not None:
+            canvas.opacity = value
 
     canvas = None
     '''Canvas of the widget.

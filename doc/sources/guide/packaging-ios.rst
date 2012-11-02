@@ -81,6 +81,8 @@ You can customize the build in many ways:
 #. Go to the settings panel > build, search for "strip" options, and
    triple-check that they are all set to NO. Stripping is not working with
    Python dynamic modules, and will strip needed symbols.
+#. Indicate a launch image in portrait/landscape for ipad with and without
+   retina display.
 
 .. _Known issues:
 
@@ -89,12 +91,6 @@ Known issues
 
 Currently, the project have few issues as (we'll fixes them during the
 development):
-
-- Loading time: Apple provide a way to reduce the feeling of a slow application
-  loading by showing an image when the application is initialize. But, due to
-  the SDL approach, IOS remove the launch image before we have started. So if
-  you are using a launch image, the user will see: The launch image -> black
-  screen -> your app. Remove the launch image for now.
 
 - Application configuration not writing: we are learning how IOS manage its
   filesystem.

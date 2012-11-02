@@ -75,6 +75,7 @@ void glew_dynamic_binding() {
      */
     if (glGenFramebuffers == NULL) {
         printf("GL: glGenFramebuffers is NULL, try to detect an extension\n");
+        printf("GL: available extensions: %s\n", gl_extensions);
         if (strstr(gl_extensions, "ARB_framebuffer_object")) {
             printf("GL: ARB_framebuffer_object is supported\n");
 
