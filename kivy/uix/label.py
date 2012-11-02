@@ -15,7 +15,7 @@ strings::
     l = Label(text='Multi\\nLine')
 
     # size
-    l = Label(text='Hello world', font_size=20)
+    l = Label(text='Hello world', font_size='20sp')
 
 Markup text
 -----------
@@ -148,9 +148,6 @@ class Label(Widget):
             # markup have change, we need to change our rendering method.
             d = Label._font_properties
             dkw = dict(zip(d, [getattr(self, x) for x in d]))
-            # XXX font_size core provider compatibility
-            if Label.font_size.get_format(self) == 'px':
-                dkw['font_size'] *= 1.333
             if markup:
                 self._label = CoreMarkupLabel(**dkw)
             else:
@@ -166,9 +163,6 @@ class Label(Widget):
             elif name == 'text_size':
                 self._label.usersize = value
             elif name == 'font_size':
-                # XXX font_size core provider compatibility
-                if Label.font_size.get_format(self) == 'px':
-                    value *= 1.333
                 self._label.options[name] = value
             else:
                 self._label.options[name] = value
@@ -274,11 +268,11 @@ class Label(Widget):
     'DroidSans'.
     '''
 
-    font_size = NumericProperty('12px')
+    font_size = NumericProperty('15sp')
     '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
-    12.
+    12dp.
     '''
 
     bold = BooleanProperty(False)
@@ -379,7 +373,7 @@ class Label(Widget):
 
             l = Label(text='Hello world')
             # l.texture is good
-            l.font_size = 50
+            l.font_size = '50sp'
             # l.texture is not updated yet
             l.update_texture()
             # l.texture is good now.
