@@ -509,7 +509,7 @@ class TreeView(Widget):
     of (:data:`minimum_width`, :data:`minimum_height`) properties.
     '''
 
-    indent_level = NumericProperty(16)
+    indent_level = NumericProperty('16dp')
     '''Width used for identation of each level, except the first level.
 
     Computation of spacing for eaching level of tree is::
@@ -520,7 +520,7 @@ class TreeView(Widget):
     defaults to 16.
     '''
 
-    indent_start = NumericProperty(24)
+    indent_start = NumericProperty('24dp')
     '''Indentation width of the level 0 / root node. This is mostly the initial
     size to accommodate a tree icon (collapsed / expanded). See
     :data:`indent_level` for more information about the computation of level

@@ -23,6 +23,7 @@ import kivy
 
 # force loading of kivy modules
 import kivy.app
+import kivy.metrics
 import kivy.atlas
 import kivy.core.audio
 import kivy.core.camera

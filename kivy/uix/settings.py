@@ -108,6 +108,7 @@ __all__ = ('Settings', 'SettingsPanel', 'SettingItem', 'SettingString',
 
 import json
 import os
+from kivy.metrics import dp
 from kivy.config import ConfigParser
 from kivy.animation import Animation
 from kivy.uix.boxlayout import BoxLayout
@@ -339,13 +340,13 @@ class SettingString(SettingItem):
 
     def _create_popup(self, instance):
         # create popup layout
-        content = BoxLayout(orientation='vertical', spacing=5)
+        content = BoxLayout(orientation='vertical', spacing='5dp')
         self.popup = popup = Popup(title=self.title,
-            content=content, size_hint=(None, None), size=(400, 250))
+            content=content, size_hint=(None, None), size=('400dp', '250dp'))
 
         # create the textinput used for numeric input
         self.textinput = textinput = TextInput(text=str(self.value),
-            font_size=24, multiline=False, size_hint_y=None, height=50)
+            font_size=24, multiline=False, size_hint_y=None, height='50dp')
         textinput.bind(on_text_validate=self._validate)
         self.textinput = textinput
 
@@ -356,7 +357,7 @@ class SettingString(SettingItem):
         content.add_widget(SettingSpacer())
 
         # 2 buttons are created for accept or cancel the current value
-        btnlayout = BoxLayout(size_hint_y=None, height=50, spacing=5)
+        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
         btn = Button(text='Ok')
         btn.bind(on_release=self._validate)
         btnlayout.add_widget(btn)
@@ -433,7 +434,7 @@ class SettingPath(SettingItem):
         content.add_widget(SettingSpacer())
 
         # 2 buttons are created for accept or cancel the current value
-        btnlayout = BoxLayout(size_hint_y=None, height=50, spacing=5)
+        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
         btn = Button(text='Ok')
         btn.bind(on_release=self._validate)
         btnlayout.add_widget(btn)
@@ -500,10 +501,10 @@ class SettingOptions(SettingItem):
 
     def _create_popup(self, instance):
         # create the popup
-        content = BoxLayout(orientation='vertical', spacing=5)
+        content = BoxLayout(orientation='vertical', spacing='5dp')
         self.popup = popup = Popup(content=content,
-            title=self.title, size_hint=(None, None), size=(400, 400))
-        popup.height = len(self.options) * 55 + 150
+            title=self.title, size_hint=(None, None), size=('400dp', '400dp'))
+        popup.height = len(self.options) * dp(55) + dp(150)
 
         # add all the options
         content.add_widget(Widget(size_hint_y=None, height=1))
@@ -516,7 +517,7 @@ class SettingOptions(SettingItem):
 
         # finally, add a cancel button to return on the previous panel
         content.add_widget(SettingSpacer())
-        btn = Button(text='Cancel', size_hint_y=None, height=50)
+        btn = Button(text='Cancel', size_hint_y=None, height=dp(50))
         btn.bind(on_release=popup.dismiss)
         content.add_widget(btn)
 
