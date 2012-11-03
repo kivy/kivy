@@ -118,6 +118,8 @@ class Catalog(BoxLayout):
         with open(self.screen_manager.current_screen.content.children[
                     0].kv_file) as file:
             self.language_box.text = file.read()
+        # reset undo/redo history
+        self.language_box.reset_undo()
 
     def schedule_reload(self):
         if self.auto_reload:
