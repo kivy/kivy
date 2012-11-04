@@ -369,6 +369,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
 
+    # configure all activated modules
+    from kivy.modules import Modules
+    Modules.configure()
+
     # android hooks: force fullscreen and add android touch input provider
     if platform() == 'android':
         from kivy.config import Config

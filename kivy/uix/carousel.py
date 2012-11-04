@@ -312,11 +312,14 @@ class Carousel(StencilView):
         if self.collide_point(*touch.pos):
             return super(Carousel, self).on_touch_move(touch)
 
-    def add_widget(self, *args, **kwargs):
+    def add_widget(self, widget, index=0):
         slide = RelativeLayout(size=self.size, x=self.x - self.width, y=self.y)
-        slide.add_widget(*args, **kwargs)
-        super(Carousel, self).add_widget(slide)
-        self.slides.append(slide)
+        slide.add_widget(widget)
+        super(Carousel, self).add_widget(slide, index)
+        if index != 0:
+            self.slides.insert(index, slide)
+        else:
+            self.slides.append(slide)
 
     def remove_widget(self, widget, *args, **kwargs):
         # XXX be careful, the widget.parent.parent refer to the RelativeLayout

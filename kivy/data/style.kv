@@ -109,7 +109,7 @@
     background_normal: 'atlas://data/images/defaulttheme/tab_btn'
     background_down: 'atlas://data/images/defaulttheme/tab_btn_pressed'
     border: (8, 8, 8, 8)
-    font_size: 11
+    font_size: '15sp'
 
 
 <TextInput>:
@@ -167,7 +167,7 @@
 
 <TreeViewLabel>:
     width: self.texture_size[0]
-    height: max(self.texture_size[1], 24)
+    height: max(self.texture_size[1] + dp(10), dp(24))
     text_size: self.width, None
 
 
@@ -252,7 +252,7 @@
 
     orientation: 'horizontal'
     size_hint_y: None
-    height: 24
+    height: '24sp'
     # Don't allow expansion of the ../ node
     is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
@@ -260,12 +260,13 @@
     BoxLayout:
         pos: root.pos
         Label:
-            text_size: self.size
+			id: filename
+            text_size: self.width, None
             halign: 'left'
             shorten: True
             text: unicode(ctx.name)
         Label:
-            text_size: self.size
+            text_size: self.width, None
             size_hint_x: None
             halign: 'right'
             text: unicode(ctx.get_nice_size())
@@ -291,8 +292,8 @@
                 width: scrollview.width
                 size_hint_y: None
                 height: self.minimum_height
-                spacing: 10
-                padding: 10
+                spacing: '10dp'
+                padding: '10dp'
 
 [FileIconEntry@Widget]:
     locked: False
@@ -302,6 +303,7 @@
 
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
+	size: '100dp', '100dp'
 
     canvas:
         Color:
@@ -313,22 +315,22 @@
             source: 'atlas://data/images/defaulttheme/filechooser_selected'
 
     Image:
-        size: 48, 48
+        size: '48dp', '48dp'
         source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if ctx.isdir else 'file')
-        pos: root.x + 24, root.y + 40
+        pos: root.x + dp(24), root.y + dp(40)
     Label:
         text: unicode(ctx.name)
         text_size: (root.width, self.height)
         halign: 'center'
         shorten: True
-        size: 100, 16
-        pos: root.x, root.y + 16
+        size: '100dp', '16dp'
+        pos: root.x, root.y + dp(16)
 
     Label:
         text: unicode(ctx.get_nice_size())
-        font_size: 8
+        font_size: '11sp'
         color: .8, .8, .8, 1
-        size: 100, 16
+        size: '100dp', '16sp'
         pos: root.pos
         halign: 'center'
 
@@ -358,7 +360,7 @@
             size_hint_y: None
             height: self.texture_size[1]
             y: pb.center_y - self.height - 8
-            font_size: 10
+            font_size: '13sp'
             color: (.8, .8, .8, .8)
 
     AnchorLayout:
@@ -499,7 +501,8 @@
             size: self.width, 1
 
 <SettingItem>:
-    size_hint_x: .25
+    size_hint: .25, None
+    height: labellayout.texture_size[1] + dp(10)
     content: content
     canvas:
         Color:
@@ -516,29 +519,17 @@
     BoxLayout:
         pos: root.pos
 
-        FloatLayout:
+        Label:
+            size_hint_x: .66
             id: labellayout
-            orientation: 'vertical'
-            size_hint_x: .5
-
-            Label:
-                pos_hint: {'y': .5, 'x': 0}
-                text: root.title
-                text_size: self.width - 32, None
-                size_hint_y: None
-                height: self.texture_size[1]
-            Label:
-                pos_hint: {'top': .5, 'x': 0}
-                text: root.desc if root.desc else ''
-                text_size: self.width - 32, None
-                size_hint_y: None
-                height: self.texture_size[1]
-                font_size: 10
-                color: (.7, .7, .7, 1) if root.selected_alpha < 0.5 else (.3, .3, .3, 1)
+            markup: True
+            text: '{0}\n[size=13sp][color=999999]{1}[/color][/size]'.format(root.title or '', root.desc or '')
+            font_size: '15sp'
+            text_size: self.width - 32, None
 
         BoxLayout:
             id: content
-            size_hint_x: .5
+            size_hint_x: .33
 
 
 <SettingBoolean>:
@@ -552,20 +543,26 @@
     Label:
         text: str(root.value)
         pos: root.pos
+        font_size: '15sp'
 
 <SettingPath>:
     Label:
         text: str(root.value)
         pos: root.pos
+        font_size: '15sp'
 
 <SettingOptions>:
     Label:
         text: str(root.value)
         pos: root.pos
+        font_size: '15sp'
 
 <SettingTitle>:
     text_size: self.width - 32, None
+    size_hint_y: None
+    height: max(dp(20), self.texture_size[1] + dp(20))
     color: (.9, .9, .9, 1)
+    font_size: '15sp'
     canvas:
         Color:
             rgba: .15, .15, .15, .5
@@ -581,7 +578,8 @@
 <SettingSidebarLabel>:
     size_hint: 1, None
     text_size: self.width - 32, None
-    height: max(48, self.texture_size[1] + 8)
+    height: self.texture_size[1] + dp(20)
+    font_size: '15sp'
     canvas.before:
         Color:
             rgba: 47 / 255., 167 / 255., 212 / 255., int(self.selected)
@@ -592,15 +590,16 @@
 <SettingsPanel>:
     spacing: 5
     padding: 5
-    row_default_height: 48
-    row_force_default: True
     size_hint_y: None
     height: self.minimum_height
 
     Label:
+        size_hint_y: None
         text: root.title
         text_size: self.width - 32, None
+        height: max(50, self.texture_size[1] + 20)
         color: (.5, .5, .5, 1)
+        font_size: '15sp'
 
         canvas.after:
             Color:
@@ -622,7 +621,7 @@
 
     FloatLayout:
         size_hint_x: None
-        width: 200
+        width: '200dp'
         GridLayout:
             pos: root.pos
             cols: 1
@@ -640,10 +639,11 @@
         Button:
             text: 'Close'
             size_hint: None, None
-            width: 180
-            height: 50
-            pos: root.x + 10, root.y + 10
+            width: '180dp'
+            height: max(50, self.texture_size[1] + dp(20))
+            pos: root.x + dp(10), root.y + dp(10)
             on_release: root.dispatch('on_close')
+            font_size: '15sp'
 
     ScrollView:
         do_scroll_x: False
@@ -766,7 +766,7 @@
     do_translation: False
     do_rotation: False
     do_scale: False
-	auto_bring_to_front: False
+    auto_bring_to_front: False
 
 
 # =============================================================================
@@ -774,16 +774,16 @@
 # =============================================================================
 
 <ScreenManager>:
-	canvas.before:
-		StencilPush
-		Rectangle:
-			pos: self.pos
-			size: self.size
-		StencilUse
-	canvas.after:
-		StencilUnUse
-		Rectangle:
-			pos: self.pos
-			size: self.size
-		StencilPop
+    canvas.before:
+        StencilPush
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilUse
+    canvas.after:
+        StencilUnUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilPop
 

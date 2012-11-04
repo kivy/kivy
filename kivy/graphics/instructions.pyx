@@ -69,6 +69,8 @@ cdef class Instruction:
         self.set_parent(ig)
 
     cdef void rremove(self, InstructionGroup ig):
+        if self.parent is None:
+            return
         ig.children.remove(self)
         self.set_parent(None)
 

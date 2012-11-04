@@ -1570,9 +1570,18 @@ def glViewport(GLint x, GLint y, GLsizei width, GLsizei height):
 IF USE_GLEW:
     cdef extern from "gl_redirect.h":
         int glewInit()
+        int GLEW_OK
+        char *glewGetErrorString(int)
         void glew_dynamic_binding()
     def gl_init_symbols():
-        glewInit()
+        cdef int result
+        cdef bytes error
+        result = glewInit()
+        if result != GLEW_OK:
+            error = glewGetErrorString(result)
+            print 'GLEW initialization error:', error
+        else:
+            print 'GLEW initialization succeeded'
         glew_dynamic_binding()
 
 ELSE:
