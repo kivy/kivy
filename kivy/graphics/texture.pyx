@@ -421,8 +421,10 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
             mipmap = 0
 
     # in case of mipmap is asked for npot texture, make it pot compatible
+    # also when using mipmap, texture and mipmaps must be alocated
     if mipmap:
         make_npot = 0
+        allocate = 1
 
     # depending if npot is available, use the real size or pot size
     if make_npot and gl_has_capability(c_GLCAP_NPOT):
