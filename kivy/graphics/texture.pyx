@@ -409,12 +409,13 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     cdef int texture_width, texture_height
     cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
     cdef int make_npot = 0
+    cdef int is_npot = 0
     cdef int glfmt, iglbufferfmt, datasize, dataerr = 0
     cdef void *data = NULL
 
     # check if it's a pot or not
     if not _is_pow2(width) or not _is_pow2(height):
-        make_npot = 1
+        make_npot = is_npot = 1
 
     IF not USE_OPENGL_ES2:
         if gl_get_version_major() < 3:
@@ -423,6 +424,7 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     # in case of mipmap is asked for npot texture, make it pot compatible
     if mipmap:
         make_npot = 0
+        allocate = 1
 
     # depending if npot is available, use the real size or pot size
     if make_npot and gl_has_capability(c_GLCAP_NPOT):
@@ -480,7 +482,7 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
                 free(data)
 
                 # create mipmap if needed
-                if mipmap:
+                if mipmap and is_npot == 0:
                     glGenerateMipmap(target)
             else:
                 dataerr = 1
