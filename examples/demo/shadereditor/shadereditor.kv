@@ -1,4 +1,5 @@
 #:kivy 1.0
+#: import GLShaderLexer pygments.lexers.GLShaderLexer
 
 <ShaderEditor>:
     viewer: viewer
@@ -13,16 +14,18 @@
                 text: 'Fragment Shader'
                 size_hint_y: None
                 height: self.texture_size[1] + 10
-            TextInput:
+            CodeInput:
                 text: root.fs
+                lexer: GLShaderLexer()
                 on_text: root.fs = args[1]
 
             Label:
                 text: 'Vertex Shader'
                 size_hint_y: None
                 height: self.texture_size[1] + 10
-            TextInput:
+            CodeInput:
                 text: root.vs
+                lexer: GLShaderLexer()
                 on_text: root.vs = args[1]
 
         ShaderViewer:
