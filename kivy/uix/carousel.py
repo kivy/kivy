@@ -35,7 +35,6 @@ __all__ = ('Carousel', )
 
 from functools import partial
 from kivy.clock import Clock
-from kivy.config import Config
 from kivy.factory import Factory
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
@@ -43,11 +42,6 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.properties import BooleanProperty, OptionProperty, AliasProperty, \
                             NumericProperty, ListProperty, ObjectProperty
 
-# When we are generating documentation, Config doesn't exist
-_scroll_timeout = _scroll_distance = 0
-if Config:
-    _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
-    _scroll_distance = Config.getint('widgets', 'scroll_distance')
 
 class Carousel(StencilView):
     '''Carousel class. See module documentation for more information.
@@ -180,19 +174,18 @@ class Carousel(StencilView):
     :data:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
-    scroll_timeout = NumericProperty(_scroll_timeout)
+    scroll_timeout = NumericProperty(200)
     '''Timeout allowed to trigger the :data:`scroll_distance`, in milliseconds.
     If the user has not moved :data:`scroll_distance` within the timeout,
     the scrolling will be disabled, and the touch event will go to the children.
 
     :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty`,
-    default to 55 (milliseconds), according to the default value in user
-    configuration.
+    default to 200 (milliseconds)
 
     .. versionadded:: 1.5.0
     '''
 
-    scroll_distance = NumericProperty(_scroll_distance)
+    scroll_distance = NumericProperty('20dp')
     '''Distance to move before scrolling the :class:`ScrollView`, in pixels. As
     soon as the distance has been traveled, the :class:`ScrollView` will start
     to scroll, and no touch event will go to children.
@@ -200,8 +193,7 @@ class Carousel(StencilView):
     screen.
 
     :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty`,
-    default to 20 (pixels), according to the default value in user
-    configuration.
+    default to 20dp.
 
     .. versionadded:: 1.5.0
     '''
@@ -373,6 +365,7 @@ class Carousel(StencilView):
             self._touch = None
             ud = touch.ud[self._get_uid()]
             if ud['mode'] == 'unknown':
+                Clock.unschedule(self._change_touch_mode)
                 super(Carousel, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)
             else:
