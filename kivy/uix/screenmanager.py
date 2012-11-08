@@ -31,7 +31,7 @@ screen, you absolutely need to give a name to it::
     # Add few screens
     for i in xrange(4):
         screen = Screen(name='Title %d' % i)
-        sm.add_widget(sm)
+        sm.add_widget(screen)
 
     # By default, the first screen added into the ScreenManager will be
     # displayed. Then, you can change to another screen:
