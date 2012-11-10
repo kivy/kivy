@@ -270,7 +270,7 @@ class WindowBase(EventDispatcher):
             return True
         else:
             return False
-    size = AliasProperty(_get_size, _set_size)
+    size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :data:`rotation` is set, then the
     size will change to reflect the rotation.
     '''
