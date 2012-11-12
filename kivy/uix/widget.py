@@ -154,9 +154,9 @@ class Widget(EventDispatcher):
             #    Builder.idmap.pop('root')
 
         # Bind all the events
-        for argument, value in kwargs.items():
-            if argument.startswith('on_'):
-                self.bind(**{argument: value})
+        for argument in kwargs:
+            if argument[:3] == 'on_':
+                self.bind(**{argument: kwargs[argument]})
 
     #
     # Collision

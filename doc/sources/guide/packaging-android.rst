@@ -10,6 +10,12 @@ Create a package for Android
 
 .. _Packaging your application into APK:
 
+TestDrive
+---------
+There is a VirtualBox Image we provide with the prerequisites along with
+Android SDK and NDK preinstalled to ease your installation woes. You can
+download it from `here <http://www.google.com/url?sa=D&q=https://docs.google.com/file/d/0B1WO07-OL50_VDNESDRUaDhXSmM/edit&usg=AFQjCNGrsg0SU8EMgAcLHWxbjSe8KM2kyA>`_.
+
 Packaging your application into APK
 -----------------------------------
 
@@ -29,7 +35,7 @@ First, follow the prerequisites needed for the project:
 
     http://python-for-android.readthedocs.org/en/latest/prerequisites/
 
-Then a console, and type::
+Then open a console, and type::
 
     git clone git://github.com/kivy/python-for-android
 

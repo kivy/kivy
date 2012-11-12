@@ -34,14 +34,14 @@ class StressCanvasApp(App):
 
         label = Label(text='0')
 
-        btn_add100 = Button(text='+ 100 rects')
-        btn_add100.bind(on_press=partial(self.add_rects, label, wid, 100))
+        btn_add100 = Button(text='+ 100 rects',
+                            on_press=partial(self.add_rects, label, wid, 100))
 
-        btn_add500 = Button(text='+ 500 rects')
-        btn_add500.bind(on_press=partial(self.add_rects, label, wid, 500))
+        btn_add500 = Button(text='+ 500 rects',
+                            on_press=partial(self.add_rects, label, wid, 500))
 
-        btn_reset = Button(text='Reset')
-        btn_reset.bind(on_press=partial(self.reset_rects, label, wid))
+        btn_reset = Button(text='Reset',
+                           on_press=partial(self.reset_rects, label, wid))
 
         layout = BoxLayout(size_hint=(1, None), height=50)
         layout.add_widget(btn_add100)

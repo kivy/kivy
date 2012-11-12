@@ -11,15 +11,15 @@ To see a list of the available screenid, just run::
 
 Simulate a medium-density screen as Motolora Droid 2::
 
-    python main.py -m screen,droid2
+    python main.py -m screen:droid2
 
 Simulate a high-density screen as HTC One X, in portrait::
 
-    python main.py -m screen,onex,portrait
+    python main.py -m screen:onex,portrait
 
 Simulate the iPad 2 screen::
 
-    python main.py -m screen,ipad
+    python main.py -m screen:ipad
 '''
 
 import sys
