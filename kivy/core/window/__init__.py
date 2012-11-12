@@ -539,6 +539,7 @@ class WindowBase(EventDispatcher):
                 from kivy.graphics.context import get_context
                 get_context().reload()
                 Clock.schedule_once(lambda x: self.canvas.ask_update(), 0)
+                self.dispatch('on_resize', *self.system_size)
 
         # ensure the gl viewport is correct
         self.update_viewport()
