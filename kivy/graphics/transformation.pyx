@@ -145,67 +145,49 @@ cdef class Matrix:
         cdef double t
         if left >= right or bottom >= top or near >= far:
             raise ValueError('invalid frustrum')
-        if perspective:
-            #raise Exception('not tested')
-            # original code
-            #if near <= _EPS:
-            #    raise ValueError('invalid frustrum: near <= 0')
-            pass
+
+        #if near <= _EPS:
+        #    raise ValueError('invalid frustrum: near <= 0')
 
         with nogil:
             if perspective:
                 t = 2.0 * near
-                '''
-                self.mat[0]  = t/(left-right)
-                self.mat[1]  = 0.0
-                self.mat[2]  = 0.0
-                self.mat[3]  = 0.0
+                self.mat[0]  = t/(right-left)
                 self.mat[4]  = 0.0
                 self.mat[5]  = t/(bottom-top)
                 self.mat[6]  = 0.0
                 self.mat[7]  = 0.0
                 self.mat[8]  = (right+left)/(right-left)
-                self.mat[9]  = (top+bottom)/(top-bottom)
-                self.mat[10] = (far+near)/(near-far)
-                self.mat[11] = -1.0
                 self.mat[12] = 0.0
-                self.mat[13] = 0.0
-                self.mat[14] = t*far/(far-near)
-                self.mat[15] = 0.0
-                '''
-                self.mat[0]  = t/(left-right)
                 self.mat[1]  = 0.0
-                self.mat[2]  = 0.0
-                self.mat[3]  = 0.0
-                self.mat[4]  = 0.0
-                self.mat[5]  = t/(bottom-top)
-                self.mat[6]  = 0.0
-                self.mat[7]  = 0.0
-                self.mat[8]  = (right+left)/(right-left)
+                self.mat[5]  = t/(top-bottom)
                 self.mat[9]  = (top+bottom)/(top-bottom)
-                self.mat[10] = (far+near)/(near-far)
-                self.mat[11] = -1.0
-                self.mat[12] = 0.0
                 self.mat[13] = 0.0
-                self.mat[14] = t*far/(far-near)
+                self.mat[2]  = 0.0
+                self.mat[6]  = 0.0
+                self.mat[10] = -(far+near)/(far-near)
+                self.mat[14] = (-t*far)/(far-near)
+                self.mat[3]  = 0.0
+                self.mat[7]  = 0.0
+                self.mat[11] = -1.0
                 self.mat[15] = 0.0
             else:
                 #(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15)
                 self.mat[0]  = 2.0/(right-left)
-                self.mat[1]  = 0.0
-                self.mat[2]  = 0.0
-                self.mat[3]  = 0.0
                 self.mat[4]  = 0.0
-                self.mat[5]  = 2.0/(top-bottom)
-                self.mat[6]  = 0.0
-                self.mat[7]  = 0.0
                 self.mat[8]  = 0.0
-                self.mat[9]  = 0.0
-                self.mat[10] = 2.0/(far-near)
-                self.mat[11] = 0.0
                 self.mat[12] = (right+left)/(left-right)
+                self.mat[1]  = 0.0
+                self.mat[5]  = 2.0/(top-bottom)
+                self.mat[9]  = 0.0
                 self.mat[13] = (top+bottom)/(bottom-top)
+                self.mat[2]  = 0.0
+                self.mat[6]  = 0.0
+                self.mat[10] = 2.0/(far-near)
                 self.mat[14] = (far+near)/(near-far)
+                self.mat[3]  = 0.0
+                self.mat[7]  = 0.0
+                self.mat[11] = 0.0
                 self.mat[15] = 1.0
         return self
 
@@ -220,7 +202,7 @@ cdef class Matrix:
     cpdef Matrix identity(self):
         '''Reset matrix to identity matrix (inplace)
         '''
-        cdef double *m = <double *>self.mat
+        cdef double *m = self.mat
         with nogil:
             m[0] = m[5] = m[10] = m[15] = 1
             m[1] = m[2] = m[3] = m[4] = m[6] = m[7] = \
@@ -231,7 +213,7 @@ cdef class Matrix:
         '''Return the inverted matrix
         '''
         cdef Matrix mr = Matrix()
-        cdef double *m = <double *>self.mat, *r = <double *>mr.mat
+        cdef double *m = self.mat, *r = mr.mat
         cdef double det
         with nogil:
             det = m[0] * (m[5] * m[10] - m[9] * m[6]) \
@@ -267,7 +249,7 @@ cdef class Matrix:
             m.multiply(n) -> n * m
         '''
         cdef Matrix mr = Matrix()
-        cdef double *a = <double *>ma.mat, *b = <double *>mb.mat, *r = <double *>mr.mat
+        cdef double *a = ma.mat, *b = mb.mat, *r = mr.mat
         with nogil:
             r[ 0] = a[ 0] * b[0] + a[ 1] * b[4] + a[ 2] * b[ 8]
             r[ 4] = a[ 4] * b[0] + a[ 5] * b[4] + a[ 6] * b[ 8]
@@ -361,7 +343,7 @@ cdef class Matrix:
         return m
 
     def __str__(self):
-        cdef double *m = <double *>self.mat
+        cdef double *m = self.mat
         return '[[ %f %f %f %f ]\n[ %f %f %f %f ]\n' \
                '[ %f %f %f %f ]\n[ %f %f %f %f ]]' % (
                    m[0], m[1], m[2], m[3],
