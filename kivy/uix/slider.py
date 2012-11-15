@@ -190,3 +190,11 @@ class Slider(Widget):
             self.value_pos = touch.pos
             return True
 
+if __name__ == '__main__':
+    from kivy.app import App
+
+    class SliderApp(App):
+        def build(self):
+            return Slider()
+
+    SliderApp().run()
