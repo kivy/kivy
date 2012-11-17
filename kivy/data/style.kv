@@ -3,7 +3,7 @@
 <Label>:
     canvas:
         Color:
-            rgba: self.color
+            rgba: self.color if not self.markup else (1, 1, 1, 1)
         Rectangle:
             texture: self.texture
             size: self.texture_size
