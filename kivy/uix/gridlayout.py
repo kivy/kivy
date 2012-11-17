@@ -105,7 +105,7 @@ class GridLayout(Layout):
     '''
 
     spacing = NumericProperty(0)
-    '''Spacing between widget box and children, in pixels.
+    '''Spacing between and children, in pixels.
 
     :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
