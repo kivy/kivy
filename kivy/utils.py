@@ -95,14 +95,16 @@ def get_color_from_hex(s):
 
 
 def get_hex_from_color(color):
-    '''Transform from kivy color to hex'''
-    hex_clr = '#'
-    for clr in color:
-        clr = hex(int(clr * 255))[2:]
-        if len(str(clr)) < 2:
-            clr = ''.join(('0', str(clr)))
-        hex_clr += clr
-    return hex_clr
+    '''Transform from kivy color to hex::
+
+        >>> get_hex_from_color((0, 1, 0))
+        '#00ff00'
+        >>> get_hex_from_color((.25, .77, .90, .5))
+        '#3fc4e57f'
+
+    .. versionadded:: 1.5.0
+    '''
+    return '#' + ''.join(['{0:02x}'.format(int(x * 255)) for x in color])
 
 
 def get_random_color(alpha=1.0):
