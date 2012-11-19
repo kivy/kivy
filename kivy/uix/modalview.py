@@ -167,8 +167,9 @@ class ModalView(AnchorLayout):
         self._window.add_widget(self)
         self._window.bind(on_resize=self._align_center)
         self.center = self._window.center
-        Animation(_anim_alpha=1., d=self._anim_duration).start(self)
-        self.dispatch('on_open')
+        a = Animation(_anim_alpha=1., d=self._anim_duration)
+        a.bind(on_complete=lambda *x: self.dispatch('on_open'))
+        a.start(self)
         return self
 
     def dismiss(self, *largs, **kwargs):
