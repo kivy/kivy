@@ -103,6 +103,7 @@ from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
         NumericProperty, BooleanProperty, ReferenceListProperty, \
         ListProperty, ObjectProperty, DictProperty
+from kivy.utils import get_hex_from_color
 
 
 class Label(Widget):
@@ -178,10 +179,18 @@ class Label(Widget):
         if self._label.text.strip() == '':
             self.texture_size = (0, 0)
         else:
-            self._label.refresh()
-            if self._label.__class__ is CoreMarkupLabel:
+            mrkup = self._label.__class__ is CoreMarkupLabel
+            if mrkup:
+                text = self._label.text
+                self._label.text = ''.join(('[color=',
+                                            get_hex_from_color(self.color), ']',
+                                            text, '[/color]'))
+                self._label.refresh()
+                self._label.text = text
                 self.refs = self._label.refs
                 self.anchors = self._label.anchors
+            else:
+                self._label.refresh()
             texture = self._label.texture
             if texture is not None:
                 self.texture = self._label.texture

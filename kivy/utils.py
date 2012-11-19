@@ -6,7 +6,7 @@ Utils
 '''
 
 __all__ = ('intersection', 'difference', 'strtotuple',
-           'get_color_from_hex', 'get_random_color',
+           'get_color_from_hex', 'get_hex_from_color', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'OrderedDict', 'QueryDict',
@@ -92,6 +92,17 @@ def get_color_from_hex(s):
     if len(value) == 3:
         value.append(1)
     return value
+
+
+def get_hex_from_color(color):
+    '''Transform from kivy color to hex'''
+    hex_clr = '#'
+    for clr in color:
+        clr = hex(int(clr * 255))[2:]
+        if len(str(clr)) < 2:
+            clr = ''.join(('0', str(clr)))
+        hex_clr += clr
+    return hex_clr
 
 
 def get_random_color(alpha=1.0):

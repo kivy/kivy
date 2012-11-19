@@ -43,6 +43,7 @@ from kivy.uix.textinput import TextInput
 from kivy.core.text.markup import MarkupLabel as Label
 from kivy.cache import Cache
 from kivy.properties import ObjectProperty
+from kivy.utils import get_hex_from_color
 
 Cache_get = Cache.get
 Cache_append = Cache.append
@@ -75,24 +76,13 @@ class CodeInput(TextInput):
         # use text_color as foreground color
         text_color = kwargs.get('foreground_color')
         if text_color:
-            get_hex_clr = self.get_hex_clr
-            self.text_color = ''.join(('#',
-                get_hex_clr(text_color[0]),
-                get_hex_clr(text_color[1]),
-                get_hex_clr(text_color[2]),
-                get_hex_clr(text_color[3])))
+            self.text_color = get_hex_from_color(text_color)
         # set foreground to white to allow text colors to show
         # use text_color as the default color in bbcodes
         self.use_text_color = False
         self.foreground_color = [1, 1, 1, .999]
         if not kwargs.get('background_color'):
             self.background_color = [.9, .92, .92, 1]
-
-    def get_hex_clr(self, color):
-        clr = hex(int(color * 255))[2:]
-        if len(str(clr)) < 2:
-            clr = ''.join(('0', str(clr)))
-        return clr
 
     def _create_line_label(self, text):
         # Create a label from a text, using line options
@@ -171,12 +161,7 @@ class CodeInput(TextInput):
         if not self.use_text_color:
             self.use_text_color = True
             return
-        get_hex_clr = self.get_hex_clr
-        self.text_color = ''.join((
-                get_hex_clr(text_color[0]),
-                get_hex_clr(text_color[1]),
-                get_hex_clr(text_color[2]),
-                get_hex_clr(text_color[3])))
+        self.text_color = get_hex_from_color(text_color)
         self.use_text_color = False
         self.foreground_color = (1, 1, 1, .999)
         self._trigger_refresh_text()
