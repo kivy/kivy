@@ -163,9 +163,10 @@ cdef class EventDispatcher(object):
 
             class MyClass(BoxLayout):
                 def __init__(self):
-                    super(MyClass, self).__init__(**kwargs)
-                    btn = Button(text='click on')
-                    btn.bind(on_press=self.my_callback) #bind event
+                    super(MyClass, self).__init__()
+                    btn = Button(text='click me')
+                    # Bind event to callback
+                    btn.bind(on_press=self.my_callback)
                     self.add_widget(btn)
 
                 def my_callback(self,obj,value):
