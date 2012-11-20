@@ -255,12 +255,11 @@ class ShowcaseApp(App):
         content.add_widget(Label(text='Hello world'))
         content.add_widget(btnclose)
         popup = Popup(content=content, title='Modal popup example',
-                      size_hint=(None, None), size=('300dp', '300dp'),
-                      auto_dismiss=False)
+                      size_hint=(None, None), size=('300dp', '300dp'))
         btnclose.bind(on_release=popup.dismiss)
         button = Button(text='Open popup', size_hint=(None, None),
-                        size=('150sp', '70dp'))
-        button.bind(on_release=popup.open)
+                        size=('150sp', '70dp'),
+                        on_release=popup.open)
         popup.open()
         col = AnchorLayout()
         col.add_widget(button)

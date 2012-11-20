@@ -3,7 +3,7 @@
 <Label>:
     canvas:
         Color:
-            rgba: self.color
+            rgba: self.color if not self.markup else (1, 1, 1, 1)
         Rectangle:
             texture: self.texture
             size: self.texture_size
@@ -523,7 +523,7 @@
             size_hint_x: .66
             id: labellayout
             markup: True
-            text: '{0}\n[size=13sp][color=999999]{1}[/color][/size]{2}'.format(root.title or '', root.desc or '', self.font_size)
+            text: '{0}\n[size=13sp][color=999999]{1}[/color][/size]'.format(root.title or '', root.desc or '')
             font_size: '15sp'
             text_size: self.width - 32, None
 

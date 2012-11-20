@@ -23,10 +23,18 @@ Example::
 
     Example1().run()
 
+.. versionchanged:: 1.5.0
+
+    The carousel now support active children, as
+    :class:`~kivy.uix.scrollview.ScrollView`. It will detect a swipe gesture
+    according to :data:`Carousel.scroll_timeout` and
+    :data:`Carousel.scroll_distance`.
 '''
 
 __all__ = ('Carousel', )
 
+from functools import partial
+from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
@@ -166,13 +174,37 @@ class Carousel(StencilView):
     :data:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
     '''
 
+    scroll_timeout = NumericProperty(200)
+    '''Timeout allowed to trigger the :data:`scroll_distance`, in milliseconds.
+    If the user has not moved :data:`scroll_distance` within the timeout,
+    the scrolling will be disabled, and the touch event will go to the children.
+
+    :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty`,
+    default to 200 (milliseconds)
+
+    .. versionadded:: 1.5.0
+    '''
+
+    scroll_distance = NumericProperty('20dp')
+    '''Distance to move before scrolling the :class:`ScrollView`, in pixels. As
+    soon as the distance has been traveled, the :class:`ScrollView` will start
+    to scroll, and no touch event will go to children.
+    It is advisable that you base this value on the dpi of your target device's
+    screen.
+
+    :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty`,
+    default to 20dp.
+
+    .. versionadded:: 1.5.0
+    '''
+
     #### private properties, for internal use only ###
     _index = NumericProperty(0)
     _prev = ObjectProperty(None, allownone=True)
     _current = ObjectProperty(None, allownone=True)
     _next = ObjectProperty(None, allownone=True)
     _offset = NumericProperty(0)
-    _drag_touches = ListProperty([])
+    _touch = ObjectProperty(None, allownone=True)
 
     def _insert_visible_slides(self):
         self._prev = self.previous_slide
@@ -248,10 +280,8 @@ class Carousel(StencilView):
             if self._offset >= self.height:
                 self.index = self.index + 1
 
-    def on__drag_touches(self, *args):
+    def _start_animation(self, *args):
         Animation.cancel_all(self)
-        if self._drag_touches:
-            return
 
         # compute target offset for ease back, next or prev
         new_offset = 0
@@ -282,35 +312,98 @@ class Carousel(StencilView):
         anim = Animation(_offset=new_offset, d=dur, t='out_quad')
         anim.start(self)
 
+    def _get_uid(self, prefix='sv'):
+        return '{0}.{1}'.format(prefix, self.uid)
+
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
+            touch.ud[self._get_uid('cavoid')] = True
             return
-        if not super(Carousel, self).on_touch_down(touch):
-            self._drag_touches.append(touch.uid)
-            touch.grab(self)
+        if self._touch:
+            return super(Carousel, self).on_touch_down(touch)
+        Animation.cancel_all(self)
+        self._touch = touch
+        uid = self._get_uid()
+        touch.grab(self)
+        touch.ud[uid] = {
+            'mode': 'unknown',
+            'time': touch.time_start}
+        Clock.schedule_once(self._change_touch_mode,
+                self.scroll_timeout / 1000.)
         return True
 
     def on_touch_move(self, touch):
-        if touch.grab_current is self:
-            if self._drag_touches.index(touch.uid) > 0:
-                return True
-            if self.direction in ['right', 'left']:
-                self._offset += touch.dx
-            if self.direction in ['top', 'bottom']:
-                self._offset += touch.dy
+        if self._get_uid('cavoid') in touch.ud:
+            return
+        if self._touch is not touch:
+            super(Carousel, self).on_touch_move(touch)
+            return self._get_uid() in touch.ud
+        if touch.grab_current is not self:
             return True
-
-        if self.collide_point(*touch.pos):
-            return super(Carousel, self).on_touch_move(touch)
+        ud = touch.ud[self._get_uid()]
+        direction = self.direction
+        if ud['mode'] == 'unknown':
+            if direction in ('right', 'left'):
+                distance = abs(touch.ox - touch.x)
+            else:
+                distance = abs(touch.oy - touch.y)
+            if distance > self.scroll_distance:
+                Clock.unschedule(self._change_touch_mode)
+                ud['mode'] = 'scroll'
+        else:
+            if direction in ('right', 'left'):
+                self._offset += touch.dx
+            if direction in ('top', 'bottom'):
+                self._offset += touch.dy
+        return True
 
     def on_touch_up(self, touch):
-        if touch.grab_current is self:
-            self._drag_touches.remove(touch.uid)
+        if self._get_uid('cavoid') in touch.ud:
+            return
+        if self in [x() for x in touch.grab_list]:
             touch.ungrab(self)
-            return True
+            self._touch = None
+            ud = touch.ud[self._get_uid()]
+            if ud['mode'] == 'unknown':
+                Clock.unschedule(self._change_touch_mode)
+                super(Carousel, self).on_touch_down(touch)
+                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+            else:
+                self._start_animation()
 
-        if self.collide_point(*touch.pos):
-            return super(Carousel, self).on_touch_move(touch)
+        else:
+            if self._touch is not touch and self.uid not in touch.ud:
+                super(Carousel, self).on_touch_up(touch)
+        return self._get_uid() in touch.ud
+
+    def _do_touch_up(self, touch, *largs):
+        super(Carousel, self).on_touch_up(touch)
+        # don't forget about grab event!
+        for x in touch.grab_list[:]:
+            touch.grab_list.remove(x)
+            x = x()
+            if not x:
+                continue
+            touch.grab_current = x
+            super(Carousel, self).on_touch_up(touch)
+        touch.grab_current = None
+
+    def _change_touch_mode(self, *largs):
+        if not self._touch:
+            return
+        self._start_animation()
+        uid = self._get_uid()
+        touch = self._touch
+        ud = touch.ud[uid]
+        if ud['mode'] == 'unknown':
+            touch.ungrab(self)
+            self._touch = None
+            touch.push()
+            touch.apply_transform_2d(self.to_widget)
+            touch.apply_transform_2d(self.to_parent)
+            super(Carousel, self).on_touch_down(touch)
+            touch.pop()
+            return
 
     def add_widget(self, widget, index=0):
         slide = RelativeLayout(size=self.size, x=self.x - self.width, y=self.y)

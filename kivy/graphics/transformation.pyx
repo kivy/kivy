@@ -183,7 +183,7 @@ cdef class Matrix:
     cpdef Matrix identity(self):
         '''Reset matrix to identity matrix (inplace)
         '''
-        cdef double *m = self.mat
+        cdef double *m = <double *>self.mat
         with nogil:
             m[0] = m[5] = m[10] = m[15] = 1
             m[1] = m[2] = m[3] = m[4] = m[6] = m[7] = \
@@ -194,7 +194,7 @@ cdef class Matrix:
         '''Return the inverted matrix
         '''
         cdef Matrix mr = Matrix()
-        cdef double *m = self.mat, *r = mr.mat
+        cdef double *m = <double *>self.mat, *r = <double *>mr.mat
         cdef double det
         with nogil:
             det = m[0] * (m[5] * m[10] - m[9] * m[6]) \
@@ -230,7 +230,7 @@ cdef class Matrix:
             m.multiply(n) -> n * m
         '''
         cdef Matrix mr = Matrix()
-        cdef double *a = ma.mat, *b = mb.mat, *r = mr.mat
+        cdef double *a = <double *>ma.mat, *b = <double *>mb.mat, *r = <double *>mr.mat
         with nogil:
             r[ 0] = a[ 0] * b[0] + a[ 1] * b[4] + a[ 2] * b[ 8]
             r[ 4] = a[ 4] * b[0] + a[ 5] * b[4] + a[ 6] * b[ 8]
@@ -251,7 +251,7 @@ cdef class Matrix:
         return mr
 
     def __str__(self):
-        cdef double *m = self.mat
+        cdef double *m = <double *>self.mat
         return '[[ %f %f %f %f ]\n[ %f %f %f %f ]\n' \
                '[ %f %f %f %f ]\n[ %f %f %f %f ]]' % (
                    m[0], m[1], m[2], m[3],

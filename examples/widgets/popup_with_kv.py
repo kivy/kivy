@@ -22,8 +22,7 @@ class CustomPopup(Popup):
 
 class TestApp(App):
     def build(self):
-        b = Button()
-        b.bind(on_press=self.show_popup)
+        b = Button(on_press=self.show_popup)
         return b
 
     def show_popup(self, b):
