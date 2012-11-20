@@ -169,8 +169,8 @@ cdef class EventDispatcher(object):
                     btn.bind(on_press=self.my_callback)
                     self.add_widget(btn)
 
-                def my_callback(self,obj,value):
-                    print 'press on button', obj, 'with date:', value
+                def my_callback(self, obj):
+                    print 'press on button', obj
 
         '''
         cdef Property prop
