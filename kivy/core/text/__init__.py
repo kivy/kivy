@@ -84,12 +84,12 @@ class LabelBase(object):
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
-                 **kwargs):
+                 line_height=1.0, **kwargs):
 
         options = {'text': text, 'font_size': font_size,
             'font_name': font_name, 'bold': bold, 'italic': italic,
             'halign': halign, 'valign': valign, 'shorten': shorten,
-            'mipmap': mipmap}
+            'mipmap': mipmap, 'line_height': line_height}
 
         options['color'] = color or (1, 1, 1, 1)
         options['padding'] = kwargs.get('padding', 0)
@@ -245,6 +245,7 @@ class LabelBase(object):
         if uw is None:
             for line in self.text.split('\n'):
                 lw, lh = get_extents(line)
+                lh = lh * options['line_height']
                 if real:
                     x = 0
                     if halign == 'center':
@@ -292,6 +293,7 @@ class LabelBase(object):
                     gw, gh = cache[glyph]
                     ww += gw
                     wh = max(gh, wh)
+                wh = wh * options['line_height']
 
                 # is the word fit on the uw ?
                 if ww > uw:
@@ -301,7 +303,6 @@ class LabelBase(object):
 
                 # get the maximum height for this line
                 lh = max(wh, lh)
-
                 # is the word fit on the line ?
                 if (word == '\n' or x + ww > uw) and lw != 0:
                     # no, push actuals glyph
