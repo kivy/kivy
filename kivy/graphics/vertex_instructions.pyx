@@ -293,8 +293,8 @@ cdef class Mesh(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
-        print len(lvertices), (vcount, vsize), vcount * vsize
-        print lvertices
+        #print len(lvertices), (vcount, vsize), vcount * vsize
+        #print lvertices
         for i in xrange(vcount):
             vertices[i] = lvertices[i]
 
