@@ -6,14 +6,15 @@ Installation on Linux
 Prerequisites
 -------------
 
-Ubuntu (11.10)
-~~~~~~~~~~~~~~
+Ubuntu (11.10 or newer)
+~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
-      python-gst0.10 python-enchant gstreamer0.10-plugins-good cython python-dev \
-      build-essential libgl1-mesa-dev libgles2-mesa-dev
+      python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
+      build-essential libgl1-mesa-dev libgles2-mesa-dev python-pip
+    $ sudo pip install --upgrade cython
 
 Fedora (16)
 ~~~~~~~~~~~
@@ -21,10 +22,10 @@ Fedora (16)
 ::
 
     $ sudo yum install python-distutils-extra python-enchant freeglut PyOpenGL \
-    SDL_ttf-devel SDL_mixer-devel pygame pygame-devel Cython khrplatform-devel \
+    SDL_ttf-devel SDL_mixer-devel pygame pygame-devel khrplatform-devel \
     mesa-libGLES mesa-libGLES-devel gstreamer-plugins-good gstreamer \
-    gstreamer-python mtdev-devel
-
+    gstreamer-python mtdev-devel python-pip
+    $ sudo pip install --upgrade cython
 
 OpenSuse (12.1)
 ~~~~~~~~~~~~~~~
@@ -33,8 +34,9 @@ OpenSuse (12.1)
 
     $ sudo zypper install python-distutils-extra python-pygame python-opengl \
     python-gstreamer-0_10 python-enchant gstreamer-0_10-plugins-good \
-    python-Cython python-devel Mesa-devel
+    python-devel Mesa-devel python-pip
     $ zypper install -t pattern devel_C_C++
+    $ sudo pip install --upgrade cython
 
 
 Mageia (1 and 2(cauldron))
@@ -47,6 +49,8 @@ Mageia (1 and 2(cauldron))
     gstreamer0.10-python python-enchant gstreamer0.10-plugins-good \
     python-cython lib64python-devel lib64mesagl1-devel lib64mesaegl1-devel \
     lib64mesaglesv2_2-devel make gcc
+    $ sudo easy_install pip
+    $ sudo pip install --upgrade cython
 
 
 Installation

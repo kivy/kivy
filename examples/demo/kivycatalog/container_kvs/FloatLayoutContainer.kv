@@ -1,0 +1,16 @@
+#:kivy 1.4
+
+FloatLayout:
+    Button:
+        text: "Button 1"
+        pos: 100, 100
+        size_hint: .2, .4
+    Button:
+        text: "Button 2"
+        pos: 200, 200
+        size_hint: .4, .2
+
+    Button:
+        text: "Button 3"
+        pos_hint: {'x': .8, 'y': .6}
+        size_hint: .2, .2

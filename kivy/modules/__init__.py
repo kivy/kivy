@@ -113,7 +113,9 @@ class ModuleBase:
 
     def import_module(self, name):
         try:
-            module = __import__(name=name, fromlist='.')
+            modname = 'kivy.modules.{0}'.format(name)
+            module = __import__(name=modname)
+            module = sys.modules[modname]
         except ImportError:
             Logger.exception('Modules: unable to import <%s>' % name)
             raise
@@ -130,38 +132,17 @@ class ModuleBase:
 
     def activate_module(self, name, win):
         '''Activate a module on a window'''
-        if not name in self.mods:
+        if name not in self.mods:
             Logger.warning('Modules: Module <%s> not found' % name)
             return
 
-        if not 'module' in self.mods[name]:
-            try:
-                self.import_module(name)
-            except ImportError:
-                return
-
         module = self.mods[name]['module']
         if not self.mods[name]['activated']:
-
-            # convert configuration like:
-            # -m mjpegserver:port=8080,fps=8
-            # and pass it in context.config token
-            config = dict()
-
-            args = Config.get('modules', name)
-            if args != '':
-                values = Config.get('modules', name).split(',')
-                for value in values:
-                    x = value.split('=', 1)
-                    if len(x) == 1:
-                        config[x[0]] = True
-                    else:
-                        config[x[0]] = x[1]
-
-            msg = 'Modules: Start <%s> with config %s' % (name, str(config))
+            context = self.mods[name]['context']
+            msg = 'Modules: Start <{0}> with config {1}'.format(
+                    name, context)
             Logger.debug(msg)
-            self.mods[name]['context'].config = config
-            module.start(win, self.mods[name]['context'])
+            module.start(win, context)
 
     def deactivate_module(self, name, win):
         '''Deactivate a module from a window'''
@@ -176,12 +157,14 @@ class ModuleBase:
 
     def register_window(self, win):
         '''Add window in window list'''
-        self.wins.append(win)
+        if win not in self.wins:
+            self.wins.append(win)
         self.update()
 
     def unregister_window(self, win):
         '''Remove window from window list'''
-        self.wins.remove(win)
+        if win in self.wins:
+            self.wins.remove(win)
         self.update()
 
     def update(self):
@@ -193,6 +176,45 @@ class ModuleBase:
                     self.deactivate_module(name, win)
             for name in modules_to_activate:
                 self.activate_module(name, win)
+
+    def configure(self):
+        '''(internal) Configure all the modules before using it.
+        '''
+        modules_to_configure = map(lambda x: x[0], Config.items('modules'))
+        for name in modules_to_configure:
+            if name not in self.mods:
+                Logger.warning('Modules: Module <%s> not found' % name)
+                continue
+            self._configure_module(name)
+
+    def _configure_module(self, name):
+        if 'module' not in self.mods[name]:
+            try:
+                self.import_module(name)
+            except ImportError:
+                return
+
+        # convert configuration like:
+        # -m mjpegserver:port=8080,fps=8
+        # and pass it in context.config token
+        config = dict()
+
+        args = Config.get('modules', name)
+        if args != '':
+            values = Config.get('modules', name).split(',')
+            for value in values:
+                x = value.split('=', 1)
+                if len(x) == 1:
+                    config[x[0]] = True
+                else:
+                    config[x[0]] = x[1]
+
+        self.mods[name]['context'].config = config
+
+        # call configure if module have one
+        if hasattr(self.mods[name]['module'], 'configure'):
+            self.mods[name]['module'].configure(config)
+
 
     def usage_list(self):
         print

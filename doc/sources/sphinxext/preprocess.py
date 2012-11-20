@@ -106,8 +106,8 @@ def callback_signature(app, what, name, obj, options, signature,
 
 def setup(app):
     import kivy
-    sys.path += [join(dirname(kivy.__file__), 'tools', 'highlight', 'pygments')]
-    from lexer_kivy import KivyLexer
+    sys.path += [join(dirname(kivy.__file__), 'extras')]
+    from highlight import KivyLexer
 
     app.add_lexer('kv', KivyLexer())
     app.add_autodocumenter(CythonMethodDocumenter)

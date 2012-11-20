@@ -112,7 +112,7 @@ class Slider(Widget):
         if step == 0:
             self.value = val
         else:
-            self.value = min(round((val - vmin) / step) * step, self.max) + vmin
+            self.value = min(round((val - vmin) / step) * step + vmin, self.max)
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'min', 'max', 'step'))
     '''Normalized value inside the :data:`range` (min/max) to 0-1 range::
@@ -190,3 +190,11 @@ class Slider(Widget):
             self.value_pos = touch.pos
             return True
 
+if __name__ == '__main__':
+    from kivy.app import App
+
+    class SliderApp(App):
+        def build(self):
+            return Slider()
+
+    SliderApp().run()

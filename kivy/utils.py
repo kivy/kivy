@@ -6,12 +6,13 @@ Utils
 '''
 
 __all__ = ('intersection', 'difference', 'strtotuple',
-           'get_color_from_hex', 'get_random_color',
+           'get_color_from_hex', 'get_hex_from_color', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
            'interpolate', 'OrderedDict', 'QueryDict',
            'platform', 'escape_markup', 'reify')
 
+from os import environ
 from sys import platform as _sys_platform
 from re import match, split
 from UserDict import DictMixin
@@ -91,6 +92,19 @@ def get_color_from_hex(s):
     if len(value) == 3:
         value.append(1)
     return value
+
+
+def get_hex_from_color(color):
+    '''Transform from kivy color to hex::
+
+        >>> get_hex_from_color((0, 1, 0))
+        '#00ff00'
+        >>> get_hex_from_color((.25, .77, .90, .5))
+        '#3fc4e57f'
+
+    .. versionadded:: 1.5.0
+    '''
+    return '#' + ''.join(['{0:02x}'.format(int(x * 255)) for x in color])
 
 
 def get_random_color(alpha=1.0):
@@ -332,11 +346,9 @@ def platform():
     global _platform_ios, _platform_android
 
     if _platform_android is None:
-        try:
-            import android
-            _platform_android = True
-        except ImportError:
-            _platform_android = False
+        # ANDROID_ARGUMENT and ANDROID_PRIVATE are 2 environment variables from
+        # python-for-android project
+        _platform_android = 'ANDROID_ARGUMENT' in environ
 
     if _platform_ios is None:
         # TODO implement ios support here

@@ -3,7 +3,7 @@ Anchor layout unit test
 =======================
 '''
 
-from common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest
 
 
 class UIXAnchorLayoutTestcase(GraphicUnitTest):

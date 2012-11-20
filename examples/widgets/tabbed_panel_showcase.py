@@ -54,8 +54,9 @@ Builder.load_string('''
 <PanelLeft>
     size_hint: (.45, .45)
     pos_hint: {'center_x': .25, 'y': .55}
-    #replace the default tab with our custom tab
+    #replace the default tab with our custom tab class
     default_tab_cls: sh.__class__
+    do_default_tab: True
     default_tab_content: default_content
     tab_width: 40
     tab_height: 70
@@ -100,19 +101,18 @@ Builder.load_string('''
             size_hint: None, 1
             orientation: 'vertical'
             width: 22
-            Widget:
-            Button:
-                border: 0,0,0,0
-                background_normal: 'tools/theming/defaulttheme/close.png'
-                on_release: root.panel.remove_widget(root)
-            Widget:
+            Image:
+                source: 'tools/theming/defaulttheme/close.png'
+                on_touch_down:
+                    if self.collide_point(*args[1].pos) :\
+                        root.panel.remove_widget(root)
 
 
 <PanelRight>
     tab_pos: 'top_right'
     size_hint: (.45, .45)
     pos_hint: {'center_x': .75, 'y': .55}
-    #replace the default tab with our custom tab
+    # replace the default tab with our custom tab
     default_tab: def_tab
     #allow variable tab width
     tab_width: None
@@ -170,29 +170,23 @@ Builder.load_string('''
     tab_pos: 'bottom_left'
     size_hint: (.45, .45)
     pos_hint: {'center_x': .25, 'y': .02}
-    default_tab_text: 'Settings'
-    default_tab_content: default_content
-    FloatLayout:
+    do_default_tab: False
+
+    TabbedPanelItem:
+        id: settings
+        text: 'Settings'
         RstDocument:
-            id: default_content
             text: '\\n'.join(("Normal tabs", "-------------",\
-                "Tabs in \\'%s\\' position" %root.tab_pos))
-        Image:
-            id: tab_2_content
-            pos: self.parent.pos
-            size: self.parent.size
-            source: 'data/images/defaulttheme-0.png'
-        Image:
-            id: tab_3_content
-            pos:self.parent.pos
-            size: self.parent.size
-            source: 'data/images/image-loading.gif'
-    TabbedPanelHeader:
+            "Tabs in \\'%s\\' position" %root.tab_pos))
+    TabbedPanelItem:
         text: 'tab2'
-        content: tab_2_content
-    TabbedPanelHeader:
+        BubbleButton:
+            text: 'switch to settings'
+            on_press: root.switch_to(settings)
+    TabbedPanelItem:
         text: 'tab3'
-        content: tab_3_content
+        Image:
+            source: 'data/images/image-loading.gif'
 
 <PanelbRight>
     tab_pos: 'right_top'
@@ -257,26 +251,23 @@ Builder.load_string('''
 
 
 class Tp(TabbedPanel):
+
     #override tab switching method to animate on tab switch
     def switch_to(self, header):
-        anim = Animation(color=(1, 1, 1, 0), d =.24, t = 'in_out_quad')
+        anim = Animation(opacity=0, d=.24, t='in_out_quad')
 
         def start_anim(_anim, child, in_complete, *lt):
-            if hasattr(child, 'color'):
-                _anim.start(child)
-            elif not in_complete:
-                _on_complete()
+            _anim.start(child)
 
         def _on_complete(*lt):
-            if hasattr(header.content, 'color'):
-                header.content.color = (0, 0, 0, 0)
-                anim = Animation(color =
-                    (1, 1, 1, 1), d =.23, t = 'in_out_quad')
+            if header.content:
+                header.content.opacity = 0
+                anim = Animation(opacity=1, d=.43, t='in_out_quad')
                 start_anim(anim, header.content, True)
             super(Tp, self).switch_to(header)
 
         anim.bind(on_complete = _on_complete)
-        if self.content:
+        if self.current_tab.content:
             start_anim(anim, self.current_tab.content, False)
         else:
             _on_complete()

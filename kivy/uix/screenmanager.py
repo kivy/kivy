@@ -31,7 +31,7 @@ screen, you absolutely need to give a name to it::
     # Add few screens
     for i in xrange(4):
         screen = Screen(name='Title %d' % i)
-        sm.add_widget(sm)
+        sm.add_widget(screen)
 
     # By default, the first screen added into the ScreenManager will be
     # displayed. Then, you can change to another screen:
@@ -47,9 +47,10 @@ a root widget for your own screen. Best way is to subclass.
 
 Here is an example with a 'Menu Screen', and a 'Setting Screen'::
 
+    from kivy.app import App
     from kivy.lang import Builder
     from kivy.uix.screenmanager import ScreenManager, Screen
-
+    
     # Create both screen. Please note the root.manager.current: this is how you
     # can control the ScreenManager from kv. Each screen have by default a
     # property manager that give you the instance of the ScreenManager used.
@@ -61,7 +62,7 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
                 on_press: root.manager.current = 'settings'
             Button:
                 text: 'Quit'
-
+    
     <SettingsScreen>:
         BoxLayout:
             Button:
@@ -70,18 +71,26 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
                 text: 'Back to menu'
                 on_press: root.manager.current = 'menu'
     """)
-
+    
     # Declare both screen
     class MenuScreen(Screen):
         pass
-
+    
     class SettingsScreen(Screen):
         pass
-
+    
     # Create the screen manager
     sm = ScreenManager()
     sm.add_widget(MenuScreen(name='menu'))
     sm.add_widget(SettingsScreen(name='settings'))
+    
+    class TestApp(App):
+    
+        def build(self):
+            return sm 
+    
+    if __name__ == '__main__':
+        TestApp().run()
 
 
 Changing transition
@@ -253,9 +262,9 @@ class TransitionBase(EventDispatcher):
 
         self.add_screen(self.screen_in)
         self.screen_in.transition_progress = 0.
-        self.screen_in.transition_mode = 'in'
+        self.screen_in.transition_state = 'in'
         self.screen_out.transition_progress = 0.
-        self.screen_out.transition_mode = 'out'
+        self.screen_out.transition_state = 'out'
 
         self.is_active = True
         self._anim.start(self)
@@ -367,7 +376,7 @@ class ShaderTransition(TransitionBase):
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
-            Rectangle(size=(1, 1))
+            Rectangle(size=(1, -1), pos=(0, 1))
         self.render_ctx['projection_mat'] = Matrix().\
             view_clip(0, 1, 0, 1, 0, 1, 0)
         self.render_ctx['tex_out'] = 1

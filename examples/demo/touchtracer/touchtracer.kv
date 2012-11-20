@@ -10,17 +10,18 @@
             size: self.size
 
     BoxLayout:
-        padding: 10
-        spacing: 10
+        padding: '10dp'
+        spacing: '10dp'
         size_hint: 1, None
         pos_hint: {'top': 1}
-        height: 44
+        height: '44dp'
         Image:
             size_hint: None, None
-            size: 24, 24
-            source: 'data/logo/kivy-icon-24.png'
+            size: '24dp', '24dp'
+            source: 'data/logo/kivy-icon-64.png'
+			mipmap: True
         Label:
-            height: 24
+            height: '24dp'
             text_size: self.width, None
             color: (1, 1, 1, .8)
             text: 'Kivy %s - Touchtracer' % kivy.__version__

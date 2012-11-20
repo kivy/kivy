@@ -23,6 +23,7 @@ import kivy
 
 # force loading of kivy modules
 import kivy.app
+import kivy.metrics
 import kivy.atlas
 import kivy.core.audio
 import kivy.core.camera
@@ -43,6 +44,7 @@ import kivy.modules.monitor
 import kivy.modules.touchring
 import kivy.modules.inspector
 import kivy.modules.recorder
+import kivy.modules.screen
 import kivy.network.urlrequest
 import kivy.support
 import kivy.input.recorder
@@ -50,7 +52,7 @@ import kivy.interactive
 from kivy.factory import Factory
 
 # force loading of all classes from factory
-for x in Factory.classes:
+for x in Factory.classes.keys()[:]:
     getattr(Factory, x)
 
 

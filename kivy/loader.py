@@ -321,7 +321,7 @@ else:
                         parameters = self._q_load.pop()
                     except IndexError:
                         return
-                self._load(parameters)
+                    self._load(parameters)
 
         Loader = LoaderClock()
         Logger.info('Loader: using <clock> as thread loader')

@@ -492,6 +492,9 @@ class Scatter(Widget):
 
 
 class ScatterPlane(Scatter):
+    '''This is essentially an unbounded Scatter widget, convenience
+       class to make easier the writting of infinite planes
+    '''
 
     def __init__(self, **kwargs):
         kwargs.setdefault('auto_bring_to_front', False)

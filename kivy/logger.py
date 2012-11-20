@@ -232,8 +232,8 @@ class ColoredFormatter(logging.Formatter):
             levelname = 'TRACE'
             record.levelname = levelname
         if self.use_color and levelname in COLORS:
-            levelname_color = COLOR_SEQ % (30 + COLORS[levelname]) \
-                                + levelname + RESET_SEQ
+            levelname_color = (
+                COLOR_SEQ % (30 + COLORS[levelname]) + levelname + RESET_SEQ)
             record.levelname = levelname_color
         return logging.Formatter.format(self, record)
 
@@ -272,6 +272,7 @@ class LogFile(object):
     def flush(self):
         return
 
+
 def logger_config_update(section, key, value):
     if LOG_LEVELS.get(value) is None:
         raise AttributeError('Loglevel {0!r} doesn\'t exists'.format(value))
@@ -294,7 +295,7 @@ if 'KIVY_NO_CONSOLELOG' not in os.environ:
     else:
         use_color = os.name != 'nt'
         color_fmt = formatter_message(
-                '[%(levelname)-18s] %(message)s', use_color)
+            '[%(levelname)-18s] %(message)s', use_color)
         formatter = ColoredFormatter(color_fmt, use_color=use_color)
         console = ConsoleHandler()
         console.setFormatter(formatter)

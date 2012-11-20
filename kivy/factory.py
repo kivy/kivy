@@ -59,6 +59,8 @@ class FactoryBase(object):
         '''
         if cls is None and module is None:
             raise ValueError('You must specify either cls= or module=')
+        if classname in self.classes:
+            return
         self.classes[classname] = {
             'module': module,
             'cls': cls,

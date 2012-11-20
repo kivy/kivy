@@ -105,7 +105,7 @@ class GridLayout(Layout):
     '''
 
     spacing = NumericProperty(0)
-    '''Spacing between widget box and children, in pixels.
+    '''Spacing between children, in pixels.
 
     :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
     0.
@@ -414,16 +414,16 @@ class GridLayout(Layout):
         # reposition every child
         i = len_children - 1
         y = self.top - padding
-        reposition_child = self.reposition_child
         for row_height in rows:
             x = selfx + padding
             for col_width in cols:
                 if i < 0:
                     break
                 c = children[i]
-                c_pos = x, y - row_height
-                c_size = (col_width, row_height)
-                reposition_child(c, pos=c_pos, size=c_size)
+                c.x = x
+                c.y = y - row_height
+                c.width = col_width
+                c.height = row_height
                 i = i - 1
                 x = x + col_width + spacing
             y -= row_height + spacing

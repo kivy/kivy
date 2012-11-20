@@ -11,6 +11,7 @@ DEF LINE_MODE_POINTS = 0
 DEF LINE_MODE_ELLIPSE = 1
 DEF LINE_MODE_CIRCLE = 2
 DEF LINE_MODE_RECTANGLE = 3
+DEF LINE_MODE_BEZIER = 4
 
 from kivy.graphics.stencil_instructions cimport StencilUse, StencilUnUse, StencilPush, StencilPop
 
@@ -77,6 +78,11 @@ cdef class Line(VertexInstruction):
         `rectangle`: list
             If set, the :data:`points` will be set to build a rectangle. Check
             :data:`rectangle` for more information.
+        `bezier`: list
+            If set, the :data:`points` will be set to build a bezier line. Check
+            :data:`bezier` for more information.
+        `bezier_precision`: int, default to 180
+            Precision of the Bezier drawing.
 
     .. versionadded:: 1.0.8
         `dash_offset` and `dash_length` have been added
@@ -84,10 +90,14 @@ cdef class Line(VertexInstruction):
     .. versionadded:: 1.4.1
         `width`, `cap`, `joint`, `cap_precision`, `joint_precision`, `close`,
         `ellipse`, `rectangle` have been added.
+
+    .. versionadded:: 1.4.1
+        `bezier`, `bezier_precision` have been added.
     '''
     cdef int _cap
     cdef int _cap_precision
     cdef int _joint_precision
+    cdef int _bezier_precision
     cdef int _joint
     cdef list _points
     cdef float _width
@@ -115,6 +125,7 @@ cdef class Line(VertexInstruction):
         self.cap = kwargs.get('cap') or 'round'
         self._cap_precision = kwargs.get('cap_precision') or 10
         self._joint_precision = kwargs.get('joint_precision') or 10
+        self._bezier_precision = kwargs.get('bezier_precision') or 180
         self._close = int(bool(kwargs.get('close', 0)))
         self._stencil_rect = None
         self._stencil_push = None
@@ -123,6 +134,15 @@ cdef class Line(VertexInstruction):
         self._stencil_pop = None
         self._use_stencil = 0
 
+        if 'ellipse' in kwargs:
+            self.ellipse = kwargs['ellipse']
+        if 'circle' in kwargs:
+            self.circle = kwargs['circle']
+        if 'rectangle' in kwargs:
+            self.rectangle = kwargs['rectangle']
+        if 'bezier' in kwargs:
+            self.bezier = kwargs['bezier']
+
     cdef void build(self):
         if self._mode == LINE_MODE_ELLIPSE:
             self.prebuild_ellipse()
@@ -130,6 +150,8 @@ cdef class Line(VertexInstruction):
             self.prebuild_circle()
         elif self._mode == LINE_MODE_RECTANGLE:
             self.prebuild_rectangle()
+        elif self._mode == LINE_MODE_BEZIER:
+            self.prebuild_bezier()
         if self._width == 1.0:
             self.build_legacy()
         else:
@@ -289,7 +311,7 @@ cdef class Line(VertexInstruction):
             free(vertices)
             raise MemoryError('indices')
 
-        cdef double ax, ay, bx, by, cx, cy, angle, a1, a2
+        cdef double ax, ay, bx, _by, cx, cy, angle, a1, a2
         cdef double x1, y1, x2, y2, x3, y3, x4, y4
         cdef double sx1, sy1, sx4, sy4, sangle
         cdef double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2
@@ -307,7 +329,7 @@ cdef class Line(VertexInstruction):
             ax = p[i * 2]
             ay = p[i * 2 + 1]
             bx = p[i * 2 + 2]
-            by = p[i * 2 + 3]
+            _by = p[i * 2 + 3]
 
             if i > 0 and self._joint != LINE_JOINT_NONE:
                 pcx = cx
@@ -328,7 +350,7 @@ cdef class Line(VertexInstruction):
 
             # calculate the orientation of the segment, between pi and -pi
             cx = bx - ax
-            cy = by - ay
+            cy = _by - ay
             angle = atan2(cy, cx)
             a1 = angle - PI2
             a2 = angle + PI2
@@ -343,9 +365,9 @@ cdef class Line(VertexInstruction):
             x4 = ax + cos2
             y4 = ay + sin2
             x2 = bx + cos1
-            y2 = by + sin1
+            y2 = _by + sin1
             x3 = bx + cos2
-            y3 = by + sin2
+            y3 = _by + sin2
 
             if i == 0:
                 sx1 = x1
@@ -767,7 +789,7 @@ cdef class Line(VertexInstruction):
 
         def __set__(self, value):
             if value < 1:
-                raise GraphicException('Invalid cap_precision value, must be >= 1')
+                raise GraphicException('Invalid joint_precision value, must be >= 1')
             self._joint_precision = int(value)
             self.flag_update()
 
@@ -987,3 +1009,71 @@ cdef class Line(VertexInstruction):
 
         self._points = [x, y, x + width, y, x + width, y + height, x, y + height]
         self._close = 1
+
+    property bezier:
+        '''Use this property to build a rectangle, without calculate the
+        :data:`points`. You can only set this property, not get it.
+
+        The argument must be a tuple of (x, y, width, height)
+        angle_end, segments):
+
+        * x and y represent the bottom-left position of the rectangle
+        * width and height represent the size
+
+        The line is automatically closed.
+
+        Usage::
+
+            Line(rectangle=(0, 0, 200, 200))
+
+        .. versionadded:: 1.4.2
+        '''
+
+        def __set__(self, args):
+            if args == None:
+                raise GraphicException(
+                        'Invalid rectangle value: {0!r}'.format(args))
+            self._mode_args = tuple(args)
+            self._mode = LINE_MODE_BEZIER
+            self.flag_update()
+
+    cdef void prebuild_bezier(self):
+        cdef double x, y, l
+        cdef int segments = self._bezier_precision
+        cdef list T = list(self._mode_args)[:]
+
+        self._points = []
+        for x in xrange(segments):
+            l = x / (1.0 * segments)
+            # http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
+            # as the list is in the form of (x1, y1, x2, y2...) iteration is
+            # done on each item and the current item (xn or yn) in the list is
+            # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
+            # placed at n+2. each iteration makes the list one item shorter
+            for i in range(1, len(T)):
+                for j in xrange(len(T) - 2*i):
+                    T[j] = T[j] + (T[j+2] - T[j]) * l
+
+            # we got the coordinates of the point in T[0] and T[1]
+            self._points.append(T[0])
+            self._points.append(T[1])
+
+        # add one last point to join the curve to the end
+        self._points.append(T[-2])
+        self._points.append(T[-1])
+
+    property bezier_precision:
+        '''Number of iteration for drawing the bezier between 2 segments,
+        default to 180. The bezier_precision must be at least 1.
+
+        .. versionadded:: 1.4.2
+        '''
+
+        def __get__(self):
+            return self._bezier_precision
+
+        def __set__(self, value):
+            if value < 1:
+                raise GraphicException('Invalid bezier_precision value, must be >= 1')
+            self._bezier_precision = int(value)
+            self.flag_update()

@@ -15,7 +15,7 @@ strings::
     l = Label(text='Multi\\nLine')
 
     # size
-    l = Label(text='Hello world', font_size=20)
+    l = Label(text='Hello world', font_size='20sp')
 
 Markup text
 -----------
@@ -84,7 +84,7 @@ reference::
     def print_it(instance, value):
         print 'User clicked on', value
     widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
-    widget.on_ref_press(print_it)
+    widget.bind(on_ref_press=print_it)
 
 For a better rendering, you could add a color for the reference. Replace the
 ``text=`` in the previous example with::
@@ -103,6 +103,7 @@ from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
         NumericProperty, BooleanProperty, ReferenceListProperty, \
         ListProperty, ObjectProperty, DictProperty
+from kivy.utils import get_hex_from_color
 
 
 class Label(Widget):
@@ -148,9 +149,6 @@ class Label(Widget):
             # markup have change, we need to change our rendering method.
             d = Label._font_properties
             dkw = dict(zip(d, [getattr(self, x) for x in d]))
-            # XXX font_size core provider compatibility
-            if Label.font_size.get_format(self) == 'px':
-                dkw['font_size'] *= 1.333
             if markup:
                 self._label = CoreMarkupLabel(**dkw)
             else:
@@ -166,9 +164,6 @@ class Label(Widget):
             elif name == 'text_size':
                 self._label.usersize = value
             elif name == 'font_size':
-                # XXX font_size core provider compatibility
-                if Label.font_size.get_format(self) == 'px':
-                    value *= 1.333
                 self._label.options[name] = value
             else:
                 self._label.options[name] = value
@@ -184,10 +179,18 @@ class Label(Widget):
         if self._label.text.strip() == '':
             self.texture_size = (0, 0)
         else:
-            self._label.refresh()
-            if self._label.__class__ is CoreMarkupLabel:
+            mrkup = self._label.__class__ is CoreMarkupLabel
+            if mrkup:
+                text = self._label.text
+                self._label.text = ''.join(('[color=',
+                                            get_hex_from_color(self.color), ']',
+                                            text, '[/color]'))
+                self._label.refresh()
+                self._label.text = text
                 self.refs = self._label.refs
                 self.anchors = self._label.anchors
+            else:
+                self._label.refresh()
             texture = self._label.texture
             if texture is not None:
                 self.texture = self._label.texture
@@ -274,11 +277,11 @@ class Label(Widget):
     'DroidSans'.
     '''
 
-    font_size = NumericProperty('12px')
+    font_size = NumericProperty('15sp')
     '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
-    12.
+    12dp.
     '''
 
     bold = BooleanProperty(False)
@@ -379,7 +382,7 @@ class Label(Widget):
 
             l = Label(text='Hello world')
             # l.texture is good
-            l.font_size = 50
+            l.font_size = '50sp'
             # l.texture is not updated yet
             l.update_texture()
             # l.texture is good now.

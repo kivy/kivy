@@ -1,0 +1,8 @@
+This is the Kivy Catalog viewer. It serves two purposes:
+
+1. To showcase the various widgets available in Kivy
+2. To allow interactive editing of Kivy language files
+    to get immediate feedback as to how they work
+Known bugs:
+* The DropDown
+* Some widgets are still missing

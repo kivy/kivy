@@ -4,12 +4,19 @@ Animations tests
 '''
 
 import unittest
-from time import sleep
-from kivy.animation import Animation
+from time import time, sleep
+from kivy.animation import Animation, AnimationTransition
 from kivy.uix.widget import Widget
+from functools import partial
+from kivy.clock import Clock
 
 
 class AnimationTestCase(unittest.TestCase):
+    def sleep(self, t):
+        start = time()
+        while time() < start + t:
+            sleep(.01)
+            Clock.tick()
 
     def setUp(self):
         self.a = Animation(x=100, d=1, t='out_bounce')
@@ -17,14 +24,31 @@ class AnimationTestCase(unittest.TestCase):
 
     def test_start_animation(self):
         self.a.start(self.w)
-        sleep(1)
+        self.sleep(1)
+        self.assertAlmostEqual(self.w.x, 100)
 
     def test_stop_animation(self):
         self.a.start(self.w)
-        sleep(.5)
+        self.sleep(.5)
         self.a.stop(self.w)
+        self.assertNotAlmostEqual(self.w.x, 100)
+        self.assertNotAlmostEqual(self.w.x, 0)
 
     def test_stop_all(self):
         self.a.start(self.w)
-        sleep(.5)
+        self.sleep(.5)
         Animation.stop_all(self.w)
+
+    def test_stop_all_2(self):
+        self.a.start(self.w)
+        self.sleep(.5)
+        Animation.stop_all(self.w, 'x')
+
+    def test_duration(self):
+        self.assertEqual(self.a.duration, 1)
+
+    def test_transition(self):
+        self.assertEqual(self.a.transition, AnimationTransition.out_bounce)
+
+    def test_animated_properties(self):
+        self.assertEqual(self.a.animated_properties['x'], 100)

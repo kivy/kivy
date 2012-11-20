@@ -4,6 +4,7 @@ Test properties attached to a widget
 
 import unittest
 from kivy.event import EventDispatcher
+from functools import partial
 
 
 class TestProperty(EventDispatcher):
@@ -311,3 +312,62 @@ class PropertiesTestCase(unittest.TestCase):
         self.assertEqual(wid.basevalue, 2)
         self.assertEqual(wid.prop, 4)
         self.assertEqual(observe_called, 3)
+
+    def test_bounded_numeric_property(self):
+        from kivy.properties import BoundedNumericProperty
+
+        bnp = BoundedNumericProperty(0.0, min=0.0, max=3.5)
+
+        bnp.link(wid, 'bnp')
+
+        bnp.set(wid, 1)
+        bnp.set(wid, 0.0)
+        bnp.set(wid, 3.1)
+        bnp.set(wid, 3.5)
+        self.assertRaises(ValueError, partial(bnp.set, wid, 3.6))
+        self.assertRaises(ValueError, partial(bnp.set, wid, -3))
+
+    def test_bounded_numeric_property_error_value(self):
+        from kivy.properties import BoundedNumericProperty
+
+        bnp = BoundedNumericProperty(0, min=-5, max=5, errorvalue=1)
+        bnp.link(wid, 'bnp')
+
+        bnp.set(wid, 1)
+        self.assertEqual(bnp.get(wid), 1)
+
+        bnp.set(wid, 5)
+        self.assertEqual(bnp.get(wid), 5)
+
+        bnp.set(wid, 6)
+        self.assertEqual(bnp.get(wid), 1)
+
+        bnp.set(wid, -5)
+        self.assertEqual(bnp.get(wid), -5)
+
+        bnp.set(wid, -6)
+        self.assertEqual(bnp.get(wid), 1)
+
+    def test_bounded_numeric_property_error_handler(self):
+        from kivy.properties import BoundedNumericProperty
+
+        bnp = BoundedNumericProperty(
+            0, min=-5, max=5,
+            errorhandler=lambda x: 5 if x > 5 else -5)
+
+        bnp.link(wid, 'bnp')
+
+        bnp.set(wid, 1)
+        self.assertEqual(bnp.get(wid), 1)
+
+        bnp.set(wid, 5)
+        self.assertEqual(bnp.get(wid), 5)
+
+        bnp.set(wid, 10)
+        self.assertEqual(bnp.get(wid), 5)
+
+        bnp.set(wid, -5)
+        self.assertEqual(bnp.get(wid), -5)
+
+        bnp.set(wid, -10)
+        self.assertEqual(bnp.get(wid), -5)

@@ -33,6 +33,24 @@ Our widget class is designed with a couple of principles in mind:
         You can also check if a widget collides with another widget with
         :meth:`Widget.collide_widget`.
 
+
+We also have some defaults that you should be aware of:
+
+* A :class:`Widget` is not a :class:`Layout`: it will not change the position
+  nor the size of its children. If you want a better positionning / sizing, use
+  a :class:`Layout`.
+
+* The default size is (100, 100), if the parent is not a :class:`Layout`. For
+  example, adding a widget inside a :class:`Button`, :class:`Label`, will not
+  inherit from the parent size or pos.
+
+* The default size_hint is (1, 1). If the parent is a :class:`Layout`, then the
+  widget size will be the parent/layout size.
+
+* All the :meth:`Widget.on_touch_down`, :meth:`Widget.on_touch_move`,
+  :meth:`Widget.on_touch_up` doesn't do any sort of collisions. If you want to
+  know if the touch is inside your widget, use :meth:`Widget.collide_point`.
+
 Using Properties
 ----------------
 
@@ -54,11 +72,14 @@ widget moves, you can bind your own callback function like this::
     wid = Widget()
     wid.bind(pos=callback_pos)
 
+Read more about the :doc:`/api-kivy.properties`.
+
 '''
 
 __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
+from kivy.factory import Factory
 from kivy.properties import NumericProperty, StringProperty, \
         AliasProperty, ReferenceListProperty, ObjectProperty, \
         ListProperty
@@ -71,6 +92,17 @@ class WidgetException(Exception):
     '''Fired when the widget gets an exception.
     '''
     pass
+
+
+class WidgetMetaclass(type):
+    '''Metaclass to auto register new widget into :class:`~kivy.factory.Factory`
+
+    .. warning::
+        This metaclass is used for Widget. Don't use it directly !
+    '''
+    def __init__(mcs, name, bases, attrs):
+        super(WidgetMetaclass, mcs).__init__(name, bases, attrs)
+        Factory.register(name, cls=mcs)
 
 
 class Widget(EventDispatcher):
@@ -89,7 +121,12 @@ class Widget(EventDispatcher):
         :class:`~kivy.event.EventDispatcher`. Event properties can now be used
         in contructing a simple class, without subclassing :class:`Widget`.
 
+    .. versionchanged:: 1.5.0
+        Constructor now accept on_* arguments to automatically bind callbacks to
+        properties or events, as the Kv language.
     '''
+
+    __metaclass__ = WidgetMetaclass
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
@@ -104,7 +141,7 @@ class Widget(EventDispatcher):
 
         # Create the default canvas if not exist
         if self.canvas is None:
-            self.canvas = Canvas()
+            self.canvas = Canvas(opacity=self.opacity)
 
         # Apply all the styles
         if '__no_builder' not in kwargs:
@@ -115,6 +152,11 @@ class Widget(EventDispatcher):
             #    Builder.idmap['root'] = current_root
             #else:
             #    Builder.idmap.pop('root')
+
+        # Bind all the events
+        for argument in kwargs:
+            if argument[:3] == 'on_':
+                self.bind(**{argument: kwargs[argument]})
 
     #
     # Collision
@@ -438,16 +480,6 @@ class Widget(EventDispatcher):
     '''Class of the widget, used for styling.
     '''
 
-    def get_uid(self):
-        return self.__dict__['__uid']
-    uid = AliasProperty(get_uid, None)
-    '''Unique identifier of the widget in the whole Kivy instance.
-
-    .. versionadded:: 1.0.7
-
-    :data:`uid` is a :class:`~kivy.properties.AliasProperty`, read-only.
-    '''
-
     id = StringProperty(None, allownone=True)
     '''Unique identifier of the widget in the tree.
 
@@ -554,7 +586,9 @@ class Widget(EventDispatcher):
     '''
 
     def on_opacity(self, instance, value):
-        self.canvas.opacity = value
+        canvas = self.canvas
+        if canvas is not None:
+            canvas.opacity = value
 
     canvas = None
     '''Canvas of the widget.

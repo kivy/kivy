@@ -1,0 +1,147 @@
+#:kivy 1.4
+#:import KivyLexer kivy.extras.highlight.KivyLexer
+
+[ContainerToggle@ToggleButton]:
+    group: "container_toggle"
+    text: ctx.text
+    on_press: root.parent.parent.parent.show_kv(*args)
+    state: ctx.state if hasattr(ctx, "state") else "normal"
+
+<Catalog>:
+    language_box: language_box
+    screen_manager: screen_manager
+    auto_reload: chkbx.active
+    info_label: info_lbl
+    orientation: 'vertical'
+    BoxLayout:
+        BoxLayout:
+            size_hint: None, 1
+            orientation: "vertical"
+            ContainerToggle:
+                text: "Welcome"
+                state: "down"
+            ContainerToggle:
+                text: "Float Layout"
+            ContainerToggle:
+                text: "Box Layout"
+            ContainerToggle:
+                text: "Anchor Layout"
+            ContainerToggle:
+                text: "Grid Layout"
+            ContainerToggle:
+                text: "Stack Layout"
+            ContainerToggle:
+                text: "Buttons"
+            ContainerToggle:
+                text: "Labels"
+            ContainerToggle:
+                text: "Booleans"
+            ContainerToggle:
+                text: "Progress Bar"
+            ContainerToggle:
+                text: "Media"
+            ContainerToggle:
+                text: "Text"
+            ContainerToggle:
+                text: "Popups"
+            ContainerToggle:
+                text: "Selectors"
+            ContainerToggle:
+                text: "File Choosers"
+            ContainerToggle:
+                text: "Scatter"
+            ContainerToggle:
+                text: "ReST"
+        ScreenManager:
+            id: screen_manager
+            Screen:
+                name: "Welcome"
+                PlaygroundContainer:
+            Screen:
+                name: "Float Layout"
+                FloatLayoutContainer
+            Screen:
+                name: "Box Layout"
+                BoxLayoutContainer:
+            Screen:
+                name: "Anchor Layout"
+                AnchorLayoutContainer:
+            Screen:
+                name: "Grid Layout"
+                GridLayoutContainer:
+            Screen:
+                name: "Stack Layout"
+                StackLayoutContainer:
+            Screen:
+                name: "Buttons"
+                ButtonContainer:
+            Screen:
+                name: "Labels"
+                LabelContainer:
+            Screen:
+                name: "Booleans"
+                CheckBoxContainer:
+            Screen:
+                name: "Progress Bar"
+                ProgressBarContainer:
+            Screen:
+                name: "Media"
+                MediaContainer:
+            Screen:
+                name: "Text"
+                TextContainer:
+            Screen:
+                name: "Popups"
+                PopupContainer:
+            Screen:
+                name: "Selectors"
+                SelectorsContainer:
+            Screen:
+                name: "File Choosers"
+                FileChooserContainer:
+            Screen:
+                name: "Scatter"
+                ScatterContainer:
+            Screen:
+                name: "ReST"
+                RestContainer:
+
+        BoxLayout:
+            id: bl
+            orientation: "vertical"
+            size_hint: None, 1
+            width: 400
+            KivyRenderTextInput:
+                lexer: KivyLexer()
+                text_size: self.width-20, self.height-20
+                font_name: "data/fonts/DroidSansMono.ttf"
+                valign: "top"
+                id: language_box
+                text: "This box will display the kivy language for whatever has been selected"
+                on_text: root.schedule_reload()
+            BoxLayout:
+                size_hint: 1, None
+                height: '30pt'
+                BoxLayout:
+                    CheckBox:
+                        id: chkbx
+                        active: True
+                    Label:
+                        text: "Auto Reload"
+                Button:
+                    text: 'Render Now'
+                    on_release: root.change_kv(*args)
+    FloatLayout:
+        size_hint: 1, None
+        height: 0
+        TextInput:
+            id:info_lbl
+            readonly: True
+            font_size: '14sp'
+            background_color: (0, 0, 0, 1)
+            foreground_color: (1, 1, 1, 1)
+            opacity:0
+            size_hint: 1, None
+            text_size: self.size
+            height: '150pt'
+            top: 0
