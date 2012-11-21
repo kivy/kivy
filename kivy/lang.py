@@ -1249,6 +1249,9 @@ class BuilderBase(object):
         # if we got an id, put it in the root rule for a later global usage
         if rule.id:
             rctx['ids'][rule.id] = widget
+            # set id name as a attribute for root widget so one can in python
+            # code simply access root_widget.id_name
+            setattr(rctx['ids']['root'], str(rule.id), widget)
 
         # first, ensure that the widget have all the properties used in the rule
         # if not, they will be created as ObjectProperty.
