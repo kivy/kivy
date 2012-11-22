@@ -610,7 +610,7 @@ class ParserRuleProperty(object):
             self.watched_keys = [x.split('.') for x in wk]
 
     def __repr__(self):
-        return '<ParserRuleProperty name=%r filename=%s:%d' \
+        return '<ParserRuleProperty name=%r filename=%s:%d ' \
                'value=%r watched_keys=%r>' % (
                        self.name, self.ctx.filename, self.line + 1,
                        self.value, self.watched_keys)
