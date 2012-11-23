@@ -536,17 +536,19 @@ class ParserException(Exception):
         self.filename = context.filename or '<inline>'
         self.line = line
         sourcecode = context.sourcecode
-        sc_start = max(0, line - 3)
+        sc_start = max(0, line - 2)
         sc_stop = min(len(sourcecode), line + 3)
         sc = ['...']
-        sc += ['   %4d:%s' % x for x in sourcecode[sc_start:line]]
-        sc += ['>> %4d:%s' % (line, sourcecode[line][1])]
-        sc += ['   %4d:%s' % x for x in sourcecode[line + 1:sc_stop]]
+        for x in range(sc_start, sc_stop):
+            if x == line:
+                sc += ['>> %4d:%s' % (line + 1, sourcecode[line][1])]
+            else:
+                sc += ['   %4d:%s' % (x + 1, sourcecode[x][1])]
         sc += ['...']
         sc = '\n'.join(sc)
 
         message = 'Parser: File "%s", line %d:\n%s\n%s' % (
-                self.filename, self.line + 1, sc, message)
+            self.filename, self.line + 1, sc, message)
         super(ParserException, self).__init__(message)
 
 
