@@ -15,11 +15,13 @@ The language consists of several constructs that you can use:
 
     Rules
         A rule is similar to a CSS rule. A rule applies to specific widgets (or
-        classes thereof) in your widget tree and modifies them in a certain way.
+        classes thereof) in your widget tree and modifies them in a
+        certain way.
         You can use rules to specify interactive behaviour or use them to add
         graphical representations of the widgets they apply to.
-        You can target a specific class of widgets (similar to CSS' concept of a
-        *class*) by using the ``cls`` attribute (e.g. ``cls=MyTestWidget``).
+        You can target a specific class of widgets (similar to CSS'
+        concept of a *class*) by using the ``cls`` attribute (e.g.
+        ``cls=MyTestWidget``).
 
     A Root Widget
         You can use the language to create your entire user interface.
@@ -29,7 +31,8 @@ The language consists of several constructs that you can use:
         *(introduced in version 1.0.5.)*
         Templates will be used to populate parts of your application, such as a
         list's content. If you want to design the look of an entry in a list
-        (icon on the left, text on the right), you will use a template for that.
+        (icon on the left, text on the right), you will use a template
+        for that.
 
 
 Syntax of a kv File
@@ -83,11 +86,12 @@ the definition should look like this::
             prop3: value1
 
 Here `prop1` and `prop2` are the properties of `ClassName` and `prop3` is the
-property of `AnotherClass`. If the widget doesn't have a property with the given
-name, an :class:`~kivy.properties.ObjectProperty` will be automatically created
-and added to the instance.
+property of `AnotherClass`. If the widget doesn't have a property with
+the given name, an :class:`~kivy.properties.ObjectProperty` will be
+automatically created and added to the instance.
 
-`AnotherClass` will be created and added as a child of the `ClassName` instance.
+`AnotherClass` will be created and added as a child of the `ClassName`
+instance.
 
 - The indentation is important, and must be 4 spaces. Tabs are not allowed.
 - The value of a property must be given on a single line (for now at least).
@@ -125,7 +129,8 @@ the value can use the values of other properties using reserved keywords.
                 Button:
                     text: root.custom
 
-Furthermore, if a class definition contains an id, you can use it as a keyword::
+Furthermore, if a class definition contains an id, you can use it as a
+keyword::
 
     <Widget>:
         Button:
@@ -133,19 +138,19 @@ Furthermore, if a class definition contains an id, you can use it as a keyword::
         Button:
             text: 'The state of the other button is %s' % btn1.state
 
-Please note that the `id` will not be available in the widget instance; The `id`
-attribute will be not used.
+Please note that the `id` will not be available in the widget instance;
+The `id` attribute will be not used.
 
 
 Relation Between Values and Properties
 --------------------------------------
 
-When you use the Kivy language, you might notice that we do some work behind the
-scenes to automatically make things work properly. You should know that
-:doc:`api-kivy.properties` implement the *observer* software design pattern:
-That means that you can bind your own function to be called when the value of a
-property changes (i.e. you passively `observe` the property for potential
-changes).
+When you use the Kivy language, you might notice that we do some work
+behind the scenes to automatically make things work properly. You should
+know that :doc:`api-kivy.properties` implement the *observer* software
+design pattern: That means that you can bind your own function to be
+called when the value of a property changes (i.e. you passively
+`observe` the property for potential changes).
 
 The Kivy language detects properties in your `value` expression and will create
 create callbacks to automatically update the property via your expression when
@@ -166,8 +171,8 @@ displayed on the button (We also convert the state to a string representation).
 Now, whenever the button state changes, the text property will be updated
 automatically.
 
-Remember: The value is a python expression! That means that you can do something
-more interesting like::
+Remember: The value is a python expression! That means that you can do
+something more interesting like::
 
     Button:
         text: 'Plop world' if self.state == 'normal' else 'Release me!'
@@ -193,8 +198,8 @@ concerns the 'canvas' property definition::
 
 All the classes added inside the canvas property must be derived from the
 :class:`~kivy.graphics.Instruction` class. You cannot put any Widget class
-inside the canvas property (as that would not make sense because a widget is not
-a graphics instruction).
+inside the canvas property (as that would not make sense because a
+widget is not a graphics instruction).
 
 If you want to do theming, you'll have the same question as in CSS: You don't
 know which rules have been executed before. In our case, the rules are executed
@@ -261,9 +266,9 @@ Syntax of a template::
     [ClassName@BaseClass1,BaseClass2]:
         # .. definitions ..
 
-For example, for a list, you'll need to create a entry with a image on the left,
-and a label on the right. You can create a template for making that definition
-more easy to use.
+For example, for a list, you'll need to create a entry with a image on
+the left, and a label on the right. You can create a template for making
+that definition more easy to use.
 So, we'll create a template that require 2 entry in the context: a image
 filename and a title::
 
@@ -442,7 +447,7 @@ Set a key that will be available anywhere in the kv. For example::
 '''
 
 __all__ = ('Builder', 'BuilderBase', 'BuilderException',
-    'Parser', 'ParserException')
+           'Parser', 'ParserException')
 
 import codecs
 import re
@@ -563,7 +568,7 @@ class ParserRuleProperty(object):
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'value', 'co_value',
-            'watched_keys', 'mode')
+                 'watched_keys', 'mode')
 
     def __init__(self, ctx, line, name, value):
         super(ParserRuleProperty, self).__init__()
@@ -614,8 +619,8 @@ class ParserRuleProperty(object):
     def __repr__(self):
         return '<ParserRuleProperty name=%r filename=%s:%d ' \
                'value=%r watched_keys=%r>' % (
-                       self.name, self.ctx.filename, self.line + 1,
-                       self.value, self.watched_keys)
+                   self.name, self.ctx.filename, self.line + 1,
+                   self.value, self.watched_keys)
 
 
 class ParserRule(object):
@@ -623,8 +628,8 @@ class ParserRule(object):
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'children', 'id', 'properties',
-            'canvas_before', 'canvas_root', 'canvas_after',
-            'handlers', 'level', 'cache_marked')
+                 'canvas_before', 'canvas_root', 'canvas_after',
+                 'handlers', 'level', 'cache_marked')
 
     def __init__(self, ctx, line, name, level):
         super(ParserRule, self).__init__()
@@ -685,8 +690,9 @@ class ParserRule(object):
     def _forbid_selectors(self):
         c = self.name[0]
         if c == '<' or c == '[':
-            raise ParserException(self.ctx, self.line,
-               'Selectors rules are allowed only at the first level')
+            raise ParserException(
+                self.ctx, self.line,
+                'Selectors rules are allowed only at the first level')
 
     def _detect_selectors(self):
         c = self.name[0]
@@ -696,8 +702,9 @@ class ParserRule(object):
             self._build_template()
         else:
             if self.ctx.root is not None:
-                raise ParserException(self.ctx, self.line,
-                   'Only one root object is allowed by .kv')
+                raise ParserException(
+                    self.ctx, self.line,
+                    'Only one root object is allowed by .kv')
             self.ctx.root = self
 
     def _build_rule(self):
@@ -706,12 +713,12 @@ class ParserRule(object):
             trace('Builder: build rule for %s' % name)
         if name[0] != '<' or name[-1] != '>':
             raise ParserException(self.ctx, self.line,
-                           'Invalid rule (must be inside <>)')
+                                  'Invalid rule (must be inside <>)')
         rules = name[1:-1].split(',')
         for rule in rules:
             if not len(rule):
                 raise ParserException(self.ctx, self.line,
-                               'Empty rule detected')
+                                      'Empty rule detected')
             crule = None
             if rule[0] == '.':
                 crule = ParserSelectorClass(rule[1:])
@@ -727,11 +734,11 @@ class ParserRule(object):
             trace('Builder: build template for %s' % name)
         if name[0] != '[' or name[-1] != ']':
             raise ParserException(self.ctx, self.line,
-                'Invalid template (must be inside [])')
+                                  'Invalid template (must be inside [])')
         item_content = name[1:-1]
         if not '@' in item_content:
             raise ParserException(self.ctx, self.line,
-                'Invalid template name (missing @)')
+                                  'Invalid template name (missing @)')
         template_name, template_root_cls = item_content.split('@')
         self.ctx.templates.append((template_name, template_root_cls, self))
 
@@ -745,12 +752,13 @@ class Parser(object):
 
     PROP_ALLOWED = ('canvas.before', 'canvas.after')
     CLASS_RANGE = range(ord('A'), ord('Z') + 1)
-    PROP_RANGE = range(ord('A'), ord('Z') + 1) + \
-                 range(ord('a'), ord('z') + 1) + \
-                 range(ord('0'), ord('9') + 1) + [ord('_')]
+    PROP_RANGE = (
+        range(ord('A'), ord('Z') + 1) +
+        range(ord('a'), ord('z') + 1) +
+        range(ord('0'), ord('9') + 1) + [ord('_')])
 
     __slots__ = ('rules', 'templates', 'root', 'sourcecode',
-        'directives', 'filename')
+                 'directives', 'filename')
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
@@ -809,7 +817,8 @@ class Parser(object):
                 except ImportError:
                     Logger.exception('')
                     raise ParserException(self, ln,
-                            'Unable to import package %r' % package)
+                                          'Unable to import package %r' %
+                                          package)
             else:
                 raise ParserException(self, ln, 'Unknown directive')
 
@@ -886,8 +895,8 @@ class Parser(object):
 
             if count % 4 != 0:
                 raise ParserException(self, ln,
-                               'Invalid indentation, '
-                               'must be a multiple of 4 spaces')
+                                      'Invalid indentation, '
+                                      'must be a multiple of 4 spaces')
             content = content.strip()
             rlevel = count // 4
 
@@ -902,7 +911,7 @@ class Parser(object):
                     raise ParserException(self, ln, 'Identifier missing')
                 if len(x) == 2 and len(x[1]):
                     raise ParserException(self, ln,
-                                        'Invalid data after declaration')
+                                          'Invalid data after declaration')
                 name = x[0]
                 # if it's not a root rule, then we got some restriction
                 # aka, a valid name, without point or everything else
@@ -932,9 +941,9 @@ class Parser(object):
                 # It's a property
                 else:
                     if name not in Parser.PROP_ALLOWED:
-                        if False in [ord(z) in Parser.PROP_RANGE for z in name]:
+                        if not all(ord(z) in Parser.PROP_RANGE for z in name):
                             raise ParserException(self, ln,
-                                'Invalid property name')
+                                                  'Invalid property name')
                     if len(x) == 1:
                         raise ParserException(self, ln, 'Syntax error')
                     value = x[1].strip()
@@ -942,7 +951,8 @@ class Parser(object):
                         if len(value) <= 0:
                             raise ParserException(self, ln, 'Empty id')
                         if value in ('self', 'root'):
-                            raise ParserException(self, ln,
+                            raise ParserException(
+                                self, ln,
                                 'Invalid id, cannot be "self" or "root"')
                         current_object.id = value
                     elif len(value):
@@ -986,7 +996,7 @@ class Parser(object):
             # Too much indentation, invalid
             else:
                 raise ParserException(self, ln,
-                               'Invalid indentation (too many levels)')
+                                      'Invalid indentation (too many levels)')
 
             # Check the next line
             i += 1
@@ -1121,11 +1131,9 @@ class BuilderBase(object):
             data = fd.read()
 
             # remove bom ?
-            if data.startswith(codecs.BOM_UTF16_LE) or \
-                data.startswith(codecs.BOM_UTF16_BE):
+            if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
                 raise ValueError('Unsupported UTF16 for kv files.')
-            if data.startswith(codecs.BOM_UTF32_LE) or \
-                data.startswith(codecs.BOM_UTF32_BE):
+            if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
                 raise ValueError('Unsupported UTF32 for kv files.')
             if data.startswith(codecs.BOM_UTF8):
                 data = data[len(codecs.BOM_UTF8):]
@@ -1174,8 +1182,8 @@ class BuilderBase(object):
             for name, cls, template in parser.templates:
                 self.templates[name] = (cls, template, fn)
                 Factory.register(name,
-                    cls=partial(self.template, name),
-                    is_template=True)
+                                 cls=partial(self.template, name),
+                                 is_template=True)
 
             # create root object is exist
             if kwargs['rulesonly'] and parser.root:
@@ -1194,8 +1202,9 @@ class BuilderBase(object):
         '''Create a specialized template using a specific context.
         .. versionadded:: 1.0.5
 
-        With template, you can construct custom widget from a kv lang definition
-        by giving them a context. Check :ref:`Template usage <template_usage>`.
+        With template, you can construct custom widget from a kv lang
+        definition by giving them a context. Check :ref:`Template usage
+        <template_usage>`.
         '''
         # Prevent naming clash with whatever the user might be putting into the
         # ctx as key.
@@ -1252,23 +1261,23 @@ class BuilderBase(object):
         if rule.id:
             rctx['ids'][rule.id] = widget
 
-        # first, ensure that the widget have all the properties used in the rule
-        # if not, they will be created as ObjectProperty.
+        # first, ensure that the widget have all the properties used in
+        # the rule if not, they will be created as ObjectProperty.
         rule.create_missing(widget)
 
         # build the widget canvas
         if rule.canvas_before:
             with widget.canvas.before:
                 self._build_canvas(widget.canvas.before, widget,
-                        rule.canvas_before, rootrule)
+                                   rule.canvas_before, rootrule)
         if rule.canvas_root:
             with widget.canvas:
                 self._build_canvas(widget.canvas, widget,
-                        rule.canvas_root, rootrule)
+                                   rule.canvas_root, rootrule)
         if rule.canvas_after:
             with widget.canvas.after:
                 self._build_canvas(widget.canvas.after, widget,
-                        rule.canvas_after, rootrule)
+                                   rule.canvas_after, rootrule)
 
         # create children tree
         Factory_get = Factory.get
@@ -1281,8 +1290,8 @@ class BuilderBase(object):
             cls = Factory_get(cname)
 
             if Factory_is_template(cname):
-                # we got a template, so extract all the properties and handlers,
-                # and push them in a "ctx" dictionnary.
+                # we got a template, so extract all the properties and
+                # handlers, and push them in a "ctx" dictionnary.
                 ctx = {}
                 idmap = copy(global_idmap)
                 idmap.update({'root': rctx['ids']['root']})
@@ -1338,7 +1347,7 @@ class BuilderBase(object):
                 value = rule.co_value
                 if type(value) is CodeType:
                     value = create_handler(widget_set, widget_set, key,
-                            value, rule, rctx['ids'])
+                                           value, rule, rctx['ids'])
                 setattr(widget_set, key, value)
 
         # build handlers
@@ -1353,7 +1362,7 @@ class BuilderBase(object):
                 idmap.update(rctx['ids'])
                 idmap['self'] = widget_set
                 widget_set.bind(**{key: partial(custom_callback,
-                    crule, idmap)})
+                                                crule, idmap)})
 
                 #hack for on_parent
                 if crule.name == 'on_parent':
@@ -1388,7 +1397,8 @@ class BuilderBase(object):
                 continue
             instr = Factory.get(name)()
             if not isinstance(instr, Instruction):
-                raise BuilderException(crule.ctx, crule.line,
+                raise BuilderException(
+                    crule.ctx, crule.line,
                     'You can add only graphics Instruction in canvas.')
             try:
                 for prule in crule.properties.itervalues():
@@ -1404,4 +1414,3 @@ class BuilderBase(object):
 #: Main instance of a :class:`BuilderBase`.
 Builder = BuilderBase()
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
-
