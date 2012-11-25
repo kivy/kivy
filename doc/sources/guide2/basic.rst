@@ -36,6 +36,27 @@ git::
 Create an application
 ---------------------
 
+Creating a kivy application is as simple as:
+
+- subclassing the `:cls:kivy.app.App` class, 
+- implementing its `:meth:kivy.app.App.build` method so it returns a `:cls:kivy.uix.Widget` instance (the root of your widget tree)
+- instanciating this class, and call its `:meth:kiyv.app.App.run` method.
+
+here is an example of such a minimum application::
+
+    from kivy.app import App
+    from kivy.uix.label import Label
+
+
+    class MyApp(App):
+        def build(self):
+            return Label(text='Hello world')
+
+
+    if __name__ == '__main__':
+        MyApp().run()
+
+
 Running the application
 -----------------------
 
