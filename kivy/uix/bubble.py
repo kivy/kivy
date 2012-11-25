@@ -169,7 +169,7 @@ class Bubble(GridLayout):
             or l[0] == self._arrow_layout:
             super(Bubble, self).add_widget(*l)
         else:
-            content.add_widget(l[0])
+            content.add_widget(*l)
 
     def remove_widget(self, *l):
         content = self.content
