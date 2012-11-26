@@ -331,6 +331,9 @@ class LabelBase(object):
 
             if not real:
                 self._internal_height = sum([size[1] for size, glyphs in lines])
+                ll_h = lines[-1][0][1]
+                lh_offset = ll_h - (ll_h / self.options['line_height'])
+                self._internal_height = self._internal_height - lh_offset
                 h = self._internal_height if uh is None else uh
                 w = uw
             else:
