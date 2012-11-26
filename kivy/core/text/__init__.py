@@ -5,6 +5,9 @@ Text
 Abstraction of text creation. Depending of the selected backend, the text
 rendering can be more or less accurate.
 
+.. versionchanged:: 1.5.0
+    :data:`LabelBase.line_height` added.
+
 .. versionchanged:: 1.0.7
     The :class:`LabelBase` don't generate any texture is the text have a width
     <= 1.

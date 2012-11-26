@@ -290,9 +290,9 @@ class Label(Widget):
 
     :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, default to
     1.0.
+
+    .. versionadded:: 1.5.0
     '''
-
-
 
     bold = BooleanProperty(False)
     '''Indicates use of the bold version of your font.
