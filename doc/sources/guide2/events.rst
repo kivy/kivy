@@ -5,19 +5,19 @@ Events and Properties
 =====================
 
 Events are a big part of kivy programming, that may not be surprising to those
-having done GUI development before, but it's an important contept to get to
-newcomers, and the specificies of how to use these in kivy. Once you understand
-how events and ways to bind to these, are everywhere in kivy, it becomes easy
+having done GUI development before, but it's an important concept to get for
+newcomers, and the specifics of how to use these in kivy. Once you understand
+how events and ways to bind to them, are everywhere in kivy, it becomes easy
 to build about whatever you want with kivy.
 
 Introduction to Event Dispatcher
 --------------------------------
 
 One of the most important base class of the framework is the
-`:cls:kivy.event.EventDispatcher` class, this class allows to register event
+:cls:`kivy.event.EventDispatcher` class, this class allows to register event
 types, and to dispatch them to interrested parties (usually other event
-dispatchers). `:cls:kivy.uix.widget.Widget`, `:cls:kivy.animation.Animation`
-and `:obj:kivy.clock.Clock` for example are event dispatchers.
+dispatchers). :cls:`kivy.uix.widget.Widget`, :cls:`kivy.animation.Animation`
+and :obj:`kivy.clock.Clock` for example are event dispatchers.
 
 Creating custom events
 ----------------------
@@ -67,8 +67,37 @@ example::
 Introduction to properties
 --------------------------
 
+Properties are an awesome way to define events and bind to them, it basically
+produce events when the attributes to your object changes, so you can bind
+actions to the change of these values.
+
+There are different kind of properties to describe the type of data you want to describe.
+
+:cls:`kivy.properties.StringProperty`
+:cls:`kivy.properties.NumericProperty`
+:cls:`kivy.properties.ObjectProperty`
+:cls:`kivy.properties.ListProperty`
+:cls:`kivy.properties.ObjectProperty`
+:cls:`kivy.properties.AliasProperty`
+
 Declaration of a Property
 -------------------------
+
+To declare a property, you must create it at class level, the class will do the
+work to instanciate the real attributes when the object will be created, the
+properties is not the attribute, it's a mecanism to create events for your
+attributes::
+
+    class MyWidget(Widget):
+        text = StringProperty('')
+
+
+If you override `__init__`, *always* accept `**kwargs` and use super() to call
+parent's `__init__` with it::
+
+        def __init__(self, **kwargs):
+            super(MyWidget, self).__init__(**kwargs)
+
 
 Dispatching a Property event
 ----------------------------
