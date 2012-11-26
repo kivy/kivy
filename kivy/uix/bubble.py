@@ -223,6 +223,8 @@ class Bubble(GridLayout):
         self_arrow_img.pos = (0, 0)
 
         self.clear_widgets(do_super=True)
+        self_content.parent = None
+
         self_arrow_img.size_hint = (1, None)
         self_arrow_img.height = self_arrow_img.texture_size[1]
         widget_list = []
