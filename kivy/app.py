@@ -286,7 +286,7 @@ class App(EventDispatcher):
         self._app_name = None
         self._app_settings = None
         self._app_window = None
-        super(App, self).__init__()
+        super(App, self).__init__(**kwargs)
         self.register_event_type('on_start')
         self.register_event_type('on_stop')
         self.register_event_type('on_pause')
