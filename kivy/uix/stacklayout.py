@@ -51,16 +51,18 @@ class StackLayout(Layout):
     '''
 
     orientation = OptionProperty('lr-tb', options=(
-        'lr-tb', 'tb-lr'))
+        'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt', 'bt-lr', 'rl-bt', 'bt-rl'))
     '''Orientation of the layout.
 
     :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
-    to 'lr-tb'. Only supports 'lr-tb' and 'tb-lr' at the moment.
+    to 'lr-tb'.
 
     .. note::
 
         lr mean Left to Right.
+        rl mean Right to Left.
         tb mean Top to Bottom.
+        bt mean Bottom to Top.
     '''
 
     minimum_width = NumericProperty(0)
@@ -102,93 +104,106 @@ class StackLayout(Layout):
 
     def do_layout(self, *largs):
         # optimize layout by preventing looking at the same attribute in a loop
-        selfx, selfy = self.pos
-        selfw, selfh = self.size
-        orientation = self.orientation
+        selfpos = self.pos
+        selfsize = self.size
+        orientation = self.orientation.split('-')
         padding = self.padding
         padding2 = padding * 2
         spacing = self.spacing
 
         lc = []
-        height = padding2
-        width = padding2
 
-        if orientation == 'lr-tb':
-            x = self.x + padding
-            y = self.top - padding
-            lw = self.width - padding2
-            lh = 0
-            for c in reversed(self.children):
-                if c.size_hint_x:
-                    c.width = c.size_hint_x * (selfw - padding2)
-                if c.size_hint_y:
-                    c.height = c.size_hint_y * (selfh - padding2)
+        # Determine which direction and in what order to place the widgets
+        posattr = [0] * 2
+        posdelta = [0] * 2
+        posstart = [0] * 2
+        for i in (0, 1):
+            posattr[i] = 1 * (orientation[i] in ('tb', 'bt'))
+            k = posattr[i]
+            if orientation[i] in ('lr', 'bt'):
+                # left to right or bottom to top
+                posdelta[i] = 1
+                posstart[i] = selfpos[k] + padding
+            else:
+                # right to left or top to bottom
+                posdelta[i] = -1
+                posstart[i] = selfpos[k] + selfsize[k] - padding
 
-                # is the widget fit in the line ?
-                if lw - c.width >= 0:
-                    lc.append(c)
-                    lw -= c.width + spacing
-                    lh = max(lh, c.height)
-                    continue
+        innerattr, outerattr = posattr
+        ustart, vstart = posstart
+        deltau, deltav = posdelta
+        del posattr, posdelta, posstart
 
-                # push the line
-                y -= lh
-                height += lh + spacing
-                for c2 in lc:
-                    c2.x = x
-                    c2.y = y
-                    x += c2.width + spacing
-                y -= spacing
-                lc = [c]
-                lh = c.height
-                lw = self.width - padding2 - c.width - spacing
-                x = self.x + padding
+        u = ustart  # inner loop position variable
+        v = vstart  # outer loop position variable
 
-            if lc:
-                y -= lh
-                height += lh + padding
-                for c2 in lc:
-                    c2.x = x
-                    c2.y = y
-                    x += c2.width + spacing
-            self.minimum_height = height
+        # space calculation, used for determining when a row or column is full
+        lu = self.size[innerattr] - padding2
 
-        elif orientation == 'tb-lr':
-            x = self.right - padding
-            y = self.y + padding
-            lw = 0
-            lh = self.height - padding2
-            for c in reversed(self.children):
-                if c.size_hint_x:
-                    c.width = c.size_hint_x * (selfw - padding2)
-                if c.size_hint_y:
-                    c.height = c.size_hint_y * (selfh - padding2)
+        # space calculation, row height or column width, for arranging widgets
+        lv = 0
 
-                # is the widget fit in the column ?
-                if lh - c.height >= 0:
-                    lc.append(c)
-                    lh -= c.height + spacing
-                    lw = max(lw, c.width)
-                    continue
+        sv = padding2  # size in v-direction, for minimum_size property
+        urev = (deltau < 0)
+        vrev = (deltav < 0)
+        for c in reversed(self.children):
+            # Issue#823: ReferenceListProperty doesn't allow changing
+            # individual properties.
+            # when the above issue is fixed we can remove csize from below and
+            # access c.size[i] directly
+            csize = c.size[:]  # we need to update the whole tuple at once.
+            for i in (0, 1):
+                if c.size_hint[i]:
+                    # calculate size
+                    csize[i] = c.size_hint[i] * (selfsize[i] - padding2)
+            c.size = tuple(csize)
 
-                # push the line
-                x -= lw
-                width += lw + spacing
-                for c2 in lc:
-                    c2.x = x
-                    c2.y = y
-                    y += c2.height + spacing
-                x -= spacing
-                lc = [c]
-                lw = c.width
-                lh = self.height - padding2 - c.height - spacing
-                y = self.y + padding
+            # does the widget fit in the row/column?
+            if lu - c.size[innerattr] >= 0:
+                lc.append(c)
+                lu -= c.size[innerattr] + spacing
+                lv = max(lv, c.size[outerattr])
+                continue
 
-            if lc:
-                x -= lw
-                width += lw
-                for c2 in lc:
-                    c2.x = x
-                    c2.y = y
-                    y += c2.height + spacing
-            self.minimum_width = width
+            # push the line
+            sv += lv + spacing
+            for c2 in lc:
+                if urev:
+                    u -= c2.size[innerattr] + spacing
+                p = [0, 0]  # issue #823
+                p[innerattr] = u
+                p[outerattr] = v
+                if vrev:
+                    # v position is actually the top/right side of the widget
+                    # when going from high to low coordinate values,
+                    # we need to subtract the height/width from the position.
+                    p[outerattr] -= c2.size[outerattr]
+                c2.pos = tuple(p)  # issue #823
+                if not urev:
+                    u += c2.size[innerattr] + spacing
+
+            v += deltav * lv
+            v += deltav * spacing
+            lc = [c]
+            lv = c.size[outerattr]
+            lu = selfsize[innerattr] - padding2 - c.size[innerattr] - spacing
+            u = ustart
+
+        if lc:
+            # push the last (incomplete) line
+            sv += lv + spacing
+            for c2 in lc:
+                if urev:
+                    u -= c2.size[innerattr] + spacing
+                p = [0, 0]  # issue #823
+                p[innerattr] = u
+                p[outerattr] = v
+                if vrev:
+                    p[outerattr] -= c2.size[outerattr]
+                c2.pos = tuple(p)  # issue #823
+                if not urev:
+                    u += c2.size[innerattr] + spacing
+
+        minsize = self.minimum_size[:]  # issue #823
+        minsize[outerattr] = sv
+        self.minimum_size = tuple(minsize)
