@@ -222,7 +222,7 @@ class MarkupLabel(MarkupLabelBase):
         uw, uh = self.text_size
 
         # split the word
-        default_line_height = get_extents(' ')[1]
+        default_line_height = get_extents(' ')[1] * self.options['line_height']
         for part in re.split(r'( |\n)', word):
 
             if part == '':
@@ -244,7 +244,7 @@ class MarkupLabel(MarkupLabelBase):
             pg = [cache[g] for g in part]
             pw = get_extents(part)[0]
             ph = max([g[1] for g in pg])
-
+            ph = ph * self.options['line_height']
             options = copy(options)
 
             # check if the part can be put in the line
