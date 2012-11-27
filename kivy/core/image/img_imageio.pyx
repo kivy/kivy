@@ -151,15 +151,7 @@ def load_image_data(bytes _url):
     CGColorSpaceRelease(space)
     free(myData)
 
-    # XXX
-    # kivy doesn't like to process 'bgra' data. we swap manually to 'rgba'.
-    # would be better to fix this in texture.pyx
-    a = array('b', r_data)
-    a[0::4], a[2::4] = a[2::4], a[0::4]
-    r_data = a.tostring()
-    imgtype = 'rgba'
-
-    return (width, height, imgtype, r_data)
+    return (width, height, 'bgra', r_data)
 
 def save_image_rgba(filename, width, height, data):
     # save a RGBA string into filename using CoreGraphics
