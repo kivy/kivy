@@ -11,8 +11,8 @@ as an unlimited drawing board, and as a set of drawing instructions, there are
 numerous different instructions you can apply (add) to your canvas, but there
 is two main kind of them:
 
-- :module:`kivy.graphics.context_instructions` Context instructions
-- :module:`kivy.graphics.vertex_instructions` Vertex Instructions
+- :mod:`kivy.graphics.context_instructions` Context instructions
+- :mod:`kivy.graphics.vertex_instructions` Vertex Instructions
 
 Context instructions don't draw anything, but they change the results of the
 Vertex instructions.
