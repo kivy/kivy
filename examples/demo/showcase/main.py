@@ -131,20 +131,26 @@ class StackLayoutShowcase(FloatLayout):
     def __init__(self, **kwargs):
         super(StackLayoutShowcase, self).__init__(**kwargs)
         self.buttons = 0
+        self.orientationiteration = 0
         self.txt = 'lr-tb'
         Clock.schedule_once(self.add_button, 1)
 
     def add_button(self, *l):
+        orientations = ('lr-tb', 'tb-lr',
+                        'rl-tb', 'tb-rl',
+                        'lr-bt', 'bt-lr',
+                        'rl-bt', 'bt-rl')
         self.buttons += 1
-        if self.buttons > 5:
+        if self.buttons > 11:
             self.buttons = 0
             self.slayout.clear_widgets()
-            if self.txt == "tb-lr":
-                self.txt = self.slayout.orientation = 'lr-tb'
-            else:
-                self.txt = self.slayout.orientation = 'tb-lr'
-        self.slayout.add_widget(Button(text=self.txt, size_hint=(.30, .20)))
-        Clock.schedule_once(self.add_button, 1)
+            self.orientationit = (self.orientationit + 1) % len(orientations)
+            self.slayout.orientation = orientations[self.orientationit]
+            self.txt = self.slayout.orientation
+        self.slayout.add_widget(Button(
+            text=("%s %d" % (self.txt, self.buttons)),
+            size_hint=(.1 + self.buttons * 0.02, .1 + self.buttons * 0.01)))
+        Clock.schedule_once(self.add_button, .5)
 
 
 class StandardWidgets(FloatLayout):
