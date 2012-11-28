@@ -83,7 +83,7 @@ You can keep a reference to your instruction and update them::
             self.rect.size = self.size
 
 
-Or you can clean your canva and start fresh::
+Or you can clean your canvas and start fresh::
 
     class MyWidget(Widget):
         def __init__(self, **kwargs):
