@@ -5,6 +5,7 @@ Kv language
 
 Concept behind the language
 ---------------------------
+
 As your applications grow more complexes, you will notice that construction of
 widget trees and explicit declaration of bindings, become verbose, and hard to
 maintain. Thus, a language more suited to this need has been developed.
@@ -15,6 +16,27 @@ widget to each other, or to callbacks very naturally, you allows very fast
 prototyping and agile changes to your UI, and a good separation between the
 logic of your application, and the look it have.
 
+How to load kv
+--------------
+
+There are two ays to load kv code into your application:
+
+- By name convention:
+  Kivy looks if there is a kv file with the same name as your App class, lowercase,
+  minus "app" if it endswith 'app', e.g: MyApp -> my.kv. If this file define a
+  root rule it will be attached to the App's `root` attribute and used as the
+  application widget tree.
+
+- :obj:`kivy.lang.Builder`:
+  you can tell directly kivy to load a string or a file, if it defines a root
+  widget, it will be returned by the method::
+
+    Builder.load_file('path/to/file.kv')
+
+  or::
+
+    Builder.load_string(kv_string)
+  
 Rule context
 ------------
 
