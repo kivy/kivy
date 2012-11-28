@@ -270,7 +270,7 @@ class WindowBase(EventDispatcher):
             return True
         else:
             return False
-    size = AliasProperty(_get_size, _set_size)
+    size = AliasProperty(_get_size, _set_size, bind=('_size', ))
     '''Get the rotated size of the window. If :data:`rotation` is set, then the
     size will change to reflect the rotation.
     '''
@@ -539,6 +539,7 @@ class WindowBase(EventDispatcher):
                 from kivy.graphics.context import get_context
                 get_context().reload()
                 Clock.schedule_once(lambda x: self.canvas.ask_update(), 0)
+                self.dispatch('on_resize', *self.system_size)
 
         # ensure the gl viewport is correct
         self.update_viewport()

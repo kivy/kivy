@@ -10,13 +10,13 @@ rules = '''
     source: 'invalid.png'
     source3: 'valid.png'
 
-[Item@TestWidget2]:
+[MItem@TestWidget2]:
     source: ctx.get('anotherctxvalue')
 
 <MainWidget>:
     refwid: myref
     refwid2: myref2
-    Item:
+    MItem:
         id: myref2
         anotherctxvalue: 'valid.png'
     TestWidget:

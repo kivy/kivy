@@ -43,6 +43,8 @@ class RelativeLayout(Scatter):
     def __init__(self, **kw):
         self.content = FloatLayout()
         super(RelativeLayout, self).__init__(**kw)
+        if self.content.size != self.size:
+            self.content.size = self.size
         super(RelativeLayout, self).add_widget(self.content)
         self.bind(size=self.update_size)
 

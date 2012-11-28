@@ -54,11 +54,11 @@ else:
         h = property(lambda self: self.bottom - self.top)
     win_rect = RECT()
 
-    if hasattr(windll.user32, 'SetWindowLongPtrW'):
+    try:
         windll.user32.SetWindowLongPtrW.restype = WNDPROC
         windll.user32.SetWindowLongPtrW.argtypes = [HANDLE, c_int, WNDPROC]
         SetWindowLong_wrapper = windll.user32.SetWindowLongPtrW
-    else:
+    except AttributeError:
         windll.user32.SetWindowLongW.restype = WNDPROC
         windll.user32.SetWindowLongW.argtypes = [HANDLE, c_int, WNDPROC]
         SetWindowLong_wrapper = windll.user32.SetWindowLongW

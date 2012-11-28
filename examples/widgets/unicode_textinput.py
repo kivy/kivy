@@ -5,25 +5,50 @@ from kivy.lang import Builder
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.spinner import SpinnerOption
 from kivy.uix.popup import Popup
+import os
 
 
 Builder.load_string(
 '''
 #: import utils kivy
 #: import os os
+#: import font pygame.font
+#: import Factory kivy.factory.Factory
+<FntSpinnerOption>
+    fnt_name: font.match_font(self.text)
+    font_name: self.fnt_name if self.fnt_name else self.font_name
+
 <Unicode_TextInput>
     orientation: 'vertical'
     txt_input: unicode_txt
+    spnr_fnt: fnt_spnr
+    BoxLayout:
+        size_hint: 1, .05
+        Spinner:
+            id: fnt_spnr
+            text: 'DroidSansMono'
+            fnt_name: font.match_font(self.text)
+            font_name: self.fnt_name if self.fnt_name else self.font_name
+            values: sorted(font.get_fonts())
+            option_cls: Factory.FntSpinnerOption
+        Spinner:
+            id: fntsz_spnr
+            text: '15'
+            values: map(str, map(sp, range(5,39)))
     ScrollView:
         size_hint: 1, .9
         TextInput:
             id: unicode_txt
-            background_color: [.5, .5, .5, 1]
-            foreground_color: .5, 1, .5, 1
+            background_color: .8811, .8811, .8811, 1
+            foreground_color: 0, 0, 0, 1
+            font_name: fnt_spnr.font_name
+            font_size: fntsz_spnr.text + 'sp'
             text: root.unicode_string
             size_hint: 1, None
-            height: 1364
+            height: 1494
+            on_font_name: self.height = (self.line_height + self.padding_y) * (len(self._lines)-1)
     BoxLayout:
         size_hint: 1, .05
         Label:
@@ -86,6 +111,8 @@ if _platform == 'linux' else '/system/fonts' if _platform == 'android' else os.p
 (filechooser.path, filechooser.selection)
 ''')
 
+class FntSpinnerOption(SpinnerOption):
+    pass
 
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
@@ -172,6 +199,9 @@ Yiddish:        דער גיך ברוין פוקס דזשאַמפּס איבער 
 
     def load(self, _path, _fname):
         self.txt_input.font_name = _fname[0]
+        _f_name =  _fname[0][_fname[0].rfind(os.sep) + 1:]
+        self.spnr_fnt.text = _f_name[:_f_name.rfind('.')]
+
         self._popup.dismiss()
 
     def show_load(self):

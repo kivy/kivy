@@ -173,7 +173,33 @@ __all__ = ('Property',
 
 from weakref import ref
 
-EventLoop = None
+cdef float g_dpi = -1
+cdef float g_density = -1
+cdef float g_fontscale = -1
+
+cpdef float dpi2px(value, ext):
+    # 1in = 2.54cm = 25.4mm = 72pt = 12pc
+    global g_dpi, g_density, g_fontscale
+    if g_dpi == -1:
+        from kivy.metrics import metrics
+        g_dpi = metrics.dpi
+        g_density = metrics.density
+        g_fontscale = metrics.fontscale
+    cdef float rv = float(value)
+    if ext == 'in':
+        return rv * g_dpi
+    elif ext == 'px':
+        return rv
+    elif ext == 'dp':
+        return rv * g_density
+    elif ext == 'sp':
+        return rv * g_density * g_fontscale
+    elif ext == 'pt':
+        return rv * g_dpi / 72.
+    elif ext == 'cm':
+        return rv * g_dpi / 2.54
+    elif ext == 'mm':
+        return rv * g_dpi / 25.4
 
 
 cdef class Property:
@@ -439,23 +465,8 @@ cdef class NumericProperty(Property):
         return self.parse_list(obj, value[:-2], <str>value[-2:])
 
     cdef float parse_list(self, EventDispatcher obj, value, str ext):
-        # 1in = 2.54cm = 25.4mm = 72pt = 12pc
-        global EventLoop
-        if EventLoop is None:
-            from kivy.base import EventLoop
-        cdef float rv = float(value)
-        cdef float dpi = EventLoop.dpi
         obj.__storage[self.name]['format'] = ext
-        if ext == 'in':
-            return rv * dpi
-        elif ext == 'px':
-            return rv
-        elif ext == 'pt':
-            return rv * dpi / 72.
-        elif ext == 'cm':
-            return rv * dpi / 2.54
-        elif ext == 'mm':
-            return rv * dpi / 25.4
+        return dpi2px(value, ext)
 
     def get_format(self, EventDispatcher obj):
         '''

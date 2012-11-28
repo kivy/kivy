@@ -38,7 +38,7 @@ class UrlRequestTest(unittest.TestCase):
         self.assertTrue(req.is_finished)
 
         # we should have 2 progress minimum and one success
-        self.assertGreaterEqual(len(self.queue), 3)
+        self.assertTrue(len(self.queue) >= 3)
         print self.queue
 
         # ensure the callback is called from this thread (main).

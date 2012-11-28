@@ -286,7 +286,7 @@ class App(EventDispatcher):
         self._app_name = None
         self._app_settings = None
         self._app_window = None
-        super(App, self).__init__()
+        super(App, self).__init__(**kwargs)
         self.register_event_type('on_start')
         self.register_event_type('on_stop')
         self.register_event_type('on_pause')
@@ -381,6 +381,7 @@ class App(EventDispatcher):
         if clsname.endswith('App'):
             clsname = clsname[:-3]
         filename = join(kv_directory, '%s.kv' % clsname.lower())
+        Logger.debug('App: Loading kv <{0}>'.format(filename))
         if not exists(filename):
             Logger.debug('App: kv <%s> not found' % filename)
             return False
@@ -472,6 +473,7 @@ class App(EventDispatcher):
         filename = self.get_application_config()
         if filename is None:
             return config
+        Logger.debug('App: Loading configuration <{0}>'.format(filename))
         if exists(filename):
             try:
                 config.read(filename)
@@ -481,6 +483,8 @@ class App(EventDispatcher):
                 self.build_config(config)
                 pass
         else:
+            Logger.debug('App: First configuration, create <{0}>'.format(
+                filename))
             config.filename = filename
             config.write()
         return config

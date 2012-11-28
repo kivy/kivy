@@ -17,7 +17,7 @@ class BlehApp(App):
     def build(self):
         root = BoxLayout()
         for idx, word in enumerate(('Hello', 'World')):
-            wid = Builder.template('BlehItem', {
+            wid = Builder.template('BlehItem', **{
                 'idx': idx, 'word': word,
             })
             root.add_widget(wid)
