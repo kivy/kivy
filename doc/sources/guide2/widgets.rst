@@ -15,10 +15,10 @@ Manipulating the Widget tree
 
 Widgets are organized in Trees, your application have a root widget, which
 usually have children, which can have children on their own. Children of a
-widget are represented as a :class:`kivy.properties.ListProperty`
-:attr:`kivy.uix.widget.Widget.children`. The way to add a children to a widget
-is to call :meth:`kivy.uix.widget.Widget.add_widget`, likely, to remove a
-widget, you use :meth:`kivy.uix.widget.Widget.remove_widget`.
+widget are represented as the :attr:`kivy.uix.widget.Widget.children`
+:class:`kivy.properties.ListProperty`. The way to add a children to a widget is
+to call :meth:`kivy.uix.widget.Widget.add_widget`, likely, to remove a widget,
+you use :meth:`kivy.uix.widget.Widget.remove_widget`.
 
 Organize with Layouts
 ---------------------
@@ -29,6 +29,16 @@ for different automatic organisation. A common caracteristic of layouts is that
 they use (even if differently) of the :attr:`kivy.uix.widget.Widget.size_hint`
 and :attr:`kivy.uix.widget.Widget.pos_hint` properties. Those properties allow
 to define size and pos of the widget relatively to the parent layout.
+
+Look at the documentation of the various Layouts to see to which situation each
+one applies:
+
+- :mod:`kivy.uix.floatlayout`
+- :mod:`kivy.uix.boxlayout`
+- :mod:`kivy.uix.gridlayout`
+- :mod:`kivy.uix.stacklayout`
+- :mod:`kivy.uix.relativelayout`
+- :mod:`kivy.uix.anchorlayout`
 
 Seperate with Screen Manager
 ----------------------------
