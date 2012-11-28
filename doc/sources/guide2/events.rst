@@ -33,7 +33,7 @@ See the following example::
             self.register_event_type('on_test')
             super(MyEventDispatcher, self).__init__(**kwargs)
 
-        def test(self, value):
+        def do_something(self, value):
             # when test is called, the 'on_test' event will be
             # dispatched with the value
             self.dispatch('on_test', value)
