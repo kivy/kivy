@@ -126,7 +126,7 @@ tabbed panel's background_image and background_color.
 '''
 
 __all__ = ('TabbedPanel', 'TabbedPanelContent', 'TabbedPanelHeader',
-    'TabbedPanelItem', 'TabbedPanelStrip', 'TabbedPanelException')
+           'TabbedPanelItem', 'TabbedPanelStrip', 'TabbedPanelException')
 
 from functools import partial
 from kivy.clock import Clock
@@ -139,7 +139,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.logger import Logger
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
-        ListProperty, NumericProperty, AliasProperty, BooleanProperty
+    ListProperty, NumericProperty, AliasProperty, BooleanProperty
 
 
 class TabbedPanelException(Exception):
@@ -273,10 +273,11 @@ class TabbedPanel(GridLayout):
     :data:`current_tab` is a :class:`~kivy.AliasProperty`, read-only.
     '''
 
-    tab_pos = OptionProperty('top_left',
-            options=('left_top', 'left_mid', 'left_bottom', 'top_left',
-                'top_mid', 'top_right', 'right_top', 'right_mid',
-                'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right'))
+    tab_pos = OptionProperty(
+        'top_left',
+        options=('left_top', 'left_mid', 'left_bottom', 'top_left',
+                 'top_mid', 'top_right', 'right_top', 'right_mid',
+                 'right_bottom', 'bottom_left', 'bottom_mid', 'bottom_right'))
     '''Specifies the position of the tabs relative to the content.
     Can be one of: `left_top`, `left_mid`, `left_bottom`, `top_left`,
     `top_mid`, `top_right`, `right_top`, `right_mid`, `right_bottom`,
@@ -367,8 +368,8 @@ class TabbedPanel(GridLayout):
     default_tab = AliasProperty(get_def_tab, set_def_tab)
     '''Holds the default tab.
 
-    .. Note:: For convenience, the automatically provided default tab is deleted
-              when you change default_tab to something else.
+    .. Note:: For convenience, the automatically provided default tab is
+              deleted when you change default_tab to something else.
 
     :data:`default_tab` is a :class:`~kivy.properties.AliasProperty`
     '''
@@ -380,27 +381,30 @@ class TabbedPanel(GridLayout):
         self.default_tab.content = l[0]
 
     default_tab_content = AliasProperty(get_def_tab_content,
-        set_def_tab_content)
+                                        set_def_tab_content)
     '''Holds the default tab content.
 
     :data:`default_tab_content` is a :class:`~kivy.properties.AliasProperty`
     '''
 
     def __init__(self, **kwargs):
-        # these variables need to be initialised before the kv lang is processed
-        # setup the base layout for the tabbed panel
+        # these variables need to be initialised before the kv lang is
+        # processed setup the base layout for the tabbed panel
         self._tab_layout = GridLayout(rows=1)
         self.rows = 1
         # bakground_image
         self._bk_img = Image(
             source=self.background_image, allow_stretch=True,
             keep_ratio=False, color=self.background_color)
-        self._tab_strip = _tabs = TabbedPanelStrip(tabbed_panel=self,
+
+        self._tab_strip = TabbedPanelStrip(
+            tabbed_panel=self,
             rows=1, cols=99, size_hint=(None, None),
             height=self.tab_height, width=self.tab_width)
+
         self._partial_update_scrollview = None
-        self.content = content = TabbedPanelContent()
-        self._current_tab = default_tab = self._original_tab \
+        self.content = TabbedPanelContent()
+        self._current_tab = self._original_tab \
             = self._default_tab = TabbedPanelHeader()
 
         super(TabbedPanel, self).__init__(**kwargs)
@@ -472,7 +476,7 @@ class TabbedPanel(GridLayout):
                 self._reposition_tabs()
             else:
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
-                    'Change `default_tab` to a different tab.')
+                            'Change `default_tab` to a different tab.')
         else:
             if widget in content.children:
                 content.remove_widget(widget)
@@ -642,7 +646,8 @@ class TabbedPanel(GridLayout):
             self.cols = 2
             self.rows = 1
             # tab_layout contains two blank dummy widgets for spacing
-            # "vertically" and the scatter containing scrollview containing tabs
+            # "vertically" and the scatter containing scrollview
+            # containing tabs
             tab_layout.rows = 3
             tab_layout.cols = 1
             tab_layout.size_hint = (None, 1)
@@ -653,12 +658,12 @@ class TabbedPanel(GridLayout):
             # rotate the scatter for vertical positions
             rotation = 90 if tab_pos[0] == 'l' else -90
             sctr = Scatter(do_translation=False,
-                    rotation=rotation,
-                    do_rotation=False,
-                    do_scale=False,
-                    size_hint=(None, None),
-                    auto_bring_to_front=False,
-                    size=scrl_v.size)
+                           rotation=rotation,
+                           do_rotation=False,
+                           do_scale=False,
+                           size_hint=(None, None),
+                           auto_bring_to_front=False,
+                           size=scrl_v.size)
             sctr.add_widget(scrl_v)
 
             lentab_pos = len(tab_pos)
@@ -678,7 +683,7 @@ class TabbedPanel(GridLayout):
             elif tab_pos[lentab_pos - 4:] == '_mid':
                 #calculate top of scatter
                 sctr.bind(pos=partial(self._update_top, sctr, 'mid',
-                    scrl_v.width))
+                                      scrl_v.width))
                 tab_list = (Widget(), sctr, Widget())
             elif tab_pos[lentab_pos - 7:] == '_bottom':
                 tab_list = (Widget(), Widget(), sctr)
@@ -721,7 +726,8 @@ class TabbedPanel(GridLayout):
     def _update_top(self, *args):
         sctr, top, scrl_v_width, x, y = args
         Clock.unschedule(partial(self._updt_top, sctr, top, scrl_v_width))
-        Clock.schedule_once(partial(self._updt_top, sctr, top, scrl_v_width), 0)
+        Clock.schedule_once(
+            partial(self._updt_top, sctr, top, scrl_v_width), 0)
 
     def _updt_top(self, sctr, top, scrl_v_width, *args):
         if top[0] == 't':
