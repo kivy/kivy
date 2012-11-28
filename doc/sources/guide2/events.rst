@@ -15,7 +15,7 @@ Introduction to Event Dispatcher
 
 One of the most important base classes of the framework is the
 :class:`kivy.event.EventDispatcher` class, this class allows to register event
-types, and to dispatch them to interrested parties (usually other event
+types, and to dispatch them to interested parties (usually other event
 dispatchers). :class:`kivy.uix.widget.Widget`,
 :class:`kivy.animation.Animation` and :obj:`kivy.clock.Clock` for example are
 event dispatchers.
@@ -53,7 +53,7 @@ A callback can be any python callable, but you need to be sure it can accept
 the arguments the event will use, for this, it's usually safer to accept the
 `*args` argument, that will catch any remaining arguments in the `args` list.
 
-example::
+Example::
 
     def my_callback(value, *args):
         print "Hello, I got an event!", value
@@ -85,8 +85,8 @@ Declaration of a Property
 -------------------------
 
 To declare a property, you must create it at class level, the class will do the
-work to instanciate the real attributes when the object will be created, the
-properties is not the attribute, it's a mecanism to create events for your
+work to instantiate the real attributes when the object will be created, the
+properties is not the attribute, it's a mechanism to create events for your
 attributes::
 
     class MyWidget(Widget):
