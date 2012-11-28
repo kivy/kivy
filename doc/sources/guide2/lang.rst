@@ -59,6 +59,7 @@ in python.
 To set a global value::
 
     #:set name value
+
 Is equivalent to::
 
     name = value
