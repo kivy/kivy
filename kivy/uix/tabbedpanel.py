@@ -260,10 +260,12 @@ class TabbedPanel(GridLayout):
     default to 'atlas://data/images/defaulttheme/tab'.
     '''
 
+    _current_tab = ObjectProperty(None)
+
     def get_current_tab(self):
         return self._current_tab
 
-    current_tab = AliasProperty(get_current_tab, None)
+    current_tab = AliasProperty(get_current_tab, None, bind=('_current_tab', ))
     '''Links to the currently select or active tab.
 
     .. versionadded:: 1.4.0
