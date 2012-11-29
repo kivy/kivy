@@ -26,7 +26,7 @@ Simple example
 .. note::
 
     A new Class :class:`TabbedPanelItem` has been introduced in 1.5.0 for
-    convineance. So now one can simply add a :class:`TabbedPanelItem` to a
+    conveniance. So now one can simply add a :class:`TabbedPanelItem` to a
     :class:`TabbedPanel` and the `content` to the :class:`TabbedPanelItem`
     like in the example provided above.
 
@@ -72,7 +72,7 @@ default tab::
 The default tab machinery requires special consideration and management.
 Accordingly, an `on_default_tab` event is provided for associating a callback::
 
-    tp.bind(on_default_tab = my_default_tab_callback)
+    tp.bind(default_tab = my_default_tab_callback)
 
 It's important to note that as by default :data:`default_tab_cls` is of type
 :class:`TabbedPanelHeader` it has the same properties as other tabs.
@@ -342,11 +342,16 @@ class TabbedPanel(GridLayout):
     '''
 
     content = ObjectProperty(None)
-    '''This is the object holding the content of the current tab.
+    '''This is the object holding(current_tab's content is added to this)
+    the content of the current tab. To Listen to the changes in the content
+    of the current tab you should bind to `current_tab` and then access it's
+    `content` property.
 
     :data:`content` is a :class:`~kivy.properties.ObjectProperty`,
     default to 'None'.
     '''
+
+    _default_tab = ObjectProperty(None)
 
     def get_def_tab(self):
         return self._default_tab
@@ -359,17 +364,19 @@ class TabbedPanel(GridLayout):
             return
         oltab = self._default_tab
         self._default_tab = new_tab
-        if hasattr(self, '_original_tab') and self._original_tab == oltab:
-            self.remove_widget(oltab)
-            self._original_tab = None
+        self.remove_widget(oltab)
+        self._original_tab = None
         self.switch_to(new_tab)
         new_tab.state = 'down'
 
-    default_tab = AliasProperty(get_def_tab, set_def_tab)
+    default_tab = AliasProperty(get_def_tab, set_def_tab,
+                                bind=('_default_tab', ))
     '''Holds the default tab.
 
     .. Note:: For convenience, the automatically provided default tab is
               deleted when you change default_tab to something else.
+              As of 1.5.0 This behaviour has been extended to every
+              `default_tab` for consistency not just the auto provided one.
 
     :data:`default_tab` is a :class:`~kivy.properties.AliasProperty`
     '''
