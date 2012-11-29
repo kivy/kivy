@@ -12,8 +12,9 @@ will cover the whole "parent" window. When you are creating a popup, you must at
 a minimum set a :data:`Popup.title` and a :data:`Popup.content` widget.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
-want your popup to be fullscreen, deactivate the size_hint and use a specific
-size attribute.
+want your popup to be fullscreen, either use lower than 1 size hints (for
+instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed size
+attributes.
 
 
 .. versionchanged:: 1.4.0
