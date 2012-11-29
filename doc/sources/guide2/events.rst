@@ -68,7 +68,7 @@ Introduction to properties
 --------------------------
 
 Properties are an awesome way to define events and bind to them, it basically
-produce events when the attributes to your object changes, so you can bind
+produce events when the attributes of your object changes, so you can bind
 actions to the change of these values.
 
 There are different kind of properties to describe the type of data you want to

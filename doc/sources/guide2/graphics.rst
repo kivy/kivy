@@ -64,7 +64,7 @@ polygon, to more complex ones, like meshes or bezier curves::
 Manipulating instructions
 -------------------------
 
-Sometime, you want to update or remove the instructions you added to an canvas,
+Sometime, you want to update or remove the instructions you added to a canvas,
 this can be done in various ways depending on your needs:
 
 You can keep a reference to your instruction and update them::
