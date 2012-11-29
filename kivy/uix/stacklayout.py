@@ -57,6 +57,17 @@ class StackLayout(Layout):
     :data:`orientation` is an :class:`~kivy.properties.OptionProperty`, default
     to 'lr-tb'.
 
+    Valid orientations are: 'lr-tb', 'tb-lr', 'rl-tb', 'tb-rl', 'lr-bt',
+    'bt-lr', 'rl-bt', 'bt-rl'
+
+    .. versionchanged:: 1.5.0
+
+        :data:`orientation` now correctly handles all valid combinations of
+        'lr','rl','tb','bt'. Before this version only 'lr-tb' and
+        'tb-lr' were supported, and 'tb-lr' was misnamed and placed
+        widgets from bottom to top and from right to left (reversed compared
+        to what was expected).
+
     .. note::
 
         lr mean Left to Right.
