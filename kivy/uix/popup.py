@@ -115,7 +115,7 @@ class Popup(ModalView):
 
     .. versionadded:: 1.1.0
 
-    :data:`background_color` is a :class:`~kivy.properties.ListProperty`,
+    :data:`separator_color` is a :class:`~kivy.properties.ListProperty`,
     default to [47 / 255., 167 / 255., 212 / 255., 1.]
     '''
 
