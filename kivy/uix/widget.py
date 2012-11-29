@@ -280,7 +280,7 @@ class Widget(EventDispatcher):
             children = self.children
             if index >= len(children):
                 index = len(children)
-                next_index = 0
+                next_index = -1
             else:
                 next_child = children[index]
                 next_index = canvas.indexof(next_child.canvas)

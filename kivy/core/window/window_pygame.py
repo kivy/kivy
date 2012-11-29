@@ -66,7 +66,6 @@ class WindowPygame(WindowBase):
                 multisamples)
         pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 16)
         pygame.display.gl_set_attribute(pygame.GL_STENCIL_SIZE, 1)
-        pygame.display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
         pygame.display.set_caption(self.title)
 
         if self.position == 'auto':
@@ -135,6 +134,22 @@ class WindowPygame(WindowBase):
         self._size = (info.current_w, info.current_h)
         #self.dispatch('on_resize', *self._size)
 
+        # in order to debug futur issue with pygame/display, let's show
+        # more debug output.
+        Logger.debug('Window: Display driver ' + pygame.display.get_driver())
+        Logger.debug('Window: Actual window size: %dx%d',
+                info.current_w, info.current_h)
+        Logger.debug('Window: Actual color bits r%d g%d b%d a%d',
+                pygame.display.gl_get_attribute(pygame.GL_RED_SIZE),
+                pygame.display.gl_get_attribute(pygame.GL_GREEN_SIZE),
+                pygame.display.gl_get_attribute(pygame.GL_BLUE_SIZE),
+                pygame.display.gl_get_attribute(pygame.GL_ALPHA_SIZE))
+        Logger.debug('Window: Actual depth bits: %d',
+                pygame.display.gl_get_attribute(pygame.GL_DEPTH_SIZE))
+        Logger.debug('Window: Actual stencil bits: %d',
+                pygame.display.gl_get_attribute(pygame.GL_STENCIL_SIZE))
+        Logger.debug('Window: Actual multisampling samples: %d',
+                pygame.display.gl_get_attribute(pygame.GL_MULTISAMPLESAMPLES))
         super(WindowPygame, self).create_window()
 
         # set mouse visibility
