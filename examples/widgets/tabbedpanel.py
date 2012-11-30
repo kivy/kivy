@@ -15,30 +15,24 @@ Builder.load_string("""
 <Test>:
     size_hint: .5, .5
     pos_hint: {'center_x': .5, 'center_y': .5}
-    default_tab_content: set1_content
+    do_default_tab: False
 
-    Label:
-        id: set1_content
-        text: 'First tab content area'
-
-    BoxLayout:
-        id: set2_content
+    TabbedPanelItem:
+        text: 'first tab'
         Label:
-            text: 'Second tab content area'
-        Button:
-            text: 'Button that does nothing'
+            text: 'First tab content area'
+    TabbedPanelItem:
+        text: 'tab2'
+        BoxLayout:
+            Label:
+                text: 'Second tab content area'
+            Button:
+                text: 'Button that does nothing'
+    TabbedPanelItem:
+        text: 'tab3'
+        RstDocument:
+            text: '\\n'.join(("Hello world", "-----------", "You are in the third tab."))
 
-    RstDocument:
-        id: set3_content
-        text: '\\n'.join(("Hello world", "-----------", "You are in the third tab."))
-
-    # now categorize widgets inserted above in a specific header
-    TabbedPanelHeader:
-        text: 'Tab 2'
-        content: set2_content
-    TabbedPanelHeader:
-        text: 'Tab 3'
-        content: set3_content
 """)
 
 class Test(TabbedPanel):

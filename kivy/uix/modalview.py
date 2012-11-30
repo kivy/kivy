@@ -8,8 +8,9 @@ The :class:`ModalView` widget is used to create modal views. By default, the
 view will cover the whole "parent" window.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
-want your view to be fullscreen, deactivate the size_hint and use a specific
-size attribute.
+want your view to be fullscreen, either use lower than 1 size hints (for
+instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed size
+attributes.
 
 Examples
 --------
@@ -60,6 +61,12 @@ view from closing by explictly returning True from your callback ::
     view.add_widget(Label(text='Hello world'))
     view.bind(on_dismiss=my_callback)
     view.open()
+
+
+.. versionchanged:: 1.5.0
+
+    The ModalView can be closed by hitting escape key on the keyboard, if the
+    :data:`ModalView.auto_dismiss` is allowed.
 
 '''
 
@@ -165,10 +172,13 @@ class ModalView(AnchorLayout):
             Logger.warning('ModalView: cannot open view, no window found.')
             return self
         self._window.add_widget(self)
-        self._window.bind(on_resize=self._align_center)
+        self._window.bind(
+            on_resize=self._align_center,
+            on_keyboard=self._handle_keyboard)
         self.center = self._window.center
-        Animation(_anim_alpha=1., d=self._anim_duration).start(self)
-        self.dispatch('on_open')
+        a = Animation(_anim_alpha=1., d=self._anim_duration)
+        a.bind(on_complete=lambda *x: self.dispatch('on_open'))
+        a.start(self)
         return self
 
     def dismiss(self, *largs, **kwargs):
@@ -226,7 +236,9 @@ class ModalView(AnchorLayout):
     def on__anim_alpha(self, instance, value):
         if value == 0 and self._window is not None:
             self._window.remove_widget(self)
-            self._window.unbind(on_resize=self._align_center)
+            self._window.unbind(
+                on_resize=self._align_center,
+                on_keyboard=self._handle_keyboard)
             self._window = None
 
     def on_open(self):
@@ -234,6 +246,11 @@ class ModalView(AnchorLayout):
 
     def on_dismiss(self):
         pass
+
+    def _handle_keyboard(self, window, key, *largs):
+        if key == 27 and self.auto_dismiss:
+            self.dismiss()
+            return True
 
 
 if __name__ == '__main__':

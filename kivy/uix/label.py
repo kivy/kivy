@@ -103,6 +103,7 @@ from kivy.core.text.markup import MarkupLabel as CoreMarkupLabel
 from kivy.properties import StringProperty, OptionProperty, \
         NumericProperty, BooleanProperty, ReferenceListProperty, \
         ListProperty, ObjectProperty, DictProperty
+from kivy.utils import get_hex_from_color
 
 
 class Label(Widget):
@@ -116,7 +117,7 @@ class Label(Widget):
 
     _font_properties = ('text', 'font_size', 'font_name', 'bold', 'italic',
         'halign', 'valign', 'padding_x', 'padding_y', 'text_size', 'shorten',
-        'mipmap', 'markup')
+        'mipmap', 'markup', 'line_height')
 
     def __init__(self, **kwargs):
         self._trigger_texture = Clock.create_trigger(self.texture_update, -1)
@@ -178,10 +179,18 @@ class Label(Widget):
         if self._label.text.strip() == '':
             self.texture_size = (0, 0)
         else:
-            self._label.refresh()
-            if self._label.__class__ is CoreMarkupLabel:
+            mrkup = self._label.__class__ is CoreMarkupLabel
+            if mrkup:
+                text = self._label.text
+                self._label.text = ''.join(('[color=',
+                                            get_hex_from_color(self.color), ']',
+                                            text, '[/color]'))
+                self._label.refresh()
+                self._label.text = text
                 self.refs = self._label.refs
                 self.anchors = self._label.anchors
+            else:
+                self._label.refresh()
             texture = self._label.texture
             if texture is not None:
                 self.texture = self._label.texture
@@ -273,6 +282,16 @@ class Label(Widget):
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
     12dp.
+    '''
+
+    line_height = NumericProperty(1.0)
+    '''Line Height for the text. e.g. line_height = 2 will cause the spacing
+    between lines to be twice the size.
+
+    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, default to
+    1.0.
+
+    .. versionadded:: 1.5.0
     '''
 
     bold = BooleanProperty(False)
