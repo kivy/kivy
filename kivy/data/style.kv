@@ -787,3 +787,226 @@
             size: self.size
         StencilPop
 
+# =============================================================================
+# Color Picker
+# =============================================================================
+
+<ColorPicker>:
+    wheel: wheel
+    alphaslider: alphaslider
+    canvas:
+        Color:
+            rgba: root.bg_color
+        Rectangle:
+            pos: root.pos
+            size: root.size
+    BoxLayout:
+        id: main_layout
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: .33
+            spacing: 10
+            padding: 10
+            GridLayout:
+                cols: 4
+                size_hint: (.5, 1.)
+                Label:
+                    text: "R:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0]*.045
+                    on_touch_down: self.collide_point(*args[1].pos) and root.button_callback('R')
+                Label:
+                    text: str(int(root.selected_color[0] * 255))
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "left"
+                    valign: "middle"
+                    font_size: root.size[0]*.045
+                    on_touch_down: self.collide_point(*args[1].pos) and root.button_callback('R')
+                Label:
+                    text: "G:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0]*.045
+                    on_touch_down: self.collide_point(*args[1].pos) and root.button_callback('G')
+                Label:
+                    text: str(int(root.selected_color[1] * 255))
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "left"
+                    valign: "middle"
+                    font_size: root.size[0]*.045
+                    on_touch_down: self.collide_point(*args[1].pos) and root.button_callback('G')
+                Label:
+                    text: "B:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0]*.045
+                    on_touch_down: self.collide_point(*args[1].pos) and root.button_callback('B')
+                Label:
+                    text: str(int(root.selected_color[2] * 255))
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "left"
+                    valign: "middle"
+                    font_size: root.size[0]*.045
+                    on_touch_down: self.collide_point(*args[1].pos) and root.button_callback('B')
+                Label:
+                    text: "A:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0]*.045
+                    on_touch_down: self.collide_point(*args[1].pos) and root.button_callback('A')
+                Label:
+                    text: str(int(root.selected_color[3] * 255))
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "left"
+                    valign: "middle"
+                    font_size: root.size[0]*.045
+                    on_touch_down: self.collide_point(*args[1].pos) and root.button_callback('A')
+            Widget:
+                size_hint: (.5,1)
+                canvas:
+                    Color:
+                        rgba: root.selected_color
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: (1,1)
+            spacing: 1
+            padding: 1
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: (.22,1)
+                spacing: 5
+                padding: 5
+                Label:
+                    size_hint: (1,.2)
+                    halign: 'center'
+                    valign: 'middle'
+                    text: 'A'
+                Slider:
+                    id: alphaslider
+                    size_hint: (1,.6)
+                    orientation: 'vertical'
+                    min: 0
+                    max: 255
+                    on_value: root.alpha_slide(self.value)
+                Widget:
+                    size_hint: (1,.1)
+
+            ColorWheel:
+                id: wheel
+                size_hint: (1, 1)
+                origin: (self.center_x, self.center_y)
+                radius: 0.45*min(self.size)
+                on_rgba: root.rgba_callback(self.rgba)
+
+<NumPad>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: 'vertical'
+        padding: 10
+        Label:
+            size_hint_y: .2
+            text: root.display_text
+            text_size: self.size
+            halign: 'right'
+            font_size: self.height * .75
+        GridLayout:
+            cols:3
+            size_hint_y: .8
+            padding: 5
+            spacing: 5
+            Button:
+                text: "7"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("7")
+                font_size: self.height * .4
+            Button:
+                text: "8"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("8")
+                font_size: self.height * .4
+            Button:
+                text: "9"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("9")
+                font_size: self.height * .4
+            Button:
+                text: "4"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("4")
+                font_size: self.height * .4
+            Button:
+                text: "5"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("5")
+                font_size: self.height * .4
+            Button:
+                text: "6"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("6")
+                font_size: self.height * .4
+            Button:
+                text: "1"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("1")
+                font_size: self.height * .4
+            Button:
+                text: "2"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("2")
+                font_size: self.height * .4
+            Button:
+                text: "3"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("3")
+                font_size: self.height * .4
+            Button:
+                text: "delete"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("del")
+                font_size: self.height * .4
+            Button:
+                text: "0"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("0")
+                font_size: self.height * .4
+            Button:
+                text: "enter"
+                size_hint: (.33,.25)
+                on_release: root.button_callback("ret")
+                font_size: self.height * .4
