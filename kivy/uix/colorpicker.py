@@ -330,7 +330,8 @@ class ColorPicker(Widget):
     def button_callback(self, button_str):
         current_val = int(self.selected_color[
             {'R': 0, 'G': 1, 'B': 2, 'A': 3}[button_str]] * 255)
-        np = NumPad(self, init_value=current_val, max_value=255)
+
+        np = NumPad(self, value=current_val, max_value=255)
 
         np_popup = Popup(content=np,
                          title="Please choose a color value (0-255) for " +
@@ -342,8 +343,9 @@ class ColorPicker(Widget):
 
     def popup_dismissed(self, instance):
         colr = instance.id
-        val = instance.content.display_value
-        self.selected_color[{'R': 0, 'G': 1, 'B': 2, 'A': 3}[colr]] = val / 255
+        val = instance.content.value
+        self.selected_color[
+            {'R': 0, 'G': 1, 'B': 2, 'A': 3}[colr]] = val / 255.
 
         # if it's the alpha value that's been edited, we could change
         # this in the colorwheel, but we're not for now
@@ -354,7 +356,7 @@ class ColorPicker(Widget):
         self.alphaslider.value = self.selected_color[3] * 255
 
     def alpha_slide(self, value):
-        self.selected_color[3] = value / 255
+        self.selected_color[3] = value / 255.
 
 
 if __name__ in ('__android__', '__main__'):

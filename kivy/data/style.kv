@@ -934,6 +934,7 @@
                 on_rgba: root.rgba_callback(self.rgba)
 
 <NumPad>:
+    nums: nums
     BoxLayout:
         size: root.size
         pos: root.pos
@@ -941,72 +942,13 @@
         padding: 10
         Label:
             size_hint_y: .2
-            text: root.display_text
+            text: str(root.value)
             text_size: self.size
             halign: 'right'
             font_size: self.height * .75
         GridLayout:
+            id: nums
             cols:3
             size_hint_y: .8
             padding: 5
             spacing: 5
-            Button:
-                text: "7"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("7")
-                font_size: self.height * .4
-            Button:
-                text: "8"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("8")
-                font_size: self.height * .4
-            Button:
-                text: "9"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("9")
-                font_size: self.height * .4
-            Button:
-                text: "4"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("4")
-                font_size: self.height * .4
-            Button:
-                text: "5"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("5")
-                font_size: self.height * .4
-            Button:
-                text: "6"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("6")
-                font_size: self.height * .4
-            Button:
-                text: "1"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("1")
-                font_size: self.height * .4
-            Button:
-                text: "2"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("2")
-                font_size: self.height * .4
-            Button:
-                text: "3"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("3")
-                font_size: self.height * .4
-            Button:
-                text: "delete"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("del")
-                font_size: self.height * .4
-            Button:
-                text: "0"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("0")
-                font_size: self.height * .4
-            Button:
-                text: "enter"
-                size_hint: (.33,.25)
-                on_release: root.button_callback("ret")
-                font_size: self.height * .4
