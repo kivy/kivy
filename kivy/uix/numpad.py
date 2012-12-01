@@ -20,7 +20,7 @@ from kivy.properties import StringProperty, NumericProperty
 class NumPad(Widget):
     display_text = StringProperty("0")
     display_value = NumericProperty(0)
-    min_value = NumericProperty(10000)
+    max_value = NumericProperty(10000)
 
     def __init__(self, popup, init_value=0, **kwargs):
         super(NumPad, self).__init__(**kwargs)

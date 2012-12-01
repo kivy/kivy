@@ -330,7 +330,7 @@ class ColorPicker(Widget):
     def button_callback(self, button_str):
         current_val = int(self.selected_color[
             {'R': 0, 'G': 1, 'B': 2, 'A': 3}[button_str]] * 255)
-        np = NumPad(self, init_value=current_val)
+        np = NumPad(self, init_value=current_val, max_value=255)
 
         np_popup = Popup(content=np,
                          title="Please choose a color value (0-255) for " +
