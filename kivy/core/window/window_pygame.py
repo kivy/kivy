@@ -139,17 +139,20 @@ class WindowPygame(WindowBase):
         Logger.debug('Window: Display driver ' + pygame.display.get_driver())
         Logger.debug('Window: Actual window size: %dx%d',
                 info.current_w, info.current_h)
-        Logger.debug('Window: Actual color bits r%d g%d b%d a%d',
-                pygame.display.gl_get_attribute(pygame.GL_RED_SIZE),
-                pygame.display.gl_get_attribute(pygame.GL_GREEN_SIZE),
-                pygame.display.gl_get_attribute(pygame.GL_BLUE_SIZE),
-                pygame.display.gl_get_attribute(pygame.GL_ALPHA_SIZE))
-        Logger.debug('Window: Actual depth bits: %d',
-                pygame.display.gl_get_attribute(pygame.GL_DEPTH_SIZE))
-        Logger.debug('Window: Actual stencil bits: %d',
-                pygame.display.gl_get_attribute(pygame.GL_STENCIL_SIZE))
-        Logger.debug('Window: Actual multisampling samples: %d',
-                pygame.display.gl_get_attribute(pygame.GL_MULTISAMPLESAMPLES))
+        if platform() != 'android':
+            # unsupported platform, such as android that doesn't support
+            # gl_get_attribute.
+            Logger.debug('Window: Actual color bits r%d g%d b%d a%d',
+                    pygame.display.gl_get_attribute(pygame.GL_RED_SIZE),
+                    pygame.display.gl_get_attribute(pygame.GL_GREEN_SIZE),
+                    pygame.display.gl_get_attribute(pygame.GL_BLUE_SIZE),
+                    pygame.display.gl_get_attribute(pygame.GL_ALPHA_SIZE))
+            Logger.debug('Window: Actual depth bits: %d',
+                    pygame.display.gl_get_attribute(pygame.GL_DEPTH_SIZE))
+            Logger.debug('Window: Actual stencil bits: %d',
+                    pygame.display.gl_get_attribute(pygame.GL_STENCIL_SIZE))
+            Logger.debug('Window: Actual multisampling samples: %d',
+                    pygame.display.gl_get_attribute(pygame.GL_MULTISAMPLESAMPLES))
         super(WindowPygame, self).create_window()
 
         # set mouse visibility
