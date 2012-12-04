@@ -279,8 +279,6 @@ cdef class Shader:
 
     cdef void bind_attrib_locations(self, VertexFormat vertex):
         cdef int i
-        if self.vertex is vertex:
-            return
         cdef vertex_attr_t *attr
         cdef vertex_attr_t *vattr = vertex.vattr
         for i in xrange(vertex.vattr_count):

@@ -262,7 +262,6 @@ cdef class Mesh(VertexInstruction):
         fmt = kwargs.get('fmt')
         cdef VertexFormat vertex
         if fmt is not None:
-            print "FORMAT", fmt
             self.vertex = VertexFormat(*fmt)
             self.batch = VertexBatch(vbo=VBO(self.vertex))
         self.mode = kwargs.get('mode') or 'points'
