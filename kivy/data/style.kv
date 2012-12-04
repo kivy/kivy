@@ -738,7 +738,7 @@
 
         VideoPlayerProgressBar:
             video: root
-            max: root.duration or 1
+            max: max(root.duration, root.position, 1)
             value: root.position
 
         Widget:
