@@ -26,6 +26,7 @@ cdef class VBO:
     cdef Buffer data
     cdef short flags
     cdef int vbo_size
+    cdef VertexFormat vertex 
 
     cdef void update_buffer(self)
     cdef void bind(self)

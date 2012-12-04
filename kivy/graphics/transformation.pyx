@@ -154,9 +154,6 @@ cdef class Matrix:
                 t = 2.0 * near
                 self.mat[0]  = t/(right-left)
                 self.mat[4]  = 0.0
-                self.mat[5]  = t/(bottom-top)
-                self.mat[6]  = 0.0
-                self.mat[7]  = 0.0
                 self.mat[8]  = (right+left)/(right-left)
                 self.mat[12] = 0.0
                 self.mat[1]  = 0.0

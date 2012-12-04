@@ -100,7 +100,7 @@ cdef class VBO:
         self.target = GL_ARRAY_BUFFER
         if vertex is None:
             vertex = default_vertex
-        #self.vertex = vertex
+        self.vertex = vertex
         self.format = vertex.vattr
         self.format_count = vertex.vattr_count
         self.format_size = vertex.vbytesize
@@ -141,18 +141,14 @@ cdef class VBO:
         cdef vertex_attr_t *attr
         cdef int offset = 0, i
         self.update_buffer()
+        getActiveContext()._shader.bind_attrib_locations(self.vertex)
         glBindBuffer(GL_ARRAY_BUFFER, self.id)
-        shader = getActiveContext()._shader
         for i in xrange(self.format_count):
             attr = &self.format[i]
             if attr.per_vertex == 0:
                 continue
-            attr.index = shader.get_attribute_loc(attr.name)
-            if attr.index == -1:
-                raise VertexFormatException("Current Shader has no vertex attribute named %s" % attr.name)
             glVertexAttribPointer(attr.index, attr.size, attr.type,
                     GL_FALSE, self.format_size, <GLvoid*><long>offset)
-            glEnableVertexAttribArray(attr.index)
             offset += attr.bytesize
 
     cdef void unbind(self):
