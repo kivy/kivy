@@ -4,6 +4,7 @@ cdef class Matrix:
     cdef matrix_t mat
     cpdef Matrix identity(self)
     cpdef Matrix inverse(self)
+    cpdef Matrix transpose(self)
     cpdef Matrix multiply(Matrix self, Matrix mb)
     cpdef Matrix rotate(Matrix self, double angle, double x, double y, double z)
     cpdef Matrix scale(Matrix self, double x, double y, double z)
