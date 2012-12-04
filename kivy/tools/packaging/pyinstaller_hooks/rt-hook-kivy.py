@@ -15,7 +15,12 @@ else:
     chdir(dirname(sys.argv[0]))
     root = join(dirname(sys.argv[0]), root)
 
+
 sys.path += [join(root, '_libs')]
+
+if sys.platform == 'darwin':
+    sitepackages = join(root, '..', 'sitepackages')
+    sys.path += [sitepackages, join(sitepackages, 'gst-0.10')]
 
 environ['GST_PLUGIN_PATH'] = join(root, '..', 'gst-plugins')
 environ['KIVY_DATA_DIR'] = join(root, 'data')
