@@ -108,11 +108,13 @@ class VideoGStreamer(VideoBase):
         self._texture.blit_buffer(buf.data, size=size, colorfmt='rgb')
 
     def _update(self, dt):
+        buf = None
         with self._buffer_lock:
-            if self._buffer is not None:
-                self._update_texture(self._buffer)
-                self._buffer = None
-                self.dispatch('on_frame')
+            buf = self._buffer
+            self._buffer = None
+        if buf is not None:
+            self._update_texture(buf)
+            self.dispatch('on_frame')
 
     def unload(self):
         self._playbin.set_state(gst.STATE_NULL)
