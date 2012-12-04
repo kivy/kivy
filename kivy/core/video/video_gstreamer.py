@@ -78,6 +78,7 @@ class VideoGStreamer(VideoBase):
         self._videosink.set_property('caps', gst.Caps(_VIDEO_CAPS))
         self._videosink.set_property('async', True)
         self._videosink.set_property('drop', True)
+        self._videosink.set_property('qos', True)
         self._videosink.set_property('emit-signals', True)
         self._videosink.connect('new-buffer', partial(
             _gst_new_buffer, ref(self)))
