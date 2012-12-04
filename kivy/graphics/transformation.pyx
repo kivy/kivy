@@ -206,8 +206,32 @@ cdef class Matrix:
             m[8] = m[9] = m[11] = m[12] = m[13] = m[14] = 0
         return self
 
+    cpdef Matrix transpose(self):
+        '''Return the transposed matrix (not inplace)
+        '''
+        cdef Matrix mm = Matrix()
+        cdef double *m = <double *>self.mat
+        with nogil:
+            m[0]  = self.mat[1]
+            m[4]  = self.mat[2]
+            m[8]  = self.mat[3]
+            m[12] = self.mat[4]
+            m[1]  = self.mat[5]
+            m[5]  = self.mat[6]
+            m[9]  = self.mat[7]
+            m[13] = self.mat[8]
+            m[2]  = self.mat[9]
+            m[6]  = self.mat[10]
+            m[10] = self.mat[11]
+            m[14] = self.mat[12]
+            m[3]  = self.mat[13]
+            m[7]  = self.mat[14]
+            m[11] = self.mat[15]
+            m[15] = self.mat[16]
+        return mm
+
     cpdef Matrix inverse(self):
-        '''Return the inverted matrix
+        '''Return the inverted matrix (not inplace)
         '''
         cdef Matrix mr = Matrix()
         cdef double *m = self.mat, *r = mr.mat
