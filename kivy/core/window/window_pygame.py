@@ -85,7 +85,7 @@ class WindowPygame(WindowBase):
                 self._pos = (0, 0)
             environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
-        elif self.fullscreen is True:
+        elif self.fullscreen in ('auto', True):
             Logger.debug('WinPygame: Set window to fullscreen mode')
             self.flags |= pygame.FULLSCREEN
 
