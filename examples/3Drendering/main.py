@@ -7,6 +7,7 @@ from kivy.graphics.opengl import *
 from kivy.graphics import *
 from objloader import ObjFile
 
+
 class Renderer(Widget):
     def __init__(self, **kwargs):
         self.canvas = RenderContext()
@@ -18,7 +19,7 @@ class Renderer(Widget):
             self.cb = Callback(self.setup_gl_context)
             PushMatrix()
             self.setup_scene()
-            PopMatrix();
+            PopMatrix()
             self.cb = Callback(self.reset_gl_context)
         Clock.schedule_interval(self.update_glsl, 1 / 60.)
 
@@ -29,28 +30,27 @@ class Renderer(Widget):
         glDisable(GL_DEPTH_TEST)
 
     def update_glsl(self, *largs):
-        asp = self.width/float(self.height)
-        proj = Matrix().view_clip(-asp, asp,-1,1, 1,100, 1)
+        asp = self.width / float(self.height)
+        proj = Matrix().view_clip(-asp, asp, -1, 1, 1, 100, 1)
         self.canvas['projection_mat'] = proj
         self.canvas['diffuse_light'] = (1.0, 1.0, 0.8)
         self.canvas['ambient_light'] = (0.1, 0.1, 0.1)
-        self.rot.angle +=1
+        self.rot.angle += 1
 
     def setup_scene(self):
-        Color(1,1,1,1)
+        Color(1, 1, 1, 1)
         PushMatrix()
-        Translate(0,0,-2.5)
-        self.rot = Rotate(1,0,1,0)
+        Translate(0, 0, -2.5)
+        self.rot = Rotate(1, 0, 1, 0)
 
         m = self.scene.objects.values()[0]
         self.mesh = Mesh(
             vertices=m.vertices,
             indices=m.indices,
-            fmt = m.vertex_format,
-            mode = 'triangles',
+            fmt=m.vertex_format,
+            mode='triangles',
         )
         PopMatrix()
-
 
 
 class RendererApp(App):
