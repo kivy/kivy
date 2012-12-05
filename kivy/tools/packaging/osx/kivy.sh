@@ -9,6 +9,8 @@ export PYTHONPATH=${SCRIPT_PATH}/kivy:${SCRIPT_PATH}/lib/sitepackages:$PYTHONPAT
 export DYLD_FALLBACK_LIBRARY_PATH=${SCRIPT_PATH}/lib:$DYLD_FALLBACK_LIBRARY_PATH
 export LD_PRELOAD_PATH=${SCRIPT_PATH}/lib:$LD_PRELOAD_PATH
 export GST_PLUGIN_PATH=${SCRIPT_PATH}/lib/gst-plugins:$GST_PLUGIN_PATH
+export GST_PLUGIN_SCANNER=${SCRIPT_PATH}/lib/bin/gst-plugin-scanner
+export GST_REGISTRY_FORK="no"
 
 # It has to be -S or pygame's egg will do some funny site magic and break eventually
 # That'd mean however that other libraries can't be found anymore. So if the user has
