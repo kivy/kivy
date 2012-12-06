@@ -2,6 +2,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
+from kivy.resources import resource_find
 from kivy.graphics.transformation import Matrix
 from kivy.graphics.opengl import *
 from kivy.graphics import *
@@ -11,10 +12,10 @@ from objloader import ObjFile
 class Renderer(Widget):
     def __init__(self, **kwargs):
         self.canvas = RenderContext()
-        self.canvas.shader.fs = open('3D.fs', 'r').read()
-        self.canvas.shader.vs = open('3D.vs', 'r').read()
+        self.canvas.shader.fs = open(resource_find('3D.fs'), 'r').read()
+        self.canvas.shader.vs = open(resource_find('3D.vs'), 'r').read()
+        self.scene = ObjFile(resource_find("monkey.obj"))
         super(Renderer, self).__init__(**kwargs)
-        self.scene = ObjFile("monkey.obj")
         with self.canvas:
             self.cb = Callback(self.setup_gl_context)
             PushMatrix()
