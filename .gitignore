@@ -19,3 +19,7 @@ kivy/tests/results
 .last_known_portable_deps_hash
 deps.zip
 Kivy.dmg
+lib/*
+include/*
+bin/*
+share/*
