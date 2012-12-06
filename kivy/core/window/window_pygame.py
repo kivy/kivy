@@ -16,7 +16,6 @@ from kivy import kivy_home_dir
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
-from kivy.clock import Clock
 from kivy.utils import platform
 
 try:
