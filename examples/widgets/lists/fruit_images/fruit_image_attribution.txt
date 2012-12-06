@@ -1,0 +1,42 @@
+Attribution pages at wikipedia.org for fruit images:
+
+Apple:
+     http://en.wikipedia.org/wiki/File:Red_Apple.jpg
+Avocado:
+     http://en.wikipedia.org/wiki/File:Persea_americana_fruit_2.JPG
+Banana:
+     http://en.wikipedia.org/wiki/File:Banana-Single.jpg
+Cantaloupe:
+     http://en.wikipedia.org/wiki/File:Cantaloupes.jpg
+Cherry:
+     http://en.wikipedia.org/wiki/File:Cherry_Stella444.jpg
+Grape:
+     http://en.wikipedia.org/wiki/File:Table_grapes_on_white.jpg
+Grapefruit:
+     http://en.wikipedia.org/wiki/File:Citrus_paradisi_(Grapefruit,_pink)_white_bg.jpg
+Honeydew:
+     http://en.wikipedia.org/wiki/File:Honeydew.jpg
+Kiwifruit:
+     http://en.wikipedia.org/wiki/File:Kiwi_(Actinidia_chinensis)_1_Luc_Viatour_edit.jpg
+Lemon:
+     http://en.wikipedia.org/wiki/File:Lemon.jpg
+Lime:
+     http://en.wikipedia.org/wiki/File:Backyard_limes.jpg
+Nectarine:
+     http://en.wikipedia.org/wiki/File:White_nectarine_and_cross_section02_edit.jpg
+Orange:
+     http://en.wikipedia.org/wiki/File:Orange_and_cross_section.jpg
+Peach:
+     http://en.wikipedia.org/wiki/File:Autumn_Red_peaches.jpg
+Pear:
+     http://en.wikipedia.org/wiki/File:Alexander_Lucas_10.10.10.jpg
+Pineapple:
+     http://en.wikipedia.org/wiki/File:Pineapple_and_cross_section.jpg
+Plum:
+     http://en.wikipedia.org/wiki/File:Plum_on_tree02.jpg
+Strawberry:
+     http://en.wikipedia.org/wiki/File:Strawberry_gariguette_DSC03063.JPG
+Tangerine:
+     http://en.wikipedia.org/wiki/File:TangerineFruit.jpg
+Watermelon:
+     http://en.wikipedia.org/wiki/File:Watermelons.jpg
