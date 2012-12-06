@@ -277,16 +277,6 @@ cdef class Shader:
         cdef int loc = glGetAttribLocation(self.program, c_name)
         return loc
 
-    cdef void bind_attrib_locations(self, VertexFormat vertex):
-        cdef int i
-        cdef vertex_attr_t *attr
-        cdef vertex_attr_t *vattr = vertex.vattr
-        for i in xrange(vertex.vattr_count):
-            attr = &vattr[i]
-            glBindAttribLocation(self.program, attr.index, attr.name)
-            if attr.per_vertex == 1:
-                glEnableVertexAttribArray(attr.index)
-
     cdef void build(self):
         self.build_vertex()
         self.build_fragment()
