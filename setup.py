@@ -43,6 +43,7 @@ except ImportError:
     have_cython = False
     from distutils.command.build_ext import build_ext
 
+
 # -----------------------------------------------------------------------------
 # Setup classes
 
@@ -114,6 +115,7 @@ else:
         print 'WARNING: GLES 2.0 headers are not found'
         print 'Fallback to Desktop opengl headers.'
         c_options['use_opengl_es2'] = False
+
 
 # -----------------------------------------------------------------------------
 # declare flags
@@ -297,12 +299,13 @@ setup(
     author_email='kivy-dev@googlegroups.com',
     url='http://kivy.org/',
     license='LGPL',
-    description='A software library for rapid development of ' + \
+    description='A software library for rapid development of ' +
                 'hardware-accelerated multitouch applications.',
     ext_modules=ext_modules,
     cmdclass=cmdclass,
     packages=[
         'kivy',
+        'kivy.adapters',
         'kivy.core',
         'kivy.core.audio',
         'kivy.core.camera',
