@@ -20,11 +20,6 @@ vertical scrollable list. :class:`AbstractView` has one property, adapter.
 :class:`~kivy.adapters.listadapter.ListAdapter`, or
 :class:`~kivy.adapters.dictadapter.DictAdapter`.
 
-
-    :Events:
-        `on_scroll_complete`: (boolean, )
-            Fired when scrolling completes.
-
 Basic Example
 -------------
 
@@ -242,9 +237,9 @@ is_selected properties::
             self.is_selected = is_selected
 
     data_items = []
-    data_items.append(DataItem(text='cat')
-    data_items.append(DataItem(text='dog')
-    data_items.append(DataItem(text='frog')
+    data_items.append(DataItem(text='cat'))
+    data_items.append(DataItem(text='dog'))
+    data_items.append(DataItem(text='frog'))
 
     list_item_args_converter = lambda obj: {'text': obj.text,
                                             'size_hint_y': None,
@@ -697,6 +692,10 @@ class ListView(AbstractView, EventDispatcher):
     use :class:`~kivy.adapters.listadapter.ListAdapter`.  For an alternate
     powerful adapter, use :class:`~kivy.adapters.dictadapter.DictAdapter`,
     rounding out the choice for designing highly interactive lists.
+
+    :Events:
+        `on_scroll_complete`: (boolean, )
+            Fired when scrolling completes.
     '''
 
     divider = ObjectProperty(None)
@@ -768,9 +767,9 @@ class ListView(AbstractView, EventDispatcher):
                                              cls=Label)
             kwargs['adapter'] = list_adapter
 
-        super(ListView, self).__init__(**kwargs)
-
         self.register_event_type('on_scroll_complete')
+
+        super(ListView, self).__init__(**kwargs)
 
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
 
