@@ -21,9 +21,7 @@ If you wish to have a bare-bones list adapter, without selection, use
 __all__ = ('DictAdapter', )
 
 from kivy.properties import ListProperty, DictProperty
-from kivy.lang import Builder
 from kivy.adapters.listadapter import ListAdapter
-from kivy.adapters.models import SelectableDataItem
 
 
 class DictAdapter(ListAdapter):
@@ -110,7 +108,7 @@ class DictAdapter(ListAdapter):
             selected_keys = [sel.text for sel in self.selection]
             first_sel_index = self.sorted_keys.index(selected_keys[0])
             desired_keys = self.sorted_keys[first_sel_index:]
-            self.data = {key: self.data[key] for key in desired_keys}
+            self.data = dict([(key, self.data[key]) for key in desired_keys])
 
     def trim_right_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are greater than
@@ -122,7 +120,7 @@ class DictAdapter(ListAdapter):
             selected_keys = [sel.text for sel in self.selection]
             last_sel_index = self.sorted_keys.index(selected_keys[-1])
             desired_keys = self.sorted_keys[:last_sel_index + 1]
-            self.data = {key: self.data[key] for key in desired_keys}
+            self.data = dict([(key, self.data[key]) for key in desired_keys])
 
     def trim_to_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are les than or
@@ -137,7 +135,7 @@ class DictAdapter(ListAdapter):
             first_sel_index = self.sorted_keys.index(selected_keys[0])
             last_sel_index = self.sorted_keys.index(selected_keys[-1])
             desired_keys = self.sorted_keys[first_sel_index:last_sel_index + 1]
-            self.data = {key: self.data[key] for key in desired_keys}
+            self.data = dict([(key, self.data[key]) for key in desired_keys])
 
     def cut_to_sel(self, *args):
         '''Same as trim_to_sel, but intervening list items within the selected
@@ -147,4 +145,4 @@ class DictAdapter(ListAdapter):
         '''
         if len(self.selection) > 0:
             selected_keys = [sel.text for sel in self.selection]
-            self.data = {key: self.data[key] for key in selected_keys}
+            self.data = dict([(key, self.data[key]) for key in selected_keys])
