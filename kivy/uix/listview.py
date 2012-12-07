@@ -32,15 +32,15 @@ run first, to get a taste of the range of functionality offered. You can tell
 from the names of the examples that they illustrate the "ramping up" from
 simple to advanced:
 
-    kivy/examples/widgets/lists/list_simple.py
-    kivy/examples/widgets/lists/list_master_detail.py
-    kivy/examples/widgets/lists/list_two_up.py
-    kivy/examples/widgets/lists/list_kv.py
-    kivy/examples/widgets/lists/list_composite.py
-    kivy/examples/widgets/lists/list_cascade.py
-    kivy/examples/widgets/lists/list_cascade_dict.py
-    kivy/examples/widgets/lists/list_cascade_images.py
-    kivy/examples/widgets/lists/list_ops.py
+    * kivy/examples/widgets/lists/list_simple.py
+    * kivy/examples/widgets/lists/list_master_detail.py
+    * kivy/examples/widgets/lists/list_two_up.py
+    * kivy/examples/widgets/lists/list_kv.py
+    * kivy/examples/widgets/lists/list_composite.py
+    * kivy/examples/widgets/lists/list_cascade.py
+    * kivy/examples/widgets/lists/list_cascade_dict.py
+    * kivy/examples/widgets/lists/list_cascade_images.py
+    * kivy/examples/widgets/lists/list_ops.py
 
 Many of the examples feature selection, some restricting selection to single
 selection, where only one item at at time can be selected, and others allowing
@@ -438,14 +438,18 @@ on_selection_change event::
 
     list_adapter.bind(on_selection_change=callback_function)
 
-where callback_function() does whatever is needed for the update.
+where callback_function() does whatever is needed for the update. See the
+example called list_master_detail.py, and imagine that the list one the left
+would be a list of dog breeds, and the detail view on the right would show
+details for a selected dog breed.
 
 In another example, we could set the selection_mode of a listview to
 'multiple', and load it with a list of answers to a multiple-choice question.
 The question could have several correct answers. A color swatch view could be
 bound to selection change, as above, so that it turns green as soon as the
 correct choices are made, unless the number of touches exeeds a limit, when the
-answer session would be terminated.
+answer session would be terminated. See the examples that feature thumbnail
+images to get some ideas, e.g., list_cascade_dict.py.
 
 In a more involved example, we could chain together three listviews, where
 selection in the first controls the items shown in the second, and selection in
