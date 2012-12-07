@@ -131,7 +131,7 @@ class StackLayoutShowcase(FloatLayout):
     def __init__(self, **kwargs):
         super(StackLayoutShowcase, self).__init__(**kwargs)
         self.buttons = 0
-        self.orientationiteration = 0
+        self.orientationit = 0
         self.txt = 'lr-tb'
         Clock.schedule_once(self.add_button, 1)
 
