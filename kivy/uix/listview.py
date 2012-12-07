@@ -32,15 +32,15 @@ run first, to get a taste of the range of functionality offered. You can tell
 from the names of the examples that they illustrate the "ramping up" from
 simple to advanced:
 
-    kivy/examples/widgets/lists/list_simple.py
-    kivy/examples/widgets/lists/list_master_detail.py
-    kivy/examples/widgets/lists/list_two_up.py
-    kivy/examples/widgets/lists/list_kv.py
-    kivy/examples/widgets/lists/list_composite.py
-    kivy/examples/widgets/lists/list_cascade.py
-    kivy/examples/widgets/lists/list_cascade_dict.py
-    kivy/examples/widgets/lists/list_cascade_images.py
-    kivy/examples/widgets/lists/list_ops.py
+    * kivy/examples/widgets/lists/list_simple.py
+    * kivy/examples/widgets/lists/list_master_detail.py
+    * kivy/examples/widgets/lists/list_two_up.py
+    * kivy/examples/widgets/lists/list_kv.py
+    * kivy/examples/widgets/lists/list_composite.py
+    * kivy/examples/widgets/lists/list_cascade.py
+    * kivy/examples/widgets/lists/list_cascade_dict.py
+    * kivy/examples/widgets/lists/list_cascade_images.py
+    * kivy/examples/widgets/lists/list_ops.py
 
 Many of the examples feature selection, some restricting selection to single
 selection, where only one item at at time can be selected, and others allowing
