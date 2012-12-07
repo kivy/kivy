@@ -192,7 +192,7 @@ An Example ListView
 
 Now, to some example code::
 
-    from kivy.adapters.list_adapter import ListAdapter
+    from kivy.adapters.listadapter import ListAdapter
     from kivy.uix.listview import ListItemButton, ListView
 
     data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]
