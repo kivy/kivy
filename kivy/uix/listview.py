@@ -289,14 +289,14 @@ own template, mix it in as follows::
     from kivy.uix.listview import ListItemButton
     from kivy.uix.listview import SelectableView
 
-    Builder.load_string(<triplequotes>
+    Builder.load_string("""
     [CustomListItem@SelectableView+BoxLayout]:
         size_hint_y: ctx.size_hint_y
         height: ctx.height
         ListItemButton:
             text: ctx.text
             is_selected: ctx.is_selected
-    </triplequotes>)
+    """)
 
 A class called CustomListItem will be instantiated for each list item. Note
 that it is a layout, BoxLayout, and is thus a kind of container. It contains a
@@ -313,7 +313,7 @@ template. For example, to use the kv template above::
                                             'is_selected': rec['is_selected'],
                                             'size_hint_y': None,
                                             'height': 25}
-    integers_dict =
+    integers_dict = \
         { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
     dict_adapter = DictAdapter(sorted_keys=[str(i) for i in xrange(100)],
@@ -342,7 +342,7 @@ building complex composite list items. The kv language approach has its
 advantages, but here we build a composite list view using a straight Kivy
 widget method::
 
-    args_converter = lambda rec:
+    args_converter = lambda rec: \
             {'text': rec['text'],
              'size_hint_y': None,
              'height': 25,
@@ -356,7 +356,7 @@ widget method::
 
     item_strings = ["{0}".format(index) for index in xrange(100)]
 
-    integers_dict =
+    integers_dict = \
         { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
     dict_adapter = DictAdapter(sorted_keys=item_strings,
@@ -414,7 +414,7 @@ set to False for these listviews, a dynamic system of selection "cascading"
 from one list to the next, would result.
 
 There are so many ways that listviews and Kivy bindings functionality can be
-used, that we have only scratched the surface here. For on-disk examples, see:
+used, that we have only scratched the surface here. For on-disk examples, see::
 
     kivy/examples/widgets/lists/list_*.py
 
