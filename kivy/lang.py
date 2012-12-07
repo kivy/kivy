@@ -462,7 +462,10 @@ from kivy.logger import Logger
 from kivy.utils import OrderedDict, QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
-from kivy.lib.debug import make_traceback
+try:
+    from jinja2.debug import make_traceback
+except ImportError:
+    from kivy.lib.debug import make_traceback
 import kivy.metrics as metrics
 
 
