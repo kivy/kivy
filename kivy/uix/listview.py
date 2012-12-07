@@ -26,11 +26,11 @@ Introduction
 Lists are central parts of many software projects. Kivy's approach to lists
 includes providing solutions for simple lists, along with a substantial
 framework for building lists of moderate to advanced complexity. For the new
-user of the system, it can be difficult to ramp up from simple to complex. For
+user of the system, it can be difficult to ramp up from simple to advanced. For
 this reason, Kivy provides an extensive set of examples that you may wish to
 run first, to get a taste of the range of functionality offered. You can tell
 from the names of the examples that they illustrate the "ramping up" from
-simple to complex:
+simple to advanced:
 
     kivy/examples/widgets/lists/list_simple.py
     kivy/examples/widgets/lists/list_master_detail.py
@@ -377,7 +377,7 @@ Using CompositeListItem
 -----------------------
 
 The class :class:`~kivy.uix.listview.CompositeListItem` is another option for
-building complex composite list items. The kv language approach has its
+building advanced composite list items. The kv language approach has its
 advantages, but here we build a composite list view using a straight Kivy
 widget method::
 
@@ -729,10 +729,11 @@ class ListView(AbstractView, EventDispatcher):
 
     For a simple list of string items, without selection, use
     :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`. For list items
-    that respond to selection, ranging from simple items to complex composites,
-    use :class:`~kivy.adapters.listadapter.ListAdapter`.  For an alternate
-    powerful adapter, use :class:`~kivy.adapters.dictadapter.DictAdapter`,
-    rounding out the choice for designing highly interactive lists.
+    that respond to selection, ranging from simple items to advanced
+    composites, use :class:`~kivy.adapters.listadapter.ListAdapter`.  For an
+    alternate powerful adapter, use
+    :class:`~kivy.adapters.dictadapter.DictAdapter`, rounding out the choice
+    for designing highly interactive lists.
 
     :Events:
         `on_scroll_complete`: (boolean, )
