@@ -67,9 +67,9 @@ class MouseMotionEvent(MotionEvent):
         if de is not None:
             self.push()
             self.scale_for_screen(
-                    win.system_size[0],
-                    win.system_size[1],
-                    rotation=win.rotation)
+                win.system_size[0],
+                win.system_size[1],
+                rotation=win.rotation)
             de[1].pos = self.x - 10, self.y - 10
             self.pop()
 
@@ -192,7 +192,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         else:
             is_double_tap = 'shift' in modifiers
             do_graphics = (not self.disable_multitouch and button != 'left' or
-                ('ctrl' in modifiers))
+                           ('ctrl' in modifiers))
             cur = self.create_touch(rx, ry, is_double_tap, do_graphics, button)
             if 'alt' in modifiers:
                 self.alt_touch = cur

@@ -94,7 +94,7 @@ from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
 
 # When we are generating documentation, Config doesn't exist
 _scroll_moves = _scroll_timeout = _scroll_stoptime = \
-        _scroll_distance = _scroll_friction = 0
+    _scroll_distance = _scroll_friction = 0
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
     _scroll_stoptime = Config.getint('widgets', 'scroll_stoptime')
