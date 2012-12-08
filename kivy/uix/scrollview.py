@@ -362,6 +362,7 @@ class ScrollView(StencilView):
             if vp.width > self.width:
                 # let's say we want to move over 40 pixels each scroll
                 d = (vp.width - self.width)
+                sxd = None
                 if d != 0:
                     d = self.scroll_distance / float(d)
                 if touch.button == 'scrollright':
