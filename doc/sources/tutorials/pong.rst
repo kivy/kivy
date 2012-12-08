@@ -183,6 +183,14 @@ Ok, so we have a basic pong arena to play in, but we still need the players and
 a ball to pong around.  Let's start with the ball.  We'll add a new `PongBall`
 class to create a widget that will be our ball and make it bounce around.
 
+.. note:: 
+
+    We'll just look at the python class and kv rule for PongBall first.
+    To make it all usable, and add the ball to the arena, you'll also need to add
+    the proper imports and register the `PongBall` class with the widget factory
+    so you can add it as a childwidget in the `<PongGame>` rule. However, don't 
+    worry, the entire code is listed at the end of this step.
+
 PongBall class
 ~~~~~~~~~~~~~~
 
@@ -215,8 +223,12 @@ And here is the kv rule used to draw the ball as a white circle:
                 size: self.size
 
 To make it all work, you also have to add the imports for the
-:doc:`/api-kivy.properties` Property classes used and the
-:class:`~kivy.vector.Vector`.
+:doc:`/api-kivy.properties` Property classes used, the
+:class:`~kivy.vector.Vector`, and the :class:`~kivy.factory.Factory` singleton.
+The factory is used to register your custom classes, so that Kivy knows what
+class to instantiate when you use e.g. a custom classname inside a kv rule.
+Once that's done, you can add a ``PongBall`` to the ``<PongGame>`` class, just
+like we added the Labels before.
 
 Here is the entire updated python code and kv file for this step:
 

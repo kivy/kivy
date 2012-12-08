@@ -2,7 +2,7 @@ from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ReferenceListProperty
 from kivy.vector import Vector
-
+from kivy.factory import Factory
 
 class PongBall(Widget):
     velocity_x = NumericProperty(0)
@@ -22,5 +22,6 @@ class PongApp(App):
         return PongGame()
 
 
+Factory.register("PongBall", PongBall)
 if __name__ == '__main__':
     PongApp().run()

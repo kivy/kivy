@@ -3,6 +3,7 @@ from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ReferenceListProperty,\
     ObjectProperty
 from kivy.vector import Vector
+from kivy.factory import Factory
 from kivy.clock import Clock
 from random import randint
 
@@ -43,5 +44,6 @@ class PongApp(App):
         return game
 
 
+Factory.register("PongBall", PongBall)
 if __name__ == '__main__':
     PongApp().run()
