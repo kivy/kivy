@@ -362,17 +362,19 @@ class ScrollView(StencilView):
             if vp.width > self.width:
                 # let's say we want to move over 40 pixels each scroll
                 d = (vp.width - self.width)
+                sxd = None
                 if d != 0:
                     d = self.scroll_distance / float(d)
                 if touch.button == 'scrollright':
                     sxd = self._scroll_x_mouse - d
                 elif touch.button == 'scrollleft':
                     sxd = self._scroll_x_mouse + d
-                self._scroll_x_mouse = scroll_x = min(max(sxd, 0), 1)
-                Animation.stop_all(self, 'scroll_x')
-                Animation(scroll_x=scroll_x, d=.3, t='out_quart').start(self)
-                Clock.unschedule(self._update_animation)
-                return True
+                if sxd is not None:
+                    self._scroll_x_mouse = scroll_x = min(max(sxd, 0), 1)
+                    Animation.stop_all(self, 'scroll_x')
+                    Animation(scroll_x=scroll_x, d=.3, t='out_quart').start(self)
+                    Clock.unschedule(self._update_animation)
+                    return True
 
         self._touch = touch
         uid = self._get_uid()
