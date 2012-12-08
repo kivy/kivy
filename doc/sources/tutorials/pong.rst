@@ -33,7 +33,7 @@ concepts (:doc:`/guide/firstwidget`) and basic concepts of the kv language
 (:doc:`/guide/kvlang`, :doc:`/guide/designwithkv`), you can probably skip the first 2
 steps and go straight to step 3.
 
-.. note:: 
+.. note::
 
     You can find the entire source code, and source code files for each step in
     the Kivy examples directory under `tutorials/pong/`
@@ -91,10 +91,10 @@ zeros where the player scores will be displayed.
     references to the our PongGame class, these properties will automatically
     update when the corresponding widget properties change.  Using the Kv
     language gives you automatic property binding. :)
- 
 
-Explaning Kv file syntax
-~~~~~~~~~~~~~~~~~~~~~~~~
+
+Explaining Kv file syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before going on to the next step, you might want to take a closer look at
 the contents of the kv file we just created and figure out what is going on.
@@ -104,7 +104,7 @@ Step.
 On the very first line we have::
 
     #:kivy 1.0.9
-    
+
 This first line is required in every kv file. It should start with ``#:kivy``
 followed by a space and the Kivy version it is intended for (So Kivy can make
 sure, you have at least the required version, or handle backwards compatibility
@@ -114,9 +114,9 @@ After that, we define one rule that is applied to any PongGame instance::
 
     <PongGame>:
         ...
-    
+
 Like python, kv files use indentation to define nested blocks. A block defined
-with a class name inside the ``<`` and ``>`` charachters is a
+with a class name inside the ``<`` and ``>`` characters is a
 :class:`~kivy.uix.widget.Widget` rule, it will be applied to any instance of
 the named class. If you replaced ``PongGame`` with Widget in our example, all
 Widget instances would have the vertical line and the two Label widgets inside
@@ -137,7 +137,7 @@ The first block inside the ``<PongGame>`` rule we have is a canvas block:
             Rectangle:
                 pos: self.center_x - 5, 0
                 size: 10, self.height
-                
+
 So this canvas block says that the ``PongGame`` widget itself should draw some
 graphics primitives.  In this case, we add a Rectangle to the canvas. We set
 the pos of the rectangle to be 5 pixels left of the horizontal center of
@@ -147,7 +147,7 @@ graphics like this, is that the rendered rectangle will be automatically
 updated when the properties of any widgets used in the value expression change.
 
 The last two section we add, look pretty similar. Each of them adds a Label
-widget as a childwidget to the ``PongGame`` widget itself. For now the text on
+widget as a child widget to the ``PongGame`` widget itself. For now the text on
 both of them is just set to *"0"*, we'll have to hook that up to the actual
 score once we have the logic for that implemented.  But the labels already
 look good, since we set a bigger font_size, and positioned them relatively
@@ -159,19 +159,19 @@ case):
 
     <PongGame>:
         # ...
-        
+
         Label:
-            font_size: 70  
+            font_size: 70
             center_x: root.width / 4
             top: root.top - 50
             text: "0"
-            
+
         Label:
-            font_size: 70  
+            font_size: 70
             center_x: root.width * 3 / 4
             top: root.top - 50
             text: "0"
-    
+
 Add the ball
 ------------
 
@@ -183,54 +183,40 @@ Ok, so we have a basic pong arena to play in, but we still need the players and
 a ball to pong around.  Let's start with the ball.  We'll add a new `PongBall`
 class to create a widget that will be our ball and make it bounce around.
 
-.. note:: 
-
-    We'll just look at the python class and kv rule for PongBall first.
-    To make it all usable, and add the ball to the arena, you'll also need to add
-    the proper imports and register the `PongBall` class with the widget factory
-    so you can add it as a childwidget in the `<PongGame>` rule. However, don't 
-    worry, the entire code is listed at the end of this step.
-
 PongBall class
 ~~~~~~~~~~~~~~
 
 Here is the python code for the PongBall class::
-    
+
     class PongBall(Widget):
 
         # velocity of the ball on x and y axis
         velocity_x = NumericProperty(0)
         velocity_y = NumericProperty(0)
-        
-        # referencelist property so we can use ball.velocity as 
+
+        # referencelist property so we can use ball.velocity as
         # a shorthand..just like e.g. w.pos for w.x and w.y
         velocity = ReferenceListProperty(velocity_x, velocity_y)
-        
+
         # ``move`` function will move the ball one step. This
         #  will be called in equal intervals to animate the ball
         def move(self):
-            self.pos = Vector(*self.velocity) + self.pos  
-            
-            
+            self.pos = Vector(*self.velocity) + self.pos
+
 And here is the kv rule used to draw the ball as a white circle:
 
 .. code-block:: kv
 
     <PongBall>:
-        size: 50, 50 
+        size: 50, 50
         canvas:
             Ellipse:
                 pos: self.pos
-                size: self.size      
-        
-        
+                size: self.size
+
 To make it all work, you also have to add the imports for the
-:doc:`/api-kivy.properties` Property classes used, the
-:class:`~kivy.vector.Vector`, and the :class:`~kivy.factory.Factory` singleton.
-The factory is used to register your custom classes, so that Kivy knows what
-class to instantiate when you use e.g. a custom classname inside a kv rule.
-Once that's done, you can add a ``PongBall`` to the ``<PongGame>`` class, just
-like we added the Labels before.
+:doc:`/api-kivy.properties` Property classes used and the
+:class:`~kivy.vector.Vector`.
 
 Here is the entire updated python code and kv file for this step:
 
@@ -262,7 +248,7 @@ makes this pretty easy, by letting us schedule any function we want on the
 :class:`~kivy.clock.Clock` and specify the interval::
 
     Clock.schedule_interval(game.update, 1.0/60.0)
-    
+
 That line for example, would cause the ``update`` function of the game object to
 be called once every 60th of a second (60 times per second).
 
@@ -283,17 +269,17 @@ we have a reference to the game object already, we can easily schedule its new
 
     class PongGame(Widget):
 
-        def update(self):
+        def update(self, dt):
             # call ball.move and other stuff
             pass
-            
+
     class PongApp(App):
 
         def build(self):
             game = PongGame()
             Clock.schedule_interval(game.update, 1.0/60.0)
             return game
-            
+
 
 However that still doesn't help the fact that we don't have a reference to the
 ``PongBall`` child widget created by the kv rule.  To fix this, we can add an
@@ -303,18 +289,18 @@ inside the ``update`` method and even make it bounce of the edges::
 
     class PongGame(Widget):
         ball = ObjectProperty(None)
-        
-        def update(self):
+
+        def update(self, dt):
             self.ball.move()
-            
+
             # bounce off top and bottom
             if (self.ball.y < 0) or (self.ball.top > self.height):
                 self.ball.velocity_y *= -1
-        
+
             # bounce off left and right
             if (self.ball.x < 0) or (self.ball.right > self.width):
                 self.ball.velocity_x *= -1
-                
+
 Don't forget to hook it up in the kv file, by giving the child widget an id
 and setting the games property to that id:
 
@@ -322,24 +308,24 @@ and setting the games property to that id:
 
     <PongGame>:
         ball: pong_ball
-    
+
         # ... (canvas and Labels)
-        
+
         PongBall:
             id: pong_ball
             center: self.parent.center
-    
-                
-.. note:: 
 
-    At this point everything is hooked up for the ball to bounce around.  If 
-    your coding along as we go, you might be wondering why the ball isn't 
+
+.. note::
+
+    At this point everything is hooked up for the ball to bounce around.  If
+    your coding along as we go, you might be wondering why the ball isn't
     moving anywhere.  The ball's velocity is set to 0 on both x and y.
-    In code listing below for the entire source a ``serve_ball`` method is 
+    In code listing below for the entire source a ``serve_ball`` method is
     added to the ``PongGame`` class and called in the apps ``build`` method.  It sets a
     random x and y velocity for the ball, and also resets the position, so we
     can use it later to reset the ball when a player has scored a point.
-    
+
 Here is the entire code for this step:
 
     main.py:
@@ -365,7 +351,7 @@ already covered in the previous steps.  Instead lets focus on how to move the
 Player widgets in response to user input.  You can get the whole code and kv
 rules for the ``PongPaddle`` class at the end of this section.
 
-In Kivy, a widget can react to input by implemeting the ``on_touch_down``,
+In Kivy, a widget can react to input by implementing the ``on_touch_down``,
 ``on_touch_move`` and ``on_touch_up`` methods. By default, the Widget class
 implements these methods by just calling the corresponding method on all it's
 child widgets to pass on the event until one of the children returns True.
@@ -374,7 +360,7 @@ Pong is pretty simple, the rackets just need to move up and down. In fact it's
 so simple, we don't even really need to have the player widgets handle the
 events themselves.  We'll just implement the ``on_touch_move`` function for the
 ``PongGame`` class and have it set the position of the left or right player based
-on whether the touch occured on the left or right side of the screen.
+on whether the touch occurred on the left or right side of the screen.
 
 Check the ``on_touch_move`` handler::
 
@@ -383,12 +369,12 @@ Check the ``on_touch_move`` handler::
             self.player1.center_y = touch.y
         if touch.x > self.width - self.width/3:
             self.player2.center_y = touch.y
-            
+
 We'll keep the score for each player in a
 :class:`~kivy.properties.NumericProperty`. The score labels of the ``PongGame``
 are kept updated by changing the static string we had in the kv file before to
 the score property of our new ``PongPaddle`` child widgets.  When the ball
-get's out of bounce on of the sides, we'll update the score and serve the ball
+gets out of bounce on of the sides, we'll update the score and serve the ball
 again by changing the ``update`` method in the ``PongGame`` class.  The player
 class also implements a ``bounce_ball method``, so that the ball bounces
 differently based on where on the racket it hits. Here is the code for the
@@ -397,12 +383,12 @@ differently based on where on the racket it hits. Here is the code for the
     class PongPaddle(Widget):
 
         score = NumericProperty(0)
-        
+
         def bounce_ball(self, ball):
             if self.collide_widget(ball):
                 speedup  = 1.1
                 offset = 0.02 * Vector(0, ball.center_y-self.center_y)
-                ball.velocity =  speedup * (offset - ball.velocity)            
+                ball.velocity =  speedup * (offset - ball.velocity)
 
 
 And here it is in context. Pretty much done:
@@ -425,7 +411,7 @@ Where to go now?
     Have some fun
 
 Well, the pong game is pretty much complete.  If you understood all of the
-things that are covered in this turoial, give yourself a pat on the back and
+things that are covered in this tutorial, give yourself a pat on the back and
 think about how you could improve the game.  Here are a few ideas of things
 you could do:
 
@@ -443,7 +429,10 @@ you could do:
   wouldn't it be cool to have a player on each side and play four people at
   the same time?
 
-.. note:: 
+* Fix the simplistic collision check so hitting the ball with an end of
+  the pad makes a correct bounce.
+
+.. note::
 
     You can find the entire source code, and source code files for each step in
     the Kivy examples directory under tutorials/pong/
