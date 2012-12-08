@@ -207,7 +207,8 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.current_drag = None
 
         cur = self.current_drag
-        if (button in ('left', 'scrollup', 'scrolldown') or
+        if (button in ('left', 'scrollup', 'scrolldown', 'scrollleft',
+                       'scrollright') or
                 self.disable_multitouch) and cur and not ('ctrl' in modifiers):
             self.remove_touch(cur)
             self.current_drag = None
