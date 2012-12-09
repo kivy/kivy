@@ -15,6 +15,21 @@ FileChooser
     You must update all the notation `root.controller.xxx` to
     `root.controller().xxx`.
 
+Simple example
+--------------
+
+main.py
+
+.. include:: ../../examples/RST_Editor/main.py
+    :literal:
+
+editor.kv
+
+.. highlight:: kv
+
+.. include:: ../../examples/RST_Editor/editor.kv
+    :literal:
+
 '''
 
 __all__ = ('FileChooserListView', 'FileChooserIconView',
