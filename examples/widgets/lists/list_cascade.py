@@ -97,9 +97,9 @@ class CascadingView(GridLayout):
         super(CascadingView, self).__init__(**kwargs)
 
         list_item_args_converter = \
-                lambda selectable: {'text': selectable.name,
-                                    'size_hint_y': None,
-                                    'height': 25}
+                lambda row_index, selectable: {'text': selectable.name,
+                                               'size_hint_y': None,
+                                               'height': 25}
 
         # Add a fruit categories list on the left. We use ListAdapter, for
         # which we set the data argument to the list of CategoryItem

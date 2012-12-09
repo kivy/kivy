@@ -170,9 +170,10 @@ class OpsView(BoxLayout):
         #
         grid_layout = GridLayout(cols=7)
 
-        list_item_args_converter = lambda rec: {'text': rec['text'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['text'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         letters = [l for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
 

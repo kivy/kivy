@@ -63,7 +63,7 @@ class SimpleListAdapter(Adapter):
         if item is None:
             return None
 
-        item_args = self.args_converter(item)
+        item_args = self.args_converter(index, item)
 
         if self.cls:
             instance = self.cls(**item_args)
