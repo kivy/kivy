@@ -963,7 +963,7 @@ cdef class Line(VertexInstruction):
         self._points = points
 
     property rectangle:
-        '''Use this property to build a rectangle, without calculate the
+        '''Use this property to build a rectangle, without calculating the
         :data:`points`. You can only set this property, not get it.
 
         The argument must be a tuple of (x, y, width, height)
@@ -1011,28 +1011,26 @@ cdef class Line(VertexInstruction):
         self._close = 1
 
     property bezier:
-        '''Use this property to build a rectangle, without calculate the
+        '''Use this property to build a bezier line, without calculating the
         :data:`points`. You can only set this property, not get it.
 
-        The argument must be a tuple of (x, y, width, height)
-        angle_end, segments):
-
-        * x and y represent the bottom-left position of the rectangle
-        * width and height represent the size
-
-        The line is automatically closed.
+        The argument must be a tuple of 2n elements, n being the number of points.
 
         Usage::
 
-            Line(rectangle=(0, 0, 200, 200))
+            Line(bezier=(x1, y1, x2, y2, x3, y3)
 
         .. versionadded:: 1.4.2
+
+        .. note:: Bezier lines calculations are inexpensive for a low number of
+            points, but complexity is quadratic, so lines with a lot of points
+            can be very expensive to build, use with care!
         '''
 
         def __set__(self, args):
-            if args == None:
+            if args == None or len(args) % 2:
                 raise GraphicException(
-                        'Invalid rectangle value: {0!r}'.format(args))
+                        'Invalid bezier value: {0!r}'.format(args))
             self._mode_args = tuple(args)
             self._mode = LINE_MODE_BEZIER
             self.flag_update()
@@ -1049,7 +1047,7 @@ cdef class Line(VertexInstruction):
             # as the list is in the form of (x1, y1, x2, y2...) iteration is
             # done on each item and the current item (xn or yn) in the list is
             # replaced with a calculation of "xn + x(n+1) - xn" x(n+1) is
-            # placed at n+2. each iteration makes the list one item shorter
+            # placed at n+2. Each iteration makes the list one item shorter
             for i in range(1, len(T)):
                 for j in xrange(len(T) - 2*i):
                     T[j] = T[j] + (T[j+2] - T[j]) * l
