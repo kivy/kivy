@@ -106,12 +106,11 @@ here are synopses of its arguments:
 
     Pick only one, cls or template, to provide as an argument.
 
-* *args_converter*: a function that takes a data item object as input, and
-  uses it to build and return an args dict, ready
-  to be used in a call to instantiate the item view cls or
-  template. In the case of cls, the args dict acts as a
-  kwargs object. For a template, it is treated as a context
-  (ctx), but is essentially similar in form to kwargs usage.
+* *args_converter*: a function that takes a row_index and data item object as
+  input, and and returns an args dict, ready to be used in a call to
+  instantiate the item view cls or template. In the case of cls, the args dict
+  acts as a kwargs object. For a template, it is treated as a context (ctx),
+  but is essentially similar in form to kwargs usage.
 
 * *selection_mode*: a string for: 'single', 'multiple' or others (See docs).
 
@@ -185,7 +184,8 @@ are dicts::
                                              'height': 25}
 
 So, it is the responsibility of the developer to code the args_converter
-according to the data at hand.
+according to the data at hand. The row_index argument can be useful in some
+cases, such as when custome labels are needed.
 
 An Example ListView
 -------------------
