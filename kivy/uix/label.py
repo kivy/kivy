@@ -394,7 +394,7 @@ class Label(Widget):
             # l.texture is good
             l.font_size = '50sp'
             # l.texture is not updated yet
-            l.update_texture()
+            l.texture_update()
             # l.texture is good now.
 
     :data:`texture` is a :class:`~kivy.properties.ObjectProperty`, default to
