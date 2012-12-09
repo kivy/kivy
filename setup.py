@@ -378,10 +378,6 @@ def get_extensions_from_sources(sources):
         else:
             depends = flags.pop('depends', [])
         module_name = get_modulename_from_file(pyx)
-        if have_cython:
-            depends = flags.pop('depends', [])
-        else:
-            depends = []
         flags_clean = {}
         for key, value in flags.iteritems():
             if len(value):
