@@ -200,16 +200,16 @@ Here is an args_converter for use with the built-in
 :class:`~kivy.uix.listview.ListItemButton`, specified as a normal Python
 function::
 
-    def args_converter(an_obj):
+    def args_converter(row_index, an_obj):
         return {'text': an_obj.text,
                 'size_hint_y': None,
                 'height': 25}
 
 and as a lambda:
 
-    args_converter = lambda an_obj: {'text': an_obj.text,
-                                     'size_hint_y': None,
-                                     'height': 25}
+    args_converter = lambda row_index, an_obj: {'text': an_obj.text,
+                                                'size_hint_y': None,
+                                                'height': 25}
 
 In the args converter example above, the data item is assumed to be an object
 (class instance), hence the reference an_obj.text.
@@ -217,12 +217,13 @@ In the args converter example above, the data item is assumed to be an object
 Here is an example of an args converter that works with list data items that
 are dicts::
 
-    args_converter = lambda obj: {'text': a_dict['text'],
-                                  'size_hint_y': None,
-                                  'height': 25}
+    args_converter = lambda row_index, obj: {'text': a_dict['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
 So, it is the responsibility of the developer to code the args_converter
-according to the data at hand.
+according to the data at hand. The row_index argument can be useful in some
+cases, such as when custome labels are needed.
 
 An Example ListView
 -------------------
@@ -234,9 +235,9 @@ Now, to some example code::
 
     data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]
 
-    args_converter = lambda rec: {'text': rec['text'],
-                                  'size_hint_y': None,
-                                  'height': 25}
+    args_converter = lambda row_index, rec: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
     list_adapter = ListAdapter(data=data,
                                args_converter=args_converter,
@@ -278,9 +279,9 @@ is_selected properties::
     data_items.append(DataItem(text='dog'))
     data_items.append(DataItem(text='frog'))
 
-    list_item_args_converter = lambda obj: {'text': obj.text,
-                                            'size_hint_y': None,
-                                            'height': 25}
+    list_item_args_converter = lambda row_index, obj: {'text': obj.text,
+                                                       'size_hint_y': None,
+                                                       'height': 25}
 
     list_adapter = ListAdapter(data=data_items,
                                args_converter=list_item_args_converter,
@@ -348,10 +349,11 @@ custom class you have defined and registered with the system.
 An args_converter needs to be constructed that goes along with such a kv
 template. For example, to use the kv template above::
 
-    list_item_args_converter = lambda rec: {'text': rec['text'],
-                                            'is_selected': rec['is_selected'],
-                                            'size_hint_y': None,
-                                            'height': 25}
+    list_item_args_converter = \
+            lambda row_index, rec: {'text': rec['text'],
+                                    'is_selected': rec['is_selected'],
+                                    'size_hint_y': None,
+                                    'height': 25}
     integers_dict = \
         { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
@@ -381,7 +383,7 @@ building advanced composite list items. The kv language approach has its
 advantages, but here we build a composite list view using a straight Kivy
 widget method::
 
-    args_converter = lambda rec: \
+    args_converter = lambda row_index, rec: \
             {'text': rec['text'],
              'size_hint_y': None,
              'height': 25,
