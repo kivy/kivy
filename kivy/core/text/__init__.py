@@ -204,9 +204,11 @@ class LabelBase(object):
         else:
             width = int(self.text_size[0])
 
-        letters = text + '...'
-        letter_width = textwidth(letters) // len(letters)
-        max_letters = width // letter_width
+        letters = ' ... ' + text
+        while textwidth(letters) > width:
+            letters = letters[: letters.rfind(' ')]
+
+        max_letters = len(letters) - 2
         segment = (max_letters // 2)
 
         if segment - margin > 5:
@@ -279,7 +281,9 @@ class LabelBase(object):
 
             # Shorten the text that we actually display
             text = self.text
-            if options['shorten'] and get_extents(text)[0] > uw:
+            last_word_width = get_extents(text[text.rstrip().rfind(' '):])[0]
+            if (options['shorten'] and get_extents(text)[0] >
+                uw - last_word_width):
                 text = self.shorten(text)
 
             # first, split lines
