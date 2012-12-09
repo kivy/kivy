@@ -148,6 +148,7 @@ def merge(d1, *args):
     d1 = deepcopy(d1)
     for d2 in args:
         for key, value in d2.iteritems():
+            value = deepcopy(value)
             if key in d1:
                 d1[key].extend(value)
             else:
@@ -249,6 +250,14 @@ sources = {
     'graphics/vertex_instructions.pyx': merge(
             base_flags, gl_flags, graphics_flags)}
 
+if 'WITH_X11' in environ:
+    sources['core/window/window_x11.pyx'] = merge(
+        base_flags, gl_flags, graphics_flags, {
+            'depends': [join(dirname(__file__),
+                'kivy/core/window/window_x11_core.c')],
+            'libraries': ['Xrender', 'X11', 'm']
+        })
+
 
 # -----------------------------------------------------------------------------
 # extension modules
@@ -299,8 +308,9 @@ setup(
     author_email='kivy-dev@googlegroups.com',
     url='http://kivy.org/',
     license='LGPL',
-    description='A software library for rapid development of ' +
-                'hardware-accelerated multitouch applications.',
+    description=(
+        'A software library for rapid development of '
+        'hardware-accelerated multitouch applications.'),
     ext_modules=ext_modules,
     cmdclass=cmdclass,
     packages=[
