@@ -986,4 +986,5 @@ class WindowBase(EventDispatcher):
 Window = core_select_lib('window', (
     ('pygame', 'window_pygame', 'WindowPygame'),
     ('sdl', 'window_sdl', 'WindowSDL'),
+    ('x11', 'window_x11', 'WindowX11'),
 ), True)

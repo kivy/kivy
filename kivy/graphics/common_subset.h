@@ -279,7 +279,8 @@ typedef khronos_ssize_t  GLsizeiptr;
 #define GL_RGBA4                          0x8056
 #define GL_RGB5_A1                        0x8057
 #define GL_DEPTH_COMPONENT16              0x81A5
-#define GL_STENCIL_INDEX                  0x1901
+// not anymore in GLES 2.0?
+//#define GL_STENCIL_INDEX                  0x1901
 #define GL_NONE                           0
 GL_APICALL void         GL_APIENTRY glActiveTexture (GLenum texture);
 GL_APICALL void         GL_APIENTRY glAttachShader (GLuint program, GLuint shader);

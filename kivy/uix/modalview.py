@@ -8,8 +8,9 @@ The :class:`ModalView` widget is used to create modal views. By default, the
 view will cover the whole "parent" window.
 
 Remember that the default size of a Widget is size_hint=(1, 1). If you don't
-want your view to be fullscreen, deactivate the size_hint and use a specific
-size attribute.
+want your view to be fullscreen, either use lower than 1 size hints (for
+instance size_hint=(.8, .8)) or deactivate the size_hint and use fixed size
+attributes.
 
 Examples
 --------

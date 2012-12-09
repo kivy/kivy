@@ -16,7 +16,6 @@ from kivy import kivy_home_dir
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
-from kivy.clock import Clock
 from kivy.utils import platform
 
 try:
@@ -66,7 +65,6 @@ class WindowPygame(WindowBase):
                 multisamples)
         pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 16)
         pygame.display.gl_set_attribute(pygame.GL_STENCIL_SIZE, 1)
-        pygame.display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
         pygame.display.set_caption(self.title)
 
         if self.position == 'auto':
@@ -86,7 +84,7 @@ class WindowPygame(WindowBase):
                 self._pos = (0, 0)
             environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
-        elif self.fullscreen is True:
+        elif self.fullscreen in ('auto', True):
             Logger.debug('WinPygame: Set window to fullscreen mode')
             self.flags |= pygame.FULLSCREEN
 
@@ -135,6 +133,25 @@ class WindowPygame(WindowBase):
         self._size = (info.current_w, info.current_h)
         #self.dispatch('on_resize', *self._size)
 
+        # in order to debug futur issue with pygame/display, let's show
+        # more debug output.
+        Logger.debug('Window: Display driver ' + pygame.display.get_driver())
+        Logger.debug('Window: Actual window size: %dx%d',
+                info.current_w, info.current_h)
+        if platform() != 'android':
+            # unsupported platform, such as android that doesn't support
+            # gl_get_attribute.
+            Logger.debug('Window: Actual color bits r%d g%d b%d a%d',
+                    pygame.display.gl_get_attribute(pygame.GL_RED_SIZE),
+                    pygame.display.gl_get_attribute(pygame.GL_GREEN_SIZE),
+                    pygame.display.gl_get_attribute(pygame.GL_BLUE_SIZE),
+                    pygame.display.gl_get_attribute(pygame.GL_ALPHA_SIZE))
+            Logger.debug('Window: Actual depth bits: %d',
+                    pygame.display.gl_get_attribute(pygame.GL_DEPTH_SIZE))
+            Logger.debug('Window: Actual stencil bits: %d',
+                    pygame.display.gl_get_attribute(pygame.GL_STENCIL_SIZE))
+            Logger.debug('Window: Actual multisampling samples: %d',
+                    pygame.display.gl_get_attribute(pygame.GL_MULTISAMPLESAMPLES))
         super(WindowPygame, self).create_window()
 
         # set mouse visibility
@@ -245,6 +262,10 @@ class WindowPygame(WindowBase):
                     btn = 'scrolldown'
                 elif event.button == 5:
                     btn = 'scrollup'
+                elif event.button == 6:
+                    btn = 'scrollright'
+                elif event.button == 7:
+                    btn = 'scrollleft'
                 eventname = 'on_mouse_down'
                 if event.type == pygame.MOUSEBUTTONUP:
                     eventname = 'on_mouse_up'

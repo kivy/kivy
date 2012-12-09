@@ -15,10 +15,25 @@ FileChooser
     You must update all the notation `root.controller.xxx` to
     `root.controller().xxx`.
 
+Simple example
+--------------
+
+main.py
+
+.. include:: ../../examples/RST_Editor/main.py
+    :literal:
+
+editor.kv
+
+.. highlight:: kv
+
+.. include:: ../../examples/RST_Editor/editor.kv
+    :literal:
+
 '''
 
 __all__ = ('FileChooserListView', 'FileChooserIconView',
-    'FileChooserController', 'FileChooserProgressBase')
+           'FileChooserController', 'FileChooserProgressBase')
 
 from weakref import ref
 from time import time
@@ -27,11 +42,13 @@ from kivy.lang import Builder
 from kivy.logger import Logger
 from kivy.utils import platform as core_platform
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import StringProperty, ListProperty, BooleanProperty, \
-                            ObjectProperty, NumericProperty
+from kivy.properties import (
+    StringProperty, ListProperty, BooleanProperty, ObjectProperty,
+    NumericProperty)
 from os import listdir
-from os.path import basename, getsize, isdir, join, sep, normpath, \
-                    expanduser, altsep, splitdrive, realpath
+from os.path import (
+    basename, getsize, isdir, join, sep, normpath, expanduser, altsep,
+    splitdrive, realpath)
 from fnmatch import fnmatch
 
 platform = core_platform()
@@ -70,8 +87,8 @@ def is_hidden_win(fn):
 
 
 def alphanumeric_folders_first(files):
-    return sorted(f for f in files if isdir(f)) + \
-           sorted(f for f in files if not isdir(f))
+    return (sorted(f for f in files if isdir(f)) +
+            sorted(f for f in files if not isdir(f)))
 
 
 class ForceUnicodeError(Exception):
@@ -237,7 +254,7 @@ class FileChooserController(FloatLayout):
     '''
 
     progress_cls = ObjectProperty(FileChooserProgress)
-    '''Class to use for displaying a progress indicator for filechooser loading.
+    '''Class to use for displaying a progress indicator for filechooser loading
 
     .. versionadded:: 1.2.0
 
@@ -277,7 +294,7 @@ class FileChooserController(FloatLayout):
             self.is_hidden = is_hidden_win
         else:
             raise NotImplementedError('Only available for Linux, OSX and Win'
-                    ' (platform is %r)' % platform)
+                                      ' (platform is %r)' % platform)
 
         self._previous_path = [self.path]
         self.bind(path=self._save_previous_path)
@@ -322,8 +339,10 @@ class FileChooserController(FloatLayout):
         '''(internal) This method must be called by the template when an entry
         is touched by the user.
         '''
-        if 'button' in touch.profile and touch.button in (
-            'scrollup', 'scrolldown'):
+        if (
+            'button' in touch.profile and touch.button in (
+                'scrollup', 'scrolldown')
+        ):
             return False
         if self.multiselect:
             if isdir(entry.path) and touch.is_double_tap:
@@ -346,8 +365,10 @@ class FileChooserController(FloatLayout):
 
         .. versionadded:: 1.1.0
         '''
-        if 'button' in touch.profile and touch.button in (
-            'scrollup', 'scrolldown'):
+        if (
+            'button' in touch.profile and touch.button in (
+            'scrollup', 'scrolldown')
+        ):
             return False
         if not self.multiselect:
             if isdir(entry.path) and not self.dirselect:
@@ -527,9 +548,9 @@ class FileChooserController(FloatLayout):
         # generate an entries to go back to previous
         if not is_root and not have_parent:
             back = '..' + sep
-            pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(name=back,
-                size='', path=back, controller=ref(self), isdir=True,
-                parent=None, sep=sep, get_nice_size=lambda: ''))
+            pardir = Builder.template(self._ENTRY_TEMPLATE, **dict(
+                name=back, size='', path=back, controller=ref(self),
+                isdir=True, parent=None, sep=sep, get_nice_size=lambda: ''))
             yield 0, 1, pardir
 
         # generate all the entries for files
@@ -541,8 +562,8 @@ class FileChooserController(FloatLayout):
 
     def _add_files(self, path, parent=None):
         force_unicode = self._force_unicode
-        # Make sure we're using unicode in case of non-ascii chars in filenames.
-        # listdir() returns unicode if you pass it unicode.
+        # Make sure we're using unicode in case of non-ascii chars in
+        # filenames.  listdir() returns unicode if you pass it unicode.
         try:
             path = expanduser(path)
             path = force_unicode(path)
@@ -622,14 +643,21 @@ class FileChooserIconView(FileChooserController):
 
 if __name__ == '__main__':
     from kivy.app import App
+    from pprint import pprint
     import sys
 
     class FileChooserApp(App):
 
         def build(self):
             view = FileChooserListView
+
             if len(sys.argv) > 1:
-                return view(path=sys.argv[1])
-            return view()
+                v = view(path=sys.argv[1])
+            else:
+                v = view()
+
+            v.bind(selection=lambda *x: pprint("selection: %s" % x[1:]))
+            v.bind(path=lambda *x: pprint("path: %s" % x[1:]))
+            return v
 
     FileChooserApp().run()

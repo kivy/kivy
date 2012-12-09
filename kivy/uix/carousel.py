@@ -29,6 +29,12 @@ Example::
     :class:`~kivy.uix.scrollview.ScrollView`. It will detect a swipe gesture
     according to :data:`Carousel.scroll_timeout` and
     :data:`Carousel.scroll_distance`.
+
+    In addition, the container used for adding slide is now hidden in the API.
+    We made a mistake by exposing it to the user. The impacted properties are:
+    :data:`Carousel.slides`, :data:`Carousel.current_slide`,
+    :data:`Carousel.previous_slide`, :data:`Carousel.next_slide`.
+
 '''
 
 __all__ = ('Carousel', )
@@ -51,9 +57,14 @@ class Carousel(StencilView):
     '''List of slides inside the carousel. The slides are added when a widget is
     added to Carousel using add_widget().
 
-    :data:`slides` is a list of :class:`~kivy.ui.relativelayout.RelativeLayout`
-    widgets containing the content added through add_widget.
+    :data:`slides` is a :class:`~kivy.properties.ListProperty`, read-only.
     '''
+
+    def _get_slides_container(self):
+        return [x.parent.parent for x in self.slides]
+
+    slides_container = AliasProperty(_get_slides_container, None,
+            bind=('slides', ))
 
     direction = OptionProperty('right',
             options=('right', 'left', 'top', 'bottom'))
@@ -140,6 +151,11 @@ class Carousel(StencilView):
     the previous slide towards the bottom.
 
     :data:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
+
+    .. versionchanged:: 1.5.0
+
+        The property doesn't expose the container used for storing the slide.
+        It will now return the real widget you added.
     '''
 
     def _curr_slide(self):
@@ -147,10 +163,13 @@ class Carousel(StencilView):
             return self.slides[self.index]
     current_slide = AliasProperty(_curr_slide, None, bind=('slides', 'index'))
     '''The currently shown slide.
-    Slidesare a :class:`~kivy.uix.relativelayout.Relativelayout` which
-    contains the widget added to the carousel.
 
-    :data:`current_slide` is a :class:`~kivy.properties.AliasProperty`.
+    :data:`current_slide` is an :class:`~kivy.properties.AliasProperty`.
+
+    .. versionchanged:: 1.5.0
+
+        The property doesn't expose the container used for storing the slide.
+        It will now return the real widget you added.
     '''
 
     def _next_slide(self):
@@ -172,6 +191,11 @@ class Carousel(StencilView):
     the previous slide is towards the top.
 
     :data:`previous_slide` is a :class:`~kivy.properties.AliasProperty`.
+
+    .. versionchanged:: 1.5.0
+
+        The property doesn't expose the container used for storing the slide.
+        It will now return the real widget you added.
     '''
 
     scroll_timeout = NumericProperty(200)
@@ -206,12 +230,25 @@ class Carousel(StencilView):
     _offset = NumericProperty(0)
     _touch = ObjectProperty(None, allownone=True)
 
+    def get_slide_container(self, slide):
+        return slide.parent.parent
+
     def _insert_visible_slides(self):
-        self._prev = self.previous_slide
-        self._current = self.current_slide
-        self._next = self.next_slide
-        for slide in self.slides:
-            super(Carousel, self).remove_widget(slide)
+        get_slide_container = self.get_slide_container
+        if self.previous_slide:
+            self._prev = get_slide_container(self.previous_slide)
+        else:
+            self._prev = None
+        if self.current_slide:
+            self._current = get_slide_container(self.current_slide)
+        else:
+            self._current = None
+        if self.next_slide:
+            self._next = get_slide_container(self.next_slide)
+        else:
+            self._next = None
+        for container in self.slides_container:
+            super(Carousel, self).remove_widget(container)
         if self._prev:
             super(Carousel, self).add_widget(self._prev)
         if self._next:
@@ -242,7 +279,7 @@ class Carousel(StencilView):
                 self._next.pos = (self.x, y_next[self.direction])
 
     def on_size(self, *args):
-        for slide in self.slides:
+        for slide in self.slides_container:
             slide.size = self.size
         self._position_visible_slides()
 
@@ -252,7 +289,8 @@ class Carousel(StencilView):
         self._offset = 0
 
     def on_slides(self, *args):
-        self.index = self.index % len(self.slides)
+        if self.slides:
+            self.index = self.index % len(self.slides)
         self._insert_visible_slides()
         self._position_visible_slides()
 
@@ -410,19 +448,25 @@ class Carousel(StencilView):
         slide.add_widget(widget)
         super(Carousel, self).add_widget(slide, index)
         if index != 0:
-            self.slides.insert(index, slide)
+            self.slides.insert(index, widget)
         else:
-            self.slides.append(slide)
+            self.slides.append(widget)
 
     def remove_widget(self, widget, *args, **kwargs):
         # XXX be careful, the widget.parent.parent refer to the RelativeLayout
         # added in add_widget(). But it will break if RelativeLayout
         # implementation change.
-        if widget.parent.parent in self.slides:
+        # if we passed the real widget
+        if widget in self.slides:
             slide = widget.parent.parent
-            self.slides.remove(slide)
+            self.slides.remove(widget)
             return slide.remove_widget(widget, *args, **kwargs)
         return super(Carousel, self).remove_widget(widget, *args, **kwargs)
+
+    def clear_widgets(self):
+        for slide in self.slides[:]:
+            self.remove_widget(slide)
+        super(Carousel, self).clear_widgets()
 
 
 if __name__ == '__main__':
