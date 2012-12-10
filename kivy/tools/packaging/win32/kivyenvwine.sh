@@ -64,7 +64,6 @@ done
 
 echo 'Convert to windows path:' $KIVY_PORTABLE_ROOT
 KIVY_PORTABLE_ROOT_PY="$(python -c 'import os, sys; print os.path.realpath(sys.argv[1])' $KIVY_PORTABLE_ROOT/kivy)"
-echo KIVY_PORTABLE_ROOT_PY is $KIVY_PORTABLE_ROOT_PY
 # Weird bug happens if this check is not done.
 if [ -z $PYTHONPATH ]; then
     export PYTHONPATH="$KIVY_PORTABLE_ROOT_PY"
