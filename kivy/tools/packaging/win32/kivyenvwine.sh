@@ -43,24 +43,35 @@ echo ----------------------------------
 echo 'Aliasing Wine commands'
 
 for i in $KIVY_PORTABLE_ROOT/Python/*.exe; do
-    alias `basename $i .exe`="wine \"$i\""
+    echo $i to $(basename $i .exe)
+    alias $(basename $i .exe)="wine \"$i\""
 done
 
 for i in $KIVY_PORTABLE_ROOT/Python/Scripts/*.exe; do
-    alias `basename $i .exe`="wine \"$i\""
+    echo $i to $(basename $i .exe)
+    alias $(basename $i .exe)="wine \"$i\""
 done
 
 for i in $KIVY_PORTABLE_ROOT/gstreamer/bin/*.exe; do
-    alias `basename $i .exe`="wine \"$i\""
+    echo $i to $(basename $i .exe)
+    alias $(basename $i .exe)="wine \"$i\""
 done
 
 for i in $KIVY_PORTABLE_ROOT/MinGW/bin/*.exe; do
-    alias `basename $i .exe`="wine \"$i\""
+    echo $i to $(basename $i .exe)
+    alias $(basename $i .exe)="wine \"$i\""
 done
 
 echo 'Convert to windows path:' $KIVY_PORTABLE_ROOT
-KIVY_PORTABLE_ROOT_PY=$(python -c 'import os, sys; print os.path.realpath(sys.argv[1])' $KIVY_PORTABLE_ROOT/kivy)
-export PYTHONPATH=$KIVY_PORTABLE_ROOT_PY\;$PYTHONPATH
+KIVY_PORTABLE_ROOT_PY="$(python -c 'import os, sys; print os.path.realpath(sys.argv[1])' $KIVY_PORTABLE_ROOT/kivy)"
+echo KIVY_PORTABLE_ROOT_PY is $KIVY_PORTABLE_ROOT_PY
+# Weird bug happens if this check is not done.
+if [ -z $PYTHONPATH ]; then
+    export PYTHONPATH="$KIVY_PORTABLE_ROOT_PY"
+else
+    export PYTHONPATH="$KIVY_PORTABLE_ROOT_PY\;$PYTHONPATH"
+fi
+
 echo PYTHONPATH is $PYTHONPATH
 
 export KIVY_PATHS_INITIALIZED=1
