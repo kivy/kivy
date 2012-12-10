@@ -106,31 +106,36 @@
                 name: "ReST"
                 RestContainer:
 
-        BoxLayout:
-            id: bl
-            orientation: "vertical"
+        Splitter:
+            sizable_from: 'left'
             size_hint: None, 1
             width: 400
-            KivyRenderTextInput:
-                lexer: KivyLexer()
-                text_size: self.width-20, self.height-20
-                font_name: "data/fonts/DroidSansMono.ttf"
-                valign: "top"
-                id: language_box
-                text: "This box will display the kivy language for whatever has been selected"
-                on_text: root.schedule_reload()
             BoxLayout:
-                size_hint: 1, None
-                height: '30pt'
+                id: bl
+                orientation: "vertical"
+                ScrollView:
+                    id: kr_scroll
+                    KivyRenderTextInput:
+                        id: language_box
+                        lexer: KivyLexer()
+                        size_hint: 1, None
+                        height: max( (len(self._lines)+1) * (self.line_height + self._line_spacing), kr_scroll.height)
+                        font_name: "data/fonts/DroidSansMono.ttf"
+                        valign: "top"
+                        text: "This box will display the kivy language for whatever has been selected"
+                        on_text: root.schedule_reload()
                 BoxLayout:
-                    CheckBox:
-                        id: chkbx
-                        active: True
-                    Label:
-                        text: "Auto Reload"
-                Button:
-                    text: 'Render Now'
-                    on_release: root.change_kv(*args)
+                    size_hint: 1, None
+                    height: '30pt'
+                    BoxLayout:
+                        CheckBox:
+                            id: chkbx
+                            active: True
+                        Label:
+                            text: "Auto Reload"
+                    Button:
+                        text: 'Render Now'
+                        on_release: root.change_kv(*args)
     FloatLayout:
         size_hint: 1, None
         height: 0

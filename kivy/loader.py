@@ -183,7 +183,10 @@ class LoaderBase(object):
         except Exception:
             Logger.exception('Failed to load image <%s>' % filename)
             # close file when remote file not found or download error
-            close(_out_osfd)
+            try:
+                close(_out_osfd)
+            except OSError:
+                pass
             return self.error_image
         finally:
             if _out_filename != '':

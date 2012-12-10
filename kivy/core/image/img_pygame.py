@@ -59,7 +59,7 @@ class ImageLoaderPygame(ImageLoaderBase):
                     Logger.warning(
                         'Image: Unable to convert image %r to rgba (was %r)' %
                         (filename, im.fmt))
-                raise
+                    raise
             im = imc
 
         # update internals
