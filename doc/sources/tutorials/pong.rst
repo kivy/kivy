@@ -220,14 +220,14 @@ To make it all work, you also have to add the imports for the
 
 Here is the entire updated python code and kv file for this step:
 
-    main.py:
-        .. include:: ../../../examples/tutorials/pong/steps/step3/main.py
-            :literal:
+main.py:
+    .. include:: ../../../examples/tutorials/pong/steps/step3/main.py
+        :literal:
 
-    pong.kv:
-        .. literalinclude:: ../../../examples/tutorials/pong/steps/step3/pong.kv
-            :language: kv
-            :linenos:
+pong.kv:
+    .. literalinclude:: ../../../examples/tutorials/pong/steps/step3/pong.kv
+        :language: kv
+        :linenos:
 
 
 Adding ball animation
@@ -328,14 +328,14 @@ and setting the games property to that id:
 
 Here is the entire code for this step:
 
-    main.py:
-       .. include:: ../../../examples/tutorials/pong/steps/step4/main.py
-        :literal:
+main.py:
+   .. include:: ../../../examples/tutorials/pong/steps/step4/main.py
+    :literal:
 
-    pong.kv:
-       .. literalinclude:: ../../../examples/tutorials/pong/steps/step4/pong.kv
-        :language: kv
-        :linenos:
+pong.kv:
+   .. literalinclude:: ../../../examples/tutorials/pong/steps/step4/pong.kv
+    :language: kv
+    :linenos:
 
 Connect input event
 -------------------
@@ -392,15 +392,16 @@ differently based on where on the racket it hits. Here is the code for the
 
 
 And here it is in context. Pretty much done:
-    main.py:
-       .. include:: ../../../examples/tutorials/pong/steps/step5/main.py
-        :literal:
 
-    pong.kv:
+main.py:
+   .. include:: ../../../examples/tutorials/pong/steps/step5/main.py
+    :literal:
 
-       .. literalinclude:: ../../../examples/tutorials/pong/steps/step5/pong.kv
-        :language: kv
-        :linenos:
+pong.kv:
+
+   .. literalinclude:: ../../../examples/tutorials/pong/steps/step5/pong.kv
+    :language: kv
+    :linenos:
 
 
 Where to go now?
