@@ -89,16 +89,22 @@ from kivy.lang import Builder
 
 
 class IClass(object):
-    '''Used to register 'widget equivalent' types.  Emulates
-    isinstance(widget, Widget) with isinstance(widget, WidgetLike).  This provides
-    the ability to use transparent widget proxies.'''
+    '''
+    Used to register 'widget equivalent' types.  Emulates
+    isinstance(widget, Widget) with isinstance(widget, WidgetLike).
+    This provides the ability to use transparent widget proxies.
+    '''
+
     def __init__(self):
         self.implementors = set()
-    def register(self,C):
+
+    def register(self, C):
         self.implementors.add(C)
-    def __instancecheck__(self,x):
+
+    def __instancecheck__(self, x):
         return self.__subclasscheck__(type(x))
-    def __subclasscheck__(self,sub):
+
+    def __subclasscheck__(self, sub):
         return any(c in self.implementors for c in sub.mro())
 
 #Instantiate the IClass registry so we can compare to WidgetLike
