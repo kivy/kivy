@@ -246,7 +246,7 @@ cdef inline int _is_pow2(int v):
     return (v & (v - 1)) == 0
 
 
-cdef inline int _color_fmt_to_gl(str x):
+cdef inline int _color_fmt_to_gl(bytes x):
     '''Return the GL numeric value from a color string format
     '''
     x = x.lower()
@@ -437,11 +437,8 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     # generate the texture
     glGenTextures(1, &texid)
 
-    # if the color format is not supported, create the texture with the future
-    # color format.
-    if not _is_gl_format_supported(colorfmt):
-        colorfmt = _convert_gl_format(colorfmt)
-
+    # create the texture with the future color format.
+    colorfmt = _convert_gl_format(colorfmt)
     texture = Texture(texture_width, texture_height, target, texid,
                       colorfmt=colorfmt, bufferfmt=bufferfmt, mipmap=mipmap)
 
@@ -459,7 +456,7 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     if allocate:
 
         # prepare information needed for nogil
-        glfmt = _color_fmt_to_gl(colorfmt)
+        glfmt = _color_fmt_to_gl(<bytes>colorfmt)
         iglbufferfmt = glbufferfmt
         datasize = texture_width * texture_height * \
                 _gl_format_size(glfmt) * _buffer_type_to_gl_size(bufferfmt)
@@ -722,6 +719,7 @@ cdef class Texture:
         data, colorfmt = _convert_buffer(data, colorfmt)
 
         # prepare nogil
+        cdef int iglfmt = _color_fmt_to_gl(self._colorfmt)
         cdef int glfmt = _color_fmt_to_gl(colorfmt)
         cdef int datasize = len(pbuffer)
         cdef int x = pos[0]
@@ -745,7 +743,7 @@ cdef class Texture:
                 glTexSubImage2D(target, _mipmap_level, x, y, w, h, glfmt, glbufferfmt, cdata)
             else:
                 _gl_prepare_pixels_upload(w)
-                glTexImage2D(target, _mipmap_level, glfmt, w, h, 0, glfmt, glbufferfmt, cdata)
+                glTexImage2D(target, _mipmap_level, iglfmt, w, h, 0, glfmt, glbufferfmt, cdata)
             if _mipmap_generation:
                 glGenerateMipmap(target)
 

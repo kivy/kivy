@@ -231,9 +231,9 @@ class FruitsListAdapter(ListAdapter):
 
     def __init__(self, **kwargs):
         kwargs['args_converter'] = \
-                lambda selectable: {'text': selectable.name,
-                                    'size_hint_y': None,
-                                    'height': 25}
+                lambda row_index, selectable: {'text': selectable.name,
+                                               'size_hint_y': None,
+                                               'height': 25}
         super(FruitsListAdapter, self).__init__(**kwargs)
 
     def fruit_category_changed(self, fruit_categories_adapter, *args):
@@ -276,9 +276,9 @@ Builder.load_string('''
 class AdaptersTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.args_converter = lambda rec: {'text': rec['name'],
-                                           'size_hint_y': None,
-                                           'height': 25}
+        self.args_converter = lambda row_index, rec: {'text': rec['name'],
+                                                      'size_hint_y': None,
+                                                      'height': 25}
 
         self.integers_dict = \
          {str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
@@ -287,7 +287,7 @@ class AdaptersTestCase(unittest.TestCase):
         # rec['text'] will be set for it. Likewise, the fifth item has kwargs,
         # but it has no 'text' key/value, so should receive the same treatment.
         self.composite_args_converter = \
-            lambda rec: \
+            lambda row_index, rec: \
                 {'text': rec['text'],
                  'size_hint_y': None,
                  'height': 25,
@@ -442,9 +442,9 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_simple_list_adapter_with_template(self):
         list_item_args_converter = \
-                lambda obj: {'text': str(obj),
-                             'size_hint_y': None,
-                             'height': 25}
+                lambda row_index, obj: {'text': str(obj),
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         simple_list_adapter = \
                 SimpleListAdapter(data=['cat', 'dog'],
@@ -472,9 +472,9 @@ class AdaptersTestCase(unittest.TestCase):
         self.assertIsNone(simple_list_adapter.get_view(2))
 
     def test_instantiating_list_adapter(self):
-        str_args_converter = lambda rec: {'text': rec,
-                                          'size_hint_y': None,
-                                          'height': 25}
+        str_args_converter = lambda row_index, rec: {'text': rec,
+                                                     'size_hint_y': None,
+                                                     'height': 25}
 
         list_adapter = ListAdapter(data=['cat', 'dog'],
                                          args_converter=str_args_converter,
@@ -508,9 +508,9 @@ class AdaptersTestCase(unittest.TestCase):
         fruit_data_items[0].is_selected = True
 
         list_item_args_converter = \
-                lambda selectable: {'text': selectable.name,
-                                    'size_hint_y': None,
-                                    'height': 25}
+                lambda row_index, selectable: {'text': selectable.name,
+                                               'size_hint_y': None,
+                                               'height': 25}
 
         list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=list_item_args_converter,
@@ -547,9 +547,9 @@ class AdaptersTestCase(unittest.TestCase):
 
         letters_dicts[0]['is_selected'] = True
 
-        list_item_args_converter = lambda rec: {'text': rec['text'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = lambda row_index, rec: {'text': rec['text'],
+                                                           'size_hint_y': None,
+                                                           'height': 25}
 
         list_adapter = ListAdapter(data=letters_dicts,
                                    args_converter=list_item_args_converter,
@@ -583,9 +583,9 @@ class AdaptersTestCase(unittest.TestCase):
         data_items.append(DataItem(text='dog'))
         data_items.append(DataItem(text='frog'))
 
-        list_item_args_converter = lambda obj: {'text': obj.text,
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = lambda row_index, obj: {'text': obj.text,
+                                                           'size_hint_y': None,
+                                                           'height': 25}
 
         list_adapter = ListAdapter(data=data_items,
                                    args_converter=list_item_args_converter,
@@ -623,9 +623,9 @@ class AdaptersTestCase(unittest.TestCase):
         data_items.append(DataItemWithMethod(text='dog'))
         data_items.append(BadDataItem(text='frog'))
 
-        list_item_args_converter = lambda obj: {'text': obj.text,
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = lambda row_index, obj: {'text': obj.text,
+                                                           'size_hint_y': None,
+                                                           'height': 25}
 
         list_adapter = ListAdapter(data=data_items,
                                    args_converter=list_item_args_converter,
@@ -686,9 +686,9 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_list_adapter_selection_mode_none(self):
         list_item_args_converter = \
-                lambda selectable: {'text': selectable.name,
-                                    'size_hint_y': None,
-                                    'height': 25}
+                lambda row_index, selectable: {'text': selectable.name,
+                                               'size_hint_y': None,
+                                               'height': 25}
 
         list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=list_item_args_converter,
@@ -711,9 +711,9 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_list_adapter_selection_mode_multiple_select_list(self):
         list_item_args_converter = \
-                lambda selectable: {'text': selectable.name,
-                                    'size_hint_y': None,
-                                    'height': 25}
+                lambda row_index, selectable: {'text': selectable.name,
+                                               'size_hint_y': None,
+                                               'height': 25}
 
         list_adapter = ListAdapter(data=fruit_data_items,
                                    args_converter=list_item_args_converter,
@@ -755,9 +755,9 @@ class AdaptersTestCase(unittest.TestCase):
         bare_minimum_dicts = \
             [{'text': str(i), 'is_selected': False} for i in xrange(100)]
 
-        args_converter = lambda rec: {'text': rec['text'],
-                                      'size_hint_y': None,
-                                      'height': 25}
+        args_converter = lambda row_index, rec: {'text': rec['text'],
+                                                 'size_hint_y': None,
+                                                 'height': 25}
 
         list_adapter = ListAdapter(data=bare_minimum_dicts,
                                    args_converter=args_converter,
@@ -786,9 +786,9 @@ class AdaptersTestCase(unittest.TestCase):
         bare_minimum_dicts = \
             [{'text': str(i), 'is_selected': False} for i in xrange(100)]
 
-        args_converter = lambda rec: {'text': rec['text'],
-                                      'size_hint_y': None,
-                                      'height': 25}
+        args_converter = lambda row_index, rec: {'text': rec['text'],
+                                                 'size_hint_y': None,
+                                                 'height': 25}
 
         list_adapter = ListAdapter(data=bare_minimum_dicts,
                                    args_converter=args_converter,
@@ -816,9 +816,9 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_list_adapter_bindings(self):
         list_item_args_converter = \
-                lambda selectable: {'text': selectable.name,
-                                    'size_hint_y': None,
-                                    'height': 25}
+                lambda row_index, selectable: {'text': selectable.name,
+                                               'size_hint_y': None,
+                                               'height': 25}
 
         fruit_categories_list_adapter = \
             ListAdapter(data=category_data_items,
@@ -845,10 +845,10 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_instantiating_list_adapters_with_both_cls_and_template(self):
         list_item_args_converter = \
-                lambda rec: {'text': rec['text'],
-                             'is_selected': rec['is_selected'],
-                             'size_hint_y': None,
-                             'height': 25}
+                lambda row_index, rec: {'text': rec['text'],
+                                        'is_selected': rec['is_selected'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         # First, for a plain Adapter:
         with self.assertRaises(Exception) as cm:
@@ -878,9 +878,9 @@ class AdaptersTestCase(unittest.TestCase):
 
         # First with a class.
         list_item_args_converter = \
-                lambda selectable: {'text': selectable.name,
-                                    'size_hint_y': None,
-                                    'height': 25}
+                lambda row_index, selectable: {'text': selectable.name,
+                                               'size_hint_y': None,
+                                               'height': 25}
 
         fruit_categories_list_adapter = \
             ListAdapter(data=category_data_items,
@@ -894,10 +894,10 @@ class AdaptersTestCase(unittest.TestCase):
 
         # Now with a template.
         list_item_args_converter = \
-            lambda selectable: {'text': selectable.name,
-                                'is_selected': selectable.is_selected,
-                                'size_hint_y': None,
-                                'height': 25}
+            lambda row_index, item: {'text': item.name,
+                                     'is_selected': item.is_selected,
+                                     'size_hint_y': None,
+                                     'height': 25}
 
         fruit_categories_list_adapter = \
             ListAdapter(data=category_data_items,
@@ -916,9 +916,10 @@ class AdaptersTestCase(unittest.TestCase):
     def test_list_adapter_operations_trimming(self):
         alphabet = [l for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
 
-        list_item_args_converter = lambda letter: {'text': letter,
-                                                   'size_hint_y': None,
-                                                   'height': 25}
+        list_item_args_converter = \
+                lambda row_index, letter: {'text': letter,
+                                           'size_hint_y': None,
+                                           'height': 25}
 
         # trim right of sel
 
@@ -1064,9 +1065,10 @@ class AdaptersTestCase(unittest.TestCase):
 
         pet_listener = PetListener(['cat'])
 
-        list_item_args_converter = lambda rec: {'text': rec['text'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['text'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=['cat'],
                 data={'cat': {'text': 'cat', 'is_selected': False},
@@ -1095,9 +1097,10 @@ class AdaptersTestCase(unittest.TestCase):
 
         pet_listener = PetListener('cat')
 
-        list_item_args_converter = lambda rec: {'text': rec['text'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['text'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         dict_adapter = DictAdapter(
                 sorted_keys=['cat'],
@@ -1134,9 +1137,10 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_dict_adapter_selection_mode_single_without_propagation(self):
 
-        list_item_args_converter = lambda rec: {'text': rec['name'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['name'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
@@ -1168,9 +1172,10 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_dict_adapter_selection_mode_single_with_propagation(self):
 
-        list_item_args_converter = lambda rec: {'text': rec['name'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['name'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
@@ -1203,9 +1208,10 @@ class AdaptersTestCase(unittest.TestCase):
 
     def test_dict_adapter_sorted_keys(self):
 
-        list_item_args_converter = lambda rec: {'text': rec['name'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['name'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         dict_adapter = DictAdapter(sorted_keys=sorted(fruit_data.keys()),
                                    data=fruit_data,
@@ -1255,9 +1261,10 @@ class AdaptersTestCase(unittest.TestCase):
         letters_dict = \
            {l: {'text': l, 'is_selected': False} for l in alphabet}
 
-        list_item_args_converter = lambda rec: {'text': rec['text'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['text'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         letters = [l for l in alphabet]
 

@@ -13,9 +13,14 @@ class ReceivingFruitsDictAdapter(DictAdapter):
             return
 
         data = {}
+        sorted_keys = []
+
         for sel in fruits_dict_adapter.selection:
             data[sel.text] = fruits_dict_adapter.data[sel.text]
+            sorted_keys.append(sel.text)
+
         self.data = data
+        self.sorted_keys = sorted_keys
 
 
 class TwoUpView(GridLayout):
@@ -30,9 +35,10 @@ class TwoUpView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(TwoUpView, self).__init__(**kwargs)
 
-        list_item_args_converter = lambda rec: {'text': rec['name'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['name'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         fruits_dict_adapter = \
                 DictAdapter(

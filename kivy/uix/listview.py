@@ -10,8 +10,8 @@ List View
     future version.
 
 The :class:`~kivy.uix.listview.ListView` widget provides a scrollable/pannable
-viewport that is clipped at the scrollview's bounding box, which contains a
-list of list item view instances.
+viewport that is clipped at the scrollview's bounding box, which contains
+list item view instances.
 
 :class:`~kivy.uix.listview.ListView` implements :class:`AbstractView` as a
 vertical scrollable list. :class:`AbstractView` has one property, adapter.
@@ -20,10 +20,37 @@ vertical scrollable list. :class:`AbstractView` has one property, adapter.
 :class:`~kivy.adapters.listadapter.ListAdapter`, or
 :class:`~kivy.adapters.dictadapter.DictAdapter`.
 
+Introduction
+------------
 
-    :Events:
-        `on_scroll_complete`: (boolean, )
-            Fired when scrolling completes.
+Lists are central parts of many software projects. Kivy's approach to lists
+includes providing solutions for simple lists, along with a substantial
+framework for building lists of moderate to advanced complexity. For the new
+user of the system, it can be difficult to ramp up from simple to advanced. For
+this reason, Kivy provides an extensive set of examples that you may wish to
+run first, to get a taste of the range of functionality offered. You can tell
+from the names of the examples that they illustrate the "ramping up" from
+simple to advanced:
+
+    * kivy/examples/widgets/lists/list_simple.py
+    * kivy/examples/widgets/lists/list_master_detail.py
+    * kivy/examples/widgets/lists/list_two_up.py
+    * kivy/examples/widgets/lists/list_kv.py
+    * kivy/examples/widgets/lists/list_composite.py
+    * kivy/examples/widgets/lists/list_cascade.py
+    * kivy/examples/widgets/lists/list_cascade_dict.py
+    * kivy/examples/widgets/lists/list_cascade_images.py
+    * kivy/examples/widgets/lists/list_ops.py
+
+Many of the examples feature selection, some restricting selection to single
+selection, where only one item at at time can be selected, and others allowing
+multiple item selection. Many of the examples illustrate how selection in one
+list can be connected to action and selection in another view or another list.
+
+Find your own way of reading the documentation here, examining the source code
+for the example apps, and running the examples. Some may prefer to read the
+documentation through first, others may want to run the examples and view their
+code. No matter what you do, going back and forth will likely be needed.
 
 Basic Example
 -------------
@@ -58,8 +85,8 @@ Behind the scenes, the basic example above uses
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.  When the
 constructor for :class:`~kivy.uix.listview.ListView` sees that only a list of
 strings is provided as an argument, called item_strings, it creates an instance
-of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` with the list of
-strings.
+of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` using the list
+of strings.
 
 Simple in :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` means:
 *without selection support*. It is a scrollable list of items that do not
@@ -76,20 +103,19 @@ do::
 
 The instance of :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` has
 a required data argument, which contains data items to use for instantiating
-Label (cls argument) views for the list view. The data items are simply
+Label views for the list view (Note the cls=Label argument). The data items are
 strings.  Each item string is set by
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` as the *text*
-argument for each Label instantiation. The list adapter is thus a "workhorse"
-for the list view.
+argument for each Label instantiation.
 
 ListAdapter and DictAdapter
 ---------------------------
 
-For many uses of a list, the data is more than a simple list of strings and
-selection functionality is often needed.
+For many uses of a list, the data is more than a simple list of strings.
+Selection functionality is also often needed.
 :class:`~kivy.adapters.listadapter.ListAdapter` and
 :class:`~kivy.adapters.dictadapter.DictAdapter` cover these more elaborate
-needs. Each contains functionality for selection, also.
+needs.
 
 :class:`~kivy.adapters.listadapter.ListAdapter` is the base class for
 :class:`~kivy.adapters.dictadapter.DictAdapter`, so we can start with it.
@@ -102,7 +128,8 @@ here are synopses of its arguments:
 
 * *cls*: a Kivy view that is to be instantiated for each list item. There
   are several built-in types available, including ListItemLabel and
-  ListItemButton, or you can easily make your own.
+  ListItemButton, or you can make your own class that mixes in the
+  required `~kivy.uix.listview.SelectableView`.
 
 * *template*: the name of a Kivy language (kv) template that defines the
   Kivy view for each list item.
@@ -113,8 +140,8 @@ here are synopses of its arguments:
 
 * *args_converter*: a function that takes a data item object as input, and
   uses it to build and return an args dict, ready
-  to be used in a call to instantiate the item view cls or
-  template. In the case of cls, the args dict acts as a
+  to be used in a call to instantiate item views useing the item view cls
+  or template. In the case of cls, the args dict acts as a
   kwargs object. For a template, it is treated as a context
   (ctx), but is essentially similar in form to kwargs usage.
 
@@ -164,20 +191,25 @@ class, or a custom kv template. Whichever type of list item view is used, an
 args_converter function is needed to prepare, per list data item, args for
 either a cls or template.
 
+.. note::
+
+    ListItemLabel and ListItemButton, or custom classes like them, and not the
+    bare Label nor Button classes, are to be used in the listview system.
+
 Here is an args_converter for use with the built-in
 :class:`~kivy.uix.listview.ListItemButton`, specified as a normal Python
 function::
 
-    def args_converter(an_obj):
+    def args_converter(row_index, an_obj):
         return {'text': an_obj.text,
                 'size_hint_y': None,
                 'height': 25}
 
-    and as a lambda:
+and as a lambda:
 
-    args_converter = lambda an_obj: {'text': an_obj.text,
-                                     'size_hint_y': None,
-                                     'height': 25}
+    args_converter = lambda row_index, an_obj: {'text': an_obj.text,
+                                                'size_hint_y': None,
+                                                'height': 25}
 
 In the args converter example above, the data item is assumed to be an object
 (class instance), hence the reference an_obj.text.
@@ -185,26 +217,27 @@ In the args converter example above, the data item is assumed to be an object
 Here is an example of an args converter that works with list data items that
 are dicts::
 
-    args_converter = lambda obj: {'text': a_dict['text'],
-                                  'size_hint_y': None,
-                                  'height': 25}
+    args_converter = lambda row_index, obj: {'text': a_dict['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
 So, it is the responsibility of the developer to code the args_converter
-according to the data at hand.
+according to the data at hand. The row_index argument can be useful in some
+cases, such as when custome labels are needed.
 
 An Example ListView
 -------------------
 
 Now, to some example code::
 
-    from kivy.adapters.list_adapter import ListAdapter
+    from kivy.adapters.listadapter import ListAdapter
     from kivy.uix.listview import ListItemButton, ListView
 
     data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]
 
-    args_converter = lambda rec: {'text': rec['text'],
-                                  'size_hint_y': None,
-                                  'height': 25}
+    args_converter = lambda row_index, rec: {'text': rec['text'],
+                                             'size_hint_y': None,
+                                             'height': 25}
 
     list_adapter = ListAdapter(data=data,
                                args_converter=args_converter,
@@ -228,7 +261,7 @@ Using a Custom Item View Class
 ------------------------------
 
 The data used in an adapter can be any of the normal Python types, such as
-strings, class instances, dictionaries, etc. It is up to the programmer to
+strings, class instances, and dictionaries. It is up to the programmer to
 assure that the args_converter has appropriate functionality.
 
 Here we make a simple DataItem class that has the required text and
@@ -242,13 +275,13 @@ is_selected properties::
             self.is_selected = is_selected
 
     data_items = []
-    data_items.append(DataItem(text='cat')
-    data_items.append(DataItem(text='dog')
-    data_items.append(DataItem(text='frog')
+    data_items.append(DataItem(text='cat'))
+    data_items.append(DataItem(text='dog'))
+    data_items.append(DataItem(text='frog'))
 
-    list_item_args_converter = lambda obj: {'text': obj.text,
-                                            'size_hint_y': None,
-                                            'height': 25}
+    list_item_args_converter = lambda row_index, obj: {'text': obj.text,
+                                                       'size_hint_y': None,
+                                                       'height': 25}
 
     list_adapter = ListAdapter(data=data_items,
                                args_converter=list_item_args_converter,
@@ -259,7 +292,7 @@ is_selected properties::
 
     list_view = ListView(adapter=list_adapter)
 
-The data was set in a :class:`~kivy.adapters.listadapter.ListAdapter` along
+The data is set in a :class:`~kivy.adapters.listadapter.ListAdapter` along
 with a list item args_converter function above (lambda) and arguments
 concerning selection: only single selection is allowed, and selection in the
 listview will propagate to the data items. The propagation setting means that
@@ -270,7 +303,8 @@ adapter will instantiate a :class:`~kivy.uix.listview.ListItemButton` class
 instance for each data item, using the assigned args_converter.
 
 The list_vew would be added to a view with add_widget() after the last line,
-where it is created.
+where it is created. See the basic example at the top of this documentation for
+an example of add_widget() use in the context of a sample app.
 
 You may also use the provided :class:`SelectableDataItem` mixin to make a
 custom class. Instead of the "manually-constructed" DataItem class above,
@@ -279,10 +313,11 @@ we could do::
     from kivy.adapters.models import SelectableDataItem
 
     class DataItem(SelectableDataItem):
+        # Add properties here.
         pass
 
-:class:`SelectableDataItem` is a simple mixin class that has the text and
-is_selected properties.
+:class:`SelectableDataItem` is a simple mixin class that has an is_selected
+property.
 
 Using an Item View Template
 ---------------------------
@@ -294,14 +329,14 @@ own template, mix it in as follows::
     from kivy.uix.listview import ListItemButton
     from kivy.uix.listview import SelectableView
 
-    Builder.load_string(<triplequotes>
+    Builder.load_string("""
     [CustomListItem@SelectableView+BoxLayout]:
         size_hint_y: ctx.size_hint_y
         height: ctx.height
         ListItemButton:
             text: ctx.text
             is_selected: ctx.is_selected
-    </triplequotes>)
+    """)
 
 A class called CustomListItem will be instantiated for each list item. Note
 that it is a layout, BoxLayout, and is thus a kind of container. It contains a
@@ -314,11 +349,12 @@ custom class you have defined and registered with the system.
 An args_converter needs to be constructed that goes along with such a kv
 template. For example, to use the kv template above::
 
-    list_item_args_converter = lambda rec: {'text': rec['text'],
-                                            'is_selected': rec['is_selected'],
-                                            'size_hint_y': None,
-                                            'height': 25}
-    integers_dict =
+    list_item_args_converter = \
+            lambda row_index, rec: {'text': rec['text'],
+                                    'is_selected': rec['is_selected'],
+                                    'size_hint_y': None,
+                                    'height': 25}
+    integers_dict = \
         { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
     dict_adapter = DictAdapter(sorted_keys=[str(i) for i in xrange(100)],
@@ -337,17 +373,17 @@ integers_dict and will return an args dict, ready for passing as the context
 (ctx) for the template.
 
 The list_vew would be added to a view with add_widget() after the last line,
-where it is created.
+where it is created. Again, see the basic example above for add_widget() use.
 
 Using CompositeListItem
 -----------------------
 
 The class :class:`~kivy.uix.listview.CompositeListItem` is another option for
-building complex composite list items. The kv language approach has its
+building advanced composite list items. The kv language approach has its
 advantages, but here we build a composite list view using a straight Kivy
 widget method::
 
-    args_converter = lambda rec:
+    args_converter = lambda row_index, rec: \
             {'text': rec['text'],
              'size_hint_y': None,
              'height': 25,
@@ -361,7 +397,7 @@ widget method::
 
     item_strings = ["{0}".format(index) for index in xrange(100)]
 
-    integers_dict =
+    integers_dict = \
         { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
 
     dict_adapter = DictAdapter(sorted_keys=item_strings,
@@ -387,8 +423,9 @@ using a kv template described above.
 The sorted_keys and data arguments for the dict adapter are the same as in the
 previous code example.
 
-For details on how :class:`~kivy.uix.listview.CompositeListItem` works, view
-the code and look for parsing of the cls_dicts list and kwargs processing.
+For details on how :class:`~kivy.uix.listview.CompositeListItem` works,
+examine the code, looking for how parsing of the cls_dicts list and kwargs
+processing is done.
 
 Uses for Selection
 ------------------
@@ -403,14 +440,18 @@ on_selection_change event::
 
     list_adapter.bind(on_selection_change=callback_function)
 
-where callback_function() does whatever is needed for the update.
+where callback_function() does whatever is needed for the update. See the
+example called list_master_detail.py, and imagine that the list one the left
+would be a list of dog breeds, and the detail view on the right would show
+details for a selected dog breed.
 
 In another example, we could set the selection_mode of a listview to
 'multiple', and load it with a list of answers to a multiple-choice question.
 The question could have several correct answers. A color swatch view could be
 bound to selection change, as above, so that it turns green as soon as the
 correct choices are made, unless the number of touches exeeds a limit, when the
-answer session would be terminated.
+answer session would be terminated. See the examples that feature thumbnail
+images to get some ideas, e.g., list_cascade_dict.py.
 
 In a more involved example, we could chain together three listviews, where
 selection in the first controls the items shown in the second, and selection in
@@ -419,7 +460,8 @@ set to False for these listviews, a dynamic system of selection "cascading"
 from one list to the next, would result.
 
 There are so many ways that listviews and Kivy bindings functionality can be
-used, that we have only scratched the surface here. For on-disk examples, see:
+used, that we have only scratched the surface here. For on-disk examples, see
+these::
 
     kivy/examples/widgets/lists/list_*.py
 
@@ -693,10 +735,15 @@ class ListView(AbstractView, EventDispatcher):
 
     For a simple list of string items, without selection, use
     :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`. For list items
-    that respond to selection, ranging from simple items to complex composites,
-    use :class:`~kivy.adapters.listadapter.ListAdapter`.  For an alternate
-    powerful adapter, use :class:`~kivy.adapters.dictadapter.DictAdapter`,
-    rounding out the choice for designing highly interactive lists.
+    that respond to selection, ranging from simple items to advanced
+    composites, use :class:`~kivy.adapters.listadapter.ListAdapter`.  For an
+    alternate powerful adapter, use
+    :class:`~kivy.adapters.dictadapter.DictAdapter`, rounding out the choice
+    for designing highly interactive lists.
+
+    :Events:
+        `on_scroll_complete`: (boolean, )
+            Fired when scrolling completes.
     '''
 
     divider = ObjectProperty(None)
@@ -768,9 +815,9 @@ class ListView(AbstractView, EventDispatcher):
                                              cls=Label)
             kwargs['adapter'] = list_adapter
 
-        super(ListView, self).__init__(**kwargs)
-
         self.register_event_type('on_scroll_complete')
+
+        super(ListView, self).__init__(**kwargs)
 
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
 

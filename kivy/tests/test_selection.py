@@ -236,9 +236,9 @@ class ListAdapterTestCase(unittest.TestCase):
 
     def setUp(self):
         self.args_converter = \
-                lambda selectable: {'text': selectable.name,
-                                    'size_hint_y': None,
-                                    'height': 25}
+                lambda row_index, selectable: {'text': selectable.name,
+                                               'size_hint_y': None,
+                                               'height': 25}
 
         reset_to_defaults(category_data_items)
         reset_to_defaults(fruit_data_items)
@@ -424,9 +424,9 @@ class ListAdapterTestCase(unittest.TestCase):
 class DictAdapterTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.args_converter = lambda rec: {'text': rec['name'],
-                                           'size_hint_y': None,
-                                           'height': 25}
+        self.args_converter = lambda row_index, rec: {'text': rec['name'],
+                                                      'size_hint_y': None,
+                                                      'height': 25}
 
         self.fruits = sorted(fruit_data.keys())
 

@@ -11,15 +11,15 @@ __all__ = ('resource_find', 'resource_add_path', 'resource_remove_path')
 
 from os.path import join, dirname, exists
 from kivy import kivy_data_dir
+from kivy.utils import platform
 from kivy.logger import Logger
 import sys
 import kivy
 
-resource_paths = [
-    '.',
-    dirname(sys.argv[0]),
-    dirname(kivy.__file__),
-    join(kivy_data_dir, '..')]
+resource_paths = ['.', dirname(sys.argv[0])]
+if platform() == 'ios':
+    resource_paths += [join(dirname(sys.argv[0]), 'YourApp')]
+resource_paths += [dirname(kivy.__file__), join(kivy_data_dir, '..')]
 
 
 def resource_find(filename):

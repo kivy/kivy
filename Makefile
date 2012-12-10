@@ -2,6 +2,8 @@ PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
 NOSETESTS = nosetests
+HOSTPYTHON = $(KIVYIOSROOT)/tmp/Python-$(PYTHON_VERSION)/hostpython
+IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
 .PHONY: build force mesabuild pdf style stylereport hook test batchtest cover clean distclean theming
 
@@ -13,6 +15,26 @@ force:
 
 mesabuild:
 	/usr/bin/env USE_MESAGL=1 $(PYTHON) setup.py build_ext --inplace
+
+ios:
+	-ln -s $(KIVYIOSROOT)/Python-2.7.1/python
+	-ln -s $(KIVYIOSROOT)/Python-2.7.1/python.exe
+
+	-rm -rdf iosbuild/
+	mkdir iosbuild
+
+	echo "First build ========================================"
+	-PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
+	echo "cythoning =========================================="
+	find . -name *.pyx -exec cython {} \;
+	echo "Second build ======================================="
+	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
+	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py install -O2 --root iosbuild
+	# Strip away the large stuff
+	find iosbuild/ | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
+	-rm -rdf "$(BUILDROOT)/python/lib/python2.7/site-packages/kivy"
+	# Copy to python for iOS installation
+	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"
 
 pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
