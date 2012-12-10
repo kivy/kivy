@@ -3,7 +3,6 @@ from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ReferenceListProperty,\
     ObjectProperty
 from kivy.vector import Vector
-from kivy.factory import Factory
 from kivy.clock import Clock
 
 
@@ -61,11 +60,6 @@ class PongGame(Widget):
             self.player1.center_y = touch.y
         if touch.x > self.width - self.width / 3:
             self.player2.center_y = touch.y
-
-
-Factory.register("PongBall", PongBall)
-Factory.register("PongPaddle", PongPaddle)
-Factory.register("PongGame", PongGame)
 
 
 class PongApp(App):
