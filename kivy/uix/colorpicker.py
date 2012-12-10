@@ -23,11 +23,13 @@ __all__ = 'ColorPicker', 'ColorWheel'
 from kivy.uix.widget import Widget
 from kivy.uix.popup import Popup
 from kivy.uix.numpad import NumPad
-from kivy.properties import NumericProperty, ListProperty, ObjectProperty
+from kivy.properties import NumericProperty, ListProperty, ObjectProperty,\
+    AliasProperty
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.graphics import Mesh, InstructionGroup, Color
 from math import cos, sin, pi, sqrt, atan
+from functools import partial
 
 
 def distance(pt1, pt2):
@@ -60,11 +62,28 @@ class ColorWheel(Widget):
     '''
     Chromatic wheel for the ColorPiker.
     '''
-    r = NumericProperty(255)
-    g = NumericProperty(255)
-    b = NumericProperty(255)
-    a = NumericProperty(255)
-    rgba = ListProperty((255, 255, 255, 255))
+    color = ListProperty([1.0, 1.0, 1.0, 1.0])
+
+    # YES, self is in second position, because partial was used on the
+    # function, not the method
+    def _set_color(c, self, value):
+        if 0 <= value <= 1:
+            self.color[c] = value
+        else:
+            raise ValueError('colors composants must be in [0-1]')
+
+    # see comment on _set_color
+    def _get_color(c, self):
+        return self.color[c]
+
+    r = AliasProperty(partial(_get_color, 0), partial(_set_color, 0),
+                      observe=('color',))
+    g = AliasProperty(partial(_get_color, 1), partial(_set_color, 1),
+                      observe=('color',))
+    b = AliasProperty(partial(_get_color, 2), partial(_set_color, 2),
+                      observe=('color',))
+    a = AliasProperty(partial(_get_color, 3), partial(_set_color, 3),
+                      observe=('color',))
 
     origin = ListProperty((100, 100))
     radius = NumericProperty(100)
@@ -83,10 +102,10 @@ class ColorWheel(Widget):
     def __init__(self, **kwargs):
         super(ColorWheel, self).__init__(**kwargs)
 
-        self.SVs = [(float(x) / self.piece_divisions, 1)
-                    for x in range(self.piece_divisions)] + [
-                        (1, float(y) / self.piece_divisions)
-                        for y in reversed(range(self.piece_divisions))]
+        self.sv_s = [(float(x) / self.piece_divisions, 1)
+                     for x in range(self.piece_divisions)] + [
+                         (1, float(y) / self.piece_divisions)
+                         for y in reversed(range(self.piece_divisions))]
 
     def on_origin(self, instance, value):
         self.init_wheel(None)
@@ -95,7 +114,7 @@ class ColorWheel(Widget):
         # initialize list to hold all meshes
         self.canvas.clear()
         self.arcs = []
-        self.SVidx = 0
+        self.sv_idx = 0
 
         for r in range(self.piece_divisions):
             for t in range(self.pieces_of_pie):
@@ -107,8 +126,8 @@ class ColorWheel(Widget):
                         2 * pi * (float(t + 1) / self.pieces_of_pie),
                         origin=self.origin,
                         color=(float(t) / self.pieces_of_pie,
-                               self.SVs[self.SVidx + r][0],
-                               self.SVs[self.SVidx + r][1],
+                               self.sv_s[self.sv_idx + r][0],
+                               self.sv_s[self.sv_idx + r][1],
                                1)))
 
                 self.canvas.add(self.arcs[-1])
@@ -116,35 +135,35 @@ class ColorWheel(Widget):
     def recolor_wheel(self):
         for idx, segment in enumerate(self.arcs):
             segment.change_color(
-                sv=self.SVs[self.SVidx + idx / self.pieces_of_pie])
+                sv=self.sv_s[self.sv_idx + idx / self.pieces_of_pie])
 
     def change_alpha(self, val):
         for idx, segment in enumerate(self.arcs):
             segment.change_color(a=val)
 
-    def inertial_incr_SVidx(self, dt):
+    def inertial_incr_sv_idx(self, dt):
         # if its already zoomed all the way out, cancel the inertial zoom
-        if self.SVidx == len(self.SVs) - self.piece_divisions:
+        if self.sv_idx == len(self.sv_s) - self.piece_divisions:
             return False
 
-        self.SVidx += 1
+        self.sv_idx += 1
         self.recolor_wheel()
         if dt * self.inertia_slowdown > self.inertia_cutoff:
             return False
         else:
-            Clock.schedule_once(self.inertial_incr_SVidx,
+            Clock.schedule_once(self.inertial_incr_sv_idx,
                                 dt * self.inertia_slowdown)
 
-    def inertial_decr_SVidx(self, dt):
+    def inertial_decr_sv_idx(self, dt):
         # if its already zoomed all the way in, cancel the inertial zoom
-        if self.SVidx == 0:
+        if self.sv_idx == 0:
             return False
-        self.SVidx -= 1
+        self.sv_idx -= 1
         self.recolor_wheel()
         if dt * self.inertia_slowdown > self.inertia_cutoff:
             return False
         else:
-            Clock.schedule_once(self.inertial_decr_SVidx,
+            Clock.schedule_once(self.inertial_decr_sv_idx,
                                 dt * self.inertia_slowdown)
 
     def on_touch_down(self, touch):
@@ -162,46 +181,47 @@ class ColorWheel(Widget):
         touch.grab(self)
         self._num_touches += 1
         touch.ud['anchor_r'] = r
-        touch.ud['orig_SVidx'] = self.SVidx
+        touch.ud['orig_sv_idx'] = self.sv_idx
         touch.ud['orig_time'] = Clock.get_time()
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
             return
         r = self._get_touch_r(touch.pos)
-        goal_SVidx = (touch.ud['orig_SVidx']
-                      - int((r - touch.ud['anchor_r'])
-                            / (float(self.radius) / self.piece_divisions)))
+        goal_sv_idx = (touch.ud['orig_sv_idx']
+                       - int((r - touch.ud['anchor_r'])
+                             / (float(self.radius) / self.piece_divisions)))
 
         if (
-            goal_SVidx != self.SVidx and
-            goal_SVidx >= 0 and
-            goal_SVidx <= len(self.SVs) - self.piece_divisions
+            goal_sv_idx != self.sv_idx and
+            goal_sv_idx >= 0 and
+            goal_sv_idx <= len(self.sv_s) - self.piece_divisions
         ):
             # this is a pinch to zoom
             self._pinch_flag = True
-            self.SVidx = goal_SVidx
+            self.sv_idx = goal_sv_idx
             self.recolor_wheel()
 
     def on_touch_up(self, touch):
         if touch.grab_current is not self:
             return
+        touch.ungrab(self)
         self._num_touches -= 1
         if self._pinch_flag:
             if self._num_touches == 0:
                 # user was pinching, and now both fingers are up. Return
                 # to normal
-                if self.SVidx > touch.ud['orig_SVidx']:
+                if self.sv_idx > touch.ud['orig_sv_idx']:
                     Clock.schedule_once(
-                        self.inertial_incr_SVidx,
+                        self.inertial_incr_sv_idx,
                         (Clock.get_time() - touch.ud['orig_time'])
-                        / (self.SVidx - touch.ud['orig_SVidx']))
+                        / (self.sv_idx - touch.ud['orig_sv_idx']))
 
-                if self.SVidx < touch.ud['orig_SVidx']:
+                if self.sv_idx < touch.ud['orig_sv_idx']:
                     Clock.schedule_once(
-                        self.inertial_decr_SVidx,
+                        self.inertial_decr_sv_idx,
                         (Clock.get_time() - touch.ud['orig_time'])
-                        / (self.SVidx - touch.ud['orig_SVidx']))
+                        / (self.sv_idx - touch.ud['orig_sv_idx']))
 
                 self._pinch_flag = False
                 return
@@ -224,10 +244,10 @@ class ColorWheel(Widget):
 
     def on_bg_color_hsv(self, instance, value):
         c_hsv = Color(*value, mode='hsv')
-        self.r = c_hsv.r * 255.
-        self.g = c_hsv.g * 255.
-        self.b = c_hsv.b * 255.
-        self.a = c_hsv.a * 255.
+        self.r = c_hsv.r
+        self.g = c_hsv.g
+        self.b = c_hsv.b
+        self.a = c_hsv.a
         self.rgba = (self.r, self.g, self.b, self.a)
 
     def _get_touch_r(self, pos):
@@ -318,17 +338,17 @@ class ColorPicker(Widget):
     label_color = ListProperty((1, 1, 1, 1))
     font_size = NumericProperty(12)
     bg_color = ListProperty((.3, .3, .3, 1))
-    selected_color = ListProperty((1, 1, 1, 1))
+    color = ListProperty((1, 1, 1, 1))
     wheel = ObjectProperty(None)
 
     # def __init__(self, **kwargs):
     #     super(ColorPicker, self).__init__(**kwargs)
 
     def rgba_callback(self, value):
-        self.selected_color = [x / 255. for x in value]
+        self.color = value
 
     def button_callback(self, button_str):
-        current_val = int(self.selected_color[
+        current_val = int(self.color[
             {'R': 0, 'G': 1, 'B': 2, 'A': 3}[button_str]] * 255)
 
         np = NumPad(self, value=current_val, max_value=255)
@@ -344,19 +364,19 @@ class ColorPicker(Widget):
     def popup_dismissed(self, instance):
         colr = instance.id
         val = instance.content.value
-        self.selected_color[
+        self.color[
             {'R': 0, 'G': 1, 'B': 2, 'A': 3}[colr]] = val / 255.
 
         # if it's the alpha value that's been edited, we could change
         # this in the colorwheel, but we're not for now
         if colr == 'A':
-            self.alphaslider.value = val
+            self.alphaslider.value = val / 255
 
     def get_alpha(self):
-        self.alphaslider.value = self.selected_color[3] * 255
+        self.alphaslider.value = self.color[3]
 
     def alpha_slide(self, value):
-        self.selected_color[3] = value / 255.
+        self.color[3] = value
 
 
 if __name__ in ('__android__', '__main__'):
