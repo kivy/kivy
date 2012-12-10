@@ -88,23 +88,6 @@ from kivy.base import EventLoop
 from kivy.lang import Builder
 
 
-class IClass(object):
-    '''Used to register 'widget equivalent' types.  Emulates
-    isinstance(widget, Widget) with isinstance(widget, WidgetLike).  This provides
-    the ability to use transparent widget proxies.'''
-    def __init__(self):
-        self.implementors = set()
-    def register(self,C):
-        self.implementors.add(C)
-    def __instancecheck__(self,x):
-        return self.__subclasscheck__(type(x))
-    def __subclasscheck__(self,sub):
-        return any(c in self.implementors for c in sub.mro())
-
-#Instantiate the IClass registry so we can compare to WidgetLike
-WidgetLike = IClass()
-
-
 class WidgetException(Exception):
     '''Fired when the widget gets an exception.
     '''
@@ -280,10 +263,7 @@ class Widget(EventDispatcher):
         '''
         if widget is self:
             raise WidgetException('You cannot add yourself in a Widget')
-        #Use WidgetLike for isinstance comparisons
-        global WidgetLike
-#        if not isinstance(widget, Widget):
-        if not isinstance(widget, WidgetLike):
+        if not isinstance(widget, Widget):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
         parent = widget.parent
@@ -625,5 +605,3 @@ class Widget(EventDispatcher):
 
     See :class:`~kivy.graphics.Canvas` for more information about the usage.
     '''
-# Register Widget as a 'widget equivalent' type
-WidgetLike.register(Widget)
