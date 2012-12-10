@@ -21,6 +21,17 @@ command must be accessible from the command line.
 
 Then, download and decompress the PyInstaller 2.0.
 
+.. warning::
+
+    It seem that latest PyInstaller has a bug when reading Mach-O binaries.
+    (http://www.pyinstaller.org/ticket/614). To fix the issues, you can::
+
+        cd pyinstaller-2.0/PyInstaller/lib/macholib
+        curl -O https://bitbucket.org/ronaldoussoren/macholib/raw/e32d04b5361950a9343ca453d75602b65787f290/macholib/mach_o.py
+        
+    And then, the issue should be gone. It should be ok in the 2.1.
+
+
 .. _mac_Create-the-spec-file:
 
 Create the spec file
@@ -92,7 +103,7 @@ adding one more argument to the `COLLECT()` method::
     gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split(':')[0]
 
     coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
-                   Tree(join(gst_plugin_path, '..')),
+                   Tree(os.path.join(gst_plugin_path, '..')),
                    a.binaries,
                    #...
                    )

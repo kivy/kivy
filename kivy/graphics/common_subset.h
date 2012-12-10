@@ -279,7 +279,8 @@ typedef khronos_ssize_t  GLsizeiptr;
 #define GL_RGBA4                          0x8056
 #define GL_RGB5_A1                        0x8057
 #define GL_DEPTH_COMPONENT16              0x81A5
-#define GL_STENCIL_INDEX                  0x1901
+// not anymore in GLES 2.0?
+//#define GL_STENCIL_INDEX                  0x1901
 #define GL_NONE                           0
 GL_APICALL void         GL_APIENTRY glActiveTexture (GLenum texture);
 GL_APICALL void         GL_APIENTRY glAttachShader (GLuint program, GLuint shader);
@@ -294,9 +295,13 @@ GL_APICALL void         GL_APIENTRY glBufferData (GLenum target, GLsizeiptr size
 GL_APICALL void         GL_APIENTRY glBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data);
 GL_APICALL void         GL_APIENTRY glClear (GLbitfield mask);
 GL_APICALL void         GL_APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
+#ifdef __arm
+GL_APICALL void         GL_APIENTRY glClearDepthf (GLclampf depth);
+#else
 // Different Name; Redefine
 extern void glClearDepth (GLclampd depth);
 #define glClearDepthf glClearDepth
+#endif
 GL_APICALL void         GL_APIENTRY glClearStencil (GLint s);
 GL_APICALL void         GL_APIENTRY glColorMask (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 GL_APICALL void         GL_APIENTRY glCompileShader (GLuint shader);
@@ -313,9 +318,13 @@ GL_APICALL void         GL_APIENTRY glDeleteShader (GLuint shader);
 GL_APICALL void         GL_APIENTRY glDeleteTextures (GLsizei n, const GLuint* textures);
 GL_APICALL void         GL_APIENTRY glDepthFunc (GLenum func);
 GL_APICALL void         GL_APIENTRY glDepthMask (GLboolean flag);
+#ifdef __arm
+GL_APICALL void         GL_APIENTRY glDepthRangef (GLclampf zNear, GLclampf zFar);
+#else
 // Different Name; Redefine
 extern void glDepthRange (GLclampd zNear, GLclampd zFar);
 #define glDepthRangef glDepthRange
+#endif
 GL_APICALL void         GL_APIENTRY glDetachShader (GLuint program, GLuint shader);
 GL_APICALL void         GL_APIENTRY glDisable (GLenum cap);
 GL_APICALL void         GL_APIENTRY glDisableVertexAttribArray (GLuint index);
@@ -458,10 +467,8 @@ GL_APICALL void         GL_APIENTRY glBindFramebuffer (GLenum target, GLuint fra
 GL_APICALL void         GL_APIENTRY glBindRenderbuffer (GLenum target, GLuint renderbuffer);
 GL_APICALL void         GL_APIENTRY glBlendEquationSeparate (GLenum modeRGB, GLenum modeAlpha);
 GL_APICALL GLenum       GL_APIENTRY glCheckFramebufferStatus (GLenum target);
-//GL_APICALL void         GL_APIENTRY glClearDepthf (GLclampf depth);
 GL_APICALL void         GL_APIENTRY glDeleteFramebuffers (GLsizei n, const GLuint* framebuffers);
 GL_APICALL void         GL_APIENTRY glDeleteRenderbuffers (GLsizei n, const GLuint* renderbuffers);
-//GL_APICALL void         GL_APIENTRY glDepthRangef (GLclampf zNear, GLclampf zFar);
 GL_APICALL void         GL_APIENTRY glFramebufferRenderbuffer (GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
 GL_APICALL void         GL_APIENTRY glFramebufferTexture2D (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 GL_APICALL void         GL_APIENTRY glGenerateMipmap (GLenum target);

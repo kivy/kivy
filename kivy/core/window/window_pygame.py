@@ -16,7 +16,6 @@ from kivy import kivy_home_dir
 from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
-from kivy.clock import Clock
 from kivy.utils import platform
 
 try:
@@ -85,7 +84,7 @@ class WindowPygame(WindowBase):
                 self._pos = (0, 0)
             environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d' % self._pos
 
-        elif self.fullscreen is True:
+        elif self.fullscreen in ('auto', True):
             Logger.debug('WinPygame: Set window to fullscreen mode')
             self.flags |= pygame.FULLSCREEN
 
@@ -263,6 +262,10 @@ class WindowPygame(WindowBase):
                     btn = 'scrolldown'
                 elif event.button == 5:
                     btn = 'scrollup'
+                elif event.button == 6:
+                    btn = 'scrollright'
+                elif event.button == 7:
+                    btn = 'scrollleft'
                 eventname = 'on_mouse_down'
                 if event.type == pygame.MOUSEBUTTONUP:
                     eventname = 'on_mouse_up'

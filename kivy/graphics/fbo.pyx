@@ -82,7 +82,7 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.instructions cimport RenderContext, Canvas
 
-cdef list fbo_stack = [0]
+cdef list fbo_stack = []
 cdef list fbo_release_list = []
 
 
@@ -171,6 +171,7 @@ cdef class Fbo(RenderContext):
 
     cdef void create_fbo(self):
         cdef GLuint f_id = 0
+        cdef GLint old_fid = 0
         cdef int status
         cdef int do_clear = 0
 
@@ -182,6 +183,7 @@ cdef class Fbo(RenderContext):
         # create framebuffer
         glGenFramebuffers(1, &f_id)
         self.buffer_id = f_id
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
         glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
         # if we need depth, create a renderbuffer
@@ -209,7 +211,7 @@ cdef class Fbo(RenderContext):
             self.clear_buffer()
 
         # unbind the framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glBindFramebuffer(GL_FRAMEBUFFER, old_fid)
 
         cdef Matrix projection_mat = Matrix()
         projection_mat.view_clip(0.0, self._width, 0.0, self._height, -1.0, 1.0, 0)
@@ -239,6 +241,12 @@ cdef class Fbo(RenderContext):
             self._is_bound = 1
 
         # stack our fbo to the last binded fbo
+        cdef GLint old_fid = 0
+        if len(fbo_stack) == 0:
+            # the very first time we're going to create it, fill with the
+            # initial framebuffer
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fid)
+            fbo_stack.append(old_fid)
         fbo_stack.append(self.buffer_id)
         glBindFramebuffer(GL_FRAMEBUFFER, self.buffer_id)
 
