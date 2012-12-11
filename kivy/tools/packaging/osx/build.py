@@ -241,6 +241,9 @@ class OSXPortableBuild(Command):
                    set position of item ".DS_Store" of container window to {900, 900}
                    set position of item ".fseventsd" of container window to {900, 900}
                    set position of item ".Trashes" of container window to {900, 900}
+                   set the label index of item "examples" to 7
+                   set the label index of item "Readme.txt" to 7
+                   set the label index of item "make-symlinks" to 7
                    close
                    open
                    update without registering applications
@@ -261,7 +264,7 @@ class OSXPortableBuild(Command):
                             stdout=PIPE).communicate()
 
         print "*compressing and finalizing disk image"
-        fn = os.path.join(self.dist_dir, vol_name + ".dmg")
+        fn = os.path.join(self.dist_dir, self.dist_name + "-osx.dmg")
 
         try:
             os.remove(fn)
