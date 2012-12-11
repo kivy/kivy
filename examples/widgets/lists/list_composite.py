@@ -25,7 +25,7 @@ class MainView(GridLayout):
         # argument sets for each of the member widgets for this composite:
         # ListItemButton and ListItemLabel.
         args_converter = \
-            lambda rec: \
+            lambda row_index, rec: \
                 {'text': rec['text'],
                  'size_hint_y': None,
                  'height': 25,
@@ -34,7 +34,7 @@ class MainView(GridLayout):
                                {'cls': ListItemLabel,
                                 'kwargs': {'text': "Middle-{0}".format(rec['text']),
                                            'is_representing_cls': True}},
-                               {'cls': ListItemButton, 
+                               {'cls': ListItemButton,
                                 'kwargs': {'text': rec['text']}}]}
 
         item_strings = ["{0}".format(index) for index in xrange(100)]

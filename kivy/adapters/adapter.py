@@ -21,16 +21,16 @@ Arguments:
   is a list, and for :class:`~kivy.adapters.dictadapter.DictAdapter`, it is a
   dict.
 
-* *cls*, for a list key class to use to instantiate key view
+* *cls*, for a list key class to use to instantiate list item view
   instances (Use this or the template argument)
 
-* *template*, a kv template to use to instantiate key view instances (Use
+* *template*, a kv template to use to instantiate list item view instances (Use
   this or the cls argument)
 
 * *args_converter*, a function to transform data item argument
   sets, in preparation for either a cls instantiation, or a kv template
-  invocation. If no args_converter is provided, a default one is set, that
-  assumes that the data items are strings.
+  invocation. If no args_converter is provided, a default one, that
+  assumes that the data items are strings, is used.
 
 
 '''

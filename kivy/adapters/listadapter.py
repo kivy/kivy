@@ -214,7 +214,7 @@ class ListAdapter(Adapter, EventDispatcher):
         if item is None:
             return None
 
-        item_args = self.args_converter(item)
+        item_args = self.args_converter(index, item)
 
         item_args['index'] = index
 
@@ -390,7 +390,6 @@ class ListAdapter(Adapter, EventDispatcher):
                 # Select the first item if we have it.
                 v = self.get_view(0)
                 if v is not None:
-                    print 'selecting first data item view', v, v.is_selected
                     self.handle_selection(v)
 
     # [TODO] Also make methods for scroll_to_sel_start, scroll_to_sel_end,

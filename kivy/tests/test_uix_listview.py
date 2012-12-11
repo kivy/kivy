@@ -43,9 +43,9 @@ class ListViewTestCase(unittest.TestCase):
 
         data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]
 
-        args_converter = lambda rec: {'text': rec['text'],
-                                      'size_hint_y': None,
-                                      'height': 25}
+        args_converter = lambda row_index, rec: {'text': rec['text'],
+                                                 'size_hint_y': None,
+                                                 'height': 25}
 
         list_adapter = ListAdapter(data=data,
                                    args_converter=args_converter,
@@ -64,9 +64,9 @@ class ListViewTestCase(unittest.TestCase):
 
         data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]
 
-        args_converter = lambda rec: {'text': rec['text'],
-                                      'size_hint_y': None,
-                                      'height': 25}
+        args_converter = lambda row_index, rec: {'text': rec['text'],
+                                                 'size_hint_y': None,
+                                                 'height': 25}
 
         list_adapter = ListAdapter(data=data,
                                    args_converter=args_converter,

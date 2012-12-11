@@ -41,9 +41,10 @@ class CascadingView(GridLayout):
         kwargs['size_hint'] = (1.0, 1.0)
         super(CascadingView, self).__init__(**kwargs)
 
-        list_item_args_converter = lambda rec: {'text': rec['name'],
-                                                'size_hint_y': None,
-                                                'height': 25}
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['name'],
+                                        'size_hint_y': None,
+                                        'height': 25}
 
         # Fruit categories list on the left:
         #

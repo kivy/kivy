@@ -7,7 +7,7 @@ __all__ = ('ImageLoaderPIL', )
 try:
     from PIL import Image as PILImage
 except:
-    raise
+    import Image
 
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader

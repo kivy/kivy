@@ -32,6 +32,7 @@ cdef void reset_gl_context():
     _active_texture = 0
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
     glActiveTexture(GL_TEXTURE0)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
@@ -432,6 +433,7 @@ cdef class Callback(Instruction):
             glDisable(GL_SCISSOR_TEST)
             glEnable(GL_BLEND)
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
             glUseProgram(0)
 
             # FIXME don't use 10. use max texture available from gl conf
