@@ -144,7 +144,7 @@ class Image(Widget):
 
     .. versionadded:: 1.3.0
 
-    :data:`keep_ratio` is a :class:`~kivy.properties.BooleanProperty`, default
+    :data:`keep_data` is a :class:`~kivy.properties.BooleanProperty`, default
     to False
     '''
 
