@@ -2,6 +2,8 @@
 Adapters
 ========
 
+.. versionadded:: 1.5.0
+
 An adapter is an intermediating controller-type class that builds views
 for top-level widgets, interacting with data as prescribed by parameters.
 On the view side is :class:`AbstractView`, which is the base view for

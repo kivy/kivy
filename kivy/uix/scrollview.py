@@ -94,7 +94,7 @@ from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
 
 # When we are generating documentation, Config doesn't exist
 _scroll_moves = _scroll_timeout = _scroll_stoptime = \
-        _scroll_distance = _scroll_friction = 0
+    _scroll_distance = _scroll_friction = 0
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
     _scroll_stoptime = Config.getint('widgets', 'scroll_stoptime')
@@ -132,6 +132,7 @@ class ScrollView(StencilView):
         self._touch = False
         self._tdx = self._tdy = self._ts = self._tsn = 0
         self._scroll_y_mouse = 1
+        self._scroll_x_mouse = 1
         super(ScrollView, self).__init__(**kwargs)
         self.bind(scroll_x=self.update_from_scroll,
                   scroll_y=self.update_from_scroll,
@@ -311,6 +312,7 @@ class ScrollView(StencilView):
             self.scroll_x -= sx
         if self.do_scroll_y:
             self.scroll_y -= sy
+        self._scroll_x_mouse = self.scroll_x
         self._scroll_y_mouse = self.scroll_y
         if ssx == self.scroll_x and ssy == self.scroll_y:
             # scrolling stopped by end of box
@@ -341,17 +343,38 @@ class ScrollView(StencilView):
             if vp.height > self.height:
                 # let's say we want to move over 40 pixels each scroll
                 d = (vp.height - self.height)
+                syd = None
                 if d != 0:
                     d = self.scroll_distance / float(d)
                 if touch.button == 'scrollup':
                     syd = self._scroll_y_mouse - d
                 elif touch.button == 'scrolldown':
                     syd = self._scroll_y_mouse + d
-                self._scroll_y_mouse = scroll_y = min(max(syd, 0), 1)
-                Animation.stop_all(self, 'scroll_y')
-                Animation(scroll_y=scroll_y, d=.3, t='out_quart').start(self)
-                Clock.unschedule(self._update_animation)
-                return True
+
+                if syd is not None:
+                    self._scroll_y_mouse = scroll_y = min(max(syd, 0), 1)
+                    Animation.stop_all(self, 'scroll_y')
+                    Animation(scroll_y=scroll_y, d=.3,
+                              t='out_quart').start(self)
+                    Clock.unschedule(self._update_animation)
+                    return True
+
+            if vp.width > self.width:
+                # let's say we want to move over 40 pixels each scroll
+                d = (vp.width - self.width)
+                sxd = None
+                if d != 0:
+                    d = self.scroll_distance / float(d)
+                if touch.button == 'scrollright':
+                    sxd = self._scroll_x_mouse - d
+                elif touch.button == 'scrollleft':
+                    sxd = self._scroll_x_mouse + d
+                if sxd is not None:
+                    self._scroll_x_mouse = scroll_x = min(max(sxd, 0), 1)
+                    Animation.stop_all(self, 'scroll_x')
+                    Animation(scroll_x=scroll_x, d=.3, t='out_quart').start(self)
+                    Clock.unschedule(self._update_animation)
+                    return True
 
         self._touch = touch
         uid = self._get_uid()
@@ -429,6 +452,7 @@ class ScrollView(StencilView):
 
         if 'button' in touch.profile and not touch.button.startswith('scroll'):
             self._scroll_y_mouse = self.scroll_y
+            self._scroll_x_mouse = self.scroll_x
 
         if self in [x() for x in touch.grab_list]:
             touch.ungrab(self)
@@ -437,7 +461,8 @@ class ScrollView(StencilView):
             ud = touch.ud[uid]
             if ud['mode'] == 'unknown':
                 # we must do the click at least..
-                # only send the click if it was not a click to stop autoscrolling
+                # only send the click if it was not a click to stop
+                # autoscrolling
                 if not ud['user_stopped']:
                     super(ScrollView, self).on_touch_down(touch)
                 Clock.schedule_once(partial(self._do_touch_up, touch), .1)

@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.4.2-dev'
+__version__ = '1.5.1-dev'
 
 import sys
 import shutil
@@ -186,11 +186,11 @@ else:
 
 #: Global settings options for kivy
 kivy_options = {
-    'window': ('pygame', ),
-    'text': ('pil', 'pygame'),
+    'window': ('pygame', 'sdl', 'x11'),
+    'text': ('pil', 'pygame', 'sdlttf'),
     'video': ('ffmpeg', 'gstreamer', 'pyglet'),
-    'audio': ('pygame', 'gstreamer', ),
-    'image': ('dds', 'gif', 'pil', 'pygame'),
+    'audio': ('pygame', 'gstreamer', 'sdl'),
+    'image': ('imageio', 'dds', 'gif', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': ('pygame', 'dummy'), }
@@ -248,6 +248,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     user_home_dir = expanduser('~')
     if platform() == 'android':
         user_home_dir = environ['ANDROID_APP_PATH']
+    elif platform() == 'ios':
+        user_home_dir = join(expanduser('~'), 'Documents')
     kivy_home_dir = join(user_home_dir, '.kivy')
     kivy_config_fn = join(kivy_home_dir, 'config.ini')
     kivy_usermodules_dir = join(kivy_home_dir, 'mods')
@@ -374,10 +376,12 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Modules.configure()
 
     # android hooks: force fullscreen and add android touch input provider
-    if platform() == 'android':
+    if platform() in ('android', 'ios'):
         from kivy.config import Config
         Config.set('graphics', 'fullscreen', 'auto')
         Config.remove_section('input')
         Config.add_section('input')
+
+    if platform() == 'android': 
         Config.set('input', 'androidtouch', 'android')
 
