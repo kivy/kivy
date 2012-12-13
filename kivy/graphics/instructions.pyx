@@ -660,6 +660,7 @@ cdef class RenderContext(Canvas):
         Canvas.__init__(self, **kwargs)
         vs_src = kwargs.get('vs', None)
         fs_src = kwargs.get('fs', None)
+        self._with_normal_mat = int(kwargs.get('with_normal_mat', False))
         self._shader = Shader(vs_src, fs_src)
 
         # load default texture image
@@ -694,6 +695,13 @@ cdef class RenderContext(Canvas):
                 d[-1] = value
                 self.flag_update()
         self._shader.set_uniform(name, value)
+
+        #if enabled, update normal mat based on modelview
+        if self._with_normal_mat and name == "modelview_mat":
+            if self.flags & GI_NEEDS_UPDATE:
+                n_mat = value.inverse().transpose()
+                self.set_state("normal_mat", n_mat)
+
 
     cdef get_state(self, str name):
         return self.state_stacks[name][-1]
