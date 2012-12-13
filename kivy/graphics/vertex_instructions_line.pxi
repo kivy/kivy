@@ -162,7 +162,7 @@ cdef class Line(VertexInstruction):
             self._stencil_rect = Rectangle()
             self._stencil_push = StencilPush()
             self._stencil_pop = StencilPop()
-            self._stencil_use = StencilUse(op=GL_LEQUAL)
+            self._stencil_use = StencilUse(op='lequal')
             self._stencil_unuse = StencilUnUse()
 
     cdef void apply(self):
