@@ -116,7 +116,7 @@ class Button(Label):
         if super(Button, self).on_touch_down(touch):
             return True
         if 'button' in touch.profile and touch.button in (
-                'scrolldown', 'scrollup'):
+                'scrolldown', 'scrollup', 'scrollleft', 'scrollright'):
             return False
         if not self.collide_point(touch.x, touch.y):
             return False
