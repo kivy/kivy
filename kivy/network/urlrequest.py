@@ -70,6 +70,7 @@ except ImportError:
 from urlparse import urlparse
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
+from kivy.logger import Logger
 
 
 # list to save UrlRequest and prevent GC on un-referenced objects
@@ -79,8 +80,11 @@ g_requests = []
 class UrlRequest(Thread):
     '''Url request. See module documentation for usage.
 
+    .. versionchanged:: 1.5.1
+        Add `debug` parameter
+
     .. versionchanged:: 1.0.10
-        Add `method` parameters
+        Add `method` parameter
 
     :Parameters:
         `url`: str
@@ -107,13 +111,16 @@ class UrlRequest(Thread):
             on_progress.
         `timeout`: int, default to None
             If set, blocking operations will timeout after that many seconds.
-        `method'`: str, default to 'GET' (or 'POST' if body)
+        `method`: str, default to 'GET' (or 'POST' if body)
             HTTP method to use
+        `debug`: bool, default to False
+            If True, it will use the Logger.debug to print information about url
+            access/progression/error.
     '''
 
     def __init__(self, url, on_success=None, on_error=None, on_progress=None,
             req_body=None, req_headers=None, chunk_size=8192, timeout=None,
-            method=None):
+            method=None, debug=False):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -121,6 +128,7 @@ class UrlRequest(Thread):
         self.on_success = WeakMethod(on_success) if on_success else None
         self.on_error = WeakMethod(on_error) if on_error else None
         self.on_progress = WeakMethod(on_progress) if on_progress else None
+        self._debug = debug
         self._result = None
         self._error = None
         self._is_finished = False
@@ -181,6 +189,11 @@ class UrlRequest(Thread):
         chunk_size = self._chunk_size
         report_progress = self.on_progress is not None
         timeout = self._timeout
+
+        if self._debug:
+            Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(id(self), url))
+            Logger.debug('UrlRequest: {0} - body: {1}'.format(id(self), body))
+            Logger.debug('UrlRequest: {0} - headers: {1}'.format(id(self), headers))
 
         # parse url
         parse = urlparse(url)
@@ -291,6 +304,10 @@ class UrlRequest(Thread):
                 self._resp_headers = dict(resp.getheaders())
                 self._resp_status = resp.status
             if result == 'success':
+                if self._debug:
+                    Logger.debug('UrlRequest: {0} Download finished with'
+                            ' {1} datalen'.format(
+                        id(self), len(data)))
                 self._is_finished = True
                 self._result = data
                 if self.on_success:
@@ -298,6 +315,9 @@ class UrlRequest(Thread):
                     if func:
                         func(self, data)
             elif result == 'error':
+                if self._debug:
+                    Logger.debug('UrlRequest: {0} Download error <{1}>'.format(
+                        id(self), data))
                 self._is_finished = True
                 self._error = data
                 if self.on_error:
@@ -305,6 +325,9 @@ class UrlRequest(Thread):
                     if func:
                         func(self, data)
             elif result == 'progress':
+                if self._debug:
+                    Logger.debug('UrlRequest: {0} Download progress {1}'.format(
+                        id(self), data))
                 if self.on_progress:
                     func = self.on_progress()
                     if func:
