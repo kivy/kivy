@@ -15,6 +15,8 @@ from kivy.uix.codeinput import CodeInput
 from kivy.animation import Animation
 from kivy.clock import Clock
 
+CATALOG_ROOT = os.path.dirname(__file__)
+
 print Config.get('graphics', 'width')
 
 Config.set('graphics', 'width', '1024')
@@ -22,7 +24,8 @@ Config.set('graphics', 'height', '768')
 
 '''List of classes that need to be instantiated in the factory from .kv files.
 '''
-CONTAINER_CLASSES = [c[:-3] for c in os.listdir('container_kvs')
+CONTAINER_KVS = os.path.join(CATALOG_ROOT, 'container_kvs')
+CONTAINER_CLASSES = [c[:-3] for c in os.listdir(CONTAINER_KVS)
     if c.endswith('.kv')]
 
 
@@ -48,8 +51,7 @@ class Container(BoxLayout):
         '''Get the name of the kv file, a lowercase version of the class
         name.
         '''
-        return os.path.join('container_kvs',
-            self.__class__.__name__ + ".kv")
+        return os.path.join(CONTAINER_KVS, self.__class__.__name__ + '.kv')
 
 
 for class_name in CONTAINER_CLASSES:
