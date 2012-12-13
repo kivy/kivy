@@ -52,16 +52,12 @@ cdef class EventDispatcher(object):
             attrs_found = cp[__cls__] = {}
             attrs = dir(__cls__)
             for k in attrs:
-                try:
-                    uattr = getattr(__cls__, k)
-                except AttributeError:
-                    pass
-                else:
-                    if not isinstance(uattr, Property):
-                        continue
-                    if k == 'touch_down' or k == 'touch_move' or k == 'touch_up':
-                        raise Exception('The property <%s> have a forbidden name' % k)
-                    attrs_found[k] = uattr
+                uattr = getattr(__cls__, k)
+                if not isinstance(uattr, Property):
+                    continue
+                if k == 'touch_down' or k == 'touch_move' or k == 'touch_up':
+                    raise Exception('The property <%s> have a forbidden name' % k)
+                attrs_found[k] = uattr
         else:
             attrs_found = cp[__cls__]
 
