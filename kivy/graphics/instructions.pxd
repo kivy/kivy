@@ -99,6 +99,7 @@ cdef class RenderContext(Canvas):
     #cdef TextureManager texture_manager
     cdef Texture default_texture
     cdef dict bind_texture
+    cdef int _with_normal_mat
 
     cdef void set_texture(self, int index, Texture texture)
     cdef void set_state(self, str name, value)
