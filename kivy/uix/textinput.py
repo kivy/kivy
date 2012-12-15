@@ -341,18 +341,18 @@ class TextInput(Widget):
         new_text = text[:cc] + substring + text[cc:]
         self._set_line_text(cr, new_text)
 
-        wrap = (True if (self._get_text_width(new_text,
+        wrap = bool(True if (self._get_text_width(new_text,
                                             self.tab_width,
                                             self._label_cached) > self.width)
-                    else
-                False)
+                        else
+                    False)
         if len_str > 1 or substring == '\n' or wrap:
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
 
             start, finish, lines,\
-            lineflags, len_lines = self._get_line_from_cursor(cr, new_text)
+                lineflags, len_lines = self._get_line_from_cursor(cr, new_text)
             self._trigger_refresh_text('insert', start, finish, lines,
                 lineflags, len_lines)
 
@@ -368,8 +368,8 @@ class TextInput(Widget):
             start -= 1
             new_text = ''.join((lines[start], new_text))
         try:
-            while not linesflags[finish+1]:
-                new_text = ''.join((new_text, lines[finish+1]))
+            while not linesflags[finish + 1]:
+                new_text = ''.join((new_text, lines[finish + 1]))
                 finish += 1
         except IndexError:
             pass
@@ -928,8 +928,8 @@ class TextInput(Widget):
     def _trigger_refresh_text(self, *largs):
         if len(largs) and largs[0] == self:
             largs = ()
-        Clock.unschedule(lambda dt:self._refresh_text_from_property(*largs))
-        Clock.schedule_once(lambda dt:self._refresh_text_from_property(*largs))
+        Clock.unschedule(lambda dt: self._refresh_text_from_property(*largs))
+        Clock.schedule_once(lambda dt: self._refresh_text_from_property(*largs))
 
     def _update_text_options(self, *largs):
         Cache_remove('textinput.width')
@@ -963,12 +963,12 @@ class TextInput(Widget):
             self._lines_labels = _lines_labels
             self._lines_rects = _line_rects
         elif mode == 'del':
-            self._insert_lines( start,
+            self._insert_lines(start,
                                 finish if start == finish else (finish + 1),
                                 len_lines, _lines_flags,
                                 _lines, _lines_labels, _line_rects)
         elif mode == 'insert':
-            self._insert_lines( start,
+            self._insert_lines(start,
                                 finish if (start == finish and not len_lines)
                                         else
                                 (finish + 1),
@@ -994,7 +994,7 @@ class TextInput(Widget):
 
     def _insert_lines(self, start, finish, len_lines, _lines_flags, _lines,
         _lines_labels, _line_rects):
-            self_lines_flags= self._lines_flags
+            self_lines_flags = self._lines_flags
             _lins_flags = []
             _lins_flags.extend(self_lines_flags[:start])
             if len_lines:
