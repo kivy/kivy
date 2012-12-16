@@ -50,6 +50,14 @@ for target in proc.stdout:
     if parts[0] != 'D':
         targets.append(join(kivydir, target))
 
+# Untested possibility: After making the changes above for removing deleted
+# files from targets, saw also where the git diff call could be:
+#
+#    git diff --cached --name-only --diff-filter=ACM
+#                                                    (leaving off D)
+#
+# and we could then remove the special handling in python for targets above.
+
 call(['git', 'stash', 'save', '--keep-index', '--quiet'])
 retval = call([sys.executable, script, srcdir] + targets)
 call(['git', 'stash', 'pop', '--quiet'])
