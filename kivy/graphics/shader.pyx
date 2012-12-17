@@ -133,7 +133,6 @@ cdef class Shader:
     def __init__(self, str vs, str fs):
         get_context().register_shader(self)
         self.program = glCreateProgram()
-        self.bind_attrib_locations()
         self.fs = fs
         self.vs = vs
 
@@ -151,7 +150,6 @@ cdef class Shader:
         self.uniform_locations = dict()
         self._success = 0
         self.program = glCreateProgram()
-        self.bind_attrib_locations()
         self.fs = self.fs
         self.vs = self.vs
 
@@ -272,15 +270,11 @@ cdef class Shader:
         self.uniform_locations[name] = loc
         return loc
 
-    cdef void bind_attrib_locations(self):
-        cdef int i
-        cdef vertex_attr_t *attr
-        cdef vertex_attr_t *vattr = vbo_vertex_attr_list()
-        for i in xrange(vbo_vertex_attr_count()):
-            attr = &vattr[i]
-            glBindAttribLocation(self.program, attr.index, attr.name)
-            if attr.per_vertex == 1:
-                glEnableVertexAttribArray(attr.index)
+    cdef int get_attribute_loc(self, str name):
+        name_byte_str = name
+        cdef char* c_name = name_byte_str
+        cdef int loc = glGetAttribLocation(self.program, c_name)
+        return loc
 
     cdef void build(self):
         self.build_vertex()
