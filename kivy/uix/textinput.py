@@ -1,8 +1,6 @@
 # -*- encoding: utf8 -*-
 '''
 Text Input
-==========
-
 .. versionadded:: 1.0.4
 
 .. image:: images/textinput-mono.jpg
@@ -341,11 +339,9 @@ class TextInput(Widget):
         new_text = text[:cc] + substring + text[cc:]
         self._set_line_text(cr, new_text)
 
-        wrap = bool(True if (self._get_text_width(new_text,
-                                            self.tab_width,
-                                            self._label_cached) > self.width)
-                        else
-                    False)
+        wrap = (self._get_text_width(new_text,
+                                    self.tab_width,
+                                    self._label_cached) > self.width)
         if len_str > 1 or substring == '\n' or wrap:
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
