@@ -175,7 +175,7 @@ get instant karma. Congratulations, you're a hero!
 Documentation Contributions
 ---------------------------
 
-Documentation contributions generally follow the same workflow as code contributions, just a bit more lax. 
+Documentation contributions generally follow the same workflow as code contributions, just a bit more lax.
 
     #. Following the instructions above,
 
@@ -185,11 +185,11 @@ Documentation contributions generally follow the same workflow as code contribut
 
         #. Setup kivy repo as a remote source.
 
-    #. Install python-sphinx. (See docs/sources/README for assistance.) 
+    #. Install python-sphinx. (See ``docs/README`` for assistance.)
 
-    #. Use ReStructuredText_Markup_ to make changes to the HTML documentation in docs/sources. 
+    #. Use ReStructuredText_Markup_ to make changes to the HTML documentation in docs/sources.
 
-.. _ReStructuredText_Markup: http://docutils.sourceforge.net/rst.html 
+.. _ReStructuredText_Markup: http://docutils.sourceforge.net/rst.html
 
 To submit a documentation update, use the following steps:
 
@@ -197,7 +197,7 @@ To submit a documentation update, use the following steps:
 
         git checkout -b my_docs_update
 
-    #. Modify the documentation with your correction or improvement. 
+    #. Modify the documentation with your correction or improvement.
     #. Re-generate the HTML pages, and review your update.::
 
 			make html
@@ -209,7 +209,7 @@ To submit a documentation update, use the following steps:
 
         git push
 
-    #. Send a *Pull Request* with a description of what you changed via the button in the GitHub interface of your repository. 
+    #. Send a *Pull Request* with a description of what you changed via the button in the GitHub interface of your repository.
 
 We don't ask you to go through all the hassle just to correct a single typo, but for more complex contributions, please follow the suggested workflow.
 
@@ -289,7 +289,7 @@ If you updated your kivy install, and have some trouble compiling docs, run::
 
     make clean force html
 
-The doc will be generated in ``build/html``.
+The doc will be generated in ``docs/build/html``.
 
 Unit tests contributions
 ------------------------
