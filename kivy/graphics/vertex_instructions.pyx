@@ -266,7 +266,7 @@ cdef class Mesh(VertexInstruction):
         self.mode = kwargs.get('mode') or 'points'
 
     cdef void build(self):
-        cdef int i, vcount = len(self._vertices) / 4
+        cdef int i, vcount = len(self._vertices)
         cdef int icount = len(self._indices)
         cdef float *vertices = NULL
         cdef unsigned short *indices = NULL
