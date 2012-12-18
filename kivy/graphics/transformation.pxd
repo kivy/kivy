@@ -29,4 +29,6 @@ cdef class Matrix:
             double centerx, double centery, double centerz,
             double upx, double upy, double upz)
 
+    cpdef Matrix normal_matrix(self)
+    
     cpdef tuple transform_point(Matrix self, double x, double y, double z)

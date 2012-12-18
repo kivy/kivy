@@ -285,24 +285,22 @@ cdef class Matrix:
         '''Return the transposed of the matrix as a new Matrix.
         '''
         cdef Matrix mm = Matrix()
-        cdef double *m = <double *>self.mat
-        with nogil:
-            m[0]  = self.mat[1]
-            m[4]  = self.mat[2]
-            m[8]  = self.mat[3]
-            m[12] = self.mat[4]
-            m[1]  = self.mat[5]
-            m[5]  = self.mat[6]
-            m[9]  = self.mat[7]
-            m[13] = self.mat[8]
-            m[2]  = self.mat[9]
-            m[6]  = self.mat[10]
-            m[10] = self.mat[11]
-            m[14] = self.mat[12]
-            m[3]  = self.mat[13]
-            m[7]  = self.mat[14]
-            m[11] = self.mat[15]
-            m[15] = self.mat[16]
+        mm.mat[0]  = self.mat[0]
+        mm.mat[4]  = self.mat[1]
+        mm.mat[8]  = self.mat[2]
+        mm.mat[12] = self.mat[3]
+        mm.mat[1]  = self.mat[4]
+        mm.mat[5]  = self.mat[5]
+        mm.mat[9]  = self.mat[6]
+        mm.mat[13] = self.mat[7]
+        mm.mat[2]  = self.mat[8]
+        mm.mat[6]  = self.mat[9]
+        mm.mat[10] = self.mat[10]
+        mm.mat[14] = self.mat[11]
+        mm.mat[3]  = self.mat[12]
+        mm.mat[7]  = self.mat[13]
+        mm.mat[11] = self.mat[14]
+        mm.mat[15] = self.mat[15]
         return mm
 
     cpdef Matrix inverse(self):
@@ -336,6 +334,22 @@ cdef class Matrix:
             r[13] = -(m[12] * r[1] + m[13] * r[5] + m[14] * r[ 9])
             r[14] = -(m[12] * r[2] + m[13] * r[6] + m[14] * r[10])
         return mr
+
+    cpdef Matrix normal_matrix(self):
+        '''Computes the normal matrix, which is the inverse transpose
+        of the top left 3x3 modelview matrix used to transform normals 
+        into eye/camera space.
+        '''
+        cdef Matrix nm = Matrix().multiply(self)
+        nm = nm.inverse().transpose()
+        nm.mat[3] = 0
+        nm.mat[7] = 0
+        nm.mat[11] = 0
+        nm.mat[12] = 0
+        nm.mat[13] = 0
+        nm.mat[14] = 0
+        nm.mat[15] = 1
+        return nm
 
     cpdef Matrix multiply(Matrix mb, Matrix ma):
         '''Multiply the given matrix with self (from the left).
@@ -373,4 +387,7 @@ cdef class Matrix:
                    m[4], m[5], m[6], m[7],
                    m[8], m[9], m[10], m[11],
                    m[12], m[13], m[14], m[15])
+
+
+
 
