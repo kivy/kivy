@@ -130,11 +130,15 @@ cdef class Shader:
         self.uniform_locations = dict()
         self.uniform_values = dict()
 
-    def __init__(self, str vs, str fs):
+    def __init__(self, str vs=None, str fs=None, str source=None):
         get_context().register_shader(self)
         self.program = glCreateProgram()
-        self.fs = fs
-        self.vs = vs
+        if source:
+            self.source = source
+        else:
+            self._source = None
+            self.fs = fs
+            self.vs = vs
 
     def __dealloc__(self):
         get_context().dealloc_shader(self)
@@ -280,7 +284,7 @@ cdef class Shader:
         self.build_vertex()
         self.build_fragment()
 
-    cdef void build_vertex(self):
+    cdef void build_vertex(self, int link=0):
         if self.vertex_shader is not None:
             glDetachShader(self.program, self.vertex_shader.shader)
             self.vertex_shader = None
@@ -289,7 +293,7 @@ cdef class Shader:
             glAttachShader(self.program, self.vertex_shader.shader)
         self.link_program()
 
-    cdef void build_fragment(self):
+    cdef void build_fragment(self, int link=0):
         if self.fragment_shader is not None:
             glDetachShader(self.program, self.fragment_shader.shader)
             self.fragment_shader = None
@@ -357,6 +361,38 @@ cdef class Shader:
     #
     # Python access
     #
+
+    property source:
+        '''glsl  source code.
+
+        source shoudl be a filename of a glsl shader, that contains both
+        vertex and fragment shader sourcecode;  each designated by a section
+        header consisting of one line starting with either "--VERTEX" or
+        "--FRAGMENT" (case insensitive).
+        '''
+        def __get__(self):
+            return self._source
+        def __set__(self, object source):
+            self._source = source
+            if source is None:
+                self.vs = None
+                self.fs = None
+                return
+            self.vert_src = ""
+            self.frag_src = ""
+            glsl_source = '\n' +open(self._source).read()
+            sections = glsl_source.split('\n---')
+            for section in sections:
+                lines = section.split('\n')
+                if lines[0].lower().startswith("vertex"):
+                    _vs = '\n'.join(lines[1:])
+                    self.vert_src = _vs.replace('$HEADER$', header_vs)
+                if lines[0].lower().startswith("fragment"):
+                    _fs = '\n'.join(lines[1:])
+                    self.frag_src = _fs.replace('$HEADER$', header_fs)
+            self.build_vertex(0)
+            self.build_fragment(0)
+            self.link_program()
 
     property vs:
         '''Vertex shader source code.
