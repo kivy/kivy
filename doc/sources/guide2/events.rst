@@ -34,7 +34,7 @@ See the following example::
             super(MyEventDispatcher, self).__init__(**kwargs)
 
         def do_something(self, value):
-            # when test is called, the 'on_test' event will be
+            # when do_something is called, the 'on_test' event will be
             # dispatched with the value
             self.dispatch('on_test', value)
 
@@ -56,7 +56,7 @@ the arguments the event will use, for this, it's usually safer to accept the
 Example::
 
     def my_callback(value, *args):
-        print "Hello, I got an event!", value
+        print "Hello, I got an event!", args
 
 
     ev = MyEventDispatcher()
