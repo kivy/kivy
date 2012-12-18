@@ -38,7 +38,7 @@ See the following example::
             # dispatched with the value
             self.dispatch('on_test', value)
 
-        def on_test(self):
+        def on_test(self, *args):
             pass
 
 
@@ -61,7 +61,7 @@ Example::
 
     ev = MyEventDispatcher()
     ev.bind(on_test=my_callback)
-    ev.test('test')
+    ev.do_something('test')
 
 
 Introduction to properties
