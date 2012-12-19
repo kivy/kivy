@@ -72,10 +72,19 @@ from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import kivy_shader_dir
 
-cdef str header_vs = open(join(kivy_shader_dir, 'header.vs')).read()
-cdef str header_fs = open(join(kivy_shader_dir, 'header.fs')).read()
-cdef str default_vs = open(join(kivy_shader_dir, 'default.vs')).read()
-cdef str default_fs = open(join(kivy_shader_dir, 'default.fs')).read()
+
+cdef str header_vs = ""
+cdef str header_fs = ""
+cdef str default_vs = ""
+cdef str default_fs = ""
+with open(join(kivy_shader_dir, 'header.vs')) as fin:
+    header_vs = fin.read()
+with open(join(kivy_shader_dir, 'header.fs')) as fin:
+    header_fs = fin.read()
+with open(join(kivy_shader_dir, 'default.vs')) as fin:
+    default_vs = fin.read()
+with open(join(kivy_shader_dir, 'default.fs')) as fin:
+    default_fs = fin.read()
 
 
 cdef class ShaderSource:
@@ -406,7 +415,9 @@ cdef class Shader:
                 return
             self.vert_src = ""
             self.frag_src = ""
-            glsl_source = '\n' +open(self._source).read()
+            glsl_source = "\n"
+            with open(self._source) as fin:
+                glsl_source += fin.read()
             sections = glsl_source.split('\n---')
             for section in sections:
                 lines = section.split('\n')
