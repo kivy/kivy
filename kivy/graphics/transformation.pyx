@@ -12,6 +12,12 @@ supporting:
 - create clip matrix (with or without perspective)
 - transform 3d touch on a matrix
 
+
+
+.. versionchanged:: 1.5.2
+    
+
+
 '''
 
 __all__ = ('Matrix', )
@@ -122,6 +128,8 @@ cdef class Matrix:
     cpdef Matrix perspective(Matrix self, double fovy, double aspect,
             double zNear, double zFar):
         '''Creates a perspective matrix (inplace)
+
+        .. versionadded:: 1.5.2
         '''
         cdef double f = 1 / tan(fovy / 2. / 360. * 2 * 3.141592653589793)
         self.mat[0]  = f / aspect
@@ -145,6 +153,9 @@ cdef class Matrix:
             double bottom, double top, 
             double near, double far, int perspective):
         '''Create a clip matrix (inplace)
+
+        .. versionchanged:: 1.5.2
+            Enable support for perspective parameter
         '''
         cdef double t
         if left >= right or bottom >= top or near >= far:
@@ -195,6 +206,8 @@ cdef class Matrix:
           double centerx, double centery, double centerz,
           double upx, double upy, double upz):
         '''returns a new lookat Matrix (simmilar to gluLookAt)
+
+        .. versionadded:: 1.5.2
         '''
 
         cdef double x[3], y[3], z[3]
@@ -283,6 +296,8 @@ cdef class Matrix:
 
     cpdef Matrix transpose(self):
         '''Return the transposed of the matrix as a new Matrix.
+
+        .. versionadded:: 1.5.2
         '''
         cdef Matrix mm = Matrix()
         mm.mat[0]  = self.mat[0]
@@ -339,6 +354,8 @@ cdef class Matrix:
         '''Computes the normal matrix, which is the inverse transpose
         of the top left 3x3 modelview matrix used to transform normals 
         into eye/camera space.
+
+        .. versionadded:: 1.5.2
         '''
         cdef Matrix nm = Matrix().multiply(self)
         nm = nm.inverse().transpose()

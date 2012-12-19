@@ -40,15 +40,26 @@ cdef vertex_attr_t *vbo_vertex_attr_list():
     return vattr
 
 '''
-Usage example
--------------
-vertex2d = VertexFormat(('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float'))
+.. versionadded:: 1.5.2
+    VertexFormat class added.  VertexFormat is used to describe the layout
+    of the vertex data stored in vertex arrays/vbo.  The default vertex format
+    is:
+        VertexFormat(('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float'))
+
+.. versionchanged:: 1.5.2
+    VBO now no longer has a fixed vertex format, if no VertexFormat is given
+    at initialization, the default vertex format is used.
 '''
 
 class VertexFormatException(Exception):
     pass
 
 cdef class VertexFormat:
+    '''
+    .. versionadded:: 1.5.2
+        VertexFormat is used to describe the layout of the vertex data stored 
+        in vertex arrays/vbo.
+    '''
     def __cinit__(self, *fmt):
         self.vattr = NULL
         self.vattr_count = 0
@@ -94,7 +105,11 @@ cdef short V_NEEDUPLOAD = 1 << 1
 cdef short V_HAVEID = 1 << 2
 
 cdef class VBO:
-
+    '''
+    .. versionchanged:: 1.5.2
+        VBO now no longer has a fixed vertex format, if no VertexFormat is given
+        at initialization, the default vertex format is used.
+    '''
     def __cinit__(self, VertexFormat vertex_format=None):
         self.usage  = GL_DYNAMIC_DRAW
         self.target = GL_ARRAY_BUFFER

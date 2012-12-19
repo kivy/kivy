@@ -63,10 +63,6 @@ cdef class Rotate(Transform):
     cdef void apply(self)
 
 cdef class Scale(Transform):
-    cdef float s
-    cdef void apply(self)
-
-cdef class ScaleXYZ(Transform):
     cdef float _x, _y, _z
     cdef void apply(self)
     cdef set_scale(self, double x, double y, double z)

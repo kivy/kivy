@@ -103,6 +103,8 @@ cdef tuple hsv_to_rgb(float h, float s, float v):
 cdef class PushState(ContextInstruction):
     '''Instruction that pushes arbitrary states/uniforms on the context
     state stack.
+
+    .. versionadded:: 1.5.2
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
@@ -124,6 +126,8 @@ cdef class PushState(ContextInstruction):
 cdef class ChangeState(ContextInstruction):
     '''Instruction that changes the values of arbitrary states/uniforms on the
     current render context.
+
+    .. versionadded:: 1.5.2
     '''
     def __init__(self, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
@@ -139,6 +143,8 @@ cdef class ChangeState(ContextInstruction):
 cdef class PopState(ContextInstruction):
     '''Instruction that pops arbitrary states/uniforms on the context
     state stack.
+
+    .. versionadded:: 1.5.2
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
@@ -169,7 +175,7 @@ cdef class Color(ContextInstruction):
         c = Color(1, 0, 0)
         # create blue color
         c = Color(0, 1, 0)
-        # create blue color with 50% alpha
+            # create blue color with 50% alpha
         c = Color(0, 1, 0, .5)
 
         # using hsv mode
@@ -362,6 +368,8 @@ cdef double radians(double degrees):
 cdef class LoadIdentity(ContextInstruction):
     '''Load identity Matrix into the matrix stack sepcified by
     the instructions stack property (default='modelview_mat')
+
+    .. versionadded:: 1.5.2
     '''
     def __init__(self, **kwargs):
         self.context_state = kwargs.get("stack", "modelview_mat")
@@ -375,6 +383,9 @@ cdef class LoadIdentity(ContextInstruction):
 
 cdef class PushMatrix(ContextInstruction):
     '''PushMatrix on context's matrix stack
+
+    .. versionchanged:: 1.5.2
+        added `stack` property to let user decide which matrix stack to use
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
@@ -390,6 +401,9 @@ cdef class PushMatrix(ContextInstruction):
 
 cdef class PopMatrix(ContextInstruction):
     '''Pop Matrix from context's matrix stack onto model view
+    
+    .. versionchanged:: 1.5.2
+        added `stack` property to let user decide which matrix stack to use
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
@@ -406,6 +420,8 @@ cdef class PopMatrix(ContextInstruction):
 cdef class ApplyContextMatrix(ContextInstruction):
     '''pre-multiply the matrix at the top of the stack specified by
     `target_stack` by the matrix at the top of the 'source_stack'
+
+    .. versionadded:: 1.5.2
     '''
     def __init__(self, **kwargs):
         self._target_stack = kwargs.get('target_stack', 'modelview_mat')
@@ -422,6 +438,8 @@ cdef class UpdateNormalMatrix(ContextInstruction):
     '''Update the normal matrix 'normal_mat' based on the current
     modelview matrix.  will compute 'normal_mat' uniform as:
     `inverse( transpose( mat3(mvm) ) )`
+
+    .. versionadded:: 1.5.2
     '''
     cdef void apply(self):
         cdef RenderContext context = self.get_context()
@@ -431,6 +449,9 @@ cdef class UpdateNormalMatrix(ContextInstruction):
 
 cdef class MatrixInstruction(ContextInstruction):
     '''Base class for Matrix Instruction on canvas
+
+    .. versionchanged:: 1.5.2
+        added `stack` property to let user decide which matrix stack to use
     '''
 
     def __init__(self, *args, **kwargs):
@@ -467,11 +488,12 @@ cdef class MatrixInstruction(ContextInstruction):
             value = value or "modelview_mat"
             self._stack = value
 
+
 cdef class Transform(MatrixInstruction):
     '''Transform class.  A matrix instruction class which
     has function to modify the transformation matrix
     '''
-
+    
     def __init__(self, *args, **kwargs):
         MatrixInstruction.__init__(self, **kwargs)
 
@@ -546,33 +568,20 @@ cdef class Rotate(Transform):
            self.set(self._angle, *axis)
 
 
+
 cdef class Scale(Transform):
-    '''Instruction to perform a uniform scale transformation
-    '''
-    def __init__(self, *args, **kwargs):
-        cdef double s
-        Transform.__init__(self, **kwargs)
-        if len(args) == 1:
-            self.s = s = args[0]
-            self.matrix = Matrix().scale(s, s, s)
-
-    property scale:
-        '''Property for getting/setting the scale.
-
-        The same scale value is applied on all axis.
-        '''
-        def __get__(self):
-            return self.s
-        def __set__(self, s):
-            self.s = s
-            self.matrix = Matrix().scale(s, s, s)
-
-cdef class ScaleXYZ(Transform):
     '''Instruction to create a non uniform scale transformation
+
+    .. versionchanged:: 1.5.2
+        deprecated single scale property in favor of x, y, z, xyz axis 
+        independant scaled factors.
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
         Transform.__init__(self, **kwargs)
+        if len(args) == 1:
+            s = args[0]
+            self.set_scale(s,s,s)
         if len(args) == 3:
             x, y, z = args
             self.set_scale(x, y, z)
@@ -583,8 +592,30 @@ cdef class ScaleXYZ(Transform):
         self._z = z
         self.matrix = Matrix().scale(x, y, z)
 
+    property scale:
+        '''Property for getting/setting the scale.
+
+        .. deprecated:: 1.5.2
+            deprecated in favor of per axis scale properties x,y,z, xyz, etc.
+        '''
+        def __get__(self):
+            if self._x == self._y == self._z:
+                Logger.warning("scale property is deprecated, use xyz, x, " +\
+                    "y, z, etc properties to get scale factor based on axis.")
+                return self._x
+            else:
+                raise Exception("trying to access deprectaed property" +\
+                    " 'scale' on Scale instruction with non unifrom scaling!")
+
+        def __set__(self, s):
+            Logger.warning("scale property is deprecated, use xyz, x, " +\
+                "y, z, etc properties to get scale factor based on axis.")
+            self.set_scale(s,s,s)
+
     property x:
         '''Property for getting/setting the scale on X axis
+
+        .. versionchanged:: 1.5.2
         '''
         def __get__(self):
             return self._x
@@ -593,6 +624,8 @@ cdef class ScaleXYZ(Transform):
 
     property y:
         '''Property for getting/setting the scale on Y axis
+
+        .. versionchanged:: 1.5.2
         '''
         def __get__(self):
             return self._y
@@ -601,22 +634,18 @@ cdef class ScaleXYZ(Transform):
 
     property z:
         '''Property for getting/setting the scale on Z axis
+
+        .. versionchanged:: 1.5.2
         '''
         def __get__(self):
             return self._z
         def __set__(self, double z):
             self.set_scale(self._x, self._y, z)
 
-    property xy:
-        '''2 tuple with scale vector in 2D for x and y axis
-        '''
-        def __get__(self):
-            return self._x, self._y
-        def __set__(self, c):
-            self.set_scale(c[0], c[1], self._z)
-
     property xyz:
         '''3 tuple scale vector in 3D in x, y, and z axis
+
+        .. versionchanged:: 1.5.2
         '''
         def __get__(self):
             return self._x, self._y, self._z

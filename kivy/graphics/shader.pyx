@@ -29,6 +29,30 @@ And the header for Vertex Shader:
 .. include:: ../../kivy/data/glsl/header.vs
     :literal:
 
+
+Single file glsl shader programs
+--------------------------------
+.. versionadded:: 1.5.2
+
+To simplify shader management, the vertex and fragment shaders can be loaded 
+automatically from a single glsl source file (plain text).  The file should 
+contain sections identified by a line starting with '---vertex' and 
+`---fragment` respectively (case insensitive) like e.g.:
+
+    //anythign before a meanigfull section such as this comment are ignored
+
+    ---VERTEX SHADER--- //vertex shader starts here
+    void main(){
+        ...
+    }
+
+    ---FRAGMENT SHADER--- //fragment shader starts here
+    void main(){
+        ...
+    }
+
+the source property of the Shader should be set tpo the filename of a glsl
+shader file (of the above format), like e.g. `phong.glsl`
 '''
 
 __all__ = ('Shader', )
@@ -369,6 +393,8 @@ cdef class Shader:
         vertex and fragment shader sourcecode;  each designated by a section
         header consisting of one line starting with either "--VERTEX" or
         "--FRAGMENT" (case insensitive).
+
+        .. versionadded:: 1.5.2
         '''
         def __get__(self):
             return self._source
