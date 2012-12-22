@@ -14,10 +14,10 @@ Introduction to Event Dispatcher
 --------------------------------
 
 One of the most important base classes of the framework is the
-:class:`kivy.event.EventDispatcher` class, this class allows to register event
+:class:`~kivy.event.EventDispatcher` class, this class allows to register event
 types, and to dispatch them to interested parties (usually other event
-dispatchers). :class:`kivy.uix.widget.Widget`,
-:class:`kivy.animation.Animation` and :obj:`kivy.clock.Clock` for example are
+dispatchers). :class:`~kivy.uix.widget.Widget`,
+:class:`~kivy.animation.Animation` and :obj:`~kivy.clock.Clock` for example are
 event dispatchers.
 
 Creating custom events
@@ -74,12 +74,12 @@ actions to the change of these values.
 There are different kind of properties to describe the type of data you want to
 describe.
 
-- :class:`kivy.properties.StringProperty`
-- :class:`kivy.properties.NumericProperty`
-- :class:`kivy.properties.ObjectProperty`
-- :class:`kivy.properties.ListProperty`
-- :class:`kivy.properties.ObjectProperty`
-- :class:`kivy.properties.AliasProperty`
+- :class:`~kivy.properties.StringProperty`
+- :class:`~kivy.properties.NumericProperty`
+- :class:`~kivy.properties.ObjectProperty`
+- :class:`~kivy.properties.ListProperty`
+- :class:`~kivy.properties.ObjectProperty`
+- :class:`~kivy.properties.AliasProperty`
 
 Declaration of a Property
 -------------------------
