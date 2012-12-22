@@ -23,11 +23,11 @@ There are two ays to load kv code into your application:
 
 - By name convention:
   Kivy looks if there is a kv file with the same name as your App class, lowercase,
-  minus "app" if it endswith 'app', e.g: MyApp -> my.kv. If this file define a
+  minus "app" if it ends with 'app', e.g: MyApp -> my.kv. If this file define a
   root rule it will be attached to the App's `root` attribute and used as the
   application widget tree.
 
-- :obj:`kivy.lang.Builder`:
+- :obj:`~kivy.lang.Builder`:
   you can tell directly kivy to load a string or a file, if it defines a root
   widget, it will be returned by the method::
 
@@ -100,8 +100,8 @@ this child inside the rule::
             Button:
 
 The example above define that our root widget, which is an instance of `MyRootWidget`
-has a child, which is an instance of the :class:`kivy.uix.boxlayout.BoxLayout` and that
-this child has itself two child, instances of the :class:`kivy.uix.button.Button` class.
+has a child, which is an instance of the :class:`~kivy.uix.boxlayout.BoxLayout` and that
+this child has itself two child, instances of the :class:`~kivy.uix.button.Button` class.
 
 A python equivalent of this code could be::
 
@@ -115,7 +115,7 @@ Which you way find maybe less nice, both to read and to write.
 
 Of course, in python, you can pass keyword arguments to your widgets at
 creation, to specify their behaviour, for example, to set the number of columns
-of a :mod:`kivy.uix.gridlayout`, we would do::
+of a :mod:`~kivy.uix.gridlayout`, we would do::
 
     grid = GridLayout(cols=3)
 
@@ -128,7 +128,7 @@ in the rule::
 The value is evaluated as a python expression, and all the properties used in
 the expression will be observed, that means that if you had something like this
 in python (this assume `self` is a widget with a `data`
-:class:`kivy.property.ListProperty`)::
+:class:`~kivy.property.ListProperty`)::
 
     grid = GridLayout(cols=len(self.data))
     self.bind(data=grid.setter('cols'))

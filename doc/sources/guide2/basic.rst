@@ -1,7 +1,7 @@
 .. _basic:
 
-Basic Kivy
-==========
+Kivy Basics
+===========
 
 Installation of Kivy environment
 --------------------------------
@@ -39,10 +39,10 @@ Create an application
 
 Creating a kivy application is as simple as:
 
-- subclassing the :class:`kivy.app.App` class
-- implementing its :meth:`kivy.app.App.build` method so it returns a
-  :class:`kivy.uix.Widget` instance (the root of your widget tree) -
-  instantiating this class, and call its :meth:`kiyv.app.App.run`
+- subclassing the :class:`~kivy.app.App` class
+- implementing its :meth:`~kivy.app.App.build` method so it returns a
+  :class:`~kivy.uix.Widget` instance (the root of your widget tree) -
+  instantiating this class, and call its :meth:`~kivy.app.App.run`
   method.
 
 Here is an example of such a minimal application::
@@ -127,6 +127,38 @@ initializes and starts our Kivy application.
 
 Running the application
 -----------------------
+To run the application, follow the instructions for your operating system:
+
+    Linux
+        Follow the instructions for
+        :ref:`running Kivy application on Linux <linux-run-app>`::
+
+            $ python main.py
+
+    Windows
+        Follow the instructions for
+        :ref:`running Kivy application on Windows <windows-run-app>`::
+
+            $ python main.py
+            # or
+            C:\appdir>kivy.bat main.py
+
+    Mac OS X
+        Follow the instructions for
+        :ref:`running Kivy application on MacOSX <macosx-run-app>`::
+
+            $ kivy main.py
+
+    Android
+        Your application needs some complementary files to be able to run on
+        Android.  See :doc:`android` for further reference.
+
+A window should open, showing a sole button (with the label 'Hello World') that
+covers the entire window's area. That's all there is to it.
+
+.. image:: images/quickstart.jpg
+    :align: center
+
 
 Open a Terminal and set kivy evironment variables (look at Platform Specifics
 Section) and run the following cmmands::

@@ -11,17 +11,17 @@ as an unlimited drawing board, and as a set of drawing instructions, there are
 numerous different instructions you can apply (add) to your canvas, but there
 is two main kind of them:
 
-- :mod:`kivy.graphics.context_instructions` Context instructions
-- :mod:`kivy.graphics.vertex_instructions` Vertex Instructions
+- :mod:`~kivy.graphics.context_instructions` Context instructions
+- :mod:`~kivy.graphics.vertex_instructions` Vertex Instructions
 
 Context instructions don't draw anything, but they change the results of the
 Vertex instructions.
 
 Canvas can contains subsets of instructions, to treat them specially. There are
-two default subsets of this kind, that you can access as `canvas.before` and
-`canvas.after`, the instructions in these groups will be executed respectively
-before and after the main ones, which mean they will be respectively under and
-above them.
+two default subsets of this kind, that you can access as
+`~kivy.graphics.canvas.before` and `~kivy.graphics.canvas.after`, the
+instructions in these groups will be executed respectively before and after the
+main ones, which mean they will be respectively under and above them.
 
 to add a canvas instruction to a widget, you use the canvas context::
 
