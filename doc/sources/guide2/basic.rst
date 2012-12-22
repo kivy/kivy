@@ -49,20 +49,91 @@ Here is an example of such a minimal application::
 
     from kivy.app import App
     from kivy.uix.label import Label
-
-
+    
+    
     class MyApp(App):
+    
         def build(self):
             return Label(text='Hello world')
-
-
+    
+    
     if __name__ == '__main__':
         MyApp().run()
 
 You can save this to a text file, `main.py` for example, and run it.
 
+Explanation of what's going on in the code above
+------------------------------------------------
+
+First off, Let us get familiar with the Kivy app life cycle
+
+.. image:: ../images/Kivy_App_Life_Cycle.svg
+
+As you can see above for all intents and purposes our entry point in to our App
+is from run() in our case that is MyApp().run(). We will get back to this; first
+let's start from the first line::
+
+    from kivy.app import App
+
+It's required that the base Class of your App inherit from App class. It's 
+present in the kivy_installation_dir/kivy/app.py.
+
+.. Note::
+    Go ahead and Open up that file if you want to delve deeper into what Kivy
+    App class does. We encourage you to open the code and read through as kivy
+    is based on Python and uses Sphinx for documentation, documentation for each
+    class is in-file.
+
+Similarly on line 2::
+
+    from kivy.uix.label import Label
+
+One important thing to note here is the way packages/classes are layed out in
+kivy, `kivy.uix`; is the section that holds it's User Interface elements like 
+layouts and  widgets.
+
+Moving on to line 5::
+
+    class MyApp(App):
+
+This is where we are `defining` the Base Class of our Kivy App. You should only
+ever need to change the name of your app `MyApp` in this line.
+
+Further on to line 7::
+
+    def build(self):
+
+As highlited by the image above show casing `Kivy App Life Cycle` This is the
+function where you should initialize and return your `Root Widget`,This is what
+we do on line 8.
+
+    return Label(text='Hello world')
+
+Here we initialize a Label with text 'Hello World' and return it's instance.
+This Label will be the Root Widget of this App.
+
+.. Note::
+    Python uses indentation to denote code blocks, there for make note that in
+    the code provided at line 9 the class and function definition ends
+
+Now on to the portion tht will make our app run at line 11 and 12::
+
+    if __name__ == '__main__':
+        MyApp().run()
+
+Here the class `MyApp` is initialized and it's run() method called this
+initializes and starts our Kivy application.
+
+
 Running the application
 -----------------------
+
+Open a Terminal and set kivy evironment variables (look at Platform Specifics
+Section) and run the following cmmands::
+
+    python main.py
+
+
 
 Customize the application
 -------------------------
@@ -70,3 +141,12 @@ Customize the application
 Platform specifics
 ------------------
 
+Opening a Terminal application and set kivy Environment Variables.
+
+    On Windows just DoubleClick the kivy.bat and a terminal will be opened with
+    all the required variables already set
+
+    On nix* systems open a terminal of your choice and if
+    kivy isn't installed globaly::
+
+        export python=$PYTHONPATH:/path/to/kivy_installation
