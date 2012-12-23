@@ -88,8 +88,8 @@ Similarly on line 2::
 
     from kivy.uix.label import Label
 
-One important thing to note here is the way packages/classes are layed out in
-kivy, `kivy.uix`; is the section that holds it's User Interface elements like 
+One important thing to note here is the way packages/classes are laid out in
+kivy, `kivy.uix`; is the section that holds its User Interface elements like 
 layouts and  widgets.
 
 Moving on to line 5::
@@ -103,9 +103,9 @@ Further on to line 7::
 
     def build(self):
 
-As highlited by the image above show casing `Kivy App Life Cycle` This is the
+As highlighted by the image above show casing `Kivy App Life Cycle` This is the
 function where you should initialize and return your `Root Widget`,This is what
-we do on line 8.
+we do on line 8.::
 
     return Label(text='Hello world')
 
@@ -116,7 +116,7 @@ This Label will be the Root Widget of this App.
     Python uses indentation to denote code blocks, there for make note that in
     the code provided at line 9 the class and function definition ends
 
-Now on to the portion tht will make our app run at line 11 and 12::
+Now on to the portion that will make our app run at line 11 and 12::
 
     if __name__ == '__main__':
         MyApp().run()
@@ -160,8 +160,8 @@ covers the entire window's area. That's all there is to it.
     :align: center
 
 
-Open a Terminal and set kivy evironment variables (look at Platform Specifics
-Section) and run the following cmmands::
+Open a Terminal and set kivy environment variables (look at Platform Specifics
+Section) and run the following commands::
 
     python main.py
 
@@ -175,10 +175,10 @@ Platform specifics
 
 Opening a Terminal application and set kivy Environment Variables.
 
-    On Windows just DoubleClick the kivy.bat and a terminal will be opened with
+    On Windows just double click the kivy.bat and a terminal will be opened with
     all the required variables already set
 
     On nix* systems open a terminal of your choice and if
-    kivy isn't installed globaly::
+    kivy isn't installed globally::
 
         export python=$PYTHONPATH:/path/to/kivy_installation
