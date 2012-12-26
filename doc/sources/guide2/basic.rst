@@ -151,12 +151,12 @@ To run the application, follow the instructions for your operating system:
 
     Android
         Your application needs some complementary files to be able to run on
-        Android.  See :doc:`android` for further reference.
+        Android.  See :doc:`/guide/android` for further reference.
 
 A window should open, showing a sole button (with the label 'Hello World') that
 covers the entire window's area. That's all there is to it.
 
-.. image:: images/quickstart.jpg
+.. image:: ../guide/images/quickstart.jpg
     :align: center
 
 
