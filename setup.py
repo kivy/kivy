@@ -32,7 +32,7 @@ for key in list(c_options.keys()):
     ukey = key.upper()
     if ukey in environ:
         value = bool(int(environ[ukey]))
-        print('Environ change %s -> %s' % (key, value))
+        print('Environ change {0} -> {1}'.format(key, value))
         c_options[key] = value
 
 # -----------------------------------------------------------------------------
@@ -75,7 +75,7 @@ class KivyBuildExt(build_ext):
     def build_extensions(self):
         print('Build configuration is:')
         for opt, value in c_options.items():
-            print(' *', opt, ' = ', repr(value))
+            print(' * {0} = {1}'.format(opt, value))
         print('Generate config.h')
         config_h = join(dirname(__file__), 'kivy', 'graphics', 'config.h')
         with open(config_h, 'w') as fd:
@@ -133,7 +133,7 @@ else:
         filename = join(hdir, 'GLES2', 'gl2.h')
         if exists(filename):
             found = True
-            print('Found GLES 2.0 headers at', filename)
+            print('Found GLES 2.0 headers at {0}'.format(filename))
             break
     if not found:
         print('WARNING: GLES 2.0 headers are not found')
@@ -143,7 +143,7 @@ else:
 # check if we are in a kivy-ios build
 if platform == 'ios':
     print('Kivy-IOS project environment detect, use it.')
-    print('Kivy-IOS project located at %r' % kivy_ios_root)
+    print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
     print('Activate SDL compilation.')
     c_options['use_ios'] = True
     c_options['use_sdl'] = True
