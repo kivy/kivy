@@ -6,30 +6,33 @@ Kv language
 Concept behind the language
 ---------------------------
 
-As your applications grow more complexes, you will notice that construction of
-widget trees and explicit declaration of bindings, become verbose, and hard to
-maintain. Thus, a language more suited to this need has been developed.
+As your application grow more complex, it's common that the construction of
+widget trees and explicit declaration of bindings, becomes verbose and hard to
+maintain. The `KV` Language is a attempt to overcome these short-comings.
 
-The KV language (sometime called kvlang, or kivy language), allows you to
-create your widget tree in a very declarative way, and to bind properties of
-widget to each other, or to callbacks very naturally, you allows very fast
-prototyping and agile changes to your UI, and a good separation between the
-logic of your application, and the look it have.
+The `KV` language (sometimes called kvlang, or kivy language), allows you to
+create your widget tree in a declarative way and to bind widget properties
+to each other or to callbacks in a natural manner. It allows for very fast
+prototyping and agile changes to your UI. It also facilitates a good
+separation between the logic of your application and it's User Interface.
 
-How to load kv
+How to load KV
 --------------
 
-There are two ays to load kv code into your application:
-
+There are two ways to load Kv code into your application:
 - By name convention:
-  Kivy looks if there is a kv file with the same name as your App class, lowercase,
-  minus "app" if it ends with 'app', e.g: MyApp -> my.kv. If this file define a
-  root rule it will be attached to the App's `root` attribute and used as the
-  application widget tree.
+
+  Kivy looks if there is a Kv file with the same name as your App class in 
+  lowercase,  minus "App" if it ends with 'App'. E.g::
+  
+    MyApp -> my.kv.
+
+  If this file defines a `Root Widget` it will be attached to the App's `root` 
+  attribute and used as the base of the application widget tree.
 
 - :obj:`~kivy.lang.Builder`:
-  you can tell directly kivy to load a string or a file, if it defines a root
-  widget, it will be returned by the method::
+  you can tell kivy to directly load a string or a file. If this string or file
+  defines a root widget, it will be returned by the method::
 
     Builder.load_file('path/to/file.kv')
 
@@ -40,8 +43,9 @@ There are two ays to load kv code into your application:
 Rule context
 ------------
 
-A kv source is constituted from `rules`, which are used to describe the content
-of a Widget, you can have one `root` rule, and any number of `class` rules.
+A Kv source constitutes of `rules`, which are used to describe the content
+of a Widget, you can have one `root` rule, and any number of `class` or
+`template` rules.
 
 The `root` rule is declared by declaring the class of your root widget, without
 any indentation, followed by `:` and will be set as the `root` attribute of the
@@ -49,24 +53,25 @@ App instance::
 
     Widget:
 
-A `class` rule, which define how any instance of that widget class will be created
-is declared by declaring the name of the class, between chevrons, followed by `:`::
+A `class` rule, which defines how any instance of that widget class will be
+graphically represented is declared by declaring the name of the class, between
+`< >`, followed by `:`::
 
     <MyWidget>:
 
 Rules use indentation for delimitation, as python, indentation should be of
 four spaces per level, like the python good practice recommendations.
 
-There are three keywords specific to kv languages:
+There are three keywords specific to Kv language:
 
-- `app`: always refer to the instance of your application.
-- `root`: always refer to the base widget of the current rule.
-- `self`: always refer to the current widget.
+- `app`: always refers to the instance of your application.
+- `root`: refers to the base widget/template in the current rule
+- `self`: always refer to the current widget
 
 Special syntaxes
 ----------------
 
-There are two special syntax to define values for the whole kv context:
+There are two special syntax to define values for the whole Kv context:
 
 To import something from python::
 
@@ -99,9 +104,9 @@ this child inside the rule::
             Button:
             Button:
 
-The example above define that our root widget, which is an instance of `MyRootWidget`
-has a child, which is an instance of the :class:`~kivy.uix.boxlayout.BoxLayout` and that
-this child has itself two child, instances of the :class:`~kivy.uix.button.Button` class.
+The example above defines that our root widget, an instance of `MyRootWidget`
+has a child; an instance of the :class:`~kivy.uix.boxlayout.BoxLayout` which
+has two children, instances of the :class:`~kivy.uix.button.Button` class.
 
 A python equivalent of this code could be::
 
@@ -141,7 +146,7 @@ To have your display updated when your data change, you can now have just::
 Event Bindings
 --------------
 
-You can bind to events in kv using the ":" syntax, that is, associating a
+You can bind to events in Kv using the ":" syntax, that is, associating a
 callback to an event::
 
     Widget:
@@ -169,5 +174,113 @@ And yes, they get updated too if properties values change.
 
 Of course you can use `canvas.before` and `canvas.after`.
 
-Templating
-----------
+Referencing Widgets:
+--------------------
+
+In a widget tree there is often a need to access/reference other widgets.
+Kv Language provides a way to do this using id's. think of them as class
+level variables that can only be used in the Kv language. Consider the
+following::
+
+    <MyFirstWidget>:
+        Button:
+            id: f_but
+        TextInput:
+            text: f_but.state
+
+    <MySecondWidget>:
+        Button:
+            id:s_but
+        TextInput:
+            text: s_but.state
+
+id's are limited in scope to the rule they are declared in so, in the
+code above `s_but` can not be accessed outside the <MySecondWidget>
+rule.
+
+Accessing Widgets defined inside Kv lang in your python code
+------------------------------------------------------------
+
+Consider the code below in my.kv::
+
+    <MyFirstWidget>:
+	txt_inpt: txt_inpt
+        Button:
+            id: f_but
+        TextInput:
+            id: txt_inpt
+            text: f_but.state
+            on_text: root.check_status(f_but)
+
+myapp.py::
+
+    txt_inpt = ObjectProperty(None)
+    ...
+    class MyFirstWidget(BoxLayout):
+    
+        def check_status(self, btn):
+            print ('button state is: {state}'.format(state=btn.state))
+            print ('text input text is: {txt}'.format(txt=self.txt_inpt))
+    ...
+
+`txt_inpt` is defined as a :class:`~kivy.properties.ObjectProperty` initialized
+to `None` inside the Class.::
+
+    txt_inpt = ObjectProperty(None)
+
+At this point self.txt_input is `None`. In Kv lang this property is updated to
+hold the instance of the :class:`~kivy.uix.TextInput` referenced by the id
+`txt_inpt`.::
+
+    txt_inpt: txt_inpt
+
+Thus; self.txt_input from this point onwards holds the instance to the widget
+referenced by the id `txt_input` and can be used anywhere in the class like 
+in the function `check_status`.
+
+Templates
+---------
+Consider the code below::
+
+    <MyWidget>:
+        Button:
+            text:
+                "Hello world, watch this text wrap inside the button"
+            text_size: self.size
+            font_size: '25sp'
+            markup: True
+        Button:
+            text:
+                "Even absolute is relative to itself"
+            text_size: self.size
+            font_size: '25sp'
+            markup: True
+        Button:
+            text:
+                "repeating the same thing over and over in a comp = fail"
+            text_size: self.size
+            font_size: '25sp'
+            markup: True
+        Button:
+
+Instead of having to repeat the same values for every button, we can just use
+a template instead, like so::
+
+    [Mbut@Button]:
+        text: ctx.text if hasattr(ctx, 'text') else ''
+        text_size: self.size
+        font_size: '25sp'
+        markup: True
+    
+    <MyWidget>:
+        MButton:
+            text: "Hello world, watch this text wrap inside the button"
+        MButton:
+            text: "Even absolute is relative to itself"
+        MButton:
+            text: "repeating the same thing over and over in a comp = fail"
+        MButton:
+
+`ctx` is a keyword inside a template that can be used to access the individual
+ attributes of each instance of this template. 
+ 

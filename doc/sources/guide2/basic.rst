@@ -7,9 +7,9 @@ Installation of Kivy environment
 --------------------------------
 
 Kivy depends on multiples dependencies, such as pygame, gstreamer, PIL,
-cairo, and more. All of them are not required, but depending the
+Cairo, and more. All of them are not required, but depending on the
 platform you're working on, it can be a pain to install them. For
-Windows and MacOSX, we provide a portable package that you can just
+Windows and MacOS X, we provide a portable package that you can just
 unzip and use.
 
 .. toctree::
@@ -39,7 +39,7 @@ Create an application
 
 Creating a kivy application is as simple as:
 
-- subclassing the :class:`~kivy.app.App` class
+- sub-classing the :class:`~kivy.app.App` class
 - implementing its :meth:`~kivy.app.App.build` method so it returns a
   :class:`~kivy.uix.Widget` instance (the root of your widget tree) -
   instantiating this class, and call its :meth:`~kivy.app.App.run`
@@ -67,7 +67,7 @@ Explanation of what's going on in the code above
 
 First off, Let us get familiar with the Kivy app life cycle
 
-.. image:: ../images/Kivy_App_Life_Cycle.svg
+.. image:: ../images/Kivy_App_Life_Cycle.ps
 
 As you can see above for all intents and purposes our entry point in to our App
 is from run() in our case that is MyApp().run(). We will get back to this; first
@@ -113,8 +113,8 @@ Here we initialize a Label with text 'Hello World' and return it's instance.
 This Label will be the Root Widget of this App.
 
 .. Note::
-    Python uses indentation to denote code blocks, there for make note that in
-    the code provided at line 9 the class and function definition ends
+    Python uses indentation to denote code blocks, therefore make note that in
+    the code provided above, at line 9 the class and function definition ends.
 
 Now on to the portion that will make our app run at line 11 and 12::
 
@@ -158,13 +158,6 @@ covers the entire window's area. That's all there is to it.
 
 .. image:: ../guide/images/quickstart.jpg
     :align: center
-
-
-Open a Terminal and set kivy environment variables (look at Platform Specifics
-Section) and run the following commands::
-
-    python main.py
-
 
 
 Customize the application
