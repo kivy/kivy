@@ -175,7 +175,7 @@ Available configuration tokens
 
 __all__ = ('Config', 'ConfigParser')
 
-from configparser import ConfigParser as PythonConfigParser
+from configparser import RawConfigParser as PythonConfigParser
 from sys import platform
 from os import environ
 from os.path import exists
