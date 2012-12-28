@@ -63,6 +63,7 @@ __all__ = ('Animation', 'AnimationTransition')
 from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
+from kivy.compat import string_types
 
 
 class Animation(EventDispatcher):
@@ -105,7 +106,7 @@ class Animation(EventDispatcher):
         self._duration = kw.get('d', kw.get('duration', 1.))
         self._transition = kw.get('t', kw.get('transition', 'linear'))
         self._step = kw.get('s', kw.get('step', 1. / 60.))
-        if isinstance(self._transition, str):
+        if isinstance(self._transition, string_types):
             self._transition = getattr(AnimationTransition, self._transition)
         for key in ('d', 't', 's', 'step', 'duration', 'transition'):
             kw.pop(key, None)

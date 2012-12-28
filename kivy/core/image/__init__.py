@@ -21,6 +21,7 @@ from kivy.clock import Clock
 from kivy.atlas import Atlas
 from kivy.resources import resource_find
 from kivy.utils import platform
+from kivy.compat import string_types
 import zipfile
 try:
     import io as SIO
@@ -420,10 +421,10 @@ class Image(EventDispatcher):
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
             self.image = arg
-        elif isinstance(arg, str):
+        elif isinstance(arg, string_types):
             self.filename = arg
         else:
-            raise Exception('Unable to load image type %s' % str(type(arg)))
+            raise Exception('Unable to load image type {0!r}'.format(arg))
 
         # check if the image hase sequences for animation in it
         self._img_iterate()

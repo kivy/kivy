@@ -174,6 +174,7 @@ __all__ = ('Property',
 include "graphics/config.pxi"
 
 from weakref import ref
+from kivy.compat import string_types
 
 cdef float g_dpi = -1
 cdef float g_density = -1
@@ -491,16 +492,10 @@ cdef class StringProperty(Property):
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        IF PY3:
-            if not isinstance(value, str):
-                raise ValueError('%s.%s accept only str' % (
-                    obj.__class__.__name__,
-                    self.name))
-        ELSE:
-            if not isinstance(value, basestring):
-                raise ValueError('%s.%s accept only str/unicode' % (
-                    obj.__class__.__name__,
-                    self.name))
+        if not isinstance(value, string_types):
+            raise ValueError('%s.%s accept only str' % (
+                obj.__class__.__name__,
+                self.name))
 
 cdef inline void observable_list_dispatch(object self):
     cdef Property prop = self.prop

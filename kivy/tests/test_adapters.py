@@ -22,6 +22,7 @@ from kivy.properties import StringProperty
 
 from kivy.factory import Factory
 from kivy.lang import Builder
+from kivy.compat import string_types
 
 from nose.tools import raises
 
@@ -490,7 +491,7 @@ class AdaptersTestCase(unittest.TestCase):
 
         cat_data_item = list_adapter.get_data_item(0)
         self.assertEqual(cat_data_item, 'cat')
-        self.assertTrue(isinstance(cat_data_item, str))
+        self.assertTrue(isinstance(cat_data_item, string_types))
 
         view = list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
@@ -670,7 +671,7 @@ class AdaptersTestCase(unittest.TestCase):
 
         cat_data_item = list_adapter.get_data_item(0)
         self.assertEqual(cat_data_item, 'cat')
-        self.assertTrue(isinstance(cat_data_item, str))
+        self.assertTrue(isinstance(cat_data_item, string_types))
 
         view = list_adapter.get_view(0)
         self.assertTrue(isinstance(view, ListItemButton))
