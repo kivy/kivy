@@ -171,6 +171,8 @@ __all__ = ('Property',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
            'DictProperty')
 
+include "graphics/config.pxi"
+
 from weakref import ref
 
 cdef float g_dpi = -1
@@ -489,10 +491,16 @@ cdef class StringProperty(Property):
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if not isinstance(value, basestring):
-            raise ValueError('%s.%s accept only str/unicode' % (
-                obj.__class__.__name__,
-                self.name))
+        IF PY3:
+            if not isinstance(value, str):
+                raise ValueError('%s.%s accept only str' % (
+                    obj.__class__.__name__,
+                    self.name))
+        ELSE:
+            if not isinstance(value, basestring):
+                raise ValueError('%s.%s accept only str/unicode' % (
+                    obj.__class__.__name__,
+                    self.name))
 
 cdef inline void observable_list_dispatch(object self):
     cdef Property prop = self.prop
