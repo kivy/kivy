@@ -470,7 +470,7 @@ import sys
 from re import sub, findall
 from os.path import join
 from copy import copy
-from types import ClassType, CodeType
+from types import CodeType
 from functools import partial
 from collections import OrderedDict
 from kivy.factory import Factory
@@ -479,6 +479,7 @@ from kivy.utils import QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
+from kivy.compat import is_py3
 import kivy.metrics as metrics
 
 
@@ -1157,12 +1158,13 @@ class BuilderBase(object):
             data = fd.read()
 
             # remove bom ?
-            if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
-                raise ValueError('Unsupported UTF16 for kv files.')
-            if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
-                raise ValueError('Unsupported UTF32 for kv files.')
-            if data.startswith(codecs.BOM_UTF8):
-                data = data[len(codecs.BOM_UTF8):]
+            if not is_py3:
+                if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+                    raise ValueError('Unsupported UTF16 for kv files.')
+                if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+                    raise ValueError('Unsupported UTF32 for kv files.')
+                if data.startswith(codecs.BOM_UTF8):
+                    data = data[len(codecs.BOM_UTF8):]
 
             return self.load_string(data, **kwargs)
 
@@ -1244,7 +1246,7 @@ class BuilderBase(object):
             rootwidgets = []
             for basecls in baseclasses.split('+'):
                 rootwidgets.append(Factory.get(basecls))
-            cls = ClassType(name, tuple(rootwidgets), {})
+            cls = type(name, tuple(rootwidgets), {})
             Cache.append('kv.lang', key, cls)
         widget = cls()
         self._apply_rule(widget, rule, rule, template_ctx=ctx)
