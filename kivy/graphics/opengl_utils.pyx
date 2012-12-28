@@ -222,7 +222,7 @@ cpdef tuple gl_get_version():
     if _gl_version_major == -1:
 
         _gl_version_minor = _gl_version_major = 0
-        version = <char *>c_opengl.glGetString(c_opengl.GL_VERSION)
+        version = str(<char *>c_opengl.glGetString(c_opengl.GL_VERSION))
 
         try:
             # same parsing algo as Panda3D

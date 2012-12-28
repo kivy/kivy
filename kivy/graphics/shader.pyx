@@ -143,7 +143,7 @@ cdef class ShaderSource:
         cdef char msg[2048]
         msg[0] = '\0'
         glGetShaderInfoLog(shader, 2048, NULL, msg)
-        return msg
+        return msg.decode('utf-8')
 
 
 cdef class Shader:
@@ -302,8 +302,7 @@ cdef class Shader:
         glUniformMatrix4fv(loc, 1, False, mat)
 
     cdef int get_uniform_loc(self, str name):
-        name_byte_str = name
-        cdef char* c_name = name_byte_str
+        cdef bytes c_name = name.encode('utf-8')
         cdef int loc = glGetUniformLocation(self.program, c_name)
         self.uniform_locations[name] = loc
         return loc
@@ -388,9 +387,10 @@ cdef class Shader:
         glGetProgramiv(self.program, GL_LINK_STATUS, &result)
         return 1 if result == GL_TRUE else 0
 
-    cdef ShaderSource compile_shader(self, char* source, int shadertype):
+    cdef ShaderSource compile_shader(self, str source, int shadertype):
         cdef ShaderSource shader
         cdef str ctype, cacheid
+        cdef bytes b_source = source.encode('utf-8')
 
         ctype = 'vertex' if shadertype == GL_VERTEX_SHADER else 'fragment'
 
@@ -401,7 +401,7 @@ cdef class Shader:
             return shader
 
         shader = ShaderSource(shadertype)
-        shader.set_source(source)
+        shader.set_source(b_source)
         if shader.is_compiled() == 0:
             self._success = 0
             return None
@@ -414,7 +414,7 @@ cdef class Shader:
         cdef char msg[2048]
         msg[0] = '\0'
         glGetProgramInfoLog(shader, 2048, NULL, msg)
-        return msg
+        return msg.decode('utf-8')
 
     cdef void process_message(self, str ctype, str message):
         message = message.strip()
