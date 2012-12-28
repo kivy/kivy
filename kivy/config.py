@@ -268,6 +268,14 @@ class ConfigParser(PythonConfigParser):
             return defaultvalue
         return self.get(section, option)
 
+    def getdefaultint(self, section, option, defaultvalue):
+        '''Get an option. If not found, it will return the default value.
+        The return value will be always converted as an integer.
+
+        .. versionadded:: 1.6.0
+        '''
+        return int(self.getdefault(section, option, defaultvalue))
+
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
         '''
@@ -313,7 +321,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Logger.exception('Core: error while reading local'
                              'configuration')
 
-    version = int(Config.getdefault('kivy', 'config_version', 0))
+    version = Config.getdefaultint('kivy', 'config_version', 0)
 
     # Add defaults section
     Config.adddefaultsection('kivy')
@@ -327,7 +335,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     need_save = False
     if version != KIVY_CONFIG_VERSION and 'KIVY_NO_CONFIG' not in environ:
         Logger.warning('Config: Older configuration version detected'
-                       ' (%d instead of %d)' % (
+                       ' ({0} instead of {1})'.format(
                            version, KIVY_CONFIG_VERSION))
         Logger.warning('Config: Upgrading configuration in progress.')
         need_save = True

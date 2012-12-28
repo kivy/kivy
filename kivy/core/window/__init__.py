@@ -440,7 +440,7 @@ class WindowBase(EventDispatcher):
         if 'rotation' not in kwargs:
             kwargs['rotation'] = Config.getint('graphics', 'rotation')
         if 'position' not in kwargs:
-            kwargs['position'] = Config.get('graphics', 'position', 'auto')
+            kwargs['position'] = Config.getdefault('graphics', 'position', 'auto')
         if 'top' in kwargs:
             kwargs['position'] = 'custom'
             kwargs['top'] = kwargs['top']
