@@ -123,10 +123,10 @@ class FileHandler(logging.Handler):
         l = [join(directory, x) for x in os.listdir(directory)]
         if len(l) > maxfiles:
             # get creation time on every files
-            l = list(zip(l, list(map(os.path.getctime, l))))
+            l = [{'fn': x, 'ctime': os.path.getctime(x)} for x in l]
 
             # sort by date
-            l.sort(cmp=lambda x, y: cmp(x[1], y[1]))
+            l = sorted(l, key=lambda x: x['ctime'])
 
             # get the oldest (keep last maxfiles)
             l = l[:-maxfiles]
