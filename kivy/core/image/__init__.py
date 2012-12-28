@@ -233,7 +233,6 @@ class ImageLoaderBase(object):
 
 
 class ImageLoader(object):
-    __slots__ = ('loaders')
     loaders = []
 
     @staticmethod
