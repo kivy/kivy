@@ -138,6 +138,21 @@ To have your display updated when your data change, you can now have just::
     GridLayout:
         cols: len(root.data)
 
+Event Bindings
+--------------
+
+You can bind to events in kv using the ":" syntax, that is, associating a
+callback to an event::
+
+    Widget:
+        on_size: my_callback()
+
+You can pass the values dispatched by the signal using the `args` name::
+
+    TextInput:
+        on_text: app.search(args[1])
+
+
 Extend canvas
 -------------
 
