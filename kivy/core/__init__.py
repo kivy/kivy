@@ -43,10 +43,11 @@ def core_select_lib(category, llist, create_instance=False):
                 continue
 
             # import module
-            mod = __import__(name='%s.%s' % (category, modulename),
-                                globals=globals(),
-                                locals=locals(),
-                                fromlist=[modulename], level=-1)
+            mod = __import__(name='kivy.core.{0}.{1}'.format(
+                category, modulename),
+                globals=globals(),
+                locals=locals(),
+                fromlist=[modulename], level=0)
             cls = mod.__getattribute__(classname)
 
             # ok !
