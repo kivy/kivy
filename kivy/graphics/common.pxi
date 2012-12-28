@@ -26,6 +26,3 @@ cdef extern from "stdlib.h":
 cdef extern from "string.h":
     void *memcpy(void *dest, void *src, size_t n)
     void *memset(void *dest, int c, size_t len)
-
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)

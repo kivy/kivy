@@ -218,7 +218,7 @@ cdef class Line(VertexInstruction):
             buf = <char *>malloc(4 * (self._dash_length + self._dash_offset))
             memset(buf, 255, self._dash_length * 4)
             memset(buf + self._dash_length * 4, 0, self._dash_offset * 4)
-            p_str = PyString_FromStringAndSize(buf,  (self._dash_length + self._dash_offset) * 4)
+            p_str = buf[:(self._dash_length + self._dash_offset) * 4]
 
             self.texture.blit_buffer(p_str, colorfmt='rgba', bufferfmt='ubyte')
             free(buf)
