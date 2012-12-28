@@ -139,7 +139,7 @@ class Vector(list):
             raise TypeError('vector::FAILURE in __getslice__')
 
     def __add__(self, val):
-        return Vector(map(lambda x, y: x + y, self, val))
+        return Vector(list(map(lambda x, y: x + y, self, val)))
 
     def __iadd__(self, val):
         if type(val) in (int, float):
@@ -151,10 +151,10 @@ class Vector(list):
         return self
 
     def __neg__(self):
-        return Vector(map(lambda x: -x, self))
+        return Vector([-x for x in self])
 
     def __sub__(self, val):
-        return Vector(map(lambda x, y: x - y, self, val))
+        return Vector(list(map(lambda x, y: x - y, self, val)))
 
     def __isub__(self, val):
         if type(val) in (int, float):
@@ -167,9 +167,9 @@ class Vector(list):
 
     def __mul__(self, val):
         try:
-            return Vector(map(lambda x, y: x * y, self, val))
+            return Vector(list(map(lambda x, y: x * y, self, val)))
         except Exception:
-            return Vector(map(lambda x: x * val, self))
+            return Vector([x * val for x in self])
 
     def __imul__(self, val):
         if type(val) in (int, float):
@@ -185,21 +185,21 @@ class Vector(list):
 
     def __truediv__(self, val):
         try:
-            return Vector(map(lambda x, y: x / y, self, val))
+            return Vector(list(map(lambda x, y: x / y, self, val)))
         except Exception:
-            return Vector(map(lambda x: x / val, self))
+            return Vector([x / val for x in self])
 
     def __div__(self, val):
         try:
-            return Vector(map(lambda x, y: x / y, self, val))
+            return Vector(list(map(lambda x, y: x / y, self, val)))
         except Exception:
-            return Vector(map(lambda x: x / val, self))
+            return Vector([x / val for x in self])
 
     def __rdiv__(self, val):
         try:
-            return Vector(map(lambda x, y: x / y, self, val))
+            return Vector(list(map(lambda x, y: x / y, self, val)))
         except Exception:
-            return Vector(map(lambda x: self / x, val))
+            return Vector([self / x for x in val])
 
     def __idiv__(self, val):
         if type(val) in (int, float):

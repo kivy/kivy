@@ -410,7 +410,7 @@ if __name__ == '__main__':
     from kivy.uix.label import Label
 
     acc = Accordion()
-    for x in xrange(10):
+    for x in range(10):
         item = AccordionItem(title='Title %d' % x)
         if x == 0:
             item.add_widget(Button(text='Content %d' % x))

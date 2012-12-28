@@ -20,7 +20,7 @@ class StressCanvasApp(App):
     def add_rects(self, label, wid, count, *largs):
         label.text = str(int(label.text) + count)
         with wid.canvas:
-            for x in xrange(count):
+            for x in range(count):
                 Color(r(), 1, 1, mode='hsv')
                 Rectangle(pos=(r() * wid.width + wid.x,
                                r() * wid.height + wid.y), size=(20, 20))

@@ -20,7 +20,7 @@ except:
 
 from os import path
 from threading import Lock
-from urllib import pathname2url
+from urllib.request import pathname2url
 from kivy.graphics.texture import Texture
 from kivy.logger import Logger
 from functools import partial
@@ -51,7 +51,7 @@ def _on_gst_message(bus, message):
     Logger.trace('gst-bus: %s' % str(message))
     # log all error messages
     if message.type == gst.MESSAGE_ERROR:
-        error, debug = map(str, message.parse_error())
+        error, debug = list(map(str, message.parse_error()))
         Logger.error('gstreamer_video: %s' % error)
         Logger.debug('gstreamer_video: %s' % debug)
 

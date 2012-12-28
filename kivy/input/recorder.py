@@ -105,7 +105,7 @@ from functools import partial
 class RecorderMotionEvent(MotionEvent):
 
     def depack(self, args):
-        for key, value in args.items():
+        for key, value in list(args.items()):
             setattr(self, key, value)
         super(RecorderMotionEvent, self).depack(args)
 

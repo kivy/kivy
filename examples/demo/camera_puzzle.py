@@ -25,8 +25,8 @@ class Puzzle(Camera):
             return
         bs = self.blocksize
         tw, th = self.texture_size
-        for x in xrange(int(tw / bs)):
-            for y in xrange(int(th / bs)):
+        for x in range(int(tw / bs)):
+            for y in range(int(th / bs)):
                 bx = x * bs
                 by = y * bs
                 subtexture = texture.get_region(bx, by, bs, bs)
@@ -44,7 +44,7 @@ class Puzzle(Camera):
         bs = self.blocksize
         tw, th = self.texture_size
         count = int(tw / bs) * int(th / bs)
-        indices = range(count)
+        indices = list(range(count))
         childindex = 0
         while indices:
             index = indices.pop(randint(0, len(indices) - 1))

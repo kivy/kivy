@@ -54,7 +54,7 @@ class WindowPygame(WindowBase):
 
         try:
             pygame.display.init()
-        except pygame.error, e:
+        except pygame.error as e:
             raise CoreCriticalException(e.message)
 
         multisamples = Config.getint('graphics', 'multisamples')
@@ -114,7 +114,7 @@ class WindowPygame(WindowBase):
         # try to use mode with multisamples
         try:
             self._pygame_set_mode()
-        except pygame.error, e:
+        except pygame.error as e:
             if multisamples:
                 Logger.warning('WinPygame: Video: failed (multisamples=%d)' %
                                multisamples)
@@ -124,7 +124,7 @@ class WindowPygame(WindowBase):
                 multisamples = 0
                 try:
                     self._pygame_set_mode()
-                except pygame.error, e:
+                except pygame.error as e:
                     raise CoreCriticalException(e.message)
             else:
                 raise CoreCriticalException(e.message)
@@ -287,11 +287,11 @@ class WindowPygame(WindowBase):
 
                 # don't dispatch more key if down event is accepted
                 if self.dispatch('on_key_down', event.key,
-                                 event.scancode, event.unicode,
+                                 event.scancode, event.str,
                                  self.modifiers):
                     continue
                 self.dispatch('on_keyboard', event.key,
-                              event.scancode, event.unicode,
+                              event.scancode, event.str,
                               self.modifiers)
 
             # video resize
@@ -324,7 +324,7 @@ class WindowPygame(WindowBase):
                 self._mainloop()
                 if not pygame.display.get_active():
                     pygame.time.wait(100)
-            except BaseException, inst:
+            except BaseException as inst:
                 # use exception manager first
                 r = ExceptionManager.handle_exception(inst)
                 if r == ExceptionManager.RAISE:

@@ -52,7 +52,7 @@ import kivy.interactive
 from kivy.factory import Factory
 
 # force loading of all classes from factory
-for x in Factory.classes.keys()[:]:
+for x in list(Factory.classes.keys())[:]:
     getattr(Factory, x)
 
 
@@ -65,7 +65,7 @@ def writefile(filename, data):
     global dest_dir
     # avoid to rewrite the file if the content didn't change
     f = os.path.join(dest_dir, filename)
-    print 'write', filename
+    print('write', filename)
     if os.path.exists(f):
         with open(f) as fd:
             if fd.read() == data:
@@ -176,7 +176,7 @@ for package in packages:
         t += "    api-%s.rst\n" % subpackage
 
     # search modules
-    m = modules.keys()
+    m = list(modules.keys())
     m.sort(key=lambda x: extract_summary_line(sys.modules[x].__doc__))
     for module in m:
         packagemodule = module.rsplit('.', 1)[0]
@@ -188,7 +188,7 @@ for package in packages:
 
 
 # Create index for all module
-m = modules.keys()
+m = list(modules.keys())
 m.sort()
 refid = 0
 for module in m:
@@ -233,4 +233,4 @@ for module in m:
 
 
 # Generation finished
-print 'Generation finished, do make html'
+print('Generation finished, do make html')

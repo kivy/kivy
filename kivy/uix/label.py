@@ -148,7 +148,7 @@ class Label(Widget):
            (not markup and cls is not CoreLabel):
             # markup have change, we need to change our rendering method.
             d = Label._font_properties
-            dkw = dict(zip(d, [getattr(self, x) for x in d]))
+            dkw = dict(list(zip(d, [getattr(self, x) for x in d])))
             if markup:
                 self._label = CoreMarkupLabel(**dkw)
             else:
@@ -205,7 +205,7 @@ class Label(Widget):
         tx -= self.center_x - self.texture_size[0] / 2.
         ty -= self.center_y - self.texture_size[1] / 2.
         ty = self.texture_size[1] - ty
-        for uid, zones in self.refs.iteritems():
+        for uid, zones in self.refs.items():
             for zone in zones:
                 x, y, w, h = zone
                 if x <= tx <= w and y <= ty <= h:

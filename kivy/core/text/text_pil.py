@@ -22,7 +22,7 @@ class LabelPIL(LabelBase):
     def _select_font(self):
         fontsize = int(self.options['font_size'])
         fontname = self.options['font_name_r']
-        id = '%s.%s' % (unicode(fontname), unicode(fontsize))
+        id = '%s.%s' % (str(fontname), str(fontsize))
         if not id in self._cache:
             font = ImageFont.truetype(fontname, fontsize)
             self._cache[id] = font

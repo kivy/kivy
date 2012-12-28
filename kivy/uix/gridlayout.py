@@ -297,15 +297,15 @@ class GridLayout(Layout):
 
         # update minimum size from the dicts
         # FIXME index might be outside the bounds ?
-        for index, value in self.cols_minimum.iteritems():
+        for index, value in self.cols_minimum.items():
             cols[index] = value
-        for index, value in self.rows_minimum.iteritems():
+        for index, value in self.rows_minimum.items():
             rows[index] = value
 
         # calculate minimum size for each columns and rows
         i = len_children - 1
-        for row in xrange(current_rows):
-            for col in xrange(current_cols):
+        for row in range(current_rows):
+            for col in range(current_cols):
 
                 # don't go further is we don't have child left
                 if i < 0:
@@ -371,14 +371,14 @@ class GridLayout(Layout):
         # resolve size for each column
         if self.col_force_default:
             cols = [self.col_default_width] * len(self._cols)
-            for index, value in self.cols_minimum.iteritems():
+            for index, value in self.cols_minimum.items():
                 cols[index] = value
         else:
             cols = self._cols[:]
             cols_sh = self._cols_sh
             cols_weigth = sum([x for x in cols_sh if x])
             strech_w = max(0, selfw - self.minimum_width)
-            for index in xrange(len(cols)):
+            for index in range(len(cols)):
                 # if the col don't have strech information, nothing to do
                 col_stretch = cols_sh[index]
                 if col_stretch is None:
@@ -392,14 +392,14 @@ class GridLayout(Layout):
         # same algo for rows
         if self.row_force_default:
             rows = [self.row_default_height] * len(self._rows)
-            for index, value in self.rows_minimum.iteritems():
+            for index, value in self.rows_minimum.items():
                 rows[index] = value
         else:
             rows = self._rows[:]
             rows_sh = self._rows_sh
             rows_weigth = sum([x for x in rows_sh if x])
             strech_h = max(0, selfh - self.minimum_height)
-            for index in xrange(len(rows)):
+            for index in range(len(rows)):
                 # if the row don't have strech information, nothing to do
                 row_stretch = rows_sh[index]
                 if row_stretch is None:

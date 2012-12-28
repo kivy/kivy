@@ -105,7 +105,11 @@ class WidgetMetaclass(type):
         Factory.register(name, cls=mcs)
 
 
-class Widget(EventDispatcher):
+#: Base class used for widget, that inherit from :class:`EventDispatcher`
+WidgetBase = WidgetMetaclass('WidgetBase', (EventDispatcher, ), {})
+
+
+class Widget(WidgetBase):
     '''Widget class. See module documentation for more information.
 
     :Events:
@@ -125,8 +129,6 @@ class Widget(EventDispatcher):
         Constructor now accept on_* arguments to automatically bind callbacks to
         properties or events, as the Kv language.
     '''
-
-    __metaclass__ = WidgetMetaclass
 
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.

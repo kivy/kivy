@@ -3,20 +3,27 @@
 Utils
 =====
 
+.. versionchanged:: 1.6.0
+    OrderedDict class has been removed. Use the collections.OrderedDict.
+
 '''
 
 __all__ = ('intersection', 'difference', 'strtotuple',
            'get_color_from_hex', 'get_hex_from_color', 'get_random_color',
            'is_color_transparent', 'boundary',
            'deprecated', 'SafeList',
-           'interpolate', 'OrderedDict', 'QueryDict',
+           'interpolate', 'QueryDict',
            'platform', 'escape_markup', 'reify')
 
 from os import environ
 from sys import platform as _sys_platform
 from re import match, split
-from UserDict import DictMixin
-from os import environ
+try:
+    from UserDict import UserDict
+    from UserDict import DictMixin
+except ImportError:
+    from collections import UserDict
+    from collections import MutableMapping as DictMixin
 
 _platform_android = None
 _platform_ios = None
@@ -29,12 +36,12 @@ def boundary(value, minvalue, maxvalue):
 
 def intersection(set1, set2):
     '''Return intersection between 2 list'''
-    return filter(lambda s: s in set2, set1)
+    return [s for s in set1 if s in set2]
 
 
 def difference(set1, set2):
     '''Return difference between 2 list'''
-    return filter(lambda s: s not in set2, set1)
+    return [s for s in set1 if s not in set2]
 
 
 def interpolate(value_from, value_to, step=10):
@@ -154,8 +161,8 @@ def deprecated(func):
                     'Called from %s line %d'
                     ' by %s().') % (
                             func.__name__,
-                            func.func_code.co_filename,
-                            func.func_code.co_firstlineno + 1,
+                            func.__code__.co_filename,
+                            func.__code__.co_firstlineno + 1,
                             file, line, caller)
             from kivy.logger import Logger
             Logger.warn(warning)
@@ -180,106 +187,6 @@ class SafeList(list):
         if reverse:
             return reversed(iter(self))
         return iter(self)
-
-
-class OrderedDict(dict, DictMixin):
-
-    def __init__(self, *args, **kwds):
-        if len(args) > 1:
-            raise TypeError('expected at most 1 arguments, got %d' % len(args))
-        try:
-            self.__end
-        except AttributeError:
-            self.clear()
-        self.update(*args, **kwds)
-
-    def clear(self):
-        self.__end = end = []
-        end += [None, end, end]         # sentinel node for doubly linked list
-        self.__map = {}                 # key --> [key, prev, next]
-        dict.clear(self)
-
-    def __setitem__(self, key, value):
-        if key not in self:
-            end = self.__end
-            curr = end[1]
-            curr[2] = end[1] = self.__map[key] = [key, curr, end]
-        dict.__setitem__(self, key, value)
-
-    def __delitem__(self, key):
-        dict.__delitem__(self, key)
-        key, prev, next = self.__map.pop(key)
-        prev[2] = next
-        next[1] = prev
-
-    def __iter__(self):
-        end = self.__end
-        curr = end[2]
-        while curr is not end:
-            yield curr[0]
-            curr = curr[2]
-
-    def __reversed__(self):
-        end = self.__end
-        curr = end[1]
-        while curr is not end:
-            yield curr[0]
-            curr = curr[1]
-
-    def popitem(self, last=True):
-        if not self:
-            raise KeyError('dictionary is empty')
-        if last:
-            key = reversed(self).next()
-        else:
-            key = iter(self).next()
-        value = self.pop(key)
-        return key, value
-
-    def __reduce__(self):
-        items = [[k, self[k]] for k in self]
-        tmp = self.__map, self.__end
-        del self.__map, self.__end
-        inst_dict = vars(self).copy()
-        self.__map, self.__end = tmp
-        if inst_dict:
-            return (self.__class__, (items, ), inst_dict)
-        return self.__class__, (items, )
-
-    def keys(self):
-        return list(self)
-
-    setdefault = DictMixin.setdefault
-    update = DictMixin.update
-    pop = DictMixin.pop
-    values = DictMixin.values
-    items = DictMixin.items
-    iterkeys = DictMixin.iterkeys
-    itervalues = DictMixin.itervalues
-    iteritems = DictMixin.iteritems
-
-    def __repr__(self):
-        if not self:
-            return '%s()' % (self.__class__.__name__, )
-        return '%s(%r)' % (self.__class__.__name__, self.items())
-
-    def copy(self):
-        return self.__class__(self)
-
-    @classmethod
-    def fromkeys(cls, iterable, value=None):
-        d = cls()
-        for key in iterable:
-            d[key] = value
-        return d
-
-    def __eq__(self, other):
-        if isinstance(other, OrderedDict):
-            return len(self) == len(other) and self.items() == other.items()
-        return dict.__eq__(self, other)
-
-    def __ne__(self, other):
-        return not self == other
 
 
 class QueryDict(dict):

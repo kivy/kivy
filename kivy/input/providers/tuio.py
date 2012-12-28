@@ -247,15 +247,15 @@ class Tuio2dCurMotionEvent(TuioMotionEvent):
     def depack(self, args):
         self.is_touch = True
         if len(args) < 5:
-            self.sx, self.sy = map(float, args[0:2])
+            self.sx, self.sy = list(map(float, args[0:2]))
             self.profile = ('pos', )
         elif len(args) == 5:
-            self.sx, self.sy, self.X, self.Y, self.m = map(float, args[0:5])
+            self.sx, self.sy, self.X, self.Y, self.m = list(map(float, args[0:5]))
             self.Y = -self.Y
             self.profile = ('pos', 'mov', 'motacc')
         else:
-            self.sx, self.sy, self.X, self.Y = map(float, args[0:4])
-            self.m, width, height = map(float, args[4:7])
+            self.sx, self.sy, self.X, self.Y = list(map(float, args[0:4]))
+            self.m, width, height = list(map(float, args[4:7]))
             self.Y = -self.Y
             self.profile = ('pos', 'mov', 'motacc', 'shape')
             if self.shape is None:

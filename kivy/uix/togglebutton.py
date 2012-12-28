@@ -83,7 +83,7 @@ class ToggleButton(Button):
     def _clear_groups(wk):
         # auto flush the element when the weak reference have been deleted
         groups = ToggleButton.__groups
-        for group in groups.values():
+        for group in list(groups.values()):
             if wk in group:
                 group.remove(wk)
                 break

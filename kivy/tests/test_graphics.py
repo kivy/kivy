@@ -65,7 +65,7 @@ class VertexInstructionTestCase(GraphicUnitTest):
         wid = Widget()
         with wid.canvas:
             Color(1, 1, 1)
-            Point(points=[x * 5 for x in xrange(50)])
+            Point(points=[x * 5 for x in range(50)])
         r(wid)
 
     def test_point_add(self):

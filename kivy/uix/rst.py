@@ -105,7 +105,7 @@ if 'KIVY_DOC' not in os.environ:
     generic_docroles = {
         'doc': role_doc}
 
-    for rolename, nodeclass in generic_docroles.iteritems():
+    for rolename, nodeclass in generic_docroles.items():
         generic = roles.GenericRole(rolename, nodeclass)
         role = roles.CustomRole(rolename, generic, {'classes': [rolename]})
         roles.register_local_role(rolename, role)

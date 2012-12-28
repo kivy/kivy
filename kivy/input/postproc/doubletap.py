@@ -79,7 +79,7 @@ class InputPostprocDoubleTap(object):
 
         # second, check if up-touch is timeout for double tap
         time_current = Clock.get_time()
-        for touchid in self.touches.keys()[:]:
+        for touchid in list(self.touches.keys())[:]:
             etype, touch = self.touches[touchid]
             if etype != 'end':
                 continue

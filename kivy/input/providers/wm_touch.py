@@ -205,7 +205,7 @@ else:
                                             wParam,
                                             touches,
                                             sizeof(TOUCHINPUT))
-            for i in xrange(wParam):
+            for i in range(wParam):
                 self.touch_events.appendleft(touches[i])
             return True
 

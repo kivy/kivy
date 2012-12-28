@@ -476,7 +476,7 @@ class VKeyboard(Scatter):
 
         with self.active_keys_layer:
             Color(1, 1, 1)
-            for line_nb, index in active_keys.itervalues():
+            for line_nb, index in active_keys.values():
                 pos, size = layout_geometry['LINE_%d' % line_nb][index]
                 BorderImage(texture=texture, pos=pos, size=size,
                         border=self.key_border)
@@ -501,7 +501,7 @@ class VKeyboard(Scatter):
 
         # calculate individual key RELATIVE surface and pos (without key margin)
         current_y_hint = ey_hint + eh_hint
-        for line_nb in xrange(1, layout_rows + 1):
+        for line_nb in range(1, layout_rows + 1):
             current_y_hint -= uh_hint
             # get line_name
             line_name = '%s_%d' % (self.layout_mode, line_nb)
@@ -526,7 +526,7 @@ class VKeyboard(Scatter):
         kmtop, kmright, kmbottom, kmleft = self.key_margin
         uw_hint, uh_hint = layout_geometry['U_HINT']
 
-        for line_nb in xrange(1, layout_rows + 1):
+        for line_nb in range(1, layout_rows + 1):
             llg = layout_geometry['LINE_%d' % line_nb] = []
             llg_append = llg.append
             for key in layout_geometry['LINE_HINT_%d' % line_nb]:
@@ -574,7 +574,7 @@ class VKeyboard(Scatter):
         key_normal = resource_find(self.key_background_normal)
         texture = Image(key_normal, mipmap=True).texture
         with self.background_key_layer:
-            for line_nb in xrange(1, layout_rows + 1):
+            for line_nb in range(1, layout_rows + 1):
                 for pos, size in layout_geometry['LINE_%d' % line_nb]:
                         BorderImage(texture=texture, pos=pos, size=size,
                                 border=self.key_border)
@@ -583,7 +583,7 @@ class VKeyboard(Scatter):
         # calculate font_size
         font_size = int(w) / 46
         # draw
-        for line_nb in xrange(1, layout_rows + 1):
+        for line_nb in range(1, layout_rows + 1):
             key_nb = 0
             for pos, size in layout_geometry['LINE_%d' % line_nb]:
                 # retrieve the relative text

@@ -175,13 +175,13 @@ Available configuration tokens
 
 __all__ = ('Config', 'ConfigParser')
 
-from ConfigParser import ConfigParser as PythonConfigParser
+from configparser import ConfigParser as PythonConfigParser
 from sys import platform
 from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
-from kivy.utils import OrderedDict
+from collections import OrderedDict
 
 # Version number of current configuration format
 KIVY_CONFIG_VERSION = 7
@@ -229,7 +229,7 @@ class ConfigParser(PythonConfigParser):
         Python, this one is able to read only one file at a time. The latest
         read file will be used for the :meth:`write` method.
         '''
-        if type(filename) not in (str, unicode):
+        if type(filename) not in (str, str):
             raise Exception('Only one filename is accepted (str or unicode)')
         self.filename = filename
         PythonConfigParser.read(self, filename)
@@ -246,7 +246,7 @@ class ConfigParser(PythonConfigParser):
         '''Set a lot of keys/values in one section at the same time
         '''
         self.adddefaultsection(section)
-        for key, value in keyvalues.iteritems():
+        for key, value in keyvalues.items():
             self.setdefault(section, key, value)
 
     def setdefault(self, section, option, value):
@@ -306,7 +306,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         'KIVY_NO_CONFIG' not in environ:
         try:
             Config.read(kivy_config_fn)
-        except Exception, e:
+        except Exception as e:
             Logger.exception('Core: error while reading local'
                              'configuration')
 
@@ -447,6 +447,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         try:
             Config.filename = kivy_config_fn
             Config.write()
-        except Exception, e:
+        except Exception as e:
             Logger.exception('Core: Error while saving default config file')
 

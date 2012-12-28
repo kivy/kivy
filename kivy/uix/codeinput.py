@@ -141,9 +141,9 @@ class CodeInput(TextInput):
             # by pygment. can't use &bl; ... cause & is highlighted
             # if at some time support for braille is added then replace these
             # characters with something else
-            ntext = ntext.replace('[', u'⣿;').replace(']', u'⣾;')
+            ntext = ntext.replace('[', '⣿;').replace(']', '⣾;')
             ntext = highlight(ntext, self.lexer, self.formatter)
-            ntext = ntext.replace(u'⣿;', '&bl;').replace(u'⣾;', '&br;')
+            ntext = ntext.replace('⣿;', '&bl;').replace('⣾;', '&br;')
             # replace special chars with &bl; and &br;
             ntext = ''.join(('[color=', str(self.text_color), ']',
                              ntext, '[/color]'))

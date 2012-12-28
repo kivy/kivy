@@ -108,7 +108,7 @@ try:
     from configparser import RawConfigParser
     from io import TextIOWrapper
 except ImportError:
-    from ConfigParser import RawConfigParser
+    from configparser import RawConfigParser
 
 DEFAULT_EXCLUDE = '.svn,CVS,.bzr,.hg,.git'
 DEFAULT_IGNORE = 'E24'
@@ -474,7 +474,7 @@ def continuation_line_indentation(logical_line, tokens, indent_level, verbose):
     indent_chances = {}
     last_indent = (0, 0)
     if verbose >= 3:
-        print(">>> " + tokens[0][4].rstrip())
+        print((">>> " + tokens[0][4].rstrip()))
 
     for token_type, text, start, end, line in tokens:
         newline = row < start[0] - first_row
@@ -487,7 +487,7 @@ def continuation_line_indentation(logical_line, tokens, indent_level, verbose):
             # this is the beginning of a continuation line.
             last_indent = start
             if verbose >= 3:
-                print("... " + line.rstrip())
+                print(("... " + line.rstrip()))
 
             # record the initial indent.
             rel_indent[row] = start[1] - indent_level
@@ -544,7 +544,7 @@ def continuation_line_indentation(logical_line, tokens, indent_level, verbose):
             indent[depth] = start[1]
             indent_chances[start[1]] = True
             if verbose >= 4:
-                print("bracket depth %s indent to %s" % (depth, start[1]))
+                print(("bracket depth %s indent to %s" % (depth, start[1])))
         # deal with implicit string concatenation
         elif token_type == tokenize.STRING or text in ('u', 'ur', 'b', 'br'):
             indent_chances[start[1]] = str
@@ -556,8 +556,8 @@ def continuation_line_indentation(logical_line, tokens, indent_level, verbose):
                 indent.append(0)
                 parens[row] += 1
                 if verbose >= 4:
-                    print("bracket depth %s seen, col %s, visual min = %s" %
-                          (depth, start[1], indent[depth]))
+                    print(("bracket depth %s seen, col %s, visual min = %s" %
+                          (depth, start[1], indent[depth])))
             elif text in ')]}' and depth > 0:
                 # parent indents should not be more than this one
                 prev_indent = indent.pop() or last_indent[1]
@@ -1115,14 +1115,14 @@ def parse_udiff(diff, patterns=None, parent='.'):
             continue
         if line[:3] == '@@ ':
             row, nrows = [int(g) for g in HUNK_REGEX.match(line).groups()]
-            rv[path].update(range(row, row + nrows))
+            rv[path].update(list(range(row, row + nrows)))
         elif line[:3] == '+++':
             path = line[4:].split('\t', 1)[0]
             if path[:2] == 'b/':
                 path = path[2:]
             rv[path] = set()
     return dict([(os.path.join(parent, path), rows)
-                 for (path, rows) in rv.items()
+                 for (path, rows) in list(rv.items())
                  if rows and filename_match(path, patterns)])
 
 
@@ -1146,7 +1146,7 @@ def find_checks(argument_name):
     Find all globally visible functions where the first argument name
     starts with argument_name.
     """
-    for name, function in globals().items():
+    for name, function in list(globals().items()):
         if not inspect.isfunction(function):
             continue
         args = inspect.getargspec(function)[0]
@@ -1273,10 +1273,10 @@ class Checker(object):
         self.previous_indent_level = self.indent_level
         self.indent_level = expand_indent(indent)
         if self.verbose >= 2:
-            print(self.logical_line[:80].rstrip())
+            print((self.logical_line[:80].rstrip()))
         for name, check, argument_names in self._logical_checks:
             if self.verbose >= 4:
-                print('   ' + name)
+                print(('   ' + name))
             for result in self.run_check(check, argument_names):
                 offset, text = result
                 if isinstance(offset, tuple):
@@ -1326,8 +1326,8 @@ class Checker(object):
                     pos = '[%s:%s]' % (token[2][1] or '', token[3][1])
                 else:
                     pos = 'l.%s' % token[3][0]
-                print('l.%s\t%s\t%s\t%r' %
-                      (token[2][0], pos, tokenize.tok_name[token[0]], text))
+                print(('l.%s\t%s\t%s\t%r' %
+                      (token[2][0], pos, tokenize.tok_name[token[0]], text)))
             if token_type == tokenize.OP:
                 if text in '([{':
                     parens += 1
@@ -1404,7 +1404,7 @@ class BaseReport(object):
         if code in self.expected:
             return
         if self.print_filename and not self.file_errors:
-            print(self.filename)
+            print((self.filename))
         self.file_errors += 1
         self.total_errors += 1
         return code
@@ -1437,12 +1437,12 @@ class BaseReport(object):
 
     def print_benchmark(self):
         """Print benchmark numbers."""
-        print('%-7.2f %s' % (self.elapsed, 'seconds elapsed'))
+        print(('%-7.2f %s' % (self.elapsed, 'seconds elapsed')))
         if self.elapsed:
             for key in self._benchmark_keys:
-                print('%-7d %s per second (%d total)' %
+                print(('%-7d %s per second (%d total)' %
                       (self.counters[key] / self.elapsed, key,
-                       self.counters[key]))
+                       self.counters[key])))
 
 
 class FileReport(BaseReport):
@@ -1467,20 +1467,20 @@ class StandardReport(BaseReport):
         code = super(StandardReport, self).error(line_number, offset,
                                                  text, check)
         if code and (self.counters[code] == 1 or self._repeat):
-            print(self._fmt % {
+            print((self._fmt % {
                 'path': self.filename,
                 'row': self.line_offset + line_number, 'col': offset + 1,
                 'code': code, 'text': text[5:],
-            })
+            }))
             if self._show_source:
                 if line_number > len(self.lines):
                     line = ''
                 else:
                     line = self.lines[line_number - 1]
-                print(line.rstrip())
-                print(' ' * offset + '^')
+                print((line.rstrip()))
+                print((' ' * offset + '^'))
             if self._show_pep8:
-                print(check.__doc__.lstrip('\n').rstrip())
+                print((check.__doc__.lstrip('\n').rstrip()))
         return code
 
 
@@ -1513,10 +1513,10 @@ class TestReport(StandardReport):
             if not self.counters.get(code):
                 self.file_errors += 1
                 self.total_errors += 1
-                print('%s: error %s not found' % (label, code))
+                print(('%s: error %s not found' % (label, code)))
         if self._verbose and not self.file_errors:
-            print('%s: passed (%s)' %
-                  (label, ' '.join(codes) or 'Okay'))
+            print(('%s: passed (%s)' %
+                  (label, ' '.join(codes) or 'Okay')))
         self.counters['test cases'] += 1
         if self.file_errors:
             self.counters['failed tests'] += 1
@@ -1530,10 +1530,10 @@ class TestReport(StandardReport):
         results = ("%(physical lines)d lines tested: %(files)d files, "
                    "%(test cases)d test cases%%s." % self.counters)
         if self.total_errors:
-            print(results % ", %s failures" % self.total_errors)
+            print((results % ", %s failures" % self.total_errors))
         else:
-            print(results % "")
-        print("Test failed." if self.total_errors else "Test passed.")
+            print((results % ""))
+        print(("Test failed." if self.total_errors else "Test passed."))
 
 
 class StyleGuide(object):
@@ -1592,7 +1592,7 @@ class StyleGuide(object):
     def input_file(self, filename, lines=None, expected=None, line_offset=0):
         """Run all checks on a Python source file."""
         if self.options.verbose:
-            print('checking %s' % filename)
+            print(('checking %s' % filename))
         fchecker = Checker(filename, lines=lines, options=self.options)
         return fchecker.check_all(expected=expected, line_offset=line_offset)
 
@@ -1607,7 +1607,7 @@ class StyleGuide(object):
         runner = self.runner
         for root, dirs, files in os.walk(dirname):
             if verbose:
-                print('directory ' + root)
+                print(('directory ' + root))
             counters['directories'] += 1
             for subdir in sorted(dirs):
                 if self.excluded(subdir):
@@ -1735,12 +1735,12 @@ def selftest(options):
             count_all += 1
             if not error:
                 if options.verbose:
-                    print("%s: %s" % (code, source))
+                    print(("%s: %s" % (code, source)))
             else:
                 count_failed += 1
-                print("%s: %s:" % (__file__, error))
+                print(("%s: %s:" % (__file__, error)))
                 for line in checker.lines:
-                    print(line.rstrip())
+                    print((line.rstrip()))
     return count_failed, count_all
 
 
@@ -1751,7 +1751,7 @@ def read_config(options, args, arglist, parser):
     user_conf = options.config
     if user_conf and os.path.isfile(user_conf):
         if options.verbose:
-            print('user configuration: %s' % user_conf)
+            print(('user configuration: %s' % user_conf))
         config.read(user_conf)
 
     parent = tail = args and os.path.abspath(os.path.commonprefix(args))
@@ -1759,7 +1759,7 @@ def read_config(options, args, arglist, parser):
         local_conf = os.path.join(parent, '.pep8')
         if os.path.isfile(local_conf):
             if options.verbose:
-                print('local configuration: %s' % local_conf)
+                print(('local configuration: %s' % local_conf))
             config.read(local_conf)
             break
         parent, tail = os.path.split(parent)
@@ -1774,10 +1774,10 @@ def read_config(options, args, arglist, parser):
         # Second, parse the configuration
         for opt in config.options('pep8'):
             if options.verbose > 1:
-                print('  %s = %s' % (opt, config.get('pep8', opt)))
+                print(('  %s = %s' % (opt, config.get('pep8', opt))))
             if opt.replace('_', '-') not in parser.config_options:
-                print('Unknown option: \'%s\'\n  not in [%s]' %
-                      (opt, ' '.join(parser.config_options)))
+                print(('Unknown option: \'%s\'\n  not in [%s]' %
+                      (opt, ' '.join(parser.config_options))))
                 sys.exit(1)
             normalized_opt = opt.replace('-', '_')
             opt_type = option_list[normalized_opt]
@@ -1908,8 +1908,8 @@ def _main():
         count_failed = fail_s + fail_d
         if not options.quiet:
             count_passed = done_d + done_s - count_failed
-            print("%d passed and %d failed." % (count_passed, count_failed))
-            print("Test failed." if count_failed else "Test passed.")
+            print(("%d passed and %d failed." % (count_passed, count_failed)))
+            print(("Test failed." if count_failed else "Test passed."))
         if count_failed:
             sys.exit(1)
     if options.testsuite:

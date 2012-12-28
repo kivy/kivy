@@ -254,7 +254,7 @@ class VideoPlayerAnnotation(Label):
     annotation = DictProperty({})
 
     def on_annotation(self, instance, ann):
-        for key, value in ann.iteritems():
+        for key, value in ann.items():
             setattr(self, key, value)
 
 

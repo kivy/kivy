@@ -163,7 +163,7 @@ class WindowSDL(WindowBase):
                 pass
 
             elif action in ('keydown', 'keyup'):
-                mod, key, scancode, unicode = args
+                mod, key, scancode, str = args
 
                 # XXX ios keyboard suck, when backspace is hit, the delete
                 # keycode is sent. fix it.
@@ -177,11 +177,11 @@ class WindowSDL(WindowBase):
 
                 # don't dispatch more key if down event is accepted
                 if self.dispatch('on_key_down', key,
-                                 scancode, unicode,
+                                 scancode, str,
                                  self.modifiers):
                     continue
                 self.dispatch('on_keyboard', key,
-                              scancode, unicode,
+                              scancode, str,
                               self.modifiers)
 
             elif action == 'textinput':
@@ -266,7 +266,7 @@ class WindowSDL(WindowBase):
         while not EventLoop.quit and EventLoop.status == 'started':
             try:
                 self._mainloop()
-            except BaseException, inst:
+            except BaseException as inst:
                 # use exception manager first
                 r = ExceptionManager.handle_exception(inst)
                 if r == ExceptionManager.RAISE:
@@ -299,7 +299,7 @@ class WindowSDL(WindowBase):
         if mods & (pygame.KMOD_META | pygame.KMOD_LMETA):
             self._modifiers.append('meta')
 
-    def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
+    def on_keyboard(self, key, scancode=None, str=None, modifier=None):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
         # TODO If just CMD+w is pressed, only the window should be closed.
         is_osx = sys.platform == 'darwin'
@@ -307,7 +307,7 @@ class WindowSDL(WindowBase):
             stopTouchApp()
             self.close()  #not sure what to do here
             return True
-        super(WindowSDL, self).on_keyboard(key, scancode, unicode, modifier)
+        super(WindowSDL, self).on_keyboard(key, scancode, str, modifier)
 
     def request_keyboard(self, *largs):
         self._sdl_keyboard = super(WindowSDL, self).request_keyboard(*largs)

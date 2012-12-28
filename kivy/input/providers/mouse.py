@@ -140,7 +140,7 @@ class MouseMotionEventProvider(MotionEventProvider):
 
     def find_touch(self, x, y):
         factor = 10. / EventLoop.window.system_size[0]
-        for t in self.touches.itervalues():
+        for t in self.touches.values():
             if abs(x - t.sx) < factor and abs(y - t.sy) < factor:
                 return t
         return False
@@ -202,7 +202,7 @@ class MouseMotionEventProvider(MotionEventProvider):
     def on_mouse_release(self, win, x, y, button, modifiers):
         # special case, if button is all, then remove all the current mouses.
         if button == 'all':
-            for cur in self.touches.values()[:]:
+            for cur in list(self.touches.values())[:]:
                 self.remove_touch(cur)
             self.current_drag = None
 

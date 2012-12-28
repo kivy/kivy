@@ -68,20 +68,20 @@ def usage(device=None):
     if device:
         Logger.error('Screen: The specified device ({0}) is unknow.',
                 device)
-    print '\nModule usage: python main.py -m screen,deviceid[,orientation]\n'
-    print 'Availables devices:\n'
-    print '{0:12} {1:<22} {2:<8} {3:<8} {4:<5} {5:<8}'.format(
-        'Device ID', 'Name', 'Width', 'Height', 'DPI', 'Density')
-    for device, info in devices.iteritems():
-        print '{0:12} {1:<22} {2:<8} {3:<8} {4:<5} {5:<8}'.format(
-            device, *info)
-    print '\n'
-    print 'Simulate a medium-density screen as Motolora Droid 2:\n'
-    print '    python main.py -m screen,droid2\n'
-    print 'Simulate a high-density screen as HTC One X, in portrait:\n'
-    print '    python main.py -m screen,onex,portrait\n'
-    print 'Simulate the iPad 2 screen\n'
-    print '    python main.py -m screen,ipad\n'
+    print('\nModule usage: python main.py -m screen,deviceid[,orientation]\n')
+    print('Availables devices:\n')
+    print('{0:12} {1:<22} {2:<8} {3:<8} {4:<5} {5:<8}'.format(
+        'Device ID', 'Name', 'Width', 'Height', 'DPI', 'Density'))
+    for device, info in devices.items():
+        print('{0:12} {1:<22} {2:<8} {3:<8} {4:<5} {5:<8}'.format(
+            device, *info))
+    print('\n')
+    print('Simulate a medium-density screen as Motolora Droid 2:\n')
+    print('    python main.py -m screen,droid2\n')
+    print('Simulate a high-density screen as HTC One X, in portrait:\n')
+    print('    python main.py -m screen,onex,portrait\n')
+    print('Simulate the iPad 2 screen\n')
+    print('    python main.py -m screen,ipad\n')
     sys.exit(1)
 
 
@@ -93,7 +93,7 @@ def configure(ctx):
         orientation = 'portrait'
     if not ctx:
         return usage(None)
-    device = ctx.keys()[0]
+    device = list(ctx.keys())[0]
     if device not in devices:
         return usage('')
     apply_device(device, scale, orientation)

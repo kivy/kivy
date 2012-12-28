@@ -348,7 +348,7 @@ def _run_mainloop():
             EventLoop.run()
             stopTouchApp()
             break
-        except BaseException, inst:
+        except BaseException as inst:
             # use exception manager first
             r = ExceptionManager.handle_exception(inst)
             if r == ExceptionManager.RAISE:
@@ -411,7 +411,7 @@ def runTouchApp(widget=None, slave=False):
             EventLoop.add_input_provider(p, True)
 
     # add postproc modules
-    for mod in kivy_postproc_modules.values():
+    for mod in list(kivy_postproc_modules.values()):
         EventLoop.add_postproc_module(mod)
 
     # add main widget

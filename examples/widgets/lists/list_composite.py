@@ -37,7 +37,7 @@ class MainView(GridLayout):
                                {'cls': ListItemButton,
                                 'kwargs': {'text': rec['text']}}]}
 
-        item_strings = ["{0}".format(index) for index in xrange(100)]
+        item_strings = ["{0}".format(index) for index in range(100)]
 
         dict_adapter = DictAdapter(sorted_keys=item_strings,
                                    data=integers_dict,

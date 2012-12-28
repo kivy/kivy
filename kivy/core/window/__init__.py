@@ -156,9 +156,9 @@ class Keyboard(EventDispatcher):
         :data:`Keyboard.keycodes`. If the value is not found inside the
         keycodes, it will return ''.
         '''
-        keycodes = Keyboard.keycodes.values()
+        keycodes = list(Keyboard.keycodes.values())
         if value in keycodes:
-            return Keyboard.keycodes.keys()[keycodes.index(value)]
+            return list(Keyboard.keycodes.keys())[keycodes.index(value)]
         return ''
 
 
@@ -716,7 +716,7 @@ class WindowBase(EventDispatcher):
                 w.width = shw * width
             elif shh:
                 w.height = shh * height
-            for key, value in w.pos_hint.iteritems():
+            for key, value in w.pos_hint.items():
                 if key == 'x':
                     w.x = value * width
                 elif key == 'right':
@@ -873,7 +873,7 @@ class WindowBase(EventDispatcher):
         This will ensure that no virtual keyboard / system keyboard are actually
         requested. All will be closed.
         '''
-        for key in self._keyboards.keys()[:]:
+        for key in list(self._keyboards.keys())[:]:
             keyboard = self._keyboards[key]
             if keyboard:
                 keyboard.release()

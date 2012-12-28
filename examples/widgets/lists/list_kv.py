@@ -48,7 +48,7 @@ class MainView(GridLayout):
         # CompositeListItem kv template for the list item view. Then we
         # create a list view using this adapter. args_converter above converts
         # dict attributes to ctx attributes.
-        dict_adapter = DictAdapter(sorted_keys=[str(i) for i in xrange(100)],
+        dict_adapter = DictAdapter(sorted_keys=[str(i) for i in range(100)],
                                    data=integers_dict,
                                    args_converter=list_item_args_converter,
                                    template='CustomListItem')

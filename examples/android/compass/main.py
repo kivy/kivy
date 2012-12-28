@@ -36,7 +36,7 @@ def LoggerDisplayMetrics(metrics):
                     'widthPixels':metrics.widthPixels,
                     'xdpi':metrics.xdpi,
                     'ydpi':metrics.ydpi}
-    for (k,v) in display.items():
+    for (k,v) in list(display.items()):
         Logger.info('COMPASS: display %s = %s'%(k,v)) 
 
 class CompassWidget(FloatLayout):

@@ -37,7 +37,7 @@ import pickle
 import base64
 import zlib
 import math
-from cStringIO import StringIO
+from io import StringIO
 
 from kivy.vector import Vector
 
@@ -148,7 +148,7 @@ class GestureStroke:
         scale_stroke(scale_factor=float)
         Scales the stroke down by scale_factor
         '''
-        self.points = map(lambda pt: pt.scale(scale_factor), self.points)
+        self.points = [pt.scale(scale_factor) for pt in self.points]
 
     def points_distance(self, point1, point2):
         '''
@@ -168,7 +168,7 @@ class GestureStroke:
         gesture_length = 0.0
         if len(point_list) <= 1: # If there is only one point -> no length
             return gesture_length
-        for i in xrange(len(point_list)-1):
+        for i in range(len(point_list)-1):
             gesture_length += self.points_distance(
                 point_list[i], point_list[i+1])
         return gesture_length
@@ -255,10 +255,10 @@ class Gesture:
         ''' Scales down the gesture to a unit of 1 '''
         # map() creates a list of min/max coordinates of the strokes
         # in the gesture and min()/max() pulls the lowest/highest value
-        min_x = min(map(lambda stroke: stroke.min_x, self.strokes))
-        max_x = max(map(lambda stroke: stroke.max_x, self.strokes))
-        min_y = min(map(lambda stroke: stroke.min_y, self.strokes))
-        max_y = max(map(lambda stroke: stroke.max_y, self.strokes))
+        min_x = min([stroke.min_x for stroke in self.strokes])
+        max_x = max([stroke.max_x for stroke in self.strokes])
+        min_y = min([stroke.min_y for stroke in self.strokes])
+        max_y = max([stroke.max_y for stroke in self.strokes])
         x_len = max_x - min_x
         self.width = x_len
         y_len = max_y - min_y
@@ -351,9 +351,9 @@ class Gesture:
             return -1
         dot_product = 0.0
         for stroke_index, (my_stroke, cmp_stroke) in enumerate(
-                zip(self.strokes, comparison_gesture.strokes)):
+                list(zip(self.strokes, comparison_gesture.strokes))):
             for pt_index, (my_point, cmp_point) in enumerate(
-                    zip(my_stroke.points, cmp_stroke.points)):
+                    list(zip(my_stroke.points, cmp_stroke.points))):
                 dot_product += my_point.x * cmp_point.x +\
                                my_point.y * cmp_point.y
         return dot_product

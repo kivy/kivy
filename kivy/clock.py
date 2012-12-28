@@ -407,19 +407,19 @@ class ClockBase(object):
         # call that function to release all the direct reference to any callback
         # and replace it with a weakref
         events = self._events
-        for cid in events.keys()[:]:
+        for cid in list(events.keys())[:]:
             [x.release() for x in events[cid] if x.callback is not None]
 
     def _remove_empty(self):
         # remove empty entry in the event list
         events = self._events
-        for cid in events.keys()[:]:
+        for cid in list(events.keys())[:]:
             if not events[cid]:
                 del events[cid]
 
     def _process_events(self):
         events = self._events
-        for cid in events.keys()[:]:
+        for cid in list(events.keys())[:]:
             for event in events[cid][:]:
                 if event.tick(self._last_tick) is False:
                     # event may be already removed by the callback
@@ -440,7 +440,7 @@ class ClockBase(object):
 
             # search event that have timeout = -1
             found = False
-            for cid in events.keys()[:]:
+            for cid in list(events.keys())[:]:
                 for event in events[cid][:]:
                     if event.timeout != -1:
                         continue

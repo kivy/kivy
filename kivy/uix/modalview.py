@@ -270,7 +270,7 @@ if __name__ == '__main__':
         view.open()
 
     layout = GridLayout(cols=3)
-    for x in xrange(9):
+    for x in range(9):
         btn = Button(text='click me %s' % x)
         btn.bind(on_release=view.open)
         layout.add_widget(btn)

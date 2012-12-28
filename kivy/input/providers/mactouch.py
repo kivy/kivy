@@ -132,7 +132,7 @@ class MacMotionEventProvider(MotionEventProvider):
         devices = MultitouchSupport.MTDeviceCreateList()
         num_devices = CFArrayGetCount(devices)
         # print 'num_devices =', num_devices
-        for i in xrange(num_devices):
+        for i in range(num_devices):
             device = CFArrayGetValueAtIndex(devices, i)
             # print 'device #%d: %016x' % (i, device)
             # create touch dict for this device
@@ -169,7 +169,7 @@ class MacMotionEventProvider(MotionEventProvider):
         touches = _instance.touches[devid]
         actives = []
 
-        for i in xrange(n_fingers):
+        for i in range(n_fingers):
             # get pointer on data
             data = data_ptr[i]
 
@@ -204,7 +204,7 @@ class MacMotionEventProvider(MotionEventProvider):
                 _instance.queue.append(('update', touch))
 
         # delete old touchs
-        for tid in touches.keys()[:]:
+        for tid in list(touches.keys())[:]:
             if tid not in actives:
                 touch = touches[tid]
                 touch.update_time_end()

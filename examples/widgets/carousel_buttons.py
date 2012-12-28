@@ -29,7 +29,7 @@ class Page(GridLayout):
 class TestApp(App):
     def build(self):
         root = Carousel()
-        for x in xrange(10):
+        for x in range(10):
             root.add_widget(Page())
         return root
 

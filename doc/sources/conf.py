@@ -51,7 +51,7 @@ copyright = '2010, The Kivy Authors'
 #
 os.environ['KIVY_DOC_INCLUDE'] = '1'
 import kivy
-print kivy.__file__
+print(kivy.__file__)
 
 version = kivy.__version__
 release = kivy.__version__

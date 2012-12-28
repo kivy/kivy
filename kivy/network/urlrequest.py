@@ -57,17 +57,17 @@ Example of Posting data (adapted from httplib example)::
 from collections import deque
 from threading import Thread
 from json import loads
-from httplib import HTTPConnection
+from http.client import HTTPConnection
 from time import sleep
 
 HTTPSConnection = None
 try:
-    from httplib import HTTPSConnection
+    from http.client import HTTPSConnection
 except ImportError:
     # on android platform, this is not available yet.
     pass
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
@@ -163,7 +163,7 @@ class UrlRequest(Thread):
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
             result = self.decode_result(result, resp)
-        except Exception, e:
+        except Exception as e:
             pass
 
         if e is not None:
@@ -412,6 +412,6 @@ if __name__ == '__main__':
         sleep(1)
         Clock.tick()
 
-    print 'result =', req.result
-    print 'error =', req.error
+    print('result =', req.result)
+    print('error =', req.error)
 

@@ -24,7 +24,7 @@ import json
 from gc import get_objects, garbage
 from kivy.clock import Clock
 from kivy.cache import Cache
-from kivy.utils import OrderedDict
+from collections import OrderedDict
 from kivy.logger import Logger
 
 try:
@@ -83,11 +83,11 @@ class FlaskThread(threading.Thread):
         m['Python garbage'].append(len(garbage))
         m['FPS (internal)'].append(Clock.get_fps())
         m['FPS (real)'].append(Clock.get_rfps())
-        m['Events'].append(sum([len(x) for x in Clock._events.itervalues()]))
+        m['Events'].append(sum([len(x) for x in Clock._events.values()]))
         for category in Cache._categories:
             m['Cache ' + category].append(
                 len(Cache._objects.get(category, [])))
-        for values in m.itervalues():
+        for values in m.values():
             values.pop(0)
             values[0] = 0
 

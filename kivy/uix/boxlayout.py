@@ -148,7 +148,7 @@ class BoxLayout(Layout):
                 if shh:
                     h = shh * (selfh - padding2)
 
-                for key, value in c.pos_hint.iteritems():
+                for key, value in c.pos_hint.items():
                     posy = value * (selfh - padding2)
                     if key == 'y':
                         cy += y + posy
@@ -179,7 +179,7 @@ class BoxLayout(Layout):
                 if shw:
                     w = shw * (selfw - padding2)
 
-                for key, value in c.pos_hint.iteritems():
+                for key, value in c.pos_hint.items():
                     posx = value * (selfw - padding2)
                     if key == 'x':
                         cx += x + posx

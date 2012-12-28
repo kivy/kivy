@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 a = '''cdef void   glActiveTexture (cgl.GLenum texture)
 cdef void   glAttachShader (cgl.GLuint program, cgl.GLuint shader)
 cdef void   glBindAttribLocation (cgl.GLuint program, cgl.GLuint index,  cgl.GLchar* name)
@@ -160,25 +162,25 @@ def replace(s):
             continue
         yield x
 
-print '''
+print('''
 # This file was automatically generated with kivy/tools/stub-gl-debug.py
 cimport c_opengl as cgl
 
-'''
+''')
 
 lines = a.splitlines()
 for x in lines:
     if x.startswith('#'):
         # There are some functions that either do not exist or break on OSX.
         # Just skip those.
-        print '# Skipping generation of: "%s"' % x
+        print('# Skipping generation of: "%s"' % x)
         continue
     x = x.replace('cgl.', '')
     y = ' '.join(replace(x))
 
-    print '%s with gil:' % x
+    print('%s with gil:' % x)
     s = x.split()
-    print '    print "GL %s(' % s[2],
+    print('    print "GL %s(' % s[2], end=' ')
     pointer = 0
     for arg in s[3:]:
         arg = arg.strip()
@@ -188,11 +190,11 @@ for x in lines:
             continue
         pointer = '*' * pointer
         if pointer:
-            print '%s%s=", repr(hex(<long> %s)), ",' % (arg, pointer, arg),
+            print('%s%s=", repr(hex(<long> %s)), ",' % (arg, pointer, arg), end=' ')
         else:
-            print '%s = ", %s, ",' % (arg, arg),
+            print('%s = ", %s, ",' % (arg, arg), end=' ')
         pointer = 0
-    print ')"'
-    print '    %s' % y
-    print '    ret = glGetError()'
-    print '    if ret: print "ERR %d / %x" % (ret, ret)'
+    print(')"')
+    print('    %s' % y)
+    print('    ret = glGetError()')
+    print('    if ret: print "ERR %d / %x" % (ret, ret)')

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 __all__ = ('FactoryBuild', )
 
 from distutils.cmd import Command
@@ -28,9 +30,9 @@ class FactoryBuild(Command):
         pass
 
     def run(self):
-        print '--------------------------------------------'
-        print 'Building factory relation file'
-        print '--------------------------------------------'
+        print('--------------------------------------------')
+        print('Building factory relation file')
+        print('--------------------------------------------')
 
         root_dir = os.path.dirname(kivy.__file__)
         filename = os.path.join(root_dir, 'factory_registers.py')
@@ -63,31 +65,31 @@ class FactoryBuild(Command):
                         #print '<<< ignored (not a __init__.py)'
                         continue
 
-                print '>>>', module, '::',
+                print('>>>', module, '::', end=' ')
 
                 try:
                     m = __import__(name=module, fromlist='.')
-                except Exception, e:
-                    print
-                    print 'ERROR:', e
+                except Exception as e:
+                    print()
+                    print('ERROR:', e)
                     continue
                 if not hasattr(m, '__all__'):
-                    print
+                    print()
                     continue
                 for symbol in getattr(m, '__all__'):
                     if symbol.startswith('_'):
                         continue
                     attr = getattr(m, symbol)
-                    if type(attr) not in (types.TypeType, types.ClassType):
+                    if type(attr) not in (type, type):
                         continue
                     symbols.append((symbol, module))
-                    print symbol,
-                print
+                    print(symbol, end=' ')
+                print()
 
-        print
-        print '--------------------------------------------'
-        print 'Found %d symbols, generating file' % len(symbols)
-        print '--------------------------------------------'
+        print()
+        print('--------------------------------------------')
+        print('Found %d symbols, generating file' % len(symbols))
+        print('--------------------------------------------')
 
         filename = os.path.join(root_dir, 'factory_registers.py')
         with open(filename, 'w') as fd:
@@ -99,4 +101,4 @@ class FactoryBuild(Command):
             for x in symbols:
                 fd.write("r('%s', module='%s')\n" % x)
 
-        print 'File written at', filename
+        print('File written at', filename)

@@ -106,7 +106,7 @@ class Animation(EventDispatcher):
         self._duration = kw.get('d', kw.get('duration', 1.))
         self._transition = kw.get('t', kw.get('transition', 'linear'))
         self._step = kw.get('s', kw.get('step', 1. / 60.))
-        if isinstance(self._transition, basestring):
+        if isinstance(self._transition, str):
             self._transition = getattr(AnimationTransition, self._transition)
         for key in ('d', 't', 's', 'step', 'duration', 'transition'):
             kw.pop(key, None)
@@ -250,7 +250,7 @@ class Animation(EventDispatcher):
 
         # get current values
         p = d['properties']
-        for key, value in self._animated_properties.iteritems():
+        for key, value in self._animated_properties.items():
             p[key] = (getattr(widget, key), value)
 
         # install clock
@@ -272,7 +272,7 @@ class Animation(EventDispatcher):
         widgets = self._widgets
         transition = self._transition
         calculate = self._calculate
-        for widget in widgets.keys()[:]:
+        for widget in list(widgets.keys())[:]:
             anim = widgets[widget]
             anim['time'] += dt
 
@@ -281,7 +281,7 @@ class Animation(EventDispatcher):
             t = transition(progress)
 
             # apply progression on widget
-            for key, values in anim['properties'].iteritems():
+            for key, values in anim['properties'].items():
                 a, b = values
                 value = calculate(a, b, t)
                 setattr(widget, key, value)
@@ -299,11 +299,11 @@ class Animation(EventDispatcher):
                 tp = list
             else:
                 tp = tuple
-            return tp([_calculate(a[x], b[x], t) for x in xrange(len(a))])
+            return tp([_calculate(a[x], b[x], t) for x in range(len(a))])
         elif isinstance(a, DictType):
             d = {}
-            for x in a.iterkeys():
-                if not x in b.keys():
+            for x in a.keys():
+                if not x in list(b.keys()):
                     # User requested to animate only part of the dict.
                     # Copy the rest
                     d[x] = a[x]

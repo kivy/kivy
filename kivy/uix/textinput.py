@@ -297,7 +297,7 @@ class TextInput(Widget):
                 return 0
             lf = self._lines_flags
             index, cr = self.cursor
-            for row in xrange(cr):
+            for row in range(cr):
                 if row >= len(l):
                     continue
                 index += len(l[row])
@@ -331,7 +331,7 @@ class TextInput(Widget):
         lf = self._lines_flags
         l = self._lines
         i = 0
-        for row in xrange(len(l)):
+        for row in range(len(l)):
             ni = i + len(l[row])
             if lf[row] & FL_IS_NEWLINE:
                 ni += 1
@@ -601,7 +601,7 @@ class TextInput(Widget):
         _get_text_width = self._get_text_width
         _tab_width = self.tab_width
         _label_cached = self._label_cached
-        for i in xrange(1, len(l[cy]) + 1):
+        for i in range(1, len(l[cy]) + 1):
             if _get_text_width(l[cy][:i], _tab_width, _label_cached) >= cx:
                 break
             dcx = i
@@ -909,7 +909,7 @@ class TextInput(Widget):
         data = Clipboard.get(mime_type)
         if data is not None:
             # decode only if we don't have unicode
-            if type(data) is not unicode:
+            if type(data) is not str:
                 data = data.decode(self._encoding, 'ignore')
             # remove null strings mostly a windows issue
             data = data.replace('\x00', '')
@@ -1140,7 +1140,7 @@ class TextInput(Widget):
                 viewport_pos = sx, 0
                 vw = self.width - self.padding_x * 2
                 vh = self.height - pady * 2
-                tw, th = map(float, size)
+                tw, th = list(map(float, size))
                 oh, ow = tch, tcw = texc[1:3]
                 tcx, tcy = 0, 0
 
@@ -1443,7 +1443,7 @@ class TextInput(Widget):
         ctrl, cmd = 64, 1024
         key, key_str = keycode
 
-        if text and not key in (self.interesting_keys.keys() + [27]):
+        if text and not key in (list(self.interesting_keys.keys()) + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
                 if key == ord('x'):  # cut selection
@@ -1798,7 +1798,7 @@ class TextInput(Widget):
         lf = self._lines_flags
         l = self._lines
         text = ''.join([('\n' if (lf[i] & FL_IS_NEWLINE) else '') + l[i]
-                        for i in xrange(len(l))])
+                        for i in range(len(l))])
         return text
 
     def _set_text(self, text):

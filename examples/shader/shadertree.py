@@ -132,7 +132,7 @@ class ShaderWidget(FloatLayout):
 
     def update_glsl(self, *largs):
         self.canvas['time'] = Clock.get_boottime()
-        self.canvas['resolution'] = map(float, self.size)
+        self.canvas['resolution'] = list(map(float, self.size))
         # This is needed for the default vertex shader.
         self.fbo['projection_mat'] = Window.render_context['projection_mat']
         self.canvas['projection_mat'] = Window.render_context['projection_mat']

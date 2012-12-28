@@ -183,7 +183,7 @@ if __name__ == '__main__':
     content_cancel.bind(on_release=popup.dismiss)
 
     layout = GridLayout(cols=3)
-    for x in xrange(9):
+    for x in range(9):
         btn = Button(text=str(x))
         btn.bind(on_release=popup.open)
         layout.add_widget(btn)

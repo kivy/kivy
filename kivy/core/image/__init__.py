@@ -23,9 +23,9 @@ from kivy.resources import resource_find
 from kivy.utils import platform
 import zipfile
 try:
-    import cStringIO as SIO
+    import io as SIO
 except ImportError:
-    import StringIO as SIO
+    import io as SIO
 
 
 # late binding
@@ -65,7 +65,7 @@ class ImageData(object):
 
     def release_data(self):
         mm = self.mipmaps
-        for item in mm.itervalues():
+        for item in mm.values():
             item[2] = None
 
     @property
@@ -130,7 +130,7 @@ class ImageData(object):
         .. versionadded:: 1.0.7
         '''
         mm = self.mipmaps
-        for x in xrange(len(mm)):
+        for x in range(len(mm)):
             item = mm.get(x, None)
             if item is None:
                 raise Exception('Invalid mipmap level, found empty one')
@@ -161,7 +161,7 @@ class ImageLoaderBase(object):
             Logger.trace('Image: %r, populate to textures (%d)' %
                     (self.filename, len(self._data)))
 
-        for count in xrange(len(self._data)):
+        for count in range(len(self._data)):
 
             # first, check if a texture with the same name already exist in the
             # cache
@@ -326,7 +326,7 @@ class ImageLoader(object):
             atlas = Atlas(afn)
             Cache.append('kv.atlas', rfn, atlas)
             # first time, fill our texture cache.
-            for nid, texture in atlas.textures.iteritems():
+            for nid, texture in atlas.textures.items():
                 fn = 'atlas://%s/%s' % (rfn, nid)
                 cid = '%s|%s|%s' % (fn, False, 0)
                 Cache.append('kv.texture', cid, texture)
@@ -421,7 +421,7 @@ class Image(EventDispatcher):
             self._size = self.texture.size
         elif isinstance(arg, ImageLoaderBase):
             self.image = arg
-        elif isinstance(arg, basestring):
+        elif isinstance(arg, str):
             self.filename = arg
         else:
             raise Exception('Unable to load image type %s' % str(type(arg)))
@@ -691,7 +691,7 @@ class Image(EventDispatcher):
         size = 3 if data.fmt in ('rgb', 'bgr') else 4
         index = y * data.width * size + x * size
         raw = data.data[index:index + size]
-        color = map(lambda c: ord(c) / 255.0, raw)
+        color = [ord(c) / 255.0 for c in raw]
 
         # conversion for BGR->RGB, BGR->RGBA format
         if data.fmt in ('bgr', 'bgra'):

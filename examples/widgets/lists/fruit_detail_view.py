@@ -67,7 +67,7 @@ class FruitObserverDetailView(GridLayout):
                         text=str(fruit_data[self.fruit_name][attribute])))
 
     def update(self, object_adapter, *args):
-        print 'updating fodv', object_adapter, object_adapter.obj
+        print('updating fodv', object_adapter, object_adapter.obj)
         if object_adapter.obj is None:
             return
 
@@ -104,7 +104,7 @@ class FruitImageDetailView(BoxLayout):
             for attribute in fruit_data_attributes:
                 container.add_widget(Label(text="{0}:".format(attribute),
                                       halign='right'))
-                print 'fruit_name', self.fruit_name
+                print('fruit_name', self.fruit_name)
                 container.add_widget(
                         Label(text=str(fruit_data[self.fruit_name][attribute])))
             self.add_widget(container)
