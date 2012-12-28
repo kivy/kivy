@@ -132,12 +132,12 @@ cdef class ShaderSource:
             return 1
         return 0
 
-    cdef void process_message(self, str ctype, str message):
+    cdef void process_message(self, str ctype, message):
         message = message.strip()
         if message:
             Logger.info('Shader: %s: <%s>' % (ctype, message))
 
-    cdef str get_shader_log(self, int shader):
+    cdef get_shader_log(self, int shader):
         '''Return the shader log
         '''
         cdef char msg[2048]
@@ -409,14 +409,14 @@ cdef class Shader:
         Cache.append('kv.shader', cacheid, shader)
         return shader
 
-    cdef str get_program_log(self, shader):
+    cdef get_program_log(self, shader):
         '''Return the program log'''
         cdef char msg[2048]
         msg[0] = '\0'
         glGetProgramInfoLog(shader, 2048, NULL, msg)
         return msg.decode('utf-8')
 
-    cdef void process_message(self, str ctype, str message):
+    cdef void process_message(self, str ctype, message):
         message = message.strip()
         if message:
             Logger.info('Shader: %s: <%s>' % (ctype, message))

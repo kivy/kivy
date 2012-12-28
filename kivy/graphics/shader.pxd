@@ -6,8 +6,8 @@ cdef class ShaderSource:
     cdef int shader
     cdef int shadertype
     cdef set_source(self, char *source)
-    cdef str get_shader_log(self, int shader)
-    cdef void process_message(self, str ctype, str message)
+    cdef get_shader_log(self, int shader)
+    cdef void process_message(self, str ctype, message)
     cdef int is_compiled(self)
 
 cdef class Shader:
@@ -37,7 +37,7 @@ cdef class Shader:
     cdef void link_program(self) except *
     cdef int is_linked(self)
     cdef ShaderSource compile_shader(self, str source, int shadertype)
-    cdef str get_program_log(self, shader)
-    cdef void process_message(self, str ctype, str message)
+    cdef get_program_log(self, shader)
+    cdef void process_message(self, str ctype, message)
     cdef void reload(self)
     cdef void bind_vertex_format(self, VertexFormat vertex_format)
