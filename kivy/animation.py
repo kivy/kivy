@@ -60,7 +60,6 @@ the first half of size=(800, 800)::
 
 __all__ = ('Animation', 'AnimationTransition')
 
-from types import ListType, TupleType, DictType
 from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
@@ -294,13 +293,13 @@ class Animation(EventDispatcher):
 
     def _calculate(self, a, b, t):
         _calculate = self._calculate
-        if isinstance(a, ListType) or isinstance(a, TupleType):
-            if isinstance(a, ListType):
+        if isinstance(a, list) or isinstance(a, tuple):
+            if isinstance(a, list):
                 tp = list
             else:
                 tp = tuple
             return tp([_calculate(a[x], b[x], t) for x in range(len(a))])
-        elif isinstance(a, DictType):
+        elif isinstance(a, dict):
             d = {}
             for x in a.keys():
                 if not x in list(b.keys()):
