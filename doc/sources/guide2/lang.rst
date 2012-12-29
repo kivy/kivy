@@ -174,11 +174,11 @@ And yes, they get updated too if properties values change.
 
 Of course you can use `canvas.before` and `canvas.after`.
 
-Referencing Widgets:
---------------------
+Referencing Widgets
+-------------------
 
 In a widget tree there is often a need to access/reference other widgets.
-Kv Language provides a way to do this using id's. think of them as class
+Kv Language provides a way to do this using id's. Think of them as class
 level variables that can only be used in the Kv language. Consider the
 following::
 
@@ -204,7 +204,7 @@ Accessing Widgets defined inside Kv lang in your python code
 Consider the code below in my.kv::
 
     <MyFirstWidget>:
-	txt_inpt: txt_inpt
+        txt_inpt: txt_inpt
         Button:
             id: f_but
         TextInput:
@@ -235,8 +235,8 @@ hold the instance of the :class:`~kivy.uix.TextInput` referenced by the id
     txt_inpt: txt_inpt
 
 Thus; self.txt_input from this point onwards holds the instance to the widget
-referenced by the id `txt_input` and can be used anywhere in the class like 
-in the function `check_status`.
+referenced by the id `txt_input` and can be used anywhere in the class like in
+the function `check_status`.
 
 Templates
 ---------
@@ -263,8 +263,8 @@ Consider the code below::
             markup: True
         Button:
 
-Instead of having to repeat the same values for every button, we can just use
-a template instead, like so::
+Instead of having to repeat the same values for every button, we can just use a
+template instead, like so::
 
     [Mbut@Button]:
         text: ctx.text if hasattr(ctx, 'text') else ''
@@ -282,5 +282,4 @@ a template instead, like so::
         MButton:
 
 `ctx` is a keyword inside a template that can be used to access the individual
- attributes of each instance of this template. 
- 
+attributes of each instance of this template.
