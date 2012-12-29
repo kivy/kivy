@@ -269,9 +269,9 @@ def platform():
         return 'ios'
     elif _sys_platform in ('win32', 'cygwin'):
         return 'win'
-    elif _sys_platform in ('darwin', ):
+    elif _sys_platform == 'darwin':
         return 'macosx'
-    elif _sys_platform in ('linux2', 'linux3'):
+    elif _sys_platform[:5] == 'linux':
         return 'linux'
     return 'unknown'
 
