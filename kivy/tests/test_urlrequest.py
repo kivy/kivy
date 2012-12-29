@@ -4,7 +4,14 @@ UrlRequest tests
 '''
 
 import unittest
-import _thread
+
+try:
+    # py3k
+    import _thread
+except ImportError:
+    # py27
+    import thread as _thread
+
 from kivy.network.urlrequest import UrlRequest
 from time import sleep
 from kivy.clock import Clock

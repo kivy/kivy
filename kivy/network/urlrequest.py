@@ -57,17 +57,27 @@ Example of Posting data (adapted from httplib example)::
 from collections import deque
 from threading import Thread
 from json import loads
-from http.client import HTTPConnection
 from time import sleep
+from kivy.compat import is_py3
 
-HTTPSConnection = None
+if is_py3:
+    from http.client import HTTPConnection
+    from urllib.parse import urlparse
+else:
+    from httplib import HTTPConnection
+    from urlparse import urlparse
+
 try:
-    from http.client import HTTPSConnection
+    HTTPSConnection = None
+    if is_py3:
+        from http.client import HTTPSConnection
+    else:
+        from httplib import HTTPSConnection
 except ImportError:
-    # on android platform, this is not available yet.
+    # depending the platform, if openssl support wasn't compiled before python,
+    # this class is not available.
     pass
 
-from urllib.parse import urlparse
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
