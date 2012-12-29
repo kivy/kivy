@@ -63,12 +63,13 @@ values to any of the pos attributes (x, y, left, top, center_x, center_y) to
 have the widget positioned relatively to its parent.
 
 
-Size and pos metrics
---------------------
+Size and position metrics
+-------------------------
 
-Kivy default unit for lenght is the pixel, all size and pos are expressed
-in it, but you can express them in other units, which is useful to achieve
-better consistency accross devices.
+Kivy default unit for lenght is the pixel, all sizes and positions are
+expressed in it by default, but you can express them in other units, which is
+useful to achieve better consistency accross devices (they get converted to the
+size in pixel automatically).
 
 The available units are `pt`, `mm`, `cm`, `in`, `dp` and `sp`, you can see
 about their usage in the :mod:`~kivy.metrics` documentation.
