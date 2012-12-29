@@ -243,7 +243,7 @@ class UrlRequest(Thread):
         # read content
         if report_progress:
             bytes_so_far = 0
-            result = ''
+            result = b''
             try:
                 total_size = int(resp.getheader('content-length'))
             except:
