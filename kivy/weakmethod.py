@@ -20,6 +20,8 @@ if sys.version > '3':
         '''Implementation of weakref for function and bounded method.
         '''
         def __init__(self, method):
+            self.method = None
+            self.method_name = None
             try:
                 if method.__self__ is not None:
                     self.method_name = method.__func__.__name__
@@ -28,8 +30,8 @@ if sys.version > '3':
                     self.method = method
                     self.proxy = None
             except AttributeError:
-                self.proxy = None
                 self.method = method
+                self.proxy = None
 
         def __call__(self):
             '''Return a new bound-method like the original, or the
@@ -45,7 +47,11 @@ if sys.version > '3':
             '''Returns True if the referenced callable was a bound method and
             the instance no longer exists. Otherwise, return False.
             '''
-            return self.proxy is not None and bool(dir(self.proxy))
+            return self.proxy is not None and not bool(dir(self.proxy))
+
+        def __repr__(self):
+            return '<WeakMethod proxy={} method={} method_name={}>'.format(
+                    self.proxy, self.method, self.method_name)
 
 else:
 
