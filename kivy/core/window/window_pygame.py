@@ -287,11 +287,11 @@ class WindowPygame(WindowBase):
 
                 # don't dispatch more key if down event is accepted
                 if self.dispatch('on_key_down', event.key,
-                                 event.scancode, event.str,
+                                 event.scancode, event.unicode,
                                  self.modifiers):
                     continue
                 self.dispatch('on_keyboard', event.key,
-                              event.scancode, event.str,
+                              event.scancode, event.unicode,
                               self.modifiers)
 
             # video resize
