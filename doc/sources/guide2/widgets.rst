@@ -70,7 +70,8 @@ Kivy default unit for lenght is the pixel, all size and pos are expressed
 in it, but you can express them in other units, which is useful to achieve
 better consistency accross devices.
 
-The available units are `pt`, `mm`, `cm`, `in`, `dp` and `sp`, you can see about their usage in the :mod:`~kivy.metrics` documentation.
+The available units are `pt`, `mm`, `cm`, `in`, `dp` and `sp`, you can see
+about their usage in the :mod:`~kivy.metrics` documentation.
 
 On a related note, you can see the :mod:`~kivy.modules.screen` usage to
 simulate various devices screens for your application.
