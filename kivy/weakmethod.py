@@ -31,14 +31,14 @@ if sys.version > '3':
                 self.proxy = None
                 self.method = method
 
-        def __call__(self, *args):
+        def __call__(self):
             '''Return a new bound-method like the original, or the
             original function if refers just to a function or unbound
             method.
             Returns None if the original object doesn't exist
             '''
             if self.proxy:
-                return getattr(self.proxy, self.method_name)(*args)
+                return getattr(self.proxy, self.method_name)
             return self.method
 
         def is_dead(self):
