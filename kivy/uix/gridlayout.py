@@ -94,6 +94,14 @@ from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
 from math import ceil
 
 
+def nmax(*args):
+    '''(internal) Implementation of a max() function that support None.
+    '''
+    # merge into one list
+    args = [x for x in args if x is not None]
+    return max(args)
+
+
 class GridLayoutException(Exception):
     '''Exception for errors in the grid layout manipulation.
     '''
@@ -320,13 +328,13 @@ class GridLayout(Layout):
 
                 # compute minimum size / maximum stretch needed
                 if shw is None:
-                    cols[col] = max(cols[col], w)
+                    cols[col] = nmax(cols[col], w)
                 else:
-                    cols_sh[col] = max(cols_sh[col], shw)
+                    cols_sh[col] = nmax(cols_sh[col], shw)
                 if shh is None:
-                    rows[row] = max(rows[row], h)
+                    rows[row] = nmax(rows[row], h)
                 else:
-                    rows_sh[row] = max(rows_sh[row], shh)
+                    rows_sh[row] = nmax(rows_sh[row], shh)
 
                 # next child
                 i = i - 1
