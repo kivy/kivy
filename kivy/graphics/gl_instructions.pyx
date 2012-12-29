@@ -59,7 +59,7 @@ cdef class ClearColor(Instruction):
         def __get__(self):
             return [self.r, self.b, self.g, self.a]
         def __set__(self, rgba):
-            cdef list clear_color =  map(float, rgba)
+            cdef list clear_color = [float(x) for x in rgba]
             self.r = clear_color[0]
             self.g = clear_color[1]
             self.b = clear_color[2]
@@ -72,7 +72,7 @@ cdef class ClearColor(Instruction):
         def __get__(self):
             return [self.r, self.g, self.b]
         def __set__(self, rgb):
-            cdef list clear_color =  map(float, rgb)
+            cdef list clear_color = [float(x) for x in rgb]
             self.r = clear_color[0]
             self.g = clear_color[1]
             self.b = clear_color[2]

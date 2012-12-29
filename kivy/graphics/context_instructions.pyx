@@ -232,7 +232,7 @@ cdef class Color(ContextInstruction):
         def __get__(self):
             return self.context_state['color']
         def __set__(self, rgba):
-            self.set_state('color', map(float,rgba))
+            self.set_state('color', [float(x) for x in rgba])
     property rgb:
         '''RGB color, list of 3 values in 0-1 range, alpha will be 1.
         '''

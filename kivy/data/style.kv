@@ -137,7 +137,7 @@
         Color:
             rgba: (1, 0, 0, 1 if self.focus and not self.cursor_blink else 0)
         Rectangle:
-            pos: map(int, self.cursor_pos)
+            pos: [int(x) for x in self.cursor_pos]
             size: 1, -self.line_height
         Color:
             rgba: self.hint_text_color if not self.text and not self.focus else self.foreground_color
