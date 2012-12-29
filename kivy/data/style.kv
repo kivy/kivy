@@ -281,12 +281,12 @@
             text_size: self.width, None
             halign: 'left'
             shorten: True
-            text: unicode(ctx.name)
+            text: ctx.name
         Label:
             text_size: self.width, None
             size_hint_x: None
             halign: 'right'
-            text: unicode(ctx.get_nice_size())
+            text: '{}'.format(ctx.get_nice_size())
 
 
 <FileChooserIconView>:
@@ -336,7 +336,7 @@
         source: 'atlas://data/images/defaulttheme/filechooser_%s' % ('folder' if ctx.isdir else 'file')
         pos: root.x + dp(24), root.y + dp(40)
     Label:
-        text: unicode(ctx.name)
+        text: ctx.name
         text_size: (root.width, self.height)
         halign: 'center'
         shorten: True
@@ -344,7 +344,7 @@
         pos: root.x, root.y + dp(16)
 
     Label:
-        text: unicode(ctx.get_nice_size())
+        text: '{}'.format(ctx.get_nice_size())
         font_size: '11sp'
         color: .8, .8, .8, 1
         size: '100dp', '16sp'

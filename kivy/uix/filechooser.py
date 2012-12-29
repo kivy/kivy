@@ -384,12 +384,7 @@ class FileChooserController(FloatLayout):
             # _add_file does, so if it fails here, it would also fail later
             # on. Do the check here to prevent setting path to an invalid
             # directory that we cannot list.
-            try:
-                path = entry.path.decode('utf-8')
-            except UnicodeEncodeError:
-                path = entry.path
-                pass
-            listdir(path)
+            listdir(entry.path)
         except OSError:
             #Logger.exception(e)
             entry.locked = True
