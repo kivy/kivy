@@ -154,8 +154,8 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
     on_press:
-        print 'hello world'
-        print 'this is working !'
+        print('hello world')
+        print('this is working !')
         self.a = 1
 ''')
         wid = TestClass()

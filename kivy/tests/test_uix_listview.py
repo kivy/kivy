@@ -150,7 +150,7 @@ class ListViewTestCase(unittest.TestCase):
     ListView:
         id: lvm
         size_hint: .8,.8
-        item_strings: ["Item #{0}".format(i) for i in xrange(100)]
+        item_strings: ["Item #{0}".format(i) for i in range(100)]
 """)
 
         class ListViewModal(ModalView):
@@ -184,7 +184,7 @@ class ListViewTestCase(unittest.TestCase):
         size_hint: .8,.8
         adapter:
             sla.SimpleListAdapter(
-            data=["Item #{0}".format(i) for i in xrange(100)],
+            data=["Item #{0}".format(i) for i in range(100)],
             cls=label.Label)
 """)
 
