@@ -1692,6 +1692,12 @@ class TextInput(Widget):
 
     :data:`focus` is a :class:`~kivy.properties.BooleanProperty`, default to
     False
+
+    .. Note::
+            Selection is cancelled when TextInput is focused. If you need to
+            show selection when TextInput is focused, you should delay
+            (use Clock.schedule) the call to the functions for selecting
+            text (select_all, select_text).
     '''
 
     def _get_text(self):
