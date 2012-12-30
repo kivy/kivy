@@ -362,7 +362,7 @@ class TextInput(Widget):
         finish = start
         lines = self._lines
         linesflags = self._lines_flags
-        if not linesflags[start]:
+        if start and not linesflags[start]:
             start -= 1
             new_text = ''.join((lines[start], new_text))
         try:
@@ -379,12 +379,6 @@ class TextInput(Widget):
         # handle undo and redo
         if from_undo:
             return
-        #count = substring.count('\n')
-        #if substring == '\n':
-        #    cursor = 0, cursor[1] + 1
-        #elif count > 0:
-        #    cursor = cursor[0], cursor[1] + count
-
         self._undo.append({'undo_command': ('insert', ci, sci),
             'redo_command': (ci, substring)})
         # reset redo when undo is appended to
@@ -942,7 +936,7 @@ class TextInput(Widget):
         mode = 'all'
         if len(largs) > 1:
             mode, start, finish, _lines, _lines_flags, len_lines = largs
-            start = max(0, start)
+            #start = max(0, start)
         else:
             _lines, self._lines_flags = self._split_smart(text)
         _lines_labels = []
