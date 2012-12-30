@@ -67,7 +67,7 @@ Explanation of what's going on in the code above
 
 First off, Let us get familiar with the Kivy app life cycle
 
-.. image:: ../images/Kivy_App_Life_Cycle.ps
+.. image:: ../images/Kivy_App_Life_Cycle.png
 
 As you can see above for all intents and purposes our entry point in to our App
 is from run() in our case that is MyApp().run(). We will get back to this; first
