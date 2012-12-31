@@ -116,13 +116,15 @@ if 'KIVY_DOC' not in os.environ:
 Builder.load_string('''
 #:import parse_color kivy.parser.parse_color
 
+
+
 <RstDocument>:
     content: content
     scatter: scatter
     do_scroll_x: False
     canvas:
         Color:
-            rgb: .9, .905, .910
+            rgb: parse_color(root.colors['canvas'])
         Rectangle:
             pos: self.pos
             size: self.size
@@ -381,7 +383,6 @@ class RstDocument(ScrollView):
     '''Base widget used to store an Rst document. See module documentation for
     more information.
     '''
-
     source = StringProperty(None)
     '''Filename of the RST document.
 
@@ -411,6 +412,7 @@ class RstDocument(ScrollView):
     '''
 
     colors = DictProperty({
+        'canvas': 'ffffff',
         'link': 'ce5c00',
         'paragraph': '202020',
         'title': '204a87',
