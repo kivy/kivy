@@ -124,7 +124,7 @@ Builder.load_string('''
     do_scroll_x: False
     canvas:
         Color:
-            rgb: parse_color(root.colors['canvas'])
+            rgb: parse_color(root.colors['background'])
         Rectangle:
             pos: self.pos
             size: self.size
@@ -412,7 +412,7 @@ class RstDocument(ScrollView):
     '''
 
     colors = DictProperty({
-        'canvas': 'ffffff',
+        'background': 'ffffff',
         'link': 'ce5c00',
         'paragraph': '202020',
         'title': '204a87',
