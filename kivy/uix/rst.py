@@ -415,7 +415,7 @@ class RstDocument(ScrollView):
     '''
 
     colors = DictProperty({
-        'background': 'ffffff',
+        'background': 'e5e6e9',
         'link': 'ce5c00',
         'paragraph': '202020',
         'title': '204a87',
