@@ -156,12 +156,94 @@ To run the application, follow the instructions for your operating system:
 A window should open, showing a sole button (with the label 'Hello World') that
 covers the entire window's area. That's all there is to it.
 
-.. image:: ../guide/images/quickstart.jpg
+.. image:: ../guide2/images/quickstart.png
     :align: center
 
 
 Customize the application
 -------------------------
+
+Lets extend this Application a bit, say a simple UserName/Password page
+
+.. code-block:: python
+   :emphasize-lines: 2,4,7,9-17,23
+   :linenos:
+
+    from kivy.app import App
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.label import Label
+    from kivy.uix.textinput import TextInput
+    
+    
+    class LoginScreen(GridLayout):
+    
+        def __init__(self, **kwargs):
+            super(LoginScreen, self).__init__(**kwargs)
+            self.cols = 2
+            self.add_widget(Label(text='User Name'))
+            self.username = TextInput(multiline=False)
+            self.add_widget(self.username)
+            self.add_widget(Label(text='password'))
+            self.password = TextInput(password=True, multiline=False)
+            self.add_widget(self.password)
+    
+    
+    class MyApp(App):
+
+        def build(self):
+            return LoginScreen()
+    
+    
+    if __name__ == '__main__':
+        MyApp().run()
+
+At line 2 we import a :class:`~kivy.uix.gridlayout.Gridlayout`::
+
+    from kivy.uix.gridlayout import GridLayout
+
+This class is used as a Base for our Root Widget (LoginScreen) defined
+at line 7::
+
+    class LoginScreen(GridLayout):
+
+at line 9 in the class LoginScreen we overload the method
+:meth:`~kivy.widget.Widget.__init__` so as to add wdgets and to defines its
+behaviour::
+
+    def __init__(self, **kwargs):
+            super(LoginScreen, self).__init__(**kwargs)
+
+One must not forget to either call super or implement the functionality of the
+original function being overloaded. Also note that it is good practice not to
+omit the `**kwargs` while calling super, as they are used internally some times.
+
+Moving on to Line 12 onwards::
+
+    self.cols = 2
+    self.add_widget(Label(text='User Name'))
+    self.username = TextInput(multiline=False)
+    self.add_widget(self.username)
+    self.add_widget(Label(text='password'))
+    self.password = TextInput(password=True, multiline=False)
+    self.add_widget(self.password)
+
+We ask the Gridlayout to manage it's children in two columns and add a
+:class:`~kivy.uix.label.Label` and a :class:`~kivy.uix.textinput.TextInput` each
+for username and passowrd.
+
+Running the above code will give you a window that should look like this
+
+.. image:: ../guide2/images/guide2_customize_step1.png
+   :align: center
+
+Try re-sizing the window, you will see that the widgets on screen adjust
+themselves according to the size of the window without you having to do
+anything. This is because by default widgets use size hinting. 
+
+The code above doesn't handle the input from the user does no validation or
+anything else. We will delve deeper into this and :class:`~Widget` size and
+positioning when diving into `Your First Widget`.
+
 
 Platform specifics
 ------------------
