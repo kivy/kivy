@@ -44,9 +44,6 @@ class FruitDetailView(GridLayout):
 
         self.redraw()
 
-# Used in the list_cascade_oo.py example (ObjectAdapter and ObserverView
-# example).
-#
 class FruitObserverDetailView(GridLayout):
     fruit_name = StringProperty('')
 
@@ -124,7 +121,7 @@ class FruitImageDetailView(BoxLayout):
             # Is selected_object an instance of ThumbnailedListItem (composite)?
             #
             # Or is it a ListItemButton?
-            # 
+            #
             if hasattr(selected_object, 'fruit_name'):
                 self.fruit_name = selected_object.fruit_name
             else:

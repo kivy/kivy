@@ -283,9 +283,12 @@ class TextInput(Widget):
         '''Get the cursor x offset on the current line.
         '''
         offset = 0
-        if self.cursor_col:
+        row = self.cursor_row
+        col = self.cursor_col
+        _lines = self._lines
+        if col and row < len(_lines):
             offset = self._get_text_width(
-                self._lines[self.cursor_row][:self.cursor_col], self.tab_width,
+                _lines[row][:col], self.tab_width,
                 self._label_cached)
         return offset
 
@@ -340,33 +343,47 @@ class TextInput(Widget):
         insert_at_end = True if text[cc:] == '' else False
         new_text = text[:cc] + substring + text[cc:]
         self._set_line_text(cr, new_text)
-        if len_str > 1 or substring == '\n':
+
+        wrap = (self._get_text_width(new_text,
+                                            self.tab_width,
+                                            self._label_cached) > self.width)
+        if len_str > 1 or substring == '\n' or wrap:
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
-            start = cr
-            lines, lineflags = self._split_smart(new_text)
-            len_lines = len(lines)
-            finish = cr + (len_lines - 1)
+
+            start, finish, lines,\
+                lineflags, len_lines = self._get_line_from_cursor(cr, new_text)
             self._trigger_refresh_text('insert', start, finish, lines,
                 lineflags, len_lines)
-        # reset cursor
-        self.cursor = cursor = self.get_cursor_from_index(ci + len_str)
-        # handle undo and redo
-        self._set_unredo_insert(cc, cr, ci, sci, substring, cursor, from_undo)
 
-    def _set_unredo_insert(self, cc, cr, ci, sci, substring, cursor, from_undo):
+        self.cursor = self.get_cursor_from_index(ci + len_str)
+        # handle undo and redo
+        self._set_unredo_insert(ci, ci + len_str, substring, from_undo)
+
+    def _get_line_from_cursor(self, start, new_text):
+        finish = start
+        lines = self._lines
+        linesflags = self._lines_flags
+        if start and not linesflags[start]:
+            start -= 1
+            new_text = ''.join((lines[start], new_text))
+        try:
+            while not linesflags[finish + 1]:
+                new_text = ''.join((new_text, lines[finish + 1]))
+                finish += 1
+        except IndexError:
+            pass
+        lines, lineflags = self._split_smart(new_text)
+        len_lines = len(lines) - 1
+        return start, finish, lines, lineflags, len_lines
+
+    def _set_unredo_insert(self, ci, sci, substring, from_undo):
         # handle undo and redo
         if from_undo:
             return
-        count = substring.count('\n')
-        if substring == '\n':
-            cursor = 0, cursor[1] + 1
-        elif count > 0:
-            cursor = cursor[0], cursor[1] + count
-
-        self._undo.append({'undo_command': ('insert', cursor, ci, sci()),
-            'redo_command': (cc, cr, substring)})
+        self._undo.append({'undo_command': ('insert', ci, sci),
+            'redo_command': (ci, substring)})
         # reset redo when undo is appended to
         self._redo = []
 
@@ -389,23 +406,23 @@ class TextInput(Widget):
         try:
             x_item = self._redo.pop()
             undo_type = x_item['undo_command'][0]
+            _get_cusror_from_index = self.get_cursor_from_index
 
             if undo_type == 'insert':
-                cc, cr, substring = x_item['redo_command']
-                self.cursor = cc, cr
+                ci, substring = x_item['redo_command']
+                self.cursor = _get_cusror_from_index(ci)
                 self.insert_text(substring, True)
             elif undo_type == 'bkspc':
-                cc, cr = x_item['redo_command']
-                self.cursor = cc, cr
+                self.cursor = _get_cusror_from_index(x_item['redo_command'])
                 self.do_backspace(True)
             else:
                 # delsel
-                ci, sci, cc, cr = x_item['redo_command']
+                ci, sci = x_item['redo_command']
                 self._selection_from = ci
                 self._selection_to = sci
                 self._selection = True
                 self.delete_selection(True)
-                self.cursor = (cc, cr)
+                self.cursor = _get_cusror_from_index(ci)
             self._undo.append(x_item)
         except IndexError:
             # reached at top of undo list
@@ -423,10 +440,10 @@ class TextInput(Widget):
         try:
             x_item = self._undo.pop()
             undo_type = x_item['undo_command'][0]
-            self.cursor = x_item['undo_command'][1]
+            self.cursor = self.get_cursor_from_index(x_item['undo_command'][1])
 
             if undo_type == 'insert':
-                ci, sci = x_item['undo_command'][2:]
+                ci, sci = x_item['undo_command'][1:]
                 self._selection_from = ci
                 self._selection_to = sci
                 self._selection = True
@@ -443,7 +460,7 @@ class TextInput(Widget):
             # reached at top of undo list
             pass
 
-    def do_backspace(self, from_undo=False):
+    def do_backspace(self, from_undo=False, mode='bkspc'):
         '''Do backspace operation from the current cursor position.
         This action might do several things:
 
@@ -459,33 +476,39 @@ class TextInput(Widget):
         cursor_index = self.cursor_index()
         if cc == 0 and cr == 0:
             return
+        _lines_flags = self._lines_flags
         if cc == 0:
             text_last_line = self._lines[cr - 1]
+            substring = '\n' if _lines_flags[cr] else ' '
             self._set_line_text(cr - 1, text_last_line + text)
             self._delete_line(cr)
-            substring = '\n'
+            new_text = ''
         else:
             #ch = text[cc-1]
             substring = text[cc - 1]
             new_text = text[:cc - 1] + text[cc:]
             self._set_line_text(cr, new_text)
 
-        # refresh_text seems to be unnecessary here
-        # plus removing it leads to a large improvement in editing text
-        # where large..ish text is involved.
-        #self._refresh_text_from_property()
-        self.cursor = cursor = self.get_cursor_from_index(cursor_index - 1)
-        # handle undo and redo
-        self._set_undo_redo_bkspc(cc, cr, cursor, substring, from_undo)
+            if not self._lines_flags[cr]:
+                # refresh just the current line instead of the whole text
+                start, finish, lines, lineflags, len_lines =\
+                    self._get_line_from_cursor(cr, new_text)
+                self._trigger_refresh_text('del', start, finish, lines,
+                                            lineflags, len_lines)
 
-    def _set_undo_redo_bkspc(self, cc, cr, cursor, substring, from_undo):
+        self.cursor = self.get_cursor_from_index(cursor_index - 1)
+        # handle undo and redo
+        self._set_undo_redo_bkspc(cursor_index,
+                                        cursor_index - 1,
+                                        substring, from_undo)
+
+    def _set_undo_redo_bkspc(self, ol_index, new_index, substring, from_undo):
         # handle undo and redo for backspace
         if from_undo:
             return
-
         self._undo.append({
-            'undo_command': ('bkspc', cursor, substring),
-            'redo_command': (cc, cr)})
+            'undo_command': ('bkspc', new_index, substring),
+            'redo_command': ol_index})
         #reset redo when undo is appended to
         self._redo = []
 
@@ -585,22 +608,25 @@ class TextInput(Widget):
             self._lines[finish[1]][finish[0]:]
         lines, lineflags = self._split_smart(cur_line)
         len_lines = len(lines)
-        self._refresh_text(self.text, 'del', start[1], finish[1], lines,
-            lineflags, len_lines)
+        if start[1] == finish[1]:
+            self._set_line_text(start[1], cur_line)
+        else:
+            self._refresh_text(self.text, 'del', start[1], finish[1], lines,
+                lineflags, len_lines)
         self.scroll_x = scrl_x
         self.scroll_y = scrl_y
         # handle undo and redo for delete selecttion
-        self._set_unredo_delsel(cc, cr, a, b, cursor, v[a:b], from_undo)
+        self._set_unredo_delsel(a, b, v[a:b], from_undo)
         self.cancel_selection()
 
-    def _set_unredo_delsel(self, cc, cr, ci, sci, cursor, substring, from_undo):
+    def _set_unredo_delsel(self, a, b, substring, from_undo):
         # handle undo and redo for backspace
         if from_undo:
             return
 
         self._undo.append({
-            'undo_command': ('delsel', cursor, substring),
-            'redo_command': (ci, sci, cc, cr)})
+            'undo_command': ('delsel', a, substring),
+            'redo_command': (a, b)})
         # reset redo when undo is appended to
         self._redo = []
 
@@ -897,10 +923,8 @@ class TextInput(Widget):
     def _trigger_refresh_text(self, *largs):
         if len(largs) and largs[0] == self:
             largs = ()
-        Clock.unschedule(
-            lambda *args: self._refresh_text_from_property(*largs))
-        Clock.schedule_once(
-            lambda *args: self._refresh_text_from_property(*largs))
+        Clock.unschedule(lambda dt: self._refresh_text_from_property(*largs))
+        Clock.schedule_once(lambda dt: self._refresh_text_from_property(*largs))
 
     def _update_text_options(self, *largs):
         Cache_remove('textinput.width')
@@ -913,8 +937,9 @@ class TextInput(Widget):
         # Refresh all the lines from a new text.
         # By using cache in internal functions, this method should be fast.
         mode = 'all'
-        if len(largs):
+        if len(largs) > 1:
             mode, start, finish, _lines, _lines_flags, len_lines = largs
+            #start = max(0, start)
         else:
             _lines, self._lines_flags = self._split_smart(text)
         _lines_labels = []
@@ -933,11 +958,17 @@ class TextInput(Widget):
             self._lines_labels = _lines_labels
             self._lines_rects = _line_rects
         elif mode == 'del':
-            self._insert_lines(start, finish + 1, len_lines, _lines_flags,
-                _lines, _lines_labels, _line_rects)
+            self._insert_lines(start,
+                                finish if start == finish else (finish + 1),
+                                len_lines, _lines_flags,
+                                _lines, _lines_labels, _line_rects)
         elif mode == 'insert':
-            self._insert_lines(start, start + 1, len_lines, _lines_flags,
-                _lines, _lines_labels, _line_rects)
+            self._insert_lines(start,
+                                finish if (start == finish and not len_lines)
+                                        else
+                                (finish + 1),
+                                len_lines, _lines_flags,
+                                _lines, _lines_labels, _line_rects)
 
         line_label = _lines_labels[0]
         if line_label is None:
@@ -958,16 +989,17 @@ class TextInput(Widget):
 
     def _insert_lines(self, start, finish, len_lines, _lines_flags, _lines,
         _lines_labels, _line_rects):
+            self_lines_flags = self._lines_flags
             _lins_flags = []
-            _lins_flags.extend(self._lines_flags[:start])
+            _lins_flags.extend(self_lines_flags[:start])
             if len_lines:
                 # if not inserting at first line then
                 if start:
-                    # make sure new line is set in line flags cause
+                    # make sure line flags restored for first line
                     # _split_smart assumes first line to be not a new line
-                    _lines_flags[0] = 1
+                    _lines_flags[0] = self_lines_flags[start]
                 _lins_flags.extend(_lines_flags)
-            _lins_flags.extend(self._lines_flags[finish:])
+            _lins_flags.extend(self_lines_flags[finish:])
             self._lines_flags = _lins_flags
 
             _lins = []
@@ -1311,7 +1343,7 @@ class TextInput(Widget):
             cursor = self.cursor
             self.do_cursor_movement('cursor_right')
             if cursor != self.cursor:
-                self.do_backspace()
+                self.do_backspace(mode='del')
         elif internal_action == 'backspace':
             self.do_backspace()
         elif internal_action == 'enter':
@@ -1657,6 +1689,12 @@ class TextInput(Widget):
 
     :data:`focus` is a :class:`~kivy.properties.BooleanProperty`, default to
     False
+
+    .. Note::
+            Selection is cancelled when TextInput is focused. If you need to
+            show selection when TextInput is focused, you should delay
+            (use Clock.schedule) the call to the functions for selecting
+            text (select_all, select_text).
     '''
 
     def _get_text(self):

@@ -25,9 +25,10 @@ You need to install some dependencies, like cython or mercurial. If you're
 using Xcode 4.3, then you also need to install autotools. We encourage you to
 use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install thoses dependencies::
 
-    brew install cython autoconf automake libtool pkg-config mercurial
+    brew install autoconf automake libtool pkg-config mercurial
     brew link libtool
     brew link mercurial
+    sudo pip install cython
 
 Ensure that everything is ok before starting the second step!
 

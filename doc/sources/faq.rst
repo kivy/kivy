@@ -17,10 +17,22 @@ Fatal Python error: (pygame parachute) Segmentation Fault
 Most of time, this issue is due to an usage of old graphics driver. Install the
 latest graphics driver available for your graphics card, and it could be ok.
 
-if not, please report a detailed issue on github by following the instructions
+If not, this means you have probably triggered some OpenGL code without an
+available OpenGL context. If you are loading images, atlases, using graphics
+instructions, you must spawn a Window first::
+
+    # method 1 (preferred)
+    from kivy.base import EventLoop
+    EventLoop.ensure_window()
+
+    # method 2
+    from kivy.core.window import Window
+
+If not, please report a detailed issue on github by following the instructions
 in the :ref:`reporting_issues` section of the :doc:`contribute` documentation.
-This is very important for us because that kind of error can be very hard 
-to debug. Give us all the informations you can give about your environment and execution.
+This is very important for us because that kind of error can be very hard
+to debug. Give us all the informations you can give about your environment and
+execution.
 
 
 undefined symbol: glGenerateMipmap

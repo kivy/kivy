@@ -439,8 +439,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Config.set('kivy', 'config_version', KIVY_CONFIG_VERSION)
 
     # Now, activate log file
-    if Config.getint('kivy', 'log_enable'):
-        Logger.logfile_activated = True
+    Logger.logfile_activated = bool(Config.getint('kivy', 'log_enable'))
 
     # If no configuration exist, write the default one.
     if (not exists(kivy_config_fn) or need_save) and \

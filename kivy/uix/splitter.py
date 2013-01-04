@@ -86,7 +86,7 @@ class Splitter(BoxLayout):
 
     sizable_from = OptionProperty('left',
         options=('left', 'right', 'top', 'bottom'))
-    '''Specifies weather the widget is resizable from ::
+    '''Specifies wether the widget is resizable from ::
         `left`, `right`, `top` or `bottom`
 
     :data:`sizable_from` is a :class:`~kivy.properties.OptionProperty`
@@ -101,14 +101,14 @@ class Splitter(BoxLayout):
     '''
 
     min_size = NumericProperty('100pt')
-    '''Specifies the minimum size beyound which the widget is not resizable
+    '''Specifies the minimum size beyond which the widget is not resizable
 
     :data:`min_size` is a :class:`~kivy.properties.NumericProperty`
     defaults to `100pt`
     '''
 
     max_size = NumericProperty('500pt')
-    '''Specifies the maximum size beyound which the widget is not resizable
+    '''Specifies the maximum size beyond which the widget is not resizable
 
     :data:`max_size` is a :class:`~kivy.properties.NumericProperty`
     defaults to `500pt`

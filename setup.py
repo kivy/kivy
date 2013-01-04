@@ -44,16 +44,20 @@ if kivy_ios_root is not None:
 
 # -----------------------------------------------------------------------------
 # Cython check
-try:
-    # check for cython
-    from Cython.Distutils import build_ext
-    have_cython = True
-except ImportError:
-    if platform not in ('android', 'ios'):
+# on python-for-android and kivy-ios, cython usage is external
+have_cython = False
+if platform in ('ios', 'android'):
+    print '\nCython check avoided.'
+else:
+    try:
+        # check for cython
+        from Cython.Distutils import build_ext
+        have_cython = True
+    except ImportError:
         print '\nCython is missing, its required for compiling kivy !\n\n'
         raise
-    # on python-for-android, cython usage is external
-    have_cython = False
+
+if not have_cython:
     from distutils.command.build_ext import build_ext
 
 

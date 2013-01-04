@@ -78,6 +78,11 @@ the following contents.
     :language: kv
     :linenos:
 
+.. note::
+
+    COMMON ERROR: The name of the kv file, e.g. pong.kv, must match the name of the app,
+    e.g., PongApp (the part before the App ending).
+
 If you run the app now, you should see a vertical bar in the middle, and two
 zeros where the player scores will be displayed.
 

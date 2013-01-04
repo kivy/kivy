@@ -14,10 +14,10 @@ Introduction to Event Dispatcher
 --------------------------------
 
 One of the most important base classes of the framework is the
-:class:`kivy.event.EventDispatcher` class, this class allows to register event
+:class:`~kivy.event.EventDispatcher` class, this class allows to register event
 types, and to dispatch them to interested parties (usually other event
-dispatchers). :class:`kivy.uix.widget.Widget`,
-:class:`kivy.animation.Animation` and :obj:`kivy.clock.Clock` for example are
+dispatchers). :class:`~kivy.uix.widget.Widget`,
+:class:`~kivy.animation.Animation` and :obj:`~kivy.clock.Clock` for example are
 event dispatchers.
 
 Creating custom events
@@ -34,12 +34,12 @@ See the following example::
             super(MyEventDispatcher, self).__init__(**kwargs)
 
         def do_something(self, value):
-            # when test is called, the 'on_test' event will be
+            # when do_something is called, the 'on_test' event will be
             # dispatched with the value
             self.dispatch('on_test', value)
 
-        def on_test(self):
-            pass
+        def on_test(self, *args):
+            print "I am dispatched", args
 
 
 Attaching callbacks
@@ -56,12 +56,12 @@ the arguments the event will use, for this, it's usually safer to accept the
 Example::
 
     def my_callback(value, *args):
-        print "Hello, I got an event!", value
+        print "Hello, I got an event!", args
 
 
     ev = MyEventDispatcher()
     ev.bind(on_test=my_callback)
-    ev.test('test')
+    ev.do_something('test')
 
 
 Introduction to properties
@@ -74,12 +74,12 @@ actions to the change of these values.
 There are different kind of properties to describe the type of data you want to
 describe.
 
-- :class:`kivy.properties.StringProperty`
-- :class:`kivy.properties.NumericProperty`
-- :class:`kivy.properties.ObjectProperty`
-- :class:`kivy.properties.ListProperty`
-- :class:`kivy.properties.ObjectProperty`
-- :class:`kivy.properties.AliasProperty`
+- :class:`~kivy.properties.StringProperty`
+- :class:`~kivy.properties.NumericProperty`
+- :class:`~kivy.properties.ObjectProperty`
+- :class:`~kivy.properties.ListProperty`
+- :class:`~kivy.properties.ObjectProperty`
+- :class:`~kivy.properties.AliasProperty`
 
 Declaration of a Property
 -------------------------

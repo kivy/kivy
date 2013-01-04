@@ -52,7 +52,7 @@ cdef class EventDispatcher(object):
             attrs_found = cp[__cls__] = {}
             attrs = dir(__cls__)
             for k in attrs:
-                uattr = getattr(__cls__, k)
+                uattr = getattr(__cls__, k, None)
                 if not isinstance(uattr, Property):
                     continue
                 if k == 'touch_down' or k == 'touch_move' or k == 'touch_up':

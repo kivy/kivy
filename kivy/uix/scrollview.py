@@ -233,9 +233,13 @@ class ScrollView(StencilView):
         uid = self._get_uid()
         touch = self._touch
         ud = touch.ud[uid]
-        if ud['mode'] == 'unknown' and \
-                not ud['user_stopped'] and \
-                touch.dx + touch.dy == 0:
+        if ud['mode'] == 'unknown' and not ud['user_stopped']:
+            # XXX the next line was in the condition. But this stop
+            # the possibily to "drag" an object out of the scrollview in the
+            # non-used direction: if you have an horizontal scrollview, a
+            # vertical gesture will not "stop" the scroll view to look for an
+            # horizontal gesture, until the timeout is done.
+            # and touch.dx + touch.dy == 0:
             touch.ungrab(self)
             self._touch = None
             # correctly calculate the position of the touch inside the

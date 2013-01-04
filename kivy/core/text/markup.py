@@ -190,9 +190,15 @@ class MarkupLabel(MarkupLabelBase):
         if w < 0:
             w = None
         if w is None:
-            w = max([line[0] for line in lines])
+            if not lines:
+                w = 1
+            else:
+                w = max([line[0] for line in lines])
         if h is None:
-            h = sum([line[1] for line in lines])
+            if not lines:
+                h = 1
+            else:
+                h = sum([line[1] for line in lines])
         return w, h
 
     def _pre_render_label(self, word, options, lines):
