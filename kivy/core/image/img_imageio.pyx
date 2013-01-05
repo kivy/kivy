@@ -15,7 +15,7 @@ Image loader implementation based on CoreGraphics OSX framework.
 __all__ = ('ImageLoaderImageIO', )
 
 from kivy.logger import Logger
-from . import ImageLoaderBase, ImageData, ImageLoader
+from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
 from array import array
 from libcpp cimport bool

@@ -59,8 +59,8 @@ Note to any Kivy contributor / internal developer:
 
 include 'opcodes.pxi'
 
-from instructions cimport Instruction, RenderContext, ContextInstruction
-from context_instructions cimport BindTexture
+from kivy.graphics.instructions cimport Instruction, RenderContext, ContextInstruction
+from kivy.graphics.context_instructions cimport BindTexture
 
 cdef class GraphicsCompiler:
     cdef InstructionGroup compile(self, InstructionGroup group):
