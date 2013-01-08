@@ -214,9 +214,10 @@ Consider the code below in my.kv::
 
 myapp.py::
 
-    txt_inpt = ObjectProperty(None)
     ...
     class MyFirstWidget(BoxLayout):
+    
+        txt_inpt = ObjectProperty(None)
     
         def check_status(self, btn):
             print ('button state is: {state}'.format(state=btn.state))
@@ -228,13 +229,13 @@ to `None` inside the Class.::
 
     txt_inpt = ObjectProperty(None)
 
-At this point self.txt_input is `None`. In Kv lang this property is updated to
+At this point self.txt_inpt is `None`. In Kv lang this property is updated to
 hold the instance of the :class:`~kivy.uix.TextInput` referenced by the id
 `txt_inpt`.::
 
     txt_inpt: txt_inpt
 
-Thus; self.txt_input from this point onwards holds the instance to the widget
+Thus; self.txt_inpt from this point onwards holds the instance to the widget
 referenced by the id `txt_input` and can be used anywhere in the class like in
 the function `check_status`.
 

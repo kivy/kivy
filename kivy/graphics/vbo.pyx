@@ -12,11 +12,11 @@ include "config.pxi"
 include "common.pxi"
 
 from os import environ
-from buffer cimport Buffer
-from c_opengl cimport *
+from kivy.graphics.buffer cimport Buffer
+from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
-    from c_opengl_debug cimport *
-from vertex cimport *
+    from kivy.graphics.c_opengl_debug cimport *
+from kivy.graphics.vertex cimport *
 from kivy.logger import Logger
 from kivy.graphics.context cimport Context, get_context
 

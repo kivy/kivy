@@ -283,9 +283,12 @@ class TextInput(Widget):
         '''Get the cursor x offset on the current line.
         '''
         offset = 0
-        if self.cursor_col:
+        row = self.cursor_row
+        col = self.cursor_col
+        _lines = self._lines
+        if col and row < len(_lines):
             offset = self._get_text_width(
-                self._lines[self.cursor_row][:self.cursor_col], self.tab_width,
+                _lines[row][:col], self.tab_width,
                 self._label_cached)
         return offset
 
