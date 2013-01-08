@@ -15,6 +15,7 @@ __all__ = (
     'stopTouchApp',
 )
 
+import sys
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
@@ -108,6 +109,9 @@ class EventLoopBase(EventDispatcher):
         '''Ensure that we have an window
         '''
         import kivy.core.window
+        if not self.window:
+            Logger.critical('App: Unable to get a Window, abort.')
+            sys.exit(1)
 
     def set_window(self, window):
         '''Set the window used for event loop
