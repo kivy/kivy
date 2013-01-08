@@ -40,6 +40,9 @@ Available configuration tokens
         'multi' (one virtual keyboard everytime a widget ask for.)
     `keyboard_layout`: string
         Identifier of the layout to use
+    `window_icon`: string
+        Path of the window icon. Use this if you want to replace the default
+        pygame icon.
 
 :postproc:
 
@@ -95,9 +98,6 @@ Available configuration tokens
         Top position of the :class:`~kivy.core.window.Window`
     `left`: int
         Left position of the :class:`~kivy.core.window.Window`
-    `window_icon`: string
-        Path of the window icon. Use this if you want to replace the default
-        pygame icon.
     `rotation`: (0, 90, 180, 270)
         Rotation of the :class:`~kivy.core.window.Window`
     `resizable`: (0, 1)

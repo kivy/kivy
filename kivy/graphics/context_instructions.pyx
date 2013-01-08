@@ -21,8 +21,8 @@ __all__ = ('Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
            'Rotate', 'Scale', 'Translate', 'MatrixInstruction',
            'gl_init_resources')
 
-from instructions cimport *
-from transformation cimport *
+from kivy.graphics.instructions cimport *
+from kivy.graphics.transformation cimport *
 
 from kivy.cache import Cache
 from kivy.resources import resource_find

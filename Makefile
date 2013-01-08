@@ -31,7 +31,7 @@ ios:
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py build_ext -g
 	PATH="$(IOSPATH)" $(HOSTPYTHON) setup.py install -O2 --root iosbuild
 	# Strip away the large stuff
-	find iosbuild/ | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
+	find iosbuild/ | grep -E '.*\.(py|pyc|so\.o|so\.a|so\.libs)$$' | xargs rm
 	-rm -rdf "$(BUILDROOT)/python/lib/python2.7/site-packages/kivy"
 	# Copy to python for iOS installation
 	cp -R "iosbuild/usr/local/lib/python2.7/site-packages/kivy" "$(BUILDROOT)/python/lib/python2.7/site-packages"

@@ -16,7 +16,7 @@ include "opengl_utils_def.pxi"
 cimport c_opengl
 from kivy.logger import Logger
 from kivy.utils import platform as core_platform
-from opengl import _GL_GET_SIZE
+from kivy.graphics.opengl import _GL_GET_SIZE
 
 
 cdef list _gl_extensions = []
