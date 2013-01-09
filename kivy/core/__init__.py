@@ -78,7 +78,7 @@ def core_select_lib(category, llist, create_instance=False):
             Logger.trace('', exc_info=e)
 
     Logger.critical(
-        '{}: Unable to find any valuable %s provider at all!'.format(
+        '{}: Unable to find any valuable {} provider at all!'.format(
         category.capitalize(), category.capitalize()))
 
 
