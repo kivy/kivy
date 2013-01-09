@@ -193,10 +193,10 @@ class WindowPygame(WindowBase):
             return None
         if glReadPixels is None:
             from kivy.core.gl import glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE
-        width, height = self.size
+        width, height = self.system_size
         data = glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE)
         data = str(buffer(data))
-        surface = pygame.image.fromstring(data, self.size, 'RGBA', True)
+        surface = pygame.image.fromstring(data, (width, height), 'RGBA', True)
         pygame.image.save(surface, filename)
         Logger.debug('Window: Screenshot saved at <%s>' % filename)
         return filename
