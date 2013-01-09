@@ -152,7 +152,7 @@ callback to an event::
     Widget:
         on_size: my_callback()
 
-You can pass the values dispatched by the signal using the `args` name::
+You can pass the values dispatched by the signal using the `args` keyword::
 
     TextInput:
         on_text: app.search(args[1])
@@ -204,6 +204,8 @@ Accessing Widgets defined inside Kv lang in your python code
 Consider the code below in my.kv::
 
     <MyFirstWidget>:
+        # both these variable don't have to be the same name and this doesn't
+        # lead to a issue with uniqueness as id's are accessible only in kv.
         txt_inpt: txt_inpt
         Button:
             id: f_but
@@ -237,7 +239,10 @@ hold the instance of the :class:`~kivy.uix.TextInput` referenced by the id
 
 Thus; self.txt_inpt from this point onwards holds the instance to the widget
 referenced by the id `txt_input` and can be used anywhere in the class like in
-the function `check_status`.
+the function `check_status`. In contrast to this method you could also just pass
+the `id` to the function that needs to use it, like in case of `f_but` in the
+code above.
+
 
 Templates
 ---------
