@@ -71,15 +71,11 @@ from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.animation import Animation
 from kivy.logger import Logger
-
-try:
-    from docutils.parsers import rst
-    from docutils.parsers.rst import roles
-    from docutils import nodes, frontend, utils
-    from docutils.parsers.rst import Directive, directives
-    from docutils.parsers.rst.roles import set_classes
-except ImportError, e:
-    raise Exception('This application requires the python docutils package')
+from docutils.parsers import rst
+from docutils.parsers.rst import roles
+from docutils import nodes, frontend, utils
+from docutils.parsers.rst import Directive, directives
+from docutils.parsers.rst.roles import set_classes
        
 
 #
