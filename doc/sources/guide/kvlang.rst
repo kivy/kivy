@@ -146,11 +146,11 @@ part:
 And here is your "yourwidget.py" python part::
 
     from kivy.lang import Builder
-    from kivy.uix.widget import Widget
+    from kivy.uix.button import Button
 
     Builder.load_file('yourwidget.kv')
 
-    class YourWidget(Widget):
+    class YourWidget(Button):
         # ...
         pass
 
