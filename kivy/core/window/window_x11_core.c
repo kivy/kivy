@@ -207,7 +207,7 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
 	}
 }
 
-static void createTheRenderContext()
+static void createTheRenderContext(void)
 {
 	int dummy;
 	if (!glXQueryExtension(Xdisplay, &dummy, &dummy)) {
@@ -226,10 +226,10 @@ static void createTheRenderContext()
 	}
 }
 
-static int updateTheMessageQueue()
+static int updateTheMessageQueue(void)
 {
 	XEvent event;
-	XConfigureEvent *xc;
+	//XConfigureEvent *xc;
 
 	while (XPending(Xdisplay))
 	{
@@ -279,19 +279,19 @@ int x11_create_window(int width, int height, int x, int y,
 	return 1;
 }
 
-void x11_gl_swap() {
+void x11_gl_swap(void) {
 	glXSwapBuffers(Xdisplay, glX_window_handle);
 }
 
-int x11_get_width() {
+int x11_get_width(void) {
 	return g_width;
 }
 
-int x11_get_height() {
+int x11_get_height(void) {
 	return g_height;
 }
 
-int x11_idle() {
+int x11_idle(void) {
 	return updateTheMessageQueue();
 }
 
