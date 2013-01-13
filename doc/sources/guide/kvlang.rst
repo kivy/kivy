@@ -53,7 +53,7 @@ We know that ``pos`` and ``size`` are instances of the Kivy
 the graphics. In order to do that, we bind on both and update a method to clear and recreate
 all the graphics::
 
-    class YourWidget(Widget):
+    class YourWidget(Button):
         # ...
         def __init__(self, **kwargs):
             super(YourWidget, self).__init__(**kwargs)
@@ -74,7 +74,7 @@ all the graphics::
 This method is still not perfect, because we are deleting all the graphics, and
 recreating them. You can save the graphics and update them independently::
 
-    class YourWidget(Widget):
+    class YourWidget(Button):
         # ...
         def __init__(self, **kwargs):
             super(YourWidget, self).__init__(**kwargs)
@@ -146,11 +146,11 @@ part:
 And here is your "yourwidget.py" python part::
 
     from kivy.lang import Builder
-    from kivy.uix.widget import Widget
+    from kivy.uix.button import Button
 
     Builder.load_file('yourwidget.kv')
 
-    class YourWidget(Widget):
+    class YourWidget(Button):
         # ...
         pass
 

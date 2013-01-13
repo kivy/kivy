@@ -217,23 +217,16 @@ It does make sense to talk to us before you come up with bigger
 changes, especially new features.
 
 
-Does the Kivy project participate in Google's Summer of Code 2012?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Does the Kivy project participate in Google's Summer of Code ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Since Google announced that there will be a GSoC 2012 we have had many
-potential students ask whether we would participate.
+Potential students ask whether we participate in GSOC.
 The clear answer is: Indeed. :-)
-The NUIGroup has applied as an umbrella organization and luckily
-got chosen as one of the mentoring organizations. Given enough slots
-for NUIGroup, slots will be dedicated to Kivy. That also depends on the
-overall quality of the student proposals (i.e. if there is only one
-Kivy student proposal with a bad quality, Kivy will not get a slot).
+
 If you want to participate as a student and want to maximize your
 chances of being accepted, start talking to us today and try fixing
 some smaller (or larger, if you can ;-) problems to get used to our
 workflow. If we know you can work well with us, that'd be a big plus.
-
-See: http://gsoc.nuigc.com/
 
 Here's a checklist:
 
