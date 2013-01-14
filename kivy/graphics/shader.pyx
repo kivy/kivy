@@ -32,6 +32,7 @@ And the header for Vertex Shader:
 
 Single file glsl shader programs
 --------------------------------
+
 .. versionadded:: 1.5.2
 
 To simplify shader management, the vertex and fragment shaders can be loaded 
@@ -39,19 +40,19 @@ automatically from a single glsl source file (plain text).  The file should
 contain sections identified by a line starting with '---vertex' and 
 `---fragment` respectively (case insensitive) like e.g.:
 
-    //anythign before a meanigfull section such as this comment are ignored
+    // anything before a meaningful section such as this comment are ignored
 
-    ---VERTEX SHADER--- //vertex shader starts here
+    ---VERTEX SHADER--- // vertex shader starts here
     void main(){
         ...
     }
 
-    ---FRAGMENT SHADER--- //fragment shader starts here
+    ---FRAGMENT SHADER--- // fragment shader starts here
     void main(){
         ...
     }
 
-the source property of the Shader should be set tpo the filename of a glsl
+The source property of the Shader should be set tpo the filename of a glsl
 shader file (of the above format), like e.g. `phong.glsl`
 '''
 
@@ -73,10 +74,10 @@ from kivy.cache import Cache
 from kivy import kivy_shader_dir
 
 
-cdef str header_vs = ""
-cdef str header_fs = ""
-cdef str default_vs = ""
-cdef str default_fs = ""
+cdef str header_vs = ''
+cdef str header_fs = ''
+cdef str default_vs = ''
+cdef str default_fs = ''
 with open(join(kivy_shader_dir, 'header.vs')) as fin:
     header_vs = fin.read()
 with open(join(kivy_shader_dir, 'header.fs')) as fin:

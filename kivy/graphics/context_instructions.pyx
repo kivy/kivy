@@ -372,9 +372,12 @@ cdef class LoadIdentity(ContextInstruction):
     .. versionadded:: 1.5.2
     '''
     def __init__(self, **kwargs):
-        self.context_state = kwargs.get("stack", "modelview_mat")
+        self.context_state = kwargs.get('stack', 'modelview_mat')
 
     property stack:
+        '''Name of the matrix stack to use. Can be 'modelview_mat' or
+        'projection_mat'.
+        '''
         def __get__(self):
             return self.context_state.keys()[0]
         def __set__(self, value):
@@ -383,37 +386,41 @@ cdef class LoadIdentity(ContextInstruction):
 
 cdef class PushMatrix(ContextInstruction):
     '''PushMatrix on context's matrix stack
-
-    .. versionchanged:: 1.5.2
-        added `stack` property to let user decide which matrix stack to use
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
-        self.stack = kwargs.get("stack", "modelview_mat")
+        self.stack = kwargs.get('stack', 'modelview_mat')
 
     property stack:
+        '''Name of the matrix stack to use. Can be 'modelview_mat' or
+        'projection_mat'.
+
+        .. versionadded:: 1.5.2
+        '''
         def __get__(self):
             return self.context_push[0]
         def __set__(self, value):
-            value = value or "modelview_mat"
+            value = value or 'modelview_mat'
             self.context_push = [value]
 
 
 cdef class PopMatrix(ContextInstruction):
     '''Pop Matrix from context's matrix stack onto model view
-    
-    .. versionchanged:: 1.5.2
-        added `stack` property to let user decide which matrix stack to use
     '''
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
-        self.stack = kwargs.get("stack", "modelview_mat")
+        self.stack = kwargs.get('stack', 'modelview_mat')
 
     property stack:
+        '''Name of the matrix stack to use. Can be 'modelview_mat' or
+        'projection_mat'.
+
+        .. versionadded:: 1.5.2
+        '''
         def __get__(self):
             return self.context_push[0]
         def __set__(self, value):
-            value = value or "modelview_mat"
+            value = value or 'modelview_mat'
             self.context_pop = [value]
 
 
@@ -424,14 +431,36 @@ cdef class ApplyContextMatrix(ContextInstruction):
     .. versionadded:: 1.5.2
     '''
     def __init__(self, **kwargs):
-        self._target_stack = kwargs.get('target_stack', 'modelview_mat')
-        self._source_stack = kwargs.get('target_stack', 'modelview_mat')
+        self.target_stack = kwargs.get('target_stack', 'modelview_mat')
+        self.source_stack = kwargs.get('source_stack', 'modelview_mat')
 
     cdef void apply(self):
         cdef RenderContext context = self.get_context()
         m = context.get_state(self._target_stack)
         m = m.multiply(context.get_state(self._source_stack))
         context.set_state(self._target_stack, m)
+
+    property target_stack:
+        '''Name of the matrix stack to use as a target.
+        Can be 'modelview_mat' or 'projection_mat'.
+
+        .. versionadded:: 1.5.2
+        '''
+        def __get__(self):
+            return self._target_stack
+        def __set__(self, value):
+            self._target_stack = value or 'modelview_mat'
+
+    property source_stack:
+        '''Name of the matrix stack to use as a source.
+        Can be 'modelview_mat' or 'projection_mat'.
+
+        .. versionadded:: 1.5.2
+        '''
+        def __get__(self):
+            return self._source_stack
+        def __set__(self, value):
+            self._source_stack = value or 'modelview_mat'
 
 
 cdef class UpdateNormalMatrix(ContextInstruction):
@@ -449,14 +478,11 @@ cdef class UpdateNormalMatrix(ContextInstruction):
 
 cdef class MatrixInstruction(ContextInstruction):
     '''Base class for Matrix Instruction on canvas
-
-    .. versionchanged:: 1.5.2
-        added `stack` property to let user decide which matrix stack to use
     '''
 
     def __init__(self, *args, **kwargs):
         ContextInstruction.__init__(self, **kwargs)
-        self._stack = kwargs.get("stack", "modelview_mat")
+        self.stack = kwargs.get('stack', 'modelview_mat')
         self._matrix = None
 
     cdef void apply(self):
@@ -482,6 +508,11 @@ cdef class MatrixInstruction(ContextInstruction):
             self.flag_update()
 
     property stack:
+        '''Name of the matrix stack to use. Can be 'modelview_mat' or
+        'projection_mat'.
+
+        .. versionadded:: 1.5.2
+        '''
         def __get__(self):
             return self._stack
         def __set__(self, value):
@@ -493,7 +524,7 @@ cdef class Transform(MatrixInstruction):
     '''Transform class.  A matrix instruction class which
     has function to modify the transformation matrix
     '''
-    
+
     def __init__(self, *args, **kwargs):
         MatrixInstruction.__init__(self, **kwargs)
 

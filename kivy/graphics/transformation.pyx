@@ -12,12 +12,9 @@ supporting:
 - create clip matrix (with or without perspective)
 - transform 3d touch on a matrix
 
-
-
 .. versionchanged:: 1.5.2
-    
-
-
+   Added :meth:`Matrix.perspective`, :meth:`Matrix.look_at`,
+   :meth:`Matrix.transpose`
 '''
 
 __all__ = ('Matrix', )
