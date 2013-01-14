@@ -260,7 +260,7 @@ cdef class Mesh(VertexInstruction):
         v = kwargs.get('indices')
         self.indices = v if v is not None else []
         fmt = kwargs.get('fmt')
-        if not fmt is None:
+        if fmt is not None:
             self.vertex_format = VertexFormat(*fmt)
             self.batch = VertexBatch(vbo=VBO(self.vertex_format))
         self.mode = kwargs.get('mode') or 'points'
@@ -272,18 +272,12 @@ cdef class Mesh(VertexInstruction):
         cdef unsigned short *indices = NULL
         cdef list lvertices = self._vertices
         cdef list lindices = self._indices
+        cdef vsize = self.batch.vbo.vertex_format.vsize
 
         if vcount == 0 or icount == 0:
             self.batch.clear_data()
             return
 
-        #cdef int vsize = 4
-        #cdef vbytesize = 4 * sizeof(float)
-        #if self.vertex_format
-        #    vsize = self.vertex_format.size
-        #    vbytesize = self.vertex_format.vbytesize
-
-        #vertices = <vertex_t *>malloc(vcount * sizeof(vertex_t))
         vertices = <float *>malloc(vcount * sizeof(float))
         if vertices == NULL:
             raise MemoryError('vertices')
@@ -294,16 +288,11 @@ cdef class Mesh(VertexInstruction):
             raise MemoryError('indices')
 
         for i in xrange(vcount):
-            #vertices[i].x = lvertices[i * 4]
-            #vertices[i].y = lvertices[i * 4 + 1]
-            #vertices[i].s0 = lvertices[i * 4 + 2]
-            #vertices[i].t0 = lvertices[i * 4 + 3]
             vertices[i] = lvertices[i]
-
         for i in xrange(icount):
             indices[i] = lindices[i]
 
-        self.batch.set_data(vertices, vcount / self.vertex_format.vsize, indices, icount)
+        self.batch.set_data(vertices, vcount / vsize, indices, icount)
 
         free(vertices)
         free(indices)

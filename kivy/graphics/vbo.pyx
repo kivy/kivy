@@ -4,6 +4,16 @@ Vertex Buffer
 
 The :class:`VBO` class handle the creation and update of Vertex Buffer Object in
 OpenGL.
+
+.. versionadded:: 1.5.2
+    VertexFormat class added.  VertexFormat is used to describe the layout
+    of the vertex data stored in vertex arrays/vbo.  The default vertex format
+    is:
+        VertexFormat(('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float'))
+
+.. versionchanged:: 1.5.2
+    VBO now no longer has a fixed vertex format, if no VertexFormat is given
+    at initialization, the default vertex format is used.
 '''
 
 __all__ = ('VBO', 'VertexBatch', 'VertexFormat')
@@ -39,26 +49,14 @@ cdef vertex_attr_t *vbo_vertex_attr_list():
     '''
     return vattr
 
-'''
-.. versionadded:: 1.5.2
-    VertexFormat class added.  VertexFormat is used to describe the layout
-    of the vertex data stored in vertex arrays/vbo.  The default vertex format
-    is:
-        VertexFormat(('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float'))
-
-.. versionchanged:: 1.5.2
-    VBO now no longer has a fixed vertex format, if no VertexFormat is given
-    at initialization, the default vertex format is used.
-'''
-
 class VertexFormatException(Exception):
     pass
 
 cdef class VertexFormat:
-    '''
+    '''VertexFormat is used to describe the layout of the vertex data stored 
+    in vertex arrays/vbo.
+
     .. versionadded:: 1.5.2
-        VertexFormat is used to describe the layout of the vertex data stored 
-        in vertex arrays/vbo.
     '''
     def __cinit__(self, *fmt):
         self.vattr = NULL
@@ -101,7 +99,7 @@ cdef VertexFormat default_vertex = VertexFormat( ('vPosition', 2, 'float'),
         ('vTexCoords0', 2, 'float'))
 
 cdef short V_NEEDGEN = 1 << 0
-cdef short V_NEEDUPLOAD = 1 << 1 
+cdef short V_NEEDUPLOAD = 1 << 1
 cdef short V_HAVEID = 1 << 2
 
 cdef class VBO:
