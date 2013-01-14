@@ -38,7 +38,7 @@ Single file glsl shader programs
 To simplify shader management, the vertex and fragment shaders can be loaded 
 automatically from a single glsl source file (plain text).  The file should 
 contain sections identified by a line starting with '---vertex' and 
-`---fragment` respectively (case insensitive) like e.g.:
+`---fragment` respectively (case insensitive) like e.g.::
 
     // anything before a meaningful section such as this comment are ignored
 
