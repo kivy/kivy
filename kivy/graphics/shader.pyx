@@ -29,6 +29,30 @@ And the header for Vertex Shader:
 .. include:: ../../kivy/data/glsl/header.vs
     :literal:
 
+
+Single file glsl shader programs
+--------------------------------
+.. versionadded:: 1.5.2
+
+To simplify shader management, the vertex and fragment shaders can be loaded 
+automatically from a single glsl source file (plain text).  The file should 
+contain sections identified by a line starting with '---vertex' and 
+`---fragment` respectively (case insensitive) like e.g.:
+
+    //anythign before a meanigfull section such as this comment are ignored
+
+    ---VERTEX SHADER--- //vertex shader starts here
+    void main(){
+        ...
+    }
+
+    ---FRAGMENT SHADER--- //fragment shader starts here
+    void main(){
+        ...
+    }
+
+the source property of the Shader should be set tpo the filename of a glsl
+shader file (of the above format), like e.g. `phong.glsl`
 '''
 
 __all__ = ('Shader', )
@@ -48,10 +72,19 @@ from kivy.logger import Logger
 from kivy.cache import Cache
 from kivy import kivy_shader_dir
 
-cdef str header_vs = open(join(kivy_shader_dir, 'header.vs')).read()
-cdef str header_fs = open(join(kivy_shader_dir, 'header.fs')).read()
-cdef str default_vs = open(join(kivy_shader_dir, 'default.vs')).read()
-cdef str default_fs = open(join(kivy_shader_dir, 'default.fs')).read()
+
+cdef str header_vs = ""
+cdef str header_fs = ""
+cdef str default_vs = ""
+cdef str default_fs = ""
+with open(join(kivy_shader_dir, 'header.vs')) as fin:
+    header_vs = fin.read()
+with open(join(kivy_shader_dir, 'header.fs')) as fin:
+    header_fs = fin.read()
+with open(join(kivy_shader_dir, 'default.vs')) as fin:
+    default_vs = fin.read()
+with open(join(kivy_shader_dir, 'default.fs')) as fin:
+    default_fs = fin.read()
 
 
 cdef class ShaderSource:
@@ -130,12 +163,15 @@ cdef class Shader:
         self.uniform_locations = dict()
         self.uniform_values = dict()
 
-    def __init__(self, str vs, str fs):
+    def __init__(self, str vs=None, str fs=None, str source=None):
         get_context().register_shader(self)
         self.program = glCreateProgram()
-        self.bind_attrib_locations()
-        self.fs = fs
-        self.vs = vs
+        if source:
+            self.source = source
+        else:
+            self._source = None
+            self.fs = fs
+            self.vs = vs
 
     def __dealloc__(self):
         get_context().dealloc_shader(self)
@@ -151,7 +187,6 @@ cdef class Shader:
         self.uniform_locations = dict()
         self._success = 0
         self.program = glCreateProgram()
-        self.bind_attrib_locations()
         self.fs = self.fs
         self.vs = self.vs
 
@@ -272,21 +307,17 @@ cdef class Shader:
         self.uniform_locations[name] = loc
         return loc
 
-    cdef void bind_attrib_locations(self):
-        cdef int i
-        cdef vertex_attr_t *attr
-        cdef vertex_attr_t *vattr = vbo_vertex_attr_list()
-        for i in xrange(vbo_vertex_attr_count()):
-            attr = &vattr[i]
-            glBindAttribLocation(self.program, attr.index, attr.name)
-            if attr.per_vertex == 1:
-                glEnableVertexAttribArray(attr.index)
+    cdef int get_attribute_loc(self, str name):
+        name_byte_str = name
+        cdef char* c_name = name_byte_str
+        cdef int loc = glGetAttribLocation(self.program, c_name)
+        return loc
 
     cdef void build(self):
         self.build_vertex()
         self.build_fragment()
 
-    cdef void build_vertex(self):
+    cdef void build_vertex(self, int link=0):
         if self.vertex_shader is not None:
             glDetachShader(self.program, self.vertex_shader.shader)
             self.vertex_shader = None
@@ -295,7 +326,7 @@ cdef class Shader:
             glAttachShader(self.program, self.vertex_shader.shader)
         self.link_program()
 
-    cdef void build_fragment(self):
+    cdef void build_fragment(self, int link=0):
         if self.fragment_shader is not None:
             glDetachShader(self.program, self.fragment_shader.shader)
             self.fragment_shader = None
@@ -363,6 +394,42 @@ cdef class Shader:
     #
     # Python access
     #
+
+    property source:
+        '''glsl  source code.
+
+        source shoudl be a filename of a glsl shader, that contains both
+        vertex and fragment shader sourcecode;  each designated by a section
+        header consisting of one line starting with either "--VERTEX" or
+        "--FRAGMENT" (case insensitive).
+
+        .. versionadded:: 1.5.2
+        '''
+        def __get__(self):
+            return self._source
+        def __set__(self, object source):
+            self._source = source
+            if source is None:
+                self.vs = None
+                self.fs = None
+                return
+            self.vert_src = ""
+            self.frag_src = ""
+            glsl_source = "\n"
+            with open(self._source) as fin:
+                glsl_source += fin.read()
+            sections = glsl_source.split('\n---')
+            for section in sections:
+                lines = section.split('\n')
+                if lines[0].lower().startswith("vertex"):
+                    _vs = '\n'.join(lines[1:])
+                    self.vert_src = _vs.replace('$HEADER$', header_vs)
+                if lines[0].lower().startswith("fragment"):
+                    _fs = '\n'.join(lines[1:])
+                    self.frag_src = _fs.replace('$HEADER$', header_fs)
+            self.build_vertex(0)
+            self.build_fragment(0)
+            self.link_program()
 
     property vs:
         '''Vertex shader source code.

@@ -5,6 +5,15 @@ from vertex cimport vertex_t, vertex_attr_t
 cdef int vbo_vertex_attr_count()
 cdef vertex_attr_t *vbo_vertex_attr_list()
 
+cdef class VertexFormat:
+    cdef vertex_attr_t *vattr
+    cdef int vattr_count
+    cdef unsigned int vsize
+    cdef unsigned int vbytesize
+
+cdef VertexFormat default_vertex
+
+
 cdef class VBO:
     cdef object __weakref__
 
@@ -13,15 +22,17 @@ cdef class VBO:
     cdef int target
     cdef vertex_attr_t *format
     cdef int format_count
+    cdef int format_size
     cdef Buffer data
     cdef short flags
     cdef int vbo_size
+    cdef VertexFormat vertex_format
 
     cdef void update_buffer(self)
     cdef void bind(self)
     cdef void unbind(self)
     cdef void add_vertex_data(self, void *v, unsigned short* indices, int count)
-    cdef void update_vertex_data(self, int index, vertex_t* v, int count)
+    cdef void update_vertex_data(self, int index, void* v, int count)
     cdef void remove_vertex_data(self, unsigned short* indices, int count)
     cdef void reload(self)
     cdef int have_id(self)
@@ -41,9 +52,9 @@ cdef class VertexBatch:
     cdef int elements_size
 
     cdef void clear_data(self)
-    cdef void set_data(self, vertex_t *vertices, int vertices_count,
+    cdef void set_data(self, void *vertices, int vertices_count,
                        unsigned short *indices, int indices_count)
-    cdef void append_data(self, vertex_t *vertices, int vertices_count,
+    cdef void append_data(self, void *vertices, int vertices_count,
                           unsigned short *indices, int indices_count)
     cdef void draw(self)
     cdef void set_mode(self, str mode)
