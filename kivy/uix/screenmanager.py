@@ -147,6 +147,23 @@ class ScreenManagerException(Exception):
 class Screen(RelativeLayout):
     '''Screen is an element intented to be used within :class:`ScreenManager`.
     Check module documentation for more information.
+
+    :Events:
+        `on_pre_enter`: ()
+            Event fired when the screen is about to be used: the entering
+            animation is started.
+        `on_enter`: ()
+            Event fired when the screen is displayed: the entering animation is
+            complete.
+        `on_pre_leave`: ()
+            Event fired when the screen is about to be removed: the leaving
+            animation is started.
+        `on_leave`: ()
+            Event fired when the screen is removed: the leaving animation is
+            finished.
+
+    .. versionchanged:: 1.5.2
+        Events `on_pre_enter`, `on_enter`, `on_pre_leave`, `on_leave` is added.
     '''
 
     name = StringProperty('')
@@ -188,6 +205,25 @@ class Screen(RelativeLayout):
     :data:`transition_state` is an :class:`~kivy.properties.OptionProperty`,
     default to 'out'.
     '''
+
+    def __init__(self, **kwargs):
+        self.register_event_type('on_pre_enter')
+        self.register_event_type('on_enter')
+        self.register_event_type('on_pre_leave')
+        self.register_event_type('on_leave')
+        super(Screen, self).__init__(**kwargs)
+
+    def on_pre_enter(self, *args):
+        pass
+
+    def on_enter(self, *args):
+        pass
+
+    def on_pre_leave(self, *args):
+        pass
+
+    def on_leave(self, *args):
+        pass
 
     def __repr__(self):
         return '<Screen name=%r>' % self.name
@@ -267,6 +303,8 @@ class TransitionBase(EventDispatcher):
         self.screen_in.transition_state = 'in'
         self.screen_out.transition_progress = 0.
         self.screen_out.transition_state = 'out'
+        self.screen_in.dispatch('on_pre_enter')
+        self.screen_out.dispatch('on_pre_leave')
 
         self.is_active = True
         self._anim.start(self)
@@ -307,6 +345,8 @@ class TransitionBase(EventDispatcher):
     def _on_complete(self, *l):
         self.is_active = False
         self.dispatch('on_complete')
+        self.screen_in.dispatch('on_enter')
+        self.screen_out.dispatch('on_leave')
         self._anim = None
 
 
@@ -652,6 +692,8 @@ class ScreenManager(FloatLayout):
         else:
             screen.pos = self.pos
             self.real_add_widget(screen)
+            screen.dispatch('on_pre_enter')
+            screen.dispatch('on_enter')
 
     def get_screen(self, name):
         '''Return the screen widget associated to the name, or raise a
