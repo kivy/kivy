@@ -139,6 +139,8 @@ from kivy.graphics import RenderContext, Rectangle, Fbo, \
 
 
 class ScreenManagerException(Exception):
+    '''Exception of the :class:`ScreenManager`
+    '''
     pass
 
 
@@ -652,8 +654,8 @@ class ScreenManager(FloatLayout):
             self.real_add_widget(screen)
 
     def get_screen(self, name):
-        '''Return the screen widget associated to the name, or None if not
-        found.
+        '''Return the screen widget associated to the name, or raise a
+        :class:`ScreenManagerException` if not found.
         '''
         matches = [s for s in self.screens if s.name == name]
         num_matches = len(matches)
@@ -662,6 +664,13 @@ class ScreenManager(FloatLayout):
         if num_matches > 1:
             Logger.warn('Multiple screens named "%s": %s' % (name, matches))
         return matches[0]
+
+    def has_screen(self, name):
+        '''Return True if a screen with the `name` has been found.
+
+        .. versionadded:: 1.5.2
+        '''
+        return bool([s for s in self.screens if s.name == name])
 
     def next(self):
         '''Return the name of the next screen from the screen list.
