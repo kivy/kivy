@@ -275,10 +275,9 @@ cdef class Matrix:
 
     cpdef tuple transform_point(Matrix self, double x, double y, double z):
         cdef double tx, ty, tz
-        with nogil:
-            tx = x * self.mat[0] + y * self.mat[4] + z * self.mat[ 8] + self.mat[12];
-            ty = x * self.mat[1] + y * self.mat[5] + z * self.mat[ 9] + self.mat[13];
-            tz = x * self.mat[2] + y * self.mat[6] + z * self.mat[10] + self.mat[14];
+        tx = x * self.mat[0] + y * self.mat[4] + z * self.mat[ 8] + self.mat[12];
+        ty = x * self.mat[1] + y * self.mat[5] + z * self.mat[ 9] + self.mat[13];
+        tz = x * self.mat[2] + y * self.mat[6] + z * self.mat[10] + self.mat[14];
         return (tx, ty, tz)
 
     cpdef Matrix identity(self):
