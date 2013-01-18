@@ -202,7 +202,7 @@ class Bubble(GridLayout):
 
     def on_pos(self, instance, pos):
         lt = self.limit_to
-        if lt and lt != object:
+        if lt and lt is not object:
             self.limit_to = object
             if lt == Window:
                 lt.x = lt.y = 0
