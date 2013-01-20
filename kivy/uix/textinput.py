@@ -344,9 +344,10 @@ class TextInput(Widget):
         new_text = text[:cc] + substring + text[cc:]
         self._set_line_text(cr, new_text)
 
-        wrap = (self._get_text_width(new_text,
-                                            self.tab_width,
-                                            self._label_cached) > self.width)
+        wrap = (self._get_text_width(
+                                    new_text,
+                                    self.tab_width,
+                                    self._label_cached) > self.width)
         if len_str > 1 or substring == '\n' or wrap:
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
@@ -492,7 +493,7 @@ class TextInput(Widget):
             if not self._lines_flags[cr]:
                 # refresh just the current line instead of the whole text
                 start, finish, lines, lineflags, len_lines =\
-                    self._get_line_from_cursor(cr, new_text)
+                    max(1, self._get_line_from_cursor(cr, new_text))
                 self._trigger_refresh_text('del', start, finish, lines,
                                             lineflags, len_lines)
 
@@ -963,18 +964,22 @@ class TextInput(Widget):
                                 len_lines, _lines_flags,
                                 _lines, _lines_labels, _line_rects)
         elif mode == 'insert':
-            self._insert_lines(start,
+            self._insert_lines(
+                                start,
                                 finish if (start == finish and not len_lines)
                                         else
                                 (finish + 1),
-                                len_lines, _lines_flags,
-                                _lines, _lines_labels, _line_rects)
+                                len_lines, _lines_flags, _lines, _lines_labels,
+                                _line_rects)
 
         line_label = _lines_labels[0]
+        pady = self.padding_y
+        min_line_ht = self.font_size + pady
         if line_label is None:
-            self.line_height = max(1, self.font_size + self.padding_y)
+            self.line_height = max(1, min_line_ht)
         else:
-            self.line_height = line_label.height
+            # with markup texture can be of height `1`
+            self.line_height = max(line_label.height + (pady / 2), min_line_ht)
         self._line_spacing = 2
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
@@ -1042,7 +1047,7 @@ class TextInput(Widget):
         add = self.canvas.add
 
         lh = self.line_height
-        dy = self.line_height + self._line_spacing
+        dy = lh + self._line_spacing
 
         # adjust view if the cursor is going outside the bounds
         sx = self.scroll_x
@@ -1051,10 +1056,11 @@ class TextInput(Widget):
         # draw labels
         rects = self._lines_rects
         labels = self._lines_labels
+        pady = self.padding_y
         x = self.x + self.padding_x
-        y = self.top - self.padding_y + sy
-        miny = self.y + self.padding_y
-        maxy = self.top - self.padding_y
+        y = self.top - pady + sy
+        miny = self.y + pady
+        maxy = self.top - pady
         for line_num, value in enumerate(self._lines):
             if miny <= y <= maxy + dy:
                 texture = labels[line_num]
@@ -1067,7 +1073,7 @@ class TextInput(Widget):
                 # calcul coordinate
                 viewport_pos = sx, 0
                 vw = self.width - self.padding_x * 2
-                vh = self.height - self.padding_y * 2
+                vh = self.height - pady * 2
                 tw, th = map(float, size)
                 oh, ow = tch, tcw = texc[1:3]
                 tcx, tcy = 0, 0
