@@ -329,7 +329,7 @@ cdef class Shader:
             attr = &vertex_format.vattr[i]
             if attr.per_vertex == 0:
                 continue
-            glBindAttribLocation(self.program, attr.index, <bytes>attr.name)
+            glBindAttribLocation(self.program, attr.index, <char *><bytes>attr.name)
             glEnableVertexAttribArray(attr.index)
 
         # save for the next run.
