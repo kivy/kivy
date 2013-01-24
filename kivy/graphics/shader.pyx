@@ -313,7 +313,10 @@ cdef class Shader:
 
         # if the current vertex format used in the shader is the current one, do
         # nothing.
-        if self._current_vertex_format is vertex_format:
+        # the same vertex format might be used by others shaders, so the
+        # attr.index would not be accurate. we need to update it as well.
+        if vertex_format and self._current_vertex_format is vertex_format and \
+                vertex_format.last_shader is self:
             return
 
         # unbind the previous vertex format
@@ -329,11 +332,12 @@ cdef class Shader:
             attr = &vertex_format.vattr[i]
             if attr.per_vertex == 0:
                 continue
-            glBindAttribLocation(self.program, attr.index, <char *><bytes>attr.name)
+            attr.index = glGetAttribLocation(self.program, <char *><bytes>attr.name)
             glEnableVertexAttribArray(attr.index)
 
         # save for the next run.
         self._current_vertex_format = vertex_format
+        vertex_format.last_shader = self
 
     cdef void build(self):
         self.build_vertex()

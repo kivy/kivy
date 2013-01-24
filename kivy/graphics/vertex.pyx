@@ -6,8 +6,6 @@ include "common.pxi"
 
 from kivy.graphics.c_opengl cimport GL_FLOAT, GLfloat
 
-cdef list attrib_location_indices = []
-
 class VertexFormatException(Exception):
     pass
 
@@ -36,6 +34,7 @@ cdef class VertexFormat:
         if not fmt:
             raise VertexFormatException('No format specified')
 
+        self.last_shader = None
         self.vattr_count = len(fmt)
         self.vattr = <vertex_attr_t *>malloc(sizeof(vertex_attr_t) * self.vattr_count)
 
@@ -44,17 +43,12 @@ cdef class VertexFormat:
 
         index = 0
         for name, size, tp in fmt:
-
-            # ensure the name is in the location indices
-            if name not in attrib_location_indices:
-                attrib_location_indices.append(name)
-
             attr = &self.vattr[index]
 
             # fill the vertex format
             attr.per_vertex = 1
             attr.name = <bytes>name
-            attr.index = index#attrib_location_indices.index(name)
+            attr.index = 0 # will be set by the shader itself
             attr.size = size
 
             # only float is accepted as attribute format
