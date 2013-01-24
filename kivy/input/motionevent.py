@@ -58,7 +58,7 @@ angle          2D angle. Use property `a`
 button         Mouse button (left, right, middle, scrollup, scrolldown)
                Use property `button`
 markerid       Marker or Fiducial ID. Use property `fid`
-pos            2D position. Use properties `x`, `y`
+pos            2D position. Use properties `x`, `y` or `pos``
 pos3d          3D position. Use properties `x`, `y`, `z`
 pressure       Pressure of the contact. Use property `pressure`
 shape          Contact shape. Use property `shape`
