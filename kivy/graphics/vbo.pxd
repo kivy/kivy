@@ -1,18 +1,8 @@
 from buffer cimport Buffer
 from c_opengl cimport GLuint
-from vertex cimport vertex_t, vertex_attr_t
-
-cdef int vbo_vertex_attr_count()
-cdef vertex_attr_t *vbo_vertex_attr_list()
-
-cdef class VertexFormat:
-    cdef vertex_attr_t *vattr
-    cdef int vattr_count
-    cdef unsigned int vsize
-    cdef unsigned int vbytesize
+from vertex cimport vertex_t, vertex_attr_t, VertexFormat
 
 cdef VertexFormat default_vertex
-
 
 cdef class VBO:
     cdef object __weakref__

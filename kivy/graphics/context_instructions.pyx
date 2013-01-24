@@ -601,10 +601,15 @@ cdef class Rotate(Transform):
 
 
 cdef class Scale(Transform):
-    '''Instruction to create a non uniform scale transformation
+    '''Instruction to create a non uniform scale transformation.
+
+    Create using one or three arguments::
+
+       Scale(s)         # scale all three axes the same
+       Scale(x, y, z)   # scale the axes independently
 
     .. versionchanged:: 1.5.2
-        deprecated single scale property in favor of x, y, z, xyz axis 
+        deprecated single scale property in favor of x, y, z, xyz axis
         independant scaled factors.
     '''
     def __init__(self, *args, **kwargs):
@@ -685,7 +690,12 @@ cdef class Scale(Transform):
 
 
 cdef class Translate(Transform):
-    '''Instruction to create a translation of the model view coordinate space
+    '''Instruction to create a translation of the model view coordinate space.
+
+    Construct by either::
+
+        Translate(x, y)         # translate in just the two axes
+        Translate(x, y, z)      # translate in all three axes
     '''
     def __init__(self, *args, **kwargs):
         cdef double x, y, z
@@ -693,6 +703,9 @@ cdef class Translate(Transform):
         if len(args) == 3:
             x, y, z = args
             self.set_translate(x, y, z)
+        elif len(args) == 2:
+            x, y = args
+            self.set_translate(x, y, 0)
 
     cdef set_translate(self, double x, double y, double z):
         self.matrix = Matrix().translate(x, y, z)

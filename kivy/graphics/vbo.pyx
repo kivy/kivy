@@ -29,71 +29,8 @@ IF USE_OPENGL_DEBUG == 1:
 from kivy.graphics.vertex cimport *
 from kivy.logger import Logger
 from kivy.graphics.context cimport Context, get_context
-from instructions cimport getActiveContext
-
-cdef int vattr_count = 2
-cdef vertex_attr_t vattr[2]
-vattr[0] = ['vPosition', 0, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
-vattr[1] = ['vTexCoords0', 1, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
-#vertex_attr_list[2] = ['vTexCoords1', 2, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
-#vertex_attr_list[3] = ['vTexCoords2', 3, 2, GL_FLOAT, sizeof(GLfloat) * 2, 1]
-#vertex_attr_list[4] = ['vColor', 4, 2, GL_FLOAT, sizeof(GLfloat) * 4, 0]
-
-cdef int vbo_vertex_attr_count():
-    '''Return the number of vertex attributes used in VBO
-    '''
-    return vattr_count
-
-cdef vertex_attr_t *vbo_vertex_attr_list():
-    '''Return the list of vertex attributes used in VBO
-    '''
-    return vattr
-
-class VertexFormatException(Exception):
-    pass
-
-cdef class VertexFormat:
-    '''VertexFormat is used to describe the layout of the vertex data stored 
-    in vertex arrays/vbo.
-
-    .. versionadded:: 1.5.2
-    '''
-    def __cinit__(self, *fmt):
-        self.vattr = NULL
-        self.vattr_count = 0
-        self.vsize = 0
-        self.vbytesize = 0
-
-    def __dealloc__(self):
-        if self.vattr != NULL:
-            free(self.vattr)
-            self.vattr = NULL
-
-    def __init__(self, *fmt):
-        cdef vertex_attr_t *attr
-        cdef int index, size
-
-        if not fmt:
-            raise VertexFormatException('No format specified')
-
-        self.vattr_count = len(fmt)
-        self.vattr = <vertex_attr_t *>malloc(sizeof(vertex_attr_t) * self.vattr_count)
-        index = 0
-        for name, size, tp in fmt:
-            attr = &self.vattr[index]
-            attr.per_vertex = 1
-            attr.name = <char *><bytes>name
-            attr.index = index
-            attr.size = size
-            if tp == 'float':
-                attr.type = GL_FLOAT
-                attr.bytesize = sizeof(GLfloat) * size
-            else:
-                raise VertexFormatException('Unknow format type %r' % tp)
-
-            index += 1
-            self.vsize += attr.size
-            self.vbytesize += attr.bytesize
+from kivy.graphics.instructions cimport getActiveContext
+from kivy.graphics.shader cimport Shader
 
 cdef VertexFormat default_vertex = VertexFormat( ('vPosition', 2, 'float'),
         ('vTexCoords0', 2, 'float'))
@@ -151,19 +88,18 @@ cdef class VBO:
             self.flags &= ~V_NEEDUPLOAD
 
     cdef void bind(self):
+        cdef Shader shader = getActiveContext()._shader
         cdef vertex_attr_t *attr
         cdef int offset = 0, i
         self.update_buffer()
-        shader = getActiveContext()._shader
         glBindBuffer(GL_ARRAY_BUFFER, self.id)
+        shader.bind_vertex_format(self.vertex_format)
         for i in xrange(self.format_count):
             attr = &self.format[i]
             if attr.per_vertex == 0:
                 continue
-            attr.index = shader.get_attribute_loc(attr.name)
             glVertexAttribPointer(attr.index, attr.size, attr.type,
                     GL_FALSE, self.format_size, <GLvoid*><long>offset)
-            glEnableVertexAttribArray(attr.index)
             offset += attr.bytesize
 
     cdef void unbind(self):
@@ -263,7 +199,6 @@ cdef class VertexBatch:
             glGenBuffers(1, &self.id)
             self.flags &= ~V_NEEDGEN
             self.flags |= V_HAVEID
-
 
         # bind to the current id
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.id)

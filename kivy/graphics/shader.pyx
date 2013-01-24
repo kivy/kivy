@@ -66,7 +66,6 @@ from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.vertex cimport vertex_attr_t
-from kivy.graphics.vbo cimport vbo_vertex_attr_list, vbo_vertex_attr_count
 from kivy.graphics.transformation cimport Matrix
 from kivy.graphics.context cimport get_context
 from kivy.logger import Logger
@@ -308,11 +307,33 @@ cdef class Shader:
         self.uniform_locations[name] = loc
         return loc
 
-    cdef int get_attribute_loc(self, str name):
-        name_byte_str = name
-        cdef char* c_name = name_byte_str
-        cdef int loc = glGetAttribLocation(self.program, c_name)
-        return loc
+    cdef void bind_vertex_format(self, VertexFormat vertex_format):
+        cdef unsigned int i
+        cdef vertex_attr_t *attr
+
+        # if the current vertex format used in the shader is the current one, do
+        # nothing.
+        if self._current_vertex_format is vertex_format:
+            return
+
+        # unbind the previous vertex format
+        if self._current_vertex_format:
+            for i in xrange(self._current_vertex_format.vattr_count):
+                attr = &self._current_vertex_format.vattr[i]
+                if attr.per_vertex == 0:
+                    continue
+                glDisableVertexAttribArray(attr.index)
+
+        # bind the new vertex format
+        for i in xrange(vertex_format.vattr_count):
+            attr = &vertex_format.vattr[i]
+            if attr.per_vertex == 0:
+                continue
+            glBindAttribLocation(self.program, attr.index, <char *><bytes>attr.name)
+            glEnableVertexAttribArray(attr.index)
+
+        # save for the next run.
+        self._current_vertex_format = vertex_format
 
     cdef void build(self):
         self.build_vertex()
