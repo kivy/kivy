@@ -39,7 +39,8 @@ key will defocus the textinput and emit on_text_validate event)::
     textinput = TextInput(text='Hello world', multiline=False)
     textinput.bind(on_text_validate=on_enter)
 
-To run a callback when the text changes::
+The textinput's text is stored on its :data:`TextInput.text` property. To run a
+callback when the text changes::
 
     def on_text(instance, value):
         print 'The widget', instance, 'have:', value
