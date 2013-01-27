@@ -328,16 +328,17 @@ cdef class Shader:
                 glDisableVertexAttribArray(attr.index)
 
         # bind the new vertex format
-        for i in xrange(vertex_format.vattr_count):
-            attr = &vertex_format.vattr[i]
-            if attr.per_vertex == 0:
-                continue
-            attr.index = glGetAttribLocation(self.program, <char *><bytes>attr.name)
-            glEnableVertexAttribArray(attr.index)
+        if vertex_format:
+            vertex_format.last_shader = self
+            for i in xrange(vertex_format.vattr_count):
+                attr = &vertex_format.vattr[i]
+                if attr.per_vertex == 0:
+                    continue
+                attr.index = glGetAttribLocation(self.program, <char *><bytes>attr.name)
+                glEnableVertexAttribArray(attr.index)
 
         # save for the next run.
         self._current_vertex_format = vertex_format
-        vertex_format.last_shader = self
 
     cdef void build(self):
         self.build_vertex()
