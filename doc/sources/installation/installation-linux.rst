@@ -3,21 +3,100 @@
 Installation on Linux
 =====================
 
-Prerequisites
--------------
-
-Ubuntu (11.10 or newer)
+Using software packages
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+Ubuntu
+------
+
+#. Add one of the PPAs as you prefer
+
+:stable builds:
+    $ sudo add-apt-repository ppa:kivy-team/kivy
+:nightly builds:
+    $ sudo add-apt-repository ppa:kivy-team/kivy-daily
+
+2. Update your packagelist with your package manager
+#. Install **python-kivy** and optionally the examples, found in **python-kivy-examples**
+
+OpenSuSE
+--------
+
+#. Installing via One-Click-Install
+
+:Factory:
+    `One-Click-Install <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Factory/python-Kivy.ymp?base=openSUSE%3AFactory&query=python-Kivy>`_
+:12.2:
+    `One-Click-Install <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.2/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
+:12.1:
+    `One-Click-Install <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.1/python-Kivy.ymp?base=openSUSE%3A12.1&query=python-Kivy>`_
+:Tumbleweed:
+    `One-Click-Install <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Tumbleweed/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
+
+2. Use your preferred package-manager to install the examples, as found in **python-Kivy-examples**
+
+Fedora
+------
+
+#. Adding the repository via terminal:
+
+:Fedora 17:
+    $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
+    
+:Fedora 16:
+    $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
+    
+2. Use now your preferred package-manager to refresh your packagelists
+#. Install **python-Kivy** and the examples, as found in **python-Kivy-examples**
+
+
+Using software bundles ( also known as tarballs )
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Providing dependencies*
+------------------------
+
+========================
+
+General
+-------
+The following software is needed, even if your distribution is not listed above:
+
+- `Python >= 2.6 and Python < 3 <http://www.python.org/>`_
+- `PyGame <http://www.pygame.org/>`_
+- `PyOpenGL <http://pyopengl.sourceforge.net/>`_
+- `PyEnchant <http://packages.python.org/pyenchant/>`_
+- `gst-python <http://gstreamer.freedesktop.org/modules/gst-python.html>`_
+- `Cython >= 0.15 <http://cython.org/>`_
+
+We prefer to use a package-manager to provide these dependencies.
+
+Ubuntu
+------
 ::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
-      build-essential libgl1-mesa-dev libgles2-mesa-dev python-pip
+      build-essential libgl1-mesa-dev libgles2-mesa-dev cython
+
+
+*Upgrade Cython (Oneiric or older)*
+
+:Using our PPA:
+    $ sudo add-apt-repository ppa:kivy-team/kivy-daily
+    
+    $ sudo apt-get update
+    
+    $ sudo apt-get install cython
+
+
+:Using PIP:
+    $ sudo apt-get install python-pip
+    
     $ sudo pip install --upgrade cython
 
-Fedora (16)
-~~~~~~~~~~~
+Fedora
+------
 
 ::
 
@@ -27,8 +106,8 @@ Fedora (16)
     gstreamer-python mtdev-devel python-pip
     $ sudo pip install --upgrade cython
 
-OpenSuse (12.1)
-~~~~~~~~~~~~~~~
+OpenSuse
+--------
 
 ::
 
@@ -40,7 +119,7 @@ OpenSuse (12.1)
 
 
 Mageia (1 and 2(cauldron))
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 ::
 
@@ -52,9 +131,10 @@ Mageia (1 and 2(cauldron))
     $ sudo easy_install pip
     $ sudo pip install --upgrade cython
 
+*Installation*
+--------------
 
-Installation
-------------
+--------------
 
 If you're installing Kivy for the first time, do::
 
@@ -67,8 +147,9 @@ If you already installed kivy before, you can upgrade it with::
 
 .. _linux-run-app:
 
-Start from Command Line
------------------------
+
+*Start from Command Line*
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We are shipping some examples ready-to-run. However, theses examples are packaged inside the package. That's mean, you must known first where easy_install have installed your current kivy package, and go to the example directory::
 
