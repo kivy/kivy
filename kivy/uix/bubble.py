@@ -64,7 +64,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
         ListProperty
-from kivy.core.window import Window
+from kivy.base import EventLoop
 
 
 class BubbleButton(Button):
@@ -204,10 +204,10 @@ class Bubble(GridLayout):
         lt = self.limit_to
         if lt and lt is not object:
             self.limit_to = object
-            if lt == Window:
+            if lt is EventLoop.window:
                 lt.x = lt.y = 0
-                lt.top = Window.height
-                lt.right = Window.width
+                lt.top = EventLoop.window.height
+                lt.right = EventLoop.window.width
             self.x = max(self.x, lt.x)
             self.right = min(self.right, lt.right)
             self.top = min(self.top, lt.top)
