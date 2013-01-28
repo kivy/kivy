@@ -377,7 +377,7 @@ class TextInput(Widget):
         except IndexError:
             pass
         lines, lineflags = self._split_smart(new_text)
-        len_lines = len(lines) - 1
+        len_lines = max(1, len(lines) - 1)
         return start, finish, lines, lineflags, len_lines
 
     def _set_unredo_insert(self, ci, sci, substring, from_undo):
@@ -494,7 +494,7 @@ class TextInput(Widget):
             if not self._lines_flags[cr]:
                 # refresh just the current line instead of the whole text
                 start, finish, lines, lineflags, len_lines =\
-                    max(1, self._get_line_from_cursor(cr, new_text))
+                    self._get_line_from_cursor(cr, new_text)
                 self._trigger_refresh_text('del', start, finish, lines,
                                             lineflags, len_lines)
 
@@ -960,7 +960,8 @@ class TextInput(Widget):
             self._lines_labels = _lines_labels
             self._lines_rects = _line_rects
         elif mode == 'del':
-            self._insert_lines(start,
+            if finish > start:
+                self._insert_lines(start,
                                 finish if start == finish else (finish + 1),
                                 len_lines, _lines_flags,
                                 _lines, _lines_labels, _line_rects)
@@ -975,12 +976,12 @@ class TextInput(Widget):
 
         line_label = _lines_labels[0]
         pady = self.padding_y
-        min_line_ht = self.font_size + pady
+        min_line_ht = _create_label('_').height
         if line_label is None:
             self.line_height = max(1, min_line_ht)
         else:
             # with markup texture can be of height `1`
-            self.line_height = max(line_label.height + (pady / 2), min_line_ht)
+            self.line_height = max(line_label.height, min_line_ht)
         self._line_spacing = 2
         # now, if the text change, maybe the cursor is not at the same place as
         # before. so, try to set the cursor on the good place
