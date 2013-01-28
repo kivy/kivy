@@ -103,7 +103,7 @@ Ubuntu
       build-essential libgl1-mesa-dev libgles2-mesa-dev cython
 
 
-*Upgrade Cython (Oneiric or older)*
+*Upgrade Cython ( <= Oneiric [11.10] )*
 
 :Using our PPA:
     $ sudo add-apt-repository ppa:kivy-team/kivy-daily
