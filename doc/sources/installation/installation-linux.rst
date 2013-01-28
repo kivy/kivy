@@ -19,6 +19,30 @@ Ubuntu
 2. Update your packagelist with your package manager
 #. Install **python-kivy** and optionally the examples, found in **python-kivy-examples**
 
+Debian
+------
+
+#. Add one of the PPAs into your sources.list in apt manually or via Synaptic
+
+* Wheezy:
+:stable builds:
+    deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
+:nightly builds:
+    deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
+
+* Sqeeze:
+:stable builds:
+    deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu lucid main
+:nightly builds:
+    deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu lucid main
+
+2. Add the GPG key to your apt keyring by
+
+:generally:
+    $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
+
+3. Refresh your package list and install **python-kivy** and optionally the examples as found in **python-kivy-examples**
+
 OpenSuSE
 --------
 
@@ -64,7 +88,6 @@ The following software is needed, even if your distribution is not listed above:
 
 - `Python >= 2.6 and Python < 3 <http://www.python.org/>`_
 - `PyGame <http://www.pygame.org/>`_
-- `PyOpenGL <http://pyopengl.sourceforge.net/>`_
 - `PyEnchant <http://packages.python.org/pyenchant/>`_
 - `gst-python <http://gstreamer.freedesktop.org/modules/gst-python.html>`_
 - `Cython >= 0.15 <http://cython.org/>`_
@@ -134,7 +157,7 @@ Mageia (1 and 2(cauldron))
 *Installation*
 --------------
 
---------------
+==============
 
 If you're installing Kivy for the first time, do::
 
