@@ -3,18 +3,7 @@
 Installation on Linux
 =====================
 
-<<<<<<< HEAD
 Using software packages
-=======
-Pre-built Packages
-~~~~~~~~~~~~~~~~~~
-Look at our `Downloads <http://kivy.org/#download>`_ Section for pre-built packages for various linux distro's
-
-Prerequisites
--------------
-
-Ubuntu (11.10 or newer)
->>>>>>> 2c74d04b0dd963f5a67fb8805cefa97c41709417
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Ubuntu
@@ -154,13 +143,8 @@ OpenSuse
     $ sudo pip install pygments
 
 
-<<<<<<< HEAD
-Mageia (1 and 2(cauldron))
---------------------------
-=======
 Mageia 1 onwards
-~~~~~~~~~~~~~~~~
->>>>>>> 2c74d04b0dd963f5a67fb8805cefa97c41709417
+----------------
 
 ::
 
