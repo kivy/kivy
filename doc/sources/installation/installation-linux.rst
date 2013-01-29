@@ -25,12 +25,14 @@ Debian
 #. Add one of the PPAs into your sources.list in apt manually or via Synaptic
 
 * Wheezy:
+
 :stable builds:
     deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
 :nightly builds:
     deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
 
 * Sqeeze:
+
 :stable builds:
     deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu lucid main
 :nightly builds:
