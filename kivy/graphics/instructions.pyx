@@ -19,7 +19,7 @@ from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
-from kivy.graphics.context cimport get_context
+from kivy.graphics.context cimport get_context, Context
 
 
 cdef int _need_reset_gl = 1
@@ -416,7 +416,8 @@ cdef class Callback(Instruction):
         self.flag_update()
 
     cdef void apply(self):
-        cdef RenderContext context
+        cdef RenderContext rcx
+        cdef Context ctx
         cdef Shader shader
         cdef int i
 
@@ -444,13 +445,20 @@ cdef class Callback(Instruction):
                 glBindBuffer(GL_ARRAY_BUFFER, 0)
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
+            # reset all the vertexformat in all shaders
+            ctx = get_context()
+            for obj in ctx.l_shader:
+                shader = obj()
+                if not shader:
+                    continue
+                shader.bind_vertex_format(None)
+
             # force binding again all our textures.
-            context = getActiveContext()
-            shader = context._shader
-            context.enter()
-            shader.bind_attrib_locations()
-            for index, texture in context.bind_texture.iteritems():
-                context.set_texture(index, texture)
+            rcx = getActiveContext()
+            shader = rcx._shader
+            rcx.enter()
+            for index, texture in rcx.bind_texture.iteritems():
+                rcx.set_texture(index, texture)
 
             reset_gl_context()
 

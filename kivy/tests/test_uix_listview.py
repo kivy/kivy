@@ -88,9 +88,69 @@ class ListViewTestCase(unittest.TestCase):
         del list_view.adapter.data[49]
         self.assertEqual(len(list_view.adapter.data), 99)
 
-    def test_list_view_bad_instantiation(self):
-        with self.assertRaises(Exception) as cm:
-            listview = ListView()
+    def test_list_view_declared_in_kv_with_item_strings(self):
+        from kivy.lang import Builder
+        from kivy.uix.modalview import ModalView
+        from kivy.uix.widget import Widget
+        from kivy.factory import Factory
+        from kivy.properties import StringProperty, ObjectProperty, \
+            BooleanProperty
 
-        msg = 'ListView: item_strings needed or an adapter'
-        self.assertEqual(str(cm.exception), msg)
+        Builder.load_string("""
+#:import label kivy.uix.label
+#:import sla kivy.adapters.simplelistadapter
+
+<ListViewModal>:
+    size_hint: None,None
+    size: 400,400
+    lvm: lvm
+    ListView:
+        id: lvm
+        size_hint: .8,.8
+        item_strings: ["Item #{0}".format(i) for i in xrange(100)]
+""")
+
+        class ListViewModal(ModalView):
+            def __init__(self, **kwargs):
+                super(ListViewModal, self).__init__(**kwargs)
+
+        list_view_modal = ListViewModal()
+
+        list_view = list_view_modal.lvm
+
+        self.assertEqual(len(list_view.adapter.data), 100)
+
+    def test_list_view_declared_in_kv_with_adapter(self):
+        from kivy.lang import Builder
+        from kivy.uix.modalview import ModalView
+        from kivy.uix.widget import Widget
+        from kivy.factory import Factory
+        from kivy.properties import StringProperty, ObjectProperty, \
+            BooleanProperty
+
+        Builder.load_string("""
+#:import label kivy.uix.label
+#:import sla kivy.adapters.simplelistadapter
+
+<ListViewModal>:
+    size_hint: None,None
+    size: 400,400
+    lvm: lvm
+    ListView:
+        id: lvm
+        size_hint: .8,.8
+        adapter:
+            sla.SimpleListAdapter(
+            data=["Item #{0}".format(i) for i in xrange(100)],
+            cls=label.Label)
+""")
+
+        class ListViewModal(ModalView):
+            def __init__(self, **kwargs):
+                super(ListViewModal, self).__init__(**kwargs)
+
+        list_view_modal = ListViewModal()
+
+        list_view = list_view_modal.lvm
+
+        self.assertEqual(len(list_view.adapter.data), 100)

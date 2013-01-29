@@ -33,6 +33,8 @@ from the names of the examples that they illustrate the "ramping up" from
 simple to advanced:
 
     * kivy/examples/widgets/lists/list_simple.py
+    * kivy/examples/widgets/lists/list_simple_in_kv.py
+    * kivy/examples/widgets/lists/list_simple_in_kv_2.py
     * kivy/examples/widgets/lists/list_master_detail.py
     * kivy/examples/widgets/lists/list_two_up.py
     * kivy/examples/widgets/lists/list_kv.py
@@ -78,6 +80,44 @@ In its simplest form, we make a listview with 100 items::
         from kivy.base import runTouchApp
         runTouchApp(MainView(width=800))
 
+Or, we could declare the listview in using the kv language::
+
+    from kivy.uix.modalview import ModalView
+    from kivy.uix.listview import ListView
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.lang import Builder
+
+    Builder.load_string("""
+    <ListViewModal>:
+        size_hint: None,None
+        size: 400,400
+        ListView:
+            size_hint: .8,.8
+            item_strings: [str(index) for index in xrange(100)]
+    """)
+
+
+    class ListViewModal(ModalView):
+        def __init__(self, **kwargs):
+            super(ListViewModal, self).__init__(**kwargs)
+
+
+    class MainView(GridLayout):
+
+        def __init__(self, **kwargs):
+            kwargs['cols'] = 1
+            kwargs['size_hint'] = (1.0, 1.0)
+            super(MainView, self).__init__(**kwargs)
+
+            listview_modal = ListViewModal()
+
+            self.add_widget(listview_modal)
+
+
+    if __name__ == '__main__':
+        from kivy.base import runTouchApp
+        runTouchApp(MainView(width=800))
+
 Using an Adapter
 -------------------
 
@@ -107,6 +147,56 @@ Label views for the list view (Note the cls=Label argument). The data items are
 strings.  Each item string is set by
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` as the *text*
 argument for each Label instantiation.
+
+You can declare a ListView with an adapter in a kv file, with special attention
+given to the way longer python blocks are indented::
+
+    from kivy.uix.modalview import ModalView
+    from kivy.uix.listview import ListView
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.lang import Builder
+    from kivy.factory import Factory
+
+    # Note the special nature of indentation in the adapter declaration, where
+    # the adapter: is on one line, then the value side must be given at one
+    # level of indentation.
+
+    Builder.load_string("""
+    #:import label kivy.uix.label
+    #:import sla kivy.adapters.simplelistadapter
+
+    <ListViewModal>:
+        size_hint: None,None
+        size: 400,400
+        ListView:
+            size_hint: .8,.8
+            adapter:
+                sla.SimpleListAdapter(
+                data=["Item #{0}".format(i) for i in xrange(100)],
+                cls=label.Label)
+    """)
+
+
+    class ListViewModal(ModalView):
+        def __init__(self, **kwargs):
+            super(ListViewModal, self).__init__(**kwargs)
+
+
+    class MainView(GridLayout):
+
+        def __init__(self, **kwargs):
+            kwargs['cols'] = 1
+            kwargs['size_hint'] = (1.0, 1.0)
+            super(MainView, self).__init__(**kwargs)
+
+            listview_modal = ListViewModal()
+
+            self.add_widget(listview_modal)
+
+
+    if __name__ == '__main__':
+        from kivy.base import runTouchApp
+        runTouchApp(MainView(width=800))
 
 ListAdapter and DictAdapter
 ---------------------------
@@ -804,15 +894,22 @@ class ListView(AbstractView, EventDispatcher):
 
     def __init__(self, **kwargs):
         # Check for an adapter argument. If it doesn't exist, we
-        # assume that item_strings is to be used with SimpleListAdapter
-        # to make a simple list. In this case, if item_strings was not
-        # provided, raise an exception.
+        # check for item_strings in use with SimpleListAdapter
+        # to make a simple list.
         if 'adapter' not in kwargs:
             if 'item_strings' not in kwargs:
-                raise Exception('ListView: item_strings needed or an adapter')
-
-            list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
-                                             cls=Label)
+                # Could be missing, or it could be that the ListView is
+                # declared in a kv file. If kv is in use, and item_strings is
+                # declared there, then item_strings will not be set until after
+                # __init__(). So, the data=[] set will temporarily serve for
+                # SimpleListAdapter instantiation, with the binding to
+                # item_strings_changed() handling the eventual set of the
+                # item_strings property from the application of kv rules.
+                list_adapter = SimpleListAdapter(data=[],
+                                                 cls=Label)
+            else:
+                list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
+                                                 cls=Label)
             kwargs['adapter'] = list_adapter
 
         self.register_event_type('on_scroll_complete')
@@ -823,6 +920,7 @@ class ListView(AbstractView, EventDispatcher):
 
         self.bind(size=self._trigger_populate,
                   pos=self._trigger_populate,
+                  item_strings=self.item_strings_changed,
                   adapter=self._trigger_populate)
 
         # The bindings setup above sets self._trigger_populate() to fire
@@ -831,6 +929,11 @@ class ListView(AbstractView, EventDispatcher):
         # We don't know that these are, so we ask the adapter to set up the
         # bindings back to the view updating function here.
         self.adapter.bind_triggers_to_view(self._trigger_populate)
+
+    # Added to set data when item_strings is set in a kv template, but it will
+    # be good to have also if item_strings is reset generally.
+    def item_strings_changed(self, *args):
+        self.adapter.data = self.item_strings
 
     def _scroll(self, scroll_y):
         if self.row_height is None:

@@ -42,8 +42,7 @@ class VideoBase(EventDispatcher):
     '''
 
     __slots__ = ('_wantplay', '_buffer', '_filename', '_texture',
-                 '_volume', 'eos', '_state', '_async', '_autoplay',
-                 '__weakref__')
+                 '_volume', 'eos', '_state', '_async', '_autoplay')
 
     def __init__(self, **kwargs):
         kwargs.setdefault('filename', None)

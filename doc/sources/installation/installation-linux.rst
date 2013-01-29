@@ -3,7 +3,18 @@
 Installation on Linux
 =====================
 
+<<<<<<< HEAD
 Using software packages
+=======
+Pre-built Packages
+~~~~~~~~~~~~~~~~~~
+Look at our `Downloads <http://kivy.org/#download>`_ Section for pre-built packages for various linux distro's
+
+Prerequisites
+-------------
+
+Ubuntu (11.10 or newer)
+>>>>>>> 2c74d04b0dd963f5a67fb8805cefa97c41709417
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Ubuntu
@@ -128,6 +139,7 @@ Fedora
     mesa-libGLES mesa-libGLES-devel gstreamer-plugins-good gstreamer \
     gstreamer-python mtdev-devel python-pip
     $ sudo pip install --upgrade cython
+    $ sudo pip instll pygments
 
 OpenSuse
 --------
@@ -139,10 +151,16 @@ OpenSuse
     python-devel Mesa-devel python-pip
     $ zypper install -t pattern devel_C_C++
     $ sudo pip install --upgrade cython
+    $ sudo pip install pygments
 
 
+<<<<<<< HEAD
 Mageia (1 and 2(cauldron))
 --------------------------
+=======
+Mageia 1 onwards
+~~~~~~~~~~~~~~~~
+>>>>>>> 2c74d04b0dd963f5a67fb8805cefa97c41709417
 
 ::
 
@@ -151,8 +169,9 @@ Mageia (1 and 2(cauldron))
     gstreamer0.10-python python-enchant gstreamer0.10-plugins-good \
     python-cython lib64python-devel lib64mesagl1-devel lib64mesaegl1-devel \
     lib64mesaglesv2_2-devel make gcc
-    $ sudo easy_install pip
-    $ sudo pip install --upgrade cython
+    $ easy_install pip
+    $ pip install --upgrade cython
+    $ pip install pygments
 
 *Installation*
 --------------
