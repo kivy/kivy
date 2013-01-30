@@ -48,16 +48,15 @@ from kivy.utils import get_hex_from_color
 Cache_get = Cache.get
 Cache_append = Cache.append
 
-# TODO: fix empty line rendering
 # TODO: color chooser for keywords/strings/...
 
 
 class CodeInput(TextInput):
-    '''CodeInput class, used for displaying highlited code.
+    '''CodeInput class, used for displaying highlighted code.
     '''
 
     lexer = ObjectProperty(None)
-    '''This holds the selected Lexer used by pygments to highlite the code
+    '''This holds the selected Lexer used by pygments to highlight the code
 
 
     :data:`lexer` is a :class:`~kivy.properties.ObjectProperty` defaults to
@@ -70,7 +69,9 @@ class CodeInput(TextInput):
         self.text_color = '#000000'
         self._label_cached = Label()
         self.use_text_color = True
+
         super(CodeInput, self).__init__(**kwargs)
+
         self._line_options = kw = self._get_line_options()
         self._label_cached = Label(**kw)
         # use text_color as foreground color
@@ -120,6 +121,17 @@ class CodeInput(TextInput):
         kw['valign'] = 'top'
         kw['codeinput'] = True
         return kw
+
+    def _get_text_width(self, text, tab_width, _label_cached):
+        # Return the width of a text, according to the current line options
+        width = Cache_get('textinput.width', text + '_' + str(self.lexer))
+        if width:
+            return width
+        width = self._create_line_label(text).width
+        Cache_append(
+                    'textinput.width',
+                    text + '_' + str(self.lexer), width)
+        return width
 
     def _get_bbcode(self, ntext):
         # get bbcoded text for python
