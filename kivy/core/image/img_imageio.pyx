@@ -126,6 +126,9 @@ def load_image_data(bytes _url):
     cdef CFURLRef url
     url = CFURLCreateFromFileSystemRepresentation(NULL, <bytes> _url, len(_url), 0)
     cdef CGImageSourceRef myImageSourceRef = CGImageSourceCreateWithURL(url, NULL)
+    if not myImageSourceRef:
+        CFRelease(url)
+        raise ValueError('No image to load at %r' % _url)
     cdef CGImageRef myImageRef = CGImageSourceCreateImageAtIndex (myImageSourceRef, 0, NULL)
     cdef size_t width = CGImageGetWidth(myImageRef)
     cdef size_t height = CGImageGetHeight(myImageRef)
