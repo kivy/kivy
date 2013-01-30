@@ -105,18 +105,17 @@ Ubuntu
 
 *Upgrade Cython ( <= Oneiric [11.10] )*
 
-:Using our PPA:
+:Using our PPA: ::
+
     $ sudo add-apt-repository ppa:kivy-team/kivy-daily
-    
     $ sudo apt-get update
-    
     $ sudo apt-get install cython
 
-..
+.. ``
 
-:Using PIP:
+:Using PIP: ::
+
     $ sudo apt-get install python-pip
-    
     $ sudo pip install --upgrade cython
 
 Fedora
