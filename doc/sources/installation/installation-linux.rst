@@ -6,15 +6,17 @@ Installation on Linux
 Using software packages
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+For installing distribution relative packages .deb/.rpm/...
+
 Ubuntu
 ------
 
 #. Add one of the PPAs as you prefer
 
-:stable builds:
-    $ sudo add-apt-repository ppa:kivy-team/kivy
-:nightly builds:
-    $ sudo add-apt-repository ppa:kivy-team/kivy-daily
+    :stable builds:
+        $ sudo add-apt-repository ppa:kivy-team/kivy
+    :nightly builds:
+        $ sudo add-apt-repository ppa:kivy-team/kivy-daily
 
 2. Update your packagelist with your package manager
 #. Install **python-kivy** and optionally the examples, found in **python-kivy-examples**
@@ -26,22 +28,22 @@ Debian
 
 * Wheezy:
 
-:stable builds:
-    deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
-:nightly builds:
-    deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
+    :stable builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
+    :nightly builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
 
 * Sqeeze:
 
-:stable builds:
-    deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu lucid main
-:nightly builds:
-    deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu lucid main
+    :stable builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu lucid main
+    :nightly builds:
+        deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu lucid main
 
 2. Add the GPG key to your apt keyring by
 
-:generally:
-    $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
+    :generally:
+        $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
 
 3. Refresh your package list and install **python-kivy** and optionally the examples as found in **python-kivy-examples**
 
@@ -50,14 +52,14 @@ OpenSuSE
 
 #. Installing via One-Click-Install
 
-:Factory:
-    `One-Click-Install <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Factory/python-Kivy.ymp?base=openSUSE%3AFactory&query=python-Kivy>`_
-:12.2:
-    `One-Click-Install <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.2/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
-:12.1:
-    `One-Click-Install <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.1/python-Kivy.ymp?base=openSUSE%3A12.1&query=python-Kivy>`_
-:Tumbleweed:
-    `One-Click-Install <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Tumbleweed/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
+    :Factory:
+        `Factory <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Factory/python-Kivy.ymp?base=openSUSE%3AFactory&query=python-Kivy>`_
+    :12.2:
+        `12.2 <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.2/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
+    :12.1:
+        `12.1 <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.1/python-Kivy.ymp?base=openSUSE%3A12.1&query=python-Kivy>`_
+    :Tumbleweed:
+        `Tumbleweed <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Tumbleweed/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
 
 2. Use your preferred package-manager to install the examples, as found in **python-Kivy-examples**
 
@@ -66,23 +68,22 @@ Fedora
 
 #. Adding the repository via terminal:
 
-:Fedora 17:
-    $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
+    :Fedora 17:
+        $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
     
-:Fedora 16:
-    $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
+    :Fedora 16:
+        $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
     
 2. Use now your preferred package-manager to refresh your packagelists
+
 #. Install **python-Kivy** and the examples, as found in **python-Kivy-examples**
 
 
 Using software bundles ( also known as tarballs )
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=================================================
 
 *Providing dependencies*
-------------------------
-
-========================
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 General
 -------
@@ -160,9 +161,9 @@ Mageia 1 onwards
     $ pip install pygments
 
 *Installation*
---------------
-
 ==============
+
+
 
 If you're installing Kivy for the first time, do::
 
