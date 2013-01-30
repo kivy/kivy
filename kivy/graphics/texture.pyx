@@ -637,8 +637,8 @@ cdef class Texture:
         self.update_tex_coords()
 
     cpdef get_region(self, x, y, width, height):
-        '''Return a part of the texture, from (x,y) with (width,height)
-        dimensions'''
+        '''Return a part of the texture defined by the rectangle arguments
+        (x, y, width, height). Returns a :class:`TextureRegion` instance.'''
         return TextureRegion(x, y, width, height, self)
 
     cpdef bind(self):
