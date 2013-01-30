@@ -51,15 +51,12 @@ OpenSuSE
 --------
 
 #. Installing via One-Click-Install
-
-    :Factory:
-        `Factory <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Factory/python-Kivy.ymp?base=openSUSE%3AFactory&query=python-Kivy>`_
-    :12.2:
-        `12.2 <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.2/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
-    :12.1:
-        `12.1 <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.1/python-Kivy.ymp?base=openSUSE%3A12.1&query=python-Kivy>`_
-    :Tumbleweed:
-        `Tumbleweed <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Tumbleweed/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
+    
+    
+    #. `OpenSuSE Factory <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Factory/python-Kivy.ymp?base=openSUSE%3AFactory&query=python-Kivy>`_
+    #. `OpenSuSE 12.2 <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.2/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
+    #. `OpenSuSE 12.1 <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.1/python-Kivy.ymp?base=openSUSE%3A12.1&query=python-Kivy>`_
+    #. `OpenSuSE Tumbleweed <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Tumbleweed/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
 
 2. Use your preferred package-manager to install the examples, as found in **python-Kivy-examples**
 
@@ -114,8 +111,7 @@ Ubuntu
     $ sudo apt-get update
     
     $ sudo apt-get install cython
-
-
+..
 :Using PIP:
     $ sudo apt-get install python-pip
     
