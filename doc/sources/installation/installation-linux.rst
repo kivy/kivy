@@ -111,7 +111,9 @@ Ubuntu
     $ sudo apt-get update
     
     $ sudo apt-get install cython
+
 ..
+
 :Using PIP:
     $ sudo apt-get install python-pip
     
