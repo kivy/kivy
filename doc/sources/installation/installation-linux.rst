@@ -85,6 +85,9 @@ Fedora
 
 #. Adding the repository via terminal:
 
+    :Fedora 18:
+        $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_18/home:thopiekar:kivy.repo
+    
     :Fedora 17:
         $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
     
