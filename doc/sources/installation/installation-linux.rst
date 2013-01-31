@@ -17,6 +17,8 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu
         $ sudo add-apt-repository ppa:kivy-team/kivy
     :nightly builds:
         $ sudo add-apt-repository ppa:kivy-team/kivy-daily
+    
+    * Notice: Lucid is not supported in stable PPA as Python 2.7 is needed, but not provided by Lucid itself. You can find it in the daily PPA.
 
 2. Update your packagelist with your package manager
 #. Install **python-kivy** and optionally the examples, found in **python-kivy-examples**
@@ -104,7 +106,7 @@ General
 -------
 The following software is needed, even if your distribution is not listed above:
 
-- `Python >= 2.6 and Python < 3 <http://www.python.org/>`_
+- `Python >= 2.7 and Python < 3 <http://www.python.org/>`_
 - `PyGame <http://www.pygame.org/>`_
 - `PyEnchant <http://packages.python.org/pyenchant/>`_
 - `gst-python <http://gstreamer.freedesktop.org/modules/gst-python.html>`_
