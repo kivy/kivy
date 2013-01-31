@@ -8,8 +8,8 @@ Using software packages
 
 For installing distribution relative packages .deb/.rpm/...
 
-Ubuntu
-------
+Ubuntu / Kubuntu / Xubuntu / Lubuntu
+------------------------------------
 
 #. Add one of the PPAs as you prefer
 
@@ -46,6 +46,12 @@ Debian
         $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
 
 3. Refresh your package list and install **python-kivy** and optionally the examples as found in **python-kivy-examples**
+
+Linux Mint
+----------
+
+#. Find out on which Ubuntu release your installation is based on, using this `overview <http://www.linuxmint.com/oldreleases.php>`_.
+#. Finally continue as described for Ubuntu above, depending on which version your installation is based on.
 
 OpenSuSE
 --------
