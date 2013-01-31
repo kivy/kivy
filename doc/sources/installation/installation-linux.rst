@@ -53,6 +53,18 @@ Linux Mint
 #. Find out on which Ubuntu release your installation is based on, using this `overview <http://www.linuxmint.com/oldreleases.php>`_.
 #. Finally continue as described for Ubuntu above, depending on which version your installation is based on.
 
+Bodhi Linux
+-----------
+
+#. Find out which version of your distribution you are running and use the table below to find out on which Ubuntu LTS it is based on
+
+    :Bodhi 1:
+        Ubuntu 10.04 LTS
+    :Bodhi 2:
+        Ubuntu 12.04 LTS
+
+2. Finally continue as described for Ubuntu above, depending on which version your installation is based on.
+
 OpenSuSE
 --------
 
