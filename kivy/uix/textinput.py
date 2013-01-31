@@ -976,7 +976,7 @@ class TextInput(Widget):
 
         line_label = _lines_labels[0]
         pady = self.padding_y
-        min_line_ht = _create_label('_').height
+        min_line_ht = self._label_cached.get_extents('_')[1]
         if line_label is None:
             self.line_height = max(1, min_line_ht)
         else:
