@@ -85,15 +85,19 @@ Fedora
 
 #. Adding the repository via terminal:
 
-    :Fedora 18:
+    :Fedora 18: ::
+    
         $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_18/home:thopiekar:kivy.repo
     
-    :Fedora 17:
+    :Fedora 17: ::
+    
         $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
     
-    :Fedora 16:
+    :Fedora 16: ::
+    
         $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
     
+
 2. Use now your preferred package-manager to refresh your packagelists
 
 #. Install **python-Kivy** and the examples, as found in **python-Kivy-examples**
