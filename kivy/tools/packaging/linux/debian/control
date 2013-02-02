@@ -13,6 +13,8 @@ Build-Depends: debhelper (>= 7.0.50~),
                libgles2-mesa-dev [armhf]
 Standards-Version: 3.9.1
 Homepage: http://kivy.org/
+Vcs-Browser: https://github.com/kivy/kivy
+Vcs-Git: https://github.com/kivy/kivy.git
 Vcs-Bzr: https://code.launchpad.net/~kivy-team/kivy/master
 X-Python-Version: >= 2.7
 
@@ -46,4 +48,4 @@ Depends: ${misc:Depends},
          ${python:Depends},
          python-kivy
 Description: Kivy - Multimedia / Multitouch framework in Python
- This package includes all examples which can be found in the git repo.
+ This package includes all examples which can be found in the git repository.
