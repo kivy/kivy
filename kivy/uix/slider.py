@@ -177,8 +177,24 @@ class Slider(Widget):
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            touch.grab(self)
-            self.value_pos = touch.pos
+            if touch.is_mouse_scrolling:
+                if 'down' in touch.button or 'left' in touch.button:
+                    if self.step:
+                        self.value = min(self.max, self.value + self.step)
+                    else:
+                        self.value = min(
+                            self.max,
+                            self.value + (self.max - self.min) / 20)
+                if 'up' in touch.button or 'right' in touch.button:
+                    if self.step:
+                        self.value = max(self.min, self.value - self.step)
+                    else:
+                        self.value = max(
+                            self.min,
+                            self.value - (self.max - self.min) / 20)
+            else:
+                touch.grab(self)
+                self.value_pos = touch.pos
             return True
 
     def on_touch_move(self, touch):
