@@ -442,3 +442,10 @@ class MotionEvent(object):
             self.__class__.__name__,
             ' '.join(out))
 
+    @property
+    def is_mouse_scrolling(self, *args):
+        '''Returns True if the touch is a mousewheel scrolling
+
+        .. versionadded:: 1.5.2
+        '''
+        return 'button' in self.profile and 'scroll' in self.button

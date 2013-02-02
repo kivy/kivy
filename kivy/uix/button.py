@@ -115,8 +115,7 @@ class Button(Label):
     def on_touch_down(self, touch):
         if super(Button, self).on_touch_down(touch):
             return True
-        if 'button' in touch.profile and touch.button in (
-                'scrolldown', 'scrollup', 'scrollleft', 'scrollright'):
+        if touch.is_mouse_scrolling:
             return False
         if not self.collide_point(touch.x, touch.y):
             return False
