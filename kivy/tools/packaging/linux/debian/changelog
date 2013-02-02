@@ -1,0 +1,12 @@
+kivy (1.5.2-dev+0~201301312303-826-pkg34) raring; urgency=low
+
+  * Auto build.
+
+ -- Thomas-Karl Pietrowski <thopiekar@thopiekar-home>  Fri, 01 Feb 2013 00:07:13 +0100
+
+kivy (1.4.1) raring; urgency=low
+
+  * RECIPE BUILD
+
+ -- Thomas-Karl Pietrowski <thopiekar@googlemail.com>  Tue, 14 Nov 2012 22:32:44 +0200
+
