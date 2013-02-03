@@ -18,8 +18,8 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneirc and above)
     :nightly builds:
         $ sudo add-apt-repository ppa:kivy-team/kivy-daily
     
-    * *Notice for Lucid users*: Support has been dropped in stable PPA as Python 2.7 is needed and Python 2.6 is just provided. You can find Python2.7 in the daily PPA, but manual installation is needed.
-    * *Notice for Oneiric users*: Oneiric is supported but uses Python2.6 as the default interpreter. Don't forget to set python2.7 as your interpreter for your project. "python", which is linked to "python2.6" won't work.
+    * **Notice for Lucid users**: Support has been dropped in stable PPA as Python 2.7 is needed and Python 2.6 is just provided. You can find Python2.7 in the daily PPA, but manual installation is needed.
+    * **Notice for Oneiric users**: Oneiric is supported but uses Python2.6 as the default interpreter. Don't forget to set python2.7 as your interpreter for your project. "python", which is linked to "python2.6" won't work.
 
 2. Update your packagelist with your package manager
 #. Install **python-kivy** and optionally the examples, found in **python-kivy-examples**
@@ -31,8 +31,7 @@ Debian
 
 * Wheezy:
     
-    * *Notice*: Don't forget to use the python2.7 interpreter
-    
+    * **Notice**: Don't forget to use the python2.7 interpreter
     :stable builds:
         deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
     :nightly builds:
@@ -64,9 +63,9 @@ Bodhi Linux
 #. Find out which version of your distribution you are running and use the table below to find out on which Ubuntu LTS it is based on
 
     :Bodhi 1:
-        Ubuntu 10.04 LTS
+        Ubuntu 10.04 LTS aka Lucid (No packages, just manual install)
     :Bodhi 2:
-        Ubuntu 12.04 LTS
+        Ubuntu 12.04 LTS aka Precise
 
 2. Finally continue as described for Ubuntu above, depending on which version your installation is based on.
 
@@ -179,13 +178,13 @@ Mageia 1 onwards
 ::
 
     $ su
-    $ urpmi python-setuptools python-pygame python-opengl \
+    # urpmi python-setuptools python-pygame python-opengl \
     gstreamer0.10-python python-enchant gstreamer0.10-plugins-good \
     python-cython lib64python-devel lib64mesagl1-devel lib64mesaegl1-devel \
     lib64mesaglesv2_2-devel make gcc
-    $ easy_install pip
-    $ pip install --upgrade cython
-    $ pip install pygments
+    # easy_install pip
+    # pip install --upgrade cython
+    # pip install pygments
 
 *Installation*
 ==============
