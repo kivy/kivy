@@ -8,8 +8,8 @@ Using software packages
 
 For installing distribution relative packages .deb/.rpm/...
 
-Ubuntu / Kubuntu / Xubuntu / Lubuntu
-------------------------------------
+Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneirc and above)
+-------------------------------------------------------
 
 #. Add one of the PPAs as you prefer
 
@@ -18,7 +18,8 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu
     :nightly builds:
         $ sudo add-apt-repository ppa:kivy-team/kivy-daily
     
-    * Notice: Lucid is not supported in stable PPA as Python 2.7 is needed, but not provided by Lucid itself. You can find it in the daily PPA.
+    * *Notice for Lucid users*: Support has been dropped in stable PPA as Python 2.7 is needed and Python 2.6 is just provided. You can find Python2.7 in the daily PPA, but manual installation is needed.
+    * *Notice for Oneiric users*: Oneiric is supported but uses Python2.6 as the default interpreter. Don't forget to set python2.7 as your interpreter for your project. "python", which is linked to "python2.6" won't work.
 
 2. Update your packagelist with your package manager
 #. Install **python-kivy** and optionally the examples, found in **python-kivy-examples**
@@ -29,18 +30,20 @@ Debian
 #. Add one of the PPAs into your sources.list in apt manually or via Synaptic
 
 * Wheezy:
-
+    
+    * *Notice*: Don't forget to use the python2.7 interpreter
+    
     :stable builds:
         deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
     :nightly builds:
         deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
 
-* Sqeeze:
+* Sqeeze: 
+
+    * Update to Wheezy or install Kivy 1.5.1 from stable PPA:
 
     :stable builds:
-        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu lucid main
-    :nightly builds:
-        deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu lucid main
+        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
 
 2. Add the GPG key to your apt keyring by
 
