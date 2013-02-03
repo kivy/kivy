@@ -32,6 +32,7 @@ Debian
 * Wheezy:
     
     * **Notice**: Don't forget to use the python2.7 interpreter
+
     :stable builds:
         deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
     :nightly builds:
