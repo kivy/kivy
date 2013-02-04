@@ -334,8 +334,6 @@ class SettingString(SettingItem):
     def _validate(self, instance):
         self._dismiss()
         value = self.textinput.text.strip()
-        if value == '':
-            return
         self.value = value
 
     def _create_popup(self, instance):
