@@ -73,6 +73,9 @@ class Cache(object):
             `timeout` : double (optionnal)
                 Custom time to delete the object if it's not used.
         '''
+        #check whether obj should not be cached first
+        if getattr(obj, '_no_cache', False):
+            return
         try:
             cat = Cache._categories[category]
         except KeyError:

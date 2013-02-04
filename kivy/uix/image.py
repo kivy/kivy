@@ -159,6 +159,19 @@ class Image(Widget):
     to .25 (4 FPS)
     '''
 
+
+    nocache = BooleanProperty(False)
+    '''If this property is set True, the image will not be added to the
+    internal cache anymore. (the cache will simply ignore any calls trying to
+    append the core image)
+
+    .. versionadded:: 1.5.0
+
+    :data:`nocache` is a :class:`~kivy.properties.BooleanProperty`, default
+    to False
+    '''
+
+
     def get_norm_image_size(self):
         if not self.texture:
             return self.size
@@ -217,7 +230,8 @@ class Image(Widget):
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             self._coreimage = ci = CoreImage(filename, mipmap=mipmap,
-                    anim_delay=self.anim_delay, keep_data=self.keep_data)
+                    anim_delay=self.anim_delay, keep_data=self.keep_data,
+                    nocache=self.nocache)
             ci.bind(on_texture=self._on_tex_change)
             self.texture = ci.texture
 
@@ -255,6 +269,12 @@ class Image(Widget):
         self.source = ''
         self.source = olsource
 
+    def on_nocache(self, *args):
+        if self.nocache and self._coreimage:
+            self._coreimage.remove_from_cache()
+            sekf._coreimage._nocache = True
+
+
 
 class AsyncImage(Image):
     '''Asynchronous Image class. See module documentation for more information.
@@ -275,7 +295,7 @@ class AsyncImage(Image):
         else:
             if not self.is_uri(value):
                 value = resource_find(value)
-            self._coreimage = image = Loader.image(value)
+            self._coreimage = image = Loader.image(value, nocahe=self.nocache)
             image.bind(on_load=self.on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
