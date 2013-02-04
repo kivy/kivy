@@ -263,7 +263,7 @@ class ConfigParser(PythonConfigParser):
             return defaultvalue
         if not self.has_option(section, option):
             return defaultvalue
-        return self.getint(section, option)
+        return self.get(section, option)
 
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
