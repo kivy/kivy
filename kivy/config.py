@@ -310,7 +310,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Logger.exception('Core: error while reading local'
                              'configuration')
 
-    version = Config.getdefault('kivy', 'config_version', 0)
+    version = int(Config.getdefault('kivy', 'config_version', 0))
 
     # Add defaults section
     Config.adddefaultsection('kivy')
