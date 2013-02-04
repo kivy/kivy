@@ -165,7 +165,7 @@ class Image(Widget):
     internal cache anymore. (the cache will simply ignore any calls trying to
     append the core image)
 
-    .. versionadded:: 1.5.0
+    .. versionadded:: 1.5.2
 
     :data:`nocache` is a :class:`~kivy.properties.BooleanProperty`, default
     to False
