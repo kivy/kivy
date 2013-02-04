@@ -47,6 +47,7 @@ from kivy.resources import resource_find
 from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
         AliasProperty, BooleanProperty, NumericProperty
 from kivy.loader import Loader
+from kivy.logger import Logger
 
 
 class Image(Widget):
@@ -210,7 +211,8 @@ class Image(Widget):
         else:
             filename = resource_find(self.source)
             if filename is None:
-                return
+                return Logger.error('Image: Error reading file {filename}'.
+                                    format(filename=self.source))
             mipmap = self.mipmap
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
