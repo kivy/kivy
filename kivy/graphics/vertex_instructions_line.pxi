@@ -874,11 +874,11 @@ cdef class Line(VertexInstruction):
         angle_end = angle_end * 0.017453292519943295
         angle_range = abs(angle_end - angle_start) / (segments - 2)
 
-        cdef list points = [0, 0] * segments
+        cdef list points = [0, ] * (segments + 2)
         cdef double angle
         cdef double rx = w * 0.5
         cdef double ry = h * 0.5
-        for i in xrange(0, segments * 2, 2):
+        for i in xrange(0, segments + 2, 2):
             angle = angle_start + (angle_dir * (i - 1) * angle_range)
             points[i] = (x + rx) + (rx * sin(angle))
             points[i + 1] = (y + ry) + (ry * cos(angle))
@@ -954,9 +954,9 @@ cdef class Line(VertexInstruction):
         angle_end = angle_end * 0.017453292519943295
         angle_range = abs(angle_end - angle_start) / (segments - 2)
 
-        cdef list points = [0, 0] * segments
+        cdef list points = [0, ] * (segments + 2)
         cdef double angle
-        for i in xrange(0, segments * 2, 2):
+        for i in xrange(0, segments + 2, 2):
             angle = angle_start + (angle_dir * (i - 1) * angle_range)
             points[i] = x + (r * sin(angle))
             points[i + 1] = y + (r * cos(angle))
