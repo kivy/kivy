@@ -119,6 +119,7 @@ from kivy.core.text import Label
 from kivy.uix.widget import Widget
 from kivy.uix.bubble import Bubble
 from kivy.graphics import Color, Rectangle
+from kivy.config import Config
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
         ListProperty, ObjectProperty
@@ -161,8 +162,15 @@ class TextInputCutCopyPaste(Bubble):
     # copy/cut/paste happen.
 
     textinput = ObjectProperty(None)
+    '''
+    '''
+
+    but_cut = ObjectProperty(None)
+    but_copy = ObjectProperty(None)
+    but_paste = ObjectProperty(None)
 
     def __init__(self, **kwargs):
+        self.mode = 'normal'
         super(TextInputCutCopyPaste, self).__init__(**kwargs)
         Clock.schedule_interval(self._check_parent, .5)
 
@@ -178,6 +186,23 @@ class TextInputCutCopyPaste(Bubble):
             Clock.unschedule(self._check_parent)
             if self.textinput:
                 self.textinput._hide_cut_copy_paste()
+
+    def on_parent(self, instance, value):
+        parent = self.textinput
+        children = self.content.children
+        if parent:
+            self.clear_widgets()
+            if parent.readonly:
+                # show only copy for readonly textinput
+                self.add_widget(self.but_copy)
+            elif self.mode == 'paste':
+                # show only paste on long touch
+                self.add_widget(self.but_paste)
+            else:
+                # normal mode
+                self.add_widget(self.but_cut)
+                self.add_widget(self.but_copy)
+                self.add_widget(self.but_paste)
 
     def do(self, action):
         textinput = self.textinput
@@ -217,6 +242,7 @@ class TextInput(Widget):
         self._label_cached = None
         self._line_options = None
         self._keyboard = None
+        self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
         self.reset_undo()
         self.interesting_keys = {
             8: 'backspace',
@@ -656,19 +682,38 @@ class TextInput(Widget):
     #
     # Touch control
     #
+    def long_touch(self, dt):
+        if self._selection_to == self._selection_from and not self.readonly:
+            self._show_cut_copy_paste(
+                                        self._long_touch_pos,
+                                        self._win,
+                                        mode='paste')
+
     def on_touch_down(self, touch):
-        if not self.collide_point(touch.x, touch.y):
+        touch_pos = touch.pos
+        if not self.collide_point(*touch_pos):
+            if self._keyboard_mode == 'multi':
+                if self.readonly:
+                    self.focus = False
+            else:
+                self.focus = False
             return False
         if not self.focus:
             self.focus = True
         touch.grab(self)
-        self.cursor = self.get_cursor_from_xy(touch.x, touch.y)
+
+        self._hide_cut_copy_paste(self._win)
+        # schedule long touch for paste
+        self._long_touch_pos = touch.pos
+        Clock.schedule_once(self.long_touch, 1)
+
+        self.cursor = self.get_cursor_from_xy(*touch_pos)
         if not self._selection_touch:
             self.cancel_selection()
             self._selection_touch = touch
             self._selection_from = self._selection_to = self.cursor_index()
             self._update_selection()
-        return True
+        return False
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
@@ -688,6 +733,10 @@ class TextInput(Widget):
         if touch.grab_current is not self:
             return
         touch.ungrab(self)
+
+        # schedule long touch for paste
+        Clock.unschedule(self.long_touch)
+
         if not self.focus:
             return False
         if self._selection_touch is touch:
@@ -703,8 +752,6 @@ class TextInput(Widget):
                 return True
             if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
-            else:
-                self._hide_cut_copy_paste(win)
             return True
 
     def _hide_cut_copy_paste(self, win=None):
@@ -715,7 +762,7 @@ class TextInput(Widget):
         if bubble is not None:
             win.remove_widget(bubble)
 
-    def _show_cut_copy_paste(self, pos, win, parent_changed=False, *l):
+    def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
         # Show a bubble with cut copy and paste buttons
         bubble = self._bubble
         if bubble is None:
@@ -767,7 +814,8 @@ class TextInput(Widget):
             else:
                 bubble.arrow_pos = 'bottom_mid'
 
-        win.add_widget(self._bubble)
+        bubble.mode = mode
+        win.add_widget(bubble)
 
     #
     # Private
@@ -793,7 +841,7 @@ class TextInput(Widget):
             else:
                 Clock.schedule_once(partial(self.on_focus, self, value), 0)
             return
-        if value:
+        if value and not self.readonly:
             keyboard = win.request_keyboard(self._keyboard_released, self)
             self._keyboard = keyboard
             keyboard.bind(
@@ -801,11 +849,12 @@ class TextInput(Widget):
                 on_key_up=self._keyboard_on_key_up)
             Clock.schedule_interval(self._do_blink_cursor, 1 / 2.)
         else:
-            keyboard = self._keyboard
-            keyboard.unbind(
-                on_key_down=self._keyboard_on_key_down,
-                on_key_up=self._keyboard_on_key_up)
-            keyboard.release()
+            if self._keyboard:
+                keyboard = self._keyboard
+                keyboard.unbind(
+                    on_key_down=self._keyboard_on_key_down,
+                    on_key_up=self._keyboard_on_key_up)
+                keyboard.release()
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
             self._hide_cut_copy_paste(win)
