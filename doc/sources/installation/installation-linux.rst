@@ -47,7 +47,8 @@ Debian
 
 2. Add the GPG key to your apt keyring by
 
-    :generally:
+    :generally: ::
+    
         $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
 
 3. Refresh your package list and install **python-kivy** and optionally the examples as found in **python-kivy-examples**
