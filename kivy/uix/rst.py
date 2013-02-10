@@ -71,13 +71,12 @@ from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.animation import Animation
 from kivy.logger import Logger
-
 from docutils.parsers import rst
 from docutils.parsers.rst import roles
 from docutils import nodes, frontend, utils
 from docutils.parsers.rst import Directive, directives
 from docutils.parsers.rst.roles import set_classes
-
+       
 
 #
 # Handle some additional roles
@@ -116,13 +115,15 @@ if 'KIVY_DOC' not in os.environ:
 Builder.load_string('''
 #:import parse_color kivy.parser.parse_color
 
+
+
 <RstDocument>:
     content: content
     scatter: scatter
     do_scroll_x: False
     canvas:
         Color:
-            rgb: .9, .905, .910
+            rgb: parse_color(root.colors['background'])
         Rectangle:
             pos: self.pos
             size: self.size
@@ -381,7 +382,6 @@ class RstDocument(ScrollView):
     '''Base widget used to store an Rst document. See module documentation for
     more information.
     '''
-
     source = StringProperty(None)
     '''Filename of the RST document.
 
@@ -411,6 +411,7 @@ class RstDocument(ScrollView):
     '''
 
     colors = DictProperty({
+        'background': 'e5e6e9',
         'link': 'ce5c00',
         'paragraph': '202020',
         'title': '204a87',

@@ -351,7 +351,7 @@ class TabbedPanel(GridLayout):
     default to 'None'.
     '''
 
-    _default_tab = ObjectProperty(None)
+    _default_tab = ObjectProperty(None, allow_none=True)
 
     def get_def_tab(self):
         return self._default_tab
@@ -473,13 +473,12 @@ class TabbedPanel(GridLayout):
         if widget in (content, self._tab_layout):
             super(TabbedPanel, self).remove_widget(widget)
         elif isinstance(widget, TabbedPanelHeader):
-            if widget != self._default_tab:
+            if not (self.do_default_tab and widget is self._default_tab):
                 self_tabs = self._tab_strip
                 self_tabs.width -= widget.width
                 self_tabs.remove_widget(widget)
-                if widget.state == 'down':
-                    if self.do_default_tab:
-                        self._default_tab.on_release()
+                if widget.state == 'down' and self.do_default_tab:
+                    self._default_tab.on_release()
                 self._reposition_tabs()
             else:
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
@@ -509,9 +508,9 @@ class TabbedPanel(GridLayout):
         if not value:
             dft = self.default_tab
             if dft in self.tab_list:
-                self._default_tab = None
                 self.remove_widget(dft)
                 self._switch_to_first_tab()
+                self._default_tab = self._current_tab
         else:
             self._current_tab.state = 'normal'
             self._setup_default_tab()

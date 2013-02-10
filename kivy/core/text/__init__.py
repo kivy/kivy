@@ -475,8 +475,8 @@ class LabelBase(object):
 
 # Load the appropriate provider
 Label = core_select_lib('text', (
-    ('sdlttf', 'text_sdlttf', 'LabelSDLttf'),
     ('pygame', 'text_pygame', 'LabelPygame'),
+    ('sdlttf', 'text_sdlttf', 'LabelSDLttf'),
     ('pil', 'text_pil', 'LabelPIL'),
 ))
 

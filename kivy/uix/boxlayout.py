@@ -151,11 +151,11 @@ class BoxLayout(Layout):
                 for key, value in c.pos_hint.iteritems():
                     posy = value * (selfh - padding2)
                     if key == 'y':
-                        cy = y + posy
+                        cy += y + posy
                     elif key == 'top':
-                        cy = y + posy - h
+                        cy += y + posy - h
                     elif key == 'center_y':
-                        cy = y - h / 2. + posy
+                        cy += y - h / 2. + posy
 
                 c.x = cx
                 c.y = cy
@@ -182,11 +182,11 @@ class BoxLayout(Layout):
                 for key, value in c.pos_hint.iteritems():
                     posx = value * (selfw - padding2)
                     if key == 'x':
-                        cx = x + posx
+                        cx += x + posx
                     elif key == 'right':
-                        cx = x + posx - w
+                        cx += x + posx - w
                     elif key == 'center_x':
-                        cx = x - w / 2. + posx
+                        cx += x - w / 2. + posx
 
                 c.x = cx
                 c.y = cy

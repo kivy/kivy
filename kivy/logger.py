@@ -183,8 +183,14 @@ class FileHandler(logging.Handler):
         FileHandler.fd.flush()
 
     def emit(self, message):
-        if not Logger.logfile_activated:
+        # during the startup, store the message in the history
+        if Logger.logfile_activated is None:
             FileHandler.history += [message]
+            return
+
+        # startup done, if the logfile is not activated, avoid history.
+        if Logger.logfile_activated is False:
+            FileHandler.history = []
             return
 
         if FileHandler.fd is None:
@@ -195,7 +201,8 @@ class FileHandler(logging.Handler):
                 FileHandler.fd = False
                 Logger.exception('Error while activating FileHandler logger')
                 return
-            for _message in FileHandler.history:
+            while FileHandler.history:
+                _message = FileHandler.history.pop()
                 self._write_message(_message)
 
         self._write_message(message)
@@ -280,7 +287,7 @@ def logger_config_update(section, key, value):
 
 #: Kivy default logger instance
 Logger = logging.getLogger('kivy')
-Logger.logfile_activated = False
+Logger.logfile_activated = None
 Logger.trace = partial(Logger.log, logging.TRACE)
 
 # add default kivy logger

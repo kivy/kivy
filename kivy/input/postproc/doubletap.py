@@ -34,8 +34,10 @@ class InputPostprocDoubleTap(object):
 
     def find_double_tap(self, ref):
         '''Find a double tap touch within self.touches.
-        The touch must be not a previous double tap, and the distance must be
-        ok'''
+        The touch must be not a previous double tap, and the distance
+        must be ok, also, the touch profile must be compared so the kind
+        of touch is the same
+        '''
         for touchid in self.touches:
             if ref.uid == touchid:
                 continue
@@ -49,6 +51,11 @@ class InputPostprocDoubleTap(object):
                 Vector(touch.osx, touch.osy))
             if distance > self.double_tap_distance:
                 continue
+            if touch.is_mouse_scrolling or ref.is_mouse_scrolling:
+                continue
+            if 'button' in touch.profile or 'button' in ref.profile:
+                if 'button' not in ref.profile or ref.button != touch.profile:
+                    continue
             touch.double_tap_distance = distance
             return touch
         return None

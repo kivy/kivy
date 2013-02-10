@@ -40,6 +40,9 @@ Available configuration tokens
         'multi' (one virtual keyboard everytime a widget ask for.)
     `keyboard_layout`: string
         Identifier of the layout to use
+    `window_icon`: string
+        Path of the window icon. Use this if you want to replace the default
+        pygame icon.
 
 :postproc:
 
@@ -95,9 +98,6 @@ Available configuration tokens
         Top position of the :class:`~kivy.core.window.Window`
     `left`: int
         Left position of the :class:`~kivy.core.window.Window`
-    `window_icon`: string
-        Path of the window icon. Use this if you want to replace the default
-        pygame icon.
     `rotation`: (0, 90, 180, 270)
         Rotation of the :class:`~kivy.core.window.Window`
     `resizable`: (0, 1)
@@ -263,7 +263,7 @@ class ConfigParser(PythonConfigParser):
             return defaultvalue
         if not self.has_option(section, option):
             return defaultvalue
-        return self.getint(section, option)
+        return self.get(section, option)
 
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
@@ -310,7 +310,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Logger.exception('Core: error while reading local'
                              'configuration')
 
-    version = Config.getdefault('kivy', 'config_version', 0)
+    version = int(Config.getdefault('kivy', 'config_version', 0))
 
     # Add defaults section
     Config.adddefaultsection('kivy')
@@ -439,8 +439,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Config.set('kivy', 'config_version', KIVY_CONFIG_VERSION)
 
     # Now, activate log file
-    if Config.getint('kivy', 'log_enable'):
-        Logger.logfile_activated = True
+    Logger.logfile_activated = bool(Config.getint('kivy', 'log_enable'))
 
     # If no configuration exist, write the default one.
     if (not exists(kivy_config_fn) or need_save) and \

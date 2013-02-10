@@ -2,6 +2,9 @@
 Texture
 =======
 
+.. versionchanged:: 1.5.2
+    Added support for paletted texture on OES: 'palette4_rgb8', 'palette4_rgba8', 'palette4_r5_g6_b5', 'palette4_rgba4', 'palette4_rgb5_a1', 'palette8_rgb8', 'palette8_rgba8', 'palette8_r5_g6_b5', 'palette8_rgba4', 'palette8_rgb5_a1'
+
 :class:`Texture` is a class to handle OpenGL texture. Depending of the hardware,
 some OpenGL capabilities might not be available (BGRA support, NPOT support,
 etc.)
@@ -199,13 +202,33 @@ cdef GLuint GL_BGRA = 0x80E1
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
+cdef GLuint GL_PALETTE4_RGB8_OES = 0x8B90
+cdef GLuint GL_PALETTE4_RGBA8_OES = 0x8B91
+cdef GLuint GL_PALETTE4_R5_G6_B5_OES = 0x8B92
+cdef GLuint GL_PALETTE4_RGBA4_OES = 0x8B93
+cdef GLuint GL_PALETTE4_RGB5_A1_OES = 0x8B94
+cdef GLuint GL_PALETTE8_RGB8_OES = 0x8B95
+cdef GLuint GL_PALETTE8_RGBA8_OES = 0x8B96
+cdef GLuint GL_PALETTE8_R5_G6_B5_OES = 0x8B97
+cdef GLuint GL_PALETTE8_RGBA4_OES = 0x8B98
+cdef GLuint GL_PALETTE8_RGB5_A1_OES = 0x8B99
 
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
     'luminance': GL_LUMINANCE, 'luminance_alpha': GL_LUMINANCE_ALPHA,
     's3tc_dxt1': GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
     's3tc_dxt3': GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
-    's3tc_dxt5': GL_COMPRESSED_RGBA_S3TC_DXT5_EXT }
+    's3tc_dxt5': GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
+    'palette4_rgb8': GL_PALETTE4_RGB8_OES,
+    'palette4_rgba8': GL_PALETTE4_RGBA8_OES,
+    'palette4_r5_g6_b5': GL_PALETTE4_R5_G6_B5_OES,
+    'palette4_rgba4': GL_PALETTE4_RGBA4_OES,
+    'palette4_rgb5_a1': GL_PALETTE4_RGB5_A1_OES,
+    'palette8_rgb8': GL_PALETTE8_RGB8_OES,
+    'palette8_rgba8': GL_PALETTE8_RGBA8_OES,
+    'palette8_r5_g6_b5': GL_PALETTE8_R5_G6_B5_OES,
+    'palette8_rgba4': GL_PALETTE8_RGBA4_OES,
+    'palette8_rgb5_a1': GL_PALETTE8_RGB5_A1_OES }
 
 
 cdef dict _gl_buffer_fmt = {
@@ -259,6 +282,8 @@ cdef inline int _color_fmt_to_gl(bytes x):
 cdef inline int _is_compressed_fmt(str x):
     '''Return 1 if the color string format is a compressed one
     '''
+    if x.startswith('palette'):
+        return 1
     return x.startswith('s3tc_dxt')
 
 
@@ -637,8 +662,8 @@ cdef class Texture:
         self.update_tex_coords()
 
     cpdef get_region(self, x, y, width, height):
-        '''Return a part of the texture, from (x,y) with (width,height)
-        dimensions'''
+        '''Return a part of the texture defined by the rectangle arguments
+        (x, y, width, height). Returns a :class:`TextureRegion` instance.'''
         return TextureRegion(x, y, width, height, self)
 
     cpdef bind(self):

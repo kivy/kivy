@@ -246,7 +246,7 @@ class DropDown(ScrollView):
         if not widget or not win:
             return
         wx, wy = widget.to_window(*widget.pos)
-        wtop, wright = widget.to_window(widget.top, widget.right)
+        wright, wtop = widget.to_window(widget.right, widget.top)
 
         # set width and x
         if self.auto_width:

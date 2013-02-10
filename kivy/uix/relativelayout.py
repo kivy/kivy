@@ -56,3 +56,7 @@ class RelativeLayout(Scatter):
 
     def remove_widget(self, *l):
         self.content.remove_widget(*l)
+
+    def clear_widgets(self):
+        self.content.clear_widgets()
+

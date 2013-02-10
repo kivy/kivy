@@ -36,7 +36,7 @@ You could also change the appearance of the `strip_cls` which defaults to
 :class:`SplitterStrip` by overriding the `kv` rule for like so in your app::
 
     <SplitterStrip>:
-        horizontal: True if self.parent and self.parent.sizable_from \
+        horizontal: True if self.parent and self.parent.sizable_from[0] \
 in ('t', 'b') else False
         background_normal: 'path to normal horizontal image' \
 if self.horizontal else 'path to vertical normal image'
@@ -86,7 +86,7 @@ class Splitter(BoxLayout):
 
     sizable_from = OptionProperty('left',
         options=('left', 'right', 'top', 'bottom'))
-    '''Specifies weather the widget is resizable from ::
+    '''Specifies wether the widget is resizable from ::
         `left`, `right`, `top` or `bottom`
 
     :data:`sizable_from` is a :class:`~kivy.properties.OptionProperty`
@@ -101,14 +101,14 @@ class Splitter(BoxLayout):
     '''
 
     min_size = NumericProperty('100pt')
-    '''Specifies the minimum size beyound which the widget is not resizable
+    '''Specifies the minimum size beyond which the widget is not resizable
 
     :data:`min_size` is a :class:`~kivy.properties.NumericProperty`
     defaults to `100pt`
     '''
 
     max_size = NumericProperty('500pt')
-    '''Specifies the maximum size beyound which the widget is not resizable
+    '''Specifies the maximum size beyond which the widget is not resizable
 
     :data:`max_size` is a :class:`~kivy.properties.NumericProperty`
     defaults to `500pt`
@@ -117,6 +117,8 @@ class Splitter(BoxLayout):
     def __init__(self, **kwargs):
         self._container = None
         self._strip = None
+        self.register_event_type('on_press')
+        self.register_event_type('on_release')
         super(Splitter, self).__init__(**kwargs)
 
     def on_sizable_from(self, instance, sizable_from):
@@ -179,10 +181,18 @@ class Splitter(BoxLayout):
     def clear_widgets(self):
         self.remove_widget(self._container)
 
-    def strip_up(self, instance, touch):
+    def strip_down(self, instance, touch):
         if (not self.collide_point(*touch.pos)):
             return False
         touch.grab(self)
+        self.dispatch('on_press')
+
+    def on_press(self):
+        '''This event is fired when the strip of the splitter is pressed
+
+        .. versionadded:: 1.0.6
+        '''
+        pass
 
     def strip_move(self, instance, touch):
         if touch.grab_current is not self._strip:
@@ -223,10 +233,18 @@ class Splitter(BoxLayout):
             width = self.width
             self.width = max(min_size, min(width, max_size))
 
-    def strip_down(self, instance, touch):
+    def strip_up(self, instance, touch):
         if touch.grab_current is not self._strip:
             return
         touch.ungrab(self._strip)
+        self.dispatch('on_release')
+
+    def on_release(self):
+        '''This event is fired when the strip of the splitter is released
+
+        .. versionadded:: 1.0.6
+        '''
+        pass
 
 
 if __name__ == '__main__':

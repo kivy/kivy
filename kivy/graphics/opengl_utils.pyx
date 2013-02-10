@@ -16,7 +16,7 @@ include "opengl_utils_def.pxi"
 cimport c_opengl
 from kivy.logger import Logger
 from kivy.utils import platform as core_platform
-from opengl import _GL_GET_SIZE
+from kivy.graphics.opengl import _GL_GET_SIZE
 
 
 cdef list _gl_extensions = []
@@ -91,7 +91,7 @@ cpdef int gl_has_capability(int cap):
 
     '''
     cdef int value = _gl_caps.get(cap, -1)
-    cdef str msg
+    cdef str msg, sval
 
     # if we got a value, it's already initialized, return it!
     if value!= -1:
@@ -105,7 +105,12 @@ cpdef int gl_has_capability(int cap):
     elif cap == c_GLCAP_NPOT:
         msg = 'NPOT texture support'
         if _platform == 'ios' or _platform == 'android':
-            value = 1
+            # Adreno 200 renderer doesn't support NPOT
+            sval = <char *>c_opengl.glGetString(c_opengl.GL_RENDERER)
+            if sval == 'Adreno 200':
+                value = 0
+            else:
+                value = 1
         else:
             value = gl_has_extension('ARB_texture_non_power_of_two')
             if not value:
@@ -169,6 +174,8 @@ cpdef int gl_has_texture_native_format(str fmt):
     '''
     if fmt in ('rgb', 'rgba', 'luminance', 'luminance_alpha'):
         return 1
+    if fmt in ('palette4_rgb8', 'palette4_rgba8', 'palette4_r5_g6_b5', 'palette4_rgba4', 'palette4_rgb5_a1', 'palette8_rgb8', 'palette8_rgba8', 'palette8_r5_g6_b5', 'palette8_rgba4', 'palette8_rgb5_a1'):
+        return gl_has_extension('OES_compressed_paletted_texture')
     if fmt in ('bgr', 'bgra'):
         return gl_has_capability(c_GLCAP_BGRA)
     if fmt == 's3tc_dxt1':

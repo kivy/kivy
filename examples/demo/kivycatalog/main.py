@@ -15,14 +15,15 @@ from kivy.uix.codeinput import CodeInput
 from kivy.animation import Animation
 from kivy.clock import Clock
 
-print Config.get('graphics', 'width')
+CATALOG_ROOT = os.path.dirname(__file__)
 
 Config.set('graphics', 'width', '1024')
 Config.set('graphics', 'height', '768')
 
 '''List of classes that need to be instantiated in the factory from .kv files.
 '''
-CONTAINER_CLASSES = [c[:-3] for c in os.listdir('container_kvs')
+CONTAINER_KVS = os.path.join(CATALOG_ROOT, 'container_kvs')
+CONTAINER_CLASSES = [c[:-3] for c in os.listdir(CONTAINER_KVS)
     if c.endswith('.kv')]
 
 
@@ -48,8 +49,7 @@ class Container(BoxLayout):
         '''Get the name of the kv file, a lowercase version of the class
         name.
         '''
-        return os.path.join('container_kvs',
-            self.__class__.__name__ + ".kv")
+        return os.path.join(CONTAINER_KVS, self.__class__.__name__ + '.kv')
 
 
 for class_name in CONTAINER_CLASSES:
@@ -67,7 +67,7 @@ class KivyRenderTextInput(CodeInput):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
                 if key == ord('s'):
-                    self.parent.parent.parent.change_kv(True)
+                    self.catalog.change_kv(True)
                     return
 
         super(KivyRenderTextInput, self)._keyboard_on_key_down(
@@ -140,20 +140,16 @@ class Catalog(BoxLayout):
             Builder._apply_rule(widget, parser.root, parser.root)
             kv_container.add_widget(widget)
         except (SyntaxError, ParserException) as e:
-            self.info_label.text = str(e)
-            self.anim = Animation(top=190.0, opacity=1, d=2, t='in_back') +\
-                Animation(top=190.0, d=2) +\
-                Animation(top=0, opacity=0, d=2)
-            self.anim.start(self.info_label)
-        except:
-            import traceback
-            traceback.print_exc()
-            popup = Popup(title="Boom",
-                content=Label(text='Something horrible happened while parsing'
-                        + 'your Kivy Language', text_size=(350, None),
-                size_hint=(None, None), size=(400, 400)))
-            popup.open()
+            self.show_error(e)
+        except Exception, e:
+            self.show_error(e)
 
+    def show_error(self, e):
+        self.info_label.text = str(e)
+        self.anim = Animation(top=190.0, opacity=1, d=2, t='in_back') +\
+            Animation(top=190.0, d=3) +\
+            Animation(top=0, opacity=0, d=2)
+        self.anim.start(self.info_label)
 
 class KivyCatalogApp(App):
     '''The kivy App that runs the main root. All we do is build a catalog

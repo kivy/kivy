@@ -11,7 +11,7 @@ TODO:
 
 __all__ = ('LabelSDLttf', )
 
-from . import LabelBase
+from kivy.core.text import LabelBase
 from kivy.core.image import ImageData
 from kivy.resources import resource_paths
 from os.path import exists, join

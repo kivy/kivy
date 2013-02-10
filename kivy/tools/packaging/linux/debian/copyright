@@ -1,0 +1,40 @@
+This work was packaged for Debian by:
+
+    Mathieu Virbel <mat@kivy.org> on Sat, 02 Apr 2011 18:28:19 +1000
+
+It was downloaded from:
+
+	http://pypi.python.org/packages/source/K/Kivy/
+
+Upstream Author(s):
+
+    Kivy Crew <kivy-dev@googlegroups.com>
+
+Copyright:
+
+    Copyright (c) 2010-2011 Kivy team
+
+License (except 3rd libraries):
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 3 of the License, or (at your option) any later version.
+
+    On Debian GNU/Linux systems, the complete text of the GNU Lesser General
+    Public License can be found in /usr/share/common-licenses/LGPL-3.
+
+License (kivy/lib/osc):
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    On Debian GNU/Linux systems, the complete text of the GNU Lesser General
+    Public License can be found in /usr/share/common-licenses/LGPL-2.1.
+
+The Debian packaging is:
+
+    Copyright (C) 2011 Mathieu Virbel <mat@kivy.org> under the GPL version 3,
+    see `/usr/share/common-licenses/GPL-3'.

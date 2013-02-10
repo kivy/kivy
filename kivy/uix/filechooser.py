@@ -341,8 +341,7 @@ class FileChooserController(FloatLayout):
         '''
         if (
             'button' in touch.profile and touch.button in (
-                'scrollup', 'scrolldown')
-        ):
+                'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
             return False
         if self.multiselect:
             if isdir(entry.path) and touch.is_double_tap:
@@ -367,8 +366,7 @@ class FileChooserController(FloatLayout):
         '''
         if (
             'button' in touch.profile and touch.button in (
-            'scrollup', 'scrolldown')
-        ):
+                'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
             return False
         if not self.multiselect:
             if isdir(entry.path) and not self.dirselect:

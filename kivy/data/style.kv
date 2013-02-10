@@ -143,15 +143,21 @@
             rgba: self.foreground_color
 
 <TextInputCutCopyPaste>:
+    but_cut: cut
+    but_copy: copy
+    but_paste: paste
     size_hint: None, None
     size: 150, 50
     BubbleButton:
+        id: cut
         text: 'Cut'
         on_release: root.do('cut')
     BubbleButton:
+        id: copy
         text: 'Copy'
         on_release: root.do('copy')
     BubbleButton:
+        id: paste
         text: 'Paste'
         on_release: root.do('paste')
 
