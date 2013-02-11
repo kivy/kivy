@@ -117,8 +117,12 @@ class ModuleBase:
             module = __import__(name=modname)
             module = sys.modules[modname]
         except ImportError:
-            Logger.exception('Modules: unable to import <%s>' % name)
-            raise
+            try:
+                module = __import__(name=name)
+                module = sys.modules[name]
+            except ImportError:
+                Logger.exception('Modules: unable to import <%s>' % name)
+                raise
         # basic check on module
         if not hasattr(module, 'start'):
             Logger.warning('Modules: Module <%s> missing start() function' %
