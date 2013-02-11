@@ -220,7 +220,7 @@ class Atlas(EventDispatcher):
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
         # for its initial implementation.
         try:
-            import Image
+            from PIL import Image
         except ImportError:
             Logger.critical('Atlas: Imaging/PIL are missing')
             raise
