@@ -21,8 +21,6 @@ select the alpha value.
 __all__ = 'ColorPicker', 'ColorWheel'
 
 from kivy.uix.widget import Widget
-from kivy.uix.popup import Popup
-from kivy.uix.numpad import NumPad
 from kivy.properties import NumericProperty, BoundedNumericProperty,\
     ListProperty, ObjectProperty, ReferenceListProperty
 from kivy.core.window import Window
@@ -324,43 +322,6 @@ class ColorPicker(Widget):
     bg_color = ListProperty((.3, .3, .3, 1))
     color = ListProperty((1, 1, 1, 1))
     wheel = ObjectProperty(None)
-
-    # def __init__(self, **kwargs):
-    #     super(ColorPicker, self).__init__(**kwargs)
-
-    def rgba_callback(self, value):
-        self.color = value
-
-    def button_callback(self, button_str):
-        current_val = int(self.color[
-            {'R': 0, 'G': 1, 'B': 2, 'A': 3}[button_str]] * 255)
-
-        np = NumPad(self, value=current_val, max_value=255)
-
-        np_popup = Popup(content=np,
-                         title="Please choose a color value (0-255) for " +
-                         str(button_str),
-                         size_hint=(.4, .6),  id=button_str)
-
-        np_popup.bind(on_dismiss=self.popup_dismissed)
-        np_popup.open()
-
-    def popup_dismissed(self, instance):
-        colr = instance.id
-        val = instance.content.value
-        self.color[
-            {'R': 0, 'G': 1, 'B': 2, 'A': 3}[colr]] = val / 255.
-
-        # if it's the alpha value that's been edited, we could change
-        # this in the colorwheel, but we're not for now
-        if colr == 'A':
-            self.alphaslider.value = val / 255
-
-    def get_alpha(self):
-        self.alphaslider.value = self.color[3]
-
-    def alpha_slide(self, value):
-        self.color[3] = value
 
 
 if __name__ in ('__android__', '__main__'):
