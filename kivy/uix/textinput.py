@@ -358,7 +358,8 @@ class TextInput(Widget):
         self.select_text(0, len(self.text))
 
     def insert_text(self, substring, from_undo=False):
-        '''Insert new text on the current cursor position.
+        '''Insert new text on the current cursor position. Override
+        this function in order to pre-process text for input validation.
         '''
         if self.readonly:
             return
@@ -1764,7 +1765,7 @@ class TextInput(Widget):
     def _set_text(self, text):
         if self.text == text:
             return
-        self._refresh_text(text)
+        Clock.schedule_once(partial(self._refresh_text, text))
         self.cursor = self.get_cursor_from_index(len(text))
 
     text = AliasProperty(_get_text, _set_text, bind=('_lines', ))
