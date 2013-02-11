@@ -23,13 +23,12 @@ __all__ = 'ColorPicker', 'ColorWheel'
 from kivy.uix.widget import Widget
 from kivy.uix.popup import Popup
 from kivy.uix.numpad import NumPad
-from kivy.properties import NumericProperty, ListProperty, ObjectProperty,\
-    AliasProperty
+from kivy.properties import NumericProperty, BoundedNumericProperty,\
+    ListProperty, ObjectProperty, ReferenceListProperty
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.graphics import Mesh, InstructionGroup, Color
 from math import cos, sin, pi, sqrt, atan
-from functools import partial
 
 
 def distance(pt1, pt2):
@@ -62,28 +61,13 @@ class ColorWheel(Widget):
     '''
     Chromatic wheel for the ColorPiker.
     '''
-    color = ListProperty([1.0, 1.0, 1.0, 1.0])
 
-    # YES, self is in second position, because partial was used on the
-    # function, not the method
-    def _set_color(c, self, value):
-        if 0 <= value <= 1:
-            self.color[c] = value
-        else:
-            raise ValueError('colors composants must be in [0-1]')
+    r = BoundedNumericProperty(0, min=0, max=1)
+    g = BoundedNumericProperty(0, min=0, max=1)
+    b = BoundedNumericProperty(0, min=0, max=1)
+    a = BoundedNumericProperty(0, min=0, max=1)
 
-    # see comment on _set_color
-    def _get_color(c, self):
-        return self.color[c]
-
-    r = AliasProperty(partial(_get_color, 0), partial(_set_color, 0),
-                      observe=('color',))
-    g = AliasProperty(partial(_get_color, 1), partial(_set_color, 1),
-                      observe=('color',))
-    b = AliasProperty(partial(_get_color, 2), partial(_set_color, 2),
-                      observe=('color',))
-    a = AliasProperty(partial(_get_color, 3), partial(_set_color, 3),
-                      observe=('color',))
+    color = ReferenceListProperty(r, g, b, a)
 
     origin = ListProperty((100, 100))
     radius = NumericProperty(100)
