@@ -39,6 +39,14 @@ If you wish to have a bare-bones list adapter, without selection, use
         `on_selection_change`: (view, view list )
             Fired when selection changes
 
+.. versionchanged:: 1.5.2
+
+    Added data = ListProperty([]), which was proably inadvertently deleted at
+    some point. This means that whenever data changes an update will fire,
+    instead of having to reset the data object (Adapter has data defined as
+    and ObjectProperty, so we need to reset it here to ListAdapter -- see also
+    DictAdapter and its set of data = DictProperty().
+
 '''
 
 __all__ = ('ListAdapter', )
@@ -47,7 +55,6 @@ import inspect
 from kivy.event import EventDispatcher
 from kivy.adapters.adapter import Adapter
 from kivy.adapters.models import SelectableDataItem
-from kivy.properties import ObjectProperty
 from kivy.properties import ListProperty
 from kivy.properties import DictProperty
 from kivy.properties import BooleanProperty
@@ -61,6 +68,16 @@ class ListAdapter(Adapter, EventDispatcher):
     A base class for adapters interfacing with lists, dictionaries, or other
     collection type data, adding selection and view creation and management
     functonality.
+    '''
+
+    data = ListProperty([])
+    '''The data list property is redefined from Adapter. We will bind to data
+    and want any changes to trigger updates. See also how
+    :class:`~kivy.adapters.DictAdapter` redefines data as
+    :class:`~kivy.properties.DictProperty`.
+
+    :data:`data` is a :class:`~kivy.properties.ListProperty`, default
+    to [].
     '''
 
     selection = ListProperty([])
