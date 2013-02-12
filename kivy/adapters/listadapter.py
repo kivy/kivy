@@ -44,7 +44,7 @@ If you wish to have a bare-bones list adapter, without selection, use
     Added data = ListProperty([]), which was proably inadvertently deleted at
     some point. This means that whenever data changes an update will fire,
     instead of having to reset the data object (Adapter has data defined as
-    and ObjectProperty, so we need to reset it here to ListAdapter -- see also
+    and ObjectProperty, so we need to reset it here to ListProperty). See also
     DictAdapter and its set of data = DictProperty().
 
 '''
@@ -71,8 +71,9 @@ class ListAdapter(Adapter, EventDispatcher):
     '''
 
     data = ListProperty([])
-    '''The data list property is redefined from Adapter. We will bind to data
-    and want any changes to trigger updates. See also how
+    '''The data list property is redefined here, overriding its definition as
+    an ObjectProperty in the Adapter class.. We will bind to data and want any
+    changes to trigger updates. See also how
     :class:`~kivy.adapters.DictAdapter` redefines data as
     :class:`~kivy.properties.DictProperty`.
 
