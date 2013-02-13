@@ -200,6 +200,7 @@ class Video(Image):
         self.eos = True
 
     def _on_load(self, *largs):
+        self.loaded = True
         self._on_video_frame(largs)
 
     def on_volume(self, instance, value):
