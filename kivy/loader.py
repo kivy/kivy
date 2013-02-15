@@ -70,6 +70,7 @@ class LoaderBase(object):
 
         self._loading_image = None
         self._error_image = None
+        self._num_workers = 2
 
         self._q_load = deque()
         self._q_done = deque()
@@ -83,6 +84,30 @@ class LoaderBase(object):
             Clock.unschedule(self._update)
         except Exception:
             pass
+
+    def _set_num_workers(self, num):
+        if num < 2:
+            raise Exception('Must have at least 2 workers')
+        self._num_workers = num
+    def _get_num_workers(self):
+        return self._num_workers
+
+    num_workers = property(_get_num_workers, _set_num_workers)
+    '''Number of workers to use while loading. (used only if the loader
+    implementation support it.). This setting impact the loader only at the
+    beginning. Once the loader is started, the setting has no impact::
+
+        from kivy.loader import Loader
+        Loader.num_workers = 4
+
+    The default value is 2 for giving a smooth user experience. You could
+    increase the number of workers, then all the images will be loaded faster,
+    but the user will not been able to use the application while loading.
+    Prior to 1.5.2, the default number was 20, and loading many full-hd images
+    was blocking completly the application.
+
+    .. versionadded:: 1.5.2
+    '''
 
     @property
     def loading_image(self):
@@ -134,7 +159,7 @@ class LoaderBase(object):
         if post_callback:
             data = post_callback(data)
 
-        self._q_done.append((filename, data))
+        self._q_done.appendleft((filename, data))
         self._trigger_update()
 
     def _load_local(self, filename):
@@ -222,6 +247,9 @@ class LoaderBase(object):
                 client.dispatch('on_load')
                 self._client.remove((c_filename, client))
 
+            break
+        self._trigger_update()
+
     def image(self, filename, load_callback=None, post_callback=None, **kwargs):
         '''Load a image using loader. A Proxy image is returned with a loading
         image.
@@ -248,7 +276,7 @@ class LoaderBase(object):
 
         if data is None:
             # if data is None, this is really the first time
-            self._q_load.append((filename, load_callback, post_callback))
+            self._q_load.appendleft((filename, load_callback, post_callback))
             Cache.append('kivy.loader', filename, False)
             self._start_wanted = True
             self._trigger_update()
@@ -283,7 +311,7 @@ else:
 
             def start(self):
                 super(LoaderPygame, self).start()
-                self.worker = pygame.threads.WorkerQueue()
+                self.worker = pygame.threads.WorkerQueue(self._num_workers)
                 self.worker.do(self.run)
 
             def stop(self):
