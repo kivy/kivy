@@ -1003,6 +1003,43 @@ class AdaptersTestCase(unittest.TestCase):
         alphabet_adapter.cut_to_sel()
         self.assertEqual(len(alphabet_adapter.data), 2)
 
+    def test_list_adapter_reset_data(self):
+        class PetListener(object):
+            def __init__(self, pet):
+                self.current_pet = pet
+
+            # This should happen as a result of data changing.
+            def callback(self, *args):
+                self.current_pet = args[1]
+
+        pet_listener = PetListener('cat')
+
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec['text'],
+                                        'size_hint_y': None,
+                                        'height': 25}
+
+        list_adapter = ListAdapter(
+                        data=['cat'],
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        selection_limit=1000,
+                        allow_empty_selection=True,
+                        cls=ListItemButton)
+
+        list_adapter.bind_triggers_to_view(pet_listener.callback)
+
+        self.assertEqual(pet_listener.current_pet, 'cat')
+        dog_data = ['dog']
+        list_adapter.data = dog_data
+        self.assertEqual(list_adapter.data, ['dog'])
+        self.assertEqual(pet_listener.current_pet, dog_data)
+
+        # Now just change an item.
+        list_adapter.data[0] = 'cat'
+        self.assertEqual(list_adapter.data, ['cat'])
+        self.assertEqual(pet_listener.current_pet, ['cat'])
+
     def test_dict_adapter_composite(self):
         item_strings = ["{0}".format(index) for index in xrange(100)]
 
