@@ -17,11 +17,25 @@ If you want to change the default loading image, you can do::
 
     Loader.loading_image = Image('another_loading.png')
 
+Tweaking the asynchronous loader
+--------------------------------
+
+.. versionadded:: 1.5.2
+
+You can now tweak the loader to have a better user experience or more
+performance, depending of the images you're gonna to load. Take a look at the
+parameters:
+
+    - :data:`Loader.num_workers` - define the number of threads to start for
+      loading images
+    - :data:`Loader.max_upload_per_frame` - define the maximum image uploads in
+      GPU to do per frames.
+
 '''
 
 __all__ = ('Loader', 'LoaderBase', 'ProxyImage')
 
-from kivy import kivy_data_dir, kivy_base_dir
+from kivy import kivy_data_dir
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.cache import Cache
@@ -71,6 +85,7 @@ class LoaderBase(object):
         self._loading_image = None
         self._error_image = None
         self._num_workers = 2
+        self._max_upload_per_frame = 2
 
         self._q_load = deque()
         self._q_done = deque()
@@ -109,6 +124,31 @@ class LoaderBase(object):
     .. versionadded:: 1.5.2
     '''
 
+    def _set_max_upload_per_frame(self, num):
+        if num is not None and num < 1:
+            raise Exception('Must have at least 1 image processing per image')
+        self._max_upload_per_frame = num
+    def _get_max_upload_per_frame(self):
+        return self._max_upload_per_frame
+
+    max_upload_per_frame = property(_get_max_upload_per_frame,
+            _set_max_upload_per_frame)
+    '''Number of image to upload per frame. By default, we'll upload only 2
+    images in the GPU per frame. If you are uploading many tiny images, you can
+    easily increase this parameter to 10, or more.
+    If you are loading multiples Full-HD images, the upload time can be
+    consequent, and can stuck the application during the upload. If you want a
+    smooth experience, let the default.
+
+    As matter of fact, a Full-HD RGB image will take ~6MB in memory, so it will
+    take times. If you have activated mipmap=True too, then the GPU must
+    calculate the mipmap of this big images too, in real time. Then it can be
+    smart to reduce the :data:`max_upload_per_frame` to 1 or 2. If you get ride
+    of that (or reduce it a lot), take a look at the DDS format.
+
+    .. versionadded:: 1.5.2
+    '''
+
     @property
     def loading_image(self):
         '''Image used for loading (readonly)'''
@@ -138,12 +178,18 @@ class LoaderBase(object):
         '''Stop the loader thread/process'''
         self._running = False
 
-    def _load(self, parameters):
+    def _load(self, kwargs):
         '''(internal) Loading function, called by the thread.
         Will call _load_local() if the file is local,
         or _load_urllib() if the file is on Internet'''
 
-        filename, load_callback, post_callback = parameters
+        # FIXME, make it configurable?
+        while len(self._q_done) > self.max_upload_per_frame * 2:
+            sleep(0.1)
+
+        filename = kwargs['filename']
+        load_callback = kwargs['load_callback']
+        post_callback = kwargs['post_callback']
         try:
             proto = filename.split(':', 1)[0]
         except:
@@ -152,9 +198,9 @@ class LoaderBase(object):
         if load_callback is not None:
             data = load_callback(filename)
         elif proto in ('http', 'https', 'ftp', 'smb'):
-            data = self._load_urllib(filename)
+            data = self._load_urllib(filename, kwargs['kwargs'])
         else:
-            data = self._load_local(filename)
+            data = self._load_local(filename, kwargs['kwargs'])
 
         if post_callback:
             data = post_callback(data)
@@ -162,13 +208,13 @@ class LoaderBase(object):
         self._q_done.appendleft((filename, data))
         self._trigger_update()
 
-    def _load_local(self, filename):
+    def _load_local(self, filename, kwargs):
         '''(internal) Loading a local file'''
         # With recent changes to CoreImage, we must keep data otherwise,
         # we might be unable to recreate the texture afterwise.
-        return ImageLoader.load(filename, keep_data=True)
+        return ImageLoader.load(filename, keep_data=True, **kwargs)
 
-    def _load_urllib(self, filename):
+    def _load_urllib(self, filename, kwargs):
         '''(internal) Loading a network file. First download it, save it to a
         temporary file, and pass it to _load_local()'''
         import urllib2
@@ -183,7 +229,7 @@ class LoaderBase(object):
                     'Loader: can not load PySMB: make sure it is installed')
                 return
         import tempfile
-        data = None
+        data = fd = _out_osfd = None
         try:
             _out_filename = ''
             suffix = '.%s' % (filename.split('.')[-1])
@@ -198,13 +244,15 @@ class LoaderBase(object):
                 fd = urllib2.urlopen(filename)
             idata = fd.read()
             fd.close()
+            fd = None
 
             # write to local filename
             write(_out_osfd, idata)
             close(_out_osfd)
+            _out_osfd = None
 
             # load data
-            data = self._load_local(_out_filename)
+            data = self._load_local(_out_filename, kwargs)
         except Exception:
             Logger.exception('Failed to load image <%s>' % filename)
             # close file when remote file not found or download error
@@ -214,6 +262,10 @@ class LoaderBase(object):
                 pass
             return self.error_image
         finally:
+            if fd:
+                fd.close()
+            if _out_osfd:
+                close(_out_osfd)
             if _out_filename != '':
                 unlink(_out_filename)
 
@@ -227,7 +279,7 @@ class LoaderBase(object):
                 self.start()
             self._start_wanted = False
 
-        while True:
+        for x in xrange(self.max_upload_per_frame):
             try:
                 filename, data = self._q_done.pop()
             except IndexError:
@@ -235,7 +287,8 @@ class LoaderBase(object):
 
             # create the image
             image = data  # ProxyImage(data)
-            Cache.append('kivy.loader', filename, image)
+            if not image.nocache:
+                Cache.append('kivy.loader', filename, image)
 
             # update client
             for c_filename, client in self._client[:]:
@@ -247,7 +300,6 @@ class LoaderBase(object):
                 client.dispatch('on_load')
                 self._client.remove((c_filename, client))
 
-            break
         self._trigger_update()
 
     def image(self, filename, load_callback=None, post_callback=None, **kwargs):
@@ -276,8 +328,13 @@ class LoaderBase(object):
 
         if data is None:
             # if data is None, this is really the first time
-            self._q_load.appendleft((filename, load_callback, post_callback))
-            Cache.append('kivy.loader', filename, False)
+            self._q_load.appendleft({
+                'filename': filename,
+                'load_callback': load_callback,
+                'post_callback': post_callback,
+                'kwargs': kwargs})
+            if not kwargs.get('nocache', False):
+                Cache.append('kivy.loader', filename, False)
             self._start_wanted = True
             self._trigger_update()
         else:

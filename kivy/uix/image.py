@@ -283,22 +283,27 @@ class AsyncImage(Image):
     def __init__(self, **kwargs):
         self._coreimage = None
         super(AsyncImage, self).__init__(**kwargs)
+        self.bind(source=self._load_source)
+        if self.source:
+            self._load_source()
 
-    def on_source(self, instance, value):
-        if not value:
+    def _load_source(self, *args):
+        source = self.source
+        if not source:
             if self._coreimage is not None:
                 self._coreimage.unbind(on_texture=self._on_tex_change)
             self.texture = None
             self._coreimage = None
         else:
-            if not self.is_uri(value):
-                value = resource_find(value)
-            self._coreimage = image = Loader.image(value, nocache=self.nocache)
-            image.bind(on_load=self.on_source_load)
+            if not self.is_uri(source):
+                value = resource_find(source)
+            self._coreimage = image = Loader.image(value,
+                    nocache=self.nocache, mipmap=self.mipmap)
+            image.bind(on_load=self._on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
 
-    def on_source_load(self, value):
+    def _on_source_load(self, value):
         image = self._coreimage.image
         if not image:
             return

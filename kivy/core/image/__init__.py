@@ -222,6 +222,14 @@ class ImageLoaderBase(object):
             self.populate()
         return self._textures
 
+    @property
+    def nocache(self):
+        '''Indicate if the texture will not be stored in the cache
+
+        .. versionadded:: 1.5.2
+        '''
+        return self._nocache
+
 
 class ImageLoader(object):
     __slots__ = ('loaders')
@@ -295,7 +303,6 @@ class ImageLoader(object):
             # because when it's not in use, the texture can be removed from the
             # kv.texture cache.
             if atlas:
-                #print 'ATLAS REUSE', filename
                 texture = atlas[uid]
                 fn = 'atlas://%s/%s' % (rfn, uid)
                 cid = '%s|%s|%s' % (fn, False, 0)
@@ -309,14 +316,12 @@ class ImageLoader(object):
             afn = resource_find(afn)
             if not afn:
                 raise Exception('Unable to found %r atlas' % afn)
-            #print 'ATLAS LOAD', filename
             atlas = Atlas(afn)
             Cache.append('kv.atlas', rfn, atlas)
             # first time, fill our texture cache.
             for nid, texture in atlas.textures.iteritems():
                 fn = 'atlas://%s/%s' % (rfn, nid)
                 cid = '%s|%s|%s' % (fn, False, 0)
-                #print 'register', cid
                 Cache.append('kv.texture', cid, texture)
             return Image(atlas[uid])
 
@@ -607,7 +612,8 @@ class Image(EventDispatcher):
             self._size = image.size
         else:
             self.image = image
-            Cache.append('kv.image', uid, self.image)
+            if not self._nocache:
+                Cache.append('kv.image', uid, self.image)
 
     filename = property(_get_filename, _set_filename,
             doc='Get/set the filename of image')
@@ -637,6 +643,14 @@ class Image(EventDispatcher):
             if not self._iteration_done:
                 self._img_iterate()
         return self._texture
+
+    @property
+    def nocache(self):
+        '''Indicate if the texture will not be stored in the cache
+
+        .. versionadded:: 1.5.2
+        '''
+        return self._nocache
 
     def read_pixel(self, x, y):
         '''For a given local x/y position, return the color at that position.
