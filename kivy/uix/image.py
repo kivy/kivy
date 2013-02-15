@@ -272,7 +272,7 @@ class Image(Widget):
     def on_nocache(self, *args):
         if self.nocache and self._coreimage:
             self._coreimage.remove_from_cache()
-            sekf._coreimage._nocache = True
+            self._coreimage._nocache = True
 
 
 
@@ -283,8 +283,6 @@ class AsyncImage(Image):
     def __init__(self, **kwargs):
         self._coreimage = None
         super(AsyncImage, self).__init__(**kwargs)
-        self.unbind(source=self.texture_update,
-                    mipmap=self.texture_update)
 
     def on_source(self, instance, value):
         if not value:
@@ -295,7 +293,7 @@ class AsyncImage(Image):
         else:
             if not self.is_uri(value):
                 value = resource_find(value)
-            self._coreimage = image = Loader.image(value, nocahe=self.nocache)
+            self._coreimage = image = Loader.image(value, nocache=self.nocache)
             image.bind(on_load=self.on_source_load)
             image.bind(on_texture=self._on_tex_change)
             self.texture = image.texture
@@ -313,3 +311,6 @@ class AsyncImage(Image):
     def _on_tex_change(self, *largs):
         if self._coreimage:
             self.texture = self._coreimage.texture
+
+    def texture_update(self, *largs):
+        pass
