@@ -9,7 +9,7 @@ Tree View
     This widget is still experimental, and his API is subject to change in a
     future version.
 
-:class:`TreeView` is a widget to represent a tree structure. It's currently
+:class:`TreeView` is a widget to represent a tree structure. It is currently
 very basic, supporting a minimal feature set.
 
 Introduction
@@ -46,16 +46,22 @@ Or, create two nodes attached to a first::
 If you have a large tree structure, perhaps you would need a utility function
 to populate the tree view, as with::
 
+    from kivy.uix.treeview import TreeView
+    from kivy.uix.treeview import TreeViewLabel
+    from kivy.uix.floatlayout import FloatLayout
+
+
     def populate_tree_view(tree_view, parent, node):
         if parent is None:
-            tree_node = tree_view.add_node(TreeNodeLabel(text=node['node_id'],
+            tree_node = tree_view.add_node(TreeViewLabel(text=node['node_id'],
                                                          is_open=True))
         else:
-            tree_node = tree_view.add_node(TreeNodeLabel(text=node['node_id'],
+            tree_node = tree_view.add_node(TreeViewLabel(text=node['node_id'],
                                                          is_open=True), parent)
 
         for child_node in node['children']:
-            populate_tree_view(tree_view, tree, child_node)
+            populate_tree_view(tree_view, tree_node, child_node)
+
 
     tree = {'node_id': '1',
             'children': [{'node_id': '1.1',
@@ -69,11 +75,24 @@ to populate the tree view, as with::
                           {'node_id': '1.2',
                            'children': []}]}
 
-    tv = TreeView(root_options=dict(text='Tree One'),
-                  hide_root=False,
-                  indent_level=4)
-    populate_tree_view(tv, None, tree)
-    some_containing_widget.add_widget(tv)
+
+    class MainView(FloatLayout):
+
+        def __init__(self, **kwargs):
+            super(MainView, self).__init__(**kwargs)
+
+            tv = TreeView(root_options=dict(text='Tree One'),
+                          hide_root=False,
+                          indent_level=4)
+
+            populate_tree_view(tv, None, tree)
+
+            self.add_widget(tv)
+
+
+    if __name__ == '__main__':
+        from kivy.base import runTouchApp
+        runTouchApp(MainView(width=800))
 
 The root widget in the tree view is opened by default, and has a text set as
 'Root'. If you want to change that, you can use :data:`TreeView.root_options`
@@ -100,7 +119,7 @@ allocated will be:
     treeview.width - treeview.indent_start - treeview.indent_level * node.level
 
 You might have some trouble with that. It is the developer's responsibility to
-correctly handle adapt the graphical representation nodes, if needed.
+correctly handle adapting the graphical representation nodes, if needed.
 '''
 
 from kivy.clock import Clock
