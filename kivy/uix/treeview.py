@@ -46,6 +46,7 @@ Or, create two nodes attached to a first::
 If you have a large tree structure, perhaps you would need a utility function
 to populate the tree view, as with::
 
+    from kivy.app import App
     from kivy.uix.treeview import TreeView
     from kivy.uix.treeview import TreeViewLabel
     from kivy.uix.floatlayout import FloatLayout
@@ -76,10 +77,9 @@ to populate the tree view, as with::
                            'children': []}]}
 
 
-    class MainView(FloatLayout):
-
+    class TreeWidget(FloatLayout):
         def __init__(self, **kwargs):
-            super(MainView, self).__init__(**kwargs)
+            super(TreeWidget, self).__init__(**kwargs)
 
             tv = TreeView(root_options=dict(text='Tree One'),
                           hide_root=False,
@@ -90,9 +90,14 @@ to populate the tree view, as with::
             self.add_widget(tv)
 
 
+    class MainView(App):
+
+        def build(self):
+            return TreeWidget()
+
+
     if __name__ == '__main__':
-        from kivy.base import runTouchApp
-        runTouchApp(MainView(width=800))
+        MainView(width=800).run()
 
 The root widget in the tree view is opened by default, and has a text set as
 'Root'. If you want to change that, you can use :data:`TreeView.root_options`
