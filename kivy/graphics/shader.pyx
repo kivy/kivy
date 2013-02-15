@@ -186,6 +186,7 @@ cdef class Shader:
         #self.uniform_values = dict()
         self.uniform_locations = dict()
         self._success = 0
+        self._current_vertex_format = None
         self.program = glCreateProgram()
         self.fs = self.fs
         self.vs = self.vs

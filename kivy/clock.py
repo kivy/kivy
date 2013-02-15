@@ -361,6 +361,8 @@ class ClockBase(object):
             frame (at :func:`tick_draw`).
 
         '''
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
         cid = _hash(callback)
         event = ClockEvent(self, False, callback, timeout, self._last_tick, cid)
         events = self._events
@@ -371,6 +373,8 @@ class ClockBase(object):
 
     def schedule_interval(self, callback, timeout):
         '''Schedule an event to be called every <timeout> seconds'''
+        if not callable(callback):
+            raise ValueError('callback must be a callable, got %s' % callback)
         cid = _hash(callback)
         event = ClockEvent(self, True, callback, timeout, self._last_tick, cid)
         events = self._events
