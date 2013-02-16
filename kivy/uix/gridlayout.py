@@ -376,7 +376,8 @@ class GridLayout(Layout):
         else:
             cols = self._cols[:]
             cols_sh = self._cols_sh
-            cols_weigth = sum([x for x in cols_sh if x])
+            cols_weigth = sum([x for x in cols_sh if x])\
+                        if len_children > 1 else 1
             strech_w = max(0, selfw - self.minimum_width)
             for index in xrange(len(cols)):
                 # if the col don't have strech information, nothing to do
@@ -397,7 +398,8 @@ class GridLayout(Layout):
         else:
             rows = self._rows[:]
             rows_sh = self._rows_sh
-            rows_weigth = sum([x for x in rows_sh if x])
+            rows_weigth = sum([x for x in rows_sh if x])\
+                        if len_children > 1 else 1
             strech_h = max(0, selfh - self.minimum_height)
             for index in xrange(len(rows)):
                 # if the row don't have strech information, nothing to do
