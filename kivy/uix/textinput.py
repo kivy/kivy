@@ -238,6 +238,9 @@ class TextInput(Widget):
         self._lines_flags = []
         self._lines_labels = []
         self._lines_rects = []
+        self._placeholder_flags = []
+        self._placeholder_labels = []
+        self._placeholder_rects = []
         self._line_spacing = 0
         self._label_cached = None
         self._line_options = None
@@ -1109,14 +1112,20 @@ class TextInput(Widget):
         sy = self.scroll_y
 
         # draw labels
-        rects = self._lines_rects
-        labels = self._lines_labels
+        if self.text == '' and self.focus is False:
+            rects = self._placeholder_rects
+            labels = self._placeholder_labels
+            lines = self._placeholder_lines
+        else:
+            rects = self._lines_rects
+            labels = self._lines_labels
+            lines = self._lines
         pady = self.padding_y
         x = self.x + self.padding_x
         y = self.top - pady + sy
         miny = self.y + pady
         maxy = self.top - pady
-        for line_num, value in enumerate(self._lines):
+        for line_num, value in enumerate(lines):
             if miny <= y <= maxy + dy:
                 texture = labels[line_num]
                 if not texture:
@@ -1472,11 +1481,32 @@ class TextInput(Widget):
             key = (None, None, k, 1)
             self._key_up(key)
 
+    def on_placeholder(self, instance, value):
+        _lines, self._placeholder_flags = self._split_smart(value)
+        _placeholder_labels = []
+        _placeholder_rects = []
+        _create_label = self._create_line_label
+
+        for x in _lines:
+            lbl = _create_label(x)
+            _placeholder_labels.append(lbl)
+            _placeholder_rects.append(
+                Rectangle(size=(lbl.size if lbl else (0, 0))))
+            lbl = None
+
+        self._placeholder_lines = _lines
+        self._placeholder_labels = _placeholder_labels
+        self._placeholder_rects = _placeholder_rects
+
+        # Remember to update graphics
+        self._trigger_update_graphics()
+
     #
     # Properties
     #
 
     _lines = ListProperty([])
+    _placeholder_lines = ListProperty([])
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
