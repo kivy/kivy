@@ -296,8 +296,8 @@ class AsyncImage(Image):
             self._coreimage = None
         else:
             if not self.is_uri(source):
-                value = resource_find(source)
-            self._coreimage = image = Loader.image(value,
+                source = resource_find(source)
+            self._coreimage = image = Loader.image(source,
                     nocache=self.nocache, mipmap=self.mipmap)
             image.bind(on_load=self._on_source_load)
             image.bind(on_texture=self._on_tex_change)
