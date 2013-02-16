@@ -1810,6 +1810,13 @@ class TextInput(Widget):
     10.
     '''
 
+    placeholder = StringProperty('')
+    '''Placeholder text of the widget.
+
+    Shown if text is '' and focus is False.
+
+    :data:`placeholder` a :class:`~kivy.properties.StringProperty`.
+    '''
 
 if __name__ == '__main__':
     from kivy.app import App
