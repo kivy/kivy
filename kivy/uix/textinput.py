@@ -358,7 +358,8 @@ class TextInput(Widget):
         self.select_text(0, len(self.text))
 
     def insert_text(self, substring, from_undo=False):
-        '''Insert new text on the current cursor position.
+        '''Insert new text on the current cursor position. Override this
+        function in order to pre-process text for input validation
         '''
         if self.readonly:
             return
@@ -639,7 +640,7 @@ class TextInput(Widget):
         if start[1] == finish[1]:
             self._set_line_text(start[1], cur_line)
         else:
-            self._refresh_text(self.text, 'del', start[1], finish[1], lines,
+            self._refresh_text_from_property('del', start[1], finish[1], lines,
                 lineflags, len_lines)
         self.scroll_x = scrl_x
         self.scroll_y = scrl_y
@@ -951,15 +952,15 @@ class TextInput(Widget):
     def _delete_line(self, idx):
         # Delete current line, and fix cursor position
         assert(idx < len(self._lines))
-        self._lines.pop(idx)
         self._lines_flags.pop(idx)
         self._lines_labels.pop(idx)
+        self._lines.pop(idx)
         self.cursor = self.cursor
 
     def _set_line_text(self, line_num, text):
         # Set current line with other text than the default one.
-        self._lines[line_num] = text
         self._lines_labels[line_num] = self._create_line_label(text)
+        self._lines[line_num] = text
 
     def _trigger_refresh_line_options(self, *largs):
         Clock.unschedule(self._refresh_line_options)
@@ -968,7 +969,7 @@ class TextInput(Widget):
     def _refresh_line_options(self, *largs):
         self._line_options = None
         self._get_line_options()
-        self._refresh_text(self.text)
+        self._refresh_text_from_property()
         self.cursor = self.get_cursor_from_index(len(self.text))
 
     def _trigger_refresh_text(self, *largs):
@@ -980,6 +981,9 @@ class TextInput(Widget):
     def _update_text_options(self, *largs):
         Cache_remove('textinput.width')
         self._trigger_refresh_text()
+
+    def _refresh_text_from_trigger(self, dt, *largs):
+        self._refresh_text_from_property(*largs)
 
     def _refresh_text_from_property(self, *largs):
         self._refresh_text(self.text, *largs)
@@ -1005,9 +1009,9 @@ class TextInput(Widget):
             lbl = None
 
         if mode == 'all':
-            self._lines = _lines
             self._lines_labels = _lines_labels
             self._lines_rects = _line_rects
+            self._lines = _lines
         elif mode == 'del':
             if finish > start:
                 self._insert_lines(start,
@@ -1058,13 +1062,6 @@ class TextInput(Widget):
             _lins_flags.extend(self_lines_flags[finish:])
             self._lines_flags = _lins_flags
 
-            _lins = []
-            _lins.extend(self._lines[:start])
-            if len_lines:
-                _lins.extend(_lines)
-            _lins.extend(self._lines[finish:])
-            self._lines = _lins
-
             _lins_lbls = []
             _lins_lbls.extend(self._lines_labels[:start])
             if len_lines:
@@ -1078,6 +1075,13 @@ class TextInput(Widget):
                 _lins_rcts.extend(_line_rects)
             _lins_rcts.extend(self._lines_rects[finish:])
             self._lines_rects = _lins_rcts
+
+            _lins = []
+            _lins.extend(self._lines[:start])
+            if len_lines:
+                _lins.extend(_lines)
+            _lins.extend(self._lines[finish:])
+            self._lines = _lins
 
     def _trigger_update_graphics(self, *largs):
         Clock.unschedule(self._update_graphics)
