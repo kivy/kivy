@@ -142,7 +142,18 @@ cdef class Context:
                 continue
             callback()(self)
 
+        # mark all the texture to not delete from the previous reload as to
+        # delete now.
+        for item in self.l_texture[:]:
+            texture = item()
+            if texture is None:
+                continue
+            if texture._nofree == 1:
+                texture._nofree = 0
+                self.l_texture.remove(item)
+
         image_objects = Cache._objects['kv.image']
+        Cache.remove('kv.loader')
         Cache.remove('kv.image')
         Cache.remove('kv.shader')
 
@@ -232,6 +243,12 @@ cdef class Context:
         dt = time() - start
         Logger.info('Context: Reloading done in %2.4fs' % dt)
 
+    def flag_update_canvas(self):
+        cdef Canvas canvas
+        for item in self.l_canvas:
+            canvas = item()
+            if canvas:
+                canvas.flag_update()
 
     def gc(self, *largs):
         self.l_texture = [x for x in self.l_texture if x() is not None]

@@ -23,12 +23,14 @@ cdef class Texture:
     cdef int _is_allocated
     cdef int _nofree
     cdef list observers
+    cdef object _proxyimage
 
     cdef void update_tex_coords(self)
     cdef void set_min_filter(self, str x)
     cdef void set_mag_filter(self, str x)
     cdef void set_wrap(self, str x)
     cdef void reload(self)
+    cdef void _reload_propagate(self, Texture texture)
 
     cpdef flip_vertical(self)
     cpdef get_region(self, x, y, width, height)

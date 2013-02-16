@@ -47,7 +47,7 @@ from os.path import join
 from os import write, close, unlink, environ
 
 # Register a cache for loader
-Cache.register('kivy.loader', limit=500, timeout=60)
+Cache.register('kv.loader', limit=500, timeout=60)
 
 
 class ProxyImage(Image):
@@ -112,7 +112,7 @@ class LoaderBase(object):
     implementation support it.). This setting impact the loader only at the
     beginning. Once the loader is started, the setting has no impact::
 
-        from kivy.loader import Loader
+        from kv.loader import Loader
         Loader.num_workers = 4
 
     The default value is 2 for giving a smooth user experience. You could
@@ -253,6 +253,10 @@ class LoaderBase(object):
 
             # load data
             data = self._load_local(_out_filename, kwargs)
+
+            # FIXME create a clean API for that
+            for imdata in data._data:
+                imdata.source = filename
         except Exception:
             Logger.exception('Failed to load image <%s>' % filename)
             # close file when remote file not found or download error
@@ -288,7 +292,7 @@ class LoaderBase(object):
             # create the image
             image = data  # ProxyImage(data)
             if not image.nocache:
-                Cache.append('kivy.loader', filename, image)
+                Cache.append('kv.loader', filename, image)
 
             # update client
             for c_filename, client in self._client[:]:
@@ -315,7 +319,7 @@ class LoaderBase(object):
             # to the new loaded image
 
         '''
-        data = Cache.get('kivy.loader', filename)
+        data = Cache.get('kv.loader', filename)
         if data not in (None, False):
             # found image, if data is not here, need to reload.
             return ProxyImage(data,
@@ -334,7 +338,7 @@ class LoaderBase(object):
                 'post_callback': post_callback,
                 'kwargs': kwargs})
             if not kwargs.get('nocache', False):
-                Cache.append('kivy.loader', filename, False)
+                Cache.append('kv.loader', filename, False)
             self._start_wanted = True
             self._trigger_update()
         else:
