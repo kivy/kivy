@@ -320,13 +320,17 @@ class GridLayout(Layout):
 
                 # compute minimum size / maximum stretch needed
                 if shw is None:
-                    cols[col] = max(cols[col], w)
+                    if not cols_sh[col]:
+                        cols[col] = max(cols[col], w)
                 else:
                     cols_sh[col] = max(cols_sh[col], shw)
+                    cols[col] = 0
                 if shh is None:
-                    rows[row] = max(rows[row], h)
+                    if not rows_sh[row]:
+                        rows[row] = max(rows[row], h)
                 else:
                     rows_sh[row] = max(rows_sh[row], shh)
+                    rows[row] = 0
 
                 # next child
                 i = i - 1
