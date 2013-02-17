@@ -1287,10 +1287,10 @@ class TextInput(Widget):
             self._label_cached = Label(**kw)
         return self._line_options
 
-    def _create_line_label(self, text):
+    def _create_line_label(self, text, hint=False):
         # Create a label from a text, using line options
         ntext = text.replace('\n', '').replace('\t', ' ' * self.tab_width)
-        if self.password:
+        if self.password and not hint:  # Don't replace hint_text with *
             ntext = '*' * len(ntext)
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
@@ -1493,7 +1493,7 @@ class TextInput(Widget):
         _create_label = self._create_line_label
 
         for x in _lines:
-            lbl = _create_label(x)
+            lbl = _create_label(x, hint=True)
             _hint_text_labels.append(lbl)
             _hint_text_rects.append(
                 Rectangle(size=(lbl.size if lbl else (0, 0))))
