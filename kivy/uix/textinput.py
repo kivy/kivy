@@ -238,9 +238,9 @@ class TextInput(Widget):
         self._lines_flags = []
         self._lines_labels = []
         self._lines_rects = []
-        self._placeholder_flags = []
-        self._placeholder_labels = []
-        self._placeholder_rects = []
+        self._hint_text_flags = []
+        self._hint_text_labels = []
+        self._hint_text_rects = []
         self._line_spacing = 0
         self._label_cached = None
         self._line_options = None
@@ -973,7 +973,7 @@ class TextInput(Widget):
         self._line_options = None
         self._get_line_options()
         self._refresh_text_from_property()
-        self._refresh_placeholder()
+        self._refresh_hint_text()
         self.cursor = self.get_cursor_from_index(len(self.text))
 
     def _trigger_refresh_text(self, *largs):
@@ -1114,9 +1114,9 @@ class TextInput(Widget):
 
         # draw labels
         if self.text == '' and self.focus is False:
-            rects = self._placeholder_rects
-            labels = self._placeholder_labels
-            lines = self._placeholder_lines
+            rects = self._hint_text_rects
+            labels = self._hint_text_labels
+            lines = self._hint_text_lines
         else:
             rects = self._lines_rects
             labels = self._lines_labels
@@ -1261,7 +1261,7 @@ class TextInput(Widget):
         # if the size change, we might do invalid scrolling / text split
         # size the text maybe be put after size_hint have been resolved.
         self._trigger_refresh_text()
-        self._refresh_placeholder()
+        self._refresh_hint_text()
         self.scroll_x = self.scroll_y = 0
 
     def _get_cursor_pos(self):
@@ -1483,25 +1483,25 @@ class TextInput(Widget):
             key = (None, None, k, 1)
             self._key_up(key)
 
-    def on_placeholder(self, instance, value):
-        self._refresh_placeholder()
+    def on_hint_text(self, instance, value):
+        self._refresh_hint_text()
 
-    def _refresh_placeholder(self):
-        _lines, self._placeholder_flags = self._split_smart(self.placeholder)
-        _placeholder_labels = []
-        _placeholder_rects = []
+    def _refresh_hint_text(self):
+        _lines, self._hint_text_flags = self._split_smart(self.hint_text)
+        _hint_text_labels = []
+        _hint_text_rects = []
         _create_label = self._create_line_label
 
         for x in _lines:
             lbl = _create_label(x)
-            _placeholder_labels.append(lbl)
-            _placeholder_rects.append(
+            _hint_text_labels.append(lbl)
+            _hint_text_rects.append(
                 Rectangle(size=(lbl.size if lbl else (0, 0))))
             lbl = None
 
-        self._placeholder_lines = _lines
-        self._placeholder_labels = _placeholder_labels
-        self._placeholder_rects = _placeholder_rects
+        self._hint_text_lines = _lines
+        self._hint_text_labels = _hint_text_labels
+        self._hint_text_rects = _hint_text_rects
 
         # Remember to update graphics
         self._trigger_update_graphics()
@@ -1511,7 +1511,7 @@ class TextInput(Widget):
     #
 
     _lines = ListProperty([])
-    _placeholder_lines = ListProperty([])
+    _hint_text_lines = ListProperty([])
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -1849,18 +1849,18 @@ class TextInput(Widget):
     10.
     '''
 
-    placeholder = StringProperty('')
-    '''Placeholder text of the widget.
+    hint_text = StringProperty('')
+    '''Hint text of the widget.
 
     Shown if text is '' and focus is False.
 
-    :data:`placeholder` a :class:`~kivy.properties.StringProperty`.
+    :data:`hint_text` a :class:`~kivy.properties.StringProperty`.
     '''
 
-    placeholder_color = ListProperty([0.5, 0.5, 0.5, 1.0])
-    '''Current color of the placeholder text, in (r, g, b, a) format.
+    hint_text_color = ListProperty([0.5, 0.5, 0.5, 1.0])
+    '''Current color of the hint_text text, in (r, g, b, a) format.
 
-    :data:`placeholder_color` is a :class:`~kivy.properties.ListProperty`,
+    :data:`hint_text_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0.5, 0.5, 0.5, 1.0] #Grey
     '''
 

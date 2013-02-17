@@ -140,7 +140,7 @@
             pos: map(int, self.cursor_pos)
             size: 1, -self.line_height
         Color:
-            rgba: self.placeholder_color if not self.text and not self.focus else self.foreground_color
+            rgba: self.hint_text_color if not self.text and not self.focus else self.foreground_color
 
 <TextInputCutCopyPaste>:
     but_cut: cut
