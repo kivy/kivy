@@ -1856,11 +1856,11 @@ class TextInput(Widget):
     :data:`placeholder` a :class:`~kivy.properties.StringProperty`.
     '''
 
-    placeholder_color = ListProperty([0.33, 0.33, 0.33, 1])
+    placeholder_color = ListProperty([0.5, 0.5, 0.5, 1.0])
     '''Current color of the placeholder text, in (r, g, b, a) format.
 
     :data:`placeholder_color` is a :class:`~kivy.properties.ListProperty`,
-    default to [0, 0, 0, 1] #Grey
+    default to [0.5, 0.5, 0.5, 1.0] #Grey
     '''
 
 if __name__ == '__main__':
