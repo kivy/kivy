@@ -1260,6 +1260,7 @@ class TextInput(Widget):
         # if the size change, we might do invalid scrolling / text split
         # size the text maybe be put after size_hint have been resolved.
         self._trigger_refresh_text()
+        self._refresh_placeholder()
         self.scroll_x = self.scroll_y = 0
 
     def _get_cursor_pos(self):
@@ -1482,7 +1483,10 @@ class TextInput(Widget):
             self._key_up(key)
 
     def on_placeholder(self, instance, value):
-        _lines, self._placeholder_flags = self._split_smart(value)
+        self._refresh_placeholder()
+
+    def _refresh_placeholder(self):
+        _lines, self._placeholder_flags = self._split_smart(self.placeholder)
         _placeholder_labels = []
         _placeholder_rects = []
         _create_label = self._create_line_label
