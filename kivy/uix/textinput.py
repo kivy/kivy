@@ -973,6 +973,7 @@ class TextInput(Widget):
         self._line_options = None
         self._get_line_options()
         self._refresh_text_from_property()
+        self._refresh_placeholder()
         self.cursor = self.get_cursor_from_index(len(self.text))
 
     def _trigger_refresh_text(self, *largs):
