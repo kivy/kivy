@@ -22,7 +22,7 @@ unzip and use.
 If you want to install everything yourself, ensure that you have at
 least `Cython <http://cython.org>`_, `Pygame <http://pygame.org>`. A
 typical pip
-installation look like::
+installation looks like::
 
     pip install cython
     pip install hg+http://bitbucket.org/pygame/pygame
@@ -62,8 +62,8 @@ Here is an example of such a minimal application::
 
 You can save this to a text file, `main.py` for example, and run it.
 
-Explanation of what's going on in the code above
-------------------------------------------------
+Kivy App Life Cycle
+-------------------
 
 First off, Let us get familiar with the Kivy app life cycle
 
@@ -211,7 +211,7 @@ at line 9 in the class LoginScreen we overload the method
 behaviour::
 
     def __init__(self, **kwargs):
-            super(LoginScreen, self).__init__(**kwargs)
+        super(LoginScreen, self).__init__(**kwargs)
 
 One must not forget to either call super or implement the functionality of the
 original function being overloaded. Also note that it is good practice not to
@@ -238,11 +238,11 @@ Running the above code will give you a window that should look like this
 
 Try re-sizing the window, you will see that the widgets on screen adjust
 themselves according to the size of the window without you having to do
-anything. This is because by default widgets use size hinting. 
+anything. This is because by default widgets use size hinting.
 
-The code above doesn't handle the input from the user does no validation or
-anything else. We will delve deeper into this and :class:`~Widget` size and
-positioning when diving into `Your First Widget`.
+The code above doesn't handle the input from the user, does no validation or
+anything else. We will delve deeper into this and :class:`~kivy.widget.Widget`
+size and positioning in the coming sections.
 
 
 Platform specifics

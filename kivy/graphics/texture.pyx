@@ -772,6 +772,17 @@ cdef class Texture:
             if _mipmap_generation:
                 glGenerateMipmap(target)
 
+    def _on_proxyimage_loaded(self, image):
+        if image is not self._proxyimage:
+            return
+        self._reload_propagate(image.image.texture)
+        self._proxyimage = None
+
+        # the texture might impact something on the drawing, so ask to refresh
+        # the window.
+        # FIXME: the texture used in BindTexture should ask for a retrigger
+        get_context().flag_update_canvas()
+
     cdef void reload(self):
         cdef Texture texture
         if self._id != -1:
@@ -780,15 +791,28 @@ cdef class Texture:
             # manual texture recreation
             texture = texture_create(self.size, self.colorfmt, self.bufferfmt,
                     self.mipmap)
-            self._id = texture.id
         else:
-            from kivy.core.image import Image
-            image = Image(self._source, nocache=True)
-            self._id = image.texture.id
-            texture = image.texture
-            texture._nofree = 1
+            source = self._source
+            proto = source.split(':', 1)[0]
+            if proto in ('http', 'https', 'ftp', 'smb'):
+                from kivy.loader import Loader
+                self._proxyimage = Loader.image(source)
+                self._id = 0 # FIXME this will point to an invalid texture ...
+                self._proxyimage.bind(on_load=self._on_proxyimage_loaded)
+                if self._proxyimage.loaded:
+                    self._on_proxyimage_loaded(self._proxyimage)
+                return
+            else:
+                from kivy.core.image import Image
+                image = Image(self._source, nocache=True)
+                texture = image.texture
+
+        self._reload_propagate(texture)
+
+    cdef void _reload_propagate(self, Texture texture):
 
         # ensure the new opengl ID will not get through GC
+        self._id = texture.id
         texture._nofree = 1
 
         # set the same parameters as our current texture
