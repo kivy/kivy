@@ -588,6 +588,8 @@ class VideoPlayer(GridLayout):
             if state['parent'] is not window:
                 state['parent'].add_widget(self)
 
+        window.fullscreen = value
+
 
 if __name__ == '__main__':
     import sys
