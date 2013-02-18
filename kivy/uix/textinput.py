@@ -1854,11 +1854,15 @@ class TextInput(Widget):
 
     Shown if text is '' and focus is False.
 
+    .. versionchanged:: 1.5.2
+
     :data:`hint_text` a :class:`~kivy.properties.StringProperty`.
     '''
 
     hint_text_color = ListProperty([0.5, 0.5, 0.5, 1.0])
     '''Current color of the hint_text text, in (r, g, b, a) format.
+
+    .. versionchanged:: 1.5.2
 
     :data:`hint_text_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0.5, 0.5, 0.5, 1.0] #Grey
