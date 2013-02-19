@@ -112,7 +112,7 @@ class LoaderBase(object):
     implementation support it.). This setting impact the loader only at the
     beginning. Once the loader is started, the setting has no impact::
 
-        from kv.loader import Loader
+        from kivy.loader import Loader
         Loader.num_workers = 4
 
     The default value is 2 for giving a smooth user experience. You could
