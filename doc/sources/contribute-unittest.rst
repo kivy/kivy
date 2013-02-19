@@ -1,19 +1,19 @@
 Unit tests
 ==========
 
-Tests are located in the kivy/tests folder, if you find a bug in kivy, a good
-thing to do can be to write a minimal case showing the issue, to ask core devs
-if the behaviour showed is intended or a real bug, if you put your code as a
-unittest, it will prevent the bug to come back unnoticed in the future, and
-will make Kivy a better, stronger project. Writting unittest may be a really
+Tests are located in the kivy/tests folder. If you find a bug in kivy, a good
+thing to do can be to write a minimal case showing the issue and to ask core devs
+if the behaviour shown is intended or a real bug. If you write your code as a
+unittest, it will prevent the bug from coming back unnoticed in the future, and
+will make Kivy a better, stronger project. Writing a unittest may be a really
 good way to get familiar with Kivy while doing something useful.
 
-Unit tests are seperated in two cases:
+Unit tests are seperated into two cases:
 
-* Non graphics unit tests: theses are standard unit tests that can run in console
-* Graphics unit tests: theses need a GL context, and work with image comparaison
+* Non graphics unit tests: theses are standard unit tests that can run in a console
+* Graphics unit tests: theses need a GL context, and work via image comparison
 
-To be able to run unit test, you need to install nose
+To be able to run unit tests, you need to install nose
 (http://code.google.com/p/python-nose/), and coverage
 (http://nedbatchelder.com/code/coverage/). You can use easy_install for that::
 
@@ -23,15 +23,15 @@ Then, in the kivy directory::
 
     make test
 
-How it's working
-----------------
+How it's works
+--------------
 
-All the tests are located in `kivy/tests`, and the filename start with
-`test_<name>.py`. Nose will automatically get all theses files and class
-inside it, and use it as a test case.
+All the tests are located in `kivy/tests`, and the filename starts with
+`test_<name>.py`. Nose will automatically gather all the files and classes
+inside this folder, and use them to generate test cases.
 
-To write a test, create a file that respect the previous naming, then you can
-start with that template::
+To write a test, create a file that respects the previous naming, then
+start with this template::
 
     import unittest
 
@@ -46,9 +46,9 @@ start with that template::
             a = 1
             self.assertEqual(a, 1)
 
-Replace `XXX` with an appropriate name that cover your tests cases, then
-replace YYY by the name of your test. If you have some doubt, check how others
-files are done.
+Replace `XXX` with an appropriate name that covers your tests cases, then
+replace 'YYY' by the name of your test. If you have some doubt, check how
+the other files have been done.
 
 Then, to execute them, just run::
 
@@ -81,12 +81,13 @@ To execute gl unit test, you need to create a directory::
     mkdir kivy/tests/results
     make test
 
-The results directory will contain all the reference images, and the current
-generated images. At the first execution, if the results directory is empty, no
-comparaison will be done. It will use the generated images as reference.
-The second time, all the images will be compared to the reference image.
+The results directory will contain all the reference images, and the
+generated images. After the first execution, if the results directory is empty,
+no comparison will be done. It will use the generated images as reference.
+After the second execution, all the images will be compared to the reference
+images.
 
-A html file is available to show the comparaison before/after the test, and a
+A html file is available to show the comparison before/after the test, and a
 snippet of the associated unit test. It will be generated at:
 
     kivy/tests/build/index.html
@@ -132,25 +133,25 @@ Here is an example::
             # or in 10 frames
             r(wid, 10)
 
-Each call to `self.render` (or `r` in our example) will generate image named
+Each call to `self.render` (or `r` in our example) will generate an image named
 like this::
 
     <classname>_<funcname>-<r-call-count>.png
 
-`r-call-count` represent the number of time that `self.render` is called inside
+`r-call-count` represents the number of times that `self.render` is called inside
 the test function.
 
 The reference images are named::
 
     ref_<classname>_<funcname>-<r-call-count>.png
 
-You can replace the reference image with a new one easilly.
+You can replace the reference image with a new one easily.
 
 
 Coverage reports
 ----------------
 
-Coverage are based on the execution of the previous tests. Statistics on code
+Coverage is based on the execution of the previous tests. Statistics on code
 coverage are automatically grabbed during execution. You can generate an html
 report of the coverage with the command::
 
