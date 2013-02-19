@@ -6,6 +6,33 @@ TUIO is a de facto standard network protocol for the transmission of touch and
 fiducial information between a server and a client.
 To learn more about TUIO (which is itself based on the OSC protocol), please
 refer to http://tuio.org -- The specification should be of special interest.
+
+Configure a TUIO provider in the config.ini
+-------------------------------------------
+
+The TUIO provider can be configured in the configuration file in the
+``[input]`` section::
+
+    [input]
+    # name = tuio,<ip>:<port>
+    multitouchtable = tuio,192.168.0.1:3333
+
+Configure a TUIO provider in the App
+------------------------------------
+
+You must add the provider before your application is runned, like::
+
+    from kivy.app import App
+    from kivy.config import Config
+
+    class TestApp(App):
+        def build(self):
+            Config.set('input', 'multitouchscreen1', 'tuio,0.0.0.0:3333')
+            # You can also add a second TUIO listener
+            # Config.set('input', 'source2', 'tuio,0.0.0.0:3334')
+            # Then do the usual things
+            # ...
+            return
 '''
 
 __all__ = ('TuioMotionEventProvider', 'Tuio2dCurMotionEvent',
@@ -26,13 +53,6 @@ class TuioMotionEventProvider(MotionEventProvider):
 
         * /tuio/2Dcur
         * /tuio/2Dobj
-
-    The TUIO provider can be configured in the configuration file in the
-    ``[input]`` section::
-
-        [input]
-        # name = tuio,<ip>:<port>
-        multitouchtable = tuio,192.168.0.1:3333
 
     You can easily extend the provider to handle new TUIO paths like so::
 
