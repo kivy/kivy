@@ -238,6 +238,9 @@ class TextInput(Widget):
         self._lines_flags = []
         self._lines_labels = []
         self._lines_rects = []
+        self._hint_text_flags = []
+        self._hint_text_labels = []
+        self._hint_text_rects = []
         self._line_spacing = 0
         self._label_cached = None
         self._line_options = None
@@ -970,6 +973,7 @@ class TextInput(Widget):
         self._line_options = None
         self._get_line_options()
         self._refresh_text_from_property()
+        self._refresh_hint_text()
         self.cursor = self.get_cursor_from_index(len(self.text))
 
     def _trigger_refresh_text(self, *largs):
@@ -1109,14 +1113,21 @@ class TextInput(Widget):
         sy = self.scroll_y
 
         # draw labels
-        rects = self._lines_rects
-        labels = self._lines_labels
+        if not self.focus and (not self._lines or (
+            not self._lines[0] and len(self._lines) == 1)):
+            rects = self._hint_text_rects
+            labels = self._hint_text_labels
+            lines = self._hint_text_lines
+        else:
+            rects = self._lines_rects
+            labels = self._lines_labels
+            lines = self._lines
         pady = self.padding_y
         x = self.x + self.padding_x
         y = self.top - pady + sy
         miny = self.y + pady
         maxy = self.top - pady
-        for line_num, value in enumerate(self._lines):
+        for line_num, value in enumerate(lines):
             if miny <= y <= maxy + dy:
                 texture = labels[line_num]
                 if not texture:
@@ -1251,6 +1262,7 @@ class TextInput(Widget):
         # if the size change, we might do invalid scrolling / text split
         # size the text maybe be put after size_hint have been resolved.
         self._trigger_refresh_text()
+        self._refresh_hint_text()
         self.scroll_x = self.scroll_y = 0
 
     def _get_cursor_pos(self):
@@ -1276,10 +1288,10 @@ class TextInput(Widget):
             self._label_cached = Label(**kw)
         return self._line_options
 
-    def _create_line_label(self, text):
+    def _create_line_label(self, text, hint=False):
         # Create a label from a text, using line options
         ntext = text.replace('\n', '').replace('\t', ' ' * self.tab_width)
-        if self.password:
+        if self.password and not hint:  # Don't replace hint_text with *
             ntext = '*' * len(ntext)
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
@@ -1472,11 +1484,35 @@ class TextInput(Widget):
             key = (None, None, k, 1)
             self._key_up(key)
 
+    def on_hint_text(self, instance, value):
+        self._refresh_hint_text()
+
+    def _refresh_hint_text(self):
+        _lines, self._hint_text_flags = self._split_smart(self.hint_text)
+        _hint_text_labels = []
+        _hint_text_rects = []
+        _create_label = self._create_line_label
+
+        for x in _lines:
+            lbl = _create_label(x, hint=True)
+            _hint_text_labels.append(lbl)
+            _hint_text_rects.append(
+                Rectangle(size=(lbl.size if lbl else (0, 0))))
+            lbl = None
+
+        self._hint_text_lines = _lines
+        self._hint_text_labels = _hint_text_labels
+        self._hint_text_rects = _hint_text_rects
+
+        # Remember to update graphics
+        self._trigger_update_graphics()
+
     #
     # Properties
     #
 
     _lines = ListProperty([])
+    _hint_text_lines = ListProperty([])
 
     readonly = BooleanProperty(False)
     '''If True, the user will not be able to change the content of a textinput.
@@ -1814,6 +1850,24 @@ class TextInput(Widget):
     10.
     '''
 
+    hint_text = StringProperty('')
+    '''Hint text of the widget.
+
+    Shown if text is '' and focus is False.
+
+    .. versionadded:: 1.6.0
+
+    :data:`hint_text` a :class:`~kivy.properties.StringProperty`.
+    '''
+
+    hint_text_color = ListProperty([0.5, 0.5, 0.5, 1.0])
+    '''Current color of the hint_text text, in (r, g, b, a) format.
+
+    .. versionadded:: 1.6.0
+
+    :data:`hint_text_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [0.5, 0.5, 0.5, 1.0] #Grey
+    '''
 
 if __name__ == '__main__':
     from kivy.app import App

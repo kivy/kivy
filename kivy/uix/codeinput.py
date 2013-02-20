@@ -85,10 +85,10 @@ class CodeInput(TextInput):
         if not kwargs.get('background_color'):
             self.background_color = [.9, .92, .92, 1]
 
-    def _create_line_label(self, text):
+    def _create_line_label(self, text, hint=False):
         # Create a label from a text, using line options
         ntext = text.replace('\n', '').replace('\t', ' ' * self.tab_width)
-        if self.password:
+        if self.password and not hint:  # Don't replace hint_text with *
             ntext = '*' * len(ntext)
         ntext = self._get_bbcode(ntext)
         kw = self._get_line_options()
