@@ -41,7 +41,7 @@ spelling or just weird examples, please take 2 minutes to report the issue.
    including the log from Kivy and the python backtrace.
 #. Open https://github.com/kivy/kivy/issues/
 #. Write the title of your issue
-#. Explain exactly what do to reproduce the issue + paste the link of the output posted on  http://gist.github.com/
+#. Explain exactly what to do to reproduce the issue + paste the link of the output posted on http://gist.github.com/
 #. Validate the issue and you're done !
 
 
