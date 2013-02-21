@@ -4,7 +4,7 @@ Programming Guide 2
 .. warning::
 
     We are currently refactoring the whole Programming Guide. This is a work in
-    progress, and might change at any times.
+    progress, and might changed at any time.
 
 .. toctree::
     :maxdepth: 2
