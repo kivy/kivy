@@ -111,7 +111,10 @@ you fork it. Here are the steps:
     #. Create a fork of the `Kivy repository <https://github.com/kivy/kivy>`_ by
        clicking the *fork* button.
     #. Clone your fork of our repository to your computer. Your fork will have
-       the git remote name 'origin' and you will be on branch 'master'.
+       the git remote name 'origin' and you will be on branch 'master'::
+       
+        git clone https://github.com/username/kivy.git
+       
     #. Compile and set up PYTHONPATH or install (see :ref:`dev-install`).
     #. Install our pre-commit hook that ensures your code doesn't violate our
        styleguide by executing `make hook` from the root directory of your
@@ -148,9 +151,9 @@ Now, whenever you want to create a patch, you follow the following steps:
 
         git pull kivy master
 
-    #. Push to your remote repository on GitHub::
+    #. Push your local branch into your remote repository on GitHub::
 
-        git push
+        git push origin new_feature
 
     #. Send a *Pull Request* with a description of what you changed via the button
        in the GitHub interface of your repository. (This is why we forked
