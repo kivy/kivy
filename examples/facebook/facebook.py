@@ -164,7 +164,5 @@ class TestApp(App):
         root.add_widget(msgbtn)
         return root
 
-        #return self.CreateFaceBook()
-
 if __name__ == '__main__':
                 TestApp().run()
