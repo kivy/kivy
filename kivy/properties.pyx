@@ -62,7 +62,7 @@ property, here is a possible implementation in Python::
             super(MyClass, self).__init__()
             self._a = 0
             self.a_min = 0
-            self.a_max = 0
+            self.a_max = 100
             self.a = a
 
         def _get_a(self):
