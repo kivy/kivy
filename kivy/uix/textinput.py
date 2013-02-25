@@ -110,9 +110,9 @@ import sys
 from os import environ
 from weakref import ref
 from functools import partial
+from kivy.base import EventLoop
 from kivy.logger import Logger
-from kivy.utils import boundary
-from kivy.utils import platform
+from kivy.utils import boundary, platform
 from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.text import Label
@@ -749,7 +749,7 @@ class TextInput(Widget):
             # show Bubble
             win = self._win
             if not win:
-                self._win = win = self.get_root_window()
+                self._win = win = EventLoop.window
             if not win:
                 Logger.warning('Textinput: '
                     'Cannot show bubble, unable to get root window')
@@ -834,7 +834,7 @@ class TextInput(Widget):
     def on_focus(self, instance, value, *largs):
         win = self._win
         if not win:
-            self._win = win = self.get_root_window()
+            self._win = win = EventLoop.window
         if not win:
             # we got argument, it could be the previous schedule
             # cancel focus.
