@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>fileTypes</key>
+	<array>
+		<string>kv</string>
+	</array>
+	<key>name</key>
+	<string>Kivy Language</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>match</key>
+			<string>#:.*?$</string>
+			<key>name</key>
+			<string>support.type.kivy</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>#.*?$</string>
+			<key>name</key>
+			<string>comment.kivy</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>\&lt;.+\&gt;</string>
+			<key>name</key>
+			<string>support.class.kivy</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>[A-Za-z][A-Za-z0-9]+$</string>
+			<key>name</key>
+			<string>support.function.kivy</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>.*?:$</string>
+			<key>name</key>
+			<string>support.function.kivy</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>(.*?):</string>
+			<key>name</key>
+			<string>entity.name.section.kivy</string>
+		</dict>
+		<dict>
+			<key>include</key>
+			<string>source.python</string>
+		</dict>
+	</array>
+	<key>scopeName</key>
+	<string>source.python.kivy</string>
+	<key>uuid</key>
+	<string>49cecc44-5094-48ec-a876-91f597e8bf81</string>
+</dict>
+</plist>
