@@ -159,7 +159,7 @@ class CythonExtension(Extension):
 
     def __init__(self, *args, **kwargs):
         Extension.__init__(self, *args, **kwargs)
-        self.pyrex_directives = {
+        self.cython_directives = {
             'profile': 'USE_PROFILE' in environ,
             'embedsignature': 'USE_EMBEDSIGNATURE' in environ}
         # XXX with pip, setuptools is imported before distutils, and change

@@ -41,6 +41,7 @@ pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
 
 html:
+	env USE_EMBEDSIGNATURE=1 $(MAKE) force
 	$(MAKE) -C doc html
 
 style:
