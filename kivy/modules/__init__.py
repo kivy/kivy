@@ -179,7 +179,12 @@ class ModuleBase:
                 if not name in modules_to_activate:
                     self.deactivate_module(name, win)
             for name in modules_to_activate:
-                self.activate_module(name, win)
+                try:
+                    self.activate_module(name, win)
+                except:
+                    import traceback
+                    traceback.print_exc()
+                    raise
 
     def configure(self):
         '''(internal) Configure all the modules before using it.
