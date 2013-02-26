@@ -608,6 +608,10 @@ class ParserRuleProperty(object):
         # ok, we can compile.
         self.co_value = compile(value, self.ctx.filename or '<string>', mode)
 
+        # for exec mode, we don't need to watch any keys.
+        if mode == 'exec':
+            return
+
         # now, detect obj.prop
         # first, remove all the string from the value
         tmp = sub(lang_str, '', value)
