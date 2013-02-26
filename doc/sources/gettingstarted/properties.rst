@@ -4,7 +4,7 @@ Properties
 
     Using Kivy's Properties
 
-Kivy introduce a new way of declaring the properties within a class.
+Kivy introduces a new way of declaring the properties within a class.
 Before::
 
     class MyClass(object):
@@ -17,10 +17,10 @@ After, using Kivy's properties::
     class MyClass(EventDispatcher):
         numeric_var = NumericProperty(1)
 
-Theses properties implement the `Observer pattern
+Theses properties implement the `Observer pattern.
 <http://en.wikipedia.org/wiki/Observer_pattern>`_. You can:
 
-- Allow manipulating your widgets in kv language more easily
+- Allow the easier manipulation of your widgets in kv language
 - Automatically observe any changes and dispatch functions/code accordingly
 - Check and validate values
 - Optimize memory management

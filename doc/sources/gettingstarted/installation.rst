@@ -41,4 +41,4 @@ additions to the framework, you can get the source code from github::
 
     git clone http://github.com/kivy/kivy
 
-Take a look at our instructions on installation of the :ref:`installation_devel`
+Take a look at our instructions for the installation of the :ref:`installation_devel`

@@ -3,7 +3,7 @@ Layouts
 
 .. container:: title
 
-    Arranging Your Widgets
+    Arranging Your Widgetsx
 
 Layouts are used to arrange widgets in a perticular manner::
 
@@ -14,7 +14,8 @@ Layouts are used to arrange widgets in a perticular manner::
     GridLayout:     widgets are arranged in a grid defined by `rows` and `cols` properties
     StackLayout:    widgets are stacked in `lr-tb` (left to right then top to bottom) or `tb-lr` order
 
-**Size_hint**: defines the size of a widget in parent space as a percentage. Values are restricted to the range 0.0 - 1.0 i.e. 0.01 = 1% and 1. = 100%.
+**Size_hint**: defines the size of a widget in parent space as a percentage. Values are restricted to 
+the range 0.0 - 1.0 i.e. 0.01 = 1% and 1. = 100%.
 **pos_hint**: is used to place the widget relative to the parent.
 
 size_hint and pos_hint are used to calculate widget's size and position only if the value/s are not set to None.

@@ -17,9 +17,9 @@ In the above code :
 
 .. code-block:: kv
 
-    <LoginScreen>:  # every class in your app can be represented by a rule like this in the kv file
+    <LoginScreen>:  # every class in your app can be represented by a rule like this in the kv file.
         GridLayout: # this is how you add your widget/layout to the parent (note the indentation).
-            rows: 2 # this how you set each property of your widget/layout
+            rows: 2 # this is how you set each property of your widget/layout.
 
 That's it, that's how simple it is to design your GUI in the kv language. To get a
 more in-depth understanding look at :doc:`/guide/kvlang`

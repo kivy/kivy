@@ -13,7 +13,7 @@ require a basic knowledge of Python to follow this introduction.
     :align: center
     :height: 255px
 
-If you need more background about Python language, you might be interested in
+If you need more background on the Python language, you might be interested in
 these tutorials:
 
 * `The Python Tutorial (at the Python website) <http://docs.python.org/tutorial/>`_
@@ -23,7 +23,7 @@ these tutorials:
 Using Kivy on your computer, you can create apps that run on:
 
 - Desktop computers: MacOSX, Linux, Windows.
-- iOs Devices: iPad, iPhone
+- iOS Devices: iPad, iPhone
 - Android devices: Tablets, phones.
 - Any other touch-enabled professional/homebrew devices supporting TUIO
   (Tangible User Interface Objects).
@@ -39,15 +39,16 @@ As you proceed through the guide, you will, using Kivy:
 
 - **Learn**:    The basics of programming with the Kivy language.
 - **Explore**:  The Kivy framework.
-- **Create**:   simple cross-platform app.
-- **Package**:  for your choice of platform.
+- **Create**:   Simple cross-platform apps.
+- **Package**:  For your choice of platform.
 
-Finally, you will learn how to **Deploy** on a device of your choice.
+Finally, you will learn how to **Deploy** on the device of your choice.
 
 Each section of the guide introduces a new topic, trying to give you enough
-information to get started and links to related articles for more in-depth
+information to get started and links to related articles for more in-depthxx
 explanations. When you are done with this guide, you'll be able to develop Kivy
 apps and you will know where to look for information for the more challenging
 stuff your innovative applications will require.
 
 Enough introductions, let's get down to business.
+xx
