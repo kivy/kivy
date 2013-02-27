@@ -3,7 +3,7 @@ Layouts
 
 .. container:: title
 
-    Arranging Your Widgetsx
+    Arranging Your Widgets
 
 Layouts are used to arrange widgets in a perticular manner::
 

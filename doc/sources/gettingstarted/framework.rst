@@ -15,7 +15,7 @@ Non-widget stuff
 .. |atlas_img| image:: ../images/gs-atlas.png
 
 .. |atlas_text| replace:: :class:`Atlas <kivy.atlas.Atlas>` is a class for managing texture maps, i.e. packing multiple
-    textures into one image. Using it allows you to reduce the number of images to load and speed up the application 
+    textures into one image. Using it allows you to reduce the number of images to load and speed up the application
     start.
 
 .. |clock_text| replace:: :class:`Clock <kivy.clock.Clock>` provides you with a convenient way to do jobs at set time
