@@ -3,7 +3,7 @@ Non-widget stuff
 
 .. container:: title
 
-    Kivy FrameWorkx
+    Kivy FrameWork
 
 .. |animation_img| image:: ../images/gs-animation.gif
 

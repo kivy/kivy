@@ -20,17 +20,17 @@ After, using Kivy's properties::
 Theses properties implement the `Observer pattern.
 <http://en.wikipedia.org/wiki/Observer_pattern>`_. You can:
 
-- Allow the easier manipulation of your widgets in kv language
+- Allow for the easier manipulation of your widgets in the kv language
 - Automatically observe any changes and dispatch functions/code accordingly
 - Check and validate values
 - Optimize memory management
 
 
-To use them, **you have to declare them at class level**. That is, directly in
-the class, not in any method of the class. A property is a class attribute
-that will automatically create instance attributes. Each property by default
+To use them, **you have to declare them at the class level**. That is, directly in
+the static class, not in any method of the class instance. A property is a class
+attribute that will automatically create instance attributes. Each property by default
 provides an ``on_<propertyname>`` event that is called whenever the property's
-state/value changes .
+state/value changes.
 
 Kivy provides the following properties:
     :mod:`~kivy.properties.NumericProperty`,

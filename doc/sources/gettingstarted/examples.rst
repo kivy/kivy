@@ -124,7 +124,7 @@ Examples
 .. |wdg_file81| replace:: label_with_markup.py
 .. |wdg_desc81| replace:: Usage of the :class:`Label <kivy.uix.label>` widget with markup.
 .. |wdg_file82| replace:: popup_with_kv.py
-.. |wdg_desc82| replace:: Ussage of :class:`Popup <kivy.uix.popup>` widget with the ``kv`` language
+.. |wdg_desc82| replace:: Usage of :class:`Popup <kivy.uix.popup>` widget with the ``kv`` language
 .. |wdg_file9| replace:: rstexample.py
 .. |wdg_desc9| replace:: Usage and Showcase of the :class:`RstDocument <kivy.uix.rst.RstDocument>` widget.
 .. |wdg_file10| replace:: scatter.py
