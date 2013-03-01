@@ -230,6 +230,11 @@ class Carousel(StencilView):
     _offset = NumericProperty(0)
     _touch = ObjectProperty(None, allownone=True)
 
+    def __init__(self, **kwargs):
+        self._trigger_position_visible_slides = Clock.create_trigger(
+                self._position_visible_slides, -1)
+        super(Carousel, self).__init__(**kwargs)
+
     def get_slide_container(self, slide):
         return slide.parent.parent
 
@@ -256,7 +261,7 @@ class Carousel(StencilView):
         if self._current:
             super(Carousel, self).add_widget(self._current)
 
-    def _position_visible_slides(self):
+    def _position_visible_slides(self, *args):
         if self.direction in ['right', 'left']:
             xoff = self.x + self._offset
             x_prev = {'left': xoff + self.width, 'right': xoff - self.width}
@@ -281,21 +286,24 @@ class Carousel(StencilView):
     def on_size(self, *args):
         for slide in self.slides_container:
             slide.size = self.size
-        self._position_visible_slides()
+        self._trigger_position_visible_slides()
+
+    def on_pos(self, *args):
+        self._trigger_position_visible_slides()
 
     def on_index(self, *args):
         self._insert_visible_slides()
-        self._position_visible_slides()
+        self._trigger_position_visible_slides()
         self._offset = 0
 
     def on_slides(self, *args):
         if self.slides:
             self.index = self.index % len(self.slides)
         self._insert_visible_slides()
-        self._position_visible_slides()
+        self._trigger_position_visible_slides()
 
     def on__offset(self, *args):
-        self._position_visible_slides()
+        self._trigger_position_visible_slides()
         #if reached full offset, switche index to next or prev
         if self.direction == 'right':
             if self._offset <= -self.width:
