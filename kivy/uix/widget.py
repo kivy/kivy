@@ -82,7 +82,7 @@ from kivy.event import EventDispatcher
 from kivy.factory import Factory
 from kivy.properties import NumericProperty, StringProperty, \
         AliasProperty, ReferenceListProperty, ObjectProperty, \
-        ListProperty
+        ListProperty, DictProperty
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
@@ -562,6 +562,16 @@ class Widget(EventDispatcher):
 
     :data:`pos_hint` is a :class:`~kivy.properties.ObjectProperty` containing a
     dict.
+    '''
+
+    ids = DictProperty({})
+    '''This is a Dictionary of id's defined in your kv language. This will only
+    be populated if you use id's in your kv language code.
+
+    .. versionadded:: 1.6.0
+
+    :data:`ids` is a :class:`~kivy.properties.DictProperty`, defaults to a empty
+    dict {}.
     '''
 
     opacity = NumericProperty(1.0)
