@@ -63,9 +63,16 @@ class ImageLoaderPIL(ImageLoaderBase):
 
         # Read all images inside
         try:
+            img_ol = None
             while True:
                 img_tmp = im
                 img_tmp = self._img_correct(img_tmp)
+                if img_ol:
+                    # paste new frame over old so as to handle
+                    # transparency properly
+                    img_ol.paste(img_tmp, (0, 0), img_tmp)
+                    img_tmp = img_ol
+                img_ol = img_tmp
                 yield ImageData(img_tmp.size[0], img_tmp.size[1],
                                 img_tmp.mode.lower(), img_tmp.tostring())
                 im.seek(im.tell() + 1)
