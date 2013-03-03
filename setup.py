@@ -160,6 +160,7 @@ class CythonExtension(Extension):
     def __init__(self, *args, **kwargs):
         Extension.__init__(self, *args, **kwargs)
         self.cython_directives = {
+            'c_string_encoding': 'utf-8',
             'profile': 'USE_PROFILE' in environ,
             'embedsignature': 'USE_EMBEDSIGNATURE' in environ}
         # XXX with pip, setuptools is imported before distutils, and change
