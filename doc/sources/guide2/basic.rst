@@ -41,8 +41,8 @@ Creating a kivy application is as simple as:
 
 - sub-classing the :class:`~kivy.app.App` class
 - implementing its :meth:`~kivy.app.App.build` method so it returns a
-  :class:`~kivy.uix.Widget` instance (the root of your widget tree) -
-  instantiating this class, and call its :meth:`~kivy.app.App.run`
+  :class:`~kivy.uix.Widget` instance (the root of your widget tree)
+- instantiating this class, and call its :meth:`~kivy.app.App.run`
   method.
 
 Here is an example of such a minimal application::

@@ -187,6 +187,8 @@ class Cache(object):
         curtime = Clock.get_time()
 
         for category in Cache._objects:
+            if category not in Cache._categories:
+                continue
             timeout = Cache._categories[category]['timeout']
             if timeout is not None and dt > timeout:
                 # XXX got a lag ! that may be because the frame take lot of

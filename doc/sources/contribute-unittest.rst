@@ -23,8 +23,8 @@ Then, in the kivy directory::
 
     make test
 
-How it's works
---------------
+How it works
+------------
 
 All the tests are located in `kivy/tests`, and the filename starts with
 `test_<name>.py`. Nose will automatically gather all the files and classes
