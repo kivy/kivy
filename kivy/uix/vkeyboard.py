@@ -372,7 +372,7 @@ class VKeyboard(Scatter):
         * If :data:`docked` is True, it will call :meth:`setup_mode_dock`
         * If :data:`docked` is False, it will call :meth:`setup_mode_free`
 
-        Fell free to overload theses methods to create a new
+        Feel free to overload theses methods to create a new
         positioning behavior.
         '''
         if self.docked:
