@@ -28,3 +28,9 @@ python.exe
 MANIFEST
 
 kivy/core/image/img_imageio.c
+
+kivy/core/audio/audio_sdl.c
+
+kivy/core/text/text_sdlttf.c
+
+kivy/core/window/window_x11.c
