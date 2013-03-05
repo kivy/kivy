@@ -44,7 +44,8 @@ class ImageData(object):
 
     __slots__ = ('fmt', 'mipmaps', 'source', 'flip_vertical')
     _supported_fmts = ('rgb', 'rgba', 'bgr', 'bgra',
-            's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5')
+            's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5',
+            'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2', 'pvrtc_rgba4')
 
     def __init__(self, width, height, fmt, data, source=None, flip_vertical=True):
         assert fmt in ImageData._supported_fmts
@@ -709,6 +710,7 @@ image_libs = []
 if platform() in ('macosx', 'ios'):
     image_libs += [('imageio', 'img_imageio')]
 image_libs += [
+    ('tex', 'img_tex'),
     ('dds', 'img_dds'),
     ('pygame', 'img_pygame'),
     ('pil', 'img_pil'),
