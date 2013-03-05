@@ -23,7 +23,8 @@ cdef list _gl_extensions = []
 cdef dict _gl_caps = {}
 cdef tuple _gl_texture_fmts = (
     'rgb', 'rgba', 'luminance', 'luminance_alpha',
-    'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5')
+    'bgr', 'bgra', 's3tc_dxt1', 's3tc_dxt3', 's3tc_dxt5',
+    'pvrtc_rgb4', 'pvrtc_rgb2', 'pvrtc_rgba4', 'pvrtc_rgba2')
 cdef int _gl_version_major = -1
 cdef int _gl_version_minor = -1
 cdef str _platform = core_platform()
@@ -135,6 +136,10 @@ cpdef int gl_has_capability(int cap):
         if not value:
             value = gl_has_extension('EXT_texture_compression_dxt1')
 
+    elif cap == c_GLCAP_PVRTC:
+        # PVRTC = PowerVR, mostly available in iOS device
+        msg = 'PVRTC texture support'
+        value = gl_has_extension('IMG_texture_compression_pvrtc')
     else:
         raise Exception('Unknown capability')
 
@@ -182,6 +187,8 @@ cpdef int gl_has_texture_native_format(str fmt):
         return gl_has_capability(c_GLCAP_DXT1)
     if fmt.startswith('s3tc_dxt'):
         return gl_has_capability(c_GLCAP_S3TC)
+    if fmt.startswith('pvrtc_'):
+        return gl_has_capability(c_GLCAP_PVRTC)
     return 0
 
 

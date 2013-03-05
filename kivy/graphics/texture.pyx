@@ -212,6 +212,10 @@ cdef GLuint GL_PALETTE8_RGBA8_OES = 0x8B96
 cdef GLuint GL_PALETTE8_R5_G6_B5_OES = 0x8B97
 cdef GLuint GL_PALETTE8_RGBA4_OES = 0x8B98
 cdef GLuint GL_PALETTE8_RGB5_A1_OES = 0x8B99
+cdef GLuint GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00
+cdef GLuint GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01
+cdef GLuint GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02
+cdef GLuint GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03
 
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
@@ -228,7 +232,11 @@ cdef dict _gl_color_fmt = {
     'palette8_rgba8': GL_PALETTE8_RGBA8_OES,
     'palette8_r5_g6_b5': GL_PALETTE8_R5_G6_B5_OES,
     'palette8_rgba4': GL_PALETTE8_RGBA4_OES,
-    'palette8_rgb5_a1': GL_PALETTE8_RGB5_A1_OES }
+    'palette8_rgb5_a1': GL_PALETTE8_RGB5_A1_OES,
+    'pvrtc_rgba2': GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG,
+    'pvrtc_rgba4': GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG,
+    'pvrtc_rgb2': GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG,
+    'pvrtc_rgb4': GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG }
 
 
 cdef dict _gl_buffer_fmt = {
@@ -283,6 +291,8 @@ cdef inline int _is_compressed_fmt(str x):
     '''Return 1 if the color string format is a compressed one
     '''
     if x.startswith('palette'):
+        return 1
+    if x.startswith('pvrtc_'):
         return 1
     return x.startswith('s3tc_dxt')
 
