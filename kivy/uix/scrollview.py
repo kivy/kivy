@@ -41,7 +41,7 @@ Managing the Content Size
 -------------------------
 
 ScrollView manages the position of the child content, not the size. You must
-carefully specify the :data:`ScrollView.size_hint` property to get the desired
+carefully specify the `size_hint` of your content to get the desired
 scroll/pan effect.
 
 By default, size_hint is (1, 1), so the content size will fit your ScrollView
