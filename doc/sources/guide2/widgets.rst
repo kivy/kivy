@@ -114,16 +114,28 @@ Changing the |size_hint_x| to  .5 will make the |widget| take 50% of the
 
 Let's add another |Button| to the |layout| and see what happens.
 
-.. image:: images/size_hint[bB].jpg
+.. image:: images/size_hint[bb].jpg
 
 |BoxLayout| by its very nature devides the available space up between its
-|children| equally, in our case that's 50-50 as we have two |children|. If a
-child uses |size_hint|, that specifies how much space the |Widget| will take out
-of the |size| allotted to it by the |BoxLayout|. In our case the first |Button|
-specifies .5 for |size_hint_x| which means 50% of 50% = 25% of the BoxLayouts
-|width|. The rest of the BoxLayouts |width| is devided among the rest of the 
-|children|. In our case that means the second |Button| takes up 75% of the
-|layout| |width|.
+|children| equally, in our case that's 50-50 as we have two |children|. Let's
+use size_hint on one of the children and see at the results.
+
+.. image:: images/size_hint[bB].jpg
+
+If a child specifies |size_hint|, that specifies how much space the |Widget|
+will take out of the |size| allotted to it by the |BoxLayout|. In our case the
+first |Button| specifies .5 for |size_hint_x|. The space for the widget is
+calculated like so::
+
+    first child's size_hint devided by
+    first child's size_hint + second child's size_hint + ...n(no of children)
+    
+    .5/().5+1) = .333...
+
+
+The rest of the BoxLayouts |width| is divided among the rest of the |children|.
+In our case that means the second |Button| takes up 66.66% of the |layout|
+|width|.
 
 Go ahead and experiment with |size_hint| to get comfortable with it.
 
