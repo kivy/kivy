@@ -120,7 +120,7 @@ Let's add another |Button| to the |layout| and see what happens.
 |children| equally, in our case that's 50-50 as we have two |children|. Let's
 use size_hint on one of the children and see at the results.
 
-.. image:: images/size_hint[bB].jpg
+.. image:: images/size_hint[oB].jpg
 
 If a child specifies |size_hint|, that specifies how much space the |Widget|
 will take out of the |size| allotted to it by the |BoxLayout|. In our case the
