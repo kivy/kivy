@@ -129,6 +129,13 @@ the value can use the values of other properties using reserved keywords.
                 Button:
                     text: root.custom
 
+    app
+        This keyword allways refer to your app instance, it's equivalent
+        to a call to :meth:`App.get_running_app` in python.
+
+            Label:
+                text: app.name
+
 Furthermore, if a class definition contains an id, you can use it as a
 keyword::
 

@@ -250,6 +250,7 @@ class ImageLoader(object):
         # sort filename list
         znamelist = z.namelist()
         znamelist.sort()
+        image = None
         for zfilename in znamelist:
             try:
                 #read file and store it in mem with fileIO struct around it
@@ -261,11 +262,16 @@ class ImageLoader(object):
                         continue
                     Logger.debug('Image%s: Load <%s> from <%s>' %
                             (loader.__name__[11:], zfilename, filename))
-                    im = loader(tmpfile, **kwargs)
+                    try:
+                        im = loader(tmpfile, **kwargs)
+                    except:
+                        # Loader failed, continue trying.
+                        continue
                     break
                 if im is not None:
                     # append ImageData to local variable before it's overwritten
                     image_data.append(im._data[0])
+                    image = im 
                 #else: if not image file skip to next
             except:
                 Logger.warning('Image: Unable to load image' +
@@ -275,9 +281,9 @@ class ImageLoader(object):
         if len(image_data) == 0:
             raise Exception('no images in zip <%s>' % filename)
         # replace Image.Data with the array of all the images in the zip
-        im._data = image_data
-        im.filename = filename
-        return im
+        image._data = image_data
+        image.filename = filename
+        return image
 
     @staticmethod
     def register(defcls):

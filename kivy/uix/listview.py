@@ -660,7 +660,7 @@ class ListItemButton(SelectableView, Button):
         self.background_color = self.deselected_color
 
     def __repr__(self):
-        return self.text
+        return '<%s text=%s>' % (self.__class__.__name__, self.text)
 
 
 # [TODO] Why does this mix in SelectableView -- that makes it work like
@@ -693,7 +693,7 @@ class ListItemLabel(SelectableView, Label):
         self.bold = False
 
     def __repr__(self):
-        return self.text
+        return '<%s text=%s>' % (self.__class__.__name__, self.text)
 
 
 class CompositeListItem(SelectableView, BoxLayout):
@@ -791,9 +791,10 @@ class CompositeListItem(SelectableView, BoxLayout):
 
     def __repr__(self):
         if self.representing_cls is not None:
-            return str(self.representing_cls)
+            return '<%r>, representing <%s>' % (
+                self.representing_cls, self.__class__.__name__)
         else:
-            return super(CompositeListItem, self).__repr__()
+            return '<%s>' % (self.__class__.__name__)
 
 
 Builder.load_string('''
