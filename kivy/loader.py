@@ -26,10 +26,10 @@ You can now tweak the loader to have a better user experience or more
 performance, depending of the images you're gonna to load. Take a look at the
 parameters:
 
-    - :data:`Loader.num_workers` - define the number of threads to start for
-      loading images
-    - :data:`Loader.max_upload_per_frame` - define the maximum image uploads in
-      GPU to do per frames.
+- :data:`Loader.num_workers` - define the number of threads to start for
+  loading images
+- :data:`Loader.max_upload_per_frame` - define the maximum image uploads in
+  GPU to do per frames.
 
 '''
 
@@ -45,6 +45,7 @@ from collections import deque
 from time import sleep
 from os.path import join
 from os import write, close, unlink, environ
+import threading
 
 # Register a cache for loader
 Cache.register('kv.loader', limit=500, timeout=60)
@@ -81,11 +82,12 @@ class LoaderBase(object):
     '''
 
     def __init__(self):
-
         self._loading_image = None
         self._error_image = None
         self._num_workers = 2
         self._max_upload_per_frame = 2
+        self._paused = False
+        self._resume_cond = threading.Condition()
 
         self._q_load = deque()
         self._q_done = deque()
@@ -149,22 +151,50 @@ class LoaderBase(object):
     .. versionadded:: 1.5.2
     '''
 
-    @property
-    def loading_image(self):
-        '''Image used for loading (readonly)'''
+    def _get_loading_image(self):
         if not self._loading_image:
             loading_png_fn = join(kivy_data_dir, 'images', 'image-loading.gif')
             self._loading_image = ImageLoader.load(filename=loading_png_fn)
         return self._loading_image
 
-    @property
-    def error_image(self):
-        '''Image used for error (readonly)'''
+    def _set_loading_image(self, image):
+        if isinstance(image, basestring):
+            self._loading_image = ImageLoader.load(filename=image)
+        else:
+            self._loading_image = image
+
+    loading_image = property(_get_loading_image, _set_loading_image)
+    '''Image used for loading.
+    You can change it by doing::
+
+        Loader.loading_image = 'loading.png'
+
+    .. versionchanged:: 1.5.2
+        Not readonly anymore.
+    '''
+
+    def _get_error_image(self):
         if not self._error_image:
             error_png_fn = join(
                 'atlas://data/images/defaulttheme/image-missing')
             self._error_image = ImageLoader.load(filename=error_png_fn)
         return self._error_image
+
+    def _set_error_image(self, image):
+        if isinstance(image, basestring):
+            self._error_image = ImageLoader.load(filename=image)
+        else:
+            self._error_image = image
+
+    error_image = property(_get_error_image, _set_error_image)
+    '''Image used for error.
+    You can change it by doing::
+
+        Loader.error_image = 'error.png'
+        
+    .. versionchanged:: 1.5.2
+        Not readonly anymore.
+    '''
 
     def start(self):
         '''Start the loader thread/process'''
@@ -178,6 +208,29 @@ class LoaderBase(object):
         '''Stop the loader thread/process'''
         self._running = False
 
+    def pause(self):
+        '''Pause the loader, can be useful during interactions
+
+        .. versionadded:: 1.5.2
+        '''
+        self._paused = True
+
+    def resume(self):
+        '''Resume the loader, after a :meth:`pause`.
+
+        .. versionadded:: 1.5.2
+        '''
+        self._paused = False
+        self._resume_cond.acquire()
+        self._resume_cond.notify_all()
+        self._resume_cond.release()
+
+    def _wait_for_resume(self):
+        while self._running and self._paused:
+            self._resume_cond.acquire()
+            self._resume_cond.wait(0.25)
+            self._resume_cond.release()
+
     def _load(self, kwargs):
         '''(internal) Loading function, called by the thread.
         Will call _load_local() if the file is local,
@@ -185,6 +238,8 @@ class LoaderBase(object):
 
         while len(self._q_done) >= self.max_upload_per_frame * self._num_workers:
             sleep(0.1)
+
+        self._wait_for_resume()
 
         filename = kwargs['filename']
         load_callback = kwargs['load_callback']
@@ -281,6 +336,11 @@ class LoaderBase(object):
             if not self._running:
                 self.start()
             self._start_wanted = False
+
+        # in pause mode, don't unqueue anything.
+        if self._paused:
+            self._trigger_update()
+            return
 
         for x in xrange(self.max_upload_per_frame):
             try:
