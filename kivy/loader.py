@@ -183,10 +183,6 @@ class LoaderBase(object):
         Will call _load_local() if the file is local,
         or _load_urllib() if the file is on Internet'''
 
-        # FIXME, make it configurable?
-        while len(self._q_done) > self.max_upload_per_frame * 2:
-            sleep(0.1)
-
         filename = kwargs['filename']
         load_callback = kwargs['load_callback']
         post_callback = kwargs['post_callback']
@@ -381,6 +377,8 @@ else:
 
             def run(self, *largs):
                 while self._running:
+                    if len(self._q_done) > self.max_upload_per_frame * 2:
+                        return
                     try:
                         parameters = self._q_load.pop()
                     except:
@@ -409,6 +407,8 @@ else:
 
             def run(self, *largs):
                 while self._running:
+                    if len(self._q_done) > self.max_upload_per_frame * 2:
+                        return
                     try:
                         parameters = self._q_load.pop()
                     except IndexError:
