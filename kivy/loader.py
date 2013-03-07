@@ -183,6 +183,9 @@ class LoaderBase(object):
         Will call _load_local() if the file is local,
         or _load_urllib() if the file is on Internet'''
 
+        while len(self._q_done) >= self.max_upload_per_frame * self._num_workers:
+            sleep(0.1)
+
         filename = kwargs['filename']
         load_callback = kwargs['load_callback']
         post_callback = kwargs['post_callback']
@@ -364,14 +367,15 @@ else:
     class _Worker(Thread):
         '''Thread executing tasks from a given tasks queue
         '''
-        def __init__(self, tasks):
+        def __init__(self, pool, tasks):
             Thread.__init__(self)
             self.tasks = tasks
             self.daemon = True
+            self.pool = pool
             self.start()
 
         def run(self):
-            while True:
+            while self.pool.running:
                 func, args, kargs = self.tasks.get()
                 try: func(*args, **kargs)
                 except Exception, e: print e
@@ -383,18 +387,18 @@ else:
         '''
         def __init__(self, num_threads):
             super(_ThreadPool, self).__init__()
-            self.tasks = Queue(num_threads)
+            self.running = True
+            self.tasks = Queue()
             for _ in range(num_threads):
-                _Worker(self.tasks)
+                _Worker(self, self.tasks)
 
         def add_task(self, func, *args, **kargs):
             '''Add a task to the queue
             '''
             self.tasks.put((func, args, kargs))
 
-        def wait_completion(self):
-            '''Wait for completion of all the tasks in the queue
-            '''
+        def stop(self):
+            self.running = False
             self.tasks.join()
 
 
@@ -411,12 +415,10 @@ else:
         def stop(self):
             super(LoaderThreadPool, self).stop()
             Clock.unschedule(self.run)
-            #self.pool.stop()
+            self.pool.stop()
 
         def run(self, *largs):
             while self._running:
-                if len(self._q_done) > self.max_upload_per_frame * 2:
-                    return
                 try:
                     parameters = self._q_load.pop()
                 except:
@@ -425,5 +427,6 @@ else:
 
 
     Loader = LoaderThreadPool()
-    Logger.info('Loader: using <threadpool> as thread loader')
+    Logger.info('Loader: using a thread pool of {} workers'.format(
+        Loader.num_workers))
 
