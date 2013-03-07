@@ -357,64 +357,73 @@ else:
     # Try to use pygame as our first choice for loader
     #
 
-    try:
-        import pygame
+    from Queue import Queue
+    from threading import Thread
 
-        class LoaderPygame(LoaderBase):
 
-            def __init__(self):
-                super(LoaderPygame, self).__init__()
-                self.worker = None
+    class _Worker(Thread):
+        '''Thread executing tasks from a given tasks queue
+        '''
+        def __init__(self, tasks):
+            Thread.__init__(self)
+            self.tasks = tasks
+            self.daemon = True
+            self.start()
 
-            def start(self):
-                super(LoaderPygame, self).start()
-                self.worker = pygame.threads.WorkerQueue(self._num_workers)
-                self.worker.do(self.run)
+        def run(self):
+            while True:
+                func, args, kargs = self.tasks.get()
+                try: func(*args, **kargs)
+                except Exception, e: print e
+                self.tasks.task_done()
 
-            def stop(self):
-                super(LoaderPygame, self).stop()
-                self.worker.stop()
 
-            def run(self, *largs):
-                while self._running:
-                    if len(self._q_done) > self.max_upload_per_frame * 2:
-                        return
-                    try:
-                        parameters = self._q_load.pop()
-                    except:
-                        sleep(0.1)
-                        continue
-                    self.worker.do(self._load, parameters)
+    class _ThreadPool(object):
+        '''Pool of threads consuming tasks from a queue
+        '''
+        def __init__(self, num_threads):
+            super(_ThreadPool, self).__init__()
+            self.tasks = Queue(num_threads)
+            for _ in range(num_threads):
+                _Worker(self.tasks)
 
-        Loader = LoaderPygame()
-        Logger.info('Loader: using <pygame> as thread loader')
+        def add_task(self, func, *args, **kargs):
+            '''Add a task to the queue
+            '''
+            self.tasks.put((func, args, kargs))
 
-    except:
+        def wait_completion(self):
+            '''Wait for completion of all the tasks in the queue
+            '''
+            self.tasks.join()
 
-        #
-        # Default to the clock loader
-        #
-        class LoaderClock(LoaderBase):
-            '''Loader implementation using a simple Clock()'''
 
-            def start(self):
-                super(LoaderClock, self).start()
-                Clock.schedule_interval(self.run, 0)
+    class LoaderThreadPool(LoaderBase):
+        def __init__(self):
+            super(LoaderThreadPool, self).__init__()
+            self.pool = None
 
-            def stop(self):
-                super(LoaderClock, self).stop()
-                Clock.unschedule(self.run)
+        def start(self):
+            super(LoaderThreadPool, self).start()
+            self.pool = _ThreadPool(self._num_workers)
+            Clock.schedule_interval(self.run, 0)
 
-            def run(self, *largs):
-                while self._running:
-                    if len(self._q_done) > self.max_upload_per_frame * 2:
-                        return
-                    try:
-                        parameters = self._q_load.pop()
-                    except IndexError:
-                        return
-                    self._load(parameters)
+        def stop(self):
+            super(LoaderThreadPool, self).stop()
+            Clock.unschedule(self.run)
+            #self.pool.stop()
 
-        Loader = LoaderClock()
-        Logger.info('Loader: using <clock> as thread loader')
+        def run(self, *largs):
+            while self._running:
+                if len(self._q_done) > self.max_upload_per_frame * 2:
+                    return
+                try:
+                    parameters = self._q_load.pop()
+                except:
+                    return
+                self.pool.add_task(self._load, parameters)
+
+
+    Loader = LoaderThreadPool()
+    Logger.info('Loader: using <threadpool> as thread loader')
 
