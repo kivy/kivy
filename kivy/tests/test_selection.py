@@ -216,7 +216,7 @@ class FruitSelectionObserver(Widget):
 
     def on_selection_change(self, list_adapter, *args):
         if len(list_adapter.selection) > 0:
-            self.fruit_name = str(list_adapter.selection[0])
+            self.fruit_name = list_adapter.selection[0].text
         self.call_count += 1
 
 
