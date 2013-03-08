@@ -120,7 +120,7 @@ cdef class ShaderSource:
             glDeleteShader(shader)
             return
 
-        Logger.info('Shader: %s compiled successfully' % ctype)
+        Logger.debug('Shader: %s compiled successfully' % ctype.capitalize())
         self.shader = shader
 
     def __dealloc__(self):
@@ -345,23 +345,25 @@ cdef class Shader:
         self.build_vertex()
         self.build_fragment()
 
-    cdef void build_vertex(self, int link=0):
+    cdef void build_vertex(self, int link=1):
         if self.vertex_shader is not None:
             glDetachShader(self.program, self.vertex_shader.shader)
             self.vertex_shader = None
         self.vertex_shader = self.compile_shader(self.vert_src, GL_VERTEX_SHADER)
         if self.vertex_shader is not None:
             glAttachShader(self.program, self.vertex_shader.shader)
-        self.link_program()
+        if link:
+            self.link_program()
 
-    cdef void build_fragment(self, int link=0):
+    cdef void build_fragment(self, int link=1):
         if self.fragment_shader is not None:
             glDetachShader(self.program, self.fragment_shader.shader)
             self.fragment_shader = None
         self.fragment_shader = self.compile_shader(self.frag_src, GL_FRAGMENT_SHADER)
         if self.fragment_shader is not None:
             glAttachShader(self.program, self.fragment_shader.shader)
-        self.link_program()
+        if link:
+            self.link_program()
 
     cdef void link_program(self):
         if self.vertex_shader is None or self.fragment_shader is None:
@@ -444,6 +446,7 @@ cdef class Shader:
             self.vert_src = ""
             self.frag_src = ""
             glsl_source = "\n"
+            Logger.info('Shader: Read <{}>'.format(self._source))
             with open(self._source) as fin:
                 glsl_source += fin.read()
             sections = glsl_source.split('\n---')
