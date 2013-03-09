@@ -288,8 +288,8 @@ class Label(Widget):
     '''Line Height for the text. e.g. line_height = 2 will cause the spacing
     between lines to be twice the size.
 
-    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, default to
-    1.0.
+    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, default
+    to 1.0.
 
     .. versionadded:: 1.5.0
     '''
@@ -339,7 +339,9 @@ class Label(Widget):
     (:data:`padding_x`, :data:`padding_y`) properties.
     '''
 
-    halign = OptionProperty('left', options=['left', 'center', 'right'])
+    halign = OptionProperty('left', options=['left', 'center', 'right',
+                            'left_justified', 'right_justified',
+                            'center_justified'])
     '''Horizontal alignment of the text.
 
     :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
@@ -351,6 +353,11 @@ class Label(Widget):
         (centered), only the position of the text in this texture. You probably
         want to bind the size of the Label to the :data:`texture_size` or set a
         :data:`text_size`.
+
+    .. versionchanged:: 1.0.6
+
+        Starting version 1.0.6 two new options were added to :data:`halign`
+        namely `left_justified` and `right_justified`.
     '''
 
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])

@@ -253,7 +253,7 @@ class LabelBase(object):
                 lh = lh * options['line_height']
                 if real:
                     x = 0
-                    if halign == 'center':
+                    if halign[0] == 'center':
                         x = int((self.width - lw) / 2.)
                     elif halign == 'right':
                         x = int(self.width - lw)
@@ -304,7 +304,7 @@ class LabelBase(object):
 
                 # is the word fit on the uw ?
                 if ww > uw:
-                    lines.append(((ww, wh), word))
+                    lines.append(((ww, wh), 0, word))
                     lw = lh = x = 0
                     continue
 
@@ -313,7 +313,9 @@ class LabelBase(object):
                 # is the word fit on the line ?
                 if (word == '\n' or x + ww > uw) and lw != 0:
                     # no, push actuals glyph
-                    lines.append(((lw, lh), glyphs))
+                    # lw, lh), is_last_line, glyphs)
+                    last_line = 1 if word == '\n' else 0
+                    lines.append(((lw, lh), last_line, glyphs))
                     glyphs = []
 
                     # reset size
@@ -331,10 +333,11 @@ class LabelBase(object):
 
             # got some char left ?
             if lw != 0:
-                lines.append(((lw, lh), glyphs))
+                lines.append(((lw, lh), 1, glyphs))
 
             if not real:
-                self._internal_height = sum([size[1] for size, glyphs in lines])
+                self._internal_height = sum([size[1] for size, last_line,
+                                            glyphs in lines])
                 ll_h = lines[-1][0][1]
                 lh_offset = ll_h - (ll_h / self.options['line_height'])
                 self._internal_height = self._internal_height - lh_offset
@@ -342,15 +345,34 @@ class LabelBase(object):
                 w = uw
             else:
                 # really render now.
-                for size, glyphs in lines:
+                for size, last_line, glyphs in lines:
                     x = 0
-                    if halign == 'center':
+                    if halign.startswith('center'):
                         x = int((self.width - size[0]) / 2.)
-                    elif halign == 'right':
+                    elif halign.startswith('right'):
                         x = int(self.width - size[0])
+
+                    # justification
+                    just_space = 0
+                    if halign[-1] == 'd':
+                        # justified
+                        if glyphs and not last_line:
+                            x = 0
+                            last_space = 1 if glyphs[-1] == ' ' else 0
+                            _spaces = glyphs.count(' ') - last_space
+                            # divide left over space between `spaces`
+                            # TODO implement a better method of stretching
+                            # glyphs?
+                            if _spaces:
+                                space_width = cache[' '][0] if last_space else 0
+                                just_space = (((uw - size[0] + space_width) *1.)
+                                            /(_spaces*1.))
+
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
-                        if glyph != ' ' and glyph != '\n':
+                        if glyph == ' ':
+                            x += just_space
+                        elif glyph != '\n':
                             render_text(glyph, x, y)
                         x += lw
                     y += size[1]
