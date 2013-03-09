@@ -253,9 +253,11 @@ class LabelBase(object):
                 lh = lh * options['line_height']
                 if real:
                     x = 0
-                    if halign[0] == 'center':
+                    if halign[0] == 'c':
+                        # center
                         x = int((self.width - lw) / 2.)
-                    elif halign == 'right':
+                    elif halign[0] == 'r':
+                        # right
                         x = int(self.width - lw)
                     if len(line):
                         render_text(line, x, y)
@@ -347,14 +349,16 @@ class LabelBase(object):
                 # really render now.
                 for size, last_line, glyphs in lines:
                     x = 0
-                    if halign.startswith('center'):
+                    if halign[0] == 'c':
+                        # center
                         x = int((self.width - size[0]) / 2.)
-                    elif halign.startswith('right'):
+                    elif halign[0] == 'r':
+                        # right
                         x = int(self.width - size[0])
 
                     # justification
                     just_space = 0
-                    if halign[-1] == 'd':
+                    if halign[-1] == 'y':
                         # justified
                         if glyphs and not last_line:
                             x = 0

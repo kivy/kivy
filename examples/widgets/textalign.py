@@ -16,11 +16,10 @@ class Selector(FloatLayout):
 class TextAlignApp(App):
 
     def select(self, case):
-        grid = GridLayout(rows=3, cols=6, spacing=10, size_hint=(None, None),
+        grid = GridLayout(rows=3, cols=3, spacing=10, size_hint=(None, None),
                           pos_hint={'center_x': .5, 'center_y': .5})
         for valign in ('bottom', 'middle', 'top'):
-            for halign in ('left', 'center', 'right', 'left_justified',
-                            'center_justified', 'right_justified'):
+            for halign in ('left', 'center', 'right'):
                 label = BoundedLabel(text='V: %s\nH: %s' % (valign, halign),
                               size_hint=(None, None),
                               size=(150, 150),

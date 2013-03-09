@@ -219,9 +219,9 @@ class MarkupLabel(MarkupLabelBase):
         if len(lines):
             line = lines[-1]
         else:
-            # line-> line width, line height, is_last_line, words
+            # line-> line width, line height, is_last_line, is_first_line, words
             # words -> (w, h, word)...
-            line = [0, 0, 0, []]
+            line = [0, 0, 0, 1, []]
             lines.append(line)
 
         # extract user limitation
@@ -236,7 +236,7 @@ class MarkupLabel(MarkupLabelBase):
 
             if part == '\n':
                 # put a new line!
-                line = [0, default_line_height, 0, []]
+                line = [0, default_line_height, 0, 1, []]
                 # skip last line for justification.
                 if lines:
                     lines[-1][2] = 1
@@ -261,13 +261,13 @@ class MarkupLabel(MarkupLabelBase):
             if uw is None or lw + pw < uw:
                 # no limitation or part can be contained in the line
                 # then append the part to the line
-                line[3].append((pw, ph, part, options))
+                line[4].append((pw, ph, part, options))
                 # and update the line size
                 line[0] += pw
                 line[1] = max(line[1], ph)
             else:
                 # part can't be put in the line, do a new one...
-                line = [pw, ph, 0, [(pw, ph, part, options)]]
+                line = [pw, ph, 0, 0, [(pw, ph, part, options)]]
                 lines.append(line)
         # set last_line to be skipped for justification
         lines[-1][2] = 1
@@ -281,8 +281,7 @@ class MarkupLabel(MarkupLabelBase):
         # convert halign/valign to int, faster comparison
         av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
         ah = {'left': 0, 'center': 1, 'right': 2,
-            'left_justified': 3, 'center_justified': 4,
-            'right_justified': 5}[self.options['halign']]
+                'justify': 3,}[self.options['halign']]
 
         y = 0
         w, h = self._size
@@ -294,12 +293,13 @@ class MarkupLabel(MarkupLabelBase):
             lh = line[1]
             lw = line[0]
             last_line = line[2]
+            first_line = line[3]
 
             # horizontal alignement
             if ah in (0, 3):
                 # left
                 x = 0
-            elif ah in (1, 4):
+            elif ah == 1:
                 # center
                 x = int((w - lw) / 2)
             else:
@@ -316,28 +316,34 @@ class MarkupLabel(MarkupLabelBase):
 
              # justification
             just_space = 0
+            first_space = 0
             if ah > 2:
                 # justified
-                if line[3] and not last_line:
-                    last_word = line[3][-1][2]
+                if line[4] and not last_line:
+                    last_word = line[4][-1][2]
 
-                    x = last_space = space_width = _spaces = 0
-                    for pw, ph, word, options in line[3]:
-                        _spaces += 1if word == ' ' else 0
+                    x = first_space = last_space = space_width = _spaces = 0
+                    for pw, ph, word, options in line[4]:
+                        _spaces += 1 if word == ' ' else 0
 
                     if word == ' ':
                         last_space = 1
                         space_width = pw
-                        _spaces -= last_space
+                    if line[4][0][2][0] == ' ':
+                        first_space = 1
+                        space_width += pw
+                    _spaces -= last_space + first_space
 
                     # divide left over space between `spaces`
                     if _spaces:
-                        just_space = (((w - lw + space_width) *1.)
+                        just_space = (((w - lw + space_width) * 1.)
                                     /(_spaces*1.))
 
-
-            for pw, ph, part, options in line[3]:
+            for pw, ph, part, options in line[4]:
                 self.options = options
+                if not first_line and first_space:
+                    first_line = 1
+                    continue
                 if part == ' ':
                     x += just_space
                 r(part, x, y + (lh - ph) / 1.25)

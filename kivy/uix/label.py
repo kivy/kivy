@@ -340,8 +340,7 @@ class Label(Widget):
     '''
 
     halign = OptionProperty('left', options=['left', 'center', 'right',
-                            'left_justified', 'right_justified',
-                            'center_justified'])
+                            'justify'])
     '''Horizontal alignment of the text.
 
     :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
@@ -354,10 +353,10 @@ class Label(Widget):
         want to bind the size of the Label to the :data:`texture_size` or set a
         :data:`text_size`.
 
-    .. versionchanged:: 1.0.6
+    .. versionchanged:: 1.6.0
 
-        Starting version 1.0.6 two new options were added to :data:`halign`
-        namely `left_justified` and `right_justified`.
+        Starting version 1.6.0 a new option was added to :data:`halign`
+        namely `justify`
     '''
 
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
