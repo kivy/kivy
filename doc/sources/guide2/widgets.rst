@@ -19,6 +19,7 @@ Widgets
 .. |top| replace:: :attr:`~kivy.uix.widget.Widget.top`
 .. |center_x| replace:: :attr:`~kivy.uix.widget.Widget.center_x`
 .. |center_y| replace:: :attr:`~kivy.uix.widget.Widget.center_y`
+.. |orientation| replace:: :attr:`~kivy.uix.boxlayout.BoxLayout.orientation`
 .. |Widget| replace:: :class:`~kivy.uix.widget.Widget`
 .. |Button| replace:: :class:`~kivy.uix.button.Button`
 .. |Canvas| replace:: :class:`~kivy.graphics.Canvas`
@@ -27,6 +28,10 @@ Widgets
 .. |Layout| replace:: :mod:`~kivy.uix.layout`
 .. |RelativeLayout| replace:: :mod:`~kivy.uix.relativelayout`
 .. |BoxLayout| replace:: :mod:`~kivy.uix.boxlayout`
+.. |FloatLayout| replace:: :mod:`~kivy.uix.floatlayout`
+.. |GridLayout| replace:: :mod:`~kivy.uix.gridlayout`
+.. |StackLayout| replace:: :mod:`~kivy.uix.stacklayout`
+.. |AnchorLayout| replace:: :mod:`~kivy.uix.anchorlayout`
 .. |add_widget| replace:: :meth:`~kivy.uix.widget.Widget.add_widget`
 .. |remove_widget| replace:: :meth:`~kivy.uix.widget.Widget.remove_widget`
 
@@ -64,12 +69,12 @@ properties to determine the |size| and |pos| of their |children|.
 Look at the documentation of the various Layouts to see How they honor
 |size_hint| and |pos_hint|:
 
-- :mod:`~kivy.uix.floatlayout`
+- |FloatLayout|
 - |BoxLayout|
-- :mod:`~kivy.uix.gridlayout`
-- :mod:`~kivy.uix.stacklayout`
-- :mod:`~kivy.uix.relativelayout`
-- :mod:`~kivy.uix.anchorlayout`
+- |GridLayout|
+- |StackLayout|
+- |RelativeLayout|
+- |AnchorLayout|
 
 
 
@@ -107,10 +112,18 @@ the Editor on the right.
 As you can see from the image above the `Button` takes up 100% of the layouts
 |size|.
 
-Changing the |size_hint_x| to  .5 will make the |widget| take 50% of the
-|layout| |width|.
+Changing the |size_hint_x|/|size_hint_y| to .5 will make the |widget| take 50%
+of the |layout| |width|/|height|.
 
 .. image:: images/size_hint[b_].jpg
+
+You can see here that although we specify |size_hint_x| and |size_hint_y| both
+to be .5, only |size_hint_x| seems to be honored that's because |BoxLayout|
+controls the |size_hint_y| when |orientation| is `vertical` and |size_hint_x|
+when 'horizontal'. That means the controlled side's size is calculated depending
+upon the total No. of |children| in the |BoxLayout|. Here that's one child with
+|size_hint_y| controlled so, .5/.5 = 1. Thus the widget takes 100% of the parent
+layout's height.
 
 Let's add another |Button| to the |layout| and see what happens.
 
