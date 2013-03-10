@@ -126,11 +126,11 @@ class BoxLayout(Layout):
             if shw is None:
                 minimum_size_x += w.width
             else:
-                stretch_weight_x += shw
+                stretch_weight_x += shw if len_children > 1 else 1
             if shh is None:
                 minimum_size_y += w.height
             else:
-                stretch_weight_y += shh
+                stretch_weight_y += shh if len_children > 1 else 1
 
         if orientation == 'horizontal':
             x = y = padding
