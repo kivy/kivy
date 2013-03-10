@@ -5,13 +5,13 @@ Vertex Buffer
 The :class:`VBO` class handle the creation and update of Vertex Buffer Object in
 OpenGL.
 
-.. versionadded:: 1.5.2
+.. versionadded:: 1.6.0
     VertexFormat class added.  VertexFormat is used to describe the layout
     of the vertex data stored in vertex arrays/vbo.  The default vertex format
     is:
         VertexFormat(('vPosition', 2, 'float'), ('vTexCoords0', 2, 'float'))
 
-.. versionchanged:: 1.5.2
+.. versionchanged:: 1.6.0
     VBO now no longer has a fixed vertex format, if no VertexFormat is given
     at initialization, the default vertex format is used.
 '''
@@ -41,7 +41,7 @@ cdef short V_HAVEID = 1 << 2
 
 cdef class VBO:
     '''
-    .. versionchanged:: 1.5.2
+    .. versionchanged:: 1.6.0
         VBO now no longer has a fixed vertex format, if no VertexFormat is given
         at initialization, the default vertex format is used.
     '''

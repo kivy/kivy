@@ -2,7 +2,7 @@
 Texture
 =======
 
-.. versionchanged:: 1.5.2
+.. versionchanged:: 1.6.0
     Added support for paletted texture on OES: 'palette4_rgb8', 'palette4_rgba8', 'palette4_r5_g6_b5', 'palette4_rgba4', 'palette4_rgb5_a1', 'palette8_rgb8', 'palette8_rgba8', 'palette8_r5_g6_b5', 'palette8_rgba4', 'palette8_rgb5_a1'
 
 :class:`Texture` is a class to handle OpenGL texture. Depending of the hardware,

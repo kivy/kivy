@@ -33,7 +33,7 @@ And the header for Vertex Shader:
 Single file glsl shader programs
 --------------------------------
 
-.. versionadded:: 1.5.2
+.. versionadded:: 1.6.0
 
 To simplify shader management, the vertex and fragment shaders can be loaded 
 automatically from a single glsl source file (plain text).  The file should 
@@ -433,7 +433,7 @@ cdef class Shader:
         header consisting of one line starting with either "--VERTEX" or
         "--FRAGMENT" (case insensitive).
 
-        .. versionadded:: 1.5.2
+        .. versionadded:: 1.6.0
         '''
         def __get__(self):
             return self._source

@@ -20,7 +20,7 @@ If you want to change the default loading image, you can do::
 Tweaking the asynchronous loader
 --------------------------------
 
-.. versionadded:: 1.5.2
+.. versionadded:: 1.6.0
 
 You can now tweak the loader to have a better user experience or more
 performance, depending of the images you're gonna to load. Take a look at the
@@ -120,10 +120,10 @@ class LoaderBase(object):
     The default value is 2 for giving a smooth user experience. You could
     increase the number of workers, then all the images will be loaded faster,
     but the user will not been able to use the application while loading.
-    Prior to 1.5.2, the default number was 20, and loading many full-hd images
+    Prior to 1.6.0, the default number was 20, and loading many full-hd images
     was blocking completly the application.
 
-    .. versionadded:: 1.5.2
+    .. versionadded:: 1.6.0
     '''
 
     def _set_max_upload_per_frame(self, num):
@@ -148,7 +148,7 @@ class LoaderBase(object):
     smart to reduce the :data:`max_upload_per_frame` to 1 or 2. If you get ride
     of that (or reduce it a lot), take a look at the DDS format.
 
-    .. versionadded:: 1.5.2
+    .. versionadded:: 1.6.0
     '''
 
     def _get_loading_image(self):
@@ -169,7 +169,7 @@ class LoaderBase(object):
 
         Loader.loading_image = 'loading.png'
 
-    .. versionchanged:: 1.5.2
+    .. versionchanged:: 1.6.0
         Not readonly anymore.
     '''
 
@@ -192,7 +192,7 @@ class LoaderBase(object):
 
         Loader.error_image = 'error.png'
         
-    .. versionchanged:: 1.5.2
+    .. versionchanged:: 1.6.0
         Not readonly anymore.
     '''
 
@@ -211,14 +211,14 @@ class LoaderBase(object):
     def pause(self):
         '''Pause the loader, can be useful during interactions
 
-        .. versionadded:: 1.5.2
+        .. versionadded:: 1.6.0
         '''
         self._paused = True
 
     def resume(self):
         '''Resume the loader, after a :meth:`pause`.
 
-        .. versionadded:: 1.5.2
+        .. versionadded:: 1.6.0
         '''
         self._paused = False
         self._resume_cond.acquire()

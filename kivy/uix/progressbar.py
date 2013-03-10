@@ -54,7 +54,7 @@ class ProgressBar(Widget):
     value of the progressbar. If the value is < 0 or > :data:`max`, it will be
     normalized to thoses boundaries.
 
-    .. versionchanged:: 1.5.2
+    .. versionchanged:: 1.6.0
         The value is now limited between 0 to :data:`max`
     '''
 

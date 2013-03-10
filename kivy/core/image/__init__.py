@@ -227,7 +227,7 @@ class ImageLoaderBase(object):
     def nocache(self):
         '''Indicate if the texture will not be stored in the cache
 
-        .. versionadded:: 1.5.2
+        .. versionadded:: 1.6.0
         '''
         return self._nocache
 
@@ -655,7 +655,7 @@ class Image(EventDispatcher):
     def nocache(self):
         '''Indicate if the texture will not be stored in the cache
 
-        .. versionadded:: 1.5.2
+        .. versionadded:: 1.6.0
         '''
         return self._nocache
 

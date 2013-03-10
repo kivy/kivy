@@ -39,7 +39,7 @@ If you wish to have a bare-bones list adapter, without selection, use
         `on_selection_change`: (view, view list )
             Fired when selection changes
 
-.. versionchanged:: 1.5.2
+.. versionchanged:: 1.6.0
 
     Added data = ListProperty([]), which was proably inadvertently deleted at
     some point. This means that whenever data changes an update will fire,

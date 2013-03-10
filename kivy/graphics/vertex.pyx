@@ -14,7 +14,7 @@ cdef class VertexFormat:
     '''VertexFormat is used to describe the layout of the vertex data stored 
     in vertex arrays/vbo.
 
-    .. versionadded:: 1.5.2
+    .. versionadded:: 1.6.0
     '''
     def __cinit__(self, *fmt):
         self.vattr = NULL

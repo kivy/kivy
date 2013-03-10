@@ -162,7 +162,7 @@ class Screen(RelativeLayout):
             Event fired when the screen is removed: the leaving animation is
             finished.
 
-    .. versionchanged:: 1.5.2
+    .. versionchanged:: 1.6.0
         Events `on_pre_enter`, `on_enter`, `on_pre_leave`, `on_leave` is added.
     '''
 
@@ -710,7 +710,7 @@ class ScreenManager(FloatLayout):
     def has_screen(self, name):
         '''Return True if a screen with the `name` has been found.
 
-        .. versionadded:: 1.5.2
+        .. versionadded:: 1.6.0
         '''
         return bool([s for s in self.screens if s.name == name])
 

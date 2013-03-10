@@ -85,7 +85,7 @@ class Video(Image):
     loaded = BooleanProperty(False)
     '''Boolean, indicates if the video is loaded and ready for playback.
 
-    .. versionadded:: 1.5.2
+    .. versionadded:: 1.6.0
 
     :data:`loaded` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
