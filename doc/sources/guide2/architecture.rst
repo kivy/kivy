@@ -1,4 +1,4 @@
-.. _architectur:
+.. _architecture:
 
 Architectural Overview
 ======================
@@ -18,18 +18,19 @@ following.
 .. image:: ../images/architecture.png
     :align: center
 
-.. _provider:
+.. _providers:
 
 Core Providers and Input Providers
 ----------------------------------
 
-One idea that is key to understanding Kivy's internals is that of modularity and
+One idea that is key to understanding Kivy internals is that of modularity and
 abstraction. We try to abstract from basic tasks such as opening a window,
 displaying images and text, playing audio, getting images from a camera,
-spelling correction and so on. We call these *core* tasks.
-This makes the API both easy to use and easy to extend. Most importantly, it
-allows us to use -- what we call -- specific providers for the respective
-scenario in which your app is being run.
+spelling correction and so on. We call these *core* tasks. This makes the API
+both easy to use and easy to extend. Most importantly, it allows us to use
+-- what we call -- specific providers for the respective scenario in which
+your app is being run.
+
 For example, on OSX, Linux and Windows, there are different native APIs for the
 different core tasks. A piece of code that uses one of these specific APIs to
 talk to the operating system on one side and to Kivy on the other (acting as an

@@ -3,13 +3,17 @@ Programming Guide 2
 
 .. warning::
 
-    We are currently refactoring the whole Programming Guide. This is a work in
+    We are currently re-factoring the whole Programming Guide. This is a work in
     progress, and might changed at any time.
 
 .. toctree::
     :maxdepth: 2
 
     guide2/basic
+    guide2/readingdoc
+    guide2/environment
+    guide2/config
+    guide2/architecture
     guide2/events
     guide2/widgets
     guide2/graphics

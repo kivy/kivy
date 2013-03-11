@@ -291,7 +291,7 @@ use to copy and paste into a editor to experiment with.
 
 Running the code above will give you the following output.
 
-Our CustomBtn has not visual representation and thus appears black. You can
+Our CustomBtn has no visual representation and thus appears black. You can
 touch/click on the black area to see the output on your console
 
 .. image:: images/property_events_binding.png
