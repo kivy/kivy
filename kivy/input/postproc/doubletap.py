@@ -54,7 +54,7 @@ class InputPostprocDoubleTap(object):
             if touch.is_mouse_scrolling or ref.is_mouse_scrolling:
                 continue
             if 'button' in touch.profile or 'button' in ref.profile:
-                if 'button' not in ref.profile or ref.button != touch.profile:
+                if 'button' not in ref.profile or ref.button != touch.button:
                     continue
             touch.double_tap_distance = distance
             return touch
