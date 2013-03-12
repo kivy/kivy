@@ -1,5 +1,5 @@
-.. _android:
 .. _Kivy Launcher: https://play.google.com/store/apps/details?id=org.kivy.pygame&hl=en
+.. _android:
 
 Kivy on Android
 ===============
