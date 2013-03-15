@@ -3,12 +3,12 @@
 Kivy Basics
 ===========
 
-Installation of Kivy environment
---------------------------------
+Installation of the Kivy environment
+------------------------------------
 
-Kivy depends on multiples dependencies, such as pygame, gstreamer, PIL,
-Cairo, and more. All of them are not required, but depending on the
-platform you're working on, it can be a pain to install them. For
+Kivy depends on many Python libraries, such as pygame, gstreamer, PIL,
+Cairo, and more. They are not all required, but depending on the
+platform you're working on, they can be a pain to install. For
 Windows and MacOS X, we provide a portable package that you can just
 unzip and use.
 
@@ -20,9 +20,8 @@ unzip and use.
     /installation/installation-linux.rst
 
 If you want to install everything yourself, ensure that you have at
-least `Cython <http://cython.org>`_, `Pygame <http://pygame.org>`. A
-typical pip
-installation looks like::
+least `Cython <http://cython.org>`_ and `Pygame <http://pygame.org>`_. A
+typical pip installation looks like this::
 
     pip install cython
     pip install hg+http://bitbucket.org/pygame/pygame
@@ -42,10 +41,10 @@ Creating a kivy application is as simple as:
 - sub-classing the :class:`~kivy.app.App` class
 - implementing its :meth:`~kivy.app.App.build` method so it returns a
   :class:`~kivy.uix.Widget` instance (the root of your widget tree)
-- instantiating this class, and call its :meth:`~kivy.app.App.run`
+- instantiating this class, and calling its :meth:`~kivy.app.App.run`
   method.
 
-Here is an example of such a minimal application::
+Here is an example of a minimal application::
 
     from kivy.app import App
     from kivy.uix.label import Label
@@ -65,32 +64,32 @@ You can save this to a text file, `main.py` for example, and run it.
 Kivy App Life Cycle
 -------------------
 
-First off, Let us get familiar with the Kivy app life cycle
+First off, let's get familiar with the Kivy app life cycle.
 
 .. image:: ../images/Kivy_App_Life_Cycle.png
 
-As you can see above for all intents and purposes our entry point in to our App
-is from run() in our case that is MyApp().run(). We will get back to this; first
+As you can see above, for all intents and purposes, our entry point into our App
+is the run() method, and in our case that is "MyApp().run()". We will get back to this, but
 let's start from the first line::
 
     from kivy.app import App
 
-It's required that the base Class of your App inherit from App class. It's 
+It's required that the base Class of your App inherits from the `App` class. It's 
 present in the kivy_installation_dir/kivy/app.py.
 
 .. Note::
-    Go ahead and Open up that file if you want to delve deeper into what Kivy
-    App class does. We encourage you to open the code and read through as kivy
-    is based on Python and uses Sphinx for documentation, documentation for each
-    class is in-file.
+    Go ahead and open up that file if you want to delve deeper into what the Kivy
+    App class does. We encourage you to open the code and read through it. Kivy
+    is based on Python and uses Sphinx for documentation, so the documentation for
+    each class is in the actual file.
 
 Similarly on line 2::
 
     from kivy.uix.label import Label
 
-One important thing to note here is the way packages/classes are laid out in
-kivy, `kivy.uix`; is the section that holds its User Interface elements like 
-layouts and  widgets.
+One important thing to note here is the way packages/classes are laid out. The
+:class:`~kivy.uix` module is the section that holds the user interface elements like 
+layouts and widgets.
 
 Moving on to line 5::
 
@@ -103,9 +102,9 @@ Further on to line 7::
 
     def build(self):
 
-As highlighted by the image above show casing `Kivy App Life Cycle` This is the
-function where you should initialize and return your `Root Widget`,This is what
-we do on line 8.::
+As highlighted by the image above, show casing the `Kivy App Life Cycle`, this is the
+function where you should initialize and return your `Root Widget`. This is what
+we do on line 8::
 
     return Label(text='Hello world')
 
@@ -113,7 +112,7 @@ Here we initialize a Label with text 'Hello World' and return it's instance.
 This Label will be the Root Widget of this App.
 
 .. Note::
-    Python uses indentation to denote code blocks, therefore make note that in
+    Python uses indentation to denote code blocks, therefore take note that in
     the code provided above, at line 9 the class and function definition ends.
 
 Now on to the portion that will make our app run at line 11 and 12::
@@ -121,7 +120,7 @@ Now on to the portion that will make our app run at line 11 and 12::
     if __name__ == '__main__':
         MyApp().run()
 
-Here the class `MyApp` is initialized and it's run() method called this
+Here the class `MyApp` is initialized and it's run() method called. This
 initializes and starts our Kivy application.
 
 
@@ -131,13 +130,13 @@ To run the application, follow the instructions for your operating system:
 
     Linux
         Follow the instructions for
-        :ref:`running Kivy application on Linux <linux-run-app>`::
+        :ref:`running a Kivy application on Linux <linux-run-app>`::
 
             $ python main.py
 
     Windows
         Follow the instructions for
-        :ref:`running Kivy application on Windows <windows-run-app>`::
+        :ref:`running a Kivy application on Windows <windows-run-app>`::
 
             $ python main.py
             # or
@@ -145,7 +144,7 @@ To run the application, follow the instructions for your operating system:
 
     Mac OS X
         Follow the instructions for
-        :ref:`running Kivy application on MacOSX <macosx-run-app>`::
+        :ref:`running a Kivy application on MacOSX <macosx-run-app>`::
 
             $ kivy main.py
 
@@ -153,7 +152,7 @@ To run the application, follow the instructions for your operating system:
         Your application needs some complementary files to be able to run on
         Android.  See :doc:`/guide/android` for further reference.
 
-A window should open, showing a sole Label (with the Text 'Hello World') that
+A window should open, showing a single Label (with the Text 'Hello World') that
 covers the entire window's area. That's all there is to it.
 
 .. image:: ../guide2/images/quickstart.png
@@ -163,7 +162,7 @@ covers the entire window's area. That's all there is to it.
 Customize the application
 -------------------------
 
-Lets extend this Application a bit, say a simple UserName/Password page
+Lets extend this application a bit, say a simple UserName/Password page.
 
 .. code-block:: python
    :emphasize-lines: 2,4,7,9-17,23
@@ -206,18 +205,18 @@ at line 7::
 
     class LoginScreen(GridLayout):
 
-at line 9 in the class LoginScreen we overload the method
-:meth:`~kivy.widget.Widget.__init__` so as to add wdgets and to defines its
+At line 9 in the class LoginScreen, we overload the method
+:meth:`~kivy.widget.Widget.__init__` so as to add widgets and to define their
 behaviour::
 
     def __init__(self, **kwargs):
         super(LoginScreen, self).__init__(**kwargs)
 
-One must not forget to either call super or implement the functionality of the
-original function being overloaded. Also note that it is good practice not to
-omit the `**kwargs` while calling super, as they are used internally some times.
+One should not forget to call super in order to implement the functionality of the
+original class being overloaded. Also note that it is good practice not to
+omit the `**kwargs` while calling super, as they are sometimes used internally.
 
-Moving on to Line 12 onwards::
+Moving on to Line 12 and beyond::
 
     self.cols = 2
     self.add_widget(Label(text='User Name'))
@@ -227,18 +226,18 @@ Moving on to Line 12 onwards::
     self.password = TextInput(password=True, multiline=False)
     self.add_widget(self.password)
 
-We ask the Gridlayout to manage it's children in two columns and add a
-:class:`~kivy.uix.label.Label` and a :class:`~kivy.uix.textinput.TextInput` each
-for username and passowrd.
+We ask the GridLayout to manage it's children in two columns and add a
+:class:`~kivy.uix.label.Label` and a :class:`~kivy.uix.textinput.TextInput`
+for the username and password.
 
-Running the above code will give you a window that should look like this
+Running the above code will give you a window that should look like this:
 
 .. image:: ../guide2/images/guide2_customize_step1.png
    :align: center
 
-Try re-sizing the window, you will see that the widgets on screen adjust
+Try re-sizing the window and you will see that the widgets on screen adjust
 themselves according to the size of the window without you having to do
-anything. This is because by default widgets use size hinting.
+anything. This is because widgets use size hinting by default.
 
 The code above doesn't handle the input from the user, does no validation or
 anything else. We will delve deeper into this and :class:`~kivy.widget.Widget`
@@ -248,12 +247,12 @@ size and positioning in the coming sections.
 Platform specifics
 ------------------
 
-Opening a Terminal application and set kivy Environment Variables.
+Opening a Terminal application and setting the kivy environment variables.
 
-    On Windows just double click the kivy.bat and a terminal will be opened with
-    all the required variables already set
+    On Windows, just double click the kivy.bat and a terminal will be opened with
+    all the required variables already set.
 
-    On nix* systems open a terminal of your choice and if
+    On nix* systems, open the terminal of your choice and if
     kivy isn't installed globally::
 
         export python=$PYTHONPATH:/path/to/kivy_installation
