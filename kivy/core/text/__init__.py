@@ -369,8 +369,8 @@ class LabelBase(object):
                             # glyphs?
                             if _spaces:
                                 space_width = cache[' '][0] if last_space else 0
-                                just_space = (((uw - size[0] + space_width) *1.)
-                                            /(_spaces*1.))
+                                just_space = (((uw - size[0] + space_width) *
+                                               1.) / (_spaces * 1.))
 
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
