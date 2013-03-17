@@ -93,7 +93,9 @@ automatically created and added to the instance.
 `AnotherClass` will be created and added as a child of the `ClassName`
 instance.
 
-- The indentation is important, and must be 4 spaces. Tabs are not allowed.
+- The indentation is important and must be consistent. The spacing must be a
+  multiple of the number of spaces used on the first indented line. Spaces
+  are encouraged; mixing tabs and spaces is not recommended.
 - The value of a property must be given on a single line (for now at least).
 - The `canvas` property is special: You can put graphics instructions in it
   to create a graphical representation of the current class.
@@ -882,10 +884,10 @@ class Parser(object):
             if not stripped:
                 lines.remove((ln, line))
 
-    def parse_level(self, level, lines):
-        '''Parse the current level (level * 4) indentation.
+    def parse_level(self, level, lines, spaces=0):
+        '''Parse the current level (level * spaces) indentation.
         '''
-        indent = 4 * level
+        indent = spaces * level if spaces > 0 else 0
         objects = []
 
         current_object = None
@@ -902,14 +904,20 @@ class Parser(object):
             # Replace any tab with 4 spaces
             tmp = content[:len(content) - len(tmp)]
             tmp = tmp.replace('\t', '    ')
+
+            # first indent designates the indentation
+            if spaces == 0:
+                spaces = len(tmp)
+
             count = len(tmp)
 
-            if count % 4 != 0:
+            if spaces > 0 and count % spaces != 0:
                 raise ParserException(self, ln,
                                       'Invalid indentation, '
-                                      'must be a multiple of 4 spaces')
+                                      'must be a multiple of '
+                                      '%s spaces' % spaces)
             content = content.strip()
-            rlevel = count // 4
+            rlevel = count // spaces if spaces > 0 else 0
 
             # Level finished
             if count < indent:
@@ -935,7 +943,7 @@ class Parser(object):
                 objects.append(current_object)
 
             # Next level, is it a property or an object ?
-            elif count == indent + 4:
+            elif count == indent + spaces:
                 x = content.split(':', 1)
                 if not len(x[0]):
                     raise ParserException(self, ln, 'Identifier missing')
@@ -944,7 +952,7 @@ class Parser(object):
                 current_property = None
                 name = x[0]
                 if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
-                    _objects, _lines = self.parse_level(level + 1, lines[i:])
+                    _objects, _lines = self.parse_level(level + 1, lines[i:], spaces)
                     current_object.children = _objects
                     lines = _lines
                     i = 0
@@ -977,10 +985,10 @@ class Parser(object):
                         current_propobject = None
 
             # Two more levels?
-            elif count == indent + 8:
+            elif count == indent + 2 * spaces:
                 if current_property in (
                         'canvas', 'canvas.after', 'canvas.before'):
-                    _objects, _lines = self.parse_level(level + 2, lines[i:])
+                    _objects, _lines = self.parse_level(level + 2, lines[i:], spaces)
                     rl = ParserRule(self, ln, current_property, rlevel)
                     rl.children = _objects
                     if current_property == 'canvas':
