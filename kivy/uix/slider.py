@@ -161,12 +161,14 @@ class Slider(Widget):
             if self.width == 0:
                 self.value_normalized = 0
             else:
-                self.value_normalized = (x - self.x - padding) / float(self.width - 2 * padding)
+                self.value_normalized = (x - self.x - padding
+                                         ) / float(self.width - 2 * padding)
         else:
             if self.height == 0:
                 self.value_normalized = 0
             else:
-                self.value_normalized = (y - self.y - padding) / float(self.height - 2 * padding)
+                self.value_normalized = (y - self.y - padding
+                                         ) / float(self.height - 2 * padding)
     value_pos = AliasProperty(get_value_pos, set_value_pos,
                               bind=('x', 'y', 'width', 'height', 'min',
                                     'max', 'value_normalized', 'orientation'))
