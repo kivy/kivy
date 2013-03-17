@@ -214,6 +214,6 @@ if __name__ == '__main__':
 
     class SliderApp(App):
         def build(self):
-            return Slider()
+            return Slider(padding=25)
 
     SliderApp().run()
