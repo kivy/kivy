@@ -233,7 +233,7 @@ defined in. You can use an in-line function as follows:
     cb.bind(pressed=_local_func)
     self.add_widget(cb)
 
-The first parameter would be `instance` of the class the property is
+The first parameter would be the `instance` of the class the property is
 defined in.
 
 The second parameter would be the `value`, which is the new value of the property.
