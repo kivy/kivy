@@ -109,6 +109,12 @@ Here is a simple example of a kv file that contains a root widget::
         text: 'Hello world'
 
 
+.. versionchanged:: 1.6.1
+
+    The indentation is not limited to 4 spaces anymore. The spacing must be a
+    multiple of the number of spaces used on the first indented line.
+
+
 Value Expressions and Reserved Keywords
 ---------------------------------------
 
