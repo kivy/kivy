@@ -37,7 +37,7 @@ class Container(BoxLayout):
 
     def __init__(self, **kwargs):
         super(Container, self).__init__(**kwargs)
-        parser = Parser(content=file(self.kv_file).read())
+        parser = Parser(content=open(self.kv_file).read())
         widget = Factory.get(parser.root.name)()
         Builder._apply_rule(widget, parser.root, parser.root)
         self.add_widget(widget)
