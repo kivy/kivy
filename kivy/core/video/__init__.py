@@ -15,6 +15,7 @@ __all__ = ('VideoBase', 'Video')
 from kivy.clock import Clock
 from kivy.core import core_select_lib
 from kivy.event import EventDispatcher
+from kivy.logger import Logger
 
 
 class VideoBase(EventDispatcher):
