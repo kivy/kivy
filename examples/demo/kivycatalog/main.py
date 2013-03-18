@@ -9,8 +9,6 @@ from kivy.properties import ObjectProperty
 from kivy.config import Config
 
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.popup import Popup
-from kivy.uix.label import Label
 from kivy.uix.codeinput import CodeInput
 from kivy.animation import Animation
 from kivy.clock import Clock
@@ -150,6 +148,7 @@ class Catalog(BoxLayout):
             Animation(top=190.0, d=3) +\
             Animation(top=0, opacity=0, d=2)
         self.anim.start(self.info_label)
+
 
 class KivyCatalogApp(App):
     '''The kivy App that runs the main root. All we do is build a catalog
