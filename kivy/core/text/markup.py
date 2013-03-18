@@ -185,9 +185,9 @@ class MarkupLabel(MarkupLabelBase):
 
         # calculate the texture size
         w, h = self.text_size
-        if h < 0:
+        if h is None or h < 0:
             h = None
-        if w < 0:
+        if w is None or h < 0:
             w = None
         if w is None:
             if not lines:
