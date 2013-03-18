@@ -3,10 +3,7 @@
 VideoPyglet: implementation of VideoBase with Pyglet
 '''
 
-try:
-    import pyglet
-except:
-    raise
+import pyglet
 
 from kivy.core.video import VideoBase
 
