@@ -535,14 +535,13 @@ class App(EventDispatcher):
         elif platform == 'android':
             data_dir = join('/sdcard', self.name)
         elif platform == 'win':
-            data_dir = expanduser(
-                '~/Application Settings/{}'.format(self.name))
+            data_dir = '~/Application Settings/{}'.format(self.name)
         elif platform == 'macosx':
-            data_dir = expanduser(
-                '~/Library/Application Support/{}'.format(self.name))
+            data_dir = '~/Library/Application Support/{}'.format(self.name)
         else: # _platform == 'linux' or anything else...:
             data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
             data_dir = join(data_dir, self.name)
+        data_dir = expanduser(data_dir)
         if not exists(data_dir):
             os.mkdir(data_dir)
         return data_dir
