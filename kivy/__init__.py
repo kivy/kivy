@@ -188,7 +188,7 @@ else:
 kivy_options = {
     'window': ('pygame', 'sdl', 'x11'),
     'text': ('pil', 'pygame', 'sdlttf'),
-    'video': ('ffmpeg', 'gstreamer', 'pyglet'),
+    'video': ('ffmpeg', 'gstreamer', 'pyglet', 'null'),
     'audio': ('pygame', 'gstreamer', 'sdl'),
     'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
