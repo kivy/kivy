@@ -132,7 +132,7 @@ class Catalog(BoxLayout):
 
         kv_container = self.screen_manager.current_screen.content.children[0]
         try:
-            parser = Parser(content=self.language_box.text.encode('utf8'))
+            parser = Parser(content=self.language_box.text)
             kv_container.clear_widgets()
             widget = Factory.get(parser.root.name)()
             Builder._apply_rule(widget, parser.root, parser.root)
