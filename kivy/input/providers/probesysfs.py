@@ -154,9 +154,12 @@ else:
 
         def probe(self):
             inputs = get_inputs(self.input_path)
-            if not self.select_all:
-                inputs = [x for x in inputs if
-                          x.has_capability(ABS_MT_POSITION_X)]
+            Logger.debug('ProbeSysfs: using probsysfs!')
+            for device in inputs:
+                print device, device.name
+            #if not self.select_all:
+            #    inputs = [x for x in inputs if
+            #              x.has_capability(ABS_MT_POSITION_X)]
             for device in inputs:
                 Logger.debug('ProbeSysfs: found device: %s at %s' % (
                     device.name, device.device))
