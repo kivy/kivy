@@ -4,15 +4,16 @@
 Events and Properties
 =====================
 
-Events are an important part of kivy programming. That may not be surprising to those
-with GUI development experience, but it's an important concept for
-newcomers. Once you understand how events work and how to bind to them, 
-you will see them everywhere in kivy. They make it easy to
-build whatever behaviour you want into kivy.
+Events are an important part of Kivy programming. That may not be surprising to
+those with GUI development experience, but it's an important concept for
+newcomers. Once you understand how events work and how to bind to them, you
+will see them everywhere in Kivy. They make it easy to build whatever behavior
+you want into Kivy.
 
-The following illustration shows how events are handled in the kivy framework.
+The following illustration shows how events are handled in the Kivy framework.
 
 .. image:: images/Events.*
+
 
 Introduction to the Event Dispatcher
 ------------------------------------
@@ -23,6 +24,105 @@ event types, and to dispatch them to interested parties (usually other event
 dispatchers). The :class:`~kivy.uix.widget.Widget`,
 :class:`~kivy.animation.Animation` and :obj:`~kivy.clock.Clock` classes are 
 examples of event dispatchers.
+
+
+As outlined in the Illustration above, Kivy has a `main loop`. It's important
+that you avoid breaking it. The main loop is responsible for reading from 
+inputs, loading images asynchronously, drawing to frame, ...etc. Avoid
+long/infinite loops or sleeping. For example the following code does both::
+
+    while True:
+        animate_something()
+        time.sleep(.10)
+
+When you run this, the program will never exit your loop, preventing Kivy from
+doing all of the other things that need doing. As a result, all you'll see is a
+black window which you won't be able to interact with. You need to "schedule"
+your ``animate_something()`` function call over time. You can do this in 2 ways:
+a repetitive call or one-time call.
+
+Scheduling a repetitive event
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can call a function or a method every X times per second using
+:meth:`~kivy.clock.Clock.schedule_interval`. Here is an example of calling a
+function named my_callback 30 times per second::
+
+    def my_callback(dt):
+        print 'My callback is called', dt
+    Clock.schedule_interval(my_callback, 1 / 30.)
+
+You have two ways of unscheduling a previously scheduled event. The first would be
+to use :meth:`~kivy.clock.Clock.unschedule`::
+
+    Clock.unschedule(my_callback)
+
+Or, you can return False in your callback, and your event will be automatically
+unscheduled::
+
+    count = 0
+    def my_callback(dt):
+        global count
+        count += 1
+        if count == 10:
+            print 'Last call of my callback, bye bye !'
+            return False
+        print 'My callback is called'
+    Clock.schedule_interval(my_callback, 1 / 30.)
+
+
+Scheduling a one-time event
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using :meth:`~kivy.clock.Clock.schedule_once`, you can call a function "later",
+like in the next frame, or in X seconds::
+
+    def my_callback(dt):
+        print 'My callback is called !'
+    Clock.schedule_once(my_callback, 1)
+
+This will call ``my_calback`` in one second. The second argument is the amount
+of time to wait before calling the function, in seconds. However, you can
+achieve some other results with special values for the second argument:
+
+- If X is greater than 0, the callback will be called in X seconds
+- If X is 0, the callback will be called after the next frame
+- If X is -1, the callback will be called before the next frame
+
+The -1 is mostly used when you are already in a scheduled event, and if you
+want to schedule a call BEFORE the next frame is happening.
+
+
+Trigger events
+~~~~~~~~~~~~~~
+
+If you want to schedule a function to be called only once for the next frame,
+like a trigger, you can achieve that like so::
+
+    Clock.unschedule(my_callback)
+    Clock.schedule_once(my_callback, 0)
+
+This way of programming a trigger is expensive, since you'll always call
+unschedule, whether or not you've even scheduled it. In addition, unschedule
+needs to iterate the weakref list of the Clock in order to find your callback
+and remove it. Use a trigger instead::
+
+    trigger = Clock.create_trigger(my_callback)
+    # later
+    trigger()
+
+Each time you call trigger, it will schedule a single call of your callback. If
+it was already scheduled, it will not be rescheduled.
+
+
+Widget events
+-------------
+
+A widget has 2 types of events:
+
+- Property event: if your widget changes its position or size, an event is fired.
+- Widget-defined event: an event will be fired for a Button when it's pressed or
+  released.
 
 Creating custom events
 ----------------------
@@ -181,7 +281,7 @@ property value is changed.
 
 **Binding to the property**
 
-How to monitor changes to a property when all you have access to is a widget's
+How to monitor changes to a property when all you have access to is a widgets
 instance? You *bind* to the property::
 
     your_widget_instance.bind(property_name=function_name)
@@ -206,7 +306,7 @@ For example, consider the following code:
 
 If you run the code as is, you will notice two print statements in the console.
 One from the `on_pressed` event that is called inside the `CustomBtn` class and
-one from the `btn_pressed` function that we bind to the property change.
+another from the `btn_pressed` function that we bind to the property change.
 
 The reason that both the functions are called is simple. Binding doesn't mean
 overriding. Having both of these functions is redundant and you should generally
