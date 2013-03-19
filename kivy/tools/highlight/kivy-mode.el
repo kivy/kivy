@@ -1,6 +1,7 @@
-;; kivy-mode.el --- Emacs major mode for editing Kivy files
+;;; kivy-mode.el --- Emacs major mode for editing Kivy files
 ;;
 ;; Author: Dean Serenevy <dean@serenevy.net>
+;; Version: 0.1.0
 ;;
 ;; This document borrowed heavily from yaml-mode.el by Yoshiki Kurihara and
 ;; Marshall Vandegrift.
@@ -42,7 +43,6 @@
 ;;        (define-key kivy-mode-map "\C-m" 'newline-and-indent)))
 
 
-
 ;; User definable variables
 
 (defgroup kivy nil
@@ -66,8 +66,8 @@
   :group 'kivy)
 
 (defface kivy-tab-face
-   '((((class color)) (:background "red" :foreground "red" :bold t))
-     (t (:reverse-video t)))
+  '((((class color)) (:background "red" :foreground "red" :bold t))
+    (t (:reverse-video t)))
   "Face to use for highlighting tabs in kivy files."
   :group 'faces
   :group 'kivy)
@@ -79,7 +79,6 @@
   :group 'kivy)
 
 
-
 ;; Constants
 
 (defconst kivy-mode-version "0.1.0" "Version of `kivy-mode.'")
@@ -118,7 +117,7 @@
   "Regexp matching certain scalar constants in scalar context")
 
 
-
+
 ;; Mode setup
 
 (defvar kivy-mode-map ()
@@ -156,38 +155,36 @@
          (font-lock-syntactic-keywords))))
 
 
-
 ;; Font-lock support
 
 (defvar kivy-font-lock-keywords
-   (list
-    (cons kivy-comment-re '(1 font-lock-comment-face))
-    (cons kivy-constant-scalars-re '(1 font-lock-constant-face))
-    (cons kivy-tag-re '(1 font-lock-function-name-face))
-    (cons kivy-hash-key-re '(1 font-lock-variable-name-face t))
-    (cons kivy-directive-re '(1 font-lock-builtin-face))
-    '("^[\t]+" 0 'kivy-tab-face t))
-   "Additional expressions to highlight in kivy mode.")
+  (list
+   (cons kivy-comment-re '(1 font-lock-comment-face))
+   (cons kivy-constant-scalars-re '(1 font-lock-constant-face))
+   (cons kivy-tag-re '(1 font-lock-function-name-face))
+   (cons kivy-hash-key-re '(1 font-lock-variable-name-face t))
+   (cons kivy-directive-re '(1 font-lock-builtin-face))
+   '("^[\t]+" 0 'kivy-tab-face t))
+  "Additional expressions to highlight in kivy mode.")
 
 (defvar kivy-font-lock-syntactic-keywords
   (list '())
   "Additional syntax features to highlight in kivy mode.")
 
 
-
 ;; Indentation and electric keys
 
 (defun kivy-compute-indentation ()
   "Calculate the maximum sensible indentation for the current line."
   (save-excursion
     (beginning-of-line)
-      (forward-line -1)
-      (while (and (looking-at kivy-blank-line-re)
-                  (> (point) (point-min)))
-        (forward-line -1))
-      (+ (current-indentation)
-         (if (looking-at kivy-nested-map-re) kivy-indent-offset 0)
-         )))
+    (forward-line -1)
+    (while (and (looking-at kivy-blank-line-re)
+                (> (point) (point-min)))
+      (forward-line -1))
+    (+ (current-indentation)
+       (if (looking-at kivy-nested-map-re) kivy-indent-offset 0)
+       )))
 
 (defun kivy-indent-line ()
   "Indent the current line.
@@ -205,8 +202,8 @@ back-dent the line by `kivy-indent-offset' spaces.  On reaching column
       (if (and (equal last-command this-command) (/= ci 0))
           (indent-to (* (/ (- ci 1) kivy-indent-offset) kivy-indent-offset))
         (indent-to need)))
-      (if (< (current-column) (current-indentation))
-          (forward-to-indentation 0))))
+    (if (< (current-column) (current-indentation))
+        (forward-to-indentation 0))))
 
 (defun kivy-electric-backspace (arg)
   "Delete characters or back-dent the current line.
@@ -239,3 +236,5 @@ immediately previous multiple of `kivy-indent-offset' spaces."
   kivy-mode-version)
 
 (provide 'kivy-mode)
+
+;;; kivy-mode.el ends here
