@@ -14,6 +14,7 @@ from distutils.extension import Extension
 # Detect options
 #
 c_options = {
+    'use_rpi': False,
     'use_opengl_es2': True,
     'use_opengl_debug': False,
     'use_glew': False,
@@ -42,11 +43,13 @@ if ndkplatform is not None and environ.get('LIBLINK'):
 kivy_ios_root = environ.get('KIVYIOSROOT', None)
 if kivy_ios_root is not None:
     platform = 'ios'
+if exists('/opt/vc/include/bcm_host.h'):
+    platform = 'rpi'
 
 # -----------------------------------------------------------------------------
 # Cython check
 # on python-for-android and kivy-ios, cython usage is external
-have_cython = False
+ave_cython = False
 if platform in ('ios', 'android'):
     print '\nCython check avoided.'
 else:
@@ -114,7 +117,7 @@ except ImportError:
     print 'User distribution detected, avoid portable command.'
 
 # Detect which opengl version headers to use
-if platform in ('android', 'darwin', 'ios'):
+if platform in ('android', 'darwin', 'ios', 'rpi'):
     pass
 elif platform == 'win32':
     print 'Windows platform detected, force GLEW usage.'
@@ -221,6 +224,11 @@ def determine_gl_flags():
     elif platform == 'android':
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
         flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
+        flags['libraries'] = ['GLESv2']
+    elif platform == 'rpi':
+        flags['include_dirs'] = ['/opt/vc/include',
+            '/opt/vc/include/interface/vcos/pthreads']
+        flags['extra_link_args'] = ['-L', '/opt/vc/lib']
         flags['libraries'] = ['GLESv2']
     else:
         flags['libraries'] = ['GL']
@@ -360,6 +368,14 @@ if platform in ('darwin', 'ios'):
             '-framework', 'ApplicationServices']}
     sources['core/image/img_imageio.pyx'] = merge(
         base_flags, osx_flags)
+
+if c_options['use_rpi']:
+    sources['lib/vidcore_lite/egl.pyx'] = merge(
+            base_flags, gl_flags)
+    sources['lib/vidcore_lite/bcm.pyx'] = merge(
+            base_flags, gl_flags)
+    #sources['core/window/window_egl_rpi.pyx'] = merge(
+    #        base_flags, gl_flags)
 
 if c_options['use_x11']:
     sources['core/window/window_x11.pyx'] = merge(
