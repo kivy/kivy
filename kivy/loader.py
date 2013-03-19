@@ -420,7 +420,7 @@ else:
     # Try to use pygame as our first choice for loader
     #
 
-    from Queue import Queue
+    from kivy.compat import queue
     from threading import Thread
 
 
@@ -437,8 +437,10 @@ else:
         def run(self):
             while self.pool.running:
                 func, args, kargs = self.tasks.get()
-                try: func(*args, **kargs)
-                except Exception, e: print e
+                try:
+                    func(*args, **kargs)
+                except Exception as e:
+                    print(e)
                 self.tasks.task_done()
 
 
@@ -448,7 +450,7 @@ else:
         def __init__(self, num_threads):
             super(_ThreadPool, self).__init__()
             self.running = True
-            self.tasks = Queue()
+            self.tasks = queue.Queue()
             for _ in range(num_threads):
                 _Worker(self, self.tasks)
 

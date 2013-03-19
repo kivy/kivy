@@ -4,6 +4,10 @@ Compatibility module for Python 2.7 and > 3.3
 '''
 
 import sys
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 
 #: True if the code is running on Python 3 interpreter.
 is_py3 = sys.version >= '3'
