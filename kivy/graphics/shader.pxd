@@ -30,7 +30,6 @@ cdef class Shader:
     cdef void upload_uniform(self, str name, value) except *
     cdef void upload_uniform_matrix(self, int loc, Matrix value)
     cdef int get_uniform_loc(self, str name) except *
-    cdef void bind_attrib_locations(self)
     cdef void build(self) except *
     cdef void build_vertex(self, int link=*) except *
     cdef void build_fragment(self, int link=*) except *
