@@ -1,4 +1,4 @@
-;;; kivy-mode.el --- Emacs major mode for editing Kivy files
+nnn;;; kivy-mode.el --- Emacs major mode for editing Kivy files
 ;;
 ;; Author: Dean Serenevy <dean@serenevy.net>
 ;; Version: 0.1.0
@@ -142,6 +142,12 @@
   (modify-syntax-entry ?_ "w" kivy-mode-syntax-table)
   )
 
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.kv$" . kivy-mode))
+
+
+;;;###autoload
 (define-derived-mode kivy-mode fundamental-mode "kivy"
   "Simple mode to edit kivy.
 
