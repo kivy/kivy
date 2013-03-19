@@ -1,4 +1,4 @@
-nnn;;; kivy-mode.el --- Emacs major mode for editing Kivy files
+;;; kivy-mode.el --- Emacs major mode for editing Kivy files
 ;;
 ;; Author: Dean Serenevy <dean@serenevy.net>
 ;; Version: 0.1.0
