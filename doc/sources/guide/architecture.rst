@@ -1,4 +1,4 @@
-.. _architectur:
+.. _architecture:
 
 Architectural Overview
 ======================
@@ -18,7 +18,7 @@ graphical summary of the architecture:
 .. image:: ../images/architecture.png
     :align: center
 
-.. _provider:
+.. _providers:
 
 Core Providers and Input Providers
 ----------------------------------

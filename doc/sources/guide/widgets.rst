@@ -133,7 +133,56 @@ its children. There are different kinds of layouts, allowing for different
 automatic organization of their children. Layouts use |size_hint| and |pos_hint|
 properties to determine the |size| and |pos| of their |children|.
 
-Look at the documentation of the various Layouts to see How they honor
+ - Layout types
+
+    **BoxLayout**:
+    Arranges widgets in a side to side (either vertically or horizontally) manner,
+    to fill all the place.
+    size_hint of children can be used to change proportions allowed to each
+    children, or set fixed size for some of them
+    `pos_hint` not honored
+
+    .. image:: ../images/boxlayout.gif
+
+    **GridLayout**:
+    Arranges widgets in a grid. You must specifiy at least one dimension of the
+    grid so kivy can compute the size of the elements and how to arrange them.
+
+    `pos_hint` not honored
+
+    .. image:: ../images/gridlayout.gif
+
+    **StackLayout**:
+    Arranges widgets side to side, but with a set size in a dimension, without
+    trying to make them fit the whole size, this is useful to have a set of
+    chilgren of the same predefined size, side to side.
+    `pos_hint` not honored
+
+    .. image:: ../images/stacklayout.gif
+
+    **AnchorLayout**:
+    A simple layout only caring about children position, allows to stick the
+    children to a position relative to a border of the layout.
+    `size_hint` not honored.
+
+    .. image:: ../images/anchorlayout.gif
+
+    **FloatLayout**:
+    Allow to place children to arbitrary places and size, either absolute or
+    relative to the layout size. Default size_hint (1, 1) will make everychildren
+    the same size as the whole layout, so you probably want to change this value
+    if you have more than one child. You can set size_hint to (None, None) to use
+    absolute size with `size`, this widget honors `pos_hint` too, which as a dict
+    allowing to set position relatively to layout position.
+
+    .. image:: ../images/floatlayout.gif
+
+    **RelativeLayout**:
+    Behave just like FloatLayout, except children pos is relative to layout
+    position, not screen.
+
+Look at the documentation of the various Layouts to get a in-depth
+understanding.
 |size_hint| and |pos_hint|:
 
 - |FloatLayout|
@@ -209,7 +258,7 @@ calculated like so::
     first child's size_hint devided by
     first child's size_hint + second child's size_hint + ...n(no of children)
     
-    .5/().5+1) = .333...
+    .5/(.5+1) = .333...
 
 
 The rest of the BoxLayouts |width| is divided among the rest of the |children|.

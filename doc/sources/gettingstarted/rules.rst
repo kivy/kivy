@@ -22,4 +22,4 @@ In the above code :
             rows: 2 # this how you set each property of your widget/layout
 
 That's it, that's how simple it is to design your GUI in the kv language. To get a
-more in-depth understanding look at :doc:`/guide/kvlang`
+more in-depth understanding look at :doc:`/guide/lang`
