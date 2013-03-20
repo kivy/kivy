@@ -272,20 +272,20 @@ Consider the code below::
 Instead of having to repeat the same values for every button, we can just use a
 template instead, like so::
 
-    [Mbut@Button]:
+    [MyBigButt@Button]:
         text: ctx.text if hasattr(ctx, 'text') else ''
         text_size: self.size
         font_size: '25sp'
         markup: True
     
     <MyWidget>:
-        MButton:
+        MyBigButt:
             text: "Hello world, watch this text wrap inside the button"
-        MButton:
+        MyBigButt:
             text: "Even absolute is relative to itself"
-        MButton:
+        MyBigButt:
             text: "repeating the same thing over and over in a comp = fail"
-        MButton:
+        MyBigButt:
 
 `ctx` is a keyword inside a template that can be used to access the individual
 attributes of each instance of this template.
