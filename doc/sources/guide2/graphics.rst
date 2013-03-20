@@ -3,27 +3,28 @@
 Graphics
 ========
 
-Introduction to Canvas
-----------------------
+Introduction to the Canvas
+--------------------------
 
-Widgets graphical representation is done using a canvas, which you can see both
-as an unlimited drawing board, and as a set of drawing instructions, there are
-numerous different instructions you can apply (add) to your canvas, but there
-is two main kind of them:
+A widgets graphical representation is done using a canvas, which you can see both
+as an unlimited drawing board and as a set of drawing instructions. There are
+numerous instructions you can apply (add) to your canvas, but there
+are two main kinds:
 
-- :mod:`~kivy.graphics.context_instructions` Context instructions
-- :mod:`~kivy.graphics.vertex_instructions` Vertex Instructions
+- :mod:`Context instructions <kivy.graphics.context_instructions>`
+- :mod:`Vertex instructions <kivy.graphics.vertex_instructions>`
 
 Context instructions don't draw anything, but they change the results of the
 Vertex instructions.
 
-Canvas can contains subsets of instructions, to treat them specially. There are
-two default subsets of this kind, that you can access as
-`~kivy.graphics.canvas.before` and `~kivy.graphics.canvas.after`, the
-instructions in these groups will be executed respectively before and after the
-main ones, which mean they will be respectively under and above them.
+Canvasses can contain two subsets of instructions. They are the
+:mod:`canvas.before <kivy.graphics.Canvas.before>`
+and the :mod:`canvas.after <kivy.graphics.Canvas.after>` instruction groups.
+The instructions in these groups will be executed before and after the
+:mod:`~kivy.graphics.canvas` group respectively. This  means that they will appear
+under (be executed before) and above (be executed after) them.
 
-to add a canvas instruction to a widget, you use the canvas context::
+To add a canvas instruction to a widget, you use the canvas context::
 
     class MyWidget(Widget):
         def __init__(self, **kwargs):
@@ -40,9 +41,9 @@ to add a canvas instruction to a widget, you use the canvas context::
 Context instructions
 --------------------
 
-Context instructions manipulate the opengl context, you can rotate, translate,
-and scale your canvas, attach a texture or change the drawing color, this one
-is the most commonly used, but others are really useful too::
+Context instructions manipulate the opengl context. You can rotate, translate,
+scale, attach a texture or change the drawing color of the context. Changing the 
+color is the most commonly used, but the others are really useful too::
 
    with self.canvas.before:
        Color(1, 0, .4, mode='rgb')
@@ -50,8 +51,8 @@ is the most commonly used, but others are really useful too::
 Drawing instructions
 --------------------
 
-Drawing instructions are ranging from very simple ones, to draw a line or a
-polygon, to more complex ones, like meshes or bezier curves::
+Drawing instructions range from the very simple (drawing a line or a
+polygon) to the more complex (like meshes or bezier curves)::
 
     with self.canvas:
        # draw a line using the default color
@@ -64,10 +65,10 @@ polygon, to more complex ones, like meshes or bezier curves::
 Manipulating instructions
 -------------------------
 
-Sometime, you want to update or remove the instructions you added to a canvas,
-this can be done in various ways depending on your needs:
+Sometimes you want to update or remove the instructions you have added to a canvas.
+This can be done in various ways, depending on your needs.
 
-You can keep a reference to your instruction and update them::
+You can keep a reference to your instructions and update them::
 
     class MyWidget(Widget):
         def __init__(self, **kwargs):
