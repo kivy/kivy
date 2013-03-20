@@ -146,11 +146,13 @@ properties to determine the |size| and |pos| of their |children|.
 
         .. image:: ../images/boxlayout.gif
             :align: right
+            :width: 200
 
     .. only:: latex
 
         .. image:: ../images/boxlayout.png
             :align: right
+            :width: 200
 
     **GridLayout**:
     Arranges widgets in a grid. You must specifiy at least one dimension of the
@@ -162,11 +164,13 @@ properties to determine the |size| and |pos| of their |children|.
 
         .. image:: ../images/gridlayout.gif
             :align: right
+            :width: 200
 
     .. only:: latex
 
         .. image:: ../images/gridlayout.png
             :align: right
+            :width: 200
 
     **StackLayout**:
     Arranges widgets side to side, but with a set size in a dimension, without
@@ -178,11 +182,13 @@ properties to determine the |size| and |pos| of their |children|.
 
         .. image:: ../images/stacklayout.gif
             :align: right
+            :width: 200
 
     .. only:: latex
 
         .. image:: ../images/stacklayout.png
             :align: right
+            :width: 200
 
     **AnchorLayout**:
     A simple layout only caring about children position, allows to stick the
@@ -193,11 +199,13 @@ properties to determine the |size| and |pos| of their |children|.
 
         .. image:: ../images/anchorlayout.gif
             :align: right
+            :width: 200
 
     .. only:: latex
 
         .. image:: ../images/anchorlayout.png
             :align: right
+            :width: 200
 
     **FloatLayout**:
     Allow to place children to arbitrary places and size, either absolute or
@@ -211,11 +219,13 @@ properties to determine the |size| and |pos| of their |children|.
 
         .. image:: ../images/floatlayout.gif
             :align: right
+            :width: 300
 
     .. only:: latex
 
         .. image:: ../images/floatlayout.png
             :align: right
+            :width: 300
 
     **RelativeLayout**:
     Behave just like FloatLayout, except children pos is relative to layout
