@@ -475,7 +475,7 @@ from types import ClassType, CodeType
 from functools import partial
 from kivy.factory import Factory
 from kivy.logger import Logger
-from kivy.utils import OrderedDict, QueryDict
+from kivy.utils import OrderedDict, QueryDict, reify
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
@@ -587,9 +587,6 @@ class ParserRuleProperty(object):
     '''Represent a property inside a rule
     '''
 
-    __slots__ = ('ctx', 'line', 'name', 'value', 'co_value',
-                 'watched_keys', 'mode')
-
     def __init__(self, ctx, line, name, value):
         super(ParserRuleProperty, self).__init__()
         #: Associated parser
@@ -601,11 +598,17 @@ class ParserRuleProperty(object):
         #: Value of the property
         self.value = value
         #: Compiled value
-        self.co_value = None
+        self._co_value = None
         #: Compilation mode
         self.mode = None
         #: Watched keys
         self.watched_keys = None
+
+    @reify
+    def co_value(self):
+        if self._co_value is None:
+            self.precompile()
+        return self._co_value
 
     def precompile(self):
         name = self.name
@@ -622,11 +625,11 @@ class ParserRuleProperty(object):
             # if we don't detect any string/key in it, we can eval and give the
             # result
             if re.search(lang_key, tmp) is None:
-                self.co_value = eval(value)
+                self._co_value = eval(value)
                 return
 
         # ok, we can compile.
-        self.co_value = compile(value, self.ctx.filename or '<string>', mode)
+        self._co_value = compile(value, self.ctx.filename or '<string>', mode)
 
         # for exec mode, we don't need to watch any keys.
         if mode == 'exec':
@@ -649,16 +652,12 @@ class ParserRuleProperty(object):
 
     def __getstate__(self):
         state = {}
-        avoid_keys = ('co_value', )
-        keys = self.__slots__
-        for key in keys:
-            if key in avoid_keys:
-                continue
+        for key in ('ctx', 'line', 'name', 'value', 'watched_keys', 'mode'):
             state[key] = getattr(self, key)
         return state
 
     def __setstate__(self, state):
-        self.co_value = None
+        self._co_value = None
         for key, value in state.iteritems():
             setattr(self, key, value)
 
@@ -901,10 +900,6 @@ class Parser(object):
         # Get object from the first level
         objects, remaining_lines = self.parse_level(0, lines)
 
-        # Precompile rules tree
-        for rule in objects:
-            rule.precompile()
-
         # After parsing, there should be no remaining lines
         # or there's an error we did not catch earlier.
         if remaining_lines:
@@ -1074,15 +1069,7 @@ class Parser(object):
     def __setstate__(self, state):
         for key, value in state.iteritems():
             setattr(self, key, value)
-
         self.execute_directives()
-
-        # Precompile rules tree
-        for selector, rule in self.rules:
-            rule.precompile()
-        for name, subclass, rule in self.templates:
-            rule.precompile()
-
 
 
 def custom_callback(__kvlang__, idmap, *largs, **kwargs):
@@ -1429,7 +1416,7 @@ class BuilderBase(object):
                     for prule in crule.properties.itervalues():
                         value = prule.co_value
                         if type(value) is CodeType:
-                                value = eval(value, idmap)
+                            value = eval(value, idmap)
                         ctx[prule.name] = value
                     for prule in crule.handlers:
                         value = eval(prule.value, idmap)
