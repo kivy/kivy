@@ -23,7 +23,9 @@ two default subsets of this kind, that you can access as
 instructions in these groups will be executed respectively before and after the
 main ones, which mean they will be respectively under and above them.
 
-to add a canvas instruction to a widget, you use the canvas context::
+to add a canvas instruction to a widget, you use the canvas context:
+
+.. code-block:: python
 
     class MyWidget(Widget):
         def __init__(self, **kwargs):

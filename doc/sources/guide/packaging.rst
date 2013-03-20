@@ -11,4 +11,3 @@ Packaging your application
     packaging-android
     packaging-ios
 
-    android

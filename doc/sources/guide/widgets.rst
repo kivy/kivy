@@ -209,7 +209,7 @@ calculated like so::
     first child's size_hint devided by
     first child's size_hint + second child's size_hint + ...n(no of children)
     
-    .5/().5+1) = .333...
+    .5/(.5+1) = .333...
 
 
 The rest of the BoxLayouts |width| is divided among the rest of the |children|.
