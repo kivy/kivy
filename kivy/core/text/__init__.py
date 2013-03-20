@@ -434,6 +434,8 @@ class LabelBase(object):
 
     def _get_text(self):
         try:
+            if type(self._text) is unicode:
+                return self._text
             return self._text.decode('utf8')
         except AttributeError:
             # python 3 support
