@@ -307,3 +307,12 @@ same approach as the `Code Workflow` to submit new tests.
 
     contribute-unittest
 
+
+GSOC
+----
+
+.. toctree::
+    :maxdepth: 3
+
+    gsoc
+
