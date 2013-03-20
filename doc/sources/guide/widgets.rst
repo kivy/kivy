@@ -144,13 +144,13 @@ properties to determine the |size| and |pos| of their |children|.
 
     .. only:: html
 
-    .. image:: ../images/boxlayout.gif
-        :align: right
+        .. image:: ../images/boxlayout.gif
+            :align: right
 
     .. only:: latex
 
-    .. image:: ../images/boxlayout.png
-        :align: right
+        .. image:: ../images/boxlayout.png
+            :align: right
 
     **GridLayout**:
     Arranges widgets in a grid. You must specifiy at least one dimension of the
