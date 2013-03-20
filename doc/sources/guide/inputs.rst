@@ -53,8 +53,10 @@ Then, the motion event is dispatched to the Window. As explained at the start,
 all events are not dispatched to the whole widget tree, the window filters them.
 For a given event:
 
-    - if it's only a motion event, it will be dispatched to :meth:`~kivy.core.window.WindowBase.on_motion`
-    - if it's a touch event, the (x,y) position of the touch (0-1 range) will be scaled to the Window size (width/height), and dispatched to:
+    - if it's only a motion event, it will be dispatched to 
+      :meth:`~kivy.core.window.WindowBase.on_motion`
+    - if it's a touch event, the (x,y) position of the touch (0-1 range) will be
+      scaled to the Window size (width/height), and dispatched to:
 
       - :meth:`~kivy.uix.widget.Widget.on_touch_down`
       - :meth:`~kivy.uix.widget.Widget.on_touch_move`
@@ -96,8 +98,8 @@ profile exists::
         if 'angle' in touch.profile:
             print 'The touch angle is', touch.a
 
-You can find a list of available profiles in the :mod:`api-kivy.input.motionevent`
-documentation.
+You can find a list of available profiles in the
+:mod:`api-kivy.input.motionevent` documentation.
 
 Touch events
 ------------
@@ -110,8 +112,9 @@ touch events have the ``'pos'`` profile.
 
 You must take care about matrix transformation in your touch as soon as you use
 a widget with matrix transformation. Some widgets such as Scatter have their own
-matrix transformation, meaning the touch must be multiplied by the scatter matrix to
-be able to correctly dispatch touch positions to the Scatter's children.
+matrix transformation, meaning the touch must be multiplied by the scatter
+matrix to be able to correctly dispatch touch positions to the Scatter's
+children.
 
     - Get coordinate from parent space to local space:
       :meth:`~kivy.uix.widget.Widget.to_local`

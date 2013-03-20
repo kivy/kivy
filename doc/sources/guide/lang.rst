@@ -97,7 +97,9 @@ Instantiate children
 --------------------
 
 To declare the widget has a child widget, instance of some class, just declare
-this child inside the rule::
+this child inside the rule:
+
+.. code-block:: kv
 
     MyRootWidget:
         BoxLayout:
@@ -108,7 +110,9 @@ The example above defines that our root widget, an instance of `MyRootWidget`
 has a child; an instance of the :class:`~kivy.uix.boxlayout.BoxLayout` which
 has two children, instances of the :class:`~kivy.uix.button.Button` class.
 
-A python equivalent of this code could be::
+A python equivalent of this code could be:
+
+.. code-block:: python
 
     root = MyRootWidget()
     box = BoxLayout()
@@ -125,7 +129,9 @@ of a :mod:`~kivy.uix.gridlayout`, we would do::
     grid = GridLayout(cols=3)
 
 To do the same thing in kv, you can set properties of the child widget directly
-in the rule::
+in the rule:
+
+.. code-block:: kv
 
     GridLayout:
         cols: 3
@@ -138,7 +144,9 @@ in python (this assume `self` is a widget with a `data`
     grid = GridLayout(cols=len(self.data))
     self.bind(data=grid.setter('cols'))
 
-To have your display updated when your data change, you can now have just::
+To have your display updated when your data change, you can now have just:
+
+.. code-block:: kv
 
     GridLayout:
         cols: len(root.data)
@@ -147,21 +155,46 @@ Event Bindings
 --------------
 
 You can bind to events in Kv using the ":" syntax, that is, associating a
-callback to an event::
+callback to an event:
+
+.. code-block:: kv
 
     Widget:
         on_size: my_callback()
 
-You can pass the values dispatched by the signal using the `args` keyword::
+You can pass the values dispatched by the signal using the `args` keyword:
+
+.. code-block:: kv
 
     TextInput:
         on_text: app.search(args[1])
+
+More complex expressions can be used, like:
+
+.. code-block:: kv
+
+    pos: self.center_x - self.texture_size[0] / 2., self.center_y - self.texture_size[1] / 2.
+
+This expression listens for a change in ``center_x``, ``center_y``,
+and ``texture_size``. If one of them is changing, the expression will be
+re-evaluated, and update the ``pos`` field.
+
+You can also handle ``on_`` events inside your kv language.
+For example the TextInput class has a ``focus`` property whose auto-generated
+``on_focus`` event can be accessed inside the kv language like so:
+
+.. code-block:: kv
+
+    TextInput:
+        on_focus: print args 
 
 
 Extend canvas
 -------------
 
-Kv lang can be used to define the canvas instructions of your widget too::
+Kv lang can be used to define the canvas instructions of your widget too:
+
+.. code-block:: kv
 
     MyWidget:
         canvas:
@@ -180,7 +213,9 @@ Referencing Widgets
 In a widget tree there is often a need to access/reference other widgets.
 Kv Language provides a way to do this using id's. Think of them as class
 level variables that can only be used in the Kv language. Consider the
-following::
+following:
+
+.. code-block:: kv
 
     <MyFirstWidget>:
         Button:
@@ -201,7 +236,9 @@ rule.
 Accessing Widgets defined inside Kv lang in your python code
 ------------------------------------------------------------
 
-Consider the code below in my.kv::
+Consider the code below in my.kv:
+
+.. code-block:: kv
 
     <MyFirstWidget>:
         # both these variable don't have to be the same name and this doesn't
@@ -214,7 +251,10 @@ Consider the code below in my.kv::
             text: f_but.state
             on_text: root.check_status(f_but)
 
-myapp.py::
+
+In myapp.py:
+
+.. code-block:: py
 
     ...
     class MyFirstWidget(BoxLayout):
@@ -246,7 +286,9 @@ code above.
 
 Templates
 ---------
-Consider the code below::
+Consider the code below:
+
+.. code-block:: kv
 
     <MyWidget>:
         Button:
@@ -270,7 +312,9 @@ Consider the code below::
         Button:
 
 Instead of having to repeat the same values for every button, we can just use a
-template instead, like so::
+template instead, like so:
+
+.. code-block:: kv
 
     [MyBigButt@Button]:
         text: ctx.text if hasattr(ctx, 'text') else ''

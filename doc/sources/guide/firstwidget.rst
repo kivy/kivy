@@ -3,8 +3,8 @@
 .. highlight:: python
    :linenothreshold: 3
 
-Your First Widget
-=================
+A simple Paint App
+==================
 
 In the following you will be guided through the creation of your first
 widget. This provides very powerful and important knowledge when
