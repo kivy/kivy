@@ -142,7 +142,15 @@ properties to determine the |size| and |pos| of their |children|.
     children, or set fixed size for some of them
     `pos_hint` not honored
 
+    .. only:: html
+
     .. image:: ../images/boxlayout.gif
+        :align: right
+
+    .. only:: latex
+
+    .. image:: ../images/boxlayout.png
+        :align: right
 
     **GridLayout**:
     Arranges widgets in a grid. You must specifiy at least one dimension of the
@@ -150,7 +158,15 @@ properties to determine the |size| and |pos| of their |children|.
 
     `pos_hint` not honored
 
-    .. image:: ../images/gridlayout.gif
+    .. only:: html
+
+        .. image:: ../images/gridlayout.gif
+            :align: right
+
+    .. only:: latex
+
+        .. image:: ../images/gridlayout.png
+            :align: right
 
     **StackLayout**:
     Arranges widgets side to side, but with a set size in a dimension, without
@@ -158,14 +174,30 @@ properties to determine the |size| and |pos| of their |children|.
     chilgren of the same predefined size, side to side.
     `pos_hint` not honored
 
-    .. image:: ../images/stacklayout.gif
+    .. only:: html
+
+        .. image:: ../images/stacklayout.gif
+            :align: right
+
+    .. only:: latex
+
+        .. image:: ../images/stacklayout.png
+            :align: right
 
     **AnchorLayout**:
     A simple layout only caring about children position, allows to stick the
     children to a position relative to a border of the layout.
     `size_hint` not honored.
 
-    .. image:: ../images/anchorlayout.gif
+    .. only:: html
+
+        .. image:: ../images/anchorlayout.gif
+            :align: right
+
+    .. only:: latex
+
+        .. image:: ../images/anchorlayout.png
+            :align: right
 
     **FloatLayout**:
     Allow to place children to arbitrary places and size, either absolute or
@@ -175,7 +207,15 @@ properties to determine the |size| and |pos| of their |children|.
     absolute size with `size`, this widget honors `pos_hint` too, which as a dict
     allowing to set position relatively to layout position.
 
-    .. image:: ../images/floatlayout.gif
+    .. only:: html
+
+        .. image:: ../images/floatlayout.gif
+            :align: right
+
+    .. only:: latex
+
+        .. image:: ../images/floatlayout.png
+            :align: right
 
     **RelativeLayout**:
     Behave just like FloatLayout, except children pos is relative to layout
