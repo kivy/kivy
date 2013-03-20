@@ -26,7 +26,7 @@ dispatchers). The :class:`~kivy.uix.widget.Widget`,
 examples of event dispatchers.
 
 
-As outlined in the Illustration above, Kivy has a `main loop`. It's important
+As outlined in the illustration above, Kivy has a `main loop`. It's important
 that you avoid breaking it. The main loop is responsible for reading from 
 inputs, loading images asynchronously, drawing to frame, ...etc. Avoid
 long/infinite loops or sleeping. For example the following code does both::
@@ -168,7 +168,7 @@ Example::
     ev.do_something('test')
 
 
-Introduction to properties
+Introduction to Properties
 --------------------------
 
 Properties are an awesome way to define events and bind to them. Essentially,
@@ -243,7 +243,7 @@ In the code above at line 3::
     pressed = ListProperty([0, 0])
 
 We define the `pressed` Property of type :class:`~kivy.properties.ListProperty`,
-giving it a default value of `[0, 0]`. From this point onwards, the `on_pressed`
+giving it a default value of `[0, 0]`. From this point forward, the `on_pressed`
 event will be called whenever the value of this property is changed.
 
 At Line 5::
@@ -258,7 +258,7 @@ We override the :meth:`on_touch_down` method of the Widget class. Here, we check
 for collision of the `touch` with our widget. 
 
 If the touch falls inside of our widget, we change the value of `pressed` to touch.pos
-and return True, indicating that we have consumed the touch and don't want it
+and return True, indicating that we have consumed the touch and don't want it to
 propagate any further.
 
 Finally, if the touch falls outside our widget, we call the original event
@@ -274,14 +274,14 @@ We define an `on_pressed` function that will be called by the property whenever 
 property value is changed.
 
 .. Note::
-    This `on_<prop_name>` event is called within the class that the property is
-    defined in. To monitor/observe the change to a property outside of a class
-    it's defined in, you should bind to the property.
+    This `on_<prop_name>` event is called within the class where the property is
+    defined. To monitor/observe any change to a property outside of the class
+    where it's defined, you should bind to the property as shown below.
 
 
 **Binding to the property**
 
-How to monitor changes to a property when all you have access to is a widgets
+How to monitor changes to a property when all you have access to is a widget
 instance? You *bind* to the property::
 
     your_widget_instance.bind(property_name=function_name)
@@ -308,7 +308,7 @@ If you run the code as is, you will notice two print statements in the console.
 One from the `on_pressed` event that is called inside the `CustomBtn` class and
 another from the `btn_pressed` function that we bind to the property change.
 
-The reason that both the functions are called is simple. Binding doesn't mean
+The reason that both functions are called is simple. Binding doesn't mean
 overriding. Having both of these functions is redundant and you should generally
 only use one of the methods of listening/reacting to property changes.
 
@@ -319,8 +319,8 @@ You should also take note of the parameters that are passed to the
 
     def btn_pressed(self, instance, pos):
 
-The first parameter is `self`, which is the instance of the class this function is
-defined in. You can use an in-line function as follows:
+The first parameter is `self`, which is the instance of the class where this 
+function is defined. You can use an in-line function as follows:
 
 .. code-block:: python
    :linenos:
@@ -334,12 +334,12 @@ defined in. You can use an in-line function as follows:
     self.add_widget(cb)
 
 The first parameter would be the `instance` of the class the property is
-defined in.
+defined.
 
 The second parameter would be the `value`, which is the new value of the property.
 
 Here is the complete example, derived from the snippets above, that you can
-use to copy and paste into an editor to experiment with.
+use to copy and paste into an editor to experiment.
 
 .. code-block:: python
    :linenos:
@@ -395,11 +395,11 @@ Running the code above will give you the following output:
 Our CustomBtn has no visual representation and thus appears black. You can
 touch/click on the black area to see the output on your console.
 
-Some Gotchas in :class:`~kivy.properties.AliasProperty` and
-:class:`~kivy.properties.ReferenceListProperty`.
+Compound Properties
+-------------------
 
 When defining an :class:`~kivy.properties.AliasProperty`, you normally define
-a getter and a setter functions yourself. Here, it falls on to you to define
+a getter and a setter function yourself. Here, it falls on to you to define
 when the getter and the setter functions are called using the `bind` argument.
 
 Consider the following code.
@@ -407,4 +407,16 @@ Consider the following code.
 .. code-block:: python
    :linenos:
 
-   class TODO::
+    cursor_pos = AliasProperty(_get_cursor_pos, None, bind=(
+        'cursor', 'padding', 'pos', 'size', 'focus',
+        'scroll_x', 'scroll_y'))
+    '''Current position of the cursor, in (x, y).
+
+    :data:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
+
+Here `cursor_pos` is a :class:`~kivy.properties.AliasProperty` which uses the
+`getter` `_get_cursor_pos` with the `setter` part set to None, implying this
+is a read only Property.
+
+The bind argument at the end defines that `on_cursor_pos` event is dispatched
+when any of the properties used in the `bind=` argument change.

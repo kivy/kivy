@@ -10,4 +10,5 @@ Packaging your application
     packaging-macosx
     packaging-android
     packaging-ios
+    android
 

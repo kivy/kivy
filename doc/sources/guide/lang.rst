@@ -162,10 +162,31 @@ callback to an event:
     Widget:
         on_size: my_callback()
 
-You can pass the values dispatched by the signal using the `args` keyword::
+You can pass the values dispatched by the signal using the `args` keyword:
+
+.. code-block:: kv
 
     TextInput:
         on_text: app.search(args[1])
+
+More complex expressions can be used, like:
+
+.. code-block:: kv
+
+    pos: self.center_x - self.texture_size[0] / 2., self.center_y - self.texture_size[1] / 2.
+
+This expression listens for a change in ``center_x``, ``center_y``,
+and ``texture_size``. If one of them is changing, the expression will be
+re-evaluated, and update the ``pos`` field.
+
+You can also handle ``on_`` events inside your kv language.
+For example the TextInput class has a ``focus`` property whose auto-generated
+``on_focus`` event can be accessed inside the kv language like so:
+
+.. code-block:: kv
+
+    TextInput:
+        on_focus: print args 
 
 
 Extend canvas
