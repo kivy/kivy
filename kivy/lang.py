@@ -468,7 +468,8 @@ import codecs
 import re
 import sys
 from re import sub, findall
-from os.path import join
+from os import stat, makedirs, unlink
+from os.path import join, basename, exists, dirname
 from copy import copy
 from types import ClassType, CodeType
 from functools import partial
@@ -480,6 +481,10 @@ from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
 import kivy.metrics as metrics
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 trace = Logger.trace
 global_idmap = {}
@@ -627,19 +632,35 @@ class ParserRuleProperty(object):
         if mode == 'exec':
             return
 
-        # now, detect obj.prop
-        # first, remove all the string from the value
-        tmp = sub(lang_str, '', value)
-        # detect key.value inside value, and split them
-        wk = list(set(findall(lang_keyvalue, tmp)))
-        if len(wk):
-            self.watched_keys = [x.split('.') for x in wk]
+        if self.watched_keys is None:
+            # now, detect obj.prop
+            # first, remove all the string from the value
+            tmp = sub(lang_str, '', value)
+            # detect key.value inside value, and split them
+            wk = list(set(findall(lang_keyvalue, tmp)))
+            if len(wk):
+                self.watched_keys = [x.split('.') for x in wk]
 
     def __repr__(self):
         return '<ParserRuleProperty name=%r filename=%s:%d ' \
                'value=%r watched_keys=%r>' % (
                    self.name, self.ctx.filename, self.line + 1,
                    self.value, self.watched_keys)
+
+    def __getstate__(self):
+        state = {}
+        avoid_keys = ('co_value', )
+        keys = self.__slots__
+        for key in keys:
+            if key in avoid_keys:
+                continue
+            state[key] = getattr(self, key)
+        return state
+
+    def __setstate__(self, state):
+        self.co_value = None
+        for key, value in state.iteritems():
+            setattr(self, key, value)
 
 
 class ParserRule(object):
@@ -763,6 +784,21 @@ class ParserRule(object):
 
     def __repr__(self):
         return '<ParserRule name=%r>' % (self.name, )
+
+    def __getstate__(self):
+        state = {}
+        avoid_keys = ('cache_marked', )
+        keys = self.__slots__
+        for key in keys:
+            if key in avoid_keys:
+                continue
+            state[key] = getattr(self, key)
+        return state
+
+    def __setstate__(self, state):
+        self.cache_marked = []
+        for key, value in state.iteritems():
+            setattr(self, key, value)
 
 
 class Parser(object):
@@ -1028,6 +1064,26 @@ class Parser(object):
 
         return objects, []
 
+    def __getstate__(self):
+        state = {}
+        keys = self.__slots__
+        for key in keys:
+            state[key] = getattr(self, key)
+        return state
+
+    def __setstate__(self, state):
+        for key, value in state.iteritems():
+            setattr(self, key, value)
+
+        self.execute_directives()
+
+        # Precompile rules tree
+        for selector, rule in self.rules:
+            rule.precompile()
+        for name, subclass, rule in self.templates:
+            rule.precompile()
+
+
 
 def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     idmap['args'] = largs
@@ -1137,6 +1193,7 @@ class BuilderBase(object):
 
     def __init__(self):
         super(BuilderBase, self).__init__()
+        self.parsers = []
         self.templates = {}
         self.rules = []
         self.rulectx = {}
@@ -1151,19 +1208,61 @@ class BuilderBase(object):
         '''
         if __debug__:
             trace('Builder: load file %s' % filename)
-        with open(filename, 'r') as fd:
-            kwargs['filename'] = filename
-            data = fd.read()
 
-            # remove bom ?
-            if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
-                raise ValueError('Unsupported UTF16 for kv files.')
-            if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
-                raise ValueError('Unsupported UTF32 for kv files.')
-            if data.startswith(codecs.BOM_UTF8):
-                data = data[len(codecs.BOM_UTF8):]
+        # check first if we have a compiled version of this file
+        cache_dir = '/tmp/kivy'
+        s = stat(filename)
+        cache_fn = join(cache_dir,
+                '{st_ino}{st_mtime}{st_ctime}_{filename}'.format(
+                st_ino=s.st_ino, st_mtime=s.st_mtime, st_ctime=s.st_ctime,
+                filename=basename(filename)))
 
-            return self.load_string(data, **kwargs)
+        self._current_filename = filename
+
+        if exists(cache_fn):
+            trace('Builder: load cached version of {}'.format(filename))
+            with open(cache_fn, 'rb') as fd:
+                parser = pickle.load(fd)
+            return self.load_parser(parser, **kwargs)
+
+        else:
+
+            with open(filename, 'r') as fd:
+                kwargs['filename'] = filename
+                data = fd.read()
+
+                # remove bom ?
+                if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+                    raise ValueError('Unsupported UTF16 for kv files.')
+                if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+                    raise ValueError('Unsupported UTF32 for kv files.')
+                if data.startswith(codecs.BOM_UTF8):
+                    data = data[len(codecs.BOM_UTF8):]
+
+                root = self.load_string(data, **kwargs)
+
+            # save the latest version of the parser
+            try:
+                parser = self.parsers[-1]
+                if not exists(dirname(cache_fn)):
+                    makedirs(dirname(cache_fn))
+                with open(cache_fn, 'wb') as fd:
+                    pickle.dump(parser, fd)
+
+                if __debug__:
+                    Logger.trace('Builder: {} compiled and saved at {}',
+                        basename(filename), cache_fn)
+            except:
+                if __debug__:
+                    Logger.trace('Builder: Unable to cache {}', cache_fn)
+                # if we have any errors, prevent to save an empty file
+                try:
+                    if exists(cache_fn):
+                        unlink(cache_fn)
+                except:
+                    pass
+
+            return root
 
     def unload_file(self, filename):
         '''Unload all rules associated to a previously imported file.
@@ -1193,35 +1292,39 @@ class BuilderBase(object):
                 If True, the Builder will raise an exception if you have a root
                 widget inside the definition.
         '''
-        kwargs.setdefault('rulesonly', False)
         self._current_filename = fn = kwargs.get('filename', None)
         try:
             # parse the string
             parser = Parser(content=string, filename=fn)
-
-            # merge rules with our rules
-            self.rules.extend(parser.rules)
-            self._clear_matchcache()
-
-            # add the template found by the parser into ours
-            for name, cls, template in parser.templates:
-                self.templates[name] = (cls, template, fn)
-                Factory.register(name,
-                                 cls=partial(self.template, name),
-                                 is_template=True)
-
-            # create root object is exist
-            if kwargs['rulesonly'] and parser.root:
-                filename = kwargs.get('rulesonly', '<string>')
-                raise Exception('The file <%s> contain also non-rules '
-                                'directives' % filename)
-
-            if parser.root:
-                widget = Factory.get(parser.root.name)()
-                self._apply_rule(widget, parser.root, parser.root)
-                return widget
+            return self.load_parser(parser, **kwargs)
         finally:
             self._current_filename = None
+
+    def load_parser(self, parser, **kwargs):
+        kwargs.setdefault('rulesonly', False)
+        self.parsers.append(parser)
+
+        # merge rules with our rules
+        self.rules.extend(parser.rules)
+        self._clear_matchcache()
+
+        # add the template found by the parser into ours
+        for name, cls, template in parser.templates:
+            self.templates[name] = (cls, template, self._current_filename)
+            Factory.register(name,
+                             cls=partial(self.template, name),
+                             is_template=True)
+
+        # create root object is exist
+        if kwargs['rulesonly'] and parser.root:
+            filename = kwargs.get('rulesonly', '<string>')
+            raise Exception('The file <%s> contain also non-rules '
+                            'directives' % filename)
+
+        if parser.root:
+            widget = Factory.get(parser.root.name)()
+            self._apply_rule(widget, parser.root, parser.root)
+            return widget
 
     def template(self, *args, **ctx):
         '''Create a specialized template using a specific context.
@@ -1438,4 +1541,8 @@ class BuilderBase(object):
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = BuilderBase()
+from time import time
+start = time()
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
+end = time() - start
+print '-> loading time is', end
