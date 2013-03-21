@@ -11,8 +11,8 @@ as an unlimited drawing board, and as a set of drawing instructions, there are
 numerous different instructions you can apply (add) to your canvas, but there
 is two main kind of them:
 
-- :mod:`~kivy.graphics.context_instructions` Context instructions
-- :mod:`~kivy.graphics.vertex_instructions` Vertex Instructions
+- `Context instructions <:mod:~kivy.graphics.context_instructions>`_
+- `Vertex Instructions <:mod:~kivy.graphics.vertex_instructions>`_
 
 Context instructions don't draw anything, but they change the results of the
 Vertex instructions.
@@ -23,7 +23,7 @@ Canvasses can contain two subsets of instructions. They are the
 groups will be executed before and after the :mod:`~kivy.graphics.canvas` group
 respectively. This means that they will appear under (be executed before) and
 above (be executed after) them.
-Thoses groups are not created until the user access it.
+Thoses groups are not created until the user accesses them.
 
 To add a canvas instruction to a widget, you use the canvas context:
 
@@ -71,7 +71,7 @@ Manipulating instructions
 Sometime, you want to update or remove the instructions you added to a canvas,
 this can be done in various ways depending on your needs:
 
-You can keep a reference to your instruction and update them::
+You can keep a reference to your instructions and update them::
 
     class MyWidget(Widget):
         def __init__(self, **kwargs):
