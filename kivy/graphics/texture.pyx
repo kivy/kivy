@@ -988,6 +988,16 @@ cdef class Texture:
             self.bind()
             self.set_wrap(wrap)
 
+    property pixels:
+        '''Get the pixels texture, in RGBA format only, unsigned byte.
+
+        .. versionadded:: 1.6.1
+        '''
+        def __get__(self):
+            from kivy.graphics.fbo import Fbo
+            return Fbo(size=self.size, texture=self).pixels
+
+
 cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2
     texture handling.'''

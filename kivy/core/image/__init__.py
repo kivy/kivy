@@ -155,6 +155,16 @@ class ImageLoaderBase(object):
         '''Load an image'''
         return None
 
+    @staticmethod
+    def can_save():
+        '''Indicate if the loader can save Image object
+        '''
+        return False
+
+    @staticmethod
+    def save():
+        raise NotImplementedError()
+
     def populate(self):
         self._textures = []
         if __debug__:
@@ -233,7 +243,7 @@ class ImageLoaderBase(object):
 
 
 class ImageLoader(object):
-    __slots__ = ('loaders')
+    __slots__ = ('loaders', )
     loaders = []
 
     @staticmethod
@@ -658,6 +668,16 @@ class Image(EventDispatcher):
         .. versionadded:: 1.6.0
         '''
         return self._nocache
+
+    def save(self, filename):
+        '''Save image texture to file
+
+        .. versionadded:: 1.6.1
+        '''
+        for loader in ImageLoader.loaders:
+            if not loader.can_save():
+                continue
+            return loader.save(self, filename)
 
     def read_pixel(self, x, y):
         '''For a given local x/y position, return the color at that position.
