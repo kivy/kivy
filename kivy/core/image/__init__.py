@@ -674,10 +674,41 @@ class Image(EventDispatcher):
 
         .. versionadded:: 1.6.1
         '''
-        for loader in ImageLoader.loaders:
-            if not loader.can_save():
-                continue
-            return loader.save(self, filename)
+        loaders = [x for x in ImageLoader.loaders if x.can_save()]
+        if not loaders:
+            return False
+        loader = loaders[0]
+
+        data = self.image._data[0]
+        pixels = None
+        size = None
+        if data.data is not None:
+            if data.fmt not in ('rgba', 'rgb'):
+                # fast path, use the "raw" data when keep_data is used
+                size = data.width, data.height
+                pixels = data.data
+
+            else:
+                # the format is not rgba, we need to convert it.
+                # use texture for that.
+                self.populate()
+
+        if pixels is None and self._texture:
+            # use the texture pixels
+            size = self._texture.size
+            pixels = self._texture.pixels
+
+        if pixels is None:
+            return False
+
+        l_pixels = len(pixels)
+        if l_pixels == size[0] * size[1] * 3:
+            fmt = 'rgb'
+        elif l_pixels == size[0] * size[1] * 4:
+            fmt = 'rgba'
+        else:
+            raise Exception('Unable to determine the format of the pixels')
+        return loader.save(filename, size[0], size[1], fmt, pixels)
 
     def read_pixel(self, x, y):
         '''For a given local x/y position, return the color at that position.

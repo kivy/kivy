@@ -73,31 +73,8 @@ class ImageLoaderPygame(ImageLoaderBase):
             fmt, data, source=filename)]
 
     @staticmethod
-    def save(image, filename):
-        data = image.image._data[0]
-        pixels = None
-        size = None
-        if data.data is not None:
-            if data.fmt == 'rgba':
-                # fast path, use the "raw" data when keep_data is used
-                size = data.width, data.height
-                pixels = data.data
-
-            else:
-                # the format is not rgba, we need to convert it.
-                # use texture for that.
-                image.populate()
-
-        if pixels is None and image._texture:
-            # use the texture pixels
-            size = image._texture.size
-            pixels = image._texture.pixels
-
-        if pixels is None:
-            return False
-
-        # save it!
-        surface = pygame.image.fromstring(pixels, size, 'RGBA', False)
+    def save(filename, width, height, fmt, pixels):
+        surface = pygame.image.fromstring(pixels, (width, height), fmt.upper(), False)
         pygame.image.save(surface, filename)
         return True
 
