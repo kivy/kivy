@@ -169,7 +169,11 @@ def save_image(filename, width, height, fmt, data):
     # the type of the output file. So we need to map the extension of the
     # filename into a CoreGraphics image domain type.
 
-    assert(filename.endswith('.png'))
+    fileformat = 'public.png'
+    if filename.endswith('.png'):
+        fileformat = 'public.png'
+    if filename.endswith('.jpg') or filename.endswith('.jpeg'):
+        fileformat = 'public.jpeg'
 
     cdef char *source = NULL
     if type(data) is array:
@@ -196,7 +200,7 @@ def save_image(filename, width, height, fmt, data):
     cdef CFURLRef url = CFURLCreateWithFileSystemPath(NULL,
             sfilename, kCFURLPOSIXPathStyle, 0)
     cdef CFStringRef ctype = CFStringCreateWithCString(NULL,
-            "public.png", kCFStringEncodingUTF8)
+            fileformat, kCFStringEncodingUTF8)
 
     cdef CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url,
             ctype, 1, NULL)
