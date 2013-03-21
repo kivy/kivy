@@ -6,16 +6,20 @@ Programming Guide
 .. toctree::
     :maxdepth: 2
 
-    guide/quickstart
+    guide/basic
     guide/readingdoc
     guide/environment
     guide/config
     guide/architecture
-    guide/firstwidget
-    guide/widgettree
     guide/events
     guide/inputs
-    guide/kvlang
+    guide/widgets
+    guide/graphics
+    guide/lang
     guide/designwithkv
     guide/other-frameworks
+    guide/firstwidget
+    guide/bestpractices
+    guide/advancedgraphics
     guide/packaging
+    guide/android
