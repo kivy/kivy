@@ -48,8 +48,8 @@
             rgb: 1, 1, 1
         BorderImage:
             border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
-            pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
-            size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
+            pos: (self.x + self.padding, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y + self.padding)
+            size: (self.width - self.padding * 2, 37) if self.orientation == 'horizontal' else (37, self.height - self.padding * 2)
             source: 'atlas://data/images/defaulttheme/slider%s_background' % self.orientation[0]
         Rectangle:
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
