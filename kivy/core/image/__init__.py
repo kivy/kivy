@@ -155,6 +155,16 @@ class ImageLoaderBase(object):
         '''Load an image'''
         return None
 
+    @staticmethod
+    def can_save():
+        '''Indicate if the loader can save Image object
+        '''
+        return False
+
+    @staticmethod
+    def save():
+        raise NotImplementedError()
+
     def populate(self):
         self._textures = []
         if __debug__:
@@ -233,7 +243,7 @@ class ImageLoaderBase(object):
 
 
 class ImageLoader(object):
-    __slots__ = ('loaders')
+    __slots__ = ('loaders', )
     loaders = []
 
     @staticmethod
@@ -658,6 +668,67 @@ class Image(EventDispatcher):
         .. versionadded:: 1.6.0
         '''
         return self._nocache
+
+    def save(self, filename):
+        '''Save image texture to file.
+
+        The filename should have the '.png' extension, because the texture data
+        readed from the GPU is in the RGBA format. '.jpg' can work, but not
+        heavilly tested, and some providers might break when using it.
+        Any other extensions is not officially supported.
+
+        Example::
+
+            # Save an core image object
+            from kivy.core.image import Image
+            img = Image('hello.png')
+            img.save('hello2.png')
+
+            # Save a texture
+            texture = Texture.create(...)
+            img = Image(texture)
+            img.save('hello3.png')
+
+        .. versionadded:: 1.6.1
+        '''
+        pixels = None
+        size = None
+        loaders = [x for x in ImageLoader.loaders if x.can_save()]
+        if not loaders:
+            return False
+        loader = loaders[0]
+
+        if self.image:
+            # we might have a ImageData object to use
+            data = self.image._data[0]
+            if data.data is not None:
+                if data.fmt not in ('rgba', 'rgb'):
+                    # fast path, use the "raw" data when keep_data is used
+                    size = data.width, data.height
+                    pixels = data.data
+
+                else:
+                    # the format is not rgba, we need to convert it.
+                    # use texture for that.
+                    self.populate()
+
+        if pixels is None and self._texture:
+            # use the texture pixels
+            size = self._texture.size
+            pixels = self._texture.pixels
+
+        if pixels is None:
+            return False
+
+        l_pixels = len(pixels)
+        if l_pixels == size[0] * size[1] * 3:
+            fmt = 'rgb'
+        elif l_pixels == size[0] * size[1] * 4:
+            fmt = 'rgba'
+        else:
+            raise Exception('Unable to determine the format of the pixels')
+        print 'loader', loader, (filename, size, fmt, len(pixels))
+        return loader.save(filename, size[0], size[1], fmt, pixels)
 
     def read_pixel(self, x, y):
         '''For a given local x/y position, return the color at that position.

@@ -838,6 +838,15 @@ cdef class Texture:
                 continue
             callback()(self)
 
+    def save(self, filename):
+        '''Save the texture content into a file. Check
+        :meth:`kivy.core.image.Image.save` for more information about the usage.
+
+        .. versionadded:: 1.6.1
+        '''
+        from kivy.core.image import Image
+        return Image(self).save(filename)
+
     def __repr__(self):
         return '<Texture hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (
             id(self), self._id, self.size, self.colorfmt, self.bufferfmt,
@@ -988,6 +997,16 @@ cdef class Texture:
             self.bind()
             self.set_wrap(wrap)
 
+    property pixels:
+        '''Get the pixels texture, in RGBA format only, unsigned byte.
+
+        .. versionadded:: 1.6.1
+        '''
+        def __get__(self):
+            from kivy.graphics.fbo import Fbo
+            return Fbo(size=self.size, texture=self).pixels
+
+
 cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2
     texture handling.'''
@@ -1026,4 +1045,19 @@ cdef class TextureRegion(Texture):
         # then update content again
         for cb in self.observers:
             cb(self)
+
+    property pixels:
+        def __get__(self):
+            from kivy.graphics.fbo import Fbo
+            from kivy.graphics import Color, Rectangle
+            fbo = Fbo(size=self.size)
+            fbo.clear()
+            self.flip_vertical()
+            with fbo:
+                Color(1, 1, 1)
+                Rectangle(size=self.size, texture=self,
+                        tex_coords=self.tex_coords)
+            fbo.draw()
+            self.flip_vertical()
+            return fbo.pixels
 
