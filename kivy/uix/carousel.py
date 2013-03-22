@@ -262,14 +262,16 @@ class Carousel(StencilView):
             super(Carousel, self).add_widget(self._current)
 
     def _position_visible_slides(self, *args):
+        slides, index = self.slides, self.index
+        no_of_slides = len(slides) - 1
+        if not slides:
+            return
         x, y, width, height = self.x, self.y, self.width, self.height
         _offset, direction = self._offset, self.direction
         _prev, _next, _current = self._prev, self._next, self._current
-        slides, index = self.slides, self.index
         get_slide_container = self.get_slide_container
         last_slide = get_slide_container(slides[-1])
         first_slide = get_slide_container(slides[0])
-        no_of_slides = len(slides) - 1
         skip_next = False
 
         if direction in ['right', 'left']:
@@ -278,7 +280,7 @@ class Carousel(StencilView):
             x_next = {'left': xoff - width, 'right': xoff + width}
             if _prev:
                 _prev.pos = (x_prev[direction], y)
-            elif index == 0:
+            elif _next and index == 0:
                 # if first slide is moving to right with direction set to right
                 # or toward left with direction set to left
                 if ((_offset > 0 and direction == 'right') or
@@ -292,7 +294,7 @@ class Carousel(StencilView):
                 return
             if _next:
                 _next.pos = (x_next[direction], y)
-            elif index == no_of_slides:
+            elif _prev and index == no_of_slides:
                 if ((_offset < 0 and direction == 'right') or
                     (_offset > 0 and direction == 'left')):
                     first_slide.pos = (x_next[direction], y)
@@ -302,7 +304,7 @@ class Carousel(StencilView):
             y_next = {'top': yoff + height, 'bottom': yoff - height}
             if _prev:
                 _prev.pos = (x, y_prev[direction])
-            elif index == 0:
+            elif _next and index == 0:
                 if ((_offset > 0 and direction == 'top') or
                     (_offset < 0 and direction == 'bottom')):
                     last_slide.pos = (x, y_prev[direction])
@@ -313,7 +315,7 @@ class Carousel(StencilView):
                 return
             if _next:
                 _next.pos = (x, y_next[direction])
-            elif index == no_of_slides:
+            elif _prev and index == no_of_slides:
                 if ((_offset < 0 and direction == 'top') or
                     (_offset > 0 and direction == 'bottom')):
                     first_slide.pos = (x, y_next[direction])
@@ -339,7 +341,7 @@ class Carousel(StencilView):
 
     def on__offset(self, *args):
         self._trigger_position_visible_slides()
-        #if reached full offset, switche index to next or prev
+        # if reached full offset, switch index to next or prev
         if self.direction == 'right':
             if self._offset <= -self.width:
                 self.index = self.index + 1
@@ -378,9 +380,11 @@ class Carousel(StencilView):
         if new_offset == 0:
             dur = self.anim_cancel_duration
 
-        if not self.loop:  # detect edge cases if not looping
+        # detect edge cases if not looping
+        len_slides = len(self.slides)
+        if not self.loop or len_slides == 1:
             is_first = (self.index == 0)
-            is_last = (self.index == len(self.slides) - 1)
+            is_last = (self.index == len_slides - 1)
             if self.direction in ['right', 'top']:
                 towards_prev = (new_offset > 0)
                 towards_next = (new_offset < 0)
