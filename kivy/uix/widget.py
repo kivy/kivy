@@ -291,7 +291,7 @@ class Widget(EventDispatcher):
 
             children.insert(index, widget)
             # we never want to insert widget _before_ canvas.before.
-            if next_index == 0:
+            if next_index == 0 and canvas.has_before:
                 next_index = 1
             canvas.insert(next_index, widget.canvas)
 
