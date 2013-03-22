@@ -603,12 +603,18 @@ class ObservableDict(dict):
         self.obj = largs[1]
         super(ObservableDict, self).__init__(*largs[2:])
 
+    def _weak_return(self, item):
+        if isinstance(item, ref):
+            return item()
+        return item
+
     def __getattr__(self, attr):
         try:
-            return self.__getitem__(attr)
+            return self._weak_return(self.__getitem__(attr))
         except KeyError:
             try:
-                return super(ObservableDict, self).__getattr__(attr)
+                return self._weak_return(
+                                super(ObservableDict, self).__getattr__(attr))
             except AttributeError:
                 raise KeyError(attr)
 
