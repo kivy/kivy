@@ -112,7 +112,7 @@ class Carousel(StencilView):
     trying to swipe the first page.
 
     :data:`loop` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    default to False.
     '''
 
     def _get_index(self):
