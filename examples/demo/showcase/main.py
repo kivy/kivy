@@ -294,9 +294,9 @@ class ShowcaseApp(App):
             'fontscale': str(metrics.fontscale),
         }
         label = font_sizes.children[1]
-        label.text = ('DPI: {dpi} '
-                      'DPI Rounded: {dpi_rounded} '
-                      'Density: {density} '
+        label.text = ('DPI: {dpi} | '
+                      'DPI Rounded: {dpi_rounded} | '
+                      'Density: {density} | '
                       'Font Scale: {fontscale} ').format(**metrics_values)
         return font_sizes
 
