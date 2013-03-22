@@ -2,7 +2,7 @@
 ColorPicker widget
 ==================
 
-.. versionadded:: 1.5
+.. versionadded:: 1.6.1
 
 .. warning::
 
@@ -18,10 +18,10 @@ select the alpha value.
 
 '''
 
-__all__ = 'ColorPicker', 'ColorWheel'
+__all__ = ('ColorPicker', 'ColorWheel')
 
 from kivy.uix.widget import Widget
-from kivy.properties import NumericProperty, BoundedNumericProperty,\
+from kivy.properties import NumericProperty, BoundedNumericProperty, \
     ListProperty, ObjectProperty, ReferenceListProperty
 from kivy.core.window import Window
 from kivy.clock import Clock
