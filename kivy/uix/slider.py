@@ -12,6 +12,12 @@ To create a slider from -100 to 100 starting at 25::
     from kivy.uix.slider import Slider
     s = Slider(min=-100, max=100, value=25)
 
+To create a slider from 0 to 100, with major ticks at every 25 units and
+minor ticks dividing the 25 units into sub-intervals of 5::
+
+    from kivy.uix.slider import Slider
+    s = Slider(min=0, max=100, ticks_major=25, ticks_minor=5)
+
 To create a vertical slider::
 
     from kivy.uix.slider import Slider
@@ -22,7 +28,9 @@ __all__ = ('Slider', )
 
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, AliasProperty, OptionProperty, \
-        ReferenceListProperty, BoundedNumericProperty
+        ReferenceListProperty, BoundedNumericProperty, ObjectProperty
+from kivy.graphics import Mesh
+from math import floor
 
 
 class Slider(Widget):
@@ -97,6 +105,112 @@ class Slider(Widget):
 
     :data:`step` is a :class:`~kivy.properties.NumericProperty`, default to 1.
     '''
+
+    ticks_major = BoundedNumericProperty(0, min=0)
+    '''Distance between major tick marks.
+
+    .. versionadded:: 1.6.1
+
+    Determines the distance between the major tick marks. Major tick marks
+    start from slider.min and re-occur at every ticks_major until slider.max.
+    If slider.max doesn't overlap with a integer multiple of ticks_major,
+    no tick will occur at slider.max. Zero indicates no tick marks.
+
+    :data:`ticks_major` is a :class:`~kivy.properties.BoundedNumericProperty`,
+    default to 0.
+    '''
+
+    ticks_minor = BoundedNumericProperty(0, min=0)
+    '''The number of sub-intervals that divide ticks_major.
+
+    .. versionadded:: 1.6.1
+
+    Determines the number of sub-intervals into which ticks_major is divided,
+    if non-zero. The actual number of minor ticks between the major ticks is
+    ticks_minor - 1. Only used if ticks_major is non-zero. If there's no major
+    tick at slider.max then the number of minor ticks after the last major
+    tick will be however many ticks fit until slider.max.
+
+    :data:`ticks_minor` is a :class:`~kivy.properties.BoundedNumericProperty`,
+    default to 0.
+    '''
+
+    # Internals properties used for graphical representation.
+
+    _mesh = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super(Slider, self).__init__(**kwargs)
+        with self.canvas:
+            self._mesh = Mesh(mode='lines')
+        self.bind(center=self.set_ticks, ticks_major=self.set_ticks,
+                  ticks_minor=self.set_ticks, padding=self.set_ticks,
+                  range=self.set_ticks, orientation=self.set_ticks)
+
+    def set_ticks(self, *args):
+        mesh = self._mesh
+        indices = mesh.indices
+        vertices = mesh.vertices
+        if self.ticks_major:
+            ticks_minor = self.ticks_minor
+            ticks_major = self.ticks_major
+            padding = self.padding
+            # distance between each tick
+            tick_dist = ticks_major / float(ticks_minor if ticks_minor else 1.0)
+            n_ticks = int(floor((self.max - self.min) / tick_dist) + 1)
+            count = len(indices) / 2
+            # adjust mesh size
+            if count > n_ticks:
+                del vertices[n_ticks * 8:]
+                del indices[n_ticks * 2:]
+            elif count < n_ticks:
+                vertices.extend([0] * (8 * (n_ticks - count)))
+                indices.extend(xrange(2 * count, 2 * n_ticks))
+
+            if self.orientation == 'horizontal':
+                center = self.center_y
+            else:
+                center = self.center_x
+            maj_plus = center + 12
+            maj_minus = center - 12
+            min_plus = center + 6
+            min_minus = center - 6
+            if self.orientation == 'horizontal':
+                # now, the distance between ticks in pixels
+                tick_dist = (self.width - 2 * padding
+                             ) / float(self.max - self.min) * tick_dist
+                start = self.x + padding
+                for k in xrange(0, n_ticks):
+                    m = k * 8
+                    vertices[m + 0] = start + k * tick_dist
+                    vertices[m + 4] = vertices[m + 0]
+                    if ticks_minor and k % ticks_minor:
+                        vertices[m + 1] = min_plus
+                        vertices[m + 5] = min_minus
+                    else:
+                        vertices[m + 1] = maj_plus
+                        vertices[m + 5] = maj_minus
+            else:
+                tick_dist = (self.height - 2 * padding
+                             ) / float(self.max - self.min) * tick_dist
+                start = self.y + padding
+                for k in xrange(0, n_ticks):
+                    m = k * 8
+                    vertices[m + 1] = start + k * tick_dist
+                    vertices[m + 5] = vertices[m + 1]
+                    if ticks_minor and k % ticks_minor:
+                        vertices[m + 0] = min_plus
+                        vertices[m + 4] = min_minus
+                    else:
+                        vertices[m + 0] = maj_plus
+                        vertices[m + 4] = maj_minus
+        else:
+            if not len(indices):
+                return
+            del indices[:]
+            del vertices[:]
+        mesh.vertices = vertices
+        mesh.indices = indices
 
     def get_norm_value(self):
         vmin = self.min
@@ -214,6 +328,6 @@ if __name__ == '__main__':
 
     class SliderApp(App):
         def build(self):
-            return Slider(padding=25)
+            return Slider(padding=25, ticks_major=25, ticks_minor=5)
 
     SliderApp().run()
