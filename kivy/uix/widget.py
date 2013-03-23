@@ -280,7 +280,7 @@ class Widget(EventDispatcher):
             children = self.children
             if index >= len(children):
                 index = len(children)
-                next_index = -1
+                next_index = 0
             else:
                 next_child = children[index]
                 next_index = canvas.indexof(next_child.canvas)
@@ -290,6 +290,9 @@ class Widget(EventDispatcher):
                     next_index += 1
 
             children.insert(index, widget)
+            # we never want to insert widget _before_ canvas.before.
+            if next_index == 0 and canvas.has_before:
+                next_index = 1
             canvas.insert(next_index, widget.canvas)
 
     def remove_widget(self, widget):

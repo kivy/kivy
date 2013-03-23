@@ -518,16 +518,15 @@ class App(EventDispatcher):
         data like preferences, saved games, and settings. This function
         implements those conventions.
 
-        On iOS ``/Documents``is returned (which is inside the apps sandbox).
+        On iOS `/Documents` is returned (which is inside the apps sandbox).
 
-        On Android ``/sdcard/<app_name>``is returned.
+        On Android `/sdcard/<app_name>` is returned.
 
-        On Windows ``~/Application Settings/<app_name>``is returned.
+        On Windows `~/Application Settings/<app_name>` is returned.
 
-        On Mac OS X ``~/Library/Application Support <app_name>``is returned.
+        On Mac OS X `~/Library/Application Support <app_name>` is returned.
 
         On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
-
         '''
         data_dir = ""
         if platform == 'ios':
