@@ -58,7 +58,7 @@ named `main.py`.
 
 We provide a script that creates an initial Xcode project to start with. In the
 command line below, replace `test` with your project name. It must be a
-name without any spaces or illegal characters)::
+name without any spaces or illegal characters::
 
     $ tools/create-xcode-project.sh test /path/to/your/appdir
 
