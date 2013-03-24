@@ -11,11 +11,11 @@ as an unlimited drawing board, and as a set of drawing instructions, there are
 numerous different instructions you can apply (add) to your canvas, but there
 is two main kind of them:
 
-- `Context instructions <:mod:~kivy.graphics.context_instructions>`_
-- `Vertex Instructions <:mod:~kivy.graphics.vertex_instructions>`_
+- :mod:`context instructions <kivy.graphics.context_instructions>`
+- :mod:`vertex instructions <kivy.graphics.vertex_instructions>`
 
 Context instructions don't draw anything, but they change the results of the
-Vertex instructions.
+vertex instructions.
 
 Canvasses can contain two subsets of instructions. They are the
 :mod:`canvas.before <kivy.graphics.Canvas.before>` and the :mod:`canvas.after
