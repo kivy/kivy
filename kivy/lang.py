@@ -1092,7 +1092,8 @@ class ParserSelector(object):
 class ParserSelectorId(ParserSelector):
 
     def match(self, widget):
-        return widget.id.lower() == self.key
+        if widget.id:
+            return widget.id.lower() == self.key
 
 
 class ParserSelectorClass(ParserSelector):
