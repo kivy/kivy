@@ -10,7 +10,7 @@ __all__ = ('gl_get_extensions', 'gl_has_extension',
         'gl_has_texture_format', 'gl_has_texture_conversion',
         'gl_has_texture_native_format', 'gl_get_texture_formats',
         'gl_get_version', 'gl_get_version_minor', 'gl_get_version_major',
-        'GLCAP_BGRA', 'GLCAP_NPOT', 'GLCAP_S3TC', 'GLCAP_DXT1')
+        'GLCAP_BGRA', 'GLCAP_NPOT', 'GLCAP_S3TC', 'GLCAP_DXT1', 'GLCAP_ETC1')
 
 include "opengl_utils_def.pxi"
 cimport c_opengl
@@ -89,6 +89,7 @@ cpdef int gl_has_capability(int cap):
         - GLCAP_NPOT: Test the support of Non Power of Two texture
         - GLCAP_S3TC: Test the support of S3TC texture (DXT1, DXT3, DXT5)
         - GLCAP_DXT1: Test the support of DXT texture (subset of S3TC)
+        - GLCAP_ETC1: Test the support of ETC1 texture
 
     '''
     cdef int value = _gl_caps.get(cap, -1)
@@ -140,6 +141,12 @@ cpdef int gl_has_capability(int cap):
         # PVRTC = PowerVR, mostly available in iOS device
         msg = 'PVRTC texture support'
         value = gl_has_extension('IMG_texture_compression_pvrtc')
+
+    elif cap == c_GLCAP_ETC1:
+        # PVRTC = PowerVR, mostly available in iOS device
+        msg = 'ETC1 texture support'
+        value = gl_has_extension('OES_compressed_ETC1_RGB8_texture')
+
     else:
         raise Exception('Unknown capability')
 

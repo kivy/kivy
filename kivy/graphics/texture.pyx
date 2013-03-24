@@ -202,6 +202,7 @@ cdef GLuint GL_BGRA = 0x80E1
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
+cdef GLuint GL_ETC1_RGB8_OES = 0x8D64
 cdef GLuint GL_PALETTE4_RGB8_OES = 0x8B90
 cdef GLuint GL_PALETTE4_RGBA8_OES = 0x8B91
 cdef GLuint GL_PALETTE4_R5_G6_B5_OES = 0x8B92
@@ -217,12 +218,14 @@ cdef GLuint GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01
 cdef GLuint GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02
 cdef GLuint GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03
 
+
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
     'luminance': GL_LUMINANCE, 'luminance_alpha': GL_LUMINANCE_ALPHA,
     's3tc_dxt1': GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
     's3tc_dxt3': GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
     's3tc_dxt5': GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
+    'etc1_rgb8': GL_ETC1_RGB8_OES,
     'palette4_rgb8': GL_PALETTE4_RGB8_OES,
     'palette4_rgba8': GL_PALETTE4_RGBA8_OES,
     'palette4_r5_g6_b5': GL_PALETTE4_R5_G6_B5_OES,
@@ -293,6 +296,8 @@ cdef inline int _is_compressed_fmt(str x):
     if x.startswith('palette'):
         return 1
     if x.startswith('pvrtc_'):
+        return 1
+    if x.startswith('etc1_'):
         return 1
     return x.startswith('s3tc_dxt')
 
@@ -374,6 +379,8 @@ cdef inline int _is_gl_format_supported(str x):
         return gl_has_capability(GLCAP_DXT1)
     elif x.startswith('s3tc_dxt'):
         return gl_has_capability(GLCAP_S3TC)
+    elif x.startswith('etc1_'):
+        return gl_has_capability(GLCAP_ETC1)
     return 1
 
 
