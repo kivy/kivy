@@ -196,6 +196,8 @@ cpdef int gl_has_texture_native_format(str fmt):
         return gl_has_capability(c_GLCAP_S3TC)
     if fmt.startswith('pvrtc_'):
         return gl_has_capability(c_GLCAP_PVRTC)
+    if fmt.startswith('etc1_'):
+        return gl_has_capability(c_GLCAP_ETC1)
     return 0
 
 
