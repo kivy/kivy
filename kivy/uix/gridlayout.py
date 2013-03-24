@@ -104,11 +104,17 @@ class GridLayout(Layout):
     '''Grid layout class. See module documentation for more information.
     '''
 
-    spacing = NumericProperty(0)
+    spacing = CssListProperty([0, 0], length=2)
     '''Spacing between children, in pixels.
 
-    :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    spacing[0] represents the horizontal spacing and spacing[1] the vertical
+    spacing.
+
+    If spacing is given only one argument, it will represent both horizontal
+    and vertical spacing.
+
+    :data:`spacing` is a :class:`~kivy.properties.CssListProperty`, default to
+    [0, 0].
     '''
 
     padding = CssListProperty([0, 0, 0, 0])
@@ -346,9 +352,9 @@ class GridLayout(Layout):
         # calculate minimum width/height needed, starting from padding + spacing
         padding_x = self.padding[1] + self.padding[3]
         padding_y = self.padding[0] + self.padding[2]
-        spacing = self.spacing
-        width = padding_x + spacing * (current_cols - 1)
-        height = padding_y + spacing * (current_rows - 1)
+        spacing_x, spacing_y = self.spacing
+        width = padding_x + spacing_x * (current_cols - 1)
+        height = padding_y + spacing_y * (current_rows - 1)
         # then add the cell size
         width += sum(cols)
         height += sum(rows)
@@ -377,7 +383,7 @@ class GridLayout(Layout):
         # speedup
         padding_top = self.padding[0]
         padding_left = self.padding[3]
-        spacing = self.spacing
+        spacing_x, spacing_y = self.spacing
         selfx = self.x
         selfw = self.width
         selfh = self.height
@@ -439,6 +445,6 @@ class GridLayout(Layout):
                 c.width = col_width
                 c.height = row_height
                 i = i - 1
-                x = x + col_width + spacing
-            y -= row_height + spacing
+                x = x + col_width + spacing_x
+            y -= row_height + spacing_y
 
