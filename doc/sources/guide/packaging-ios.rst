@@ -115,7 +115,7 @@ Application quit abnormally!
 
 By default, all the print statements to the console and files are ignored. If
 you have an issue when running your application, you can activate the log by
-uncommenting the line in the main.m::
+commenting out the line in the main.m::
 
     putenv("KIVY_NO_CONSOLELOG=1");
 
