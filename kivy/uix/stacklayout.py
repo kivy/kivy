@@ -29,7 +29,7 @@ __all__ = ('StackLayout', )
 
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty, \
-    ReferenceListProperty
+    ReferenceListProperty, CssListProperty
 
 
 class StackLayout(Layout):
@@ -43,11 +43,23 @@ class StackLayout(Layout):
     0.
     '''
 
-    padding = NumericProperty(0)
-    '''Padding between widget box and children, in pixels.
+    padding = CssListProperty([0, 0, 0, 0])
+    '''Padding between layout box and children, in pixels.
 
-    :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    padding[0] represents the left padding, padding[1] the right padding,
+    padding[2] the top padding and padding[3] the bottom padding.
+
+    If padding is given only two arguments, the first will represent left and
+    right padding, and the second top and bottom padding.
+
+    If padding is given only one argument, it will represent all four
+    directions.
+
+    .. versionchanged:: 1.7.0
+    Replaced NumericProperty with CssListProperty.
+
+    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to
+    [0, 0, 0, 0].
     '''
 
     orientation = OptionProperty('lr-tb', options=(
@@ -118,8 +130,13 @@ class StackLayout(Layout):
         selfpos = self.pos
         selfsize = self.size
         orientation = self.orientation.split('-')
-        padding = self.padding
-        padding2 = padding * 2
+        padding_left = self.padding[0]
+        padding_right = self.padding[1]
+        padding_top = self.padding[2]
+        padding_bottom = self.padding[3]
+
+        padding_x = padding_left + padding_right
+        padding_y = padding_top + padding_bottom
         spacing = self.spacing
 
         lc = []
@@ -131,14 +148,22 @@ class StackLayout(Layout):
         for i in (0, 1):
             posattr[i] = 1 * (orientation[i] in ('tb', 'bt'))
             k = posattr[i]
-            if orientation[i] in ('lr', 'bt'):
-                # left to right or bottom to top
+            if orientation[i] == 'lr':
+                # left to right
                 posdelta[i] = 1
-                posstart[i] = selfpos[k] + padding
-            else:
-                # right to left or top to bottom
+                posstart[i] = selfpos[k] + padding_left
+            elif orientation[i] == 'bt':
+                # bottom to top
+                posdelta[i] = 1
+                posstart[i] = selfpos[k] + padding_bottom
+            elif orientation[i] == 'rl':
+                # right to left
                 posdelta[i] = -1
-                posstart[i] = selfpos[k] + selfsize[k] - padding
+                posstart[i] = selfpos[k] + selfsize[k] - padding_right
+            else:
+                # top to bottom
+                posdelta[i] = -1
+                posstart[i] = selfpos[k] + selfsize[k] - padding_top
 
         innerattr, outerattr = posattr
         ustart, vstart = posstart
@@ -149,12 +174,19 @@ class StackLayout(Layout):
         v = vstart  # outer loop position variable
 
         # space calculation, used for determining when a row or column is full
-        lu = self.size[innerattr] - padding2
+
+        if orientation[0] in ('lr', 'rl'):
+            lu = self.size[innerattr] - padding_x
+            sv = padding_y  # size in v-direction, for minimum_size property
+            su = padding_x  # size in h-direction
+        else:
+            lu = self.size[innerattr] - padding_y
+            sv = padding_x  # size in v-direction, for minimum_size property
+            su = padding_y  # size in h-direction
 
         # space calculation, row height or column width, for arranging widgets
         lv = 0
 
-        sv = padding2  # size in v-direction, for minimum_size property
         urev = (deltau < 0)
         vrev = (deltav < 0)
         for c in reversed(self.children):
@@ -163,10 +195,12 @@ class StackLayout(Layout):
             # when the above issue is fixed we can remove csize from below and
             # access c.size[i] directly
             csize = c.size[:]  # we need to update the whole tuple at once.
-            for i in (0, 1):
-                if c.size_hint[i]:
-                    # calculate size
-                    csize[i] = c.size_hint[i] * (selfsize[i] - padding2)
+            if c.size_hint[0]:
+                # calculate width
+                csize[0] = c.size_hint[0] * (selfsize[0] - padding_x)
+            if c.size_hint[1]:
+                # calculate height
+                csize[1] = c.size_hint[1] * (selfsize[1] - padding_y)
             c.size = tuple(csize)
 
             # does the widget fit in the row/column?
@@ -197,7 +231,7 @@ class StackLayout(Layout):
             v += deltav * spacing
             lc = [c]
             lv = c.size[outerattr]
-            lu = selfsize[innerattr] - padding2 - c.size[innerattr] - spacing
+            lu = selfsize[innerattr] - su - c.size[innerattr] - spacing
             u = ustart
 
         if lc:
