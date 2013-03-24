@@ -36,11 +36,17 @@ class StackLayout(Layout):
     '''Stack layout class. See module documentation for more information.
     '''
 
-    spacing = NumericProperty(0)
+    spacing = CssListProperty([0, 0], length=2)
     '''Spacing between children, in pixels.
 
-    :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    spacing[0] represents the horizontal spacing and spacing[1] the vertical
+    spacing.
+
+    If spacing is given only one argument, it will represent both horizontal
+    and vertical spacing.
+
+    :data:`spacing` is a :class:`~kivy.properties.CssListProperty`, default to
+    [0, 0].
     '''
 
     padding = CssListProperty([0, 0, 0, 0])
@@ -137,7 +143,7 @@ class StackLayout(Layout):
 
         padding_x = padding_left + padding_right
         padding_y = padding_top + padding_bottom
-        spacing = self.spacing
+        spacing_x, spacing_y = self.spacing
 
         lc = []
 
@@ -179,10 +185,14 @@ class StackLayout(Layout):
             lu = self.size[innerattr] - padding_x
             sv = padding_y  # size in v-direction, for minimum_size property
             su = padding_x  # size in h-direction
+            spacing_u = spacing_x
+            spacing_v = spacing_y
         else:
             lu = self.size[innerattr] - padding_y
             sv = padding_x  # size in v-direction, for minimum_size property
             su = padding_y  # size in h-direction
+            spacing_u = spacing_y
+            spacing_v = spacing_x
 
         # space calculation, row height or column width, for arranging widgets
         lv = 0
@@ -206,15 +216,15 @@ class StackLayout(Layout):
             # does the widget fit in the row/column?
             if lu - c.size[innerattr] >= 0:
                 lc.append(c)
-                lu -= c.size[innerattr] + spacing
+                lu -= c.size[innerattr] + spacing_u
                 lv = max(lv, c.size[outerattr])
                 continue
 
             # push the line
-            sv += lv + spacing
+            sv += lv + spacing_v
             for c2 in lc:
                 if urev:
-                    u -= c2.size[innerattr] + spacing
+                    u -= c2.size[innerattr] + spacing_u
                 p = [0, 0]  # issue #823
                 p[innerattr] = u
                 p[outerattr] = v
@@ -225,21 +235,21 @@ class StackLayout(Layout):
                     p[outerattr] -= c2.size[outerattr]
                 c2.pos = tuple(p)  # issue #823
                 if not urev:
-                    u += c2.size[innerattr] + spacing
+                    u += c2.size[innerattr] + spacing_u
 
             v += deltav * lv
-            v += deltav * spacing
+            v += deltav * spacing_v
             lc = [c]
             lv = c.size[outerattr]
-            lu = selfsize[innerattr] - su - c.size[innerattr] - spacing
+            lu = selfsize[innerattr] - su - c.size[innerattr] - spacing_u
             u = ustart
 
         if lc:
             # push the last (incomplete) line
-            sv += lv + spacing
+            sv += lv + spacing_v
             for c2 in lc:
                 if urev:
-                    u -= c2.size[innerattr] + spacing
+                    u -= c2.size[innerattr] + spacing_u
                 p = [0, 0]  # issue #823
                 p[innerattr] = u
                 p[outerattr] = v
@@ -247,7 +257,7 @@ class StackLayout(Layout):
                     p[outerattr] -= c2.size[outerattr]
                 c2.pos = tuple(p)  # issue #823
                 if not urev:
-                    u += c2.size[innerattr] + spacing
+                    u += c2.size[innerattr] + spacing_u
 
         minsize = self.minimum_size[:]  # issue #823
         minsize[outerattr] = sv
