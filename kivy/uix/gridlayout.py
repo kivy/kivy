@@ -114,11 +114,11 @@ class GridLayout(Layout):
     padding = CssListProperty([0, 0, 0, 0])
     '''Padding between layout box and children, in pixels.
 
-    padding[0] represents the left padding, padding[1] the right padding,
-    padding[2] the top padding and padding[3] the bottom padding.
+    padding[0] represents the top padding, padding[1] the right padding,
+    padding[2] the bottom padding and padding[3] the left padding.
 
-    If padding is given only two arguments, the first will represent left and
-    right padding, and the second top and bottom padding.
+    If padding is given only two arguments, the first will represent top and
+    bottom padding, and the second left and right padding.
 
     If padding is given only one argument, it will represent all four
     directions.
@@ -344,8 +344,8 @@ class GridLayout(Layout):
                 i = i - 1
 
         # calculate minimum width/height needed, starting from padding + spacing
-        padding_x = self.padding[0] + self.padding[1]
-        padding_y = self.padding[2] + self.padding[3]
+        padding_x = self.padding[1] + self.padding[3]
+        padding_y = self.padding[0] + self.padding[2]
         spacing = self.spacing
         width = padding_x + spacing * (current_cols - 1)
         height = padding_y + spacing * (current_rows - 1)
@@ -375,8 +375,8 @@ class GridLayout(Layout):
             return
 
         # speedup
-        padding_left = self.padding[0]
-        padding_top = self.padding[2]
+        padding_top = self.padding[0]
+        padding_left = self.padding[3]
         spacing = self.spacing
         selfx = self.x
         selfw = self.width

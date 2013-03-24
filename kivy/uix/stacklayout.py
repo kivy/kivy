@@ -46,11 +46,11 @@ class StackLayout(Layout):
     padding = CssListProperty([0, 0, 0, 0])
     '''Padding between layout box and children, in pixels.
 
-    padding[0] represents the left padding, padding[1] the right padding,
-    padding[2] the top padding and padding[3] the bottom padding.
+    padding[0] represents the top padding, padding[1] the right padding,
+    padding[2] the bottom padding and padding[3] the left padding.
 
-    If padding is given only two arguments, the first will represent left and
-    right padding, and the second top and bottom padding.
+    If padding is given only two arguments, the first will represent top and
+    bottom padding, and the second left and right padding.
 
     If padding is given only one argument, it will represent all four
     directions.
@@ -130,10 +130,10 @@ class StackLayout(Layout):
         selfpos = self.pos
         selfsize = self.size
         orientation = self.orientation.split('-')
-        padding_left = self.padding[0]
+        padding_top = self.padding[0]
         padding_right = self.padding[1]
-        padding_top = self.padding[2]
-        padding_bottom = self.padding[3]
+        padding_bottom = self.padding[2]
+        padding_left = self.padding[3]
 
         padding_x = padding_left + padding_right
         padding_y = padding_top + padding_bottom
