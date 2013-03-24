@@ -16,7 +16,7 @@ The overall process for creating a package for IOS can be explained in 4 steps:
 #. Populate the Xcode project with your application source code
 #. Customize
 
-This process have been tested with Xcode 4.2.
+This process has been tested with Xcode 4.2.
 
 Prerequisites
 -------------
