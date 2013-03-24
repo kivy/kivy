@@ -1087,18 +1087,34 @@ cdef class CssListProperty(Property):
     '''A ListProperty that mimics the css way of defining numeric values such
     as padding, margin, etc.
 
-    Accepts a list of 1, 2 or 4 Numeric arguments or a single Numeric argument.
+    Accepts a list of 1 or 2 (or 4 when length=4) Numeric arguments or a single
+    Numeric argument.
 
     CssListProperty([1]) represents [1, 1, 1, 1].
     CssListProperty([1, 2]) represents [1, 1, 2, 2].
     CssListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
     CssListProperty(5) represents [5, 5, 5, 5].
+    CssListProperty(3, length=2) represents [3, 3].
+
+    :Parameters:
+        `length`: int
+            The length of the list, can be 2 or 4.
 
     .. versionadded:: 1.7.0
     '''
 
-    def __init__(self, defaultvalue=None, **kw):
-        defaultvalue = defaultvalue or [0, 0, 0, 0]
+    cdef public int length
+
+    def __init__(self, defaultvalue=None, length=4, **kw):
+        if length == 4:
+            defaultvalue = defaultvalue or [0, 0, 0, 0]
+        elif length == 2:
+            defaultvalue = defaultvalue or [0, 0]
+        else:
+            err = 'CssListProperty requires a length of 2 or 4 (got %r)'
+            raise ValueError(err % length)
+
+        self.length = length
         super(CssListProperty, self).__init__(defaultvalue, **kw)
 
     cdef check(self, EventDispatcher obj, value):
@@ -1117,24 +1133,44 @@ cdef class CssListProperty(Property):
             l = len(x)
             if l == 1:
                 y = self._convert_numeric(obj, x[0])
-                return [y, y, y, y]
+                if self.length == 4:
+                    return [y, y, y, y]
+                elif self.length == 2:
+                    return [y, y]
             elif l == 2:
                 if x[1] in NUMERIC_FORMATS:
                     # defaultvalue is a list or tuple representing one value
                     y = self._convert_numeric(obj, x)
-                    return [y, y, y, y]
+                    if self.length == 4:
+                        return [y, y, y, y]
+                    elif self.length == 2:
+                        return [y, y]
                 else:
                     y = self._convert_numeric(obj, x[0])
                     z = self._convert_numeric(obj, x[1])
-                    return [y, y, z, z]
+                    if self.length == 4:
+                        return [y, y, z, z]
+                    elif self.length == 2:
+                        return [y, z]
             elif l == 4:
-                return [self._convert_numeric(obj, y) for y in x]
+                if self.length == 4:
+                    return [self._convert_numeric(obj, y) for y in x]
+                else:
+                    err = '%s.%s must have 1 or 2 components (got %r)'
+                    raise ValueError(err % (obj.__class__.__name__,
+                        self.name, x))
             else:
-                err = '%s.%s must have 1, 2 or 4 components (got %r)'
+                if self.length == 4:
+                    err = '%s.%s must have 1, 2 or 4 components (got %r)'
+                elif self.length == 2:
+                    err = '%s.%s must have 1 or 2 components (got %r)'
                 raise ValueError(err % (obj.__class__.__name__, self.name, x))
         elif tp is int or tp is long or tp is float or tp is str:
             y = self._convert_numeric(obj, x)
-            return [y, y, y, y]
+            if self.length == 4:
+                return [y, y, y, y]
+            elif self.length == 2:
+                return [y, y]
         else:
             raise ValueError('%s.%s has an invalid format (got %r)' % (
                 obj.__class__.__name__,
