@@ -1091,7 +1091,7 @@ cdef class CssListProperty(Property):
     Numeric argument.
 
     CssListProperty([1]) represents [1, 1, 1, 1].
-    CssListProperty([1, 2]) represents [1, 1, 2, 2].
+    CssListProperty([1, 2]) represents [1, 2, 1, 2].
     CssListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
     CssListProperty(5) represents [5, 5, 5, 5].
     CssListProperty(3, length=2) represents [3, 3].
@@ -1149,7 +1149,7 @@ cdef class CssListProperty(Property):
                     y = self._convert_numeric(obj, x[0])
                     z = self._convert_numeric(obj, x[1])
                     if self.length == 4:
-                        return [y, y, z, z]
+                        return [y, z, y, z]
                     elif self.length == 2:
                         return [y, z]
             elif l == 4:
