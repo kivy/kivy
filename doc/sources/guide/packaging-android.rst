@@ -13,11 +13,11 @@ Create a package for Android
 TestDrive
 ---------
 There is a VirtualBox Image we provide with the prerequisites along with
-Android SDK and NDK preinstalled to ease your installation woes. You can
+the Android SDK and NDK preinstalled to ease your installation woes. You can
 download it from `here <http://kivy.org/#download>`_.
 
-Packaging your application into APK
------------------------------------
+Packaging your application into an APK
+--------------------------------------
 
 You'll need:
 
@@ -28,14 +28,14 @@ You'll need:
 - Apache ant
 - Android SDK
 
-Setup Python for android
+Setup Python for Android
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, follow the prerequisites needed for the project:
+First, install the prerequisites needed for the project:
 
     http://python-for-android.readthedocs.org/en/latest/prerequisites/
 
-Then open a console, and type::
+Then open a console and type::
 
     git clone git://github.com/kivy/python-for-android
 
@@ -43,8 +43,8 @@ Build your distribution
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 The distribution is a "directory" containing a specialized python compiled for
-android, including only the modules you asked for. You can, from the same
-python-for-android, compile multiple distribution like:
+Android, including only the modules you asked for. You can, from the same
+python-for-android, compile multiple distributions. For example:
 
 - One containing a minimal support without audio / video
 - Another containing audio, openssl etc.
@@ -53,13 +53,15 @@ To do that, you must use the script named `distribute.sh`::
 
     ./distribute.sh -m "kivy"
     
-The result of the compilation will be saved into `dist/default`. Here is others
-examples of distribution::
+The result of the compilation will be saved into `dist/default`. Here are other
+examples of building distributions::
 
     ./distribute.sh -m "openssl kivy"
     ./distribute.sh -m "pil ffmpeg kivy"
 
-Check with `-h` to know the available options of distribute.sh.
+To see the available options for distribute.sh, type::
+
+    ./distribute.sh -h
 
 Package your application
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,18 +91,19 @@ either install this API version, or change the AndroidManifest.xml file (under
 dist/.../) to match your own target SDK requirements.
 
 The debug binary will be generated in bin/KivyTouchtracer-1.1.0-debug.apk.  The
-`debug` and `installd` are commands from android project itself. It say it will
-compile the APK in debug mode, and install on the first connected device.
+`debug` and `installd` parameters are commands from the Android project itself.
+They instruct `build.py` to compile the APK in debug mode and install on the
+first connected device.
 
-Then, later, you can install it directly to your android device by doing::
+You can then install the APK directly to your Android device as follows::
 
     adb install -r bin/KivyTouchtracer-1.1.0-debug.apk
 
 Release on the market
 ~~~~~~~~~~~~~~~~~~~~~
 
-Launch the build.py script again, with the `release` command, then, you must
-sign and zipalign the apk.  Read the android documentation at:
+Launch the build.py script again, with the `release` parameter. After buiding it,
+you must sign and zipalign the APK.  Read the android documentation at:
 
 http://developer.android.com/guide/publishing/app-signing.html
 
@@ -109,11 +112,12 @@ bin/KivyTouchtracer-1.1.0-release-unsigned.apk (for the previous touchtracer exa
 
 .. _Packaging your application for Kivy Launcher:
 
-Packaging your application for Kivy Launcher
---------------------------------------------
+Packaging your application for the Kivy Launcher
+------------------------------------------------
 
-The Kivy launcher is an application to run any Kivy examples stored on your
-SD Card from android. See :ref:`androidinstall`.
+The `Kivy launcher <https://play.google.com/store/apps/details?id=org.kivy.pygame&hl=en>`_
+is an Android application that runs any Kivy examples stored on your
+SD Card. See :ref:`androidinstall`.
 
 Your application must be saved into::
 
@@ -123,7 +127,7 @@ Your application directory must contain::
 
     # Your main application file:
     main.py
-    # Some infos Kivy requires about your app on android:
+    # Some info Kivy requires about your app on android:
     android.txt
 
 The file `android.txt` must contain::
@@ -131,5 +135,4 @@ The file `android.txt` must contain::
     title=<Application Title>
     author=<Your Name>
     orientation=<portrait|landscape>
-
 
