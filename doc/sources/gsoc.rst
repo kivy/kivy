@@ -31,6 +31,13 @@ Kivy
 * Inspector - redo / improve the inspector module. Python have an awesome
   introspection possibilities. Let's work together to have an awesome inspector
   that would allow the user to debug anything from its application.
+* ListView / GridView work and the generalization of the selection / adapter
+  (and "controller") system. Goal would be two-fold: 1) improving ListView and
+  bring GridView in; 2) extending a general selection / adapter (and
+  "controller") approach to other widgets where appropriate. There is already a
+  good start for ListView, but it needs fleshing out for layout and resizing
+  improvements.  GridView has a substantial start:
+  https://github.com/geojeff/kivy/tree/uix-gridview. 
 
 Mobile
 ~~~~~~
@@ -67,6 +74,15 @@ Applications
   users would love to have a designer for create screen of their application:
   add widgets element on a page, reorder the tree, editing properties, attach
   kv lang to it, and test in real time.
+* For the scope of a GSOC project, perhaps it is better not to have a specific
+  app, such as the Designer app, as a target. Rather, focus could be put on
+  kivy-statecharts, https://github.com/kivy/kivy-statecharts/, which would be a
+  great help to app development in general, and is a very good fit for the
+  Designer app.  This project would involve: 1) improving the Kivy statecharts
+  framework and its documentation;  2) targeting app examples, including the
+  Designer app, for illustration purposes and for their advancement toward
+  working apps. There has been discussion of writing statecharts documentation
+  as an advanced section for Kivy docs.
 * Website - a new Kivy website is required!
 
 
