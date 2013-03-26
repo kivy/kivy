@@ -120,6 +120,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.bubble import Bubble
 from kivy.graphics import Color, Rectangle
 from kivy.config import Config
+from kivy.utils import platform
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
         ListProperty, ObjectProperty
@@ -845,7 +846,12 @@ class TextInput(Widget):
             else:
                 Clock.schedule_once(partial(self.on_focus, self, value), 0)
             return
-        if value and not self.readonly:
+
+        editable = ((not self.readonly) or
+                    (platform() in ('win', 'linux', 'macosx') and
+                    self._keyboard_mode == 'system'))
+
+        if value and editable:
             keyboard = win.request_keyboard(self._keyboard_released, self)
             self._keyboard = keyboard
             keyboard.bind(
