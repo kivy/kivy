@@ -369,8 +369,8 @@ class LabelBase(object):
                             # glyphs?
                             if _spaces:
                                 space_width = cache[' '][0] if last_space else 0
-                                just_space = (((uw - size[0] + space_width) *1.)
-                                            /(_spaces*1.))
+                                just_space = (((uw - size[0] + space_width) *
+                                               1.) / (_spaces * 1.))
 
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
@@ -434,11 +434,13 @@ class LabelBase(object):
 
     def _get_text(self):
         try:
+            if type(self._text) is unicode:
+                return self._text
             return self._text.decode('utf8')
         except AttributeError:
             # python 3 support
             return str(self._text)
-        except UnicodeEncodeError:
+        except UnicodeDecodeError:
             return self._text
 
     def _set_text(self, text):

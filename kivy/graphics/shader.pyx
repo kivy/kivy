@@ -412,8 +412,9 @@ cdef class Shader:
     cdef str get_program_log(self, shader):
         '''Return the program log'''
         cdef char msg[2048]
+        cdef GLsizei length
         msg[0] = '\0'
-        glGetProgramInfoLog(shader, 2048, NULL, msg)
+        glGetProgramInfoLog(shader, 2048, &length, msg)
         return msg
 
     cdef void process_message(self, str ctype, str message):

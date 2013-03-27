@@ -24,7 +24,7 @@ class AnimationTestCase(unittest.TestCase):
 
     def test_start_animation(self):
         self.a.start(self.w)
-        self.sleep(1)
+        self.sleep(1.5)
         self.assertAlmostEqual(self.w.x, 100)
 
     def test_stop_animation(self):

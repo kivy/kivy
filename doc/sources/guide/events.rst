@@ -1,22 +1,35 @@
-Events
-======
+.. _events:
+.. _properties:
 
-There are two types of events in Kivy:
+Events and Properties
+=====================
 
-- Clock events: if you want to call a function X times per second, or if you
-  want to call a function later.
-- Widget events: if you want to call a function when something changes in the
-  widget, or attach a function to a widget specific event.
+Events are an important part of Kivy programming. That may not be surprising to
+those with GUI development experience, but it's an important concept for
+newcomers. Once you understand how events work and how to bind to them, you
+will see them everywhere in Kivy. They make it easy to build whatever behavior
+you want into Kivy.
+
+The following illustration shows how events are handled in the Kivy framework.
+
+.. image:: images/Events.*
 
 
-Clock events
-------------
+Introduction to the Event Dispatcher
+------------------------------------
 
-Before we discuss events, you need to know that Kivy has a main loop, and that
-it's important that you avoid breaking it. The main loop is responsible for
-reading from inputs, loading images asynchronously, drawing to the frame, etc.
-If you are looping or sleeping, you'll break the main loop. As an example, the
-following code does both::
+One of the most important base classes of the framework is the
+:class:`~kivy.event.EventDispatcher` class. This class allows you to register 
+event types, and to dispatch them to interested parties (usually other event
+dispatchers). The :class:`~kivy.uix.widget.Widget`,
+:class:`~kivy.animation.Animation` and :obj:`~kivy.clock.Clock` classes are 
+examples of event dispatchers.
+
+
+As outlined in the illustration above, Kivy has a `main loop`. It's important
+that you avoid breaking it. The main loop is responsible for reading from 
+inputs, loading images asynchronously, drawing to frame, ...etc. Avoid
+long/infinite loops or sleeping. For example the following code does both::
 
     while True:
         animate_something()
@@ -102,8 +115,6 @@ Each time you call trigger, it will schedule a single call of your callback. If
 it was already scheduled, it will not be rescheduled.
 
 
-
-
 Widget events
 -------------
 
@@ -113,87 +124,299 @@ A widget has 2 types of events:
 - Widget-defined event: an event will be fired for a Button when it's pressed or
   released.
 
+Creating custom events
+----------------------
 
-Property event
-~~~~~~~~~~~~~~
+To create an event dispatcher with custom events, you need to register the name
+of the event in the class and then create a method of the same name.
 
-A widget has many properties. You'll find in the documentation that every property has a
-type like :class:`~kivy.properties.NumericProperty`,
-:class:`~kivy.properties.StringProperty`,
-:class:`~kivy.properties.ListProperty`.
+See the following example::
 
-Usually, when you want to create a Python class with properties, you do something like this::
+    class MyEventDispatcher(EventDispatcher):
+        def __init__(self, **kwargs):
+            self.register_event_type('on_test')
+            super(MyEventDispatcher, self).__init__(**kwargs)
 
-    class MyClass(object):
-        def __init__(self):
-            super(MyClass, self).__init__()
-            self.prop1 = 'bleh'
+        def do_something(self, value):
+            # when do_something is called, the 'on_test' event will be
+            # dispatched with the value
+            self.dispatch('on_test', value)
 
-Using this code though, you do not have a good way to know when ``prop1`` is
-changed, except by rewriting the class and adding a hook in
-``__getattribute__``. The Kivy way to do this is::
-
-    class MyClass(Widget):
-        prop1 = StringProperty('bleh')
-
-You can connect a function to this property if you want to be called when the
-value of the property changes::
-
-    def my_callback(instance, value):
-        print 'the widget', instance, 'prop1 changed to', value
-
-    # create an instance of MyClass
-    obj = MyClass()
-    # and connect my_callback to prop1
-    obj.bind(prop1=my_callback)
-    # now change prop1 => it will call your callback !
-    obj.prop1 = 'hello world'
-
-If you want to stop receiving events from the ``prop1`` property, call unbind::
-
-    obj.unbind(prop1=my_callback)
+        def on_test(self, *args):
+            print "I am dispatched", args
 
 
-Widget-defined event
-~~~~~~~~~~~~~~~~~~~~
+Attaching callbacks
+-------------------
 
-Sometimes the property event is not enough to hook onto. For example, a Button
-could have a state property that indicates whether the Button is currently
-pressed or not. We made the choice to add additional events for this: the
-:meth:`~kivy.uix.button.Button.on_press` and
-:meth:`~kivy.uix.button.Button.on_release` events::
+To use events, you have to bind callbacks to them. When the event is
+dispatched, your callbacks will be called with the parameters relevant to
+that specific event.
 
-    def my_callback_press(instance):
-        print 'The button', instance, 'is pressed'
-    button = Button(text='Hello world')
-    button.bind(on_press=my_callback_press)
+A callback can be any python callable, but you need to ensure it accepts
+the arguments that the event emits. For this, it's usually safest to accept the
+`*args` argument, which will catch all arguments in the `args` list.
 
-Every event defined by a widget is in the documentation, at the start of the
-class. You can find a list of widget-defined events that the widget supports.
+Example::
 
-If you are designing your own widget, you can create a widget event by using
-:meth:`~kivy.event.register_event_type`::
+    def my_callback(value, *args):
+        print "Hello, I got an event!", args
 
-    class MyClass(Widget):
+
+    ev = MyEventDispatcher()
+    ev.bind(on_test=my_callback)
+    ev.do_something('test')
+
+
+Introduction to Properties
+--------------------------
+
+Properties are an awesome way to define events and bind to them. Essentially,
+they produce events such that when an attribute of your object changes,
+all properties that reference that attribute are automatically updated.
+
+There are different kinds of properties to describe the type of data you want to
+handle.
+
+- :class:`~kivy.properties.StringProperty`
+- :class:`~kivy.properties.NumericProperty`
+- :class:`~kivy.properties.BoundedNumericProperty`
+- :class:`~kivy.properties.ObjectProperty`
+- :class:`~kivy.properties.DictProperty`
+- :class:`~kivy.properties.ListProperty`
+- :class:`~kivy.properties.OptionProperty`
+- :class:`~kivy.properties.AliasProperty`
+- :class:`~kivy.properties.BooleanProperty`
+- :class:`~kivy.properties.ReferenceListProperty`
+
+
+Declaration of a Property
+-------------------------
+
+To declare properties, you must declare them at the class level. The class will then do
+the work to instantiate the real attributes when your object is created. These properties 
+are not attributes: they are mechanisms for creating events based on your
+attributes::
+
+    class MyWidget(Widget):
+    
+        text = StringProperty('')
+
+
+When overriding `__init__`, *always* accept `**kwargs` and use `super()` to call
+the parents `__init__` method, passing in your class instance::
 
         def __init__(self, **kwargs):
-            self.register_event_type('on_custom_event')
-            super(MyClass, self).__init__(**kwargs)
+            super(MyWidget, self).__init__(**kwargs)
 
-        def on_custom_event(self):
-            # empty handler needed
-            pass
 
-Then, the user can hook to it, the same as to the Button.on_press event. In this
-example,  the event is never dispatched. Let's just add a function demonstrating
-how to dispatch a widget-defined event::
+Dispatching a Property event
+----------------------------
 
-    class MyClass(Widget):
+Kivy properties, by default, provide an `on_<property_name>` event. This event is
+called when the value of the property is changed.
 
-        # ... __init__ + on_custom_event
+.. note::
+    If the new value for the property is equal to the current value, then the
+    `on_<property_name>` event will not be called.
 
-        def do_something(self):
-            self.dispatch('on_custom_event')
+For example, consider the following code:
 
-Now, every time you call the ``do_something()`` method, it will dispatch
-``on_custom_event``, and call every function attached to this event.
+.. code-block:: python
+   :linenos:
+
+    class CustomBtn(Widget):
+    
+        pressed = ListProperty([0, 0])
+    
+        def on_touch_down(self, touch):
+            if self.collide_point(*touch.pos):
+                self.pressed = touch.pos
+                return True
+            return super(CustomBtn, self).on_touch_down(touch)
+    
+        def on_pressed(self, instance, pos):
+            print ('pressed at {pos}'.format(pos=pos))
+
+In the code above at line 3::
+
+    pressed = ListProperty([0, 0])
+
+We define the `pressed` Property of type :class:`~kivy.properties.ListProperty`,
+giving it a default value of `[0, 0]`. From this point forward, the `on_pressed`
+event will be called whenever the value of this property is changed.
+
+At Line 5::
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.pressed = touch.pos
+            return True
+        return super(CustomBtn, self).on_touch_down(touch)
+
+We override the :meth:`on_touch_down` method of the Widget class. Here, we check
+for collision of the `touch` with our widget. 
+
+If the touch falls inside of our widget, we change the value of `pressed` to touch.pos
+and return True, indicating that we have consumed the touch and don't want it to
+propagate any further.
+
+Finally, if the touch falls outside our widget, we call the original event
+using `super(...)` and return the result. This allows the touch event propagation 
+to continue as it would normally have occured.
+
+Finally on line 11::
+
+    def on_pressed(self, instance, pos):
+        print ('pressed at {pos}'.format(pos=pos))
+
+We define an `on_pressed` function that will be called by the property whenever the
+property value is changed.
+
+.. Note::
+    This `on_<prop_name>` event is called within the class where the property is
+    defined. To monitor/observe any change to a property outside of the class
+    where it's defined, you should bind to the property as shown below.
+
+
+**Binding to the property**
+
+How to monitor changes to a property when all you have access to is a widget
+instance? You *bind* to the property::
+
+    your_widget_instance.bind(property_name=function_name)
+
+For example, consider the following code:
+
+.. code-block:: python
+   :linenos:
+
+    class RootWidget(BoxLayout):
+    
+        def __init__(self, **kwargs):
+            super(RootWidget, self).__init__(**kwargs)
+            self.add_widget(Button(text='btn 1'))
+            cb = CustomBtn()
+            cb.bind(pressed=self.btn_pressed)
+            self.add_widget(cb)
+            self.add_widget(Button(text='btn 2'))
+    
+        def btn_pressed(self, instance, pos):
+            print ('pos: printed from root widget: {pos}'.format(pos=.pos))
+
+If you run the code as is, you will notice two print statements in the console.
+One from the `on_pressed` event that is called inside the `CustomBtn` class and
+another from the `btn_pressed` function that we bind to the property change.
+
+The reason that both functions are called is simple. Binding doesn't mean
+overriding. Having both of these functions is redundant and you should generally
+only use one of the methods of listening/reacting to property changes.
+
+You should also take note of the parameters that are passed to the 
+`on_<property_name>` event or the function bound to the property.
+
+.. code-block:: python
+
+    def btn_pressed(self, instance, pos):
+
+The first parameter is `self`, which is the instance of the class where this 
+function is defined. You can use an in-line function as follows:
+
+.. code-block:: python
+   :linenos:
+
+    cb = CustomBtn()
+    
+    def _local_func(instance, pos):
+        print ('pos: printed from root widget: {pos}'.format(pos=.pos))
+    
+    cb.bind(pressed=_local_func)
+    self.add_widget(cb)
+
+The first parameter would be the `instance` of the class the property is
+defined.
+
+The second parameter would be the `value`, which is the new value of the property.
+
+Here is the complete example, derived from the snippets above, that you can
+use to copy and paste into an editor to experiment.
+
+.. code-block:: python
+   :linenos:
+
+    from kivy.app import App
+    from kivy.uix.widget import Widget
+    from kivy.uix.button import Button
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.properties import ListProperty
+
+    class RootWidget(BoxLayout):
+
+        def __init__(self, **kwargs):
+            super(RootWidget, self).__init__(**kwargs)
+            self.add_widget(Button(text='btn 1'))
+            cb = CustomBtn()
+            cb.bind(pressed=self.btn_pressed)
+            self.add_widget(cb)
+            self.add_widget(Button(text='btn 2'))
+
+        def btn_pressed(self, instance, pos):
+            print ('pos: printed from root widget: {pos}'.format(pos=pos))
+
+    class CustomBtn(Widget):
+
+        pressed = ListProperty([0, 0])
+
+        def on_touch_down(self, touch):
+            if self.collide_point(*touch.pos):
+                self.pressed = touch.pos
+                # we consumed the touch. return False here to propagate
+                # the touch further to the children.
+                return True
+            return super(CustomBtn, self).on_touch_down(touch)
+
+        def on_pressed(self, instance, pos):
+            print ('pressed at {pos}'.format(pos=pos))
+
+    class TestApp(App):
+
+        def build(self):
+            return RootWidget()
+
+
+    if __name__ == '__main__':
+        TestApp().run()
+
+
+Running the code above will give you the following output:
+
+.. image:: images/property_events_binding.png
+
+Our CustomBtn has no visual representation and thus appears black. You can
+touch/click on the black area to see the output on your console.
+
+Compound Properties
+-------------------
+
+When defining an :class:`~kivy.properties.AliasProperty`, you normally define
+a getter and a setter function yourself. Here, it falls on to you to define
+when the getter and the setter functions are called using the `bind` argument.
+
+Consider the following code.
+
+.. code-block:: python
+   :linenos:
+
+    cursor_pos = AliasProperty(_get_cursor_pos, None, bind=(
+        'cursor', 'padding', 'pos', 'size', 'focus',
+        'scroll_x', 'scroll_y'))
+    '''Current position of the cursor, in (x, y).
+
+    :data:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
+
+Here `cursor_pos` is a :class:`~kivy.properties.AliasProperty` which uses the
+`getter` `_get_cursor_pos` with the `setter` part set to None, implying this
+is a read only Property.
+
+The bind argument at the end defines that `on_cursor_pos` event is dispatched
+when any of the properties used in the `bind=` argument change.

@@ -6,6 +6,7 @@ Texture compression tool
 This tool is designed to compress images into:
 
 - PVRTC (PowerVR Texture Compression), mostly iOS devices
+- ETC1 (Ericson compression), working on all GLES2/Android devices
 
 Usage
 -----
@@ -24,7 +25,6 @@ Support more format, such as:
 
 - S3TC (already supported in Kivy)
 - DXT1 (already supported in Kivy)
-- ETC (common on Android devices)
 '''
 
 import json
@@ -96,7 +96,7 @@ class Tool(object):
                 help='Auto generate mipmaps')
         parser.add_argument('--dir', type=str, default=None,
                 help='Output directory to generate the compressed texture')
-        parser.add_argument('format', type=str, choices=['pvrtc'],
+        parser.add_argument('format', type=str, choices=['pvrtc', 'etc1'],
                 help='Format of the final texture')
         parser.add_argument('image', type=str,
                 help='Image filename')
@@ -104,14 +104,62 @@ class Tool(object):
 
         if args.format == 'pvrtc':
             PvrtcTool(args).compress()
+        elif args.format == 'etc1':
+            Etc1Tool(args).compress()
         else:
             print('Unknown compression format')
             exit(1)
+
+class Etc1Tool(Tool):
+    def __init__(self, options):
+        super(Etc1Tool, self).__init__(options)
+        self.etc1tool = None
+        self.locate_etc1tool()
+
+    def locate_etc1tool(self):
+        search_directories = [environ.get('ANDROIDSDK', '/')]
+        search_directories += environ.get('PATH', '').split(':')
+        for directory in search_directories:
+            fn = join(directory, 'etc1tool')
+            if not exists(fn):
+                fn = join(directory, 'tools', 'etc1tool')
+                if not exists(fn):
+                    continue
+            print('Found texturetool at {}'.format(directory))
+            self.etc1tool = fn
+            return
+
+    def compress(self):
+        # 1. open the source image, and get the dimensions
+        image = Image.open(self.source_fn)
+        w, h = image.size
+        print('Image size is {}x{}'.format(*image.size))
+
+        # 2. search the nearest 2^
+        w2 = self.nearest_pow2(w)
+        h2 = self.nearest_pow2(h)
+        print('Nearest power-of-2 size is {}x{}'.format(w2, h2))
+
+        # 3. invoke etc1tool
+        raw_tex_fn = self.tex_fn + '.raw'
+        cmd = [self.etc1tool, self.source_fn, '--encodeNoHeader', '-o', raw_tex_fn]
+        try:
+            self.runcmd(cmd)
+            with open(raw_tex_fn, 'rb') as fd:
+                data = fd.read()
+        finally:
+            if exists(raw_tex_fn):
+                unlink(raw_tex_fn)
+
+        # 5. write texture info
+        self.write_tex(data, 'etc1_rgb8', (w, h), (w2, h2), self.options.mipmap)
+
 
 
 class PvrtcTool(Tool):
     def __init__(self, options):
         super(PvrtcTool, self).__init__(options)
+        self.texturetool = None
         self.locate_texturetool()
 
     def locate_texturetool(self):
