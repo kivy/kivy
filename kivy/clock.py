@@ -180,8 +180,10 @@ try:
 
         _default_time = time.time
 
-except ImportError:
-    # ctypes is not available on python-for-android.
+except (OSError, ImportError):
+    # ImportError: ctypes is not available on python-for-android.
+    # OSError: if the libc cannot be readed (like with buildbot: invalid ELF
+    # header)
 
     _default_time = time.time
     _default_sleep = time.sleep
