@@ -146,7 +146,7 @@ from os import environ
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
 from kivy.logger import Logger
-from kivy.profiling import frame_profiler
+from aprofiler import profiler
 import ctypes
 import time
 
@@ -329,18 +329,14 @@ class ClockBase(_ClockBase):
             s = 1 / fps - (_default_time() - self._last_tick)
             usleep = self.usleep
             if s > 0:
-                if __debug__:
-                    if frame_profiler:
-                        frame_profiler.emit('start-clock-sleep')
+                profiler.push('clock-sleep')
 
                 sleeptime = s
                 while sleeptime - SLEEP_UNDERSHOOT > MIN_SLEEP:
                     usleep(int(1000000 * (sleeptime - SLEEP_UNDERSHOOT)))
                     sleeptime = 1 / fps - (_default_time() - self._last_tick)
 
-                if __debug__:
-                    if frame_profiler:
-                        frame_profiler.emit('end-clock-sleep')
+                profiler.pop('clock-sleep')
 
         # tick the current time
         current = _default_time()

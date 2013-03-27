@@ -40,11 +40,6 @@ cdef class Buffer:
         if block_count <= self.block_count:
             return
 
-        from kivy.profiling import frame_profiler
-        frame_profiler.mark('vbo-grow', ' '.join((map(str, (repr(self),
-            '-> grow from', self.block_count, 'to', block_count,
-            '| blocksize =', self.block_size)))))
-
         # Try to realloc
         newptr = realloc(self.data, self.block_size * block_count)
         if newptr == NULL:

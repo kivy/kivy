@@ -17,7 +17,7 @@ from kivy.base import ExceptionManager
 from kivy.logger import Logger
 from kivy.base import stopTouchApp, EventLoop
 from kivy.utils import platform
-from kivy.profiling import frame_profiler
+from aprofiler import profiler
 
 try:
     android = None
@@ -230,30 +230,20 @@ class WindowPygame(WindowBase):
     def _mainloop(self):
         EventLoop.idle()
 
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.emit('start-pygame-event-read')
+        profiler.push('pygame-event-read')
 
         last_event_name = None
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.emit('start-pygame-get')
+        profiler.push('pygame-get')
         events = pygame.event.get()
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.emit('end-pygame-get')
+        profiler.pop('pygame-get')
 
         if not events:
-            if __debug__:
-                if frame_profiler:
-                    frame_profiler.emit('end-pygame-event-read')
+            profiler.pop('pygame-event-read')
             return
 
         for event in events:
-            if __debug__:
-                if frame_profiler:
-                    last_event_name = event.type
-                    frame_profiler.emit('start-pygame-{}'.format(last_event_name))
+            last_event_name = event.type
+            profiler.push('pygame-{}'.format(last_event_name))
 
             # kill application (SIG_TERM)
             if event.type == pygame.QUIT:
@@ -341,19 +331,13 @@ class WindowPygame(WindowBase):
             else:
                 Logger.debug('WinPygame: Unhandled event %s' % str(event))
             '''
-            if __debug__:
-                if frame_profiler:
-                    if last_event_name is not None:
-                        frame_profiler.emit('end-pygame-{}'.format(last_event_name))
-                        last_event_name = None
+            if last_event_name is not None:
+                profiler.pop('pygame-{}'.format(last_event_name))
+                last_event_name = None
 
-        if __debug__:
-            if frame_profiler:
-                if last_event_name is not None:
-                    frame_profiler.emit('end-pygame-{}'.format(last_event_name))
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.emit('end-pygame-event-read')
+        if last_event_name is not None:
+            profiler.pop('pygame-{}'.format(last_event_name))
+        profiler.pop('pygame-event-read')
 
 
     def mainloop(self):

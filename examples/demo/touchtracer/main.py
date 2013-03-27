@@ -58,8 +58,8 @@ class Touchtracer(FloatLayout):
         if points:
             try:
                 lp = ud['lines'][2].add_point
-                from kivy.profiling import frame_profiler
-                frame_profiler.mark('add-points', len(points))
+                from aprofiler import profiler
+                profiler.mark('add-points', len(points))
                 for idx in xrange(0, len(points), 2):
                     lp(points[idx], points[idx+1])
             except GraphicException:

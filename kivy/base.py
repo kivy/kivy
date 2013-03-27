@@ -20,7 +20,7 @@ from kivy.config import Config
 from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
-from kivy.profiling import frame_profiler
+from aprofiler import profiler
 
 # private vars
 EventLoop = None
@@ -181,9 +181,7 @@ class EventLoopBase(EventDispatcher):
         self.status = 'stopped'
         self.dispatch('on_stop')
 
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.stop()
+        profiler.stop()
 
     def add_postproc_module(self, mod):
         '''Add a postproc input module (DoubleTap, RetainTouch are default)'''
@@ -202,16 +200,10 @@ class EventLoopBase(EventDispatcher):
         '''
         # update available list
         if etype == 'begin':
-            if __debug__:
-                if frame_profiler:
-                    frame_profiler.mark('motion-begin', repr(me))
             self.me_list.append(me)
         elif etype == 'end':
             if me in self.me_list:
                 self.me_list.remove(me)
-            if __debug__:
-                if frame_profiler:
-                    frame_profiler.mark('motion-end', repr(me))
 
         # dispatch to listeners
         if not me.grab_exclusive_class:
@@ -301,44 +293,28 @@ class EventLoopBase(EventDispatcher):
         '''
 
         # update dt
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.emit('start-clock-tick')
+        profiler.push('clock-tick')
         Clock.tick()
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.emit('end-clock-tick')
+        profiler.pop('clock-tick')
 
         # read and dispatch input from providers
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.emit('start-input-dispatch')
+        profiler.push('input-dispatch')
         self.dispatch_input()
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.emit('end-input-dispatch')
+        profiler.pop('input-dispatch')
 
         window = self.window
         if window and True:#window.canvas.needs_redraw:
-            if __debug__:
-                if frame_profiler:
-                    frame_profiler.emit('start-clock-tick-draw')
+            profiler.push('clock-tick-draw')
             Clock.tick_draw()
-            if __debug__:
-                if frame_profiler:
-                    t = frame_profiler.emit('end-clock-tick-draw')
-                    frame_profiler.emit('start-draw', t)
+            t = profiler.pop('clock-tick-draw')
+            profiler.push('draw', t)
             window.dispatch('on_draw')
-            if __debug__:
-                if frame_profiler:
-                    t = frame_profiler.emit('end-draw')
-                    frame_profiler.emit('start-flip', t)
+            t = profiler.pop('draw')
+            profiler.push('flip', t)
             window.dispatch('on_flip')
-            if __debug__:
-                if frame_profiler:
-                    t = frame_profiler.emit('end-flip')
-                    frame_profiler.emit('end-mainloop', t)
-                    frame_profiler.emit('start-mainloop', t)
+            t = profiler.pop('flip')
+            profiler.pop('mainloop', t)
+            profiler.push('mainloop', t)
 
         # don't loop if we don't have listeners !
         if len(self.event_listeners) == 0:
@@ -477,18 +453,15 @@ def runTouchApp(widget=None, slave=False):
     # 2. if no window is created, we are dispatching event lopp
     #    ourself (previous behavior.)
     #
-    if __debug__:
-        if frame_profiler:
-            frame_profiler.emit('start-mainloop')
+    profiler.start()
+    profiler.push('mainloop')
     try:
         if EventLoop.window is None:
             _run_mainloop()
         else:
             EventLoop.window.mainloop()
     finally:
-        if __debug__:
-            if frame_profiler:
-                frame_profiler.emit('stop-mainloop')
+        profiler.pop('mainloop')
         stopTouchApp()
 
 
