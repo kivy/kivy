@@ -43,7 +43,7 @@ and the child widgets will behave as expected.
 '''
 
 from kivy.uix.floatlayout import FloatLayout
-from kivy.scatter import Scatter
+from kivy.uix.scatter import Scatter
 from kivy.properties import ObjectProperty
 
 class ScatterLayout(Scatter):
