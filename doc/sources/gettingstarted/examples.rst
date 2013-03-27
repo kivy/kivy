@@ -79,7 +79,7 @@ Examples
 
 .. |qst_dir| replace:: ./examples/guide/quickstart
 .. |qst_file| replace:: main.py
-.. |qst_desc| replace:: Programming Guide :doc:`guide/quickstart </guide/quickstart>` example.
+.. |qst_desc| replace:: Programming Guide example.
 
 .. |kin_dir| replace::  ./examples/kinect
 .. |kin_file| replace:: main.py

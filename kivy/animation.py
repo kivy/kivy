@@ -246,7 +246,7 @@ class Animation(EventDispatcher):
     def _initialize(self, widget):
         d = self._widgets[widget] = {
             'properties': {},
-            'time': 0.}
+            'time': None}
 
         # get current values
         p = d['properties']
@@ -274,7 +274,10 @@ class Animation(EventDispatcher):
         calculate = self._calculate
         for widget in widgets.keys()[:]:
             anim = widgets[widget]
-            anim['time'] += dt
+            if anim['time'] is None:
+                anim['time'] = 0.
+            else:
+                anim['time'] += dt
 
             # calculate progression
             progress = min(1., anim['time'] / self._duration)

@@ -48,8 +48,8 @@
             rgb: 1, 1, 1
         BorderImage:
             border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
-            pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
-            size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
+            pos: (self.x + self.padding, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y + self.padding)
+            size: (self.width - self.padding * 2, 37) if self.orientation == 'horizontal' else (37, self.height - self.padding * 2)
             source: 'atlas://data/images/defaulttheme/slider%s_background' % self.orientation[0]
         Rectangle:
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
@@ -814,3 +814,181 @@
             size: self.size
         StencilPop
 
+# =============================================================================
+# Color Picker
+# =============================================================================
+
+<ColorPicker>:
+    wheel: wheel
+    alphaslider: alphaslider
+    canvas:
+        Color:
+            rgba: root.bg_color
+        Rectangle:
+            pos: root.pos
+            size: root.size
+    BoxLayout:
+        id: main_layout
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: .33
+            spacing: 10
+            padding: 10
+            GridLayout:
+                cols: 4
+                size_hint: (.5, 1.)
+                Label:
+                    text: "R:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0] * .045
+                Label:
+                    text: str(int(root.color[0] * 255))
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "left"
+                    valign: "middle"
+                    font_size: root.size[0] * .045
+                Label:
+                    text: "G:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0] * .045
+                Label:
+                    text: str(int(root.color[1] * 255))
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "left"
+                    valign: "middle"
+                    font_size: root.size[0] * .045
+                Label:
+                    text: "B:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0] * .045
+                Label:
+                    text: str(int(root.color[2] * 255))
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "left"
+                    valign: "middle"
+                    font_size: root.size[0] * .045
+                Label:
+                    text: "A:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0] * .045
+                Label:
+                    text: str(int(root.color[3] * 255))
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "left"
+                    valign: "middle"
+                    font_size: root.size[0] * .045
+            Widget:
+                size_hint: (.5, 1)
+                canvas:
+                    Color:
+                        rgba: root.color
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: (1, 1)
+            spacing: 1
+            padding: 1
+            GridLayout:
+                #orientation: 'vertical'
+                rows: 2
+                Slider:
+                    id: redslider
+                    size_hint: (1, .6)
+                    orientation: 'vertical'
+                    min: 0
+                    max: 1
+                    step: .01
+                    value: wheel.r
+                    on_value: wheel.r = args[1]
+                Slider:
+                    id: greenslider
+                    size_hint: (1, .6)
+                    orientation: 'vertical'
+                    min: 0
+                    max: 1
+                    step: .01
+                    value: wheel.g
+                    on_value: wheel.g = args[1]
+                Slider:
+                    id: blueslider
+                    size_hint: (1, .6)
+                    orientation: 'vertical'
+                    min: 0
+                    max: 1
+                    step: .01
+                    value: wheel.b
+                    on_value: wheel.b = args[1]
+                Slider:
+                    id: alphaslider
+                    size_hint: (1, .6)
+                    orientation: 'vertical'
+                    min: 0
+                    max: 1
+                    step: .01
+                    value: wheel.a
+                    on_value: wheel.a = args[1]
+                Label:
+                    size_hint: (1, .2)
+                    halign: 'center'
+                    valign: 'middle'
+                    text: 'R'
+                Label:
+                    size_hint: (1, .2)
+                    halign: 'center'
+                    valign: 'middle'
+                    text: 'G'
+                Label:
+                    size_hint: (1, .2)
+                    halign: 'center'
+                    valign: 'middle'
+                    text: 'B'
+                Label:
+                    size_hint: (1, .2)
+                    halign: 'center'
+                    valign: 'middle'
+                    text: 'A'
+
+            ColorWheel:
+                id: wheel
+                size_hint: (1, 1)
+                origin: (self.center_x, self.center_y)
+                radius: 0.45 * min(self.size)
+                on_color: root.color[:3] = args[1][:3]

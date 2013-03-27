@@ -38,7 +38,7 @@ Widgets
 Introduction to Widget
 ----------------------
 
-A |Widget| can be termed as the base building block of a GUI interface in Kivy.
+A |Widget| can be termed as the base building block of GUI interfaces in Kivy.
 It provides a |Canvas| that can be used to draw on screen. It receives events
 and reacts to them. For a in depth explanation about the |Widget| class,
 Look at the module documentation.
@@ -46,17 +46,84 @@ Look at the module documentation.
 Manipulating the Widget tree
 ----------------------------
 
-Widgets are organized in Trees, your application has a `root widget`, which
-usually has |children| that can have |children| on their own. Children of a
-widget are represented as the |children| attribute which is a |ListProperty|.
-For adding |children| to a |Widget|, call |add_widget|. Likewise, to remove a
-widget, from its parent, call |remove_widget|.
+Widgets in kivy like in many other frameworks are organized in Trees, your
+application has a `root widget`, which usually has |children| that can have
+|children| of their own. Children of a widget are represented as the |children|
+attribute which is a |ListProperty|.
+
+The Widget Tree can be manipulated with the following methods:
+
+- :meth:`~kivy.uix.widget.Widget.add_widget`: add a widget as a child
+- :meth:`~kivy.uix.widget.Widget.remove_widget`: remove a widget from the
+  children list
+- :meth:`~kivy.uix.widget.Widget.clear_widgets`: remove all children from a
+  widget
+
+For example, if you want to add a button inside a boxlayout, you can do::
+
+    layout = BoxLayout(padding=10)
+    button = Button(text='My first button')
+    layout.add_widget(button)
+
+Now, the button parent will be set to layout, and layout will have button in his
+children list. To remove the button from the layout::
+
+    layout.remove_widget(button)
+
+The button parent will be set to None, and layout will remove button from his
+children list.
+
+If you want to clear all the children inside a widget, use
+:meth:`~kivy.uix.widget.Widget.clear_widgets` method::
+
+    layout.clear_widgets()
+
+.. warning::
+
+    Never manipulate the children list yourself, if you don't know what you are
+    doing. The widget tree is associated to a graphic tree. For example, if you
+    add a widget into the children list without adding its canvas to the
+    graphics tree, the widget will be a child yes, but nothing will be drawn
+    on the screen. More than that, you might have issues on further calls of
+    add_widget, remove_widget and clear_widgets.
+
+
+Traversing the tree
+-------------------
+
+The widget class has a :data:`~kivy.uix.widget.Widget.children` list property
+that contains all the children. You can easily traverse the tree by doing::
+
+    root = BoxLayout()
+    # ... add widgets to root ...
+    for child in root.children:
+        print child
+
+However, this must be used carefuly. If you intend to modify the children list
+with one of the methods shown in the previous section, you must use a copy of
+the list like this::
+
+    for child in root.children[:]:
+        # manipulate the tree. For example here, remove all widgets that have a
+        # width < 100
+        if child.width < 100:
+            root.remove_widget(child)
+
 
 Widgets don't influence the size/pos of their children by default, so the
 |pos| attribute is the absolute position in screen co-ordinates (unless, of
 course, you use the |RelativeLayout|, more on that later) and |size|, its
 absolute size.
 
+Widgets Z index
+---------------
+Widgets canvas/graphical representation is drawn based on their position in
+the Widget Tree. I.E. The last widgets canvas is drawn last(on top of everything
+else inside its parent). Add Widget takes a `index` parameter that you can use like so::
+
+    root.add_widget(widget, index)
+
+to try and manipulate the z-index of a child
 
 Organize with Layouts
 ---------------------
@@ -66,7 +133,106 @@ its children. There are different kinds of layouts, allowing for different
 automatic organization of their children. Layouts use |size_hint| and |pos_hint|
 properties to determine the |size| and |pos| of their |children|.
 
-Look at the documentation of the various Layouts to see How they honor
+ - Layout types
+
+    **BoxLayout**:
+    Arranges widgets in a side to side (either vertically or horizontally) manner,
+    to fill all the place.
+    size_hint of children can be used to change proportions allowed to each
+    children, or set fixed size for some of them
+    `pos_hint` not honored
+
+    .. only:: html
+
+        .. image:: ../images/boxlayout.gif
+            :align: right
+            :width: 200
+
+    .. only:: latex
+
+        .. image:: ../images/boxlayout.png
+            :align: right
+            :width: 200
+
+    **GridLayout**:
+    Arranges widgets in a grid. You must specifiy at least one dimension of the
+    grid so kivy can compute the size of the elements and how to arrange them.
+
+    `pos_hint` not honored
+
+    .. only:: html
+
+        .. image:: ../images/gridlayout.gif
+            :align: right
+            :width: 200
+
+    .. only:: latex
+
+        .. image:: ../images/gridlayout.png
+            :align: right
+            :width: 200
+
+    **StackLayout**:
+    Arranges widgets side to side, but with a set size in a dimension, without
+    trying to make them fit the whole size, this is useful to have a set of
+    chilgren of the same predefined size, side to side.
+    `pos_hint` not honored
+
+    .. only:: html
+
+        .. image:: ../images/stacklayout.gif
+            :align: right
+            :width: 200
+
+    .. only:: latex
+
+        .. image:: ../images/stacklayout.png
+            :align: right
+            :width: 200
+
+    **AnchorLayout**:
+    A simple layout only caring about children position, allows to stick the
+    children to a position relative to a border of the layout.
+    `size_hint` not honored.
+
+    .. only:: html
+
+        .. image:: ../images/anchorlayout.gif
+            :align: right
+            :width: 200
+
+    .. only:: latex
+
+        .. image:: ../images/anchorlayout.png
+            :align: right
+            :width: 200
+
+    **FloatLayout**:
+    Allow to place children to arbitrary places and size, either absolute or
+    relative to the layout size. Default size_hint (1, 1) will make everychildren
+    the same size as the whole layout, so you probably want to change this value
+    if you have more than one child. You can set size_hint to (None, None) to use
+    absolute size with `size`, this widget honors `pos_hint` too, which as a dict
+    allowing to set position relatively to layout position.
+
+    .. only:: html
+
+        .. image:: ../images/floatlayout.gif
+            :align: right
+            :width: 300
+
+    .. only:: latex
+
+        .. image:: ../images/floatlayout.png
+            :align: right
+            :width: 300
+
+    **RelativeLayout**:
+    Behave just like FloatLayout, except children pos is relative to layout
+    position, not screen.
+
+Look at the documentation of the various Layouts to get a in-depth
+understanding.
 |size_hint| and |pos_hint|:
 
 - |FloatLayout|
@@ -75,7 +241,6 @@ Look at the documentation of the various Layouts to see How they honor
 - |StackLayout|
 - |RelativeLayout|
 - |AnchorLayout|
-
 
 
 |size_hint| is a |ReferenceListProperty| of
@@ -143,7 +308,7 @@ calculated like so::
     first child's size_hint devided by
     first child's size_hint + second child's size_hint + ...n(no of children)
     
-    .5/().5+1) = .333...
+    .5/(.5+1) = .333...
 
 
 The rest of the BoxLayouts |width| is divided among the rest of the |children|.

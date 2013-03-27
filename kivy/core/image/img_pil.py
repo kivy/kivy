@@ -7,7 +7,7 @@ __all__ = ('ImageLoaderPIL', )
 try:
     from PIL import Image as PILImage
 except:
-    import Image
+    import Image as PILImage
 
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
@@ -29,6 +29,10 @@ class ImageLoaderPIL(ImageLoaderBase):
         artifacts for now.
 
     '''
+
+    @staticmethod
+    def can_save():
+        return True
 
     @staticmethod
     def extensions():
@@ -89,6 +93,13 @@ class ImageLoaderPIL(ImageLoaderBase):
         self.filename = filename
         # returns an array of type ImageData len 1 if not a sequence image
         return list(self._img_read(im))
+
+    @staticmethod
+    def save(filename, width, height, fmt, pixels):
+        image = PILImage.fromstring(fmt.upper(), (width, height), pixels)
+        image.save(filename)
+        return True
+
 
 # register
 ImageLoader.register(ImageLoaderPIL)

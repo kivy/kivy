@@ -210,6 +210,7 @@ The current implemented Pause mechanism is:
 
 __all__ = ('App', )
 
+import os
 from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser
 from kivy.config import ConfigParser
@@ -504,6 +505,45 @@ class App(EventDispatcher):
                 # if it's a builtin module.. use the current dir.
                 self._app_directory = '.'
         return self._app_directory
+
+    @property
+    def user_data_dir(self):
+        '''
+        .. versionadded:: 1.6.1
+
+        Returns the path to a directory in the users files system, which the
+        application can use to store additional data.
+
+        Different platforms have different conventions for where to save user
+        data like preferences, saved games, and settings. This function
+        implements those conventions.
+
+        On iOS `/Documents` is returned (which is inside the apps sandbox).
+
+        On Android `/sdcard/<app_name>` is returned.
+
+        On Windows `~/Application Settings/<app_name>` is returned.
+
+        On Mac OS X `~/Library/Application Support <app_name>` is returned.
+
+        On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
+        '''
+        data_dir = ""
+        if platform == 'ios':
+            data_dir = join('/Documents', self.name)
+        elif platform == 'android':
+            data_dir = join('/sdcard', self.name)
+        elif platform == 'win':
+            data_dir = '~/Application Settings/{}'.format(self.name)
+        elif platform == 'macosx':
+            data_dir = '~/Library/Application Support/{}'.format(self.name)
+        else: # _platform == 'linux' or anything else...:
+            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+            data_dir = join(data_dir, self.name)
+        data_dir = expanduser(data_dir)
+        if not exists(data_dir):
+            os.mkdir(data_dir)
+        return data_dir
 
     @property
     def name(self):

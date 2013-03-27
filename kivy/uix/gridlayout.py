@@ -239,18 +239,6 @@ class GridLayout(Layout):
             size=self._trigger_layout,
             pos=self._trigger_layout)
 
-    def add_widget(self, widget, index=0):
-        widget.bind(
-            size=self._trigger_layout,
-            size_hint=self._trigger_layout)
-        return super(Layout, self).add_widget(widget, index)
-
-    def remove_widget(self, widget):
-        widget.unbind(
-            size=self._trigger_layout,
-            size_hint=self._trigger_layout)
-        return super(Layout, self).remove_widget(widget)
-
     def get_max_widgets(self):
         if self.cols and not self.rows:
             return None
