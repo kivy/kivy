@@ -142,6 +142,49 @@
                 size: self.size
                 pos: self.pos
 
+
+<RelativeLayoutShowcase>
+    Title:
+        text: "Relative Layout"
+
+    RelativeLayout:
+        id: rel_layout
+        size_hint: .6,.5
+        center: [root.center, self.size][0]
+        canvas:
+            Color:
+                rgba: 0,0,1,0.5
+            Rectangle:
+                pos: 0,0
+                size: self.size
+
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: "Position value of children stays the same; they are relative with respect to the RelativeLayout"
+                valign: 'top'
+                text_size: rel_layout.width-40, None
+                size_hint_y: 0.2
+            GridLayout:
+                cols:2
+                padding: 40
+                spacing: 20
+
+                Button:
+                    text: "Set pos = (100,0)"
+                    on_release: rel_layout.pos = (100,0)
+                Button:
+                    text: "Set pos = (150,100)"
+                    on_release: rel_layout.pos = (150,200)
+                Button:
+                    text: "Set pos = (300,60)"
+                    on_release: rel_layout.pos = (300,80)
+                Button:
+                    text: "Center "
+                    on_release: rel_layout.center = root.center
+
+
+
 [VSeparator@Widget]:
     size_hint_x: None
     width: 10
