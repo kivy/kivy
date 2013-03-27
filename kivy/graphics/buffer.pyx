@@ -36,7 +36,7 @@ cdef class Buffer:
         if diff != 0:
             block_count = (8 - (block_count % 8)) + block_count
 
-        if block_count < self.block_count:
+        if block_count <= self.block_count:
             return
 
         # Try to realloc
