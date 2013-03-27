@@ -58,18 +58,14 @@ class Touchtracer(FloatLayout):
         if points:
             try:
                 lp = ud['lines'][2].add_point
+                from kivy.profiling import frame_profiler
+                frame_profiler.mark('add-points', len(points))
                 for idx in xrange(0, len(points), 2):
                     lp(points[idx], points[idx+1])
             except GraphicException:
                 pass
 
         ud['label'].pos = touch.pos
-        import time
-        t = int(time.time())
-        if t not in ud:
-            ud[t] = 1
-        else:
-            ud[t] += 1
         self.update_touch_label(ud['label'], touch)
 
     def on_touch_up(self, touch):

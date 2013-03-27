@@ -32,12 +32,18 @@ cdef class Buffer:
         cdef int l_free_tmp
 
         # set block_count to the nearest 8 block
-        diff = block_count % 8
+        cdef int block_grow = 64
+        diff = block_count % block_grow
         if diff != 0:
-            block_count = (8 - (block_count % 8)) + block_count
+            block_count = (block_grow - (block_count % block_grow)) + block_count
 
-        if block_count < self.block_count:
+        if block_count <= self.block_count:
             return
+
+        from kivy.profiling import frame_profiler
+        frame_profiler.mark('vbo-grow', ' '.join((map(str, (repr(self),
+            '-> grow from', self.block_count, 'to', block_count,
+            '| blocksize =', self.block_size)))))
 
         # Try to realloc
         newptr = realloc(self.data, self.block_size * block_count)
