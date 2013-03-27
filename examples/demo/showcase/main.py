@@ -155,6 +155,11 @@ class StackLayoutShowcase(FloatLayout):
         Clock.schedule_once(self.add_button, .5)
 
 
+class RelativeLayoutShowcase(FloatLayout):
+    pass
+
+
+
 class StandardWidgets(FloatLayout):
 
     value = NumericProperty(0)
@@ -222,6 +227,9 @@ class ShowcaseApp(App):
         attach_node('Float Layout', n)
         attach_node('Grid Layout', n)
         attach_node('Stack Layout', n)
+        attach_node('Relative Layout', n)
+
+
         root.add_widget(tree)
         self.content = content = BoxLayout()
         root.add_widget(content)
@@ -250,6 +258,9 @@ class ShowcaseApp(App):
 
     def show_stack_layout(self):
         return StackLayoutShowcase()
+
+    def show_relative_layout(self):
+        return RelativeLayoutShowcase()
 
     def show_scatters(self):
         col = Widget()

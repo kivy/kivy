@@ -90,6 +90,15 @@
     canvas.after:
         PopMatrix
 
+
+<RelativeLayout>:
+    canvas.before:
+        PushMatrix
+        Translate:
+            xy: self.pos
+    canvas.after:
+        PopMatrix
+
 <Image,AsyncImage>:
     canvas:
         Color:
