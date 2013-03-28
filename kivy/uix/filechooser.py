@@ -45,9 +45,9 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import (
     StringProperty, ListProperty, BooleanProperty, ObjectProperty,
     NumericProperty)
-from os import listdir
+
 from os.path import (
-    basename, getsize, isdir, join, sep, normpath, expanduser, altsep,
+    basename, join, sep, normpath, expanduser, altsep,
     splitdrive, realpath)
 from fnmatch import fnmatch
 
@@ -69,26 +69,44 @@ if platform == 'win':
         Logger.error('filechooser: we cant check if a file is hidden or not')
 
 
-def is_hidden_unix(fn):
-    return basename(fn).startswith('.')
+class FileSystemImpl(object):
 
+    from os import listdir
+    listdir = staticmethod(listdir)
 
-def is_hidden_win(fn):
-    if not _have_win32file:
-        return False
-    try:
-        return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
-    except error:
-        # This error can occured when a file is already accessed by someone
-        # else. So don't return to True, because we have lot of chances to not
-        # being able to do anything with it.
-        Logger.exception('unable to access to <%s>' % fn)
-        return True
+    from os.path import getsize, isdir
+    getsize = staticmethod(getsize)
+    isdir = staticmethod(isdir)
 
+    if platform in ('macosx', 'linux', 'android', 'ios'):
 
-def alphanumeric_folders_first(files):
-    return (sorted(f for f in files if isdir(f)) +
-            sorted(f for f in files if not isdir(f)))
+        @staticmethod
+        def is_hidden(fn):
+            return basename(fn).startswith('.')
+
+    elif platform == 'win':
+
+        @staticmethod
+        def is_hidden(fn):
+            if not _have_win32file:
+                return False
+            try:
+                return GetFileAttributesEx(fn)[0] & FILE_ATTRIBUTE_HIDDEN
+            except error:
+                # This error can occured when a file is already accessed by
+                # someone else. So don't return to True, because we have lot
+                # of chances to not being able to do anything with it.
+                Logger.exception('unable to access to <%s>' % fn)
+                return True
+
+    else:
+        raise NotImplementedError('Only available for Linux, OSX and Win'
+                                  ' (platform is %r)' % platform)
+
+    @classmethod
+    def sort_files(cls, files):
+        return (sorted(f for f in files if cls.isdir(f)) +
+                sorted(f for f in files if not cls.isdir(f)))
 
 
 class ForceUnicodeError(Exception):
@@ -201,13 +219,6 @@ class FileChooserController(FloatLayout):
     Indicates whether filters should also apply to directories.
     '''
 
-    sort_func = ObjectProperty(alphanumeric_folders_first)
-    '''
-    :class:`~kivy.properties.ObjectProperty`.
-    Provides a function to be called with a list of filenames as the only
-    argument.  Returns a list of filenames sorted for display in the view.
-    '''
-
     files = ListProperty([])
     '''
     Read-only :class:`~kivy.properties.ListProperty`.
@@ -276,6 +287,15 @@ class FileChooserController(FloatLayout):
     'cp1252']
     '''
 
+    file_system_impl = ObjectProperty(FileSystemImpl)
+    '''Implementation to access the file system.
+
+    .. versionadded:: 1.6.1
+
+    :class:`~kivy.properties.ObjectProperty`, defaults to
+    :class:`FileSystemImpl`
+    '''
+
     def __init__(self, **kwargs):
         self.register_event_type('on_entry_added')
         self.register_event_type('on_entries_cleared')
@@ -287,14 +307,6 @@ class FileChooserController(FloatLayout):
 
         self._items = []
         self.bind(selection=self._update_item_selection)
-
-        if platform in ('macosx', 'linux', 'android', 'ios'):
-            self.is_hidden = is_hidden_unix
-        elif platform == 'win':
-            self.is_hidden = is_hidden_win
-        else:
-            raise NotImplementedError('Only available for Linux, OSX and Win'
-                                      ' (platform is %r)' % platform)
 
         self._previous_path = [self.path]
         self.bind(path=self._save_previous_path)
@@ -344,7 +356,7 @@ class FileChooserController(FloatLayout):
                 'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
             return False
         if self.multiselect:
-            if isdir(entry.path) and touch.is_double_tap:
+            if self.file_system_impl.isdir(entry.path) and touch.is_double_tap:
                 self.open_entry(entry)
             else:
                 if entry.path in self.selection:
@@ -352,7 +364,7 @@ class FileChooserController(FloatLayout):
                 else:
                     self.selection.append(entry.path)
         else:
-            if isdir(entry.path):
+            if self.file_system_impl.isdir(entry.path):
                 if self.dirselect:
                     self.selection = [entry.path, ]
             else:
@@ -369,10 +381,10 @@ class FileChooserController(FloatLayout):
                 'scrollup', 'scrolldown', 'scrollleft', 'scrollright')):
             return False
         if not self.multiselect:
-            if isdir(entry.path) and not self.dirselect:
+            if self.file_system_impl.isdir(entry.path) and not self.dirselect:
                 self.open_entry(entry)
             elif touch.is_double_tap:
-                if self.dirselect and isdir(entry.path):
+                if self.dirselect and self.file_system_impl.isdir(entry.path):
                     self.open_entry(entry)
                 else:
                     self.dispatch('on_submit', self.selection, touch)
@@ -388,7 +400,7 @@ class FileChooserController(FloatLayout):
             except UnicodeEncodeError:
                 path = entry.path
                 pass
-            listdir(path)
+            self.file_system_impl.listdir(path)
         except OSError:
             #Logger.exception(e)
             entry.locked = True
@@ -406,7 +418,7 @@ class FileChooserController(FloatLayout):
             else:
                 filtered.extend([fn for fn in files if fnmatch(fn, filter)])
         if not self.filter_dirs:
-            dirs = [fn for fn in files if isdir(fn)]
+            dirs = [fn for fn in files if self.file_system_impl.isdir(fn)]
             filtered.extend(dirs)
         return list(set(filtered))
 
@@ -414,10 +426,10 @@ class FileChooserController(FloatLayout):
         '''Pass the filepath. Returns the size in the best human readable
         format or '' if it is a directory (Don't recursively calculate size.).
         '''
-        if isdir(fn):
+        if self.file_system_impl.isdir(fn):
             return ''
         try:
-            size = getsize(fn)
+            size = self.file_system_impl.getsize(fn)
         except OSError:
             #Logger.exception(e)
             return '--'
@@ -570,7 +582,7 @@ class FileChooserController(FloatLayout):
 
         files = []
         fappend = files.append
-        for fn in listdir(path):
+        for fn in self.file_system_impl.listdir(path):
             try:
                 fappend(force_unicode(fn))
             except ForceUnicodeError:
@@ -580,8 +592,8 @@ class FileChooserController(FloatLayout):
         # Apply filename filters
         files = self._apply_filters(files)
         # Sort the list of files
-        files = self.sort_func(files)
-        is_hidden = self.is_hidden
+        files = self.file_system_impl.sort_files(files)
+        is_hidden = self.file_system_impl.is_hidden
         if not self.show_hidden:
             files = [x for x in files if not is_hidden(x)]
         total = len(files)
@@ -596,7 +608,7 @@ class FileChooserController(FloatLayout):
                    'get_nice_size': get_nice_size,
                    'path': fn,
                    'controller': wself,
-                   'isdir': isdir(fn),
+                   'isdir': self.file_system_impl.isdir(fn),
                    'parent': parent,
                    'sep': sep}
             entry = Builder.template(self._ENTRY_TEMPLATE, **ctx)
@@ -618,7 +630,7 @@ class FileChooserController(FloatLayout):
         raise ForceUnicodeError('Unable to decode %r' % s)
 
     def entry_subselect(self, entry):
-        if not isdir(entry.path):
+        if not self.file_system_impl.isdir(entry.path):
             return
         self._update_files(path=entry.path, parent=entry)
 
