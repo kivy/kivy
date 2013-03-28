@@ -94,6 +94,16 @@ Thomas Hansen have wrote a detailed answer on the kivy-users mailing list:
 Basically, you need to root the device, remove the SystemUI package, add some
 lines to the xml configuration, and you're done.
 
+What's the difference between python-for-android from Kivy and SL4A?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Despite having the same name, Kivy's python-for-android is not related to the 
+python-for-android project from SL4A, Py4A, or android-python27. They are 
+distinctly different projects with different goals. You may be able to use 
+Py4A with Kivy, but no code or effort has been made to do so. The Kivy team 
+feels that our python-for-android is the best solution for us going forward, 
+and attempts to integrate with and support Py4A is not a good use of our time.
+
 
 Project FAQ
 -----------
