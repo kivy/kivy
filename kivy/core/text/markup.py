@@ -122,6 +122,7 @@ class MarkupLabel(MarkupLabelBase):
         spop = self._pop_style
         options = self.options
         options['_ref'] = None
+        options['script'] = 'normal'
         for item in self.markup:
             if item == '[b]':
                 spush('bold')
@@ -165,6 +166,22 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/font]':
                 spop('font_name')
                 self.resolve_font_name()
+            elif item[:5] == '[sub]':
+                spush('font_size')
+                spush('script')
+                options['font_size'] = options['font_size'] * .5
+                options['script'] = 'subscript'
+            elif item == '[/sub]':
+                spop('font_size')
+                spop('script')
+            elif item[:5] == '[sup]':
+                spush('font_size')
+                spush('script')
+                options['font_size'] = options['font_size'] * .5
+                options['script'] = 'superscript'
+            elif item == '[/sup]':
+                spop('font_size')
+                spop('script')
             elif item[:5] == '[ref=':
                 ref = item[5:-1]
                 spush('_ref')
@@ -281,7 +298,7 @@ class MarkupLabel(MarkupLabelBase):
         # convert halign/valign to int, faster comparison
         av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
         ah = {'left': 0, 'center': 1, 'right': 2,
-                'justify': 3,}[self.options['halign']]
+                'justify': 3, }[self.options['halign']]
 
         y = 0
         w, h = self._size
@@ -337,8 +354,10 @@ class MarkupLabel(MarkupLabelBase):
                     # divide left over space between `spaces`
                     if _spaces:
                         just_space = (((w - lw + space_width) * 1.)
-                                    /(_spaces*1.))
+                                    / (_spaces * 1.))
 
+            # previous part height/pos = 0
+            psp = pph = 0
             for pw, ph, part, options in line[4]:
                 self.options = options
                 if not first_line and first_space:
@@ -346,7 +365,26 @@ class MarkupLabel(MarkupLabelBase):
                     continue
                 if part == ' ':
                     x += just_space
-                r(part, x, y + (lh - ph) / 1.25)
+
+                # calculate sub/super script pos
+                if options['script'] == 'superscript':
+                    script_pos = max(0,
+                                    psp
+                                    if psp else
+                                    self.get_descent())
+                    psp = script_pos
+                    pph = ph
+                elif options['script'] == 'subscript':
+                    script_pos = min(lh - ph,
+                                    ((psp + pph) - ph)
+                                    if pph else
+                                    (lh - ph))
+                    pph = ph
+                    psp = script_pos
+                else:
+                    script_pos = (lh - ph) / 1.25
+                    psp = pph = 0
+                r(part, x, y + script_pos)
 
                 # should we record refs ?
                 ref = options['_ref']
@@ -355,7 +393,6 @@ class MarkupLabel(MarkupLabelBase):
                         refs[ref] = []
                     refs[ref].append((x, y, x + pw, y + ph))
 
-                #print 'render', repr(part), x, y, (lh, ph), options
                 x += pw
             y += line[1]
 
