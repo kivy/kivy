@@ -133,103 +133,58 @@ its children. There are different kinds of layouts, allowing for different
 automatic organization of their children. Layouts use |size_hint| and |pos_hint|
 properties to determine the |size| and |pos| of their |children|.
 
- - Layout types
+**BoxLayout**:
+Arranges widgets in a side to side (either vertically or horizontally) manner,
+to fill all the place.
+size_hint of children can be used to change proportions allowed to each
+children, or set fixed size for some of them
 
-    **BoxLayout**:
-    Arranges widgets in a side to side (either vertically or horizontally) manner,
-    to fill all the place.
-    size_hint of children can be used to change proportions allowed to each
-    children, or set fixed size for some of them
-    `pos_hint` not honored
+.. only:: html
 
-    .. only:: html
+    .. image:: ../images/boxlayout.gif
+        :align: left
+    .. image:: ../images/gridlayout.gif
+        :align: right
+    .. image:: ../images/stacklayout.gif
+        :align: left
+    .. image:: ../images/anchorlayout.gif
+        :align: right
+    .. image:: ../images/floatlayout.gif
 
-        .. image:: ../images/boxlayout.gif
-            :align: right
-            :width: 200
+.. only:: latex
 
-    .. only:: latex
+    .. image:: ../images/boxlayout.png
+    .. image:: ../images/gridlayout.png
+    .. image:: ../images/stacklayout.png
+    .. image:: ../images/anchorlayout.png
+    .. image:: ../images/floatlayout.png
 
-        .. image:: ../images/boxlayout.png
-            :align: right
-            :width: 200
 
-    **GridLayout**:
-    Arranges widgets in a grid. You must specifiy at least one dimension of the
-    grid so kivy can compute the size of the elements and how to arrange them.
+**GridLayout**:
+Arranges widgets in a grid. You must specifiy at least one dimension of the
+grid so kivy can compute the size of the elements and how to arrange them.
 
-    `pos_hint` not honored
+**StackLayout**:
+Arranges widgets side to side, but with a set size in a dimension, without
+trying to make them fit the whole size, this is useful to have a set of
+chilgren of the same predefined size, side to side.
 
-    .. only:: html
+**AnchorLayout**:
+A simple layout only caring about children position, allows to stick the
+children to a position relative to a border of the layout.
+`size_hint` not honored.
 
-        .. image:: ../images/gridlayout.gif
-            :align: right
-            :width: 200
+**FloatLayout**:
+Allow to place children to arbitrary places and size, either absolute or
+relative to the layout size. Default size_hint (1, 1) will make everychildren
+the same size as the whole layout, so you probably want to change this value
+if you have more than one child. You can set size_hint to (None, None) to use
+absolute size with `size`, this widget honors `pos_hint` too, which as a dict
+allowing to set position relatively to layout position.
 
-    .. only:: latex
-
-        .. image:: ../images/gridlayout.png
-            :align: right
-            :width: 200
-
-    **StackLayout**:
-    Arranges widgets side to side, but with a set size in a dimension, without
-    trying to make them fit the whole size, this is useful to have a set of
-    chilgren of the same predefined size, side to side.
-    `pos_hint` not honored
-
-    .. only:: html
-
-        .. image:: ../images/stacklayout.gif
-            :align: right
-            :width: 200
-
-    .. only:: latex
-
-        .. image:: ../images/stacklayout.png
-            :align: right
-            :width: 200
-
-    **AnchorLayout**:
-    A simple layout only caring about children position, allows to stick the
-    children to a position relative to a border of the layout.
-    `size_hint` not honored.
-
-    .. only:: html
-
-        .. image:: ../images/anchorlayout.gif
-            :align: right
-            :width: 200
-
-    .. only:: latex
-
-        .. image:: ../images/anchorlayout.png
-            :align: right
-            :width: 200
-
-    **FloatLayout**:
-    Allow to place children to arbitrary places and size, either absolute or
-    relative to the layout size. Default size_hint (1, 1) will make everychildren
-    the same size as the whole layout, so you probably want to change this value
-    if you have more than one child. You can set size_hint to (None, None) to use
-    absolute size with `size`, this widget honors `pos_hint` too, which as a dict
-    allowing to set position relatively to layout position.
-
-    .. only:: html
-
-        .. image:: ../images/floatlayout.gif
-            :align: right
-            :width: 300
-
-    .. only:: latex
-
-        .. image:: ../images/floatlayout.png
-            :align: right
-            :width: 300
-
-    **RelativeLayout**:
-    Behave just like FloatLayout, except children pos is relative to layout
-    position, not screen.
+**RelativeLayout**:
+Behave just like FloatLayout, except children pos is relative to layout
+position, not screen.
 
 Look at the documentation of the various Layouts to get a in-depth
 understanding.
@@ -352,6 +307,162 @@ Should give us something that looks like this.
 
 You should experiment further with |pos_hint| by changing the values to
 understand the effect they have on the widgets position.
+
+Adding a Background to a Layout
+-------------------------------
+
+One of the frequently asked questions about layouts is:
+
+    "How to add a background image/color/video/... to a Layout"
+
+Layouts by their nature have no visual representation, i.e. they have no canvas
+instructions by default. However you can add instructions to the Layouts canvas.
+
+To add a color to the background of a **layouts Instance**
+
+In Python::
+
+    with layout_instance.canvas.before:
+        Color(rgba(0, 1, 0, 1)) # green; colors range from 0-1 instead of 0-255
+        self.rect = Rectangle(
+                                size=layout_instance.size,
+                                pos=layout_instance.pos)
+
+Unfortunately this will only draw a rectangle at the layouts initial position
+and size.To make sure the rect is drawn inside the layout if layout size/pos
+changes we need to listen to any changes and update the Rectangles size and pos
+like so::
+
+    # listen to size and position changes
+    layout_instance.bind(
+                        size=self._update_rect,
+                        pos=self._update_rect)
+    
+    ...
+    def _update_rect(self, instance, value):
+        self.rect.pos = instance.pos
+        self.rect.size = instance.size
+
+In kv:
+
+.. code-block:: kv
+
+    ...
+    ...
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 0, 1, 0, 1
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+
+That's it the binding is implicit. kv language in the last two lines updates the
+values |pos| and |size| of the rectangle when the |pos| of the |FloatLayout|
+changes. QED.
+
+Now Let's put the snippets above into the shell of Kivy App.
+Pure Python way::
+
+    from kivy.app import App
+    from kivy.graphics import Color, Rectangle
+    from kivy.uix.floatlayout import FloatLayout
+    from kivy.uix.button import Button
+
+
+    class RootWidget(FloatLayout):
+
+        def __init__(self, **kwargs):
+            # make sure we aren't overriding any important functionality
+            super(RootWidget, self).__init__(**kwargs)
+
+            with self.canvas.before:
+                Color(0, 1, 0, 1) # green; colors range from 0-1 instead of 0-255
+                self.rect = Rectangle(
+                                size=self.size,
+                                pos=self.pos)
+
+            # let's add a Widgetto this layout
+            self.add_widget(
+                            Button( text="Hello World",
+                                    size_hint= (.5, .5),
+                                    pos_hint={'center_x':.5,
+                                            'center_y':.5}))
+
+            self.bind(
+                        size=self._update_rect,
+                        pos=self._update_rect)
+
+        def _update_rect(self, instance, value):
+            self.rect.pos = instance.pos
+            self.rect.size = instance.size
+
+
+    class MainApp(App):
+
+        def build(self):
+            return RootWidget()
+
+    if __name__ == '__main__':
+        MainApp().run()
+
+Using KV Language::
+
+    from kivy.app import App
+    from kivy.uix.floatlayout import FloatLayout
+    from kivy.lang import Builder
+
+
+    Builder.load_string('''
+    <RootWidget>
+        canvas.before:
+            Color:
+                rgba: 0, 1, 0, 1
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+        Button:
+            text: 'Hello World!!'
+            size_hint: .5, .5
+            pos_hint: {'center_x':.5, 'center_y': .5}
+    ''')
+
+    class RootWidget(FloatLayout):
+        pass
+
+
+    class MainApp(App):
+
+        def build(self):
+            return RootWidget()
+
+    if __name__ == '__main__':
+        MainApp().run()
+
+Isn't this a lot simpler?
+
+Both of the Apps should look something like this
+
+.. image:: images/layout_background.png
+
+To add a color to the background of a **custom layouts rule/class**
+
+To add a color to the background of a **layout globally**
+
+Now Let's have some fun and add a **Image to the background**
+
+a bit Advanced Topics::
+
+    How about a **Animated background**?
+
+    Blitt custom data to the background
+
+Nesting Layouts
+---------------
+
+Yes! not only can you nest Layouts, it is actually quite fun to seee how extensible nesting Layouts is
 
 Size and position metrics
 -------------------------
