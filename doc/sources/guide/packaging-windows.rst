@@ -5,7 +5,7 @@ Packaging your application for the Windows platform can only be done inside the
 Windows OS. The following process has only been tested inside VirtualBox using
 Windows 7 and the portable package of Kivy.
 
-The package is 32 bits but can be run on both 32 and 64 bit Windows
+The package will be 32 bits but can be run on both 32 and 64 bit Windows
 platforms.
 
 .. _packaging-windows-requirements:
