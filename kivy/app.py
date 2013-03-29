@@ -281,6 +281,8 @@ class App(EventDispatcher):
     # Return the current running App instance
     _running_app = None
 
+    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume')
+
     def __init__(self, **kwargs):
         App._running_app = self
         self._app_directory = None
@@ -288,10 +290,6 @@ class App(EventDispatcher):
         self._app_settings = None
         self._app_window = None
         super(App, self).__init__(**kwargs)
-        self.register_event_type('on_start')
-        self.register_event_type('on_stop')
-        self.register_event_type('on_pause')
-        self.register_event_type('on_resume')
         self.built = False
 
         #: Options passed to the __init__ of the App

@@ -93,12 +93,9 @@ class Animation(EventDispatcher):
 
     _instances = set()
 
-    def __init__(self, **kw):
-        # Register events
-        self.register_event_type('on_start')
-        self.register_event_type('on_progress')
-        self.register_event_type('on_complete')
+    __events__ = ('on_start', 'on_progress', 'on_complete')
 
+    def __init__(self, **kw):
         super(Animation, self).__init__(**kw)
 
         # Initialize

@@ -21,6 +21,15 @@ from kivy.properties cimport Property, ObjectProperty
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
+cdef dict cache_events = {}
+
+def _get_bases(cls):
+    for base in cls.__bases__:
+        if base.__name__ == 'object':
+            break
+        yield base
+        for cbase in _get_bases(base):
+            yield cbase
 
 cdef class EventDispatcher(object):
     '''Generic event dispatcher interface
@@ -73,6 +82,43 @@ cdef class EventDispatcher(object):
 
         self.__properties = attrs_found
 
+        # Automatic registration of event types (instead of calling
+        # self.register_event_type)
+
+        # If not done yet, discover __events__ on all the baseclasses
+        cdef dict ce = cache_events
+        cdef list events
+        cdef str event
+        if __cls__ not in ce:
+            classes = [__cls__] + list(_get_bases(self.__class__))
+            events = []
+            for cls in classes:
+                if not hasattr(cls, '__events__'):
+                    continue
+                for event in cls.__events__:
+                    if event in events:
+                        continue
+
+                    if event[:3] != 'on_':
+                        raise Exception('{} is not an event name in {}'.format(
+                            event, __cls__.__name__))
+
+                    # Ensure the user have at least declare the default handler
+                    if not hasattr(self, event):
+                        raise Exception(
+                            'Missing default handler <%s> in <%s>' % (
+                            event, __cls__.__name__))
+
+                    events.append(event)
+            ce[__cls__] = events
+        else:
+            events = ce[__cls__]
+
+        # then auto register
+        for event in events:
+            self.__event_stack[event] = []
+
+
     def __init__(self, **kwargs):
         cdef str func, name, key
         cdef dict properties
@@ -118,7 +164,7 @@ cdef class EventDispatcher(object):
             w.dispatch('on_swipe')
         '''
 
-        if not event_type.startswith('on_'):
+        if event_type[:3] != 'on_':
             raise Exception('A new event must start with "on_"')
 
         # Ensure the user have at least declare the default handler
@@ -128,7 +174,7 @@ cdef class EventDispatcher(object):
                 event_type, self.__class__.__name__))
 
         # Add the event type to the stack
-        if not event_type in self.__event_stack:
+        if event_type not in self.__event_stack:
             self.__event_stack[event_type] = []
 
     def unregister_event_types(self, str event_type):

@@ -84,10 +84,9 @@ class EventLoopBase(EventDispatcher):
     '''Main event loop. This loop handle update of input + dispatch event
     '''
 
+    __events__ = ('on_start', 'on_pause', 'on_stop')
+
     def __init__(self):
-        self.register_event_type('on_start')
-        self.register_event_type('on_pause')
-        self.register_event_type('on_stop')
         super(EventLoopBase, self).__init__()
         self.quit = False
         self.input_events = []

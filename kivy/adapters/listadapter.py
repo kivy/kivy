@@ -183,10 +183,10 @@ class ListAdapter(Adapter, EventDispatcher):
     default to {}.
     '''
 
+    __events__ = ('on_selection_change', )
+
     def __init__(self, **kwargs):
         super(ListAdapter, self).__init__(**kwargs)
-
-        self.register_event_type('on_selection_change')
 
         self.bind(selection_mode=self.selection_mode_changed,
                   allow_empty_selection=self.check_for_empty_selection,

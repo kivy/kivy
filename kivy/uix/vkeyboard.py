@@ -279,6 +279,8 @@ class VKeyboard(Scatter):
     font_size = NumericProperty('20dp')
     font_name = StringProperty('data/fonts/DejaVuSans.ttf')
 
+    __events__ = ('on_key_down', 'on_key_up')
+
     def __init__(self, **kwargs):
         # XXX move to style.kv
         kwargs.setdefault('size_hint', (None, None))
@@ -298,8 +300,6 @@ class VKeyboard(Scatter):
             have_capslock=self._trigger_update_layout_mode,
             layout_path=self._trigger_load_layouts,
             layout=self._trigger_load_layout)
-        self.register_event_type('on_key_down')
-        self.register_event_type('on_key_up')
         super(VKeyboard, self).__init__(**kwargs)
 
         # load all the layouts found in the layout_path directory

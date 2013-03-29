@@ -260,9 +260,9 @@ class TreeView(Widget):
             Fired when a node is being collapsed
     '''
 
+    __events__ = ('on_node_expand', 'on_node_collapse')
+
     def __init__(self, **kwargs):
-        self.register_event_type('on_node_expand')
-        self.register_event_type('on_node_collapse')
         self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(TreeView, self).__init__(**kwargs)
         tvlabel = TreeViewLabel(text='Root', is_open=True, level=0)

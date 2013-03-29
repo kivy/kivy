@@ -119,10 +119,7 @@ class Sound(EventDispatcher):
         Use :data:`source` instead
     '''
 
-    def __init__(self, **kwargs):
-        self.register_event_type('on_play')
-        self.register_event_type('on_stop')
-        super(Sound, self).__init__(**kwargs)
+    __events__ = ('on_play', 'on_stop')
 
     def on_source(self, instance, filename):
         self.unload()
