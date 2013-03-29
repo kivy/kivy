@@ -709,7 +709,7 @@ class ParserRule(object):
 
     __slots__ = ('ctx', 'line', 'name', 'children', 'id', 'properties',
                  'canvas_before', 'canvas_root', 'canvas_after',
-                 'handlers', 'level', 'cache_marked')
+                 'handlers', 'level', 'cache_marked', 'avoid_previous_rules')
 
     def __init__(self, ctx, line, name, level):
         super(ParserRule, self).__init__()
@@ -737,6 +737,8 @@ class ParserRule(object):
         self.handlers = []
         #: Properties cache list: mark which class have already been checked
         self.cache_marked = []
+        #: Indicate if any previous rules should be avoided.
+        self.avoid_previous_rules = False
 
         if level == 0:
             self._detect_selectors()
@@ -794,9 +796,17 @@ class ParserRule(object):
         if name[0] != '<' or name[-1] != '>':
             raise ParserException(self.ctx, self.line,
                                   'Invalid rule (must be inside <>)')
-        rules = name[1:-1].split(',')
+
+        # if the very first name start with a -, avoid previous rules
+        name = name[1:-1]
+        if name[:1] == '-':
+            self.avoid_previous_rules = True
+            name = name[1:]
+
+        rules = name.split(',')
         for rule in rules:
             crule = None
+
             if not len(rule):
                 raise ParserException(self.ctx, self.line,
                                       'Empty rule detected')
@@ -1495,6 +1505,8 @@ class BuilderBase(object):
         rules = []
         for selector, rule in self.rules:
             if selector.match(widget):
+                if rule.avoid_previous_rules:
+                    del rules[:]
                 rules.append(rule)
         cache[k] = rules
         return rules

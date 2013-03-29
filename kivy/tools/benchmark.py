@@ -15,6 +15,7 @@ from time import clock, time, ctime
 from random import randint
 
 from kivy.uix.label import Label
+from kivy.uix.button import Button
 from kivy.uix.widget import Widget
 from kivy.graphics import RenderContext
 from kivy.input.motionevent import MotionEvent
@@ -94,7 +95,23 @@ class bench_label_creation:
     def run(self):
         o = []
         for x in self.labels:
-            o.append(Label(label=x))
+            o.append(Label(text=x))
+
+
+class bench_button_creation:
+    '''Core: button creation (10000 * 10 a-z)'''
+
+    def __init__(self):
+        labels = []
+        for x in xrange(10000):
+            button = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+            labels.append(''.join(button))
+        self.labels = labels
+
+    def run(self):
+        o = []
+        for x in self.labels:
+            o.append(Button(text=x))
 
 
 class bench_label_creation_with_tick:
@@ -110,7 +127,25 @@ class bench_label_creation_with_tick:
     def run(self):
         o = []
         for x in self.labels:
-            o.append(Label(label=x))
+            o.append(Label(text=x))
+        # tick for texture creation
+        Clock.tick()
+
+
+class bench_button_creation_with_tick:
+    '''Core: button creation (10000 * 10 a-z), with Clock.tick'''
+
+    def __init__(self):
+        labels = []
+        for x in xrange(10000):
+            button = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+            labels.append(''.join(button))
+        self.labels = labels
+
+    def run(self):
+        o = []
+        for x in self.labels:
+            o.append(Button(text=x))
         # tick for texture creation
         Clock.tick()
 

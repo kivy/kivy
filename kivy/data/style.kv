@@ -9,9 +9,8 @@
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
-<Button,ToggleButton>:
+<-Button,-ToggleButton>:
     canvas:
-        Clear
         Color:
             rgba: self.background_color
         BorderImage:
