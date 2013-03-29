@@ -255,11 +255,72 @@ You can clear all the previous instructions by using the `Clear` command::
 Then, only your rules that follow the `Clear` command will be taken into
 consideration.
 
+.. _dynamic_classes:
+
+Dynamic classes
+---------------
+
+Dynamic classes allow you to create new widgets on-the-fly, without any python
+declaration in the first place. The syntax of the dynamic classes is similar to
+the Rules, but you need to specify what are the bases classes you want to
+subclasses.
+
+The syntax look like::
+
+    # Simple inheritance
+    <NewWidget@Button>:
+        ...
+
+    # Multiple inheritance
+    <NewWidget@Label,ButtonBehavior>:
+        ...
+
+The `@` character is used to seperate the name from the classes you want to
+subclass. The Python equivalent would have been::
+
+    # Simple inheritance
+    class NewWidget(Button):
+        pass
+
+    # Multiple inheritance
+    class NewWidget(Label, ButtonBehavior):
+        pass
+
+Any new properties, usually added in python code, should be declared first.
+If the property doesn't exist in the dynamic classes, it will be automatically
+created as an :class:`~kivy.properties.ObjectProperty`.
+
+Let's illustrate the usage of theses dynamic classes with an implementation of a
+basic Image button. We could derivate our classes from the Button, we just need
+to add a property for the image filename::
+
+    <ImageButton@Button>:
+        source: None
+
+        Image:
+            source: root.source
+            pos: root.pos
+            size: root.size
+
+    # let's use the new classes in another rule:
+    <MainUI>:
+        BoxLayout:
+            ImageButton:
+                source: 'hello.png'
+                on_press: root.do_something()
+            ImageButton:
+                source: 'world.png'
+                on_press: root.do_something_else()
+
 
 .. _template_usage:
 
 Templates
 ---------
+
+.. versionchanged:: 1.6.1
+
+    The template usage are now deprecated, please use Dynamic classes instead.
 
 .. versionadded:: 1.0.5
 
@@ -735,16 +796,33 @@ class ParserRule(object):
                                   'Invalid rule (must be inside <>)')
         rules = name[1:-1].split(',')
         for rule in rules:
+            crule = None
             if not len(rule):
                 raise ParserException(self.ctx, self.line,
                                       'Empty rule detected')
-            crule = None
-            if rule[0] == '.':
-                crule = ParserSelectorClass(rule[1:])
-            elif rule[0] == '#':
-                crule = ParserSelectorId(rule[1:])
-            else:
+
+            if '@' in rule:
+                # new class creation ?
+                # ensure the name is correctly written
+                rule, baseclasses = rule.split('@', 1)
+                if not re.match(lang_key, rule):
+                    raise ParserException(self.ctx, self.line,
+                            'Invalid dynamic class name')
+
+                # save the name in the dynamic classes dict.
+                self.ctx.dynamic_classes[rule] = baseclasses
                 crule = ParserSelectorName(rule)
+
+            else:
+                # classical selectors.
+
+                if rule[0] == '.':
+                    crule = ParserSelectorClass(rule[1:])
+                elif rule[0] == '#':
+                    crule = ParserSelectorId(rule[1:])
+                else:
+                    crule = ParserSelectorName(rule)
+
             self.ctx.rules.append((crule, self))
 
     def _build_template(self):
@@ -777,7 +855,7 @@ class Parser(object):
         range(ord('0'), ord('9') + 1) + [ord('_')])
 
     __slots__ = ('rules', 'templates', 'root', 'sourcecode',
-                 'directives', 'filename')
+                 'directives', 'filename', 'dynamic_classes')
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
@@ -786,6 +864,7 @@ class Parser(object):
         self.root = None
         self.sourcecode = []
         self.directives = []
+        self.dynamic_classes = {}
         self.filename = kwargs.get('filename', None)
         content = kwargs.get('content', None)
         if content is None:
@@ -1138,6 +1217,7 @@ class BuilderBase(object):
 
     def __init__(self):
         super(BuilderBase, self).__init__()
+        self.dynamic_classes = {}
         self.templates = {}
         self.rules = []
         self.rulectx = {}
@@ -1186,6 +1266,10 @@ class BuilderBase(object):
                 templates[x] = y
         self.templates = templates
 
+        # unregister all the dynamic classes
+        Factory.unregister_from_filename(filename)
+
+
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder
 
@@ -1210,6 +1294,10 @@ class BuilderBase(object):
                 Factory.register(name,
                                  cls=partial(self.template, name),
                                  is_template=True)
+
+            # register all the dynamic classes
+            for name, baseclasses in parser.dynamic_classes.iteritems():
+                Factory.register(name, baseclasses=baseclasses, filename=fn)
 
             # create root object is exist
             if kwargs['rulesonly'] and parser.root:

@@ -28,6 +28,7 @@ Example using a class name::
 __all__ = ('Factory', 'FactoryException')
 
 from kivy.logger import Logger
+from types import ClassType
 
 
 class FactoryException(Exception):
@@ -51,20 +52,40 @@ class FactoryBase(object):
         else:
             return False
 
-    def register(self, classname, cls=None, module=None, is_template=False):
+    def register(self, classname, cls=None, module=None, is_template=False,
+            baseclasses=None, filename=None):
         '''Register a new classname refering to a real class or
         class definition in a module.
 
-        :data:`is_template` have been added in 1.0.5.
+        .. versionchanged:: 1.6.1
+            :data:`baseclasses` and :data:`filename` added
+
+        .. versionchanged:: 1.0.5
+            :data:`is_template` have been added in 1.0.5.
         '''
-        if cls is None and module is None:
-            raise ValueError('You must specify either cls= or module=')
+        if cls is None and module is None and baseclasses is None:
+            raise ValueError(
+                'You must specify either cls= or module= or baseclasses =')
         if classname in self.classes:
             return
         self.classes[classname] = {
             'module': module,
             'cls': cls,
-            'is_template': is_template}
+            'is_template': is_template,
+            'baseclasses': baseclasses,
+            'filename': filename}
+
+    def unregister_from_filename(self, filename):
+        '''Unregister all the factory object related to the filename passed in
+        the parameter.
+
+        .. versionadded:: 1.6.1
+        '''
+        to_remove = [x for x in self.classes \
+                if self.classes[x][filename] == filename]
+        for name in to_remove:
+            del self.classes[name]
+
 
     def __getattr__(self, name):
         classes = self.classes
@@ -76,11 +97,22 @@ class FactoryBase(object):
 
         # No class to return, import the module
         if cls is None:
-            module = __import__(name=item['module'], fromlist='.')
-            if not hasattr(module, name):
-                raise FactoryException('No class named <%s> in module <%s>' % (
-                    name, item['module']))
-            cls = item['cls'] = getattr(module, name)
+            if item['module']:
+                module = __import__(name=item['module'], fromlist='.')
+                if not hasattr(module, name):
+                    raise FactoryException(
+                        'No class named <%s> in module <%s>' % (
+                        name, item['module']))
+                cls = item['cls'] = getattr(module, name)
+
+            elif item['baseclasses']:
+                rootwidgets = []
+                for basecls in item['baseclasses'].split('+'):
+                    rootwidgets.append(Factory.get(basecls))
+                cls = ClassType(name, tuple(rootwidgets), {})
+
+            else:
+                raise FactoryException('No information to create the class')
 
         return cls
 
