@@ -154,8 +154,10 @@
     but_cut: cut
     but_copy: copy
     but_paste: paste
+    but_selectall: selectall
+
     size_hint: None, None
-    size: 150, 50
+    size: '150sp', '50sp'
     BubbleButton:
         id: cut
         text: 'Cut'
@@ -168,6 +170,10 @@
         id: paste
         text: 'Paste'
         on_release: root.do('paste')
+    BubbleButton:
+        id: selectall
+        text: 'Select All'
+        on_release: root.do('selectall')
 
 
 <TreeViewNode>:
