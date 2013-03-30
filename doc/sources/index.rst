@@ -8,10 +8,12 @@ Welcome to Kivy's documentation. Kivy is an open source software library for rap
 development of applications equipped with novel user interfaces, such as
 multi-touch apps.
 
-We recommend that you get started with :doc:`/gettingstarted/index`. Then head over to the :ref:`guide-index`. We also have a :ref:`quickstart` if you are impatient.
+We recommend that you get started with :doc:`/gettingstarted/index`. Then head
+over to the :ref:`guide-index`. We also have a :ref:`quickstart` if you are impatient.
 
 You are probably wondering why you should be interested in using Kivy. There is
-a document outlining our :ref:`philosophy` that we encourage you to read, and a detailed :ref:`architecture`.
+a document outlining our :ref:`philosophy` that we encourage you to read, and a 
+detailed :ref:`architecture`.
 
 If you want to contribute to Kivy, make sure to read :ref:`contributing`. If your
 concern isn't addressed in the documentation, feel free to :ref:`contact`.

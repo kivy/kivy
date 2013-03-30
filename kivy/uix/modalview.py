@@ -142,9 +142,9 @@ class ModalView(AnchorLayout):
 
     _window = ObjectProperty(None, allownone=True)
 
+    __events__ = ('on_open', 'on_dismiss')
+
     def __init__(self, **kwargs):
-        self.register_event_type('on_open')
-        self.register_event_type('on_dismiss')
         self._parent = None
         super(ModalView, self).__init__(**kwargs)
 

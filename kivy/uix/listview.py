@@ -893,6 +893,8 @@ class ListView(AbstractView, EventDispatcher):
     _wstart = NumericProperty(0)
     _wend = NumericProperty(None)
 
+    __events__ = ('on_scroll_complete', )
+
     def __init__(self, **kwargs):
         # Check for an adapter argument. If it doesn't exist, we
         # check for item_strings in use with SimpleListAdapter
@@ -912,8 +914,6 @@ class ListView(AbstractView, EventDispatcher):
                 list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
                                                  cls=Label)
             kwargs['adapter'] = list_adapter
-
-        self.register_event_type('on_scroll_complete')
 
         super(ListView, self).__init__(**kwargs)
 

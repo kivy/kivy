@@ -33,7 +33,7 @@ cdef class Instruction:
     cdef void rremove(self, InstructionGroup ig)
 
 cdef class InstructionGroup(Instruction):
-    cdef list children
+    cdef public list children
     cdef InstructionGroup compiled_children
     cdef GraphicsCompiler compiler
     cdef void build(self)

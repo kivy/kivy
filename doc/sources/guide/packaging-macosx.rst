@@ -1,12 +1,12 @@
-Create package for MacOSX
-=========================
+Creating packages for MacOSX
+============================
 
-Packaging your application for the MacOSX 10.6 platform can be done only inside
+Packaging your application for the MacOSX 10.6 platform can only be done inside
 MacOSX. The following method has only been tested inside VirtualBox and
 MacOSX 10.6, using the portable package of Kivy.
 
-The package will be only for 64 bits MacOSX. We have no way to do 32 bits right
-now, since we are not supporting 32 bits MacOSX platform.
+The package will only work for the 64 bit MacOSX. We no longer support 32 bit
+MacOSX platforms.
 
 .. _mac_osx_requirements:
 
@@ -14,22 +14,22 @@ Requirements
 ------------
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
-    * PyInstaller 2.0: http://www.pyinstaller.org/#Downloads
+    * `PyInstaller 2.0 <http://www.pyinstaller.org/#Downloads>`_
 
-Ensure you've installed Kivy DMG and installed make-symlink script. `kivy`
-command must be accessible from the command line.
+Please ensure that you have installed the Kivy DMG and installed the `make-symlink` script.
+The `kivy` command must be accessible from the command line.
 
-Then, download and decompress the PyInstaller 2.0.
+Thereafter, download and decompress the PyInstaller 2.0 package.
 
 .. warning::
 
-    It seem that latest PyInstaller has a bug when reading Mach-O binaries.
-    (http://www.pyinstaller.org/ticket/614). To fix the issues, you can::
+    It seems that the latest PyInstaller has a bug affecting Mach-O binaries.
+    (http://www.pyinstaller.org/ticket/614). To correct the issue, type::
 
         cd pyinstaller-2.0/PyInstaller/lib/macholib
         curl -O https://bitbucket.org/ronaldoussoren/macholib/raw/e32d04b5361950a9343ca453d75602b65787f290/macholib/mach_o.py
         
-    And then, the issue should be gone. It should be ok in the 2.1.
+    In version 2.1, the issue has already been corrected.
 
 
 .. _mac_Create-the-spec-file:
@@ -37,27 +37,27 @@ Then, download and decompress the PyInstaller 2.0.
 Create the spec file
 --------------------
 
-For an example, we'll package the touchtracer example, using a custom icon. The
-touchtracer is in the `../kivy/examples/demo/touchtracer/` directory, and the main
+As an example, we'll package the touchtracer demo, using a custom icon. The
+touchtracer code is in the `../kivy/examples/demo/touchtracer/` directory, and the main
 file is named `main.py`. Replace both path/filename according to your system.
 
-#. Open a console
+#. Open a console.
 #. Go to the pyinstaller directory, and create the initial specs::
 
     cd pyinstaller-2.0
     kivy pyinstaller.py --name touchtracer ../kivy/examples/demo/touchtracer/main.py
 
-#. The specs file is located on `touchtracer/touchtracer.spec` inside the
+#. The specs file is named `touchtracer/touchtracer.spec` and located inside the
    pyinstaller directory. Now we need to edit the spec file to add kivy hooks
-   to correctly build the exe.
+   to correctly build the executable.
    Open the spec file with your favorite editor and put theses lines at the
    start of the spec::
 
     from kivy.tools.packaging.pyinstaller_hooks import install_hooks
     install_hooks(globals())
 
-   In the `Analysis()` command, remove the `hookspath=None` parameters.
-   Otherwise, the kivy package hook will not be used at all.
+   In the `Analysis()` method, remove the `hookspath=None` parameter.
+   If you don't do this, the kivy package hook will not be used at all.
 
    Then, you need to change the `COLLECT()` call to add the data of touchtracer
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
@@ -69,14 +69,14 @@ file is named `main.py`. Replace both path/filename according to your system.
                    #...
                    )
 
-#. This is done, your spec is ready to be executed !
+#. We are done. Your spec is ready to be executed!
 
 .. _Build the spec and create DMG:
 
-Build the spec and create DMG
------------------------------
+Build the spec and create a DMG
+-------------------------------
 
-#. Open a console
+#. Open a console.
 #. Go to the pyinstaller directory, and build the spec::
 
     cd pyinstaller-2.0
@@ -89,15 +89,15 @@ Build the spec and create DMG
     hdiutil create ./Touchtracer.dmg -srcfolder touchtracer.app -ov
     popd
 
-#. You will have a Touchtracer.dmg available in the `touchtracer/dist` directory
+#. You will now have a Touchtracer.dmg available in the `touchtracer/dist` directory.
 
 Including Gstreamer
 -------------------
 
-If you wanted to read video files, audio, or camera, you would need to include
-gstreamer. By default, only pygst/gst are discovered, but all the gst plugins
+If you want to read video files, audio, or camera, you will need to include
+gstreamer. By default, only pygst/gst files are discovered, but all the gst plugins
 and libraries are missing. You need to include them in your .spec file too, by
-adding one more argument to the `COLLECT()` method::
+adding one more arguments to the `COLLECT()` method::
 
     import os
     gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split(':')[0]

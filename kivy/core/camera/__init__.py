@@ -40,6 +40,8 @@ class CameraBase(EventDispatcher):
             Fired each time the camera texture is updated
     '''
 
+    __events__ = ('on_load', 'on_texture')
+
     def __init__(self, **kwargs):
         kwargs.setdefault('stopped', False)
         kwargs.setdefault('resolution', (640, 480))
@@ -55,9 +57,6 @@ class CameraBase(EventDispatcher):
         kwargs.setdefault('size', self._resolution)
 
         super(CameraBase, self).__init__()
-
-        self.register_event_type('on_load')
-        self.register_event_type('on_texture')
 
         self.init_camera()
 

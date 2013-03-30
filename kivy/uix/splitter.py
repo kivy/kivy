@@ -124,11 +124,11 @@ class Splitter(BoxLayout):
     defaults to `500pt`
     '''
 
+    __events__ = ('on_press', 'on_release')
+
     def __init__(self, **kwargs):
         self._container = None
         self._strip = None
-        self.register_event_type('on_press')
-        self.register_event_type('on_release')
         super(Splitter, self).__init__(**kwargs)
 
     def on_sizable_from(self, instance, sizable_from):

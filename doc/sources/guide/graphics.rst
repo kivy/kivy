@@ -11,19 +11,23 @@ as an unlimited drawing board, and as a set of drawing instructions, there are
 numerous different instructions you can apply (add) to your canvas, but there
 is two main kind of them:
 
-- :mod:`~kivy.graphics.context_instructions` Context instructions
-- :mod:`~kivy.graphics.vertex_instructions` Vertex Instructions
+- :mod:`context instructions <kivy.graphics.context_instructions>`
+- :mod:`vertex instructions <kivy.graphics.vertex_instructions>`
 
 Context instructions don't draw anything, but they change the results of the
-Vertex instructions.
+vertex instructions.
 
-Canvas can contains subsets of instructions, to treat them specially. There are
-two default subsets of this kind, that you can access as
-`~kivy.graphics.canvas.before` and `~kivy.graphics.canvas.after`, the
-instructions in these groups will be executed respectively before and after the
-main ones, which mean they will be respectively under and above them.
+Canvasses can contain two subsets of instructions. They are the
+:mod:`canvas.before <kivy.graphics.Canvas.before>` and the :mod:`canvas.after
+<kivy.graphics.Canvas.after>` instruction groups.  The instructions in these
+groups will be executed before and after the :mod:`~kivy.graphics.canvas` group
+respectively. This means that they will appear under (be executed before) and
+above (be executed after) them.
+Thoses groups are not created until the user accesses them.
 
-to add a canvas instruction to a widget, you use the canvas context::
+To add a canvas instruction to a widget, you use the canvas context:
+
+.. code-block:: python
 
     class MyWidget(Widget):
         def __init__(self, **kwargs):
@@ -67,7 +71,7 @@ Manipulating instructions
 Sometime, you want to update or remove the instructions you added to a canvas,
 this can be done in various ways depending on your needs:
 
-You can keep a reference to your instruction and update them::
+You can keep a reference to your instructions and update them::
 
     class MyWidget(Widget):
         def __init__(self, **kwargs):

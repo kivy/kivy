@@ -173,7 +173,7 @@ class MotionEvent(object):
         self.grab_exclusive_class = None
         self.grab_state = False
 
-        #: Used to determine which widget the touch is beeing dispatched.
+        #: Used to determine which widget the touch is being dispatched.
         #: Check :func:`grab` function for more information.
         self.grab_current = None
 

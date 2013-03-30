@@ -92,7 +92,7 @@ class SoundGstreamer(Sound):
         if self._data is None:
             return
         self._data.seek_simple(gst.FORMAT_TIME, gst.SEEK_FLAG_SKIP,
-                               position / 1000000000.)
+                               position * 1000000000.)
 
     def get_pos(self):
         if self._data is not None:

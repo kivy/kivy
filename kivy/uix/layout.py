@@ -62,7 +62,7 @@ class Layout(Widget):
 
     def do_layout(self, *largs):
         '''This function is called when a layout is needed, by a trigger.
-        If you are doing a new Layout subclass, don't call this function
+        If you are writing a new Layout subclass, don't call this function
         directly, use :meth:`_trigger_layout` instead.
 
         .. versionadded:: 1.0.8

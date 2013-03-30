@@ -63,11 +63,12 @@ class ProxyImage(Image):
             Fired when the image is loaded and changed
     '''
 
+    __events__ = ('on_load', )
+
     def __init__(self, arg, **kwargs):
         kwargs.setdefault('loaded', False)
         super(ProxyImage, self).__init__(arg, **kwargs)
         self.loaded = kwargs.get('loaded')
-        self.register_event_type('on_load')
 
     def on_load(self):
         pass

@@ -25,12 +25,12 @@ Here is a check list for things you should know before starting this tutorial:
 
 - You have a working Kivy installation.  See the :doc:`/installation/installation`
   section for detailed descriptions
-- You know how to run a basic Kivy application. See :doc:`/guide/quickstart`
+- You know how to run a basic Kivy application. See :ref:`quickstart`
   if you don't.
 
 If you have read the programming guide, and understand both basic Widget
 concepts (:doc:`/guide/firstwidget`) and basic concepts of the kv language
-(:doc:`/guide/kvlang`, :doc:`/guide/designwithkv`), you can probably skip the first 2
+(:doc:`/guide/lang`, :doc:`/guide/designwithkv`), you can probably skip the first 2
 steps and go straight to step 3.
 
 .. note::

@@ -93,7 +93,9 @@ automatically created and added to the instance.
 `AnotherClass` will be created and added as a child of the `ClassName`
 instance.
 
-- The indentation is important, and must be 4 spaces. Tabs are not allowed.
+- The indentation is important and must be consistent. The spacing must be a
+  multiple of the number of spaces used on the first indented line. Spaces
+  are encouraged; mixing tabs and spaces is not recommended.
 - The value of a property must be given on a single line (for now at least).
 - The `canvas` property is special: You can put graphics instructions in it
   to create a graphical representation of the current class.
@@ -105,6 +107,12 @@ Here is a simple example of a kv file that contains a root widget::
 
     Button:
         text: 'Hello world'
+
+
+.. versionchanged:: 1.6.1
+
+    The indentation is not limited to 4 spaces anymore. The spacing must be a
+    multiple of the number of spaces used on the first indented line.
 
 
 Value Expressions and Reserved Keywords
@@ -247,11 +255,72 @@ You can clear all the previous instructions by using the `Clear` command::
 Then, only your rules that follow the `Clear` command will be taken into
 consideration.
 
+.. _dynamic_classes:
+
+Dynamic classes
+---------------
+
+Dynamic classes allow you to create new widgets on-the-fly, without any python
+declaration in the first place. The syntax of the dynamic classes is similar to
+the Rules, but you need to specify what are the bases classes you want to
+subclasses.
+
+The syntax look like::
+
+    # Simple inheritance
+    <NewWidget@Button>:
+        ...
+
+    # Multiple inheritance
+    <NewWidget@Label,ButtonBehavior>:
+        ...
+
+The `@` character is used to seperate the name from the classes you want to
+subclass. The Python equivalent would have been::
+
+    # Simple inheritance
+    class NewWidget(Button):
+        pass
+
+    # Multiple inheritance
+    class NewWidget(Label, ButtonBehavior):
+        pass
+
+Any new properties, usually added in python code, should be declared first.
+If the property doesn't exist in the dynamic classes, it will be automatically
+created as an :class:`~kivy.properties.ObjectProperty`.
+
+Let's illustrate the usage of theses dynamic classes with an implementation of a
+basic Image button. We could derivate our classes from the Button, we just need
+to add a property for the image filename::
+
+    <ImageButton@Button>:
+        source: None
+
+        Image:
+            source: root.source
+            pos: root.pos
+            size: root.size
+
+    # let's use the new classes in another rule:
+    <MainUI>:
+        BoxLayout:
+            ImageButton:
+                source: 'hello.png'
+                on_press: root.do_something()
+            ImageButton:
+                source: 'world.png'
+                on_press: root.do_something_else()
+
 
 .. _template_usage:
 
 Templates
 ---------
+
+.. versionchanged:: 1.6.1
+
+    The template usage are now deprecated, please use Dynamic classes instead.
 
 .. versionadded:: 1.0.5
 
@@ -640,7 +709,7 @@ class ParserRule(object):
 
     __slots__ = ('ctx', 'line', 'name', 'children', 'id', 'properties',
                  'canvas_before', 'canvas_root', 'canvas_after',
-                 'handlers', 'level', 'cache_marked')
+                 'handlers', 'level', 'cache_marked', 'avoid_previous_rules')
 
     def __init__(self, ctx, line, name, level):
         super(ParserRule, self).__init__()
@@ -668,6 +737,8 @@ class ParserRule(object):
         self.handlers = []
         #: Properties cache list: mark which class have already been checked
         self.cache_marked = []
+        #: Indicate if any previous rules should be avoided.
+        self.avoid_previous_rules = False
 
         if level == 0:
             self._detect_selectors()
@@ -725,18 +796,43 @@ class ParserRule(object):
         if name[0] != '<' or name[-1] != '>':
             raise ParserException(self.ctx, self.line,
                                   'Invalid rule (must be inside <>)')
-        rules = name[1:-1].split(',')
+
+        # if the very first name start with a -, avoid previous rules
+        name = name[1:-1]
+        if name[:1] == '-':
+            self.avoid_previous_rules = True
+            name = name[1:]
+
+        rules = name.split(',')
         for rule in rules:
+            crule = None
+
             if not len(rule):
                 raise ParserException(self.ctx, self.line,
                                       'Empty rule detected')
-            crule = None
-            if rule[0] == '.':
-                crule = ParserSelectorClass(rule[1:])
-            elif rule[0] == '#':
-                crule = ParserSelectorId(rule[1:])
-            else:
+
+            if '@' in rule:
+                # new class creation ?
+                # ensure the name is correctly written
+                rule, baseclasses = rule.split('@', 1)
+                if not re.match(lang_key, rule):
+                    raise ParserException(self.ctx, self.line,
+                            'Invalid dynamic class name')
+
+                # save the name in the dynamic classes dict.
+                self.ctx.dynamic_classes[rule] = baseclasses
                 crule = ParserSelectorName(rule)
+
+            else:
+                # classical selectors.
+
+                if rule[0] == '.':
+                    crule = ParserSelectorClass(rule[1:])
+                elif rule[0] == '#':
+                    crule = ParserSelectorId(rule[1:])
+                else:
+                    crule = ParserSelectorName(rule)
+
             self.ctx.rules.append((crule, self))
 
     def _build_template(self):
@@ -769,7 +865,7 @@ class Parser(object):
         range(ord('0'), ord('9') + 1) + [ord('_')])
 
     __slots__ = ('rules', 'templates', 'root', 'sourcecode',
-                 'directives', 'filename')
+                 'directives', 'filename', 'dynamic_classes')
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
@@ -778,6 +874,7 @@ class Parser(object):
         self.root = None
         self.sourcecode = []
         self.directives = []
+        self.dynamic_classes = {}
         self.filename = kwargs.get('filename', None)
         content = kwargs.get('content', None)
         if content is None:
@@ -882,10 +979,10 @@ class Parser(object):
             if not stripped:
                 lines.remove((ln, line))
 
-    def parse_level(self, level, lines):
-        '''Parse the current level (level * 4) indentation.
+    def parse_level(self, level, lines, spaces=0):
+        '''Parse the current level (level * spaces) indentation.
         '''
-        indent = 4 * level
+        indent = spaces * level if spaces > 0 else 0
         objects = []
 
         current_object = None
@@ -902,14 +999,20 @@ class Parser(object):
             # Replace any tab with 4 spaces
             tmp = content[:len(content) - len(tmp)]
             tmp = tmp.replace('\t', '    ')
+
+            # first indent designates the indentation
+            if spaces == 0:
+                spaces = len(tmp)
+
             count = len(tmp)
 
-            if count % 4 != 0:
+            if spaces > 0 and count % spaces != 0:
                 raise ParserException(self, ln,
                                       'Invalid indentation, '
-                                      'must be a multiple of 4 spaces')
+                                      'must be a multiple of '
+                                      '%s spaces' % spaces)
             content = content.strip()
-            rlevel = count // 4
+            rlevel = count // spaces if spaces > 0 else 0
 
             # Level finished
             if count < indent:
@@ -935,7 +1038,7 @@ class Parser(object):
                 objects.append(current_object)
 
             # Next level, is it a property or an object ?
-            elif count == indent + 4:
+            elif count == indent + spaces:
                 x = content.split(':', 1)
                 if not len(x[0]):
                     raise ParserException(self, ln, 'Identifier missing')
@@ -944,7 +1047,7 @@ class Parser(object):
                 current_property = None
                 name = x[0]
                 if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
-                    _objects, _lines = self.parse_level(level + 1, lines[i:])
+                    _objects, _lines = self.parse_level(level + 1, lines[i:], spaces)
                     current_object.children = _objects
                     lines = _lines
                     i = 0
@@ -977,10 +1080,10 @@ class Parser(object):
                         current_propobject = None
 
             # Two more levels?
-            elif count == indent + 8:
+            elif count == indent + 2 * spaces:
                 if current_property in (
                         'canvas', 'canvas.after', 'canvas.before'):
-                    _objects, _lines = self.parse_level(level + 2, lines[i:])
+                    _objects, _lines = self.parse_level(level + 2, lines[i:], spaces)
                     rl = ParserRule(self, ln, current_property, rlevel)
                     rl.children = _objects
                     if current_property == 'canvas':
@@ -1078,7 +1181,8 @@ class ParserSelector(object):
 class ParserSelectorId(ParserSelector):
 
     def match(self, widget):
-        return widget.id.lower() == self.key
+        if widget.id:
+            return widget.id.lower() == self.key
 
 
 class ParserSelectorClass(ParserSelector):
@@ -1123,6 +1227,7 @@ class BuilderBase(object):
 
     def __init__(self):
         super(BuilderBase, self).__init__()
+        self.dynamic_classes = {}
         self.templates = {}
         self.rules = []
         self.rulectx = {}
@@ -1171,6 +1276,10 @@ class BuilderBase(object):
                 templates[x] = y
         self.templates = templates
 
+        # unregister all the dynamic classes
+        Factory.unregister_from_filename(filename)
+
+
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder
 
@@ -1195,6 +1304,10 @@ class BuilderBase(object):
                 Factory.register(name,
                                  cls=partial(self.template, name),
                                  is_template=True)
+
+            # register all the dynamic classes
+            for name, baseclasses in parser.dynamic_classes.iteritems():
+                Factory.register(name, baseclasses=baseclasses, filename=fn)
 
             # create root object is exist
             if kwargs['rulesonly'] and parser.root:
@@ -1392,6 +1505,8 @@ class BuilderBase(object):
         rules = []
         for selector, rule in self.rules:
             if selector.match(widget):
+                if rule.avoid_previous_rules:
+                    del rules[:]
                 rules.append(rule)
         cache[k] = rules
         return rules

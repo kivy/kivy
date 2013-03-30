@@ -81,6 +81,7 @@ from kivy.graphics.c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.instructions cimport RenderContext, Canvas
+from kivy.graphics.opengl import glReadPixels as py_glReadPixels
 
 cdef list fbo_stack = []
 cdef list fbo_release_list = []
@@ -374,3 +375,14 @@ cdef class Fbo(RenderContext):
         def __get__(self):
             return self._texture
 
+    property pixels:
+        '''Get the pixels texture, in RGBA format only, unsigned byte.
+
+        .. versionadded:: 1.6.1
+        '''
+        def __get__(self):
+            w,h = self._width, self._height
+            self.bind()
+            data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
+            self.release()
+            return str(buffer(data))

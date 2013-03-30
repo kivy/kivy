@@ -206,12 +206,7 @@ class Screen(RelativeLayout):
     default to 'out'.
     '''
 
-    def __init__(self, **kwargs):
-        self.register_event_type('on_pre_enter')
-        self.register_event_type('on_enter')
-        self.register_event_type('on_pre_leave')
-        self.register_event_type('on_leave')
-        super(Screen, self).__init__(**kwargs)
+    __events__ = ('on_pre_enter', 'on_enter', 'on_pre_leave', 'on_leave')
 
     def on_pre_enter(self, *args):
         pass
@@ -282,10 +277,7 @@ class TransitionBase(EventDispatcher):
 
     _anim = ObjectProperty(allownone=True)
 
-    def __init__(self, **kw):
-        self.register_event_type('on_progress')
-        self.register_event_type('on_complete')
-        super(TransitionBase, self).__init__(**kw)
+    __events__ = ('on_progress', 'on_complete')
 
     def start(self, manager):
         '''(internal) Start the transition. This is automatically called by the

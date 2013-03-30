@@ -595,6 +595,23 @@ cdef class Canvas(CanvasBase):
                 self._after = c
             return self._after
 
+    property has_before:
+        '''Property to see if the canvas.before is already created
+
+        .. versionadded:: 1.6.1
+        '''
+        def __get__(self):
+            return self._before is not None
+
+    property has_after:
+        '''Property to see if the canvas.after is already created
+
+        .. versionadded:: 1.6.1
+        '''
+        def __get__(self):
+            return self._after is not None
+
+
     property opacity:
         '''Property for get/set the opacity value of the canvas.
 

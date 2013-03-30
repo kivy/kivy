@@ -276,12 +276,10 @@ class FileChooserController(FloatLayout):
     'cp1252']
     '''
 
+    __events__ = ('on_entry_added', 'on_entries_cleared',
+            'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
+
     def __init__(self, **kwargs):
-        self.register_event_type('on_entry_added')
-        self.register_event_type('on_entries_cleared')
-        self.register_event_type('on_subentry_to_entry')
-        self.register_event_type('on_remove_subentry')
-        self.register_event_type('on_submit')
         self._progress = None
         super(FileChooserController, self).__init__(**kwargs)
 
