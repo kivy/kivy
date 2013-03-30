@@ -23,7 +23,7 @@ Widgets
 .. |Widget| replace:: :class:`~kivy.uix.widget.Widget`
 .. |Button| replace:: :class:`~kivy.uix.button.Button`
 .. |Canvas| replace:: :class:`~kivy.graphics.Canvas`
-.. |ListProperty| replace:: :class:`~kivy.properties.ListProperty``
+.. |ListProperty| replace:: :class:`~kivy.properties.ListProperty`
 .. |ReferenceListProperty| replace:: :class:`~kivy.properties.ReferenceListProperty`
 .. |Layout| replace:: :mod:`~kivy.uix.layout`
 .. |RelativeLayout| replace:: :mod:`~kivy.uix.relativelayout`
@@ -35,20 +35,20 @@ Widgets
 .. |add_widget| replace:: :meth:`~kivy.uix.widget.Widget.add_widget`
 .. |remove_widget| replace:: :meth:`~kivy.uix.widget.Widget.remove_widget`
 
-Introduction to Widget
-----------------------
+Introduction to Widgets
+-----------------------
 
-A |Widget| can be termed as the base building block of GUI interfaces in Kivy.
+A |Widget| can be seen as the base building block for GUI interfaces in Kivy.
 It provides a |Canvas| that can be used to draw on screen. It receives events
-and reacts to them. For a in depth explanation about the |Widget| class,
-Look at the module documentation.
+and reacts to them. For a in depth explanation of the |Widget| class,
+please consult the documentation.
 
 Manipulating the Widget tree
 ----------------------------
 
-Widgets in kivy like in many other frameworks are organized in Trees, your
-application has a `root widget`, which usually has |children| that can have
-|children| of their own. Children of a widget are represented as the |children|
+Widgets in kivy, like in many other frameworks, are organized in Trees. Your
+Window has a `root widget` which usually has |children|, each of which can have
+|children| of their own. Children of a widget are listed in the |children|
 attribute which is a |ListProperty|.
 
 The Widget Tree can be manipulated with the following methods:
@@ -65,27 +65,27 @@ For example, if you want to add a button inside a boxlayout, you can do::
     button = Button(text='My first button')
     layout.add_widget(button)
 
-Now, the button parent will be set to layout, and layout will have button in his
-children list. To remove the button from the layout::
+Now, the `button.parent` property will be set to `layout`, and `layout` will
+have the button in its `children` list. To remove the button from the layout::
 
     layout.remove_widget(button)
 
-The button parent will be set to None, and layout will remove button from his
-children list.
+The `button.parent` will be set to `None`, and `layout` will remove the
+button from it's `children` list.
 
-If you want to clear all the children inside a widget, use
+If you want to remove all the children inside a widget, use the
 :meth:`~kivy.uix.widget.Widget.clear_widgets` method::
-
+ 
     layout.clear_widgets()
 
 .. warning::
 
-    Never manipulate the children list yourself, if you don't know what you are
-    doing. The widget tree is associated to a graphic tree. For example, if you
+    Never manipulate the `children` list yourself if you don't know what you are
+    doing. The widget tree is associated to a graphics tree. For example, if you
     add a widget into the children list without adding its canvas to the
-    graphics tree, the widget will be a child yes, but nothing will be drawn
-    on the screen. More than that, you might have issues on further calls of
-    add_widget, remove_widget and clear_widgets.
+    graphics tree, the widget will be a child but nothing will be drawn
+    on the screen. Furthermore, you might have issues with further calls to
+    `add_widget`, `remove_widget` and `clear_widgets`.
 
 
 Traversing the tree
@@ -99,7 +99,7 @@ that contains all the children. You can easily traverse the tree by doing::
     for child in root.children:
         print child
 
-However, this must be used carefuly. If you intend to modify the children list
+However, this must be used carefully. If you intend to modify the `children` list
 with one of the methods shown in the previous section, you must use a copy of
 the list like this::
 
@@ -111,24 +111,26 @@ the list like this::
 
 
 Widgets don't influence the size/pos of their children by default, so the
-|pos| attribute is the absolute position in screen co-ordinates (unless, of
-course, you use the |RelativeLayout|, more on that later) and |size|, its
-absolute size.
+|pos| attribute is the absolute position in screen co-ordinates and |size| is its
+absolute size. The only exception to this is when you use the |RelativeLayout|, 
+but we'll get back to that later.
 
 Widgets Z index
 ---------------
-Widgets canvas/graphical representation is drawn based on their position in
-the Widget Tree. I.E. The last widgets canvas is drawn last(on top of everything
-else inside its parent). Add Widget takes a `index` parameter that you can use like so::
+A widgets canvas/graphical representation is drawn based on its position in
+the Widget Tree i.e. The last widgets canvas is drawn last (on top of everything
+else inside its parent). The `add_widget` method takes a `index` parameter that
+you can use like so::
 
     root.add_widget(widget, index)
 
-to try and manipulate the z-index of a child
+Using the index parameter, you can specify the childs place in the widget tree and
+thus its z-index.
 
 Organize with Layouts
 ---------------------
 
-|Layout| is a special kind of widget that controls the size and position of
+A |Layout| is a special kind of widget that controls the size and position of
 its children. There are different kinds of layouts, allowing for different
 automatic organization of their children. Layouts use |size_hint| and |pos_hint|
 properties to determine the |size| and |pos| of their |children|.
@@ -136,11 +138,12 @@ properties to determine the |size| and |pos| of their |children|.
  - Layout types
 
     **BoxLayout**:
-    Arranges widgets in a side to side (either vertically or horizontally) manner,
-    to fill all the place.
-    size_hint of children can be used to change proportions allowed to each
-    children, or set fixed size for some of them
-    `pos_hint` not honored
+    Arranges widgets in a side-by-side (if the orientation is 'horizontal') or 
+    top-to-bottom (if the orientaion is 'vertical') manner using all the space
+    available. The `size_hint` of the children can be used to change the proportions
+    of each child or set them to a fixed size.
+    
+    `pos_hint` is not honored.
 
     .. only:: html
 
@@ -155,10 +158,10 @@ properties to determine the |size| and |pos| of their |children|.
             :width: 200
 
     **GridLayout**:
-    Arranges widgets in a grid. You must specifiy at least one dimension of the
-    grid so kivy can compute the size of the elements and how to arrange them.
+    Arranges widgets in a grid. You must specifiy at least one dimension for the
+    grid so that kivy can compute the size of the elements and how to arrange them.
 
-    `pos_hint` not honored
+    `pos_hint` is not honored.
 
     .. only:: html
 
@@ -173,10 +176,11 @@ properties to determine the |size| and |pos| of their |children|.
             :width: 200
 
     **StackLayout**:
-    Arranges widgets side to side, but with a set size in a dimension, without
-    trying to make them fit the whole size, this is useful to have a set of
-    chilgren of the same predefined size, side to side.
-    `pos_hint` not honored
+    Arranges widgets side-by-side, but with a set sizes and without
+    trying to make them fit the whole size. This is useful if you want a set of
+    children of some predefined size, side by side.
+    
+    `pos_hint` is not honored.
 
     .. only:: html
 
@@ -191,9 +195,10 @@ properties to determine the |size| and |pos| of their |children|.
             :width: 200
 
     **AnchorLayout**:
-    A simple layout only caring about children position, allows to stick the
-    children to a position relative to a border of the layout.
-    `size_hint` not honored.
+    A simple layout which only cares about its childrens position. It allows you to
+    place children relative to the border of the layout.
+    
+    `size_hint` is not honored.
 
     .. only:: html
 
@@ -208,12 +213,12 @@ properties to determine the |size| and |pos| of their |children|.
             :width: 200
 
     **FloatLayout**:
-    Allow to place children to arbitrary places and size, either absolute or
-    relative to the layout size. Default size_hint (1, 1) will make everychildren
-    the same size as the whole layout, so you probably want to change this value
-    if you have more than one child. You can set size_hint to (None, None) to use
-    absolute size with `size`, this widget honors `pos_hint` too, which as a dict
-    allowing to set position relatively to layout position.
+    Allows you to place children in arbitrary places and with arbitrary sizes, using 
+    either absolute or relative coordinates. The default `size_hint` is `(1, 1)`, and will
+    make the child the same size as the whole layout, so you will probably want to change
+    this value if you have more than one child. You can set the `size_hint` to `(None, None)`
+    to use absolute size with `size`. This widget honors `pos_hint`, which is a dict
+    allowing you to set the position relative to the layouts position.
 
     .. only:: html
 
@@ -228,12 +233,11 @@ properties to determine the |size| and |pos| of their |children|.
             :width: 300
 
     **RelativeLayout**:
-    Behave just like FloatLayout, except children pos is relative to layout
-    position, not screen.
+    Behaves just like FloatLayout, except the childrens `pos` is relative to the layout
+    position, not the screen.
 
 Look at the documentation of the various Layouts to get a in-depth
-understanding.
-|size_hint| and |pos_hint|:
+understanding of how they work with |size_hint| and |pos_hint|:
 
 - |FloatLayout|
 - |BoxLayout|
@@ -244,13 +248,13 @@ understanding.
 
 
 |size_hint| is a |ReferenceListProperty| of
-|size_hint_x| and |size_hint_y|. It excepts values from `0` to `1` or `None`
+|size_hint_x| and |size_hint_y|. It accepts values from `0` to `1` or `None`
 and defaults to `(1, 1)`. This signifies that if the widget is in a layout,
 the layout will allocate it as much place as possible in both directions
 (relative to the layouts size).
 
-Setting |size_hint| to (0.5, 0.8) for example, will make the widget 50% the
-width and 80% the height of available size for the |widget| inside a |layout|.
+Setting |size_hint| to `(0.5, 0.8)` for example, will make the widget 50% the
+width and 80% of the height of the available size for the |widget| inside a |layout|.
 
 Consider the following example:
 
@@ -269,59 +273,59 @@ load kivy catalog::
     python main.py
 
 Replace $KIVYDIR with the directory of your installation of Kivy. Click on the
-button labeled `Box Layout` from the left. Now paste the code from above into
+button labeled `Box Layout` on the left. Now paste the code above into
 the Editor on the right.
 
 .. image:: images/size_hint[B].jpg
 
-As you can see from the image above the `Button` takes up 100% of the layouts
+As you can see from the image above, the `Button` takes up 100% of the layouts
 |size|.
 
-Changing the |size_hint_x|/|size_hint_y| to .5 will make the |widget| take 50%
+Changing the |size_hint_x|/|size_hint_y| to `.5` will make the |widget| take 50%
 of the |layout| |width|/|height|.
 
 .. image:: images/size_hint[b_].jpg
 
 You can see here that although we specify |size_hint_x| and |size_hint_y| both
-to be .5, only |size_hint_x| seems to be honored that's because |BoxLayout|
+to be `.5`, only |size_hint_x| seems to be honored. That's because |BoxLayout|
 controls the |size_hint_y| when |orientation| is `vertical` and |size_hint_x|
 when 'horizontal'. That means the controlled side's size is calculated depending
-upon the total No. of |children| in the |BoxLayout|. Here that's one child with
-|size_hint_y| controlled so, .5/.5 = 1. Thus the widget takes 100% of the parent
+upon the total number of |children| in the |BoxLayout|. Here, that's one child with
+|size_hint_y| controlled, so .5/.5 = 1. Thus the widget takes 100% of the parent
 layout's height.
 
 Let's add another |Button| to the |layout| and see what happens.
 
 .. image:: images/size_hint[bb].jpg
 
-|BoxLayout| by its very nature devides the available space up between its
-|children| equally, in our case that's 50-50 as we have two |children|. Let's
-use size_hint on one of the children and see at the results.
+The |BoxLayout| by its very nature divides the available space between its
+|children| equally. In our case, that's 50-50 as we have two |children|. Let's
+use `size_hint` on one of the children and see look at the results.
 
 .. image:: images/size_hint[oB].jpg
 
 If a child specifies |size_hint|, that specifies how much space the |Widget|
 will take out of the |size| allotted to it by the |BoxLayout|. In our case the
-first |Button| specifies .5 for |size_hint_x|. The space for the widget is
-calculated like so::
+first |Button| specifies `.5` for |size_hint_x|. The space for the widget is
+calculated as follows::
 
-    first child's size_hint devided by
+    first child's size_hint divided by
     first child's size_hint + second child's size_hint + ...n(no of children)
     
     .5/(.5+1) = .333...
 
 
-The rest of the BoxLayouts |width| is divided among the rest of the |children|.
-In our case that means the second |Button| takes up 66.66% of the |layout|
+The rest of the BoxLayouts |width| is divided amongst the rest of the |children|.
+In our case, that means the second |Button| takes up 66.66% of the |layout|
 |width|.
 
 Go ahead and experiment with |size_hint| to get comfortable with it.
 
 If you want to control the absolute |size| of a |Widget|, you can set
-|size_hint_x|/|size_hint_y| or both to `None` so that widgets |width| and or
+|size_hint_x|/|size_hint_y| or both to `None` so that the widgets |width| and/or
 |height| attributes will be honored.
 
-|pos_hint| is a dict, which defaults to empty, As for |size_hint|, different
+|pos_hint| is a dict which defaults to empty. As for |size_hint|, different
 Layouts honor |pos_hint| differently, but you can add values to any of the |pos|
 attributes (|x|, |y|, |left|, |top|, |center_x|, |center_y|) to have the
 |Widget| positioned relatively to its |parent|.
@@ -346,11 +350,11 @@ visually:
             pos_hint: {'x': .3, 'y': .6}
             size_hint: .5, .2
 
-Should give us something that looks like this.
+This code should give us something that looks like this:
 
 .. image:: images/pos_hint.jpg
 
-You should experiment further with |pos_hint| by changing the values to
+You can experiment further with |pos_hint| by changing the values to
 understand the effect they have on the widgets position.
 
 Size and position metrics
@@ -368,21 +372,21 @@ Size and position metrics
 .. |dp| replace:: :attr:`~kivy.metrics.dp`
 .. |sp| replace:: :attr:`~kivy.metrics.sp`
 
-Kivys default unit for length is the pixel, all sizes and positions are
-expressed in it by default. You can express them in other units, which is
+Kivys default unit for length is the pixel: all sizes and positions are
+expressed in pixels by default. You can express them in other units, which is
 useful to achieve better consistency across devices (they get converted to the
-size in pixel automatically).
+size in pixels automatically).
 
-All available units are |pt|, |mm|, |cm|, |in|, |dp| and |sp|, you can see
+All available units are |pt|, |mm|, |cm|, |in|, |dp| and |sp|. You can read more
 about their usage in the |metrics| documentation.
 
-On a related note, you can see the |screen| usage to simulate various devices
-screens for your application.
+On a related note, you can read the |screen| documentation to see how to simulate
+various devices and screen sizes for your application.
 
 Screen Separation with Screen Manager
 -------------------------------------
 
-If your application is composed of various screens, you likely want an easy
+If your application is composed of various screens, you will most likely want an easy
 way to navigate from one |Screen| to another. Fortunately, there is
-|ScreenManager| class, that allows you to define screens separately, and to set
-the |Transitions| from one to another.
+|ScreenManager| class that allows you to define screens separately, and to set
+the |Transitions| from one to the other.
