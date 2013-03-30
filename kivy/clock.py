@@ -255,8 +255,9 @@ class ClockEvent(object):
         self.callback = None
 
     def tick(self, curtime):
-        # timeout happen ?
-        if curtime - self._last_dt < self.timeout:
+        # timeout happened ? (check also if we would miss from 5ms)
+        # this 5ms increase the accuracy if the timing of animation for example.
+        if curtime - self._last_dt < self.timeout - 0.005:
             return True
 
         # calculate current timediff for this event
