@@ -261,7 +261,8 @@ def determine_sdl():
             '-L', join(kivy_ios_root, 'build', 'lib'),
             '-undefined', 'dynamic_lookup']
     else:
-        flags['include_dirs'] = ['/usr/local/include/SDL']
+        flags['include_dirs'] = ['/usr/include/SDL',
+                                '/usr/local/include/SDL']
         flags['extra_link_args'] += ['-L/usr/local/lib/']
 
     if platform == 'ios':
