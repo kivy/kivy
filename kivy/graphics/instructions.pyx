@@ -762,7 +762,7 @@ cdef class RenderContext(Canvas):
         if _active_texture != index:
             _active_texture = index
             glActiveTexture(GL_TEXTURE0 + index)
-        glBindTexture(texture._target, texture._id)
+        texture.bind()
         self.flag_update()
 
     cdef void enter(self):

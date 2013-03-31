@@ -181,6 +181,9 @@ cdef class Fbo(RenderContext):
             self._texture = Texture.create(size=(self._width, self._height))
             do_clear = 1
 
+        # apply any changes if needed
+        self._texture.bind()
+
         # create framebuffer
         glGenFramebuffers(1, &f_id)
         self.buffer_id = f_id
