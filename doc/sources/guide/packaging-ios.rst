@@ -7,16 +7,16 @@ Create a package for IOS
 
 .. warning::
 
-    This method is still under development.
+    This process is still under development.
 
-The overall method for creating a package on IOS can be explained in 4 steps:
+The overall process for creating a package for IOS can be explained in 4 steps:
 
 #. Compile python + modules for IOS
 #. Create an Xcode project
 #. Populate the Xcode project with your application source code
 #. Customize
 
-The current method have been tested with Xcode 4.2
+This process has been tested with Xcode 4.2.
 
 Prerequisites
 -------------
@@ -37,7 +37,7 @@ Ensure that everything is ok before starting the second step!
 Compile the distribution
 ------------------------
 
-Open a terminal, and::
+Open a terminal, and type::
 
     $ git clone git://github.com/kivy/kivy-ios
     $ cd kivy-ios
@@ -53,11 +53,12 @@ Most of the python distribution will be packed into a `python27.zip`.
 Create an Xcode project
 -----------------------
 
-Before doing the next step, ensure your application entry point is a file named
-`main.py`.
+Before proceeding to the next step, ensure your application entry point is a file
+named `main.py`.
 
-We provide a script that create an initial xcode project to start with (replace
-test with that you want. Must be a name without any space / weird chars)::
+We provide a script that creates an initial Xcode project to start with. In the
+command line below, replace `test` with your project name. It must be a
+name without any spaces or illegal characters::
 
     $ tools/create-xcode-project.sh test /path/to/your/appdir
 
@@ -72,17 +73,17 @@ Customize
 
 You can customize the build in many ways:
 
-#. Minimize the `build/python/lib/python27.zip`: this contain all the python
-   modules. You can edit the zip file, and remove all the files you'll not use
+#. Minimize the `build/python/lib/python27.zip`: this contains all the python
+   modules. You can edit the zip file and remove all the files you'll not use
    (reduce encodings, remove xml, email...)
 #. Remove the .a not used: in Xcode, select your target, go in `Build Phases`,
    then check the `Link Binary With Libraries`. You can remove the libraries
    not used by your application.
 #. Change the icon, orientation, etc... According to the Apple policy :)
 #. Go to the settings panel > build, search for "strip" options, and
-   triple-check that they are all set to NO. Stripping is not working with
-   Python dynamic modules, and will strip needed symbols.
-#. Indicate a launch image in portrait/landscape for ipad with and without
+   triple-check that they are all set to NO. Stripping does not work with
+   Python dynamic modules and will remove needed symbols.
+#. Indicate a launch image in portrait/landscape for iPad with and without
    retina display.
 
 .. _Known issues:
@@ -90,17 +91,17 @@ You can customize the build in many ways:
 Known issues
 ------------
 
-Currently, the project have few issues as (we'll fixes them during the
-development):
+Currently, the project has a few known issues (we'll fix these in future
+versions):
 
-- Application configuration not writing: we are learning how IOS manage its
+- Application configuration not writing: we are still learning how IOS manages its
   filesystem.
 
-- You can't export your project outside kivy-ios directory, because the
+- You can't export your project outside the kivy-ios directory because the
   libraries included in the project are relative to it.
 
-- Removing some libraries (like SDL_Mixer for the sound) is currently not
-  possible cause kivy project need it.
+- Removing some libraries (like SDL_Mixer for audio) is currently not
+  possible because the kivy project requires it.
 
 - And more, just too technical to be written here.
 
@@ -112,23 +113,23 @@ FAQ
 Application quit abnormally!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, all the print on the console and files are avoided. If you have an
-issue when running your application, you can activate the log by commenting the
-line in the main.m::
+By default, all the print statements to the console and files are ignored. If
+you have an issue when running your application, you can activate the log by
+commenting out this line in `main.m`::
 
     putenv("KIVY_NO_CONSOLELOG=1");
 
-Then, you should see all the Kivy log on the Xcode console.
+Then you should see all the Kivy logging on the Xcode console.
 
-How Apple can accept a python app ?
+How can Apple accept a python app ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We managed to merge the app binary with all the libraries into only one binary,
-as libpython. At the end, all binaries modules are already loaded, nothing is
-dynamically loaded.
+We managed to merge the app binary with all the libraries into a single binary,
+called libpython. This means all binary modules are loaded beforehand, so
+nothing is dynamically loaded.
 
-Did you already submit a Kivy application to the App store ?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Have you already submited a Kivy application to the App store ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, check:
 
