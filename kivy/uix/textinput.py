@@ -121,6 +121,8 @@ from kivy.uix.bubble import Bubble
 from kivy.graphics import Color, Rectangle
 from kivy.config import Config
 from kivy.utils import platform
+from kivy.metrics import inch
+from kivy.animation import Animation
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
         ListProperty, ObjectProperty
@@ -169,6 +171,7 @@ class TextInputCutCopyPaste(Bubble):
     but_cut = ObjectProperty(None)
     but_copy = ObjectProperty(None)
     but_paste = ObjectProperty(None)
+    but_selectall = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self.mode = 'normal'
@@ -198,6 +201,8 @@ class TextInputCutCopyPaste(Bubble):
                 self.add_widget(self.but_copy)
             elif self.mode == 'paste':
                 # show only paste on long touch
+                self.but_selectall.opacity = 1
+                self.add_widget(self.but_selectall)
                 self.add_widget(self.but_paste)
             else:
                 # normal mode
@@ -214,6 +219,14 @@ class TextInputCutCopyPaste(Bubble):
             textinput._copy(textinput.selection_text)
         elif action == 'paste':
             textinput._paste()
+        elif action == 'selectall':
+            textinput.select_all()
+            self.mode = ''
+            anim = Animation(opacity=0, d=.333)
+            anim.bind(
+                        on_complete=lambda *args:
+                                        self.on_parent(self, self.parent))
+            anim.start(self.but_selectall)
 
 
 class TextInput(Widget):
@@ -529,7 +542,16 @@ class TextInput(Widget):
                 self._trigger_refresh_text('del', start, finish, lines,
                                             lineflags, len_lines)
 
-        self.cursor = self.get_cursor_from_index(cursor_index - 1)
+        if self.selection_from != self.selection_to:
+            col, row = self.get_cursor_from_index(cursor_index - 1)
+        else:
+            col, row = self.cursor
+            if col == 0:
+                row -= 1 if row else 0
+                col = len(self._lines[row])
+            else:
+                col, row = col - 1, row
+        self.cursor = col, row
         # handle undo and redo
         self._set_undo_redo_bkspc(cursor_index,
                                         cursor_index - 1,
@@ -572,9 +594,17 @@ class TextInput(Widget):
             row = min(row + 1, len(self._lines) - 1)
             col = min(len(self._lines[row]), col)
         elif action == 'cursor_left':
-            col, row = self.get_cursor_from_index(self.cursor_index() - 1)
+            if col == 0:
+                row -= 1 if row else 0
+                col = len(self._lines[row])
+            else:
+                col, row = col - 1, row
         elif action == 'cursor_right':
-            col, row = self.get_cursor_from_index(self.cursor_index() + 1)
+            if col == len(self._lines[row]):
+                col = 0
+                row += 1 if row < len(self._lines) else row
+            else:
+                col, row = col + 1, row
         elif action == 'cursor_home':
             col = 0
         elif action == 'cursor_end':
@@ -765,7 +795,9 @@ class TextInput(Widget):
             return
         bubble = self._bubble
         if bubble is not None:
-            win.remove_widget(bubble)
+            anim = Animation(opacity=0, d=.333)
+            anim.bind(on_complete=lambda *args: win.remove_widget(bubble))
+            anim.start(bubble)
 
     def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
         # Show a bubble with cut copy and paste buttons
@@ -786,7 +818,7 @@ class TextInput(Widget):
         t_pos = self.to_window(x, y)
         bubble_size = bubble.size
         win_size = win.size
-        bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1])
+        bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1] + inch(.25))
         bubble_pos = bubble.pos
         lh, ls = self.line_height, self._line_spacing
 
@@ -820,7 +852,10 @@ class TextInput(Widget):
                 bubble.arrow_pos = 'bottom_mid'
 
         bubble.mode = mode
+        Animation.cancel_all(bubble)
+        bubble.opacity = 0
         win.add_widget(bubble)
+        Animation(opacity=1, d=.333).start(bubble)
 
     #
     # Private
@@ -931,19 +966,19 @@ class TextInput(Widget):
 
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
-        width = Cache_get('textinput.width', text)
+        kw = self._get_line_options()
+        cid = '{}\0{}'.format(text, kw)
+        width = Cache_get('textinput.width', cid)
         if width:
             return width
         if not _label_cached:
-            self._get_line_options()
             _label_cached = self._label_cached
-        orig_text = text
         text = text.replace('\t', ' ' * tab_width)
         if not self.password:
             width = _label_cached.get_extents(text)[0]
         else:
             width = _label_cached.get_extents('*' * len(text))[0]
-        Cache_append('textinput.width', orig_text, width)
+        Cache_append('textinput.width', cid, width)
         return width
 
     def _do_blink_cursor(self, dt):
@@ -1408,6 +1443,7 @@ class TextInput(Widget):
                 self._selection = True
             self._selection_finished = False
         elif internal_action.startswith('cursor_'):
+            cc, cr = self.cursor
             self.do_cursor_movement(internal_action)
             if self._selection and not self._selection_finished:
                 self._selection_to = self.cursor_index()
@@ -1444,6 +1480,7 @@ class TextInput(Widget):
                 self._update_selection(True)
 
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
+        self._hide_cut_copy_paste()
         is_osx = sys.platform == 'darwin'
         # Keycodes on OSX:
         ctrl, cmd = 64, 1024
