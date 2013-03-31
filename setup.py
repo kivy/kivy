@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #
 # Kivy - Crossplatform NUI toolkit
 # http://kivy.org/
@@ -17,9 +18,11 @@ c_options = {
     'use_opengl_es2': True,
     'use_opengl_debug': False,
     'use_glew': False,
-    'use_sdl': False,
+    'use_sdl': 'KIVY_USE_SDL' in environ,
     'use_ios': False,
-    'use_mesagl': 'USE_MESAGL' in environ}
+    'use_mesagl': 'KIVY_USE_MESAGL' in environ or 'USE_MESAGL' in environ,
+    'use_x11': 'KIVY_USE_X11' in environ or 'WITH_X11' in environ,
+}
 
 # now check if environ is changing the default values
 for key in c_options.keys():
@@ -258,7 +261,8 @@ def determine_sdl():
             '-L', join(kivy_ios_root, 'build', 'lib'),
             '-undefined', 'dynamic_lookup']
     else:
-        flags['include_dirs'] = ['/usr/local/include/SDL']
+        flags['include_dirs'] = ['/usr/include/SDL',
+                                '/usr/local/include/SDL']
         flags['extra_link_args'] += ['-L/usr/local/lib/']
 
     if platform == 'ios':
@@ -360,7 +364,7 @@ if platform in ('darwin', 'ios'):
     sources['core/image/img_imageio.pyx'] = merge(
         base_flags, osx_flags)
 
-if 'WITH_X11' in environ:
+if c_options['use_x11']:
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, graphics_flags, {
             'depends': [join(dirname(__file__),
