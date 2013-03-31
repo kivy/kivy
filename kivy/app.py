@@ -579,6 +579,10 @@ class App(EventDispatcher):
             if icon:
                 window.set_icon(icon)
             self._install_settings_keys(window)
+        else:
+            Logger.critical("Application: No window is created."
+                " Terminating application run.")
+            return
 
         self.dispatch('on_start')
         runTouchApp()
