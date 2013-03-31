@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #
 # Kivy - Crossplatform NUI toolkit
 # http://kivy.org/
