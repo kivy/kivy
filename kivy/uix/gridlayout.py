@@ -90,7 +90,7 @@ __all__ = ('GridLayout', 'GridLayoutException')
 from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
-        BoundedNumericProperty, ReferenceListProperty
+        BoundedNumericProperty, ReferenceListProperty, CssListProperty
 from math import ceil
 
 
@@ -104,18 +104,36 @@ class GridLayout(Layout):
     '''Grid layout class. See module documentation for more information.
     '''
 
-    spacing = NumericProperty(0)
+    spacing = CssListProperty([0, 0], length=2)
     '''Spacing between children, in pixels.
 
-    :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    spacing[0] represents the horizontal spacing and spacing[1] the vertical
+    spacing.
+
+    If spacing is given only one argument, it will represent both horizontal
+    and vertical spacing.
+
+    :data:`spacing` is a :class:`~kivy.properties.CssListProperty`, default to
+    [0, 0].
     '''
 
-    padding = NumericProperty(0)
-    '''Padding between widget box and children, in pixels.
+    padding = CssListProperty([0, 0, 0, 0])
+    '''Padding between layout box and children, in pixels.
 
-    :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    padding[0] represents the top padding, padding[1] the right padding,
+    padding[2] the bottom padding and padding[3] the left padding.
+
+    If padding is given only two arguments, the first will represent top and
+    bottom padding, and the second left and right padding.
+
+    If padding is given only one argument, it will represent all four
+    directions.
+
+    .. versionchanged:: 1.7.0
+    Replaced NumericProperty with CssListProperty.
+
+    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to
+    [0, 0, 0, 0].
     '''
 
     cols = BoundedNumericProperty(None, min=0, allow_none=True)
@@ -320,10 +338,11 @@ class GridLayout(Layout):
                 i = i - 1
 
         # calculate minimum width/height needed, starting from padding + spacing
-        padding2 = self.padding * 2
-        spacing = self.spacing
-        width = padding2 + spacing * (current_cols - 1)
-        height = padding2 + spacing * (current_rows - 1)
+        padding_x = self.padding[1] + self.padding[3]
+        padding_y = self.padding[0] + self.padding[2]
+        spacing_x, spacing_y = self.spacing
+        width = padding_x + spacing_x * (current_cols - 1)
+        height = padding_y + spacing_y * (current_rows - 1)
         # then add the cell size
         width += sum(cols)
         height += sum(rows)
@@ -350,8 +369,9 @@ class GridLayout(Layout):
             return
 
         # speedup
-        padding = self.padding
-        spacing = self.spacing
+        padding_top = self.padding[0]
+        padding_left = self.padding[3]
+        spacing_x, spacing_y = self.spacing
         selfx = self.x
         selfw = self.width
         selfh = self.height
@@ -401,9 +421,9 @@ class GridLayout(Layout):
 
         # reposition every child
         i = len_children - 1
-        y = self.top - padding
+        y = self.top - padding_top
         for row_height in rows:
-            x = selfx + padding
+            x = selfx + padding_left
             for col_width in cols:
                 if i < 0:
                     break
@@ -413,6 +433,6 @@ class GridLayout(Layout):
                 c.width = col_width
                 c.height = row_height
                 i = i - 1
-                x = x + col_width + spacing
-            y -= row_height + spacing
+                x = x + col_width + spacing_x
+            y -= row_height + spacing_y
 

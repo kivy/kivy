@@ -61,7 +61,7 @@ You can check the `examples/widgets/boxlayout_poshint.py` for a live example.
 __all__ = ('BoxLayout', )
 
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, OptionProperty
+from kivy.properties import NumericProperty, OptionProperty, CssListProperty
 
 
 class BoxLayout(Layout):
@@ -75,11 +75,23 @@ class BoxLayout(Layout):
     0.
     '''
 
-    padding = NumericProperty(0)
+    padding = CssListProperty([0, 0, 0, 0])
     '''Padding between layout box and children, in pixels.
 
-    :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    padding[0] represents the top padding, padding[1] the right padding,
+    padding[2] the bottom padding and padding[3] the left padding.
+
+    If padding is given only two arguments, the first will represent top and
+    bottom padding, and the second left and right padding.
+
+    If padding is given only one argument, it will represent all four
+    directions.
+
+    .. versionchanged:: 1.7.0
+    Replaced NumericProperty with CssListProperty.
+
+    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to
+    [0, 0, 0, 0].
     '''
 
     orientation = OptionProperty('horizontal', options=(
@@ -110,16 +122,20 @@ class BoxLayout(Layout):
         selfy = self.y
         selfw = self.width
         selfh = self.height
-        padding = self.padding
+        padding_top = self.padding[0]
+        padding_right = self.padding[1]
+        padding_bottom = self.padding[2]
+        padding_left = self.padding[3]
         spacing = self.spacing
         orientation = self.orientation
-        padding2 = padding * 2
+        padding_x = padding_left + padding_right
+        padding_y = padding_top + padding_bottom
 
         # calculate maximum space used by size_hint
         stretch_weight_x = 0.
         stretch_weight_y = 0.
-        minimum_size_x = padding2 + spacing * (len_children - 1)
-        minimum_size_y = minimum_size_x
+        minimum_size_x = padding_x + spacing * (len_children - 1)
+        minimum_size_y = padding_y + spacing * (len_children - 1)
         for w in self.children:
             shw = w.size_hint_x
             shh = w.size_hint_y
@@ -133,7 +149,7 @@ class BoxLayout(Layout):
                 stretch_weight_y += shh
 
         if orientation == 'horizontal':
-            x = y = padding
+            x = padding_left
             stretch_space = max(0.0, selfw - minimum_size_x)
             for c in reversed(self.children):
                 shw = c.size_hint_x
@@ -141,21 +157,21 @@ class BoxLayout(Layout):
                 w = c.width
                 h = c.height
                 cx = selfx + x
-                cy = selfy + y
+                cy = selfy + padding_bottom
 
                 if shw:
                     w = stretch_space * shw / stretch_weight_x
                 if shh:
-                    h = shh * (selfh - padding2)
+                    h = shh * (selfh - padding_y)
 
                 for key, value in c.pos_hint.iteritems():
-                    posy = value * (selfh - padding2)
+                    posy = value * (selfh - padding_y)
                     if key == 'y':
-                        cy += y + posy
+                        cy += padding_bottom + posy
                     elif key == 'top':
-                        cy += y + posy - h
+                        cy += padding_bottom + posy - h
                     elif key == 'center_y':
-                        cy += y - h / 2. + posy
+                        cy += padding_bottom - h / 2. + posy
 
                 c.x = cx
                 c.y = cy
@@ -164,29 +180,29 @@ class BoxLayout(Layout):
                 x += w + spacing
 
         if orientation == 'vertical':
-            x = y = padding
+            y = padding_bottom
             stretch_space = max(0.0, selfh - minimum_size_y)
             for c in self.children:
                 shw = c.size_hint_x
                 shh = c.size_hint_y
                 w = c.width
                 h = c.height
-                cx = selfx + x
+                cx = selfx + padding_left
                 cy = selfy + y
 
                 if shh:
                     h = stretch_space * shh / stretch_weight_y
                 if shw:
-                    w = shw * (selfw - padding2)
+                    w = shw * (selfw - padding_x)
 
                 for key, value in c.pos_hint.iteritems():
-                    posx = value * (selfw - padding2)
+                    posx = value * (selfw - padding_x)
                     if key == 'x':
-                        cx += x + posx
+                        cx += padding_left + posx
                     elif key == 'right':
-                        cx += x + posx - w
+                        cx += padding_left + posx - w
                     elif key == 'center_x':
-                        cx += x - w / 2. + posx
+                        cx += padding_left - w / 2. + posx
 
                 c.x = cx
                 c.y = cy

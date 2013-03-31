@@ -125,7 +125,7 @@ from kivy.metrics import inch
 from kivy.animation import Animation
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
-        ListProperty, ObjectProperty
+        ListProperty, ObjectProperty, CssListProperty
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -284,8 +284,7 @@ class TextInput(Widget):
         self.bind(font_size=self._trigger_refresh_line_options,
                   font_name=self._trigger_refresh_line_options)
 
-        self.bind(padding_x=self._update_text_options,
-                  padding_y=self._update_text_options,
+        self.bind(padding=self._update_text_options,
                   tab_width=self._update_text_options,
                   font_size=self._update_text_options,
                   font_name=self._update_text_options,
@@ -621,12 +620,13 @@ class TextInput(Widget):
     def get_cursor_from_xy(self, x, y):
         '''Return the (row, col) of the cursor from an (x, y) position.
         '''
+        padding_top = self.padding[0]
         l = self._lines
         dy = self.line_height + self._line_spacing
         cx = x - self.x
         scrl_y = self.scroll_y
         scrl_y = scrl_y / dy if scrl_y > 0 else 0
-        cy = (self.top - self.padding_y + scrl_y * dy) - y
+        cy = (self.top - padding_top + scrl_y * dy) - y
         cy = int(boundary(round(cy / dy), 0, len(l) - 1))
         dcx = 0
         _get_text_width = self._get_text_width
@@ -1073,7 +1073,6 @@ class TextInput(Widget):
                                 _line_rects)
 
         line_label = _lines_labels[0]
-        pady = self.padding_y
         min_line_ht = self._label_cached.get_extents('_')[1]
         if line_label is None:
             self.line_height = max(1, min_line_ht)
@@ -1163,11 +1162,14 @@ class TextInput(Widget):
             rects = self._lines_rects
             labels = self._lines_labels
             lines = self._lines
-        pady = self.padding_y
-        x = self.x + self.padding_x
-        y = self.top - pady + sy
-        miny = self.y + pady
-        maxy = self.top - pady
+        padding_top = self.padding[0]
+        padding_right = self.padding[1]
+        padding_bottom = self.padding[2]
+        padding_left = self.padding[3]
+        x = self.x + padding_left
+        y = self.top - padding_top + sy
+        miny = self.y + padding_bottom
+        maxy = self.top - padding_top
         for line_num, value in enumerate(lines):
             if miny <= y <= maxy + dy:
                 texture = labels[line_num]
@@ -1179,8 +1181,8 @@ class TextInput(Widget):
 
                 # calcul coordinate
                 viewport_pos = sx, 0
-                vw = self.width - self.padding_x * 2
-                vh = self.height - pady * 2
+                vw = self.width - padding_left - padding_right
+                vh = self.height - padding_top - padding_bottom
                 tw, th = map(float, size)
                 oh, ow = tch, tcw = texc[1:3]
                 tcx, tcy = 0, 0
@@ -1239,11 +1241,12 @@ class TextInput(Widget):
         self.canvas.remove_group('selection')
         dy = self.line_height + self._line_spacing
         rects = self._lines_rects
-        _padding_y = self.padding_y
+        padding_top = self.padding[0]
+        padding_bottom = self.padding[2]
         _top = self.top
-        y = _top - _padding_y + self.scroll_y
-        miny = self.y + _padding_y
-        maxy = _top - _padding_y
+        y = _top - padding_top + self.scroll_y
+        miny = self.y + padding_bottom
+        maxy = _top - padding_top
         draw_selection = self._draw_selection
         a, b = self._selection_from, self._selection_to
         if a > b:
@@ -1260,7 +1263,8 @@ class TextInput(Widget):
         tab_width = self.tab_width
         _label_cached = self._label_cached
         width = self.width
-        padding_x = self.padding_x
+        padding_right = self.padding[1]
+        padding_left = self.padding[3]
         x = self.x
         canvas_add = self.canvas.add
         selection_color = self.selection_color
@@ -1269,14 +1273,14 @@ class TextInput(Widget):
                 r = rects[line_num]
                 draw_selection(r.pos, r.size, line_num, (s1c, s1r),
                     (s2c, s2r - 1), _lines, _get_text_width, tab_width,
-                    _label_cached, width, padding_x, x, canvas_add,
-                    selection_color)
+                    _label_cached, width, padding_right, padding_left, x,
+                    canvas_add, selection_color)
             y -= dy
 
     def _draw_selection(self, *largs):
         pos, size, line_num, (s1c, s1r), (s2c, s2r),\
          _lines, _get_text_width, tab_width, _label_cached, width,\
-         padding_x, x, canvas_add, selection_color = largs
+         padding_right, padding_left, x, canvas_add, selection_color = largs
         # Draw the current selection on the widget.
         if line_num < s1r or line_num > s2r:
             return
@@ -1290,11 +1294,11 @@ class TextInput(Widget):
         if line_num == s2r:
             lines = _lines[line_num]
             x2 = x + _get_text_width(lines[:s2c], tab_width, _label_cached)
-        width_minus_padding_x = width - padding_x
-        maxx = x + width_minus_padding_x
+        width_minus_padding_right = width - padding_right
+        maxx = x + width_minus_padding_right
         if x1 > maxx:
             return
-        x2 = min(x2, x + width_minus_padding_x)
+        x2 = min(x2, x + width_minus_padding_right)
         canvas_add(Color(*selection_color, group='selection'))
         canvas_add(Rectangle(
             pos=(x1, pos[1]), size=(x2 - x1, size[1]), group='selection'))
@@ -1309,8 +1313,10 @@ class TextInput(Widget):
     def _get_cursor_pos(self):
         # return the current cursor x/y from the row/col
         dy = self.line_height + self._line_spacing
-        x = self.x + self.padding_x
-        y = self.top - self.padding_y + self.scroll_y
+        padding_top = self.padding[0]
+        padding_left = self.padding[3]
+        x = self.x + padding_left
+        y = self.top - padding_top + self.scroll_y
         y -= self.cursor_row * dy
         x, y = x + self.cursor_offset() - self.scroll_x, y
         return x, y
@@ -1404,7 +1410,9 @@ class TextInput(Widget):
         lines_flags = []
         _join = ''.join
         lines_append, lines_flags_append = lines.append, lines_flags.append
-        width = self.width - self.padding_x * 2
+        padding_right = self.padding[1]
+        padding_left = self.padding[3]
+        width = self.width - padding_left - padding_right
         text_width = self._get_text_width
         _tab_width, _label_cached = self.tab_width, self._label_cached
 
@@ -1610,7 +1618,9 @@ class TextInput(Widget):
 
         # adjust scrollview to ensure that the cursor will be always inside our
         # viewport.
-        viewport_width = self.width - self.padding_x * 2
+        padding_right = self.padding[1]
+        padding_left = self.padding[3]
+        viewport_width = self.width - padding_left - padding_right
         sx = self.scroll_x
         offset = self.cursor_offset()
 
@@ -1625,7 +1635,9 @@ class TextInput(Widget):
         dy = self.line_height + self._line_spacing
         offsety = cr * dy
         sy = self.scroll_y
-        viewport_height = self.height - self.padding_y * 2 - dy
+        padding_top = self.padding[0]
+        padding_bottom = self.padding[2]
+        viewport_height = self.height - padding_top - padding_bottom - dy
         if offsety > viewport_height + sy:
             sy = offsety - viewport_height
         if offsety < sy:
@@ -1688,25 +1700,53 @@ class TextInput(Widget):
     4.
     '''
 
-    padding_x = NumericProperty(0)
-    '''Horizontal padding of the text, inside the widget box.
+    padding_x = CssListProperty([0, 0], length=2)
+    '''Horizontal padding of the text, inside the widget box, in the format
+    (right_padding, left_padding).
 
-    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, default to
-    0. This might be changed by the current theme.
+    If padding_x is given only one argument, it will represent both right and
+    left padding.
+
+    :data:`padding_x` is a :class:`~kivy.properties.CssListProperty`, default
+    to [0, 0]. This might be changed by the current theme.
+
+    .. deprecated:: 1.7.0
+        Use :data:`padding` instead
     '''
 
-    padding_y = NumericProperty(0)
-    '''Vertical padding of the text, inside the widget box.
+    def on_padding_x(self, instance, value):
+        self.padding[1] = value[0]
+        self.padding[3] = value[1]
 
-    :data:`padding_x` is a :class:`~kivy.properties.NumericProperty`, default to
-    0. This might be changed by the current theme.
+    padding_y = CssListProperty([0, 0], length=2)
+    '''Vertical padding of the text, inside the widget box, in the format
+    (top_padding, bottom_padding).
+
+    If padding_y is given only one argument, it will represent both top and
+    bottom padding.
+
+    :data:`padding_y` is a :class:`~kivy.properties.CssListProperty`, default
+    to [0, 0]. This might be changed by the current theme.
+
+    .. deprecated:: 1.7.0
+        Use :data:`padding` instead
     '''
 
-    padding = ReferenceListProperty(padding_x, padding_y)
-    '''Padding of the text, in the format (padding_x, padding_y).
+    def on_padding_y(self, instance, value):
+        self.padding[0] = value[0]
+        self.padding[2] = value[1]
 
-    :data:`padding` is a :class:`~kivy.properties.ReferenceListProperty` of
-    (:data:`padding_x`, :data:`padding_y`) properties.
+    padding = CssListProperty([0, 0, 0, 0])
+    '''Padding of the text, in the format (padding_top, padding_right,
+    padding_bottom, padding_left).
+
+    If given only two arguments, they will represent padding_y and padding_x
+    respectively.
+
+    If given one argument, it will represent all four directions.
+
+    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default
+    to [0, 0, 0, 0]. This might be changed by the current theme.
     '''
 
     scroll_x = NumericProperty(0)
