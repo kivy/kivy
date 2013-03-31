@@ -392,32 +392,17 @@ class LabelBase(object):
         data = self._render_end()
         assert(data)
 
-        # if data width is too tiny, just create texture, don't really render!
-        if data.width <= 1:
-            if self.texture:
-                self.texture = None
-            return
-
-        # create texture is necessary
-        texture = self.texture
-        mipmap = options['mipmap']
-        if texture is None or \
-                self.width != texture.width or \
-                self.height != texture.height:
-            texture = Texture.create_from_data(data, mipmap=mipmap)
-            data = None
-            texture.flip_vertical()
-            texture.add_reload_observer(self._texture_refresh)
-            self.texture = texture
-
-        # update texture
         # If the text is 1px width, usually, the data is black.
         # Don't blit that kind of data, otherwise, you have a little black bar.
         if data is not None and data.width > 1:
-            texture.blit_data(data)
+            self.texture.blit_data(data)
 
     def _texture_refresh(self, *l):
         self.refresh()
+
+    def _texture_fill(self, texture):
+        # second pass, render for real
+        self.render(real=True)
 
     def refresh(self):
         '''Force re-rendering of the text
@@ -426,11 +411,23 @@ class LabelBase(object):
 
         # first pass, calculating width/height
         sz = self.render()
-        self._size = sz
-        # second pass, render for real
-        self.render(real=True)
+        self._size_texture = sz
         self._size = sz[0] + self.options['padding_x'] * 2, \
                      sz[1] + self.options['padding_y'] * 2
+
+        # create a delayed texture
+        texture = self.texture
+        if texture is None or \
+                self.width != texture.width or \
+                self.height != texture.height:
+            texture = Texture.create(size=self._size,
+                    mipmap=self.options['mipmap'],
+                    callback=self._texture_fill)
+            texture.flip_vertical()
+            texture.add_reload_observer(self._texture_refresh)
+            self.texture = texture
+        else:
+            texture.ask_update(self._texture_fill)
 
     def _get_text(self):
         try:

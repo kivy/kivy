@@ -70,8 +70,9 @@ cdef class Context:
     cdef void dealloc_texture(self, Texture texture):
         if texture._nofree or texture.__class__ is TextureRegion:
             return
-        self.lr_texture.append(texture.id)
-        self.trigger_gl_dealloc()
+        if texture.id > 0:
+            self.lr_texture.append(texture.id)
+            self.trigger_gl_dealloc()
 
     cdef void dealloc_vbo(self, VBO vbo):
         if vbo.have_id():
