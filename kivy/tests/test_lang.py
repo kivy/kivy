@@ -166,7 +166,6 @@ class LangTestCase(unittest.TestCase):
         wid.binded_func['on_press']()
         self.assertEquals(wid.a, 1)
 
-
     def test_with_eight_spaces(self):
         Builder = self.import_builder()
         Builder.load_string('''

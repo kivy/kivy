@@ -381,7 +381,8 @@ class ScrollView(StencilView):
                         return
                     self._scroll_x_mouse = scroll_x = min(max(sxd, 0), 1)
                     Animation.stop_all(self, 'scroll_x')
-                    Animation(scroll_x=scroll_x, d=.3, t='out_quart').start(self)
+                    Animation(scroll_x=scroll_x, d=.3, t='out_quart').start(
+                            self)
                     Clock.unschedule(self._update_animation)
                     return True
 

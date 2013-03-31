@@ -107,6 +107,7 @@ class LoaderBase(object):
         if num < 2:
             raise Exception('Must have at least 2 workers')
         self._num_workers = num
+
     def _get_num_workers(self):
         return self._num_workers
 
@@ -131,6 +132,7 @@ class LoaderBase(object):
         if num is not None and num < 1:
             raise Exception('Must have at least 1 image processing per image')
         self._max_upload_per_frame = num
+
     def _get_max_upload_per_frame(self):
         return self._max_upload_per_frame
 
@@ -192,7 +194,7 @@ class LoaderBase(object):
     You can change it by doing::
 
         Loader.error_image = 'error.png'
-        
+
     .. versionchanged:: 1.6.0
         Not readonly anymore.
     '''
@@ -235,9 +237,11 @@ class LoaderBase(object):
     def _load(self, kwargs):
         '''(internal) Loading function, called by the thread.
         Will call _load_local() if the file is local,
-        or _load_urllib() if the file is on Internet'''
+        or _load_urllib() if the file is on Internet
+        '''
 
-        while len(self._q_done) >= self.max_upload_per_frame * self._num_workers:
+        while len(self._q_done) >= (
+            self.max_upload_per_frame * self._num_workers):
             sleep(0.1)
 
         self._wait_for_resume()
@@ -424,7 +428,6 @@ else:
     from Queue import Queue
     from threading import Thread
 
-
     class _Worker(Thread):
         '''Thread executing tasks from a given tasks queue
         '''
@@ -438,10 +441,11 @@ else:
         def run(self):
             while self.pool.running:
                 func, args, kargs = self.tasks.get()
-                try: func(*args, **kargs)
-                except Exception, e: print e
+                try:
+                    func(*args, **kargs)
+                except Exception, e:
+                    print e
                 self.tasks.task_done()
-
 
     class _ThreadPool(object):
         '''Pool of threads consuming tasks from a queue
@@ -461,7 +465,6 @@ else:
         def stop(self):
             self.running = False
             self.tasks.join()
-
 
     class LoaderThreadPool(LoaderBase):
         def __init__(self):
@@ -485,7 +488,6 @@ else:
                 except:
                     return
                 self.pool.add_task(self._load, parameters)
-
 
     Loader = LoaderThreadPool()
     Logger.info('Loader: using a thread pool of {} workers'.format(

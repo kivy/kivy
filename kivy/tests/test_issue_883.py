@@ -1,6 +1,7 @@
 import unittest
 from kivy.uix.label import Label
 
+
 class LabelEmptyMarkupTestCase(unittest.TestCase):
     def test_empty_markup(self):
         label = Label(text='[b][/b]', markup=True)

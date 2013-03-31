@@ -1047,7 +1047,8 @@ class Parser(object):
                 current_property = None
                 name = x[0]
                 if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
-                    _objects, _lines = self.parse_level(level + 1, lines[i:], spaces)
+                    _objects, _lines = self.parse_level(
+                            level + 1, lines[i:], spaces)
                     current_object.children = _objects
                     lines = _lines
                     i = 0
@@ -1083,7 +1084,8 @@ class Parser(object):
             elif count == indent + 2 * spaces:
                 if current_property in (
                         'canvas', 'canvas.after', 'canvas.before'):
-                    _objects, _lines = self.parse_level(level + 2, lines[i:], spaces)
+                    _objects, _lines = self.parse_level(
+                            level + 2, lines[i:], spaces)
                     rl = ParserRule(self, ln, current_property, rlevel)
                     rl.children = _objects
                     if current_property == 'canvas':
@@ -1278,7 +1280,6 @@ class BuilderBase(object):
 
         # unregister all the dynamic classes
         Factory.unregister_from_filename(filename)
-
 
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder

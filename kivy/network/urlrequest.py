@@ -191,9 +191,12 @@ class UrlRequest(Thread):
         timeout = self._timeout
 
         if self._debug:
-            Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(id(self), url))
-            Logger.debug('UrlRequest: {0} - body: {1}'.format(id(self), body))
-            Logger.debug('UrlRequest: {0} - headers: {1}'.format(id(self), headers))
+            Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(
+                id(self), url))
+            Logger.debug('UrlRequest: {0} - body: {1}'.format(
+                id(self), body))
+            Logger.debug('UrlRequest: {0} - headers: {1}'.format(
+                id(self), headers))
 
         # parse url
         parse = urlparse(url)
@@ -307,7 +310,7 @@ class UrlRequest(Thread):
                 if self._debug:
                     Logger.debug('UrlRequest: {0} Download finished with'
                             ' {1} datalen'.format(
-                        id(self), len(data)))
+                            id(self), len(data)))
                 self._is_finished = True
                 self._result = data
                 if self.on_success:

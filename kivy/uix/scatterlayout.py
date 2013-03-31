@@ -42,9 +42,12 @@ and the child widgets will behave as expected.
 
 '''
 
+__all__ = ('ScatterLayout', )
+
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scatter import Scatter
 from kivy.properties import ObjectProperty
+
 
 class ScatterLayout(Scatter):
     '''RelativeLayout class, see module documentation for more information.

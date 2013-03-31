@@ -224,7 +224,6 @@ class ModuleBase:
         if hasattr(self.mods[name]['module'], 'configure'):
             self.mods[name]['module'].configure(config)
 
-
     def usage_list(self):
         print
         print 'Available modules'

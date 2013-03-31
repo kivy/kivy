@@ -50,7 +50,7 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
     from kivy.app import App
     from kivy.lang import Builder
     from kivy.uix.screenmanager import ScreenManager, Screen
-    
+
     # Create both screen. Please note the root.manager.current: this is how you
     # can control the ScreenManager from kv. Each screen have by default a
     # property manager that give you the instance of the ScreenManager used.
@@ -62,7 +62,7 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
                 on_press: root.manager.current = 'settings'
             Button:
                 text: 'Quit'
-    
+
     <SettingsScreen>:
         BoxLayout:
             Button:
@@ -71,24 +71,24 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
                 text: 'Back to menu'
                 on_press: root.manager.current = 'menu'
     """)
-    
+
     # Declare both screen
     class MenuScreen(Screen):
         pass
-    
+
     class SettingsScreen(Screen):
         pass
-    
+
     # Create the screen manager
     sm = ScreenManager()
     sm.add_widget(MenuScreen(name='menu'))
     sm.add_widget(SettingsScreen(name='settings'))
-    
+
     class TestApp(App):
-    
+
         def build(self):
-            return sm 
-    
+            return sm
+
     if __name__ == '__main__':
         TestApp().run()
 

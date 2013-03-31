@@ -110,6 +110,7 @@ class Tool(object):
             print('Unknown compression format')
             exit(1)
 
+
 class Etc1Tool(Tool):
     def __init__(self, options):
         super(Etc1Tool, self).__init__(options)
@@ -142,7 +143,8 @@ class Etc1Tool(Tool):
 
         # 3. invoke etc1tool
         raw_tex_fn = self.tex_fn + '.raw'
-        cmd = [self.etc1tool, self.source_fn, '--encodeNoHeader', '-o', raw_tex_fn]
+        cmd = [self.etc1tool, self.source_fn, '--encodeNoHeader', '-o',
+               raw_tex_fn]
         try:
             self.runcmd(cmd)
             with open(raw_tex_fn, 'rb') as fd:
@@ -153,7 +155,6 @@ class Etc1Tool(Tool):
 
         # 5. write texture info
         self.write_tex(data, 'etc1_rgb8', (w, h), (w2, h2), self.options.mipmap)
-
 
 
 class PvrtcTool(Tool):
@@ -212,7 +213,8 @@ class PvrtcTool(Tool):
                 unlink(raw_tex_fn)
 
         # 5. write texture info
-        self.write_tex(data, 'pvrtc_rgba4', (w, h), (s2, s2), self.options.mipmap)
+        self.write_tex(data, 'pvrtc_rgba4', (w, h), (s2, s2),
+                       self.options.mipmap)
 
 
 if __name__ == '__main__':

@@ -13,6 +13,7 @@ from sys import platform, exit
 
 MIN_REQUIRED_GL_VERSION = (2, 0)
 
+
 def msgbox(message):
     if platform == 'win32':
         import win32ui

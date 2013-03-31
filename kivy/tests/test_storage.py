@@ -5,6 +5,7 @@ Storage tests
 
 import unittest
 
+
 class StorageTestCase(unittest.TestCase):
     def test_dict_storage(self):
         from kivy.storage.dictstore import DictStore
@@ -59,7 +60,8 @@ class StorageTestCase(unittest.TestCase):
         self.assertTrue(list(store.find(name='Name2'))[0][0] == 'key2')
         self.assertTrue(len(list(store.find(attr1='Common'))) == 3)
         self.assertTrue(len(list(store.find(attr2='bleh'))) == 2)
-        self.assertTrue(len(list(store.find(attr1='Common', attr2='bleh'))) == 2)
+        self.assertTrue(
+                len(list(store.find(attr1='Common', attr2='bleh'))) == 2)
         self.assertTrue(len(list(store.find(name='Name2', attr2='bleh'))) == 1)
         self.assertTrue(len(list(store.find(name='Name1', attr2='bleh'))) == 0)
 

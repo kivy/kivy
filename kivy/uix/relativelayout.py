@@ -30,7 +30,10 @@ relative to the containing layout.
 
 '''
 
+__all__ = ('RelativeLayout', )
+
 from kivy.uix.floatlayout import FloatLayout
+
 
 class RelativeLayout(FloatLayout):
     '''RelativeLayout class, see module documentation for more information.

@@ -382,6 +382,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Config.remove_section('input')
         Config.add_section('input')
 
-    if platform() == 'android': 
+    if platform() == 'android':
         Config.set('input', 'androidtouch', 'android')
 

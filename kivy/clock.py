@@ -151,10 +151,12 @@ import time
 try:
     import ctypes
     if platform in ('win32', 'cygwin'):
-        # Win32 Sleep function is only 10-millisecond resolution, so instead
-        # use a waitable timer object, which has up to 100-nanosecond resolution
+        # Win32 Sleep function is only 10-millisecond resolution, so instead use
+        # a waitable timer object, which has up to 100-nanosecond resolution
         # (hardware and implementation dependent, of course).
+
         _kernel32 = ctypes.windll.kernel32
+
         class _ClockBase(object):
             def __init__(self):
                 self._timer = _kernel32.CreateWaitableTimerA(None, True, None)

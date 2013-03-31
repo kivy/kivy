@@ -535,7 +535,7 @@ class App(EventDispatcher):
             data_dir = '~/Application Settings/{}'.format(self.name)
         elif platform == 'macosx':
             data_dir = '~/Library/Application Support/{}'.format(self.name)
-        else: # _platform == 'linux' or anything else...:
+        else:  # _platform == 'linux' or anything else...:
             data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
             data_dir = join(data_dir, self.name)
         data_dir = expanduser(data_dir)

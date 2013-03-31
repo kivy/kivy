@@ -389,7 +389,7 @@ class WindowBase(EventDispatcher):
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
 
-    __events__ = ( 'on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
+    __events__ = ('on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
             'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
             'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
             'on_key_down', 'on_key_up', 'on_dropfile')
