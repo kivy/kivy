@@ -7,6 +7,16 @@ interactions. You could compare this language to Qt's QML
 (http://qt.nokia.com), but we included new concepts such as rule definitions
 (which are somewhat akin to what you may know from CSS), templating and so on.
 
+.. versionchanged:: 1.6.1
+
+    The Builder doesn't execute canvas expression in realtime anymore. It will
+    pack all the expressions that need to be executed first, and execute them
+    after dispatching input, and just before drawing the frame. If you want to
+    force the execution of canvas drawing, just call :meth:`Builder.sync`.
+
+    A experimental profiling tool of kv lang is also done, you can activate it
+    by setting the env `KIVY_PROFILE_LANG=1`. You will get an html file named
+    `builder_stats.html`.
 
 Overview
 --------
@@ -529,6 +539,7 @@ import codecs
 import re
 import sys
 from re import sub, findall
+from os import environ
 from os.path import join
 from copy import copy
 from types import ClassType, CodeType
@@ -540,6 +551,7 @@ from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
 import kivy.metrics as metrics
+from collections import deque
 from weakref import ref
 
 
@@ -556,6 +568,9 @@ Cache.register('kv.lang')
 lang_str = re.compile('([\'"][^\'"]*[\'"])')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
+
+# delayed calls are canvas expression triggered during an loop
+_delayed_calls = []
 
 
 class ProxyApp(object):
@@ -645,7 +660,7 @@ class ParserRuleProperty(object):
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'value', 'co_value',
-                 'watched_keys', 'mode')
+                 'watched_keys', 'mode', 'count')
 
     def __init__(self, ctx, line, name, value):
         super(ParserRuleProperty, self).__init__()
@@ -663,6 +678,8 @@ class ParserRuleProperty(object):
         self.mode = None
         #: Watched keys
         self.watched_keys = None
+        #: Stats
+        self.count = 0
 
     def precompile(self):
         name = self.name
@@ -1132,7 +1149,7 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
         raise exc_type, exc_value, tb
 
 
-def create_handler(iself, element, key, value, rule, idmap):
+def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     locals()['__kvlang__'] = rule
 
     # create an handler
@@ -1140,14 +1157,20 @@ def create_handler(iself, element, key, value, rule, idmap):
     idmap.update(global_idmap)
     idmap['self'] = iself
 
-    def call_fn(sender, _value):
+    def call_fn(*args):
         if __debug__:
             trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
                 element, key, value, rule.value))
+        rule.count += 1
         e_value = eval(value, idmap)
         if __debug__:
             trace('Builder: call_fn => value=%r' % (e_value, ))
         setattr(element, key, e_value)
+
+    def delayed_call_fn(*args):
+        _delayed_calls.append(call_fn)
+
+    fn = delayed_call_fn if delayed else call_fn
 
     # bind every key.value
     if rule.watched_keys is not None:
@@ -1157,7 +1180,7 @@ def create_handler(iself, element, key, value, rule, idmap):
                 for x in k[1:-1]:
                     f = getattr(f, x)
                 if hasattr(f, 'bind'):
-                    f.bind(**{k[-1]: call_fn})
+                    f.bind(**{k[-1]: fn})
             except KeyError:
                 continue
             except AttributeError:
@@ -1524,6 +1547,17 @@ class BuilderBase(object):
         cache[k] = rules
         return rules
 
+    def sync(self):
+        '''Execute all the waiting operations, such as the execution of all the
+        expressions related to the canvas.
+
+        .. versionadded:: 1.6.1
+        '''
+        l = set(_delayed_calls)
+        del _delayed_calls[:]
+        for func in l:
+            func(None, None)
+
     def _build_canvas(self, canvas, widget, rule, rootrule):
         global Instruction
         if Instruction is None:
@@ -1545,7 +1579,7 @@ class BuilderBase(object):
                     value = prule.co_value
                     if type(value) is CodeType:
                         value = create_handler(
-                            widget, instr, key, value, prule, idmap)
+                            widget, instr, key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception, e:
                 raise BuilderException(prule.ctx, prule.line, str(e))
@@ -1553,3 +1587,62 @@ class BuilderBase(object):
 #: Main instance of a :class:`BuilderBase`.
 Builder = BuilderBase()
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
+
+if 'KIVY_PROFILE_LANG' in environ:
+    import atexit
+    import cgi
+    def match_rule(fn, index, rule):
+        if rule.ctx.filename != fn:
+            return
+        for prop, prp in rule.properties.iteritems():
+            if prp.line != index:
+                continue
+            yield prp
+        for child in rule.children:
+            for r in match_rule(fn, index, child):
+                yield r
+        if rule.canvas_root:
+            for r in match_rule(fn, index, rule.canvas_root):
+                yield r
+        if rule.canvas_before:
+            for r in match_rule(fn, index, rule.canvas_before):
+                yield r
+        if rule.canvas_after:
+            for r in match_rule(fn, index, rule.canvas_after):
+                yield r
+
+    def dump_builder_stats():
+        html = [
+            '<!doctype html>'
+            '<html><body>',
+            '<style type="text/css">\n',
+            'pre { margin: 0; }\n',
+            '</style>']
+        files = set([x[1].ctx.filename for x in Builder.rules])
+        for fn in files:
+            lines = open(fn).readlines()
+            html += ['<h2>', fn, '</h2>', '<table>']
+            count = 0
+            for index, line in enumerate(lines):
+                line = line.rstrip()
+                line = cgi.escape(line)
+                matched_prp = []
+                for psn, rule in Builder.rules:
+                    matched_prp += list(match_rule(fn, index, rule))
+
+                count = sum(set([x.count for x in matched_prp]))
+
+                color = (255, 155, 155) if count else (255, 255, 255)
+                html += ['<tr style="background-color: rgb{}">'.format(color),
+                        '<td>', str(index + 1), '</td>',
+                        '<td>', str(count), '</td>',
+                        '<td><pre>', line, '</pre></td>',
+                        '</tr>']
+            html += ['</table>']
+        html += ['</body></html>']
+        with open('builder_stats.html', 'w') as fd:
+            fd.write(''.join(html))
+
+        print('Profiling written at builder_stats.html')
+
+    atexit.register(dump_builder_stats)
