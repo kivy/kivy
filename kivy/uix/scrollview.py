@@ -176,8 +176,10 @@ class ScrollView(StencilView):
 
         if self.do_scroll_x:
             self.scroll_x = min(1, max(0, self.scroll_x))
+            self._scroll_x_mouse = self.scroll_x
         if self.do_scroll_y:
             self.scroll_y = min(1, max(0, self.scroll_y))
+            self._scroll_y_mouse = self.scroll_y
 
         # update from size_hint
         if vp.size_hint_x is not None:
