@@ -400,21 +400,9 @@ class MarkupLabel(MarkupLabelBase):
         data = self._render_end()
         assert(data)
 
-        # create texture is necessary
-        texture = self.texture
-        mipmap = self.options['mipmap']
-        if texture is None or \
-                self.width != texture.width or \
-                self.height != texture.height:
-            texture = Texture.create_from_data(data, mipmap=mipmap)
-            data = None
-            texture.flip_vertical()
-            texture.add_reload_observer(self._texture_refresh)
-            self.texture = texture
-
         # update texture
         # If the text is 1px width, usually, the data is black.
         # Don't blit that kind of data, otherwise, you have a little black bar.
         if data is not None and data.width > 1:
-            texture.blit_data(data)
+            self.texture.blit_data(data)
 
