@@ -740,7 +740,7 @@ class TextInput(Widget):
         self._hide_cut_copy_paste(self._win)
         # schedule long touch for paste
         self._long_touch_pos = touch.pos
-        Clock.schedule_once(self.long_touch, 1)
+        Clock.schedule_once(self.long_touch, .5)
 
         self.cursor = self.get_cursor_from_xy(*touch_pos)
         if not self._selection_touch:
@@ -795,7 +795,7 @@ class TextInput(Widget):
             return
         bubble = self._bubble
         if bubble is not None:
-            anim = Animation(opacity=0, d=.333)
+            anim = Animation(opacity=0, d=.225)
             anim.bind(on_complete=lambda *args: win.remove_widget(bubble))
             anim.start(bubble)
 
@@ -855,7 +855,7 @@ class TextInput(Widget):
         Animation.cancel_all(bubble)
         bubble.opacity = 0
         win.add_widget(bubble)
-        Animation(opacity=1, d=.333).start(bubble)
+        Animation(opacity=1, d=.225).start(bubble)
 
     #
     # Private
