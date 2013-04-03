@@ -415,12 +415,18 @@ class LabelBase(object):
         self._size = sz[0] + self.options['padding_x'] * 2, \
                      sz[1] + self.options['padding_y'] * 2
 
+        # if no text are rendered, return nothing.
+        width, height = self._size
+        if width <= 1 or height <= 1:
+            self.texture = None
+            return
+
         # create a delayed texture
         texture = self.texture
         if texture is None or \
-                self.width != texture.width or \
-                self.height != texture.height:
-            texture = Texture.create(size=self._size,
+                width != texture.width or \
+                height != texture.height:
+            texture = Texture.create(size=(width, height),
                     mipmap=self.options['mipmap'],
                     callback=self._texture_fill)
             texture.flip_vertical()
