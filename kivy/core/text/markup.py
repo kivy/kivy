@@ -44,6 +44,7 @@ from kivy.logger import Logger
 import re
 from kivy.core.text import Label, LabelBase
 from copy import copy
+from math import ceil
 
 # We need to do this trick when documentation is generated
 MarkupLabelBase = Label
@@ -215,7 +216,7 @@ class MarkupLabel(MarkupLabelBase):
             if not lines:
                 h = 1
             else:
-                h = sum([line[1] for line in lines])
+                h = int(ceil(sum([line[1] for line in lines])))
         return w, h
 
     def _pre_render_label(self, word, options, lines):
