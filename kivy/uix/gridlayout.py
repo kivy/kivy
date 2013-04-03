@@ -130,6 +130,7 @@ class GridLayout(Layout):
     directions.
 
     .. versionchanged:: 1.7.0
+
     Replaced NumericProperty with CssListProperty.
 
     :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to
@@ -140,6 +141,7 @@ class GridLayout(Layout):
     '''Number of columns in the grid.
 
     .. versionadded:: 1.0.8
+
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
         negative value anymore.
 
@@ -150,6 +152,7 @@ class GridLayout(Layout):
     '''Number of rows in the grid.
 
     .. versionadded:: 1.0.8
+
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
         negative value anymore.
 

@@ -62,6 +62,7 @@ class StackLayout(Layout):
     directions.
 
     .. versionchanged:: 1.7.0
+
     Replaced NumericProperty with CssListProperty.
 
     :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to

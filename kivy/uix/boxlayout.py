@@ -88,6 +88,7 @@ class BoxLayout(Layout):
     directions.
 
     .. versionchanged:: 1.7.0
+
     Replaced NumericProperty with CssListProperty.
 
     :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to
@@ -213,9 +214,9 @@ class BoxLayout(Layout):
     def add_widget(self, widget, index=0):
         widget.bind(
             pos_hint=self._trigger_layout)
-        return super(Layout, self).add_widget(widget, index)
+        return super(BoxLayout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
             pos_hint=self._trigger_layout)
-        return super(Layout, self).remove_widget(widget)
+        return super(BoxLayout, self).remove_widget(widget)

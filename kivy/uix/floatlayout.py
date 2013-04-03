@@ -113,7 +113,7 @@ class FloatLayout(Layout):
             #size_hint=self._trigger_layout,
             pos=self._trigger_layout,
             pos_hint=self._trigger_layout)
-        return super(Layout, self).add_widget(widget, index)
+        return super(FloatLayout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
@@ -121,4 +121,4 @@ class FloatLayout(Layout):
             #size_hint=self._trigger_layout,
             pos=self._trigger_layout,
             pos_hint=self._trigger_layout)
-        return super(Layout, self).remove_widget(widget)
+        return super(FloatLayout, self).remove_widget(widget)
