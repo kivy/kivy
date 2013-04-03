@@ -194,21 +194,25 @@ class TextInputCutCopyPaste(Bubble):
     def on_parent(self, instance, value):
         parent = self.textinput
         children = self.content.children
+        mode = self.mode
+
         if parent:
             self.clear_widgets()
-            if parent.readonly:
-                # show only copy for readonly textinput
-                self.add_widget(self.but_copy)
-            elif self.mode == 'paste':
+            if mode == 'paste':
                 # show only paste on long touch
                 self.but_selectall.opacity = 1
-                self.add_widget(self.but_selectall)
-                self.add_widget(self.but_paste)
+                widget_list = [self.but_selectall, ]
+                if not parent.readonly:
+                    widget_list.append(self.but_paste)
+            elif parent.readonly:
+                # show only copy for read only text input
+                widget_list = (self.but_copy, )
             else:
                 # normal mode
-                self.add_widget(self.but_cut)
-                self.add_widget(self.but_copy)
-                self.add_widget(self.but_paste)
+                widget_list = (self.but_cut, self.but_copy, self.but_paste)
+
+            for widget in widget_list:
+                self.add_widget(widget)
 
     def do(self, action):
         textinput = self.textinput
@@ -594,14 +598,16 @@ class TextInput(Widget):
             col = min(len(self._lines[row]), col)
         elif action == 'cursor_left':
             if col == 0:
-                row -= 1 if row else 0
-                col = len(self._lines[row])
+                if row:
+                    row -= 1
+                    col = len(self._lines[row])
             else:
                 col, row = col - 1, row
         elif action == 'cursor_right':
             if col == len(self._lines[row]):
-                col = 0
-                row += 1 if row < len(self._lines) else row
+                if row < len(self._lines) - 1:
+                    col = 0
+                    row += 1
             else:
                 col, row = col + 1, row
         elif action == 'cursor_home':
@@ -718,7 +724,7 @@ class TextInput(Widget):
     # Touch control
     #
     def long_touch(self, dt):
-        if self._selection_to == self._selection_from and not self.readonly:
+        if self._selection_to == self._selection_from:
             self._show_cut_copy_paste(
                                         self._long_touch_pos,
                                         self._win,
@@ -967,7 +973,7 @@ class TextInput(Widget):
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
         kw = self._get_line_options()
-        cid = '{}\0{}'.format(text, kw)
+        cid = u'{}\0{}'.format(text, kw)
         width = Cache_get('textinput.width', cid)
         if width:
             return width
