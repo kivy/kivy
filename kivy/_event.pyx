@@ -22,6 +22,7 @@ from kivy.properties cimport Property, ObjectProperty
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
 cdef dict cache_events = {}
+cdef dict cache_events_handlers = {}
 
 def _get_bases(cls):
     for base in cls.__bases__:
@@ -126,12 +127,20 @@ cdef class EventDispatcher(object):
 
         # Auto bind on own handler if exist
         properties = self.properties()
-        for func in dir(self):
-            if not func.startswith('on_'):
-                continue
-            name = func[3:]
-            if name in properties:
-                self.bind(**{name: getattr(self, func)})
+        __cls__ = self.__class__
+        if __cls__ not in cache_events_handlers:
+            event_handlers = []
+            for func in dir(self):
+                if func[:3] != 'on_':
+                    continue
+                name = func[3:]
+                if name in properties:
+                    event_handlers.append(func)
+            cache_events_handlers[__cls__] = event_handlers
+        else:
+            event_handlers = cache_events_handlers[__cls__]
+        for func in event_handlers:
+            self.bind(**{func[3:]: getattr(self, func)})
 
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():
@@ -317,6 +326,11 @@ cdef class EventDispatcher(object):
 
         .. versionadded:: 1.0.9
         '''
+        # fast path, use the cache first
+        __cls__ = self.__class__
+        if __cls__ in cache_properties:
+            return cache_properties[__cls__]
+
         cdef dict ret, p
         ret = {}
         p = self.__properties
