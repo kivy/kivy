@@ -60,17 +60,8 @@ for class_name in CONTAINER_CLASSES:
 
 class KivyRenderTextInput(CodeInput):
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
-        is_osx = sys.platform == 'darwin'
-        # Keycodes on OSX:
-        ctrl, cmd = 64, 1024
-        key, key_str = keycode
-
-        if text and not key in (self.interesting_keys.keys() + [27]):
-            # This allows *either* ctrl *or* cmd, but not both.
-            if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
-                if key == ord('s'):
-                    self.catalog.change_kv(True)
-                    return
+        self.catalog.screen_manager.get_screen(self.catalog.current_view
+            ).content.children[0].last_render = self.text
 
         super(KivyRenderTextInput, self)._keyboard_on_key_down(
             window, keycode, text, modifiers)
@@ -118,7 +109,10 @@ class Catalog(BoxLayout):
                 object.state = "down"
 
         child = self.screen_manager.get_screen(self.current_view).content.children[0]
-        if hasattr(child, 'kv_file'):
+        if hasattr(child, 'last_render'):
+            self.language_box.text = child.last_render
+            self.language_box.reset_undo()
+        elif hasattr(child, 'kv_file'):
             with open(child.kv_file) as file:
                 self.language_box.text = file.read()
             # reset undo/redo history
