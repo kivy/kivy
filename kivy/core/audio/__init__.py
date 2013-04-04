@@ -56,7 +56,7 @@ class SoundLoader:
         for classobj in SoundLoader._classes:
             if ext in classobj.extensions():
                 return classobj(source=filename)
-        Logger.warning('Audio: Unable to found a loader for <%s>' %
+        Logger.warning('Audio: Unable to find a loader for <%s>' %
                        filename)
         return None
 
