@@ -32,7 +32,7 @@ class SoundPygame(Sound):
     # __slots__ = ('_data', '_channel')
     @staticmethod
     def extensions():
-        return ('wav', 'ogg', )
+        return ('wav', 'ogg', 'mp3')
 
     def __init__(self, **kwargs):
         self._data = None
