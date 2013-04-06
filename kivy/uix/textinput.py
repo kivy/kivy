@@ -403,7 +403,10 @@ class TextInput(Widget):
 
             start, finish, lines,\
                 lineflags, len_lines = self._get_line_from_cursor(cr, new_text)
-            self._trigger_refresh_text('insert', start, finish, lines,
+            # calling trigger here could lead to wrong cursor positioning
+            # and repeating of text when keys are added rapidly in a automated
+            # fashion. From Android Keyboard for example.
+            self._refresh_text_from_property('insert', start, finish, lines,
                 lineflags, len_lines)
 
         self.cursor = self.get_cursor_from_index(ci + len_str)
@@ -411,6 +414,7 @@ class TextInput(Widget):
         self._set_unredo_insert(ci, ci + len_str, substring, from_undo)
 
     def _get_line_from_cursor(self, start, new_text):
+        # get current paragraph from cursor position
         finish = start
         lines = self._lines
         linesflags = self._lines_flags
@@ -424,7 +428,7 @@ class TextInput(Widget):
         except IndexError:
             pass
         lines, lineflags = self._split_smart(new_text)
-        len_lines = max(1, len(lines) - 1)
+        len_lines = max(1, len(lines))
         return start, finish, lines, lineflags, len_lines
 
     def _set_unredo_insert(self, ci, sci, substring, from_undo):
@@ -463,7 +467,7 @@ class TextInput(Widget):
                 self.insert_text(substring, True)
             elif undo_type == 'bkspc':
                 self.cursor = _get_cusror_from_index(x_item['redo_command'])
-                self.do_backspace(True)
+                self.do_backspace(from_undo=True)
             else:
                 # delsel
                 ci, sci = x_item['redo_command']
@@ -521,44 +525,59 @@ class TextInput(Widget):
         if self.readonly:
             return
         cc, cr = self.cursor
-        text = self._lines[cr]
+        _lines = self._lines
+        text = _lines[cr]
         cursor_index = self.cursor_index()
+        prev_line_len = len(_lines[cr - 1])
+        text_last_line = _lines[cr - 1]
+
         if cc == 0 and cr == 0:
             return
         _lines_flags = self._lines_flags
+        start = cr
         if cc == 0:
-            text_last_line = self._lines[cr - 1]
             substring = '\n' if _lines_flags[cr] else ' '
-            self._set_line_text(cr - 1, text_last_line + text)
+            new_text = text_last_line + text
+            self._set_line_text(cr - 1, new_text)
             self._delete_line(cr)
-            new_text = ''
+            start = cr - 1
         else:
             #ch = text[cc-1]
             substring = text[cc - 1]
             new_text = text[:cc - 1] + text[cc:]
             self._set_line_text(cr, new_text)
 
-            if not self._lines_flags[cr]:
-                # refresh just the current line instead of the whole text
-                start, finish, lines, lineflags, len_lines =\
-                    self._get_line_from_cursor(cr, new_text)
-                self._trigger_refresh_text('del', start, finish, lines,
-                                            lineflags, len_lines)
+        # refresh just the current line instead of the whole text
+        start, finish, lines, lineflags, len_lines =\
+                                    self._get_line_from_cursor(start, new_text)
+        # avoid trigger refresh, leads to issue with
+        # keys/text send rapidly through code.
+        self._refresh_text_from_property('del', start, finish, lines,
+                                    lineflags, len_lines)
 
+        # Instead of calling get_cursor_from_index every time avoid till it's
+        # really needed leads to improvements while editing large amounts of
+        # text.
         if self.selection_from != self.selection_to:
             col, row = self.get_cursor_from_index(cursor_index - 1)
         else:
-            col, row = self.cursor
+            col, row = cc, cr
             if col == 0:
-                row -= 1 if row else 0
-                col = len(self._lines[row])
+                if row:
+                    row -= 1
+                    col = prev_line_len
             else:
-                col, row = col - 1, row
+                if (row > 0) and text_last_line != self._lines[row - 1]:
+                    col, row = self.get_cursor_from_index(cursor_index - 1)
+                else:
+                    col, row = col - 1, row
+
         self.cursor = col, row
         # handle undo and redo
-        self._set_undo_redo_bkspc(cursor_index,
-                                        cursor_index - 1,
-                                        substring, from_undo)
+        self._set_undo_redo_bkspc(
+                                cursor_index,
+                                cursor_index - 1,
+                                substring, from_undo)
 
     def _set_undo_redo_bkspc(self, ol_index, new_index, substring, from_undo):
         # handle undo and redo for backspace
@@ -651,6 +670,7 @@ class TextInput(Widget):
     def cancel_selection(self):
         '''Cancel current selection (if any).
         '''
+        self._selection_from = self._selection_to = self.cursor_index()
         self._selection = False
         self._selection_finished = True
         self._selection_touch = None
