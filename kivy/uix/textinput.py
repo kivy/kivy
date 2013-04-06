@@ -555,24 +555,7 @@ class TextInput(Widget):
         self._refresh_text_from_property('del', start, finish, lines,
                                     lineflags, len_lines)
 
-        # Instead of calling get_cursor_from_index every time avoid till it's
-        # really needed leads to improvements while editing large amounts of
-        # text.
-        if self.selection_from != self.selection_to:
-            col, row = self.get_cursor_from_index(cursor_index - 1)
-        else:
-            col, row = cc, cr
-            if col == 0:
-                if row:
-                    row -= 1
-                    col = prev_line_len
-            else:
-                if (row > 0) and text_last_line != self._lines[row - 1]:
-                    col, row = self.get_cursor_from_index(cursor_index - 1)
-                else:
-                    col, row = col - 1, row
-
-        self.cursor = col, row
+        self.cursor = self.get_cursor_from_index(cursor_index - 1)
         # handle undo and redo
         self._set_undo_redo_bkspc(
                                 cursor_index,
