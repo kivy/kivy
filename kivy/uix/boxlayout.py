@@ -61,7 +61,7 @@ You can check the `examples/widgets/boxlayout_poshint.py` for a live example.
 __all__ = ('BoxLayout', )
 
 from kivy.uix.layout import Layout
-from kivy.properties import NumericProperty, OptionProperty, CssListProperty
+from kivy.properties import NumericProperty, OptionProperty, VariableListProperty
 
 
 class BoxLayout(Layout):
@@ -75,7 +75,7 @@ class BoxLayout(Layout):
     0.
     '''
 
-    padding = CssListProperty([0, 0, 0, 0])
+    padding = VariableListProperty([0, 0, 0, 0])
     '''Padding between layout box and children, in pixels.
 
     padding[0] represents the top padding, padding[1] the right padding,
@@ -89,9 +89,9 @@ class BoxLayout(Layout):
 
     .. versionchanged:: 1.7.0
 
-    Replaced NumericProperty with CssListProperty.
+    Replaced NumericProperty with VariableListProperty.
 
-    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
     [0, 0, 0, 0].
     '''
 

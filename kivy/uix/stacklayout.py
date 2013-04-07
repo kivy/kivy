@@ -29,14 +29,14 @@ __all__ = ('StackLayout', )
 
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty, \
-    ReferenceListProperty, CssListProperty
+    ReferenceListProperty, VariableListProperty
 
 
 class StackLayout(Layout):
     '''Stack layout class. See module documentation for more information.
     '''
 
-    spacing = CssListProperty([0, 0], length=2)
+    spacing = VariableListProperty([0, 0], length=2)
     '''Spacing between children, in pixels.
 
     spacing[0] represents the horizontal spacing and spacing[1] the vertical
@@ -45,11 +45,11 @@ class StackLayout(Layout):
     If spacing is given only one argument, it will represent both horizontal
     and vertical spacing.
 
-    :data:`spacing` is a :class:`~kivy.properties.CssListProperty`, default to
+    :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default to
     [0, 0].
     '''
 
-    padding = CssListProperty([0, 0, 0, 0])
+    padding = VariableListProperty([0, 0, 0, 0])
     '''Padding between layout box and children, in pixels.
 
     padding[0] represents the top padding, padding[1] the right padding,
@@ -63,9 +63,9 @@ class StackLayout(Layout):
 
     .. versionchanged:: 1.7.0
 
-    Replaced NumericProperty with CssListProperty.
+    Replaced NumericProperty with VariableListProperty.
 
-    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
     [0, 0, 0, 0].
     '''
 

@@ -125,7 +125,7 @@ from kivy.metrics import inch
 from kivy.animation import Animation
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
-        ListProperty, ObjectProperty, CssListProperty
+        ListProperty, ObjectProperty, VariableListProperty
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -1709,14 +1709,14 @@ class TextInput(Widget):
     4.
     '''
 
-    padding_x = CssListProperty([0, 0], length=2)
+    padding_x = VariableListProperty([0, 0], length=2)
     '''Horizontal padding of the text, inside the widget box, in the format
     (right_padding, left_padding).
 
     If padding_x is given only one argument, it will represent both right and
     left padding.
 
-    :data:`padding_x` is a :class:`~kivy.properties.CssListProperty`, default
+    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty`, default
     to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
@@ -1727,14 +1727,14 @@ class TextInput(Widget):
         self.padding[1] = value[0]
         self.padding[3] = value[1]
 
-    padding_y = CssListProperty([0, 0], length=2)
+    padding_y = VariableListProperty([0, 0], length=2)
     '''Vertical padding of the text, inside the widget box, in the format
     (top_padding, bottom_padding).
 
     If padding_y is given only one argument, it will represent both top and
     bottom padding.
 
-    :data:`padding_y` is a :class:`~kivy.properties.CssListProperty`, default
+    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty`, default
     to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
@@ -1745,7 +1745,7 @@ class TextInput(Widget):
         self.padding[0] = value[0]
         self.padding[2] = value[1]
 
-    padding = CssListProperty([0, 0, 0, 0])
+    padding = VariableListProperty([0, 0, 0, 0])
     '''Padding of the text, in the format (padding_top, padding_right,
     padding_bottom, padding_left).
 
@@ -1754,7 +1754,7 @@ class TextInput(Widget):
 
     If given one argument, it will represent all four directions.
 
-    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default
     to [0, 0, 0, 0]. This might be changed by the current theme.
     '''
 
