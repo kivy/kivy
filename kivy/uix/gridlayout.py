@@ -107,7 +107,7 @@ class GridLayout(Layout):
     spacing = VariableListProperty([0, 0], length=2)
     '''Spacing between children: [spacing_horizontal, spacing_vertical].
 
-    spacing also accepts a one arugment form [spacing].
+    spacing also accepts a one argument form [spacing].
 
     :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default to
     [0, 0].
