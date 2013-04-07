@@ -55,7 +55,7 @@ The Widget Tree can be manipulated with the following methods:
 
 - :meth:`~kivy.uix.widget.Widget.add_widget`: add a widget as a child
 - :meth:`~kivy.uix.widget.Widget.remove_widget`: remove a widget from the
-  children list
+  list of children
 - :meth:`~kivy.uix.widget.Widget.clear_widgets`: remove all children from a
   widget
 
@@ -66,12 +66,12 @@ For example, if you want to add a button inside a boxlayout, you can do::
     layout.add_widget(button)
 
 Now, the `button.parent` property will be set to `layout`, and `layout` will
-have the button in its `children` list. To remove the button from the layout::
+have the button in its list of `children`. To remove the button from the layout::
 
     layout.remove_widget(button)
 
 The `button.parent` will be set to `None`, and `layout` will remove the
-button from it's `children` list.
+button from it's list of `children`.
 
 If you want to remove all the children inside a widget, use the
 :meth:`~kivy.uix.widget.Widget.clear_widgets` method::
@@ -80,11 +80,11 @@ If you want to remove all the children inside a widget, use the
 
 .. warning::
 
-    Never manipulate the `children` list yourself if you don't know what you are
-    doing. The widget tree is associated to a graphics tree. For example, if you
-    add a widget into the children list without adding its canvas to the
+    Never manipulate the `children` list directly unless you know what you are
+    doing. The widget tree is associated to a graphics tree. If you
+    add a widget into the `children` list without adding its canvas to the
     graphics tree, the widget will be a child but nothing will be drawn
-    on the screen. Furthermore, you might have issues with further calls to
+    on the screen. Furthermore, you might have issues with later calls to
     `add_widget`, `remove_widget` and `clear_widgets`.
 
 
@@ -131,15 +131,16 @@ Organize with Layouts
 ---------------------
 
 A |Layout| is a special kind of widget that controls the size and position of
-its children. There are different kinds of layouts, allowing for different
-automatic organization of their children. Layouts use |size_hint| and |pos_hint|
+its children. There are different kinds of layouts which automatically position
+their children if various ways. Layouts use |size_hint| and |pos_hint|
 properties to determine the |size| and |pos| of their |children|.
 
 **BoxLayout**:
-Arranges widgets in a side to side (either vertically or horizontally) manner,
-to fill all the place.
-size_hint of children can be used to change proportions allowed to each
-children, or set fixed size for some of them
+Arranges widgets in a left-to-right (if its orientation property is `horizontal`) 
+or top-to-bottom (if its orientation property is `vertical`) manner,
+using all the space available.
+The `size_hint` of its children can be used to change the proportions of each
+child or set fixed sizes for them.
 
 .. only:: html
 
@@ -163,30 +164,36 @@ children, or set fixed size for some of them
 
 
 **GridLayout**:
-Arranges widgets in a grid. You must specifiy at least one dimension of the
-grid so kivy can compute the size of the elements and how to arrange them.
+Arranges widgets in a grid. You must specifiy at least one dimension for the
+grid so that kivy can compute the size of the elements and determine how to
+arrange them.
 
 **StackLayout**:
-Arranges widgets side to side, but with a set size in a dimension, without
-trying to make them fit the whole size, this is useful to have a set of
-chilgren of the same predefined size, side to side.
+Arranges widgets side-by-side (or top-to-bottom, again depending on the orientation
+property), but with a given size i.e. it does not stretch them fit the
+available space. This is useful when you have a set of children of some
+predefined size.
 
 **AnchorLayout**:
-A simple layout only caring about children position, allows to stick the
-children to a position relative to a border of the layout.
-`size_hint` not honored.
+A simple layout that only cares about its childrens position relative to its borders.
+Children are "attached" to the bounding rectangle of the layout via the `anchor_x`
+and `anchor_y` properties.
+
+`pos_hint` is not honored.
 
 **FloatLayout**:
-Allow to place children to arbitrary places and size, either absolute or
-relative to the layout size. Default size_hint (1, 1) will make everychildren
-the same size as the whole layout, so you probably want to change this value
-if you have more than one child. You can set size_hint to (None, None) to use
-absolute size with `size`, this widget honors `pos_hint` too, which as a dict
-allowing to set position relatively to layout position.
+Allows for the placement of children in arbitrary places and with arbitrary sizes,
+either absolute or relative to the layout. The default `size_hint` (1, 1)
+will make all the children the same size as the layout, so you will probably
+want to change this value if you have more than one child. You can set the
+`size_hint` to (None, None) to keep the childs predefined `size`.
+
+This widget honors `pos_hint`, which is a dict
+allowing to you to set the widgits position relative to the layouts position.
 
 **RelativeLayout**:
-Behave just like FloatLayout, except children pos is relative to layout
-position, not screen.
+Similar to the FloatLayout, except the childrens positions are relative to
+layouts position, not the screen.
 
 Look at the documentation of the various Layouts to get a in-depth
 understanding of how they work with |size_hint| and |pos_hint|:
@@ -202,11 +209,11 @@ understanding of how they work with |size_hint| and |pos_hint|:
 |size_hint| is a |ReferenceListProperty| of
 |size_hint_x| and |size_hint_y|. It accepts values from `0` to `1` or `None`
 and defaults to `(1, 1)`. This signifies that if the widget is in a layout,
-the layout will allocate it as much place as possible in both directions
+the layout will allocate it as much space as possible in both directions
 (relative to the layouts size).
 
-Setting |size_hint| to `(0.5, 0.8)` for example, will make the widget 50% the
-width and 80% of the height of the available size for the |widget| inside a |layout|.
+Setting |size_hint| to `(0.5, 0.8)` for example, will make the widget 50% of the
+width and 80% of the height of the available space for the |widget| inside the |layout|.
 
 Consider the following example:
 
@@ -219,7 +226,7 @@ Consider the following example:
             # however it's provided here to make things clear
             size_hint: 1, 1
 
-load kivy catalog::
+In order to see it, load kivy catalog::
 
     cd $KIVYDIR/examples/demo/kivycatalog
     python main.py
@@ -239,20 +246,20 @@ of the |layout| |width|/|height|.
 .. image:: images/size_hint[b_].jpg
 
 You can see here that although we specify |size_hint_x| and |size_hint_y| both
-to be `.5`, only |size_hint_x| seems to be honored. That's because |BoxLayout|
+to be `.5`, only |size_hint_x| seems to be honored. That's because the |BoxLayout|
 controls the |size_hint_y| when |orientation| is `vertical` and |size_hint_x|
-when 'horizontal'. That means the controlled side's size is calculated depending
-upon the total number of |children| in the |BoxLayout|. Here, that's one child with
-|size_hint_y| controlled, so .5/.5 = 1. Thus the widget takes 100% of the parent
-layout's height.
+when |orientation| is 'horizontal'. That means the controlled side's size is
+calculated depending upon the total number of |children| in the |BoxLayout|. Here,
+that's one child with |size_hint_y| controlled, so .5/.5 = 1. Thus the widget
+takes 100% of the parent layout's height.
 
 Let's add another |Button| to the |layout| and see what happens.
 
 .. image:: images/size_hint[bb].jpg
 
-The |BoxLayout| by its very nature divides the available space between its
+The |BoxLayout|, by its very nature, divides the available space between its
 |children| equally. In our case, that's 50-50 as we have two |children|. Let's
-use `size_hint` on one of the children and see look at the results.
+use `size_hint` on one of the children and look at the results.
 
 .. image:: images/size_hint[oB].jpg
 
@@ -277,8 +284,8 @@ If you want to control the absolute |size| of a |Widget|, you can set
 |size_hint_x|/|size_hint_y| or both to `None` so that the widgets |width| and/or
 |height| attributes will be honored.
 
-|pos_hint| is a dict which defaults to empty. As for |size_hint|, different
-Layouts honor |pos_hint| differently, but you can add values to any of the |pos|
+|pos_hint| is a dict which defaults to empty. Different
+layouts honor |size_hint| differently, but you can add values to any of the |pos|
 attributes (|x|, |y|, |left|, |top|, |center_x|, |center_y|) to have the
 |Widget| positioned relatively to its |parent|.
 
@@ -317,9 +324,9 @@ One of the frequently asked questions about layouts is:
     "How to add a background image/color/video/... to a Layout"
 
 Layouts by their nature have no visual representation, i.e. they have no canvas
-instructions by default. However you can add instructions to the Layouts canvas.
+instructions by default. You can however, add instructions to the layouts canvas.
 
-To add a color to the background of a **layouts Instance**
+To add a color to the background of a **layout**
 
 In Python::
 
@@ -330,9 +337,9 @@ In Python::
                                 pos=layout_instance.pos)
 
 Unfortunately this will only draw a rectangle at the layouts initial position
-and size.To make sure the rect is drawn inside the layout if layout size/pos
-changes we need to listen to any changes and update the Rectangles size and pos
-like so::
+and size. To make sure the rect is drawn inside the layout if the layout size/pos
+changes, we need to listen for any changes and update the Rectangles size and pos
+accordingly::
 
     # listen to size and position changes
     layout_instance.bind(
@@ -359,11 +366,12 @@ In kv:
                 pos: self.pos
                 size: self.size
 
-That's it the binding is implicit. kv language in the last two lines updates the
-values |pos| and |size| of the rectangle when the |pos| of the |FloatLayout|
+This example also demonstrates the advantage of using kv files: the binding is implicit.
+The kv language in the last two lines updates the
+rectangles |pos| and |size| when the |pos| of the |FloatLayout|
 changes. QED.
 
-Now Let's put the snippets above into the shell of Kivy App.
+Now let's put the snippets above into the shell of a Kivy App.
 Pure Python way::
 
     from kivy.app import App
@@ -408,7 +416,7 @@ Pure Python way::
     if __name__ == '__main__':
         MainApp().run()
 
-Using KV Language::
+Using the kv language::
 
     from kivy.app import App
     from kivy.uix.floatlayout import FloatLayout
@@ -444,7 +452,7 @@ Using KV Language::
 
 Isn't this a lot simpler?
 
-Both of the Apps should look something like this
+Both of the Apps should look something like this:
 
 .. image:: images/layout_background.png
 
@@ -454,7 +462,7 @@ To add a color to the background of a **layout globally**
 
 Now Let's have some fun and add a **Image to the background**
 
-a bit Advanced Topics::
+A Few Advanced Topics::
 
     How about a **Animated background**?
 
@@ -463,7 +471,7 @@ a bit Advanced Topics::
 Nesting Layouts
 ---------------
 
-Yes! not only can you nest Layouts, it is actually quite fun to seee how extensible nesting Layouts is
+Yes! Not only can you nest layouts, it is actually quite fun to see how extensible nesting layouts can be.
 
 Size and position metrics
 -------------------------
@@ -494,7 +502,7 @@ various devices and screen sizes for your application.
 Screen Separation with Screen Manager
 -------------------------------------
 
-If your application is composed of various screens, you will most likely want an easy
+If your application is composed of multiple screens, you will most likely want an easy
 way to navigate from one |Screen| to another. Fortunately, there is
 |ScreenManager| class that allows you to define screens separately, and to set
 the |Transitions| from one to the other.
