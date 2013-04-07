@@ -127,7 +127,8 @@ class CodeInput(TextInput):
         width = Cache_get('textinput.width', text + '_' + str(self.lexer))
         if width:
             return width
-        width = self._create_line_label(text).width
+        lbl = self._create_line_label(text)
+        width = lbl.width if lbl else 0
         Cache_append(
                     'textinput.width',
                     text + '_' + str(self.lexer), width)
