@@ -55,7 +55,7 @@ The Widget Tree can be manipulated with the following methods:
 
 - :meth:`~kivy.uix.widget.Widget.add_widget`: add a widget as a child
 - :meth:`~kivy.uix.widget.Widget.remove_widget`: remove a widget from the
-  list of children
+  `children` list
 - :meth:`~kivy.uix.widget.Widget.clear_widgets`: remove all children from a
   widget
 
@@ -66,12 +66,12 @@ For example, if you want to add a button inside a boxlayout, you can do::
     layout.add_widget(button)
 
 Now, the `button.parent` property will be set to `layout`, and `layout` will
-have the button in its list of `children`. To remove the button from the layout::
+have the button in its `children` list. To remove the button from the layout::
 
     layout.remove_widget(button)
 
 The `button.parent` will be set to `None`, and `layout` will remove the
-button from it's list of `children`.
+button from it's `children` list.
 
 If you want to remove all the children inside a widget, use the
 :meth:`~kivy.uix.widget.Widget.clear_widgets` method::
