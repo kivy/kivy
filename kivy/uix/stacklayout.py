@@ -29,43 +29,34 @@ __all__ = ('StackLayout', )
 
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, OptionProperty, \
-    ReferenceListProperty, CssListProperty
+    ReferenceListProperty, VariableListProperty
 
 
 class StackLayout(Layout):
     '''Stack layout class. See module documentation for more information.
     '''
 
-    spacing = CssListProperty([0, 0], length=2)
-    '''Spacing between children, in pixels.
+    spacing = VariableListProperty([0, 0], length=2)
+    '''Spacing between children: [spacing_horizontal, spacing_vertical].
 
-    spacing[0] represents the horizontal spacing and spacing[1] the vertical
-    spacing.
+    spacing also accepts a one argument form [spacing].
 
-    If spacing is given only one argument, it will represent both horizontal
-    and vertical spacing.
-
-    :data:`spacing` is a :class:`~kivy.properties.CssListProperty`, default to
+    :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default to
     [0, 0].
     '''
 
-    padding = CssListProperty([0, 0, 0, 0])
-    '''Padding between layout box and children, in pixels.
+    padding = VariableListProperty([0, 0, 0, 0])
+    '''Padding between layout box and children: [padding_left, padding_top,
+    padding_right, padding_bottom].
 
-    padding[0] represents the top padding, padding[1] the right padding,
-    padding[2] the bottom padding and padding[3] the left padding.
-
-    If padding is given only two arguments, the first will represent top and
-    bottom padding, and the second left and right padding.
-
-    If padding is given only one argument, it will represent all four
-    directions.
+    padding also accepts a two argument form [padding_horizontal,
+    padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
 
-    Replaced NumericProperty with CssListProperty.
+    Replaced NumericProperty with VariableListProperty.
 
-    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
     [0, 0, 0, 0].
     '''
 
@@ -137,10 +128,10 @@ class StackLayout(Layout):
         selfpos = self.pos
         selfsize = self.size
         orientation = self.orientation.split('-')
-        padding_top = self.padding[0]
-        padding_right = self.padding[1]
-        padding_bottom = self.padding[2]
-        padding_left = self.padding[3]
+        padding_left = self.padding[0]
+        padding_top = self.padding[1]
+        padding_right = self.padding[2]
+        padding_bottom = self.padding[3]
 
         padding_x = padding_left + padding_right
         padding_y = padding_top + padding_bottom

@@ -125,7 +125,7 @@ from kivy.metrics import inch
 from kivy.animation import Animation
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
-        ListProperty, ObjectProperty, CssListProperty
+        ListProperty, ObjectProperty, VariableListProperty
 
 Cache_register = Cache.register
 Cache_append = Cache.append
@@ -628,7 +628,7 @@ class TextInput(Widget):
     def get_cursor_from_xy(self, x, y):
         '''Return the (row, col) of the cursor from an (x, y) position.
         '''
-        padding_top = self.padding[0]
+        padding_top = self.padding[1]
         l = self._lines
         dy = self.line_height + self._line_spacing
         cx = x - self.x
@@ -1171,10 +1171,10 @@ class TextInput(Widget):
             rects = self._lines_rects
             labels = self._lines_labels
             lines = self._lines
-        padding_top = self.padding[0]
-        padding_right = self.padding[1]
-        padding_bottom = self.padding[2]
-        padding_left = self.padding[3]
+        padding_left = self.padding[0]
+        padding_top = self.padding[1]
+        padding_right = self.padding[2]
+        padding_bottom = self.padding[3]
         x = self.x + padding_left
         y = self.top - padding_top + sy
         miny = self.y + padding_bottom
@@ -1250,8 +1250,8 @@ class TextInput(Widget):
         self.canvas.remove_group('selection')
         dy = self.line_height + self._line_spacing
         rects = self._lines_rects
-        padding_top = self.padding[0]
-        padding_bottom = self.padding[2]
+        padding_top = self.padding[1]
+        padding_bottom = self.padding[3]
         _top = self.top
         y = _top - padding_top + self.scroll_y
         miny = self.y + padding_bottom
@@ -1272,8 +1272,8 @@ class TextInput(Widget):
         tab_width = self.tab_width
         _label_cached = self._label_cached
         width = self.width
-        padding_right = self.padding[1]
-        padding_left = self.padding[3]
+        padding_left = self.padding[0]
+        padding_right = self.padding[2]
         x = self.x
         canvas_add = self.canvas.add
         selection_color = self.selection_color
@@ -1282,14 +1282,14 @@ class TextInput(Widget):
                 r = rects[line_num]
                 draw_selection(r.pos, r.size, line_num, (s1c, s1r),
                     (s2c, s2r - 1), _lines, _get_text_width, tab_width,
-                    _label_cached, width, padding_right, padding_left, x,
+                    _label_cached, width, padding_left, padding_right, x,
                     canvas_add, selection_color)
             y -= dy
 
     def _draw_selection(self, *largs):
         pos, size, line_num, (s1c, s1r), (s2c, s2r),\
          _lines, _get_text_width, tab_width, _label_cached, width,\
-         padding_right, padding_left, x, canvas_add, selection_color = largs
+         padding_left, padding_right, x, canvas_add, selection_color = largs
         # Draw the current selection on the widget.
         if line_num < s1r or line_num > s2r:
             return
@@ -1322,8 +1322,8 @@ class TextInput(Widget):
     def _get_cursor_pos(self):
         # return the current cursor x/y from the row/col
         dy = self.line_height + self._line_spacing
-        padding_top = self.padding[0]
-        padding_left = self.padding[3]
+        padding_left = self.padding[0]
+        padding_top = self.padding[1]
         x = self.x + padding_left
         y = self.top - padding_top + self.scroll_y
         y -= self.cursor_row * dy
@@ -1419,8 +1419,8 @@ class TextInput(Widget):
         lines_flags = []
         _join = ''.join
         lines_append, lines_flags_append = lines.append, lines_flags.append
-        padding_right = self.padding[1]
-        padding_left = self.padding[3]
+        padding_left = self.padding[0]
+        padding_right = self.padding[2]
         width = self.width - padding_left - padding_right
         text_width = self._get_text_width
         _tab_width, _label_cached = self.tab_width, self._label_cached
@@ -1627,8 +1627,8 @@ class TextInput(Widget):
 
         # adjust scrollview to ensure that the cursor will be always inside our
         # viewport.
-        padding_right = self.padding[1]
-        padding_left = self.padding[3]
+        padding_left = self.padding[0]
+        padding_right = self.padding[2]
         viewport_width = self.width - padding_left - padding_right
         sx = self.scroll_x
         offset = self.cursor_offset()
@@ -1644,8 +1644,8 @@ class TextInput(Widget):
         dy = self.line_height + self._line_spacing
         offsety = cr * dy
         sy = self.scroll_y
-        padding_top = self.padding[0]
-        padding_bottom = self.padding[2]
+        padding_top = self.padding[1]
+        padding_bottom = self.padding[3]
         viewport_height = self.height - padding_top - padding_bottom - dy
         if offsety > viewport_height + sy:
             sy = offsety - viewport_height
@@ -1709,14 +1709,12 @@ class TextInput(Widget):
     4.
     '''
 
-    padding_x = CssListProperty([0, 0], length=2)
-    '''Horizontal padding of the text, inside the widget box, in the format
-    (right_padding, left_padding).
+    padding_x = VariableListProperty([0, 0], length=2)
+    '''Horizontal padding of the text: [padding_left, padding_right].
 
-    If padding_x is given only one argument, it will represent both right and
-    left padding.
+    padding_x also accepts a one argument form [padding_horizontal].
 
-    :data:`padding_x` is a :class:`~kivy.properties.CssListProperty`, default
+    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty`, default
     to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
@@ -1724,17 +1722,15 @@ class TextInput(Widget):
     '''
 
     def on_padding_x(self, instance, value):
-        self.padding[1] = value[0]
-        self.padding[3] = value[1]
+        self.padding[0] = value[0]
+        self.padding[2] = value[1]
 
-    padding_y = CssListProperty([0, 0], length=2)
-    '''Vertical padding of the text, inside the widget box, in the format
-    (top_padding, bottom_padding).
+    padding_y = VariableListProperty([0, 0], length=2)
+    '''Vertical padding of the text: [padding_top, padding_bottom].
 
-    If padding_y is given only one argument, it will represent both top and
-    bottom padding.
+    padding_y also accepts a one argument form [padding_vertical].
 
-    :data:`padding_y` is a :class:`~kivy.properties.CssListProperty`, default
+    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty`, default
     to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
@@ -1742,19 +1738,21 @@ class TextInput(Widget):
     '''
 
     def on_padding_y(self, instance, value):
-        self.padding[0] = value[0]
-        self.padding[2] = value[1]
+        self.padding[1] = value[0]
+        self.padding[3] = value[1]
 
-    padding = CssListProperty([0, 0, 0, 0])
-    '''Padding of the text, in the format (padding_top, padding_right,
-    padding_bottom, padding_left).
+    padding = VariableListProperty([0, 0, 0, 0])
+    '''Padding of the text: [padding_left, padding_top, padding_right,
+    padding_bottom].
 
-    If given only two arguments, they will represent padding_y and padding_x
-    respectively.
+    padding also accepts a two argument form [padding_horizontal,
+    padding_vertical] and a one argument form [padding].
 
-    If given one argument, it will represent all four directions.
+    .. versionchanged:: 1.7.0
 
-    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default
+    Replaced AliasProperty with VariableListProperty.
+
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default
     to [0, 0, 0, 0]. This might be changed by the current theme.
     '''
 

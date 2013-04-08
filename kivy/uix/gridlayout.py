@@ -90,7 +90,7 @@ __all__ = ('GridLayout', 'GridLayoutException')
 from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
-        BoundedNumericProperty, ReferenceListProperty, CssListProperty
+        BoundedNumericProperty, ReferenceListProperty, VariableListProperty
 from math import ceil
 
 
@@ -104,36 +104,27 @@ class GridLayout(Layout):
     '''Grid layout class. See module documentation for more information.
     '''
 
-    spacing = CssListProperty([0, 0], length=2)
-    '''Spacing between children, in pixels.
+    spacing = VariableListProperty([0, 0], length=2)
+    '''Spacing between children: [spacing_horizontal, spacing_vertical].
 
-    spacing[0] represents the horizontal spacing and spacing[1] the vertical
-    spacing.
+    spacing also accepts a one argument form [spacing].
 
-    If spacing is given only one argument, it will represent both horizontal
-    and vertical spacing.
-
-    :data:`spacing` is a :class:`~kivy.properties.CssListProperty`, default to
+    :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default to
     [0, 0].
     '''
 
-    padding = CssListProperty([0, 0, 0, 0])
-    '''Padding between layout box and children, in pixels.
+    padding = VariableListProperty([0, 0, 0, 0])
+    '''Padding between layout box and children: [padding_left, padding_top,
+    padding_right, padding_bottom].
 
-    padding[0] represents the top padding, padding[1] the right padding,
-    padding[2] the bottom padding and padding[3] the left padding.
-
-    If padding is given only two arguments, the first will represent top and
-    bottom padding, and the second left and right padding.
-
-    If padding is given only one argument, it will represent all four
-    directions.
+    padding also accepts a two argument form [padding_horizontal,
+    padding_vertical] and a one argument form [padding].
 
     .. versionchanged:: 1.7.0
 
-    Replaced NumericProperty with CssListProperty.
+    Replaced NumericProperty with VariableListProperty.
 
-    :data:`padding` is a :class:`~kivy.properties.CssListProperty`, default to
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
     [0, 0, 0, 0].
     '''
 
@@ -341,8 +332,8 @@ class GridLayout(Layout):
                 i = i - 1
 
         # calculate minimum width/height needed, starting from padding + spacing
-        padding_x = self.padding[1] + self.padding[3]
-        padding_y = self.padding[0] + self.padding[2]
+        padding_x = self.padding[0] + self.padding[2]
+        padding_y = self.padding[1] + self.padding[3]
         spacing_x, spacing_y = self.spacing
         width = padding_x + spacing_x * (current_cols - 1)
         height = padding_y + spacing_y * (current_rows - 1)
@@ -372,8 +363,8 @@ class GridLayout(Layout):
             return
 
         # speedup
-        padding_top = self.padding[0]
-        padding_left = self.padding[3]
+        padding_left = self.padding[0]
+        padding_top = self.padding[1]
         spacing_x, spacing_y = self.spacing
         selfx = self.x
         selfw = self.width
