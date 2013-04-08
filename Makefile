@@ -75,6 +75,7 @@ clean:
 	-find kivy -iname '*.so' -exec rm {} \;
 	-find kivy -iname '*.pyc' -exec rm {} \;
 	-find kivy -iname '*.pyo' -exec rm {} \;
+	-find . -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs rm
 
 distclean: clean
 	-git clean -dxf
