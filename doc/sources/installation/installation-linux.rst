@@ -159,7 +159,7 @@ Fedora
     mesa-libGLES mesa-libGLES-devel gstreamer-plugins-good gstreamer \
     gstreamer-python mtdev-devel python-pip
     $ sudo pip install --upgrade cython
-    $ sudo pip instll pygments
+    $ sudo pip install pygments
 
 OpenSuse
 --------
