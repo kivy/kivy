@@ -4,16 +4,14 @@ import os
 import sys
 from kivy.app import App
 from kivy.factory import Factory
-from kivy.lang import Builder, Parser, ParserException
-from kivy.properties import ObjectProperty
+from kivy.lang import Builder, Parser
+from kivy.properties import ObjectProperty, StringProperty
 from kivy.config import Config
 
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.popup import Popup
-from kivy.uix.label import Label
 from kivy.uix.codeinput import CodeInput
+from kivy.uix.togglebutton import ToggleButton
 from kivy.animation import Animation
-from kivy.clock import Clock
 
 CATALOG_ROOT = os.path.dirname(__file__)
 
@@ -25,6 +23,10 @@ Config.set('graphics', 'height', '768')
 CONTAINER_KVS = os.path.join(CATALOG_ROOT, 'container_kvs')
 CONTAINER_CLASSES = [c[:-3] for c in os.listdir(CONTAINER_KVS)
     if c.endswith('.kv')]
+
+
+class MenuButton(ToggleButton):
+    pass
 
 
 class Container(BoxLayout):
@@ -58,17 +60,8 @@ for class_name in CONTAINER_CLASSES:
 
 class KivyRenderTextInput(CodeInput):
     def _keyboard_on_key_down(self, window, keycode, text, modifiers):
-        is_osx = sys.platform == 'darwin'
-        # Keycodes on OSX:
-        ctrl, cmd = 64, 1024
-        key, key_str = keycode
-
-        if text and not key in (self.interesting_keys.keys() + [27]):
-            # This allows *either* ctrl *or* cmd, but not both.
-            if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
-                if key == ord('s'):
-                    self.catalog.change_kv(True)
-                    return
+        self.catalog.screen_manager.get_screen(self.catalog.current_view
+            ).content.children[0].last_render = self.text
 
         super(KivyRenderTextInput, self)._keyboard_on_key_down(
             window, keycode, text, modifiers)
@@ -96,51 +89,58 @@ class Catalog(BoxLayout):
     '''
     language_box = ObjectProperty()
     screen_manager = ObjectProperty()
+    menu_view = ObjectProperty()
+    menu_select = ObjectProperty()
+    menu_code = ObjectProperty()
+    current_view = StringProperty("Welcome")
 
     def __init__(self, **kwargs):
         super(Catalog, self).__init__(**kwargs)
-        self.show_kv(None)
+        self.show_kv()
 
-    def show_kv(self, object):
-        '''Called when an accordionitem is collapsed or expanded. If it
-        was expanded, we need to show the .kv language file associated with
-        the newly revealed container.'''
-
+    def show_kv(self, object=None):
+        '''Called when an item is selected from the menu. Render the
+        kv file for the item and display it.'''
         # if object is not passed, it's initialization, we just need to load
         # the file
         if object:
-            # one button must always be pressed, even if user presses it again
-            if object.state == "normal":
+            self.screen_manager.current = self.current_view = object.text
+            if object.state != "down":
                 object.state = "down"
 
-            self.screen_manager.current = object.text
+        child = self.screen_manager.get_screen(self.current_view).content.children[0]
+        if hasattr(child, 'last_render'):
+            self.language_box.text = child.last_render
+            self.language_box.reset_undo()
+        elif hasattr(child, 'kv_file'):
+            with open(child.kv_file) as file:
+                self.language_box.text = file.read()
+            # reset undo/redo history
+            self.language_box.reset_undo()
 
-        with open(self.screen_manager.current_screen.children[0].kv_file) as file:
-            self.language_box.text = file.read()
-        # reset undo/redo history
-        self.language_box.reset_undo()
+        if object:  # This is a hack; if it's initialization, we don't want to select the button
+            self.menu_view._do_press()
 
-    def schedule_reload(self):
-        if self.auto_reload:
-            Clock.unschedule(self.change_kv)
-            Clock.schedule_once(self.change_kv, 2)
-
-    def change_kv(self, *largs):
-        '''Called when the update button is clicked. Needs to update the
+    def change_kv(self, object=None):
+        '''Called when the view button is clicked or a new view is selected.
+         Needs to update the
         interface for the currently active kv widget, if there is one based
         on the kv file the user entered. If there is an error in their kv
         syntax, show a nice popup.'''
 
-        kv_container = self.screen_manager.current_screen.children[0]
+        if object.state != "down":
+            object.state = "down"
+        screen = self.screen_manager.get_screen(self.current_view)
+        kv_container = screen.content.children[0]
+
         try:
             parser = Parser(content=self.language_box.text.encode('utf8'))
             kv_container.clear_widgets()
             widget = Factory.get(parser.root.name)()
             Builder._apply_rule(widget, parser.root, parser.root)
             kv_container.add_widget(widget)
-        except (SyntaxError, ParserException) as e:
-            self.show_error(e)
-        except Exception, e:
+            self.screen_manager.current = self.current_view
+        except Exception as e:
             self.show_error(e)
 
     def show_error(self, e):
@@ -149,6 +149,7 @@ class Catalog(BoxLayout):
             Animation(top=190.0, d=3) +\
             Animation(top=0, opacity=0, d=2)
         self.anim.start(self.info_label)
+
 
 class KivyCatalogApp(App):
     '''The kivy App that runs the main root. All we do is build a catalog
