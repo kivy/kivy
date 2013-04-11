@@ -810,6 +810,8 @@ class TextInput(Widget):
 
     def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
         # Show a bubble with cut copy and paste buttons
+        if not self.use_bubble:
+            return
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
@@ -1714,8 +1716,8 @@ class TextInput(Widget):
 
     padding_x also accepts a one argument form [padding_horizontal].
 
-    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty`, default
-    to [0, 0]. This might be changed by the current theme.
+    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty`,
+    default to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
         Use :data:`padding` instead
@@ -1730,8 +1732,8 @@ class TextInput(Widget):
 
     padding_y also accepts a one argument form [padding_vertical].
 
-    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty`, default
-    to [0, 0]. This might be changed by the current theme.
+    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty`,
+    default to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
         Use :data:`padding` instead
@@ -1835,6 +1837,15 @@ class TextInput(Widget):
 
     :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 1] #Black
+    '''
+
+    use_bubble = BooleanProperty(True)
+    '''Indicates whether the cut copy paste bubble is used
+
+    .. versionadded:: 1.6.1
+
+    :data:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True
     '''
 
     def get_sel_from(self):
@@ -1967,7 +1978,7 @@ if __name__ == '__main__':
 
         def build(self):
             root = BoxLayout(orientation='vertical')
-            textinput = TextInput(multiline=True)
+            textinput = TextInput(multiline=True, use_bubble=False)
             textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(text='monoline textinput',
