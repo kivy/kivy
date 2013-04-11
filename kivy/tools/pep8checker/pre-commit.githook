@@ -26,6 +26,14 @@ curdir = dirname(abspath(__file__))
 kivydir = sep.join(curdir.split(sep)[:-2])
 srcdir = join(kivydir, 'kivy')
 script = join(srcdir, 'tools', 'pep8checker', 'pep8kivy.py')
+try:
+    with open(script): pass
+except IOError:
+    # if this not the kivy project, find the script file in the kivy project
+    os.environ['KIVY_NO_CONSOLELOG'] = '1'
+    import kivy
+    script = join(dirname(kivy.__file__), 'tools', 'pep8checker', 'pep8kivy.py')
+    srcdir = ''
 
 # Only check the files that were staged
 #proc = Popen(['git', 'diff', '--cached', '--name-only', 'HEAD'], stdout=PIPE)
