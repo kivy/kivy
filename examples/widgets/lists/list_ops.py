@@ -117,7 +117,6 @@ class OpsView(BoxLayout):
     '''
     def __init__(self, **kwargs):
         kwargs['orientation'] = 'vertical'
-        kwargs['size_hint'] = (1.0, 1.0)
         super(OpsView, self).__init__(**kwargs)
 
         # UPPER PANEL
@@ -225,8 +224,7 @@ class OpsView(BoxLayout):
 
             adapters.append(letters_dict_adapter)
 
-            letters_list_view = ListView(adapter=letters_dict_adapter,
-                                         size_hint=(1.0, 1.0))
+            letters_list_view = ListView(adapter=letters_dict_adapter)
 
             letters_dict_adapter.owning_view = letters_list_view
 
