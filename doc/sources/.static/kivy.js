@@ -296,14 +296,36 @@ $(document).ready(function () {
 	// Image reflexions
 	//----------------------------------------------------------------------------
 
-	$('div.body img').reflect({'opacity': .35, 'height': 40});
+	//$('div.body img').reflect({'opacity': .35, 'height': 40});
 
 	//----------------------------------------------------------------------------
 	// Page to change with panel navigation
 	//----------------------------------------------------------------------------
 
-	var firstsection = $('div.section').attr('id');
-	if ( firstsection == 'getting-started' || firstsection == 'pong-game-tutorial' )
-		gs_start(firstsection);
+	//var firstsection = $('div.section').attr('id');
+	//if ( firstsection == 'getting-started' || firstsection == 'pong-game-tutorial' )
+	//	gs_start(firstsection);
+
+	//----------------------------------------------------------------------------
+	// Menu navigation
+	//----------------------------------------------------------------------------
+	$('div.sphinxsidebarwrapper > ul > li > a').attr('href', '#').addClass('mainlevel');
+	$('div.sphinxsidebarwrapper > ul > li > a').each(function(index, item) {
+		$(item).bind('mousedown', function() {
+			$('div.sphinxsidebar ul li ul').filter(function (index, child) {
+				if (child != $(item).parent().children('ul').get(0)) return child;
+			}).slideUp();
+			$(item).parent().children('ul').slideToggle();
+		});
+	})
+
+	$('div.sphinxsidebarwrapper li.current').parent().show();
+
+	$('div.sphinxsidebarwrapper ul li').each(function(index, item) {
+		if ($(item).children('ul').length > 0) {
+			console.log(index, item);
+			$(item).children('a').addClass('togglable');
+		}
+	});
 
 });

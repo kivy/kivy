@@ -54,12 +54,15 @@
 				<input type="text" class="text" name="q" />
 			</form>
           {%- block sidebartoc %}
+		  <!--
 		  <h3><a href="{{ pathto(master_doc) }}">{{ title }}</a></h3>
 		  {{ toc }}
 		  <h3><a href="{{ pathto(master_doc) }}">{{ _('Table Of Contents') }}</a></h3>
-		  {{ toctree() }}
+		  -->
+		  {{ toctree(collapse=False) }}
           {%- endblock %}
           {%- block sidebarrel %}
+		  <!--
 		  <h3>Related Topics</h3>
 		  <ul>
 			  {%- if prev %}
@@ -69,6 +72,7 @@
 			  <li>Next: <a href="{{ next.link|e }}" title="{{ _('next chapter') }}">{{ next.title }}</a></li>
 			  {%- endif %}
 		  </ul>
+		  -->
           {%- endblock %}
         </div>
       </div>
@@ -150,8 +154,7 @@
 		<div id="topwrapper">
 		<div id="toplogo">
 			<a href="http://kivy.org/">
-				<img src="{{ pathto('_static/kivy-logo-black-64.png', 1) }}" alt="Logo" width="64" height="64"/>
-				<img src="{{ pathto('_static/logo_kivy.png', 1) }}" alt="Kivy" width="119" height="64"/>
+				<img src="{{ pathto('_static/logo-kivy.png', 1) }}" alt="Kivy" height="50"/>
 			</a>
 		</div>
 		<div id="topmenu">
