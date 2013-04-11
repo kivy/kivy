@@ -8,8 +8,9 @@ from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.core.audio import Sound, SoundLoader
 
+_platform = platform()
 try:
-    if platform() == 'android':
+    if _platform == 'android':
         import android_mixer as mixer
     else:
         from pygame import mixer
@@ -32,7 +33,7 @@ class SoundPygame(Sound):
     # __slots__ = ('_data', '_channel')
     @staticmethod
     def extensions():
-        if platform() == 'android':
+        if _platform == 'android':
             return ('wav', 'ogg', 'mp3')
         return ('wav', 'ogg')
 
@@ -77,11 +78,15 @@ class SoundPygame(Sound):
         self._data = None
 
     def seek(self, position):
-        # Unable to seek in pygame...
-        pass
+        if not self._data:
+            return
+        if _platform == 'android' and self._channel:
+            self._channel.seek(position)
 
     def get_pos(self):
         if self._data is not None:
+            if _platform == 'android' and self._channel:
+                return self._channel.get_pos()
             return mixer.music.get_pos()
         return 0
 
@@ -96,6 +101,8 @@ class SoundPygame(Sound):
         return super(SoundPygame, self)._set_volume(volume)
 
     def _get_length(self):
+        if _platform == 'android' and self._channel:
+            return self._channel.get_length()
         if self._data is not None:
             return self._data.get_length()
         return super(SoundPygame, self)._get_length()
