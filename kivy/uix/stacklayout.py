@@ -216,7 +216,7 @@ class StackLayout(Layout):
             sv += lv + spacing_v
             for c2 in lc:
                 if urev:
-                    u -= c2.size[innerattr] + spacing_u
+                    u -= c2.size[innerattr]
                 p = [0, 0]  # issue #823
                 p[innerattr] = u
                 p[outerattr] = v
@@ -226,7 +226,9 @@ class StackLayout(Layout):
                     # we need to subtract the height/width from the position.
                     p[outerattr] -= c2.size[outerattr]
                 c2.pos = tuple(p)  # issue #823
-                if not urev:
+                if urev:
+                    u -= spacing_u
+                else:
                     u += c2.size[innerattr] + spacing_u
 
             v += deltav * lv
@@ -241,14 +243,16 @@ class StackLayout(Layout):
             sv += lv + spacing_v
             for c2 in lc:
                 if urev:
-                    u -= c2.size[innerattr] + spacing_u
+                    u -= c2.size[innerattr]
                 p = [0, 0]  # issue #823
                 p[innerattr] = u
                 p[outerattr] = v
                 if vrev:
                     p[outerattr] -= c2.size[outerattr]
                 c2.pos = tuple(p)  # issue #823
-                if not urev:
+                if urev:
+                    u -= spacing_u
+                else:
                     u += c2.size[innerattr] + spacing_u
 
         minsize = self.minimum_size[:]  # issue #823
