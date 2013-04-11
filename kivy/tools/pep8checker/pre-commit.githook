@@ -18,7 +18,7 @@
         chmod +x .git/hooks/pre-commit
 '''
 
-import sys
+import sys, os
 from os.path import dirname, abspath, sep, join
 from subprocess import call, Popen, PIPE
 
