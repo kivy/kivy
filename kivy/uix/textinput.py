@@ -1611,8 +1611,8 @@ class TextInput(Widget):
     '''
 
     desktop = BooleanProperty(False)
-    '''This property is used to disable the bubble menu for selection, copy,
-    paste and so on
+    '''This property is used to disable the bubble menu for selection, cut,
+    copy and paste.
 
     .. versionadded:: 1.6.1
 
