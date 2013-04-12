@@ -3,6 +3,8 @@ from kivy.uix.stacklayout import StackLayout
 from kivy.uix.widget import Widget
 
 class PaddingSpacingTestCase(unittest.TestCase):
+
+
     def test_tb_lr_stacklayout(self):
         stacklayout = StackLayout(
                 orientation='tb-lr',
