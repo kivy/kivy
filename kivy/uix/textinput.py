@@ -282,6 +282,7 @@ class TextInput(Widget):
             304: 'shift_R'}
 
         self.register_event_type('on_text_validate')
+        self.register_event_type('on_double_tap')
 
         super(TextInput, self).__init__(**kwargs)
 
@@ -359,16 +360,24 @@ class TextInput(Widget):
         return index, row
 
     def select_text(self, start, end):
-        ''' Select portion of text displayed in this TextInput
+        ''' Select portion of text displayed in this TextInput.
 
         .. versionadded:: 1.4.0
+
+        parameters::
+            start:  index of textinput.text from where to start selection
+            end:    index of textinput.text till which the selection should be
+                    displayed
         '''
         if end < start:
             raise Exception('end must be superior to start')
         m = len(self.text)
         self._selection_from = boundary(start, 0, m)
         self._selection_to = boundary(end, 0, m)
+        self._selection_finished = True
         self._update_selection(True)
+        self._update_graphics_selection()
+        print self.selection_text
 
     def select_all(self):
         ''' Select all of the text displayed in this TextInput
@@ -733,6 +742,22 @@ class TextInput(Widget):
                                         self._win,
                                         mode='paste')
 
+    def on_double_tap(self):
+        '''This event is dispatched when a double tap happens
+        inside TextInput. The default behavior is to select the
+        word around current cursor position. Override this to provide
+        a separate functionality. Alternatively you can bind to this
+        event to provide additional functionality.
+        '''
+        ci = self.cursor_index()
+        cc = self.cursor_col
+        line = self._lines[self.cursor_row]
+        len_line = len(line)
+        start = max(0, len(line[:cc]) - line[:cc].rfind(' ') - 1)
+        end = line[cc:].find(' ')
+        end = end if end > - 1 else (len_line - cc)
+        Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
+
     def on_touch_down(self, touch):
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
@@ -745,6 +770,8 @@ class TextInput(Widget):
         if not self.focus:
             self.focus = True
         touch.grab(self)
+        if touch.is_double_tap:
+            self.dispatch('on_double_tap')
 
         self._hide_cut_copy_paste(self._win)
         # schedule long touch for paste
