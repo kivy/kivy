@@ -727,7 +727,7 @@ class TextInput(Widget):
     # Touch control
     #
     def long_touch(self, dt):
-        if(not self.desktop):
+        if not self.desktop:
             if self._selection_to == self._selection_from:
                 self._show_cut_copy_paste(
                                             self._long_touch_pos,
@@ -811,7 +811,7 @@ class TextInput(Widget):
 
     def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
         # Show a bubble with cut copy and paste buttons
-        if(not self.desktop):
+        if not self.desktop:
             bubble = self._bubble
             if bubble is None:
                 self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
@@ -1611,18 +1611,8 @@ class TextInput(Widget):
     '''
 
     desktop = BooleanProperty(False)
-    '''This property is used to disable the bubble menu for selection,
-    copy, paste and so on
-
-    .. versionadded:: 1.6.1
-
-    :data:`desktop` is a :class:`~kivy.properties.BooleanProperty`, default
-    to False
-    '''
-
-    desktop = BooleanProperty(False)
-    '''This property is used to disable the bubble menu for selection, copy
-    , paste and so on
+    '''This property is used to disable the bubble menu for selection, copy,
+    paste and so on
 
     .. versionadded:: 1.6.1
 
