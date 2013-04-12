@@ -929,7 +929,7 @@ cdef class OptionProperty(Property):
         self.options = []
 
     def __init__(self, *largs, **kw):
-        self.options = <list>(kw.get('options', []))
+        self.options = list(kw.get('options', []))
         super(OptionProperty, self).__init__(*largs, **kw)
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
