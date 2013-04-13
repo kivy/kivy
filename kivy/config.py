@@ -51,6 +51,11 @@ Available configuration tokens
     `double_tap_distance`: float
         Maximum distance allowed for a double tap, normalized inside the range
         0 - 1000
+    `triple_tap_time`: int
+        Time allowed for the detection of double tap, in milliseconds
+    `triple_tap_distance`: float
+        Maximum distance allowed for a double tap, normalized inside the range
+        0 - 1000
     `retain_time`: int
         Time allowed for a retain touch, in milliseconds
     `retain_distance`: int
@@ -372,6 +377,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             # input postprocessing configuration
             Config.setdefault('postproc', 'double_tap_distance', '20')
             Config.setdefault('postproc', 'double_tap_time', '250')
+            Config.setdefault('postproc', 'triple_tap_distance', '20')
+            Config.setdefault('postproc', 'triple_tap_time', '250')
             Config.setdefault('postproc', 'ignore', '[]')
             Config.setdefault('postproc', 'jitter_distance', '0')
             Config.setdefault('postproc', 'jitter_ignore_devices',

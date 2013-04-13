@@ -283,6 +283,7 @@ class TextInput(Widget):
 
         self.register_event_type('on_text_validate')
         self.register_event_type('on_double_tap')
+        self.register_event_type('on_triple_tap')
 
         super(TextInput, self).__init__(**kwargs)
 
@@ -377,7 +378,6 @@ class TextInput(Widget):
         self._selection_finished = True
         self._update_selection(True)
         self._update_graphics_selection()
-        print self.selection_text
 
     def select_all(self):
         ''' Select all of the text displayed in this TextInput
@@ -758,6 +758,20 @@ class TextInput(Widget):
         end = end if end > - 1 else (len_line - cc)
         Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
 
+    def on_triple_tap(self):
+        '''This event is dispatched when a triple tap happens
+        inside TextInput. The default behavior is to select the
+        line around current cursor position. Override this to provide
+        a separate functionality. Alternatively you can bind to this
+        event to provide additional functionality.
+        '''
+        ci = self.cursor_index()
+        cc = self.cursor_col
+        line = self._lines[self.cursor_row]
+        len_line = len(line)
+        Clock.schedule_once(lambda dt:
+                                self.select_text(ci - cc, ci + (len_line - cc)))
+
     def on_touch_down(self, touch):
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
@@ -772,6 +786,8 @@ class TextInput(Widget):
         touch.grab(self)
         if touch.is_double_tap:
             self.dispatch('on_double_tap')
+        if touch.is_triple_tap:
+            self.dispatch('on_triple_tap')
 
         self._hide_cut_copy_paste(self._win)
         # schedule long touch for paste

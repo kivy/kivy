@@ -143,7 +143,7 @@ class MotionEvent(object):
          'px', 'py', 'pz',
          # delta from the last position and current one, in screen range
          'dx', 'dy', 'dz',
-         'time_start', 'is_double_tap',
+         'time_start', 'is_double_tap', 'is_triple_tap'
          'double_tap_time', 'ud')
 
     def __init__(self, device, id, args):
@@ -253,9 +253,16 @@ class MotionEvent(object):
         #: Indicate if the touch is a double tap or not
         self.is_double_tap = False
 
+        #: Indicate if the touch is a triple tap or not
+        self.is_triple_tap = False
+
         #: If the touch is a :attr:`is_double_tap`, this is the time between the
         #: previous tap and the current touch.
         self.double_tap_time = 0
+
+        #: If the touch is a :attr:`is_triple_tap`, this is the time between the
+        #: first tap and the current touch.
+        self.triple_tap_time = 0
 
         #: User data dictionnary. Use this dictionnary to save your own data on
         #: the touch.
