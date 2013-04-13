@@ -265,6 +265,7 @@ class TextInput(Widget):
         self._keyboard = None
         self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
         self.reset_undo()
+        self._touch_count = 0
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -284,6 +285,7 @@ class TextInput(Widget):
         self.register_event_type('on_text_validate')
         self.register_event_type('on_double_tap')
         self.register_event_type('on_triple_tap')
+        self.register_event_type('on_quad_touch')
 
         super(TextInput, self).__init__(**kwargs)
 
@@ -772,6 +774,14 @@ class TextInput(Widget):
         Clock.schedule_once(lambda dt:
                                 self.select_text(ci - cc, ci + (len_line - cc)))
 
+    def on_quad_touch(self):
+        '''This event is dispatched when a four fingers are touching
+        inside TextInput. The default behavior is to select all text.
+        Override this to provide a separate functionality. Alternatively
+        you can bind to this event to provide additional functionality.
+        '''
+        Clock.schedule_once(lambda dt: self.select_all())
+
     def on_touch_down(self, touch):
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
@@ -784,10 +794,13 @@ class TextInput(Widget):
         if not self.focus:
             self.focus = True
         touch.grab(self)
+        self._touch_count += 1
         if touch.is_double_tap:
             self.dispatch('on_double_tap')
         if touch.is_triple_tap:
             self.dispatch('on_triple_tap')
+        if self._touch_count == 4:
+            self.dispatch('on_quad_touch')
 
         self._hide_cut_copy_paste(self._win)
         # schedule long touch for paste
@@ -820,6 +833,7 @@ class TextInput(Widget):
         if touch.grab_current is not self:
             return
         touch.ungrab(self)
+        self._touch_count -= 1
 
         # schedule long touch for paste
         Clock.unschedule(self.long_touch)
