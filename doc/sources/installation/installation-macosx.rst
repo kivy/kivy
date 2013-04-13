@@ -11,7 +11,7 @@ Installation on MacOSX
     `homebrew <http://mxcl.github.com/homebrew/>`_ to do that.
 
 For Mac OS X 10.6 and later, we provide a Kivy.app with all dependencies
-bundled. Download it from our `google code project page <http://code.google.com/p/kivy/downloads/list>`_.
+bundled. Download it from our `Download Page <http://kivy.org/#download>`_.
 It comes as a .dmg 
 file that contains:
 
