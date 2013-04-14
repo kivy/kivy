@@ -22,8 +22,10 @@ Widgets
 .. |orientation| replace:: :attr:`~kivy.uix.boxlayout.BoxLayout.orientation`
 .. |Widget| replace:: :class:`~kivy.uix.widget.Widget`
 .. |Button| replace:: :class:`~kivy.uix.button.Button`
+.. |Image| replace:: :class:`~kivy.uix.image.Image`
 .. |Canvas| replace:: :class:`~kivy.graphics.Canvas`
-.. |ListProperty| replace:: :class:`~kivy.properties.ListProperty``
+.. |ListProperty| replace:: :class:`~kivy.properties.ListProperty`
+.. |ObjectProperty| replace:: :class:`~kivy.properties.ObjectProperty`
 .. |ReferenceListProperty| replace:: :class:`~kivy.properties.ReferenceListProperty`
 .. |Layout| replace:: :mod:`~kivy.uix.layout`
 .. |RelativeLayout| replace:: :mod:`~kivy.uix.relativelayout`
@@ -377,18 +379,100 @@ Pure Python way::
             # make sure we aren't overriding any important functionality
             super(RootWidget, self).__init__(**kwargs)
 
+            # let's add a Widget to this layout
+            self.add_widget(
+                            Button(
+                                    text="Hello World",
+                                    size_hint= (.5, .5),
+                                    pos_hint={'center_x':.5,
+                                            'center_y':.5}))
+
+
+    class MainApp(App):
+
+        def build(self):
+            self.root = root = RootWidget()
+            root.bind(
+                        size=self._update_rect,
+                        pos=self._update_rect)
+            with root.canvas.before:
+                Color(0, 1, 0, 1) # green; colors range from 0-1 not 0-255
+                self.rect = Rectangle(
+                                        size=root.size,
+                                        pos=root.pos)
+            return root
+
+        def _update_rect(self, instance, value):
+            self.rect.pos = instance.pos
+            self.rect.size = instance.size
+
+    if __name__ == '__main__':
+        MainApp().run()
+
+Using KV Language::
+
+    from kivy.app import App
+    from kivy.lang import Builder
+
+
+    root = Builder.load_string('''
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 0, 1, 0, 1
+            Rectangle:
+                # self here refers to the widget i.e FloatLayout
+                pos: self.pos
+                size: self.size
+        Button:
+            text: 'Hello World!!'
+            size_hint: .5, .5
+            pos_hint: {'center_x':.5, 'center_y': .5}
+    ''')
+
+    class MainApp(App):
+
+        def build(self):
+            return root
+
+    if __name__ == '__main__':
+        MainApp().run()
+
+Isn't this a lot simpler?
+
+Both of the Apps should look something like this
+
+.. image:: images/layout_background.png
+
+**To add a color to the background of a **custom layouts rule/class** **
+
+They way we add background to the layout's instance can quickly become
+cumbersome if we need to use multiple layouts. So why not just add a background
+within the class of the layout self itself.
+Using Python ::
+
+    from kivy.app import App
+    from kivy.graphics import Color, Rectangle
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.floatlayout import FloatLayout
+    from kivy.uix.image import AsyncImage
+    from kivy.uix.button import Button
+
+
+    class RootWidget(BoxLayout):
+        pass
+
+    class CustomLayout(FloatLayout):
+
+        def __init__(self, **kwargs):
+            # make sure we aren't overriding any important functionality
+            super(CustomLayout, self).__init__(**kwargs)
+
             with self.canvas.before:
                 Color(0, 1, 0, 1) # green; colors range from 0-1 instead of 0-255
                 self.rect = Rectangle(
                                 size=self.size,
                                 pos=self.pos)
-
-            # let's add a Widgetto this layout
-            self.add_widget(
-                            Button( text="Hello World",
-                                    size_hint= (.5, .5),
-                                    pos_hint={'center_x':.5,
-                                            'center_y':.5}))
 
             self.bind(
                         size=self._update_rect,
@@ -402,7 +486,19 @@ Pure Python way::
     class MainApp(App):
 
         def build(self):
-            return RootWidget()
+            root = RootWidget()
+            c = CustomLayout()
+            root.add_widget(c)
+            c.add_widget(AsyncImage(source="http://www.everythingzoomer.com/wp-content/uploads/2013/01/Monday-joke-289x277.jpg",
+                                    size_hint= (1, .5),
+                                    pos_hint={'center_x':.5, 'center_y':.5}))
+            root.add_widget(AsyncImage(source='http://www.stuffistumbledupon.com/wp-content/uploads/2012/05/Have-you-seen-this-dog-because-its-awesome-meme-puppy-doggy.jpg'))
+            c = CustomLayout()
+            c.add_widget(AsyncImage(source="http://www.stuffistumbledupon.com/wp-content/uploads/2012/04/Get-a-Girlfriend-Meme-empty-wallet.jpg",
+                                    size_hint= (1, .5),
+                                    pos_hint={'center_x':.5, 'center_y':.5}))
+            root.add_widget(c)
+            return root
 
     if __name__ == '__main__':
         MainApp().run()
@@ -411,27 +507,39 @@ Using KV Language::
 
     from kivy.app import App
     from kivy.uix.floatlayout import FloatLayout
+    from kivy.uix.boxlayout import BoxLayout
     from kivy.lang import Builder
 
 
     Builder.load_string('''
-    <RootWidget>
+    <CustomLayout>
         canvas.before:
             Color:
                 rgba: 0, 1, 0, 1
             Rectangle:
-                # self here refers to the widget i.e BoxLayout
                 pos: self.pos
                 size: self.size
-        Button:
-            text: 'Hello World!!'
-            size_hint: .5, .5
-            pos_hint: {'center_x':.5, 'center_y': .5}
+
+    <RootWidget>
+        CustomLayout:
+            AsyncImage:
+                source: 'http://www.everythingzoomer.com/wp-content/uploads/2013/01/Monday-joke-289x277.jpg'
+                size_hint: 1, .5
+                pos_hint: {'center_x':.5, 'center_y': .5}
+        AsyncImage:
+            source: 'http://www.stuffistumbledupon.com/wp-content/uploads/2012/05/Have-you-seen-this-dog-because-its-awesome-meme-puppy-doggy.jpg'
+        CustomLayout
+            AsyncImage:
+                source: 'http://www.stuffistumbledupon.com/wp-content/uploads/2012/04/Get-a-Girlfriend-Meme-empty-wallet.jpg'
+                size_hint: 1, .5
+                pos_hint: {'center_x':.5, 'center_y': .5}
     ''')
 
-    class RootWidget(FloatLayout):
+    class RootWidget(BoxLayout):
         pass
 
+    class CustomLayout(FloatLayout):
+        pass
 
     class MainApp(App):
 
@@ -441,28 +549,177 @@ Using KV Language::
     if __name__ == '__main__':
         MainApp().run()
 
-Isn't this a lot simpler?
 
-Both of the Apps should look something like this
+Both of the Apps should look something like this:
 
-.. image:: images/layout_background.png
+.. image:: images/custom_layout_background.png
 
-To add a color to the background of a **custom layouts rule/class**
+We define the background once and it will be used in every instance of
+CustomLayout.
 
-To add a color to the background of a **layout globally**
+Now to **add a Image/color to the background of a **layout globally** ** i.e we
+need to override the kv rule for the layout in question. Let us consider
+GridLayout::
 
-Now Let's have some fun and add a **Image to the background**
+    <GridLayout>
+        canvas.before:
+            Color:
+                rgba: 0, 1, 0, 1
+            BorderImage:
+                source: '../examples/widgets/sequenced_images/data/images/button_white.png'
+                pos: self.pos
+                size: self.size
 
-a bit Advanced Topics::
+Now Let's put the snippets above into the shell of Kivy App::
 
-    How about a **Animated background**?
+    from kivy.app import App
+    from kivy.uix.floatlayout import FloatLayout
+    from kivy.lang import Builder
 
-    Blitt custom data to the background
+
+    Builder.load_string('''
+    <GridLayout>
+        canvas.before:
+            BorderImage:
+                # BorderImage behaves like the CSS BorderImage
+                border: 10, 10, 10, 10
+                source: '../examples/widgets/sequenced_images/data/images/button_white.png'
+                pos: self.pos
+                size: self.size
+
+    <RootWidget>
+        GridLayout:
+            size_hint: .9, .9
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            rows:1
+            Label:
+                text: "I don't suffer from insanity, I enjoy every minute of it"
+                text_size: self.width-20, self.height-20
+                valign: 'top'
+            Label:
+                text: "When I was born I was so surprised; I didn't speak for a year and a half."
+                text_size: self.width-20, self.height-20
+                valign: 'middle'
+                halign: 'center'
+            Label:
+                text: "A consultant is someone who takes a subject you understand and makes it sound confusing"
+                text_size: self.width-20, self.height-20
+                valign: 'bottom'
+                halign: 'justify'
+    ''')
+
+    class RootWidget(FloatLayout):
+        pass
+
+    class MainApp(App):
+
+        def build(self):
+            return RootWidget()
+
+    if __name__ == '__main__':
+        MainApp().run()
+
+The Apps should look something like this
+
+.. image:: images/global_background.png
+
+As we are overriding the rule of the class GridLayout, any instance of this
+class in our app will display that Image.
+
+How about a **Animated background**?
+
+You can set the drawing instructions like Rectangle/BorderImage/Elippse/... to
+use a particular texture like so::
+
+    Rectangle:
+        texture: reference to a texture
+
+This feature can be taken advantage of to display animated background like so::
+
+    from kivy.app import App
+    from kivy.uix.floatlayout import FloatLayout
+    from kivy.uix.gridlayout import GridLayout
+    from kivy.uix.image import Image
+    from kivy.properties import ObjectProperty
+    from kivy.lang import Builder
+
+
+    Builder.load_string('''
+    <CustomLayout>
+        canvas.before:
+            BorderImage:
+                # BorderImage behaves like the CSS BorderImage
+                border: 10, 10, 10, 10
+                texture: self.background_image.texture
+                pos: self.pos
+                size: self.size
+
+    <RootWidget>
+        CustomLayout:
+            size_hint: .9, .9
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            rows:1
+            Label:
+                text: "I don't suffer from insanity, I enjoy every minute of it"
+                text_size: self.width-20, self.height-20
+                valign: 'top'
+            Label:
+                text: "When I was born I was so surprised; I didn't speak for a year and a half."
+                text_size: self.width-20, self.height-20
+                valign: 'middle'
+                halign: 'center'
+            Label:
+                text: "A consultant is someone who takes a subject you understand and makes it sound confusing"
+                text_size: self.width-20, self.height-20
+                valign: 'bottom'
+                halign: 'justify'
+    ''')
+
+    class CustomLayout(GridLayout):
+
+        background_image = ObjectProperty(
+                                        Image(
+                                            source='../examples/widgets/sequenced_images/data/images/button_white_animated.zip',
+                                            anim_delay=.1))
+
+    class RootWidget(FloatLayout):
+        pass
+
+    class MainApp(App):
+
+        def build(self):
+            return RootWidget()
+
+    if __name__ == '__main__':
+        MainApp().run()
+
+To try to understand what magic is happening here,
+
+let's start from line no 13::
+
+    texture: self.background_image.texture
+
+This specifies that the `texture` property of `BorderImage` will be updated
+whenever the `texture` property of `background_inage` updates. We define the
+background_image property at line 40::
+
+    background_image = ObjectProperty(...
+
+This sets up `background_image` as a |ObjectProperty| in which we add a |Image|
+Widget. A Image Widget has a `texture` property so `background_image.texture`
+refers to the image texture from here on. |Image| Widget supports animation,
+thus the texture of the image is updated whenever the animation changes and
+indirectly updates the teture of BorderImage instruction.
+
+You can also just blitt custom data to the texture, for details look at the
+documention of :class:`~kivy.graphics.texture.Texture`.
 
 Nesting Layouts
 ---------------
 
-Yes! not only can you nest Layouts, it is actually quite fun to seee how extensible nesting Layouts is
+Yes! not only can you nest Layouts, it is actually quite fun to see how
+extensible nesting Layouts is.
+
 
 Size and position metrics
 -------------------------
@@ -475,7 +732,7 @@ Size and position metrics
 .. |pt| replace:: :attr:`~kivy.metrics.pt`
 .. |mm| replace:: :attr:`~kivy.metrics.mm`
 .. |cm| replace:: :attr:`~kivy.metrics.cm`
-.. |in| replace:: :attr:`~kivy.metrics.in`
+.. |in| replace:: :attr:`~kivy.metrics.inch`
 .. |dp| replace:: :attr:`~kivy.metrics.dp`
 .. |sp| replace:: :attr:`~kivy.metrics.sp`
 
