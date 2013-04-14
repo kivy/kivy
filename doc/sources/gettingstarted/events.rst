@@ -1,8 +1,5 @@
 Events
 ------
-.. container:: title
-
-    Events
 
 Kivy is mostly event-based, that's mean the flow of the program is determined
 by events.

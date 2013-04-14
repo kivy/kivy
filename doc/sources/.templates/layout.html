@@ -89,7 +89,7 @@
       {%- set titlesuffix = "" %}
     {%- endif %}
     <title>{{ title|striptags }}{{ titlesuffix }}</title>
-	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300&amp;v2' rel='stylesheet' type='text/css'/>
+	<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
     <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
     {%- if not embedded %}
@@ -106,9 +106,7 @@
     <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script>
     {%- endfor %}
     <script type="text/javascript" src="{{ pathto('_static/jquery-ui.min.js', 1) }}"></script>
-    <script type="text/javascript" src="{{ pathto('_static/raphael-min.js', 1) }}"></script>
     <script type="text/javascript" src="{{ pathto('_static/jquery.cookie.js', 1) }}"></script>
-    <script type="text/javascript" src="{{ pathto('_static/reflection.js', 1) }}"></script>
     <script type="text/javascript" src="{{ pathto('_static/kivy.js', 1) }}"></script>
     {%- if use_opensearch %}
     <link rel="search" type="application/opensearchdescription+xml"
@@ -159,11 +157,9 @@
 		</div>
 		<div id="topmenu">
 			<ul class="navigation">
-				<li><a href="{{ pathto('index') }}">Home</a></li>
-				<li><a href="{{ pathto('guide-index') }}">Programming Guide</a></li>
-				<li><a href="{{ pathto('api-index') }}">API Reference</a></li>
-				<li><a href="{{ pathto('faq') }}">FAQ</a></li>
-			    <li><a href="http://kivy.org/docs/pdf/Kivy-latest.pdf">PDF</a></li>
+				<li><a class="nav-guides" href="{{ pathto('index') }}">Guides</a></li>
+				<li><a class="nav-api" href="{{ pathto('api-kivy') }}">API Reference</a></li>
+			    <li><a class="nav-pdf" href="http://kivy.org/docs/pdf/Kivy-latest.pdf">PDF</a></li>
 			</ul>
 		</div>
 		</div>
@@ -179,6 +175,7 @@
         <div class="bodywrapper">
       {%- endif %}{% endif %}
           <div class="body">
+			<div class="toc"><h2>{{ _('Table Of Contents') }}</h2>{{ toc }}</div>
             {% block body %} {% endblock %}
             <div class="footerlinks">
             {%- if prev or next %}

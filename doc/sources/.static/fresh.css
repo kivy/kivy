@@ -1,15 +1,6 @@
-@font-face {
-  font-family: 'Nobile';
-  font-style: normal;
-  font-weight: normal;
-  src: local('Nobile'), url('nobile.ttf') format('truetype');
-}
-
 body {
-	color: #797979;
-	font-family: 'Open Sans', Arial, sans-serif;
-	font-family: 'Nobile', 'OpenSans', Verdara, sans-serif;
-	font-weight: 200;
+	color: #595959;
+	font-family: Verdana, sans-serif;
 	font-size: 14px;
 	line-height: 1.6em;
 	padding: 0px;
@@ -17,7 +8,7 @@ body {
 }
 
 h1, h2, h3, h4, h5 {
-	color: #515151;
+	color: #414141;
 	font-weight: normal;
 }
 
@@ -45,7 +36,7 @@ a:hover {
 }
 
 #topbar {
-	background-color: #202530;
+	background-color: #202326;
 	margin: 0px;
 	padding: 15px 15px 10px 15px;
 	height: 60px;
@@ -53,6 +44,10 @@ a:hover {
 
 #topbar img {
 	padding-left: 5px;
+}
+
+#topbar #toplogo a:hover {
+	border: none;
 }
 
 #topbar ul,
@@ -80,14 +75,18 @@ a:hover {
 	list-style-type: none;
 	color: #bbb;
 	margin-top: 30px;
-	font-family: 'Nobile', 'OpenSans', Verdara, sans-serif;
 	text-decoration: none;
-	background-color: #404040;
+	background-color: #303030;
 	padding: 0 20px;
 }
 
+#topmenu ul.navigation li a.current {
+	border-bottom: 2px solid #e0e0e0;
+}
+
 #topmenu ul.navigation li a:hover {
-	background-color: #e0e0e0;
+	background-color: #383a3d;
+	border-bottom: 2px solid #e0e0e0;
 }
 
 div.sphinxsidebar {
@@ -169,11 +168,16 @@ div.sphinxsidebar li a:hover {
 #content pre {
 	background-color: #f0f0f0;
 	padding: 10px 15px;
+	font-family: 'Source Code Pro', monospace;
+}
+
+#content h1 {
+	margin-bottom: 25px;
 }
 
 #content h2 {
 	border-bottom: 1px solid #e0e0e0;
-	padding-bottom: 5px;
+	padding: 15px 0px 8px 0px;
 }
 
 /* Content: Admonition (warning, important, notice) */
@@ -204,8 +208,8 @@ div.sphinxsidebar li a:hover {
 
 
 /* API only: versionadded */
-p.versionchanged,
-p.versionadded {
+.versionchanged,
+.versionadded {
 	font-style: italic;
 	color: #a0a0a0;
 }
@@ -297,8 +301,78 @@ form.search {
 	top: -0.8em;
 }
 
+/* Getting started */
+.gs-eleft {
+	float: left;
+	margin-right: 10px;
+}
+
 /* From HTML */
+table.docutils {
+	border-collapse: collapse;
+	border: 1px solid #d0d0d0;
+}
+
+table.docutils th,
+table.docutils td {
+	padding: 5px 8px;
+}
+
 .align-right {
 	float: right;
 	margin: 5px 0 5px 5px;
+}
+
+.align-center {
+	margin: 5px auto;
+	display: block;
+}
+
+/** API **/
+.api-index {
+	height: 200px;
+	overflow: auto;
+}
+
+div.sphinxsidebar .api-index li a {
+	font-size: 12px;
+	padding: 1px 5px;
+}
+
+/** TOC **/
+.toc {
+	width: auto;
+	background-color: #f5f5f5;
+	border: 1px solid #e0e0e0;
+	padding: 10px;
+	float: right;
+	margin: 0 0 10px 10px;
+	font-size: 0.9em;
+}
+
+#content .toc h2 {
+	font-size: 1.2em;
+	margin: 0 0 5px 0;
+	padding: 0 0 2px 0;
+}
+
+.toc ul li,
+.toc ul {
+	list-style-type: none;
+	padding: 0px;
+	margin: 0px;
+}
+.toc ul li li li {
+	padding-left: 10px;
+	border-left: 1px solid #e0e0e0;
+}
+
+
+/** Highlighted tables (source code with line number) **/
+table.highlighttable {
+	width: 100%;
+}
+
+table.highlighttable td.linenos {
+	width: 40px;
 }
