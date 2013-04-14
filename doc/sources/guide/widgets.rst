@@ -317,12 +317,11 @@ One of the frequently asked questions about layouts is:
 
     "How to add a background image/color/video/... to a Layout"
 
-Layouts by their nature have no visual representation, i.e. they have no canvas
-instructions by default. However you can add instructions to the Layouts canvas.
+Layouts by their nature have no visual representation: they have no canvas
+instructions by default. However you can add canvas instructions to a layout
+instance easily, as with adding a colored background:
 
-To add a color to the background of a **layouts Instance**
-
-In Python::
+In Python:::
 
     with layout_instance.canvas.before:
         Color(rgba(0, 1, 0, 1)) # green; colors range from 0-1 instead of 0-255
@@ -330,10 +329,10 @@ In Python::
                                 size=layout_instance.size,
                                 pos=layout_instance.pos)
 
-Unfortunately this will only draw a rectangle at the layouts initial position
-and size.To make sure the rect is drawn inside the layout if layout size/pos
-changes we need to listen to any changes and update the Rectangles size and pos
-like so::
+Unfortunately, this will only draw a rectangle at the layout's initial position
+and size. To make sure the rect is drawn inside the layout, when layout size/pos
+changes, we need to listen to any changes and update the rectangle size and pos
+like so:::
 
     # listen to size and position changes
     layout_instance.bind(
@@ -360,11 +359,12 @@ In kv:
                 pos: self.pos
                 size: self.size
 
-That's it the binding is implicit. kv language in the last two lines updates the
-values |pos| and |size| of the rectangle when the |pos| of the |FloatLayout|
-changes. QED.
+The kv declaration sets an implicit binding: the last two kv lines ensure that
+the |pos| and |size| values of the rectangle will update when the |pos| of the
+|FloatLayout| changes.
 
-Now Let's put the snippets above into the shell of Kivy App.
+Now we put the snippets above into the shell of Kivy App.
+
 Pure Python way::
 
     from kivy.app import App
@@ -409,7 +409,7 @@ Pure Python way::
     if __name__ == '__main__':
         MainApp().run()
 
-Using KV Language::
+Using kv Language::
 
     from kivy.app import App
     from kivy.lang import Builder
@@ -438,17 +438,17 @@ Using KV Language::
     if __name__ == '__main__':
         MainApp().run()
 
-Isn't this a lot simpler?
-
 Both of the Apps should look something like this
 
 .. image:: images/layout_background.png
 
 **To add a color to the background of a **custom layouts rule/class** **
 
-They way we add background to the layout's instance can quickly become
-cumbersome if we need to use multiple layouts. So why not just add a background
-within the class of the layout self itself.
+The way we add background to the layout's instance can quickly become
+cumbersome if we need to use multiple layouts. To help with this, override
+the Layout class with your own layout, and add a background
+within the class of the layout class itself.
+
 Using Python ::
 
     from kivy.app import App
@@ -503,7 +503,7 @@ Using Python ::
     if __name__ == '__main__':
         MainApp().run()
 
-Using KV Language::
+Using kv Language::
 
     from kivy.app import App
     from kivy.uix.floatlayout import FloatLayout
@@ -554,12 +554,12 @@ Both of the Apps should look something like this:
 
 .. image:: images/custom_layout_background.png
 
-We define the background once and it will be used in every instance of
-CustomLayout.
+Defining the background in the custom layout class, assures that it will be used 
+in every instance of CustomLayout.
 
-Now to **add a Image/color to the background of a **layout globally** ** i.e we
-need to override the kv rule for the layout in question. Let us consider
-GridLayout::
+Now, to add an image or color to the background of a built-in Kivy layout,
+**globally**, we need to override the kv rule for the layout in question.
+Consider GridLayout:::
 
     <GridLayout>
         canvas.before:
@@ -570,7 +570,7 @@ GridLayout::
                 pos: self.pos
                 size: self.size
 
-Now Let's put the snippets above into the shell of Kivy App::
+Then, when we put this snippet into a Kivy app::
 
     from kivy.app import App
     from kivy.uix.floatlayout import FloatLayout
@@ -619,22 +619,22 @@ Now Let's put the snippets above into the shell of Kivy App::
     if __name__ == '__main__':
         MainApp().run()
 
-The Apps should look something like this
+The result should look something like this
 
 .. image:: images/global_background.png
 
-As we are overriding the rule of the class GridLayout, any instance of this
-class in our app will display that Image.
+As we are overriding the rule of the class GridLayout, any use of this
+class in our app will display that image.
 
-How about a **Animated background**?
+How about an **Animated background**?
 
-You can set the drawing instructions like Rectangle/BorderImage/Elippse/... to
-use a particular texture like so::
+You can set the drawing instructions like Rectangle/BorderImage/Ellipse/... to
+use a particular texture like thi:::
 
     Rectangle:
         texture: reference to a texture
 
-This feature can be taken advantage of to display animated background like so::
+We use this to display an animated background::
 
     from kivy.app import App
     from kivy.uix.floatlayout import FloatLayout
@@ -693,32 +693,30 @@ This feature can be taken advantage of to display animated background like so::
     if __name__ == '__main__':
         MainApp().run()
 
-To try to understand what magic is happening here,
-
-let's start from line no 13::
+To try to understand what is happening here, start from line 13:::
 
     texture: self.background_image.texture
 
 This specifies that the `texture` property of `BorderImage` will be updated
 whenever the `texture` property of `background_inage` updates. We define the
-background_image property at line 40::
+background_image property at line 40:::
 
     background_image = ObjectProperty(...
 
-This sets up `background_image` as a |ObjectProperty| in which we add a |Image|
-Widget. A Image Widget has a `texture` property so `background_image.texture`
-refers to the image texture from here on. |Image| Widget supports animation,
-thus the texture of the image is updated whenever the animation changes and
-indirectly updates the teture of BorderImage instruction.
+This sets up `background_image` as an |ObjectProperty| in which we add an |Image|
+widget. An image widget has a `texture` property; where you see
+`self.background_image.texture`, this sets a reference, `texture`, to this property.
+The |Image| widget supports animation: the texture of the image is updated whenever
+the animation changes, and the texture of BorderImage instruction is updated in
+the process.
 
-You can also just blitt custom data to the texture, for details look at the
+You can also just blit custom data to the texture. For details, look at the
 documention of :class:`~kivy.graphics.texture.Texture`.
 
 Nesting Layouts
 ---------------
 
-Yes! not only can you nest Layouts, it is actually quite fun to see how
-extensible nesting Layouts is.
+Yes! It is quite fun to see how extensible the process can be.
 
 
 Size and position metrics
@@ -736,21 +734,21 @@ Size and position metrics
 .. |dp| replace:: :attr:`~kivy.metrics.dp`
 .. |sp| replace:: :attr:`~kivy.metrics.sp`
 
-Kivys default unit for length is the pixel, all sizes and positions are
+Kivy's default unit for length is the pixel, all sizes and positions are
 expressed in it by default. You can express them in other units, which is
 useful to achieve better consistency across devices (they get converted to the
-size in pixel automatically).
+size in pixels automatically).
 
-All available units are |pt|, |mm|, |cm|, |in|, |dp| and |sp|, you can see
-about their usage in the |metrics| documentation.
+Available units are |pt|, |mm|, |cm|, |in|, |dp| and |sp|. You can learn about
+their usage in the |metrics| documentation.
 
-On a related note, you can see the |screen| usage to simulate various devices
+You can also experiment with the |screen| usage to simulate various devices
 screens for your application.
 
 Screen Separation with Screen Manager
 -------------------------------------
 
 If your application is composed of various screens, you likely want an easy
-way to navigate from one |Screen| to another. Fortunately, there is
+way to navigate from one |Screen| to another. Fortunately, there is the
 |ScreenManager| class, that allows you to define screens separately, and to set
 the |Transitions| from one to another.
