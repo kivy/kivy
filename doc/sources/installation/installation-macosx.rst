@@ -11,7 +11,8 @@ Installation on MacOSX
     `homebrew <http://mxcl.github.com/homebrew/>`_ to do that.
 
 For Mac OS X 10.6 and later, we provide a Kivy.app with all dependencies
-bundled. Download it from our google code project page. It comes as a .dmg
+bundled. Download it from our `Download Page <http://kivy.org/#download>`_.
+It comes as a .dmg 
 file that contains:
 
     * Kivy.app
@@ -30,18 +31,29 @@ Start any Kivy Application
 ----------------------------
 
 You can run any Kivy application by simply dragging the application's main file
-onto the Kivy.app icon. Just try with any python file in the examples folder.
+onto the Kivy.app icon. Just try this with any python file in the examples folder.
 
 .. _macosx-run-app:
 
-Start from Command Line
------------------------
+Start from the Command Line
+---------------------------
 
 If you want to use Kivy from the command line, double-click the ``Make Symlinks`` script
-after you dragged the Kivy.app into the Applications folder. To test if it worked:
+after you have dragged the Kivy.app into the Applications folder. To test if it worked:
 
-    #. Open Terminal.app and run ``kivy``. You should get a Python prompt.
-    #. In there, enter import kivy. If it just goes to the next line without errors, it worked.
+    #. Open Terminal.app and enter::
+    
+           $ kivy
+        
+       You should get a Python prompt.
+        
+    #. In there, type::
+
+           $ import kivy
+           
+       If it just goes to the next line without errors, it worked.
+       
     #. Running any Kivy application from the command line is now simply a matter
-       of executing a command like the following: ``kivy yourapplication.py``
-
+       of executing a command like the following::
+       
+           $ kivy yourapplication.py

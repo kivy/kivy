@@ -169,7 +169,7 @@ __all__ = ('Property',
            'NumericProperty', 'StringProperty', 'ListProperty',
            'ObjectProperty', 'BooleanProperty', 'BoundedNumericProperty',
            'OptionProperty', 'ReferenceListProperty', 'AliasProperty',
-           'DictProperty', 'CssListProperty')
+           'DictProperty', 'VariableListProperty')
 
 from weakref import ref
 
@@ -929,7 +929,7 @@ cdef class OptionProperty(Property):
         self.options = []
 
     def __init__(self, *largs, **kw):
-        self.options = <list>(kw.get('options', []))
+        self.options = list(kw.get('options', []))
         super(OptionProperty, self).__init__(*largs, **kw)
 
     cdef init_storage(self, EventDispatcher obj, PropertyStorage storage):
@@ -1113,18 +1113,18 @@ cdef class AliasProperty(Property):
             ps.value = self.get(obj)
             self.dispatch(obj)
 
-cdef class CssListProperty(Property):
+cdef class VariableListProperty(Property):
     '''A ListProperty that mimics the css way of defining numeric values such
     as padding, margin, etc.
 
     Accepts a list of 1 or 2 (or 4 when length=4) Numeric arguments or a single
     Numeric argument.
 
-    CssListProperty([1]) represents [1, 1, 1, 1].
-    CssListProperty([1, 2]) represents [1, 2, 1, 2].
-    CssListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
-    CssListProperty(5) represents [5, 5, 5, 5].
-    CssListProperty(3, length=2) represents [3, 3].
+    VariableListProperty([1]) represents [1, 1, 1, 1].
+    VariableListProperty([1, 2]) represents [1, 2, 1, 2].
+    VariableListProperty(['1px', (2, 'px'), 3, 4.0]) represents [1, 2, 3, 4.0].
+    VariableListProperty(5) represents [5, 5, 5, 5].
+    VariableListProperty(3, length=2) represents [3, 3].
 
     :Parameters:
         `length`: int
@@ -1141,11 +1141,11 @@ cdef class CssListProperty(Property):
         elif length == 2:
             defaultvalue = defaultvalue or [0, 0]
         else:
-            err = 'CssListProperty requires a length of 2 or 4 (got %r)'
+            err = 'VariableListProperty requires a length of 2 or 4 (got %r)'
             raise ValueError(err % length)
 
         self.length = length
-        super(CssListProperty, self).__init__(defaultvalue, **kw)
+        super(VariableListProperty, self).__init__(defaultvalue, **kw)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):

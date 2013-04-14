@@ -15,12 +15,6 @@ Requirements for an Android application
 To create an application for the Android platform, you must have a
 file named `main.py` in the root directory of your application.
 
-If you want your application to run inside the `Kivy launcher`_, then you 
-must handle the `__name__` as::
-
-    if __name__ in ('__main__', '__android__'):
-        YourApp().run()
-
 Create an APK
 -------------
 

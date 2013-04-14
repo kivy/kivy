@@ -903,6 +903,7 @@ cdef class Texture:
     cdef void _reload_propagate(self, Texture texture):
 
         # ensure the new opengl ID will not get through GC
+        texture.bind()
         self._id = texture.id
         texture._nofree = 1
 
