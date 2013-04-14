@@ -123,7 +123,9 @@ cdef class EventDispatcher(object):
     def __init__(self, **kwargs):
         cdef str func, name, key
         cdef dict properties
-        super(EventDispatcher, self).__init__(**kwargs)
+        # object.__init__ takes no parameters as of 2.6; passing kwargs
+        # triggers a DeprecationWarning or worse
+        super(EventDispatcher, self).__init__()
 
         # Auto bind on own handler if exist
         properties = self.properties()
