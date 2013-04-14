@@ -61,7 +61,7 @@ The widget tree can be manipulated with the following methods:
 - :meth:`~kivy.uix.widget.Widget.clear_widgets`: remove all children from a
   widget
 
-For example, if you want to add a button inside a BoxLayout, you can do:::
+For example, if you want to add a button inside a BoxLayout, you can do::
 
     layout = BoxLayout(padding=10)
     button = Button(text='My first button')
@@ -69,7 +69,7 @@ For example, if you want to add a button inside a BoxLayout, you can do:::
 
 The button is added to layout: the button's parent property will be set to layout;
 the layout will have the button added to its children list. To remove the button
-from the layout:::
+from the layout::
 
     layout.remove_widget(button)
 
@@ -77,7 +77,7 @@ With removal, the button's parent property will be set to None, and the layout
 will have button removed from its children list.
 
 If you want to clear all the children inside a widget, use
-:meth:`~kivy.uix.widget.Widget.clear_widgets` method:::
+:meth:`~kivy.uix.widget.Widget.clear_widgets` method::
 
     layout.clear_widgets()
 
@@ -94,7 +94,7 @@ Traversing the Tree
 -------------------
 
 The Widget class instance's :data:`~kivy.uix.widget.Widget.children` list property
-contains all the children. You can easily traverse the tree by doing:::
+contains all the children. You can easily traverse the tree by doing::
 
     root = BoxLayout()
     # ... add widgets to root ...
@@ -103,7 +103,7 @@ contains all the children. You can easily traverse the tree by doing:::
 
 However, this must be used carefuly. If you intend to modify the children list
 with one of the methods shown in the previous section, you must use a copy of
-the list like this:::
+the list like this::
 
     for child in root.children[:]:
         # manipulate the tree. For example here, remove all widgets that have a
@@ -120,7 +120,7 @@ Widgets Z Index
 
 The order of drawing widgets is based on position in
 the widget tree. The last widget's canvas is drawn last (on top of everything
-else inside its parent). add_widget takes a `index` parameter:::
+else inside its parent). add_widget takes a `index` parameter::
 
     root.add_widget(widget, index)
 
@@ -218,7 +218,7 @@ Consider the following example:
             # however it's provided here to make things clear
             size_hint: 1, 1
 
-load kivy catalog:::
+load kivy catalog::
 
     cd $KIVYDIR/examples/demo/kivycatalog
     python main.py
@@ -258,7 +258,7 @@ Let's add another |Button| to the |layout| and see what happens.
 If a child specifies |size_hint|, this specifies how much space the |Widget|
 will take out of the |size| given to it by the |BoxLayout|. In our example, the
 first |Button| specifies .5 for |size_hint_x|. The space for the widget is
-calculated like so:::
+calculated like so::
 
     first child's size_hint devided by
     first child's size_hint + second child's size_hint + ...n(no of children)
@@ -318,7 +318,7 @@ Layouts by their nature have no visual representation: they have no canvas
 instructions by default. However you can add canvas instructions to a layout
 instance easily, as with adding a colored background:
 
-In Python:::
+In Python::
 
     with layout_instance.canvas.before:
         Color(rgba(0, 1, 0, 1)) # green; colors range from 0-1 instead of 0-255
@@ -329,7 +329,7 @@ In Python:::
 Unfortunately, this will only draw a rectangle at the layout's initial position
 and size. To make sure the rect is drawn inside the layout, when layout size/pos
 changes, we need to listen to any changes and update the rectangle size and pos
-like so:::
+like so::
 
     # listen to size and position changes
     layout_instance.bind(
@@ -362,7 +362,7 @@ the |pos| and |size| values of the rectangle will update when the |pos| of the
 
 Now we put the snippets above into the shell of Kivy App.
 
-Pure Python way:::
+Pure Python way::
 
     from kivy.app import App
     from kivy.graphics import Color, Rectangle
@@ -406,7 +406,7 @@ Pure Python way:::
     if __name__ == '__main__':
         MainApp().run()
 
-Using the kv Language:::
+Using the kv Language::
 
     from kivy.app import App
     from kivy.lang import Builder
@@ -446,7 +446,7 @@ cumbersome if we need to use multiple layouts. To help with this, override
 the Layout class with your own layout, and add a background
 within the class of the layout class itself.
 
-Using Python:::
+Using Python::
 
     from kivy.app import App
     from kivy.graphics import Color, Rectangle
@@ -500,7 +500,7 @@ Using Python:::
     if __name__ == '__main__':
         MainApp().run()
 
-Using the kv Language:::
+Using the kv Language::
 
     from kivy.app import App
     from kivy.uix.floatlayout import FloatLayout
@@ -556,7 +556,7 @@ in every instance of CustomLayout.
 
 Now, to add an image or color to the background of a built-in Kivy layout,
 **globally**, we need to override the kv rule for the layout in question.
-Consider GridLayout:::
+Consider GridLayout::
 
     <GridLayout>
         canvas.before:
@@ -567,7 +567,7 @@ Consider GridLayout:::
                 pos: self.pos
                 size: self.size
 
-Then, when we put this snippet into a Kivy app:::
+Then, when we put this snippet into a Kivy app::
 
     from kivy.app import App
     from kivy.uix.floatlayout import FloatLayout
@@ -616,7 +616,7 @@ Then, when we put this snippet into a Kivy app:::
     if __name__ == '__main__':
         MainApp().run()
 
-The result should look something like this
+The result should look something like this:
 
 .. image:: images/global_background.png
 
@@ -626,12 +626,12 @@ class in our app will display that image.
 How about an **Animated background**?
 
 You can set the drawing instructions like Rectangle/BorderImage/Ellipse/... to
-use a particular texture:::
+use a particular texture::
 
     Rectangle:
         texture: reference to a texture
 
-We use this to display an animated background:::
+We use this to display an animated background::
 
     from kivy.app import App
     from kivy.uix.floatlayout import FloatLayout
@@ -690,13 +690,13 @@ We use this to display an animated background:::
     if __name__ == '__main__':
         MainApp().run()
 
-To try to understand what is happening here, start from line 13:::
+To try to understand what is happening here, start from line 13::
 
     texture: self.background_image.texture
 
 This specifies that the `texture` property of `BorderImage` will be updated
 whenever the `texture` property of `background_inage` updates. We define the
-background_image property at line 40:::
+background_image property at line 40::
 
     background_image = ObjectProperty(...
 
