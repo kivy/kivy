@@ -1,8 +1,5 @@
 Properties
 ----------
-.. container:: title
-
-    Using Kivy's Properties
 
 Kivy introduce a new way of declaring the properties within a class.
 Before::

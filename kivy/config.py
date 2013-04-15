@@ -24,6 +24,10 @@ Available configuration tokens
 ------------------------------
 
 :kivy:
+    `desktop`: (0, 1)
+        Enable/disable specific features if True/False. For example enabling
+        drag-able scroll-bar in scroll views, disabling of bubbles in
+        TextInput...  True etc.
 
     `log_level`: (debug, info, warning, error, critical)
         Set the minimum log level to use
@@ -50,6 +54,11 @@ Available configuration tokens
         Time allowed for the detection of double tap, in milliseconds
     `double_tap_distance`: float
         Maximum distance allowed for a double tap, normalized inside the range
+        0 - 1000
+    `triple_tap_time`: int
+        Time allowed for the detection of triple tap, in milliseconds
+    `triple_tap_distance`: float
+        Maximum distance allowed for a triple tap, normalized inside the range
         0 - 1000
     `retain_time`: int
         Time allowed for a retain touch, in milliseconds
@@ -181,10 +190,10 @@ from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
-from kivy.utils import OrderedDict
+from kivy.utils import OrderedDict, platform
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 7
+KIVY_CONFIG_VERSION = 8
 
 #: Kivy configuration object
 Config = None
@@ -424,6 +433,13 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 Config.set('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_stoptime', '300')
             Config.setdefault('widgets', 'scroll_moves', '5')
+
+        elif version == 7:
+            # desktop bool indicating whether to use desktop specific features
+            is_desktop = int(platform() in ('win', 'macosx', 'linux'))
+            Config.setdefault('kivy', 'desktop', is_desktop)
+            Config.setdefault('postproc', 'triple_tap_distance', '20')
+            Config.setdefault('postproc', 'triple_tap_time', '375')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
