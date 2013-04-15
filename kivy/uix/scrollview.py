@@ -138,7 +138,7 @@ class ScrollView(StencilView):
                   scroll_y=self.update_from_scroll,
                   pos=self.update_from_scroll,
                   size=self.update_from_scroll,
-                  mobile_scrolling=self.update_from_scroll)
+                  desktop=self.update_from_scroll)
         self.update_from_scroll()
 
     def convert_distance_to_scroll(self, dx, dy):
@@ -152,14 +152,14 @@ class ScrollView(StencilView):
             return 0, 0
         vp = self._viewport
         if vp.width > self.width:
-            if self.mobile_scrolling:
+            if not self.desktop:
                 sx = dx / float(vp.width - self.width)
             else:
                 sx = dx / float(self.width - self.width * self.hbar[1])
         else:
             sx = 0
         if vp.height > self.height:
-            if self.mobile_scrolling:
+            if not self.desktop:
                 sy = dy / float(vp.height - self.height)
             else:
                 sy = dy / float(self.height - self.height * self.vbar[1])
@@ -209,7 +209,7 @@ class ScrollView(StencilView):
         Clock.unschedule(self._start_decrease_alpha)
         Animation.stop_all(self, 'bar_alpha')
         self.bar_alpha = 1.
-        if self.mobile_scrolling:
+        if not self.desktop:
             Clock.schedule_once(self._start_decrease_alpha, .5)
 
     def _start_decrease_alpha(self, *l):
@@ -397,14 +397,14 @@ class ScrollView(StencilView):
         self._touch = touch
         uid = self._get_uid()
         touch.grab(self)
-        if (not self.mobile_scrolling and
+        if (self.desktop and
             self.do_scroll_x and touch.x >= self.x + self.width *
             self.hbar[0] and touch.x <= self.x + self.width *
             (self.hbar[0] + self.hbar[1]) and touch.y >= self.y +
             self.bar_margin and touch.y <= self.y + self.bar_margin +
             self.bar_width):
             mode = 'scrollx'
-        elif (not self.mobile_scrolling and
+        elif (self.desktop and
               self.do_scroll_y and touch.x >= self.right - self.bar_width -
               self.bar_margin and touch.x <= self.right - self.bar_margin and
               touch.y >= self.y + self.height * self.vbar[0] and touch.y <=
@@ -639,16 +639,17 @@ class ScrollView(StencilView):
     default to True.
     '''
 
-    mobile_scrolling = BooleanProperty(True)
-    '''If the scrolling is optimized for mobile or desktop scrolling.
+    desktop = BooleanProperty(bool(Config.get('kivy', 'desktop')))
+    '''Whether the scrolling is optimized for desktop (or mobile) scrolling.
 
     .. versionadded:: 1.6.1
 
-    :data:`mobile_scrolling` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True. When false, the scroll bar is permanently displayed and
-    scrolling can always be initiated by dragging over the scroll bar, without
-    any minimum time or distance limits. Additionally, the amount of scrolling
-    is proportional to the child size as in typical desktop windows.
+    :data:`desktop` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True if executed on a desktop. When True, the scroll bar is
+    permanently displayed and scrolling can always be initiated by dragging
+    over the scroll bar, without any minimum time or distance limits.
+    Additionally, the amount of scrolling is proportional to the child size
+    as in typical desktop windows.
     '''
 
     def _get_do_scroll(self):
