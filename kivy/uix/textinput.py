@@ -1896,7 +1896,7 @@ class TextInput(Widget):
     default to [0, 0, 0, 1] #Black
     '''
 
-    use_bubble = BooleanProperty(True)
+    use_bubble = BooleanProperty(not bool(Config.get('kivy', 'desktop')))
     '''Indicates whether the cut copy paste bubble is used
 
     .. versionadded:: 1.6.1
@@ -2035,7 +2035,7 @@ if __name__ == '__main__':
 
         def build(self):
             root = BoxLayout(orientation='vertical')
-            textinput = TextInput(multiline=True, use_bubble=False)
+            textinput = TextInput(multiline=True)
             textinput.text = __doc__
             root.add_widget(textinput)
             textinput2 = TextInput(text='monoline textinput',
