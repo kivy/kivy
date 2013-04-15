@@ -591,7 +591,7 @@ class ProxyApp(object):
             object.__setattr__(self, '_obj', app)
             # Clear cached application instance, when it stops
             app.bind(on_stop=lambda instance:
-                object.__setattr__(self, '_obj', None)
+                object.__setattr__(self, '_obj', None))
         return app
 
     def __getattribute__(self, name):
