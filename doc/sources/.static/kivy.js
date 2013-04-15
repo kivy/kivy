@@ -1,163 +1,3 @@
-var sections = {};
-var sections_key = [];
-var prev_gsid = '';
-var avoidscroll = 1;
-var scrollingDiv = null;
-var scrolltop = null;
-
-function gs_enable_scroll() {
-	avoidscroll = 0;
-	gs_scroll(0);
-}
-
-function gs_scroll(anim) {
-	if ( avoidscroll )
-		return;
-	var sh = $(scrollingDiv).innerHeight();
-	var dh = $(document).height() - 130;
-	var wtop = $(window).scrollTop();
-	wtop -= scrolltop;
-	if ( wtop + sh > dh )
-		wtop = dh - sh;
-	if ( wtop < 0 )
-		wtop = 0;
-	if ( anim === 0 )
-		scrollingDiv.css({'marginTop': wtop + 'px'});
-	else
-		scrollingDiv
-			.stop()
-			.animate({'marginTop': wtop + 'px'}, 'slow');
-}
-
-function gs_check_hash() {
-	if ( location.hash.substring(0, 5) == '#doc-' ) {
-		gs_show_section(location.hash.substring(5), 1);
-	} else {
-		var search = $('div.panelstep' + location.hash);
-		if ( search && location.hash ) {
-			gs_show_section(location.hash.substring(1));
-		} else {
-			var id = $(location.hash).parent('.panelstep').attr('id');
-			if ( typeof(id) != 'undefined' )
-				gs_show_section(id, 0);
-			else
-				gs_show_section(sections_key[0], 1);
-		}
-	}
-	setTimeout('gs_check_hash()', 250);
-}
-
-function gs_show_section(gsid, changehash) {
-	if ( prev_gsid == gsid )
-		return;
-	$('html, body').animate({scrollTop:0});
-	$(sections_key).each(function(i, key){
-		if ( gsid == key ) {
-			if ( prev_gsid == '' )
-				$(sections[key][0]).show();
-			else
-				$(sections[key][0]).show('slide', {direction: 'right'}, 150);
-			sections[key][1].attr({'font-weight': 'bold'});
-			sections[key][2].animate({'stroke-width': '8', 'fill': '#f80'}, 300);
-			$('#content').css('min-height', function(){
-				return $(sections[key][0]).height() + 180;
-			});
-			$('a.current').removeClass('current');
-			$('a[href="#' + gsid + '"]').addClass('current');
-		}
-		else if ( key == prev_gsid )
-		{
-			$(sections[key][0]).hide('slide', {direction: 'left'}, 150);
-			sections[key][1].attr({'font-weight': 'normal'});
-			sections[key][2].animate({'stroke-width': '3', 'fill': '#f7ff7a'}, 300);
-		}
-	});
-	prev_gsid = gsid;
-	if ( changehash )
-		document.location.hash = 'doc-' + gsid;
-}
-
-function gs_start(firstsection) {
-
-	var count = $('div.section h2').length;
-	if ( count == 0 )
-		return;
-
-	// The page must have only one h1, and h2 will act as steps.
-	$('div.footerlinks').hide();
-	$('div.section h1').hide();
-	$('<div id="gs-bar"></div>').insertAfter($('div.section h1').first());
-	$('div.section h2').parent().addClass('panelstep').hide();
-	$('div.section h2').hide();
-
-	// Create the graphics context
-	var r = Raphael('gs-bar', 820, 100);
-	r.clear();
-	var instrs = r.set();
-	var x = 20, y = 60;
-	r.path('M20,85L760,85').attr({fill: "#445fa3", stroke: "#999", "stroke-width": 4, "stroke-opacity": 0.4});
-	r.path('M770,85L760,80L760,90Z').attr({fill: "#999", stroke: "#999", "stroke-width": 4, "stroke-opacity": 0.4});
-
-	jQuery(document).bind('keydown', function (evt){
-		var nid = '';
-		if ( event.which == 37 ) {
-			nid = $('div.panelstep[id="' + prev_gsid + '"]').prev().attr('id');
-		}
-		else if ( event.which == 39 ) {
-			nid = $('div.panelstep[id="' + prev_gsid + '"]').next().attr('id');
-		}
-		if ( typeof(nid) != 'undefined' && nid != '' && nid != 'gs-bar' )
-			gs_show_section(nid, 1);
-		return true;
-	});
-
-	$('div.section h2').each(function(index, elem) {
-		var gsid = $(elem).parent()[0].id;
-		var instr_t = r.text(x - 2, y, $(elem).text().split('¶')[0]);
-		instr_t.rotate(-20, x, y);
-		instrs.push(instr_t);
-		var instr_c = r.circle(x + 4, y + 25, 10).attr({fill: "#f7ff7a", stroke: "#000", "stroke-width": 3, "stroke-opacity": 0.4});
-
-		instr_t.click(function() { gs_show_section(gsid, 1); });
-		instr_c.click(function() { gs_show_section(gsid, 1); });
-		sections[gsid] = [$(elem).parent()[0], instr_t, instr_c];
-		sections_key.push(gsid);
-
-		var prevlink = '', nextlink = '';
-		var pt = $(elem).parent()[0];
-
-		prevlink =  $(pt).prev().attr('id');
-		if ( prevlink != '' && prevlink != 'gs-bar' ) {
-			var text = $('#' + prevlink + ' h2').text().split('¶')[0];
-			prevlink = '<a href="#doc-' + prevlink + '">&laquo; ' + text + '</a>';
-		} else {
-			prevlink = '';
-		}
-
-		nextlink =  $(pt).next().attr('id');
-		if ( typeof(nextlink) != 'undefined' ) {
-			var text = $('#' + nextlink + ' h2').text().split('¶')[0];
-			nextlink = '<a href="#doc-' + nextlink + '">' + text + ' &raquo; </a>';
-		} else {
-			nextlink = '';
-		}
-
-		$(['<div class="footerlinks">',
-		   '<table><tbody><tr><td class="leftlink">',
-		   prevlink,
-		   '</td><td class="rightlink">',
-		   nextlink,
-		   '</td></tr></tbody></table>',
-		   '</div>'
-		].join('')).appendTo($(elem).parent());
-
-		x += (820/(count + 1));
-	});
-	instrs.attr({font: "14px Open Sans", fill: "#333", "text-anchor": "start"});
-
-	gs_check_hash();
-}
-
 $(document).ready(function () {
 	var height = $(document).height();
 	$('#content').css('min-height', function(){ return height; });
@@ -173,6 +13,7 @@ $(document).ready(function () {
 
 	// if it's an API page, show the module name.
 	var pagename = location.pathname.split('/');
+	var is_api = false;
 	pagename = pagename[pagename.length - 1];
 	if (pagename.search('api-') == 0) {
 		pagename = pagename.substr(4, pagename.length - 9);
@@ -180,6 +21,7 @@ $(document).ready(function () {
 		ensure_bodyshortcut();
 		var modulename = $('<div class="left">Module: <a href="#">' + pagename + '</a></div>')
 		modulename.appendTo($('div.bodyshortcut'));
+		is_api = true;
 	}
 
 	// insert breaker only for the first data/class/function found.
@@ -203,7 +45,6 @@ $(document).ready(function () {
 			.attr('id', 'api')
 			.html(
 				$('<h2>API ' +
-				  '<a id="api-toggle-all" class="showed">Collapse All &uArr;</a>' +
 				  '<a id="api-toggle-desc" class="showed">Hide Description &uArr;</a>' +
 				  '</h2>')
 				)
@@ -223,6 +64,7 @@ $(document).ready(function () {
 		apilink.appendTo($('div.bodyshortcut'));
 	}
 
+	/**
 	$('#api-toggle-all').click(function() {
 		if ($(this).hasClass('showed')) {
 			$('div.body dl.api-level > dd').slideUp();
@@ -236,15 +78,22 @@ $(document).ready(function () {
 			$.cookie('kivy.toggleall', 'false');
 		}
 	});
+	**/
 
 	$('#api-toggle-desc').click(function() {
 		if ($(this).hasClass('showed')) {
-			$('div.body dl.api-level > dd > dl > dd').slideUp();
+			$('div.body dl.api-level > dd p').hide();
+			$('div.body dl.api-level > dd pre').hide();
+			$('div.body dl.api-level > dd blockquote').hide();
+			$('div.body dl.api-level > dd ul').hide();
 			$(this).removeClass('showed');
 			$(this).html('Show Descriptions &dArr;');
 			$.cookie('kivy.toggledesc', 'true');
 		} else {
-			$('div.body dl.api-level > dd > dl > dd').slideDown();
+			$('div.body dl.api-level > dd p').show();
+			$('div.body dl.api-level > dd pre').show();
+			$('div.body dl.api-level > dd blockquote').show();
+			$('div.body dl.api-level > dd ul').show();
 			$(this).addClass('showed');
 			$(this).html('Hide Descriptions &uArr;');
 			$.cookie('kivy.toggledesc', 'false');
@@ -252,7 +101,7 @@ $(document).ready(function () {
 	});
 
 	$('div.body dl dt').click(function() {
-		$(this).next().slideToggle();
+		$(this).next().children().toggle();
 	});
 
 	if ( $.cookie('kivy.toggledesc') == 'true' ) {
@@ -280,30 +129,121 @@ $(document).ready(function () {
 	});
 
 	//----------------------------------------------------------------------------
-	// Make the navigation always in view
+	// Menu navigation
 	//----------------------------------------------------------------------------
+	$('div.sphinxsidebarwrapper > ul > li > a').each(function(index, item) {
+		$(item)
+			.attr('href', '#')
+			.addClass('mainlevel')
+			.bind('mousedown', function() {
+			$('div.sphinxsidebar ul li ul').filter(function (index, child) {
+				if (child != $(item).parent().children('ul').get(0)) return child;
+			}).slideUp();
+			$(item).parent().children('ul').slideToggle();
+		});
+	})
 
-	// XXX temporary avoid scrolling
-	//$(window).scroll(function() {
-	//	gs_scroll();
-	//});
-	//scrollingDiv = $('div.sphinxsidebarwrapper');
-	//scrolltop = $('div.sphinxsidebarwrapper h3:eq(1)').position().top;
-	//setTimeout('gs_enable_scroll()', 50);
+	$('div.sphinxsidebarwrapper li.current').parent().show();
+
+	$('div.sphinxsidebarwrapper ul li').each(function(index, item) {
+		if ($(item).children('ul').length > 0) {
+			$(item).children('a').addClass('togglable');
+		}
+	});
+
+	// FIXME
+	$('div.sphinxsidebar a[href$="api-kivy.html"]').parent().parent().addClass('api-index');
+	$('div.sphinxsidebar a[href$="api-kivy.utils.html"]').parent().parent().addClass('api-index');
+	$('li.current.toctree-l2').slice(0, -1).removeClass('current');
+
+	$('ul.api-index a').each(function(index, item) {
+		var url = $(item).attr('href').slice(0, -5);
+		if (url == '') {
+			$(item).attr('href', location.pathname);
+			url = location.pathname.slice(0, -5);
+		}
+		url = url.substr(url.search('api-') + 4);
+		$(item).empty().append(url);
+	});
+	
+	// Hide API section if we are not in the API.
+	// or hide all the others sections if we are in the API
+	if ( is_api ) {
+		$('div.sphinxsidebarwrapper > ul > li > ul').filter(
+				function(index, item) {
+					if (! $(item).hasClass('api-index'))
+						return item;
+				}).parent().hide();
+		$('.nav-api').addClass('current');
+	} else {
+		$('div.sphinxsidebarwrapper > ul > li > ul').filter(
+				function(index, item) {
+					if ($(item).hasClass('api-index'))
+						return item;
+				}).parent().hide();
+		$('.nav-guides').addClass('current');
+	}
 
 
-	//----------------------------------------------------------------------------
-	// Image reflexions
-	//----------------------------------------------------------------------------
+	if ( is_api ) {
+		var divscroll = $('div.sphinxsidebarwrapper');
+		var divapi = $('.api-index');
+		var initial_offset = divscroll.offset();
+		var jwindow = $(window);
 
-	$('div.body img').reflect({'opacity': .35, 'height': 40});
+		function update_api() {
+			var ywindow = jwindow.scrollTop();
+			var ymintop = initial_offset.top;
+			var ytop = ymintop;
+			var ypadding = 10;
+			var overscroll = $(window).height() + $(window).scrollTop() - $(document).height();
+			var yoff = ywindow;
 
-	//----------------------------------------------------------------------------
-	// Page to change with panel navigation
-	//----------------------------------------------------------------------------
+			if ( ywindow > ymintop - ypadding)
+				ytop = ywindow + ypadding;
+			if ( overscroll > 0 )
+				ytop -= overscroll;
+			if ( ywindow > initial_offset.top )
+				yoff = initial_offset.top;
 
-	var firstsection = $('div.section').attr('id');
-	if ( firstsection == 'getting-started' || firstsection == 'pong-game-tutorial' )
-		gs_start(firstsection);
+			divscroll.offset({top: ytop, left: initial_offset.left});
+
+			var h = jwindow.height() - divapi.position().top - 130 + yoff;
+			divapi.height(h);
+		}
+
+		$(window).scroll(update_api).bind('resize', update_api);
+
+		update_api();
+
+		$('.api-index').scrollTop($('.api-index').scrollTop() + $('li.toctree-l2.current').position().top - 143)
+
+		$('.toc').hide();
+
+	} else {
+		var divscroll = $('div.sphinxsidebar');
+		var initial_offset = divscroll.offset();
+		var jwindow = $(window);
+		var b = divscroll.position().top + divscroll.height(); 
+
+		function update_sidebar() {
+			var ywindow = jwindow.scrollTop();
+			var ymintop = initial_offset.top;
+			var a = ywindow + jwindow.height();
+			console.log(a, b);
+			if ( ywindow > b ) {
+				var current = $('li.toctree-l1.current').position().top;
+				divscroll.css('position', 'fixed').css('top', -current);
+			} else {
+				divscroll.css('position', 'relative').css('top', 0);
+			}
+		}
+
+		$(window).scroll(update_sidebar).bind('resize', update_sidebar);
+		update_sidebar();
+
+		if ($('.toc > ul > li> ul').length < 1)
+			$('.toc').hide();
+	}
 
 });

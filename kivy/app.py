@@ -586,11 +586,7 @@ class App(EventDispatcher):
 
         self.dispatch('on_start')
         runTouchApp()
-        self.dispatch('on_stop')
-
-        # Clear the window children
-        for child in window.children:
-            window.remove_widget(child)
+        self.stop()
 
     def stop(self, *largs):
         '''Stop the application.
@@ -598,7 +594,12 @@ class App(EventDispatcher):
         If you use this method, the whole application will stop by issuing
         a call to :func:`~kivy.base.stopTouchApp`.
         '''
+        self.dispatch('on_stop')
         stopTouchApp()
+
+        # Clear the window children
+        for child in self._app_window.children:
+            self._app_window.remove_widget(child)
 
     def on_start(self):
         '''Event handler for the on_start event, which is fired after
