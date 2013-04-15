@@ -727,11 +727,12 @@ class TextInput(Widget):
     # Touch control
     #
     def long_touch(self, dt):
-        if self._selection_to == self._selection_from:
-            self._show_cut_copy_paste(
-                                        self._long_touch_pos,
-                                        self._win,
-                                        mode='paste')
+        if not self.enable_menu:
+            if self._selection_to == self._selection_from:
+                self._show_cut_copy_paste(
+                                            self._long_touch_pos,
+                                            self._win,
+                                            mode='paste')
 
     def on_touch_down(self, touch):
         touch_pos = touch.pos
@@ -810,61 +811,61 @@ class TextInput(Widget):
 
     def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
         # Show a bubble with cut copy and paste buttons
-        bubble = self._bubble
-        if bubble is None:
-            self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
-            self.bind(parent=partial(self._show_cut_copy_paste,
-                pos, win, True))
-        else:
-            win.remove_widget(bubble)
-            if not self.parent:
+        if not self.enable_menu:
+            bubble = self._bubble
+            if bubble is None:
+                self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
+                self.bind(parent=partial(self._show_cut_copy_paste,
+                    pos, win, True))
+            else:
+                win.remove_widget(bubble)
+                if not self.parent:
+                    return
+            if parent_changed:
                 return
-        if parent_changed:
-            return
 
-        # Search the position from the touch to the window
-        x, y = pos
-        t_pos = self.to_window(x, y)
-        bubble_size = bubble.size
-        win_size = win.size
-        bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1] + inch(.25))
-        bubble_pos = bubble.pos
-        lh, ls = self.line_height, self._line_spacing
+            # Search the position from the touch to the window
+            x, y = pos
+            t_pos = self.to_window(x, y)
+            bubble_size = bubble.size
+            win_size = win.size
+            bubble.pos = (t_pos[0] - bubble_size[0] / 2., t_pos[1] + inch(.25))
+            bubble_pos = bubble.pos
+            lh, ls = self.line_height, self._line_spacing
 
-        # FIXME found a way to have that feature available for everybody
-        if bubble_pos[0] < 0:
-            # bubble beyond left of window
-            if bubble.pos[1] > (win_size[1] - bubble_size[1]):
-                # bubble above window height
-                bubble.pos = (0, (t_pos[1]) - (bubble_size[1] + lh + ls))
-                bubble.arrow_pos = 'top_left'
+            # FIXME found a way to have that feature available for everybody
+            if bubble_pos[0] < 0:
+                # bubble beyond left of window
+                if bubble.pos[1] > (win_size[1] - bubble_size[1]):
+                    # bubble above window height
+                    bubble.pos = (0, (t_pos[1]) - (bubble_size[1] + lh + ls))
+                    bubble.arrow_pos = 'top_left'
+                else:
+                    bubble.pos = (0, bubble_pos[1])
+                    bubble.arrow_pos = 'bottom_left'
+            elif bubble.right > win_size[0]:
+                # bubble beyond right of window
+                if bubble_pos[1] > (win_size[1] - bubble_size[1]):
+                    # bubble above window height
+                    bubble.pos = (win_size[0] - bubble_size[0],
+                            (t_pos[1]) - (bubble_size[1] + lh + ls))
+                    bubble.arrow_pos = 'top_right'
+                else:
+                    bubble.right = win_size[0]
+                    bubble.arrow_pos = 'bottom_right'
             else:
-                bubble.pos = (0, bubble_pos[1])
-                bubble.arrow_pos = 'bottom_left'
-        elif bubble.right > win_size[0]:
-            # bubble beyond right of window
-            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
-                # bubble above window height
-                bubble.pos = (win_size[0] - bubble_size[0],
-                        (t_pos[1]) - (bubble_size[1] + lh + ls))
-                bubble.arrow_pos = 'top_right'
-            else:
-                bubble.right = win_size[0]
-                bubble.arrow_pos = 'bottom_right'
-        else:
-            if bubble_pos[1] > (win_size[1] - bubble_size[1]):
-                # bubble above window height
-                bubble.pos = (bubble_pos[0],
-                        (t_pos[1]) - (bubble_size[1] + lh + ls))
-                bubble.arrow_pos = 'top_mid'
-            else:
-                bubble.arrow_pos = 'bottom_mid'
-
-        bubble.mode = mode
-        Animation.cancel_all(bubble)
-        bubble.opacity = 0
-        win.add_widget(bubble)
-        Animation(opacity=1, d=.225).start(bubble)
+                if bubble_pos[1] > (win_size[1] - bubble_size[1]):
+                    # bubble above window height
+                    bubble.pos = (bubble_pos[0],
+                            (t_pos[1]) - (bubble_size[1] + lh + ls))
+                    bubble.arrow_pos = 'top_mid'
+                else:
+                    bubble.arrow_pos = 'bottom_mid'
+            bubble.mode = mode
+            Animation.cancel_all(bubble)
+            bubble.opacity = 0
+            win.add_widget(bubble)
+            Animation(opacity=1, d=.225).start(bubble)
 
     #
     # Private
@@ -1609,6 +1610,16 @@ class TextInput(Widget):
     to False
     '''
 
+    enable_menu = BooleanProperty(False)
+    '''This property is used to disable the bubble menu for selection, cut,
+    copy and paste.
+
+    .. versionadded:: 1.6.1
+
+    :data:`enable_menu` is a :class:`~kivy.properties.BooleanProperty`, default
+    to False
+    '''
+
     def _get_cursor(self):
         return self._cursor
 
@@ -1714,8 +1725,8 @@ class TextInput(Widget):
 
     padding_x also accepts a one argument form [padding_horizontal].
 
-    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty`, default
-    to [0, 0]. This might be changed by the current theme.
+    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty`,
+    default to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
         Use :data:`padding` instead
@@ -1730,8 +1741,8 @@ class TextInput(Widget):
 
     padding_y also accepts a one argument form [padding_vertical].
 
-    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty`, default
-    to [0, 0]. This might be changed by the current theme.
+    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty`,
+    default to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
         Use :data:`padding` instead
