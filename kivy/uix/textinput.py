@@ -265,6 +265,7 @@ class TextInput(Widget):
         self._keyboard = None
         self._keyboard_mode = Config.get('kivy', 'keyboard_mode')
         self.reset_undo()
+        self._touch_count = 0
         self.interesting_keys = {
             8: 'backspace',
             13: 'enter',
@@ -282,6 +283,9 @@ class TextInput(Widget):
             304: 'shift_R'}
 
         self.register_event_type('on_text_validate')
+        self.register_event_type('on_double_tap')
+        self.register_event_type('on_triple_tap')
+        self.register_event_type('on_quad_touch')
 
         super(TextInput, self).__init__(**kwargs)
 
@@ -359,16 +363,23 @@ class TextInput(Widget):
         return index, row
 
     def select_text(self, start, end):
-        ''' Select portion of text displayed in this TextInput
+        ''' Select portion of text displayed in this TextInput.
 
         .. versionadded:: 1.4.0
+
+        parameters::
+            start:  index of textinput.text from where to start selection
+            end:    index of textinput.text till which the selection should be
+                    displayed
         '''
         if end < start:
             raise Exception('end must be superior to start')
         m = len(self.text)
         self._selection_from = boundary(start, 0, m)
         self._selection_to = boundary(end, 0, m)
+        self._selection_finished = True
         self._update_selection(True)
+        self._update_graphics_selection()
 
     def select_all(self):
         ''' Select all of the text displayed in this TextInput
@@ -733,6 +744,44 @@ class TextInput(Widget):
                                         self._win,
                                         mode='paste')
 
+    def on_double_tap(self):
+        '''This event is dispatched when a double tap happens
+        inside TextInput. The default behavior is to select the
+        word around current cursor position. Override this to provide
+        a separate functionality. Alternatively you can bind to this
+        event to provide additional functionality.
+        '''
+        ci = self.cursor_index()
+        cc = self.cursor_col
+        line = self._lines[self.cursor_row]
+        len_line = len(line)
+        start = max(0, len(line[:cc]) - line[:cc].rfind(' ') - 1)
+        end = line[cc:].find(' ')
+        end = end if end > - 1 else (len_line - cc)
+        Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
+
+    def on_triple_tap(self):
+        '''This event is dispatched when a triple tap happens
+        inside TextInput. The default behavior is to select the
+        line around current cursor position. Override this to provide
+        a separate functionality. Alternatively you can bind to this
+        event to provide additional functionality.
+        '''
+        ci = self.cursor_index()
+        cc = self.cursor_col
+        line = self._lines[self.cursor_row]
+        len_line = len(line)
+        Clock.schedule_once(lambda dt:
+                                self.select_text(ci - cc, ci + (len_line - cc)))
+
+    def on_quad_touch(self):
+        '''This event is dispatched when a four fingers are touching
+        inside TextInput. The default behavior is to select all text.
+        Override this to provide a separate functionality. Alternatively
+        you can bind to this event to provide additional functionality.
+        '''
+        Clock.schedule_once(lambda dt: self.select_all())
+
     def on_touch_down(self, touch):
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
@@ -745,6 +794,13 @@ class TextInput(Widget):
         if not self.focus:
             self.focus = True
         touch.grab(self)
+        self._touch_count += 1
+        if touch.is_double_tap:
+            self.dispatch('on_double_tap')
+        if touch.is_triple_tap:
+            self.dispatch('on_triple_tap')
+        if self._touch_count == 4:
+            self.dispatch('on_quad_touch')
 
         self._hide_cut_copy_paste(self._win)
         # schedule long touch for paste
@@ -777,6 +833,7 @@ class TextInput(Widget):
         if touch.grab_current is not self:
             return
         touch.ungrab(self)
+        self._touch_count -= 1
 
         # schedule long touch for paste
         Clock.unschedule(self.long_touch)
@@ -810,6 +867,8 @@ class TextInput(Widget):
 
     def _show_cut_copy_paste(self, pos, win, parent_changed=False, mode='', *l):
         # Show a bubble with cut copy and paste buttons
+        if not self.use_bubble:
+            return
         bubble = self._bubble
         if bubble is None:
             self._bubble = bubble = TextInputCutCopyPaste(textinput=self)
@@ -1714,8 +1773,8 @@ class TextInput(Widget):
 
     padding_x also accepts a one argument form [padding_horizontal].
 
-    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty`, default
-    to [0, 0]. This might be changed by the current theme.
+    :data:`padding_x` is a :class:`~kivy.properties.VariableListProperty`,
+    default to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
         Use :data:`padding` instead
@@ -1730,8 +1789,8 @@ class TextInput(Widget):
 
     padding_y also accepts a one argument form [padding_vertical].
 
-    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty`, default
-    to [0, 0]. This might be changed by the current theme.
+    :data:`padding_y` is a :class:`~kivy.properties.VariableListProperty`,
+    default to [0, 0]. This might be changed by the current theme.
 
     .. deprecated:: 1.7.0
         Use :data:`padding` instead
@@ -1835,6 +1894,15 @@ class TextInput(Widget):
 
     :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 1] #Black
+    '''
+
+    use_bubble = BooleanProperty(not bool(Config.get('kivy', 'desktop')))
+    '''Indicates whether the cut copy paste bubble is used
+
+    .. versionadded:: 1.6.1
+
+    :data:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`,
+    default to True
     '''
 
     def get_sel_from(self):

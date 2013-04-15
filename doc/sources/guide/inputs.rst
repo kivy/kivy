@@ -45,7 +45,7 @@ Before the newly-created Motion Event is passed to the user, Kivy applies
 post-processing to the input. Every motion event is analyzed to detect and
 correct faulty input, as well as make meaningful interpretations like:
 
-    - Double-tap detection, according to a distance and time threshold
+    - Double/triple-tap detection, according to a distance and time threshold
     - Making events more accurate when the hardware is not accurate
     - Reducing the amount of generated events if the native touch hardware is
       sending events with nearly the same position
@@ -177,6 +177,19 @@ current touch is one of a double tap or not::
             print ' - distance between previous is', touch.double_tap_distance
         # ...
 
+triple tap
+~~~~~~~~~~~
+
+A triple tap is the action of tapping thrice within a time and a distance.
+It's calculated by the tripletap post-processing module. You can test if the
+current touch is one of a triple tap or not::
+
+    def on_touch_down(self, touch):
+        if touch.is_triple_tap:
+            print 'Touch is a triple tap !'
+            print ' - interval is', touch.triple_tap_time
+            print ' - distance between previous is', touch.triple_tap_distance
+        # ...
 
 Grabbing touch events
 ~~~~~~~~~~~~~~~~~~~~~
