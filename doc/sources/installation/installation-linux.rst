@@ -17,59 +17,68 @@ Ubuntu / Kubuntu / Xubuntu / Lubuntu (Oneirc and above)
         $ sudo add-apt-repository ppa:kivy-team/kivy
     :nightly builds:
         $ sudo add-apt-repository ppa:kivy-team/kivy-daily
-    
-    * **Notice for Lucid users**: Support has been dropped in stable PPA as Python 2.7 is needed and Python 2.6 is just provided. You can find Python2.7 in the daily PPA, but manual installation is needed.
-    * **Notice for Oneiric users**: Oneiric is supported but uses Python2.6 as the default interpreter. Don't forget to set python2.7 as your interpreter for your project. "python", which is linked to "python2.6" won't work.
 
-2. Update your packagelist with your package manager
+    **Notice for Lucid users**: Support has been dropped in stable PPA
+    as Python 2.7 is required and only 2.6 is available. You can find
+    Python 2.7 in the daily PPA, but manual installation is needed.
+    
+    **Notice for Oneiric users**: Oneiric is supported but uses Python2.6
+    as the default interpreter. Don't forget to set python2.7 as the
+    interpreter for your project. "python", which is linked to "python2.6",
+    won't work.
+
+#. Update your packagelist using your package manager
 #. Install **python-kivy** and optionally the examples, found in **python-kivy-examples**
 
 Debian
 ------
 
-#. Add one of the PPAs into your sources.list in apt manually or via Synaptic
+#. Add one of the PPAs to your sources.list in apt manually or via Synaptic
 
-* Wheezy:
-    
-    * **Notice**: Don't forget to use the python2.7 interpreter
+    * Wheezy:
+        
+        :stable builds:
+            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
+        :nightly builds:
+            deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
 
-    :stable builds:
-        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
-    :nightly builds:
-        deb http://ppa.launchpad.net/kivy-team/kivy-daily/ubuntu oneiric main
+        **Notice**: Don't forget to use the python2.7 interpreter
+            
 
-* Sqeeze: 
+    * Sqeeze: 
 
-    * Update to Wheezy or install Kivy 1.5.1 from stable PPA:
+        Update to Wheezy or install Kivy 1.5.1 from stable PPA:
 
-    :stable builds:
-        deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
+        :stable builds:
+            deb http://ppa.launchpad.net/kivy-team/kivy/ubuntu oneiric main
 
-2. Add the GPG key to your apt keyring by
+#. Add the GPG key to your apt keyring by
 
-    :generally: ::
-    
-        $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
+    $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A863D2D6
 
-3. Refresh your package list and install **python-kivy** and optionally the examples as found in **python-kivy-examples**
+#. Refresh your package list and install **python-kivy** and optionally the examples
+   found in **python-kivy-examples**
 
 Linux Mint
 ----------
 
-#. Find out on which Ubuntu release your installation is based on, using this `overview <http://www.linuxmint.com/oldreleases.php>`_.
-#. Finally continue as described for Ubuntu above, depending on which version your installation is based on.
+#. Find out on which Ubuntu release your installation is based on, using this
+   `overview <http://www.linuxmint.com/oldreleases.php>`_.
+#. Continue as described for Ubuntu above, depending on which version your
+   installation is based on.
 
 Bodhi Linux
 -----------
 
-#. Find out which version of your distribution you are running and use the table below to find out on which Ubuntu LTS it is based on
+#. Find out which version of the distribution you are running and use the table below
+   to find out on which Ubuntu LTS it is based.
 
     :Bodhi 1:
         Ubuntu 10.04 LTS aka Lucid (No packages, just manual install)
     :Bodhi 2:
         Ubuntu 12.04 LTS aka Precise
 
-2. Finally continue as described for Ubuntu above, depending on which version your installation is based on.
+2. Continue as described for Ubuntu above, depending on which version your installation is based on.
 
 OpenSuSE
 --------
@@ -82,29 +91,30 @@ OpenSuSE
     #. `OpenSuSE 12.1 <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_12.1/python-Kivy.ymp?base=openSUSE%3A12.1&query=python-Kivy>`_
     #. `OpenSuSE Tumbleweed <http://software.opensuse.org/ymp/home:thopiekar:kivy/openSUSE_Tumbleweed/python-Kivy.ymp?base=openSUSE%3A12.2&query=python-Kivy>`_
 
-2. Use your preferred package-manager to install the examples, as found in **python-Kivy-examples**
+2. If you would like access to the examples, use your preferred package-manager to install
+   **python-Kivy-examples**
 
 Fedora
 ------
 
-#. Adding the repository via terminal:
+#. Adding the repository via the terminal:
 
-    :Fedora 18: ::
+    **Fedora 18** ::
     
         $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_18/home:thopiekar:kivy.repo
     
-    :Fedora 17: ::
+    **Fedora 17** ::
     
         $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_17/home:thopiekar:kivy.repo
     
-    :Fedora 16: ::
+    **Fedora 16** ::
     
         $ sudo yum-config-manager --add-repo=http://download.opensuse.org/repositories/home:/thopiekar:/kivy/Fedora_16/home:thopiekar:kivy.repo
     
 
-2. Use now your preferred package-manager to refresh your packagelists
+#. Use your preferred package-manager to refresh your packagelists
 
-#. Install **python-Kivy** and the examples, as found in **python-Kivy-examples**
+#. Install **python-Kivy** and optionally the examples, as found in **python-Kivy-examples**
 
 
 Using software bundles ( also known as tarballs )
@@ -205,10 +215,12 @@ If you already installed kivy before, you can upgrade it with::
 .. _linux-run-app:
 
 
-*Start from Command Line*
-~~~~~~~~~~~~~~~~~~~~~~~~~
+*Start from the Command Line*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We are shipping some examples ready-to-run. However, theses examples are packaged inside the package. That's mean, you must known first where easy_install have installed your current kivy package, and go to the example directory::
+We ship some examples that are ready-to-run. However, theses examples are packaged inside the package.
+This means you must first know where easy_install has installed your current kivy package,
+and then go to the examples directory::
 
     $ python -c "import pkg_resources; print pkg_resources.resource_filename('kivy', '../share/kivy-examples')"
 
@@ -228,13 +240,14 @@ Then you can go to the example directory, and run it::
     $ cd demo/pictures
     $ python main.py
 
-If you don't know about Unix and symbolic link, you can create a link directly in your home directory, for an easier access. For example:
+If you are familiar with Unix and symbolic links, you can create a link directly in your home directory
+for easier access. For example:
 
 #. Get the example path from the command line above
-#. Paste in your console::
+#. Paste into your console::
 
     $ ln -s <path to kivy-examples> ~/
 
-#. Then, you can access to kivy-examples directly in your Home directory::
+#. Then, you can access to kivy-examples directly in your home directory::
 
     $ cd ~/kivy-examples
