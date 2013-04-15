@@ -30,6 +30,10 @@ The following tags are availables:
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`MarkupLabel.anchors`
+``[sub][/sub]``
+    Display the text at a subscript position relative to the text before it.
+``[sup][/sup]``
+    Display the text at a superscript position relative to the text before it.
 
 If you need to escape the markup from the current text, use
 :func:`kivy.utils.escape_markup`.

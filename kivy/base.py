@@ -181,7 +181,8 @@ class EventLoopBase(EventDispatcher):
         self.dispatch('on_stop')
 
     def add_postproc_module(self, mod):
-        '''Add a postproc input module (DoubleTap, RetainTouch are default)'''
+        '''Add a postproc input module (DoubleTap, TripleTap, DeJitter
+        RetainTouch are default)'''
         if mod not in self.postproc_modules:
             self.postproc_modules.append(mod)
 

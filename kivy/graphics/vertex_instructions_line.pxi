@@ -869,6 +869,8 @@ cdef class Line(VertexInstruction):
             angle_dir = -1
         if segments == 0:
             segments = int(abs(angle_end - angle_start) / 2) + 3
+            if segments % 2 == 1:
+                segments += 1
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
@@ -949,6 +951,8 @@ cdef class Line(VertexInstruction):
             angle_dir = -1
         if segments == 0:
             segments = int(abs(angle_end - angle_start) / 2) + 3
+            if segments % 2 == 1:
+                segments += 1
         # rad = deg * (pi / 180), where pi/180 = 0.0174...
         angle_start = angle_start * 0.017453292519943295
         angle_end = angle_end * 0.017453292519943295
