@@ -1,7 +1,8 @@
- 
 '''
 Triple Tap
 ==========
+
+.. versionadded:: 1.6.1
 
 Search touch for a triple tap
 '''
@@ -20,8 +21,8 @@ class InputPostprocTripleTap(object):
     Triple tap can be configured in the Kivy config file::
 
         [postproc]
-            triple_tap_time = 250
-            triple_tap_distance = 20
+        triple_tap_time = 250
+        triple_tap_distance = 20
 
     Distance parameter is in 0-1000, and time is in millisecond.
     '''
@@ -64,6 +65,8 @@ class InputPostprocTripleTap(object):
         return None
 
     def process(self, events):
+        if self.triple_tap_distance == 0 or self.triple_tap_time == 0:
+            return events
         # first, check if a touch down have a triple tap
         for etype, touch in events:
             if not touch.is_touch:

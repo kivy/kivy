@@ -240,7 +240,24 @@ class TextInput(Widget):
         `on_text_validate`
             Fired only in multiline=False mode, when the user hits 'enter'.
             This will also unfocus the textinput.
+        `on_double_tap`
+            Fired when a double tap happen in the text input. The default
+            behavior select the text around the cursor position. More info at
+            :meth:`on_double_tap`.
+        `on_triple_tap`
+            Fired when a triple tap happen in the text input. The default
+            behavior select the line around the cursor position. More info at
+            :meth:`on_triple_tap`.
+        `on_quad_touch`
+            Fired when four fingers are touching the text input. The default
+            behavior select the whole text. More info at :meth:`on_quad_touch`
+
+    .. versionchanged:: 1.6.1
+        `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
     '''
+
+    __events__ = ('on_text_validate', 'on_double_tap', 'on_triple_tap',
+            'on_quad_touch')
 
     def __init__(self, **kwargs):
         self._win = None
@@ -281,11 +298,6 @@ class TextInput(Widget):
             281: 'cursor_pgdown',
             303: 'shift_L',
             304: 'shift_R'}
-
-        self.register_event_type('on_text_validate')
-        self.register_event_type('on_double_tap')
-        self.register_event_type('on_triple_tap')
-        self.register_event_type('on_quad_touch')
 
         super(TextInput, self).__init__(**kwargs)
 
@@ -367,10 +379,12 @@ class TextInput(Widget):
 
         .. versionadded:: 1.4.0
 
-        parameters::
-            start:  index of textinput.text from where to start selection
-            end:    index of textinput.text till which the selection should be
-                    displayed
+        :Parameters:
+            `start`
+                Index of textinput.text from where to start selection
+            `end`
+                Index of textinput.text till which the selection should be
+                displayed
         '''
         if end < start:
             raise Exception('end must be superior to start')
@@ -1902,7 +1916,7 @@ class TextInput(Widget):
     .. versionadded:: 1.6.1
 
     :data:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True
+    default to True, and deactivated by default on "desktop".
     '''
 
     def get_sel_from(self):

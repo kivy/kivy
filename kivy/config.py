@@ -433,13 +433,13 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 Config.set('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_stoptime', '300')
             Config.setdefault('widgets', 'scroll_moves', '5')
+
         elif version == 7:
             # desktop bool indicating whether to use desktop specific features
-            Config.setdefault('kivy', 'desktop', str(platform() in ('win',
-                                                                    'macosx',
-                                                                    'linux')))
+            is_desktop = int(platform() in ('win', 'macosx', 'linux'))
+            Config.setdefault('kivy', 'desktop', is_desktop)
             Config.setdefault('postproc', 'triple_tap_distance', '20')
-            Config.setdefault('postproc', 'triple_tap_time', '250')
+            Config.setdefault('postproc', 'triple_tap_time', '375')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
