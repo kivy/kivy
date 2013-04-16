@@ -73,6 +73,18 @@ Builder.load_string('''
         text: 'Circle from 90 to 180\\n10 segments'
         halign: 'center'
 
+<LineCircle4>:
+    canvas:
+        Color:
+            rgba: .1, 1, .1, .9
+        Line:
+            width: 2.
+            circle: (self.center_x, self.center_y, min(self.width, self.height) / 2, 0, 360)
+    Label:
+        center: root.center
+        text: 'Circle from 0 to 360'
+        halign: 'center'
+
 <LineRectangle>:
     canvas:
         Color:
@@ -118,6 +130,9 @@ class LineCircle2(Widget):
 class LineCircle3(Widget):
     pass
 
+class LineCircle4(Widget):
+    pass
+
 class LineRectangle(Widget):
     pass
 
@@ -133,6 +148,7 @@ class LineExtendedApp(App):
         root.add_widget(LineCircle1())
         root.add_widget(LineCircle2())
         root.add_widget(LineCircle3())
+        root.add_widget(LineCircle4())
         root.add_widget(LineRectangle())
         root.add_widget(LineBezier())
         return root

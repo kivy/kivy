@@ -29,8 +29,8 @@ Here is a check list for things you should know before starting this tutorial:
   if you don't.
 
 If you have read the programming guide, and understand both basic Widget
-concepts (:doc:`/guide/firstwidget`) and basic concepts of the kv language
-(:doc:`/guide/lang`, :doc:`/guide/designwithkv`), you can probably skip the first 2
+concepts (:doc:`/tutorials/firstwidget`) and basic concepts of the kv language
+(:doc:`/guide/lang`), you can probably skip the first 2
 steps and go straight to step 3.
 
 .. note::

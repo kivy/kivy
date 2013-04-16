@@ -1,10 +1,6 @@
 Kv Design Language
 ------------------
 
-.. container:: title
-
-    Designing with the kv language.
-
 Kivy provides a design language specifically geared towards ease of GUI Design,
 which makes it easier to separate interface design and logic from internal design and
 logic. For example:
