@@ -861,8 +861,6 @@
                     background_color: root.bg_color
                     foreground_color: root.label_color
                     size_hint_x: .25
-                    size_hint_y: None
-                    height: self.line_height + self.parent.spacing[1] / 2.
                     border: [0, 0, 0, 0]
                     on_text: root.color[0] = int(args[1] if args[1] else 0) / 255.0
                 Label:
@@ -881,8 +879,6 @@
                     background_color: root.bg_color
                     foreground_color: root.label_color
                     size_hint_x: .25
-                    size_hint_y: None
-                    height: self.line_height + self.parent.spacing[1] / 2.
                     border: [0, 0, 0, 0]
                     on_text: root.color[1] = int(args[1] if args[1] else 0) / 255.0
                 Label:
@@ -901,8 +897,6 @@
                     background_color: root.bg_color
                     foreground_color: root.label_color
                     size_hint_x: .25
-                    size_hint_y: None
-                    height: self.line_height + self.parent.spacing[1] / 2.
                     border: [0, 0, 0, 0]
                     on_text: root.color[2] = int(args[1] if args[1] else 0) / 255.0
                 Label:
@@ -921,8 +915,6 @@
                     background_color: root.bg_color
                     foreground_color: root.label_color
                     size_hint_x: .25
-                    size_hint_y: None
-                    height: self.line_height + self.parent.spacing[1] / 2.
                     border: [0, 0, 0, 0]
                     on_text: root.color[3] = int(args[1] if args[1] else 0) / 255.0
             Widget:
@@ -939,11 +931,10 @@
             spacing: 1
             padding: 1
             GridLayout:
-                #orientation: 'vertical'
                 rows: 2
                 Slider:
                     id: redslider
-                    size_hint: (1, .6)
+                    padding: 20
                     orientation: 'vertical'
                     min: 0
                     max: 1
@@ -952,7 +943,7 @@
                     on_value: root.color[0] = args[1]
                 Slider:
                     id: greenslider
-                    size_hint: (1, .6)
+                    padding: 20
                     orientation: 'vertical'
                     min: 0
                     max: 1
@@ -961,7 +952,7 @@
                     on_value: root.color[1] = args[1]
                 Slider:
                     id: blueslider
-                    size_hint: (1, .6)
+                    padding: 20
                     orientation: 'vertical'
                     min: 0
                     max: 1
@@ -970,7 +961,7 @@
                     on_value: root.color[2] = args[1]
                 Slider:
                     id: alphaslider
-                    size_hint: (1, .6)
+                    padding: 20
                     orientation: 'vertical'
                     min: 0
                     max: 1
@@ -980,23 +971,27 @@
                 Label:
                     size_hint: (1, .2)
                     halign: 'center'
-                    valign: 'middle'
+                    valign: 'top'
                     text: 'R'
+                    text_size: self.size
                 Label:
                     size_hint: (1, .2)
                     halign: 'center'
-                    valign: 'middle'
+                    valign: 'top'
                     text: 'G'
+                    text_size: self.size
                 Label:
                     size_hint: (1, .2)
                     halign: 'center'
-                    valign: 'middle'
+                    valign: 'top'
                     text: 'B'
+                    text_size: self.size
                 Label:
                     size_hint: (1, .2)
                     halign: 'center'
-                    valign: 'middle'
+                    valign: 'top'
                     text: 'A'
+                    text_size: self.size
 
             ColorWheel:
                 id: wheel
