@@ -856,7 +856,7 @@
                     font_size: root.size[0] * .045
                 TextInput:
                     multiline: False
-                    font_size: root.size[0] * .045
+                    font_size: min(root.size[0] * .045, self.height - self.parent.spacing[1] / 2.)
                     text: str(int(root.color[0] * 255))
                     background_color: root.bg_color
                     foreground_color: root.label_color
@@ -874,7 +874,7 @@
                     font_size: root.size[0] * .045
                 TextInput:
                     multiline: False
-                    font_size: root.size[0] * .045
+                    font_size: min(root.size[0] * .045, self.height - self.parent.spacing[1] / 2.)
                     text: str(int(root.color[1] * 255))
                     background_color: root.bg_color
                     foreground_color: root.label_color
@@ -892,7 +892,7 @@
                     font_size: root.size[0] * .045
                 TextInput:
                     multiline: False
-                    font_size: root.size[0] * .045
+                    font_size: min(root.size[0] * .045, self.height - self.parent.spacing[1] / 2.)
                     text: str(int(root.color[2] * 255))
                     background_color: root.bg_color
                     foreground_color: root.label_color
@@ -910,7 +910,7 @@
                     font_size: root.size[0] * .045
                 TextInput:
                     multiline: False
-                    font_size: root.size[0] * .045
+                    font_size: min(root.size[0] * .045, self.height - self.parent.spacing[1] / 2.)
                     text: str(int(root.color[3] * 255))
                     background_color: root.bg_color
                     foreground_color: root.label_color
