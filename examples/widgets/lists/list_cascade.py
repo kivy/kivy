@@ -27,7 +27,7 @@ class FruitsListAdapter(ListAdapter):
             return
 
         category = \
-                fruit_categories[str(fruit_categories_adapter.selection[0])]
+                fruit_categories[fruit_categories_adapter.selection[0].text]
 
         # We are responsible with resetting the data. In this example, we are
         # using lists of instances of the classes defined below, CategoryItem
