@@ -40,7 +40,7 @@ class FruitDetailView(GridLayout):
             if type(selected_object) is str:
                 self.fruit_name = selected_object
             else:
-                self.fruit_name = str(selected_object)
+                self.fruit_name = selected_object.text
 
         self.redraw()
 
