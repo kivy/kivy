@@ -19,7 +19,7 @@ class FruitsDictAdapter(DictAdapter):
             return
 
         category = \
-                fruit_categories[str(fruit_categories_adapter.selection[0])]
+                fruit_categories[fruit_categories_adapter.selection[0].text]
         self.sorted_keys = category['fruits']
 
 

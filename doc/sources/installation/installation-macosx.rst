@@ -27,6 +27,20 @@ To install Kivy, you must:
     3. Drag the Kivy.app into your Applications folder
     4. Make sure to read the Readme.txt
 
+Installing the dev version
+--------------------------
+
+Step 1. Follow the procedure mentioned above to install kivy stable.
+step 2  Open a terminal and type the following commands into it.
+
+    cd /Applications/Kivy.app/Contents/Resources/
+    mv kivy kivy_stable
+    git clone http://github.com/kivy/kivy
+    cd kivy
+    make
+
+That's it. You now have the latest kivy from github.
+
 Start any Kivy Application
 ----------------------------
 
