@@ -142,6 +142,10 @@ Clipboard = None
 # for reloading, we need to keep a list of textinput to retrigger the rendering
 _textinput_list = []
 
+# When we are generating documentation, Config doesn't exist
+_is_desktop = False
+if Config:
+    _is_desktop = Config.getboolean('kivy', 'desktop')
 
 # register an observer to clear the textinput cache when OpenGL will reload
 if 'KIVY_DOC' not in environ:
@@ -1910,7 +1914,7 @@ class TextInput(Widget):
     default to [0, 0, 0, 1] #Black
     '''
 
-    use_bubble = BooleanProperty(not bool(Config.get('kivy', 'desktop')))
+    use_bubble = BooleanProperty(not _is_desktop)
     '''Indicates whether the cut copy paste bubble is used
 
     .. versionadded:: 1.6.1
