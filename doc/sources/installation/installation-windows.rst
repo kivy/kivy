@@ -9,12 +9,12 @@ to install anything "system" wide. Just unzip & run:
 #. Download the latest version from http://kivy.org/#download
 
     .. image:: images/win-step1.png
-        :scale: 50%
+        :scale: 75%
 
 #. Unzip the package
 
     .. image:: images/win-step3.png
-        :scale: 50%
+        :scale: 75%
 
 #. In the folder where you unzipped the package, you have a script called `kivy.bat`.
    Use this file for launching any kivy application as described below
@@ -33,27 +33,33 @@ You can launch a .py file with our Python using the Send-to menu:
 #. Copy the kivy.bat file to the Clipboard
 
     .. image:: images/win-step4.png
+        :scale: 75%
 
 #. Open Windows explorer (File explorer in Windows 8), and to go the address 'shell:sendto'
 
     .. image:: images/win-step5.png
+        :scale: 75%
 
 #. You should get the special Windows directory `SendTo`
 
     .. image:: images/win-step6.png
+        :scale: 75%
 
 #. Paste the previously copied kivy.bat file **as a shortcut**
 
     .. image:: images/win-step7.png
+        :scale: 75%
 
 #. Rename it to Kivy <kivy-version>
 
     .. image:: images/win-step8.png
+        :scale: 75%
 
 You can now execute your application by right clicking on the .py file ->
 "Send To" -> "Kivy <version>".
 
     .. image:: images/win-step9.png
+        :scale: 75%
 
 Double-click method
 ~~~~~~~~~~~~~~~~~~~
