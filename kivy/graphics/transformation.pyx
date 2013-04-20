@@ -273,12 +273,14 @@ cdef class Matrix:
         m = m.multiply(Matrix().translate(-eyex, -eyey, -eyez))
         return m
 
-    cpdef tuple transform_point(Matrix self, double x, double y, double z):
-        cdef double tx, ty, tz
+    cpdef tuple transform_point(Matrix self, double x, double y, double z,
+            double t):
+        cdef double tx, ty, tz, tt
         tx = x * self.mat[0] + y * self.mat[4] + z * self.mat[ 8] + self.mat[12];
         ty = x * self.mat[1] + y * self.mat[5] + z * self.mat[ 9] + self.mat[13];
         tz = x * self.mat[2] + y * self.mat[6] + z * self.mat[10] + self.mat[14];
-        return (tx, ty, tz)
+        tt = x * self.mat[3] + y * self.mat[7] + z * self.mat[11] + self.mat[15];
+        return (tx, ty, tz, tt)
 
     cpdef Matrix identity(self):
         '''Reset matrix to identity matrix (inplace)
@@ -391,6 +393,29 @@ cdef class Matrix:
             r[11] = 0
             r[15] = 1
         return mr
+
+    cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
+            double vx, double vy, double vw, double vh):
+        '''Project a point from 3d space to 2d viewport.
+
+        .. versionadded:: 1.6.1
+        '''
+        cdef double winx, winy, winz
+        cdef list point = list(model.transform_point(objx, objy, objz, 1.0))
+        point = list(proj.transform_point(*point))
+
+        if point[3] == 0:
+            return None
+
+        point[0] /= point[3]
+        point[1] /= point[3]
+        point[2] /= point[3]
+
+        winx = vx + (1 + point[0]) * vw / 2.
+        winy = vy + (1 + point[1]) * vh / 2.
+        winz = (1 + point[2]) / 2.
+
+        return (winx, winy, winz)
 
     def __str__(self):
         cdef double *m = <double *>self.mat

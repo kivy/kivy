@@ -30,5 +30,9 @@ cdef class Matrix:
             double upx, double upy, double upz)
 
     cpdef Matrix normal_matrix(self)
-    
-    cpdef tuple transform_point(Matrix self, double x, double y, double z)
+
+    cpdef tuple transform_point(Matrix self, double x, double y, double z,
+            double t)
+
+    cpdef project(Matrix self, double objx, double objy, double objz, Matrix model, Matrix proj,
+            double vx, double vy, double vw, double vh)
