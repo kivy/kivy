@@ -247,6 +247,12 @@ class App(EventDispatcher):
             If a kv_directory is set, it will be used to get the initial kv
             file. By default, the file is searched in the same directory as the
             current App definition file.
+        `kv_file`: <filename>, default to None
+            If a kv_file is set, it will be loaded when the application start.
+            The loading of the "default" kv will be avoided.
+
+    .. versionchanged:: 1.6.1
+        Parameter `kv_file` added.
     '''
 
     title = None
@@ -339,7 +345,7 @@ class App(EventDispatcher):
         :type settings: :class:`~kivy.uix.settings.Settings`
         '''
 
-    def load_kv(self, filename = None):
+    def load_kv(self, filename=None):
         '''This method is invoked the first time the app is being run if no
         widget tree has been constructed before for this app.
         This method then looks for a matching kv file in the same directory as
@@ -368,8 +374,10 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-# Detect filename automatically if it was not specified. 
-        if not filename:
+        # Detect filename automatically if it was not specified.
+        if filename:
+            filename = resource_find(filename)
+        else:
             try:
                 default_kv_directory = dirname(getfile(self.__class__))
                 if default_kv_directory == '':
@@ -383,7 +391,7 @@ class App(EventDispatcher):
                 clsname = clsname[:-3]
             filename = join(kv_directory, '%s.kv' % clsname.lower())
 
-# Load KV file
+        # Load KV file
         Logger.debug('App: Loading kv <{0}>'.format(filename))
         if not exists(filename):
             Logger.debug('App: kv <%s> not found' % filename)
@@ -560,12 +568,12 @@ class App(EventDispatcher):
             self._app_name = clsname.lower()
         return self._app_name
 
-    def run(self, kv_file = None):
+    def run(self):
         '''Launches the app in standalone mode.
         '''
         if not self.built:
             self.load_config()
-            self.load_kv(kv_file)
+            self.load_kv(filename=self.options.get('kv_file'))
             root = self.build()
             if root:
                 self.root = root
