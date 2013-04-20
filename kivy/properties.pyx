@@ -183,10 +183,10 @@ cpdef float dpi2px(value, ext):
     # 1in = 2.54cm = 25.4mm = 72pt = 12pc
     global g_dpi, g_density, g_fontscale
     if g_dpi == -1:
-        from kivy.metrics import metrics
-        g_dpi = metrics.dpi
-        g_density = metrics.density
-        g_fontscale = metrics.fontscale
+        from kivy.metrics import Metrics
+        g_dpi = Metrics.dpi
+        g_density = Metrics.density
+        g_fontscale = Metrics.fontscale
     cdef float rv = float(value)
     if ext == 'in':
         return rv * g_dpi

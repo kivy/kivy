@@ -550,8 +550,7 @@ from kivy.utils import OrderedDict, QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
-import kivy.metrics as metrics
-from collections import deque
+import kivy.metrics as Metrics
 from weakref import ref
 
 
@@ -620,12 +619,12 @@ class ProxyApp(object):
 
 
 global_idmap['app'] = ProxyApp()
-global_idmap['pt'] = metrics.pt
-global_idmap['inch'] = metrics.inch
-global_idmap['cm'] = metrics.cm
-global_idmap['mm'] = metrics.mm
-global_idmap['dp'] = metrics.dp
-global_idmap['sp'] = metrics.sp
+global_idmap['pt'] = Metrics.pt
+global_idmap['inch'] = Metrics.inch
+global_idmap['cm'] = Metrics.cm
+global_idmap['mm'] = Metrics.mm
+global_idmap['dp'] = Metrics.dp
+global_idmap['sp'] = Metrics.sp
 
 
 class ParserException(Exception):
