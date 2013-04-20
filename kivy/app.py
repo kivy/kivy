@@ -339,7 +339,7 @@ class App(EventDispatcher):
         :type settings: :class:`~kivy.uix.settings.Settings`
         '''
 
-    def load_kv(self):
+    def load_kv(self, filename = None):
         '''This method is invoked the first time the app is being run if no
         widget tree has been constructed before for this app.
         This method then looks for a matching kv file in the same directory as
@@ -368,18 +368,22 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-        try:
-            default_kv_directory = dirname(getfile(self.__class__))
-            if default_kv_directory == '':
+# Detect filename automatically if it was not specified. 
+        if not filename:
+            try:
+                default_kv_directory = dirname(getfile(self.__class__))
+                if default_kv_directory == '':
+                    default_kv_directory = '.'
+            except TypeError:
+                # if it's a builtin module.. use the current dir.
                 default_kv_directory = '.'
-        except TypeError:
-            # if it's a builtin module.. use the current dir.
-            default_kv_directory = '.'
-        kv_directory = self.options.get('kv_directory', default_kv_directory)
-        clsname = self.__class__.__name__
-        if clsname.endswith('App'):
-            clsname = clsname[:-3]
-        filename = join(kv_directory, '%s.kv' % clsname.lower())
+            kv_directory = self.options.get('kv_directory', default_kv_directory)
+            clsname = self.__class__.__name__
+            if clsname.endswith('App'):
+                clsname = clsname[:-3]
+            filename = join(kv_directory, '%s.kv' % clsname.lower())
+
+# Load KV file
         Logger.debug('App: Loading kv <{0}>'.format(filename))
         if not exists(filename):
             Logger.debug('App: kv <%s> not found' % filename)
@@ -556,12 +560,12 @@ class App(EventDispatcher):
             self._app_name = clsname.lower()
         return self._app_name
 
-    def run(self):
+    def run(self, kv_file = None):
         '''Launches the app in standalone mode.
         '''
         if not self.built:
             self.load_config()
-            self.load_kv()
+            self.load_kv(kv_file)
             root = self.build()
             if root:
                 self.root = root
