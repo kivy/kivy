@@ -274,13 +274,16 @@ cdef class Matrix:
         return m
 
     cpdef tuple transform_point(Matrix self, double x, double y, double z,
-            double t):
+            t=None):
         cdef double tx, ty, tz, tt
         tx = x * self.mat[0] + y * self.mat[4] + z * self.mat[ 8] + self.mat[12];
         ty = x * self.mat[1] + y * self.mat[5] + z * self.mat[ 9] + self.mat[13];
         tz = x * self.mat[2] + y * self.mat[6] + z * self.mat[10] + self.mat[14];
-        tt = x * self.mat[3] + y * self.mat[7] + z * self.mat[11] + self.mat[15];
-        return (tx, ty, tz, tt)
+        if t is not None:
+            tt = x * self.mat[3] + y * self.mat[7] + z * self.mat[11] + self.mat[15];
+            return (tx, ty, tz, tt)
+        else:
+            return (tx, ty, tz)
 
     cpdef Matrix identity(self):
         '''Reset matrix to identity matrix (inplace)
