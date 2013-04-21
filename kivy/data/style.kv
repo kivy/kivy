@@ -853,15 +853,15 @@
                     text_size: self.size
                     halign: "right"
                     valign: "middle"
-                    font_size: root.size[0] * .045
+                    font_size: root.size[0] * .04
                 TextInput:
                     multiline: False
-                    font_size: min(root.size[0] * .045, self.height - self.parent.spacing[1] / 2.)
+                    font_size: root.size[0] * .040
                     text: str(int(root.color[0] * 255))
                     background_color: root.bg_color
                     foreground_color: root.label_color
                     size_hint_x: .25
-                    border: [0, 0, 0, 0]
+                    border: [2, 2, 2, 2]
                     on_text: root.color[0] = int(args[1] if args[1] else 0) / 255.0
                 Label:
                     text: "G:"
@@ -871,15 +871,15 @@
                     text_size: self.size
                     halign: "right"
                     valign: "middle"
-                    font_size: root.size[0] * .045
+                    font_size: root.size[0] * .04
                 TextInput:
                     multiline: False
-                    font_size: min(root.size[0] * .045, self.height - self.parent.spacing[1] / 2.)
+                    font_size: root.size[0] * .040
                     text: str(int(root.color[1] * 255))
                     background_color: root.bg_color
                     foreground_color: root.label_color
                     size_hint_x: .25
-                    border: [0, 0, 0, 0]
+                    border: [2, 2, 2, 2]
                     on_text: root.color[1] = int(args[1] if args[1] else 0) / 255.0
                 Label:
                     text: "B:"
@@ -889,15 +889,15 @@
                     text_size: self.size
                     halign: "right"
                     valign: "middle"
-                    font_size: root.size[0] * .045
+                    font_size: root.size[0] * .04
                 TextInput:
                     multiline: False
-                    font_size: min(root.size[0] * .045, self.height - self.parent.spacing[1] / 2.)
+                    font_size: root.size[0] * .040
                     text: str(int(root.color[2] * 255))
                     background_color: root.bg_color
                     foreground_color: root.label_color
                     size_hint_x: .25
-                    border: [0, 0, 0, 0]
+                    border: [2, 2, 2, 2]
                     on_text: root.color[2] = int(args[1] if args[1] else 0) / 255.0
                 Label:
                     text: "A:"
@@ -907,15 +907,15 @@
                     text_size: self.size
                     halign: "right"
                     valign: "middle"
-                    font_size: root.size[0] * .045
+                    font_size: root.size[0] * .04
                 TextInput:
                     multiline: False
-                    font_size: min(root.size[0] * .045, self.height - self.parent.spacing[1] / 2.)
+                    font_size: root.size[0] * .040
                     text: str(int(root.color[3] * 255))
                     background_color: root.bg_color
                     foreground_color: root.label_color
                     size_hint_x: .25
-                    border: [0, 0, 0, 0]
+                    border: [2, 2, 2, 2]
                     on_text: root.color[3] = int(args[1] if args[1] else 0) / 255.0
             Widget:
                 size_hint: (.5, 1)
