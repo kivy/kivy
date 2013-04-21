@@ -212,14 +212,12 @@ class Splitter(BoxLayout):
             diff_y = (touch.dy)
             if sz_frm == 'b':
                 sign = -1
-            if not self.size_hint_y:
-                if self.height > 0:
-                    self.height += sign * diff_y
-                else:
-                    self.height = 1
+            if self.size_hint_y:
+                self.size_hint_y = None
+            if self.height > 0:
+                self.height += sign * diff_y
             else:
-                diff = (diff_y / self.parent.height)
-                self.size_hint_y += sign * (diff)
+                self.height = 1
 
             height = self.height
             self.height = max(min_size, min(height, max_size))
@@ -227,14 +225,12 @@ class Splitter(BoxLayout):
             diff_x = (touch.dx)
             if sz_frm == 'l':
                 sign = -1
-            if not self.size_hint_x:
-                if self.width > 0:
-                    self.width += sign * (diff_x)
-                else:
-                    self.width = 1
+            if self.size_hint_x:
+                self.size_hint_x = None
+            if self.width > 0:
+                self.width += sign * (diff_x)
             else:
-                diff = (diff_x / self.parent.width)
-                self.size_hint_x += sign * (diff)
+                self.width = 1
 
             width = self.width
             self.width = max(min_size, min(width, max_size))
