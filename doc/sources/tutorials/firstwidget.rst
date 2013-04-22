@@ -3,11 +3,11 @@
 .. highlight:: python
    :linenothreshold: 3
 
-A simple Paint App
+A Simple Paint App
 ==================
 
-In the following you will be guided through the creation of your first
-widget. This provides very powerful and important knowledge when
+In the following tutorial, you will be guided through the creation of your
+first widget. This provides powerful and important knowledge when
 programming Kivy applications, as it lets you create completely new user
 interfaces with custom elements for your specific purpose.
 
@@ -15,19 +15,19 @@ interfaces with custom elements for your specific purpose.
 Basic Considerations
 --------------------
 
-When creating an application, you have to ask yourself three main questions:
+When creating an application, you have to ask yourself three important questions:
 
     * What data does my application process?
     * How do I visually represent that data?
     * How does the user interact with that data?
 
 If you want to write a very simple line drawing application for example, you
-most likely want the user to just draw on the screen with his fingers.
+most likely want the user to just draw on the screen with his/her fingers.
 That's how the user *interacts* with your application. While doing so,
-your application would memorize the positions where the user's finger was,
+your application would memorize the positions where the user's finger were,
 so that you can later draw lines between those positions. So the points
 where the fingers were would be your *data* and the lines that you draw
-between these would be your *visual representation*.
+between them would be your *visual representation*.
 
 In Kivy, an applications user interface is composed of Widgets. Everything
 that you see on the screen is somehow drawn by a widget. Often you would
@@ -36,16 +36,18 @@ context, which is why widgets typically represent one specific instance
 that answers the three questions above. A widget encapsulates data,
 defines the user's interaction with that data and draws its visual
 representation.
-You can then build anything from simple to complex user interfaces by
+You can build anything from simple to complex user interfaces by
 nesting widgets. There are many widgets built in, such as buttons, sliders
 and other common stuff. In many cases, however, you need a custom widget
 that is beyond the scope of what is shipped with Kivy (e.g. a
 medical visualization widget).
 
 So keep these three questions in mind when you design your widgets. Try to
-write them in a minimal and reusable manner (I.e. a widget does exactly
+write them in a minimal and reusable manner (i.e. a widget does exactly
 what its supposed to do and nothing more. If you need more, write more
-widgets or compose other widgets of smaller widgets).
+widgets or compose other widgets of smaller widgets. We try to adhere to the 
+`Single Responsibility Principle
+<http://en.wikipedia.org/wiki/Single_responsibility_principle>`_).
 
 
 Paint Widget
@@ -74,13 +76,13 @@ Here is the basic code skeleton that we will need:
 
 This is actually really simple. Save it as paint.py.
 If you run it, you should only see a black screen.
-As you can see, instead of using a built-in widget such as Button (see
+As you can see, instead of using a built-in widget such as a Button (see
 :ref:`quickstart`), we are going to write our own widget to do the drawing.
 We do that by creating a class that inherits from
 :class:`~kivy.uix.widget.Widget` (line 5-6) and although that class does nothing
 yet, we can still treat it like a normal Kivy widget (line 11).
 The ``if __name__ ...`` construct (line 14) is a Python mechanism that prevents
-you from executing the code in the if-statement when importing from that file,
+you from executing the code in the if-statement when importing from the file,
 i.e. if you write ``import paint``, it won't do something unexpected but
 just nicely provide the classes defined in the file.
 
@@ -88,11 +90,14 @@ just nicely provide the classes defined in the file.
 .. note::
     You may be wondering why you have to import App and Widget separately,
     instead of doing something like ``from kivy import *``. While shorter,
-    this would have the disadvantage of cluttering your namespace and
-    making the start of the application potentially much slower.
-    It's also not as clear what your application uses. The way we do it is
+    this would have the disadvantage of `polluting  your namespace 
+    <http://en.wikipedia.org/wiki/Namespace_%28computer_science%29#Python>`_
+    and make the start of the application potentially much slower.
+    It can also introduce ambiguity into class and variable naming,
+    so is generally frowned upon in the Python community. The way we do it is
     faster and cleaner.
 
+    
 
 Adding Behaviour
 ~~~~~~~~~~~~~~~~
@@ -104,12 +109,12 @@ input. Change the code like so:
    :literal:
 
 
-This is just to show you how easy it is to react to user input. When a
+This is just to show how easy it is to react to user input. When a
 :class:`~kivy.input.motionevent.MotionEvent` (i.e. a touch, click, etc.) occurs,
 we simply print the information about the touch object to the console.
 You won't see anything on the screen, but if you observe the command-line from
-which you are running the program, you will see a message for every touch
-(initially). This also demonstrates that a widget does not always have to
+which you are running the program, you will see a message for every touch.
+This also demonstrates that a widget does not have to
 have a visual representation.
 
 Now that's not really an overwhelming user experience. Let's add some code
@@ -135,9 +140,10 @@ How does it work?
     * Line 9: You might have guessed it already: This sets the
       :class:`~kivy.graphics.context_instructions.Color` for successive
       drawing operations to yellow (default color format is RGB, so (1, 1, 0) is
-      yellow). This is true until another color is set. Think of this as dipping
-      your brushes in that color which you can then use to draw on a canvas
-      until you dip the brushes into another color.
+      yellow). This is true until another
+      :class:`~kivy.graphics.context_instructions.Color` is set.
+      Think of this as dipping your brushes in that color, which you can
+      then use to draw on a canvas until you dip the brushes into another color.
     * Line 10: We specify the diameter for the circle that we are about to
       draw. Using a variable for that is preferable since we need to refer
       to that value multiple times and we don't want to have to change it
@@ -203,7 +209,7 @@ This is what has changed:
 
 
 So far so good. This isn't exactly beautiful yet, though. It looks a bit
-like spaghetti bolognese. What about we give each touch its own color?
+like spaghetti bolognese. How about giving each touch its own color?
 Great, let's do it:
 
 .. include:: ../../../examples/guide/firstwidget/5_random_colors.py
@@ -219,9 +225,10 @@ Here are the changes:
     * Line 10: In this case we simply create a new tuple of 3 random
       float values that will represent a random RGB color. Since we do
       this in ``on_touch_down``, every new touch will get its own color.
-      Don't get confused by the use of two ``=`` operators. We're just
-      binding the tuple to ``color`` as well as a shortcut for use within this
-      method because we're lazy.
+      Don't get confused by the use of
+      `tuples <http://docs.python.org/2/tutorial/datastructures.html#tuples-and-sequences>`_.
+      We're just binding the tuple to ``color`` for use as a shortcut
+      within this method because we're lazy.
     * Line 12: As before, we set the color for the canvas. Only this time
       we use the random values we generated and feed them to the color
       class using Python's tuple unpacking syntax (since the Color class
@@ -246,19 +253,18 @@ might even be able to create a nice little drawing!
    Then, when passing it to the color instruction, set the mode to HSV
    color space: ``Color(*color, mode='hsv')``. This way you will have a
    smaller number of possible colors, but the colors that you get will
-   always be equally bright. Only the hue changes.
+   always be equally bright: only the hue changes.
 
 
 Bonus Points
 ~~~~~~~~~~~~
 
 At this point, we could say we are done. The widget does what it's
-supposed to do: It traces the touches and draws lines. It even still draws
+supposed to do: it traces the touches and draws lines. It even draws
 circles at the positions where a line begins.
 
 But what if the user wants to start a new drawing? With the current code,
-the only option to clear the window would be to restart the entire
-application.
+the only way to clear the window would be to restart the entire application.
 Luckily, we can do better. Let us add a *Clear* button that erases all the
 lines and circles that have been drawn so far.
 There are two options now:
@@ -270,8 +276,8 @@ There are two options now:
     * Or we set up the button only once, initially, in our app class and
       when it's pressed we clear the widget.
 
-For our simple example, that doesn't really matter at all. For larger
-applications you should give some thought to who does what in your code.
+For our simple example, it doesn't really matter that much. For larger
+applications you should give some thought to who does what in your app.
 We'll go with the second option here so that you see how you can build up
 your application's widget tree in your app class's :meth:`~kivy.app.App.build`
 method. We'll also change to the HSV color space (see preceding note):
@@ -290,22 +296,23 @@ Here's what happens:
       our painting widget and the button we're about to add. This is just
       a poor-man's approach to setting up a widget tree hierarchy. We
       could just as well use a layout or do some other fancy stuff.
-      Again: This widget does absolutely nothing except holding the two
+      Again: this widget does absolutely nothing except holding the two
       widgets we will now add to it as children.
     * Line 26: We create our ``MyPaintWidget()`` as usual, only this time
       we don't return it directly but bind it to a variable name.
     * Line 27: We create a button widget. It will have a label on it that
       displays the text 'Clear'.
     * Line 28 & 29: We set up the widget hierarchy by making both the
-      painter and the clear button children of the dummy parent widget.
-      That means painter and button are now siblings in the usual computer
+      painter and the clearbtn children of the dummy parent widget.
+      That means `painter` and `clearbtn` are now siblings in the usual computer
       science tree terminology.
     * Lines 31 & 32: Up to now, the button did nothing. It was there,
       visible, and you could press it, but nothing would happen.
-      We change that here: We create a small throw-away function that is
-      going to be our callback function which is called when the button is
-      pressed. The function just clears the painter's canvas' contents,
-      making it black again.
+      We change that here: we create a small, throw-away function that is
+      going to be our
+      `callback function <http://en.wikipedia.org/wiki/Callback_function#Python>`_
+      when the button is pressed. The function just clears the painter's
+      canvas' contents, making it black again.
     * Line 33: We bind the button's on_release event (which is fired when
       the button is pressed and then released) to the callback we just
       defined.
