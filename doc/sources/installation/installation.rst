@@ -73,8 +73,15 @@ To install Kivy's dependencies, follow the guide below for your platform.
 Ubuntu
 ++++++
 
-For Ubuntu, simply enter the following command that will install all
+For Ubuntu 12.04, simply enter the following command that will install all
 necessary packages::
+
+    $ sudo apt-get install python-setuptools python-pygame python-opengl \
+      python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
+      build-essential libgl1-mesa-dev-lts-quantal libgles2-mesa-dev-lts-quantal\ 
+      python-pip
+
+For other versions of Ubuntu, this one should work::
 
     $ sudo apt-get install python-setuptools python-pygame python-opengl \
       python-gst0.10 python-enchant gstreamer0.10-plugins-good python-dev \
