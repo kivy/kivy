@@ -56,6 +56,10 @@ The following tags are available:
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`Label.anchors`
+``[sub][/sub]``
+    Display the text at a subscript position relative to the text before it.
+``[sup][/sup]``
+    Display the text at a superscript position relative to the text before it.
 
 If you want to render the markup text with a character [ or ] or &, you need to
 escape them. We created a simple syntax::
