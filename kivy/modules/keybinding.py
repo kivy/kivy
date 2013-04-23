@@ -9,6 +9,8 @@ This module force the mapping of some keys to functions:
 
 '''
 
+from kivy.utils import platform
+
 __all__ = ('start', 'stop')
 
 
@@ -16,7 +18,12 @@ def _on_keyboard_handler(instance, key, scancode, codepoint, modifier):
     if key == 293:  # F12
         instance.screenshot()
     elif key == 292:  # F11
-        instance.rotation += 90
+        if not platform() in ('win', 'linux', 'macosx'):
+            instance.rotation += 90
+        else:
+            w, h = instance.size
+            w, h = h, w
+            instance.size = (w, h)
 
 
 def start(win, ctx):
