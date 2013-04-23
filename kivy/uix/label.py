@@ -191,7 +191,8 @@ class Label(Widget):
                                             text, '[/color]'))
                 self._label.refresh()
                 # force the rendering to get the references
-                self._label.texture.bind()
+                if self._label.texture:
+                    self._label.texture.bind()
                 self._label.text = text
                 self.refs = self._label.refs
                 self.anchors = self._label.anchors
