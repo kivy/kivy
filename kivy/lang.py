@@ -1410,6 +1410,11 @@ class BuilderBase(object):
 
         # if we got an id, put it in the root rule for a later global usage
         if rule.id:
+            # use only the first word as `id` discard the rest.
+            hash_place = rule.id.find('#')
+            word = rule.id.find(' ')
+            stripped_id = min(hash_place, word)
+            rule.id = rule.id[:stripped_id] if stripped_id > 0 else rule.id
             rctx['ids'][rule.id] = widget
             # set id name as a attribute for root widget so one can in python
             # code simply access root_widget.id_name
@@ -1593,6 +1598,7 @@ Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 if 'KIVY_PROFILE_LANG' in environ:
     import atexit
     import cgi
+
     def match_rule(fn, index, rule):
         if rule.ctx.filename != fn:
             return
