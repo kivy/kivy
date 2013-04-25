@@ -135,7 +135,8 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 from kivy.graphics.transformation import Matrix
 from kivy.graphics import RenderContext, Rectangle, Fbo, \
-        ClearColor, ClearBuffers, BindTexture
+        ClearColor, ClearBuffers, BindTexture, Rotate
+from kivy.config import Config                       
 
 
 class ScreenManagerException(Exception):
@@ -405,12 +406,19 @@ class ShaderTransition(TransitionBase):
         self.fbo_out = self.make_screen_fbo(self.screen_out)
         self.manager.canvas.add(self.fbo_in)
         self.manager.canvas.add(self.fbo_out)
+        
+        screen_rotation = Config.getfloat('graphics', 'rotation')
+        pos = (0, 1) 
+        if screen_rotation == 90: pos = (0, 0)  
+        if screen_rotation == 180: pos = (-1, 0)
+        if screen_rotation == 270: pos = (-1, 1)    
 
         self.render_ctx = RenderContext(fs=self.fs)
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
-            Rectangle(size=(1, -1), pos=(0, 1))
+            Rotate(screen_rotation, 0, 0 , 1)
+            Rectangle(size=(1, -1), pos=pos)        
         self.render_ctx['projection_mat'] = Matrix().\
             view_clip(0, 1, 0, 1, 0, 1, 0)
         self.render_ctx['tex_out'] = 1
