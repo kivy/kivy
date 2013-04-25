@@ -218,10 +218,10 @@ class MetricsBase(object):
         return 1.0
 
 
-#: default instance of :class:`MetricsBases`, used everywhere in the code
+#: default instance of :class:`MetricsBase`, used everywhere in the code
 #: .. versionadded:: 1.6.1
 Metrics = MetricsBase()
 
-#: default instance of :class:`MetricsBases`, used everywhere in the code
+#: default instance of :class:`MetricsBase`, used everywhere in the code
 #: (deprecated, use `Metrics` instead.)
 metrics = Metrics
