@@ -408,10 +408,13 @@ class ShaderTransition(TransitionBase):
         self.manager.canvas.add(self.fbo_out)
         
         screen_rotation = Config.getfloat('graphics', 'rotation')
-        pos = (0, 1) 
-        if screen_rotation == 90: pos = (0, 0)  
-        if screen_rotation == 180: pos = (-1, 0)
-        if screen_rotation == 270: pos = (-1, 1)    
+        pos = (0, 1)
+        if screen_rotation == 90:
+            pos = (0, 0)
+        elif screen_rotation == 180:
+            pos = (-1, 0)
+        elif screen_rotation == 270:
+            pos = (-1, 1)
 
         self.render_ctx = RenderContext(fs=self.fs)
         with self.render_ctx:
