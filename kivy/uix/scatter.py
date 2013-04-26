@@ -376,9 +376,9 @@ class Scatter(Widget):
             # _last_touch_pos has last pos in correct parent space,
             # just like incoming touch
             dx = (touch.x - self._last_touch_pos[touch][0]) \
-                    * self.do_translation_x
+                    * (self.do_translation_x / self.translation_fingers)
             dy = (touch.y - self._last_touch_pos[touch][1]) \
-                    * self.do_translation_y
+                    * (self.do_translation_y / self.translation_fingers)
             self.apply_transform(Matrix().translate(dx, dy, 0))
         
         if len(self._touches) == 1:
