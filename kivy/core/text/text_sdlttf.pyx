@@ -103,8 +103,7 @@ cdef TTF_Font *_get_font(self):
         fontname = self.options['font_name_r']
         ext = fontname.split('.')[-1]
         if ext.lower() == 'ttf':
-            fontobject = TTF_OpenFont(fontname,
-                            int(self.options['font_size'] * 1.333))
+            fontobject = TTF_OpenFont(fontname, int(self.options['font_size']))
 
         # fallback to search a system font
         if fontobject == NULL:
