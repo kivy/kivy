@@ -1,3 +1,4 @@
+#cython: c_string_encoding="utf8"
 '''
 OpenGL utilities
 ================
