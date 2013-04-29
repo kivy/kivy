@@ -141,7 +141,7 @@ So this canvas block says that the ``PongGame`` widget should draw some
 graphics primitives. In this case, we add a rectangle to the canvas. We set
 the pos of the rectangle to be 5 pixels left of the horizontal center of
 the widget, and 0 for y. The size of the rectangle is set to 10 pixels
-in width, and the widgets height in height. The nice thing about defining the
+in width, and the widgets' height in height. The nice thing about defining the
 graphics like this, is that the rendered rectangle will be automatically
 updated when the properties of any widgets used in the value expression change.
 
@@ -149,7 +149,7 @@ updated when the properties of any widgets used in the value expression change.
 
     Try to resize the application window and notice what happens. That's
     right, the entire UI resizes automatically. The standard behaviour of the
-    Window is to resize an element based on the its property `size_hint`. The
+    Window is to resize an element based on its property `size_hint`. The
     default widget size_hint is (1,1), meaning it will be stretched 100% in both
     x-direction and y-direction and hence fill the available space.
     Since the pos and size of the rectangle and center_x and top of the score
@@ -160,7 +160,7 @@ updated when the properties of any widgets used in the value expression change.
 
 
 The last two sections we add look pretty similar. Each of them adds a Label
-widget as a child widget to the ``PongGame`` widget. For now the text on
+widget as a child widget to the ``PongGame`` widget. For now, the text on
 both of them is just set to *"0"*. We'll hook that up to the actual
 score once we have the logic implemented, but the labels already
 look good since we set a bigger font_size, and positioned them relatively
@@ -242,6 +242,8 @@ pong.kv:
         :language: kv
         :linenos:
 
+Note that not only a `<PongBall>` widget rule has been added, but also a
+child widget `PongBall` in the `<PongGame>` widget rule.
 
 Adding Ball Animation
 ---------------------
