@@ -57,7 +57,9 @@ directory for the game and a file named *main.py*
 Go ahead and run the application. It should just show a black window at this
 point. What we've done is create a very simple Kivy :class:`~kivy.app.App`,
 which creates an instance of our ``PongGame`` Widget class and returns it as
-the root element for the applications UI. In the next step, we will draw the
+the root element for the applications UI, which you should imagine at this
+point as a hierarchical tree of Widgets. Kivy places this widget-tree in the
+default Window. In the next step, we will draw the
 Pong background and scores by defining how the ``PongGame widget`` looks.
 
 
@@ -86,18 +88,6 @@ the following contents.
 If you run the app now, you should see a vertical bar in the middle, and two
 zeros where the player scores will be displayed.
 
-.. note::
-
-    Try to resize the application window and notice what happens. That's
-    right, the entire UI resizes automatically. The standard behaviour of the
-    Window is to resize the root element based on the elements `size_hint`. The
-    default widget size_hint is (1,1), so it will be stretched to fill the 
-    available space.
-    Since the pos and size of the rectangle and score labels were defined within
-    the context of the ``PongGame`` class, these properties will automatically
-    update when the corresponding widget properties change. Using the Kv
-    language gives you automatic property binding. :)
-
 
 Explaining the Kv File Syntax
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -112,7 +102,7 @@ On the very first line we have::
     #:kivy 1.0.9
 
 This first line is required in every kv file. It should start with ``#:kivy``
-followed by a space and the Kivy version it is intended for (So Kivy can make
+followed by a space and the Kivy version it is intended for (so Kivy can make
 sure you have at least the required version, or handle backwards compatibility
 later on).
 
@@ -130,10 +120,12 @@ Widget instances would have the vertical line and the two Label widgets inside
 them because it would define these rules for all Widget instances.
 
 Inside a rule section, you can add various blocks to define the style and
-contents of the widgets they will be applied to. You can set property values,
-add child widgets, or define a `canvas` section in
-which you can add Graphics instructions that define how the widget is
-rendered.
+contents of the widgets they will be applied to. You can:
+
+- set property values,
+- add child widgets
+- define a `canvas` section in which you can add Graphics instructions that
+  define how the widget is rendered.
 
 The first block inside the ``<PongGame>`` rule we have is a `canvas` block:
 
@@ -153,7 +145,21 @@ in width, and the widgets height in height. The nice thing about defining the
 graphics like this, is that the rendered rectangle will be automatically
 updated when the properties of any widgets used in the value expression change.
 
-The last two section we add look pretty similar. Each of them adds a Label
+.. note::
+
+    Try to resize the application window and notice what happens. That's
+    right, the entire UI resizes automatically. The standard behaviour of the
+    Window is to resize an element based on the its property `size_hint`. The
+    default widget size_hint is (1,1), meaning it will be stretched 100% in both
+    x-direction and y-direction and hence fill the available space.
+    Since the pos and size of the rectangle and center_x and top of the score
+    labels were defined within
+    the context of the ``PongGame`` class, these properties will automatically
+    update when the corresponding widget properties change. Using the Kv
+    language gives you automatic property binding. :)
+
+
+The last two sections we add look pretty similar. Each of them adds a Label
 widget as a child widget to the ``PongGame`` widget. For now the text on
 both of them is just set to *"0"*. We'll hook that up to the actual
 score once we have the logic implemented, but the labels already
