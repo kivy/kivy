@@ -193,7 +193,7 @@ from kivy.logger import Logger, logger_config_update
 from kivy.utils import OrderedDict, platform
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 8
+KIVY_CONFIG_VERSION = 9
 
 #: Kivy configuration object
 Config = None
@@ -429,8 +429,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 6:
             # if the timeout is still the default value, change it
-            if Config.getint('widgets', 'scroll_timeout') == 250:
-                Config.set('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_stoptime', '300')
             Config.setdefault('widgets', 'scroll_moves', '5')
 
@@ -440,6 +438,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Config.setdefault('kivy', 'desktop', is_desktop)
             Config.setdefault('postproc', 'triple_tap_distance', '20')
             Config.setdefault('postproc', 'triple_tap_time', '375')
+
+        elif version == 8:
+            if Config.getint('widgets', 'scroll_timeout') == 55:
+                Config.set('widgets', 'scroll_timeout', '250')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1
