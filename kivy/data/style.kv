@@ -844,25 +844,25 @@
             GridLayout:
                 cols: 4
                 size_hint: (.5, 1.)
+                spacing: [0, '15pt']
                 Label:
                     text: "R:"
                     color: root.label_color
                     size_hint_x: .25
                     size_hint_y: .5
-
                     text_size: self.size
                     halign: "right"
                     valign: "middle"
-                    font_size: root.size[0] * .045
-                Label:
+                    font_size: root.size[0] * .04
+                TextInput:
+                    multiline: False
+                    font_size: root.size[0] * .040
                     text: str(int(root.color[0] * 255))
-                    color: root.label_color
+                    background_color: root.bg_color
+                    foreground_color: root.label_color
                     size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "left"
-                    valign: "middle"
-                    font_size: root.size[0] * .045
+                    border: [2, 2, 2, 2]
+                    on_text: root.color[0] = int(args[1] if args[1] else 0) / 255.0
                 Label:
                     text: "G:"
                     color: root.label_color
@@ -871,16 +871,16 @@
                     text_size: self.size
                     halign: "right"
                     valign: "middle"
-                    font_size: root.size[0] * .045
-                Label:
+                    font_size: root.size[0] * .04
+                TextInput:
+                    multiline: False
+                    font_size: root.size[0] * .040
                     text: str(int(root.color[1] * 255))
-                    color: root.label_color
+                    background_color: root.bg_color
+                    foreground_color: root.label_color
                     size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "left"
-                    valign: "middle"
-                    font_size: root.size[0] * .045
+                    border: [2, 2, 2, 2]
+                    on_text: root.color[1] = int(args[1] if args[1] else 0) / 255.0
                 Label:
                     text: "B:"
                     color: root.label_color
@@ -889,16 +889,16 @@
                     text_size: self.size
                     halign: "right"
                     valign: "middle"
-                    font_size: root.size[0] * .045
-                Label:
+                    font_size: root.size[0] * .04
+                TextInput:
+                    multiline: False
+                    font_size: root.size[0] * .040
                     text: str(int(root.color[2] * 255))
-                    color: root.label_color
+                    background_color: root.bg_color
+                    foreground_color: root.label_color
                     size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "left"
-                    valign: "middle"
-                    font_size: root.size[0] * .045
+                    border: [2, 2, 2, 2]
+                    on_text: root.color[2] = int(args[1] if args[1] else 0) / 255.0
                 Label:
                     text: "A:"
                     color: root.label_color
@@ -907,16 +907,16 @@
                     text_size: self.size
                     halign: "right"
                     valign: "middle"
-                    font_size: root.size[0] * .045
-                Label:
+                    font_size: root.size[0] * .04
+                TextInput:
+                    multiline: False
+                    font_size: root.size[0] * .040
                     text: str(int(root.color[3] * 255))
-                    color: root.label_color
+                    background_color: root.bg_color
+                    foreground_color: root.label_color
                     size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "left"
-                    valign: "middle"
-                    font_size: root.size[0] * .045
+                    border: [2, 2, 2, 2]
+                    on_text: root.color[3] = int(args[1] if args[1] else 0) / 255.0
             Widget:
                 size_hint: (.5, 1)
                 canvas:
@@ -931,64 +931,67 @@
             spacing: 1
             padding: 1
             GridLayout:
-                #orientation: 'vertical'
                 rows: 2
                 Slider:
                     id: redslider
-                    size_hint: (1, .6)
+                    padding: 20
                     orientation: 'vertical'
                     min: 0
                     max: 1
                     step: .01
-                    value: wheel.r
-                    on_value: wheel.r = args[1]
+                    value: root.color[0]
+                    on_value: root.color[0] = args[1]
                 Slider:
                     id: greenslider
-                    size_hint: (1, .6)
+                    padding: 20
                     orientation: 'vertical'
                     min: 0
                     max: 1
                     step: .01
-                    value: wheel.g
-                    on_value: wheel.g = args[1]
+                    value: root.color[1]
+                    on_value: root.color[1] = args[1]
                 Slider:
                     id: blueslider
-                    size_hint: (1, .6)
+                    padding: 20
                     orientation: 'vertical'
                     min: 0
                     max: 1
                     step: .01
-                    value: wheel.b
-                    on_value: wheel.b = args[1]
+                    value: root.color[2]
+                    on_value: root.color[2] = args[1]
                 Slider:
                     id: alphaslider
-                    size_hint: (1, .6)
+                    padding: 20
                     orientation: 'vertical'
                     min: 0
                     max: 1
                     step: .01
-                    value: wheel.a
-                    on_value: wheel.a = args[1]
+                    value: root.color[3]
+                    on_value: root.color[3] = args[1]
                 Label:
                     size_hint: (1, .2)
                     halign: 'center'
-                    valign: 'middle'
+                    valign: 'top'
                     text: 'R'
+                    text_size: self.size
                 Label:
                     size_hint: (1, .2)
                     halign: 'center'
-                    valign: 'middle'
+                    valign: 'top'
                     text: 'G'
+                    text_size: self.size
                 Label:
                     size_hint: (1, .2)
                     halign: 'center'
-                    valign: 'middle'
+                    valign: 'top'
                     text: 'B'
+                    text_size: self.size
                 Label:
                     size_hint: (1, .2)
                     halign: 'center'
-                    valign: 'middle'
+                    valign: 'top'
                     text: 'A'
+                    text_size: self.size
 
             ColorWheel:
                 id: wheel
