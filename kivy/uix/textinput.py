@@ -1248,10 +1248,7 @@ class TextInput(Widget):
             rects = self._lines_rects
             labels = self._lines_labels
             lines = self._lines
-        padding_left = self.padding[0]
-        padding_top = self.padding[1]
-        padding_right = self.padding[2]
-        padding_bottom = self.padding[3]
+        padding_left, padding_top, padding_right, padding_bottom = self.padding
         x = self.x + padding_left
         y = self.top - padding_top + sy
         miny = self.y + padding_bottom
@@ -1818,7 +1815,7 @@ class TextInput(Widget):
         self.padding[1] = value[0]
         self.padding[3] = value[1]
 
-    padding = VariableListProperty([0, 0, 0, 0])
+    padding = VariableListProperty([6, 6, 6, 6])
     '''Padding of the text: [padding_left, padding_top, padding_right,
     padding_bottom].
 
@@ -1830,7 +1827,7 @@ class TextInput(Widget):
     Replaced AliasProperty with VariableListProperty.
 
     :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default
-    to [0, 0, 0, 0]. This might be changed by the current theme.
+    to [6, 6, 6, 6].
     '''
 
     scroll_x = NumericProperty(0)
