@@ -90,13 +90,18 @@ a:hover {
 }
 
 
-#topmenu ul.navigation .nav-guides {
+#topmenu ul.navigation .nav-garden {
 	background-color: #669900;
 	color: #ffffff;
 }
 
-#topmenu ul.navigation .nav-api {
+#topmenu ul.navigation .nav-guides {
 	background-color: #0099cc;
+	color: #ffffff;
+}
+
+#topmenu ul.navigation .nav-api {
+	background-color: #cc0000;
 	color: #ffffff;
 }
 
@@ -105,12 +110,16 @@ a:hover {
 	color: #ffffff;
 }
 
-#topmenu ul.navigation a.nav-guides:hover {
+#topmenu ul.navigation a.nav-garden:hover {
 	background-color: #99cc00;
 }
 
-#topmenu ul.navigation a.nav-api:hover {
+#topmenu ul.navigation a.nav-guides:hover {
 	background-color: #33b5e5;
+}
+
+#topmenu ul.navigation a.nav-api:hover {
+	background-color: #ff4444;
 }
 
 #topmenu ul.navigation a.nav-pdf:hover {
