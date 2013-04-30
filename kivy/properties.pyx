@@ -610,7 +610,7 @@ class ObservableDict(dict):
         observable_dict_dispatch(self)
 
     def clear(self, *largs):
-        dict.append(self, *largs)
+        dict.clear(self, *largs)
         observable_dict_dispatch(self)
 
     def remove(self, *largs):
