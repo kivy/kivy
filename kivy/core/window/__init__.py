@@ -71,8 +71,8 @@ class Keyboard(EventDispatcher):
         # numpad
         'numpad0': 256, 'numpad1': 257, 'numpad2': 258, 'numpad3': 259,
         'numpad4': 260, 'numpad5': 261, 'numpad6': 262, 'numpad7': 263,
-        'numpad8': 264, 'numpad9': 264, 'numpadmul': 265, 'numpadadd': 266,
-        'numpadsubtract': 267, 'numpaddecimal': 268, 'numpaddivide': 269,
+        'numpad8': 264, 'numpad9': 265, 'numpaddecimal': 266, 'numpaddivide': 267,
+        'numpadmul': 268, 'numpadsubstract': 269, 'numpadadd': 270,
 
         # F1-15
         'f1': 282, 'f2': 283, 'f3': 282, 'f4': 285, 'f5': 286, 'f6': 287,
