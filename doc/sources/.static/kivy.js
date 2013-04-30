@@ -200,13 +200,13 @@ $(document).ready(function () {
 		function update_api() {
 			var ywindow = jwindow.scrollTop();
 			var ypadding = 20;
-			var ydiff = ywindow - initial_offset.top + ypadding;
+			var ydiff = ywindow - initial_offset.top;
 			var height = jwindow.height();
 			if ( ydiff + ypadding > 0) {
 				divscroll.css('position', 'fixed').css('top', ypadding);
 				height -= ypadding * 2;
 			} else {
-				divscroll.css('position', 'fixed').css('top', -ydiff);
+				divscroll.css('position', 'static').css('top', -ydiff);
 				height += ydiff - ypadding;
 			}
 			divscroll.height(height).width(divscrollwidth);
