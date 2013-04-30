@@ -138,7 +138,7 @@ class Scatter(Widget):
     '''
 
     translation_fingers = NumericProperty(1)
-    '''change whether trnaslation is triggered by a single or multiple touch
+    '''change whether translation is triggered by a single or multiple touch
 
     :data:`translation_fingers` is a :class:`~kivy.properties.NumericProperty`,
     default to 1.
