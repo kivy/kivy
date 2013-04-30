@@ -71,13 +71,13 @@ class FloatLayout(Layout):
             size_hint=self._trigger_layout,
             size=self._trigger_layout)
 
-    def do_layout(self, *largs):
+    def do_layout(self, *largs, **kwargs):
         # optimization, until the size is 1, 1, don't do layout
         if self.size == [1, 1]:
             return
         # optimize layout by preventing looking at the same attribute in a loop
-        w, h = self.size
-        x, y = self.pos
+        w, h = kwargs.get('size', self.size)
+        x, y = kwargs.get('pos', self.pos)
         for c in self.children:
             # size
             shw, shh = c.size_hint
@@ -109,16 +109,16 @@ class FloatLayout(Layout):
 
     def add_widget(self, widget, index=0):
         widget.bind(
-            size=self._trigger_layout,
-            size_hint=self._trigger_layout,
+            #size=self._trigger_layout,
+            #size_hint=self._trigger_layout,
             pos=self._trigger_layout,
             pos_hint=self._trigger_layout)
-        return super(Layout, self).add_widget(widget, index)
+        return super(FloatLayout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
-            size=self._trigger_layout,
-            size_hint=self._trigger_layout,
+            #size=self._trigger_layout,
+            #size_hint=self._trigger_layout,
             pos=self._trigger_layout,
             pos_hint=self._trigger_layout)
-        return super(Layout, self).remove_widget(widget)
+        return super(FloatLayout, self).remove_widget(widget)

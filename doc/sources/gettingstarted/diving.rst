@@ -1,8 +1,5 @@
 Diving in
 ---------
-.. container:: title
-
-    Endless Possibilities
 
 To further get into kivy take a look at :doc:`/index`
 

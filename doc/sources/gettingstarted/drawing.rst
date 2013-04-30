@@ -1,8 +1,5 @@
 Drawing
 -------
-.. container:: title
-
-    Graphics Instructions, Canvas
 
 Each widget has a canvas, i.e. a place to draw on. The canvas is a group of instructions that should be executed 
 whenever there is a change to the widget's graphics representation. 

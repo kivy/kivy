@@ -50,7 +50,7 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
     from kivy.app import App
     from kivy.lang import Builder
     from kivy.uix.screenmanager import ScreenManager, Screen
-    
+
     # Create both screen. Please note the root.manager.current: this is how you
     # can control the ScreenManager from kv. Each screen have by default a
     # property manager that give you the instance of the ScreenManager used.
@@ -62,7 +62,7 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
                 on_press: root.manager.current = 'settings'
             Button:
                 text: 'Quit'
-    
+
     <SettingsScreen>:
         BoxLayout:
             Button:
@@ -71,24 +71,24 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
                 text: 'Back to menu'
                 on_press: root.manager.current = 'menu'
     """)
-    
+
     # Declare both screen
     class MenuScreen(Screen):
         pass
-    
+
     class SettingsScreen(Screen):
         pass
-    
+
     # Create the screen manager
     sm = ScreenManager()
     sm.add_widget(MenuScreen(name='menu'))
     sm.add_widget(SettingsScreen(name='settings'))
-    
+
     class TestApp(App):
-    
+
         def build(self):
-            return sm 
-    
+            return sm
+
     if __name__ == '__main__':
         TestApp().run()
 
@@ -135,7 +135,8 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 from kivy.graphics.transformation import Matrix
 from kivy.graphics import RenderContext, Rectangle, Fbo, \
-        ClearColor, ClearBuffers, BindTexture
+        ClearColor, ClearBuffers, BindTexture, Rotate
+from kivy.config import Config                       
 
 
 class ScreenManagerException(Exception):
@@ -206,12 +207,7 @@ class Screen(RelativeLayout):
     default to 'out'.
     '''
 
-    def __init__(self, **kwargs):
-        self.register_event_type('on_pre_enter')
-        self.register_event_type('on_enter')
-        self.register_event_type('on_pre_leave')
-        self.register_event_type('on_leave')
-        super(Screen, self).__init__(**kwargs)
+    __events__ = ('on_pre_enter', 'on_enter', 'on_pre_leave', 'on_leave')
 
     def on_pre_enter(self, *args):
         pass
@@ -282,10 +278,7 @@ class TransitionBase(EventDispatcher):
 
     _anim = ObjectProperty(allownone=True)
 
-    def __init__(self, **kw):
-        self.register_event_type('on_progress')
-        self.register_event_type('on_complete')
-        super(TransitionBase, self).__init__(**kw)
+    __events__ = ('on_progress', 'on_complete')
 
     def start(self, manager):
         '''(internal) Start the transition. This is automatically called by the
@@ -413,12 +406,22 @@ class ShaderTransition(TransitionBase):
         self.fbo_out = self.make_screen_fbo(self.screen_out)
         self.manager.canvas.add(self.fbo_in)
         self.manager.canvas.add(self.fbo_out)
+        
+        screen_rotation = Config.getfloat('graphics', 'rotation')
+        pos = (0, 1)
+        if screen_rotation == 90:
+            pos = (0, 0)
+        elif screen_rotation == 180:
+            pos = (-1, 0)
+        elif screen_rotation == 270:
+            pos = (-1, 1)
 
         self.render_ctx = RenderContext(fs=self.fs)
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
-            Rectangle(size=(1, -1), pos=(0, 1))
+            Rotate(screen_rotation, 0, 0 , 1)
+            Rectangle(size=(1, -1), pos=pos)        
         self.render_ctx['projection_mat'] = Matrix().\
             view_clip(0, 1, 0, 1, 0, 1, 0)
         self.render_ctx['tex_out'] = 1

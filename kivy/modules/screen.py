@@ -77,11 +77,11 @@ def usage(device=None):
             device, *info)
     print '\n'
     print 'Simulate a medium-density screen as Motolora Droid 2:\n'
-    print '    python main.py -m screen,droid2\n'
+    print '    python main.py -m screen:droid2\n'
     print 'Simulate a high-density screen as HTC One X, in portrait:\n'
-    print '    python main.py -m screen,onex,portrait\n'
+    print '    python main.py -m screen:onex,portrait\n'
     print 'Simulate the iPad 2 screen\n'
-    print '    python main.py -m screen,ipad\n'
+    print '    python main.py -m screen:ipad\n'
     sys.exit(1)
 
 

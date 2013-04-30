@@ -5,4 +5,5 @@ Tutorials
     :maxdepth: 2
 
     tutorials/pong
+    tutorials/firstwidget
 

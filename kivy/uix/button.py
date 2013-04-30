@@ -101,10 +101,7 @@ class Button(Label):
     16, 16, 16)
     '''
 
-    def __init__(self, **kwargs):
-        self.register_event_type('on_press')
-        self.register_event_type('on_release')
-        super(Button, self).__init__(**kwargs)
+    __events__ = ('on_press', 'on_release')
 
     def _do_press(self):
         self.state = 'down'

@@ -76,7 +76,7 @@ from docutils.parsers.rst import roles
 from docutils import nodes, frontend, utils
 from docutils.parsers.rst import Directive, directives
 from docutils.parsers.rst.roles import set_classes
-       
+
 
 #
 # Handle some additional roles

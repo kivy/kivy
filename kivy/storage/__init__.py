@@ -221,7 +221,8 @@ class AbstractStore(EventDispatcher):
             for key, entry in store.find(name='Mathieu'):
                 print 'entry:', key, '->', value
 
-        Because it's a generator, you cannot directly use it as a list. You can do::
+        Because it's a generator, you cannot directly use it as a list. You can
+        do::
 
             # get all the (key, entry) availables
             entries = list(store.find(name='Mathieu'))

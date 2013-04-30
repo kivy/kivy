@@ -67,7 +67,6 @@ In its simplest form, we make a listview with 100 items::
 
         def __init__(self, **kwargs):
             kwargs['cols'] = 2
-            kwargs['size_hint'] = (1.0, 1.0)
             super(MainView, self).__init__(**kwargs)
 
             list_view = ListView(
@@ -89,10 +88,10 @@ Or, we could declare the listview in using the kv language::
 
     Builder.load_string("""
     <ListViewModal>:
-        size_hint: None,None
-        size: 400,400
+        size_hint: None, None
+        size: 400, 400
         ListView:
-            size_hint: .8,.8
+            size_hint: .8, .8
             item_strings: [str(index) for index in xrange(100)]
     """)
 
@@ -106,7 +105,6 @@ Or, we could declare the listview in using the kv language::
 
         def __init__(self, **kwargs):
             kwargs['cols'] = 1
-            kwargs['size_hint'] = (1.0, 1.0)
             super(MainView, self).__init__(**kwargs)
 
             listview_modal = ListViewModal()
@@ -166,10 +164,10 @@ given to the way longer python blocks are indented::
     #:import sla kivy.adapters.simplelistadapter
 
     <ListViewModal>:
-        size_hint: None,None
-        size: 400,400
+        size_hint: None, None
+        size: 400, 400
         ListView:
-            size_hint: .8,.8
+            size_hint: .8, .8
             adapter:
                 sla.SimpleListAdapter(
                 data=["Item #{0}".format(i) for i in xrange(100)],
@@ -186,7 +184,6 @@ given to the way longer python blocks are indented::
 
         def __init__(self, **kwargs):
             kwargs['cols'] = 1
-            kwargs['size_hint'] = (1.0, 1.0)
             super(MainView, self).__init__(**kwargs)
 
             listview_modal = ListViewModal()
@@ -307,7 +304,7 @@ In the args converter example above, the data item is assumed to be an object
 Here is an example of an args converter that works with list data items that
 are dicts::
 
-    args_converter = lambda row_index, obj: {'text': a_dict['text'],
+    args_converter = lambda row_index, obj: {'text': obj['text'],
                                              'size_hint_y': None,
                                              'height': 25}
 
@@ -893,6 +890,8 @@ class ListView(AbstractView, EventDispatcher):
     _wstart = NumericProperty(0)
     _wend = NumericProperty(None)
 
+    __events__ = ('on_scroll_complete', )
+
     def __init__(self, **kwargs):
         # Check for an adapter argument. If it doesn't exist, we
         # check for item_strings in use with SimpleListAdapter
@@ -912,8 +911,6 @@ class ListView(AbstractView, EventDispatcher):
                 list_adapter = SimpleListAdapter(data=kwargs['item_strings'],
                                                  cls=Label)
             kwargs['adapter'] = list_adapter
-
-        self.register_event_type('on_scroll_complete')
 
         super(ListView, self).__init__(**kwargs)
 

@@ -159,7 +159,6 @@ class Image(Widget):
     to .25 (4 FPS)
     '''
 
-
     nocache = BooleanProperty(False)
     '''If this property is set True, the image will not be added to the
     internal cache anymore. (the cache will simply ignore any calls trying to
@@ -170,7 +169,6 @@ class Image(Widget):
     :data:`nocache` is a :class:`~kivy.properties.BooleanProperty`, default
     to False
     '''
-
 
     def get_norm_image_size(self):
         if not self.texture:
@@ -273,7 +271,6 @@ class Image(Widget):
         if self.nocache and self._coreimage:
             self._coreimage.remove_from_cache()
             self._coreimage._nocache = True
-
 
 
 class AsyncImage(Image):

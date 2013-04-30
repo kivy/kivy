@@ -14,6 +14,9 @@ build:
 force:
 	$(PYTHON) setup.py build_ext --inplace -f
 
+debug:
+	$(PYTHON) setup.py build_ext --inplace -f -g
+
 mesabuild:
 	/usr/bin/env USE_MESAGL=1 $(PYTHON) setup.py build_ext --inplace
 
@@ -75,6 +78,7 @@ clean:
 	-find kivy -iname '*.so' -exec rm {} \;
 	-find kivy -iname '*.pyc' -exec rm {} \;
 	-find kivy -iname '*.pyo' -exec rm {} \;
+	-find . -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs rm
 
 distclean: clean
 	-git clean -dxf

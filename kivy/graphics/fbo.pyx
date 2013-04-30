@@ -149,8 +149,8 @@ cdef class Fbo(RenderContext):
         if 'texture' not in kwargs:
             kwargs['texture'] = None
 
-        self.buffer_id = -1
-        self.depthbuffer_id = -1
+        self.buffer_id = 0
+        self.depthbuffer_id = 0
         self._width, self._height  = kwargs['size']
         self.clear_color = kwargs['clear_color']
         self._depthbuffer_attached = int(kwargs['with_depthbuffer'])
@@ -167,8 +167,8 @@ cdef class Fbo(RenderContext):
     cdef void delete_fbo(self):
         self._texture = None
         get_context().dealloc_fbo(self)
-        self.buffer_id = -1
-        self.depthbuffer_id = -1
+        self.buffer_id = 0
+        self.depthbuffer_id = 0
 
     cdef void create_fbo(self):
         cdef GLuint f_id = 0
@@ -180,6 +180,9 @@ cdef class Fbo(RenderContext):
         if self._texture is None:
             self._texture = Texture.create(size=(self._width, self._height))
             do_clear = 1
+
+        # apply any changes if needed
+        self._texture.bind()
 
         # create framebuffer
         glGenFramebuffers(1, &f_id)

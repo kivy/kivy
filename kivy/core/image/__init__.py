@@ -48,7 +48,8 @@ class ImageData(object):
             'pvrtc_rgb2', 'pvrtc_rgb4', 'pvrtc_rgba2', 'pvrtc_rgba4',
             'etc1_rgb8')
 
-    def __init__(self, width, height, fmt, data, source=None, flip_vertical=True):
+    def __init__(self, width, height, fmt, data, source=None,
+                 flip_vertical=True):
         assert fmt in ImageData._supported_fmts
 
         #: Decoded image format, one of a available texture format
@@ -283,7 +284,7 @@ class ImageLoader(object):
                 if im is not None:
                     # append ImageData to local variable before it's overwritten
                     image_data.append(im._data[0])
-                    image = im 
+                    image = im
                 #else: if not image file skip to next
             except:
                 Logger.warning('Image: Unable to load image' +

@@ -236,8 +236,9 @@ class SettingItem(FloatLayout):
     default to 0.
     '''
 
+    __events__ = ('on_release', )
+
     def __init__(self, **kwargs):
-        self.register_event_type('on_release')
         super(SettingItem, self).__init__(**kwargs)
         self.value = self.panel.get_value(self.section, self.key)
 
@@ -620,12 +621,12 @@ class Settings(BoxLayout):
     None.
     '''
 
+    __events__ = ('on_close', 'on_config_change')
+
     def __init__(self, **kwargs):
         self._types = {}
         self._panels = {}
         self._initialized = False
-        self.register_event_type('on_close')
-        self.register_event_type('on_config_change')
         super(Settings, self).__init__(**kwargs)
         self.register_type('string', SettingString)
         self.register_type('bool', SettingBoolean)

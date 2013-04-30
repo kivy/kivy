@@ -61,7 +61,7 @@ class Carousel(StencilView):
     '''
 
     def _get_slides_container(self):
-        return [x.parent.parent for x in self.slides]
+        return [x.parent for x in self.slides]
 
     slides_container = AliasProperty(_get_slides_container, None,
             bind=('slides', ))
@@ -236,7 +236,7 @@ class Carousel(StencilView):
         super(Carousel, self).__init__(**kwargs)
 
     def get_slide_container(self, slide):
-        return slide.parent.parent
+        return slide.parent
 
     def _insert_visible_slides(self):
         get_slide_container = self.get_slide_container
@@ -500,12 +500,12 @@ class Carousel(StencilView):
             self.slides.append(widget)
 
     def remove_widget(self, widget, *args, **kwargs):
-        # XXX be careful, the widget.parent.parent refer to the RelativeLayout
+        # XXX be careful, the widget.parent refer to the RelativeLayout
         # added in add_widget(). But it will break if RelativeLayout
         # implementation change.
         # if we passed the real widget
         if widget in self.slides:
-            slide = widget.parent.parent
+            slide = widget.parent
             self.slides.remove(widget)
             return slide.remove_widget(widget, *args, **kwargs)
         return super(Carousel, self).remove_widget(widget, *args, **kwargs)
