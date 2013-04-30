@@ -199,7 +199,7 @@ $(document).ready(function () {
 
 		function update_api() {
 			var ywindow = jwindow.scrollTop();
-			var ypadding = 10;
+			var ypadding = 20;
 			var ydiff = ywindow - initial_offset.top + ypadding;
 			var height = jwindow.height();
 			if ( ydiff + ypadding > 0) {
