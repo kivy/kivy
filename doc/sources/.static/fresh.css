@@ -20,7 +20,7 @@ a, a:link, a:visited {
 a.headerlink {
 	display: none;
 }
- 
+
 h1:hover a.headerlink,
 h2:hover a.headerlink,
 h3:hover a.headerlink,
@@ -71,23 +71,62 @@ a:hover {
 #topmenu ul.navigation li a {
 	float: left;
 	margin-left: 30px;
-	line-height: 55px;
+	line-height: 44px;
 	list-style-type: none;
 	color: #bbb;
-	margin-top: 30px;
+	margin-top: 35px;
 	text-decoration: none;
 	background-color: #303030;
 	padding: 0 20px;
 }
 
 #topmenu ul.navigation li a.current {
-	border-bottom: 2px solid #e0e0e0;
+	border-bottom: 2px solid #ffffff;
 }
 
 #topmenu ul.navigation li a:hover {
 	background-color: #383a3d;
-	border-bottom: 2px solid #e0e0e0;
+	border-bottom: 2px solid #202326;
 }
+
+
+#topmenu ul.navigation .nav-garden {
+	background-color: #669900;
+	color: #ffffff;
+}
+
+#topmenu ul.navigation .nav-guides {
+	background-color: #0099cc;
+	color: #ffffff;
+}
+
+#topmenu ul.navigation .nav-api {
+	background-color: #cc0000;
+	color: #ffffff;
+}
+
+#topmenu ul.navigation .nav-pdf {
+	background-color: #ff8800;
+	color: #ffffff;
+}
+
+#topmenu ul.navigation a.nav-garden:hover {
+	background-color: #99cc00;
+}
+
+#topmenu ul.navigation a.nav-guides:hover {
+	background-color: #33b5e5;
+}
+
+#topmenu ul.navigation a.nav-api:hover {
+	background-color: #ff4444;
+}
+
+#topmenu ul.navigation a.nav-pdf:hover {
+	background-color: #ffbb33;
+}
+
+
 
 div.sphinxsidebar {
 	width: 230px;
