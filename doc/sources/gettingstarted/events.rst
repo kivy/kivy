@@ -32,7 +32,7 @@ the :class:`~kivy.core.window.Window` class. This event then generates the
 :meth:`~kivy.uix.widget.Widget.on_touch_up` events in the
 :class:`~kivy.uix.widget.Widget`.
 
-For an in-depth explanaition, have a look at :doc:`/api-kivy.input`.
+For an in-depth explanation, have a look at :doc:`/api-kivy.input`.
 
 **Class events**
 
