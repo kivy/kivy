@@ -100,7 +100,7 @@ $(document).ready(function () {
 		}
 	});
 
-	$('div.body dl dt').click(function() {
+	$('div.body dl.api-level dt').click(function() {
 		$(this).next().children().toggle();
 	});
 

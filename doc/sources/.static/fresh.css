@@ -321,8 +321,36 @@ big {
 	font-weight: normal;
 }
 
+/* field list */
+
 table.field-list {
-	display: none;
+	border-collapse: collapse;
+	border: 0 !important;
+}
+
+table.field-list th.field-name {
+	background-color: #f0f0f0;
+}
+table.field-list tr {
+	border: 5px solid white;
+}
+table.field-list td.field-body {
+	padding: 10px;
+	padding-top: 0px;
+}
+table.field-list td.field-body dl.docutils {
+	margin-top: 0px;
+	margin-left: -10px;
+}
+
+table.field-list td.field-body dl.docutils dt {
+	background-color: #f0f0f0;
+	padding: 5px 8px;
+	font-style: normal;
+}
+
+table.field-list td.field-body dl.docutils dd {
+	margin: 8px 15px;
 }
 
 /* Form search */
