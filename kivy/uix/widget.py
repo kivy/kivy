@@ -297,28 +297,6 @@ class Widget(EventDispatcher):
                     self.remove_widget(widget)
             except TypeError:
                 self.remove_widget(widgets_or_group)
-
-    def remove_widgets(self,widgets_or_group):
-        '''
-            Remove a group or enumerable amount of widgets
-
-            :parameters:
-                widgets_or_group::iterable(Widgets) or str("GROUP NAME")
-        '''
-        if isinstance(widgets_or_group, str):
-            try:
-                for widget in self.group[widgets_or_group]:
-                    self.remove_widget(widget)
-                return
-            except KeyError:
-                raise WidgetException("%s is not a Widget group name, current groups are %s"%
-                                    (widgets_or_group,self.group.keys()))
-        else:
-            try:
-                for widget in widgets_or_group:
-                    self.remove_widget(widget)
-            except TypeError:
-                self.remove_widget(widgets_or_group)
                 
     def add_widget(self, widget, index=0):
         '''Add a new widget as a child of this widget.
