@@ -253,7 +253,8 @@ class Widget(EventDispatcher):
         :parameters:
             widgets::list(widgets) or tuple(widgets)
             group:: str("GROUP NAME")
-            default_props:: dict("property": value) this comes in handy if adding multiple widgets with the same color's
+            default_props:: dict("property": value) this comes in handy
+                            if adding multiple widgets with the same color's
                             or padding.
     '''
     _group = False
@@ -270,8 +271,8 @@ class Widget(EventDispatcher):
                     try:
                         setattr(widget, key, val)
                     except AttributeError:
-                        pass #We won't fail simply because a key might have been spelled incorrectly or didn't
-                            #exist
+                        pass #We won't raise an exception simply because a key might have been spelled incorrectly 
+                             #or didn'texist
         except TypeError:
             self.add_widget(widgets)
 
