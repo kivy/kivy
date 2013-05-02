@@ -49,6 +49,7 @@ import kivy.network.urlrequest
 import kivy.support
 import kivy.input.recorder
 import kivy.interactive
+import kivy.garden
 from kivy.factory import Factory
 
 # force loading of all classes from factory
