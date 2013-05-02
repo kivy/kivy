@@ -246,25 +246,56 @@ class Widget(EventDispatcher):
     #
     # Tree management
     #
-    def add_widgets(self, widgets, group = None):
-        '''
-            Add a iterable amount of widgets
+    def add_widgets(self, widgets, group=None, default_props={}):
+    '''
+        Add a iterable amount of widgets
 
-            :parameters:
-                widgets::iterable(Widgets)
-                optional group:: str("GROUP NAME")
-        '''
-        _group = False
-        if group is not None:
-            if not group in self.group:
-                self.group[group] = []
-            _group = True
-        try:
-            for widget in widgets:
-                self.add_widget(widget)
-                if _group: self.group[group].append(widget)
+        :parameters:
+            widgets::list(widgets) or tuple(widgets)
+            group:: str("GROUP NAME")
+            default_props:: dict("property": value) this comes in handy if adding multiple widgets with the same color's
+                            or padding.
+    '''
+    _group = False
+    if group is not None:
+        self.group[group] = []
+        _group = True
+    try:
+        for widget in widgets:
+            self.add_widget(widget)
+            if _group:
+                self.group[group].append(widget)
+            if default_props:
+                for key,val in default_props.items():
+                    try:
+                        setattr(widget, key, val)
+                    except AttributeError:
+                        pass #We won't fail simply because a key might have been spelled incorrectly or didn't
+                            #exist
         except TypeError:
             self.add_widget(widgets)
+
+    def remove_widgets(self,widgets_or_group):
+        '''
+            Remove a group or enumerable amount of widgets
+
+            :parameters:
+                widgets_or_group::list(Widgets) or tuple(Widgets) or str("GROUP NAME")
+        '''
+        if isinstance(widgets_or_group, str):
+            try:
+                for widget in self.group[widgets_or_group]:
+                    self.remove_widget(widget)
+                return
+            except KeyError:
+                raise WidgetException("%s is not a Widget group name, current groups are %s"%
+                                      (widgets_or_group,self.group.keys()))
+        else:
+            try:
+                for widget in widgets_or_group:
+                    self.remove_widget(widget)
+            except TypeError:
+                self.remove_widget(widgets_or_group)
 
     def remove_widgets(self,widgets_or_group):
         '''
@@ -287,6 +318,7 @@ class Widget(EventDispatcher):
                     self.remove_widget(widget)
             except TypeError:
                 self.remove_widget(widgets_or_group)
+                
     def add_widget(self, widget, index=0):
         '''Add a new widget as a child of this widget.
 
