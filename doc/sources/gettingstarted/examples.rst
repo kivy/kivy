@@ -3,44 +3,50 @@ Examples
 
 .. container:: title
 
-    Follow through the examples.
+    Try working through the examples to get a better understanding of Kivy.
 
 .. |ani_dir| replace:: ./examples/animation
 .. |ani_file| replace:: animate.py
-.. |ani_desc| replace:: Widget animation using :class:`Animation <kivy.animation.Animation>` .
+.. |ani_desc| replace:: Widget animation 
+    using the :class:`Animation <kivy.animation.Animation>` class
 
 
 .. |app_dir| replace:: ./examples/application
 .. |app_file1| replace:: app_with_build.py
-.. |app_desc1| replace:: Application example using :py:meth:`~kivy.app.App.build`
+.. |app_desc1| replace:: Application example 
+    using the :py:meth:`~kivy.app.App.build` method
 .. |app_file2| replace:: app_with_kv.py
-.. |app_desc2| replace:: Application from a **.kv**
+.. |app_desc2| replace:: Application from a **.kv** file
 .. |app_file3| replace:: app_with_kv_in_template1.py
 .. |app_desc3| replace:: Application from a **kv_directory**
 
 .. |aud_dir| replace:: ./examples/audio:
 .. |aud_file| replace:: main.py
-.. |aud_desc| replace:: How to Play **Audio**.
+.. |aud_desc| replace:: How to play **Audio**
 
 .. |can_dir| replace:: ./examples/canvas
 .. |can_file1| replace:: bezier.py
-.. |can_desc1| replace:: How to draw :class:`Bezier <kivy.graphics.Bezier>` Lines
+.. |can_desc1| replace:: How to draw :class:`Bezier <kivy.graphics.Bezier>`
+    curves
 .. |can_file2| replace:: canvas_stress.py
-.. |can_desc2| replace:: Stress test :class:`Canvas <kivy.graphics.Canvas>`
+.. |can_desc2| replace:: Stress test the :class:`Canvas <kivy.graphics.Canvas>`
 .. |can_file3| replace:: mesh.py
-.. |can_desc3| replace:: How to use :class:`Mesh <kivy.graphics.Mesh>` in kivy
+.. |can_desc3| replace:: How to use the :class:`Mesh <kivy.graphics.Mesh>` class
 .. |can_file4| replace:: multitexture.py
-.. |can_desc4| replace:: How to handle **multiple textures with shader**
+.. |can_desc4| replace:: How to handle **multiple textures with shaders**
 .. |can_file5| replace:: stencil_canvas.py
-.. |can_desc5| replace:: How to use :class:`Stencil <kivy.uix.stencil>` on widget canvas
+.. |can_desc5| replace:: How to use the :class:`Stencil <kivy.uix.stencil>`
+    on a widget canvas
 
 .. |dem_dir| replace:: ./examples/demo:
 .. |dem_file| replace:: camera_puzzle.py
-.. |dem_desc| replace:: A puzzle using :class:`Camera <kivy.uix.camera.Camera>` output
+.. |dem_desc| replace:: A puzzle using :class:`Camera <kivy.uix.camera.Camera>`
+    output
 
 .. |pic_dir| replace:: ./examples/demo/pictures
 .. |pic_file| replace:: main.py
-.. |pic_desc| replace:: Highlights usage of :class:`Image <kivy.uix.image>` and :class:`Scatter <kivy.uix.scatter>` Widgets
+.. |pic_desc| replace:: Highlights the usage of :class:`Image <kivy.uix.image>`
+    and :class:`Scatter <kivy.uix.scatter>` widgets
 
 .. |sed_dir| replace:: ./examples/demo/shadereditor
 .. |sed_file| replace:: main.py
@@ -48,25 +54,29 @@ Examples
 
 .. |sho_dir| replace:: ../examples/demo/showcase
 .. |sho_file| replace:: main.py
-.. |sho_desc| replace:: Showcase of **widgets and layouts** used in kivy.
+.. |sho_desc| replace:: Showcase of some **widgets and layouts** available in
+    kivy
 
 .. |tch_dir| replace:: ./examples/demo/touchtracer
 .. |tch_file| replace:: main.py
-.. |tch_desc| replace:: Draw lines under every detected touch.
-.. |tch_desc2| replace:: A good place to understand **how touch events work in kivy**.
+.. |tch_desc| replace:: Draw lines under every detected touch
+.. |tch_desc2| replace:: A good place to understand **how touch events work in
+    kivy**
 
 .. |tws_dir| replace:: ./examples/frameworks/twisted
 .. |tws_file| replace:: echo_client_app.py
 .. |tws_file2| replace:: echo_server_app.py
-.. |tws_desc| replace:: A clent and server app using :doc:`Twisted inside Kivy </guide/other-frameworks>`
+.. |tws_desc| replace:: A clent and server app using
+    :doc:`Twisted inside Kivy </guide/other-frameworks>`
 
 .. |gst_dir| replace:: ./examples/gestures
 .. |gst_file| replace:: gesture_board.py
-.. |gst_desc| replace:: A clean board to try out **gestures**.
+.. |gst_desc| replace:: A clean board to try out **gestures**
 
 .. |kv_dir| replace:: ./examples/guide/designwithkv
 .. |kv_file| replace:: main.py
-.. |kv_desc| replace:: Programming Guide examples on how to :doc:`design with kv lang </guide/lang>`
+.. |kv_desc| replace:: Programming Guide examples of how to
+    :doc:`design with the kv lang </guide/lang>`
 
 .. |fwd_dir| replace:: ./examples/tutorials/firstwidget
 .. |fwd_file| replace:: 1_skeleton.py
@@ -75,81 +85,107 @@ Examples
 .. |fwd_file4| replace:: 4_draw_line.py
 .. |fwd_file5| replace:: 5_random_colors.py
 .. |fwd_file6| replace:: 6_button.py
-.. |fwd_desc| replace:: Programming Guide examples :doc:`Your first widget </tutorials/firstwidget>`
+.. |fwd_desc| replace:: Programming Guide examples for
+    :doc:`Your first widget </tutorials/firstwidget>`
 
 .. |qst_dir| replace:: ./examples/guide/quickstart
 .. |qst_file| replace:: main.py
-.. |qst_desc| replace:: Programming Guide example.
+.. |qst_desc| replace:: Programming Guide example
 
 .. |kin_dir| replace::  ./examples/kinect
 .. |kin_file| replace:: main.py
-.. |kin_desc| replace:: Howto use **kinect** for input.
+.. |kin_desc| replace:: How to use the **kinect** for input
 
 .. |kvd_dir| replace::  ./examples/kv
 .. |kvd_file| replace:: kvrun.py
-.. |kvd_desc| replace:: load kv files, use **kv lang to load different widgets**.
+.. |kvd_desc| replace:: Load kv files and use the 
+    **kv lang to load different widgets**
 
 .. |rst_dir| replace::  ./examples/RST_Editor
 .. |rst_file| replace:: main.py
-.. |rst_desc| replace:: An  RST editor for the :class:`RstDocument <kivy.uix.rst.RstDocument>` Widget.
+.. |rst_desc| replace:: An  RST editor for the
+    :class:`RstDocument <kivy.uix.rst.RstDocument>` widget
 
 .. |sdr_dir| replace::  ./examples/shader
 .. |sdr_file| replace:: plasma.py
 .. |sdr_file1| replace:: shadertree.py
-.. |sdr_desc| replace:: How to use different **Shaders**.
+.. |sdr_desc| replace:: How to use different **Shaders**
 
 .. |png_dir| replace::  ./examples/tutorials/pong
 .. |png_file| replace:: main.py
-.. |png_desc| replace:: :doc:`/tutorials/pong`. Your first step in kivy programming.
+.. |png_desc| replace:: :doc:`/tutorials/pong`: your first step into
+    kivy programming
 
 .. |wdg_dir| replace::  ./examples/widgets
 .. |wdg_file1| replace:: accordion_1.py
-.. |wdg_desc1| replace:: Usage and Showcase of :class:`Accordion <kivy.uix.accordion>`  Widget.
+.. |wdg_desc1| replace:: Usage and showcase of the
+    :class:`Accordion <kivy.uix.accordion>`  widget
 .. |wdg_file2| replace:: asyncimage.py
-.. |wdg_desc2| replace:: Usage and Showcase of :class:`AsyncImage <kivy.uix.image.AsyncImage>` Widget.
+.. |wdg_desc2| replace:: Usage and showcase of the
+    :class:`AsyncImage <kivy.uix.image.AsyncImage>` widget
 .. |wdg_file25| replace:: boxlayout_pos_hint.py
-.. |wdg_desc25| replace:: Showcase of pos_hint under BoxLayout :class:`BoxLayout <kivy.uix.boxlayout>`
+.. |wdg_desc25| replace:: Showcase of the pos_hint property using
+    the :class:`BoxLayout <kivy.uix.boxlayout>`
 .. |wdg_file3| replace:: bubble_test.py
-.. |wdg_desc3| replace:: Usage and Showcase of :class:`Bubble <kivy.uix.bubble>`  Widget.
+.. |wdg_desc3| replace:: Usage and showcase of the 
+    :class:`Bubble <kivy.uix.bubble>` widget
 .. |wdg_file4| replace:: customcollide.py
-.. |wdg_desc4| replace:: Test for **collision** with custom shaped widget
+.. |wdg_desc4| replace:: Test for **collision** with custom shaped widgets
 .. |wdg_file5| replace:: fbowidget.py
-.. |wdg_desc5| replace:: Usage of :class:`FBO <kivy.graphics.fbo>` to speed up graphics.
+.. |wdg_desc5| replace:: Usage of the :class:`FBO <kivy.graphics.fbo>` to speed
+    up graphics.
 .. |wdg_file6| replace:: image_mipmap.py
-.. |wdg_desc6| replace:: How to use :class:`Image <kivy.uix.image>` widget with mipmap.
+.. |wdg_desc6| replace:: How to use the :class:`Image <kivy.uix.image>` widget
+    with mipmaps
 .. |wdg_file7| replace:: keyboardlistener.py
-.. |wdg_desc7| replace:: listen to the keyboard input and spew result to console.
+.. |wdg_desc7| replace:: Listen for keyboard input and spew results to the
+    console
 .. |wdg_file8| replace:: label_mipmap.py
-.. |wdg_desc8| replace:: How to use :class:`Label <kivy.uix.label>` widget with
+.. |wdg_desc8| replace:: How to use the :class:`Label <kivy.uix.label>` widget
+    with mipmaps
 .. |wdg_file81| replace:: label_with_markup.py
-.. |wdg_desc81| replace:: Useage of :class:`Label <kivy.uix.label>` widget with markup.
+.. |wdg_desc81| replace:: Usage of the :class:`Label <kivy.uix.label>` widget
+    with markup
 .. |wdg_file82| replace:: popup_with_kv.py
-.. |wdg_desc82| replace:: Useage of :class:`Popup <kivy.uix.popup>` widget with ``kv`` language
+.. |wdg_desc82| replace:: Usage of the :class:`Popup <kivy.uix.popup>` widget
+    with the ``kv`` language
 .. |wdg_file9| replace:: rstexample.py
-.. |wdg_desc9| replace:: Usage and Showcase of :class:`RstDocument <kivy.uix.rst.RstDocument>` Widget.
+.. |wdg_desc9| replace:: Usage and showcase of the
+    :class:`RstDocument <kivy.uix.rst.RstDocument>` widget
 .. |wdg_file10| replace:: scatter.py
-.. |wdg_desc10| replace:: Usage and Showcase of :class:`Scatter <kivy.uix.scatter>` Widget.
+.. |wdg_desc10| replace:: Usage and showcase of the
+    :class:`Scatter <kivy.uix.scatter>` widget
 .. |wdg_file11| replace:: screenmanager.py
-.. |wdg_desc11| replace:: Usage and showase of :mod:`ScreenManager <kivy.uix.screenmanager>` Module.
+.. |wdg_desc11| replace:: Usage and showcase of the 
+    :mod:`ScreenManager <kivy.uix.screenmanager>` module
 .. |wdg_file12| replace:: scrollview.py
-.. |wdg_desc12| replace:: Usage and Showcase of :class:`ScrollView <kivy.uix.scrollview>` Widget.
+.. |wdg_desc12| replace:: Usage and showcase of the
+    :class:`ScrollView <kivy.uix.scrollview>` widget
 .. |wdg_file14| replace:: spinner.py
-.. |wdg_desc14| replace:: Usage and Showcase of :class:`Spinner <kivy.uix.spinner>` Widget.
+.. |wdg_desc14| replace:: Usage and showcase of the
+    :class:`Spinner <kivy.uix.spinner>` widget
 .. |wdg_file15| replace:: tabbedpanel.py
-.. |wdg_desc15| replace:: Usage of a simple :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
+.. |wdg_desc15| replace:: Usage of a simple
+    :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
 .. |wdg_file16| replace:: tabbed_panel_showcase.py
-.. |wdg_desc16| replace:: Advanced Showcase of :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
+.. |wdg_desc16| replace:: Advanced showcase of the
+    :class:`TabbedPanel <kivy.uix.tabbedpanel.TabbedPanel>`
 .. |wdg_file17| replace:: textalign.py
-.. |wdg_desc17| replace:: Usage of text alignment in :class:`Label <kivy.uix.label>` widget.
+.. |wdg_desc17| replace:: Usage of text alignment in the
+    :class:`Label <kivy.uix.label>` widget
 .. |wdg_file18| replace:: textinput.py
-.. |wdg_desc18| replace:: Usage and Showcase of :class:`TextInput <kivy.uix.textinput>` Widget.
+.. |wdg_desc18| replace:: Usage and showcase of the
+    :class:`TextInput <kivy.uix.textinput>` widget
 .. |wdg_file19| replace:: unicode_textinput.py
-.. |wdg_desc19| replace:: Showcase of unicode text in :class:`TextInput <kivy.uix.textinput>` Widget.
+.. |wdg_desc19| replace:: Showcase of unicode text in the
+    :class:`TextInput <kivy.uix.textinput>` widget
 .. |wdg_file20| replace:: videoplayer.py
-.. |wdg_desc20| replace:: Usage and options of :class:`VideoPlayer <kivy.uix.videoplayer>` Widget.
+.. |wdg_desc20| replace:: Usage and options of the
+    :class:`VideoPlayer <kivy.uix.videoplayer>` widget
 .. |seq_dir| replace::  ./examples/widgets/sequenced_images:
 .. |seq_file| replace:: main.py
-.. |seq_desc| replace:: Showcase usage of **sequenced images**: gif, images in .zip.
+.. |seq_desc| replace:: Showcase usage of **sequenced images**: gifs and
+    images in a .zip file
 
 +------------+---------------+------------------------+
 |  Directory |   Filename/s  |  Example Description   |
