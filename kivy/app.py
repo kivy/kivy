@@ -528,7 +528,7 @@ class App(EventDispatcher):
         data like preferences, saved games, and settings. This function
         implements those conventions.
 
-        On iOS `/Documents` is returned (which is inside the apps sandbox).
+        On iOS `~/Documents<app_name>` is returned (which is inside the apps sandbox).
 
         On Android `/sdcard/<app_name>` is returned.
 
@@ -540,7 +540,7 @@ class App(EventDispatcher):
         '''
         data_dir = ""
         if platform == 'ios':
-            data_dir = join('/Documents', self.name)
+            data_dir = join('~/Documents', self.name)
         elif platform == 'android':
             data_dir = join('/sdcard', self.name)
         elif platform == 'win':
