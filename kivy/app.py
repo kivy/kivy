@@ -532,7 +532,7 @@ class App(EventDispatcher):
 
         On Android `/sdcard/<app_name>` is returned.
 
-        On Windows `~/Application Settings/<app_name>` is returned.
+        On Windows `%APPDATA%/<app_name>` is returned.
 
         On Mac OS X `~/Library/Application Support <app_name>` is returned.
 
@@ -544,7 +544,7 @@ class App(EventDispatcher):
         elif platform == 'android':
             data_dir = join('/sdcard', self.name)
         elif platform == 'win':
-            data_dir = '~/Application Settings/{}'.format(self.name)
+            data_dir = os.path.join(os.environ('APPDATA'), self.name)
         elif platform == 'macosx':
             data_dir = '~/Library/Application Support/{}'.format(self.name)
         else:  # _platform == 'linux' or anything else...:
