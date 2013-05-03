@@ -64,6 +64,7 @@ garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
 
 
 class GardenImporter(object):
+
     def find_module(self, fullname, path):
         #print 'find_module()', (fullname, path)
         if path == 'kivy.garden':
