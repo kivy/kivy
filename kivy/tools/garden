@@ -80,7 +80,7 @@ class GardenTool(object):
     def cmd_search(self):
         r = requests.get('https://api.github.com/users/kivy-garden/repos')
         pattern = self.options.pattern
-        data = r.json
+        data = r.json()
         for repo in data:
             if not repo['name'].startswith('garden.'):
                 continue
@@ -150,7 +150,7 @@ class GardenTool(object):
                 package)
 
         print 'Downloading {} ...'.format(url)
-        r = requests.get(url, prefetch=False)
+        r = requests.get(url)#, prefetch=False)
         if r.status_code != 200:
             print 'Unable to found the garden package. (error={})'.format(
                 r.status_code)
