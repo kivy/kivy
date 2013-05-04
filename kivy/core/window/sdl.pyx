@@ -135,9 +135,9 @@ cdef extern from "SDL.h":
     char *SDL_GetError()
     bool SDL_SetHint(char *, char *)
 
-cdef extern int SDL_iPhoneKeyboardShow(SDL_Window * window) 
-cdef extern int SDL_iPhoneKeyboardHide(SDL_Window * window) 
-cdef extern SDL_bool SDL_iPhoneKeyboardIsShown(SDL_Window * window)
+cdef extern void SDL_StartTextInput()
+cdef extern void SDL_StopTextInput()
+cdef extern SDL_bool SDL_IsTextInputActive()
 cdef SDL_Window *win = NULL
 cdef SDL_GLContext ctx = NULL
 cdef SDL_Surface *surface = NULL
@@ -224,15 +224,15 @@ def teardown_window():
 
 
 def show_keyboard():
-    if not SDL_iPhoneKeyboardIsShown(win):
-        SDL_iPhoneKeyboardShow(win)
+    if not SDL_IsTextInputActive():
+        SDL_StartTextInput()
 
 def hide_keyboard():
-    if SDL_iPhoneKeyboardIsShown(win):
-        SDL_iPhoneKeyboardHide(win)
+    if SDL_IsTextInputActive():
+        SDL_StopTextInput()
 
 def is_keyboard_shown():
-    return SDL_iPhoneKeyboardIsShown(win)
+    return SDL_IsTextInputActive()
 
 def poll():
     cdef SDL_Event event

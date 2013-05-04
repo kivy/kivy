@@ -117,8 +117,12 @@ class ModuleBase:
             module = __import__(name=modname)
             module = sys.modules[modname]
         except ImportError:
-            Logger.exception('Modules: unable to import <%s>' % name)
-            raise
+            try:
+                module = __import__(name=name)
+                module = sys.modules[name]
+            except ImportError:
+                Logger.exception('Modules: unable to import <%s>' % name)
+                raise
         # basic check on module
         if not hasattr(module, 'start'):
             Logger.warning('Modules: Module <%s> missing start() function' %
@@ -143,17 +147,20 @@ class ModuleBase:
                     name, context)
             Logger.debug(msg)
             module.start(win, context)
+            self.mods[name]['activated'] = True
 
     def deactivate_module(self, name, win):
         '''Deactivate a module from a window'''
         if not name in self.mods:
             Logger.warning('Modules: Module <%s> not found' % name)
             return
-        if not hasattr(self.mods[name], 'module'):
+        if not 'module' in self.mods[name]:
             return
+
         module = self.mods[name]['module']
         if self.mods[name]['activated']:
             module.stop(win, self.mods[name]['context'])
+            self.mods[name]['activated'] = False
 
     def register_window(self, win):
         '''Add window in window list'''
@@ -175,7 +182,12 @@ class ModuleBase:
                 if not name in modules_to_activate:
                     self.deactivate_module(name, win)
             for name in modules_to_activate:
-                self.activate_module(name, win)
+                try:
+                    self.activate_module(name, win)
+                except:
+                    import traceback
+                    traceback.print_exc()
+                    raise
 
     def configure(self):
         '''(internal) Configure all the modules before using it.
@@ -214,7 +226,6 @@ class ModuleBase:
         # call configure if module have one
         if hasattr(self.mods[name]['module'], 'configure'):
             self.mods[name]['module'].configure(config)
-
 
     def usage_list(self):
         print

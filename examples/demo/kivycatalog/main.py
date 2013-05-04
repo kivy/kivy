@@ -115,8 +115,7 @@ class Catalog(BoxLayout):
 
             self.screen_manager.current = object.text
 
-        with open(self.screen_manager.current_screen.content.children[
-                    0].kv_file) as file:
+        with open(self.screen_manager.current_screen.children[0].kv_file) as file:
             self.language_box.text = file.read()
         # reset undo/redo history
         self.language_box.reset_undo()
@@ -132,7 +131,7 @@ class Catalog(BoxLayout):
         on the kv file the user entered. If there is an error in their kv
         syntax, show a nice popup.'''
 
-        kv_container = self.screen_manager.current_screen.content.children[0]
+        kv_container = self.screen_manager.current_screen.children[0]
         try:
             parser = Parser(content=self.language_box.text.encode('utf8'))
             kv_container.clear_widgets()

@@ -104,6 +104,15 @@ class Popup(ModalView):
     title'.
     '''
 
+    title_size = NumericProperty('14sp')
+    '''Represents the font size of the popup title.
+
+    .. versionadded:: 1.6.0
+
+    :data:`title_size` is a :class:`~kivy.properties.NumericProperty`, default
+    to '14sp'.
+    '''
+
     content = ObjectProperty(None)
     '''Content of the popup that is displayed just under the title.
 

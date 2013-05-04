@@ -276,12 +276,10 @@ class FileChooserController(FloatLayout):
     'cp1252']
     '''
 
+    __events__ = ('on_entry_added', 'on_entries_cleared',
+            'on_subentry_to_entry', 'on_remove_subentry', 'on_submit')
+
     def __init__(self, **kwargs):
-        self.register_event_type('on_entry_added')
-        self.register_event_type('on_entries_cleared')
-        self.register_event_type('on_subentry_to_entry')
-        self.register_event_type('on_remove_subentry')
-        self.register_event_type('on_submit')
         self._progress = None
         super(FileChooserController, self).__init__(**kwargs)
 
@@ -482,6 +480,7 @@ class FileChooserController(FloatLayout):
             parent.entries[:] = items
             for entry in items:
                 self.dispatch('on_subentry_to_entry', entry, parent)
+        self.files[:] = [file.path for file in items]
 
         # stop the progression / creation
         self._hide_progress()
@@ -557,6 +556,7 @@ class FileChooserController(FloatLayout):
                 yield index, total, item
         except OSError:
             Logger.exception('Unable to open directory <%s>' % self.path)
+            self.files[:] = []
 
     def _add_files(self, path, parent=None):
         force_unicode = self._force_unicode
@@ -584,6 +584,7 @@ class FileChooserController(FloatLayout):
         is_hidden = self.is_hidden
         if not self.show_hidden:
             files = [x for x in files if not is_hidden(x)]
+        self.files[:] = files
         total = len(files)
         wself = ref(self)
         for index, fn in enumerate(files):

@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.5.2-dev'
+__version__ = '1.6.1-dev'
 
 import sys
 import shutil
@@ -190,7 +190,7 @@ kivy_options = {
     'text': ('pil', 'pygame', 'sdlttf'),
     'video': ('ffmpeg', 'gstreamer', 'pyglet'),
     'audio': ('pygame', 'gstreamer', 'sdl'),
-    'image': ('imageio', 'dds', 'gif', 'pil', 'pygame'),
+    'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
     'spelling': ('enchant', 'osxappkit', ),
     'clipboard': ('pygame', 'dummy'), }
@@ -382,6 +382,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Config.remove_section('input')
         Config.add_section('input')
 
-    if platform() == 'android': 
+    if platform() == 'android':
         Config.set('input', 'androidtouch', 'android')
 

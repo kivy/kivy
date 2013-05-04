@@ -28,7 +28,7 @@ http://www.java2s.com/Open-Source/Python/Network/\
 
 
 #TODO issues to fix
-#optimize for speed  #partially done#  a lot of room for improvementd
+#optimize for speed  #partially done#  a lot of room for improvement
 import struct
 from array import array
 

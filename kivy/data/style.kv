@@ -9,9 +9,8 @@
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
-<Button,ToggleButton>:
+<-Button,-ToggleButton>:
     canvas:
-        Clear
         Color:
             rgba: self.background_color
         BorderImage:
@@ -48,8 +47,8 @@
             rgb: 1, 1, 1
         BorderImage:
             border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
-            pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
-            size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
+            pos: (self.x + self.padding, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y + self.padding)
+            size: (self.width - self.padding * 2, 37) if self.orientation == 'horizontal' else (37, self.height - self.padding * 2)
             source: 'atlas://data/images/defaulttheme/slider%s_background' % self.orientation[0]
         Rectangle:
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
@@ -90,6 +89,15 @@
     canvas.after:
         PopMatrix
 
+
+<RelativeLayout>:
+    canvas.before:
+        PushMatrix
+        Translate:
+            xy: self.pos
+    canvas.after:
+        PopMatrix
+
 <Image,AsyncImage>:
     canvas:
         Color:
@@ -124,8 +132,6 @@
 
 
 <TextInput>:
-    padding_x: 6
-    padding_y: 6
     canvas.before:
         Color:
             rgba: self.background_color
@@ -140,20 +146,32 @@
             pos: map(int, self.cursor_pos)
             size: 1, -self.line_height
         Color:
-            rgba: self.foreground_color
+            rgba: self.hint_text_color if not self.text and not self.focus else self.foreground_color
 
 <TextInputCutCopyPaste>:
+    but_cut: cut
+    but_copy: copy
+    but_paste: paste
+    but_selectall: selectall
+
     size_hint: None, None
-    size: 150, 50
+    size: '150sp', '50sp'
     BubbleButton:
+        id: cut
         text: 'Cut'
         on_release: root.do('cut')
     BubbleButton:
+        id: copy
         text: 'Copy'
         on_release: root.do('copy')
     BubbleButton:
+        id: paste
         text: 'Paste'
         on_release: root.do('paste')
+    BubbleButton:
+        id: selectall
+        text: 'Select All'
+        on_release: root.do('selectall')
 
 
 <TreeViewNode>:
@@ -388,18 +406,18 @@
 
 # Switch widget
 <Switch>:
-    active_norm_pos: max(0., min(1., (int(self.active) + self.touch_distance / 41)))
+    active_norm_pos: max(0., min(1., (int(self.active) + self.touch_distance / sp(41))))
     canvas:
         Color:
             rgb: 1, 1, 1
         Rectangle:
             source: 'atlas://data/images/defaulttheme/switch-background'
-            size: 83, 32
-            pos: int(self.center_x - 41), int(self.center_y - 16)
+            size: sp(83), sp(32)
+            pos: int(self.center_x - sp(41)), int(self.center_y - sp(16))
         Rectangle:
             source: 'atlas://data/images/defaulttheme/switch-button'
-            size: 43, 32
-            pos: int(self.center_x - 41 + self.active_norm_pos * 41), int(self.center_y - 16)
+            size: sp(43), sp(32)
+            pos: int(self.center_x - sp(41) + self.active_norm_pos * sp(41)), int(self.center_y - sp(16))
 
 
 # ModalView widget
@@ -434,6 +452,7 @@
             size_hint_y: None
             height: self.texture_size[1] + 16
             text_size: self.width - 16, None
+            font_size: root.title_size
 
         Widget:
             size_hint_y: None
@@ -766,8 +785,8 @@
             rgb: 1, 1, 1
         Rectangle:
             source: 'atlas://data/images/defaulttheme/checkbox%s_%s' % (('_radio' if self.group else ''), ('on' if self.active else 'off'))
-            size: 32, 32
-            pos: int(self.center_x - 16), int(self.center_y - 16)
+            size: sp(32), sp(32)
+            pos: int(self.center_x - sp(16)), int(self.center_y - sp(16))
 
 # =============================================================================
 # Relative Layout
@@ -798,3 +817,184 @@
             size: self.size
         StencilPop
 
+# =============================================================================
+# Color Picker
+# =============================================================================
+
+<ColorPicker>:
+    wheel: wheel
+    alphaslider: alphaslider
+    canvas:
+        Color:
+            rgba: root.bg_color
+        Rectangle:
+            pos: root.pos
+            size: root.size
+    BoxLayout:
+        id: main_layout
+        orientation: 'vertical'
+        size: root.size
+        pos: root.pos
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: .33
+            spacing: 10
+            padding: 10
+            GridLayout:
+                cols: 4
+                size_hint: (.5, 1.)
+                spacing: [0, '15pt']
+                Label:
+                    text: "R:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0] * .04
+                TextInput:
+                    multiline: False
+                    font_size: root.size[0] * .040
+                    text: str(int(root.color[0] * 255))
+                    background_color: root.bg_color
+                    foreground_color: root.label_color
+                    size_hint_x: .25
+                    border: [2, 2, 2, 2]
+                    on_text: root.color[0] = int(args[1] if args[1] else 0) / 255.0
+                Label:
+                    text: "G:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0] * .04
+                TextInput:
+                    multiline: False
+                    font_size: root.size[0] * .040
+                    text: str(int(root.color[1] * 255))
+                    background_color: root.bg_color
+                    foreground_color: root.label_color
+                    size_hint_x: .25
+                    border: [2, 2, 2, 2]
+                    on_text: root.color[1] = int(args[1] if args[1] else 0) / 255.0
+                Label:
+                    text: "B:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0] * .04
+                TextInput:
+                    multiline: False
+                    font_size: root.size[0] * .040
+                    text: str(int(root.color[2] * 255))
+                    background_color: root.bg_color
+                    foreground_color: root.label_color
+                    size_hint_x: .25
+                    border: [2, 2, 2, 2]
+                    on_text: root.color[2] = int(args[1] if args[1] else 0) / 255.0
+                Label:
+                    text: "A:"
+                    color: root.label_color
+                    size_hint_x: .25
+                    size_hint_y: .5
+                    text_size: self.size
+                    halign: "right"
+                    valign: "middle"
+                    font_size: root.size[0] * .04
+                TextInput:
+                    multiline: False
+                    font_size: root.size[0] * .040
+                    text: str(int(root.color[3] * 255))
+                    background_color: root.bg_color
+                    foreground_color: root.label_color
+                    size_hint_x: .25
+                    border: [2, 2, 2, 2]
+                    on_text: root.color[3] = int(args[1] if args[1] else 0) / 255.0
+            Widget:
+                size_hint: (.5, 1)
+                canvas:
+                    Color:
+                        rgba: root.color
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: (1, 1)
+            spacing: 1
+            padding: 1
+            GridLayout:
+                rows: 2
+                Slider:
+                    id: redslider
+                    padding: 20
+                    orientation: 'vertical'
+                    min: 0
+                    max: 1
+                    step: .01
+                    value: root.color[0]
+                    on_value: root.color[0] = args[1]
+                Slider:
+                    id: greenslider
+                    padding: 20
+                    orientation: 'vertical'
+                    min: 0
+                    max: 1
+                    step: .01
+                    value: root.color[1]
+                    on_value: root.color[1] = args[1]
+                Slider:
+                    id: blueslider
+                    padding: 20
+                    orientation: 'vertical'
+                    min: 0
+                    max: 1
+                    step: .01
+                    value: root.color[2]
+                    on_value: root.color[2] = args[1]
+                Slider:
+                    id: alphaslider
+                    padding: 20
+                    orientation: 'vertical'
+                    min: 0
+                    max: 1
+                    step: .01
+                    value: root.color[3]
+                    on_value: root.color[3] = args[1]
+                Label:
+                    size_hint: (1, .2)
+                    halign: 'center'
+                    valign: 'top'
+                    text: 'R'
+                    text_size: self.size
+                Label:
+                    size_hint: (1, .2)
+                    halign: 'center'
+                    valign: 'top'
+                    text: 'G'
+                    text_size: self.size
+                Label:
+                    size_hint: (1, .2)
+                    halign: 'center'
+                    valign: 'top'
+                    text: 'B'
+                    text_size: self.size
+                Label:
+                    size_hint: (1, .2)
+                    halign: 'center'
+                    valign: 'top'
+                    text: 'A'
+                    text_size: self.size
+
+            ColorWheel:
+                id: wheel
+                size_hint: (1, 1)
+                origin: (self.center_x, self.center_y)
+                radius: 0.45 * min(self.size)
+                on_color: root.color[:3] = args[1][:3]

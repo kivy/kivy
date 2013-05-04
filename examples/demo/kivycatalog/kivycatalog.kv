@@ -7,6 +7,14 @@
     on_press: root.parent.parent.parent.show_kv(*args)
     state: ctx.state if hasattr(ctx, "state") else "normal"
 
+<Container>:
+	canvas.before:
+		Color:
+			rgb: 0, 0, 0
+		Rectangle:
+			pos: self.pos
+			size: self.size
+
 <Catalog>:
     language_box: language_box
     screen_manager: screen_manager

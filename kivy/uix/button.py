@@ -101,10 +101,7 @@ class Button(Label):
     16, 16, 16)
     '''
 
-    def __init__(self, **kwargs):
-        self.register_event_type('on_press')
-        self.register_event_type('on_release')
-        super(Button, self).__init__(**kwargs)
+    __events__ = ('on_press', 'on_release')
 
     def _do_press(self):
         self.state = 'down'
@@ -115,8 +112,7 @@ class Button(Label):
     def on_touch_down(self, touch):
         if super(Button, self).on_touch_down(touch):
             return True
-        if 'button' in touch.profile and touch.button in (
-                'scrolldown', 'scrollup', 'scrollleft', 'scrollright'):
+        if touch.is_mouse_scrolling:
             return False
         if not self.collide_point(touch.x, touch.y):
             return False

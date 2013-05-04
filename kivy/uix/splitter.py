@@ -36,7 +36,7 @@ You could also change the appearance of the `strip_cls` which defaults to
 :class:`SplitterStrip` by overriding the `kv` rule for like so in your app::
 
     <SplitterStrip>:
-        horizontal: True if self.parent and self.parent.sizable_from \
+        horizontal: True if self.parent and self.parent.sizable_from[0] \
 in ('t', 'b') else False
         background_normal: 'path to normal horizontal image' \
 if self.horizontal else 'path to vertical normal image'
@@ -55,14 +55,24 @@ from kivy.uix.boxlayout import BoxLayout
 
 
 class SplitterStrip(Button):
-    '''class used for graphical representation of \
+    '''Class used for graphical representation of \
     :class:`kivy.uix.splitter.SplitterStripe`
     '''
     pass
 
 
 class Splitter(BoxLayout):
-    '''see module documentation.
+    '''See module documentation.
+
+    :Events:
+        `on_press`:
+            Fired when the splitter is pressed
+        `on_release`:
+            Fired when the splitter is released
+
+    .. versionchanged:: 1.6.0
+        Added `on_press` and `on_release` events
+
     '''
 
     border = ListProperty([4, 4, 4, 4])
@@ -113,6 +123,8 @@ class Splitter(BoxLayout):
     :data:`max_size` is a :class:`~kivy.properties.NumericProperty`
     defaults to `500pt`
     '''
+
+    __events__ = ('on_press', 'on_release')
 
     def __init__(self, **kwargs):
         self._container = None
@@ -179,10 +191,14 @@ class Splitter(BoxLayout):
     def clear_widgets(self):
         self.remove_widget(self._container)
 
-    def strip_up(self, instance, touch):
+    def strip_down(self, instance, touch):
         if (not self.collide_point(*touch.pos)):
             return False
         touch.grab(self)
+        self.dispatch('on_press')
+
+    def on_press(self):
+        pass
 
     def strip_move(self, instance, touch):
         if touch.grab_current is not self._strip:
@@ -196,14 +212,12 @@ class Splitter(BoxLayout):
             diff_y = (touch.dy)
             if sz_frm == 'b':
                 sign = -1
-            if not self.size_hint_y:
-                if self.height > 0:
-                    self.height += sign * diff_y
-                else:
-                    self.height = 1
+            if self.size_hint_y:
+                self.size_hint_y = None
+            if self.height > 0:
+                self.height += sign * diff_y
             else:
-                diff = (diff_y / self.parent.height)
-                self.size_hint_y += sign * (diff)
+                self.height = 1
 
             height = self.height
             self.height = max(min_size, min(height, max_size))
@@ -211,22 +225,24 @@ class Splitter(BoxLayout):
             diff_x = (touch.dx)
             if sz_frm == 'l':
                 sign = -1
-            if not self.size_hint_x:
-                if self.width > 0:
-                    self.width += sign * (diff_x)
-                else:
-                    self.width = 1
+            if self.size_hint_x:
+                self.size_hint_x = None
+            if self.width > 0:
+                self.width += sign * (diff_x)
             else:
-                diff = (diff_x / self.parent.width)
-                self.size_hint_x += sign * (diff)
+                self.width = 1
 
             width = self.width
             self.width = max(min_size, min(width, max_size))
 
-    def strip_down(self, instance, touch):
+    def strip_up(self, instance, touch):
         if touch.grab_current is not self._strip:
             return
         touch.ungrab(self._strip)
+        self.dispatch('on_release')
+
+    def on_release(self):
+        pass
 
 
 if __name__ == '__main__':

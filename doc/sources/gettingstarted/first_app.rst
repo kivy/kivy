@@ -1,10 +1,6 @@
 A first App
 -----------
 
-.. container:: title
-
-    Jump into the code
-
 Immerse yourself in the world of Kivy with your first App.
 
 .. image:: ../images/gs-tutorial.png

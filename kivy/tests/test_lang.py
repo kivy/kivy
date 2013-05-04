@@ -165,3 +165,54 @@ class LangTestCase(unittest.TestCase):
         self.assertTrue('on_press' in wid.binded_func)
         wid.binded_func['on_press']()
         self.assertEquals(wid.a, 1)
+
+    def test_with_eight_spaces(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+<TestClass>:
+        on_press:
+                print 'hello world'
+                print 'this is working !'
+                self.a = 1
+''')
+        wid = TestClass()
+        Builder.apply(wid)
+        wid.a = 0
+
+        self.assertTrue('on_press' in wid.binded_func)
+        wid.binded_func['on_press']()
+        self.assertEquals(wid.a, 1)
+
+    def test_with_one_space(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+<TestClass>:
+ on_press:
+  print 'hello world'
+  print 'this is working !'
+  self.a = 1
+''')
+        wid = TestClass()
+        Builder.apply(wid)
+        wid.a = 0
+
+        self.assertTrue('on_press' in wid.binded_func)
+        wid.binded_func['on_press']()
+        self.assertEquals(wid.a, 1)
+
+    def test_with_two_spaces(self):
+        Builder = self.import_builder()
+        Builder.load_string('''
+<TestClass>:
+  on_press:
+    print 'hello world'
+    print 'this is working !'
+    self.a = 1
+''')
+        wid = TestClass()
+        Builder.apply(wid)
+        wid.a = 0
+
+        self.assertTrue('on_press' in wid.binded_func)
+        wid.binded_func['on_press']()
+        self.assertEquals(wid.a, 1)

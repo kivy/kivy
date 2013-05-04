@@ -2,6 +2,7 @@ PYTHON = python
 CHECKSCRIPT = kivy/tools/pep8checker/pep8kivy.py
 KIVY_DIR = kivy/
 NOSETESTS = nosetests
+KIVY_USE_DEFAULTCONFIG = 1
 HOSTPYTHON = $(KIVYIOSROOT)/tmp/Python-$(PYTHON_VERSION)/hostpython
 IOSPATH := $(PATH):/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 
@@ -12,6 +13,9 @@ build:
 
 force:
 	$(PYTHON) setup.py build_ext --inplace -f
+
+debug:
+	$(PYTHON) setup.py build_ext --inplace -f -g
 
 mesabuild:
 	/usr/bin/env USE_MESAGL=1 $(PYTHON) setup.py build_ext --inplace
@@ -40,6 +44,7 @@ pdf:
 	$(MAKE) -C doc latex && make -C doc/build/latex all-pdf
 
 html:
+	env USE_EMBEDSIGNATURE=1 $(MAKE) force
 	$(MAKE) -C doc html
 
 style:
@@ -73,6 +78,7 @@ clean:
 	-find kivy -iname '*.so' -exec rm {} \;
 	-find kivy -iname '*.pyc' -exec rm {} \;
 	-find kivy -iname '*.pyo' -exec rm {} \;
+	-find . -iname '*.pyx' -exec sh -c 'echo `dirname {}`/`basename {} .pyx`.c' \; | xargs rm
 
 distclean: clean
 	-git clean -dxf

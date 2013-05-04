@@ -253,9 +253,11 @@ class LabelBase(object):
                 lh = lh * options['line_height']
                 if real:
                     x = 0
-                    if halign == 'center':
+                    if halign[0] == 'c':
+                        # center
                         x = int((self.width - lw) / 2.)
-                    elif halign == 'right':
+                    elif halign[0] == 'r':
+                        # right
                         x = int(self.width - lw)
                     if len(line):
                         render_text(line, x, y)
@@ -304,7 +306,7 @@ class LabelBase(object):
 
                 # is the word fit on the uw ?
                 if ww > uw:
-                    lines.append(((ww, wh), word))
+                    lines.append(((ww, wh), 0, word))
                     lw = lh = x = 0
                     continue
 
@@ -313,7 +315,9 @@ class LabelBase(object):
                 # is the word fit on the line ?
                 if (word == '\n' or x + ww > uw) and lw != 0:
                     # no, push actuals glyph
-                    lines.append(((lw, lh), glyphs))
+                    # lw, lh), is_last_line, glyphs)
+                    last_line = 1 if word == '\n' else 0
+                    lines.append(((lw, lh), last_line, glyphs))
                     glyphs = []
 
                     # reset size
@@ -331,10 +335,11 @@ class LabelBase(object):
 
             # got some char left ?
             if lw != 0:
-                lines.append(((lw, lh), glyphs))
+                lines.append(((lw, lh), 1, glyphs))
 
             if not real:
-                self._internal_height = sum([size[1] for size, glyphs in lines])
+                self._internal_height = sum([size[1] for size, last_line,
+                                            glyphs in lines])
                 ll_h = lines[-1][0][1]
                 lh_offset = ll_h - (ll_h / self.options['line_height'])
                 self._internal_height = self._internal_height - lh_offset
@@ -342,15 +347,36 @@ class LabelBase(object):
                 w = uw
             else:
                 # really render now.
-                for size, glyphs in lines:
+                for size, last_line, glyphs in lines:
                     x = 0
-                    if halign == 'center':
+                    if halign[0] == 'c':
+                        # center
                         x = int((self.width - size[0]) / 2.)
-                    elif halign == 'right':
+                    elif halign[0] == 'r':
+                        # right
                         x = int(self.width - size[0])
+
+                    # justification
+                    just_space = 0
+                    if halign[-1] == 'y':
+                        # justified
+                        if glyphs and not last_line:
+                            x = 0
+                            last_space = 1 if glyphs[-1] == ' ' else 0
+                            _spaces = glyphs.count(' ') - last_space
+                            # divide left over space between `spaces`
+                            # TODO implement a better method of stretching
+                            # glyphs?
+                            if _spaces:
+                                space_width = cache[' '][0] if last_space else 0
+                                just_space = (((uw - size[0] + space_width) *
+                                               1.) / (_spaces * 1.))
+
                     for glyph in glyphs:
                         lw, lh = cache[glyph]
-                        if glyph != ' ' and glyph != '\n':
+                        if glyph == ' ':
+                            x += just_space
+                        elif glyph != '\n':
                             render_text(glyph, x, y)
                         x += lw
                     y += size[1]
@@ -366,32 +392,17 @@ class LabelBase(object):
         data = self._render_end()
         assert(data)
 
-        # if data width is too tiny, just create texture, don't really render!
-        if data.width <= 1:
-            if self.texture:
-                self.texture = None
-            return
-
-        # create texture is necessary
-        texture = self.texture
-        mipmap = options['mipmap']
-        if texture is None or \
-                self.width != texture.width or \
-                self.height != texture.height:
-            texture = Texture.create_from_data(data, mipmap=mipmap)
-            data = None
-            texture.flip_vertical()
-            texture.add_reload_observer(self._texture_refresh)
-            self.texture = texture
-
-        # update texture
         # If the text is 1px width, usually, the data is black.
         # Don't blit that kind of data, otherwise, you have a little black bar.
         if data is not None and data.width > 1:
-            texture.blit_data(data)
+            self.texture.blit_data(data)
 
     def _texture_refresh(self, *l):
         self.refresh()
+
+    def _texture_fill(self, texture):
+        # second pass, render for real
+        self.render(real=True)
 
     def refresh(self):
         '''Force re-rendering of the text
@@ -400,19 +411,39 @@ class LabelBase(object):
 
         # first pass, calculating width/height
         sz = self.render()
-        self._size = sz
-        # second pass, render for real
-        self.render(real=True)
+        self._size_texture = sz
         self._size = sz[0] + self.options['padding_x'] * 2, \
                      sz[1] + self.options['padding_y'] * 2
 
+        # if no text are rendered, return nothing.
+        width, height = self._size
+        if width <= 1 or height <= 1:
+            self.texture = None
+            return
+
+        # create a delayed texture
+        texture = self.texture
+        if texture is None or \
+                width != texture.width or \
+                height != texture.height:
+            texture = Texture.create(size=(width, height),
+                    mipmap=self.options['mipmap'],
+                    callback=self._texture_fill)
+            texture.flip_vertical()
+            texture.add_reload_observer(self._texture_refresh)
+            self.texture = texture
+        else:
+            texture.ask_update(self._texture_fill)
+
     def _get_text(self):
         try:
+            if type(self._text) is unicode:
+                return self._text
             return self._text.decode('utf8')
         except AttributeError:
             # python 3 support
             return str(self._text)
-        except UnicodeEncodeError:
+        except UnicodeDecodeError:
             return self._text
 
     def _set_text(self, text):

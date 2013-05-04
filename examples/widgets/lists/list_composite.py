@@ -15,7 +15,6 @@ class MainView(GridLayout):
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 2
-        kwargs['size_hint'] = (1.0, 1.0)
         super(MainView, self).__init__(**kwargs)
 
         # This is quite an involved args_converter, so we should go through the

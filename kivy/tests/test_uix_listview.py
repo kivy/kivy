@@ -39,6 +39,49 @@ class ListViewTestCase(unittest.TestCase):
         self.assertEqual(len(list_view.adapter.data), 100)
         self.assertEqual(type(list_view.adapter.get_view(0)), Label)
 
+    def test_list_view_reset_data(self):
+        class PetListener(object):
+            def __init__(self, pet):
+                self.current_pet = pet
+
+            # This should happen as a result of data changing.
+            def callback(self, *args):
+                self.current_pet = args[1]
+
+        pet_listener = PetListener('cat')
+
+        list_item_args_converter = \
+                lambda row_index, rec: {'text': rec,
+                                        'size_hint_y': None,
+                                        'height': 25}
+
+        list_adapter = ListAdapter(
+                        data=['cat', 'dog', 'lizard', 'hamster', 'ferret'],
+                        args_converter=list_item_args_converter,
+                        selection_mode='multiple',
+                        allow_empty_selection=False,
+                        cls=ListItemButton)
+
+        list_view = ListView(adapter=list_adapter)
+
+        list_adapter.bind_triggers_to_view(pet_listener.callback)
+
+        self.assertEqual(pet_listener.current_pet, 'cat')
+        self.assertEqual(list_view.adapter.get_view(2).text, 'lizard')
+
+        pet_data = list_adapter.data
+        pet_data[2] = 'bird'
+        self.assertEqual(list_adapter.data, ['cat',
+                                             'dog',
+                                             'bird',
+                                             'hamster',
+                                             'ferret'])
+        self.assertTrue(hasattr(list_view.adapter, 'selection'))
+        self.assertEqual(len(list_view.adapter.data), 5)
+        self.assertEqual(type(list_view.adapter.get_view(0)), ListItemButton)
+        self.assertEqual(list_view.adapter.get_view(0).text, 'cat')
+        self.assertEqual(list_view.adapter.get_view(2).text, 'bird')
+
     def test_list_view_with_list_of_integers(self):
 
         data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]

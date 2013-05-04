@@ -66,20 +66,20 @@ Examples
 
 .. |kv_dir| replace:: ./examples/guide/designwithkv
 .. |kv_file| replace:: main.py
-.. |kv_desc| replace:: Programming Guide examples on how to :doc:`design with kv lang </guide/designwithkv>`
+.. |kv_desc| replace:: Programming Guide examples on how to :doc:`design with kv lang </guide/lang>`
 
-.. |fwd_dir| replace:: ./examples/guide/firstwidget
+.. |fwd_dir| replace:: ./examples/tutorials/firstwidget
 .. |fwd_file| replace:: 1_skeleton.py
 .. |fwd_file2| replace:: 2_print_touch.py
 .. |fwd_file3| replace:: 3_draw_ellipse.py
 .. |fwd_file4| replace:: 4_draw_line.py
 .. |fwd_file5| replace:: 5_random_colors.py
 .. |fwd_file6| replace:: 6_button.py
-.. |fwd_desc| replace:: Programming Guide examples :doc:`Your first widget </guide/firstwidget>`
+.. |fwd_desc| replace:: Programming Guide examples :doc:`Your first widget </tutorials/firstwidget>`
 
 .. |qst_dir| replace:: ./examples/guide/quickstart
 .. |qst_file| replace:: main.py
-.. |qst_desc| replace:: Programming Guide :doc:`guide/quickstart </guide/quickstart>` example.
+.. |qst_desc| replace:: Programming Guide example.
 
 .. |kin_dir| replace::  ./examples/kinect
 .. |kin_file| replace:: main.py

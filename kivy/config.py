@@ -24,6 +24,10 @@ Available configuration tokens
 ------------------------------
 
 :kivy:
+    `desktop`: (0, 1)
+        Enable/disable specific features if True/False. For example enabling
+        drag-able scroll-bar in scroll views, disabling of bubbles in
+        TextInput...  True etc.
 
     `log_level`: (debug, info, warning, error, critical)
         Set the minimum log level to use
@@ -50,6 +54,11 @@ Available configuration tokens
         Time allowed for the detection of double tap, in milliseconds
     `double_tap_distance`: float
         Maximum distance allowed for a double tap, normalized inside the range
+        0 - 1000
+    `triple_tap_time`: int
+        Time allowed for the detection of triple tap, in milliseconds
+    `triple_tap_distance`: float
+        Maximum distance allowed for a triple tap, normalized inside the range
         0 - 1000
     `retain_time`: int
         Time allowed for a retain touch, in milliseconds
@@ -181,10 +190,10 @@ from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
-from kivy.utils import OrderedDict
+from kivy.utils import OrderedDict, platform
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 7
+KIVY_CONFIG_VERSION = 9
 
 #: Kivy configuration object
 Config = None
@@ -263,7 +272,7 @@ class ConfigParser(PythonConfigParser):
             return defaultvalue
         if not self.has_option(section, option):
             return defaultvalue
-        return self.getint(section, option)
+        return self.get(section, option)
 
     def adddefaultsection(self, section):
         '''Add a section if the section is missing.
@@ -310,7 +319,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             Logger.exception('Core: error while reading local'
                              'configuration')
 
-    version = Config.getdefault('kivy', 'config_version', 0)
+    version = int(Config.getdefault('kivy', 'config_version', 0))
 
     # Add defaults section
     Config.adddefaultsection('kivy')
@@ -420,10 +429,19 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 6:
             # if the timeout is still the default value, change it
-            if Config.getint('widgets', 'scroll_timeout') == 250:
-                Config.set('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_stoptime', '300')
             Config.setdefault('widgets', 'scroll_moves', '5')
+
+        elif version == 7:
+            # desktop bool indicating whether to use desktop specific features
+            is_desktop = int(platform() in ('win', 'macosx', 'linux'))
+            Config.setdefault('kivy', 'desktop', is_desktop)
+            Config.setdefault('postproc', 'triple_tap_distance', '20')
+            Config.setdefault('postproc', 'triple_tap_time', '375')
+
+        elif version == 8:
+            if Config.getint('widgets', 'scroll_timeout') == 55:
+                Config.set('widgets', 'scroll_timeout', '250')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

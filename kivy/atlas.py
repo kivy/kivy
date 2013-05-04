@@ -220,7 +220,7 @@ class Atlas(EventDispatcher):
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
         # for its initial implementation.
         try:
-            import Image
+            from PIL import Image
         except ImportError:
             Logger.critical('Atlas: Imaging/PIL are missing')
             raise
@@ -305,7 +305,6 @@ class Atlas(EventDispatcher):
                 out.paste(fb[0].crop((0, h - 1, w, h)), (x, y + h))
                 out.paste(fb[0].crop((0, 0, 1, h)), (x - 1, y))
                 out.paste(fb[0].crop((w - 1, 0, w, h)), (x + w, y))
-
 
         # save the output images
         for idx, outimage in enumerate(outimages):

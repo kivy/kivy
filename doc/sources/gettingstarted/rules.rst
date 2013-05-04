@@ -1,10 +1,6 @@
 Kv Design Language
 ------------------
 
-.. container:: title
-
-    Designing with the kv language.
-
 Kivy provides a design language specifically geared towards ease of GUI Design,
 which makes it easier to separate interface design and logic from internal design and
 logic. For example:
@@ -22,4 +18,4 @@ In the above code :
             rows: 2 # this how you set each property of your widget/layout
 
 That's it, that's how simple it is to design your GUI in the kv language. To get a
-more in-depth understanding look at :doc:`/guide/kvlang`
+more in-depth understanding look at :doc:`/guide/lang`

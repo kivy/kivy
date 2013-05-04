@@ -53,7 +53,7 @@ class PongGame(Widget):
             self.serve_ball(vel=(4, 0))
         if self.ball.x > self.width:
             self.player1.score += 1
-            self.serve_ball(vel=(-4,))
+            self.serve_ball(vel=(-4, 0))
 
     def on_touch_move(self, touch):
         if touch.x < self.width / 3:

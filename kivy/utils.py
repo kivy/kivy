@@ -16,7 +16,6 @@ from os import environ
 from sys import platform as _sys_platform
 from re import match, split
 from UserDict import DictMixin
-from os import environ
 
 _platform_android = None
 _platform_ios = None
@@ -341,8 +340,6 @@ def platform():
     This will return one of: win, linux, android, macosx, ios, unknown
 
     .. versionadded:: 1.0.8
-
-    .. warning:: ios is not currently reported.
     '''
     global _platform_ios, _platform_android
 

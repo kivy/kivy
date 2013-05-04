@@ -12,8 +12,8 @@ this section explains the basic ideas of the implementation in more detail.
 You can skip this section and refer to it later, but we suggest at least
 skimming it for a rough overview.
 
-Kivy consists of several building blocks that we will explain in the
-following.
+Kivy consists of several building blocks that we will explain shortly. Here is a
+graphical summary of the architecture:
 
 .. image:: ../images/architecture.png
     :align: center
@@ -24,12 +24,12 @@ Core Providers and Input Providers
 ----------------------------------
 
 One idea that is key to understanding Kivy's internals is that of modularity and
-abstraction. We try to abstract from basic tasks such as opening a window,
+abstraction. We try to abstract basic tasks such as opening a window,
 displaying images and text, playing audio, getting images from a camera,
 spelling correction and so on. We call these *core* tasks.
 This makes the API both easy to use and easy to extend. Most importantly, it
 allows us to use -- what we call -- specific providers for the respective
-scenario in which your app is being run.
+scenarios in which your app is being run.
 For example, on OSX, Linux and Windows, there are different native APIs for the
 different core tasks. A piece of code that uses one of these specific APIs to
 talk to the operating system on one side and to Kivy on the other (acting as an
@@ -38,8 +38,8 @@ The advantage of using specialized core providers for each platform is that we
 can fully leverage the functionality exposed by the operating system and act as
 efficiently as possible. It also gives users a choice. Furthermore, by using
 libraries that are shipped with any one platform, we effectively reduce the size
-of the Kivy distribution and make packaging easier. It's also easier to port
-Kivy to other platforms. The Android port did greatly benefit from this.
+of the Kivy distribution and make packaging easier. This also makes it easier to port
+Kivy to other platforms. The Android port benefited greatly from this.
 
 We follow the same concept with input handling. *An input provider* is a piece
 of code that adds support for a specific input device, such as Apple's
@@ -67,7 +67,7 @@ optimize the drawing commands that your code issues. This is especially
 helpful if you're not an expert at tuning OpenGL. This makes your drawing
 code more efficient in many cases.
 
-You can, of course, still use raw OpenGL commands if you prefer that. The
+You can, of course, still use raw OpenGL commands if you prefer. The
 version we target is OpenGL 2.0 ES (GLES2) on all devices, so if you want to
 stay cross-platform compatible, we advise you to only use the GLES2 functions.
 
@@ -96,7 +96,7 @@ The code in the core package provides commonly used features, such as:
 
     Properties
         These are not the normal properties that you may know from python.
-        It is our own properties class that links your widget code with
+        They are our own property classes that link your widget code with
         the user interface description.
 
 
@@ -137,7 +137,7 @@ You can also write your own modules.
 Input Events (Touches)
 ----------------------
 
-Kivy abstracts from different input types and sources such as touches, mice,
+Kivy abstracts different input types and sources such as touches, mice,
 TUIO or similar. What all of these input types have in common is that you
 can associate a 2D onscreen-position with any individual input event. (There are
 other input devices such as accelerometers where you cannot easily find a
@@ -174,7 +174,7 @@ Widgets and Event Dispatching
 
 The term *widget* is often used in GUI programming contexts to describe
 some part of the program that the user interacts with.
-For Kivy, a widget is an object that receives input events. It does not
+In Kivy, a widget is an object that receives input events. It does not
 necessarily have to have a visible representation on the screen.
 All widgets are arranged in a *widget tree* (which is a tree data structure
 as known from computer science classes): One widget can have any number of
@@ -191,7 +191,7 @@ corresponding on_touch_down, on_touch_move or on_touch_up event handler
 being called.
 
 Each widget (this includes the root widget) in the tree can choose to
-either digest or pass the event further. If an event handler returns True
+either digest or pass the event on. If an event handler returns True,
 it means that the event has been digested and handled properly. No further
 processing will happen with that event. Otherwise, the event handler
 passes the widget on to its own children by calling its superclass's

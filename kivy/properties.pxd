@@ -1,5 +1,22 @@
 from kivy._event cimport EventDispatcher
 
+cdef class PropertyStorage:
+    cdef object value
+    cdef list observers
+    cdef str numeric_fmt
+    cdef int bnum_min
+    cdef int bnum_max
+    cdef float bnum_f_min
+    cdef float bnum_f_max
+    cdef int bnum_use_min
+    cdef int bnum_use_max
+    cdef list options
+    cdef tuple properties
+    cdef int stop_event
+    cdef object getter
+    cdef object setter
+    cdef int alias_initial
+
 cdef class Property:
     cdef str _name
     cdef int allownone
@@ -7,7 +24,7 @@ cdef class Property:
     cdef object errorhandler
     cdef int errorvalue_set
     cdef public object defaultvalue
-    cdef init_storage(self, EventDispatcher obj, dict storage)
+    cdef init_storage(self, EventDispatcher obj, PropertyStorage storage)
     cpdef link(self, EventDispatcher obj, str name)
     cpdef link_deps(self, EventDispatcher obj, str name)
     cpdef bind(self, EventDispatcher obj, observer)

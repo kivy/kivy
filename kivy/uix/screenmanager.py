@@ -50,7 +50,7 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
     from kivy.app import App
     from kivy.lang import Builder
     from kivy.uix.screenmanager import ScreenManager, Screen
-    
+
     # Create both screen. Please note the root.manager.current: this is how you
     # can control the ScreenManager from kv. Each screen have by default a
     # property manager that give you the instance of the ScreenManager used.
@@ -62,7 +62,7 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
                 on_press: root.manager.current = 'settings'
             Button:
                 text: 'Quit'
-    
+
     <SettingsScreen>:
         BoxLayout:
             Button:
@@ -71,24 +71,24 @@ Here is an example with a 'Menu Screen', and a 'Setting Screen'::
                 text: 'Back to menu'
                 on_press: root.manager.current = 'menu'
     """)
-    
+
     # Declare both screen
     class MenuScreen(Screen):
         pass
-    
+
     class SettingsScreen(Screen):
         pass
-    
+
     # Create the screen manager
     sm = ScreenManager()
     sm.add_widget(MenuScreen(name='menu'))
     sm.add_widget(SettingsScreen(name='settings'))
-    
+
     class TestApp(App):
-    
+
         def build(self):
-            return sm 
-    
+            return sm
+
     if __name__ == '__main__':
         TestApp().run()
 
@@ -135,16 +135,36 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.lang import Builder
 from kivy.graphics.transformation import Matrix
 from kivy.graphics import RenderContext, Rectangle, Fbo, \
-        ClearColor, ClearBuffers, BindTexture
+        ClearColor, ClearBuffers, BindTexture, Rotate
+from kivy.config import Config                       
 
 
 class ScreenManagerException(Exception):
+    '''Exception of the :class:`ScreenManager`
+    '''
     pass
 
 
 class Screen(RelativeLayout):
     '''Screen is an element intented to be used within :class:`ScreenManager`.
     Check module documentation for more information.
+
+    :Events:
+        `on_pre_enter`: ()
+            Event fired when the screen is about to be used: the entering
+            animation is started.
+        `on_enter`: ()
+            Event fired when the screen is displayed: the entering animation is
+            complete.
+        `on_pre_leave`: ()
+            Event fired when the screen is about to be removed: the leaving
+            animation is started.
+        `on_leave`: ()
+            Event fired when the screen is removed: the leaving animation is
+            finished.
+
+    .. versionchanged:: 1.6.0
+        Events `on_pre_enter`, `on_enter`, `on_pre_leave`, `on_leave` is added.
     '''
 
     name = StringProperty('')
@@ -186,6 +206,20 @@ class Screen(RelativeLayout):
     :data:`transition_state` is an :class:`~kivy.properties.OptionProperty`,
     default to 'out'.
     '''
+
+    __events__ = ('on_pre_enter', 'on_enter', 'on_pre_leave', 'on_leave')
+
+    def on_pre_enter(self, *args):
+        pass
+
+    def on_enter(self, *args):
+        pass
+
+    def on_pre_leave(self, *args):
+        pass
+
+    def on_leave(self, *args):
+        pass
 
     def __repr__(self):
         return '<Screen name=%r>' % self.name
@@ -244,10 +278,7 @@ class TransitionBase(EventDispatcher):
 
     _anim = ObjectProperty(allownone=True)
 
-    def __init__(self, **kw):
-        self.register_event_type('on_progress')
-        self.register_event_type('on_complete')
-        super(TransitionBase, self).__init__(**kw)
+    __events__ = ('on_progress', 'on_complete')
 
     def start(self, manager):
         '''(internal) Start the transition. This is automatically called by the
@@ -265,6 +296,8 @@ class TransitionBase(EventDispatcher):
         self.screen_in.transition_state = 'in'
         self.screen_out.transition_progress = 0.
         self.screen_out.transition_state = 'out'
+        self.screen_in.dispatch('on_pre_enter')
+        self.screen_out.dispatch('on_pre_leave')
 
         self.is_active = True
         self._anim.start(self)
@@ -305,6 +338,8 @@ class TransitionBase(EventDispatcher):
     def _on_complete(self, *l):
         self.is_active = False
         self.dispatch('on_complete')
+        self.screen_in.dispatch('on_enter')
+        self.screen_out.dispatch('on_leave')
         self._anim = None
 
 
@@ -350,7 +385,7 @@ class ShaderTransition(TransitionBase):
     def make_screen_fbo(self, screen):
         fbo = Fbo(size=screen.size)
         with fbo:
-            ClearColor(0, 1, 0, 1)
+            ClearColor(0, 0, 0, 1)
             ClearBuffers()
         fbo.add(screen.canvas)
         return fbo
@@ -371,12 +406,22 @@ class ShaderTransition(TransitionBase):
         self.fbo_out = self.make_screen_fbo(self.screen_out)
         self.manager.canvas.add(self.fbo_in)
         self.manager.canvas.add(self.fbo_out)
+        
+        screen_rotation = Config.getfloat('graphics', 'rotation')
+        pos = (0, 1)
+        if screen_rotation == 90:
+            pos = (0, 0)
+        elif screen_rotation == 180:
+            pos = (-1, 0)
+        elif screen_rotation == 270:
+            pos = (-1, 1)
 
         self.render_ctx = RenderContext(fs=self.fs)
         with self.render_ctx:
             BindTexture(texture=self.fbo_out.texture, index=1)
             BindTexture(texture=self.fbo_in.texture, index=2)
-            Rectangle(size=(1, -1), pos=(0, 1))
+            Rotate(screen_rotation, 0, 0 , 1)
+            Rectangle(size=(1, -1), pos=pos)        
         self.render_ctx['projection_mat'] = Matrix().\
             view_clip(0, 1, 0, 1, 0, 1, 0)
         self.render_ctx['tex_out'] = 1
@@ -650,10 +695,12 @@ class ScreenManager(FloatLayout):
         else:
             screen.pos = self.pos
             self.real_add_widget(screen)
+            screen.dispatch('on_pre_enter')
+            screen.dispatch('on_enter')
 
     def get_screen(self, name):
-        '''Return the screen widget associated to the name, or None if not
-        found.
+        '''Return the screen widget associated to the name, or raise a
+        :class:`ScreenManagerException` if not found.
         '''
         matches = [s for s in self.screens if s.name == name]
         num_matches = len(matches)
@@ -662,6 +709,13 @@ class ScreenManager(FloatLayout):
         if num_matches > 1:
             Logger.warn('Multiple screens named "%s": %s' % (name, matches))
         return matches[0]
+
+    def has_screen(self, name):
+        '''Return True if a screen with the `name` has been found.
+
+        .. versionadded:: 1.6.0
+        '''
+        return bool([s for s in self.screens if s.name == name])
 
     def next(self):
         '''Return the name of the next screen from the screen list.

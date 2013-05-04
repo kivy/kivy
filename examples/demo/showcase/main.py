@@ -1,20 +1,22 @@
 import kivy
 kivy.require('1.1.3')
 
-from kivy.properties import NumericProperty
+import random
+
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
+from kivy.clock import Clock
+from kivy.metrics import Metrics
+from kivy.properties import NumericProperty
+from kivy.properties import StringProperty
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.widget import Widget
-from kivy.uix.scatter import Scatter
-from kivy.uix.treeview import TreeView, TreeViewLabel
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.properties import StringProperty
-from kivy.clock import Clock
-import random
+from kivy.uix.scatter import Scatter
+from kivy.uix.treeview import TreeView, TreeViewLabel
+from kivy.uix.widget import Widget
 
 
 class Showcase(FloatLayout):
@@ -153,6 +155,11 @@ class StackLayoutShowcase(FloatLayout):
         Clock.schedule_once(self.add_button, .5)
 
 
+class RelativeLayoutShowcase(FloatLayout):
+    pass
+
+
+
 class StandardWidgets(FloatLayout):
 
     value = NumericProperty(0)
@@ -170,6 +177,10 @@ class ComplexWidgets(FloatLayout):
 
 
 class TreeViewWidgets(FloatLayout):
+    pass
+
+
+class FontSizesWidgets(BoxLayout):
     pass
 
 
@@ -208,6 +219,7 @@ class ShowcaseApp(App):
         attach_node('Complex widgets', n)
         attach_node('Scatters', n)
         attach_node('Treeviews', n)
+        attach_node('Font Sizes', n)
         attach_node('Popup', n)
         n = create_tree('Layouts')
         attach_node('Anchor Layout', n)
@@ -215,6 +227,9 @@ class ShowcaseApp(App):
         attach_node('Float Layout', n)
         attach_node('Grid Layout', n)
         attach_node('Stack Layout', n)
+        attach_node('Relative Layout', n)
+
+
         root.add_widget(tree)
         self.content = content = BoxLayout()
         root.add_widget(content)
@@ -243,6 +258,9 @@ class ShowcaseApp(App):
 
     def show_stack_layout(self):
         return StackLayoutShowcase()
+
+    def show_relative_layout(self):
+        return RelativeLayoutShowcase()
 
     def show_scatters(self):
         col = Widget()
@@ -276,6 +294,21 @@ class ShowcaseApp(App):
         self.populate_treeview(tv.treeview1)
         self.populate_treeview(tv.treeview2)
         return tv
+
+    def show_font_sizes(self):
+        font_sizes = FontSizesWidgets()
+        metrics_values = {
+            'dpi': str(Metrics.dpi),
+            'dpi_rounded': str(Metrics.dpi_rounded),
+            'density': str(Metrics.density),
+            'fontscale': str(Metrics.fontscale),
+        }
+        label = font_sizes.children[1]
+        label.text = ('DPI: {dpi} | '
+                      'DPI Rounded: {dpi_rounded} | '
+                      'Density: {density} | '
+                      'Font Scale: {fontscale} ').format(**metrics_values)
+        return font_sizes
 
     def populate_treeview(self, tv):
         n = tv.add_node(TreeViewLabel(text='Item 1'))

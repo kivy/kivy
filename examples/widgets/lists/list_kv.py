@@ -34,7 +34,6 @@ class MainView(GridLayout):
 
     def __init__(self, **kwargs):
         kwargs['cols'] = 1
-        kwargs['size_hint'] = (1.0, 1.0)
         super(MainView, self).__init__(**kwargs)
 
         list_item_args_converter = \

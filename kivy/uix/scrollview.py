@@ -41,7 +41,7 @@ Managing the Content Size
 -------------------------
 
 ScrollView manages the position of the child content, not the size. You must
-carefully specify the :data:`ScrollView.size_hint` property to get the desired
+carefully specify the `size_hint` of your content to get the desired
 scroll/pan effect.
 
 By default, size_hint is (1, 1), so the content size will fit your ScrollView
@@ -176,8 +176,10 @@ class ScrollView(StencilView):
 
         if self.do_scroll_x:
             self.scroll_x = min(1, max(0, self.scroll_x))
+            self._scroll_x_mouse = self.scroll_x
         if self.do_scroll_y:
             self.scroll_y = min(1, max(0, self.scroll_y))
+            self._scroll_y_mouse = self.scroll_y
 
         # update from size_hint
         if vp.size_hint_x is not None:
@@ -342,6 +344,7 @@ class ScrollView(StencilView):
         # support scrolling !
         if self._viewport and 'button' in touch.profile and \
                 touch.button.startswith('scroll'):
+            btn = touch.button
             # distance available to move, if no distance, do nothing
             vp = self._viewport
             if vp.height > self.height:
@@ -350,12 +353,14 @@ class ScrollView(StencilView):
                 syd = None
                 if d != 0:
                     d = self.scroll_distance / float(d)
-                if touch.button == 'scrollup':
+                if btn == 'scrollup':
                     syd = self._scroll_y_mouse - d
-                elif touch.button == 'scrolldown':
+                elif btn == 'scrolldown':
                     syd = self._scroll_y_mouse + d
 
                 if syd is not None:
+                    if not self.do_scroll_y:
+                        return
                     self._scroll_y_mouse = scroll_y = min(max(syd, 0), 1)
                     Animation.stop_all(self, 'scroll_y')
                     Animation(scroll_y=scroll_y, d=.3,
@@ -363,20 +368,23 @@ class ScrollView(StencilView):
                     Clock.unschedule(self._update_animation)
                     return True
 
-            if vp.width > self.width:
+            if vp.width > self.width and self.do_scroll_x:
                 # let's say we want to move over 40 pixels each scroll
                 d = (vp.width - self.width)
                 sxd = None
                 if d != 0:
                     d = self.scroll_distance / float(d)
-                if touch.button == 'scrollright':
+                if btn == 'scrollright':
                     sxd = self._scroll_x_mouse - d
-                elif touch.button == 'scrollleft':
+                elif btn == 'scrollleft':
                     sxd = self._scroll_x_mouse + d
                 if sxd is not None:
+                    if not self.do_scroll_y:
+                        return
                     self._scroll_x_mouse = scroll_x = min(max(sxd, 0), 1)
                     Animation.stop_all(self, 'scroll_x')
-                    Animation(scroll_x=scroll_x, d=.3, t='out_quart').start(self)
+                    Animation(scroll_x=scroll_x, d=.3, t='out_quart').start(
+                            self)
                     Clock.unschedule(self._update_animation)
                     return True
 

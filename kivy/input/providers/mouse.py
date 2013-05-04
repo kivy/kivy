@@ -96,6 +96,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         # split arguments
         args = args.split(',')
         for arg in args:
+            arg = arg.strip()
             if arg == '':
                 continue
             elif arg == 'disable_on_activity':

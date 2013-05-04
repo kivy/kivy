@@ -151,7 +151,8 @@ class WindowPygame(WindowBase):
             Logger.debug('Window: Actual stencil bits: %d',
                     pygame.display.gl_get_attribute(pygame.GL_STENCIL_SIZE))
             Logger.debug('Window: Actual multisampling samples: %d',
-                    pygame.display.gl_get_attribute(pygame.GL_MULTISAMPLESAMPLES))
+                    pygame.display.gl_get_attribute(
+                        pygame.GL_MULTISAMPLESAMPLES))
         super(WindowPygame, self).create_window()
 
         # set mouse visibility
@@ -332,7 +333,6 @@ class WindowPygame(WindowBase):
                     raise
                 else:
                     pass
-
 
     #
     # Pygame wrapper

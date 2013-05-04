@@ -23,7 +23,7 @@
                 size_hint: None, None
                 size: '24dp', '24dp'
                 source: 'data/logo/kivy-icon-64.png'
-				mipmap: True
+                mipmap: True
             Label:
                 height: '24dp'
                 text_size: self.width, None
@@ -141,6 +141,49 @@
             Rectangle:
                 size: self.size
                 pos: self.pos
+
+
+<RelativeLayoutShowcase>
+    Title:
+        text: "Relative Layout"
+
+    RelativeLayout:
+        id: rel_layout
+        size_hint: .6,.5
+        center: [root.center, self.size][0]
+        canvas:
+            Color:
+                rgba: 0,0,1,0.5
+            Rectangle:
+                pos: 0,0
+                size: self.size
+
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: "Position value of children stays the same; they are relative with respect to the RelativeLayout"
+                valign: 'top'
+                text_size: rel_layout.width-40, None
+                size_hint_y: 0.2
+            GridLayout:
+                cols:2
+                padding: 40
+                spacing: 20
+
+                Button:
+                    text: "Set pos = (100,0)"
+                    on_release: rel_layout.pos = (100,0)
+                Button:
+                    text: "Set pos = (150,100)"
+                    on_release: rel_layout.pos = (150,200)
+                Button:
+                    text: "Set pos = (300,60)"
+                    on_release: rel_layout.pos = (300,80)
+                Button:
+                    text: "Center "
+                    on_release: rel_layout.center = root.center
+
+
 
 [VSeparator@Widget]:
     size_hint_x: None
@@ -411,3 +454,95 @@
 
 
 <ScatterWidgets>:
+
+
+<FontSizesWidgets>:
+    orientation: 'vertical'
+
+    Label:
+        text: 'Metrics'
+        size_hint: (1., .1)
+
+    BoxLayout:
+        orientation: 'horizontal'
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            Label:
+                text: '6sp'
+                font_size: '6sp'
+
+            Label:
+                text: '12sp'
+                font_size: '12sp'
+
+            Label:
+                text: '18sp'
+                font_size: '18sp'
+
+            Label:
+                text: '24sp'
+                font_size: '24sp'
+
+            Label:
+                text: '30sp'
+                font_size: '30sp'
+
+            Label:
+                text: '36sp'
+                font_size: '36sp'
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            Label:
+                text: '6pt'
+                font_size: '6pt'
+
+            Label:
+                text: '12pt'
+                font_size: '12pt'
+
+            Label:
+                text: '18pt'
+                font_size: '18pt'
+
+            Label:
+                text: '24pt'
+                font_size: '24pt'
+
+            Label:
+                text: '30pt'
+                font_size: '30pt'
+
+            Label:
+                text: '36pt'
+                font_size: '36pt'
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            Label:
+                text: '6px'
+                font_size: '6px'
+
+            Label:
+                text: '12px'
+                font_size: '12px'
+
+            Label:
+                text: '18px'
+                font_size: '18px'
+
+            Label:
+                text: '24px'
+                font_size: '24px'
+
+            Label:
+                text: '30px'
+                font_size: '30px'
+
+            Label:
+                text: '36px'
+                font_size: '36px'

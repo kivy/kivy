@@ -30,6 +30,10 @@ class ImageLoaderPygame(ImageLoaderBase):
         return ('jpg', 'jpeg', 'png', 'bmp', 'pcx', 'tga', 'tiff', 'tif', 'lbm',
                'pbm', 'ppm', 'xpm')
 
+    @staticmethod
+    def can_save():
+        return True
+
     def load(self, filename):
         try:
             try:
@@ -67,6 +71,14 @@ class ImageLoaderPygame(ImageLoaderBase):
         data = pygame.image.tostring(im, fmt.upper())
         return [ImageData(im.get_width(), im.get_height(),
             fmt, data, source=filename)]
+
+    @staticmethod
+    def save(filename, width, height, fmt, pixels):
+        surface = pygame.image.fromstring(
+                pixels, (width, height), fmt.upper(), False)
+        pygame.image.save(surface, filename)
+        return True
+
 
 # register
 ImageLoader.register(ImageLoaderPygame)

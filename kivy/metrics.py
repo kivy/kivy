@@ -94,7 +94,8 @@ You can also simulate an alternative user preference for fontscale, like::
 '''
 
 
-__all__ = ('metrics', 'Metrics', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp')
+__all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp',
+'metrics')
 
 
 from os import environ
@@ -138,7 +139,7 @@ def sp(value):
     return dpi2px(value, 'sp')
 
 
-class Metrics(object):
+class MetricsBase(object):
     '''Class that contain the default attribute for metrics. Don't use the class
     directly, but use the `metrics` instance.
     '''
@@ -217,5 +218,10 @@ class Metrics(object):
         return 1.0
 
 
-#: default instance of :class:`Metrics`, used everywhere in the code
-metrics = Metrics()
+#: default instance of :class:`MetricsBase`, used everywhere in the code
+#: .. versionadded:: 1.6.1
+Metrics = MetricsBase()
+
+#: default instance of :class:`MetricsBase`, used everywhere in the code
+#: (deprecated, use `Metrics` instead.)
+metrics = Metrics

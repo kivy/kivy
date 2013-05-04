@@ -73,6 +73,9 @@ class Cache(object):
             `timeout` : double (optionnal)
                 Custom time to delete the object if it's not used.
         '''
+        #check whether obj should not be cached first
+        if getattr(obj, '_no_cache', False):
+            return
         try:
             cat = Cache._categories[category]
         except KeyError:
@@ -184,6 +187,8 @@ class Cache(object):
         curtime = Clock.get_time()
 
         for category in Cache._objects:
+            if category not in Cache._categories:
+                continue
             timeout = Cache._categories[category]['timeout']
             if timeout is not None and dt > timeout:
                 # XXX got a lag ! that may be because the frame take lot of

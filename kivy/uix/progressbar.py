@@ -34,10 +34,28 @@ class ProgressBar(Widget):
     See module documentation for more details.
     '''
 
-    value = NumericProperty(0.)
+    def __init__(self, **kwargs):
+        self._value = 0.
+        super(ProgressBar, self).__init__(**kwargs)
+
+    def _get_value(self):
+        return self._value
+
+    def _set_value(self, value):
+        value = max(0, min(self.max, value))
+        if value != self._value:
+            self._value = value
+            return True
+
+    value = AliasProperty(_get_value, _set_value)
     '''Current value used for the slider.
 
-    :data:`value` is a :class:`~kivy.properties.NumericProperty`, default to 0.
+    :data:`value` is a :class:`~kivy.properties.AliasProperty`, than returns the
+    value of the progressbar. If the value is < 0 or > :data:`max`, it will be
+    normalized to thoses boundaries.
+
+    .. versionchanged:: 1.6.0
+        The value is now limited between 0 to :data:`max`
     '''
 
     def get_norm_value(self):
@@ -48,6 +66,7 @@ class ProgressBar(Widget):
 
     def set_norm_value(self, value):
         self.value = value * self.max
+
     value_normalized = AliasProperty(get_norm_value, set_norm_value,
                                      bind=('value', 'max'))
     '''Normalized value inside the 0-max to 0-1 range::

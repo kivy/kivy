@@ -104,6 +104,7 @@ class VideoGStreamer(VideoBase):
             # texture is not allocated yet, so create it first
             self._texture = Texture.create(size=size, colorfmt='rgb')
             self._texture.flip_vertical()
+            self.dispatch('on_load')
         # upload texture data to GPU
         self._texture.blit_buffer(buf.data, size=size, colorfmt='rgb')
 

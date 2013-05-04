@@ -12,6 +12,7 @@ You can read more about it at :doc:`api-kivy.graphics`
 
 include "config.pxi"
 
+from cpython.array cimport array
 import gc
 from os import environ
 from weakref import ref
@@ -44,10 +45,11 @@ cdef class Context:
         self.trigger_gl_dealloc = Clock.create_trigger(self.gl_dealloc, 0)
 
     cdef void flush(self):
-        self.lr_texture = []
+        self.lr_texture = array('i')
         self.lr_canvas = []
-        self.lr_vbo = []
-        self.lr_fbo = []
+        self.lr_vbo = array('i')
+        self.lr_fbo_rb = array('i')
+        self.lr_fbo_fb = array('i')
 
     cdef void register_texture(self, Texture texture):
         self.l_texture.append(ref(texture))
@@ -68,19 +70,26 @@ cdef class Context:
         self.l_fbo.append(ref(fbo))
 
     cdef void dealloc_texture(self, Texture texture):
+        cdef array arr
         if texture._nofree or texture.__class__ is TextureRegion:
             return
-        self.lr_texture.append(texture.id)
-        self.trigger_gl_dealloc()
+        if texture.id > 0:
+            arr = self.lr_texture
+            arr.append(texture.id)
+            self.trigger_gl_dealloc()
 
     cdef void dealloc_vbo(self, VBO vbo):
+        cdef array arr
         if vbo.have_id():
-            self.lr_vbo.append(vbo.id)
+            arr = self.lr_vbo
+            arr.append(vbo.id)
             self.trigger_gl_dealloc()
 
     cdef void dealloc_vertexbatch(self, VertexBatch batch):
+        cdef array arr
         if batch.have_id():
-            self.lr_vbo.append(batch.id)
+            arr = self.lr_vbo
+            arr.append(batch.id)
             self.trigger_gl_dealloc()
 
     cdef void dealloc_shader(self, Shader shader):
@@ -93,9 +102,16 @@ cdef class Context:
         glDeleteProgram(shader.program)
 
     cdef void dealloc_fbo(self, Fbo fbo):
-        if fbo.buffer_id != -1:
-            self.lr_fbo.append((fbo.buffer_id, fbo.depthbuffer_id))
+        cdef array arr_fb
+        cdef array arr_rb
+        if fbo.buffer_id != 0:
+            arr_fb = self.lr_fbo_fb
+            arr_fb.append(fbo.buffer_id)
             self.trigger_gl_dealloc()
+        if fbo.depthbuffer_id != 0:
+            arr_rb = self.lr_fbo_rb
+            arr_rb.append(fbo.depthbuffer_id)
+            # no need to trigger, depthbuffer required absolutely a buffer.
 
     def add_reload_observer(self, callback, before=False):
         '''Add a callback to be called after the whole graphics context have
@@ -142,7 +158,18 @@ cdef class Context:
                 continue
             callback()(self)
 
+        # mark all the texture to not delete from the previous reload as to
+        # delete now.
+        for item in self.l_texture[:]:
+            texture = item()
+            if texture is None:
+                continue
+            if texture._nofree == 1:
+                texture._nofree = 0
+                self.l_texture.remove(item)
+
         image_objects = Cache._objects['kv.image']
+        Cache.remove('kv.loader')
         Cache.remove('kv.image')
         Cache.remove('kv.shader')
 
@@ -156,7 +183,6 @@ cdef class Context:
         Logger.info('Context: Reloading graphics data...')
         Logger.debug('Context: Collect and flush all garbage')
         self.gc()
-        gc.collect()
         self.flush()
 
         # First step, prevent double loading by setting everything to -1
@@ -232,35 +258,50 @@ cdef class Context:
         dt = time() - start
         Logger.info('Context: Reloading done in %2.4fs' % dt)
 
+    def flag_update_canvas(self):
+        cdef Canvas canvas
+        for item in self.l_canvas:
+            canvas = item()
+            if canvas:
+                canvas.flag_update()
 
     def gc(self, *largs):
         self.l_texture = [x for x in self.l_texture if x() is not None]
         self.l_canvas = [x for x in self.l_canvas if x() is not None]
         self.l_vbo = [x for x in self.l_vbo if x() is not None]
         self.l_vertexbatch = [x for x in self.l_vertexbatch if x() is not None]
+        gc.collect()
 
     def gl_dealloc(self, *largs):
         # dealloc all gl resources asynchronously
         cdef GLuint i, j
+        cdef array arr
+
+        # FIXME we are doing gc for each time we dealloc things. But if you have
+        # "big" apps, this might just slow it down.
+        self.gc()
+
         if len(self.lr_vbo):
             Logger.trace('Context: releasing %d vbos' % len(self.lr_vbo))
-            while len(self.lr_vbo):
-                i = self.lr_vbo.pop()
-                glDeleteBuffers(1, &i)
+            arr = self.lr_vbo
+            glDeleteBuffers(len(self.lr_vbo), arr.data.as_uints)
+            del self.lr_vbo[:]
         if len(self.lr_texture):
             Logger.trace('Context: releasing %d textures: %r' % (
                 len(self.lr_texture), self.lr_texture))
-            while len(self.lr_texture):
-                i = self.lr_texture.pop()
-                glDeleteTextures(1, &i)
-        if len(self.lr_fbo):
-            Logger.trace('Context: releasing %d fbos' % len(self.lr_fbo))
-            while len(self.lr_fbo):
-                i, j = self.lr_fbo.pop()
-                if i != -1:
-                    glDeleteFramebuffers(1, &i)
-                if j != -1:
-                    glDeleteRenderbuffers(1, &j)
+            arr = self.lr_texture
+            glDeleteTextures(len(self.lr_texture), arr.data.as_uints)
+            del self.lr_texture[:]
+        if len(self.lr_fbo_fb):
+            Logger.trace('Context: releasing %d framebuffer fbos' % len(self.lr_fbo_fb))
+            arr = self.lr_fbo_fb
+            glDeleteFramebuffers(len(self.lr_fbo_fb), arr.data.as_uints)
+            del self.lr_fbo_fb[:]
+        if len(self.lr_fbo_rb):
+            Logger.trace('Context: releasing %d renderbuffer fbos' % len(self.lr_fbo_fb))
+            arr = self.lr_fbo_rb
+            glDeleteRenderbuffers(len(self.lr_fbo_rb), arr.data.as_uints)
+            del self.lr_fbo_rb[:]
 
 
 cpdef Context get_context():

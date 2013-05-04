@@ -131,9 +131,9 @@ cdef class ClearBuffers(Instruction):
 
     def __init__(self, *args, **kwargs):
         Instruction.__init__(self, *args, **kwargs)
-        self.clear_color = 1
-        self.clear_stencil = 0
-        self.clear_depth = 0
+        self.clear_color = int(kwargs.get('clear_color', 1))
+        self.clear_stencil = int(kwargs.get('clear_stencil', 0))
+        self.clear_depth = int(kwargs.get('clear_depth', 0))
 
     cdef void apply(self):
         cdef GLbitfield mask = 0

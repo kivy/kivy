@@ -22,6 +22,7 @@ class TextAlignApp(App):
             for halign in ('left', 'center', 'right'):
                 label = BoundedLabel(text='V: %s\nH: %s' % (valign, halign),
                               size_hint=(None, None),
+                              size=(150, 150),
                               halign=halign, valign=valign)
                 if case == 0:
                     label.text_size = (None, None)

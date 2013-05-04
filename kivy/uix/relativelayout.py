@@ -4,55 +4,78 @@ Relative Layout
 
 .. versionadded:: 1.4.0
 
+
 This layout allows you to set relative coordinate for children. If you want
 absolute positioning, check :class:`~kivy.uix.floatlayout.FloatLayout`.
 
-The :class:`RelativeLayout` class behaves just like the regular Float
-Layout, except that its child widgets are positioned relative to the layout.
+The :class:`RelativeLayout` class behaves just like the regular
+:class:`FloatLayout`, except that its child widgets are positioned relative to
+the layout.
 
-For example, if you create a RelativeLayout, add a widgets with
-position = (0,0), the child widget will also move, when you change the
-position of the RelativeLayout.  The child widgets coordiantes remain
-(0,0), i.e. they are relative to the containing layout.
+For example, if you create a RelativeLayout, add a widgets with position =
+(0,0), the child widget will also move, when you change the position of the
+RelativeLayout.  The child widgets coordiantes remain (0,0), i.e. they are
+relative to the containing layout.
 
-..note::
 
-    The :class:`RelativeLayout` is implemented as a :class`FloatLayout`
-    inside a :class:`Scatter`.
+.. versionchanged:: 1.6.1
 
-.. warning::
+    Prior to version 1.6.1 The :class:`RelativeLayout` was implemented as a
+    :class`FloatLayout` inside a :class:`Scatter`.  This behaviour/widget has
+    been renamed to `ScatterLayout`.  The :class:`RelativeLayout` now only
+    supports relative position (and cant be roatated or scaled), so that the
+    implemetation can be optimized and avoid the heavier calculations from
+    :class:`Scatter` (e.g. inverse matrix, recaculating multiple properties,
+    etc)
 
-    Since the actual RelativeLayout is a Scatter, its add_widget and
-    remove_widget functions are overwritten to add children to the embedded
-    FloatLayout (accessible as `content` property of RelativeLayout)
-    automatically. So if you want to access the added child elements,
-    you need self.content.children, instead of self.children.
 '''
 
-from kivy.uix.scatter import Scatter
+__all__ = ('RelativeLayout', )
+
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ObjectProperty
 
 
-class RelativeLayout(Scatter):
+class RelativeLayout(FloatLayout):
     '''RelativeLayout class, see module documentation for more information.
     '''
-
-    content = ObjectProperty()
 
     def __init__(self, **kw):
         self.content = FloatLayout()
         super(RelativeLayout, self).__init__(**kw)
-        if self.content.size != self.size:
-            self.content.size = self.size
-        super(RelativeLayout, self).add_widget(self.content)
-        self.bind(size=self.update_size)
+        self.unbind(pos=self._trigger_layout,
+                pos_hint=self._trigger_layout)
 
-    def update_size(self, instance, size):
-        self.content.size = size
+    def do_layout(self, *args):
+        super(RelativeLayout, self).do_layout(pos=(0, 0))
 
-    def add_widget(self, *l):
-        self.content.add_widget(*l)
+    def to_parent(self, x, y, **k):
+        return (x + self.x, y + self.y)
 
-    def remove_widget(self, *l):
-        self.content.remove_widget(*l)
+    def to_local(self, x, y, **k):
+        return (x - self.x, y - self.y)
+
+    def on_touch_down(self, touch):
+        x, y = touch.x, touch.y
+        touch.push()
+        touch.apply_transform_2d(self.to_local)
+        ret = super(RelativeLayout, self).on_touch_down(touch)
+        touch.pop()
+        return ret
+
+    def on_touch_move(self, touch):
+        x, y = touch.x, touch.y
+        touch.push()
+        touch.apply_transform_2d(self.to_local)
+        ret = super(RelativeLayout, self).on_touch_move(touch)
+        touch.pop()
+        return ret
+
+    def on_touch_up(self, touch):
+        x, y = touch.x, touch.y
+        touch.push()
+        touch.apply_transform_2d(self.to_local)
+        ret = super(RelativeLayout, self).on_touch_up(touch)
+        touch.pop()
+        return ret
+
+

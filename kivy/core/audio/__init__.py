@@ -56,7 +56,7 @@ class SoundLoader:
         for classobj in SoundLoader._classes:
             if ext in classobj.extensions():
                 return classobj(source=filename)
-        Logger.warning('Audio: Unable to found a loader for <%s>' %
+        Logger.warning('Audio: Unable to find a loader for <%s>' %
                        filename)
         return None
 
@@ -119,10 +119,7 @@ class Sound(EventDispatcher):
         Use :data:`source` instead
     '''
 
-    def __init__(self, **kwargs):
-        self.register_event_type('on_play')
-        self.register_event_type('on_stop')
-        super(Sound, self).__init__(**kwargs)
+    __events__ = ('on_play', 'on_stop')
 
     def on_source(self, instance, filename):
         self.unload()

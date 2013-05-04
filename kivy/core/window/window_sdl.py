@@ -21,12 +21,14 @@ from kivy.input.provider import MotionEventProvider
 from kivy.input.motionevent import MotionEvent
 from collections import deque
 
+
 class SDLMotionEvent(MotionEvent):
     def depack(self, args):
         self.is_touch = True
         self.profile = ('pos', )
         self.sx, self.sy = args
         super(SDLMotionEvent, self).depack(args)
+
 
 class SDLMotionEventProvider(MotionEventProvider):
     win = None
@@ -154,7 +156,7 @@ class WindowSDL(WindowBase):
                 Clock.schedule_once(cb, .1)
 
             elif action == 'windowresized':
-                 self.canvas.ask_update()
+                self.canvas.ask_update()
 
             elif action == 'windowminimized':
                 self.do_pause()
@@ -229,8 +231,7 @@ class WindowSDL(WindowBase):
             Logger.info('WindowSDL: No running App found, exit.')
             stopTouchApp()
             return
-        
-        #print 'dispatch app on_pause'
+
         if not app.dispatch('on_pause'):
             Logger.info('WindowSDL: App doesn\'t support pause mode, stop.')
             stopTouchApp()
@@ -283,21 +284,6 @@ class WindowSDL(WindowBase):
     #
     def _pygame_update_modifiers(self, mods=None):
         return
-        # Available mod, from dir(pygame)
-        # 'KMOD_ALT', 'KMOD_CAPS', 'KMOD_CTRL', 'KMOD_LALT',
-        # 'KMOD_LCTRL', 'KMOD_LMETA', 'KMOD_LSHIFT', 'KMOD_META',
-        # 'KMOD_MODE', 'KMOD_NONE'
-        if mods is None:
-            mods = pygame.key.get_mods()
-        self._modifiers = []
-        if mods & (pygame.KMOD_SHIFT | pygame.KMOD_LSHIFT):
-            self._modifiers.append('shift')
-        if mods & (pygame.KMOD_ALT | pygame.KMOD_LALT):
-            self._modifiers.append('alt')
-        if mods & (pygame.KMOD_CTRL | pygame.KMOD_LCTRL):
-            self._modifiers.append('ctrl')
-        if mods & (pygame.KMOD_META | pygame.KMOD_LMETA):
-            self._modifiers.append('meta')
 
     def on_keyboard(self, key, scancode=None, unicode=None, modifier=None):
         # Quit if user presses ESC or the typical OSX shortcuts CMD+q or CMD+w
@@ -305,7 +291,7 @@ class WindowSDL(WindowBase):
         is_osx = sys.platform == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
-            self.close()  #not sure what to do here
+            self.close()  # not sure what to do here
             return True
         super(WindowSDL, self).on_keyboard(key, scancode, unicode, modifier)
 
@@ -321,12 +307,10 @@ class WindowSDL(WindowBase):
         self._sdl_keyboard = None
         return True
 
-    
     def _check_keyboard_shown(self, dt):
         #print sdl.is_keyboard_shown()
         if self._sdl_keyboard is None:
             return False
         if not sdl.is_keyboard_shown():
             self._sdl_keyboard.release()
-    
-    
+

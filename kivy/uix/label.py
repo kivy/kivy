@@ -56,6 +56,10 @@ The following tags are available:
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`Label.anchors`
+``[sub][/sub]``
+    Display the text at a subscript position relative to the text before it.
+``[sup][/sup]``
+    Display the text at a superscript position relative to the text before it.
 
 If you want to render the markup text with a character [ or ] or &, you need to
 escape them. We created a simple syntax::
@@ -186,6 +190,9 @@ class Label(Widget):
                                             get_hex_from_color(self.color), ']',
                                             text, '[/color]'))
                 self._label.refresh()
+                # force the rendering to get the references
+                if self._label.texture:
+                    self._label.texture.bind()
                 self._label.text = text
                 self.refs = self._label.refs
                 self.anchors = self._label.anchors
@@ -288,8 +295,8 @@ class Label(Widget):
     '''Line Height for the text. e.g. line_height = 2 will cause the spacing
     between lines to be twice the size.
 
-    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, default to
-    1.0.
+    :data:`line_height` is a :class:`~kivy.properties.NumericProperty`, default
+    to 1.0.
 
     .. versionadded:: 1.5.0
     '''
@@ -339,7 +346,8 @@ class Label(Widget):
     (:data:`padding_x`, :data:`padding_y`) properties.
     '''
 
-    halign = OptionProperty('left', options=['left', 'center', 'right'])
+    halign = OptionProperty('left', options=['left', 'center', 'right',
+                            'justify'])
     '''Horizontal alignment of the text.
 
     :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
@@ -351,6 +359,11 @@ class Label(Widget):
         (centered), only the position of the text in this texture. You probably
         want to bind the size of the Label to the :data:`texture_size` or set a
         :data:`text_size`.
+
+    .. versionchanged:: 1.6.0
+
+        Starting version 1.6.0 a new option was added to :data:`halign`
+        namely `justify`
     '''
 
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])

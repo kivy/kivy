@@ -7,7 +7,7 @@ __all__ = ('ImageLoaderPIL', )
 try:
     from PIL import Image as PILImage
 except:
-    import Image
+    import Image as PILImage
 
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
@@ -29,6 +29,10 @@ class ImageLoaderPIL(ImageLoaderBase):
         artifacts for now.
 
     '''
+
+    @staticmethod
+    def can_save():
+        return True
 
     @staticmethod
     def extensions():
@@ -63,9 +67,16 @@ class ImageLoaderPIL(ImageLoaderBase):
 
         # Read all images inside
         try:
+            img_ol = None
             while True:
                 img_tmp = im
                 img_tmp = self._img_correct(img_tmp)
+                if img_ol:
+                    # paste new frame over old so as to handle
+                    # transparency properly
+                    img_ol.paste(img_tmp, (0, 0), img_tmp)
+                    img_tmp = img_ol
+                img_ol = img_tmp
                 yield ImageData(img_tmp.size[0], img_tmp.size[1],
                                 img_tmp.mode.lower(), img_tmp.tostring())
                 im.seek(im.tell() + 1)
@@ -82,6 +93,13 @@ class ImageLoaderPIL(ImageLoaderBase):
         self.filename = filename
         # returns an array of type ImageData len 1 if not a sequence image
         return list(self._img_read(im))
+
+    @staticmethod
+    def save(filename, width, height, fmt, pixels):
+        image = PILImage.fromstring(fmt.upper(), (width, height), pixels)
+        image.save(filename)
+        return True
+
 
 # register
 ImageLoader.register(ImageLoaderPIL)

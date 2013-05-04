@@ -19,7 +19,8 @@ c_options = {
     'use_glew': False,
     'use_sdl': False,
     'use_ios': False,
-    'use_mesagl': 'USE_MESAGL' in environ}
+    'use_mesagl': False,
+    'use_x11': False}
 
 # now check if environ is changing the default values
 for key in c_options.keys():
@@ -159,7 +160,8 @@ class CythonExtension(Extension):
 
     def __init__(self, *args, **kwargs):
         Extension.__init__(self, *args, **kwargs)
-        self.pyrex_directives = {
+        self.cython_directives = {
+            'c_string_encoding': 'utf-8',
             'profile': 'USE_PROFILE' in environ,
             'embedsignature': 'USE_EMBEDSIGNATURE' in environ}
         # XXX with pip, setuptools is imported before distutils, and change
@@ -186,7 +188,9 @@ def determine_base_flags():
         'extra_link_args': [],
         'extra_compile_args': []}
     if c_options['use_ios']:
-        sysroot = environ['SDKROOT']
+        sysroot = environ.get('IOSSDKROOT', environ.get('SDKROOT'))
+        if not sysroot:
+            raise Exception('IOSSDKROOT is not set')
         flags['include_dirs'] += [sysroot]
         flags['extra_compile_args'] += ['-isysroot', sysroot]
         flags['extra_link_args'] += ['-isysroot', sysroot]
@@ -357,7 +361,7 @@ if platform in ('darwin', 'ios'):
     sources['core/image/img_imageio.pyx'] = merge(
         base_flags, osx_flags)
 
-if 'WITH_X11' in environ:
+if c_options['use_x11']:
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, graphics_flags, {
             'depends': [join(dirname(__file__),
@@ -423,6 +427,7 @@ setup(
         'hardware-accelerated multitouch applications.'),
     ext_modules=ext_modules,
     cmdclass=cmdclass,
+    scripts=['kivy/tools/garden'],
     packages=[
         'kivy',
         'kivy.adapters',

@@ -5,10 +5,11 @@ Graphics tests
 Testing the simple vertex instructions
 '''
 
+import unittest
 from kivy.tests.common import GraphicUnitTest
 
 
-class VertexInstructionTestCase(GraphicUnitTest):
+class VertexInstructionTest(GraphicUnitTest):
 
     def test_circle(self):
         from kivy.uix.widget import Widget
@@ -86,3 +87,23 @@ class VertexInstructionTestCase(GraphicUnitTest):
         p.add_point(50, 10)
 
         r(wid)
+
+
+class FBOInstructionTestCase(unittest.TestCase):
+
+    def test_fbo_pixels(self):
+        from kivy.graphics import Fbo, ClearColor, ClearBuffers, Ellipse
+
+        fbo = Fbo(size=(512, 512))
+        with fbo:
+            ClearColor(0, 0, 0, 1)
+            ClearBuffers()
+            Ellipse(pos=(100, 100), size=(100, 100))
+        fbo.draw()
+        data = fbo.pixels
+
+        import pygame
+        surface = pygame.image.fromstring(data, (512, 512), 'RGBA', True)
+        pygame.image.save(surface, "results.png")
+
+

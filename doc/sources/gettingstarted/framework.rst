@@ -1,10 +1,6 @@
 Non-widget stuff
 -----------------
 
-.. container:: title
-
-    Kivy FrameWork
-
 .. |animation_img| image:: ../images/gs-animation.gif
 
 .. |animation_text| replace:: :class:`Animation <kivy.animation.Animation>` is used to change a Widget's properties (size/pos/center...), to a target value, in a target time.
