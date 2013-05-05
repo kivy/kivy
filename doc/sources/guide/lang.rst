@@ -335,7 +335,7 @@ template instead, like so:
 attributes of each instance of this template.
 
 Re-using styles in multiple widgets
-------------------------------------------------------------
+-----------------------------------
 
 Consider the code below in my.kv:
 
@@ -357,7 +357,6 @@ In myapp.py:
 
 .. code-block:: py
 
-    ...
     class MyFirstWidget(BoxLayout):
 
         def text(self, val):
@@ -369,7 +368,6 @@ In myapp.py:
 
         def text(self, val):
             self.writing = val
-    ...
 
 Because both classes share the same .kv style, this design can be simplified
 if we reuse the style for both widgets. You can do this in .kv as follows.
@@ -377,13 +375,13 @@ In my.kv:
 
 .. code-block:: kv
 
-    <-MyFirstWidget,-MySecondWidget>:
+    <MyFirstWidget,MySecondWidget>:
         Button:
             on_press: self.text(txt_inpt.text)
         TextInput:
             id: txt_inpt
 
-By appending a dash before each class name, all the classes listed in the
+By separating the class names with a comma, all the classes listed in the
 declaration will have the same kv properties.
 
 Designing with the Kivy Language
