@@ -34,7 +34,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 
 
 def distance(pt1, pt2):
-    return sqrt((pt1[0] - pt2[0]) ** 2 + (pt1[1] - pt2[1]) ** 2)
+    return sqrt((pt1[0] - pt2[0]) ** 2. + (pt1[1] - pt2[1]) ** 2.)
 
 
 def polar_to_rect(origin, r, theta):
@@ -46,9 +46,9 @@ def rect_to_polar(origin, x, y):
         if y == origin[1]:
             return (0, 0)
         elif y > origin[1]:
-            return (y - origin[1], pi / 2)
+            return (y - origin[1], pi / 2.)
         else:
-            return (origin[1] - y, 3 * pi / 2)
+            return (origin[1] - y, 3 * pi / 2.)
     t = atan(float((y - origin[1])) / (x - origin[0]))
     if x - origin[0] < 0:
         t += pi
@@ -141,10 +141,10 @@ class ColorWheel(Widget):
             for t in range(ppie):
                 self.arcs.append(
                     ColorArc(
-                        self._radius * (float(r) / pdv),
-                        self._radius * (float(r + 1) / pdv),
-                        2 * pi * (float(t) / ppie),
-                        2 * pi * (float(t + 1) / ppie),
+                        self._radius * (float(r) / float(pdv)),
+                        self._radius * (float(r + 1) / float(pdv)),
+                        2 * pi * (float(t) / float(ppie)),
+                        2 * pi * (float(t + 1) / float(ppie)),
                         origin=self._origin,
                         color=(float(t) / ppie,
                                self.sv_s[self.sv_idx + r][0],
@@ -325,12 +325,12 @@ class ColorArc(InstructionGroup):
                     self.origin, self.r_max,
                     self.theta_min + x * theta_step_outer) * 2)
         else:
-            for x in range(int(d_inner)):
+            for x in range(int(d_inner + 2)):
                 v += (polar_to_rect(
-                    self.origin, self.r_min,
+                    self.origin, self.r_min - 1,
                     self.theta_min + x * theta_step_inner) * 2)
                 v += (polar_to_rect(
-                    self.origin, self.r_max,
+                    self.origin, self.r_max + 1,
                     self.theta_min + x * theta_step_inner) * 2)
 
         v += (end_point_inner * 2)

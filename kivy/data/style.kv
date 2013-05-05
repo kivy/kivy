@@ -820,7 +820,7 @@
 # =============================================================================
 # Color Picker
 # =============================================================================
-<ColorInput@TextInput>
+<C_olorInput@TextInput>
     multiline: False
     mroot: None
     size_hint_x: .5
@@ -829,7 +829,7 @@
     background_color: root.mroot.background_color if root.mroot else (1, 1, 1, 1)
     foreground_color: root.mroot.label_color if root.mroot else (1, 1, 1, 1)
 
-<ColorLabel@Label>
+<C_olorLabel@Label>
     canvas.before:
         Color:
             rgba: 0, 0, 0, .7
@@ -845,7 +845,7 @@
     halign: "center"
     valign: "middle"
 
-<ColorSelector@BoxLayout>
+<C_olorSelector@BoxLayout>
     text: ''
     mroot: None
     mode: 'rgb'
@@ -853,10 +853,10 @@
     spacing: '1pt'
     BoxLayout:
         spacing: '2pt'
-        ColorLabel:
+        C_olorLabel:
             text: root.text
             mroot: root.mroot
-        ColorInput:
+        C_olorInput:
             mroot: root.mroot
             text: str(int(sldr.value))
             on_text:
@@ -864,6 +864,7 @@
     Slider:
         id: sldr
         size_hint: 1, .25
+        pos_hint: {'center_y':.5}
         range: 0, 254
         value: root.color * 255
         on_value:
@@ -880,12 +881,6 @@
         orientation: 'vertical'
         spacing: '5pt'
         padding: '5pt'
-        ColorWheel:
-            id: wheel
-            _origin: (self.center_x, self.center_y)
-            _radius: 0.45 * min(self.size)
-            color: root.color
-            on_color: root.color[:3] = args[1][:3]
         GridLayout:
             canvas:
                 #Color:
@@ -905,34 +900,34 @@
             height: '92sp'
             spacing: '2pt'
             cols: 2
-            ColorSelector:
+            C_olorSelector:
                 mroot: root
                 text: 'R:'
                 clr_idx: 0
                 color: wheel.r
-            ColorSelector:
+            C_olorSelector:
                 mroot: root
                 mode: 'hsv'
                 text: 'H:'
                 clr_idx: 0
                 color: root.hsv[0]
-            ColorSelector:
+            C_olorSelector:
                 mroot: root
                 text: 'G:'
                 clr_idx: 1
                 color: wheel.g
-            ColorSelector:
+            C_olorSelector:
                 mroot: root
                 mode: 'hsv'
                 text: 'S:'
                 clr_idx: 1
                 color: root.hsv[1]
-            ColorSelector:
+            C_olorSelector:
                 mroot: root
                 text: 'B:'
                 clr_idx: 2
                 color: wheel.b
-            ColorSelector:
+            C_olorSelector:
                 mroot: root
                 mode: 'hsv'
                 text: 'V:'
@@ -941,18 +936,24 @@
         BoxLayout:
             spacing: '2pt'
             size_hint: 1, None
-            height: '25sp'
-            ColorSelector:
+            height: '27sp'
+            C_olorSelector:
                 mroot: root
                 text: 'A:'
                 clr_idx: 3
                 color: root.color[3]
             BoxLayout:
                 spacing: '2pt'
-                ColorLabel:
+                C_olorLabel:
                     mroot: root
                     text: 'HEX:'
-                ColorInput:
+                C_olorInput:
                     mroot: root
                     text: str(root.hex_color)
                     on_text: root._trigger_update_hex(args[1])
+        ColorWheel:
+            id: wheel
+            _origin: (self.center_x, self.center_y)
+            _radius: 0.45 * min(self.size)
+            color: root.color
+            on_color: root.color[:3] = args[1][:3]
