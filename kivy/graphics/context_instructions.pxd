@@ -60,7 +60,9 @@ cdef class Transform(MatrixInstruction):
 cdef class Rotate(Transform):
     cdef float _angle
     cdef tuple _axis
+    cdef tuple _origin
     cdef void apply(self)
+    cdef void compute(self)
 
 cdef class Scale(Transform):
     cdef float _x, _y, _z
