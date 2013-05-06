@@ -469,6 +469,33 @@ When you are creating a context:
                 # root.prop1 is a property, the context will not update the
                 # context
 
+Redefining a widget's style
+---------------------------
+
+Sometimes we would like to inherit from a widget in order to use its python
+properties without also using its .kv defined style. For example, we would
+like to inherit from a Label, but we would also like to define our own
+canvas instructions instead of automatically using the canvas instructions
+inherited from Label. We can achieve this by prepending a dash (-) before
+the class name in the .kv style definition.
+
+In myapp.py::
+
+    class MyWidget(Label):
+        pass
+
+and in my.kv::
+
+    <-MyWidget>:
+        canvas:
+            Color:
+                rgb: 1, 1, 1
+            Rectangle:
+                size: (32, 32)
+
+MyWidget will now have a Color and Rectangle instruction in its canvas
+without any of the instructions inherited from Label.
+
 Lang Directives
 ---------------
 
@@ -1593,6 +1620,7 @@ Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
 if 'KIVY_PROFILE_LANG' in environ:
     import atexit
     import cgi
+
     def match_rule(fn, index, rule):
         if rule.ctx.filename != fn:
             return
