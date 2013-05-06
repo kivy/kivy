@@ -31,7 +31,7 @@ Installing the dev version
 --------------------------
 
 Step 1. Follow the procedure mentioned above to install kivy stable.
-step 2  Open a terminal and type the following commands into it.
+step 2  Open a terminal and type the following commands into it::
 
     cd /Applications/Kivy.app/Contents/Resources/
     mv kivy kivy_stable

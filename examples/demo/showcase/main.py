@@ -297,12 +297,11 @@ class ShowcaseApp(App):
 
     def show_font_sizes(self):
         font_sizes = FontSizesWidgets()
-        metrics = Metrics()
         metrics_values = {
-            'dpi': str(metrics.dpi),
-            'dpi_rounded': str(metrics.dpi_rounded),
-            'density': str(metrics.density),
-            'fontscale': str(metrics.fontscale),
+            'dpi': str(Metrics.dpi),
+            'dpi_rounded': str(Metrics.dpi_rounded),
+            'density': str(Metrics.density),
+            'fontscale': str(Metrics.fontscale),
         }
         label = font_sizes.children[1]
         label.text = ('DPI: {dpi} | '
