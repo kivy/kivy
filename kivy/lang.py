@@ -1437,6 +1437,8 @@ class BuilderBase(object):
 
         # if we got an id, put it in the root rule for a later global usage
         if rule.id:
+            # use only the first word as `id` discard the rest.
+            rule.id = rule.id.split('#', 1)[0].strip()
             rctx['ids'][rule.id] = widget
             # set id name as a attribute for root widget so one can in python
             # code simply access root_widget.id_name
