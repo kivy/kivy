@@ -3,7 +3,7 @@ cdef class Color
 cdef class BindTexture
 
 from transformation cimport Matrix
-from instructions cimport ContextInstruction
+from instructions cimport ContextInstruction, RenderContext
 from texture cimport Texture
 
 cdef class PushState(ContextInstruction):
@@ -11,6 +11,10 @@ cdef class PushState(ContextInstruction):
 
 cdef class ChangeState(ContextInstruction):
     pass
+    
+cdef class SetState(ContextInstruction):
+    cdef dict _set_states
+    cdef void apply(self)
 
 cdef class PopState(ContextInstruction):
     pass
