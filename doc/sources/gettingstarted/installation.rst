@@ -7,7 +7,8 @@ Kivy:
 
     http://kivy.org/#download
 
-After download, please refer to the installation instructions for your specific platform:
+After downloading, please refer to the installation instructions for your
+specific platform:
 
 .. image:: ../images/windows.png
     :alt: Windows
@@ -27,9 +28,9 @@ After download, please refer to the installation instructions for your specific 
 Development Version
 ~~~~~~~~~~~~~~~~~~~
 
-If you want the development version of Kivy, so you can use the latest
+If you want the development version of Kivy in order to benefit from the latest
 additions to the framework, you can get the source code from github::
 
     git clone http://github.com/kivy/kivy
 
-Take a look at our instructions on installation of the :ref:`installation_devel`
+Take a look at our instructions for installing the :ref:`installation_devel`
