@@ -3,7 +3,7 @@ cdef class Color
 cdef class BindTexture
 
 from transformation cimport Matrix
-from instructions cimport ContextInstruction, RenderContext
+from instructions cimport ContextInstruction
 from texture cimport Texture
 
 cdef class PushState(ContextInstruction):
