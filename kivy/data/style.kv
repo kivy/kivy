@@ -820,7 +820,7 @@
 # =============================================================================
 # Color Picker
 # =============================================================================
-<C_olorInput@TextInput>
+<ColorPicker_Input@TextInput>
     multiline: False
     mroot: None
     size_hint_x: .5
@@ -829,7 +829,7 @@
     background_color: root.mroot.background_color if root.mroot else (1, 1, 1, 1)
     foreground_color: root.mroot.label_color if root.mroot else (1, 1, 1, 1)
 
-<C_olorLabel@Label>
+<ColorPicker_Label@Label>
     canvas.before:
         Color:
             rgba: 0, 0, 0, .7
@@ -845,7 +845,7 @@
     halign: "center"
     valign: "middle"
 
-<C_olorSelector@BoxLayout>
+<ColorPicker_Selector@BoxLayout>
     text: ''
     mroot: None
     mode: 'rgb'
@@ -853,10 +853,10 @@
     spacing: '1pt'
     BoxLayout:
         spacing: '2pt'
-        C_olorLabel:
+        ColorPicker_Label:
             text: root.text
             mroot: root.mroot
-        C_olorInput:
+        ColorPicker_Input:
             mroot: root.mroot
             text: str(int(sldr.value))
             on_text:
@@ -900,34 +900,34 @@
             height: '92sp'
             spacing: '2pt'
             cols: 2
-            C_olorSelector:
+            ColorPicker_Selector:
                 mroot: root
                 text: 'R:'
                 clr_idx: 0
                 color: wheel.r
-            C_olorSelector:
+            ColorPicker_Selector:
                 mroot: root
                 mode: 'hsv'
                 text: 'H:'
                 clr_idx: 0
                 color: root.hsv[0]
-            C_olorSelector:
+            ColorPicker_Selector:
                 mroot: root
                 text: 'G:'
                 clr_idx: 1
                 color: wheel.g
-            C_olorSelector:
+            ColorPicker_Selector:
                 mroot: root
                 mode: 'hsv'
                 text: 'S:'
                 clr_idx: 1
                 color: root.hsv[1]
-            C_olorSelector:
+            ColorPicker_Selector:
                 mroot: root
                 text: 'B:'
                 clr_idx: 2
                 color: wheel.b
-            C_olorSelector:
+            ColorPicker_Selector:
                 mroot: root
                 mode: 'hsv'
                 text: 'V:'
@@ -937,17 +937,17 @@
             spacing: '2pt'
             size_hint: 1, None
             height: '27sp'
-            C_olorSelector:
+            ColorPicker_Selector:
                 mroot: root
                 text: 'A:'
                 clr_idx: 3
                 color: root.color[3]
             BoxLayout:
                 spacing: '2pt'
-                C_olorLabel:
+                ColorPicker_Label:
                     mroot: root
                     text: 'HEX:'
-                C_olorInput:
+                ColorPicker_Input:
                     mroot: root
                     text: str(root.hex_color)
                     on_text: root._trigger_update_hex(args[1])
