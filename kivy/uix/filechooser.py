@@ -301,6 +301,12 @@ class FileChooserController(FloatLayout):
                   rootpath=self._trigger_update)
         self._trigger_update()
 
+    def on_touch_up(self, touch):
+        # don't respond to touchs outside self
+        if not self.collide_point(*touch.pos):
+            return True
+        return super(FileChooserController, self).on_touch_up(touch)
+
     def _update_item_selection(self, *args):
         for item in self._items:
             item.selected = item.path in self.selection
