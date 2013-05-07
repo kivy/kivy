@@ -96,12 +96,13 @@ cdef class Canvas(CanvasBase):
 cdef class RenderContext(Canvas):
     cdef Shader _shader
     cdef dict state_stacks
-    #cdef TextureManager texture_manager
     cdef Texture default_texture
     cdef dict bind_texture
+    cdef int _use_parent_projection
+    cdef int _use_parent_modelview
 
     cdef void set_texture(self, int index, Texture texture)
-    cdef void set_state(self, str name, value)
+    cdef void set_state(self, str name, value, int apply_now=?)
     cdef get_state(self, str name)
     cdef void set_states(self, dict states)
     cdef void push_state(self, str name)

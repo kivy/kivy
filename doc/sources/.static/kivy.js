@@ -100,7 +100,7 @@ $(document).ready(function () {
 		}
 	});
 
-	$('div.body dl dt').click(function() {
+	$('div.body dl.api-level dt').click(function() {
 		$(this).next().children().toggle();
 	});
 
@@ -134,22 +134,27 @@ $(document).ready(function () {
 	$('div.sphinxsidebarwrapper > ul > li > a').each(function(index, item) {
 		$(item)
 			.attr('href', '#')
-			.addClass('mainlevel')
-			.bind('mousedown', function() {
-			$('div.sphinxsidebar ul li ul').filter(function (index, child) {
-				if (child != $(item).parent().children('ul').get(0)) return child;
-			}).slideUp();
-			$(item).parent().children('ul').slideToggle();
-		});
+			.addClass('mainlevel');
+		if ( !is_api ) {
+			$(item)
+				.bind('mousedown', function() {
+				$('div.sphinxsidebar ul li ul').filter(function (index, child) {
+					if (child != $(item).parent().children('ul').get(0)) return child;
+				}).slideUp();
+				$(item).parent().children('ul').slideToggle();
+			});
+		}
 	})
 
 	$('div.sphinxsidebarwrapper li.current').parent().show();
 
-	$('div.sphinxsidebarwrapper ul li').each(function(index, item) {
-		if ($(item).children('ul').length > 0) {
-			$(item).children('a').addClass('togglable');
-		}
-	});
+	if ( !is_api ) {
+		$('div.sphinxsidebarwrapper ul li').each(function(index, item) {
+			if ($(item).children('ul').length > 0) {
+				$(item).children('a').addClass('togglable');
+			}
+		});
+	}
 
 	// FIXME
 	$('div.sphinxsidebar a[href$="api-kivy.html"]').parent().parent().addClass('api-index');
@@ -165,7 +170,7 @@ $(document).ready(function () {
 		url = url.substr(url.search('api-') + 4);
 		$(item).empty().append(url);
 	});
-	
+
 	// Hide API section if we are not in the API.
 	// or hide all the others sections if we are in the API
 	if ( is_api ) {
@@ -187,36 +192,30 @@ $(document).ready(function () {
 
 	if ( is_api ) {
 		var divscroll = $('div.sphinxsidebarwrapper');
+		var divscrollwidth = divscroll.width();
 		var divapi = $('.api-index');
 		var initial_offset = divscroll.offset();
 		var jwindow = $(window);
 
 		function update_api() {
 			var ywindow = jwindow.scrollTop();
-			var ymintop = initial_offset.top;
-			var ytop = ymintop;
-			var ypadding = 10;
-			var overscroll = $(window).height() + $(window).scrollTop() - $(document).height();
-			var yoff = ywindow;
-
-			if ( ywindow > ymintop - ypadding)
-				ytop = ywindow + ypadding;
-			if ( overscroll > 0 )
-				ytop -= overscroll;
-			if ( ywindow > initial_offset.top )
-				yoff = initial_offset.top;
-
-			divscroll.offset({top: ytop, left: initial_offset.left});
-
-			var h = jwindow.height() - divapi.position().top - 130 + yoff;
-			divapi.height(h);
+			var ypadding = 20;
+			var ydiff = ywindow - initial_offset.top;
+			var height = jwindow.height();
+			if ( ydiff + ypadding > 0) {
+				divscroll.css('position', 'fixed').css('top', ypadding);
+				height -= ypadding * 2;
+			} else {
+				divscroll.css('position', 'static').css('top', -ydiff);
+				height += ydiff - ypadding;
+			}
+			divscroll.height(height).width(divscrollwidth);
+			divapi.height(divapi.offsetParent().height() - divapi.position().top)
 		}
 
 		$(window).scroll(update_api).bind('resize', update_api);
 
 		update_api();
-
-		$('.api-index').scrollTop($('.api-index').scrollTop() + $('li.toctree-l2.current').position().top - 143)
 
 		$('.toc').hide();
 
@@ -224,13 +223,12 @@ $(document).ready(function () {
 		var divscroll = $('div.sphinxsidebar');
 		var initial_offset = divscroll.offset();
 		var jwindow = $(window);
-		var b = divscroll.position().top + divscroll.height(); 
+		var b = divscroll.position().top + divscroll.height();
 
 		function update_sidebar() {
 			var ywindow = jwindow.scrollTop();
 			var ymintop = initial_offset.top;
 			var a = ywindow + jwindow.height();
-			console.log(a, b);
 			if ( ywindow > b ) {
 				var current = $('li.toctree-l1.current').position().top;
 				divscroll.css('position', 'fixed').css('top', -current);
@@ -244,6 +242,9 @@ $(document).ready(function () {
 
 		if ($('.toc > ul > li> ul').length < 1)
 			$('.toc').hide();
+
+		var section_title = $('li.toctree-l1.current > a').text();
+		$('div.body h1:eq(0)').prepend(section_title + ' &raquo; ');
 	}
 
 });

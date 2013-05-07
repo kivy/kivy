@@ -679,9 +679,12 @@ cdef class RenderContext(Canvas):
     - The default texture
     - The state stack (color, texture, matrix...)
     '''
-    def __init__(self, *args, **kwargs):
-        cdef str key
+    def __cinit__(self, *args, **kwargs):
+        self._use_parent_projection = 0
+        self._use_parent_modelview = 0
         self.bind_texture = dict()
+
+    def __init__(self, *args, **kwargs):
         Canvas.__init__(self, **kwargs)
         vs_src = kwargs.get('vs', None)
         fs_src = kwargs.get('fs', None)
@@ -703,14 +706,20 @@ cdef class RenderContext(Canvas):
             'modelview_mat' : [Matrix()],
         }
 
+        cdef str key
         self._shader.use()
         for key, stack in self.state_stacks.iteritems():
             self.set_state(key, stack[0])
 
-    cdef void set_state(self, str name, value):
+        if 'use_parent_projection' in kwargs:
+            self._use_parent_projection = bool(int(kwargs['use_parent_projection']))
+        if 'use_parent_modelview' in kwargs:
+            self._use_parent_modelview = bool(int(kwargs['use_parent_modelview']))
+
+    cdef void set_state(self, str name, value, int apply_now=0):
         # Upload the uniform value to the shader
         cdef list d
-        if not name in self.state_stacks:
+        if name not in self.state_stacks:
             self.state_stacks[name] = [value]
             self.flag_update()
         else:
@@ -773,6 +782,13 @@ cdef class RenderContext(Canvas):
 
     cdef void apply(self):
         cdef list keys = self.state_stacks.keys()
+        cdef RenderContext active_context = getActiveContext()
+        if self._use_parent_projection:
+            self.set_state('projection_mat',
+                    active_context.get_state('projection_mat'), 0)
+        if self._use_parent_modelview:
+            self.set_state('modelview_mat',
+                    active_context.get_state('modelview_mat'), 0)
         pushActiveContext(self)
         if _need_reset_gl:
             reset_gl_context()
@@ -795,8 +811,52 @@ cdef class RenderContext(Canvas):
         return self._shader.uniform_values[key]
 
     property shader:
+        '''Return the shader attached to the render context.
+        '''
         def __get__(self):
             return self._shader
+
+    property use_parent_projection:
+        '''If True, the parent projection matrix will be used.
+
+        .. versionadded:: 1.7.0
+
+        Before::
+
+            rc['projection_mat'] = Window.render_context['projection_mat']
+
+        Now::
+
+            rc = RenderContext(use_parent_projection=True)
+        '''
+        def __get__(self):
+            return bool(self._use_parent_projection)
+        def __set__(self, value):
+            cdef cvalue = int(bool(value))
+            if self._use_parent_projection != cvalue:
+                self._use_parent_projection = cvalue
+                self.flag_update()
+
+    property use_parent_modelview:
+        '''If True, the parent modelview matrix will be used.
+
+        .. versionadded:: 1.7.0
+
+        Before::
+
+            rc['modelview_mat'] = Window.render_context['modelview_mat']
+
+        Now::
+
+            rc = RenderContext(use_parent_modelview=True)
+        '''
+        def __get__(self):
+            return bool(self._use_parent_modelview)
+        def __set__(self, value):
+            cdef cvalue = int(bool(value))
+            if self._use_parent_modelview != cvalue:
+                self._use_parent_modelview = cvalue
+                self.flag_update()
 
 
 cdef RenderContext ACTIVE_CONTEXT = None

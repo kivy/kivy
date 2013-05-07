@@ -106,6 +106,7 @@ Control + r     redo
 __all__ = ('TextInput', )
 
 import sys
+import re
 
 from os import environ
 from weakref import ref
@@ -406,12 +407,29 @@ class TextInput(Widget):
         '''
         self.select_text(0, len(self.text))
 
+    re_indent = re.compile('^(\s*|)')
+
+    def _auto_indent(self, substring):
+        index = self.cursor_index()
+        if index > 0:
+            line_start = self.text.rfind('\n', 0, index)
+            if line_start > -1:
+                line = self.text[line_start + 1:index]
+                indent = self.re_indent.match(line).group()
+                substring += indent
+        return substring
+
     def insert_text(self, substring, from_undo=False):
         '''Insert new text on the current cursor position. Override this
         function in order to pre-process text for input validation
         '''
         if self.readonly:
             return
+
+        if not from_undo and self.multiline and self.auto_indent \
+                and substring == '\n':
+            substring = self._auto_indent(substring)
+
         cc, cr = self.cursor
         sci = self.cursor_index
         ci = sci()
@@ -1248,10 +1266,7 @@ class TextInput(Widget):
             rects = self._lines_rects
             labels = self._lines_labels
             lines = self._lines
-        padding_left = self.padding[0]
-        padding_top = self.padding[1]
-        padding_right = self.padding[2]
-        padding_bottom = self.padding[3]
+        padding_left, padding_top, padding_right, padding_bottom = self.padding
         x = self.x + padding_left
         y = self.top - padding_top + sy
         miny = self.y + padding_bottom
@@ -1818,7 +1833,7 @@ class TextInput(Widget):
         self.padding[1] = value[0]
         self.padding[3] = value[1]
 
-    padding = VariableListProperty([0, 0, 0, 0])
+    padding = VariableListProperty([6, 6, 6, 6])
     '''Padding of the text: [padding_left, padding_top, padding_right,
     padding_bottom].
 
@@ -1830,7 +1845,7 @@ class TextInput(Widget):
     Replaced AliasProperty with VariableListProperty.
 
     :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default
-    to [0, 0, 0, 0]. This might be changed by the current theme.
+    to [6, 6, 6, 6].
     '''
 
     scroll_x = NumericProperty(0)
@@ -2043,6 +2058,12 @@ class TextInput(Widget):
 
     :data:`hint_text_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0.5, 0.5, 0.5, 1.0] #Grey
+    '''
+
+    auto_indent = BooleanProperty(False)
+    '''Automatically indent multiline text.
+
+    .. versionadded:: 1.6.1
     '''
 
 if __name__ == '__main__':

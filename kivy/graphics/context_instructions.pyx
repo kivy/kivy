@@ -561,24 +561,55 @@ cdef class Rotate(Transform):
     afterwards with e.g.::
 
         rot.angle = 90
-        rot.axis = (0,0,1)
+        rot.axis = (0, 0, 1)
     '''
 
     def __init__(self, *args, **kwargs):
         Transform.__init__(self, **kwargs)
+        self._origin = (0, 0, 0)
+
+        # compatibility mode from version < 1.7
         if len(args) == 4:
-            self.set(args[0], args[1], args[2], args[3])
+            self._angle = args[0]
+            self._axis = args[1:]
         else:
-            self.set(0, 0, 0, 1)
+            self._angle = 0
+            self._axis = (0, 0, 1)
+
+        if 'axis' in kwargs:
+            self._axis = kwargs['axis']
+        if 'angle' in kwargs:
+            self._angle = kwargs['angle']
+        if 'origin' in kwargs:
+            self._origin = kwargs['origin']
+
+        self.compute()
+
 
     def set(self, float angle, float ax, float ay, float az):
         '''Set the angle and axis of rotation
 
         >>> rotationobject.set(90, 0, 0, 1)
+
+        .. deprecated:: 1.7.0
+
+            The set() method doesn't use the new :data:`origin` property.
         '''
         self._angle = angle
         self._axis = (ax, ay, az)
         self.matrix = Matrix().rotate(radians(self._angle), ax, ay, az)
+
+    cdef void compute(self):
+        cdef float angle = self._angle
+        cdef float ax, ay, az, ox, oy, oz
+        ax, ay, az = self._axis
+        ox, oy, oz = self._origin
+        cdef Matrix matrix
+        matrix = Matrix().translate(ox, oy, oz)
+        matrix = matrix.multiply(Matrix().rotate(
+            radians(self._angle), ax, ay, az))
+        matrix = matrix.multiply(Matrix().translate(-ox, -oy, -oz))
+        self.matrix = matrix
 
     property angle:
         '''Property for getting/settings the angle of the rotation
@@ -586,7 +617,8 @@ cdef class Rotate(Transform):
         def __get__(self):
             return self._angle
         def __set__(self, a):
-            self.set(a, *self._axis)
+            self._angle = a
+            self.compute()
 
     property axis:
         '''Property for getting/settings the axis of the rotation
@@ -596,8 +628,26 @@ cdef class Rotate(Transform):
         def __get__(self):
             return self._axis
         def __set__(self, axis):
-           self.set(self._angle, *axis)
+            self._axis = axis
+            self.compute()
 
+    property origin:
+        '''Origin of the rotation
+
+        .. versionadded:: 1.7.0
+
+        The format of the origin can be either (x, y) or (x, y, z)
+        '''
+        def __get__(self):
+            return self._origin
+        def __set__(self, origin):
+            if len(origin) == 3:
+                self._origin = tuple(origin)
+            elif len(origin) == 2:
+                self._origin = (origin[0], origin[1], 0.)
+            else:
+                raise Exception('invalid number of components in origin')
+            self.compute()
 
 
 cdef class Scale(Transform):

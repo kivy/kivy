@@ -82,7 +82,7 @@ class FactoryBase(object):
         .. versionadded:: 1.6.1
         '''
         to_remove = [x for x in self.classes
-                if self.classes[x][filename] == filename]
+                if self.classes[x]['filename'] == filename]
         for name in to_remove:
             del self.classes[name]
 

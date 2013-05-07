@@ -16,7 +16,7 @@ a native implementation exist.
     >>> s.list_languages()
     ['en', 'en_CA', 'en_GB', 'en_US']
     >>> s.select_language('en_US')
-    >>> s.check('helo')
+    >>> s.suggest('helo')
     [u'hole', u'help', u'helot', u'hello', u'halo', u'hero', u'hell', u'held',
      u'helm', u'he-lo']
 

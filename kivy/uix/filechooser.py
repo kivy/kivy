@@ -301,6 +301,12 @@ class FileChooserController(FloatLayout):
                   rootpath=self._trigger_update)
         self._trigger_update()
 
+    def on_touch_up(self, touch):
+        # don't respond to touchs outside self
+        if not self.collide_point(*touch.pos):
+            return True
+        return super(FileChooserController, self).on_touch_up(touch)
+
     def _update_item_selection(self, *args):
         for item in self._items:
             item.selected = item.path in self.selection
@@ -480,6 +486,7 @@ class FileChooserController(FloatLayout):
             parent.entries[:] = items
             for entry in items:
                 self.dispatch('on_subentry_to_entry', entry, parent)
+        self.files[:] = [file.path for file in items]
 
         # stop the progression / creation
         self._hide_progress()
@@ -555,6 +562,7 @@ class FileChooserController(FloatLayout):
                 yield index, total, item
         except OSError:
             Logger.exception('Unable to open directory <%s>' % self.path)
+            self.files[:] = []
 
     def _add_files(self, path, parent=None):
         force_unicode = self._force_unicode
@@ -582,6 +590,7 @@ class FileChooserController(FloatLayout):
         is_hidden = self.is_hidden
         if not self.show_hidden:
             files = [x for x in files if not is_hidden(x)]
+        self.files[:] = files
         total = len(files)
         wself = ref(self)
         for index, fn in enumerate(files):

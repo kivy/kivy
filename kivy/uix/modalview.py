@@ -166,6 +166,9 @@ class ModalView(AnchorLayout):
         window, the view will attach to the global
         :class:`~kivy.core.window.Window`.
         '''
+        if self._window is not None:
+            Logger.warning('ModalView: you can only open once.')
+            return self
         # search window
         self._window = self._search_window()
         if not self._window:
