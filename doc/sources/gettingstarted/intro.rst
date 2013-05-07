@@ -3,7 +3,7 @@ Introduction
 
 .. container:: title
 
-    Start Developing Kivy Apps right away!
+    Start Developing Kivy Apps Right Away!
 
 Creating Kivy apps is fun and rewarding. This guide should be the perfect
 starting point to get you on the right track for app development. You will
@@ -13,17 +13,17 @@ require a basic knowledge of Python to follow this introduction.
     :align: center
     :height: 255px
 
-If you need more background about Python language, you might be interested in
+If you need more background on the Python language, you might be interested in
 these tutorials:
 
-* `The Python Tutorial (at the Python website) <http://docs.python.org/tutorial/>`_
+* `The Official Python Tutorial <http://docs.python.org/tutorial/>`_
 * `Learn Python in 10 minutes <http://www.korokithakis.net/tutorials/python/>`_
 * `Learn Python the hard way <http://learnpythonthehardway.org/>`_
 
 Using Kivy on your computer, you can create apps that run on:
 
 - Desktop computers: MacOSX, Linux, Windows.
-- iOs Devices: iPad, iPhone
+- iOs Devices: iPad, iPhone.
 - Android devices: Tablets, phones.
 - Any other touch-enabled professional/homebrew devices supporting TUIO
   (Tangible User Interface Objects).
@@ -39,10 +39,10 @@ As you proceed through the guide, you will, using Kivy:
 
 - **Learn**:    The basics of programming with the Kivy language.
 - **Explore**:  The Kivy framework.
-- **Create**:   simple cross-platform app.
-- **Package**:  for your choice of platform.
+- **Create**:   A simple cross-platform app.
+- **Package**:  For your choice of platform.
 
-Finally, you will learn how to **Deploy** on a device of your choice.
+Finally, you will learn how to **Deploy** on the device of your choice.
 
 Each section of the guide introduces a new topic, trying to give you enough
 information to get started and links to related articles for more in-depth
