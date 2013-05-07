@@ -305,7 +305,7 @@ class FileChooserController(FloatLayout):
         # don't respond to touchs outside self
         if not self.collide_point(*touch.pos):
             return True
-        super(FileChooserController, self).on_touch_up(touch)
+        return super(FileChooserController, self).on_touch_up(touch)
 
     def _update_item_selection(self, *args):
         for item in self._items:
