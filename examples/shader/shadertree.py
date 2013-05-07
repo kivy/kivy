@@ -108,12 +108,12 @@ class ShaderWidget(FloatLayout):
     def __init__(self, **kwargs):
         # Instead of using canvas, we will use a RenderContext,
         # and change the default shader used.
-        self.canvas = RenderContext()
+        self.canvas = RenderContext(use_parent_projection=True)
 
         # We create a framebuffer at the size of the window
         # FIXME: this should be created at the size of the widget
         with self.canvas:
-            self.fbo = Fbo(size=Window.size)
+            self.fbo = Fbo(size=Window.size, use_parent_projection=True)
 
         # Set the fbo background to black.
         with self.fbo:
@@ -133,9 +133,6 @@ class ShaderWidget(FloatLayout):
     def update_glsl(self, *largs):
         self.canvas['time'] = Clock.get_boottime()
         self.canvas['resolution'] = map(float, self.size)
-        # This is needed for the default vertex shader.
-        self.fbo['projection_mat'] = Window.render_context['projection_mat']
-        self.canvas['projection_mat'] = Window.render_context['projection_mat']
 
     def on_fs(self, instance, value):
         # set the fragment shader to our source code
