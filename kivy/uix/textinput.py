@@ -106,6 +106,7 @@ Control + r     redo
 __all__ = ('TextInput', )
 
 import sys
+import re
 
 from os import environ
 from weakref import ref
@@ -406,12 +407,29 @@ class TextInput(Widget):
         '''
         self.select_text(0, len(self.text))
 
+    re_indent = re.compile('^(\s*|)')
+
+    def _auto_indent(self, substring):
+        index = self.cursor_index()
+        if index > 0:
+            line_start = self.text.rfind('\n', 0, index)
+            if line_start > -1:
+                line = self.text[line_start + 1:index]
+                indent = self.re_indent.match(line).group()
+                substring += indent
+        return substring
+
     def insert_text(self, substring, from_undo=False):
         '''Insert new text on the current cursor position. Override this
         function in order to pre-process text for input validation
         '''
         if self.readonly:
             return
+
+        if not from_undo and self.multiline and self.auto_indent \
+                and substring == '\n':
+            substring = self._auto_indent(substring)
+
         cc, cr = self.cursor
         sci = self.cursor_index
         ci = sci()
@@ -2040,6 +2058,12 @@ class TextInput(Widget):
 
     :data:`hint_text_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0.5, 0.5, 0.5, 1.0] #Grey
+    '''
+
+    auto_indent = BooleanProperty(False)
+    '''Automatically indent multiline text.
+
+    .. versionadded:: 1.6.1
     '''
 
 if __name__ == '__main__':
