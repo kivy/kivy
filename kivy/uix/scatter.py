@@ -89,7 +89,7 @@ __all__ = ('Scatter', 'ScatterPlane')
 
 from math import radians
 from kivy.properties import BooleanProperty, AliasProperty, \
-        NumericProperty, ObjectProperty
+        NumericProperty, ObjectProperty, BoundedNumericProperty
 from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.graphics.transformation import Matrix
@@ -135,6 +135,14 @@ class Scatter(Widget):
 
     :data:`do_translation` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`do_translation_x` + :data:`do_translation_y`)
+    '''
+
+    translation_touches = BoundedNumericProperty(1, min=1, max=3)
+    '''change whether translation is triggered by a single or multiple touch.
+    This only matters when do_translation = True
+
+    :data:`translation_touches` is a :class:`~kivy.properties.NumericProperty`,
+    default to 1.
     '''
 
     do_rotation = BooleanProperty(True)
@@ -365,14 +373,18 @@ class Scatter(Widget):
 
     def transform_with_touch(self, touch):
         # just do a simple one finger drag
-        if len(self._touches) == 1:
+        if len(self._touches) == self.translation_touches:
             # _last_touch_pos has last pos in correct parent space,
             # just like incoming touch
             dx = (touch.x - self._last_touch_pos[touch][0]) \
                     * self.do_translation_x
             dy = (touch.y - self._last_touch_pos[touch][1]) \
                     * self.do_translation_y
+            dx = dx / self.translation_touches
+            dy = dy / self.translation_touches
             self.apply_transform(Matrix().translate(dx, dy, 0))
+        
+        if len(self._touches) == 1:
             return
 
         # we have more than one touch...
