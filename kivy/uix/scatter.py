@@ -137,12 +137,14 @@ class Scatter(Widget):
     (:data:`do_translation_x` + :data:`do_translation_y`)
     '''
 
-    translation_touches = BoundedNumericProperty(1, min=1, max=3)
-    '''change whether translation is triggered by a single or multiple touch.
-    This only matters when do_translation = True
+    translation_touches = BoundedNumericProperty(1, min=1)
+    '''Change whether translation is triggered by a single or multiple touch.
+    This only matters when :data:`do_translation` = True
 
     :data:`translation_touches` is a :class:`~kivy.properties.NumericProperty`,
     default to 1.
+
+    .. versionadded:: 1.7.0
     '''
 
     do_rotation = BooleanProperty(True)
