@@ -149,6 +149,8 @@ class KineticEffect(EventDispatcher):
         self.trigger_velocity_update()
 
     def apply_distance(self, distance):
+        if abs(distance) < 0.1:
+            self.velocity = 0
         self.kinetic_pos += distance
 
     def start(self, val, t=None):
@@ -181,6 +183,10 @@ class KineticEffect(EventDispatcher):
         self.velocity = (distance / max(duration, 0.0001))
         self.trigger_velocity_update()
 
+    def cancel(self):
+        self.is_manual = False
+        self.trigger_velocity_update()
+
 
 class ScrollEffect(KineticEffect):
     drag_threshold = NumericProperty('20sp')
@@ -188,7 +194,8 @@ class ScrollEffect(KineticEffect):
     scroll_max = NumericProperty(0)
     scroll_pos = NumericProperty(0)
     overscroll = NumericProperty(0)
-    target_widget = ObjectProperty(None)
+    target_widget = ObjectProperty(None, allownone=True)
+    displacement = NumericProperty(0)
 
     def reset(self, pos):
         self.kinetic_pos = pos
@@ -233,14 +240,17 @@ class DampedScrollEffect(ScrollEffect):
     spring_constant = NumericProperty(2.0)
 
     def update_velocity(self, dt):
-        if abs(self.velocity) <= 0.1 and self.overscroll == 0:
+        if abs(self.velocity) <= 0.5 and self.overscroll == 0:
             self.velocity = 0
+            self.kinetic_pos = round(self.kinetic_pos)
             return
 
         total_force = self.velocity * self.friction
-        if self.overscroll != 0:
+        if abs(self.overscroll) > 0.5:
             total_force += self.velocity * self.edge_damping
             total_force += self.overscroll * self.spring_constant
+        else:
+            self.overscroll = 0
 
         self.velocity = self.velocity - total_force
         if not self.is_manual:
@@ -293,13 +303,6 @@ class ScrollView(StencilView):
         self._scroll_y_mouse = 1
         self._scroll_x_mouse = 1
         super(ScrollView, self).__init__(**kwargs)
-        '''
-        self.bind(scroll_x=self.update_from_scroll,
-                  scroll_y=self.update_from_scroll,
-                  pos=self.update_from_scroll,
-                  size=self.update_from_scroll)
-        self.update_from_scroll()
-        '''
         self.effect_x = self.effect_cls(target_widget=self._viewport)
         self.effect_x.bind(scroll_pos=self._update_effect_x)
         self.effect_y = self.effect_cls(target_widget=self._viewport)
@@ -324,72 +327,153 @@ class ScrollView(StencilView):
         self.effect_y.kinetic_pos = self.effect_y.scroll_min
 
     def _update_effect_x(self, *args):
-        if not self._viewport:
+        vp = self._viewport
+        if not vp:
             return
-        self._viewport.x = self.x + self.effect_x.scroll_pos
+        sw = vp.width - self.width
+        if sw < 1:
+            return
+        sx = self.effect_x.scroll_pos / float(sw)
+        self.scroll_x = -sx
+        self.update_from_scroll()
 
     def _update_effect_y(self, *args):
-        if not self._viewport:
+        vp = self._viewport
+        if not vp:
             return
-        self._viewport.y = self.y + self.effect_y.scroll_pos
+        sh = vp.height - self.height
+        if sh < 1:
+            return
+        sy = self.effect_y.scroll_pos / float(sh)
+        self.scroll_y = -sy
+        self.update_from_scroll()
 
     def on_touch_down(self, touch):
-        if self._touch is not None:
+        if not self.collide_point(*touch.pos):
+            touch.ud[self._get_uid('svavoid')] = True
             return
-        if 'button' in touch.profile and \
+        if self._touch:
+            return super(ScrollView, self).on_touch_down(touch)
+
+        # handle mouse scrolling, only if the viewport size is bigger than the
+        # scrollview size, and if the user allowed to do it
+        vp = self._viewport
+        if vp and 'button' in touch.profile and \
             touch.button.startswith('scroll'):
-            button = touch.button
+            btn = touch.button
             m = self.scroll_distance
             e = None
-            if self.do_scroll_y and button in ('scrolldown', 'scrollup'):
+
+            if (self.do_scroll_y and vp.height > self.height and
+                btn in ('scrolldown', 'scrollup')):
                 e = self.effect_y
-            elif self.do_scroll_x and button in ('scrollleft', 'scrollright'):
+
+            elif (self.do_scroll_x and vp.width > self.width and
+                btn in ('scrollleft', 'scrollright')):
                 e = self.effect_x
+
             if e:
-                if button in ('scrolldown', 'scrollleft'):
+                if btn in ('scrolldown', 'scrollleft'):
                     e.kinetic_pos = max(e.kinetic_pos - m, e.scroll_min)
                     e.velocity = 0
-                elif button in ('scrollup', 'scrollright'):
+                elif btn in ('scrollup', 'scrollright'):
                     e.kinetic_pos = min(e.kinetic_pos + m, e.scroll_max)
                     e.velocity = 0
+                touch.ud[self._get_uid('svavoid')] = True
                 e.trigger_velocity_update()
-            return True
+                return True
 
-
-        if self.collide_point(*touch.pos):
-            self._touch = touch
-            touch.grab(self)
-            if self.do_scroll_x:
-                self.effect_x.start(touch.x)
-            if self.do_scroll_y:
-                self.effect_y.start(touch.y)
-            print 'effect_y.start(', touch.y
-            return True
+        # no mouse scrolling, so the user is going to drag the scrollview with
+        # this touch.
+        self._touch = touch
+        uid = self._get_uid()
+        touch.grab(self)
+        touch.ud[uid] = {
+            'mode': 'unknown',
+            'dx': 0,
+            'dy': 0,
+            'user_stopped': False,
+            'time': touch.time_start}
+        if self.do_scroll_x:
+            self.effect_x.start(touch.x)
+        if self.do_scroll_y:
+            self.effect_y.start(touch.y)
+        Clock.schedule_once(self._change_touch_mode,
+                            self.scroll_timeout / 1000.)
+        return True
 
     def on_touch_move(self, touch):
-        if touch.grab_current is not self:
+        if self._get_uid('svavoid') in touch.ud:
             return
-        if self.do_scroll_x:
-            self.effect_x.update(touch.x)
-        if self.do_scroll_y:
-            self.effect_y.update(touch.y)
-        print 'effect_y.update(', touch.y
+        if self._touch is not touch:
+            super(ScrollView, self).on_touch_move(touch)
+            return self._get_uid() in touch.ud
+        if touch.grab_current is not self:
+            return True
+
+        uid = self._get_uid()
+        ud = touch.ud[uid]
+        mode = ud['mode']
+
+        # check if the minimum distance has been travelled
+        if mode == 'unknown' or mode == 'scroll':
+            if self.do_scroll_x:
+                self.effect_x.update(touch.x)
+            if self.do_scroll_y:
+                self.effect_y.update(touch.y)
+
+        if mode == 'unknown':
+            ud['dx'] += abs(touch.dx)
+            ud['dy'] += abs(touch.dy)
+            if ud['dx'] > self.scroll_distance:
+                if not self.do_scroll_x:
+                    self._change_touch_mode()
+                    return
+                mode = 'scroll'
+
+            if ud['dy'] > self.scroll_distance:
+                if not self.do_scroll_y:
+                    self._change_touch_mode()
+                    return
+                mode = 'scroll'
+            ud['mode'] = mode
+
+        if mode == 'scroll':
+            ud['dt'] = touch.time_update - ud['time']
+            ud['time'] = touch.time_update
+            ud['user_stopped'] = True
+
         return True
 
     def on_touch_up(self, touch):
-        if touch.grab_current is not self:
+        if self._get_uid('svavoid') in touch.ud:
             return
-        touch.ungrab(touch)
-        if self.do_scroll_x:
-            self.effect_x.stop(touch.x)
-        if self.do_scroll_y:
-            self.effect_y.stop(touch.y)
-        print 'effect_y.stop(', touch.y
-        self._touch = None
-        return True
 
+        if self in [x() for x in touch.grab_list]:
+            touch.ungrab(self)
+            self._touch = None
+            uid = self._get_uid()
+            ud = touch.ud[uid]
+            if self.do_scroll_x:
+                self.effect_x.stop(touch.x)
+            if self.do_scroll_y:
+                self.effect_y.stop(touch.y)
+            if ud['mode'] == 'unknown':
+                # we must do the click at least..
+                # only send the click if it was not a click to stop
+                # autoscrolling
+                if not ud['user_stopped']:
+                    super(ScrollView, self).on_touch_down(touch)
+                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+        else:
+            if self._touch is not touch and self.uid not in touch.ud:
+                super(ScrollView, self).on_touch_up(touch)
 
+        # if we do mouse scrolling, always accept it
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
+            return True
 
+        return self._get_uid() in touch.ud
 
     def convert_distance_to_scroll(self, dx, dy):
         '''Convert a distance in pixels to a scroll distance, depending on the
@@ -424,13 +508,6 @@ class ScrollView(StencilView):
         if not self._viewport:
             return
         vp = self._viewport
-
-        if self.do_scroll_x:
-            self.scroll_x = min(1, max(0, self.scroll_x))
-            self._scroll_x_mouse = self.scroll_x
-        if self.do_scroll_y:
-            self.scroll_y = min(1, max(0, self.scroll_y))
-            self._scroll_y_mouse = self.scroll_y
 
         # update from size_hint
         if vp.size_hint_x is not None:
@@ -486,23 +563,30 @@ class ScrollView(StencilView):
         uid = self._get_uid()
         touch = self._touch
         ud = touch.ud[uid]
-        if ud['mode'] == 'unknown' and not ud['user_stopped']:
-            # XXX the next line was in the condition. But this stop
-            # the possibily to "drag" an object out of the scrollview in the
-            # non-used direction: if you have an horizontal scrollview, a
-            # vertical gesture will not "stop" the scroll view to look for an
-            # horizontal gesture, until the timeout is done.
-            # and touch.dx + touch.dy == 0:
-            touch.ungrab(self)
-            self._touch = None
-            # correctly calculate the position of the touch inside the
-            # scrollview
-            touch.push()
-            touch.apply_transform_2d(self.to_widget)
-            touch.apply_transform_2d(self.to_parent)
-            super(ScrollView, self).on_touch_down(touch)
-            touch.pop()
+        if ud['mode'] != 'unknown' or ud['user_stopped']:
             return
+        if self.do_scroll_x:
+            self.effect_x.cancel()
+        if self.do_scroll_y:
+            self.effect_y.cancel()
+        # XXX the next line was in the condition. But this stop
+        # the possibily to "drag" an object out of the scrollview in the
+        # non-used direction: if you have an horizontal scrollview, a
+        # vertical gesture will not "stop" the scroll view to look for an
+        # horizontal gesture, until the timeout is done.
+        # and touch.dx + touch.dy == 0:
+        touch.ungrab(self)
+        #self.effect_x.cancel()
+        #self.effect_y.cancel()
+        self._touch = None
+        # correctly calculate the position of the touch inside the
+        # scrollview
+        touch.push()
+        touch.apply_transform_2d(self.to_widget)
+        touch.apply_transform_2d(self.to_parent)
+        super(ScrollView, self).on_touch_down(touch)
+        touch.pop()
+        return
 
     def _do_touch_up(self, touch, *largs):
         super(ScrollView, self).on_touch_up(touch)
@@ -516,230 +600,6 @@ class ScrollView(StencilView):
             super(ScrollView, self).on_touch_up(touch)
         touch.grab_current = None
 
-    def _do_animation(self, touch, *largs):
-        uid = self._get_uid()
-        ud = touch.ud[uid]
-        dt = touch.time_end - ud['time']
-        avgdx = sum([move.dx for move in ud['moves']]) / len(ud['moves'])
-        avgdy = sum([move.dy for move in ud['moves']]) / len(ud['moves'])
-        if ud['same'] > self.scroll_stoptime / 1000.:
-            return
-        dt = ud['dt']
-        if dt == 0:
-            self._tdx = self._tdy = self._ts = 0
-            return
-        dx = avgdx
-        dy = avgdy
-        self._sx = ud['sx']
-        self._sy = ud['sy']
-        self._tdx = dx = dx / dt
-        self._tdy = dy = dy / dt
-        self._ts = self._tsn = touch.time_update
-
-        Clock.unschedule(self._update_animation)
-        Clock.schedule_interval(self._update_animation, 0)
-
-    def _update_animation(self, dt):
-        if self._touch is not None or self._ts == 0:
-            touch = self._touch
-            uid = self._get_uid()
-            ud = touch.ud[uid]
-            # scrolling stopped by user input
-            ud['user_stopped'] = True
-            return False
-        self._tsn += dt
-        global_dt = self._tsn - self._ts
-        divider = 2 ** (global_dt * self.scroll_friction)
-        dx = self._tdx / divider
-        dy = self._tdy / divider
-        test_dx = abs(dx) < 10
-        test_dy = abs(dy) < 10
-        if (self.do_scroll_x and not self.do_scroll_y and test_dx) or\
-           (self.do_scroll_y and not self.do_scroll_x and test_dy) or\
-           (self.do_scroll_x and self.do_scroll_y and test_dx and test_dy):
-            self._ts = 0
-            # scrolling stopped by friction
-            return False
-        dx *= dt
-        dy *= dt
-        sx, sy = self.convert_distance_to_scroll(dx, dy)
-        ssx = self.scroll_x
-        ssy = self.scroll_y
-        if self.do_scroll_x:
-            self.scroll_x -= sx
-        if self.do_scroll_y:
-            self.scroll_y -= sy
-        self._scroll_x_mouse = self.scroll_x
-        self._scroll_y_mouse = self.scroll_y
-        if ssx == self.scroll_x and ssy == self.scroll_y:
-            # scrolling stopped by end of box
-            return False
-
-    def _update_delta(self, dt):
-        touch = self._touch
-        if not touch:
-            return False
-        uid = self._get_uid()
-        ud = touch.ud[uid]
-        if touch.dx + touch.dy != 0:
-            ud['same'] += dt
-        else:
-            ud['same'] = 0
-
-    def _on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            touch.ud[self._get_uid('svavoid')] = True
-            return
-        if self._touch:
-            return super(ScrollView, self).on_touch_down(touch)
-        # support scrolling !
-        if self._viewport and 'button' in touch.profile and \
-                touch.button.startswith('scroll'):
-            btn = touch.button
-            # distance available to move, if no distance, do nothing
-            vp = self._viewport
-            if vp.height > self.height:
-                # let's say we want to move over 40 pixels each scroll
-                d = (vp.height - self.height)
-                syd = None
-                if d != 0:
-                    d = self.scroll_distance / float(d)
-                if btn == 'scrollup':
-                    syd = self._scroll_y_mouse - d
-                elif btn == 'scrolldown':
-                    syd = self._scroll_y_mouse + d
-
-                if syd is not None:
-                    if not self.do_scroll_y:
-                        return
-                    self._scroll_y_mouse = scroll_y = min(max(syd, 0), 1)
-                    Animation.stop_all(self, 'scroll_y')
-                    Animation(scroll_y=scroll_y, d=.3,
-                              t='out_quart').start(self)
-                    Clock.unschedule(self._update_animation)
-                    return True
-
-            if vp.width > self.width and self.do_scroll_x:
-                # let's say we want to move over 40 pixels each scroll
-                d = (vp.width - self.width)
-                sxd = None
-                if d != 0:
-                    d = self.scroll_distance / float(d)
-                if btn == 'scrollright':
-                    sxd = self._scroll_x_mouse - d
-                elif btn == 'scrollleft':
-                    sxd = self._scroll_x_mouse + d
-                if sxd is not None:
-                    if not self.do_scroll_y:
-                        return
-                    self._scroll_x_mouse = scroll_x = min(max(sxd, 0), 1)
-                    Animation.stop_all(self, 'scroll_x')
-                    Animation(scroll_x=scroll_x, d=.3, t='out_quart').start(
-                            self)
-                    Clock.unschedule(self._update_animation)
-                    return True
-
-        self._touch = touch
-        uid = self._get_uid()
-        touch.grab(self)
-        touch.ud[uid] = {
-            'mode': 'unknown',
-            'sx': self.scroll_x,
-            'sy': self.scroll_y,
-            'dt': None,
-            'time': touch.time_start,
-            'user_stopped': False,
-            'same': 0,
-            'moves': FixedList(self.scroll_moves)}
-
-        Clock.schedule_interval(self._update_delta, 0)
-        Clock.schedule_once(self._change_touch_mode,
-                            self.scroll_timeout / 1000.)
-        return True
-
-    def _on_touch_move(self, touch):
-        if self._get_uid('svavoid') in touch.ud:
-            return
-        if self._touch is not touch:
-            super(ScrollView, self).on_touch_move(touch)
-            return self._get_uid() in touch.ud
-        if touch.grab_current is not self:
-            return True
-        uid = self._get_uid()
-        ud = touch.ud[uid]
-        mode = ud['mode']
-        ud['moves'].append(copy(touch))
-
-        # seperate the distance to both X and Y axis.
-        # if a distance is reach, but on the inverse axis, stop scroll mode !
-        if mode == 'unknown':
-            distance = abs(touch.ox - touch.x)
-            if distance > self.scroll_distance:
-                if not self.do_scroll_x:
-                    self._change_touch_mode()
-                    return
-                mode = 'scroll'
-
-            distance = abs(touch.oy - touch.y)
-            if distance > self.scroll_distance:
-                if not self.do_scroll_y:
-                    self._change_touch_mode()
-                    return
-                mode = 'scroll'
-
-        if mode == 'scroll':
-            ud['mode'] = mode
-            dx = touch.ox - touch.x
-            dy = touch.oy - touch.y
-            sx, sy = self.convert_distance_to_scroll(dx, dy)
-            if self.do_scroll_x:
-                self.scroll_x = ud['sx'] + sx
-            if self.do_scroll_y:
-                self.scroll_y = ud['sy'] + sy
-            ud['dt'] = touch.time_update - ud['time']
-            ud['time'] = touch.time_update
-            ud['user_stopped'] = True
-
-        return True
-
-    def _on_touch_up(self, touch):
-        # Warning: usually, we are checking if grab_current is ourself first. On
-        # this case, we might need to call on_touch_down. If we call it inside
-        # the on_touch_up + grab state, any widget that grab the touch will be
-        # never ungrabed, cause their on_touch_up will be never called.
-        # base.py: the me.grab_list[:] => it's a copy, and we are already
-        # iterate on it.
-        Clock.unschedule(self._update_delta)
-        if self._get_uid('svavoid') in touch.ud:
-            return
-
-        if 'button' in touch.profile and not touch.button.startswith('scroll'):
-            self._scroll_y_mouse = self.scroll_y
-            self._scroll_x_mouse = self.scroll_x
-
-        if self in [x() for x in touch.grab_list]:
-            touch.ungrab(self)
-            self._touch = None
-            uid = self._get_uid()
-            ud = touch.ud[uid]
-            if ud['mode'] == 'unknown':
-                # we must do the click at least..
-                # only send the click if it was not a click to stop
-                # autoscrolling
-                if not ud['user_stopped']:
-                    super(ScrollView, self).on_touch_down(touch)
-                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
-            elif self.auto_scroll:
-                self._do_animation(touch)
-        else:
-            if self._touch is not touch and self.uid not in touch.ud:
-                super(ScrollView, self).on_touch_up(touch)
-
-        # if we do mouse scrolling, always accept it
-        if 'button' in touch.profile and touch.button.startswith('scroll'):
-            return True
-
-        return self._get_uid() in touch.ud
 
     #
     # Properties
@@ -888,7 +748,8 @@ class ScrollView(StencilView):
         if vh < h or vh == 0:
             return 0, 1.
         ph = max(0.01, h / float(vh))
-        py = (1. - ph) * self.scroll_y
+        sy = min(1.0, max(0.0, self.scroll_y))
+        py = (1. - ph) * sy
         return (py, ph)
 
     vbar = AliasProperty(_get_vbar, None, bind=(
@@ -914,7 +775,8 @@ class ScrollView(StencilView):
         if vw < w or vw == 0:
             return 0, 1.
         pw = max(0.01, w / float(vw))
-        px = (1. - pw) * self.scroll_x
+        sx = min(1.0, max(0.0, self.scroll_x))
+        px = (1. - pw) * sx
         return (px, pw)
 
     hbar = AliasProperty(_get_hbar, None, bind=(
