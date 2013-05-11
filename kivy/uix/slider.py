@@ -125,7 +125,7 @@ class Slider(Widget):
         >>> slider.value = 0
         >>> slider.value_normalized
         0
-        >>> slider.value = 1
+        >>> slider.value = 100
         >>> slider.value_normalized
         1
 
