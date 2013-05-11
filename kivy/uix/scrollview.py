@@ -90,6 +90,7 @@ from kivy.config import Config
 from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
 from kivy.event import EventDispatcher
+from kivy.metrics import sp
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty
 
@@ -130,12 +131,12 @@ class KineticEffect(EventDispatcher):
     velocity = NumericProperty(0)
     friction = NumericProperty(0.05)
     kinetic_pos = NumericProperty(0)
+    is_manual = BooleanProperty(False)
+    max_history = NumericProperty(5)
 
     def __init__(self, **kwargs):
         super(KineticEffect, self).__init__(**kwargs)
-        ct = Clock.create_trigger
-        self.trigger_velocity_update = ct(self.update_velocity, 0)
-        self.max_history = kwargs.get('max_history', 5)
+        self.trigger_velocity_update = Clock.create_trigger(self.update_velocity, 0)
         self.history = []
 
     def update_velocity(self, dt):
@@ -144,35 +145,40 @@ class KineticEffect(EventDispatcher):
             return
 
         self.velocity -= self.velocity * self.friction
-        self.kinetic_pos += self.velocity * dt
+        self.apply_distance(self.velocity * dt)
         self.trigger_velocity_update()
 
+    def apply_distance(self, distance):
+        self.kinetic_pos += distance
+
     def start(self, val, t=None):
+        self.is_manual = True
         t = t or time()
         self.velocity = 0
-        self.history = [(t,val)]
+        self.history = [(t, val)]
 
     def update(self, val, t=None):
         t = t or time()
         distance = val - self.history[-1][1]
-        self.kinetic_pos += distance
+        self.apply_distance(distance)
         self.history.append((t, val))
         if len(self.history) > self.max_history:
             self.history.pop(0)
 
     def stop(self, val, t=None):
+        self.is_manual = False
         t = t or time()
         distance = val - self.history[-1][1]
-        self.kinetic_pos += distance
+        self.apply_distance(distance)
         newest_sample = (t, val)
         old_sample = self.history[0]
         for sample in self.history:
-            if (newest_sample[0] - sample[0]) < 10./60.:
+            if (newest_sample[0] - sample[0]) < 10. / 60.:
                 break
             old_sample = sample
         distance = newest_sample[1] - old_sample[1]
         duration = abs(newest_sample[0] - old_sample[0])
-        self.velocity = ( distance / max(duration, 0.0001) )
+        self.velocity = (distance / max(duration, 0.0001))
         self.trigger_velocity_update()
 
 
@@ -206,6 +212,7 @@ class ScrollEffect(KineticEffect):
             self.scroll_pos = self.kinetic_pos
 
     def start(self, val, t=None):
+        self.is_manual = True
         self.displacement = 0
         return super(ScrollEffect, self).start(val, t)
 
@@ -214,6 +221,7 @@ class ScrollEffect(KineticEffect):
         return super(ScrollEffect, self).update(val, t)
 
     def stop(self, val, t=None):
+        self.is_manual = False
         self.displacement += abs(val - self.history[-1][1])
         if self.displacement <= self.drag_threshold:
             self.velocity = 0
@@ -221,8 +229,8 @@ class ScrollEffect(KineticEffect):
         return super(ScrollEffect, self).stop(val, t)
 
 class DampedScrollEffect(ScrollEffect):
-    edge_damping = NumericProperty(0.1)
-    spring_constant = NumericProperty(0.4)
+    edge_damping = NumericProperty(0.25)
+    spring_constant = NumericProperty(2.0)
 
     def update_velocity(self, dt):
         if abs(self.velocity) <= 0.1 and self.overscroll == 0:
@@ -235,7 +243,8 @@ class DampedScrollEffect(ScrollEffect):
             total_force += self.overscroll * self.spring_constant
 
         self.velocity = self.velocity - total_force
-        self.kinetic_pos += self.velocity * dt
+        if not self.is_manual:
+            self.apply_distance(self.velocity * dt)
         self.trigger_velocity_update()
 
     def on_kinetic_pos(self, *args):
@@ -253,6 +262,12 @@ class DampedScrollEffect(ScrollEffect):
 
     def on_overscroll(self, *args):
         self.trigger_velocity_update()
+
+    def apply_distance(self, distance):
+        os = abs(self.overscroll)
+        if os:
+            distance /= 1. + os / sp(200.)
+        super(DampedScrollEffect, self).apply_distance(distance)
 
 
 class OpacityScrollEffect(DampedScrollEffect):
@@ -326,9 +341,9 @@ class ScrollView(StencilView):
             button = touch.button
             m = self.scroll_distance
             e = None
-            if button in ('scrolldown', 'scrollup'):
+            if self.do_scroll_y and button in ('scrolldown', 'scrollup'):
                 e = self.effect_y
-            elif button in ('scrollleft', 'scrollright'):
+            elif self.do_scroll_x and button in ('scrollleft', 'scrollright'):
                 e = self.effect_x
             if e:
                 if button in ('scrolldown', 'scrollleft'):
@@ -344,16 +359,20 @@ class ScrollView(StencilView):
         if self.collide_point(*touch.pos):
             self._touch = touch
             touch.grab(self)
-            self.effect_x.start(touch.x)
-            self.effect_y.start(touch.y)
+            if self.do_scroll_x:
+                self.effect_x.start(touch.x)
+            if self.do_scroll_y:
+                self.effect_y.start(touch.y)
             print 'effect_y.start(', touch.y
             return True
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
             return
-        self.effect_x.update(touch.x)
-        self.effect_y.update(touch.y)
+        if self.do_scroll_x:
+            self.effect_x.update(touch.x)
+        if self.do_scroll_y:
+            self.effect_y.update(touch.y)
         print 'effect_y.update(', touch.y
         return True
 
@@ -361,8 +380,10 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return
         touch.ungrab(touch)
-        self.effect_x.update(touch.x)
-        self.effect_y.stop(touch.y)
+        if self.do_scroll_x:
+            self.effect_x.stop(touch.x)
+        if self.do_scroll_y:
+            self.effect_y.stop(touch.y)
         print 'effect_y.stop(', touch.y
         self._touch = None
         return True
