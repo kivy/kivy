@@ -285,30 +285,37 @@ class ScrollView(StencilView):
                   size=self.update_from_scroll)
         self.update_from_scroll()
         '''
+        self.effect_x = self.effect_cls(target_widget=self._viewport)
+        self.effect_x.bind(scroll_pos=self._update_effect_x)
         self.effect_y = self.effect_cls(target_widget=self._viewport)
-        self.effect_y.bind(scroll_pos=self._update_scroll_pos)
+        self.effect_y.bind(scroll_pos=self._update_effect_y)
         self.bind(
-            size=self._update_scroll_bounds,
-            viewport_size=self._update_scroll_bounds,
-            scroll_x=self._update_scroll_pos,
-            scroll_y=self._update_scroll_pos)
+            size=self._update_effect_bounds,
+            viewport_size=self._update_effect_bounds)
         self.bind(_viewport=self._update_effect_widget)
 
     def _update_effect_widget(self, *args):
+        self.effect_x.target_widget = self._viewport
         self.effect_y.target_widget = self._viewport
 
-    def _update_scroll_bounds(self, *args):
+    def _update_effect_bounds(self, *args):
         if not self._viewport:
             return
+        self.effect_x.scroll_min = -(self.viewport_size[0] - self.width)
+        self.effect_x.scroll_max = 0
         self.effect_y.scroll_min = -(self.viewport_size[1] - self.height)
         self.effect_y.scroll_max = 0
-        print 'bounds', self.effect_y.scroll_min, self.effect_y.scroll_max
+        self.effect_x.kinetic_pos = self.effect_x.scroll_min
         self.effect_y.kinetic_pos = self.effect_y.scroll_min
 
-    def _update_scroll_pos(self, *args):
+    def _update_effect_x(self, *args):
         if not self._viewport:
             return
-        print self.effect_y.scroll_pos
+        self._viewport.x = self.x + self.effect_x.scroll_pos
+
+    def _update_effect_y(self, *args):
+        if not self._viewport:
+            return
         self._viewport.y = self.y + self.effect_y.scroll_pos
 
     def on_touch_down(self, touch):
@@ -316,22 +323,28 @@ class ScrollView(StencilView):
             return
         if 'button' in touch.profile and \
             touch.button.startswith('scroll'):
+            button = touch.button
             m = self.scroll_distance
-            e = self.effect_y
-            if touch.button == 'scrolldown':
-                e.kinetic_pos = max(e.kinetic_pos - m, e.scroll_min)
-                e.velocity = 0
-            elif touch.button == 'scrollup':
-                e.kinetic_pos = min(e.kinetic_pos + m, e.scroll_max)
-                e.velocity = 0
-            print 'velocity', self.effect_y.velocity
-            self.effect_y.trigger_velocity_update()
+            e = None
+            if button in ('scrolldown', 'scrollup'):
+                e = self.effect_y
+            elif button in ('scrollleft', 'scrollright'):
+                e = self.effect_x
+            if e:
+                if button in ('scrolldown', 'scrollleft'):
+                    e.kinetic_pos = max(e.kinetic_pos - m, e.scroll_min)
+                    e.velocity = 0
+                elif button in ('scrollup', 'scrollright'):
+                    e.kinetic_pos = min(e.kinetic_pos + m, e.scroll_max)
+                    e.velocity = 0
+                e.trigger_velocity_update()
             return True
 
 
         if self.collide_point(*touch.pos):
             self._touch = touch
             touch.grab(self)
+            self.effect_x.start(touch.x)
             self.effect_y.start(touch.y)
             print 'effect_y.start(', touch.y
             return True
@@ -339,6 +352,7 @@ class ScrollView(StencilView):
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
             return
+        self.effect_x.update(touch.x)
         self.effect_y.update(touch.y)
         print 'effect_y.update(', touch.y
         return True
@@ -347,6 +361,7 @@ class ScrollView(StencilView):
         if touch.grab_current is not self:
             return
         touch.ungrab(touch)
+        self.effect_x.update(touch.x)
         self.effect_y.stop(touch.y)
         print 'effect_y.stop(', touch.y
         self._touch = None
