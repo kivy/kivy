@@ -243,7 +243,7 @@ class Carousel(StencilView):
         self.load_next(mode='prev')
 
     def load_next(self, mode='next'):
-        '''Animate previous slide in.
+        '''Animate next slide in.
 
         .. versionadded:: 1.7.0
         '''
