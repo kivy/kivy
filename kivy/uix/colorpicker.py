@@ -2,7 +2,7 @@
 ColorPicker widget
 ==================
 
-.. versionadded:: 1.6.1
+.. versionadded:: 1.7.0
 
 .. warning::
 
@@ -85,13 +85,13 @@ class ColorWheel(Widget):
     '''The Green value of the color currently selected.
 
     :data:`g` is an :class:`~kivy.properties.BoundedNumericProperty`
-    can be a value from 0 to 1 default to 0.
+    can be a value from 0 to 1
     '''
 
     b = BoundedNumericProperty(0, min=0, max=1)
     '''The Blue value of the color currently selected.
 
-    :data:`r` is an :class:`~kivy.properties.BoundedNumericProperty`
+    :data:`b` is an :class:`~kivy.properties.BoundedNumericProperty`
     can be a value from 0 to 1.
     '''
 
@@ -105,8 +105,8 @@ class ColorWheel(Widget):
     color = ReferenceListProperty(r, g, b, a)
     '''The holds the color currently selected.
 
-    :data:`r` is an :class:`~kivy.properties.ReferenceListProperty`
-    can be a value from 0 to 1.
+    :data:`color` is an :class:`~kivy.properties.ReferenceListProperty`
+    a list of `r`, `g`, `b`, `a`.
     '''
 
     _origin = ListProperty((100, 100))
@@ -149,7 +149,7 @@ class ColorWheel(Widget):
         for r in range(pdv):
             for t in range(ppie):
                 self.arcs.append(
-                    ColorArc(
+                    _ColorArc(
                         self._radius * (float(r) / float(pdv)),
                         self._radius * (float(r + 1) / float(pdv)),
                         2 * pi * (float(t) / float(ppie)),
@@ -285,10 +285,10 @@ class ColorWheel(Widget):
         return distance(pos, self._origin)
 
 
-class ColorArc(InstructionGroup):
+class _ColorArc(InstructionGroup):
     def __init__(self, r_min, r_max, theta_min, theta_max,
                  color=(0, 0, 1, 1), origin = (0, 0), **kwargs):
-        super(ColorArc, self).__init__(**kwargs)
+        super(_ColorArc, self).__init__(**kwargs)
         self.origin = origin
         self.r_min = r_min
         self.r_max = r_max
@@ -380,11 +380,11 @@ class ColorPicker(RelativeLayout):
     defaults to 'data/fonts/DroidSansMono.ttf'
     '''
 
-    label_color = ListProperty((1, 1, 1, 1))
+    foreground_color = ListProperty((1, 1, 1, 1))
     '''Specifies the color for the text used on the Color Picler in `rgba`
     format.
 
-    :data:`label_color` is an :class:`~kivy.properties.ListProperty`
+    :data:`foreground_color` is an :class:`~kivy.properties.ListProperty`
     defaults to (1, 1, 1. 1)
     '''
 

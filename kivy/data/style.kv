@@ -828,7 +828,7 @@
     border: 4, 9, 4, 9
     font_size: self.height - (self.padding[1]*2)
     background_color: root.mroot.background_color if root.mroot else (1, 1, 1, 1)
-    foreground_color: root.mroot.label_color if root.mroot else (1, 1, 1, 1)
+    foreground_color: root.mroot.foreground_color if root.mroot else (1, 1, 1, 1)
 
 <ColorPicker_Label@Label>
     canvas.before:
@@ -841,7 +841,7 @@
     mroot: None
     font_size: self.height - (self.padding[1]*2)
     font_name: root.mroot.font_name if root.mroot else 'data/fonts/DroidSans.ttf'
-    color: root.mroot.label_color if root.mroot else (1, 1, 1, 1)
+    color: root.mroot.foreground_color if root.mroot else (1, 1, 1, 1)
     size_hint_x: .3
     text_size: self.size
     halign: "center"
