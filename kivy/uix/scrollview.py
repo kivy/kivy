@@ -84,10 +84,12 @@ __all__ = ('ScrollView', )
 
 from copy import copy
 from functools import partial
+from time import time
 from kivy.animation import Animation
 from kivy.config import Config
 from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
+from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty
 
@@ -124,21 +126,234 @@ class FixedList(list):
             self.pop(0)
 
 
+class KineticEffect(EventDispatcher):
+    velocity = NumericProperty(0)
+    friction = NumericProperty(0.05)
+    kinetic_pos = NumericProperty(0)
+
+    def __init__(self, **kwargs):
+        super(KineticEffect, self).__init__(**kwargs)
+        ct = Clock.create_trigger
+        self.trigger_velocity_update = ct(self.update_velocity, 0)
+        self.max_history = kwargs.get('max_history', 5)
+        self.history = []
+
+    def update_velocity(self, dt):
+        if abs(self.velocity) <= 0.5:
+            self.velocity = 0
+            return
+
+        self.velocity -= self.velocity * self.friction
+        self.kinetic_pos += self.velocity * dt
+        self.trigger_velocity_update()
+
+    def start(self, val, t=None):
+        t = t or time()
+        self.velocity = 0
+        self.history = [(t,val)]
+
+    def update(self, val, t=None):
+        t = t or time()
+        distance = val - self.history[-1][1]
+        self.kinetic_pos += distance
+        self.history.append((t, val))
+        if len(self.history) > self.max_history:
+            self.history.pop(0)
+
+    def stop(self, val, t=None):
+        t = t or time()
+        distance = val - self.history[-1][1]
+        self.kinetic_pos += distance
+        newest_sample = (t, val)
+        old_sample = self.history[0]
+        for sample in self.history:
+            if (newest_sample[0] - sample[0]) < 10./60.:
+                break
+            old_sample = sample
+        distance = newest_sample[1] - old_sample[1]
+        duration = abs(newest_sample[0] - old_sample[0])
+        self.velocity = ( distance / max(duration, 0.0001) )
+        self.trigger_velocity_update()
+
+
+class ScrollEffect(KineticEffect):
+    drag_threshold = NumericProperty('20sp')
+    scroll_min = NumericProperty(0)
+    scroll_max = NumericProperty(0)
+    scroll_pos = NumericProperty(0)
+    overscroll = NumericProperty(0)
+    target_widget = ObjectProperty(None)
+
+    def reset(self, pos):
+        self.kinetic_pos = pos
+        self.velocity = 0
+        if self.history:
+            val = self.history[-1][1]
+            super(ScrollEffect, self).start(val, None)
+
+    def on_kinetic_pos(self, *args):
+        scroll_min = self.scroll_min
+        scroll_max = self.scroll_max
+        if scroll_min > scroll_max:
+            scroll_min, scroll_max = scroll_max, scroll_min
+        if self.kinetic_pos < scroll_min:
+            self.overscroll = self.kinetic_pos - scroll_min
+            self.reset(scroll_min)
+        elif self.kinetic_pos > scroll_max:
+            self.overscroll = self.kinetic_pos - scroll_max
+            self.reset(scroll_max)
+        else:
+            self.scroll_pos = self.kinetic_pos
+
+    def start(self, val, t=None):
+        self.displacement = 0
+        return super(ScrollEffect, self).start(val, t)
+
+    def update(self, val, t=None):
+        self.displacement += abs(val - self.history[-1][1])
+        return super(ScrollEffect, self).update(val, t)
+
+    def stop(self, val, t=None):
+        self.displacement += abs(val - self.history[-1][1])
+        if self.displacement <= self.drag_threshold:
+            self.velocity = 0
+            return
+        return super(ScrollEffect, self).stop(val, t)
+
+class DampedScrollEffect(ScrollEffect):
+    edge_damping = NumericProperty(0.1)
+    spring_constant = NumericProperty(0.4)
+
+    def update_velocity(self, dt):
+        if abs(self.velocity) <= 0.1 and self.overscroll == 0:
+            self.velocity = 0
+            return
+
+        total_force = self.velocity * self.friction
+        if self.overscroll != 0:
+            total_force += self.velocity * self.edge_damping
+            total_force += self.overscroll * self.spring_constant
+
+        self.velocity = self.velocity - total_force
+        self.kinetic_pos += self.velocity * dt
+        self.trigger_velocity_update()
+
+    def on_kinetic_pos(self, *args):
+        scroll_min = self.scroll_min
+        scroll_max = self.scroll_max
+        if scroll_min > scroll_max:
+            scroll_min, scroll_max = scroll_max, scroll_min
+        if self.kinetic_pos < scroll_min:
+            self.overscroll = self.kinetic_pos - scroll_min
+        elif self.kinetic_pos > scroll_max:
+            self.overscroll = self.kinetic_pos - scroll_max
+        else:
+            self.overscroll = 0
+        self.scroll_pos = self.kinetic_pos
+
+    def on_overscroll(self, *args):
+        self.trigger_velocity_update()
+
+
+class OpacityScrollEffect(DampedScrollEffect):
+    def on_overscroll(self, *args):
+        if self.target_widget and self.target_widget.height != 0:
+            alpha = 1.0 - abs(self.overscroll/float(self.target_widget.height))
+            self.target_widget.opacity = min(1, alpha)
+        self.trigger_velocity_update()
+
+
 class ScrollView(StencilView):
     '''ScrollView class. See module documentation for more information.
     '''
 
+    effect_cls = ObjectProperty(OpacityScrollEffect)
+    effect_x = ObjectProperty(None)
+    effect_y = ObjectProperty(None)
+    effect_layer = ObjectProperty(None)
+
     def __init__(self, **kwargs):
-        self._touch = False
+        self._touch = None
         self._tdx = self._tdy = self._ts = self._tsn = 0
         self._scroll_y_mouse = 1
         self._scroll_x_mouse = 1
         super(ScrollView, self).__init__(**kwargs)
+        '''
         self.bind(scroll_x=self.update_from_scroll,
                   scroll_y=self.update_from_scroll,
                   pos=self.update_from_scroll,
                   size=self.update_from_scroll)
         self.update_from_scroll()
+        '''
+        self.effect_y = self.effect_cls(target_widget=self._viewport)
+        self.effect_y.bind(scroll_pos=self._update_scroll_pos)
+        self.bind(
+            size=self._update_scroll_bounds,
+            viewport_size=self._update_scroll_bounds,
+            scroll_x=self._update_scroll_pos,
+            scroll_y=self._update_scroll_pos)
+        self.bind(_viewport=self._update_effect_widget)
+
+    def _update_effect_widget(self, *args):
+        self.effect_y.target_widget = self._viewport
+
+    def _update_scroll_bounds(self, *args):
+        if not self._viewport:
+            return
+        self.effect_y.scroll_min = -(self.viewport_size[1] - self.height)
+        self.effect_y.scroll_max = 0
+        print 'bounds', self.effect_y.scroll_min, self.effect_y.scroll_max
+        self.effect_y.kinetic_pos = self.effect_y.scroll_min
+
+    def _update_scroll_pos(self, *args):
+        if not self._viewport:
+            return
+        print self.effect_y.scroll_pos
+        self._viewport.y = self.y + self.effect_y.scroll_pos
+
+    def on_touch_down(self, touch):
+        if self._touch is not None:
+            return
+        if 'button' in touch.profile and \
+            touch.button.startswith('scroll'):
+            m = self.scroll_distance
+            e = self.effect_y
+            if touch.button == 'scrolldown':
+                e.kinetic_pos = max(e.kinetic_pos - m, e.scroll_min)
+                e.velocity = 0
+            elif touch.button == 'scrollup':
+                e.kinetic_pos = min(e.kinetic_pos + m, e.scroll_max)
+                e.velocity = 0
+            print 'velocity', self.effect_y.velocity
+            self.effect_y.trigger_velocity_update()
+            return True
+
+
+        if self.collide_point(*touch.pos):
+            self._touch = touch
+            touch.grab(self)
+            self.effect_y.start(touch.y)
+            print 'effect_y.start(', touch.y
+            return True
+
+    def on_touch_move(self, touch):
+        if touch.grab_current is not self:
+            return
+        self.effect_y.update(touch.y)
+        print 'effect_y.update(', touch.y
+        return True
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is not self:
+            return
+        touch.ungrab(touch)
+        self.effect_y.stop(touch.y)
+        print 'effect_y.stop(', touch.y
+        self._touch = None
+        return True
+
+
+
 
     def convert_distance_to_scroll(self, dx, dy):
         '''Convert a distance in pixels to a scroll distance, depending on the
@@ -335,7 +550,7 @@ class ScrollView(StencilView):
         else:
             ud['same'] = 0
 
-    def on_touch_down(self, touch):
+    def _on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             touch.ud[self._get_uid('svavoid')] = True
             return
@@ -406,7 +621,7 @@ class ScrollView(StencilView):
                             self.scroll_timeout / 1000.)
         return True
 
-    def on_touch_move(self, touch):
+    def _on_touch_move(self, touch):
         if self._get_uid('svavoid') in touch.ud:
             return
         if self._touch is not touch:
@@ -451,7 +666,7 @@ class ScrollView(StencilView):
 
         return True
 
-    def on_touch_up(self, touch):
+    def _on_touch_up(self, touch):
         # Warning: usually, we are checking if grab_current is ourself first. On
         # this case, we might need to call on_touch_down. If we call it inside
         # the on_touch_up + grab state, any widget that grab the touch will be
@@ -641,7 +856,7 @@ class ScrollView(StencilView):
         return (py, ph)
 
     vbar = AliasProperty(_get_vbar, None, bind=(
-        'scroll_y', '_viewport', '_viewport_size'))
+        'scroll_y', '_viewport', 'viewport_size'))
     '''Return a tuple of (position, size) of the vertical scrolling bar.
 
     .. versionadded:: 1.2.0
@@ -667,7 +882,7 @@ class ScrollView(StencilView):
         return (px, pw)
 
     hbar = AliasProperty(_get_hbar, None, bind=(
-        'scroll_x', '_viewport', '_viewport_size'))
+        'scroll_x', '_viewport', 'viewport_size'))
     '''Return a tuple of (position, size) of the horizontal scrolling bar.
 
     .. versionadded:: 1.2.0
@@ -711,13 +926,13 @@ class ScrollView(StencilView):
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
-    _viewport_size = ListProperty([0, 0])
+    viewport_size = ListProperty([0, 0])
     bar_alpha = NumericProperty(1.)
 
     def _set_viewport_size(self, instance, value):
-        self._viewport_size = value
+        self.viewport_size = value
 
     def on__viewport(self, instance, value):
         if value:
             value.bind(size=self._set_viewport_size)
-            self._viewport_size = value.size
+            self.viewport_size = value.size
