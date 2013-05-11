@@ -823,6 +823,7 @@
 <ColorPicker_Input@TextInput>
     multiline: False
     mroot: None
+    padding: pt(2), pt(1), pt(2), pt(1)
     size_hint_x: .5
     border: 4, 9, 4, 9
     font_size: self.height - (self.padding[1]*2)
@@ -832,12 +833,13 @@
 <ColorPicker_Label@Label>
     canvas.before:
         Color:
-            rgba: 0, 0, 0, .7
+            rgba: 1 - self.color[0], 1 - self.color[1], 1 - self.color[2], .7
         Rectangle:
             texture: self.texture
-            size: self.width+2, self.height+2
-            pos: self.x + 1, self.y - 1
+            size: self.width + sp(2.2), self.height + sp(2.2)
+            pos: self.x + sp(.2) , self.y - sp(1)
     mroot: None
+    font_size: self.height - (self.padding[1]*2)
     font_name: root.mroot.font_name if root.mroot else 'data/fonts/DroidSans.ttf'
     color: root.mroot.label_color if root.mroot else (1, 1, 1, 1)
     size_hint_x: .3
@@ -865,7 +867,7 @@
         id: sldr
         size_hint: 1, .25
         pos_hint: {'center_y':.5}
-        range: 0, 254
+        range: 0, 255
         value: root.color * 255
         on_value:
             root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
@@ -897,7 +899,7 @@
                     pos: self.pos
             size_hint: 1, None
             padding: '2pt'
-            height: '92sp'
+            height: (sp(root.font_size)+pt(10))*3
             spacing: '2pt'
             cols: 2
             ColorPicker_Selector:
@@ -934,9 +936,10 @@
                 clr_idx: 2
                 color: root.hsv[2]
         BoxLayout:
+            padding: '1pt'
             spacing: '2pt'
             size_hint: 1, None
-            height: '27sp'
+            height: (sp(root.font_size)+pt(10))
             ColorPicker_Selector:
                 mroot: root
                 text: 'A:'

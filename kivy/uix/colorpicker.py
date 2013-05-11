@@ -14,6 +14,15 @@ The ColorPicker widget allows a user to pick a color utilizing from a chromatic
 wheel where pinch/zoom can be used to change available colors or using a slider
 or directly entering the colors in the text boxes.
 
+.. usage::
+    clr_picker = ColorPicker()
+    parent.add_widget(ColorPicker)
+    # print currently selected color in rgba format
+    print clr_picker.color
+    # print currently selected color in hsv format
+    print clr_picker.hsv
+    # print currently selected color in hex format
+    print clr_picker.hex_color
 '''
 
 __all__ = ('ColorPicker', 'ColorWheel')
@@ -356,6 +365,12 @@ class ColorArc(InstructionGroup):
 class ColorPicker(RelativeLayout):
     '''
     See module documentation.
+    '''
+
+    font_size = NumericProperty(sp(12))
+    '''Specifies the font size to be used for the Labels and TextInput.
+    The height of the bar that displays Labels and TextInputs is adjusted
+    according to this value.
     '''
 
     font_name = StringProperty('data/fonts/DroidSansMono.ttf')
