@@ -698,17 +698,26 @@ cdef class DictProperty(Property):
 cdef class ObjectProperty(Property):
     '''Property that represents a Python object.
 
+    :Parameters:
+        `baseclass`: object
+            This will be used for: `isinstance(value, baseclass)`.
+
     .. warning::
 
         To mark the property as changed, you must reassign a new python object.
+
+    .. versionchanged:: 1.7.0
+
+        `baseclass` parameter added.
     '''
     def __init__(self, defaultvalue=None, **kw):
+        self.baseclass = kw.get('baseclass', object)
         super(ObjectProperty, self).__init__(defaultvalue, **kw)
 
     cdef check(self, EventDispatcher obj, value):
         if Property.check(self, obj, value):
             return True
-        if not isinstance(value, object):
+        if not isinstance(value, self.baseclass):
             raise ValueError('%s.%s accept only Python object' % (
                 obj.__class__.__name__,
                 self.name))
