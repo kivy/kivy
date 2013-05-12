@@ -76,21 +76,12 @@ Effects
 
 .. versionadded:: 1.7.0
 
-An effect is a subclass of :class:`ScrollEffect` that will compute informations
-during the dragging, and apply transformation to the
+An effect is a subclass of :class:`~kivy.effects.scroll.ScrollEffect` that will
+compute informations during the dragging, and apply transformation to the
 :class:`ScrollView`. Depending of the effect, more computing can be done for
 calculating over-scroll, bouncing, etc.
 
-We have base effect you can use:
-
-- :class:`ScrollEffect`: base class used for implementing an effect. It only
-  calculate the scrolling and the overscroll.
-- :class:`DampedScrollEffect`: use the overscroll information to allow the user
-  to drag more than expected. Once the user stop the drag, the position is back
-  to one of the bounds.
-- :class:`OpacityScrollEffect`: use the overscroll information to reduce the
-  opacity of the scrollview widget. One the user stop the drag, the opacity back
-  to one.
+All the effects are located in the :mod:`kivy.effects`.
 
 
 '''

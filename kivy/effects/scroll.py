@@ -1,5 +1,5 @@
 '''
-Scroll Effect
+Scroll effect
 =============
 
 .. versionadded:: 1.7.0
