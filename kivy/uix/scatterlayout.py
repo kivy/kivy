@@ -34,7 +34,7 @@ and the child widgets will behave as expected.
 
 .. warning::
 
-    The :class:'ScatterLayout' was introduced in 1.6.1 and was called
+    The :class:'ScatterLayout' was introduced in 1.7.0 and was called
     :class:'~kivy.uix.relativelayout.RelativeLayout' in prior versions.
     :class:'~kivy.uix.relativelayout.RelativeLayout' is now an optimized
     implementation that uses only a positional transform, to avoid some of the

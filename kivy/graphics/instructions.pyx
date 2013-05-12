@@ -598,7 +598,7 @@ cdef class Canvas(CanvasBase):
     property has_before:
         '''Property to see if the canvas.before is already created
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         def __get__(self):
             return self._before is not None
@@ -606,7 +606,7 @@ cdef class Canvas(CanvasBase):
     property has_after:
         '''Property to see if the canvas.after is already created
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         def __get__(self):
             return self._after is not None

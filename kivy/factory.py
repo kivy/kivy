@@ -57,7 +57,7 @@ class FactoryBase(object):
         '''Register a new classname refering to a real class or
         class definition in a module.
 
-        .. versionchanged:: 1.6.1
+        .. versionchanged:: 1.7.0
             :data:`baseclasses` and :data:`filename` added
 
         .. versionchanged:: 1.0.5
@@ -79,7 +79,7 @@ class FactoryBase(object):
         '''Unregister all the factory object related to the filename passed in
         the parameter.
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         to_remove = [x for x in self.classes
                 if self.classes[x]['filename'] == filename]

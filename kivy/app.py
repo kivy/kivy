@@ -251,7 +251,7 @@ class App(EventDispatcher):
             If a kv_file is set, it will be loaded when the application start.
             The loading of the "default" kv will be avoided.
 
-    .. versionchanged:: 1.6.1
+    .. versionchanged:: 1.7.0
         Parameter `kv_file` added.
     '''
 
@@ -519,7 +519,7 @@ class App(EventDispatcher):
     @property
     def user_data_dir(self):
         '''
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
 
         Returns the path to a directory in the users files system, which the
         application can use to store additional data.

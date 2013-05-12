@@ -2,7 +2,7 @@
 Storage
 =======
 
-.. versionadded:: 1.6.1
+.. versionadded:: 1.7.0
 
 .. warning::
 
