@@ -820,181 +820,143 @@
 # =============================================================================
 # Color Picker
 # =============================================================================
+<ColorPicker_Input@TextInput>
+    multiline: False
+    mroot: None
+    padding: pt(2), pt(1), pt(2), pt(1)
+    size_hint_x: .5
+    border: 4, 9, 4, 9
+    font_size: self.height - (self.padding[1]*2)
+    background_color: root.mroot.background_color if root.mroot else (1, 1, 1, 1)
+    foreground_color: root.mroot.foreground_color if root.mroot else (1, 1, 1, 1)
+
+<ColorPicker_Label@Label>
+    canvas.before:
+        Color:
+            rgba: 1 - self.color[0], 1 - self.color[1], 1 - self.color[2], .7
+        Rectangle:
+            texture: self.texture
+            size: self.width + sp(2.2), self.height + sp(2.2)
+            pos: self.x + sp(.2) , self.y - sp(1)
+    mroot: None
+    font_size: self.height - (self.padding[1]*2)
+    font_name: root.mroot.font_name if root.mroot else 'data/fonts/DroidSans.ttf'
+    color: root.mroot.foreground_color if root.mroot else (1, 1, 1, 1)
+    size_hint_x: .3
+    text_size: self.size
+    halign: "center"
+    valign: "middle"
+
+<ColorPicker_Selector@BoxLayout>
+    text: ''
+    mroot: None
+    mode: 'rgb'
+    color: 0
+    spacing: '1pt'
+    BoxLayout:
+        spacing: '2pt'
+        ColorPicker_Label:
+            text: root.text
+            mroot: root.mroot
+        ColorPicker_Input:
+            mroot: root.mroot
+            text: str(int(sldr.value))
+            on_text:
+                root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
+    Slider:
+        id: sldr
+        size_hint: 1, .25
+        pos_hint: {'center_y':.5}
+        range: 0, 255
+        value: root.color * 255
+        on_value:
+            root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
 
 <ColorPicker>:
     wheel: wheel
-    alphaslider: alphaslider
-    canvas:
+    canvas.before:
         Color:
-            rgba: root.bg_color
+            rgba: self.background_color
         Rectangle:
-            pos: root.pos
-            size: root.size
+            size: self.size
     BoxLayout:
-        id: main_layout
         orientation: 'vertical'
-        size: root.size
-        pos: root.pos
+        spacing: '5pt'
+        padding: '5pt'
+        GridLayout:
+            canvas:
+                #Color:
+                #    rgba: 1, 1, 1, 1
+                #Rectangle:
+                # add a tiled checkerboard at background
+                #    source: 'transparency-checkerboard.png'
+                #    size: self.size
+                #    pos: self.pos
+                Color:
+                    rgba: root.color
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            size_hint: 1, None
+            padding: '2pt'
+            height: (sp(root.font_size)+pt(10))*3
+            spacing: '2pt'
+            cols: 2
+            ColorPicker_Selector:
+                mroot: root
+                text: 'R:'
+                clr_idx: 0
+                color: wheel.r
+            ColorPicker_Selector:
+                mroot: root
+                mode: 'hsv'
+                text: 'H:'
+                clr_idx: 0
+                color: root.hsv[0]
+            ColorPicker_Selector:
+                mroot: root
+                text: 'G:'
+                clr_idx: 1
+                color: wheel.g
+            ColorPicker_Selector:
+                mroot: root
+                mode: 'hsv'
+                text: 'S:'
+                clr_idx: 1
+                color: root.hsv[1]
+            ColorPicker_Selector:
+                mroot: root
+                text: 'B:'
+                clr_idx: 2
+                color: wheel.b
+            ColorPicker_Selector:
+                mroot: root
+                mode: 'hsv'
+                text: 'V:'
+                clr_idx: 2
+                color: root.hsv[2]
         BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: .33
-            spacing: 10
-            padding: 10
-            GridLayout:
-                cols: 4
-                size_hint: (.5, 1.)
-                spacing: [0, '15pt']
-                Label:
-                    text: "R:"
-                    color: root.label_color
-                    size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "right"
-                    valign: "middle"
-                    font_size: root.size[0] * .04
-                TextInput:
-                    multiline: False
-                    font_size: root.size[0] * .040
-                    text: str(int(root.color[0] * 255))
-                    background_color: root.bg_color
-                    foreground_color: root.label_color
-                    size_hint_x: .25
-                    border: [2, 2, 2, 2]
-                    on_text: root.color[0] = int(args[1] if args[1] else 0) / 255.0
-                Label:
-                    text: "G:"
-                    color: root.label_color
-                    size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "right"
-                    valign: "middle"
-                    font_size: root.size[0] * .04
-                TextInput:
-                    multiline: False
-                    font_size: root.size[0] * .040
-                    text: str(int(root.color[1] * 255))
-                    background_color: root.bg_color
-                    foreground_color: root.label_color
-                    size_hint_x: .25
-                    border: [2, 2, 2, 2]
-                    on_text: root.color[1] = int(args[1] if args[1] else 0) / 255.0
-                Label:
-                    text: "B:"
-                    color: root.label_color
-                    size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "right"
-                    valign: "middle"
-                    font_size: root.size[0] * .04
-                TextInput:
-                    multiline: False
-                    font_size: root.size[0] * .040
-                    text: str(int(root.color[2] * 255))
-                    background_color: root.bg_color
-                    foreground_color: root.label_color
-                    size_hint_x: .25
-                    border: [2, 2, 2, 2]
-                    on_text: root.color[2] = int(args[1] if args[1] else 0) / 255.0
-                Label:
-                    text: "A:"
-                    color: root.label_color
-                    size_hint_x: .25
-                    size_hint_y: .5
-                    text_size: self.size
-                    halign: "right"
-                    valign: "middle"
-                    font_size: root.size[0] * .04
-                TextInput:
-                    multiline: False
-                    font_size: root.size[0] * .040
-                    text: str(int(root.color[3] * 255))
-                    background_color: root.bg_color
-                    foreground_color: root.label_color
-                    size_hint_x: .25
-                    border: [2, 2, 2, 2]
-                    on_text: root.color[3] = int(args[1] if args[1] else 0) / 255.0
-            Widget:
-                size_hint: (.5, 1)
-                canvas:
-                    Color:
-                        rgba: root.color
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint: (1, 1)
-            spacing: 1
-            padding: 1
-            GridLayout:
-                rows: 2
-                Slider:
-                    id: redslider
-                    padding: 20
-                    orientation: 'vertical'
-                    min: 0
-                    max: 1
-                    step: .01
-                    value: root.color[0]
-                    on_value: root.color[0] = args[1]
-                Slider:
-                    id: greenslider
-                    padding: 20
-                    orientation: 'vertical'
-                    min: 0
-                    max: 1
-                    step: .01
-                    value: root.color[1]
-                    on_value: root.color[1] = args[1]
-                Slider:
-                    id: blueslider
-                    padding: 20
-                    orientation: 'vertical'
-                    min: 0
-                    max: 1
-                    step: .01
-                    value: root.color[2]
-                    on_value: root.color[2] = args[1]
-                Slider:
-                    id: alphaslider
-                    padding: 20
-                    orientation: 'vertical'
-                    min: 0
-                    max: 1
-                    step: .01
-                    value: root.color[3]
-                    on_value: root.color[3] = args[1]
-                Label:
-                    size_hint: (1, .2)
-                    halign: 'center'
-                    valign: 'top'
-                    text: 'R'
-                    text_size: self.size
-                Label:
-                    size_hint: (1, .2)
-                    halign: 'center'
-                    valign: 'top'
-                    text: 'G'
-                    text_size: self.size
-                Label:
-                    size_hint: (1, .2)
-                    halign: 'center'
-                    valign: 'top'
-                    text: 'B'
-                    text_size: self.size
-                Label:
-                    size_hint: (1, .2)
-                    halign: 'center'
-                    valign: 'top'
-                    text: 'A'
-                    text_size: self.size
-
-            ColorWheel:
-                id: wheel
-                size_hint: (1, 1)
-                origin: (self.center_x, self.center_y)
-                radius: 0.45 * min(self.size)
-                on_color: root.color[:3] = args[1][:3]
+            padding: '1pt'
+            spacing: '2pt'
+            size_hint: 1, None
+            height: (sp(root.font_size)+pt(10))
+            ColorPicker_Selector:
+                mroot: root
+                text: 'A:'
+                clr_idx: 3
+                color: root.color[3]
+            BoxLayout:
+                spacing: '2pt'
+                ColorPicker_Label:
+                    mroot: root
+                    text: 'HEX:'
+                ColorPicker_Input:
+                    mroot: root
+                    text: str(root.hex_color)
+                    on_text: root._trigger_update_hex(args[1])
+        ColorWheel:
+            id: wheel
+            _origin: (self.center_x, self.center_y)
+            _radius: 0.45 * min(self.size)
+            color: root.color
+            on_color: root.color[:3] = args[1][:3]
