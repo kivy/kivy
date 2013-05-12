@@ -97,7 +97,14 @@ from kivy.graphics.transformation import Matrix
 
 class Scatter(Widget):
     '''Scatter class. See module documentation for more information.
+    
+    :Events:
+        `on_transform_with_touch`:
+            Fired when the scatter has been transformed by user touch
+            or multitouch such as panning or zooming
     '''
+
+    __events__ = ('on_transform_with_touch',)
 
     auto_bring_to_front = BooleanProperty(True)
     '''If True, the widget will be automatically pushed on the top of parent
@@ -481,7 +488,7 @@ class Scatter(Widget):
         # rotate/scale/translate
         if touch in self._touches and touch.grab_current == self:
             if self.transform_with_touch(touch):
-                self.on_transform_with_touch(touch)
+                self.dispatch('on_transform_with_touch', touch)
             self._last_touch_pos[touch] = touch.pos
 
         # stop propagating if its within our bounds
