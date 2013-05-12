@@ -32,7 +32,6 @@ from kivy.uix.widget import Widget
 from kivy.properties import (NumericProperty, BoundedNumericProperty,
                             ListProperty, ObjectProperty, ReferenceListProperty,
                             StringProperty, AliasProperty)
-from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.graphics import Mesh, InstructionGroup, Color
 from kivy.metrics import sp
@@ -367,12 +366,6 @@ class ColorPicker(RelativeLayout):
     See module documentation.
     '''
 
-    font_size = NumericProperty(sp(12))
-    '''Specifies the font size to be used for the Labels and TextInput.
-    The height of the bar that displays Labels and TextInputs is adjusted
-    according to this value.
-    '''
-
     font_name = StringProperty('data/fonts/DroidSansMono.ttf')
     '''Specifies the font used used on the Color Picker
 
@@ -381,18 +374,11 @@ class ColorPicker(RelativeLayout):
     '''
 
     foreground_color = ListProperty((1, 1, 1, 1))
-    '''Specifies the color for the text used on the Color Picler in `rgba`
+    '''Specifies the color for the text used on the Color Picker in `rgba`
     format.
 
     :data:`foreground_color` is an :class:`~kivy.properties.ListProperty`
     defaults to (1, 1, 1. 1)
-    '''
-
-    background_color = ListProperty((.3, .3, .3, 1))
-    '''specifies the background color of the ColorPicker Widget
-
-    :data:`background_color` is an :class:`~kivy.properties.ListProperty`
-    defaults to (.3, .3, .3. 1)
     '''
 
     color = ListProperty((1, 1, 1, 1))
