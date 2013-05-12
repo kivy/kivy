@@ -336,13 +336,12 @@ class ScrollView(StencilView):
         self.bind(
             width=self._update_effect_x_bounds,
             height=self._update_effect_y_bounds,
-            viewport_size=self._update_effect_bounds)
-        self.bind(_viewport=self._update_effect_widget)
-
-        self.bind(scroll_x=self._trigger_update_from_scroll,
-                  scroll_y=self._trigger_update_from_scroll,
-                  pos=self._trigger_update_from_scroll,
-                  size=self._trigger_update_from_scroll)
+            viewport_size=self._update_effect_bounds,
+            _viewport=self._update_effect_widget,
+            scroll_x=self._trigger_update_from_scroll,
+            scroll_y=self._trigger_update_from_scroll,
+            pos=self._trigger_update_from_scroll,
+            size=self._trigger_update_from_scroll)
 
         self._update_effect_widget()
         self._update_effect_x_bounds()
@@ -375,14 +374,14 @@ class ScrollView(StencilView):
             return
         self.effect_x.min = -(self.viewport_size[0] - self.width)
         self.effect_x.max = 0
-        self.effect_x.value = self.effect_x.min
+        self.effect_x.value = self.effect_x.min * self.scroll_x
 
     def _update_effect_y_bounds(self, *args):
         if not self._viewport or not self.effect_y:
             return
         self.effect_y.min = -(self.viewport_size[1] - self.height)
         self.effect_y.max = 0
-        self.effect_y.value = self.effect_y.min
+        self.effect_y.value = self.effect_y.min * self.scroll_y
 
     def _update_effect_bounds(self, *args):
         if not self._viewport:
