@@ -69,7 +69,12 @@ def rect_to_polar(origin, x, y):
 class ColorWheel(Widget):
     '''Chromatic wheel for the ColorPiker.
 
-    :Events:
+    .. versionchanged::
+
+        `font_size`, `font_name`, `foreground_color` have been removed. The
+        sizing is now the same as others widget, based on 'sp'. Orientation is
+        also automatically determined according to the ratio width/height.
+
     '''
 
     r = BoundedNumericProperty(0, min=0, max=1)
@@ -365,14 +370,6 @@ class ColorPicker(RelativeLayout):
     defaults to 'data/fonts/DroidSansMono.ttf'
     '''
 
-    foreground_color = ListProperty((1, 1, 1, 1))
-    '''Specifies the color for the text used on the Color Picker in `rgba`
-    format.
-
-    :data:`foreground_color` is an :class:`~kivy.properties.ListProperty`
-    defaults to (1, 1, 1. 1)
-    '''
-
     color = ListProperty((1, 1, 1, 1))
     '''The :data:`color` holds the color currently selected in rgba format.
 
@@ -405,6 +402,10 @@ class ColorPicker(RelativeLayout):
     :data:`wheel` is an :class:`~kivy.properties.ObjectProperty` defaults to
     None
     '''
+
+    # now used only internally.
+    foreground_color = ListProperty((1, 1, 1, 1))
+
 
     def on_color(self, instance, value):
         if not self._updating_clr:
