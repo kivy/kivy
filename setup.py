@@ -441,6 +441,7 @@ setup(
         'kivy.core.text',
         'kivy.core.video',
         'kivy.core.window',
+        'kivy.effects',
         'kivy.ext',
         'kivy.graphics',
         'kivy.input',
