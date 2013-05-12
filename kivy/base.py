@@ -299,9 +299,11 @@ class EventLoopBase(EventDispatcher):
         # flush all the canvas operation
         Builder.sync()
 
+        # tick before draw
+        Clock.tick_draw()
+
         window = self.window
         if window and window.canvas.needs_redraw:
-            Clock.tick_draw()
             Builder.sync()
             window.dispatch('on_draw')
             window.dispatch('on_flip')
