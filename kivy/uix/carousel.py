@@ -235,6 +235,30 @@ class Carousel(StencilView):
                 self._position_visible_slides, -1)
         super(Carousel, self).__init__(**kwargs)
 
+    def load_previous(self):
+        '''Animate previous slide in.
+
+        .. versionadded:: 1.7.0
+        '''
+        self.load_next(mode='prev')
+
+    def load_next(self, mode='next'):
+        '''Animate next slide in.
+
+        .. versionadded:: 1.7.0
+        '''
+        h, w = self.size
+        _direction = {
+                    'top': -h / 2,
+                    'bottom': h / 2,
+                    'left': w / 2,
+                    'right': -w / 2}
+        _offset = _direction[self.direction]
+        if mode == 'prev':
+            _offset = -_offset
+        self._offset = _offset
+        self._start_animation()
+
     def get_slide_container(self, slide):
         return slide.parent
 

@@ -19,8 +19,14 @@ Builder.load_string('''
     Button
     Button
     Button
+        text: 'prev'
+        on_release:
+            root.parent.parent.load_previous()
     Button
     Button
+        text: 'next'
+        on_release:
+            root.parent.parent.load_next()
 ''')
 
 class Page(GridLayout):
