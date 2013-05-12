@@ -823,7 +823,7 @@
 <ColorPicker_Input@TextInput>
     multiline: False
     mroot: None
-    padding: sp(6)
+    padding: sp(5)
     border: 4, 9, 4, 9
 
 <ColorPicker_Label@Label>
@@ -845,13 +845,16 @@
 		text: root.text
 		mroot: root.mroot
 		color: root.foreground_color or (1, 1, 1, 1)
-	ColorPicker_Input:
-		mroot: root.mroot
-		text: str(int(sldr.value))
+	AnchorLayout:
 		size_hint_x: None
 		width: '50sp'
-		on_text:
-			root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
+		ColorPicker_Input:
+			mroot: root.mroot
+			text: str(int(sldr.value))
+			size_hint_y: None
+			height: '28sp'
+			on_text:
+				root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
     Slider:
         id: sldr
         size_hint: 1, .25
@@ -961,10 +964,13 @@
 					mroot: root
 					text: 'X'
 					color: root.foreground_color
-				ColorPicker_Input:
-					mroot: root
-					text: str(root.hex_color)
-					on_text: root._trigger_update_hex(args[1])
+				AnchorLayout:
+					ColorPicker_Input:
+						size_hint_y: None
+						height: '28sp'
+						mroot: root
+						text: str(root.hex_color)
+						on_text: root._trigger_update_hex(args[1])
 
 
         ColorWheel:
