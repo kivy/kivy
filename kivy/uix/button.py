@@ -36,7 +36,8 @@ to the :data:`Button.state` property::
 __all__ = ('Button', )
 
 from kivy.uix.label import Label
-from kivy.properties import OptionProperty, StringProperty, ListProperty
+from kivy.properties import (OptionProperty, StringProperty, ListProperty,
+                            BooleanProperty)
 
 
 class Button(Label):
@@ -48,6 +49,25 @@ class Button(Label):
         `on_release`
             Fired when the button is released (i.e., the touch/click that
             pressed the button goes away).
+    '''
+
+
+    disabled = BooleanProperty(False)
+    '''indicates whether this widget can interact with input or not
+
+    .. versionadded:: 1.7.0
+
+    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False.
+    '''
+
+    disabled_color = ListProperty([1, 1, 1, .3])
+    '''Text color, in the format (r, g, b, a)
+
+    .. versionadded:: 1.7.0
+
+    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
+    1, .5].
     '''
 
     state = OptionProperty('normal', options=('normal', 'down'))
@@ -89,6 +109,28 @@ class Button(Label):
     default to 'atlas://data/images/defaulttheme/button_pressed'
     '''
 
+    background_disabled_normal = StringProperty(
+        'atlas://data/images/defaulttheme/button_disabled')
+    '''Background image of the button used for default graphical representation,
+    when the button is not pressed.
+
+    .. versionadded:: 1.7.0
+
+    :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/button_disabled'
+    '''
+
+    background_disabled_down = StringProperty(
+        'atlas://data/images/defaulttheme/button_disabled_pressed')
+    '''Background image of the button used for default graphical representation,
+    when the button is pressed.
+
+    .. versionadded:: 1.7.0
+
+    :data:`background_down` is an :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/button_disabled_pressed'
+    '''
+
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction. Used with :data:`background_normal` and
@@ -110,6 +152,8 @@ class Button(Label):
         self.state = 'normal'
 
     def on_touch_down(self, touch):
+        if self.disabled:
+            return
         if super(Button, self).on_touch_down(touch):
             return True
         if touch.is_mouse_scrolling:
