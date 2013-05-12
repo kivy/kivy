@@ -34,7 +34,6 @@ from kivy.properties import (NumericProperty, BoundedNumericProperty,
                             StringProperty, AliasProperty)
 from kivy.clock import Clock
 from kivy.graphics import Mesh, InstructionGroup, Color
-from kivy.metrics import sp
 from kivy.utils import get_color_from_hex, get_hex_from_color
 from kivy.logger import Logger
 from math import cos, sin, pi, sqrt, atan
@@ -309,23 +308,16 @@ class _ColorArc(InstructionGroup):
         # first calculate the distance between endpoints of the inner
         # arc, so we know how many steps to use when calculating
         # vertices
-        start_point_inner = polar_to_rect(
-            self.origin, self.r_min, self.theta_min)
         end_point_inner = polar_to_rect(
             self.origin, self.r_min, self.theta_max)
 
-        clip = lambda x: 1 if x < 1 else x
-        d_inner = clip(distance(start_point_inner, end_point_inner))
+        d_inner = d_outer = 3.
         theta_step_inner = (self.theta_max - self.theta_min) / d_inner
 
         end_point_outer = polar_to_rect(
             self.origin, self.r_max, self.theta_max)
 
         if self.r_min == 0:
-            start_point_outer = polar_to_rect(
-                self.origin, self.r_max, self.theta_min)
-
-            d_outer = clip(distance(start_point_outer, end_point_outer))
             theta_step_outer = (self.theta_max - self.theta_min) / d_outer
             for x in range(int(d_outer)):
                 v += (polar_to_rect(self.origin, 0, 0) * 2)
