@@ -100,7 +100,10 @@ class SoundSDL(Sound):
             return False
         if Mix_Playing(mc.channel):
             return
-        self.stop()
+        if self.loop:
+            self.play()
+        else:
+            self.stop()
         return False
 
     def play(self):

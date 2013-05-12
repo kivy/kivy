@@ -39,7 +39,10 @@ class SoundGstreamer(Sound):
         t = message.type
         if t == gst.MESSAGE_EOS:
             self._data.set_state(gst.STATE_NULL)
-            self.stop()
+            if self.loop:
+                self.play()
+            else:
+                self.stop()
         elif t == gst.MESSAGE_ERROR:
             self._data.set_state(gst.STATE_NULL)
             err, debug = message.parse_error()

@@ -31,7 +31,7 @@ from kivy.core import core_register_libs
 from kivy.utils import platform
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
-        AliasProperty
+        AliasProperty, BooleanProperty
 
 
 class SoundLoader:
@@ -98,6 +98,14 @@ class Sound(EventDispatcher):
     .. versionadded:: 1.3.0
 
     :data:`state` is an :class:`~kivy.properties.OptionProperty`, read-only.
+    '''
+    
+    loop = BooleanProperty(False)
+    '''Set to True if the sound should automatically loop when it finishes.
+
+    .. versionadded:: 1.7.0
+
+    :data:`loop` is an :class:`~kivy.properties.BooleanProperty`, default to False.
     '''
 
     #
