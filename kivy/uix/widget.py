@@ -567,7 +567,7 @@ class Widget(EventDispatcher):
     '''This is a Dictionary of id's defined in your kv language. This will only
     be populated if you use id's in your kv language code.
 
-    .. versionadded:: 1.6.0
+    .. versionadded:: 1.7.0
 
     :data:`ids` is a :class:`~kivy.properties.DictProperty`, defaults to a empty
     dict {}.

@@ -21,14 +21,23 @@ To create a vertical slider::
 __all__ = ('Slider', )
 
 from kivy.uix.widget import Widget
-from kivy.properties import NumericProperty, AliasProperty, OptionProperty, \
-        ReferenceListProperty, BoundedNumericProperty
+from kivy.properties import (NumericProperty, AliasProperty, OptionProperty,
+        ReferenceListProperty, BoundedNumericProperty, BooleanProperty)
 
 
 class Slider(Widget):
     '''Class for creating Slider widget.
 
     Check module documentation for more details.
+    '''
+
+    disabled = BooleanProperty(False)
+    '''indicates whether this widget can interact with input or not.
+
+    .. versionadded:: 1.7.0
+
+    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False.
     '''
 
     value = NumericProperty(0.)
@@ -178,26 +187,27 @@ class Slider(Widget):
     '''
 
     def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            if touch.is_mouse_scrolling:
-                if 'down' in touch.button or 'left' in touch.button:
-                    if self.step:
-                        self.value = min(self.max, self.value + self.step)
-                    else:
-                        self.value = min(
-                            self.max,
-                            self.value + (self.max - self.min) / 20)
-                if 'up' in touch.button or 'right' in touch.button:
-                    if self.step:
-                        self.value = max(self.min, self.value - self.step)
-                    else:
-                        self.value = max(
-                            self.min,
-                            self.value - (self.max - self.min) / 20)
-            else:
-                touch.grab(self)
-                self.value_pos = touch.pos
-            return True
+        if self.disabled or not self.collide_point(*touch.pos):
+            return
+        if touch.is_mouse_scrolling:
+            if 'down' in touch.button or 'left' in touch.button:
+                if self.step:
+                    self.value = min(self.max, self.value + self.step)
+                else:
+                    self.value = min(
+                        self.max,
+                        self.value + (self.max - self.min) / 20)
+            if 'up' in touch.button or 'right' in touch.button:
+                if self.step:
+                    self.value = max(self.min, self.value - self.step)
+                else:
+                    self.value = max(
+                        self.min,
+                        self.value - (self.max - self.min) / 20)
+        else:
+            touch.grab(self)
+            self.value_pos = touch.pos
+        return True
 
     def on_touch_move(self, touch):
         if touch.grab_current == self:

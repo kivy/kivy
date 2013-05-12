@@ -49,8 +49,8 @@ if self.horizontal else 'path to vertical pressed image'
 __all__ = ('Splitter', )
 
 from kivy.uix.button import Button
-from kivy.properties import OptionProperty, NumericProperty, ObjectProperty,\
-    ListProperty
+from kivy.properties import (OptionProperty, NumericProperty, ObjectProperty,
+                            ListProperty, BooleanProperty)
 from kivy.uix.boxlayout import BoxLayout
 
 
@@ -73,6 +73,15 @@ class Splitter(BoxLayout):
     .. versionchanged:: 1.6.0
         Added `on_press` and `on_release` events
 
+    '''
+
+    disabled = BooleanProperty(False)
+    '''indicates whether this widget can interact with input or not
+
+    .. versionadded:: 1.7.0
+
+    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False.
     '''
 
     border = ListProperty([4, 4, 4, 4])
@@ -138,6 +147,12 @@ class Splitter(BoxLayout):
         sup = super(Splitter, instance)
         _strp = instance._strip
         if _strp:
+            # remove any previous binds
+            _strp.unbind(on_touch_down=instance.strip_down)
+            _strp.unbind(on_touch_move=instance.strip_move)
+            _strp.unbind(on_touch_up=instance.strip_up)
+            self.unbind(disabled = _strp.setter('disabled'))
+
             sup.remove_widget(instance._strip)
         else:
             instance._strip = _strp = instance.strip_cls()
@@ -160,12 +175,11 @@ class Splitter(BoxLayout):
             index = 0
         sup.add_widget(_strp, index)
 
-        _strp.unbind(on_touch_down=instance.strip_down)
-        _strp.unbind(on_touch_move=instance.strip_move)
-        _strp.unbind(on_touch_up=instance.strip_up)
         _strp.bind(on_touch_down=instance.strip_down)
         _strp.bind(on_touch_move=instance.strip_move)
         _strp.bind(on_touch_up=instance.strip_up)
+        _strp.disabled = self.disabled
+        self.bind(disabled=_strp.setter('disabled'))
 
     def add_widget(self, widget, index=0):
         if self._container or not widget:
@@ -192,7 +206,7 @@ class Splitter(BoxLayout):
         self.remove_widget(self._container)
 
     def strip_down(self, instance, touch):
-        if (not self.collide_point(*touch.pos)):
+        if self.disabled or (not instance.collide_point(*touch.pos)):
             return False
         touch.grab(self)
         self.dispatch('on_press')
@@ -201,7 +215,7 @@ class Splitter(BoxLayout):
         pass
 
     def strip_move(self, instance, touch):
-        if touch.grab_current is not self._strip:
+        if touch.grab_current is not instance:
             return False
         sign = 1
         max_size = self.max_size
@@ -236,9 +250,9 @@ class Splitter(BoxLayout):
             self.width = max(min_size, min(width, max_size))
 
     def strip_up(self, instance, touch):
-        if touch.grab_current is not self._strip:
+        if touch.grab_current is not instance:
             return
-        touch.ungrab(self._strip)
+        touch.ungrab(instance)
         self.dispatch('on_release')
 
     def on_release(self):
