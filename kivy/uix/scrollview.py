@@ -326,9 +326,8 @@ class ScrollView(StencilView):
 
     def __init__(self, **kwargs):
         self._touch = None
-        self._tdx = self._tdy = self._ts = self._tsn = 0
-        self._scroll_y_mouse = 1
-        self._scroll_x_mouse = 1
+        self._trigger_update_from_scroll = Clock.create_trigger(
+            self.update_from_scroll, -1)
         super(ScrollView, self).__init__(**kwargs)
         if self.effect_x is None and self.effect_cls is not None:
             self.effect_x = self.effect_cls(target_widget=self._viewport)
@@ -339,6 +338,11 @@ class ScrollView(StencilView):
             height=self._update_effect_y_bounds,
             viewport_size=self._update_effect_bounds)
         self.bind(_viewport=self._update_effect_widget)
+
+        self.bind(scroll_x=self._trigger_update_from_scroll,
+                  scroll_y=self._trigger_update_from_scroll,
+                  pos=self._trigger_update_from_scroll,
+                  size=self._trigger_update_from_scroll)
 
         self._update_effect_widget()
         self._update_effect_x_bounds()
@@ -397,7 +401,7 @@ class ScrollView(StencilView):
             return
         sx = self.effect_x.scroll / float(sw)
         self.scroll_x = -sx
-        self.update_from_scroll()
+        self._trigger_update_from_scroll()
 
     def _update_effect_y(self, *args):
         vp = self._viewport
@@ -408,7 +412,7 @@ class ScrollView(StencilView):
             return
         sy = self.effect_y.scroll / float(sh)
         self.scroll_y = -sy
-        self.update_from_scroll()
+        self._trigger_update_from_scroll()
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -608,8 +612,8 @@ class ScrollView(StencilView):
             raise Exception('ScrollView accept only one widget')
         super(ScrollView, self).add_widget(widget, index)
         self._viewport = widget
-        widget.bind(size=self.update_from_scroll)
-        self.update_from_scroll()
+        widget.bind(size=self._trigger_update_from_scroll)
+        self._trigger_update_from_scroll()
 
     def remove_widget(self, widget):
         super(ScrollView, self).remove_widget(widget)
