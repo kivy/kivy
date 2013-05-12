@@ -823,7 +823,7 @@
 <ColorPicker_Input@TextInput>
     multiline: False
     mroot: None
-    padding: sp(8)
+    padding: sp(6)
     border: 4, 9, 4, 9
 
 <ColorPicker_Label@Label>
@@ -840,7 +840,7 @@
     mroot: None
     mode: 'rgb'
     color: 0
-    spacing: '1sp'
+    spacing: '2sp'
 	ColorPicker_Label:
 		text: root.text
 		mroot: root.mroot
@@ -867,7 +867,6 @@
     BoxLayout:
         orientation: 'vertical'
         spacing: '5sp'
-        padding: '5sp'
         GridLayout:
             canvas:
                 Color:
@@ -876,9 +875,8 @@
                     size: self.size
                     pos: self.pos
             size_hint: 1, None
-            padding: '2sp'
             spacing: '2sp'
-			row_default_height: '33sp'
+			row_default_height: '30sp'
 			row_force_default: True
 			height: self.minimum_height
             cols: 2
