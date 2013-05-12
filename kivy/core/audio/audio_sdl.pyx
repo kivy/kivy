@@ -99,7 +99,10 @@ class SoundSDL(Sound):
             return False
         if Mix_GetChunk(mc.channel) == mc.chunk:
             return
-        self.stop()
+        if self.loop:
+            self.play()
+        else:
+            self.stop()
         return False
 
     def play(self):
