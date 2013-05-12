@@ -51,7 +51,10 @@ class SoundPygame(Sound):
             return False
         if self._channel.get_busy():
             return
-        self.stop()
+        if self.loop:
+            self.play()
+        else:
+            self.stop()
         return False
 
     def play(self):
