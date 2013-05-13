@@ -48,7 +48,9 @@ class SoundPygame(Sound):
         if self._channel.get_busy():
             return
         if self.loop:
-            self.play()
+            def do_loop(dt):
+                self.play()
+            Clock.schedule_once(do_loop)
         else:
             self.stop()
         return False
