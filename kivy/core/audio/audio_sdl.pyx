@@ -12,7 +12,7 @@ project.
 
 __all__ = ('SoundSDL', )
 
-from . import Sound, SoundLoader
+from kivy.core.audio import Sound, SoundLoader
 from kivy.logger import Logger
 from kivy.clock import Clock
 from libcpp cimport bool
