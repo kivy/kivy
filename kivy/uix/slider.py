@@ -31,15 +31,6 @@ class Slider(Widget):
     Check module documentation for more details.
     '''
 
-    disabled = BooleanProperty(False)
-    '''indicates whether this widget can interact with input or not.
-
-    .. versionadded:: 1.7.0
-
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
-    default to False.
-    '''
-
     value = NumericProperty(0.)
     '''Current value used for the slider.
 

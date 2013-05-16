@@ -36,8 +36,7 @@ to the :data:`Button.state` property::
 __all__ = ('Button', )
 
 from kivy.uix.label import Label
-from kivy.properties import (OptionProperty, StringProperty, ListProperty,
-                            BooleanProperty)
+from kivy.properties import OptionProperty, StringProperty, ListProperty
 
 
 class Button(Label):
@@ -49,16 +48,6 @@ class Button(Label):
         `on_release`
             Fired when the button is released (i.e., the touch/click that
             pressed the button goes away).
-    '''
-
-
-    disabled = BooleanProperty(False)
-    '''indicates whether this widget can interact with input or not
-
-    .. versionadded:: 1.7.0
-
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
-    default to False.
     '''
 
     disabled_color = ListProperty([1, 1, 1, .3])
@@ -152,14 +141,14 @@ class Button(Label):
         self.state = 'normal'
 
     def on_touch_down(self, touch):
-        if self.disabled:
-            return
         if super(Button, self).on_touch_down(touch):
             return True
         if touch.is_mouse_scrolling:
             return False
         if not self.collide_point(touch.x, touch.y):
             return False
+        if self.disabled:
+            return True
         if self in touch.ud:
             return False
         touch.grab(self)

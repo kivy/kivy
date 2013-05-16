@@ -45,15 +45,6 @@ from kivy.properties import BooleanProperty, ObjectProperty, NumericProperty
 class Switch(Widget):
     '''Switch class. See module documentation for more information.
     '''
-    disabled = BooleanProperty(False)
-    '''indicates whether this widget can interact with input or not
-
-    .. versionadded:: 1.7.0
-
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
-    default to False.
-    '''
-
     active = BooleanProperty(False)
     '''Indicate if the switch is active or inactive.
 

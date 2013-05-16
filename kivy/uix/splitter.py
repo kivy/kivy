@@ -75,15 +75,6 @@ class Splitter(BoxLayout):
 
     '''
 
-    disabled = BooleanProperty(False)
-    '''indicates whether this widget can interact with input or not
-
-    .. versionadded:: 1.7.0
-
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
-    default to False.
-    '''
-
     border = ListProperty([4, 4, 4, 4])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction.
@@ -205,8 +196,15 @@ class Splitter(BoxLayout):
     def clear_widgets(self):
         self.remove_widget(self._container)
 
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return
+        if self.disabled:
+            return True
+        return super(Splitter, self).on_touch_down(touch)
+
     def strip_down(self, instance, touch):
-        if self.disabled or (not instance.collide_point(*touch.pos)):
+        if not instance.collide_point(*touch.pos):
             return False
         touch.grab(self)
         self.dispatch('on_press')

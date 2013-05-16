@@ -35,6 +35,7 @@ Builder.load_string('''
 
 <StandingHeader>
     color: 0,0,0,0
+    disabled_color: self.color
     Scatter:
         do_translation: False
         do_scale: False
@@ -49,6 +50,7 @@ Builder.load_string('''
             id: lbl
             text: root.text
             size: root.size
+            color: 1, 1, 1, .5 if self.disabled else 1
             pos: 0,0
 
 <PanelLeft>
@@ -85,6 +87,7 @@ Builder.load_string('''
 
 <CloseableHeader>
     color: 0,0,0,0
+    disabled_color: self.color
     # variable tab_width
     text: 'tabx'
     size_hint_x: None

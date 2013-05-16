@@ -260,6 +260,17 @@ class TabbedPanel(GridLayout):
     default to 'atlas://data/images/defaulttheme/tab'.
     '''
 
+    background_disabled_image = StringProperty(
+                                'atlas://data/images/defaulttheme/tab_disabled')
+    '''Background image of the main shared content object.
+
+    .. versionadded:: 1.8.0
+
+    :data:`background_disabled_image` is a
+    :class:`~kivy.properties.StringProperty`, default to
+    'atlas://data/images/defaulttheme/tab'.
+    '''
+
     _current_tab = ObjectProperty(None)
 
     def get_current_tab(self):
@@ -399,11 +410,6 @@ class TabbedPanel(GridLayout):
         # processed setup the base layout for the tabbed panel
         self._tab_layout = GridLayout(rows=1)
         self.rows = 1
-        # bakground_image
-        self._bk_img = Image(
-            source=self.background_image, allow_stretch=True,
-            keep_ratio=False, color=self.background_color)
-
         self._tab_strip = TabbedPanelStrip(
             tabbed_panel=self,
             rows=1, cols=99, size_hint=(None, None),
@@ -496,13 +502,10 @@ class TabbedPanel(GridLayout):
         else:
             content.clear_widgets()
 
-    def on_background_image(self, *l):
-        self._bk_img.source = self.background_image
-
-    def on_background_color(self, *l):
-        if self.content is None:
-            return
-        self._bk_img.color = self.background_color
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos) and self.disabled:
+            return True
+        return super(TabbedPanel, self).on_touch_down(touch)
 
     def on_do_default_tab(self, instance, value):
         if not value:

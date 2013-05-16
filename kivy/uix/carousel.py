@@ -405,6 +405,8 @@ class Carousel(StencilView):
         if not self.collide_point(*touch.pos):
             touch.ud[self._get_uid('cavoid')] = True
             return
+        if self.disabled:
+            return True
         if self._touch:
             return super(Carousel, self).on_touch_down(touch)
         Animation.cancel_all(self)

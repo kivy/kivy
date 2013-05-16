@@ -2097,15 +2097,6 @@ class TextInput(Widget):
     .. versionadded:: 1.7.0
     '''
 
-    disabled = BooleanProperty(False)
-    '''indicates whether this widget can interact with input or not
-
-    .. versionadded:: 1.7.0
-
-    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
-    default to False.
-    '''
-
 
 if __name__ == '__main__':
     from kivy.app import App
