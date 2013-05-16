@@ -7,6 +7,7 @@ Scroll View
 The :class:`ScrollView` widget provides a scrollable/pannable viewport that is
 clipped at the scrollview's bounding box.
 
+
 Scrolling Behavior
 ------------------
 
@@ -26,9 +27,16 @@ If a touch travels :data:`~ScrollView.scroll_distance` pixels within the
 gesture and translatation (scroll/pan) will begin. If the timeout occurs, the
 touch down event is dispatched to the child instead (no translation).
 
+The default value for thoses settings can be changed in the configuration file::
+
+    [widgets]
+    scroll_timeout = 250
+    scroll_distance = 20
+
 .. versionadded:: 1.1.1
 
     Scrollview now animates scrolling in Y when a mousewheel is used.
+
 
 Limiting to X or Y Axis
 -----------------------
@@ -36,6 +44,7 @@ Limiting to X or Y Axis
 By default, ScrollView allows scrolling in both the X and Y axes. You can
 explicitly disable scrolling on an axis by setting
 :data:`ScrollView.do_scroll_x` or :data:`ScrollView.do_scroll_y` to False.
+
 
 Managing the Content Size
 -------------------------
@@ -53,7 +62,7 @@ identical to that of the ScrollView (size_hint_x=1, default), and set the
 size_hint_y property to None::
 
     layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
-    #Make sure the height is such that there is something to scroll.
+    # Make sure the height is such that there is something to scroll.
     layout.bind(minimum_height=layout.setter('height'))
     for i in range(30):
         btn = Button(text=str(i), size_hint_y=None, height=40)
@@ -61,491 +70,49 @@ size_hint_y property to None::
     root = ScrollView(size_hint=(None, None), size=(400, 400))
     root.add_widget(layout)
 
-Controlling Timeout, Distance and Trigger
------------------------------------------
 
-.. versionadded:: 1.0.8
+Effects
+-------
 
-In your configuration file, you can some default values for this widget::
+.. versionadded:: 1.7.0
 
-    [widgets]
-    scroll_timeout = 250
-    scroll_distance = 20
-    scroll_friction = 1.
+An effect is a subclass of :class:`~kivy.effects.scroll.ScrollEffect` that will
+compute informations during the dragging, and apply transformation to the
+:class:`ScrollView`. Depending of the effect, more computing can be done for
+calculating over-scroll, bouncing, etc.
 
-If you want to reduce the default timeout, you can set::
+All the effects are located in the :mod:`kivy.effects`.
 
-    [widgets]
-    scroll_timeout = 150
 
 '''
 
 __all__ = ('ScrollView', )
 
-from copy import copy
 from functools import partial
 from kivy.animation import Animation
 from kivy.config import Config
 from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
+from kivy.metrics import sp
+from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty
 
 
 # When we are generating documentation, Config doesn't exist
-_scroll_moves = _scroll_timeout = _scroll_stoptime = \
-    _scroll_distance = _scroll_friction = 0
+_scroll_timeout = _scroll_distance = 0
 if Config:
     _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
-    _scroll_stoptime = Config.getint('widgets', 'scroll_stoptime')
-    _scroll_distance = Config.getint('widgets', 'scroll_distance')
-    _scroll_moves = Config.getint('widgets', 'scroll_moves')
-    _scroll_friction = Config.getfloat('widgets', 'scroll_friction')
-
-
-class FixedList(list):
-    '''A list. In addition, you can specify the maximum length.
-    This will save memory.
-    '''
-    def __init__(self, maxlength=0, *args, **kwargs):
-        super(FixedList, self).__init__(*args, **kwargs)
-        self.maxlength = maxlength
-
-    def append(self, x):
-        super(FixedList, self).append(x)
-        self._cut()
-
-    def extend(self, L):
-        super(FixedList, self).append(L)
-        self._cut()
-
-    def _cut(self):
-        while len(self) > self.maxlength:
-            self.pop(0)
+    _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
 
 
 class ScrollView(StencilView):
     '''ScrollView class. See module documentation for more information.
-    '''
 
-    def __init__(self, **kwargs):
-        self._touch = False
-        self._tdx = self._tdy = self._ts = self._tsn = 0
-        self._scroll_y_mouse = 1
-        self._scroll_x_mouse = 1
-        super(ScrollView, self).__init__(**kwargs)
-        self.bind(scroll_x=self.update_from_scroll,
-                  scroll_y=self.update_from_scroll,
-                  pos=self.update_from_scroll,
-                  size=self.update_from_scroll)
-        self.update_from_scroll()
+    .. versionchanged:: 1.7.0
 
-    def convert_distance_to_scroll(self, dx, dy):
-        '''Convert a distance in pixels to a scroll distance, depending on the
-        content size and the scrollview size.
-
-        The result will be a tuple of scroll distance that can be added to
-        :data:`scroll_x` and :data:`scroll_y`
-        '''
-        if not self._viewport:
-            return 0, 0
-        vp = self._viewport
-        if vp.width > self.width:
-            sw = vp.width - self.width
-            sx = dx / float(sw)
-        else:
-            sx = 0
-        if vp.height > self.height:
-            sh = vp.height - self.height
-            sy = dy / float(sh)
-        else:
-            sy = 1
-        return sx, sy
-
-    def update_from_scroll(self, *largs):
-        '''Force the reposition of the content, according to current value of
-        :data:`scroll_x` and :data:`scroll_y`.
-
-        This method is automatically called when one of the :data:`scroll_x`,
-        :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or
-        if the size of the content changes.
-        '''
-        if not self._viewport:
-            return
-        vp = self._viewport
-
-        if self.do_scroll_x:
-            self.scroll_x = min(1, max(0, self.scroll_x))
-            self._scroll_x_mouse = self.scroll_x
-        if self.do_scroll_y:
-            self.scroll_y = min(1, max(0, self.scroll_y))
-            self._scroll_y_mouse = self.scroll_y
-
-        # update from size_hint
-        if vp.size_hint_x is not None:
-            vp.width = vp.size_hint_x * self.width
-        if vp.size_hint_y is not None:
-            vp.height = vp.size_hint_y * self.height
-
-        if vp.width > self.width:
-            sw = vp.width - self.width
-            x = self.x - self.scroll_x * sw
-        else:
-            x = self.x
-        if vp.height > self.height:
-            sh = vp.height - self.height
-            y = self.y - self.scroll_y * sh
-        else:
-            y = self.top - vp.height
-        vp.pos = x, y
-
-        # new in 1.2.0, show bar when scrolling happen
-        # and slowly remove them when no scroll is happening.
-        self.bar_alpha = 1.
-        Animation.stop_all(self, 'bar_alpha')
-        Clock.unschedule(self._start_decrease_alpha)
-        Clock.schedule_once(self._start_decrease_alpha, .5)
-
-    def _start_decrease_alpha(self, *l):
-        self.bar_alpha = 1.
-        Animation(bar_alpha=0., d=.5, t='out_quart').start(self)
-
-    #
-    # Private
-    #
-    def add_widget(self, widget, index=0):
-        if self._viewport:
-            raise Exception('ScrollView accept only one widget')
-        super(ScrollView, self).add_widget(widget, index)
-        self._viewport = widget
-        widget.bind(size=self.update_from_scroll)
-        self.update_from_scroll()
-
-    def remove_widget(self, widget):
-        super(ScrollView, self).remove_widget(widget)
-        if widget is self._viewport:
-            self._viewport = None
-
-    def _get_uid(self, prefix='sv'):
-        return '{0}.{1}'.format(prefix, self.uid)
-
-    def _change_touch_mode(self, *largs):
-        if not self._touch:
-            return
-        uid = self._get_uid()
-        touch = self._touch
-        ud = touch.ud[uid]
-        if ud['mode'] == 'unknown' and not ud['user_stopped']:
-            # XXX the next line was in the condition. But this stop
-            # the possibily to "drag" an object out of the scrollview in the
-            # non-used direction: if you have an horizontal scrollview, a
-            # vertical gesture will not "stop" the scroll view to look for an
-            # horizontal gesture, until the timeout is done.
-            # and touch.dx + touch.dy == 0:
-            touch.ungrab(self)
-            self._touch = None
-            # correctly calculate the position of the touch inside the
-            # scrollview
-            touch.push()
-            touch.apply_transform_2d(self.to_widget)
-            touch.apply_transform_2d(self.to_parent)
-            super(ScrollView, self).on_touch_down(touch)
-            touch.pop()
-            return
-
-    def _do_touch_up(self, touch, *largs):
-        super(ScrollView, self).on_touch_up(touch)
-        # don't forget about grab event!
-        for x in touch.grab_list[:]:
-            touch.grab_list.remove(x)
-            x = x()
-            if not x:
-                continue
-            touch.grab_current = x
-            super(ScrollView, self).on_touch_up(touch)
-        touch.grab_current = None
-
-    def _do_animation(self, touch, *largs):
-        uid = self._get_uid()
-        ud = touch.ud[uid]
-        dt = touch.time_end - ud['time']
-        avgdx = sum([move.dx for move in ud['moves']]) / len(ud['moves'])
-        avgdy = sum([move.dy for move in ud['moves']]) / len(ud['moves'])
-        if ud['same'] > self.scroll_stoptime / 1000.:
-            return
-        dt = ud['dt']
-        if dt == 0:
-            self._tdx = self._tdy = self._ts = 0
-            return
-        dx = avgdx
-        dy = avgdy
-        self._sx = ud['sx']
-        self._sy = ud['sy']
-        self._tdx = dx = dx / dt
-        self._tdy = dy = dy / dt
-        self._ts = self._tsn = touch.time_update
-
-        Clock.unschedule(self._update_animation)
-        Clock.schedule_interval(self._update_animation, 0)
-
-    def _update_animation(self, dt):
-        if self._touch is not None or self._ts == 0:
-            touch = self._touch
-            uid = self._get_uid()
-            ud = touch.ud[uid]
-            # scrolling stopped by user input
-            ud['user_stopped'] = True
-            return False
-        self._tsn += dt
-        global_dt = self._tsn - self._ts
-        divider = 2 ** (global_dt * self.scroll_friction)
-        dx = self._tdx / divider
-        dy = self._tdy / divider
-        test_dx = abs(dx) < 10
-        test_dy = abs(dy) < 10
-        if (self.do_scroll_x and not self.do_scroll_y and test_dx) or\
-           (self.do_scroll_y and not self.do_scroll_x and test_dy) or\
-           (self.do_scroll_x and self.do_scroll_y and test_dx and test_dy):
-            self._ts = 0
-            # scrolling stopped by friction
-            return False
-        dx *= dt
-        dy *= dt
-        sx, sy = self.convert_distance_to_scroll(dx, dy)
-        ssx = self.scroll_x
-        ssy = self.scroll_y
-        if self.do_scroll_x:
-            self.scroll_x -= sx
-        if self.do_scroll_y:
-            self.scroll_y -= sy
-        self._scroll_x_mouse = self.scroll_x
-        self._scroll_y_mouse = self.scroll_y
-        if ssx == self.scroll_x and ssy == self.scroll_y:
-            # scrolling stopped by end of box
-            return False
-
-    def _update_delta(self, dt):
-        touch = self._touch
-        if not touch:
-            return False
-        uid = self._get_uid()
-        ud = touch.ud[uid]
-        if touch.dx + touch.dy != 0:
-            ud['same'] += dt
-        else:
-            ud['same'] = 0
-
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            touch.ud[self._get_uid('svavoid')] = True
-            return
-        if self._touch:
-            return super(ScrollView, self).on_touch_down(touch)
-        # support scrolling !
-        if self._viewport and 'button' in touch.profile and \
-                touch.button.startswith('scroll'):
-            btn = touch.button
-            # distance available to move, if no distance, do nothing
-            vp = self._viewport
-            if vp.height > self.height:
-                # let's say we want to move over 40 pixels each scroll
-                d = (vp.height - self.height)
-                syd = None
-                if d != 0:
-                    d = self.scroll_distance / float(d)
-                if btn == 'scrollup':
-                    syd = self._scroll_y_mouse - d
-                elif btn == 'scrolldown':
-                    syd = self._scroll_y_mouse + d
-
-                if syd is not None:
-                    if not self.do_scroll_y:
-                        return
-                    self._scroll_y_mouse = scroll_y = min(max(syd, 0), 1)
-                    Animation.stop_all(self, 'scroll_y')
-                    Animation(scroll_y=scroll_y, d=.3,
-                              t='out_quart').start(self)
-                    Clock.unschedule(self._update_animation)
-                    return True
-
-            if vp.width > self.width and self.do_scroll_x:
-                # let's say we want to move over 40 pixels each scroll
-                d = (vp.width - self.width)
-                sxd = None
-                if d != 0:
-                    d = self.scroll_distance / float(d)
-                if btn == 'scrollright':
-                    sxd = self._scroll_x_mouse - d
-                elif btn == 'scrollleft':
-                    sxd = self._scroll_x_mouse + d
-                if sxd is not None:
-                    if not self.do_scroll_y:
-                        return
-                    self._scroll_x_mouse = scroll_x = min(max(sxd, 0), 1)
-                    Animation.stop_all(self, 'scroll_x')
-                    Animation(scroll_x=scroll_x, d=.3, t='out_quart').start(
-                            self)
-                    Clock.unschedule(self._update_animation)
-                    return True
-
-        self._touch = touch
-        uid = self._get_uid()
-        touch.grab(self)
-        touch.ud[uid] = {
-            'mode': 'unknown',
-            'sx': self.scroll_x,
-            'sy': self.scroll_y,
-            'dt': None,
-            'time': touch.time_start,
-            'user_stopped': False,
-            'same': 0,
-            'moves': FixedList(self.scroll_moves)}
-
-        Clock.schedule_interval(self._update_delta, 0)
-        Clock.schedule_once(self._change_touch_mode,
-                            self.scroll_timeout / 1000.)
-        return True
-
-    def on_touch_move(self, touch):
-        if self._get_uid('svavoid') in touch.ud:
-            return
-        if self._touch is not touch:
-            super(ScrollView, self).on_touch_move(touch)
-            return self._get_uid() in touch.ud
-        if touch.grab_current is not self:
-            return True
-        uid = self._get_uid()
-        ud = touch.ud[uid]
-        mode = ud['mode']
-        ud['moves'].append(copy(touch))
-
-        # seperate the distance to both X and Y axis.
-        # if a distance is reach, but on the inverse axis, stop scroll mode !
-        if mode == 'unknown':
-            distance = abs(touch.ox - touch.x)
-            if distance > self.scroll_distance:
-                if not self.do_scroll_x:
-                    self._change_touch_mode()
-                    return
-                mode = 'scroll'
-
-            distance = abs(touch.oy - touch.y)
-            if distance > self.scroll_distance:
-                if not self.do_scroll_y:
-                    self._change_touch_mode()
-                    return
-                mode = 'scroll'
-
-        if mode == 'scroll':
-            ud['mode'] = mode
-            dx = touch.ox - touch.x
-            dy = touch.oy - touch.y
-            sx, sy = self.convert_distance_to_scroll(dx, dy)
-            if self.do_scroll_x:
-                self.scroll_x = ud['sx'] + sx
-            if self.do_scroll_y:
-                self.scroll_y = ud['sy'] + sy
-            ud['dt'] = touch.time_update - ud['time']
-            ud['time'] = touch.time_update
-            ud['user_stopped'] = True
-
-        return True
-
-    def on_touch_up(self, touch):
-        # Warning: usually, we are checking if grab_current is ourself first. On
-        # this case, we might need to call on_touch_down. If we call it inside
-        # the on_touch_up + grab state, any widget that grab the touch will be
-        # never ungrabed, cause their on_touch_up will be never called.
-        # base.py: the me.grab_list[:] => it's a copy, and we are already
-        # iterate on it.
-        Clock.unschedule(self._update_delta)
-        if self._get_uid('svavoid') in touch.ud:
-            return
-
-        if 'button' in touch.profile and not touch.button.startswith('scroll'):
-            self._scroll_y_mouse = self.scroll_y
-            self._scroll_x_mouse = self.scroll_x
-
-        if self in [x() for x in touch.grab_list]:
-            touch.ungrab(self)
-            self._touch = None
-            uid = self._get_uid()
-            ud = touch.ud[uid]
-            if ud['mode'] == 'unknown':
-                # we must do the click at least..
-                # only send the click if it was not a click to stop
-                # autoscrolling
-                if not ud['user_stopped']:
-                    super(ScrollView, self).on_touch_down(touch)
-                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
-            elif self.auto_scroll:
-                self._do_animation(touch)
-        else:
-            if self._touch is not touch and self.uid not in touch.ud:
-                super(ScrollView, self).on_touch_up(touch)
-
-        # if we do mouse scrolling, always accept it
-        if 'button' in touch.profile and touch.button.startswith('scroll'):
-            return True
-
-        return self._get_uid() in touch.ud
-
-    #
-    # Properties
-    #
-    auto_scroll = BooleanProperty(True)
-    '''Automatic scrolling is the movement activated after a swipe. When you
-    release a touch, it will start to move the list, according to the lastest
-    touch movement.
-    If you don't want that behavior, just set the auto_scroll to False.
-
-    :data:`auto_scroll` is a :class:`~kivy.properties.BooleanProperty`, default
-    to True
-    '''
-
-    scroll_friction = NumericProperty(_scroll_friction)
-    '''Friction is a factor for reducing the scrolling when the list is not
-    moved by a touch. When you do a swipe, the movement speed is calculated,
-    and is used to move the list automatically when touch up happens. The speed
-    is reducing from this equation::
-
-        2 ^ (t * f)
-        # t is the time from the touch up
-        # f is the friction
-
-    By default, the friction factor is 1. It will reduce the speed by a factor
-    of 2 each second. If you set the friction to 0, the list speed will never
-    stop. If you set to a bigger value, the list movement will stop faster.
-
-    :data:`scroll_friction` is a :class:`~kivy.properties.NumericProperty`,
-    default to 1, according to the default value in user configuration.
-    '''
-
-    scroll_moves = NumericProperty(_scroll_moves)
-    '''The speed of automatic scrolling is based on previous touch moves. This
-    is to prevent accidental slowing down by the user at the end of the swipe
-    to slow down the automatic scrolling.
-    The moves property specifies the amount of previous scrollmoves that
-    should be taken into consideration when calculating the automatic scrolling
-    speed.
-
-    :data:`scroll_moves` is a :class:`~kivy.properties.NumericProperty`,
-    default to 5.
-
-    .. versionadded:: 1.5.0
-    '''
-
-    scroll_stoptime = NumericProperty(_scroll_stoptime)
-    '''Time after which user input not moving will disable autoscroll for that
-    move. If the user has not moved within the stoptime, autoscroll will not
-    start.
-    This is to prevent autoscroll to trigger while the user has slowed down
-    on purpose to prevent this.
-
-    :data:`scroll_stoptime` is a :class:`~kivy.properties.NumericProperty`,
-    default to 300 (milliseconds)
-
-    .. versionadded:: 1.5.0
+        `auto_scroll`, `scroll_friction`, `scroll_moves`, `scroll_stoptime' has
+        been deprecated, use :data:`effect_cls` instead.
     '''
 
     scroll_distance = NumericProperty(_scroll_distance)
@@ -637,11 +204,12 @@ class ScrollView(StencilView):
         if vh < h or vh == 0:
             return 0, 1.
         ph = max(0.01, h / float(vh))
-        py = (1. - ph) * self.scroll_y
+        sy = min(1.0, max(0.0, self.scroll_y))
+        py = (1. - ph) * sy
         return (py, ph)
 
     vbar = AliasProperty(_get_vbar, None, bind=(
-        'scroll_y', '_viewport', '_viewport_size'))
+        'scroll_y', '_viewport', 'viewport_size'))
     '''Return a tuple of (position, size) of the vertical scrolling bar.
 
     .. versionadded:: 1.2.0
@@ -663,11 +231,12 @@ class ScrollView(StencilView):
         if vw < w or vw == 0:
             return 0, 1.
         pw = max(0.01, w / float(vw))
-        px = (1. - pw) * self.scroll_x
+        sx = min(1.0, max(0.0, self.scroll_x))
+        px = (1. - pw) * sx
         return (px, pw)
 
     hbar = AliasProperty(_get_hbar, None, bind=(
-        'scroll_x', '_viewport', '_viewport_size'))
+        'scroll_x', '_viewport', 'viewport_size'))
     '''Return a tuple of (position, size) of the horizontal scrolling bar.
 
     .. versionadded:: 1.2.0
@@ -708,16 +277,390 @@ class ScrollView(StencilView):
     to 0
     '''
 
+    effect_cls = ObjectProperty(DampedScrollEffect, allownone=True)
+    '''Class effect to instanciate for X and Y axis.
+
+    .. versionadded:: 1.7.0
+
+    :data:`effect_cls` is a :class:`~kivy.properties.ObjectProperty`, default to
+    :class:`DampedScrollEffect`.
+    '''
+
+    effect_x = ObjectProperty(None, allownone=True)
+    '''Effect to apply for the X axis. If None is set, an instance of
+    :data:`effect_cls` will be created.
+
+    .. versionadded:: 1.7.0
+
+    :data:`effect_x` is a :class:`~kivy.properties.ObjectProperty`, default to
+    None
+    '''
+
+    effect_y = ObjectProperty(None, allownone=True)
+    '''Effect to apply for the Y axis. If None is set, an instance of
+    :data:`effect_cls` will be created.
+
+    .. versionadded:: 1.7.0
+
+    :data:`effect_y` is a :class:`~kivy.properties.ObjectProperty`, default to
+    None, read-only.
+    '''
+
+    viewport_size = ListProperty([0, 0])
+    '''(internal) Size of the internal viewport. This is the size of your only
+    child in the scrollview.
+    '''
+
     # private, for internal use only
 
     _viewport = ObjectProperty(None, allownone=True)
-    _viewport_size = ListProperty([0, 0])
     bar_alpha = NumericProperty(1.)
 
     def _set_viewport_size(self, instance, value):
-        self._viewport_size = value
+        self.viewport_size = value
 
     def on__viewport(self, instance, value):
         if value:
             value.bind(size=self._set_viewport_size)
-            self._viewport_size = value.size
+            self.viewport_size = value.size
+
+    def __init__(self, **kwargs):
+        self._touch = None
+        self._trigger_update_from_scroll = Clock.create_trigger(
+            self.update_from_scroll, -1)
+        super(ScrollView, self).__init__(**kwargs)
+        if self.effect_x is None and self.effect_cls is not None:
+            self.effect_x = self.effect_cls(target_widget=self._viewport)
+        if self.effect_y is None and self.effect_cls is not None:
+            self.effect_y = self.effect_cls(target_widget=self._viewport)
+        self.bind(
+            width=self._update_effect_x_bounds,
+            height=self._update_effect_y_bounds,
+            viewport_size=self._update_effect_bounds,
+            _viewport=self._update_effect_widget,
+            scroll_x=self._trigger_update_from_scroll,
+            scroll_y=self._trigger_update_from_scroll,
+            pos=self._trigger_update_from_scroll,
+            size=self._trigger_update_from_scroll)
+
+        self._update_effect_widget()
+        self._update_effect_x_bounds()
+        self._update_effect_y_bounds()
+
+    def on_effect_x(self, instance, value):
+        if value:
+            value.bind(scroll=self._update_effect_x)
+            value.target_widget = self._viewport
+
+    def on_effect_y(self, instance, value):
+        if value:
+            value.bind(scroll=self._update_effect_y)
+            value.target_widget = self._viewport
+
+    def on_effect_cls(self, instance, cls):
+        self.effect_x = self.effect_cls(target_widget=self._viewport)
+        self.effect_x.bind(scroll=self._update_effect_x)
+        self.effect_y = self.effect_cls(target_widget=self._viewport)
+        self.effect_y.bind(scroll=self._update_effect_y)
+
+    def _update_effect_widget(self, *args):
+        if self.effect_x:
+            self.effect_x.target_widget = self._viewport
+        if self.effect_y:
+            self.effect_y.target_widget = self._viewport
+
+    def _update_effect_x_bounds(self, *args):
+        if not self._viewport or not self.effect_x:
+            return
+        self.effect_x.min = -(self.viewport_size[0] - self.width)
+        self.effect_x.max = 0
+        self.effect_x.value = self.effect_x.min * self.scroll_x
+
+    def _update_effect_y_bounds(self, *args):
+        if not self._viewport or not self.effect_y:
+            return
+        self.effect_y.min = -(self.viewport_size[1] - self.height)
+        self.effect_y.max = 0
+        self.effect_y.value = self.effect_y.min * self.scroll_y
+
+    def _update_effect_bounds(self, *args):
+        if not self._viewport:
+            return
+        if self.effect_x:
+            self._update_effect_x_bounds()
+        if self.effect_y:
+            self._update_effect_y_bounds()
+
+    def _update_effect_x(self, *args):
+        vp = self._viewport
+        if not vp or not self.effect_x:
+            return
+        sw = vp.width - self.width
+        if sw < 1:
+            return
+        sx = self.effect_x.scroll / float(sw)
+        self.scroll_x = -sx
+        self._trigger_update_from_scroll()
+
+    def _update_effect_y(self, *args):
+        vp = self._viewport
+        if not vp or not self.effect_y:
+            return
+        sh = vp.height - self.height
+        if sh < 1:
+            return
+        sy = self.effect_y.scroll / float(sh)
+        self.scroll_y = -sy
+        self._trigger_update_from_scroll()
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            touch.ud[self._get_uid('svavoid')] = True
+            return
+        if self._touch:
+            return super(ScrollView, self).on_touch_down(touch)
+
+        # handle mouse scrolling, only if the viewport size is bigger than the
+        # scrollview size, and if the user allowed to do it
+        vp = self._viewport
+        if vp and 'button' in touch.profile and \
+            touch.button.startswith('scroll'):
+            btn = touch.button
+            m = self.scroll_distance
+            e = None
+
+            if (self.effect_x and self.do_scroll_y and vp.height > self.height
+                    and btn in ('scrolldown', 'scrollup')):
+                e = self.effect_y
+
+            elif (self.effect_y and self.do_scroll_x and vp.width > self.width
+                    and btn in ('scrollleft', 'scrollright')):
+                e = self.effect_x
+
+            if e:
+                if btn in ('scrolldown', 'scrollleft'):
+                    e.value = max(e.value - m, e.min)
+                    e.velocity = 0
+                elif btn in ('scrollup', 'scrollright'):
+                    e.value = min(e.value + m, e.max)
+                    e.velocity = 0
+                touch.ud[self._get_uid('svavoid')] = True
+                e.trigger_velocity_update()
+                return True
+
+        # no mouse scrolling, so the user is going to drag the scrollview with
+        # this touch.
+        self._touch = touch
+        uid = self._get_uid()
+        touch.grab(self)
+        touch.ud[uid] = {
+            'mode': 'unknown',
+            'dx': 0,
+            'dy': 0,
+            'user_stopped': False,
+            'time': touch.time_start}
+        if self.do_scroll_x and self.effect_x:
+            self.effect_x.start(touch.x)
+        if self.do_scroll_y and self.effect_y:
+            self.effect_y.start(touch.y)
+        Clock.schedule_once(self._change_touch_mode,
+                            self.scroll_timeout / 1000.)
+        return True
+
+    def on_touch_move(self, touch):
+        if self._get_uid('svavoid') in touch.ud:
+            return
+        if self._touch is not touch:
+            super(ScrollView, self).on_touch_move(touch)
+            return self._get_uid() in touch.ud
+        if touch.grab_current is not self:
+            return True
+
+        uid = self._get_uid()
+        ud = touch.ud[uid]
+        mode = ud['mode']
+
+        # check if the minimum distance has been travelled
+        if mode == 'unknown' or mode == 'scroll':
+            if self.do_scroll_x and self.effect_x:
+                self.effect_x.update(touch.x)
+            if self.do_scroll_y and self.effect_y:
+                self.effect_y.update(touch.y)
+
+        if mode == 'unknown':
+            ud['dx'] += abs(touch.dx)
+            ud['dy'] += abs(touch.dy)
+            if ud['dx'] > self.scroll_distance:
+                if not self.do_scroll_x:
+                    self._change_touch_mode()
+                    return
+                mode = 'scroll'
+
+            if ud['dy'] > self.scroll_distance:
+                if not self.do_scroll_y:
+                    self._change_touch_mode()
+                    return
+                mode = 'scroll'
+            ud['mode'] = mode
+
+        if mode == 'scroll':
+            ud['dt'] = touch.time_update - ud['time']
+            ud['time'] = touch.time_update
+            ud['user_stopped'] = True
+
+        return True
+
+    def on_touch_up(self, touch):
+        if self._get_uid('svavoid') in touch.ud:
+            return
+
+        if self in [x() for x in touch.grab_list]:
+            touch.ungrab(self)
+            self._touch = None
+            uid = self._get_uid()
+            ud = touch.ud[uid]
+            if self.do_scroll_x and self.effect_x:
+                self.effect_x.stop(touch.x)
+            if self.do_scroll_y and self.effect_y:
+                self.effect_y.stop(touch.y)
+            if ud['mode'] == 'unknown':
+                # we must do the click at least..
+                # only send the click if it was not a click to stop
+                # autoscrolling
+                if not ud['user_stopped']:
+                    super(ScrollView, self).on_touch_down(touch)
+                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
+        else:
+            if self._touch is not touch and self.uid not in touch.ud:
+                super(ScrollView, self).on_touch_up(touch)
+
+        # if we do mouse scrolling, always accept it
+        if 'button' in touch.profile and touch.button.startswith('scroll'):
+            return True
+
+        return self._get_uid() in touch.ud
+
+    def convert_distance_to_scroll(self, dx, dy):
+        '''Convert a distance in pixels to a scroll distance, depending on the
+        content size and the scrollview size.
+
+        The result will be a tuple of scroll distance that can be added to
+        :data:`scroll_x` and :data:`scroll_y`
+        '''
+        if not self._viewport:
+            return 0, 0
+        vp = self._viewport
+        if vp.width > self.width:
+            sw = vp.width - self.width
+            sx = dx / float(sw)
+        else:
+            sx = 0
+        if vp.height > self.height:
+            sh = vp.height - self.height
+            sy = dy / float(sh)
+        else:
+            sy = 1
+        return sx, sy
+
+    def update_from_scroll(self, *largs):
+        '''Force the reposition of the content, according to current value of
+        :data:`scroll_x` and :data:`scroll_y`.
+
+        This method is automatically called when one of the :data:`scroll_x`,
+        :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or
+        if the size of the content changes.
+        '''
+        if not self._viewport:
+            return
+        vp = self._viewport
+
+        # update from size_hint
+        if vp.size_hint_x is not None:
+            vp.width = vp.size_hint_x * self.width
+        if vp.size_hint_y is not None:
+            vp.height = vp.size_hint_y * self.height
+
+        if vp.width > self.width:
+            sw = vp.width - self.width
+            x = self.x - self.scroll_x * sw
+        else:
+            x = self.x
+        if vp.height > self.height:
+            sh = vp.height - self.height
+            y = self.y - self.scroll_y * sh
+        else:
+            y = self.top - vp.height
+        vp.pos = x, y
+
+        # new in 1.2.0, show bar when scrolling happen
+        # and slowly remove them when no scroll is happening.
+        self.bar_alpha = 1.
+        Animation.stop_all(self, 'bar_alpha')
+        Clock.unschedule(self._start_decrease_alpha)
+        Clock.schedule_once(self._start_decrease_alpha, .5)
+
+    def _start_decrease_alpha(self, *l):
+        self.bar_alpha = 1.
+        Animation(bar_alpha=0., d=.5, t='out_quart').start(self)
+
+    #
+    # Private
+    #
+    def add_widget(self, widget, index=0):
+        if self._viewport:
+            raise Exception('ScrollView accept only one widget')
+        super(ScrollView, self).add_widget(widget, index)
+        self._viewport = widget
+        widget.bind(size=self._trigger_update_from_scroll)
+        self._trigger_update_from_scroll()
+
+    def remove_widget(self, widget):
+        super(ScrollView, self).remove_widget(widget)
+        if widget is self._viewport:
+            self._viewport = None
+
+    def _get_uid(self, prefix='sv'):
+        return '{0}.{1}'.format(prefix, self.uid)
+
+    def _change_touch_mode(self, *largs):
+        if not self._touch:
+            return
+        uid = self._get_uid()
+        touch = self._touch
+        ud = touch.ud[uid]
+        if ud['mode'] != 'unknown' or ud['user_stopped']:
+            return
+        if self.do_scroll_x and self.effect_x:
+            self.effect_x.cancel()
+        if self.do_scroll_y and self.effect_y:
+            self.effect_y.cancel()
+        # XXX the next line was in the condition. But this stop
+        # the possibily to "drag" an object out of the scrollview in the
+        # non-used direction: if you have an horizontal scrollview, a
+        # vertical gesture will not "stop" the scroll view to look for an
+        # horizontal gesture, until the timeout is done.
+        # and touch.dx + touch.dy == 0:
+        touch.ungrab(self)
+        self._touch = None
+        # correctly calculate the position of the touch inside the
+        # scrollview
+        touch.push()
+        touch.apply_transform_2d(self.to_widget)
+        touch.apply_transform_2d(self.to_parent)
+        super(ScrollView, self).on_touch_down(touch)
+        touch.pop()
+        return
+
+    def _do_touch_up(self, touch, *largs):
+        super(ScrollView, self).on_touch_up(touch)
+        # don't forget about grab event!
+        for x in touch.grab_list[:]:
+            touch.grab_list.remove(x)
+            x = x()
+            if not x:
+                continue
+            touch.grab_current = x
+            super(ScrollView, self).on_touch_up(touch)
+        touch.grab_current = None
+
+

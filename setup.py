@@ -145,6 +145,7 @@ if platform == 'ios':
 # -----------------------------------------------------------------------------
 # declare flags
 
+
 def get_modulename_from_file(filename):
     filename = filename.replace(sep, '/')
     pyx = '.'.join(filename.split('.')[:-1])
@@ -181,6 +182,7 @@ def merge(d1, *args):
                 d1[key] = value
     return d1
 
+
 def determine_base_flags():
     flags = {
         'libraries': ['m'],
@@ -195,10 +197,12 @@ def determine_base_flags():
         flags['extra_compile_args'] += ['-isysroot', sysroot]
         flags['extra_link_args'] += ['-isysroot', sysroot]
     elif platform == 'darwin':
-        sysroot = '/System/Library/Frameworks/ApplicationServices.framework/Frameworks'
+        sysroot = '/System/Library/Frameworks/'\
+                + 'ApplicationServices.framework/Frameworks'
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
     return flags
+
 
 def determine_gl_flags():
     flags = {'libraries': []}
@@ -230,6 +234,7 @@ def determine_gl_flags():
         else:
             flags['libraries'] += ['GLEW']
     return flags
+
 
 def determine_sdl():
     flags = {}
@@ -275,6 +280,7 @@ def determine_sdl():
         flags['extra_link_args'] += [
             '-framework', 'ApplicationServices']
     return flags
+
 
 def determine_graphics_pxd():
     flags = {'depends': [join(dirname(__file__), 'kivy', x) for x in [
@@ -441,6 +447,7 @@ setup(
         'kivy.core.text',
         'kivy.core.video',
         'kivy.core.window',
+        'kivy.effects',
         'kivy.ext',
         'kivy.graphics',
         'kivy.input',

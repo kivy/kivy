@@ -257,7 +257,7 @@ class TextInput(Widget):
             Fired when four fingers are touching the text input. The default
             behavior select the whole text. More info at :meth:`on_quad_touch`
 
-    .. versionchanged:: 1.6.1
+    .. versionchanged:: 1.7.0
         `on_double_tap`, `on_triple_tap` and `on_quad_touch` events added.
     '''
 
@@ -1963,7 +1963,7 @@ class TextInput(Widget):
     use_bubble = BooleanProperty(not _is_desktop)
     '''Indicates whether the cut copy paste bubble is used
 
-    .. versionadded:: 1.6.1
+    .. versionadded:: 1.7.0
 
     :data:`use_bubble` is a :class:`~kivy.properties.BooleanProperty`,
     default to True, and deactivated by default on "desktop".

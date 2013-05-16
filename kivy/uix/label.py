@@ -351,7 +351,7 @@ class Label(Widget):
     '''Horizontal alignment of the text.
 
     :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
-    'left'. Available options are : left, center and right.
+    'left'. Available options are : left, center, right and justified.
 
     .. warning::
 

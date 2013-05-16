@@ -401,7 +401,7 @@ cdef class Matrix:
             double vx, double vy, double vw, double vh):
         '''Project a point from 3d space to 2d viewport.
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         cdef double winx, winy, winz
         cdef list point = list(model.transform_point(objx, objy, objz, 1.0))

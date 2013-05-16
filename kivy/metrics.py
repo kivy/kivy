@@ -219,7 +219,7 @@ class MetricsBase(object):
 
 
 #: default instance of :class:`MetricsBase`, used everywhere in the code
-#: .. versionadded:: 1.6.1
+#: .. versionadded:: 1.7.0
 Metrics = MetricsBase()
 
 #: default instance of :class:`MetricsBase`, used everywhere in the code

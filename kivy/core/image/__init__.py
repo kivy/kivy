@@ -691,7 +691,7 @@ class Image(EventDispatcher):
             img = Image(texture)
             img.save('hello3.png')
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         pixels = None
         size = None

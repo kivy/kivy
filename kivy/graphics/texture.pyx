@@ -527,7 +527,7 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
             If a function is provided, it will be called when data will be
             needed in the texture.
 
-    .. versionchanged:: 1.6.1
+    .. versionchanged:: 1.7.0
         :data:`callback` has been added
     '''
     cdef int width = 128, height = 128, allocate = 1
@@ -924,7 +924,7 @@ cdef class Texture:
         '''Save the texture content into a file. Check
         :meth:`kivy.core.image.Image.save` for more information about the usage.
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         from kivy.core.image import Image
         return Image(self).save(filename)
@@ -1072,7 +1072,7 @@ cdef class Texture:
     property pixels:
         '''Get the pixels texture, in RGBA format only, unsigned byte.
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         def __get__(self):
             from kivy.graphics.fbo import Fbo

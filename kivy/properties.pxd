@@ -50,7 +50,7 @@ cdef class DictProperty(Property):
     pass
 
 cdef class ObjectProperty(Property):
-    pass
+    cdef object baseclass
 
 cdef class BooleanProperty(Property):
     pass

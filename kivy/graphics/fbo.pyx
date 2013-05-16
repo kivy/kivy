@@ -381,7 +381,7 @@ cdef class Fbo(RenderContext):
     property pixels:
         '''Get the pixels texture, in RGBA format only, unsigned byte.
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         def __get__(self):
             w,h = self._width, self._height

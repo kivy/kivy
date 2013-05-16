@@ -256,7 +256,7 @@ class MotionEvent(object):
         self.is_double_tap = False
 
         #: Indicate if the touch is a triple tap or not
-        #: .. versionadded:: 1.6.1
+        #: .. versionadded:: 1.7.0
         self.is_triple_tap = False
 
         #: If the touch is a :attr:`is_double_tap`, this is the time between the
@@ -265,7 +265,7 @@ class MotionEvent(object):
 
         #: If the touch is a :attr:`is_triple_tap`, this is the time between the
         #: first tap and the current touch.
-        #: .. versionadded:: 1.6.1
+        #: .. versionadded:: 1.7.0
         self.triple_tap_time = 0
 
         #: User data dictionnary. Use this dictionnary to save your own data on

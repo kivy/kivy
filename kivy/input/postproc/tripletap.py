@@ -2,7 +2,7 @@
 Triple Tap
 ==========
 
-.. versionadded:: 1.6.1
+.. versionadded:: 1.7.0
 
 Search touch for a triple tap
 '''

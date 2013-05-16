@@ -7,7 +7,7 @@ interactions. You could compare this language to Qt's QML
 (http://qt.nokia.com), but we included new concepts such as rule definitions
 (which are somewhat akin to what you may know from CSS), templating and so on.
 
-.. versionchanged:: 1.6.1
+.. versionchanged:: 1.7.0
 
     The Builder doesn't execute canvas expression in realtime anymore. It will
     pack all the expressions that need to be executed first, and execute them
@@ -119,7 +119,7 @@ Here is a simple example of a kv file that contains a root widget::
         text: 'Hello world'
 
 
-.. versionchanged:: 1.6.1
+.. versionchanged:: 1.7.0
 
     The indentation is not limited to 4 spaces anymore. The spacing must be a
     multiple of the number of spaces used on the first indented line.
@@ -328,11 +328,9 @@ to add a property for the image filename::
 Templates
 ---------
 
-.. versionchanged:: 1.6.1
+.. versionchanged:: 1.7.0
 
     The template usage are now deprecated, please use Dynamic classes instead.
-
-.. versionadded:: 1.0.5
 
 Syntax of template
 ~~~~~~~~~~~~~~~~~~
@@ -1582,7 +1580,7 @@ class BuilderBase(object):
         '''Execute all the waiting operations, such as the execution of all the
         expressions related to the canvas.
 
-        .. versionadded:: 1.6.1
+        .. versionadded:: 1.7.0
         '''
         l = set(_delayed_calls)
         del _delayed_calls[:]
