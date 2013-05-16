@@ -80,9 +80,9 @@ __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
-from kivy.properties import NumericProperty, StringProperty, \
-        AliasProperty, ReferenceListProperty, ObjectProperty, \
-        ListProperty, DictProperty
+from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
+                             ReferenceListProperty, ObjectProperty,
+                             ListProperty, DictProperty, BooleanProperty)
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
@@ -267,7 +267,12 @@ class Widget(EventDispatcher):
         if parent:
             raise WidgetException('Cannot add %r, it already has a parent %r'
                 % (widget, parent))
-        widget.parent = self
+        widget.parent = parent = self
+        # set and bind parents disabled property to child.disabled
+        if parent.disabled:
+            widget.disabled = True
+        parent.bind(disabled=widget.setter('disabled'))
+
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
             self.canvas.add(widget.canvas)
@@ -305,6 +310,9 @@ class Widget(EventDispatcher):
         '''
         if widget not in self.children:
             return
+        parent = widget.parent
+        # unbind parents disabled property from widget's disabled'
+        parent.unbind(disabled=widget.setter('disabled'))
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
@@ -613,4 +621,13 @@ class Widget(EventDispatcher):
     follow and extend.
 
     See :class:`~kivy.graphics.Canvas` for more information about the usage.
+    '''
+
+    disabled = BooleanProperty(False)
+    '''indicates whether this widget can interact with input or not
+
+    .. versionadded:: 1.7.0
+
+    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False.
     '''

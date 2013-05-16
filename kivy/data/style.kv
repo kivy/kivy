@@ -1,6 +1,7 @@
 #:kivy 1.0
 
 <Label>:
+    opacity: .3 if self.disabled else 1
     canvas:
         Color:
             rgba: self.color if not self.markup else (1, 1, 1, 1)
@@ -28,6 +29,7 @@
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
 
 <BubbleContent>
+    opacity: .7 if self.disabled else 1
     rows: 1
     canvas:
         Color:
@@ -41,6 +43,8 @@
 <BubbleButton>:
     background_normal: 'atlas://data/images/defaulttheme/bubble_btn'
     background_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/bubble_btn'
+    background_disabled_down: 'atlas://data/images/defaulttheme/bubble_btn_pressed'
     border: (0, 0, 0, 0)
 
 <Slider>:
@@ -117,7 +121,7 @@
             rgba: self.parent.background_color if self.parent else (1, 1, 1, 1)
         BorderImage:
             border: self.parent.border if self.parent else (16, 16, 16, 16)
-            texture: root.parent._bk_img.texture if root.parent else None
+            source: (root.parent.background_disabled_image if self.disabled else root.parent.background_image) if root.parent else None
             size: self.size
             pos: self.pos
 
@@ -128,7 +132,9 @@
     halign: 'center'
     valign: 'middle'
     background_normal: 'atlas://data/images/defaulttheme/tab_btn'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/tab_btn_disabled'
     background_down: 'atlas://data/images/defaulttheme/tab_btn_pressed'
+    background_disabled_down: 'atlas://data/images/defaulttheme/tab_btn_pressed'
     border: (8, 8, 8, 8)
     font_size: '15sp'
 
@@ -476,11 +482,13 @@
 
 [AccordionItemTitle@Label]:
     text: ctx.title
+    normal_background: ctx.item.background_normal if ctx.item.collapse else ctx.item.background_selected
+    disabled_background: ctx.item.background_disabled_normal if ctx.item.collapse else ctx.item.background_disabled_selected
     canvas.before:
         Color:
-            rgb: 1, 1, 1
+            rgba: 1, 1, 1, .5 if self.disabled else 1
         BorderImage:
-            source: ctx.item.background_normal if ctx.item.collapse else ctx.item.background_selected
+            source: self.disabled_background if self.disabled else self.normal_background
             pos: self.pos
             size: self.size
         PushMatrix

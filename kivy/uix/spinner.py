@@ -51,6 +51,7 @@ Builder.load_string('''
 
 <Spinner>:
     background_normal: 'atlas://data/images/defaulttheme/spinner'
+    background_disabled_normal: 'atlas://data/images/defaulttheme/spinner_disabled'
     background_down: 'atlas://data/images/defaulttheme/spinner_pressed'
 ''')
 
