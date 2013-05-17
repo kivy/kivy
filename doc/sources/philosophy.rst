@@ -4,30 +4,30 @@ Philosophy
 ==========
 
 In case you are wondering what Kivy is all about and what sets it apart from
-different solutions, this document is for you.
+other solutions, this document is for you.
 
 
 Why bother?
 -----------
 
 Why would you want to use Kivy? After all, there are many great toolkits
-(or frameworks, or platforms) available out there -- for free. You have Qt and Flash,
-to name just two good choices for application development, and many of
-these numerous solutions already support Multi-Touch.
-So what is it that makes Kivy special and worth using?
+(or frameworks, or platforms) available out there -- for free. You have Qt and
+Flash, to name just two good choices for application development. Many of
+them already support Multi-Touch, so what is it that makes Kivy special and
+worth using?
 
 
 Fresh
 ~~~~~
-Kivy is made for today and tomorrow. Novel input methods such as Multi-Touch
-become increasingly important. We created Kivy from scratch, specifically for
-this kind of interaction. That means we were able to rethink many things in
-terms of human computer interaction whereas older (not saying 'outdated'; rather
-'well-established') toolkits carry their legacy, which is often a burden.
-We're not trying to force this new approach to using a computer into the corset
-of existing models (say single-pointer mouse interaction).
+Kivy is made for today and tomorrow. Novel input methods, such as Multi-Touch,
+are becoming increasingly important. We created Kivy from scratch, specifically
+for this kind of interaction. That means we were able to rethink many things in
+terms of human computer interaction, whereas older (not to mean 'outdated',
+rather 'well-established') toolkits carry legacy support, which is often a
+burden. We're not trying to force this new approach to using a computer into the
+corset of existing models (say single-pointer mouse interaction).
 We want to let it flourish and let you explore the possibilities.
-*This* is what really sets Kivy apart.
+This *clean slate* approach is what really sets Kivy apart.
 
 
 Fast
@@ -58,7 +58,8 @@ different third-party solutions. For example, on Windows we support WM_TOUCH,
 which means that any device that has Windows 7 Pen & Touch drivers will *just
 work* with Kivy. On OS X you can use Apple's Multi-Touch capable devices, such
 as trackpads and mice. On Linux, you can use HID kernel input events.
-In addition to that, we support TUIO (Tangible User Interface Objects) and a number of other input sources.
+In addition to that, we support TUIO (Tangible User Interface Objects) and a
+number of other input sources.
 
 
 Focused
