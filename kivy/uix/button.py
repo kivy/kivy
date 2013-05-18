@@ -50,15 +50,6 @@ class Button(Label):
             pressed the button goes away).
     '''
 
-    disabled_color = ListProperty([1, 1, 1, .3])
-    '''Text color, in the format (r, g, b, a)
-
-    .. versionadded:: 1.7.0
-
-    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
-    1, .5].
-    '''
-
     state = OptionProperty('normal', options=('normal', 'down'))
     '''State of the button, must be one of 'normal' or 'down'.
     The state is 'down' only when the button is currently touched/clicked,
@@ -147,8 +138,6 @@ class Button(Label):
             return False
         if not self.collide_point(touch.x, touch.y):
             return False
-        if self.disabled:
-            return True
         if self in touch.ud:
             return False
         touch.grab(self)

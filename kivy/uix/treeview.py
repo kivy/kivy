@@ -471,6 +471,8 @@ class TreeView(Widget):
         node = self.get_node_at_pos(touch.pos)
         if not node:
             return
+        if node.disabled:
+            return
         # toggle node or selection ?
         if node.x - self.indent_start <= touch.x < node.x:
             self.toggle_node(node)

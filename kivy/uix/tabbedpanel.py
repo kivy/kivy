@@ -359,8 +359,7 @@ class TabbedPanel(GridLayout):
     content = ObjectProperty(None)
     '''This is the object holding(current_tab's content is added to this)
     the content of the current tab. To Listen to the changes in the content
-    of the current tab you should bind to `current_tab` and then access it's
-    `content` property.
+    of the current tab you should bind to current_tabs `content` property.
 
     :data:`content` is a :class:`~kivy.properties.ObjectProperty`,
     default to 'None'.
@@ -410,7 +409,7 @@ class TabbedPanel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        # these variables need to be initialised before the kv lang is
+        # these variables need to be initialized before the kv lang is
         # processed setup the base layout for the tabbed panel
         self._tab_layout = GridLayout(rows=1)
         self.rows = 1
@@ -474,6 +473,7 @@ class TabbedPanel(GridLayout):
             self.on_tab_width()
         else:
             widget.pos_hint = {'x': 0, 'top': 1}
+            content.disabled = self.current_tab.disabled
             content.add_widget(widget, index)
 
     def remove_widget(self, widget):
@@ -506,10 +506,6 @@ class TabbedPanel(GridLayout):
         else:
             content.clear_widgets()
 
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos) and self.disabled:
-            return True
-        return super(TabbedPanel, self).on_touch_down(touch)
 
     def on_do_default_tab(self, instance, value):
         if not value:

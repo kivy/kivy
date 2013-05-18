@@ -292,6 +292,8 @@ class AccordionItem(FloatLayout):
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
+        if self.disabled:
+            return True
         if self.collapse:
             self.collapse = False
             return True
@@ -359,10 +361,6 @@ class Accordion(Widget):
             pos=self._trigger_layout,
             min_space=self._trigger_layout)
 
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos) and self.disabled:
-            return True
-        return super(Accordion, self).on_touch_down(touch)
 
     def add_widget(self, widget, *largs):
         if not isinstance(widget, AccordionItem):
