@@ -50,7 +50,7 @@ start with this template::
 
 Replace `XXX` with an appropriate name that covers your tests cases, then
 replace 'YYY' with the name of your test. If you have any doubts, check how
-the other test have been written.
+the other tests have been written.
 
 Then, to execute them, just run::
 
