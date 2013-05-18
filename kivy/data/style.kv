@@ -339,7 +339,7 @@
 
     on_touch_down: self.collide_point(*args[1].pos) and ctx.controller().entry_touched(self, args[1])
     on_touch_up: self.collide_point(*args[1].pos) and ctx.controller().entry_released(self, args[1])
-	size: '100dp', '100dp'
+    size: '100dp', '100dp'
 
     canvas:
         Color:
@@ -837,33 +837,33 @@
 
 <ColorPicker_Label@Label>
     mroot: None
-	size_hint_x: None
-	width: '30sp'
+    size_hint_x: None
+    width: '30sp'
     text_size: self.size
     halign: "center"
     valign: "middle"
 
 <ColorPicker_Selector@BoxLayout>
-	foreground_color: None
+    foreground_color: None
     text: ''
     mroot: None
     mode: 'rgb'
     color: 0
     spacing: '2sp'
-	ColorPicker_Label:
-		text: root.text
-		mroot: root.mroot
-		color: root.foreground_color or (1, 1, 1, 1)
-	AnchorLayout:
-		size_hint_x: None
-		width: '50sp'
-		ColorPicker_Input:
-			mroot: root.mroot
-			text: str(int(sldr.value))
-			size_hint_y: None
-			height: '28sp'
-			on_text:
-				root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
+    ColorPicker_Label:
+        text: root.text
+        mroot: root.mroot
+        color: root.foreground_color or (1, 1, 1, 1)
+    AnchorLayout:
+        size_hint_x: None
+        width: '50sp'
+        ColorPicker_Input:
+            mroot: root.mroot
+            text: str(int(sldr.value))
+            size_hint_y: None
+            height: '28sp'
+            on_text:
+                root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
     Slider:
         id: sldr
         size_hint: 1, .25
@@ -874,15 +874,15 @@
             root.mroot._trigger_update_clr(root.mode, root.clr_idx, args[1])
 
 <ColorPicker>:
-	foreground_color: (1, 1, 1, 1) if self.hsv[2] * wheel.a < .5 else (0, 0, 0, 1)
+    foreground_color: (1, 1, 1, 1) if self.hsv[2] * wheel.a < .5 else (0, 0, 0, 1)
     wheel: wheel
     BoxLayout:
         orientation: 'vertical' if root.width < root.height else 'horizontal'
         spacing: '5sp'
         StackLayout:
-			orientation: 'tb-lr'
-			size_hint_y: None if root.width < root.height else 1
-			height: sp(33) * 4 if root.width < root.height else self.height
+            orientation: 'tb-lr'
+            size_hint_y: None if root.width < root.height else 1
+            height: sp(33) * 4 if root.width < root.height else self.height
             canvas:
                 Color:
                     rgba: root.color
@@ -890,96 +890,96 @@
                     size: self.size
                     pos: self.pos
 
-			ColorPicker_Selector:
-				mroot: root
-				text: 'R'
-				clr_idx: 0
-				color: wheel.r
-				foreground_color: root.foreground_color
-				size_hint_y: None if root.width < root.height else 0.125
-				size_hint_x: .5 if root.width < root.height else 1
-				height: '33sp' if root.width < root.height else self.height
+            ColorPicker_Selector:
+                mroot: root
+                text: 'R'
+                clr_idx: 0
+                color: wheel.r
+                foreground_color: root.foreground_color
+                size_hint_y: None if root.width < root.height else 0.125
+                size_hint_x: .5 if root.width < root.height else 1
+                height: '33sp' if root.width < root.height else self.height
 
-			ColorPicker_Selector:
-				mroot: root
-				text: 'G'
-				clr_idx: 1
-				color: wheel.g
-				foreground_color: root.foreground_color
-				size_hint_y: None if root.width < root.height else 0.125
-				size_hint_x: .5 if root.width < root.height else 1
-				height: '33sp' if root.width < root.height else self.height
+            ColorPicker_Selector:
+                mroot: root
+                text: 'G'
+                clr_idx: 1
+                color: wheel.g
+                foreground_color: root.foreground_color
+                size_hint_y: None if root.width < root.height else 0.125
+                size_hint_x: .5 if root.width < root.height else 1
+                height: '33sp' if root.width < root.height else self.height
 
-			ColorPicker_Selector:
-				mroot: root
-				text: 'B'
-				clr_idx: 2
-				color: wheel.b
-				foreground_color: root.foreground_color
-				size_hint_y: None if root.width < root.height else 0.125
-				size_hint_x: .5 if root.width < root.height else 1
-				height: '33sp' if root.width < root.height else self.height
+            ColorPicker_Selector:
+                mroot: root
+                text: 'B'
+                clr_idx: 2
+                color: wheel.b
+                foreground_color: root.foreground_color
+                size_hint_y: None if root.width < root.height else 0.125
+                size_hint_x: .5 if root.width < root.height else 1
+                height: '33sp' if root.width < root.height else self.height
 
-			ColorPicker_Selector:
-				mroot: root
-				text: 'A'
-				clr_idx: 3
-				color: root.color[3]
-				foreground_color: root.foreground_color
-				size_hint_y: None if root.width < root.height else 0.125
-				size_hint_x: .5 if root.width < root.height else 1
-				height: '33sp' if root.width < root.height else self.height
+            ColorPicker_Selector:
+                mroot: root
+                text: 'A'
+                clr_idx: 3
+                color: root.color[3]
+                foreground_color: root.foreground_color
+                size_hint_y: None if root.width < root.height else 0.125
+                size_hint_x: .5 if root.width < root.height else 1
+                height: '33sp' if root.width < root.height else self.height
 
-			ColorPicker_Selector:
-				mroot: root
-				mode: 'hsv'
-				text: 'H'
-				clr_idx: 0
-				color: root.hsv[0]
-				foreground_color: root.foreground_color
-				size_hint_y: None if root.width < root.height else 0.125
-				size_hint_x: .5 if root.width < root.height else 1
-				height: '33sp' if root.width < root.height else self.height
+            ColorPicker_Selector:
+                mroot: root
+                mode: 'hsv'
+                text: 'H'
+                clr_idx: 0
+                color: root.hsv[0]
+                foreground_color: root.foreground_color
+                size_hint_y: None if root.width < root.height else 0.125
+                size_hint_x: .5 if root.width < root.height else 1
+                height: '33sp' if root.width < root.height else self.height
 
-			ColorPicker_Selector:
-				mroot: root
-				mode: 'hsv'
-				text: 'S'
-				clr_idx: 1
-				color: root.hsv[1]
-				foreground_color: root.foreground_color
-				size_hint_y: None if root.width < root.height else 0.125
-				size_hint_x: .5 if root.width < root.height else 1
-				height: '33sp' if root.width < root.height else self.height
+            ColorPicker_Selector:
+                mroot: root
+                mode: 'hsv'
+                text: 'S'
+                clr_idx: 1
+                color: root.hsv[1]
+                foreground_color: root.foreground_color
+                size_hint_y: None if root.width < root.height else 0.125
+                size_hint_x: .5 if root.width < root.height else 1
+                height: '33sp' if root.width < root.height else self.height
 
-			ColorPicker_Selector:
-				mroot: root
-				mode: 'hsv'
-				text: 'V'
-				clr_idx: 2
-				color: root.hsv[2]
-				foreground_color: root.foreground_color
-				size_hint_y: None if root.width < root.height else 0.125
-				size_hint_x: .5 if root.width < root.height else 1
-				height: '33sp' if root.width < root.height else self.height
+            ColorPicker_Selector:
+                mroot: root
+                mode: 'hsv'
+                text: 'V'
+                clr_idx: 2
+                color: root.hsv[2]
+                foreground_color: root.foreground_color
+                size_hint_y: None if root.width < root.height else 0.125
+                size_hint_x: .5 if root.width < root.height else 1
+                height: '33sp' if root.width < root.height else self.height
 
-			BoxLayout:
-				size_hint_y: None if root.width < root.height else 0.125
-				size_hint_x: .5 if root.width < root.height else 1
-				height: '33sp' if root.width < root.height else self.height
+            BoxLayout:
+                size_hint_y: None if root.width < root.height else 0.125
+                size_hint_x: .5 if root.width < root.height else 1
+                height: '33sp' if root.width < root.height else self.height
 
-				spacing: '2sp'
-				ColorPicker_Label:
-					mroot: root
-					text: 'X'
-					color: root.foreground_color
-				AnchorLayout:
-					ColorPicker_Input:
-						size_hint_y: None
-						height: '28sp'
-						mroot: root
-						text: str(root.hex_color)
-						on_text: root._trigger_update_hex(args[1])
+                spacing: '2sp'
+                ColorPicker_Label:
+                    mroot: root
+                    text: 'X'
+                    color: root.foreground_color
+                AnchorLayout:
+                    ColorPicker_Input:
+                        size_hint_y: None
+                        height: '28sp'
+                        mroot: root
+                        text: str(root.hex_color)
+                        on_text: root._trigger_update_hex(args[1])
 
 
         ColorWheel:
