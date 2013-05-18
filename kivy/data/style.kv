@@ -1,10 +1,9 @@
 #:kivy 1.0
 
 <Label>:
-    opacity: .3 if self.disabled else 1
     canvas:
         Color:
-            rgba: self.color if not self.markup else (1, 1, 1, 1)
+            rgba: self.disabled_color if self.disabled else (self.color if not self.markup else (1, 1, 1, 1))
         Rectangle:
             texture: self.texture
             size: self.texture_size

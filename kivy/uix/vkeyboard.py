@@ -226,6 +226,16 @@ class VKeyboard(Scatter):
     :file:`atlas://data/images/defaulttheme/vkeyboard_background`.
     '''
 
+    background_disabled = StringProperty(
+        'atlas://data/images/defaulttheme/vkeyboard_disabled_background')
+    '''Filename of the background image when disbaled.
+
+    .. versionadded:: 1.8.0
+
+    :data:`background_disabled` a :class:`~kivy.properties.StringProperty`, default to
+    :file:`atlas://data/images/defaulttheme/vkeyboard__disabled_background`.
+    '''
+
     key_background_color = ListProperty([1, 1, 1, 1])
     '''Key background color, in the format (r, g, b, a). If a key background is
     set, the color will be combined with the key background texture.
@@ -241,6 +251,17 @@ class VKeyboard(Scatter):
 
     :data:`key_background_normal` a :class:`~kivy.properties.StringProperty`,
     default to :file:`atlas://data/images/defaulttheme/vkeyboard_key_normal`.
+    '''
+
+    key_disabled_background_normal = StringProperty(
+            'atlas://data/images/defaulttheme/vkeyboard_key_normal')
+    '''Filename of the key background image for use when no touches are active
+    on the widget and disbaled.
+
+    ..versionadded:: 1.8.0
+
+    :data:`key_disabled_background_normal` a :class:`~kivy.properties.StringProperty`,
+    default to :file:`atlas://data/images/defaulttheme/vkeyboard_disaled_key_normal`.
     '''
 
     key_background_down = StringProperty(
@@ -327,6 +348,9 @@ class VKeyboard(Scatter):
 
         # prepare layout widget
         self.refresh_keys_hint()
+        self.refresh_keys()
+
+    def on_disabled(self, intance, value):
         self.refresh_keys()
 
     def _update_layout_mode(self, *l):
@@ -559,7 +583,9 @@ class VKeyboard(Scatter):
         # draw background
         w, h = self.size
 
-        background = resource_find(self.background)
+        background = resource_find(self.background_disabled
+                                   if self.disabled else
+                                   self.background)
         texture = Image(background, mipmap=True).texture
         self.background_key_layer.clear()
         with self.background_key_layer:
@@ -571,7 +597,9 @@ class VKeyboard(Scatter):
         # XXX reloading the texture each time
 
         # first draw keys without the font
-        key_normal = resource_find(self.key_background_normal)
+        key_normal = resource_find(self.key_background_disabled_normal
+                                   if self.disabled else
+                                   self.key_background_normal)
         texture = Image(key_normal, mipmap=True).texture
         with self.background_key_layer:
             for line_nb in xrange(1, layout_rows + 1):
@@ -719,6 +747,8 @@ class VKeyboard(Scatter):
         x, y = touch.pos
         if not self.collide_point(x, y):
             return
+        if self.disabled:
+            return True
 
         x, y = self.to_local(x, y)
         if not self.collide_margin(x, y):

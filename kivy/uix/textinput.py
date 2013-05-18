@@ -323,6 +323,10 @@ class TextInput(Widget):
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
 
+    def on_disabled(self, instance, value):
+        if value:
+            self.focus = False
+
     def on_text_validate(self):
         pass
 

@@ -217,6 +217,8 @@ class Widget(EventDispatcher):
         :Returns:
             bool. If True, the dispatching of the touch will stop.
         '''
+        if self.disabled and self.collide_point(*touch.pos):
+            return True
         for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
@@ -226,6 +228,8 @@ class Widget(EventDispatcher):
 
         See :meth:`on_touch_down` for more information
         '''
+        if self.disabled:
+            return
         for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
                 return True
@@ -235,6 +239,8 @@ class Widget(EventDispatcher):
 
         See :meth:`on_touch_down` for more information
         '''
+        if self.disabled:
+            return
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True

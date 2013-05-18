@@ -406,7 +406,7 @@ class ShaderTransition(TransitionBase):
         self.fbo_out = self.make_screen_fbo(self.screen_out)
         self.manager.canvas.add(self.fbo_in)
         self.manager.canvas.add(self.fbo_out)
-        
+
         screen_rotation = Config.getfloat('graphics', 'rotation')
         pos = (0, 1)
         if screen_rotation == 90:
