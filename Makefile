@@ -84,5 +84,5 @@ distclean: clean
 	-git clean -dxf
 
 theming:
-	$(PYTHON) -m kivy.atlas kivy/data/images/defaulttheme 512 kivy/tools/theming/defaulttheme/*.png
+	$(PYTHON) -m kivy.atlas kivy/data/images/defaulttheme 1024 kivy/tools/theming/defaulttheme/*.png
 
