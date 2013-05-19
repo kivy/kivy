@@ -98,6 +98,7 @@ class Catalog(BoxLayout):
     screen_manager = ObjectProperty()
 
     def __init__(self, **kwargs):
+        self._previously_parsed_text = ''
         super(Catalog, self).__init__(**kwargs)
         self.show_kv(None)
 
@@ -115,13 +116,18 @@ class Catalog(BoxLayout):
 
             self.screen_manager.current = object.text
 
-        with open(self.screen_manager.current_screen.children[0].kv_file) as file:
+        with (open(self.screen_manager.current_screen.children[0].kv_file)
+              as file):
             self.language_box.text = file.read()
         # reset undo/redo history
         self.language_box.reset_undo()
 
     def schedule_reload(self):
         if self.auto_reload:
+            txt = self.language_box.text.encode('utf8')
+            if txt == self._previously_parsed_text:
+                return
+            self._previously_parsed_text = txt
             Clock.unschedule(self.change_kv)
             Clock.schedule_once(self.change_kv, 2)
 
@@ -131,9 +137,10 @@ class Catalog(BoxLayout):
         on the kv file the user entered. If there is an error in their kv
         syntax, show a nice popup.'''
 
+        txt = self.language_box.text.encode('utf8')
         kv_container = self.screen_manager.current_screen.children[0]
         try:
-            parser = Parser(content=self.language_box.text.encode('utf8'))
+            parser = Parser(content=txt)
             kv_container.clear_widgets()
             widget = Factory.get(parser.root.name)()
             Builder._apply_rule(widget, parser.root, parser.root)
@@ -149,6 +156,7 @@ class Catalog(BoxLayout):
             Animation(top=190.0, d=3) +\
             Animation(top=0, opacity=0, d=2)
         self.anim.start(self.info_label)
+
 
 class KivyCatalogApp(App):
     '''The kivy App that runs the main root. All we do is build a catalog
