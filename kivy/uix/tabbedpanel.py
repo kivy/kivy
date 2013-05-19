@@ -266,7 +266,7 @@ class TabbedPanel(GridLayout):
 
     background_disabled_image = StringProperty(
                                 'atlas://data/images/defaulttheme/tab_disabled')
-    '''Background image of the main shared content object.
+    '''Background image of the main shared content object when disabled.
 
     .. versionadded:: 1.8.0
 

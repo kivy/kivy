@@ -196,13 +196,6 @@ class Splitter(BoxLayout):
     def clear_widgets(self):
         self.remove_widget(self._container)
 
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            return
-        if self.disabled:
-            return True
-        return super(Splitter, self).on_touch_down(touch)
-
     def strip_down(self, instance, touch):
         if not instance.collide_point(*touch.pos):
             return False

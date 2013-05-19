@@ -228,7 +228,7 @@ class VKeyboard(Scatter):
 
     background_disabled = StringProperty(
         'atlas://data/images/defaulttheme/vkeyboard_disabled_background')
-    '''Filename of the background image when disbaled.
+    '''Filename of the background image when vkeyboard is disabled.
 
     .. versionadded:: 1.8.0
 
@@ -256,12 +256,12 @@ class VKeyboard(Scatter):
     key_disabled_background_normal = StringProperty(
             'atlas://data/images/defaulttheme/vkeyboard_key_normal')
     '''Filename of the key background image for use when no touches are active
-    on the widget and disbaled.
+    on the widget and vkeyboard is disabled.
 
     ..versionadded:: 1.8.0
 
     :data:`key_disabled_background_normal` a :class:`~kivy.properties.StringProperty`,
-    default to :file:`atlas://data/images/defaulttheme/vkeyboard_disaled_key_normal`.
+    default to :file:`atlas://data/images/defaulttheme/vkeyboard_disabled_key_normal`.
     '''
 
     key_background_down = StringProperty(

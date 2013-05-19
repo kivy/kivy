@@ -1911,7 +1911,7 @@ class TextInput(Widget):
         'atlas://data/images/defaulttheme/textinput_disabled')
     '''Background image of the TextInput when disabled'.
 
-    .. versionadded:: 1.7.0
+    .. versionadded:: 1.8.0
 
     :data:`background_disabled_normal` is a :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled'
@@ -1929,9 +1929,9 @@ class TextInput(Widget):
 
     background_disabled_active = StringProperty(
         'atlas://data/images/defaulttheme/textinput_disabled_active')
-    '''Background image of the TextInput when it's in focus' and disabled.
+    '''Background image of the TextInput when it's in focus and disabled.
 
-    .. versionadded:: 1.7.0
+    .. versionadded:: 1.8.0
 
     :data:`background_disabled_active` is a :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled_active'
@@ -1958,7 +1958,7 @@ class TextInput(Widget):
     disabled_foreground_color = ListProperty([0, 0, 0, .5])
     '''Current color of the foreground, in (r, g, b, a) format when disabled.
 
-    .. versionadded:: 1.7.0
+    .. versionadded:: 1.8.0
 
     :data:`disabled_foreground_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 5] # 50% translucent Black

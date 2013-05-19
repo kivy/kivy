@@ -205,8 +205,9 @@ class AccordionItem(FloatLayout):
 
     .. versionadded:: 1.8.0
 
-    :data:`background__disabled_normal` is an :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/button_disabled'
+    :data:`background__disabled_normal` is an
+    :class:`~kivy.properties.StringProperty`, default to
+    'atlas://data/images/defaulttheme/button_disabled'
     '''
 
     background_selected = StringProperty(
@@ -221,10 +222,13 @@ class AccordionItem(FloatLayout):
     background_disabled_selected = StringProperty(
         'atlas://data/images/defaulttheme/button_disabled_pressed')
     '''Background image of the accordion item used for default graphical
-    representation, when the item is selected (not collapsed).
+    representation, when the item is selected (not collapsed) and disabled.
 
-    :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
-    default to 'atlas://data/images/defaulttheme/button_disabled_pressed'
+    .. versionadded:: 1.8.0
+
+    :data:`background_disabled_selected` is an
+    :class:`~kivy.properties.StringProperty`, default to
+    'atlas://data/images/defaulttheme/button_disabled_pressed'
     '''
 
     orientation = OptionProperty('vertical', options=(

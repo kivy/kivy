@@ -94,7 +94,7 @@ class Button(Label):
     '''Background image of the button used for default graphical representation,
     when the button is not pressed.
 
-    .. versionadded:: 1.7.0
+    .. versionadded:: 1.8.0
 
     :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/button_disabled'
@@ -105,7 +105,7 @@ class Button(Label):
     '''Background image of the button used for default graphical representation,
     when the button is pressed.
 
-    .. versionadded:: 1.7.0
+    .. versionadded:: 1.8.0
 
     :data:`background_down` is an :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/button_disabled_pressed'

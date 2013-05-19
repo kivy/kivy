@@ -200,13 +200,6 @@ class Bubble(GridLayout):
         else:
             content.clear_widgets()
 
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            return
-        if self.disabled:
-            return True
-        super(Bubble, self).on_touch_down(touch)
-
     def on_pos(self, instance, pos):
         lt = self.limit_to
         if lt and lt is not object:

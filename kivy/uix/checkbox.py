@@ -91,8 +91,10 @@ class CheckBox(Widget):
         self.active = not self.active
 
     def on_touch_down(self, touch):
-        if self.disabled or not self.collide_point(*touch.pos):
+        if not self.collide_point(*touch.pos):
             return
+        if self.disabled:
+            return True
         self._toggle_active()
         return True
 

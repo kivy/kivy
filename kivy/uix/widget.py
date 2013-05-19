@@ -634,10 +634,11 @@ class Widget(EventDispatcher):
     '''Indicates whether this widget can interact with input or not.
 
     .. Note::
-        Child Widgets when added onto a disabled widget will be disabled
+        1. Child Widgets when added onto a disabled widget will be disabled
         automatically
+        2. Disabling/enabling a parent disables/enables all it's children.
 
-    .. versionadded:: 1.7.0
+    .. versionadded:: 1.8.0
 
     :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
     default to False.
