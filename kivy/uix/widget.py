@@ -245,6 +245,10 @@ class Widget(EventDispatcher):
             if child.dispatch('on_touch_up', touch):
                 return True
 
+    def on_disabled(self, instance, value):
+        for child in self.children:
+            child.disabled = value
+
     #
     # Tree management
     #
@@ -274,10 +278,9 @@ class Widget(EventDispatcher):
             raise WidgetException('Cannot add %r, it already has a parent %r'
                 % (widget, parent))
         widget.parent = parent = self
-        # set and bind parents disabled property to child.disabled
+        # child will be disabled if added to a disabled parent
         if parent.disabled:
             widget.disabled = True
-        parent.bind(disabled=widget.setter('disabled'))
 
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
@@ -317,8 +320,6 @@ class Widget(EventDispatcher):
         if widget not in self.children:
             return
         parent = widget.parent
-        # unbind parents disabled property from widget's disabled'
-        parent.unbind(disabled=widget.setter('disabled'))
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
@@ -630,7 +631,11 @@ class Widget(EventDispatcher):
     '''
 
     disabled = BooleanProperty(False)
-    '''indicates whether this widget can interact with input or not
+    '''Indicates whether this widget can interact with input or not.
+
+    .. Note::
+        Child Widgets when added onto a disabled widget will be disabled
+        automatically
 
     .. versionadded:: 1.7.0
 
