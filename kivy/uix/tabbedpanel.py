@@ -177,6 +177,10 @@ class TabbedPanelHeader(ToggleButton):
         # `tabbed_panel` property
         if self.parent:
             self.parent.tabbed_panel.switch_to(self)
+        else:
+            # tab removed before we could switch to it. Switch back to
+            # previous tab
+            self.panel.switch_to(self.panel.current_tab)
 
 
 class TabbedPanelItem(TabbedPanelHeader):
