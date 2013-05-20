@@ -147,8 +147,11 @@ class Button(Label):
         pass
 
     def trigger_action(self, duration=0.1):
-        '''Trigger whatever action(s) have been bound to the button.
+        '''Trigger whatever action(s) have been bound to the button by calling
+        both the on_press and on_release callbacks.
+
         This simulates a quick button press without using any touch events.
+
         Duration is the length of the press in seconds. Pass 0 if you want
         the action to happen instantly.
 
