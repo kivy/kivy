@@ -1,6 +1,7 @@
 #:kivy 1.4
 
 BoxLayout:
+    id: bl
     orientation: "vertical"
     Bubble:
         size_hint: (None, None)
@@ -14,10 +15,15 @@ BoxLayout:
             text: 'A'
         BubbleButton:
             text: 'Bubble'
+    Button:
+        text: 'press to show popup'
+        on_release: popup.open()
     Popup:
         id: popup
+        on_parent: if self.parent == bl: bl.remove_widget(self)
         title: "An example popup"
         content: popupcontent
-        Label:
+        Button:
             id: popupcontent
-            text: "Some text\nin the popup"
+            text: "press to dismiss"
+            on_release: popup.dismiss()

@@ -116,8 +116,8 @@ class Catalog(BoxLayout):
 
             self.screen_manager.current = object.text
 
-        with (open(self.screen_manager.current_screen.children[0].kv_file)
-              as file):
+        child = self.screen_manager.current_screen.children[0]
+        with open(child.kv_file) as file:
             self.language_box.text = file.read()
         # reset undo/redo history
         self.language_box.reset_undo()
