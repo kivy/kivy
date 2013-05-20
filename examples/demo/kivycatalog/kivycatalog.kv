@@ -22,44 +22,17 @@
     info_label: info_lbl
     orientation: 'vertical'
     BoxLayout:
-        BoxLayout:
+        size_hint: 1, None
+        height: '45sp'
+        Spinner:
             size_hint: None, 1
-            orientation: "vertical"
-            ContainerToggle:
-                text: "Welcome"
-                state: "down"
-            ContainerToggle:
-                text: "Float Layout"
-            ContainerToggle:
-                text: "Box Layout"
-            ContainerToggle:
-                text: "Anchor Layout"
-            ContainerToggle:
-                text: "Grid Layout"
-            ContainerToggle:
-                text: "Stack Layout"
-            ContainerToggle:
-                text: "Buttons"
-            ContainerToggle:
-                text: "Labels"
-            ContainerToggle:
-                text: "Booleans"
-            ContainerToggle:
-                text: "Progress Bar"
-            ContainerToggle:
-                text: "Media"
-            ContainerToggle:
-                text: "Text"
-            ContainerToggle:
-                text: "Popups"
-            ContainerToggle:
-                text: "Selectors"
-            ContainerToggle:
-                text: "File Choosers"
-            ContainerToggle:
-                text: "Scatter"
-            ContainerToggle:
-                text: "ReST"
+            width: '108sp'
+            text: 'Welcome'
+            values: [screen.name for screen in screen_manager.screens]
+            on_text: root.show_kv(*args)
+    BoxLayout:
+        id: reactive_layout
+        orientation: 'vertical' if self.width < self.height else 'horizontal'
         ScreenManager:
             id: screen_manager
             Screen:
@@ -115,9 +88,16 @@
                 RestContainer:
 
         Splitter:
-            sizable_from: 'left'
-            size_hint: None, 1
-            width: 400
+            id: editor_pane
+            max_size: (reactive_layout.height if self.vertical else reactive_layout.width)- self.strip_size
+            min_size: sp(30) + self.strip_size
+            vertical: 1 if reactive_layout.width < reactive_layout.height else 0
+            sizable_from: 'top' if self.vertical else 'left'
+            size_hint: (1, None) if self.vertical else (None, 1)
+            on_vertical:
+                mid_size = self.max_size/2
+                if args[1]: self.height = mid_size
+                if not args[1]: self.width = mid_size
             BoxLayout:
                 id: bl
                 orientation: "vertical"
@@ -136,7 +116,7 @@
                         on_cursor: root.schedule_reload()
                 BoxLayout:
                     size_hint: 1, None
-                    height: '30pt'
+                    height: '30sp'
                     BoxLayout:
                         CheckBox:
                             id: chkbx

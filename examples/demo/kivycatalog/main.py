@@ -17,8 +17,8 @@ from kivy.clock import Clock
 
 CATALOG_ROOT = os.path.dirname(__file__)
 
-Config.set('graphics', 'width', '1024')
-Config.set('graphics', 'height', '768')
+#Config.set('graphics', 'width', '1024')
+#Config.set('graphics', 'height', '768')
 
 '''List of classes that need to be instantiated in the factory from .kv files.
 '''
@@ -100,21 +100,14 @@ class Catalog(BoxLayout):
     def __init__(self, **kwargs):
         self._previously_parsed_text = ''
         super(Catalog, self).__init__(**kwargs)
-        self.show_kv(None)
+        self.show_kv(None, 'Welcome')
+        self.carousel = None
 
-    def show_kv(self, object):
-        '''Called when an accordionitem is collapsed or expanded. If it
-        was expanded, we need to show the .kv language file associated with
-        the newly revealed container.'''
+    def show_kv(self, instance, value):
+        '''Called when an a item is selected, we need to show the .kv language
+        file associated with the newly revealed container.'''
 
-        # if object is not passed, it's initialization, we just need to load
-        # the file
-        if object:
-            # one button must always be pressed, even if user presses it again
-            if object.state == "normal":
-                object.state = "down"
-
-            self.screen_manager.current = object.text
+        self.screen_manager.current = value
 
         child = self.screen_manager.current_screen.children[0]
         with open(child.kv_file) as file:
