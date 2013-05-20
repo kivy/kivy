@@ -146,6 +146,7 @@ class Splitter(BoxLayout):
         if sz_frm in ('l', 'r'):
             _strp.size_hint = None, 1
             _strp.width = instance.strip_size
+            instance.orientation = 'horizontal'
             instance.unbind(strip_size=_strp.setter('width'))
             instance.bind(strip_size=_strp.setter('width'))
         else:
