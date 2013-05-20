@@ -58,7 +58,7 @@ Examples
 .. |tws_dir| replace:: ./examples/frameworks/twisted
 .. |tws_file| replace:: echo_client_app.py
 .. |tws_file2| replace:: echo_server_app.py
-.. |tws_desc| replace:: A clent and server app using :doc:`Twisted inside Kivy </guide/other-frameworks>`
+.. |tws_desc| replace:: A client and server app using :doc:`Twisted inside Kivy </guide/other-frameworks>`
 
 .. |gst_dir| replace:: ./examples/gestures
 .. |gst_file| replace:: gesture_board.py
@@ -87,7 +87,7 @@ Examples
 
 .. |kvd_dir| replace::  ./examples/kv
 .. |kvd_file| replace:: kvrun.py
-.. |kvd_desc| replace:: load kv files, use **kv lang to load different widgets**.
+.. |kvd_desc| replace:: Load kv files, use **kv lang to load different widgets**.
 
 .. |rst_dir| replace::  ./examples/RST_Editor
 .. |rst_file| replace:: main.py
@@ -118,7 +118,7 @@ Examples
 .. |wdg_file6| replace:: image_mipmap.py
 .. |wdg_desc6| replace:: How to use :class:`Image <kivy.uix.image>` widget with mipmap.
 .. |wdg_file7| replace:: keyboardlistener.py
-.. |wdg_desc7| replace:: listen to the keyboard input and spew result to console.
+.. |wdg_desc7| replace:: Listen to the keyboard input and spew result to console.
 .. |wdg_file8| replace:: label_mipmap.py
 .. |wdg_desc8| replace:: How to use :class:`Label <kivy.uix.label>` widget with
 .. |wdg_file81| replace:: label_with_markup.py
