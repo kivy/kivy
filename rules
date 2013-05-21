@@ -18,3 +18,11 @@ override_dh_auto_install:
 override_dh_auto_test:
 	#xvfb-run -s "+extension GLX" dh_auto_test
 	echo "! TESTS ARE TEMPORARY DISABLED !"
+
+override_dh_install:
+	dh_install --fail-missing
+
+override_dh_installdocs:
+	#PYTHONPATH=.. make html
+	#dh_installdocs doc/build/html
+	echo "! DOCUMENTATION BUILDS ARE DISABLED!"

@@ -10,11 +10,22 @@ Build-Depends: debhelper (>= 7.0.50~),
                python-nose, python-coverage, xvfb,
                cython,
                libgl1-mesa-dev [!armhf],
-               libgles2-mesa-dev [armhf]
+               libgles2-mesa-dev [armhf],
+               python-sphinx
 Standards-Version: 3.9.1
 Homepage: http://kivy.org/
 Vcs-Bzr: https://code.launchpad.net/~kivy-team/kivy/master
 X-Python-Version: >= 2.7
+
+Package: kivy
+Architecture: all
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         ${python:Depends},
+         python-kivy-examples,
+         kivy-tools
+Description: Kivy - Multimedia / Multitouch framework in Python
+ This package includes all examples which can be found in the git repo.
 
 Package: python-kivy
 Architecture: any
@@ -47,3 +58,12 @@ Depends: ${misc:Depends},
          python-kivy
 Description: Kivy - Multimedia / Multitouch framework in Python
  This package includes all examples which can be found in the git repo.
+
+Package: kivy-tools
+Architecture: all
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         ${python:Depends},
+         python-kivy
+Description: Kivy - Multimedia / Multitouch framework in Python
+ This package includes all tools shipped with kivy.
