@@ -97,7 +97,7 @@ Trigger events
 ~~~~~~~~~~~~~~
 
 If you want to schedule a function to be called only once for the next frame,
-like a trigger, you can achieve that like so::
+like a trigger, you might be tempted to achieve that like so::
 
     Clock.unschedule(my_callback)
     Clock.schedule_once(my_callback, 0)
@@ -111,17 +111,17 @@ and remove it. Use a trigger instead::
     # later
     trigger()
 
-Each time you call trigger, it will schedule a single call of your callback. If
+Each time you call trigger(), it will schedule a single call of your callback. If
 it was already scheduled, it will not be rescheduled.
 
 
 Widget events
 -------------
 
-A widget has 2 types of events:
+A widget has 2 default types of events:
 
 - Property event: if your widget changes its position or size, an event is fired.
-- Widget-defined event: an event will be fired for a Button when it's pressed or
+- Widget-defined event: e.g. an event will be fired for a Button when it's pressed or
   released.
 
 Creating custom events
@@ -204,7 +204,7 @@ attributes::
 
 
 When overriding `__init__`, *always* accept `**kwargs` and use `super()` to call
-the parents `__init__` method, passing in your class instance::
+the parent's `__init__` method, passing in your class instance::
 
         def __init__(self, **kwargs):
             super(MyWidget, self).__init__(**kwargs)
@@ -413,6 +413,7 @@ Consider the following code.
     '''Current position of the cursor, in (x, y).
 
     :data:`cursor_pos` is a :class:`~kivy.properties.AliasProperty`, read-only.
+    '''
 
 Here `cursor_pos` is a :class:`~kivy.properties.AliasProperty` which uses the
 `getter` `_get_cursor_pos` with the `setter` part set to None, implying this
