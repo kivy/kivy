@@ -33,6 +33,46 @@
     BoxLayout:
         id: reactive_layout
         orientation: 'vertical' if self.width < self.height else 'horizontal'
+
+        Splitter:
+            id: editor_pane
+            max_size: (reactive_layout.height if self.vertical else reactive_layout.width)- self.strip_size
+            min_size: sp(30) + self.strip_size
+            vertical: 1 if reactive_layout.width < reactive_layout.height else 0
+            sizable_from: 'bottom' if self.vertical else 'right'
+            size_hint: (1, None) if self.vertical else (None, 1)
+            on_vertical:
+                mid_size = self.max_size/2
+                if args[1]: self.height = mid_size
+                if not args[1]: self.width = mid_size
+            BoxLayout:
+                id: bl
+                orientation: "vertical"
+                ScrollView:
+                    id: kr_scroll
+                    KivyRenderTextInput:
+                        catalog: root
+                        id: language_box
+                        lexer: KivyLexer()
+                        size_hint: 1, None
+                        height: max( (len(self._lines)+1) * (self.line_height + self._line_spacing), kr_scroll.height)
+                        font_name: "data/fonts/DroidSansMono.ttf"
+                        valign: "top"
+                        text: "This box will display the kivy language for whatever has been selected"
+                        on_text: root.schedule_reload()
+                        on_cursor: root.schedule_reload()
+                BoxLayout:
+                    size_hint: 1, None
+                    height: '30sp'
+                    BoxLayout:
+                        CheckBox:
+                            id: chkbx
+                            active: True
+                        Label:
+                            text: "Auto Reload"
+                    Button:
+                        text: 'Render Now'
+                        on_release: root.change_kv(*args)
         ScreenManager:
             id: screen_manager
             Screen:
@@ -86,46 +126,6 @@
             Screen:
                 name: "ReST"
                 RestContainer:
-
-        Splitter:
-            id: editor_pane
-            max_size: (reactive_layout.height if self.vertical else reactive_layout.width)- self.strip_size
-            min_size: sp(30) + self.strip_size
-            vertical: 1 if reactive_layout.width < reactive_layout.height else 0
-            sizable_from: 'top' if self.vertical else 'left'
-            size_hint: (1, None) if self.vertical else (None, 1)
-            on_vertical:
-                mid_size = self.max_size/2
-                if args[1]: self.height = mid_size
-                if not args[1]: self.width = mid_size
-            BoxLayout:
-                id: bl
-                orientation: "vertical"
-                ScrollView:
-                    id: kr_scroll
-                    KivyRenderTextInput:
-                        catalog: root
-                        id: language_box
-                        lexer: KivyLexer()
-                        size_hint: 1, None
-                        height: max( (len(self._lines)+1) * (self.line_height + self._line_spacing), kr_scroll.height)
-                        font_name: "data/fonts/DroidSansMono.ttf"
-                        valign: "top"
-                        text: "This box will display the kivy language for whatever has been selected"
-                        on_text: root.schedule_reload()
-                        on_cursor: root.schedule_reload()
-                BoxLayout:
-                    size_hint: 1, None
-                    height: '30sp'
-                    BoxLayout:
-                        CheckBox:
-                            id: chkbx
-                            active: True
-                        Label:
-                            text: "Auto Reload"
-                    Button:
-                        text: 'Render Now'
-                        on_release: root.change_kv(*args)
     FloatLayout:
         size_hint: 1, None
         height: 0
