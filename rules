@@ -23,6 +23,6 @@ override_dh_install:
 	dh_install --fail-missing
 
 override_dh_installdocs:
-	#PYTHONPATH=.. make html
-	#dh_installdocs doc/build/html
-	echo "! DOCUMENTATION BUILDS ARE DISABLED!"
+	cd doc && PYTHONPATH=.. make html
+	dh_installdocs doc/build/html
+	#echo "! DOCUMENTATION BUILDS ARE DISABLED!"
