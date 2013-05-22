@@ -487,7 +487,7 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     texture = Texture(texture_width, texture_height, target,
                       colorfmt=colorfmt, bufferfmt=bufferfmt, mipmap=mipmap,
                       callback=callback)
-    if allocate:
+    if allocate or make_npot:
         texture.flags |= TI_NEED_ALLOCATE
 
     # set default parameter for this texture
