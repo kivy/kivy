@@ -1071,7 +1071,12 @@ class TextInput(Widget):
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
         kw = self._get_line_options()
-        cid = u'{}\0{}'.format(text, kw)
+
+        try:
+            cid = u'{}\0{}'.format(text, kw)
+        except UnicodeDecodeError:
+            cid = '{}\0{}'.format(text, kw)
+
         width = Cache_get('textinput.width', cid)
         if width:
             return width
