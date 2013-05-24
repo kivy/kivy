@@ -280,12 +280,14 @@ class UrlRequest(Thread):
         # Entry to decode url from the content type.
         # For example, if the content type is a json, it will be automatically
         # decoded.
-        ct = resp.getheader('Content-Type', None).split(';')[0]
-        if ct == 'application/json':
-            try:
-                return loads(result)
-            except:
-                return result
+        content_type = resp.getheader('Content-Type', None)
+        if content_type is not None:
+            ct = content_type.split(';')[0]
+            if ct == 'application/json':
+                try:
+                    return loads(result)
+                except:
+                    return result
         return result
 
     def _dispatch_result(self, dt):
