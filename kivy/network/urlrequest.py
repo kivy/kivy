@@ -15,7 +15,7 @@ application/json, the result will be automatically passed through json.loads.
 The syntax to create a request::
 
     from kivy.network.urlrequest import UrlRequest
-    req = UrlRequest(url, callback_success, callback_error, body, headers)
+    req = UrlRequest(url, on_success, on_error, req_body, req_headers)
 
 
 Only the first argument is mandatory, all the rest is optional.
@@ -158,16 +158,12 @@ class UrlRequest(Thread):
         url = self.url
         req_body = self.req_body
         req_headers = self.req_headers
-        resp = result = e = None
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
             result = self.decode_result(result, resp)
-        except Exception, e:
-            pass
-
-        if e is not None:
-            q(('error', resp, e))
+        except Exception as e:
+            q(('error', None, e))
         else:
             q(('success', resp, result))
 
@@ -354,15 +350,15 @@ class UrlRequest(Thread):
 
     @property
     def resp_headers(self):
-        '''If the request have been done, return a dictionnary containing the
+        '''If the request have been done, return a dictionary containing the
         headers of the response. Otherwise, it will return None
         '''
         return self._resp_headers
 
     @property
     def resp_status(self):
-        '''Return the status code of the response if the request have been done,
-        otherwise, return None
+        '''Return the status code of the response if the request is complete,
+        otherwise return None
         '''
         return self._resp_status
 
