@@ -23,6 +23,17 @@ Example using a class name::
 
     >>> from kivy.factory import Factory
     >>> Factory.register('MyWidget', cls=MyWidget)
+
+By default, the first classname you register via the factory is permanent.
+If you wish to change the registered class, you need to unregister the classname
+before you re-assign it::
+
+    >>> from kivy.factory import Factory
+    >>> Factory.register('MyWidget', cls=MyWidget)
+    >>> widget = Factory.Widget()
+    >>> Factory.unregister('MyWidget')
+    >>> Factory.register('MyWidget', cls=CustomWidget)
+    >>> customWidget = Factory.Widget()    
 '''
 
 __all__ = ('Factory', 'FactoryException')
@@ -74,6 +85,16 @@ class FactoryBase(object):
             'is_template': is_template,
             'baseclasses': baseclasses,
             'filename': filename}
+
+    def unregister(self, classname):
+        '''Unregisters the classname previously registered via the
+        register method. This allows the same classname to be re-used
+        in different contexts.
+        
+        .. versionadded:: 1.7.1
+        '''
+        if classname in self.classes:
+            self.classes.pop(classname)
 
     def unregister_from_filename(self, filename):
         '''Unregister all the factory object related to the filename passed in
