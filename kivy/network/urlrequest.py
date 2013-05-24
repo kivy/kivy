@@ -91,6 +91,10 @@ class UrlRequest(Thread):
             Complete url string to call.
         `on_success`: callback(request, result)
             Callback function to call when the result have been fetched
+        `on_redirect`: callback(request, result)
+            Callback function to call if the server returns a Redirect
+        `on_failure`: callback(request, result)
+            Callback function to call if the server returns a Client Error or Server Error
         `on_error`: callback(request, error)
             Callback function to call when an error happen
         `on_progress`: callback(request, current_size, total_size)
@@ -118,14 +122,17 @@ class UrlRequest(Thread):
             access/progression/error.
     '''
 
-    def __init__(self, url, on_success=None, on_error=None, on_progress=None,
-            req_body=None, req_headers=None, chunk_size=8192, timeout=None,
-            method=None, debug=False):
+    def __init__(self, url, on_success=None, on_redirect=None,
+            on_failure=None,on_error=None, on_progress=None, req_body=None,
+            req_headers=None, chunk_size=8192, timeout=None, method=None,
+            debug=False):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
         self.daemon = True
         self.on_success = WeakMethod(on_success) if on_success else None
+        self.on_redirect = WeakMethod(on_redirect) if on_redirect else None
+        self.on_failure = WeakMethod(on_failure) if on_failure else None
         self.on_error = WeakMethod(on_error) if on_error else None
         self.on_progress = WeakMethod(on_progress) if on_progress else None
         self._debug = debug
@@ -305,26 +312,53 @@ class UrlRequest(Thread):
                 self._resp_headers = dict(resp.getheaders())
                 self._resp_status = resp.status
             if result == 'success':
-                if self._debug:
-                    Logger.debug('UrlRequest: {0} Download finished with'
-                            ' {1} datalen'.format(
-                            id(self), len(data)))
-                self._is_finished = True
-                self._result = data
-                if self.on_success:
-                    func = self.on_success()
-                    if func:
-                        func(self, data)
+                status_class = resp.status // 100
+
+                if status_class in (1, 2):
+                    if self._debug:
+                        Logger.debug('UrlRequest: {0} Download finished with'
+                                ' {1} datalen'.format(
+                                id(self), len(data)))
+                    self._is_finished = True
+                    self._result = data
+                    if self.on_success:
+                        func = self.on_success()
+                        if func:
+                            func(self, data)
+
+                elif status_class == 3:
+                    if self._debug:
+                        Logger.debug('UrlRequest: {} Download '
+                                'redirected'.format(id(self)))
+                    self._is_finished = True
+                    self._result = data
+                    if self.on_redirect:
+                        func = self.on_redirect()
+                        if func:
+                            func(self, data)
+
+                elif status_class in (4, 5):
+                    if self._debug:
+                        Logger.debug('UrlRequest: {} Download failed with '
+                                'http error {}'.format(id(self), resp.status))
+                    self._is_finished = True
+                    self._result = data
+                    if self.on_failure:
+                        func = self.on_failure()
+                        if func:
+                            func(self, data)
+
             elif result == 'error':
                 if self._debug:
-                    Logger.debug('UrlRequest: {0} Download error <{1}>'.format(
-                        id(self), data))
+                    Logger.debug('UrlRequest: {0} Download error '
+                            '<{1}>'.format(id(self), data))
                 self._is_finished = True
                 self._error = data
                 if self.on_error:
                     func = self.on_error()
                     if func:
                         func(self, data)
+
             elif result == 'progress':
                 if self._debug:
                     Logger.debug('UrlRequest: {0} Download progress {1}'.format(
@@ -333,6 +367,7 @@ class UrlRequest(Thread):
                     func = self.on_progress()
                     if func:
                         func(self, data[0], data[1])
+
             else:
                 assert(0)
 
