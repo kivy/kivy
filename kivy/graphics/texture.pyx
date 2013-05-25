@@ -908,7 +908,6 @@ cdef class Texture:
         texture._nofree = 1
 
         # set the same parameters as our current texture
-        texture.bind()
         texture.set_wrap(self.wrap)
         texture.set_min_filter(self.min_filter)
         texture.set_mag_filter(self.mag_filter)
@@ -1115,8 +1114,16 @@ cdef class TextureRegion(Texture):
         self._id = self.owner.id
 
         # then update content again
-        for cb in self.observers:
-            cb(self)
+        self.bind()
+        for callback in self.observers[:]:
+            if callback.is_dead():
+                self.observers.remove(callback)
+                continue
+            callback()(self)
+
+    def ask_update(self, callback):
+        # redirect to owner
+        self.owner.ask_update(callback)
 
     cpdef bind(self):
         self.owner.bind()
