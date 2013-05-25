@@ -37,7 +37,7 @@ __all__ = ('Button', )
 
 from kivy.uix.label import Label
 from kivy.properties import OptionProperty, StringProperty, ListProperty
-
+from kivy.clock import Clock
 
 class Button(Label):
     '''Button class, see module documentation for more information.
@@ -168,3 +168,23 @@ class Button(Label):
     def on_release(self):
         pass
 
+    def trigger_action(self, duration=0.1):
+        '''Trigger whatever action(s) have been bound to the button by calling
+        both the on_press and on_release callbacks.
+
+        This simulates a quick button press without using any touch events.
+
+        Duration is the length of the press in seconds. Pass 0 if you want
+        the action to happen instantly.
+
+        .. versionadded:: 1.8.0
+        '''
+        self._do_press()
+        self.dispatch("on_press")
+        def trigger_release(dt):
+            self._do_release()
+            self.dispatch("on_release")
+        if not duration:
+            trigger_release(0)
+        else:
+            Clock.schedule_once(trigger_release, duration)
