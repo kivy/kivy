@@ -25,4 +25,3 @@ override_dh_install:
 override_dh_installdocs:
 	cd doc && PYTHONPATH=.. make html
 	dh_installdocs doc/build/html
-	#echo "! DOCUMENTATION BUILDS ARE DISABLED!"
