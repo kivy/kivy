@@ -97,7 +97,14 @@ from kivy.graphics.transformation import Matrix
 
 class Scatter(Widget):
     '''Scatter class. See module documentation for more information.
+    
+    :Events:
+        `on_transform_with_touch`:
+            Fired when the scatter has been transformed by user touch
+            or multitouch such as panning or zooming
     '''
+
+    __events__ = ('on_transform_with_touch',)
 
     auto_bring_to_front = BooleanProperty(True)
     '''If True, the widget will be automatically pushed on the top of parent
@@ -375,6 +382,7 @@ class Scatter(Widget):
 
     def transform_with_touch(self, touch):
         # just do a simple one finger drag
+        changed = False
         if len(self._touches) == self.translation_touches:
             # _last_touch_pos has last pos in correct parent space,
             # just like incoming touch
@@ -385,9 +393,10 @@ class Scatter(Widget):
             dx = dx / self.translation_touches
             dy = dy / self.translation_touches
             self.apply_transform(Matrix().translate(dx, dy, 0))
+            changed = True
         
         if len(self._touches) == 1:
-            return
+            return changed
 
         # we have more than one touch...
         points = [Vector(self._last_touch_pos[t]) for t in self._touches]
@@ -401,7 +410,7 @@ class Scatter(Widget):
         # same as touch. Touch is not one of the two touches used to transform
         farthest = max(points, key=anchor.distance)
         if points.index(farthest) != self._touches.index(touch):
-            return
+            return changed
 
         # ok, so we have touch, and anchor, so we can actually compute the
         # transformation
@@ -418,6 +427,8 @@ class Scatter(Widget):
                 scale = 1.0
             self.apply_transform(Matrix().scale(scale, scale, scale),
                                  anchor=anchor)
+            changed = True
+        return changed
 
     def _bring_to_front(self):
         # auto bring to front
@@ -476,12 +487,25 @@ class Scatter(Widget):
 
         # rotate/scale/translate
         if touch in self._touches and touch.grab_current == self:
-            self.transform_with_touch(touch)
+            if self.transform_with_touch(touch):
+                self.dispatch('on_transform_with_touch', touch)
             self._last_touch_pos[touch] = touch.pos
 
         # stop propagating if its within our bounds
         if self.collide_point(x, y):
             return True
+    
+    def on_transform_with_touch(self, touch):
+        '''
+        Called when a touch event has transformed the scatter widget.
+        By default this does nothing, but can be overriden by derived
+        classes that need to react to transformations caused by user
+        input.
+
+        :Parameters:
+            `touch`: the touch object which triggered the transformation
+        '''
+        pass
 
     def on_touch_up(self, touch):
         x, y = touch.x, touch.y
