@@ -102,6 +102,9 @@ class Scatter(Widget):
         `on_transform_with_touch`:
             Fired when the scatter has been transformed by user touch
             or multitouch such as panning or zooming
+
+    .. versionchanged:: 1.8.0
+        Event `on_transform_with_touch` added.
     '''
 
     __events__ = ('on_transform_with_touch',)
@@ -504,6 +507,8 @@ class Scatter(Widget):
 
         :Parameters:
             `touch`: the touch object which triggered the transformation
+
+        .. versionadded:: 1.8.0
         '''
         pass
 
