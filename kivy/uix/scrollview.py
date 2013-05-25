@@ -417,6 +417,8 @@ class ScrollView(StencilView):
         if not self.collide_point(*touch.pos):
             touch.ud[self._get_uid('svavoid')] = True
             return
+        if self.disabled:
+            return True
         if self._touch:
             return super(ScrollView, self).on_touch_down(touch)
 

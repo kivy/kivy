@@ -170,7 +170,7 @@ class TextInputCutCopyPaste(Bubble):
     # copy/cut/paste happen.
 
     textinput = ObjectProperty(None)
-    '''
+    ''' Holds the ref to the TextInput this Bubble belongs to.
     '''
 
     but_cut = ObjectProperty(None)
@@ -322,6 +322,10 @@ class TextInput(Widget):
 
         # when the gl context is reloaded, trigger the text rendering again.
         _textinput_list.append(ref(self, TextInput._reload_remove_observer))
+
+    def on_disabled(self, instance, value):
+        if value:
+            self.focus = False
 
     def on_text_validate(self):
         pass
@@ -819,6 +823,8 @@ class TextInput(Widget):
         Clock.schedule_once(lambda dt: self.select_all())
 
     def on_touch_down(self, touch):
+        if self.disabled:
+            return
         touch_pos = touch.pos
         if not self.collide_point(*touch_pos):
             if self._keyboard_mode == 'multi':
@@ -986,7 +992,7 @@ class TextInput(Widget):
                 Clock.schedule_once(partial(self.on_focus, self, value), 0)
             return
 
-        editable = ((not self.readonly) or
+        editable = (not (self.readonly or self.disabled) or
                     (platform() in ('win', 'linux', 'macosx') and
                     self._keyboard_mode == 'system'))
 
@@ -1901,6 +1907,16 @@ class TextInput(Widget):
     default to 'atlas://data/images/defaulttheme/textinput'
     '''
 
+    background_disabled_normal = StringProperty(
+        'atlas://data/images/defaulttheme/textinput_disabled')
+    '''Background image of the TextInput when disabled'.
+
+    .. versionadded:: 1.8.0
+
+    :data:`background_disabled_normal` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/textinput_disabled'
+    '''
+
     background_active = StringProperty(
         'atlas://data/images/defaulttheme/textinput_active')
     '''Background image of the TextInput when it's in focus'.
@@ -1909,6 +1925,16 @@ class TextInput(Widget):
 
     :data:`background_active` is a :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_active'
+    '''
+
+    background_disabled_active = StringProperty(
+        'atlas://data/images/defaulttheme/textinput_disabled_active')
+    '''Background image of the TextInput when it's in focus and disabled.
+
+    .. versionadded:: 1.8.0
+
+    :data:`background_disabled_active` is a :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/textinput_disabled_active'
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
@@ -1927,6 +1953,15 @@ class TextInput(Widget):
 
     :data:`foreground_color` is a :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 1] #Black
+    '''
+
+    disabled_foreground_color = ListProperty([0, 0, 0, .5])
+    '''Current color of the foreground, in (r, g, b, a) format when disabled.
+
+    .. versionadded:: 1.8.0
+
+    :data:`disabled_foreground_color` is a :class:`~kivy.properties.ListProperty`,
+    default to [0, 0, 0, 5] # 50% translucent Black
     '''
 
     use_bubble = BooleanProperty(not _is_desktop)
@@ -2065,6 +2100,7 @@ class TextInput(Widget):
 
     .. versionadded:: 1.7.0
     '''
+
 
 if __name__ == '__main__':
     from kivy.app import App
