@@ -24,7 +24,6 @@ class depending the file.
 
 __all__ = ('Sound', 'SoundLoader')
 
-import sys
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
@@ -103,7 +102,7 @@ class Sound(EventDispatcher):
     loop = BooleanProperty(False)
     '''Set to True if the sound should automatically loop when it finishes.
 
-    .. versionadded:: 1.7.0
+    .. versionadded:: 1.8.0
 
     :data:`loop` is an :class:`~kivy.properties.BooleanProperty`, default to False.
     '''
