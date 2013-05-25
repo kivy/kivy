@@ -11,7 +11,7 @@ Build-Depends: debhelper (>= 7.0.50~),
                cython,
                libgl1-mesa-dev [!armhf],
                libgles2-mesa-dev [armhf],
-               python-sphinx
+               python-sphinx, texlive-latex-base, texlive-latex-extra, texlive-fonts-extra, texlive-fonts-recommended
 Standards-Version: 3.9.1
 Homepage: http://kivy.org/
 Vcs-Bzr: https://code.launchpad.net/~kivy-team/kivy/master

@@ -24,4 +24,7 @@ override_dh_install:
 
 override_dh_installdocs:
 	cd doc && PYTHONPATH=.. make html
-	dh_installdocs doc/build/html
+	cd doc && PYTHONPATH=.. make latex
+	cd doc/build/latex && make all-pdf
+	#ls doc/pdf
+	dh_installdocs
