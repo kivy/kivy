@@ -86,15 +86,16 @@ class FactoryBase(object):
             'baseclasses': baseclasses,
             'filename': filename}
 
-    def unregister(self, classname):
-        '''Unregisters the classname previously registered via the
-        register method. This allows the same classname to be re-used
-        in different contexts.
+    def unregister(self, *classnames):
+        '''Unregisters the classnames previously registered via the
+        register method. This allows the same classnames to be re-used in
+        different contexts.
         
         .. versionadded:: 1.7.1
         '''
-        if classname in self.classes:
-            self.classes.pop(classname)
+        for classname in classnames:
+            if classname in self.classes:
+                self.classes.pop(classname)
 
     def unregister_from_filename(self, filename):
         '''Unregister all the factory object related to the filename passed in
