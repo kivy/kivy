@@ -30,10 +30,10 @@ before you re-assign it::
 
     >>> from kivy.factory import Factory
     >>> Factory.register('MyWidget', cls=MyWidget)
-    >>> widget = Factory.Widget()
+    >>> widget = Factory.MyWidget()
     >>> Factory.unregister('MyWidget')
     >>> Factory.register('MyWidget', cls=CustomWidget)
-    >>> customWidget = Factory.Widget()    
+    >>> customWidget = Factory.MyWidget()    
 '''
 
 __all__ = ('Factory', 'FactoryException')
