@@ -80,9 +80,9 @@ __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
-from kivy.properties import NumericProperty, StringProperty, \
-        AliasProperty, ReferenceListProperty, ObjectProperty, \
-        ListProperty, DictProperty
+from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
+                             ReferenceListProperty, ObjectProperty,
+                             ListProperty, DictProperty, BooleanProperty)
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
@@ -217,6 +217,8 @@ class Widget(EventDispatcher):
         :Returns:
             bool. If True, the dispatching of the touch will stop.
         '''
+        if self.disabled and self.collide_point(*touch.pos):
+            return True
         for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
@@ -226,6 +228,8 @@ class Widget(EventDispatcher):
 
         See :meth:`on_touch_down` for more information
         '''
+        if self.disabled:
+            return
         for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
                 return True
@@ -235,9 +239,15 @@ class Widget(EventDispatcher):
 
         See :meth:`on_touch_down` for more information
         '''
+        if self.disabled:
+            return
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
+
+    def on_disabled(self, instance, value):
+        for child in self.children:
+            child.disabled = value
 
     #
     # Tree management
@@ -267,7 +277,11 @@ class Widget(EventDispatcher):
         if parent:
             raise WidgetException('Cannot add %r, it already has a parent %r'
                 % (widget, parent))
-        widget.parent = self
+        widget.parent = parent = self
+        # child will be disabled if added to a disabled parent
+        if parent.disabled:
+            widget.disabled = True
+
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
             self.canvas.add(widget.canvas)
@@ -305,6 +319,7 @@ class Widget(EventDispatcher):
         '''
         if widget not in self.children:
             return
+        parent = widget.parent
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
@@ -567,7 +582,7 @@ class Widget(EventDispatcher):
     '''This is a Dictionary of id's defined in your kv language. This will only
     be populated if you use id's in your kv language code.
 
-    .. versionadded:: 1.6.0
+    .. versionadded:: 1.7.0
 
     :data:`ids` is a :class:`~kivy.properties.DictProperty`, defaults to a empty
     dict {}.
@@ -613,4 +628,18 @@ class Widget(EventDispatcher):
     follow and extend.
 
     See :class:`~kivy.graphics.Canvas` for more information about the usage.
+    '''
+
+    disabled = BooleanProperty(False)
+    '''Indicates whether this widget can interact with input or not.
+
+    .. Note::
+        1. Child Widgets when added onto a disabled widget will be disabled
+        automatically
+        2. Disabling/enabling a parent disables/enables all it's children.
+
+    .. versionadded:: 1.8.0
+
+    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False.
     '''

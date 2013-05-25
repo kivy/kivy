@@ -89,6 +89,28 @@ class Button(Label):
     default to 'atlas://data/images/defaulttheme/button_pressed'
     '''
 
+    background_disabled_normal = StringProperty(
+        'atlas://data/images/defaulttheme/button_disabled')
+    '''Background image of the button used for default graphical representation,
+    when the button is not pressed.
+
+    .. versionadded:: 1.8.0
+
+    :data:`background_normal` is an :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/button_disabled'
+    '''
+
+    background_disabled_down = StringProperty(
+        'atlas://data/images/defaulttheme/button_disabled_pressed')
+    '''Background image of the button used for default graphical representation,
+    when the button is pressed.
+
+    .. versionadded:: 1.8.0
+
+    :data:`background_down` is an :class:`~kivy.properties.StringProperty`,
+    default to 'atlas://data/images/defaulttheme/button_disabled_pressed'
+    '''
+
     border = ListProperty([16, 16, 16, 16])
     '''Border used for :class:`~kivy.graphics.vertex_instructions.BorderImage`
     graphics instruction. Used with :data:`background_normal` and
