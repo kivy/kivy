@@ -127,8 +127,13 @@ cdef TTF_Font *_get_font(self):
 class LabelSDLttf(LabelBase):
 
     def _get_font_id(self):
-        return '|'.join([unicode(self.options[x]) for x \
-            in ('font_size', 'font_name_r', 'bold', 'italic')])
+        try:
+            return '|'.join([unicode(self.options[x]) for x \
+                in ('font_size', 'font_name_r', 'bold', 'italic')])
+        except UnicodeDecodeError:
+            return '|'.join([self.options[x] for x \
+                in ('font_size', 'font_name_r', 'bold', 'italic')])
+            
 
     def get_extents(self, text):
         try:
