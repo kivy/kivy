@@ -15,7 +15,7 @@ application/json, the result will be automatically passed through json.loads.
 The syntax to create a request::
 
     from kivy.network.urlrequest import UrlRequest
-    req = UrlRequest(url, callback_success, callback_error, body, headers)
+    req = UrlRequest(url, on_success, on_error, req_body, req_headers)
 
 
 Only the first argument is mandatory, all the rest is optional.
@@ -91,6 +91,10 @@ class UrlRequest(Thread):
             Complete url string to call.
         `on_success`: callback(request, result)
             Callback function to call when the result have been fetched
+        `on_redirect`: callback(request, result)
+            Callback function to call if the server returns a Redirect
+        `on_failure`: callback(request, result)
+            Callback function to call if the server returns a Client Error or Server Error
         `on_error`: callback(request, error)
             Callback function to call when an error happen
         `on_progress`: callback(request, current_size, total_size)
@@ -118,14 +122,17 @@ class UrlRequest(Thread):
             access/progression/error.
     '''
 
-    def __init__(self, url, on_success=None, on_error=None, on_progress=None,
-            req_body=None, req_headers=None, chunk_size=8192, timeout=None,
-            method=None, debug=False):
+    def __init__(self, url, on_success=None, on_redirect=None,
+            on_failure=None,on_error=None, on_progress=None, req_body=None,
+            req_headers=None, chunk_size=8192, timeout=None, method=None,
+            debug=False):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
         self.daemon = True
         self.on_success = WeakMethod(on_success) if on_success else None
+        self.on_redirect = WeakMethod(on_redirect) if on_redirect else None
+        self.on_failure = WeakMethod(on_failure) if on_failure else None
         self.on_error = WeakMethod(on_error) if on_error else None
         self.on_progress = WeakMethod(on_progress) if on_progress else None
         self._debug = debug
@@ -158,16 +165,12 @@ class UrlRequest(Thread):
         url = self.url
         req_body = self.req_body
         req_headers = self.req_headers
-        resp = result = e = None
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
             result = self.decode_result(result, resp)
-        except Exception, e:
-            pass
-
-        if e is not None:
-            q(('error', resp, e))
+        except Exception as e:
+            q(('error', None, e))
         else:
             q(('success', resp, result))
 
@@ -284,12 +287,14 @@ class UrlRequest(Thread):
         # Entry to decode url from the content type.
         # For example, if the content type is a json, it will be automatically
         # decoded.
-        ct = resp.getheader('Content-Type', None).split(';')[0]
-        if ct == 'application/json':
-            try:
-                return loads(result)
-            except:
-                return result
+        content_type = resp.getheader('Content-Type', None)
+        if content_type is not None:
+            ct = content_type.split(';')[0]
+            if ct == 'application/json':
+                try:
+                    return loads(result)
+                except:
+                    return result
         return result
 
     def _dispatch_result(self, dt):
@@ -307,26 +312,53 @@ class UrlRequest(Thread):
                 self._resp_headers = dict(resp.getheaders())
                 self._resp_status = resp.status
             if result == 'success':
-                if self._debug:
-                    Logger.debug('UrlRequest: {0} Download finished with'
-                            ' {1} datalen'.format(
-                            id(self), len(data)))
-                self._is_finished = True
-                self._result = data
-                if self.on_success:
-                    func = self.on_success()
-                    if func:
-                        func(self, data)
+                status_class = resp.status // 100
+
+                if status_class in (1, 2):
+                    if self._debug:
+                        Logger.debug('UrlRequest: {0} Download finished with'
+                                ' {1} datalen'.format(
+                                id(self), len(data)))
+                    self._is_finished = True
+                    self._result = data
+                    if self.on_success:
+                        func = self.on_success()
+                        if func:
+                            func(self, data)
+
+                elif status_class == 3:
+                    if self._debug:
+                        Logger.debug('UrlRequest: {} Download '
+                                'redirected'.format(id(self)))
+                    self._is_finished = True
+                    self._result = data
+                    if self.on_redirect:
+                        func = self.on_redirect()
+                        if func:
+                            func(self, data)
+
+                elif status_class in (4, 5):
+                    if self._debug:
+                        Logger.debug('UrlRequest: {} Download failed with '
+                                'http error {}'.format(id(self), resp.status))
+                    self._is_finished = True
+                    self._result = data
+                    if self.on_failure:
+                        func = self.on_failure()
+                        if func:
+                            func(self, data)
+
             elif result == 'error':
                 if self._debug:
-                    Logger.debug('UrlRequest: {0} Download error <{1}>'.format(
-                        id(self), data))
+                    Logger.debug('UrlRequest: {0} Download error '
+                            '<{1}>'.format(id(self), data))
                 self._is_finished = True
                 self._error = data
                 if self.on_error:
                     func = self.on_error()
                     if func:
                         func(self, data)
+
             elif result == 'progress':
                 if self._debug:
                     Logger.debug('UrlRequest: {0} Download progress {1}'.format(
@@ -335,6 +367,7 @@ class UrlRequest(Thread):
                     func = self.on_progress()
                     if func:
                         func(self, data[0], data[1])
+
             else:
                 assert(0)
 
@@ -354,15 +387,15 @@ class UrlRequest(Thread):
 
     @property
     def resp_headers(self):
-        '''If the request have been done, return a dictionnary containing the
+        '''If the request have been done, return a dictionary containing the
         headers of the response. Otherwise, it will return None
         '''
         return self._resp_headers
 
     @property
     def resp_status(self):
-        '''Return the status code of the response if the request have been done,
-        otherwise, return None
+        '''Return the status code of the response if the request is complete,
+        otherwise return None
         '''
         return self._resp_status
 
