@@ -20,7 +20,7 @@ override_dh_auto_test:
 	echo "! TESTS ARE TEMPORARY DISABLED !"
 
 override_dh_install:
-	dh_install --fail-missing
+	dh_install --fail-missing  --sourcedir debian/tmp
 
 override_dh_installdocs:
 	cd doc && PYTHONPATH=.. make html

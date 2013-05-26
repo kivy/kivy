@@ -1,1 +1,13 @@
-debian/tmp/usr/lib /usr
+usr/lib/python2.7/site-packages/Kivy-*.egg-info
+usr/lib/python2.7/site-packages/kivy/*.*
+usr/lib/python2.7/site-packages/kivy/adapters/*
+usr/lib/python2.7/site-packages/kivy/core/*
+usr/lib/python2.7/site-packages/kivy/effects/*
+usr/lib/python2.7/site-packages/kivy/ext/*
+usr/lib/python2.7/site-packages/kivy/extras/*
+usr/lib/python2.7/site-packages/kivy/graphics/*.py*
+usr/lib/python2.7/site-packages/kivy/input
+usr/lib/python2.7/site-packages/kivy/lib
+usr/lib/python2.7/site-packages/kivy/modules
+usr/lib/python2.7/site-packages/kivy/network
+usr/lib/python2.7/site-packages/kivy/uix
