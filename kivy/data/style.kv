@@ -562,7 +562,7 @@
             size_hint_x: .66
             id: labellayout
             markup: True
-            text: '{0}\n[size=13sp][color=999999]{1}[/color][/size]'.format(root.title or '', root.desc or '')
+            text: u'{0}\n[size=13sp][color=999999]{1}[/color][/size]'.format(root.title or '', root.desc or '')
             font_size: '15sp'
             text_size: self.width - 32, None
 
@@ -580,19 +580,19 @@
 
 <SettingString>:
     Label:
-        text: str(root.value)
+        text: root.value or ''
         pos: root.pos
         font_size: '15sp'
 
 <SettingPath>:
     Label:
-        text: str(root.value)
+        text: root.value or ''
         pos: root.pos
         font_size: '15sp'
 
 <SettingOptions>:
     Label:
-        text: str(root.value)
+        text: root.value or ''
         pos: root.pos
         font_size: '15sp'
 
