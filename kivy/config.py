@@ -185,7 +185,6 @@ Available configuration tokens
 __all__ = ('Config', 'ConfigParser')
 
 from ConfigParser import ConfigParser as PythonConfigParser
-from sys import platform
 from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
@@ -372,10 +371,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             # activate native input provider in configuration
             # from 1.0.9, don't activate mactouch by default, or app are
             # unusable.
-            if platform == 'win32':
+            if platform() == 'win':
                 Config.setdefault('input', 'wm_touch', 'wm_touch')
                 Config.setdefault('input', 'wm_pen', 'wm_pen')
-            elif platform == 'linux2':
+            elif platform() == 'linux':
                 Config.setdefault('input', '%(name)s', 'probesysfs')
 
             # input postprocessing configuration
