@@ -272,7 +272,9 @@ class SettingItem(FloatLayout):
             return
         # get current value in config
         panel = self.panel
-        panel.set_value(self.section, self.key, str(value))
+        if not isinstance(value, basestring):
+            value = str(value)
+        panel.set_value(self.section, self.key, value)
 
 
 class SettingBoolean(SettingItem):
@@ -344,7 +346,7 @@ class SettingString(SettingItem):
             content=content, size_hint=(None, None), size=('400dp', '250dp'))
 
         # create the textinput used for numeric input
-        self.textinput = textinput = TextInput(text=str(self.value),
+        self.textinput = textinput = TextInput(text=self.value,
             font_size=24, multiline=False, size_hint_y=None, height='50dp')
         textinput.bind(on_text_validate=self._validate)
         self.textinput = textinput
@@ -422,9 +424,8 @@ class SettingPath(SettingItem):
             content=content, size_hint=(None, None), size=(400, 400))
 
         # create the filechooser
-        self.textinput = textinput = FileChooserListView(path=str(self.value),
-                                                         size_hint=(1, 1),
-                                                         dirselect=True)
+        self.textinput = textinput = FileChooserListView(
+                path=self.value, size_hint=(1, 1), dirselect=True)
         textinput.bind(on_path=self._validate)
         self.textinput = textinput
 

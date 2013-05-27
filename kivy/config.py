@@ -17,8 +17,14 @@ Read a configuration token from a particular section::
 
 Change the configuration and save it::
 
-    >>> Config.set('kivy', 'retain_time', 50)
+    >>> Config.set('kivy', 'retain_time', '50')
     >>> Config.write()
+
+.. versionchanged:: 1.7.1
+
+    The ConfigParser should work correctly with utf-8 now. The values are
+    converted from ascii to unicode only when needed. The method get() returns
+    utf-8 strings.
 
 Available configuration tokens
 ------------------------------
@@ -240,15 +246,37 @@ class ConfigParser(PythonConfigParser):
         if type(filename) not in (str, unicode):
             raise Exception('Only one filename is accepted (str or unicode)')
         self.filename = filename
+        # If we try to open directly the configuration file in utf-8,
+        # we correctly get the unicode value by default.
+        # But, when we try to save it again, all the values we didn't changed
+        # are still unicode, and then the PythonConfigParser internal do a str()
+        # conversion -> fail.
+        # Instead we currently to the conversion to utf-8 when value are
+        # "get()", but we internally store them in ascii.
+        #with codecs.open(filename, 'r', encoding='utf-8') as f:
+        #    self.readfp(f)
         PythonConfigParser.read(self, filename)
 
     def set(self, section, option, value):
         '''Functions similarly to PythonConfigParser's set method, except that
         the value is implicitly converted to a string.
         '''
-        ret = PythonConfigParser.set(self, section, option, str(value))
-        self._do_callbacks(section, option, str(value))
+        e_value = value
+        if not isinstance(value, basestring):
+            # might be boolean, int, etc.
+            e_value = str(value)
+        else:
+            if isinstance(value, unicode):
+                e_value = value.encode('utf-8')
+        ret = PythonConfigParser.set(self, section, option, e_value)
+        self._do_callbacks(section, option, value)
         return ret
+
+    def get(self, section, option):
+        value = PythonConfigParser.get(self, section, option)
+        if type(value) is str:
+            return value.decode('utf-8')
+        return value
 
     def setdefaults(self, section, keyvalues):
         '''Set a lot of keys/values in one section at the same time
