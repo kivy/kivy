@@ -1010,6 +1010,7 @@ class TextInput(Widget):
                     on_key_down=self._keyboard_on_key_down,
                     on_key_up=self._keyboard_on_key_up)
                 keyboard.release()
+                self._keyboard = None
             self.cancel_selection()
             Clock.unschedule(self._do_blink_cursor)
             self._hide_cut_copy_paste(win)
