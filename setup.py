@@ -11,10 +11,25 @@ from distutils.core import setup
 from distutils.extension import Extension
 
 # -----------------------------------------------------------------------------
+# Determine on which platform we are
+
+platform = sys.platform
+
+# Detect Python for android project (http://github.com/kivy/python-for-android)
+ndkplatform = environ.get('NDKPLATFORM')
+if ndkplatform is not None and environ.get('LIBLINK'):
+    platform = 'android'
+kivy_ios_root = environ.get('KIVYIOSROOT', None)
+if kivy_ios_root is not None:
+    platform = 'ios'
+if exists('/opt/vc/include/bcm_host.h'):
+    platform = 'rpi'
+
+# -----------------------------------------------------------------------------
 # Detect options
 #
 c_options = {
-    'use_rpi': False,
+    'use_rpi': platform == 'rpi',
     'use_opengl_es2': True,
     'use_opengl_debug': False,
     'use_glew': False,
@@ -30,21 +45,6 @@ for key in c_options.keys():
         value = bool(int(environ[ukey]))
         print 'Environ change %s -> %s' % (key, value)
         c_options[key] = value
-
-# -----------------------------------------------------------------------------
-# Determine on which platform we are
-
-platform = sys.platform
-
-# Detect Python for android project (http://github.com/kivy/python-for-android)
-ndkplatform = environ.get('NDKPLATFORM')
-if ndkplatform is not None and environ.get('LIBLINK'):
-    platform = 'android'
-kivy_ios_root = environ.get('KIVYIOSROOT', None)
-if kivy_ios_root is not None:
-    platform = 'ios'
-if exists('/opt/vc/include/bcm_host.h'):
-    platform = 'rpi'
 
 # -----------------------------------------------------------------------------
 # Cython check
@@ -227,7 +227,8 @@ def determine_gl_flags():
         flags['libraries'] = ['GLESv2']
     elif platform == 'rpi':
         flags['include_dirs'] = ['/opt/vc/include',
-            '/opt/vc/include/interface/vcos/pthreads']
+            '/opt/vc/include/interface/vcos/pthreads',
+            '/opt/vc/include/interface/vmcs_host/linux']
         flags['extra_link_args'] = ['-L', '/opt/vc/lib']
         flags['libraries'] = ['GLESv2']
     else:
