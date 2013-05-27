@@ -191,6 +191,8 @@ from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
 from kivy.utils import OrderedDict, platform
 
+_is_rpi = exists('/opt/vc/include/bcm_host.h')
+
 # Version number of current configuration format
 KIVY_CONFIG_VERSION = 9
 
@@ -375,7 +377,10 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                 Config.setdefault('input', 'wm_touch', 'wm_touch')
                 Config.setdefault('input', 'wm_pen', 'wm_pen')
             elif platform() == 'linux':
-                Config.setdefault('input', '%(name)s', 'probesysfs')
+                probesysfs = 'probesysfs'
+                if _is_rpi:
+                    probesysfs += ',provider=hidinput'
+                Config.setdefault('input', '%(name)s', probesysfs)
 
             # input postprocessing configuration
             Config.setdefault('postproc', 'double_tap_distance', '20')
