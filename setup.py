@@ -49,7 +49,7 @@ for key in c_options.keys():
 # -----------------------------------------------------------------------------
 # Cython check
 # on python-for-android and kivy-ios, cython usage is external
-ave_cython = False
+have_cython = False
 if platform in ('ios', 'android'):
     print '\nCython check avoided.'
 else:
