@@ -147,7 +147,7 @@ class WindowsPortableBuild(Command):
             target, 'kivy', 
             'Kivy {}, Windows portable version (Python 2.7, '
             '32 and 64 bits, bundled dependencies)'.format(version),
-            'Featured,OsSys-Windows')
+            ['Featured', 'OsSys-Windows'])
 
         if url:
               print 'The file was uploaded successfully.'
