@@ -22,6 +22,13 @@
     info_label: info_lbl
     orientation: 'vertical'
     BoxLayout:
+        padding: '2sp'
+        canvas:
+            Color:
+                rgba: 1, 1, 1, .6
+            Rectangle:
+                size: self.size
+                pos: self.pos
         size_hint: 1, None
         height: '45sp'
         Spinner:
@@ -36,11 +43,12 @@
 
         Splitter:
             id: editor_pane
-            max_size: (reactive_layout.height if self.vertical else reactive_layout.width)- self.strip_size
+            max_size: (reactive_layout.height if self.vertical else reactive_layout.width) - self.strip_size
             min_size: sp(30) + self.strip_size
             vertical: 1 if reactive_layout.width < reactive_layout.height else 0
             sizable_from: 'bottom' if self.vertical else 'right'
             size_hint: (1, None) if self.vertical else (None, 1)
+            size: 400, 400
             on_vertical:
                 mid_size = self.max_size/2
                 if args[1]: self.height = mid_size
@@ -53,9 +61,10 @@
                     KivyRenderTextInput:
                         catalog: root
                         id: language_box
+                        auto_indent: True
                         lexer: KivyLexer()
                         size_hint: 1, None
-                        height: max( (len(self._lines)+1) * (self.line_height + self._line_spacing), kr_scroll.height)
+                        height: max(kr_scroll.height, (len(self._lines)+1) * (self.line_height + self._line_spacing))
                         font_name: "data/fonts/DroidSansMono.ttf"
                         valign: "top"
                         text: "This box will display the kivy language for whatever has been selected"

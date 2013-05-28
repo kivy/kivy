@@ -3,6 +3,12 @@
 BoxLayout:
     id: bl
     orientation: "vertical"
+    canvas:
+        Color:
+            rgba: .18, .18, .18, .91
+        Rectangle:
+            size: self.size
+            pos: self.pos
     Bubble:
         size_hint: (None, None)
         size: (150, 50)
@@ -10,9 +16,9 @@ BoxLayout:
         arrow_pos: 'bottom_mid'
         orientation: 'horizontal'
         BubbleButton:
-            text: 'Click'
+            text: 'This is'
         BubbleButton:
-            text: 'A'
+            text: 'a'
         BubbleButton:
             text: 'Bubble'
     Button:
