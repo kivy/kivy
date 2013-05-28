@@ -7,7 +7,7 @@ There are many ways in which you can contribute to Kivy.
 Code patches are just one thing amongst others that you can submit to help the
 project. We also welcome feedback, bug reports, feature requests, documentation
 improvements, advertisement & advocating, testing, graphics contributions and
-many different things. Just talk to us if you want to help, and we will help you
+many other ideas. Just talk to us if you want to help, and we will help you
 help us.
 
 Feedback
@@ -37,12 +37,13 @@ spelling or just weird examples, please take 2 minutes to report the issue.
     [kivy]
     log_level = debug
 
-#. Execute again your code, and copy/paste the complete output to http://gist.github.com/,
+#. Execute your code again, and copy/paste the complete output to http://gist.github.com/,
    including the log from Kivy and the python backtrace.
 #. Open https://github.com/kivy/kivy/issues/
-#. Write the title of your issue
-#. Explain exactly what to do to reproduce the issue + paste the link of the output posted on http://gist.github.com/
-#. Validate the issue and you're done !
+#. Set the title of your issue
+#. Explain exactly what to do to reproduce the issue and paste the link of the output
+   posted on http://gist.github.com/
+#. Validate the issue and you're done!
 
 
 If you are feeling up to it, you can also try to resolve the bug, and contribute by sending 
@@ -70,7 +71,7 @@ Coding style
     make hook
 
 This will pass the code added to the git staging zone (about to be committed)
-thought a pep8 checker program when you do a commit, and ensure that you didn't
+through a pep8 checker program when you do a commit, and ensure that you didn't
 introduce pep8 errors. If you did, the commit will be rejected: please correct the 
 errors and try again.
 
@@ -206,16 +207,20 @@ To submit a documentation update, use the following steps:
 
 			make html
 
-    #. Give each commit an appropriate commit message, so that others who are not familiar with the matter get a good idea of what you changed.
-    #. Keep each commit focused on a single related theme. Don't commit other stuff that doesn't logically belong to this update.
+    #. Give each commit an appropriate commit message, so that others who are not familiar with 
+       the matter get a good idea of what you changed.
+    #. Keep each commit focused on a single related theme. Don't commit other stuff that doesn't
+       logically belong to this update.
 
     #. Push to your remote repository on GitHub::
 
         git push
 
-    #. Send a *Pull Request* with a description of what you changed via the button in the GitHub interface of your repository.
+    #. Send a *Pull Request* with a description of what you changed via the button in the
+       GitHub interface of your repository.
 
-We don't ask you to go through all the hassle just to correct a single typo, but for more complex contributions, please follow the suggested workflow.
+We don't ask you to go through all the hassle just to correct a single typo, but for more
+complex contributions, please follow the suggested workflow.
 
 Docstrings
 ~~~~~~~~~~
