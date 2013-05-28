@@ -9,12 +9,20 @@
             size: self.size
 
 <Selector>:
+    grid: _grid
     Label:
         pos_hint: {'top': 1}
         size_hint_y: None
         height: 50
         font_size: 16
         text: 'Demonstration of text valign and halign'
+    GridLayout:
+        id: _grid
+        rows: 3
+        cols: 3
+        spacing: 10
+        size_hint: (None, None)
+        pos_hint: {'center_x': .5, 'center_y': .5}
     BoxLayout:
         size_hint_y: None
         height: 50
