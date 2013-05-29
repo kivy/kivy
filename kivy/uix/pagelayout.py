@@ -103,14 +103,11 @@ class PageLayout(Layout):
             parent=self._trigger_layout,
             children=self._trigger_layout,
             size=self._trigger_layout,
-            pos=self._trigger_layout
-            )
+            pos=self._trigger_layout)
 
     def do_layout(self, *largs):
         for i, c in enumerate(reversed(self.children)):
-            y = self.y
-            height = self.height
-            if i in (0, len(self.children) -1):
+            if i in (0, len(self.children) - 1):
                 width = self.width - self.border
             else:
                 width = self.width - 2 * self.border
@@ -130,12 +127,12 @@ class PageLayout(Layout):
             else:
                 x = self.right
 
-            c.height = height
+            c.height = self.height
             c.width = width
 
             Animation(
                 x=x,
-                y=y,
+                y=self.y,
                 d=.5, t='in_quad').start(c)
 
     def on_touch_down(self, touch):
@@ -145,7 +142,10 @@ class PageLayout(Layout):
                 touch.grab(self)
                 return True
 
-            elif self.page < len(self.children) - 1 and self.right > touch.x > (self.right - self.border):
+            elif (
+                self.page < len(self.children) - 1 and
+                self.right > touch.x > (self.right - self.border)
+            ):
                 touch.ud['page'] = 'next'
                 touch.grab(self)
                 return True
@@ -155,60 +155,50 @@ class PageLayout(Layout):
     def on_touch_move(self, touch):
         if touch.grab_current == self:
             if touch.ud['page'] == 'previous':
-                self.children[-self.page - 1].x = max(
-                        min(
-                            self.x + self.border + (touch.x - touch.ox),
-                            self.right - self.border
-                            ),
-                        self.x + self.border
-                        )
-
+                self.children[-self.page - 1].x = max(min(
+                        self.x + self.border + (touch.x - touch.ox),
+                        self.right - self.border),
+                    self.x + self.border)
 
                 if self.page > 1:
                     self.children[-self.page].x = min(
-                            self.x + self.border * (touch.sx - touch.osx),
-                            self.x + self.border
-                            )
+                        self.x + self.border * (touch.sx - touch.osx),
+                        self.x + self.border)
 
                 if self.page < len(self.children) - 1:
                     self.children[-self.page + 1].x = min(
-                            self.right - self.border * (1 - (touch.sx - touch.osx)),
-                            self.right
-                            )
+                        self.right - self.border * (1 - (touch.sx - touch.osx)),
+                        self.right)
 
             elif touch.ud['page'] == 'next':
-                self.children[-self.page + 1].x = min(
-                        max(
-                            self.right - self.border + (touch.x - touch.ox),
-                            self.x + self.border
-                            ),
-                        self.right - self.border
-                        )
+                self.children[-self.page + 1].x = min(max(
+                        self.right - self.border + (touch.x - touch.ox),
+                        self.x + self.border),
+                    self.right - self.border)
 
                 if self.page >= 1:
                     self.children[-self.page - 1].x = max(
-                            self.x + self.border * (1 - (touch.osx - touch.sx)),
-                            self.x
-                            )
+                        self.x + self.border * (1 - (touch.osx - touch.sx)),
+                        self.x)
 
                 if self.page < len(self.children) - 2:
                     self.children[-self.page].x = max(
-                            self.right + self.border * (touch.sx - touch.osx),
-                            self.right - self.border
-                            )
+                        self.right + self.border * (touch.sx - touch.osx),
+                        self.right - self.border)
 
         return self.children[-self.page - 1].on_touch_move(touch)
 
     def on_touch_up(self, touch):
         if touch.grab_current == self:
-            if touch.ud['page'] == 'previous' and abs(touch.sx - touch.osx) > .5:
+            if (
+                touch.ud['page'] == 'previous' and
+                abs(touch.sx - touch.osx) > .5
+            ):
                 self.page -= 1
             elif touch.ud['page'] == 'next' and abs(touch.sx - touch.osx) > .5:
                 self.page += 1
             else:
-                # hack to trigger a relayout
-                self.page += 1
-                self.page -= 1
+                self._trigger_layout()
 
             touch.ungrab(self)
         return self.children[-self.page + 1].on_touch_up(touch)
