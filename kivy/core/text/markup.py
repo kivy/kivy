@@ -30,6 +30,10 @@ The following tags are availables:
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`MarkupLabel.anchors`
+``[sub][/sub]``
+    Display the text at a subscript position relative to the text before it.
+``[sup][/sup]``
+    Display the text at a superscript position relative to the text before it.
 
 If you need to escape the markup from the current text, use
 :func:`kivy.utils.escape_markup`.
@@ -37,13 +41,13 @@ If you need to escape the markup from the current text, use
 
 __all__ = ('MarkupLabel', )
 
-from kivy.graphics.texture import Texture
+import re
 from kivy.properties import dpi2px
 from kivy.parser import parse_color
 from kivy.logger import Logger
-import re
 from kivy.core.text import Label, LabelBase
 from copy import copy
+from math import ceil
 
 # We need to do this trick when documentation is generated
 MarkupLabelBase = Label
@@ -122,6 +126,7 @@ class MarkupLabel(MarkupLabelBase):
         spop = self._pop_style
         options = self.options
         options['_ref'] = None
+        options['script'] = 'normal'
         for item in self.markup:
             if item == '[b]':
                 spush('bold')
@@ -165,6 +170,22 @@ class MarkupLabel(MarkupLabelBase):
             elif item == '[/font]':
                 spop('font_name')
                 self.resolve_font_name()
+            elif item[:5] == '[sub]':
+                spush('font_size')
+                spush('script')
+                options['font_size'] = options['font_size'] * .5
+                options['script'] = 'subscript'
+            elif item == '[/sub]':
+                spop('font_size')
+                spop('script')
+            elif item[:5] == '[sup]':
+                spush('font_size')
+                spush('script')
+                options['font_size'] = options['font_size'] * .5
+                options['script'] = 'superscript'
+            elif item == '[/sup]':
+                spop('font_size')
+                spop('script')
             elif item[:5] == '[ref=':
                 ref = item[5:-1]
                 spush('_ref')
@@ -199,7 +220,7 @@ class MarkupLabel(MarkupLabelBase):
                 h = 1
             else:
                 h = sum([line[1] for line in lines])
-        return w, h
+        return int(ceil(w)), int(ceil(h))
 
     def _pre_render_label(self, word, options, lines):
         # precalculate id/name
@@ -281,7 +302,7 @@ class MarkupLabel(MarkupLabelBase):
         # convert halign/valign to int, faster comparison
         av = {'top': 0, 'middle': 1, 'bottom': 2}[self.options['valign']]
         ah = {'left': 0, 'center': 1, 'right': 2,
-                'justify': 3,}[self.options['halign']]
+                'justify': 3, }[self.options['halign']]
 
         y = 0
         w, h = self._size
@@ -337,8 +358,10 @@ class MarkupLabel(MarkupLabelBase):
                     # divide left over space between `spaces`
                     if _spaces:
                         just_space = (((w - lw + space_width) * 1.)
-                                    /(_spaces*1.))
+                                    / (_spaces * 1.))
 
+            # previous part height/pos = 0
+            psp = pph = 0
             for pw, ph, part, options in line[4]:
                 self.options = options
                 if not first_line and first_space:
@@ -346,7 +369,26 @@ class MarkupLabel(MarkupLabelBase):
                     continue
                 if part == ' ':
                     x += just_space
-                r(part, x, y + (lh - ph) / 1.25)
+
+                # calculate sub/super script pos
+                if options['script'] == 'superscript':
+                    script_pos = max(0,
+                                    psp
+                                    if psp else
+                                    self.get_descent())
+                    psp = script_pos
+                    pph = ph
+                elif options['script'] == 'subscript':
+                    script_pos = min(lh - ph,
+                                    ((psp + pph) - ph)
+                                    if pph else
+                                    (lh - ph))
+                    pph = ph
+                    psp = script_pos
+                else:
+                    script_pos = (lh - ph) / 1.25
+                    psp = pph = 0
+                r(part, x, y + script_pos)
 
                 # should we record refs ?
                 ref = options['_ref']
@@ -355,7 +397,6 @@ class MarkupLabel(MarkupLabelBase):
                         refs[ref] = []
                     refs[ref].append((x, y, x + pw, y + ph))
 
-                #print 'render', repr(part), x, y, (lh, ph), options
                 x += pw
             y += line[1]
 
@@ -363,21 +404,9 @@ class MarkupLabel(MarkupLabelBase):
         data = self._render_end()
         assert(data)
 
-        # create texture is necessary
-        texture = self.texture
-        mipmap = self.options['mipmap']
-        if texture is None or \
-                self.width != texture.width or \
-                self.height != texture.height:
-            texture = Texture.create_from_data(data, mipmap=mipmap)
-            data = None
-            texture.flip_vertical()
-            texture.add_reload_observer(self._texture_refresh)
-            self.texture = texture
-
         # update texture
         # If the text is 1px width, usually, the data is black.
         # Don't blit that kind of data, otherwise, you have a little black bar.
         if data is not None and data.width > 1:
-            texture.blit_data(data)
+            self.texture.blit_data(data)
 

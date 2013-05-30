@@ -62,6 +62,8 @@ cdef extern from "SDL_ttf.h":
     int TTF_SizeUTF8(TTF_Font *font, char *text, int *w, int *h)
     void TTF_CloseFont(TTF_Font *font)
     void TTF_Quit()
+    int TTF_FontDescent(TTF_Font *font)
+    int TTF_FontAscent(TTF_Font *font)
     int TTF_WasInit()
     int TTF_Init()
 
@@ -76,7 +78,7 @@ cdef class _TTFContainer:
         if self.font != NULL:
             TTF_CloseFont(self.font)
             self.font = NULL
-        
+
 
 cdef class _SurfaceContainer:
     cdef SDL_Surface* surface
@@ -101,8 +103,7 @@ cdef TTF_Font *_get_font(self):
         fontname = self.options['font_name_r']
         ext = fontname.split('.')[-1]
         if ext.lower() == 'ttf':
-            fontobject = TTF_OpenFont(fontname,
-                            int(self.options['font_size'] * 1.333))
+            fontobject = TTF_OpenFont(fontname, int(self.options['font_size']))
 
         # fallback to search a system font
         if fontobject == NULL:
@@ -126,8 +127,13 @@ cdef TTF_Font *_get_font(self):
 class LabelSDLttf(LabelBase):
 
     def _get_font_id(self):
-        return '|'.join([unicode(self.options[x]) for x \
-            in ('font_size', 'font_name_r', 'bold', 'italic')])
+        try:
+            return '|'.join([unicode(self.options[x]) for x \
+                in ('font_size', 'font_name_r', 'bold', 'italic')])
+        except UnicodeDecodeError:
+            return '|'.join([self.options[x] for x \
+                in ('font_size', 'font_name_r', 'bold', 'italic')])
+            
 
     def get_extents(self, text):
         try:
@@ -140,6 +146,12 @@ class LabelSDLttf(LabelBase):
             return 0, 0
         TTF_SizeUTF8(font, <char *><bytes>text, &w, &h)
         return w, h
+
+    def get_descent(self):
+        return TTF_FontDescent(_get_font(self))
+
+    def get_ascent(self):
+        return TTF_FontAscent(_get_font(self))
 
     def _render_begin(self):
         cdef _SurfaceContainer sc = _SurfaceContainer()

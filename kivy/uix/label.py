@@ -56,6 +56,10 @@ The following tags are available:
 ``[anchor=<str>]``
     Put an anchor in the text. You can get the position of your anchor within
     the text with :data:`Label.anchors`
+``[sub][/sub]``
+    Display the text at a subscript position relative to the text before it.
+``[sup][/sup]``
+    Display the text at a superscript position relative to the text before it.
 
 If you want to render the markup text with a character [ or ] or &, you need to
 escape them. We created a simple syntax::
@@ -186,6 +190,9 @@ class Label(Widget):
                                             get_hex_from_color(self.color), ']',
                                             text, '[/color]'))
                 self._label.refresh()
+                # force the rendering to get the references
+                if self._label.texture:
+                    self._label.texture.bind()
                 self._label.text = text
                 self.refs = self._label.refs
                 self.anchors = self._label.anchors
@@ -219,6 +226,16 @@ class Label(Widget):
     #
     # Properties
     #
+
+    disabled_color = ListProperty([1, 1, 1, .3])
+    '''Text color, in the format (r, g, b, a)
+
+    .. versionadded:: 1.8.0
+
+    :data:`disabled_color` is a :class:`~kivy.properties.ListProperty`, default to [1, 1,
+    1, .5].
+    '''
+
     text = StringProperty('')
     '''Text of the label.
 
@@ -344,7 +361,7 @@ class Label(Widget):
     '''Horizontal alignment of the text.
 
     :data:`halign` is a :class:`~kivy.properties.OptionProperty`, default to
-    'left'. Available options are : left, center and right.
+    'left'. Available options are : left, center, right and justified.
 
     .. warning::
 

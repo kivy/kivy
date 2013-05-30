@@ -1,17 +1,19 @@
 Unit tests
 ==========
 
-Tests are located in the kivy/tests folder. If you find a bug in kivy, a good
-thing to do can be to write a minimal case showing the issue and to ask core devs
-if the behaviour shown is intended or a real bug. If you write your code as a
-unittest, it will prevent the bug from coming back unnoticed in the future, and
-will make Kivy a better, stronger project. Writing a unittest may be a really
-good way to get familiar with Kivy while doing something useful.
+Tests are located in the kivy/tests folder. If you find a bug in Kivy, a good
+thing to do can be to write a minimal case showing the issue and to ask core
+devs if the behaviour shown is intended or a real bug. If you write your code
+as a `unittest <http://docs.python.org/2/library/unittest.html>`_
+, it will prevent the bug from coming back unnoticed in the future,
+and will make Kivy a better, stronger project. Writing a unittest may be a
+really good way to get familiar with Kivy while doing something useful.
 
 Unit tests are seperated into two cases:
 
-* Non graphics unit tests: theses are standard unit tests that can run in a console
-* Graphics unit tests: theses need a GL context, and work via image comparison
+* Non graphical unit tests: theses are standard unit tests that can run in a
+  console
+* Graphical unit tests: theses need a GL context, and work via image comparison
 
 To be able to run unit tests, you need to install nose
 (http://code.google.com/p/python-nose/), and coverage
@@ -47,8 +49,8 @@ start with this template::
             self.assertEqual(a, 1)
 
 Replace `XXX` with an appropriate name that covers your tests cases, then
-replace 'YYY' by the name of your test. If you have some doubt, check how
-the other files have been done.
+replace 'YYY' with the name of your test. If you have any doubts, check how
+the other tests have been written.
 
 Then, to execute them, just run::
 
@@ -64,10 +66,10 @@ GL unit tests
 
 GL unit test are more difficult. You must know that even if OpenGL is a
 standard, the output/rendering is not. It depends on your GPU and the driver
-used. For theses tests, the goal is to save the output of the rendering at
+used. For these tests, the goal is to save the output of the rendering at
 frame X, and compare it to a reference image.
 
-Currently, images are generated in 320x240, png.
+Currently, images are generated at 320x240 pixels, in *png* format.
 
 .. note::
 
@@ -76,12 +78,12 @@ Currently, images are generated in 320x240, png.
     somebody can implement image comparison with "delta" support, patches
     are welcome :)
 
-To execute gl unit test, you need to create a directory::
+To execute GL unit tests, you need to create a directory::
 
     mkdir kivy/tests/results
     make test
 
-The results directory will contain all the reference images, and the
+The results directory will contain all the reference images and the
 generated images. After the first execution, if the results directory is empty,
 no comparison will be done. It will use the generated images as reference.
 After the second execution, all the images will be compared to the reference
@@ -101,8 +103,8 @@ Writing GL Unit tests
 ---------------------
 
 The idea is to create a root widget, as you would do in
-:meth:`~kivy.app.App.build()`, or for :func:`kivy.base.runTouchApp()`.
-You'll give that root widget to a rendering function, that will capture the
+:meth:`~kivy.app.App.build()`, or in :func:`kivy.base.runTouchApp()`.
+You'll give that root widget to a rendering function which will capture the
 output in X frames.
 
 Here is an example::
@@ -134,25 +136,25 @@ Here is an example::
             r(wid, 10)
 
 Each call to `self.render` (or `r` in our example) will generate an image named
-like this::
+as follows::
 
     <classname>_<funcname>-<r-call-count>.png
 
-`r-call-count` represents the number of times that `self.render` is called inside
-the test function.
+`r-call-count` represents the number of times that `self.render` is called
+inside the test function.
 
 The reference images are named::
 
     ref_<classname>_<funcname>-<r-call-count>.png
 
-You can replace the reference image with a new one easily.
+You can easily replace the reference image with a new one if you wish.
 
 
 Coverage reports
 ----------------
 
-Coverage is based on the execution of the previous tests. Statistics on code
-coverage are automatically grabbed during execution. You can generate an html
+Coverage is based on the execution of previous tests. Statistics on code
+coverage are automatically calculated during execution. You can generate an html
 report of the coverage with the command::
 
     make cover

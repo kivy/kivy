@@ -15,8 +15,8 @@ from kivy.clock import Clock
 
 CATALOG_ROOT = os.path.dirname(__file__)
 
-Config.set('graphics', 'width', '1024')
-Config.set('graphics', 'height', '768')
+#Config.set('graphics', 'width', '1024')
+#Config.set('graphics', 'height', '768')
 
 '''List of classes that need to be instantiated in the factory from .kv files.
 '''
@@ -96,31 +96,29 @@ class Catalog(BoxLayout):
     screen_manager = ObjectProperty()
 
     def __init__(self, **kwargs):
+        self._previously_parsed_text = ''
         super(Catalog, self).__init__(**kwargs)
-        self.show_kv(None)
+        self.show_kv(None, 'Welcome')
+        self.carousel = None
 
-    def show_kv(self, object):
-        '''Called when an accordionitem is collapsed or expanded. If it
-        was expanded, we need to show the .kv language file associated with
-        the newly revealed container.'''
+    def show_kv(self, instance, value):
+        '''Called when an a item is selected, we need to show the .kv language
+        file associated with the newly revealed container.'''
 
-        # if object is not passed, it's initialization, we just need to load
-        # the file
-        if object:
-            # one button must always be pressed, even if user presses it again
-            if object.state == "normal":
-                object.state = "down"
+        self.screen_manager.current = value
 
-            self.screen_manager.current = object.text
-
-        with open(self.screen_manager.current_screen.content.children[
-                    0].kv_file) as file:
+        child = self.screen_manager.current_screen.children[0]
+        with open(child.kv_file) as file:
             self.language_box.text = file.read()
         # reset undo/redo history
         self.language_box.reset_undo()
 
     def schedule_reload(self):
         if self.auto_reload:
+            txt = self.language_box.text.encode('utf8')
+            if txt == self._previously_parsed_text:
+                return
+            self._previously_parsed_text = txt
             Clock.unschedule(self.change_kv)
             Clock.schedule_once(self.change_kv, 2)
 
@@ -130,9 +128,10 @@ class Catalog(BoxLayout):
         on the kv file the user entered. If there is an error in their kv
         syntax, show a nice popup.'''
 
-        kv_container = self.screen_manager.current_screen.content.children[0]
+        txt = self.language_box.text.encode('utf8')
+        kv_container = self.screen_manager.current_screen.children[0]
         try:
-            parser = Parser(content=self.language_box.text)
+            parser = Parser(content=txt)
             kv_container.clear_widgets()
             widget = Factory.get(parser.root.name)()
             Builder._apply_rule(widget, parser.root, parser.root)

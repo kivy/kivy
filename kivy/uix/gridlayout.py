@@ -90,7 +90,7 @@ __all__ = ('GridLayout', 'GridLayoutException')
 from kivy.logger import Logger
 from kivy.uix.layout import Layout
 from kivy.properties import NumericProperty, BooleanProperty, DictProperty, \
-        BoundedNumericProperty, ReferenceListProperty
+        BoundedNumericProperty, ReferenceListProperty, VariableListProperty
 from math import ceil
 
 
@@ -112,24 +112,35 @@ class GridLayout(Layout):
     '''Grid layout class. See module documentation for more information.
     '''
 
-    spacing = NumericProperty(0)
-    '''Spacing between children, in pixels.
+    spacing = VariableListProperty([0, 0], length=2)
+    '''Spacing between children: [spacing_horizontal, spacing_vertical].
 
-    :data:`spacing` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    spacing also accepts a one argument form [spacing].
+
+    :data:`spacing` is a :class:`~kivy.properties.VariableListProperty`, default to
+    [0, 0].
     '''
 
-    padding = NumericProperty(0)
-    '''Padding between widget box and children, in pixels.
+    padding = VariableListProperty([0, 0, 0, 0])
+    '''Padding between layout box and children: [padding_left, padding_top,
+    padding_right, padding_bottom].
 
-    :data:`padding` is a :class:`~kivy.properties.NumericProperty`, default to
-    0.
+    padding also accepts a two argument form [padding_horizontal,
+    padding_vertical] and a one argument form [padding].
+
+    .. versionchanged:: 1.7.0
+
+    Replaced NumericProperty with VariableListProperty.
+
+    :data:`padding` is a :class:`~kivy.properties.VariableListProperty`, default to
+    [0, 0, 0, 0].
     '''
 
     cols = BoundedNumericProperty(None, min=0, allow_none=True)
     '''Number of columns in the grid.
 
     .. versionadded:: 1.0.8
+
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
         negative value anymore.
 
@@ -140,6 +151,7 @@ class GridLayout(Layout):
     '''Number of rows in the grid.
 
     .. versionadded:: 1.0.8
+
         Change from NumericProperty to BoundedNumericProperty. You cannot set a
         negative value anymore.
 
@@ -247,18 +259,6 @@ class GridLayout(Layout):
             size=self._trigger_layout,
             pos=self._trigger_layout)
 
-    def add_widget(self, widget, index=0):
-        widget.bind(
-            size=self._trigger_layout,
-            size_hint=self._trigger_layout)
-        return super(Layout, self).add_widget(widget, index)
-
-    def remove_widget(self, widget):
-        widget.unbind(
-            size=self._trigger_layout,
-            size_hint=self._trigger_layout)
-        return super(Layout, self).remove_widget(widget)
-
     def get_max_widgets(self):
         if self.cols and not self.rows:
             return None
@@ -340,10 +340,11 @@ class GridLayout(Layout):
                 i = i - 1
 
         # calculate minimum width/height needed, starting from padding + spacing
-        padding2 = self.padding * 2
-        spacing = self.spacing
-        width = padding2 + spacing * (current_cols - 1)
-        height = padding2 + spacing * (current_rows - 1)
+        padding_x = self.padding[0] + self.padding[2]
+        padding_y = self.padding[1] + self.padding[3]
+        spacing_x, spacing_y = self.spacing
+        width = padding_x + spacing_x * (current_cols - 1)
+        height = padding_y + spacing_y * (current_rows - 1)
         # then add the cell size
         width += sum(cols)
         height += sum(rows)
@@ -370,8 +371,9 @@ class GridLayout(Layout):
             return
 
         # speedup
-        padding = self.padding
-        spacing = self.spacing
+        padding_left = self.padding[0]
+        padding_top = self.padding[1]
+        spacing_x, spacing_y = self.spacing
         selfx = self.x
         selfw = self.width
         selfh = self.height
@@ -421,9 +423,9 @@ class GridLayout(Layout):
 
         # reposition every child
         i = len_children - 1
-        y = self.top - padding
+        y = self.top - padding_top
         for row_height in rows:
-            x = selfx + padding
+            x = selfx + padding_left
             for col_width in cols:
                 if i < 0:
                     break
@@ -433,6 +435,6 @@ class GridLayout(Layout):
                 c.width = col_width
                 c.height = row_height
                 i = i - 1
-                x = x + col_width + spacing
-            y -= row_height + spacing
+                x = x + col_width + spacing_x
+            y -= row_height + spacing_y
 

@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.6.1-dev'
+__version__ = '1.8.0-dev'
 
 import sys
 import shutil
@@ -186,7 +186,7 @@ else:
 
 #: Global settings options for kivy
 kivy_options = {
-    'window': ('pygame', 'sdl', 'x11'),
+    'window': ('egl_rpi', 'pygame', 'sdl', 'x11'),
     'text': ('pil', 'pygame', 'sdlttf'),
     'video': ('ffmpeg', 'gstreamer', 'pyglet', 'null'),
     'audio': ('pygame', 'gstreamer', 'sdl'),
@@ -382,6 +382,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Config.remove_section('input')
         Config.add_section('input')
 
-    if platform() == 'android': 
+    if platform() == 'android':
         Config.set('input', 'androidtouch', 'android')
 

@@ -9,7 +9,24 @@ How to build the documentation
 ------------------------------
 
 You need to install :
-  * Python Sphinx (apt-get install python-sphinx)
+
+  * Python Sphinx
+    - Where apt-get is available :
+          apt-get install python-sphinx
+    - On Windows :
+          Get pip (https://pypi.python.org/pypi/pip). You'll use it to install the dependencies.
+          To install pip, do python setup.py install in the pip directory.
+          Now do :
+          pip install sphinx
+          pip install blockdiag
+          pip install sphinxcontrib-blockdiag
+          pip install seqdiag
+          pip install sphinxcontrib-seqdiag
+          pip install actdiag
+          pip install sphinxcontrib-actdiag
+          pip install nwdiag
+          pip install sphinxcontrib-nwdiag
+
   * Latest kivy
 
 Generate documentation using make::

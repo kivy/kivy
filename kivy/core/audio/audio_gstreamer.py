@@ -39,7 +39,10 @@ class SoundGstreamer(Sound):
         t = message.type
         if t == gst.MESSAGE_EOS:
             self._data.set_state(gst.STATE_NULL)
-            self.stop()
+            if self.loop:
+                self.play()
+            else:
+                self.stop()
         elif t == gst.MESSAGE_ERROR:
             self._data.set_state(gst.STATE_NULL)
             err, debug = message.parse_error()
@@ -92,7 +95,7 @@ class SoundGstreamer(Sound):
         if self._data is None:
             return
         self._data.seek_simple(gst.FORMAT_TIME, gst.SEEK_FLAG_SKIP,
-                               position / 1000000000.)
+                               position * 1000000000.)
 
     def get_pos(self):
         if self._data is not None:

@@ -68,8 +68,10 @@ class AndroidMotionEventProvider(MotionEventProvider):
             pressed = joy.get_button(0)
             x = joy.get_axis(0) * 32768. / w
             y = 1. - (joy.get_axis(1) * 32768. / h)
-            pressure = joy.get_axis(2) / 1000. # python for android do * 1000.
-            radius = joy.get_axis(3) / 1000. # python for android do * 1000.
+
+            # python for android do * 1000.
+            pressure = joy.get_axis(2) / 1000.
+            radius = joy.get_axis(3) / 1000.
 
             # new touche ?
             if pressed and jid not in touches:

@@ -101,5 +101,5 @@ __all__ = (Bezier.__name__, BindTexture.__name__, BorderImage.__name__,
     ClearColor.__name__, ClearBuffers.__name__,
     gl_init_resources.__name__, PushState.__name__, ChangeState.__name__,
     PopState.__name__, ApplyContextMatrix.__name__,
-    UpdateNormalMatrix.__name__,LoadIdentity.__name__)
+    UpdateNormalMatrix.__name__, LoadIdentity.__name__)
 

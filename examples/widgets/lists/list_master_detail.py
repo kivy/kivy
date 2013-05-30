@@ -16,7 +16,6 @@ class MasterDetailView(GridLayout):
 
     def __init__(self, items, **kwargs):
         kwargs['cols'] = 2
-        kwargs['size_hint'] = (1.0, 1.0)
         super(MasterDetailView, self).__init__(**kwargs)
 
         list_item_args_converter = \

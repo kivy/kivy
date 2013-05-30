@@ -138,13 +138,13 @@ class ModalView(AnchorLayout):
 
     _anim_alpha = NumericProperty(0)
 
-    _anim_duration = NumericProperty(.100)
+    _anim_duration = NumericProperty(.1)
 
     _window = ObjectProperty(None, allownone=True)
 
+    __events__ = ('on_open', 'on_dismiss')
+
     def __init__(self, **kwargs):
-        self.register_event_type('on_open')
-        self.register_event_type('on_dismiss')
         self._parent = None
         super(ModalView, self).__init__(**kwargs)
 
@@ -166,6 +166,9 @@ class ModalView(AnchorLayout):
         window, the view will attach to the global
         :class:`~kivy.core.window.Window`.
         '''
+        if self._window is not None:
+            Logger.warning('ModalView: you can only open once.')
+            return self
         # search window
         self._window = self._search_window()
         if not self._window:
@@ -176,10 +179,20 @@ class ModalView(AnchorLayout):
             on_resize=self._align_center,
             on_keyboard=self._handle_keyboard)
         self.center = self._window.center
+        self.bind(size=self._update_center)
         a = Animation(_anim_alpha=1., d=self._anim_duration)
         a.bind(on_complete=lambda *x: self.dispatch('on_open'))
         a.start(self)
         return self
+
+    def _update_center(self, *args):
+        if not self._window:
+            return
+        # XXX HACK DONT REMOVE OR FOUND AND FIX THE ISSUE
+        # It seems that if we don't access to the center before assigning a new
+        # value, no dispatch will be done >_>
+        a = self.center
+        self.center = self._window.center
 
     def dismiss(self, *largs, **kwargs):
         '''Close the view if it is open. If you really want to close the
@@ -204,6 +217,7 @@ class ModalView(AnchorLayout):
             Animation(_anim_alpha=0., d=self._anim_duration).start(self)
         else:
             self._anim_alpha = 0
+            self._real_remove_widget()
         return self
 
     def on_size(self, instance, value):
@@ -235,11 +249,16 @@ class ModalView(AnchorLayout):
 
     def on__anim_alpha(self, instance, value):
         if value == 0 and self._window is not None:
-            self._window.remove_widget(self)
-            self._window.unbind(
-                on_resize=self._align_center,
-                on_keyboard=self._handle_keyboard)
-            self._window = None
+            self._real_remove_widget()
+
+    def _real_remove_widget(self):
+        if self._window is None:
+            return
+        self._window.remove_widget(self)
+        self._window.unbind(
+            on_resize=self._align_center,
+            on_keyboard=self._handle_keyboard)
+        self._window = None
 
     def on_open(self):
         pass

@@ -67,7 +67,6 @@ In its simplest form, we make a listview with 100 items::
 
         def __init__(self, **kwargs):
             kwargs['cols'] = 2
-            kwargs['size_hint'] = (1.0, 1.0)
             super(MainView, self).__init__(**kwargs)
 
             list_view = ListView(
@@ -89,10 +88,10 @@ Or, we could declare the listview in using the kv language::
 
     Builder.load_string("""
     <ListViewModal>:
-        size_hint: None,None
-        size: 400,400
+        size_hint: None, None
+        size: 400, 400
         ListView:
-            size_hint: .8,.8
+            size_hint: .8, .8
             item_strings: [str(index) for index in xrange(100)]
     """)
 
@@ -106,7 +105,6 @@ Or, we could declare the listview in using the kv language::
 
         def __init__(self, **kwargs):
             kwargs['cols'] = 1
-            kwargs['size_hint'] = (1.0, 1.0)
             super(MainView, self).__init__(**kwargs)
 
             listview_modal = ListViewModal()
@@ -166,10 +164,10 @@ given to the way longer python blocks are indented::
     #:import sla kivy.adapters.simplelistadapter
 
     <ListViewModal>:
-        size_hint: None,None
-        size: 400,400
+        size_hint: None, None
+        size: 400, 400
         ListView:
-            size_hint: .8,.8
+            size_hint: .8, .8
             adapter:
                 sla.SimpleListAdapter(
                 data=["Item #{0}".format(i) for i in xrange(100)],
@@ -186,7 +184,6 @@ given to the way longer python blocks are indented::
 
         def __init__(self, **kwargs):
             kwargs['cols'] = 1
-            kwargs['size_hint'] = (1.0, 1.0)
             super(MainView, self).__init__(**kwargs)
 
             listview_modal = ListViewModal()
@@ -307,7 +304,7 @@ In the args converter example above, the data item is assumed to be an object
 Here is an example of an args converter that works with list data items that
 are dicts::
 
-    args_converter = lambda row_index, obj: {'text': a_dict['text'],
+    args_converter = lambda row_index, obj: {'text': obj['text'],
                                              'size_hint_y': None,
                                              'height': 25}
 
@@ -891,7 +888,9 @@ class ListView(AbstractView, EventDispatcher):
     _count = NumericProperty(0)
 
     _wstart = NumericProperty(0)
-    _wend = NumericProperty(None)
+    _wend = NumericProperty(None, allownone=True)
+
+    __events__ = ('on_scroll_complete', )
 
     def __init__(self, **kwargs):
         # Check for an adapter argument. If it doesn't exist, we
@@ -913,11 +912,11 @@ class ListView(AbstractView, EventDispatcher):
                                                  cls=Label)
             kwargs['adapter'] = list_adapter
 
-        self.register_event_type('on_scroll_complete')
-
         super(ListView, self).__init__(**kwargs)
 
         self._trigger_populate = Clock.create_trigger(self._spopulate, -1)
+        self._trigger_reset_populate = \
+            Clock.create_trigger(self._reset_spopulate, -1)
 
         self.bind(size=self._trigger_populate,
                   pos=self._trigger_populate,
@@ -929,7 +928,7 @@ class ListView(AbstractView, EventDispatcher):
         # adapter.data and other possible triggers change for view updating.
         # We don't know that these are, so we ask the adapter to set up the
         # bindings back to the view updating function here.
-        self.adapter.bind_triggers_to_view(self._trigger_populate)
+        self.adapter.bind_triggers_to_view(self._trigger_reset_populate)
 
     # Added to set data when item_strings is set in a kv template, but it will
     # be good to have also if item_strings is reset generally.
@@ -939,6 +938,7 @@ class ListView(AbstractView, EventDispatcher):
     def _scroll(self, scroll_y):
         if self.row_height is None:
             return
+        self._scroll_y = scroll_y
         scroll_y = 1 - min(1, max(scroll_y, 0))
         container = self.container
         mstart = (container.height - self.height) * scroll_y
@@ -962,8 +962,17 @@ class ListView(AbstractView, EventDispatcher):
             self._wstart = istart
             self._wend = iend + 10
 
-    def _spopulate(self, *dt):
+    def _spopulate(self, *args):
         self.populate()
+
+    def _reset_spopulate(self, *args):
+        self._wend = None
+        self.populate()
+        # simulate the scroll again, only if we already scrolled before
+        # the position might not be the same, mostly because we don't know the
+        # size of the new item.
+        if hasattr(self, '_scroll_y'):
+            self._scroll(self._scroll_y)
 
     def populate(self, istart=None, iend=None):
         container = self.container

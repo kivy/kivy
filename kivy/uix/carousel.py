@@ -61,7 +61,7 @@ class Carousel(StencilView):
     '''
 
     def _get_slides_container(self):
-        return [x.parent.parent for x in self.slides]
+        return [x.parent for x in self.slides]
 
     slides_container = AliasProperty(_get_slides_container, None,
             bind=('slides', ))
@@ -112,7 +112,7 @@ class Carousel(StencilView):
     trying to swipe the first page.
 
     :data:`loop` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    default to False.
     '''
 
     def _get_index(self):
@@ -235,8 +235,32 @@ class Carousel(StencilView):
                 self._position_visible_slides, -1)
         super(Carousel, self).__init__(**kwargs)
 
+    def load_previous(self):
+        '''Animate previous slide in.
+
+        .. versionadded:: 1.7.0
+        '''
+        self.load_next(mode='prev')
+
+    def load_next(self, mode='next'):
+        '''Animate next slide in.
+
+        .. versionadded:: 1.7.0
+        '''
+        h, w = self.size
+        _direction = {
+                    'top': -h / 2,
+                    'bottom': h / 2,
+                    'left': w / 2,
+                    'right': -w / 2}
+        _offset = _direction[self.direction]
+        if mode == 'prev':
+            _offset = -_offset
+        self._offset = _offset
+        self._start_animation()
+
     def get_slide_container(self, slide):
-        return slide.parent.parent
+        return slide.parent
 
     def _insert_visible_slides(self):
         get_slide_container = self.get_slide_container
@@ -262,26 +286,64 @@ class Carousel(StencilView):
             super(Carousel, self).add_widget(self._current)
 
     def _position_visible_slides(self, *args):
-        if self.direction in ['right', 'left']:
-            xoff = self.x + self._offset
-            x_prev = {'left': xoff + self.width, 'right': xoff - self.width}
-            x_next = {'left': xoff - self.width, 'right': xoff + self.width}
-            if self._prev:
-                self._prev.pos = (x_prev[self.direction], self.y)
-            if self._current:
-                self._current.pos = (xoff, self.y)
-            if self._next:
-                self._next.pos = (x_next[self.direction], self.y)
-        if self.direction in ['top', 'bottom']:
-            yoff = self.y + self._offset
-            y_prev = {'top': yoff - self.height, 'bottom': yoff + self.height}
-            y_next = {'top': yoff + self.height, 'bottom': yoff - self.height}
-            if self._prev:
-                self._prev.pos = (self.x, y_prev[self.direction])
-            if self._current:
-                self._current.pos = (self.x, yoff)
-            if self._next:
-                self._next.pos = (self.x, y_next[self.direction])
+        slides, index = self.slides, self.index
+        no_of_slides = len(slides) - 1
+        if not slides:
+            return
+        x, y, width, height = self.x, self.y, self.width, self.height
+        _offset, direction = self._offset, self.direction
+        _prev, _next, _current = self._prev, self._next, self._current
+        get_slide_container = self.get_slide_container
+        last_slide = get_slide_container(slides[-1])
+        first_slide = get_slide_container(slides[0])
+        skip_next = False
+        _loop = self.loop
+
+        if direction in ['right', 'left']:
+            xoff = x + _offset
+            x_prev = {'left': xoff + width, 'right': xoff - width}
+            x_next = {'left': xoff - width, 'right': xoff + width}
+            if _prev:
+                _prev.pos = (x_prev[direction], y)
+            elif _loop and _next and index == 0:
+                # if first slide is moving to right with direction set to right
+                # or toward left with direction set to left
+                if ((_offset > 0 and direction == 'right') or
+                    (_offset < 0 and direction == 'left')):
+                    # put last_slide before first slide
+                    last_slide.pos = (x_prev[direction], y)
+                    skip_next = True
+            if _current:
+                _current.pos = (xoff, y)
+            if skip_next:
+                return
+            if _next:
+                _next.pos = (x_next[direction], y)
+            elif _loop and _prev and index == no_of_slides:
+                if ((_offset < 0 and direction == 'right') or
+                    (_offset > 0 and direction == 'left')):
+                    first_slide.pos = (x_next[direction], y)
+        if direction in ['top', 'bottom']:
+            yoff = y + _offset
+            y_prev = {'top': yoff - height, 'bottom': yoff + height}
+            y_next = {'top': yoff + height, 'bottom': yoff - height}
+            if _prev:
+                _prev.pos = (x, y_prev[direction])
+            elif _loop and _next and index == 0:
+                if ((_offset > 0 and direction == 'top') or
+                    (_offset < 0 and direction == 'bottom')):
+                    last_slide.pos = (x, y_prev[direction])
+                    skip_next = True
+            if _current:
+                _current.pos = (x, yoff)
+            if skip_next:
+                return
+            if _next:
+                _next.pos = (x, y_next[direction])
+            elif _loop and _prev and index == no_of_slides:
+                if ((_offset < 0 and direction == 'top') or
+                    (_offset > 0 and direction == 'bottom')):
+                    first_slide.pos = (x, y_next[direction])
 
     def on_size(self, *args):
         for slide in self.slides_container:
@@ -304,7 +366,7 @@ class Carousel(StencilView):
 
     def on__offset(self, *args):
         self._trigger_position_visible_slides()
-        #if reached full offset, switche index to next or prev
+        # if reached full offset, switch index to next or prev
         if self.direction == 'right':
             if self._offset <= -self.width:
                 self.index = self.index + 1
@@ -343,9 +405,11 @@ class Carousel(StencilView):
         if new_offset == 0:
             dur = self.anim_cancel_duration
 
-        if not self.loop:  # detect edge cases if not looping
+        # detect edge cases if not looping
+        len_slides = len(self.slides)
+        if not self.loop or len_slides == 1:
             is_first = (self.index == 0)
-            is_last = (self.index == len(self.slides) - 1)
+            is_last = (self.index == len_slides - 1)
             if self.direction in ['right', 'top']:
                 towards_prev = (new_offset > 0)
                 towards_next = (new_offset < 0)
@@ -365,6 +429,8 @@ class Carousel(StencilView):
         if not self.collide_point(*touch.pos):
             touch.ud[self._get_uid('cavoid')] = True
             return
+        if self.disabled:
+            return True
         if self._touch:
             return super(Carousel, self).on_touch_down(touch)
         Animation.cancel_all(self)
@@ -461,12 +527,12 @@ class Carousel(StencilView):
             self.slides.append(widget)
 
     def remove_widget(self, widget, *args, **kwargs):
-        # XXX be careful, the widget.parent.parent refer to the RelativeLayout
+        # XXX be careful, the widget.parent refer to the RelativeLayout
         # added in add_widget(). But it will break if RelativeLayout
         # implementation change.
         # if we passed the real widget
         if widget in self.slides:
-            slide = widget.parent.parent
+            slide = widget.parent
             self.slides.remove(widget)
             return slide.remove_widget(widget, *args, **kwargs)
         return super(Carousel, self).remove_widget(widget, *args, **kwargs)
@@ -483,8 +549,9 @@ if __name__ == '__main__':
     class Example1(App):
 
         def build(self):
-            carousel = Carousel(direction='right')
-            for i in range(10):
+            carousel = Carousel(direction='left',
+                                loop=True)
+            for i in range(2):
                 src = "http://placehold.it/480x270.png&text=slide-%d&.png" % i
                 image = Factory.AsyncImage(source=src, allow_stretch=True)
                 carousel.add_widget(image)

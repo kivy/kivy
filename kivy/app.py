@@ -210,6 +210,7 @@ The current implemented Pause mechanism is:
 
 __all__ = ('App', )
 
+import os
 from inspect import getfile
 from os.path import dirname, join, exists, sep, expanduser
 from kivy.config import ConfigParser
@@ -246,6 +247,12 @@ class App(EventDispatcher):
             If a kv_directory is set, it will be used to get the initial kv
             file. By default, the file is searched in the same directory as the
             current App definition file.
+        `kv_file`: <filename>, default to None
+            If a kv_file is set, it will be loaded when the application start.
+            The loading of the "default" kv will be avoided.
+
+    .. versionchanged:: 1.7.0
+        Parameter `kv_file` added.
     '''
 
     title = None
@@ -280,6 +287,8 @@ class App(EventDispatcher):
     # Return the current running App instance
     _running_app = None
 
+    __events__ = ('on_start', 'on_stop', 'on_pause', 'on_resume')
+
     def __init__(self, **kwargs):
         App._running_app = self
         self._app_directory = None
@@ -287,10 +296,6 @@ class App(EventDispatcher):
         self._app_settings = None
         self._app_window = None
         super(App, self).__init__(**kwargs)
-        self.register_event_type('on_start')
-        self.register_event_type('on_stop')
-        self.register_event_type('on_pause')
-        self.register_event_type('on_resume')
         self.built = False
 
         #: Options passed to the __init__ of the App
@@ -340,7 +345,7 @@ class App(EventDispatcher):
         :type settings: :class:`~kivy.uix.settings.Settings`
         '''
 
-    def load_kv(self):
+    def load_kv(self, filename=None):
         '''This method is invoked the first time the app is being run if no
         widget tree has been constructed before for this app.
         This method then looks for a matching kv file in the same directory as
@@ -369,18 +374,24 @@ class App(EventDispatcher):
         kv file contains a root widget, it will be used as self.root, the root
         widget for the application.
         '''
-        try:
-            default_kv_directory = dirname(getfile(self.__class__))
-            if default_kv_directory == '':
+        # Detect filename automatically if it was not specified.
+        if filename:
+            filename = resource_find(filename)
+        else:
+            try:
+                default_kv_directory = dirname(getfile(self.__class__))
+                if default_kv_directory == '':
+                    default_kv_directory = '.'
+            except TypeError:
+                # if it's a builtin module.. use the current dir.
                 default_kv_directory = '.'
-        except TypeError:
-            # if it's a builtin module.. use the current dir.
-            default_kv_directory = '.'
-        kv_directory = self.options.get('kv_directory', default_kv_directory)
-        clsname = self.__class__.__name__
-        if clsname.endswith('App'):
-            clsname = clsname[:-3]
-        filename = join(kv_directory, '%s.kv' % clsname.lower())
+            kv_directory = self.options.get('kv_directory', default_kv_directory)
+            clsname = self.__class__.__name__
+            if clsname.endswith('App'):
+                clsname = clsname[:-3]
+            filename = join(kv_directory, '%s.kv' % clsname.lower())
+
+        # Load KV file
         Logger.debug('App: Loading kv <{0}>'.format(filename))
         if not exists(filename):
             Logger.debug('App: kv <%s> not found' % filename)
@@ -506,6 +517,45 @@ class App(EventDispatcher):
         return self._app_directory
 
     @property
+    def user_data_dir(self):
+        '''
+        .. versionadded:: 1.7.0
+
+        Returns the path to a directory in the users files system, which the
+        application can use to store additional data.
+
+        Different platforms have different conventions for where to save user
+        data like preferences, saved games, and settings. This function
+        implements those conventions.
+
+        On iOS `~/Documents<app_name>` is returned (which is inside the apps sandbox).
+
+        On Android `/sdcard/<app_name>` is returned.
+
+        On Windows `%APPDATA%/<app_name>` is returned.
+
+        On Mac OS X `~/Library/Application Support <app_name>` is returned.
+
+        On Linux, `$XDG_CONFIG_HOME/<app_name>` is returned.
+        '''
+        data_dir = ""
+        if platform == 'ios':
+            data_dir = join('~/Documents', self.name)
+        elif platform == 'android':
+            data_dir = join('/sdcard', self.name)
+        elif platform == 'win':
+            data_dir = os.path.join(os.environ['APPDATA'], self.name)
+        elif platform == 'macosx':
+            data_dir = '~/Library/Application Support/{}'.format(self.name)
+        else:  # _platform == 'linux' or anything else...:
+            data_dir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
+            data_dir = join(data_dir, self.name)
+        data_dir = expanduser(data_dir)
+        if not exists(data_dir):
+            os.mkdir(data_dir)
+        return data_dir
+
+    @property
     def name(self):
         '''.. versionadded:: 1.0.7
 
@@ -523,7 +573,7 @@ class App(EventDispatcher):
         '''
         if not self.built:
             self.load_config()
-            self.load_kv()
+            self.load_kv(filename=self.options.get('kv_file'))
             root = self.build()
             if root:
                 self.root = root
@@ -541,14 +591,14 @@ class App(EventDispatcher):
             if icon:
                 window.set_icon(icon)
             self._install_settings_keys(window)
+        else:
+            Logger.critical("Application: No window is created."
+                " Terminating application run.")
+            return
 
         self.dispatch('on_start')
         runTouchApp()
-        self.dispatch('on_stop')
-
-        # Clear the window children
-        for child in window.children:
-            window.remove_widget(child)
+        self.stop()
 
     def stop(self, *largs):
         '''Stop the application.
@@ -556,7 +606,12 @@ class App(EventDispatcher):
         If you use this method, the whole application will stop by issuing
         a call to :func:`~kivy.base.stopTouchApp`.
         '''
+        self.dispatch('on_stop')
         stopTouchApp()
+
+        # Clear the window children
+        for child in self._app_window.children:
+            self._app_window.remove_widget(child)
 
     def on_start(self):
         '''Event handler for the on_start event, which is fired after

@@ -52,6 +52,7 @@ else:
     from kivy.logger import Logger
     from kivy.input.provider import MotionEventProvider
     from kivy.input.factory import MotionEventFactory
+    from kivy.config import _is_rpi
 
     # See linux/input.h
     ABS_MT_POSITION_X = 0x35
@@ -120,7 +121,7 @@ else:
             self.provider = 'mtdev'
             self.match = None
             self.input_path = '/sys/class/input'
-            self.select_all = False
+            self.select_all = True if _is_rpi else False 
             self.use_regex = False
             self.args = []
 
@@ -154,6 +155,7 @@ else:
 
         def probe(self):
             inputs = get_inputs(self.input_path)
+            Logger.debug('ProbeSysfs: using probsysfs!')
             if not self.select_all:
                 inputs = [x for x in inputs if
                           x.has_capability(ABS_MT_POSITION_X)]

@@ -196,12 +196,22 @@ IF USE_OPENGL_DEBUG == 1:
     from kivy.graphics.c_opengl_debug cimport *
 from kivy.graphics.opengl_utils cimport *
 
+# update flags
+cdef int TI_MIN_FILTER      = 1 << 0
+cdef int TI_MAG_FILTER      = 1 << 1
+cdef int TI_WRAP            = 1 << 2
+cdef int TI_NEED_GEN        = 1 << 3
+cdef int TI_NEED_ALLOCATE   = 1 << 4
+cdef int TI_NEED_PIXELS     = 1 << 5
+
+
 # compatibility layer
 cdef GLuint GL_BGR = 0x80E0
 cdef GLuint GL_BGRA = 0x80E1
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2
 cdef GLuint GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3
+cdef GLuint GL_ETC1_RGB8_OES = 0x8D64
 cdef GLuint GL_PALETTE4_RGB8_OES = 0x8B90
 cdef GLuint GL_PALETTE4_RGBA8_OES = 0x8B91
 cdef GLuint GL_PALETTE4_R5_G6_B5_OES = 0x8B92
@@ -217,12 +227,14 @@ cdef GLuint GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01
 cdef GLuint GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02
 cdef GLuint GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03
 
+
 cdef dict _gl_color_fmt = {
     'rgba': GL_RGBA, 'bgra': GL_BGRA, 'rgb': GL_RGB, 'bgr': GL_BGR,
     'luminance': GL_LUMINANCE, 'luminance_alpha': GL_LUMINANCE_ALPHA,
     's3tc_dxt1': GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
     's3tc_dxt3': GL_COMPRESSED_RGBA_S3TC_DXT3_EXT,
     's3tc_dxt5': GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
+    'etc1_rgb8': GL_ETC1_RGB8_OES,
     'palette4_rgb8': GL_PALETTE4_RGB8_OES,
     'palette4_rgba8': GL_PALETTE4_RGBA8_OES,
     'palette4_r5_g6_b5': GL_PALETTE4_R5_G6_B5_OES,
@@ -294,10 +306,12 @@ cdef inline int _is_compressed_fmt(str x):
         return 1
     if x.startswith('pvrtc_'):
         return 1
+    if x.startswith('etc1_'):
+        return 1
     return x.startswith('s3tc_dxt')
 
 
-cdef inline int _buffer_fmt_to_gl(str x):
+cdef inline int _buffer_fmt_to_gl(bytes x):
     '''Return the GL numeric value from a buffer string format
     '''
     x = x.lower()
@@ -374,6 +388,8 @@ cdef inline int _is_gl_format_supported(str x):
         return gl_has_capability(GLCAP_DXT1)
     elif x.startswith('s3tc_dxt'):
         return gl_has_capability(GLCAP_S3TC)
+    elif x.startswith('etc1_'):
+        return gl_has_capability(GLCAP_ETC1)
     return 1
 
 
@@ -435,22 +451,19 @@ cdef inline void _gl_prepare_pixels_upload(int width) nogil:
 
 
 cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
-                     int mipmap, int allocate):
+                     int mipmap, int allocate, object callback):
     '''Create the OpenGL texture.
     '''
     cdef GLuint target = GL_TEXTURE_2D
     cdef GLuint texid = 0
     cdef Texture texture
     cdef int texture_width, texture_height
-    cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
+    cdef int glbufferfmt = _buffer_fmt_to_gl(<bytes>bufferfmt)
     cdef int make_npot = 0
-    cdef int is_npot = 0
-    cdef int glfmt, iglbufferfmt, datasize, dataerr = 0
-    cdef void *data = NULL
 
     # check if it's a pot or not
     if not _is_pow2(width) or not _is_pow2(height):
-        make_npot = is_npot = 1
+        make_npot = 1
 
     IF not USE_OPENGL_ES2:
         if gl_get_version_major() < 3:
@@ -469,16 +482,15 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
         texture_width = _nearest_pow2(width)
         texture_height = _nearest_pow2(height)
 
-    # generate the texture
-    glGenTextures(1, &texid)
-
     # create the texture with the future color format.
     colorfmt = _convert_gl_format(colorfmt)
-    texture = Texture(texture_width, texture_height, target, texid,
-                      colorfmt=colorfmt, bufferfmt=bufferfmt, mipmap=mipmap)
+    texture = Texture(texture_width, texture_height, target,
+                      colorfmt=colorfmt, bufferfmt=bufferfmt, mipmap=mipmap,
+                      callback=callback)
+    if allocate or make_npot:
+        texture.flags |= TI_NEED_ALLOCATE
 
     # set default parameter for this texture
-    texture.bind()
     texture.set_wrap('clamp_to_edge')
     if mipmap:
         texture.set_min_filter('linear_mipmap_nearest')
@@ -486,43 +498,6 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     else:
         texture.set_min_filter('linear')
         texture.set_mag_filter('linear')
-
-    # if allocation if wanted, do it now
-    if allocate:
-
-        # prepare information needed for nogil
-        glfmt = _color_fmt_to_gl(colorfmt)
-        iglbufferfmt = glbufferfmt
-        datasize = texture_width * texture_height * \
-                _gl_format_size(glfmt) * _buffer_type_to_gl_size(bufferfmt)
-
-        # act as we have been able to allocate the texture
-        texture._is_allocated = 1
-
-        # do the rest outside the Python GIL
-        with nogil:
-            data = calloc(1, datasize)
-            if data != NULL:
-                # ensure pixel upload is correct
-                _gl_prepare_pixels_upload(texture_width)
-
-                # do the initial upload with fake data
-                glTexImage2D(target, 0, glfmt, texture_width, texture_height, 0,
-                             glfmt, iglbufferfmt, data)
-
-                # free the data !
-                free(data)
-
-                # create mipmap if needed
-                if mipmap and is_npot == 0:
-                    glGenerateMipmap(target)
-            else:
-                dataerr = 1
-
-        if dataerr:
-            texture._is_allocated = 0
-            raise Exception('Unable to allocate memory for texture (size is %s)' %
-                            datasize)
 
     # if the texture size is the same as initial size, return the texture
     # unmodified
@@ -533,7 +508,8 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     return texture.get_region(0, 0, width, height)
 
 
-def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
+def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False,
+    callback=None):
     '''Create a texture based on size.
 
     :Parameters:
@@ -547,16 +523,24 @@ def texture_create(size=None, colorfmt=None, bufferfmt=None, mipmap=False):
             'uint', 'bute', 'short', 'int', 'float'
         `mipmap`: bool, default to False
             If True, it will automatically generate mipmap texture.
+        `callback`: callable(), default to False
+            If a function is provided, it will be called when data will be
+            needed in the texture.
 
+    .. versionchanged:: 1.7.0
+        :data:`callback` has been added
     '''
-    cdef int width = 128, height = 128
+    cdef int width = 128, height = 128, allocate = 1
     if size is not None:
         width, height = size
     if colorfmt is None:
         colorfmt = 'rgba'
     if bufferfmt is None:
         bufferfmt = 'ubyte'
-    return _texture_create(width, height, colorfmt, bufferfmt, mipmap, 1)
+    if callback is not None:
+        allocate = 0
+    return _texture_create(width, height, colorfmt, bufferfmt, mipmap,
+            allocate, callback)
 
 
 def texture_create_from_data(im, mipmap=False):
@@ -587,7 +571,8 @@ def texture_create_from_data(im, mipmap=False):
         height = width = 1
         allocate = 1
         no_blit = 1
-    texture = _texture_create(width, height, im.fmt, 'ubyte', mipmap, allocate)
+    texture = _texture_create(width, height, im.fmt, 'ubyte', mipmap, allocate,
+                             None)
     if texture is None:
         return None
 
@@ -605,8 +590,8 @@ cdef class Texture:
     create = staticmethod(texture_create)
     create_from_data = staticmethod(texture_create_from_data)
 
-    def __init__(self, width, height, target, texid, colorfmt='rgb',
-            bufferfmt='ubyte', mipmap=False, source=None):
+    def __init__(self, width, height, target, texid=0, colorfmt='rgb',
+            bufferfmt='ubyte', mipmap=False, source=None, callback=None):
         self.observers = []
         self._width         = width
         self._height        = height
@@ -625,6 +610,13 @@ cdef class Texture:
         self._bufferfmt     = bufferfmt
         self._source        = source
         self._nofree        = 0
+        self._callback      = callback
+
+        if texid == 0:
+            self.flags |= TI_NEED_GEN
+        if callback is not None:
+            self.flags |= TI_NEED_PIXELS
+
         self.update_tex_coords()
         get_context().register_texture(self)
 
@@ -665,6 +657,49 @@ cdef class Texture:
                 self.observers.remove(cb)
                 continue
 
+    cdef void allocate(self):
+        cdef int glfmt, iglbufferfmt, datasize, dataerr = 0
+        cdef void *data = NULL
+        cdef int is_npot = 0
+
+        # check if it's a pot or not
+        if not _is_pow2(self._width) or not _is_pow2(self._height):
+            make_npot = is_npot = 1
+
+        # prepare information needed for nogil
+        glfmt = _color_fmt_to_gl(self._colorfmt)
+        iglbufferfmt = _buffer_fmt_to_gl(self._bufferfmt)
+        datasize = self._width * self._height * \
+                _gl_format_size(glfmt) * _buffer_type_to_gl_size(self._bufferfmt)
+
+        # act as we have been able to allocate the texture
+        self._is_allocated = 1
+
+        # do the rest outside the Python GIL
+        with nogil:
+            data = calloc(1, datasize)
+            if data != NULL:
+                # ensure pixel upload is correct
+                _gl_prepare_pixels_upload(self._width)
+
+                # do the initial upload with fake data
+                glTexImage2D(self._target, 0, glfmt, self._width, self._height,
+                        0, glfmt, iglbufferfmt, data)
+
+                # free the data !
+                free(data)
+
+                # create mipmap if needed
+                if self._mipmap and is_npot == 0:
+                    glGenerateMipmap(self._target)
+            else:
+                dataerr = 1
+
+        if dataerr:
+            self._is_allocated = 0
+            raise Exception('Unable to allocate memory for texture (size is %s)' %
+                            datasize)
+
     cpdef flip_vertical(self):
         '''Flip tex_coords for vertical displaying'''
         self._uvy += self._uvh
@@ -676,26 +711,69 @@ cdef class Texture:
         (x, y, width, height). Returns a :class:`TextureRegion` instance.'''
         return TextureRegion(x, y, width, height, self)
 
+    def ask_update(self, callback):
+        '''Indicate that the content of the texture should be updated, and the
+        callback function need to be called when the texture will be really
+        used.
+        '''
+        self.flags |= TI_NEED_PIXELS
+        self._callback = callback
+
     cpdef bind(self):
         '''Bind the texture to current opengl state'''
+        cdef GLuint value
+
+        # if we have no change to apply, just bind and exit
+        if not self.flags:
+            glBindTexture(self._target, self._id)
+            return
+
+        if self.flags & TI_NEED_GEN:
+            self.flags &= ~TI_NEED_GEN
+            glGenTextures(1, &self._id)
+
         glBindTexture(self._target, self._id)
 
+        if self.flags & TI_NEED_ALLOCATE:
+            self.flags &= ~TI_NEED_ALLOCATE
+            self.allocate()
+
+        if self.flags & TI_NEED_PIXELS:
+            self.flags &= ~TI_NEED_PIXELS
+            if self._callback:
+                self._callback(self)
+                self._callback = None
+
+        if self.flags & TI_MIN_FILTER:
+            self.flags &= ~TI_MIN_FILTER
+            value = _str_to_gl_texture_min_filter(self._min_filter)
+            glTexParameteri(self._target, GL_TEXTURE_MIN_FILTER, value)
+
+        if self.flags & TI_MAG_FILTER:
+            self.flags &= ~TI_MAG_FILTER
+            value = _str_to_gl_texture_mag_filter(self._mag_filter)
+            glTexParameteri(self._target, GL_TEXTURE_MAG_FILTER, value)
+
+        if self.flags & TI_WRAP:
+            self.flags &= ~TI_WRAP
+            value = _str_to_gl_texture_wrap(self._wrap)
+            glTexParameteri(self._target, GL_TEXTURE_WRAP_S, value)
+            glTexParameteri(self._target, GL_TEXTURE_WRAP_T, value)
+
     cdef void set_min_filter(self, str x):
-        cdef GLuint _value = _str_to_gl_texture_min_filter(x)
-        glTexParameteri(self._target, GL_TEXTURE_MIN_FILTER, _value)
-        self._min_filter = x
+        if self._min_filter != x:
+            self._min_filter = x
+            self.flags |= TI_MIN_FILTER
 
     cdef void set_mag_filter(self, str x):
-        cdef GLuint _value = _str_to_gl_texture_mag_filter(x)
-        glTexParameteri(self._target, GL_TEXTURE_MAG_FILTER, _value)
-        self._mag_filter = x
+        if self._mag_filter != x:
+            self._mag_filter = x
+            self.flags |= TI_MAG_FILTER
 
     cdef void set_wrap(self, str x):
-        cdef GLuint _value = _str_to_gl_texture_wrap(x)
-        glTexParameteri(self._target, GL_TEXTURE_WRAP_S, _value)
-        glTexParameteri(self._target, GL_TEXTURE_WRAP_T, _value)
-        self._wrap = x
-
+        if self._wrap != x:
+            self._wrap = x
+            self.flags |= TI_WRAP
 
     def blit_data(self, im, pos=None):
         '''Replace a whole texture with a image data
@@ -746,7 +824,11 @@ cdef class Texture:
             pos = (0, 0)
         if size is None:
             size = self.size
-        bufferfmt = _buffer_fmt_to_gl(bufferfmt)
+        bufferfmt = _buffer_fmt_to_gl(<bytes>bufferfmt)
+
+        # bind the texture, and create anything that should be created at this
+        # time.
+        self.bind()
 
         # need conversion ?
         cdef bytes data
@@ -769,7 +851,6 @@ cdef class Texture:
         cdef int _mipmap_level = mipmap_level
 
         with nogil:
-            glBindTexture(target, self._id)
             if is_compressed:
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
                 glCompressedTexImage2D(target, _mipmap_level, glfmt, w, h, 0, datasize, cdata)
@@ -822,11 +903,11 @@ cdef class Texture:
     cdef void _reload_propagate(self, Texture texture):
 
         # ensure the new opengl ID will not get through GC
+        texture.bind()
         self._id = texture.id
         texture._nofree = 1
 
         # set the same parameters as our current texture
-        texture.bind()
         texture.set_wrap(self.wrap)
         texture.set_min_filter(self.min_filter)
         texture.set_mag_filter(self.mag_filter)
@@ -837,6 +918,15 @@ cdef class Texture:
                 self.observers.remove(callback)
                 continue
             callback()(self)
+
+    def save(self, filename):
+        '''Save the texture content into a file. Check
+        :meth:`kivy.core.image.Image.save` for more information about the usage.
+
+        .. versionadded:: 1.7.0
+        '''
+        from kivy.core.image import Image
+        return Image(self).save(filename)
 
     def __repr__(self):
         return '<Texture hash=%r id=%d size=%r colorfmt=%r bufferfmt=%r source=%r observers=%d>' % (
@@ -947,10 +1037,6 @@ cdef class Texture:
         def __get__(self):
             return self._min_filter
         def __set__(self, str x):
-            cdef GLuint value
-            if x == self._min_filter:
-                return
-            self.bind()
             self.set_min_filter(x)
 
     property mag_filter:
@@ -965,9 +1051,6 @@ cdef class Texture:
         def __get__(self):
             return self._mag_filter
         def __set__(self, str x):
-            if x == self._mag_filter:
-                return
-            self.bind()
             self.set_mag_filter(x)
 
     property wrap:
@@ -983,10 +1066,17 @@ cdef class Texture:
         def __get__(self):
             return self._wrap
         def __set__(self, str wrap):
-            if wrap == self._wrap:
-                return
-            self.bind()
             self.set_wrap(wrap)
+
+    property pixels:
+        '''Get the pixels texture, in RGBA format only, unsigned byte.
+
+        .. versionadded:: 1.7.0
+        '''
+        def __get__(self):
+            from kivy.graphics.fbo import Fbo
+            return Fbo(size=self.size, texture=self).pixels
+
 
 cdef class TextureRegion(Texture):
     '''Handle a region of a Texture class. Useful for non power-of-2
@@ -1024,6 +1114,32 @@ cdef class TextureRegion(Texture):
         self._id = self.owner.id
 
         # then update content again
-        for cb in self.observers:
-            cb(self)
+        self.bind()
+        for callback in self.observers[:]:
+            if callback.is_dead():
+                self.observers.remove(callback)
+                continue
+            callback()(self)
+
+    def ask_update(self, callback):
+        # redirect to owner
+        self.owner.ask_update(callback)
+
+    cpdef bind(self):
+        self.owner.bind()
+
+    property pixels:
+        def __get__(self):
+            from kivy.graphics.fbo import Fbo
+            from kivy.graphics import Color, Rectangle
+            fbo = Fbo(size=self.size)
+            fbo.clear()
+            self.flip_vertical()
+            with fbo:
+                Color(1, 1, 1)
+                Rectangle(size=self.size, texture=self,
+                        tex_coords=self.tex_coords)
+            fbo.draw()
+            self.flip_vertical()
+            return fbo.pixels
 

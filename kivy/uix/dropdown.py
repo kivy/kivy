@@ -152,9 +152,10 @@ class DropDown(ScrollView):
     list, which is a :class:`~kivy.uix.gridlayout.GridLayout` by default.
     '''
 
+    __events__ = ('on_select', )
+
     def __init__(self, **kwargs):
         self._win = None
-        self.register_event_type('on_select')
         super(DropDown, self).__init__(**kwargs)
         self.container.bind(minimum_size=self._container_minimum_size)
         self.bind(size=self._reposition)

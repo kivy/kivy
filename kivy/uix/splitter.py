@@ -49,20 +49,30 @@ if self.horizontal else 'path to vertical pressed image'
 __all__ = ('Splitter', )
 
 from kivy.uix.button import Button
-from kivy.properties import OptionProperty, NumericProperty, ObjectProperty,\
-    ListProperty
+from kivy.properties import (OptionProperty, NumericProperty, ObjectProperty,
+                            ListProperty, BooleanProperty)
 from kivy.uix.boxlayout import BoxLayout
 
 
 class SplitterStrip(Button):
-    '''class used for graphical representation of \
+    '''Class used for graphical representation of \
     :class:`kivy.uix.splitter.SplitterStripe`
     '''
     pass
 
 
 class Splitter(BoxLayout):
-    '''see module documentation.
+    '''See module documentation.
+
+    :Events:
+        `on_press`:
+            Fired when the splitter is pressed
+        `on_release`:
+            Fired when the splitter is released
+
+    .. versionchanged:: 1.6.0
+        Added `on_press` and `on_release` events
+
     '''
 
     border = ListProperty([4, 4, 4, 4])
@@ -114,11 +124,11 @@ class Splitter(BoxLayout):
     defaults to `500pt`
     '''
 
+    __events__ = ('on_press', 'on_release')
+
     def __init__(self, **kwargs):
         self._container = None
         self._strip = None
-        self.register_event_type('on_press')
-        self.register_event_type('on_release')
         super(Splitter, self).__init__(**kwargs)
 
     def on_sizable_from(self, instance, sizable_from):
@@ -128,6 +138,12 @@ class Splitter(BoxLayout):
         sup = super(Splitter, instance)
         _strp = instance._strip
         if _strp:
+            # remove any previous binds
+            _strp.unbind(on_touch_down=instance.strip_down)
+            _strp.unbind(on_touch_move=instance.strip_move)
+            _strp.unbind(on_touch_up=instance.strip_up)
+            self.unbind(disabled = _strp.setter('disabled'))
+
             sup.remove_widget(instance._strip)
         else:
             instance._strip = _strp = instance.strip_cls()
@@ -136,6 +152,7 @@ class Splitter(BoxLayout):
         if sz_frm in ('l', 'r'):
             _strp.size_hint = None, 1
             _strp.width = instance.strip_size
+            instance.orientation = 'horizontal'
             instance.unbind(strip_size=_strp.setter('width'))
             instance.bind(strip_size=_strp.setter('width'))
         else:
@@ -150,12 +167,11 @@ class Splitter(BoxLayout):
             index = 0
         sup.add_widget(_strp, index)
 
-        _strp.unbind(on_touch_down=instance.strip_down)
-        _strp.unbind(on_touch_move=instance.strip_move)
-        _strp.unbind(on_touch_up=instance.strip_up)
         _strp.bind(on_touch_down=instance.strip_down)
         _strp.bind(on_touch_move=instance.strip_move)
         _strp.bind(on_touch_up=instance.strip_up)
+        _strp.disabled = self.disabled
+        self.bind(disabled=_strp.setter('disabled'))
 
     def add_widget(self, widget, index=0):
         if self._container or not widget:
@@ -182,20 +198,16 @@ class Splitter(BoxLayout):
         self.remove_widget(self._container)
 
     def strip_down(self, instance, touch):
-        if (not self.collide_point(*touch.pos)):
+        if not instance.collide_point(*touch.pos):
             return False
         touch.grab(self)
         self.dispatch('on_press')
 
     def on_press(self):
-        '''This event is fired when the strip of the splitter is pressed
-
-        .. versionadded:: 1.0.6
-        '''
         pass
 
     def strip_move(self, instance, touch):
-        if touch.grab_current is not self._strip:
+        if touch.grab_current is not instance:
             return False
         sign = 1
         max_size = self.max_size
@@ -206,14 +218,12 @@ class Splitter(BoxLayout):
             diff_y = (touch.dy)
             if sz_frm == 'b':
                 sign = -1
-            if not self.size_hint_y:
-                if self.height > 0:
-                    self.height += sign * diff_y
-                else:
-                    self.height = 1
+            if self.size_hint_y:
+                self.size_hint_y = None
+            if self.height > 0:
+                self.height += sign * diff_y
             else:
-                diff = (diff_y / self.parent.height)
-                self.size_hint_y += sign * (diff)
+                self.height = 1
 
             height = self.height
             self.height = max(min_size, min(height, max_size))
@@ -221,29 +231,23 @@ class Splitter(BoxLayout):
             diff_x = (touch.dx)
             if sz_frm == 'l':
                 sign = -1
-            if not self.size_hint_x:
-                if self.width > 0:
-                    self.width += sign * (diff_x)
-                else:
-                    self.width = 1
+            if self.size_hint_x:
+                self.size_hint_x = None
+            if self.width > 0:
+                self.width += sign * (diff_x)
             else:
-                diff = (diff_x / self.parent.width)
-                self.size_hint_x += sign * (diff)
+                self.width = 1
 
             width = self.width
             self.width = max(min_size, min(width, max_size))
 
     def strip_up(self, instance, touch):
-        if touch.grab_current is not self._strip:
+        if touch.grab_current is not instance:
             return
-        touch.ungrab(self._strip)
+        touch.ungrab(instance)
         self.dispatch('on_release')
 
     def on_release(self):
-        '''This event is fired when the strip of the splitter is released
-
-        .. versionadded:: 1.0.6
-        '''
         pass
 
 

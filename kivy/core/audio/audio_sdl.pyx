@@ -12,7 +12,7 @@ project.
 
 __all__ = ('SoundSDL', )
 
-from . import Sound, SoundLoader
+from kivy.core.audio import Sound, SoundLoader
 from kivy.logger import Logger
 from kivy.clock import Clock
 from libcpp cimport bool
@@ -35,6 +35,7 @@ cdef extern from "SDL_mixer.h":
     int Mix_PlayChannel(int, Mix_Chunk *, int)
     int Mix_HaltChannel(int)
     Mix_Chunk *Mix_GetChunk(int)
+    int Mix_Playing(int)
 
     int MIX_DEFAULT_FORMAT
     int MIX_DEFAULT_FREQUENCY
@@ -97,9 +98,14 @@ class SoundSDL(Sound):
         cdef MixContainer mc = self.mc
         if mc.channel == -1 or mc.chunk == NULL:
             return False
-        if Mix_GetChunk(mc.channel) == mc.chunk:
+        if Mix_Playing(mc.channel):
             return
-        self.stop()
+        if self.loop:
+            def do_loop(dt):
+                self.play()
+            Clock.schedule_once(do_loop)
+        else:
+            self.stop()
         return False
 
     def play(self):

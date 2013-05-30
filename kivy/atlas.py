@@ -306,7 +306,6 @@ class Atlas(EventDispatcher):
                 out.paste(fb[0].crop((0, 0, 1, h)), (x - 1, y))
                 out.paste(fb[0].crop((w - 1, 0, w, h)), (x + w, y))
 
-
         # save the output images
         for idx, outimage in enumerate(outimages):
             outimage.save('%s-%d.png' % (outname, idx))

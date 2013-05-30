@@ -96,6 +96,7 @@ class MouseMotionEventProvider(MotionEventProvider):
         # split arguments
         args = args.split(',')
         for arg in args:
+            arg = arg.strip()
             if arg == '':
                 continue
             elif arg == 'disable_on_activity':
@@ -191,8 +192,8 @@ class MouseMotionEventProvider(MotionEventProvider):
             self.current_drag = new_me
         else:
             is_double_tap = 'shift' in modifiers
-            do_graphics = (not self.disable_multitouch and button != 'left' or
-                           ('ctrl' in modifiers))
+            do_graphics = (not self.disable_multitouch) and (
+                    button != 'left' or 'ctrl' in modifiers)
             cur = self.create_touch(rx, ry, is_double_tap, do_graphics, button)
             if 'alt' in modifiers:
                 self.alt_touch = cur

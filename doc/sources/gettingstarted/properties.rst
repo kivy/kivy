@@ -1,10 +1,7 @@
 Properties
 ----------
-.. container:: title
 
-    Using Kivy's Properties
-
-Kivy introduce a new way of declaring the properties within a class.
+Kivy introduces a new way of declaring properties within a class.
 Before::
 
     class MyClass(object):
@@ -18,9 +15,9 @@ After, using Kivy's properties::
         numeric_var = NumericProperty(1)
 
 Theses properties implement the `Observer pattern
-<http://en.wikipedia.org/wiki/Observer_pattern>`_. You can:
+<http://en.wikipedia.org/wiki/Observer_pattern>`_. They help you to:
 
-- Allow manipulating your widgets in kv language more easily
+- Easily manipulate widgets defined in the :doc:`/guide/lang`
 - Automatically observe any changes and dispatch functions/code accordingly
 - Check and validate values
 - Optimize memory management

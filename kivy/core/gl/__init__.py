@@ -13,6 +13,7 @@ from sys import platform, exit
 
 MIN_REQUIRED_GL_VERSION = (2, 0)
 
+
 def msgbox(message):
     if platform == 'win32':
         import win32ui
@@ -25,6 +26,7 @@ if 'KIVY_DOC' not in environ:
     from kivy.graphics import gl_init_resources
     from kivy.graphics.opengl_utils import gl_get_version
     from kivy.graphics.opengl import *
+    from kivy.utils import platform
 
     def init_gl():
         gl_init_symbols()
@@ -54,8 +56,11 @@ if 'KIVY_DOC' not in environ:
             Logger.critical(msg)
             msgbox(msg)
 
-        Logger.info('GL: Shading version <{0}>'.format(
-            glGetString(GL_SHADING_LANGUAGE_VERSION).decode('utf-8')))
+        if platform() != 'android':
+            # XXX in the android emulator (latest version at 22 march 2013),
+            # this call was segfaulting the gl stack.
+            Logger.info('GL: Shading version <{0}>'.format(
+                glGetString(GL_SHADING_LANGUAGE_VERSION).decode('utf-8')))
         Logger.info('GL: Texture max size <{0}>'.format(
             glGetIntegerv(GL_MAX_TEXTURE_SIZE)[0]))
         Logger.info('GL: Texture max units <{0}>'.format(

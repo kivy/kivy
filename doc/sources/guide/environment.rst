@@ -1,4 +1,4 @@
-.. _environmen:
+.. _environment:
 
 Controling the environment
 ==========================
@@ -37,8 +37,8 @@ Path control
 
 .. versionadded:: 1.0.7
 
-You can control where is located default directory of modules, extensions, and
-kivy datas.
+You can control where the default directory of modules, extensions, and
+kivy data is located.
 
 KIVY_DATA_DIR
     Location of the Kivy data, default to `<kivy path>/data`
@@ -59,7 +59,7 @@ selector to a specific implementation.
 KIVY_WINDOW
     Implementation to use for creating the Window
 
-    Values: pygame
+    Values: pygame, x11, sdl
 
 KIVY_TEXT
     Implementation to use for rendering text

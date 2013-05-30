@@ -1,3 +1,4 @@
+#cython: c_string_encoding="utf8" except *
 '''
 Shader
 ======
@@ -412,9 +413,10 @@ cdef class Shader:
     cdef get_program_log(self, shader):
         '''Return the program log'''
         cdef char msg[2048]
+        cdef GLsizei length
         msg[0] = '\0'
-        glGetProgramInfoLog(shader, 2048, NULL, msg)
-        return msg.decode('utf-8')
+        glGetProgramInfoLog(shader, 2048, &length, msg)
+        return msg[:length].decode('utf-8')
 
     cdef void process_message(self, str ctype, message):
         message = message.strip()

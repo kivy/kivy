@@ -71,8 +71,8 @@ class Keyboard(EventDispatcher):
         # numpad
         'numpad0': 256, 'numpad1': 257, 'numpad2': 258, 'numpad3': 259,
         'numpad4': 260, 'numpad5': 261, 'numpad6': 262, 'numpad7': 263,
-        'numpad8': 264, 'numpad9': 264, 'numpadmul': 265, 'numpadadd': 266,
-        'numpadsubtract': 267, 'numpaddecimal': 268, 'numpaddivide': 269,
+        'numpad8': 264, 'numpad9': 265, 'numpaddecimal': 266, 'numpaddivide': 267,
+        'numpadmul': 268, 'numpadsubstract': 269, 'numpadadd': 270,
 
         # F1-15
         'f1': 282, 'f2': 283, 'f3': 282, 'f4': 285, 'f5': 286, 'f6': 287,
@@ -94,9 +94,9 @@ class Keyboard(EventDispatcher):
         '<': 60, '>': 60,
     }
 
+    __events__ = ('on_key_down', 'on_key_up')
+
     def __init__(self, **kwargs):
-        self.register_event_type('on_key_down')
-        self.register_event_type('on_key_up')
         super(Keyboard, self).__init__()
 
         #: Window which the keyboard is attached too
@@ -389,6 +389,11 @@ class WindowBase(EventDispatcher):
     canvas = ObjectProperty(None)
     title = StringProperty('Kivy')
 
+    __events__ = ('on_draw', 'on_flip', 'on_rotate', 'on_resize', 'on_close',
+            'on_motion', 'on_touch_down', 'on_touch_move', 'on_touch_up',
+            'on_mouse_down', 'on_mouse_move', 'on_mouse_up', 'on_keyboard',
+            'on_key_down', 'on_key_up', 'on_dropfile')
+
     def __new__(cls, **kwargs):
         if cls.__instance is None:
             cls.__instance = EventDispatcher.__new__(cls)
@@ -403,24 +408,6 @@ class WindowBase(EventDispatcher):
         if WindowBase.__instance is not None and not kwargs.get('force'):
             return
         self.initialized = False
-
-        # event subsystem
-        self.register_event_type('on_draw')
-        self.register_event_type('on_flip')
-        self.register_event_type('on_rotate')
-        self.register_event_type('on_resize')
-        self.register_event_type('on_close')
-        self.register_event_type('on_motion')
-        self.register_event_type('on_touch_down')
-        self.register_event_type('on_touch_move')
-        self.register_event_type('on_touch_up')
-        self.register_event_type('on_mouse_down')
-        self.register_event_type('on_mouse_move')
-        self.register_event_type('on_mouse_up')
-        self.register_event_type('on_keyboard')
-        self.register_event_type('on_key_down')
-        self.register_event_type('on_key_up')
-        self.register_event_type('on_dropfile')
 
         # create a trigger for update/create the window when one of window
         # property changes
@@ -984,6 +971,7 @@ class WindowBase(EventDispatcher):
 
 #: Instance of a :class:`WindowBase` implementation
 Window = core_select_lib('window', (
+    ('egl_rpi', 'window_egl_rpi', 'WindowEglRpi'),
     ('pygame', 'window_pygame', 'WindowPygame'),
     ('sdl', 'window_sdl', 'WindowSDL'),
     ('x11', 'window_x11', 'WindowX11'),

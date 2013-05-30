@@ -7,6 +7,16 @@ interactions. You could compare this language to Qt's QML
 (http://qt.nokia.com), but we included new concepts such as rule definitions
 (which are somewhat akin to what you may know from CSS), templating and so on.
 
+.. versionchanged:: 1.7.0
+
+    The Builder doesn't execute canvas expression in realtime anymore. It will
+    pack all the expressions that need to be executed first, and execute them
+    after dispatching input, and just before drawing the frame. If you want to
+    force the execution of canvas drawing, just call :meth:`Builder.sync`.
+
+    A experimental profiling tool of kv lang is also done, you can activate it
+    by setting the env `KIVY_PROFILE_LANG=1`. You will get an html file named
+    `builder_stats.html`.
 
 Overview
 --------
@@ -109,7 +119,7 @@ Here is a simple example of a kv file that contains a root widget::
         text: 'Hello world'
 
 
-.. versionchanged:: 1.6.1
+.. versionchanged:: 1.7.0
 
     The indentation is not limited to 4 spaces anymore. The spacing must be a
     multiple of the number of spaces used on the first indented line.
@@ -255,13 +265,72 @@ You can clear all the previous instructions by using the `Clear` command::
 Then, only your rules that follow the `Clear` command will be taken into
 consideration.
 
+.. _dynamic_classes:
+
+Dynamic classes
+---------------
+
+Dynamic classes allow you to create new widgets on-the-fly, without any python
+declaration in the first place. The syntax of the dynamic classes is similar to
+the Rules, but you need to specify what are the bases classes you want to
+subclasses.
+
+The syntax look like::
+
+    # Simple inheritance
+    <NewWidget@Button>:
+        ...
+
+    # Multiple inheritance
+    <NewWidget@Label,ButtonBehavior>:
+        ...
+
+The `@` character is used to seperate the name from the classes you want to
+subclass. The Python equivalent would have been::
+
+    # Simple inheritance
+    class NewWidget(Button):
+        pass
+
+    # Multiple inheritance
+    class NewWidget(Label, ButtonBehavior):
+        pass
+
+Any new properties, usually added in python code, should be declared first.
+If the property doesn't exist in the dynamic classes, it will be automatically
+created as an :class:`~kivy.properties.ObjectProperty`.
+
+Let's illustrate the usage of theses dynamic classes with an implementation of a
+basic Image button. We could derivate our classes from the Button, we just need
+to add a property for the image filename::
+
+    <ImageButton@Button>:
+        source: None
+
+        Image:
+            source: root.source
+            pos: root.pos
+            size: root.size
+
+    # let's use the new classes in another rule:
+    <MainUI>:
+        BoxLayout:
+            ImageButton:
+                source: 'hello.png'
+                on_press: root.do_something()
+            ImageButton:
+                source: 'world.png'
+                on_press: root.do_something_else()
+
 
 .. _template_usage:
 
 Templates
 ---------
 
-.. versionadded:: 1.0.5
+.. versionchanged:: 1.7.0
+
+    The template usage are now deprecated, please use Dynamic classes instead.
 
 Syntax of template
 ~~~~~~~~~~~~~~~~~~
@@ -398,6 +467,33 @@ When you are creating a context:
                 # root.prop1 is a property, the context will not update the
                 # context
 
+Redefining a widget's style
+---------------------------
+
+Sometimes we would like to inherit from a widget in order to use its python
+properties without also using its .kv defined style. For example, we would
+like to inherit from a Label, but we would also like to define our own
+canvas instructions instead of automatically using the canvas instructions
+inherited from Label. We can achieve this by prepending a dash (-) before
+the class name in the .kv style definition.
+
+In myapp.py::
+
+    class MyWidget(Label):
+        pass
+
+and in my.kv::
+
+    <-MyWidget>:
+        canvas:
+            Color:
+                rgb: 1, 1, 1
+            Rectangle:
+                size: (32, 32)
+
+MyWidget will now have a Color and Rectangle instruction in its canvas
+without any of the instructions inherited from Label.
+
 Lang Directives
 ---------------
 
@@ -468,6 +564,7 @@ import codecs
 import re
 import sys
 from re import sub, findall
+from os import environ
 from os.path import join
 from copy import copy
 from types import CodeType
@@ -480,7 +577,8 @@ from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
 from kivy.compat import is_py3
-import kivy.metrics as metrics
+import kivy.metrics as Metrics
+from weakref import ref
 
 
 trace = Logger.trace
@@ -496,6 +594,9 @@ Cache.register('kv.lang')
 lang_str = re.compile('([\'"][^\'"]*[\'"])')
 lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
+
+# delayed calls are canvas expression triggered during an loop
+_delayed_calls = []
 
 
 class ProxyApp(object):
@@ -514,6 +615,9 @@ class ProxyApp(object):
             from kivy.app import App
             app = App.get_running_app()
             object.__setattr__(self, '_obj', app)
+            # Clear cached application instance, when it stops
+            app.bind(on_stop=lambda instance:
+                object.__setattr__(self, '_obj', None))
         return app
 
     def __getattribute__(self, name):
@@ -542,12 +646,12 @@ class ProxyApp(object):
 
 
 global_idmap['app'] = ProxyApp()
-global_idmap['pt'] = metrics.pt
-global_idmap['inch'] = metrics.inch
-global_idmap['cm'] = metrics.cm
-global_idmap['mm'] = metrics.mm
-global_idmap['dp'] = metrics.dp
-global_idmap['sp'] = metrics.sp
+global_idmap['pt'] = Metrics.pt
+global_idmap['inch'] = Metrics.inch
+global_idmap['cm'] = Metrics.cm
+global_idmap['mm'] = Metrics.mm
+global_idmap['dp'] = Metrics.dp
+global_idmap['sp'] = Metrics.sp
 
 
 class ParserException(Exception):
@@ -585,7 +689,7 @@ class ParserRuleProperty(object):
     '''
 
     __slots__ = ('ctx', 'line', 'name', 'value', 'co_value',
-                 'watched_keys', 'mode')
+                 'watched_keys', 'mode', 'count')
 
     def __init__(self, ctx, line, name, value):
         super(ParserRuleProperty, self).__init__()
@@ -603,6 +707,8 @@ class ParserRuleProperty(object):
         self.mode = None
         #: Watched keys
         self.watched_keys = None
+        #: Stats
+        self.count = 0
 
     def precompile(self):
         name = self.name
@@ -650,7 +756,7 @@ class ParserRule(object):
 
     __slots__ = ('ctx', 'line', 'name', 'children', 'id', 'properties',
                  'canvas_before', 'canvas_root', 'canvas_after',
-                 'handlers', 'level', 'cache_marked')
+                 'handlers', 'level', 'cache_marked', 'avoid_previous_rules')
 
     def __init__(self, ctx, line, name, level):
         super(ParserRule, self).__init__()
@@ -678,6 +784,8 @@ class ParserRule(object):
         self.handlers = []
         #: Properties cache list: mark which class have already been checked
         self.cache_marked = []
+        #: Indicate if any previous rules should be avoided.
+        self.avoid_previous_rules = False
 
         if level == 0:
             self._detect_selectors()
@@ -735,18 +843,43 @@ class ParserRule(object):
         if name[0] != '<' or name[-1] != '>':
             raise ParserException(self.ctx, self.line,
                                   'Invalid rule (must be inside <>)')
-        rules = name[1:-1].split(',')
+
+        # if the very first name start with a -, avoid previous rules
+        name = name[1:-1]
+        if name[:1] == '-':
+            self.avoid_previous_rules = True
+            name = name[1:]
+
+        rules = name.split(',')
         for rule in rules:
+            crule = None
+
             if not len(rule):
                 raise ParserException(self.ctx, self.line,
                                       'Empty rule detected')
-            crule = None
-            if rule[0] == '.':
-                crule = ParserSelectorClass(rule[1:])
-            elif rule[0] == '#':
-                crule = ParserSelectorId(rule[1:])
-            else:
+
+            if '@' in rule:
+                # new class creation ?
+                # ensure the name is correctly written
+                rule, baseclasses = rule.split('@', 1)
+                if not re.match(lang_key, rule):
+                    raise ParserException(self.ctx, self.line,
+                            'Invalid dynamic class name')
+
+                # save the name in the dynamic classes dict.
+                self.ctx.dynamic_classes[rule] = baseclasses
                 crule = ParserSelectorName(rule)
+
+            else:
+                # classical selectors.
+
+                if rule[0] == '.':
+                    crule = ParserSelectorClass(rule[1:])
+                elif rule[0] == '#':
+                    crule = ParserSelectorId(rule[1:])
+                else:
+                    crule = ParserSelectorName(rule)
+
             self.ctx.rules.append((crule, self))
 
     def _build_template(self):
@@ -779,7 +912,7 @@ class Parser(object):
         list(range(ord('0'), ord('9') + 1)) + [ord('_')])
 
     __slots__ = ('rules', 'templates', 'root', 'sourcecode',
-                 'directives', 'filename')
+                 'directives', 'filename', 'dynamic_classes')
 
     def __init__(self, **kwargs):
         super(Parser, self).__init__()
@@ -788,6 +921,7 @@ class Parser(object):
         self.root = None
         self.sourcecode = []
         self.directives = []
+        self.dynamic_classes = {}
         self.filename = kwargs.get('filename', None)
         content = kwargs.get('content', None)
         if content is None:
@@ -960,7 +1094,8 @@ class Parser(object):
                 current_property = None
                 name = x[0]
                 if ord(name[0]) in Parser.CLASS_RANGE or name[0] == '+':
-                    _objects, _lines = self.parse_level(level + 1, lines[i:], spaces)
+                    _objects, _lines = self.parse_level(
+                            level + 1, lines[i:], spaces)
                     current_object.children = _objects
                     lines = _lines
                     i = 0
@@ -996,7 +1131,8 @@ class Parser(object):
             elif count == indent + 2 * spaces:
                 if current_property in (
                         'canvas', 'canvas.after', 'canvas.before'):
-                    _objects, _lines = self.parse_level(level + 2, lines[i:], spaces)
+                    _objects, _lines = self.parse_level(
+                            level + 2, lines[i:], spaces)
                     rl = ParserRule(self, ln, current_property, rlevel)
                     rl.children = _objects
                     if current_property == 'canvas':
@@ -1042,7 +1178,7 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
         raise exc_type(exc_value).with_traceback(tb)
 
 
-def create_handler(iself, element, key, value, rule, idmap):
+def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     locals()['__kvlang__'] = rule
 
     # create an handler
@@ -1050,14 +1186,20 @@ def create_handler(iself, element, key, value, rule, idmap):
     idmap.update(global_idmap)
     idmap['self'] = iself
 
-    def call_fn(sender, _value):
+    def call_fn(*args):
         if __debug__:
             trace('Builder: call_fn %s, key=%s, value=%r, %r' % (
                 element, key, value, rule.value))
+        rule.count += 1
         e_value = eval(value, idmap)
         if __debug__:
             trace('Builder: call_fn => value=%r' % (e_value, ))
         setattr(element, key, e_value)
+
+    def delayed_call_fn(*args):
+        _delayed_calls.append(call_fn)
+
+    fn = delayed_call_fn if delayed else call_fn
 
     # bind every key.value
     if rule.watched_keys is not None:
@@ -1067,7 +1209,7 @@ def create_handler(iself, element, key, value, rule, idmap):
                 for x in k[1:-1]:
                     f = getattr(f, x)
                 if hasattr(f, 'bind'):
-                    f.bind(**{k[-1]: call_fn})
+                    f.bind(**{k[-1]: fn})
             except KeyError:
                 continue
             except AttributeError:
@@ -1094,7 +1236,8 @@ class ParserSelector(object):
 class ParserSelectorId(ParserSelector):
 
     def match(self, widget):
-        return widget.id.lower() == self.key
+        if widget.id:
+            return widget.id.lower() == self.key
 
 
 class ParserSelectorClass(ParserSelector):
@@ -1139,6 +1282,7 @@ class BuilderBase(object):
 
     def __init__(self):
         super(BuilderBase, self).__init__()
+        self.dynamic_classes = {}
         self.templates = {}
         self.rules = []
         self.rulectx = {}
@@ -1188,6 +1332,9 @@ class BuilderBase(object):
                 templates[x] = y
         self.templates = templates
 
+        # unregister all the dynamic classes
+        Factory.unregister_from_filename(filename)
+
     def load_string(self, string, **kwargs):
         '''Insert a string into the Language Builder
 
@@ -1212,6 +1359,10 @@ class BuilderBase(object):
                 Factory.register(name,
                                  cls=partial(self.template, name),
                                  is_template=True)
+
+            # register all the dynamic classes
+            for name, baseclasses in parser.dynamic_classes.iteritems():
+                Factory.register(name, baseclasses=baseclasses, filename=fn)
 
             # create root object is exist
             if kwargs['rulesonly'] and parser.root:
@@ -1287,7 +1438,20 @@ class BuilderBase(object):
 
         # if we got an id, put it in the root rule for a later global usage
         if rule.id:
+            # use only the first word as `id` discard the rest.
+            rule.id = rule.id.split('#', 1)[0].strip()
             rctx['ids'][rule.id] = widget
+            # set id name as a attribute for root widget so one can in python
+            # code simply access root_widget.id_name
+            _ids = dict(rctx['ids'])
+            _root = _ids.pop('root')
+            _new_ids = _root.ids
+            for _key in _ids.keys():
+                if _ids[_key] == _root:
+                    # skip on self
+                    continue
+                _new_ids[_key] = ref(_ids[_key])
+            _root.ids = _new_ids
 
         # first, ensure that the widget have all the properties used in
         # the rule if not, they will be created as ObjectProperty.
@@ -1409,9 +1573,22 @@ class BuilderBase(object):
         rules = []
         for selector, rule in self.rules:
             if selector.match(widget):
+                if rule.avoid_previous_rules:
+                    del rules[:]
                 rules.append(rule)
         cache[k] = rules
         return rules
+
+    def sync(self):
+        '''Execute all the waiting operations, such as the execution of all the
+        expressions related to the canvas.
+
+        .. versionadded:: 1.7.0
+        '''
+        l = set(_delayed_calls)
+        del _delayed_calls[:]
+        for func in l:
+            func(None, None)
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
         global Instruction
@@ -1434,7 +1611,7 @@ class BuilderBase(object):
                     value = prule.co_value
                     if type(value) is CodeType:
                         value = create_handler(
-                            widget, instr, key, value, prule, idmap)
+                            widget, instr, key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
                 raise BuilderException(prule.ctx, prule.line, str(e))
@@ -1442,3 +1619,63 @@ class BuilderBase(object):
 #: Main instance of a :class:`BuilderBase`.
 Builder = BuilderBase()
 Builder.load_file(join(kivy_data_dir, 'style.kv'), rulesonly=True)
+
+if 'KIVY_PROFILE_LANG' in environ:
+    import atexit
+    import cgi
+
+    def match_rule(fn, index, rule):
+        if rule.ctx.filename != fn:
+            return
+        for prop, prp in rule.properties.iteritems():
+            if prp.line != index:
+                continue
+            yield prp
+        for child in rule.children:
+            for r in match_rule(fn, index, child):
+                yield r
+        if rule.canvas_root:
+            for r in match_rule(fn, index, rule.canvas_root):
+                yield r
+        if rule.canvas_before:
+            for r in match_rule(fn, index, rule.canvas_before):
+                yield r
+        if rule.canvas_after:
+            for r in match_rule(fn, index, rule.canvas_after):
+                yield r
+
+    def dump_builder_stats():
+        html = [
+            '<!doctype html>'
+            '<html><body>',
+            '<style type="text/css">\n',
+            'pre { margin: 0; }\n',
+            '</style>']
+        files = set([x[1].ctx.filename for x in Builder.rules])
+        for fn in files:
+            lines = open(fn).readlines()
+            html += ['<h2>', fn, '</h2>', '<table>']
+            count = 0
+            for index, line in enumerate(lines):
+                line = line.rstrip()
+                line = cgi.escape(line)
+                matched_prp = []
+                for psn, rule in Builder.rules:
+                    matched_prp += list(match_rule(fn, index, rule))
+
+                count = sum(set([x.count for x in matched_prp]))
+
+                color = (255, 155, 155) if count else (255, 255, 255)
+                html += ['<tr style="background-color: rgb{}">'.format(color),
+                        '<td>', str(index + 1), '</td>',
+                        '<td>', str(count), '</td>',
+                        '<td><pre>', line, '</pre></td>',
+                        '</tr>']
+            html += ['</table>']
+        html += ['</body></html>']
+        with open('builder_stats.html', 'w') as fd:
+            fd.write(''.join(html))
+
+        print('Profiling written at builder_stats.html')
+
+    atexit.register(dump_builder_stats)

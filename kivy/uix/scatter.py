@@ -89,7 +89,7 @@ __all__ = ('Scatter', 'ScatterPlane')
 
 from math import radians
 from kivy.properties import BooleanProperty, AliasProperty, \
-        NumericProperty, ObjectProperty
+        NumericProperty, ObjectProperty, BoundedNumericProperty
 from kivy.vector import Vector
 from kivy.uix.widget import Widget
 from kivy.graphics.transformation import Matrix
@@ -97,7 +97,17 @@ from kivy.graphics.transformation import Matrix
 
 class Scatter(Widget):
     '''Scatter class. See module documentation for more information.
+    
+    :Events:
+        `on_transform_with_touch`:
+            Fired when the scatter has been transformed by user touch
+            or multitouch such as panning or zooming
+
+    .. versionchanged:: 1.8.0
+        Event `on_transform_with_touch` added.
     '''
+
+    __events__ = ('on_transform_with_touch',)
 
     auto_bring_to_front = BooleanProperty(True)
     '''If True, the widget will be automatically pushed on the top of parent
@@ -135,6 +145,16 @@ class Scatter(Widget):
 
     :data:`do_translation` is a :class:`~kivy.properties.AliasProperty` of
     (:data:`do_translation_x` + :data:`do_translation_y`)
+    '''
+
+    translation_touches = BoundedNumericProperty(1, min=1)
+    '''Change whether translation is triggered by a single or multiple touch.
+    This only matters when :data:`do_translation` = True
+
+    :data:`translation_touches` is a :class:`~kivy.properties.NumericProperty`,
+    default to 1.
+
+    .. versionadded:: 1.7.0
     '''
 
     do_rotation = BooleanProperty(True)
@@ -365,15 +385,21 @@ class Scatter(Widget):
 
     def transform_with_touch(self, touch):
         # just do a simple one finger drag
-        if len(self._touches) == 1:
+        changed = False
+        if len(self._touches) == self.translation_touches:
             # _last_touch_pos has last pos in correct parent space,
             # just like incoming touch
             dx = (touch.x - self._last_touch_pos[touch][0]) \
                     * self.do_translation_x
             dy = (touch.y - self._last_touch_pos[touch][1]) \
                     * self.do_translation_y
+            dx = dx / self.translation_touches
+            dy = dy / self.translation_touches
             self.apply_transform(Matrix().translate(dx, dy, 0))
-            return
+            changed = True
+        
+        if len(self._touches) == 1:
+            return changed
 
         # we have more than one touch...
         points = [Vector(self._last_touch_pos[t]) for t in self._touches]
@@ -387,7 +413,7 @@ class Scatter(Widget):
         # same as touch. Touch is not one of the two touches used to transform
         farthest = max(points, key=anchor.distance)
         if points.index(farthest) != self._touches.index(touch):
-            return
+            return changed
 
         # ok, so we have touch, and anchor, so we can actually compute the
         # transformation
@@ -404,6 +430,8 @@ class Scatter(Widget):
                 scale = 1.0
             self.apply_transform(Matrix().scale(scale, scale, scale),
                                  anchor=anchor)
+            changed = True
+        return changed
 
     def _bring_to_front(self):
         # auto bring to front
@@ -462,12 +490,27 @@ class Scatter(Widget):
 
         # rotate/scale/translate
         if touch in self._touches and touch.grab_current == self:
-            self.transform_with_touch(touch)
+            if self.transform_with_touch(touch):
+                self.dispatch('on_transform_with_touch', touch)
             self._last_touch_pos[touch] = touch.pos
 
         # stop propagating if its within our bounds
         if self.collide_point(x, y):
             return True
+    
+    def on_transform_with_touch(self, touch):
+        '''
+        Called when a touch event has transformed the scatter widget.
+        By default this does nothing, but can be overriden by derived
+        classes that need to react to transformations caused by user
+        input.
+
+        :Parameters:
+            `touch`: the touch object which triggered the transformation
+
+        .. versionadded:: 1.8.0
+        '''
+        pass
 
     def on_touch_up(self, touch):
         x, y = touch.x, touch.y

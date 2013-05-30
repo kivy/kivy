@@ -103,15 +103,16 @@ class Popup(ModalView):
     :data:`title` is a :class:`~kivy.properties.StringProperty`, default to 'No
     title'.
     '''
-    
+
     title_size = NumericProperty('14sp')
     '''Represents the font size of the popup title.
 
     .. versionadded:: 1.6.0
 
-    :data:`title_size` is a :class:`~kivy.properties.NumericProperty`, default to '14sp'.
+    :data:`title_size` is a :class:`~kivy.properties.NumericProperty`, default
+    to '14sp'.
     '''
-    
+
     content = ObjectProperty(None)
     '''Content of the popup that is displayed just under the title.
 
@@ -164,6 +165,11 @@ class Popup(ModalView):
         self._container.clear_widgets()
         self._container.add_widget(self.content)
 
+    def on_touch_down(self, touch):
+        if self.disabled and self.collide_point(*touch.pos):
+            return True
+        return super(Popup, self).on_touch_down(touch)
+
 
 if __name__ == '__main__':
     from kivy.base import runTouchApp
@@ -179,7 +185,7 @@ if __name__ == '__main__':
     content.add_widget(content_cancel)
     popup = Popup(title='Test popup',
                   size_hint=(None, None), size=(256, 256),
-                  content=content)
+                  content=content, disabled=True)
     content_cancel.bind(on_release=popup.dismiss)
 
     layout = GridLayout(cols=3)

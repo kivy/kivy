@@ -150,7 +150,7 @@ class Bubble(GridLayout):
 
     limit_to = ObjectProperty(None, allow_none=True)
     '''Specifies the widget to which the bubbles position is limited.
-    
+
     .. versionadded:: 1.6.0
 
     :data:`limit_to` is a :class:`~kivy.properties.ObjectProperty`,

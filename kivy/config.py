@@ -17,13 +17,23 @@ Read a configuration token from a particular section::
 
 Change the configuration and save it::
 
-    >>> Config.set('kivy', 'retain_time', 50)
+    >>> Config.set('kivy', 'retain_time', '50')
     >>> Config.write()
+
+.. versionchanged:: 1.7.1
+
+    The ConfigParser should work correctly with utf-8 now. The values are
+    converted from ascii to unicode only when needed. The method get() returns
+    utf-8 strings.
 
 Available configuration tokens
 ------------------------------
 
 :kivy:
+    `desktop`: (0, 1)
+        Enable/disable specific features if True/False. For example enabling
+        drag-able scroll-bar in scroll views, disabling of bubbles in
+        TextInput...  True etc.
 
     `log_level`: (debug, info, warning, error, critical)
         Set the minimum log level to use
@@ -50,6 +60,11 @@ Available configuration tokens
         Time allowed for the detection of double tap, in milliseconds
     `double_tap_distance`: float
         Maximum distance allowed for a double tap, normalized inside the range
+        0 - 1000
+    `triple_tap_time`: int
+        Time allowed for the detection of triple tap, in milliseconds
+    `triple_tap_distance`: float
+        Maximum distance allowed for a triple tap, normalized inside the range
         0 - 1000
     `retain_time`: int
         Time allowed for a retain touch, in milliseconds
@@ -184,10 +199,12 @@ from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
-from collections import OrderedDict
+from kivy.utils import OrderedDict, platform
+
+_is_rpi = exists('/opt/vc/include/bcm_host.h')
 
 # Version number of current configuration format
-KIVY_CONFIG_VERSION = 7
+KIVY_CONFIG_VERSION = 9
 
 #: Kivy configuration object
 Config = None
@@ -235,15 +252,37 @@ class ConfigParser(PythonConfigParser):
         if type(filename) not in (str, str):
             raise Exception('Only one filename is accepted (str or unicode)')
         self.filename = filename
+        # If we try to open directly the configuration file in utf-8,
+        # we correctly get the unicode value by default.
+        # But, when we try to save it again, all the values we didn't changed
+        # are still unicode, and then the PythonConfigParser internal do a str()
+        # conversion -> fail.
+        # Instead we currently to the conversion to utf-8 when value are
+        # "get()", but we internally store them in ascii.
+        #with codecs.open(filename, 'r', encoding='utf-8') as f:
+        #    self.readfp(f)
         PythonConfigParser.read(self, filename)
 
     def set(self, section, option, value):
         '''Functions similarly to PythonConfigParser's set method, except that
         the value is implicitly converted to a string.
         '''
-        ret = PythonConfigParser.set(self, section, option, str(value))
-        self._do_callbacks(section, option, str(value))
+        e_value = value
+        if not isinstance(value, basestring):
+            # might be boolean, int, etc.
+            e_value = str(value)
+        else:
+            if isinstance(value, unicode):
+                e_value = value.encode('utf-8')
+        ret = PythonConfigParser.set(self, section, option, e_value)
+        self._do_callbacks(section, option, value)
         return ret
+
+    def get(self, section, option):
+        value = PythonConfigParser.get(self, section, option)
+        if type(value) is str:
+            return value.decode('utf-8')
+        return value
 
     def setdefaults(self, section, keyvalues):
         '''Set a lot of keys/values in one section at the same time
@@ -374,11 +413,14 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             # activate native input provider in configuration
             # from 1.0.9, don't activate mactouch by default, or app are
             # unusable.
-            if platform == 'win32':
+            if platform() == 'win':
                 Config.setdefault('input', 'wm_touch', 'wm_touch')
                 Config.setdefault('input', 'wm_pen', 'wm_pen')
-            elif platform == 'linux2':
-                Config.setdefault('input', '%(name)s', 'probesysfs')
+            elif platform() == 'linux':
+                probesysfs = 'probesysfs'
+                if _is_rpi:
+                    probesysfs += ',provider=hidinput'
+                Config.setdefault('input', '%(name)s', probesysfs)
 
             # input postprocessing configuration
             Config.setdefault('postproc', 'double_tap_distance', '20')
@@ -431,10 +473,19 @@ if not environ.get('KIVY_DOC_INCLUDE'):
 
         elif version == 6:
             # if the timeout is still the default value, change it
-            if Config.getint('widgets', 'scroll_timeout') == 250:
-                Config.set('widgets', 'scroll_timeout', '55')
             Config.setdefault('widgets', 'scroll_stoptime', '300')
             Config.setdefault('widgets', 'scroll_moves', '5')
+
+        elif version == 7:
+            # desktop bool indicating whether to use desktop specific features
+            is_desktop = int(platform() in ('win', 'macosx', 'linux'))
+            Config.setdefault('kivy', 'desktop', is_desktop)
+            Config.setdefault('postproc', 'triple_tap_distance', '20')
+            Config.setdefault('postproc', 'triple_tap_time', '375')
+
+        elif version == 8:
+            if Config.getint('widgets', 'scroll_timeout') == 55:
+                Config.set('widgets', 'scroll_timeout', '250')
 
         #elif version == 1:
         #   # add here the command for upgrading from configuration 0 to 1

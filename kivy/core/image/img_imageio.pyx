@@ -157,6 +157,10 @@ def load_image_data(bytes _url):
     return (width, height, 'bgra', r_data)
 
 def save_image_rgba(filename, width, height, data):
+    # compatibility, could be removed i guess
+    save_image(filename, width, height, 'rgba', data)
+
+def save_image(filename, width, height, fmt, data):
     # save a RGBA string into filename using CoreGraphics
 
     # FIXME only png output are accepted.
@@ -165,38 +169,38 @@ def save_image_rgba(filename, width, height, data):
     # the type of the output file. So we need to map the extension of the
     # filename into a CoreGraphics image domain type.
 
-    assert(len(data) == width * height * 4)
-    assert(filename.endswith('.png'))
+    fileformat = 'public.png'
+    if filename.endswith('.png'):
+        fileformat = 'public.png'
+    if filename.endswith('.jpg') or filename.endswith('.jpeg'):
+        fileformat = 'public.jpeg'
 
     cdef char *source = NULL
     if type(data) is array:
         data = data.tostring()
     source = <bytes>data[:len(data)]
 
-    cdef char *rgba = <char *>malloc(int(width * height * 4))
-    memcpy(rgba, <void *>source, int(width * height * 4))
+    cdef int fmt_length = 4 if fmt == 'rgba' else 3
+    cdef char *pixels = <char *>malloc(int(width * height * fmt_length))
+    memcpy(pixels, <void *>source, int(width * height * fmt_length))
 
     cdef CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB()
     cdef CGContextRef bitmapContext = CGBitmapContextCreate(
-        rgba,
-        width,
-        height,
+        pixels, width, height,
         8, # bitsPerComponent
-        4 * width, # bytesPerRow
+        fmt_length * width, # bytesPerRow
         colorSpace,
         kCGImageAlphaNoneSkipLast)
 
     cdef CGImageRef cgImage = CGBitmapContextCreateImage(bitmapContext)
-    cdef char *cfilename = <char *>malloc(len(filename) + 1)
-    memcpy(cfilename, <char *><bytes>filename, len(filename));
-    cfilename[len(filename)] = <char>0
+    cdef char *cfilename = <char *><bytes>filename
 
     cdef CFStringRef sfilename = CFStringCreateWithCString(NULL,
             cfilename, kCFStringEncodingUTF8)
     cdef CFURLRef url = CFURLCreateWithFileSystemPath(NULL,
             sfilename, kCFURLPOSIXPathStyle, 0)
     cdef CFStringRef ctype = CFStringCreateWithCString(NULL,
-            "public.png", kCFStringEncodingUTF8)
+            fileformat, kCFStringEncodingUTF8)
 
     cdef CGImageDestinationRef dest = CGImageDestinationCreateWithURL(url,
             ctype, 1, NULL)
@@ -207,7 +211,7 @@ def save_image_rgba(filename, width, height, data):
     CFRelease(bitmapContext)
     CFRelease(colorSpace)
     CGImageDestinationFinalize(dest)
-    free(rgba)
+    free(pixels)
 
 class ImageLoaderImageIO(ImageLoaderBase):
     '''Image loader based on ImageIO MacOSX Framework
@@ -230,6 +234,15 @@ class ImageLoaderImageIO(ImageLoaderBase):
             raise Exception('Unable to load image')
         w, h, imgtype, data = ret
         return [ImageData(w, h, imgtype, data, source=filename)]
+
+    @staticmethod
+    def can_save():
+        return True
+
+    @staticmethod
+    def save(filename, width, height, fmt, pixels):
+        save_image(filename, width, height, fmt, pixels)
+        return True
 
 # register
 ImageLoader.register(ImageLoaderImageIO)

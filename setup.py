@@ -17,25 +17,6 @@ else:
 
 
 # -----------------------------------------------------------------------------
-# Detect options
-#
-c_options = {
-    'use_opengl_es2': True,
-    'use_opengl_debug': False,
-    'use_glew': False,
-    'use_sdl': False,
-    'use_ios': False,
-    'use_mesagl': 'USE_MESAGL' in environ}
-
-# now check if environ is changing the default values
-for key in list(c_options.keys()):
-    ukey = key.upper()
-    if ukey in environ:
-        value = bool(int(environ[ukey]))
-        print('Environ change {0} -> {1}'.format(key, value))
-        c_options[key] = value
-
-# -----------------------------------------------------------------------------
 # Determine on which platform we are
 
 platform = sys.platform
@@ -47,6 +28,29 @@ if ndkplatform is not None and environ.get('LIBLINK'):
 kivy_ios_root = environ.get('KIVYIOSROOT', None)
 if kivy_ios_root is not None:
     platform = 'ios'
+if exists('/opt/vc/include/bcm_host.h'):
+    platform = 'rpi'
+
+# -----------------------------------------------------------------------------
+# Detect options
+#
+c_options = {
+    'use_rpi': platform == 'rpi',
+    'use_opengl_es2': True,
+    'use_opengl_debug': False,
+    'use_glew': False,
+    'use_sdl': False,
+    'use_ios': False,
+    'use_mesagl': False,
+    'use_x11': False}
+
+# now check if environ is changing the default values
+for key in list(c_options.keys()):
+    ukey = key.upper()
+    if ukey in environ:
+        value = bool(int(environ[ukey]))
+        print('Environ change {0} -> {1}'.format(key, value))
+        c_options[key] = value
 
 # -----------------------------------------------------------------------------
 # Cython check
@@ -120,7 +124,7 @@ except ImportError:
     print('User distribution detected, avoid portable command.')
 
 # Detect which opengl version headers to use
-if platform in ('android', 'darwin', 'ios'):
+if platform in ('android', 'darwin', 'ios', 'rpi'):
     pass
 elif platform == 'win32':
     print('Windows platform detected, force GLEW usage.')
@@ -227,6 +231,12 @@ def determine_gl_flags():
     elif platform == 'android':
         flags['include_dirs'] = [join(ndkplatform, 'usr', 'include')]
         flags['extra_link_args'] = ['-L', join(ndkplatform, 'usr', 'lib')]
+        flags['libraries'] = ['GLESv2']
+    elif platform == 'rpi':
+        flags['include_dirs'] = ['/opt/vc/include',
+            '/opt/vc/include/interface/vcos/pthreads',
+            '/opt/vc/include/interface/vmcs_host/linux']
+        flags['extra_link_args'] = ['-L', '/opt/vc/lib']
         flags['libraries'] = ['GLESv2']
     else:
         flags['libraries'] = ['GL']
@@ -367,7 +377,15 @@ if platform in ('darwin', 'ios'):
     sources['core/image/img_imageio.pyx'] = merge(
         base_flags, osx_flags)
 
-if 'WITH_X11' in environ:
+if c_options['use_rpi']:
+    sources['lib/vidcore_lite/egl.pyx'] = merge(
+            base_flags, gl_flags)
+    sources['lib/vidcore_lite/bcm.pyx'] = merge(
+            base_flags, gl_flags)
+    #sources['core/window/window_egl_rpi.pyx'] = merge(
+    #        base_flags, gl_flags)
+
+if c_options['use_x11']:
     sources['core/window/window_x11.pyx'] = merge(
         base_flags, gl_flags, graphics_flags, {
             'depends': [join(dirname(__file__),
@@ -433,6 +451,7 @@ setup(
         'hardware-accelerated multitouch applications.'),
     ext_modules=ext_modules,
     cmdclass=cmdclass,
+    scripts=['kivy/tools/garden'],
     packages=[
         'kivy',
         'kivy.adapters',
@@ -446,6 +465,7 @@ setup(
         'kivy.core.text',
         'kivy.core.video',
         'kivy.core.window',
+        'kivy.effects',
         'kivy.ext',
         'kivy.graphics',
         'kivy.input',

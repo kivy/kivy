@@ -116,5 +116,6 @@ def core_register_libs(category, libs):
     Logger.info('{0}: Providers: {1} {2}'.format(
         category.capitalize(),
         ', '.join(libs_loaded),
-        '({0} ignored)'.format(', '.join(libs_ignored)) if libs_ignored else ''))
+        '({0} ignored)'.format(
+            ', '.join(libs_ignored)) if libs_ignored else ''))
 

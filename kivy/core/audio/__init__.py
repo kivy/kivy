@@ -24,14 +24,13 @@ class depending the file.
 
 __all__ = ('Sound', 'SoundLoader')
 
-import sys
 from kivy.logger import Logger
 from kivy.event import EventDispatcher
 from kivy.core import core_register_libs
 from kivy.utils import platform
 from kivy.resources import resource_find
 from kivy.properties import StringProperty, NumericProperty, OptionProperty, \
-        AliasProperty
+        AliasProperty, BooleanProperty
 
 
 class SoundLoader:
@@ -56,7 +55,7 @@ class SoundLoader:
         for classobj in SoundLoader._classes:
             if ext in classobj.extensions():
                 return classobj(source=filename)
-        Logger.warning('Audio: Unable to found a loader for <%s>' %
+        Logger.warning('Audio: Unable to find a loader for <%s>' %
                        filename)
         return None
 
@@ -99,6 +98,14 @@ class Sound(EventDispatcher):
 
     :data:`state` is an :class:`~kivy.properties.OptionProperty`, read-only.
     '''
+    
+    loop = BooleanProperty(False)
+    '''Set to True if the sound should automatically loop when it finishes.
+
+    .. versionadded:: 1.8.0
+
+    :data:`loop` is an :class:`~kivy.properties.BooleanProperty`, default to False.
+    '''
 
     #
     # deprecated
@@ -119,10 +126,7 @@ class Sound(EventDispatcher):
         Use :data:`source` instead
     '''
 
-    def __init__(self, **kwargs):
-        self.register_event_type('on_play')
-        self.register_event_type('on_stop')
-        super(Sound, self).__init__(**kwargs)
+    __events__ = ('on_play', 'on_stop')
 
     def on_source(self, instance, filename):
         self.unload()

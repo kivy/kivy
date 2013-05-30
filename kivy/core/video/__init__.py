@@ -45,15 +45,13 @@ class VideoBase(EventDispatcher):
     __slots__ = ('_wantplay', '_buffer', '_filename', '_texture',
                  '_volume', 'eos', '_state', '_async', '_autoplay')
 
+    __events__ = ('on_eos', 'on_load', 'on_frame')
+
     def __init__(self, **kwargs):
         kwargs.setdefault('filename', None)
         kwargs.setdefault('eos', 'stop')
         kwargs.setdefault('async', True)
         kwargs.setdefault('autoplay', False)
-
-        self.register_event_type('on_eos')
-        self.register_event_type('on_load')
-        self.register_event_type('on_frame')
 
         super(VideoBase, self).__init__()
 

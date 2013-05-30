@@ -21,6 +21,16 @@ from kivy.properties cimport Property, ObjectProperty
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
+cdef dict cache_events = {}
+cdef dict cache_events_handlers = {}
+
+def _get_bases(cls):
+    for base in cls.__bases__:
+        if base.__name__ == 'object':
+            break
+        yield base
+        for cbase in _get_bases(base):
+            yield cbase
 
 cdef class EventDispatcher(object):
     '''Generic event dispatcher interface
@@ -73,19 +83,66 @@ cdef class EventDispatcher(object):
 
         self.__properties = attrs_found
 
+        # Automatic registration of event types (instead of calling
+        # self.register_event_type)
+
+        # If not done yet, discover __events__ on all the baseclasses
+        cdef dict ce = cache_events
+        cdef list events
+        cdef str event
+        if __cls__ not in ce:
+            classes = [__cls__] + list(_get_bases(self.__class__))
+            events = []
+            for cls in classes:
+                if not hasattr(cls, '__events__'):
+                    continue
+                for event in cls.__events__:
+                    if event in events:
+                        continue
+
+                    if event[:3] != 'on_':
+                        raise Exception('{} is not an event name in {}'.format(
+                            event, __cls__.__name__))
+
+                    # Ensure the user have at least declare the default handler
+                    if not hasattr(self, event):
+                        raise Exception(
+                            'Missing default handler <%s> in <%s>' % (
+                            event, __cls__.__name__))
+
+                    events.append(event)
+            ce[__cls__] = events
+        else:
+            events = ce[__cls__]
+
+        # then auto register
+        for event in events:
+            self.__event_stack[event] = []
+
+
     def __init__(self, **kwargs):
         cdef str func, name, key
         cdef dict properties
+        # object.__init__ takes no parameters as of 2.6; passing kwargs
+        # triggers a DeprecationWarning or worse
         super(EventDispatcher, self).__init__()
 
         # Auto bind on own handler if exist
         properties = self.properties()
-        for func in dir(self):
-            if not func.startswith('on_'):
-                continue
-            name = func[3:]
-            if name in properties:
-                self.bind(**{name: getattr(self, func)})
+        __cls__ = self.__class__
+        if __cls__ not in cache_events_handlers:
+            event_handlers = []
+            for func in dir(self):
+                if func[:3] != 'on_':
+                    continue
+                name = func[3:]
+                if name in properties:
+                    event_handlers.append(func)
+            cache_events_handlers[__cls__] = event_handlers
+        else:
+            event_handlers = cache_events_handlers[__cls__]
+        for func in event_handlers:
+            self.bind(**{func[3:]: getattr(self, func)})
 
         # Apply the existing arguments to our widget
         for key, value in kwargs.iteritems():
@@ -118,7 +175,7 @@ cdef class EventDispatcher(object):
             w.dispatch('on_swipe')
         '''
 
-        if not event_type.startswith('on_'):
+        if event_type[:3] != 'on_':
             raise Exception('A new event must start with "on_"')
 
         # Ensure the user have at least declare the default handler
@@ -128,7 +185,7 @@ cdef class EventDispatcher(object):
                 event_type, self.__class__.__name__))
 
         # Add the event type to the stack
-        if not event_type in self.__event_stack:
+        if event_type not in self.__event_stack:
             self.__event_stack[event_type] = []
 
     def unregister_event_types(self, str event_type):
@@ -271,6 +328,11 @@ cdef class EventDispatcher(object):
 
         .. versionadded:: 1.0.9
         '''
+        # fast path, use the cache first
+        __cls__ = self.__class__
+        if __cls__ in cache_properties:
+            return cache_properties[__cls__]
+
         cdef dict ret, p
         ret = {}
         p = self.__properties

@@ -141,11 +141,58 @@ Even if x and y changes within one frame, the callback is only run once.
 
 __all__ = ('Clock', 'ClockBase', 'ClockEvent')
 
+from sys import platform
 from os import environ
-from time import time, sleep
 from kivy.weakmethod import WeakMethod
 from kivy.config import Config
 from kivy.logger import Logger
+import time
+
+try:
+    import ctypes
+    if platform in ('win32', 'cygwin'):
+        # Win32 Sleep function is only 10-millisecond resolution, so instead use
+        # a waitable timer object, which has up to 100-nanosecond resolution
+        # (hardware and implementation dependent, of course).
+
+        _kernel32 = ctypes.windll.kernel32
+
+        class _ClockBase(object):
+            def __init__(self):
+                self._timer = _kernel32.CreateWaitableTimerA(None, True, None)
+
+            def usleep(self, microseconds):
+                delay = ctypes.c_longlong(int(-microseconds * 10))
+                _kernel32.SetWaitableTimer(self._timer, ctypes.byref(delay),
+                    0, ctypes.c_void_p(), ctypes.c_void_p(), False)
+                _kernel32.WaitForSingleObject(self._timer, 0xffffffff)
+
+        _default_time = time.clock
+    else:
+        if platform == 'darwin':
+            _libc = ctypes.CDLL('libc.dylib')
+        else:
+            _libc = ctypes.CDLL('libc.so')
+        _libc.usleep.argtypes = [ctypes.c_ulong]
+        _libc_usleep = _libc.usleep
+
+        class _ClockBase(object):
+            def usleep(self, microseconds):
+                _libc_usleep(int(microseconds))
+
+        _default_time = time.time
+
+except (OSError, ImportError):
+    # ImportError: ctypes is not available on python-for-android.
+    # OSError: if the libc cannot be readed (like with buildbot: invalid ELF
+    # header)
+
+    _default_time = time.time
+    _default_sleep = time.sleep
+
+    class _ClockBase(object):
+        def usleep(self, microseconds):
+            _default_sleep(microseconds / 1000000.)
 
 
 def _hash(cb):
@@ -210,8 +257,9 @@ class ClockEvent(object):
         self.callback = None
 
     def tick(self, curtime):
-        # timeout happen ?
-        if curtime - self._last_dt < self.timeout:
+        # timeout happened ? (check also if we would miss from 5ms)
+        # this 5ms increase the accuracy if the timing of animation for example.
+        if curtime - self._last_dt < self.timeout - 0.005:
             return True
 
         # calculate current timediff for this event
@@ -247,16 +295,20 @@ class ClockEvent(object):
         return '<ClockEvent callback=%r>' % self.get_callback()
 
 
-class ClockBase(object):
+class ClockBase(_ClockBase):
     '''A clock object with event support
     '''
     __slots__ = ('_dt', '_last_fps_tick', '_last_tick', '_fps', '_rfps',
                  '_start_tick', '_fps_counter', '_rfps_counter', '_events',
                  '_max_fps', 'max_iteration')
 
+    MIN_SLEEP = 0.005
+    SLEEP_UNDERSHOOT = MIN_SLEEP - 0.001
+
     def __init__(self):
+        super(ClockBase, self).__init__()
         self._dt = 0.0001
-        self._start_tick = self._last_tick = time()
+        self._start_tick = self._last_tick = _default_time()
         self._fps = 0
         self._rfps = 0
         self._fps_counter = 0
@@ -287,13 +339,18 @@ class ClockBase(object):
 
         # do we need to sleep ?
         if self._max_fps > 0:
+            min_sleep = self.MIN_SLEEP
+            sleep_undershoot = self.SLEEP_UNDERSHOOT
             fps = self._max_fps
-            s = 1 / fps - (time() - self._last_tick)
-            if s > 0:
-                sleep(s)
+            usleep = self.usleep
+
+            sleeptime = 1 / fps - (_default_time() - self._last_tick)
+            while sleeptime - sleep_undershoot > min_sleep:
+                usleep(1000000 * (sleeptime - sleep_undershoot))
+                sleeptime = 1 / fps - (_default_time() - self._last_tick)
 
         # tick the current time
-        current = time()
+        current = _default_time()
         self._dt = current - self._last_tick
         self._fps_counter += 1
         self._last_tick = current

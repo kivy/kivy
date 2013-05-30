@@ -80,9 +80,9 @@ __all__ = ('Widget', 'WidgetException')
 
 from kivy.event import EventDispatcher
 from kivy.factory import Factory
-from kivy.properties import NumericProperty, StringProperty, \
-        AliasProperty, ReferenceListProperty, ObjectProperty, \
-        ListProperty
+from kivy.properties import (NumericProperty, StringProperty, AliasProperty,
+                             ReferenceListProperty, ObjectProperty,
+                             ListProperty, DictProperty, BooleanProperty)
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
@@ -130,14 +130,12 @@ class Widget(WidgetBase):
         properties or events, as the Kv language.
     '''
 
+    __metaclass__ = WidgetMetaclass
+    __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
+
     def __init__(self, **kwargs):
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
-
-        # Register touch events
-        self.register_event_type('on_touch_down')
-        self.register_event_type('on_touch_move')
-        self.register_event_type('on_touch_up')
 
         super(Widget, self).__init__(**kwargs)
 
@@ -223,6 +221,8 @@ class Widget(WidgetBase):
         :Returns:
             bool. If True, the dispatching of the touch will stop.
         '''
+        if self.disabled and self.collide_point(*touch.pos):
+            return True
         for child in self.children[:]:
             if child.dispatch('on_touch_down', touch):
                 return True
@@ -232,6 +232,8 @@ class Widget(WidgetBase):
 
         See :meth:`on_touch_down` for more information
         '''
+        if self.disabled:
+            return
         for child in self.children[:]:
             if child.dispatch('on_touch_move', touch):
                 return True
@@ -241,9 +243,15 @@ class Widget(WidgetBase):
 
         See :meth:`on_touch_down` for more information
         '''
+        if self.disabled:
+            return
         for child in self.children[:]:
             if child.dispatch('on_touch_up', touch):
                 return True
+
+    def on_disabled(self, instance, value):
+        for child in self.children:
+            child.disabled = value
 
     #
     # Tree management
@@ -273,7 +281,11 @@ class Widget(WidgetBase):
         if parent:
             raise WidgetException('Cannot add %r, it already has a parent %r'
                 % (widget, parent))
-        widget.parent = self
+        widget.parent = parent = self
+        # child will be disabled if added to a disabled parent
+        if parent.disabled:
+            widget.disabled = True
+
         if index == 0 or len(self.children) == 0:
             self.children.insert(0, widget)
             self.canvas.add(widget.canvas)
@@ -282,7 +294,7 @@ class Widget(WidgetBase):
             children = self.children
             if index >= len(children):
                 index = len(children)
-                next_index = -1
+                next_index = 0
             else:
                 next_child = children[index]
                 next_index = canvas.indexof(next_child.canvas)
@@ -292,6 +304,9 @@ class Widget(WidgetBase):
                     next_index += 1
 
             children.insert(index, widget)
+            # we never want to insert widget _before_ canvas.before.
+            if next_index == 0 and canvas.has_before:
+                next_index = 1
             canvas.insert(next_index, widget.canvas)
 
     def remove_widget(self, widget):
@@ -308,6 +323,7 @@ class Widget(WidgetBase):
         '''
         if widget not in self.children:
             return
+        parent = widget.parent
         self.children.remove(widget)
         self.canvas.remove(widget.canvas)
         widget.parent = None
@@ -566,6 +582,16 @@ class Widget(WidgetBase):
     dict.
     '''
 
+    ids = DictProperty({})
+    '''This is a Dictionary of id's defined in your kv language. This will only
+    be populated if you use id's in your kv language code.
+
+    .. versionadded:: 1.7.0
+
+    :data:`ids` is a :class:`~kivy.properties.DictProperty`, defaults to a empty
+    dict {}.
+    '''
+
     opacity = NumericProperty(1.0)
     '''Opacity of the widget and all the children.
 
@@ -606,4 +632,18 @@ class Widget(WidgetBase):
     follow and extend.
 
     See :class:`~kivy.graphics.Canvas` for more information about the usage.
+    '''
+
+    disabled = BooleanProperty(False)
+    '''Indicates whether this widget can interact with input or not.
+
+    .. Note::
+        1. Child Widgets when added onto a disabled widget will be disabled
+        automatically
+        2. Disabling/enabling a parent disables/enables all it's children.
+
+    .. versionadded:: 1.8.0
+
+    :data:`disabled` is a :class:`~kivy.properties.BooleanProperty`,
+    default to False.
     '''

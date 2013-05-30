@@ -1,0 +1,445 @@
+body {
+	color: #595959;
+	font-family: Verdana, sans-serif;
+	font-size: 14px;
+	line-height: 1.6em;
+	padding: 0px;
+	margin: 0px;
+}
+
+h1, h2, h3, h4, h5 {
+	color: #414141;
+	font-weight: normal;
+}
+
+a, a:link, a:visited {
+	color: #2a7cdf;
+	text-decoration: none;
+}
+
+a.headerlink {
+	display: none;
+}
+
+h1:hover a.headerlink,
+h2:hover a.headerlink,
+h3:hover a.headerlink,
+h4:hover a.headerlink,
+h5:hover a.headerlink {
+	display: inline;
+	color: #d0d0d0;
+	margin-left: 10px;
+}
+
+a:hover {
+	border-bottom: 1px solid rgba(42, 124, 223, 0.5);
+}
+
+#topbar {
+	background-color: #202326;
+	margin: 0px;
+	padding: 15px 15px 10px 15px;
+	height: 60px;
+}
+
+#topbar img {
+	padding-left: 5px;
+}
+
+#topbar #toplogo a:hover {
+	border: none;
+}
+
+#topbar ul,
+#topbar li {
+	margin: 0px;
+	padding: 0px;
+	list-style-type: none;
+}
+
+#topbar ul {
+	float: right;
+	margin-right: 20px;
+	margin-top: -80px;
+}
+
+#topmenu ul.navigation li {
+	float: left;
+	list-style-type: none;
+}
+
+#topmenu ul.navigation li a {
+	float: left;
+	margin-left: 30px;
+	line-height: 44px;
+	list-style-type: none;
+	color: #bbb;
+	margin-top: 35px;
+	text-decoration: none;
+	background-color: #303030;
+	padding: 0 20px;
+}
+
+#topmenu ul.navigation li a.current {
+	border-bottom: 2px solid #ffffff;
+}
+
+#topmenu ul.navigation li a:hover {
+	background-color: #383a3d;
+	border-bottom: 2px solid #202326;
+}
+
+
+#topmenu ul.navigation .nav-garden {
+	background-color: #669900;
+	color: #ffffff;
+}
+
+#topmenu ul.navigation .nav-guides {
+	background-color: #0099cc;
+	color: #ffffff;
+}
+
+#topmenu ul.navigation .nav-api {
+	background-color: #cc0000;
+	color: #ffffff;
+}
+
+#topmenu ul.navigation .nav-pdf {
+	background-color: #ff8800;
+	color: #ffffff;
+}
+
+#topmenu ul.navigation a.nav-garden:hover {
+	background-color: #99cc00;
+}
+
+#topmenu ul.navigation a.nav-guides:hover {
+	background-color: #33b5e5;
+}
+
+#topmenu ul.navigation a.nav-api:hover {
+	background-color: #ff4444;
+}
+
+#topmenu ul.navigation a.nav-pdf:hover {
+	background-color: #ffbb33;
+}
+
+
+
+div.sphinxsidebar {
+	width: 230px;
+	float: left;
+}
+
+div.sphinxsidebar a.mainlevel,
+div.sphinxsidebar h3 {
+	background-color: #e0e0e0;
+	font-weight: normal;
+	font-size: 1em;
+	padding: 0.5em 1em;
+	margin: 1px 0px;
+}
+
+div.sphinxsidebar a.togglable {
+	padding-right: 34px;
+	background: #e0e0e0 url('disclosure_up.png') top right no-repeat;
+}
+div.sphinxsidebar ul.toggleopen a.togglable {
+	background-image: url('disclosure_down.png')
+}
+
+div.sphinxsidebar ul,
+div.sphinxsidebar li {
+	margin: 0px;
+	padding: 0px;
+	list-style-type: none;
+}
+
+div.sphinxsidebar ul li ul {
+	display: none;
+}
+
+div.sphinxsidebar li a {
+	background-color: #f0f0f0;
+	display: block;
+	font-weight: normal;
+	font-size: 1em;
+	padding: 0.5em 1em;
+	color: #515151;
+	border-left: 2px solid transparent;
+}
+
+div.sphinxsidebar ul ul li.current > a,
+div.sphinxsidebar li a:hover {
+	background-color: #e0f0f0;
+	border: none;
+	color: #202530;
+	border-left: 2px solid #2a7cdf;
+}
+
+/* Footer */
+
+.footerlinks table {
+	background-color: #f0f0f0;
+	width: 100%;
+}
+
+.footerlinks td {
+	padding: 10px 15px;
+	width: 50%;
+}
+
+.footerlinks td.rightlink {
+	text-align: right;
+}
+
+#contentall {
+	padding: 20px;
+}
+
+#content {
+	margin-left: 250px;
+	margin-top: -8px;
+}
+
+#content pre {
+	background-color: #f0f0f0;
+	padding: 10px 15px;
+	font-family: 'Source Code Pro', monospace;
+}
+
+#content h1 {
+	margin-bottom: 25px;
+}
+
+#content h2 {
+	border-bottom: 1px solid #e0e0e0;
+	padding: 15px 0px 8px 0px;
+}
+
+/* Content: Admonition (warning, important, notice) */
+#content div.admonition {
+	padding-left: 10px;
+	margin: 8px 0px;
+}
+
+#content div.admonition p {
+	margin: 0px;
+}
+
+#content div.warning {
+	border-left: 3px solid #E88080;
+}
+
+#content div.warning p.first {
+	color: #E88080;
+}
+
+#content div.note {
+	border-left: 3px solid #80C880;
+}
+
+#content div.note p.first {
+	color: #80C880;
+}
+
+
+/* API only: versionadded */
+.versionchanged,
+.versionadded {
+	font-style: italic;
+	color: #a0a0a0;
+}
+
+/* API only: Module: kivy -- Jump to API */
+.bodyshortcut {
+	background-color: #f0f0f0;
+	padding: 10px 15px;
+}
+
+.bodyshortcut .left {
+	float: left;
+}
+
+.bodyshortcut .right {
+	float: right;
+}
+
+/* API only: Link collapse-all / hide description */
+#api-toggle-desc,
+#api-toggle-all {
+	float: right;
+	font-size: 14px;
+	margin-left: 10px;
+	cursor: pointer;
+}
+
+/* API only: classes / methods / ... */
+
+dl.api-level dt {
+	cursor: pointer;
+	background-color: #e0e0e0;
+	font-weight: normal;
+	font-size: 1em;
+	padding: 10px 15px;
+	margin: 1px 0px;
+}
+
+dl.api-level dl.attribute dt {
+	background-color: #f0f0f0;
+}
+
+dl.api-level dd {
+	margin-left: 20px;
+}
+
+dl.api-level {
+	margin-top: 20px;
+}
+
+tt.descclassname {
+	display: none;
+}
+
+tt.descname {
+	color: #515151;
+	font-size: 1.2em;
+}
+
+em {
+	font-style: normal;
+}
+
+em.property {
+	color: #df712d;
+}
+
+big {
+	font-size: 14px;
+	font-weight: normal;
+}
+
+/* field list */
+
+table.field-list {
+	border-collapse: collapse;
+	border: 0 !important;
+}
+
+table.field-list th.field-name {
+	background-color: #f0f0f0;
+}
+table.field-list tr {
+	border: 5px solid white;
+}
+table.field-list td.field-body {
+	padding: 10px;
+	padding-top: 0px;
+}
+table.field-list td.field-body dl.docutils {
+	margin-top: 0px;
+	margin-left: -10px;
+}
+
+table.field-list td.field-body dl.docutils dt {
+	background-color: #f0f0f0;
+	padding: 5px 8px;
+	font-style: normal;
+}
+
+table.field-list td.field-body dl.docutils dd {
+	margin: 8px 15px;
+}
+
+/* Form search */
+form.search input {
+	line-height: 2em;
+	border: 1px solid #d0d0d0;
+	width: 211px;
+	display: block;
+	font-size: 1.1em;
+	padding: 5px 8px;
+}
+
+form.search {
+	position: relative;
+	top: -0.8em;
+}
+
+/* Getting started */
+.gs-eleft {
+	float: left;
+	margin-right: 10px;
+}
+
+/* From HTML */
+table.docutils {
+	border-collapse: collapse;
+	border: 1px solid #d0d0d0;
+}
+
+table.docutils th,
+table.docutils td {
+	padding: 5px 8px;
+}
+
+.align-right {
+	float: right;
+	margin: 5px 0 5px 5px;
+}
+
+.align-center {
+	margin: 5px auto;
+	display: block;
+}
+
+/** API **/
+.api-index {
+	height: 200px;
+	overflow: auto;
+}
+
+div.sphinxsidebar .api-index li a {
+	font-size: 12px;
+	padding: 1px 5px;
+}
+
+/** TOC **/
+.toc {
+	width: auto;
+	background-color: #f5f5f5;
+	border: 1px solid #e0e0e0;
+	padding: 10px;
+	float: right;
+	margin: 0 0 10px 10px;
+	font-size: 0.9em;
+}
+
+#content .toc h2 {
+	font-size: 1.2em;
+	margin: 0 0 5px 0;
+	padding: 0 0 2px 0;
+}
+
+.toc ul li,
+.toc ul {
+	list-style-type: none;
+	padding: 0px;
+	margin: 0px;
+}
+.toc ul li li li {
+	padding-left: 10px;
+	border-left: 1px solid #e0e0e0;
+}
+
+
+/** Highlighted tables (source code with line number) **/
+table.highlighttable {
+	width: 100%;
+}
+
+table.highlighttable td.linenos {
+	width: 40px;
+}

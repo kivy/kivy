@@ -22,8 +22,12 @@ pygame.font.init()
 class LabelPygame(LabelBase):
 
     def _get_font_id(self):
-        return '|'.join([str(self.options[x]) for x
-            in ('font_size', 'font_name_r', 'bold', 'italic')])
+        try:
+            return '|'.join([unicode(self.options[x]) for x in
+                             ('font_size', 'font_name_r', 'bold', 'italic')])
+        except UnicodeDecodeError:
+            return '|'.join([str(self.options[x]) for x in
+                             ('font_size', 'font_name_r', 'bold', 'italic')])
 
     def _get_font(self):
         fontid = self._get_font_id()
@@ -57,6 +61,12 @@ class LabelPygame(LabelBase):
             del pygame_cache[popid]
 
         return pygame_cache[fontid]
+
+    def get_ascent(self):
+        return self._get_font().get_ascent()
+
+    def get_descent(self):
+        return self._get_font().get_descent()
 
     def get_extents(self, text):
         return self._get_font().size(text)

@@ -177,6 +177,10 @@ class TabbedPanelHeader(ToggleButton):
         # `tabbed_panel` property
         if self.parent:
             self.parent.tabbed_panel.switch_to(self)
+        else:
+            # tab removed before we could switch to it. Switch back to
+            # previous tab
+            self.panel.switch_to(self.panel.current_tab)
 
 
 class TabbedPanelItem(TabbedPanelHeader):
@@ -258,6 +262,17 @@ class TabbedPanel(GridLayout):
 
     :data:`background_image` is a :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/tab'.
+    '''
+
+    background_disabled_image = StringProperty(
+                                'atlas://data/images/defaulttheme/tab_disabled')
+    '''Background image of the main shared content object when disabled.
+
+    .. versionadded:: 1.8.0
+
+    :data:`background_disabled_image` is a
+    :class:`~kivy.properties.StringProperty`, default to
+    'atlas://data/images/defaulttheme/tab'.
     '''
 
     _current_tab = ObjectProperty(None)
@@ -344,8 +359,7 @@ class TabbedPanel(GridLayout):
     content = ObjectProperty(None)
     '''This is the object holding(current_tab's content is added to this)
     the content of the current tab. To Listen to the changes in the content
-    of the current tab you should bind to `current_tab` and then access it's
-    `content` property.
+    of the current tab you should bind to current_tabs `content` property.
 
     :data:`content` is a :class:`~kivy.properties.ObjectProperty`,
     default to 'None'.
@@ -395,15 +409,10 @@ class TabbedPanel(GridLayout):
     '''
 
     def __init__(self, **kwargs):
-        # these variables need to be initialised before the kv lang is
+        # these variables need to be initialized before the kv lang is
         # processed setup the base layout for the tabbed panel
         self._tab_layout = GridLayout(rows=1)
         self.rows = 1
-        # bakground_image
-        self._bk_img = Image(
-            source=self.background_image, allow_stretch=True,
-            keep_ratio=False, color=self.background_color)
-
         self._tab_strip = TabbedPanelStrip(
             tabbed_panel=self,
             rows=1, cols=99, size_hint=(None, None),
@@ -464,6 +473,7 @@ class TabbedPanel(GridLayout):
             self.on_tab_width()
         else:
             widget.pos_hint = {'x': 0, 'top': 1}
+            content.disabled = self.current_tab.disabled
             content.add_widget(widget, index)
 
     def remove_widget(self, widget):
@@ -496,13 +506,6 @@ class TabbedPanel(GridLayout):
         else:
             content.clear_widgets()
 
-    def on_background_image(self, *l):
-        self._bk_img.source = self.background_image
-
-    def on_background_color(self, *l):
-        if self.content is None:
-            return
-        self._bk_img.color = self.background_color
 
     def on_do_default_tab(self, instance, value):
         if not value:

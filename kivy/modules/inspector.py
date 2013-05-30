@@ -224,7 +224,8 @@ class Inspector(FloatLayout):
 
     def highlight_at(self, x, y):
         widget = None
-        for child in self.win.children:
+        # reverse the loop - look at children on top first
+        for child in reversed(self.win.children):
             if child is self:
                 continue
             widget = self.pick(child, x, y)
@@ -262,14 +263,19 @@ class Inspector(FloatLayout):
         gr.size = widget.size
         self.gtranslate.xy = Vector(widget.to_window(*widget.pos))
         self.grotate.angle = angle
-        self.gscale.scale = scale
+        # fix warning about scale property deprecation
+        self.gscale.xyz = (scale,) * 3
 
     def pick(self, widget, x, y):
         ret = None
+        # try to filter widgets that are not visible (invalid inspect target)
+        if (hasattr(widget, 'visible') and not widget.visible):
+            return ret
         if widget.collide_point(x, y):
             ret = widget
             x2, y2 = widget.to_local(x, y)
-            for child in widget.children:
+            # reverse the loop - look at children on top first
+            for child in reversed(widget.children):
                 ret = self.pick(child, x2, y2) or ret
         return ret
 

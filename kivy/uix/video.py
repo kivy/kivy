@@ -149,6 +149,8 @@ class Video(Image):
         Clock.schedule_once(self._do_video_load, -1)
 
     def _do_video_load(self, *largs):
+        if CoreVideo is None:
+            return
         if self._video:
             self._video.stop()
         if not self.source:
