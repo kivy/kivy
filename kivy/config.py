@@ -201,6 +201,7 @@ from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
 from collections import OrderedDict
 from kivy.utils import platform
+from kivy.compat import PY2
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 
@@ -269,20 +270,22 @@ class ConfigParser(PythonConfigParser):
         the value is implicitly converted to a string.
         '''
         e_value = value
-        if not isinstance(value, basestring):
-            # might be boolean, int, etc.
-            e_value = str(value)
-        else:
-            if isinstance(value, unicode):
-                e_value = value.encode('utf-8')
+        if PY2:
+            if not isinstance(value, basestring):
+                # might be boolean, int, etc.
+                e_value = str(value)
+            else:
+                if isinstance(value, unicode):
+                    e_value = value.encode('utf-8')
         ret = PythonConfigParser.set(self, section, option, e_value)
         self._do_callbacks(section, option, value)
         return ret
 
-    def get(self, section, option):
-        value = PythonConfigParser.get(self, section, option)
-        if type(value) is str:
-            return value.decode('utf-8')
+    def get(self, section, option, **kwargs):
+        value = PythonConfigParser.get(self, section, option, **kwargs)
+        if PY2:
+            if type(value) is str:
+                return value.decode('utf-8')
         return value
 
     def setdefaults(self, section, keyvalues):

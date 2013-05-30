@@ -576,7 +576,7 @@ from kivy.utils import QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
-from kivy.compat import is_py3
+from kivy.compat import PY2, iteritems
 import kivy.metrics as Metrics
 from weakref import ref
 
@@ -1302,7 +1302,7 @@ class BuilderBase(object):
             data = fd.read()
 
             # remove bom ?
-            if not is_py3:
+            if PY2:
                 if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
                     raise ValueError('Unsupported UTF16 for kv files.')
                 if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
@@ -1361,7 +1361,7 @@ class BuilderBase(object):
                                  is_template=True)
 
             # register all the dynamic classes
-            for name, baseclasses in parser.dynamic_classes.iteritems():
+            for name, baseclasses in iteritems(parser.dynamic_classes):
                 Factory.register(name, baseclasses=baseclasses, filename=fn)
 
             # create root object is exist
@@ -1627,7 +1627,7 @@ if 'KIVY_PROFILE_LANG' in environ:
     def match_rule(fn, index, rule):
         if rule.ctx.filename != fn:
             return
-        for prop, prp in rule.properties.iteritems():
+        for prop, prp in iteritems(rule.properties):
             if prp.line != index:
                 continue
             yield prp

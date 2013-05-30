@@ -144,7 +144,7 @@ cdef class ShaderSource:
         cdef char msg[2048]
         msg[0] = '\0'
         glGetShaderInfoLog(shader, 2048, NULL, msg)
-        return msg.decode('utf-8')
+        return msg
 
 
 cdef class Shader:
@@ -416,7 +416,7 @@ cdef class Shader:
         cdef GLsizei length
         msg[0] = '\0'
         glGetProgramInfoLog(shader, 2048, &length, msg)
-        return msg[:length].decode('utf-8')
+        return msg[:length]
 
     cdef void process_message(self, str ctype, message):
         message = message.strip()

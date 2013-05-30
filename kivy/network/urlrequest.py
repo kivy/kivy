@@ -58,21 +58,21 @@ from collections import deque
 from threading import Thread
 from json import loads
 from time import sleep
-from kivy.compat import is_py3
+from kivy.compat import PY2
 
-if is_py3:
-    from http.client import HTTPConnection
-    from urllib.parse import urlparse
-else:
+if PY2:
     from httplib import HTTPConnection
     from urlparse import urlparse
+else:
+    from http.client import HTTPConnection
+    from urllib.parse import urlparse
 
 try:
     HTTPSConnection = None
-    if is_py3:
-        from http.client import HTTPSConnection
-    else:
+    if PY2:
         from httplib import HTTPSConnection
+    else:
+        from http.client import HTTPSConnection
 except ImportError:
     # depending the platform, if openssl support wasn't compiled before python,
     # this class is not available.

@@ -388,4 +388,4 @@ cdef class Fbo(RenderContext):
             self.bind()
             data = py_glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE)
             self.release()
-            return str(buffer(data))
+            return data

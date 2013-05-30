@@ -246,7 +246,6 @@ class ImageLoaderBase(object):
 
 
 class ImageLoader(object):
-    __slots__ = ('loaders', )
 
     loaders = []
 
@@ -731,7 +730,6 @@ class Image(EventDispatcher):
             fmt = 'rgba'
         else:
             raise Exception('Unable to determine the format of the pixels')
-        print 'loader', loader, (filename, size, fmt, len(pixels))
         return loader.save(filename, size[0], size[1], fmt, pixels)
 
     def read_pixel(self, x, y):
