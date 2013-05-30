@@ -28,6 +28,7 @@ use `Homebrew <http://mxcl.github.com/homebrew/>`_ to install thoses dependencie
     brew install autoconf automake libtool pkg-config mercurial
     brew link libtool
     brew link mercurial
+    sudo easy_install pip
     sudo pip install cython
 
 Ensure that everything is ok before starting the second step!
