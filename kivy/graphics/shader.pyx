@@ -1,4 +1,4 @@
-#cython: c_string_encoding="utf8" except *
+#cython: c_string_type=unicode, c_string_encoding=utf8
 '''
 Shader
 ======

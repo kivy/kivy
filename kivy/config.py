@@ -199,7 +199,8 @@ from os import environ
 from os.path import exists
 from kivy import kivy_config_fn
 from kivy.logger import Logger, logger_config_update
-from kivy.utils import OrderedDict, platform
+from collections import OrderedDict
+from kivy.utils import platform
 
 _is_rpi = exists('/opt/vc/include/bcm_host.h')
 

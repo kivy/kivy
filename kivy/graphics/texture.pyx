@@ -311,7 +311,7 @@ cdef inline int _is_compressed_fmt(str x):
     return x.startswith('s3tc_dxt')
 
 
-cdef inline int _buffer_fmt_to_gl(bytes x):
+cdef inline int _buffer_fmt_to_gl(str x):
     '''Return the GL numeric value from a buffer string format
     '''
     x = x.lower()
@@ -458,7 +458,7 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     cdef GLuint texid = 0
     cdef Texture texture
     cdef int texture_width, texture_height
-    cdef int glbufferfmt = _buffer_fmt_to_gl(<bytes>bufferfmt)
+    cdef int glbufferfmt = _buffer_fmt_to_gl(bufferfmt)
     cdef int make_npot = 0
 
     # check if it's a pot or not
@@ -824,7 +824,7 @@ cdef class Texture:
             pos = (0, 0)
         if size is None:
             size = self.size
-        bufferfmt = _buffer_fmt_to_gl(<bytes>bufferfmt)
+        bufferfmt = _buffer_fmt_to_gl(bufferfmt)
 
         # bind the texture, and create anything that should be created at this
         # time.
