@@ -14,6 +14,7 @@ class BaseClass(object):
         self.parent = None
         self.binded_func = {}
         self.id = None
+        self.ids = {}
         self.cls = []
 
     def add_widget(self, widget):

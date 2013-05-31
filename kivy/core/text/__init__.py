@@ -85,6 +85,8 @@ class LabelBase(object):
 
     _fonts_cache = {}
 
+    _texture_1px = None
+
     def __init__(self, text='', font_size=12, font_name=DEFAULT_FONT,
                  bold=False, italic=False, halign='left', valign='bottom',
                  shorten=False, text_size=None, mipmap=False, color=None,
@@ -419,7 +421,7 @@ class LabelBase(object):
         # if no text are rendered, return nothing.
         width, height = self._size
         if width <= 1 or height <= 1:
-            self.texture = None
+            self.texture = self.texture_1px
             return
 
         # create a delayed texture
@@ -456,6 +458,14 @@ class LabelBase(object):
 
     text = property(_get_text, _set_text, doc='Get/Set the text')
     label = property(_get_text, _set_text, doc='Get/Set the text')
+
+    @property
+    def texture_1px(self):
+        if LabelBase._texture_1px is None:
+            tex = Texture.create(size=(1, 1), colorfmt='rgba')
+            tex.blit_buffer(b'\x00\x00\x00\x00')
+            LabelBase._texture_1px = tex
+        return LabelBase._texture_1px
 
     @property
     def size(self):

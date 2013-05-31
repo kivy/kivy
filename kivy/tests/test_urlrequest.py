@@ -22,6 +22,9 @@ class UrlRequestTest(unittest.TestCase):
     def _on_success(self, req, *args):
         self.queue.append((_thread.get_ident(), 'success', args))
 
+    def _on_redirect(self, req, *args):
+        self.queue.append((_thread.get_ident(), 'redirect', args))
+
     def _on_error(self, req, *args):
         self.queue.append((_thread.get_ident(), 'error', args))
 
@@ -33,7 +36,9 @@ class UrlRequestTest(unittest.TestCase):
         req = UrlRequest('http://google.com',
                          on_success=self._on_success,
                          on_progress=self._on_progress,
-                         on_error=self._on_error)
+                         on_error=self._on_error,
+                         on_redirect=self._on_redirect,
+                         debug=True)
 
         # don't use wait, but maximum 10s timeout
         for i in range(50):
@@ -46,7 +51,6 @@ class UrlRequestTest(unittest.TestCase):
 
         # we should have 2 progress minimum and one success
         self.assertTrue(len(self.queue) >= 3)
-        print(self.queue)
 
         # ensure the callback is called from this thread (main).
         tid = _thread.get_ident()
@@ -56,7 +60,7 @@ class UrlRequestTest(unittest.TestCase):
 
         self.assertEqual(self.queue[0][1], 'progress')
         self.assertEqual(self.queue[-2][1], 'progress')
-        self.assertEqual(self.queue[-1][1], 'success')
+        self.assertIn(self.queue[-1][1], ('success', 'redirect'))
 
         self.assertEqual(self.queue[0][2][0], 0)
         self.assertEqual(self.queue[-2][2][0], self.queue[-2][2][1])
