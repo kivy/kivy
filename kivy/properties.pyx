@@ -880,11 +880,11 @@ cdef class BoundedNumericProperty(Property):
                     obj.__class__.__name__,
                     self.name, _min))
         elif ps.bnum_use_min == 2:
-            _min = ps.bnum_f_min
-            if value < _min:
-                raise ValueError('%s.%s is below the minimum bound (%d)' % (
+            _f_min = ps.bnum_f_min
+            if value < _f_min:
+                raise ValueError('%s.%s is below the minimum bound (%f)' % (
                     obj.__class__.__name__,
-                    self.name, _min))
+                    self.name, _f_min))
         if ps.bnum_use_max == 1:
             _max = ps.bnum_max
             if value > _max:
@@ -892,11 +892,11 @@ cdef class BoundedNumericProperty(Property):
                     obj.__class__.__name__,
                     self.name, _max))
         elif ps.bnum_use_max == 2:
-            _max = ps.bnum_f_max
-            if value > _max:
-                raise ValueError('%s.%s is above the maximum bound (%d)' % (
+            _f_max = ps.bnum_f_max
+            if value > _f_max:
+                raise ValueError('%s.%s is above the maximum bound (%f)' % (
                     obj.__class__.__name__,
-                    self.name, _max))
+                    self.name, _f_max))
         return True
 
     property bounds:
