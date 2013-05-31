@@ -473,6 +473,7 @@ setup(
         'kivy.input.providers',
         'kivy.lib',
         'kivy.lib.osc',
+        'kivy.lib.vidcore_lite',
         'kivy.modules',
         'kivy.network',
         'kivy.tools',
