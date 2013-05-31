@@ -140,7 +140,7 @@ class WindowsPortableBuild(Command):
         print("*Removing build dir")
         shutil.rmtree(self.build_dir, ignore_errors=True)
 
-        print "*Upload to google code"
+        print("*Upload to google code")
         sys.path += [os.path.join(self.src_dir, 'kivy', 'tools', 'packaging')]
         import googlecode_upload
         version = self.dist_name.replace("Kivy-", "")
@@ -151,8 +151,9 @@ class WindowsPortableBuild(Command):
             ['Featured', 'OsSys-Windows'])
 
         if url:
-              print 'The file was uploaded successfully.'
-              print 'URL: %s' % url
+              print('The file was uploaded successfully.')
+              print('URL: %s' % url)
         else:
-              print 'An error occurred. Your file was not uploaded.'
-              print 'Google Code upload server said: %s (%s)' % (reason, status)
+              print('An error occurred. Your file was not uploaded.')
+              print('Google Code upload server said: %s (%s)' % (reason,
+                  status))

@@ -629,9 +629,6 @@ cdef class Line(VertexInstruction):
             indices[ii + 2] = piv + 2
             ii += 3
 
-        #print 'ii=', ii, 'indices_count=', indices_count
-        #print 'iv=', iv, 'vertices_count', vertices_count
-
         # compute bbox
         for i in xrange(vertices_count):
             if vertices[i].x < self._bxmin:

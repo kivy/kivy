@@ -279,7 +279,7 @@ class OSXPortableBuild(Command):
         print("*Writing disk image, and cleaning build directory")
         shutil.rmtree(self.build_dir, ignore_errors=True)
 
-        print "*Upload to google code"
+        print("*Upload to google code")
         cmd = ('{} kivy/tools/packaging/googlecode_upload.py -s {} '
                 '-p kivy -l Featured,OsSys-OSX {}'.format(
                 sys.executable,

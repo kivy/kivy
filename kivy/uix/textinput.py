@@ -34,7 +34,7 @@ To create a monoline textinput, set the multiline property to false ('enter'
 key will defocus the textinput and emit on_text_validate event)::
 
     def on_enter(instance, value):
-        print 'User pressed enter in', instance
+        print('User pressed enter in', instance)
 
     textinput = TextInput(text='Hello world', multiline=False)
     textinput.bind(on_text_validate=on_enter)
@@ -43,7 +43,7 @@ The textinput's text is stored on its :data:`TextInput.text` property. To run a
 callback when the text changes::
 
     def on_text(instance, value):
-        print 'The widget', instance, 'have:', value
+        print('The widget', instance, 'have:', value)
 
     textinput = TextInput()
     textinput.bind(text=on_text)
@@ -59,9 +59,9 @@ get notified of focus changes::
 
     def on_focus(instance, value):
         if value:
-            print 'User focused', instance
+            print('User focused', instance)
         else:
-            print 'User defocused', instance
+            print('User defocused', instance)
 
     textinput = TextInput()
     textinput.bind(focus=on_focus)

@@ -55,7 +55,7 @@ There are two events available: `on_open` when the view is opening, and
 view from closing by explictly returning True from your callback ::
 
     def my_callback(instance):
-        print 'ModalView', instance, 'is being dismissed, but is prevented!'
+        print('ModalView', instance, 'is being dismissed, but is prevented!')
         return True
     view = ModalView()
     view.add_widget(Label(text='Hello world'))

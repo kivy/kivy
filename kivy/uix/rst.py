@@ -27,7 +27,7 @@ Usage with Text
     This is an **emphased text**, some ``interpreted text``.
     And this is a reference to top_::
 
-        $ print "Hello world"
+        $ print("Hello world")
 
     """
     document = RstDocument(text=text)
@@ -715,7 +715,6 @@ class _ToctreeVisitor(nodes.NodeVisitor):
 
     def dispatch_visit(self, node):
         cls = node.__class__
-        #print '>>>', cls, node.attlist() if hasattr(node, 'attlist') else ''
         if cls is nodes.section:
             section = {
                 'ids': node['ids'],
@@ -734,7 +733,6 @@ class _ToctreeVisitor(nodes.NodeVisitor):
 
     def dispatch_departure(self, node):
         cls = node.__class__
-        #print '<--', cls, node.attlist() if hasattr(node, 'attlist') else ''
         if cls is nodes.section:
             self.pop()
         elif cls is nodes.title:
@@ -764,7 +762,6 @@ class _Visitor(nodes.NodeVisitor):
 
     def dispatch_visit(self, node):
         cls = node.__class__
-        #print '>>>', cls, node.attlist() if hasattr(node, 'attlist') else ''
         if cls is nodes.document:
             self.push(self.root.content)
 
@@ -949,7 +946,6 @@ class _Visitor(nodes.NodeVisitor):
 
     def dispatch_departure(self, node):
         cls = node.__class__
-        #print '<--', cls
         if cls is nodes.document:
             self.pop()
 

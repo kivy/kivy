@@ -395,9 +395,7 @@ class GifDecoder(Gif):
             elif nextbyte == Gif_GIF_TRAILER:
                 return
             elif nextbyte == Gif_LABEL_GRAPHIC_CONTROL:
-                #if self_debug_enabled: print 'LABEL_GRAPHIC_CONTROL'
                 nextbyte = self_pops('<B', self_data)[0]
-                #if self_debug_enabled: print 'block size:%d' %nextbyte
                 drw_bits = (get_bits(self_pops('<B', self_data)[0]))
                 has_transparent_color = drw_bits[0]
                 if drw_bits[2:5] == array('B', [0, 0, 1]):
@@ -406,15 +404,10 @@ class GifDecoder(Gif):
                     drw_method = 'restore background'
                 else:
                     drw_method = 'restore previous'
-                #if self_debug_enabled:
-                #    print 'draw_method :'+ drw_method
                 nextbyte = self_pops('<B', self_data)[0]
-                #if self_debug_enabled: print 'fields:%d' %nextbyte
                 nextbyte = self_pops('<B', self_data)[0]
-                #if self_debug_enabled: print 'duration:%d' %nextbyte # delay?
                 nextbyte = self_pops('<B', self_data)[0]
                 trans_color = nextbyte
-                #if Debug: print 'transparent color index :%d' %trans_color
                 pass
             # "No Idea What Is This"
             else:

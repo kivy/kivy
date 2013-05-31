@@ -1573,9 +1573,9 @@ IF USE_GLEW:
         result = glewInit()
         if result != GLEW_OK:
             error = glewGetErrorString(result)
-            print 'GLEW initialization error:', error
+            print('GLEW initialization error:', error)
         else:
-            print 'GLEW initialization succeeded'
+            print('GLEW initialization succeeded')
         glew_dynamic_binding()
 
 ELSE:

@@ -86,7 +86,7 @@ happens on it, the function ``print_it`` will be called with the name of the
 reference::
 
     def print_it(instance, value):
-        print 'User clicked on', value
+        print('User clicked on', value)
     widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
     widget.bind(on_ref_press=print_it)
 
@@ -490,7 +490,7 @@ class Label(Widget):
     You can bind a ref event like this::
 
         def print_it(instance, value):
-            print 'User click on', value
+            print('User click on', value)
         widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
         widget.on_ref_press(print_it)
 

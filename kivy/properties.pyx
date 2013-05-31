@@ -130,8 +130,8 @@ class::
         a = NumericProperty(1)
 
     def callback(instance, value):
-        print 'My callback is call from', instance,
-        print 'and the a value changed to', value
+        print('My callback is call from', instance)
+        print('and the a value changed to', value)
 
     ins = MyClass()
     ins.bind(a=callback)
@@ -150,7 +150,7 @@ If you created the class yourself, you can use the 'on_<propname>' callback::
         a = NumericProperty(1)
 
         def on_a(self, instance, value):
-            print 'My property a changed to', value
+            print('My property a changed to', value)
 
 .. warning::
 
@@ -417,7 +417,7 @@ cdef class NumericProperty(Property):
 
     >>> wid = Widget()
     >>> wid.x = 42
-    >>> print wid.x
+    >>> print(wid.x)
     42
     >>> wid.x = "plop"
      Traceback (most recent call last):
@@ -827,7 +827,7 @@ cdef class BoundedNumericProperty(Property):
                 number = BoundedNumericProperty(0, min=-5, max=5)
 
             widget = MyWidget()
-            print widget.property('number').get_min(widget)
+            print(widget.property('number').get_min(widget))
             # will output -5
 
         .. versionadded:: 1.1.0

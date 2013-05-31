@@ -35,7 +35,7 @@ cpdef list gl_get_extensions():
     '''Return a list of OpenGL extensions available. All the names in the list
     have the `GL_` stripped at the start if exist, and are in lowercase.
 
-    >>> print gl_get_extensions()
+    >>> print(gl_get_extensions())
     ['arb_blend_func_extended', 'arb_color_buffer_float', 'arb_compatibility',
      'arb_copy_buffer'... ]
 

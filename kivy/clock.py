@@ -44,7 +44,7 @@ module::
                 Clock.schedule_interval(self.callback)
 
             def callback(self, dt):
-                print 'In callback'
+                print('In callback')
 
         # a Foo object is created, the method start is called,
         # and the instance of foo is deleted

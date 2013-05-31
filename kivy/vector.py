@@ -41,12 +41,12 @@ example, if you want to have the distance between 2 points::
     b = (87, 34)
 
     # optimized method
-    print 'distance between a and b:', Vector(a).distance(b)
+    print('distance between a and b:', Vector(a).distance(b))
 
     # non-optimized method
     va = Vector(a)
     vb = Vector(b)
-    print 'distance between a and b:', va.distance(vb)
+    print('distance between a and b:', va.distance(vb))
 
 
 Vector operators

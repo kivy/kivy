@@ -68,7 +68,7 @@ If yo want to know if the current :class:`MotionEvent` have an angle::
 
     def on_touch_move(self, touch):
         if 'angle' in touch.profile:
-            print 'The touch angle is', touch.a
+            print('The touch angle is', touch.a)
 
 If you want to select only the fiducials::
 

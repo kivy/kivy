@@ -110,9 +110,9 @@ Manual usage of the Atlas
 
     >>> from kivy.atlas import Atlas
     >>> atlas = Atlas('path/to/myatlas.atlas')
-    >>> print atlas.textures.keys()
+    >>> print(atlas.textures.keys())
     ['bubble', 'bubble-red', 'button', 'button-down']
-    >>> print atlas['button']
+    >>> print(atlas['button'])
     <kivy.graphics.texture.TextureRegion object at 0x2404d10>
 '''
 

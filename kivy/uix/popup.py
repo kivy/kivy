@@ -64,7 +64,7 @@ There are two events available: `on_open` when the popup is opening, and
 popup from closing by explictly returning True from your callback::
 
     def my_callback(instance):
-        print 'Popup', instance, 'is being dismissed, but is prevented!'
+        print('Popup', instance, 'is being dismissed, but is prevented!')
         return True
     popup = Popup(content=Label(text='Hello world'))
     popup.bind(on_dismiss=my_callback)

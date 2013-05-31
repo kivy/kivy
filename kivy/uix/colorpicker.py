@@ -19,11 +19,11 @@ usage::
     clr_picker = ColorPicker()
     parent.add_widget(ColorPicker)
     # print currently selected color in rgba format
-    print clr_picker.color
+    print(clr_picker.color)
     # print currently selected color in hsv format
-    print clr_picker.hsv
+    print(clr_picker.hsv)
     # print currently selected color in hex format
-    print clr_picker.hex_color
+    print(clr_picker.hex_color)
 '''
 
 __all__ = ('ColorPicker', 'ColorWheel')

@@ -153,14 +153,14 @@ located.  Please note that you might need to follow these steps multiple times i
 Kivy versions installed in the Python library path.
 To find your current installed version, you can use the command line::
 
-    $ python -c 'import kivy; print kivy.__path__'
+    $ python -c 'import kivy; print(kivy.__path__)'
 
 Then, remove that directory recursively.
 
 If you have installed Kivy with easy_install on linux, the directory may
 contain a "egg" directory. Remove that as well::
 
-    $ python -c 'import kivy; print kivy.__path__'
+    $ python -c 'import kivy; print(kivy.__path__)'
     ['/usr/local/lib/python2.7/dist-packages/Kivy-1.0.7-py2.7-linux-x86_64.egg/kivy']
     $ sudo rm -rf /usr/local/lib/python2.7/dist-packages/Kivy-1.0.7-py2.7-linux-x86_64.egg
 

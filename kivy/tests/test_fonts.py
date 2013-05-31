@@ -7,7 +7,7 @@ class FontTestCase(unittest.TestCase):
     def setUp(self):
         import os
         self.font_name = os.path.join(os.path.dirname(__file__), 'कीवी.ttf')
-        print self.font_name
+        print(self.font_name)
 
     def test_unicode_name(self):
         from kivy.core.text import Label

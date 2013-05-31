@@ -372,7 +372,7 @@ cdef class Callback(Instruction):
     The definition of the callback must be::
 
         def my_callback(self, instr):
-            print 'I have been called!'
+            print('I have been called!')
 
     .. warning::
 

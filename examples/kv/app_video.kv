@@ -8,7 +8,7 @@ BoxLayout:
         id: myvideo
         source: '../widgets/softboy.avi'
         allow_stretch: True
-        on_eos: self.play = True; print 'woot we are looping!'
+        on_eos: self.play = True; print('woot we are looping!')
 
     BoxLayout:
         size_hint_y: None
@@ -21,7 +21,7 @@ BoxLayout:
         Slider:
             value: myvideo.position
             max: myvideo.duration
-            on_value: print args[1]
+            on_value: print(args[1])
 
     BoxLayout:
         size_hint_y: None

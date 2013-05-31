@@ -28,10 +28,9 @@ Example of fetching twitter trends::
 
     def got_twitter_trends(req, result):
         trends = result[0]['trends']
-        print 'Last %d twitter trends:' % len(trends),
+        print('Last %d twitter trends:' % len(trends))
         for trend in trends:
-            print trend['name'],
-        print '!'
+            print(' - ', trend['name'])
 
     req = UrlRequest('https://api.twitter.com/1/trends/1.json',
             got_twitter_trends)
@@ -41,8 +40,8 @@ Example of Posting data (adapted from httplib example)::
     import urllib
 
     def bug_posted(req, result):
-        print 'Our bug is posted !'
-        print result
+        print('Our bug is posted !')
+        print(result)
 
     params = urllib.urlencode({'@number': 12524, '@type': 'issue',
         '@action': 'show'})

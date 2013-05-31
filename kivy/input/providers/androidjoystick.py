@@ -86,7 +86,6 @@ class AndroidMotionEventProvider(MotionEventProvider):
                 # avoid same touch position
                 if touch.sx == x and touch.sy == y \
                    and touch.pressure == pressure:
-                    #print 'avoid moving.', touch.uid, x, y, pressure, radius
                     continue
                 touch.move([x, y, pressure, radius])
                 dispatch_fn('update', touch)

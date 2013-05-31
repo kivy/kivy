@@ -104,7 +104,7 @@ def parse_string(text):
 def parse_int2(text):
     '''Parse a string to a list of exactly 2 integers
 
-        >>> print parse_int2("12 54")
+        >>> print(parse_int2("12 54"))
         12, 54
 
     '''

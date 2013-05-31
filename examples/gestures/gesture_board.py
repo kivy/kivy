@@ -62,7 +62,6 @@ class GestureBoard(FloatLayout):
                 '',
                 list(zip(touch.ud['line'].points[::2], touch.ud['line'].points[1::2]))
                 )
-        # print the gesture representation, you can use that to add
         # gestures to my_gestures.py
         print("gesture representation:", self.gdb.gesture_to_str(g))
 

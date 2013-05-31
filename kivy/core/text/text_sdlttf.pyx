@@ -1,3 +1,4 @@
+#cython: c_string_type=unicode, c_string_encoding=utf8
 '''
 Text/SDL_ttf
 ============
@@ -94,6 +95,7 @@ cdef TTF_Font *_get_font(self):
     cdef TTF_Font *fontobject = NULL
     cdef _TTFContainer ttfc
     cdef char *error
+    cdef str s_error
 
     if not TTF_WasInit():
         TTF_Init()
@@ -108,8 +110,8 @@ cdef TTF_Font *_get_font(self):
 
         # fallback to search a system font
         if fontobject == NULL:
-            error = SDL_GetError()
-            print <bytes>error
+            s_error = <bytes>SDL_GetError()
+            print s_error
             assert(0)
         pygame_cache[fontid] = ttfc = _TTFContainer()
         ttfc.font = fontobject

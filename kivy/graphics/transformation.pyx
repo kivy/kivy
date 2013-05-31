@@ -38,7 +38,7 @@ cdef class Matrix:
 
         >>> from kivy.graphics.transformation import Matrix
         >>> m = Matrix()
-        >>> print m
+        >>> print(m)
         [[ 1.000000 0.000000 0.000000 0.000000 ]
         [ 0.000000 1.000000 0.000000 0.000000 ]
         [ 0.000000 0.000000 1.000000 0.000000 ]

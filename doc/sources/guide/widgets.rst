@@ -99,7 +99,7 @@ contains all the children. You can easily traverse the tree by doing::
     root = BoxLayout()
     # ... add widgets to root ...
     for child in root.children:
-        print child
+        print(child)
 
 However, this must be used carefuly. If you intend to modify the children list
 with one of the methods shown in the previous section, you must use a copy of

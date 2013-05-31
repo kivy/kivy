@@ -170,7 +170,7 @@ cdef class EventDispatcher(object):
                     pass
 
             def on_swipe_callback(*largs):
-                print 'my swipe is called', largs
+                print('my swipe is called', largs)
             w = MyWidget()
             w.dispatch('on_swipe')
         '''
@@ -208,9 +208,9 @@ cdef class EventDispatcher(object):
 
             # With properties
             def my_x_callback(obj, value):
-                print 'on object', obj, 'x changed to', value
+                print('on object', obj, 'x changed to', value)
             def my_width_callback(obj, value):
-                print 'on object', obj, 'width changed to', value
+                print('on object', obj, 'width changed to', value)
             self.bind(x=my_x_callback, width=my_width_callback)
 
             # With event
@@ -227,7 +227,7 @@ cdef class EventDispatcher(object):
                     self.add_widget(btn)
 
                 def my_callback(self, obj):
-                    print 'press on button', obj
+                    print('press on button', obj)
 
         '''
         cdef Property prop
@@ -362,7 +362,7 @@ cdef class EventDispatcher(object):
         >>> mywidget = Widget()
         >>> mywidget.create_property('custom')
         >>> mywidget.custom = True
-        >>> print mywidget.custom
+        >>> print(mywidget.custom)
         True
         '''
         prop = ObjectProperty(None)

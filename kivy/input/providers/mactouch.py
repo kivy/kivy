@@ -131,10 +131,8 @@ class MacMotionEventProvider(MotionEventProvider):
         # ok, listing devices, and attach !
         devices = MultitouchSupport.MTDeviceCreateList()
         num_devices = CFArrayGetCount(devices)
-        # print 'num_devices =', num_devices
         for i in range(num_devices):
             device = CFArrayGetValueAtIndex(devices, i)
-            # print 'device #%d: %016x' % (i, device)
             # create touch dict for this device
             data_id = str(device)
             self.touches[data_id] = {}

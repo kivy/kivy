@@ -120,7 +120,6 @@ class WindowSDL(WindowBase):
             if event is None:
                 continue
 
-            #print 'sdl received', event
             action, args = event[0], event[1:]
             if action == 'quit':
                 EventLoop.quit = True
@@ -245,24 +244,20 @@ class WindowSDL(WindowBase):
             if event is None:
                 continue
 
-            #print 'sdl received', event
             action, args = event[0], event[1:]
             if action == 'quit':
                 EventLoop.quit = True
                 self.close()
                 break
             elif action == 'windowrestored':
-                #print 'app goes live again!'
                 break
 
-        #print 'dispatch app on_resume'
         app.dispatch('on_resume')
 
     def mainloop(self):
         # don't known why, but pygame required a resize event
         # for opengl, before mainloop... window reinit ?
         self.dispatch('on_resize', *self.size)
-        #print 'dispatched on_resize, size is', self.size
 
         while not EventLoop.quit and EventLoop.status == 'started':
             try:
@@ -308,7 +303,6 @@ class WindowSDL(WindowBase):
         return True
 
     def _check_keyboard_shown(self, dt):
-        #print sdl.is_keyboard_shown()
         if self._sdl_keyboard is None:
             return False
         if not sdl.is_keyboard_shown():

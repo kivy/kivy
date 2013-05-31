@@ -75,7 +75,7 @@ A profile is a string that indicates what features are available inside the
 motion event. Let's imagine that you are in an ``on_touch_move`` method::
 
     def on_touch_move(self, touch):
-        print touch.profile
+        print(touch.profile)
         return super(..., self).on_touch_move(touch)
 
 The print could output::
@@ -95,9 +95,9 @@ As we said, for touch events ``'pos'`` is a mandatory profile, but not
 profile exists::
 
     def on_touch_move(self, touch):
-        print 'The touch is at position', touch.pos
+        print('The touch is at position', touch.pos)
         if 'angle' in touch.profile:
-            print 'The touch angle is', touch.a
+            print('The touch angle is', touch.a)
 
 You can find a list of available profiles in the
 :mod:`~kivy.input.motionevent` documentation.
@@ -159,8 +159,8 @@ now, only a :class:`~kivy.input.shape.ShapeRect` can be exposed::
 
     def on_touch_move(self, touch):
         if isinstance(touch.shape, ShapeRect):
-            print 'My touch have a rectangle shape of size', \
-                (touch.shape.width, touch.shape.height)
+            print('My touch have a rectangle shape of size',
+                (touch.shape.width, touch.shape.height))
         # ...
 
 Double tap
@@ -172,13 +172,13 @@ current touch is one of a double tap or not::
 
     def on_touch_down(self, touch):
         if touch.is_double_tap:
-            print 'Touch is a double tap !'
-            print ' - interval is', touch.double_tap_time
-            print ' - distance between previous is', touch.double_tap_distance
+            print('Touch is a double tap !')
+            print(' - interval is', touch.double_tap_time)
+            print(' - distance between previous is', touch.double_tap_distance)
         # ...
 
-triple tap
-~~~~~~~~~~~
+Triple tap
+~~~~~~~~~~
 
 A triple tap is the action of tapping thrice within a time and a distance.
 It's calculated by the tripletap post-processing module. You can test if the
@@ -186,9 +186,9 @@ current touch is one of a triple tap or not::
 
     def on_touch_down(self, touch):
         if touch.is_triple_tap:
-            print 'Touch is a triple tap !'
-            print ' - interval is', touch.triple_tap_time
-            print ' - distance between previous is', touch.triple_tap_distance
+            print('Touch is a triple tap !')
+            print(' - interval is', touch.triple_tap_time)
+            print(' - distance between previous is', touch.triple_tap_distance)
         # ...
 
 Grabbing touch events
@@ -234,7 +234,7 @@ Here is an example of how to use grabbing::
 
             # ok, the current touch is dispatched for us.
             # do something interesting here
-            print 'Hello world!'
+            print('Hello world!')
 
             # don't forget to ungrab ourself, or you might have side effects
             touch.ungrab(self)

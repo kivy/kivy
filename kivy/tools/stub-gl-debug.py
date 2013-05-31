@@ -197,4 +197,4 @@ for x in lines:
     print(')"')
     print('    %s' % y)
     print('    ret = glGetError()')
-    print('    if ret: print "ERR %d / %x" % (ret, ret)')
+    print('    if ret: print("ERR {} / {}".format(ret, ret))')

@@ -369,7 +369,7 @@ class TreeView(Widget):
             treeview = TreeView()
             # ... add nodes ...
             for node in treeview.iterate_open_nodes():
-                print node
+                print(node)
 
         '''
         if not node:

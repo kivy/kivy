@@ -67,7 +67,7 @@ If you want to be notified when the pos attribute changes, i.e., when the
 widget moves, you can bind your own callback function like this::
 
     def callback_pos(instance, value):
-        print 'The widget', instance, 'moved to', value
+        print('The widget', instance, 'moved to', value)
 
     wid = Widget()
     wid.bind(pos=callback_pos)
