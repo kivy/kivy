@@ -34,9 +34,9 @@ if 'KIVY_DOC' not in environ:
         gl_init_resources()
 
     def print_gl_version():
-        version = glGetString(GL_VERSION).decode('utf-8')
-        vendor = glGetString(GL_VENDOR).decode('utf-8')
-        renderer = glGetString(GL_RENDERER).decode('utf-8')
+        version = glGetString(GL_VERSION)
+        vendor = glGetString(GL_VENDOR)
+        renderer = glGetString(GL_RENDERER)
         Logger.info('GL: OpenGL version <{0}>'.format(version))
         Logger.info('GL: OpenGL vendor <{0}>'.format(vendor))
         Logger.info('GL: OpenGL renderer <{0}>'.format(renderer))
@@ -60,7 +60,7 @@ if 'KIVY_DOC' not in environ:
             # XXX in the android emulator (latest version at 22 march 2013),
             # this call was segfaulting the gl stack.
             Logger.info('GL: Shading version <{0}>'.format(
-                glGetString(GL_SHADING_LANGUAGE_VERSION).decode('utf-8')))
+                glGetString(GL_SHADING_LANGUAGE_VERSION)))
         Logger.info('GL: Texture max size <{0}>'.format(
             glGetIntegerv(GL_MAX_TEXTURE_SIZE)[0]))
         Logger.info('GL: Texture max units <{0}>'.format(

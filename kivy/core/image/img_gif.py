@@ -34,6 +34,7 @@ from array import array
 
 KNOWN_FORMATS = ('GIF87a', 'GIF89a')
 
+from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
@@ -53,7 +54,8 @@ class ImageLoaderGIF(ImageLoaderBase):
             try:
                 im = GifDecoder(open(filename, 'rb').read())
             except UnicodeEncodeError:
-                im = GifDecoder(open(filename.encode('utf8'), 'rb').read())
+                if PY2:
+                    im = GifDecoder(open(filename.encode('utf8'), 'rb').read())
         except:
             Logger.warning('Image: Unable to load Image <%s>' % filename)
             raise

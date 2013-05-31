@@ -21,6 +21,7 @@ from kivy import kivy_data_dir
 from kivy.graphics.texture import Texture
 from kivy.core import core_select_lib
 from kivy.resources import resource_find
+from kivy.compat import PY2
 
 DEFAULT_FONT = 'DroidSans'
 
@@ -436,14 +437,17 @@ class LabelBase(object):
             texture.ask_update(self._texture_fill)
 
     def _get_text(self):
-        try:
-            if type(self._text) is unicode:
+        if PY2:
+            try:
+                if type(self._text) is unicode:
+                    return self._text
+                return self._text.decode('utf8')
+            except AttributeError:
+                # python 3 support
+                return str(self._text)
+            except UnicodeDecodeError:
                 return self._text
-            return self._text.decode('utf8')
-        except AttributeError:
-            # python 3 support
-            return str(self._text)
-        except UnicodeDecodeError:
+        else:
             return self._text
 
     def _set_text(self, text):

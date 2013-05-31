@@ -163,7 +163,7 @@ class ColorWheel(Widget):
         ppie = self._pieces_of_pie
         for idx, segment in enumerate(self.arcs):
             segment.change_color(
-                sv=self.sv_s[self.sv_idx + idx / ppie])
+                sv=self.sv_s[int(self.sv_idx + idx / ppie)])
 
     def change_alpha(self, val):
         for idx, segment in enumerate(self.arcs):
@@ -335,7 +335,7 @@ class _ColorArc(InstructionGroup):
         v += (end_point_inner * 2)
         v += (end_point_outer * 2)
 
-        return Mesh(vertices=v, indices=range(len(v) / 4),
+        return Mesh(vertices=v, indices=range(int(len(v) / 4)),
                     mode='triangle_strip')
 
     def change_color(self, color=None, color_delta=None, sv=None, a=None):

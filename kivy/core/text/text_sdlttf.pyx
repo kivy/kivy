@@ -11,6 +11,7 @@ TODO:
 
 __all__ = ('LabelSDLttf', )
 
+from kivy.compat import PY2
 from kivy.core.text import LabelBase
 from kivy.core.image import ImageData
 from kivy.resources import resource_paths
@@ -127,17 +128,19 @@ cdef TTF_Font *_get_font(self):
 class LabelSDLttf(LabelBase):
 
     def _get_font_id(self):
-        try:
-            return '|'.join([unicode(self.options[x]) for x \
-                in ('font_size', 'font_name_r', 'bold', 'italic')])
-        except UnicodeDecodeError:
-            return '|'.join([self.options[x] for x \
-                in ('font_size', 'font_name_r', 'bold', 'italic')])
-            
+        if PY2:
+            try:
+                return '|'.join([unicode(self.options[x]) for x \
+                    in ('font_size', 'font_name_r', 'bold', 'italic')])
+            except UnicodeDecodeError:
+                pass
+        return '|'.join([self.options[x] for x \
+            in ('font_size', 'font_name_r', 'bold', 'italic')])
 
     def get_extents(self, text):
         try:
-            text = text.encode('UTF-8')
+            if PY2:
+                text = text.encode('UTF-8')
         except:
             pass
         cdef TTF_Font *font = _get_font(self)
@@ -166,7 +169,8 @@ class LabelSDLttf(LabelBase):
 
     def _render_text(self, text, x, y):
         try:
-            text = text.encode('UTF-8')
+            if PY2:
+                text = text.encode('UTF-8')
         except:
             pass
         cdef TTF_Font *font = _get_font(self)

@@ -4,6 +4,7 @@ Pygame: Pygame image loader
 
 __all__ = ('ImageLoaderPygame', )
 
+from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
@@ -39,7 +40,8 @@ class ImageLoaderPygame(ImageLoaderBase):
             try:
                 im = pygame.image.load(filename)
             except UnicodeEncodeError:
-                im = pygame.image.load(filename.encode('utf8'))
+                if PY2:
+                    im = pygame.image.load(filename.encode('utf8'))
         except:
             Logger.warning('Image: Unable to load image <%s>' % filename)
             raise

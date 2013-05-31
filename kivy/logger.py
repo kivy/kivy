@@ -56,6 +56,7 @@ import logging
 import os
 import sys
 import kivy
+from kivy.compat import PY2
 from random import randint
 from functools import partial
 
@@ -134,7 +135,7 @@ class FileHandler(logging.Handler):
 
             # now, unlink every files in the list
             for filename in l:
-                unlink(filename[0])
+                unlink(filename['fn'])
 
         print('Purge finished !')
 
@@ -178,7 +179,8 @@ class FileHandler(logging.Handler):
         try:
             FileHandler.fd.write(record.msg)
         except UnicodeEncodeError:
-            FileHandler.fd.write(record.msg.encode('utf8'))
+            if PY2:
+                FileHandler.fd.write(record.msg.encode('utf8'))
         FileHandler.fd.write('\n')
         FileHandler.fd.flush()
 

@@ -41,7 +41,7 @@ cpdef list gl_get_extensions():
 
     '''
     global _gl_extensions
-    cdef bytes extensions
+    cdef str extensions
     if not _gl_extensions:
         extensions = <char *>c_opengl.glGetString(c_opengl.GL_EXTENSIONS)
         _gl_extensions[:] = [x[3:].lower() if x[:3] == 'GL_' else x.lower()\

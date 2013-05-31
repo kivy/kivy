@@ -7,6 +7,7 @@ __all__ = ('WindowPygame', )
 # fail early if possible
 import pygame
 
+from kivy.compat import PY2
 from kivy.core.window import WindowBase
 from kivy.core import CoreCriticalException
 from os import environ
@@ -176,10 +177,13 @@ class WindowPygame(WindowBase):
         try:
             if not exists(filename):
                 return False
-            try:
+            if PY2:
+                try:
+                    im = pygame.image.load(filename)
+                except UnicodeEncodeError:
+                    im = pygame.image.load(filename.encode('utf8'))
+            else:
                 im = pygame.image.load(filename)
-            except UnicodeEncodeError:
-                im = pygame.image.load(filename.encode('utf8'))
             if im is None:
                 raise Exception('Unable to load window icon (not found)')
             pygame.display.set_icon(im)
