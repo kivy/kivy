@@ -576,7 +576,7 @@ from kivy.utils import QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.lib.debug import make_traceback
-from kivy.compat import PY2, iteritems
+from kivy.compat import PY2, iteritems, iterkeys
 import kivy.metrics as Metrics
 from weakref import ref
 
@@ -1446,7 +1446,7 @@ class BuilderBase(object):
             _ids = dict(rctx['ids'])
             _root = _ids.pop('root')
             _new_ids = _root.ids
-            for _key in _ids.keys():
+            for _key in iterkeys(_ids):
                 if _ids[_key] == _root:
                     # skip on self
                     continue

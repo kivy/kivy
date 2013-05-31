@@ -63,7 +63,7 @@ __all__ = ('Animation', 'AnimationTransition')
 from math import sqrt, cos, sin, pi
 from kivy.event import EventDispatcher
 from kivy.clock import Clock
-from kivy.compat import string_types
+from kivy.compat import string_types, iterkeys
 
 
 class Animation(EventDispatcher):
@@ -302,8 +302,8 @@ class Animation(EventDispatcher):
             return tp([_calculate(a[x], b[x], t) for x in range(len(a))])
         elif isinstance(a, dict):
             d = {}
-            for x in a.keys():
-                if not x in list(b.keys()):
+            for x in iterkeys(a):
+                if x not in b:
                     # User requested to animate only part of the dict.
                     # Copy the rest
                     d[x] = a[x]
