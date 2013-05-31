@@ -42,7 +42,7 @@ from kivy.utils import platform
 __kivy_post_configuration = []
 
 
-if platform() == 'macosx' and sys.maxint < 9223372036854775807:
+if platform() == 'macosx' and sys.maxsize < 9223372036854775807:
     r = '''Unsupported Python version detected!:
     Kivy requires a 64 bit version of Python to run on OS X. We strongly advise
     you to use the version of Python that is provided by Apple (don't use ports,
@@ -174,7 +174,7 @@ def kivy_usage():
         --dpi=96
             Manually overload the Window DPI (for testing only.)
     '''
-    print kivy_usage.__doc__ % (basename(sys.argv[0]))
+    print(kivy_usage.__doc__ % (basename(sys.argv[0])))
 
 
 # Start !
@@ -188,7 +188,7 @@ else:
 kivy_options = {
     'window': ('egl_rpi', 'pygame', 'sdl', 'x11'),
     'text': ('pil', 'pygame', 'sdlttf'),
-    'video': ('ffmpeg', 'gstreamer', 'pyglet'),
+    'video': ('ffmpeg', 'gstreamer', 'pyglet', 'null'),
     'audio': ('pygame', 'gstreamer', 'sdl'),
     'image': ('tex', 'imageio', 'dds', 'gif', 'pil', 'pygame'),
     'camera': ('opencv', 'gstreamer', 'videocapture'),
@@ -266,7 +266,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         if not exists(icon_dir):
             try:
                 shutil.copytree(join(kivy_data_dir, 'logo'), icon_dir)
-            except shutil.Error, e:
+            except shutil.Error as e:
                 Logger.exception('Error when copying logo directory')
 
     # configuration
@@ -291,7 +291,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                  'display=', 'size=', 'rotate=', 'config=', 'debug',
                  'dpi='])
 
-        except GetoptError, err:
+        except GetoptError as err:
             Logger.error('Core: %s' % str(err))
             kivy_usage()
             sys.exit(2)
@@ -365,7 +365,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         try:
             with open(kivy_config_fn, 'w') as fd:
                 Config.write(fd)
-        except Exception, e:
+        except Exception as e:
             Logger.exception('Core: error while saving default'
                              'configuration file:', str(e))
         Logger.info('Core: Kivy configuration saved.')

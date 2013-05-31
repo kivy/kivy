@@ -992,7 +992,7 @@ class ListView(AbstractView, EventDispatcher):
 
             # fill with a "padding"
             fh = 0
-            for x in xrange(istart):
+            for x in range(istart):
                 fh += sizes[x] if x in sizes else rh
             container.add_widget(Widget(size_hint_y=None, height=fh))
 

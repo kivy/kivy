@@ -7,6 +7,7 @@ __all__ = ('WindowPygame', )
 # fail early if possible
 import pygame
 
+from kivy.compat import PY2
 from kivy.core.window import WindowBase
 from kivy.core import CoreCriticalException
 from os import environ
@@ -54,7 +55,7 @@ class WindowPygame(WindowBase):
 
         try:
             pygame.display.init()
-        except pygame.error, e:
+        except pygame.error as e:
             raise CoreCriticalException(e.message)
 
         multisamples = Config.getint('graphics', 'multisamples')
@@ -114,7 +115,7 @@ class WindowPygame(WindowBase):
         # try to use mode with multisamples
         try:
             self._pygame_set_mode()
-        except pygame.error, e:
+        except pygame.error as e:
             if multisamples:
                 Logger.warning('WinPygame: Video: failed (multisamples=%d)' %
                                multisamples)
@@ -124,7 +125,7 @@ class WindowPygame(WindowBase):
                 multisamples = 0
                 try:
                     self._pygame_set_mode()
-                except pygame.error, e:
+                except pygame.error as e:
                     raise CoreCriticalException(e.message)
             else:
                 raise CoreCriticalException(e.message)
@@ -176,10 +177,13 @@ class WindowPygame(WindowBase):
         try:
             if not exists(filename):
                 return False
-            try:
+            if PY2:
+                try:
+                    im = pygame.image.load(filename)
+                except UnicodeEncodeError:
+                    im = pygame.image.load(filename.encode('utf8'))
+            else:
                 im = pygame.image.load(filename)
-            except UnicodeEncodeError:
-                im = pygame.image.load(filename.encode('utf8'))
             if im is None:
                 raise Exception('Unable to load window icon (not found)')
             pygame.display.set_icon(im)
@@ -325,7 +329,7 @@ class WindowPygame(WindowBase):
                 self._mainloop()
                 if not pygame.display.get_active():
                     pygame.time.wait(100)
-            except BaseException, inst:
+            except BaseException as inst:
                 # use exception manager first
                 r = ExceptionManager.handle_exception(inst)
                 if r == ExceptionManager.RAISE:

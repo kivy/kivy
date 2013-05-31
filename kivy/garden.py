@@ -66,17 +66,14 @@ garden_app_dir = join(realpath(dirname(sys.argv[0])), 'libs', 'garden')
 class GardenImporter(object):
 
     def find_module(self, fullname, path):
-        #print 'find_module()', (fullname, path)
         if path == 'kivy.garden':
             return self
 
     def load_module(self, fullname):
-        #print 'load_module()', fullname
         assert(fullname.startswith('kivy.'))
         modname = fullname.split('.', 1)[-1]
         for directory in (garden_app_dir, garden_system_dir):
             moddir = join(directory, modname)
-            #print 'search for', moddir
             if exists(moddir):
                 return self._load_module(fullname, moddir)
 

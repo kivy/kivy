@@ -76,7 +76,7 @@ def parse_color(text):
                     'ColorParser: Invalid color format for %r' % text)
         try:
             value = [int(res[i:i + 2], 16) / 255.
-                     for i in xrange(0, len(res), 2)]
+                     for i in range(0, len(res), 2)]
         except ValueError:
             return color_error('ColorParser: Invalid color for %r' % text)
         if lres == 6:
@@ -104,12 +104,12 @@ def parse_string(text):
 def parse_int2(text):
     '''Parse a string to a list of exactly 2 integers
 
-        >>> print parse_int2("12 54")
+        >>> print(parse_int2("12 54"))
         12, 54
 
     '''
     texts = [x for x in text.split(' ') if x.strip() != '']
-    value = map(parse_int, texts)
+    value = list(map(parse_int, texts))
     if len(value) < 1:
         raise Exception('Invalid int2 format: %s' % text)
     elif len(value) == 1:
@@ -127,11 +127,11 @@ def parse_float4(text):
 
     '''
     texts = [x for x in text.split(' ') if x.strip() != '']
-    value = map(parse_float, texts)
+    value = list(map(parse_float, texts))
     if len(value) < 1:
         raise Exception('Invalid float4 format: %s' % text)
     elif len(value) == 1:
-        return map(lambda x: value[0], range(4))
+        return [value[0] for x in range(4)]
     elif len(value) == 2:
         return [value[0], value[1], value[0], value[1]]
     elif len(value) == 3:

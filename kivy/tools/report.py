@@ -11,9 +11,9 @@ import os
 import sys
 import time
 from time import ctime
-from ConfigParser import ConfigParser
-from StringIO import StringIO
-from xmlrpclib import ServerProxy
+from configparser import ConfigParser
+from io import StringIO
+from xmlrpc.client import ServerProxy
 
 import kivy
 
@@ -110,40 +110,40 @@ for x in pymt_logger_history.history:
 '''
 
 title('Environ')
-for k, v in os.environ.iteritems():
+for k, v in os.environ.items():
     report.append('%s = %s' % (k, v))
 
 title('Options')
-for k, v in kivy.kivy_options.iteritems():
+for k, v in kivy.kivy_options.items():
     report.append('%s = %s' % (k, v))
 
 
 report = '\n'.join(report)
 
-print report
-print
-print
+print(report)
+print()
+print()
 
 try:
-    reply = raw_input(
+    reply = input(
         'Do you accept to send report to paste.pocoo.org (Y/n) : ')
 except EOFError:
     sys.exit(0)
 
 if reply.lower().strip() in ('', 'y'):
-    print 'Please wait while sending the report...'
+    print('Please wait while sending the report...')
 
     s = ServerProxy('http://paste.pocoo.org/xmlrpc/')
     r = s.pastes.newPaste('text', report)
 
-    print
-    print
-    print 'REPORT posted at http://paste.pocoo.org/show/%s/' % r
-    print
-    print
+    print()
+    print()
+    print('REPORT posted at http://paste.pocoo.org/show/%s/' % r)
+    print()
+    print()
 else:
-    print 'No report posted.'
+    print('No report posted.')
 
 # On windows system, the console leave directly after the end
 # of the dump. That's not cool if we want get report url
-raw_input('Enter any key to leave.')
+input('Enter any key to leave.')

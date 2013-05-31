@@ -15,6 +15,7 @@ __all__ = ('VideoBase', 'Video')
 from kivy.clock import Clock
 from kivy.core import core_select_lib
 from kivy.event import EventDispatcher
+from kivy.logger import Logger
 
 
 class VideoBase(EventDispatcher):
@@ -154,7 +155,7 @@ class VideoBase(EventDispatcher):
 
         self.dispatch('on_eos')
 
-    def _update(self):
+    def _update(self, dt):
         '''Update the video content to texture.
         '''
         pass
@@ -191,5 +192,6 @@ Video = core_select_lib('video', (
     ('gstreamer', 'video_gstreamer', 'VideoGStreamer'),
     ('ffmpeg', 'video_ffmpeg', 'VideoFFMpeg'),
     ('pyglet', 'video_pyglet', 'VideoPyglet'),
+    ('null', 'video_null', 'VideoNull'),
 ))
 

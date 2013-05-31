@@ -14,6 +14,7 @@ class BaseClass(object):
         self.parent = None
         self.binded_func = {}
         self.id = None
+        self.ids = {}
         self.cls = []
 
     def add_widget(self, widget):
@@ -154,8 +155,8 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
     on_press:
-        print 'hello world'
-        print 'this is working !'
+        print('hello world')
+        print('this is working !')
         self.a = 1
 ''')
         wid = TestClass()
@@ -171,8 +172,8 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
         on_press:
-                print 'hello world'
-                print 'this is working !'
+                print('hello world')
+                print('this is working !')
                 self.a = 1
 ''')
         wid = TestClass()
@@ -188,8 +189,8 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
  on_press:
-  print 'hello world'
-  print 'this is working !'
+  print('hello world')
+  print('this is working !')
   self.a = 1
 ''')
         wid = TestClass()
@@ -205,8 +206,8 @@ class LangTestCase(unittest.TestCase):
         Builder.load_string('''
 <TestClass>:
   on_press:
-    print 'hello world'
-    print 'this is working !'
+    print('hello world')
+    print('this is working !')
     self.a = 1
 ''')
         wid = TestClass()

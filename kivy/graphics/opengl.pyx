@@ -1195,7 +1195,7 @@ def glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
     c_opengl.glPixelStorei(GL_PACK_ALIGNMENT, 1)
     c_opengl.glReadPixels(x, y, width, height, format, type, data)
     try:
-        py_pixels = PyString_FromStringAndSize(data, size)
+        py_pixels = data[:size]
     finally:
         free(data)
 
@@ -1573,9 +1573,9 @@ IF USE_GLEW:
         result = glewInit()
         if result != GLEW_OK:
             error = glewGetErrorString(result)
-            print 'GLEW initialization error:', error
+            print('GLEW initialization error:', error)
         else:
-            print 'GLEW initialization succeeded'
+            print('GLEW initialization succeeded')
         glew_dynamic_binding()
 
 ELSE:

@@ -147,6 +147,4 @@ cdef class GraphicsCompiler:
 
         group.flags |= GI_NO_APPLY_ONCE
 
-        #if count: print 'Ignored', count
-
         return group

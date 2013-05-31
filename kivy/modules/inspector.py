@@ -317,7 +317,7 @@ class Inspector(FloatLayout):
         for node in list(treeview.iterate_all_nodes())[:]:
             treeview.remove_node(node)
 
-        keys = widget.properties().keys()
+        keys = list(widget.properties().keys())
         keys.sort()
         node = None
         wk_widget = weakref.ref(widget)
@@ -374,7 +374,7 @@ class Inspector(FloatLayout):
         dtype = None
         if isinstance(prop, AliasProperty) or nested:
             # trying to resolve type dynamicly
-            if type(value) in (unicode, str):
+            if type(value) in (str, str):
                 dtype = 'string'
             elif type(value) in (int, float):
                 dtype = 'numeric'

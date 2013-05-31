@@ -266,7 +266,7 @@ class TreeView(Widget):
         self._trigger_layout = Clock.create_trigger(self._do_layout, -1)
         super(TreeView, self).__init__(**kwargs)
         tvlabel = TreeViewLabel(text='Root', is_open=True, level=0)
-        for key, value in self.root_options.iteritems():
+        for key, value in self.root_options.items():
             setattr(tvlabel, key, value)
         self._root = self.add_node(tvlabel, None)
         self.bind(
@@ -369,7 +369,7 @@ class TreeView(Widget):
             treeview = TreeView()
             # ... add nodes ...
             for node in treeview.iterate_open_nodes():
-                print node
+                print(node)
 
         '''
         if not node:
@@ -420,7 +420,7 @@ class TreeView(Widget):
     def on_root_options(self, instance, value):
         if not self.root:
             return
-        for key, value in value.iteritems():
+        for key, value in value.items():
             setattr(self.root, key, value)
 
     def _do_layout(self, *largs):
@@ -614,16 +614,16 @@ if __name__ == '__main__':
             tv = TreeView(hide_root=True)
             add = tv.add_node
             root = add(TreeViewLabel(text='Level 1, entry 1', is_open=True))
-            for x in xrange(5):
+            for x in range(5):
                 add(TreeViewLabel(text='Element %d' % x), root)
             root2 = add(TreeViewLabel(text='Level 1, entry 2', is_open=False))
-            for x in xrange(24):
+            for x in range(24):
                 add(TreeViewLabel(text='Element %d' % x), root2)
-            for x in xrange(5):
+            for x in range(5):
                 add(TreeViewLabel(text='Element %d' % x), root)
             root2 = add(TreeViewLabel(text='Element childs 2', is_open=False),
                         root)
-            for x in xrange(24):
+            for x in range(24):
                 add(TreeViewLabel(text='Element %d' % x), root2)
             return tv
     TestApp().run()

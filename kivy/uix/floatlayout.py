@@ -89,7 +89,7 @@ class FloatLayout(Layout):
                 c.height = h * shh
 
             # pos
-            for key, value in c.pos_hint.iteritems():
+            for key, value in c.pos_hint.items():
                 if key == 'x':
                     c.x = x + value * w
                 elif key == 'right':

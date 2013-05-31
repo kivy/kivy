@@ -152,7 +152,7 @@ def _is_valid_ext_name(name):
         major, minor = version.split('.')
         major, minor = int(major), int(minor)
     except:
-        print "The name '%s' is not a valid extension name." % name
+        print("The name '%s' is not a valid extension name." % name)
         return False
     return (extname, (major, minor))
 
@@ -231,7 +231,7 @@ def unzip_extensions():
             except IOError:
                 Logger.warn("Malformed zipfile '%s'! Skipping it." % zipfn)
                 continue
-            except Exception, e:
+            except Exception as e:
                 Logger.warn("Malformed extension '%s'! Skipping it." % zipfn)
                 zipf.close()
                 continue
@@ -268,7 +268,7 @@ def unzip_extensions():
                                 mkdir(join(epath, extdir, directory))
                         with open(join(epath, extdir, member), 'wb') as fd:
                             fd.write(zipf.read(member))
-                except Exception, e:
+                except Exception as e:
                     # Catch any error, e.g. non-writable directory, etc.
                     Logger.error("Failed installing extension " +
                                  "'%s' %s." % (extname, e))

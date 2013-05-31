@@ -662,7 +662,7 @@ class ScreenManager(FloatLayout):
         if not screen in self.screens:
             return
         if self.current_screen == screen:
-            other = self.next()
+            other = next(self)
             if other:
                 self.current = other
         screen.manager = None
@@ -717,7 +717,7 @@ class ScreenManager(FloatLayout):
         '''
         return bool([s for s in self.screens if s.name == name])
 
-    def next(self):
+    def __next__(self):
         '''Return the name of the next screen from the screen list.
         '''
         screens = self.screens
@@ -795,7 +795,7 @@ if __name__ == '__main__':
             #d = ('left', 'up', 'down', 'right')
             #di = d.index(self.sm.transition.direction)
             #self.sm.transition.direction = d[(di + 1) % len(d)]
-            self.sm.current = self.sm.next()
+            self.sm.current = next(self.sm)
 
         def remove_screen(self, *l):
             self.sm.remove_widget(self.sm.get_screen('test1'))

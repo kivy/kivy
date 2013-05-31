@@ -269,6 +269,7 @@ class PropertiesTestCase(unittest.TestCase):
     def test_aliasproperty_with_cache(self):
         from kivy.properties import NumericProperty, AliasProperty
         global observe_called
+        observe_called = 0
 
         class CustomAlias(EventDispatcher):
             basevalue = NumericProperty(1)

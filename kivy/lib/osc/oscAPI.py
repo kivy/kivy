@@ -29,7 +29,7 @@
     Thanks for the support to Buchsenhausen, Innsbruck, Austria.
 '''
 
-import OSC
+from . import OSC
 import socket, os, time, errno, sys
 from threading import Lock
 from kivy.logger import Logger
@@ -203,7 +203,7 @@ class OSCServer(_OSCServer):
                 self.socket.settimeout(0.5)
                 self.haveSocket = True
 
-            except socket.error, e:
+            except socket.error as e:
                 error, message = e.args
 
                 # special handle for EADDRINUSE
@@ -221,7 +221,7 @@ class OSCServer(_OSCServer):
             try:
                 message = self.socket.recv(65535)
                 self._queue_message(message)
-            except Exception, e:
+            except Exception as e:
                 if type(e) == socket.timeout:
                     continue
                 Logger.exception('OSC: Error in Tuio recv()')
@@ -248,7 +248,7 @@ def dontListen(id = None):
     if id and id in oscThreads:
         ids = [id]
     else:
-        ids = oscThreads.keys()
+        ids = list(oscThreads.keys())
     for id in ids:
         #oscThreads[id].socket.close()
         Logger.debug('OSC: Stop thread <%s>' % id)
@@ -267,9 +267,9 @@ if __name__ == '__main__':
     def printStuff(msg):
         '''deals with "print" tagged OSC addresses
         '''
-        print "printing in the printStuff function ", msg
-        print "the oscaddress is ", msg[0]
-        print "the value is ", msg[2]
+        print("printing in the printStuff function ", msg)
+        print("the oscaddress is ", msg[0])
+        print("the value is ", msg[2])
 
     bind(printStuff, "/test")
 

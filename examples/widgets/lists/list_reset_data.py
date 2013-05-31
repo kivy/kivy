@@ -58,14 +58,14 @@ class MainView(FloatLayout):
             item = DataItem(name='New ' * random.randint(1, 2))
             items.append(item)
             self.toggle = 'changing'
-            print 'added ' + item.name
+            print('added ' + item.name)
         else:
             random_index = random.randint(0, len(items) - 1)
             item = items[random_index]
             items[random_index] = DataItem()
             self.toggle = 'adding'
-            print 'changed {0} to {1}'.format(item.name,
-                                              items[random_index].name)
+            print('changed {0} to {1}'.format(item.name,
+                                              items[random_index].name))
 
 
 if __name__ == '__main__':

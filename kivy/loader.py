@@ -276,7 +276,7 @@ class LoaderBase(object):
     def _load_urllib(self, filename, kwargs):
         '''(internal) Loading a network file. First download it, save it to a
         temporary file, and pass it to _load_local()'''
-        import urllib2
+        import urllib.request, urllib.error, urllib.parse
         proto = filename.split(':', 1)[0]
         if proto == 'smb':
             try:
@@ -297,10 +297,10 @@ class LoaderBase(object):
 
             if proto == 'smb':
                 # read from samba shares
-                fd = urllib2.build_opener(SMBHandler).open(filename)
+                fd = urllib.request.build_opener(SMBHandler).open(filename)
             else:
                 # read from internet
-                fd = urllib2.urlopen(filename)
+                fd = urllib.request.urlopen(filename)
             idata = fd.read()
             fd.close()
             fd = None
@@ -425,7 +425,7 @@ else:
     # Try to use pygame as our first choice for loader
     #
 
-    from Queue import Queue
+    from kivy.compat import queue
     from threading import Thread
 
     class _Worker(Thread):
@@ -443,8 +443,8 @@ else:
                 func, args, kargs = self.tasks.get()
                 try:
                     func(*args, **kargs)
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                 self.tasks.task_done()
 
     class _ThreadPool(object):
@@ -453,7 +453,7 @@ else:
         def __init__(self, num_threads):
             super(_ThreadPool, self).__init__()
             self.running = True
-            self.tasks = Queue()
+            self.tasks = queue.Queue()
             for _ in range(num_threads):
                 _Worker(self, self.tasks)
 

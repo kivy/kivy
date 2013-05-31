@@ -110,9 +110,9 @@ Manual usage of the Atlas
 
     >>> from kivy.atlas import Atlas
     >>> atlas = Atlas('path/to/myatlas.atlas')
-    >>> print atlas.textures.keys()
+    >>> print(atlas.textures.keys())
     ['bubble', 'bubble-red', 'button', 'button-down']
-    >>> print atlas['button']
+    >>> print(atlas['button'])
     <kivy.graphics.texture.TextureRegion object at 0x2404d10>
 '''
 
@@ -176,7 +176,7 @@ class Atlas(EventDispatcher):
         Logger.debug('Atlas: Need to load %d images' % len(meta))
         d = dirname(filename)
         textures = {}
-        for subfilename, ids in meta.iteritems():
+        for subfilename, ids in meta.items():
             subfilename = join(d, subfilename)
             Logger.debug('Atlas: Load <%s>' % subfilename)
 
@@ -185,7 +185,7 @@ class Atlas(EventDispatcher):
 
             # for all the uid, load the image, get the region, and put it in our
             # dict.
-            for meta_id, meta_coords in ids.iteritems():
+            for meta_id, meta_coords in ids.items():
                 x, y, w, h = meta_coords
                 textures[meta_id] = ci.texture.get_region(*meta_coords)
 
@@ -336,25 +336,25 @@ if __name__ == '__main__':
     import sys
     argv = sys.argv[1:]
     if len(argv) < 3:
-        print 'Usage: python -m kivy.atlas <outname> <size> <img1.png>' \
-              '[<img2.png>, ...]'
+        print('Usage: python -m kivy.atlas <outname> <size> <img1.png>' \
+              '[<img2.png>, ...]')
         sys.exit(1)
 
     outname = argv[0]
     try:
         size = int(argv[1])
     except ValueError:
-        print 'Error: size must be an integer'
+        print('Error: size must be an integer')
         sys.exit(1)
 
     filenames = argv[2:]
     ret = Atlas.create(outname, filenames, size)
     if not ret:
-        print 'Error while creating atlas!'
+        print('Error while creating atlas!')
         sys.exit(1)
 
     fn, meta = ret
-    print 'Atlas created at', fn
-    print '%d image%s have been created' % (len(meta),
-            's' if len(meta) > 1 else '')
+    print('Atlas created at', fn)
+    print('%d image%s have been created' % (len(meta),
+            's' if len(meta) > 1 else ''))
 

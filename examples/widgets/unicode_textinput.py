@@ -122,7 +122,7 @@ class LoadDialog(FloatLayout):
 class Unicode_TextInput(BoxLayout):
 
     txt_input = ObjectProperty(None)
-    unicode_string = StringProperty(u'''Latin-1 suppliment: éé çç ßß
+    unicode_string = StringProperty('''Latin-1 suppliment: éé çç ßß
 
 List of major languages taken from Google Translate
 ____________________________________________________

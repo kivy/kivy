@@ -22,5 +22,5 @@ class ClipboardDummy(ClipboardBase):
         self._data[mimetype] = data
 
     def get_types(self):
-        return self._data.keys()
+        return list(self._data.keys())
 

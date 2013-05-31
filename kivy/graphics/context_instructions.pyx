@@ -232,7 +232,7 @@ cdef class Color(ContextInstruction):
         def __get__(self):
             return self.context_state['color']
         def __set__(self, rgba):
-            self.set_state('color', map(float,rgba))
+            self.set_state('color', [float(x) for x in rgba])
     property rgb:
         '''RGB color, list of 3 values in 0-1 range, alpha will be 1.
         '''
@@ -328,11 +328,14 @@ cdef class BindTexture(ContextInstruction):
         def __get__(self):
             return self._texture
         def __set__(self, object texture):
-            if not texture:
+            if texture is None:
                 texture = get_default_texture()
+            if self._texture is texture:
+                return
             Logger.trace('BindTexture: setting texture %r (previous is %r)' % (
                 texture, self._texture))
             self._texture = texture
+            self.flag_update()
 
     property index:
         def __get__(self):

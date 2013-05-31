@@ -18,6 +18,7 @@ include "opcodes.pxi"
 from c_opengl cimport *
 IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
+from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.graphics.context cimport get_context, Context
 
@@ -371,7 +372,7 @@ cdef class Callback(Instruction):
     The definition of the callback must be::
 
         def my_callback(self, instr):
-            print 'I have been called!'
+            print('I have been called!')
 
     .. warning::
 
@@ -781,7 +782,12 @@ cdef class RenderContext(Canvas):
         self._shader.stop()
 
     cdef void apply(self):
-        cdef list keys = self.state_stacks.keys()
+        cdef list keys
+        if PY2:
+            keys = self.state_stacks.keys()
+        else:
+            keys = list(self.state_stacks.keys())
+
         cdef RenderContext active_context = getActiveContext()
         if self._use_parent_projection:
             self.set_state('projection_mat',

@@ -201,8 +201,8 @@ class SafeMembrane(object):
 
     def __call__(self, *args, **kw):
         self.safeIn()
-        args = map(unwrap, args)
-        for k in kw.keys():
+        args = list(map(unwrap, args))
+        for k in list(kw.keys()):
             kw[k] = unwrap(kw[k])
         r = self._ref(*args, **kw)
         self.safeOut()
@@ -236,7 +236,7 @@ class SafeMembrane(object):
         delattr(self._ref, attr)
         self.safeOut()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._ref)
 
     def __getitem__(self, arg):

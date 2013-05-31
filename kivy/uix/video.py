@@ -14,9 +14,9 @@ Video loading is asynchronous - many properties are not available until
 the video is loaded (when the texture is created)::
 
     def on_position_change(instance, value):
-        print 'The position in the video is', value
+        print('The position in the video is', value)
     def on_duration_change(instance, value):
-        print 'The duration of the video is', video
+        print('The duration of the video is', video)
     video = Video(source='PandaSneezes.avi')
     video.bind(position=on_position_change,
                duration=on_duration_change)
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) != 2:
-        print "usage: %s file" % sys.argv[0]
+        print("usage: %s file" % sys.argv[0])
         sys.exit(1)
 
     class VideoApp(App):

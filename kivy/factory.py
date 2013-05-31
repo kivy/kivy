@@ -33,13 +33,12 @@ before you re-assign it::
     >>> widget = Factory.MyWidget()
     >>> Factory.unregister('MyWidget')
     >>> Factory.register('MyWidget', cls=CustomWidget)
-    >>> customWidget = Factory.MyWidget()    
+    >>> customWidget = Factory.MyWidget()
 '''
 
 __all__ = ('Factory', 'FactoryException')
 
 from kivy.logger import Logger
-from types import ClassType
 
 
 class FactoryException(Exception):
@@ -130,7 +129,7 @@ class FactoryBase(object):
                 rootwidgets = []
                 for basecls in item['baseclasses'].split('+'):
                     rootwidgets.append(Factory.get(basecls))
-                cls = ClassType(name, tuple(rootwidgets), {})
+                cls = type(name, tuple(rootwidgets), {})
 
             else:
                 raise FactoryException('No information to create the class')

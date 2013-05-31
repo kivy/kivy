@@ -15,8 +15,8 @@ cdef class Texture:
     cdef str _min_filter
     cdef str _mag_filter
     cdef int _rectangle
-    cdef bytes _colorfmt
-    cdef bytes _bufferfmt
+    cdef str _colorfmt
+    cdef str _bufferfmt
     cdef float _uvx
     cdef float _uvy
     cdef float _uvw

@@ -26,7 +26,7 @@ class OpsDictAdapter(DictAdapter):
         if self.listview_id is 0:
             # Scroll to the most recently selected item.
             if len(self.selection) > 0:
-                print 'selection', self.selection
+                print('selection', self.selection)
                 self.owning_view.scroll_to(
                     index=self.sorted_keys.index(self.selection[-1].text))
 
@@ -133,7 +133,7 @@ class OpsView(BoxLayout):
         # On the left side of the upper panel, show the selected items. There
         # is a total possible of 5 for each listview, so 5 buttons are made.
         #
-        for listview_id in xrange(7):
+        for listview_id in range(7):
             box_layout = BoxLayout()
             listview_selection_buttons[listview_id] = []
 
@@ -207,7 +207,7 @@ class OpsView(BoxLayout):
                                           size_hint_y=None,
                                           height=25)]
 
-        for listview_id in xrange(7):
+        for listview_id in range(7):
 
             box_layout = BoxLayout(orientation='vertical')
 

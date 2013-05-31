@@ -45,7 +45,7 @@ cdef int mix_is_init = 0
 
 cdef void channel_finished_cb(int channel) nogil:
     with gil:
-        print 'Channel finished playing.', channel
+        print('Channel finished playing.', channel)
 
 cdef mix_init():
     cdef int audio_rate = 22050
@@ -137,11 +137,7 @@ class SoundSDL(Sound):
         self.unload()
         if self.filename is None:
             return
-        #from time import time
-        #start = time()
-        #print '>>> load wav', self.filename
         mc.chunk = Mix_LoadWAV(<char *><bytes>self.filename)
-        #print '<<< load wav done in %.4fs' % (time() - start)
         if mc.chunk == NULL:
             Logger.warning('AudioSDL: Unable to load %r' % self.filename)
         else:

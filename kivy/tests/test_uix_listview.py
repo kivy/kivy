@@ -19,7 +19,7 @@ class ListViewTestCase(unittest.TestCase):
     def test_simple_list_view(self):
 
         list_view = \
-                ListView(item_strings=[str(index) for index in xrange(100)])
+                ListView(item_strings=[str(index) for index in range(100)])
 
         self.assertEqual(type(list_view.adapter), SimpleListAdapter)
         self.assertFalse(hasattr(list_view.adapter, 'selection'))
@@ -29,7 +29,7 @@ class ListViewTestCase(unittest.TestCase):
 
         simple_list_adapter = \
             SimpleListAdapter(
-                    data=["Item #{0}".format(i) for i in xrange(100)],
+                    data=["Item #{0}".format(i) for i in range(100)],
                     cls=Label)
 
         list_view = ListView(adapter=simple_list_adapter)
@@ -84,7 +84,7 @@ class ListViewTestCase(unittest.TestCase):
 
     def test_list_view_with_list_of_integers(self):
 
-        data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]
+        data = [{'text': str(i), 'is_selected': False} for i in range(100)]
 
         args_converter = lambda row_index, rec: {'text': rec['text'],
                                                  'size_hint_y': None,
@@ -105,7 +105,7 @@ class ListViewTestCase(unittest.TestCase):
 
     def test_list_view_with_list_of_integers_scrolling(self):
 
-        data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]
+        data = [{'text': str(i), 'is_selected': False} for i in range(100)]
 
         args_converter = lambda row_index, rec: {'text': rec['text'],
                                                  'size_hint_y': None,
@@ -125,7 +125,7 @@ class ListViewTestCase(unittest.TestCase):
     def test_simple_list_view_deletion(self):
 
         list_view = \
-                ListView(item_strings=[str(index) for index in xrange(100)])
+                ListView(item_strings=[str(index) for index in range(100)])
 
         self.assertEqual(len(list_view.adapter.data), 100)
         del list_view.adapter.data[49]
@@ -150,7 +150,7 @@ class ListViewTestCase(unittest.TestCase):
     ListView:
         id: lvm
         size_hint: .8,.8
-        item_strings: ["Item #{0}".format(i) for i in xrange(100)]
+        item_strings: ["Item #{0}".format(i) for i in range(100)]
 """)
 
         class ListViewModal(ModalView):
@@ -184,7 +184,7 @@ class ListViewTestCase(unittest.TestCase):
         size_hint: .8,.8
         adapter:
             sla.SimpleListAdapter(
-            data=["Item #{0}".format(i) for i in xrange(100)],
+            data=["Item #{0}".format(i) for i in range(100)],
             cls=label.Label)
 """)
 

@@ -10,7 +10,7 @@ class MainView(GridLayout):
         kwargs['cols'] = 2
         super(MainView, self).__init__(**kwargs)
 
-        list_view = ListView(item_strings=[str(index) for index in xrange(100)])
+        list_view = ListView(item_strings=[str(index) for index in range(100)])
 
         self.add_widget(list_view)
 

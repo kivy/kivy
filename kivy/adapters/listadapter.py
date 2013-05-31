@@ -427,7 +427,7 @@ class ListAdapter(Adapter, EventDispatcher):
         '''
         if len(self.selection) > 0:
             last_sel_index = max([sel.index for sel in self.selection])
-            print 'last_sel_index', last_sel_index
+            print('last_sel_index', last_sel_index)
             self.data = self.data[:last_sel_index + 1]
 
     def trim_to_sel(self, *args):

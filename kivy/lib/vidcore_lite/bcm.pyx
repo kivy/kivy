@@ -79,7 +79,7 @@ def display_open(uint32_t device):
         DISPMANX_DISPLAY_HANDLE_T disp
         DisplayHandle D
     disp = vc_dispmanx_display_open( 0 )
-    print "openned display handle:", disp
+    print('Apenned display handle:', disp)
     if disp == 0:
         raise BCMDisplayException("Couldn't open handle to display")
     D = DisplayHandle()

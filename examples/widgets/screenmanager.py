@@ -76,7 +76,7 @@ class ScreenManagerApp(App):
 
     def build(self):
         root = ScreenManager()
-        for x in xrange(4):
+        for x in range(4):
             root.add_widget(CustomScreen(name='Screen %d' % x))
         return root
 

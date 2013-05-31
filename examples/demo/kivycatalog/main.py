@@ -9,8 +9,6 @@ from kivy.properties import ObjectProperty
 from kivy.config import Config
 
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.popup import Popup
-from kivy.uix.label import Label
 from kivy.uix.codeinput import CodeInput
 from kivy.animation import Animation
 from kivy.clock import Clock
@@ -39,7 +37,7 @@ class Container(BoxLayout):
 
     def __init__(self, **kwargs):
         super(Container, self).__init__(**kwargs)
-        parser = Parser(content=file(self.kv_file).read())
+        parser = Parser(content=open(self.kv_file).read())
         widget = Factory.get(parser.root.name)()
         Builder._apply_rule(widget, parser.root, parser.root)
         self.add_widget(widget)
@@ -63,7 +61,7 @@ class KivyRenderTextInput(CodeInput):
         ctrl, cmd = 64, 1024
         key, key_str = keycode
 
-        if text and not key in (self.interesting_keys.keys() + [27]):
+        if text and not key in (list(self.interesting_keys.keys()) + [27]):
             # This allows *either* ctrl *or* cmd, but not both.
             if modifiers == ['ctrl'] or (is_osx and modifiers == ['meta']):
                 if key == ord('s'):
@@ -140,7 +138,7 @@ class Catalog(BoxLayout):
             kv_container.add_widget(widget)
         except (SyntaxError, ParserException) as e:
             self.show_error(e)
-        except Exception, e:
+        except Exception as e:
             self.show_error(e)
 
     def show_error(self, e):

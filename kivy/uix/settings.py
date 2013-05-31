@@ -686,7 +686,7 @@ class Settings(BoxLayout):
             # create a instance of the class, without the type attribute
             del setting['type']
             str_settings = {}
-            for key, item in setting.iteritems():
+            for key, item in setting.items():
                 str_settings[str(key)] = item
 
             instance = cls(panel=panel, **str_settings)
@@ -753,7 +753,7 @@ class Settings(BoxLayout):
         '''
         # search the panel on the list
         found = False
-        for idx, (wid, label) in self._panels.iteritems():
+        for idx, (wid, label) in self._panels.items():
             if panel is wid:
                 found = True
                 break

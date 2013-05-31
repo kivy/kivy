@@ -1,4 +1,4 @@
-#cython: c_string_encoding="utf8"
+#cython: c_string_type=unicode, c_string_encoding=utf8
 '''
 OpenGL utilities
 ================
@@ -35,13 +35,13 @@ cpdef list gl_get_extensions():
     '''Return a list of OpenGL extensions available. All the names in the list
     have the `GL_` stripped at the start if exist, and are in lowercase.
 
-    >>> print gl_get_extensions()
+    >>> print(gl_get_extensions())
     ['arb_blend_func_extended', 'arb_color_buffer_float', 'arb_compatibility',
      'arb_copy_buffer'... ]
 
     '''
     global _gl_extensions
-    cdef bytes extensions
+    cdef str extensions
     if not _gl_extensions:
         extensions = <char *>c_opengl.glGetString(c_opengl.GL_EXTENSIONS)
         _gl_extensions[:] = [x[3:].lower() if x[:3] == 'GL_' else x.lower()\
@@ -232,7 +232,7 @@ cpdef tuple gl_get_version():
     if _gl_version_major == -1:
 
         _gl_version_minor = _gl_version_major = 0
-        version = <char *>c_opengl.glGetString(c_opengl.GL_VERSION)
+        version = str(<char *>c_opengl.glGetString(c_opengl.GL_VERSION))
 
         try:
             # same parsing algo as Panda3D

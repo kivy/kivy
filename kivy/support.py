@@ -63,7 +63,7 @@ def install_android():
     try:
         import android
     except ImportError:
-        print 'Android lib is missing, cannot install android hooks'
+        print('Android lib is missing, cannot install android hooks')
         return
 
     from kivy.clock import Clock

@@ -16,8 +16,8 @@ except ImportError:
 try:
     import requests
 except ImportError:
-    print 'Garden tool require requests library.'
-    print 'Try to "pip install requests" in root'
+    print('Garden tool require requests library.')
+    print('Try to "pip install requests" in root')
     sys.exit(1)
 
 
@@ -75,7 +75,7 @@ class GardenTool(object):
         for filename in listdir(directory):
             fullname = join(directory, filename)
             if filename.startswith('garden.') and isdir(fullname):
-                print filename.split('.', 1)[-1]
+                print(filename.split('.', 1)[-1])
 
     def cmd_search(self):
         r = requests.get('https://api.github.com/users/kivy-garden/repos')
@@ -87,7 +87,7 @@ class GardenTool(object):
             name = repo['name'].split('.', 1)[-1]
             if pattern and pattern not in name:
                 continue
-            print name, '-', repo['description'].splitlines()[0]
+            print(name, '-', repo['description'].splitlines()[0])
 
     def cmd_install(self):
         opts = self.options
@@ -97,8 +97,8 @@ class GardenTool(object):
         dest_dir = join(garden_dir, opts.package)
 
         if exists(dest_dir) and not opts.upgrade:
-            print 'Garden package already installed in {}'.format(dest_dir)
-            print 'Use --upgrade to upgrade.'
+            print('Garden package already installed in {}'.format(dest_dir))
+            print('Use --upgrade to upgrade.')
             sys.exit(0)
 
         fd = self.download(opts.package)
@@ -110,19 +110,19 @@ class GardenTool(object):
                 makedirs(garden_dir)
 
             if exists(dest_dir):
-                print 'Removing old version...'
+                print('Removing old version...')
                 rmtree(dest_dir)
 
             source_directory = join(tempdir, '{}-master'.format(opts.package))
 
-            print 'Installing new version...'
+            print('Installing new version...')
             move(source_directory, dest_dir)
 
-            print 'Done! {} is installed at: {}'.format(opts.package,
-                    dest_dir)
+            print('Done! {} is installed at: {}'.format(opts.package,
+                    dest_dir))
 
         finally:
-            print 'Cleaning...'
+            print('Cleaning...')
             if exists(tempdir):
                 rmtree(tempdir, ignore_errors=True)
 
@@ -132,11 +132,11 @@ class GardenTool(object):
         garden_dir = garden_app_dir if self.options.app else garden_system_dir
         d = join(garden_dir, opts.package)
         if not exists(d):
-            print 'Package {} not installed, nothing to uninstall.'.format(
-                    opts.package)
+            print('Package {} not installed, nothing to uninstall.'.format(
+                    opts.package))
             sys.exit(0)
 
-        print 'Deleting {}...'.format(d)
+        print('Deleting {}...'.format(d))
         rmtree(d)
 
 
@@ -149,11 +149,11 @@ class GardenTool(object):
         url = 'http://github.com/kivy-garden/{}/archive/master.zip'.format(
                 package)
 
-        print 'Downloading {} ...'.format(url)
+        print('Downloading {} ...'.format(url))
         r = requests.get(url)#, prefetch=False)
         if r.status_code != 200:
-            print 'Unable to found the garden package. (error={})'.format(
-                r.status_code)
+            print('Unable to found the garden package. (error={})'.format(
+                r.status_code))
             sys.exit(1)
 
         animation = '\\|/-'
@@ -164,14 +164,14 @@ class GardenTool(object):
             index += 1
             data += buf
             count += len(buf)
-            print 'Progression', count, animation[index % len(animation)], '\r',
+            print('Progression', count, animation[index % len(animation)], '\r')
             sys.stdout.flush()
-        print 'Download done ({} downloaded)'.format(count)
+        print('Download done ({} downloaded)'.format(count))
 
         return StringIO(data)
 
     def extract(self, fd, directory):
-        print 'Extracting...'
+        print('Extracting...')
         z = zipfile.ZipFile(fd)
         curdir = getcwd()
         chdir(directory)

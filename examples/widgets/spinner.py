@@ -8,7 +8,7 @@ spinner = Spinner(
     pos_hint={'center_x': .5, 'center_y': .5})
 
 def show_selected_value(spinner, text):
-    print 'The spinner', spinner, 'have text', text
+    print('The spinner', spinner, 'have text', text)
 
 spinner.bind(text=show_selected_value)
 

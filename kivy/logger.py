@@ -48,7 +48,7 @@ messages::
 
     from kivy.logger import LoggerHistory
 
-    print LoggerHistory.history
+    print(LoggerHistory.history)
 
 '''
 
@@ -56,6 +56,7 @@ import logging
 import os
 import sys
 import kivy
+from kivy.compat import PY2
 from random import randint
 from functools import partial
 
@@ -63,7 +64,7 @@ __all__ = ('Logger', 'LOG_LEVELS', 'COLORS', 'LoggerHistory')
 
 Logger = None
 
-BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = list(range(8))
 
 #These are the sequences need to get colored ouput
 RESET_SEQ = "\033[0m"
@@ -115,28 +116,28 @@ class FileHandler(logging.Handler):
         # Use config ?
         maxfiles = 100
 
-        print 'Purge log fired. Analysing...'
+        print('Purge log fired. Analysing...')
         join = os.path.join
         unlink = os.unlink
 
         # search all log files
-        l = map(lambda x: join(directory, x), os.listdir(directory))
+        l = [join(directory, x) for x in os.listdir(directory)]
         if len(l) > maxfiles:
             # get creation time on every files
-            l = zip(l, map(os.path.getctime, l))
+            l = [{'fn': x, 'ctime': os.path.getctime(x)} for x in l]
 
             # sort by date
-            l.sort(cmp=lambda x, y: cmp(x[1], y[1]))
+            l = sorted(l, key=lambda x: x['ctime'])
 
             # get the oldest (keep last maxfiles)
             l = l[:-maxfiles]
-            print 'Purge %d log files' % len(l)
+            print('Purge %d log files' % len(l))
 
             # now, unlink every files in the list
             for filename in l:
-                unlink(filename[0])
+                unlink(filename['fn'])
 
-        print 'Purge finished !'
+        print('Purge finished !')
 
     def _configure(self):
         from time import strftime
@@ -178,7 +179,8 @@ class FileHandler(logging.Handler):
         try:
             FileHandler.fd.write(record.msg)
         except UnicodeEncodeError:
-            FileHandler.fd.write(record.msg.encode('utf8'))
+            if PY2:
+                FileHandler.fd.write(record.msg.encode('utf8'))
         FileHandler.fd.write('\n')
         FileHandler.fd.flush()
 

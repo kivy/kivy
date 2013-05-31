@@ -24,14 +24,14 @@ class KivyStyleChecker(pep8.Checker):
                 line_number, offset, text, check)
 
         # html generation
-        print '<tr><td>{0}</td><td>{1}</td></tr>'.format(line_number, text)
+        print('<tr><td>{0}</td><td>{1}</td></tr>'.format(line_number, text))
 
 
 if __name__ == '__main__':
 
     def usage():
-        print 'Usage: python pep8kivy.py [-html] <file_or_folder_to_check>*'
-        print 'Folders will be checked recursively.'
+        print('Usage: python pep8kivy.py [-html] <file_or_folder_to_check>*')
+        print('Folders will be checked recursively.')
         sys.exit(1)
 
     if len(sys.argv) < 2:
@@ -65,8 +65,8 @@ if __name__ == '__main__':
         if isdir(target):
             if htmlmode:
                 path = join(dirname(abspath(__file__)), 'pep8base.html')
-                print open(path, 'r').read()
-                print '''<p>Generated: %s</p><table>''' % (time.strftime('%c'))
+                print(open(path, 'r').read())
+                print('''<p>Generated: %s</p><table>''' % (time.strftime('%c')))
 
             for dirpath, dirnames, filenames in walk(target):
                 cont = False
@@ -88,12 +88,12 @@ if __name__ == '__main__':
                         continue
 
                     if htmlmode:
-                        print '<tr><th colspan="2">%s</td></tr>' \
-                             % complete_filename
+                        print('<tr><th colspan="2">%s</td></tr>' \
+                             % complete_filename)
                     errors += check(complete_filename)
 
             if htmlmode:
-                print '</div></div></table></body></html>'
+                print('</div></div></table></body></html>')
 
         else:
             # Got a single file to check

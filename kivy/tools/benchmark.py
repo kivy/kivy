@@ -4,6 +4,8 @@ Benchmark
 
 '''
 
+from __future__ import print_function
+
 benchmark_version = '1'
 
 import os
@@ -36,7 +38,7 @@ class bench_widget_creation:
 
     def run(self):
         o = []
-        for x in xrange(10000):
+        for x in range(10000):
             o.append(Widget())
 
 
@@ -45,7 +47,7 @@ class bench_widget_creation_with_root:
 
     def run(self):
         o = Widget()
-        for x in xrange(10000):
+        for x in range(10000):
             o.add_widget(Widget())
 
 
@@ -55,7 +57,7 @@ class bench_widget_draw:
     def __init__(self):
         self.ctx = RenderContext()
         self.root = root = Widget()
-        for x in xrange(10000):
+        for x in range(10000):
             root.add_widget(Widget())
         self.ctx.add(self.root.canvas)
 
@@ -68,9 +70,9 @@ class bench_widget_dispatch:
 
     def __init__(self):
         root = Widget()
-        for x in xrange(10):
+        for x in range(10):
             parent = Widget()
-            for y in xrange(1000):
+            for y in range(1000):
                 parent.add_widget(Widget())
             root.add_widget(parent)
         self.root = root
@@ -87,8 +89,8 @@ class bench_label_creation:
 
     def __init__(self):
         labels = []
-        for x in xrange(10000):
-            label = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+        for x in range(10000):
+            label = [chr(randint(ord('a'), ord('z'))) for x in range(10)]
             labels.append(''.join(label))
         self.labels = labels
 
@@ -119,8 +121,8 @@ class bench_label_creation_with_tick:
 
     def __init__(self):
         labels = []
-        for x in xrange(10000):
-            label = map(lambda x: chr(randint(ord('a'), ord('z'))), xrange(10))
+        for x in range(10000):
+            label = [chr(randint(ord('a'), ord('z'))) for x in range(10)]
             labels.append(''.join(label))
         self.labels = labels
 
@@ -162,15 +164,15 @@ if __name__ == '__main__':
         else:
             report.append(s)
         if newline:
-            print s
+            print(s)
             report_newline = True
         else:
-            print s,
+            print(s, end=' ')
             report_newline = False
         sys.stdout.flush()
 
     clock_total = 0
-    benchs = locals().keys()
+    benchs = list(locals().keys())
     benchs.sort()
     benchs = [locals()[x] for x in benchs if x.startswith('bench_')]
 
@@ -216,7 +218,7 @@ if __name__ == '__main__':
         try:
             sys.stderr.write('.')
             test = x()
-        except Exception, e:
+        except Exception as e:
             log('failed %s' % str(e))
             import traceback
             traceback.print_exc()
@@ -229,7 +231,7 @@ if __name__ == '__main__':
             test.run()
             clock_end = clockfn() - clock_start
             log('%.6f' % clock_end)
-        except Exception, e:
+        except Exception as e:
             log('failed %s' % str(e))
             continue
 
@@ -240,18 +242,18 @@ if __name__ == '__main__':
     log('')
 
 try:
-    reply = raw_input(
+    reply = input(
         'Do you want to send benchmark to gist.github.com (Y/n) : ')
 except EOFError:
     sys.exit(0)
 
 if reply.lower().strip() in ('', 'y'):
-    print 'Please wait while sending the benchmark...'
+    print('Please wait while sending the benchmark...')
 
     try:
         import requests
     except ImportError:
-        print "`requests` module not found, no benchmark posted."
+        print("`requests` module not found, no benchmark posted.")
         sys.exit(1)
 
     payload = {
@@ -261,10 +263,10 @@ if reply.lower().strip() in ('', 'y'):
 
     r = requests.post('https://api.github.com/gists', data=json.dumps(payload))
 
-    print
-    print
-    print 'REPORT posted at {0}'.format(r.json['html_url'])
-    print
-    print
+    print()
+    print()
+    print('REPORT posted at {0}'.format(r.json['html_url']))
+    print()
+    print()
 else:
-    print 'No benchmark posted.'
+    print('No benchmark posted.')

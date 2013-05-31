@@ -199,8 +199,8 @@ class ShowcaseApp(App):
             w = getattr(self, 'show_%s' %
                         value.text.lower().replace(' ', '_'))()
             self.content.add_widget(w)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
 
     def on_pause(self):
         return True
@@ -320,13 +320,13 @@ class ShowcaseApp(App):
 
     def populate_treeview(self, tv):
         n = tv.add_node(TreeViewLabel(text='Item 1'))
-        for x in xrange(3):
+        for x in range(3):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         n = tv.add_node(TreeViewLabel(text='Item 2', is_open=True))
-        for x in xrange(3):
+        for x in range(3):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         n = tv.add_node(TreeViewLabel(text='Item 3'))
-        for x in xrange(3):
+        for x in range(3):
             tv.add_node(TreeViewLabel(text='Subitem %d' % x), n)
         return tv
 

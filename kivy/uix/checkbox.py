@@ -20,9 +20,9 @@ An example usage::
 
     def on_checkbox_active(checkbox, value):
         if value:
-            print 'The checkbox', checkbox, 'is active'
+            print('The checkbox', checkbox, 'is active')
         else:
-            print 'The checkbox', checkbox, 'is inactive'
+            print('The checkbox', checkbox, 'is inactive')
 
     checkbox = CheckBox()
     checkbox.bind(active=on_checkbox_active)
@@ -102,7 +102,7 @@ class CheckBox(Widget):
     def _clear_groups(wk):
         # auto flush the element when the weak reference have been deleted
         groups = CheckBox.__groups
-        for group in groups.values():
+        for group in list(groups.values()):
             if wk in group:
                 group.remove(wk)
                 break

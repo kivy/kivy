@@ -92,12 +92,16 @@ class InputPostprocTripleTap(object):
 
         # second, check if up-touch is timeout for triple tap
         time_current = Clock.get_time()
-        for touchid in self.touches.keys()[:]:
+        to_delete = []
+        for touchid in self.touches.keys():
             etype, touch = self.touches[touchid]
             if etype != 'end':
                 continue
             if time_current - touch.time_start < self.triple_tap_time:
                 continue
+            to_delete.append(touchid)
+
+        for touchid in to_delete:
             del self.touches[touchid]
 
         return events

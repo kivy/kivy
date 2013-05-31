@@ -8,8 +8,8 @@ Load an audio sound and play it with::
 
     sound = SoundLoader.load('mytest.wav')
     if sound:
-        print "Sound found at %s" % sound.source
-        print "Sound is %.3f seconds" % sound.length
+        print("Sound found at %s" % sound.source)
+        print("Sound is %.3f seconds" % sound.length)
         sound.play()
 
 You should not use directly the sound class yourself. The result will use the

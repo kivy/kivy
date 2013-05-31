@@ -51,7 +51,7 @@ class AndroidMotionEventProvider(MotionEventProvider):
     def start(self):
         pygame.joystick.init()
         Logger.info('Android: found %d joystick' % pygame.joystick.get_count())
-        for i in xrange(pygame.joystick.get_count()):
+        for i in range(pygame.joystick.get_count()):
             self.create_joystick(i)
 
     def stop(self):
@@ -86,7 +86,6 @@ class AndroidMotionEventProvider(MotionEventProvider):
                 # avoid same touch position
                 if touch.sx == x and touch.sy == y \
                    and touch.pressure == pressure:
-                    #print 'avoid moving.', touch.uid, x, y, pressure, radius
                     continue
                 touch.move([x, y, pressure, radius])
                 dispatch_fn('update', touch)

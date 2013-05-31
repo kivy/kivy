@@ -222,7 +222,7 @@ We ship some examples that are ready-to-run. However, theses examples are packag
 This means you must first know where easy_install has installed your current kivy package,
 and then go to the examples directory::
 
-    $ python -c "import pkg_resources; print pkg_resources.resource_filename('kivy', '../share/kivy-examples')"
+    $ python -c "import pkg_resources; print(pkg_resources.resource_filename('kivy', '../share/kivy-examples'))"
 
 And you should have a path similar to::
 

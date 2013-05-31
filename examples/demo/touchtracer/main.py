@@ -17,7 +17,7 @@ def calculate_points(x1, y1, x2, y2, steps=5):
         return None
     o = []
     m = dist / steps
-    for i in xrange(1, int(m)):
+    for i in range(1, int(m)):
         mi = i / m
         lastx = x1 + dx * mi
         lasty = y1 + dy * mi
@@ -58,7 +58,7 @@ class Touchtracer(FloatLayout):
         if points:
             try:
                 lp = ud['lines'][2].add_point
-                for idx in xrange(0, len(points), 2):
+                for idx in range(0, len(points), 2):
                     lp(points[idx], points[idx+1])
             except GraphicException:
                 pass

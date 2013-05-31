@@ -28,10 +28,9 @@ Example of fetching twitter trends::
 
     def got_twitter_trends(req, result):
         trends = result[0]['trends']
-        print 'Last %d twitter trends:' % len(trends),
+        print('Last %d twitter trends:' % len(trends))
         for trend in trends:
-            print trend['name'],
-        print '!'
+            print(' - ', trend['name'])
 
     req = UrlRequest('https://api.twitter.com/1/trends/1.json',
             got_twitter_trends)
@@ -41,8 +40,8 @@ Example of Posting data (adapted from httplib example)::
     import urllib
 
     def bug_posted(req, result):
-        print 'Our bug is posted !'
-        print result
+        print('Our bug is posted !')
+        print(result)
 
     params = urllib.urlencode({'@number': 12524, '@type': 'issue',
         '@action': 'show'})
@@ -57,17 +56,27 @@ Example of Posting data (adapted from httplib example)::
 from collections import deque
 from threading import Thread
 from json import loads
-from httplib import HTTPConnection
 from time import sleep
+from kivy.compat import PY2
 
-HTTPSConnection = None
+if PY2:
+    from httplib import HTTPConnection
+    from urlparse import urlparse
+else:
+    from http.client import HTTPConnection
+    from urllib.parse import urlparse
+
 try:
-    from httplib import HTTPSConnection
+    HTTPSConnection = None
+    if PY2:
+        from httplib import HTTPSConnection
+    else:
+        from http.client import HTTPSConnection
 except ImportError:
-    # on android platform, this is not available yet.
+    # depending the platform, if openssl support wasn't compiled before python,
+    # this class is not available.
     pass
 
-from urlparse import urlparse
 from kivy.clock import Clock
 from kivy.weakmethod import WeakMethod
 from kivy.logger import Logger
@@ -239,7 +248,7 @@ class UrlRequest(Thread):
         # read content
         if report_progress:
             bytes_so_far = 0
-            result = ''
+            result = b''
             try:
                 total_size = int(resp.getheader('content-length'))
             except:
@@ -448,6 +457,6 @@ if __name__ == '__main__':
         sleep(1)
         Clock.tick()
 
-    print 'result =', req.result
-    print 'error =', req.error
+    print('result =', req.result)
+    print('error =', req.error)
 

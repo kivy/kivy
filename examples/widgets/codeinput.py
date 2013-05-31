@@ -94,7 +94,7 @@ class CodeInputTest(App):
         b = BoxLayout(orientation='vertical')
         languages = Spinner(
             text='language',
-            values=sorted(['KvLexer', ] + lexers.LEXERS.keys()))
+            values=sorted(['KvLexer', ] + list(lexers.LEXERS.keys())))
 
         languages.bind(text=self.change_lang)
 
@@ -103,7 +103,7 @@ class CodeInputTest(App):
             height='30pt')
         fnt_size = Spinner(
             text='12',
-            values=map(str, range(5, 40)))
+            values=list(map(str, list(range(5, 40)))))
         fnt_size.bind(text=self._update_size)
         fnt_name = Spinner(
             text='DroidSansMono',

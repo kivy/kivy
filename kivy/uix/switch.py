@@ -18,7 +18,7 @@ switch. The user can swipe to the left/right to activate/deactivate it::
 To attach a callback that listens to activation state::
 
     def callback(instance, value):
-        print 'the switch', instance, 'is', value
+        print('the switch', instance, 'is', value)
 
     switch = Switch()
     switch.bind(active=callback)

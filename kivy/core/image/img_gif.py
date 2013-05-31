@@ -34,6 +34,7 @@ from array import array
 
 KNOWN_FORMATS = ('GIF87a', 'GIF89a')
 
+from kivy.compat import PY2
 from kivy.logger import Logger
 from kivy.core.image import ImageLoaderBase, ImageData, ImageLoader
 
@@ -53,13 +54,14 @@ class ImageLoaderGIF(ImageLoaderBase):
             try:
                 im = GifDecoder(open(filename, 'rb').read())
             except UnicodeEncodeError:
-                im = GifDecoder(open(filename.encode('utf8'), 'rb').read())
+                if PY2:
+                    im = GifDecoder(open(filename.encode('utf8'), 'rb').read())
         except:
             Logger.warning('Image: Unable to load Image <%s>' % filename)
             raise
 
         if Debug:
-            print im.print_info()
+            print(im.print_info())
         img_data = []
         ls_width = im.ls_width
         ls_height = im.ls_height
@@ -202,17 +204,17 @@ class Gif(object):
     def print_info(self):
         '''prints out some useful info (..debug?)'''
 
-        print "Version: %s" % self.header
-        print "Logical screen width: %d" % self.ls_width
-        print "Logical screen height: %d" % self.ls_height
-        print "Flags: %s" % repr(self.flags)
-        print " " * 6, "Color resolution: %d" % self.color_resolution
-        print " " * 6, "Sort flag: %r" % self.sort_flag
-        print " " * 6, "Global color table flag: %r" % self.color_table_flag
-        print " " * 22, "...size: %d (%d bytes)" % \
-            (self.global_color_table_size, self.global_color_table_size * 3)
-        print "Background color: %d" % self.background_color
-        print "Aspect ratio info: %d" % self.aspect_ratio
+        print("Version: %s" % self.header)
+        print("Logical screen width: %d" % self.ls_width)
+        print("Logical screen height: %d" % self.ls_height)
+        print("Flags: %s" % repr(self.flags))
+        print(" " * 6, "Color resolution: %d" % self.color_resolution)
+        print(" " * 6, "Sort flag: %r" % self.sort_flag)
+        print(" " * 6, "Global color table flag: %r" % self.color_table_flag)
+        print(" " * 22, "...size: %d (%d bytes)" % \
+            (self.global_color_table_size, self.global_color_table_size * 3))
+        print("Background color: %d" % self.background_color)
+        print("Aspect ratio info: %d" % self.aspect_ratio)
 
     def new_image(self, header=None):
         '''adds a new image descriptor'''
@@ -271,7 +273,7 @@ class ImageDescriptor(object):
         self.local_color_table_size = 2 ** (pack_bits(self.flags[:3]) + 1)
         if self.local_color_table_flag:
             if Debug:
-                print 'local color table true'
+                print('local color table true')
             self.palette = self.parent.get_color_table(
                 self.local_color_table_size * 3)
 
@@ -380,7 +382,7 @@ class GifDecoder(Gif):
                     image_lzwcode = ''.join((image_lzwcode, lzwdata))
 
                 if self_debug_enabled:
-                    print 'LZW length:', len(image_lzwcode)
+                    print('LZW length:', len(image_lzwcode))
 
                 image.lzwcode = image_lzwcode
                 image.pixels = self_lzw_decode(image.lzwcode, image.codesize,
@@ -393,9 +395,7 @@ class GifDecoder(Gif):
             elif nextbyte == Gif_GIF_TRAILER:
                 return
             elif nextbyte == Gif_LABEL_GRAPHIC_CONTROL:
-                #if self_debug_enabled: print 'LABEL_GRAPHIC_CONTROL'
                 nextbyte = self_pops('<B', self_data)[0]
-                #if self_debug_enabled: print 'block size:%d' %nextbyte
                 drw_bits = (get_bits(self_pops('<B', self_data)[0]))
                 has_transparent_color = drw_bits[0]
                 if drw_bits[2:5] == array('B', [0, 0, 1]):
@@ -404,15 +404,10 @@ class GifDecoder(Gif):
                     drw_method = 'restore background'
                 else:
                     drw_method = 'restore previous'
-                #if self_debug_enabled:
-                #    print 'draw_method :'+ drw_method
                 nextbyte = self_pops('<B', self_data)[0]
-                #if self_debug_enabled: print 'fields:%d' %nextbyte
                 nextbyte = self_pops('<B', self_data)[0]
-                #if self_debug_enabled: print 'duration:%d' %nextbyte # delay?
                 nextbyte = self_pops('<B', self_data)[0]
                 trans_color = nextbyte
-                #if Debug: print 'transparent color index :%d' %trans_color
                 pass
             # "No Idea What Is This"
             else:
@@ -425,7 +420,7 @@ class GifDecoder(Gif):
         bits_append = bits.append
         _get_bits = get_bits
         for byte in ordarray:
-            map(bits_append, _get_bits(byte))
+            list(map(bits_append, _get_bits(byte)))
         return bits
 
     def readable(bool_list):
@@ -476,8 +471,8 @@ class GifDecoder(Gif):
         clearcode, end_of_info = color_table_size, color_table_size + 1
 
         if Debug:
-            print 'codesize: %d' % codesize
-            print 'clearcode %d, end_of_info: %d' % (clearcode, end_of_info)
+            print('codesize: %d' % codesize)
+            print('clearcode %d, end_of_info: %d' % (clearcode, end_of_info))
 
         def pop(size, _bits):
             ''' return bits '''
@@ -542,7 +537,7 @@ class GifDecoder(Gif):
 
             index += 1
             old = c
-            output_extend(map(ord, c))
+            output_extend(list(map(ord, c)))
 
             if index == 2 ** codesize:
                 codesize += 1
@@ -550,7 +545,7 @@ class GifDecoder(Gif):
                     codesize = 12
 
         if self.debug_enabled:
-            print 'Output stream len: %d' % len(output)
+            print('Output stream len: %d' % len(output))
         return output
 
 

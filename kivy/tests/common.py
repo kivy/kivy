@@ -209,7 +209,7 @@ class GraphicUnitTest(unittest.TestCase):
         if 'UNITTEST_INTERACTIVE' not in environ:
             return True
 
-        from Tkinter import Tk, Label, LEFT, RIGHT, BOTTOM, Button
+        from tkinter import Tk, Label, LEFT, RIGHT, BOTTOM, Button
         from PIL import Image, ImageTk
 
         self.retval = False
@@ -240,7 +240,7 @@ class GraphicUnitTest(unittest.TestCase):
         if 'UNITTEST_INTERACTIVE' not in environ:
             return False
 
-        from Tkinter import Tk, Label, LEFT, RIGHT, BOTTOM, Button
+        from tkinter import Tk, Label, LEFT, RIGHT, BOTTOM, Button
         from PIL import Image, ImageTk
 
         self.retval = False

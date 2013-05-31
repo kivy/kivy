@@ -1,3 +1,4 @@
+#cython: c_string_type=unicode, c_string_encoding=utf8
 '''
 Text/SDL_ttf
 ============
@@ -11,6 +12,7 @@ TODO:
 
 __all__ = ('LabelSDLttf', )
 
+from kivy.compat import PY2
 from kivy.core.text import LabelBase
 from kivy.core.image import ImageData
 from kivy.resources import resource_paths
@@ -93,6 +95,7 @@ cdef TTF_Font *_get_font(self):
     cdef TTF_Font *fontobject = NULL
     cdef _TTFContainer ttfc
     cdef char *error
+    cdef str s_error
 
     if not TTF_WasInit():
         TTF_Init()
@@ -107,8 +110,8 @@ cdef TTF_Font *_get_font(self):
 
         # fallback to search a system font
         if fontobject == NULL:
-            error = SDL_GetError()
-            print <bytes>error
+            s_error = <bytes>SDL_GetError()
+            print s_error
             assert(0)
         pygame_cache[fontid] = ttfc = _TTFContainer()
         ttfc.font = fontobject
@@ -127,17 +130,19 @@ cdef TTF_Font *_get_font(self):
 class LabelSDLttf(LabelBase):
 
     def _get_font_id(self):
-        try:
-            return '|'.join([unicode(self.options[x]) for x \
-                in ('font_size', 'font_name_r', 'bold', 'italic')])
-        except UnicodeDecodeError:
-            return '|'.join([self.options[x] for x \
-                in ('font_size', 'font_name_r', 'bold', 'italic')])
-            
+        if PY2:
+            try:
+                return '|'.join([unicode(self.options[x]) for x \
+                    in ('font_size', 'font_name_r', 'bold', 'italic')])
+            except UnicodeDecodeError:
+                pass
+        return '|'.join([self.options[x] for x \
+            in ('font_size', 'font_name_r', 'bold', 'italic')])
 
     def get_extents(self, text):
         try:
-            text = text.encode('UTF-8')
+            if PY2:
+                text = text.encode('UTF-8')
         except:
             pass
         cdef TTF_Font *font = _get_font(self)
@@ -166,7 +171,8 @@ class LabelSDLttf(LabelBase):
 
     def _render_text(self, text, x, y):
         try:
-            text = text.encode('UTF-8')
+            if PY2:
+                text = text.encode('UTF-8')
         except:
             pass
         cdef TTF_Font *font = _get_font(self)

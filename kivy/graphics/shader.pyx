@@ -1,4 +1,4 @@
-#cython: c_string_encoding="utf8"
+#cython: c_string_type=unicode, c_string_encoding=utf8
 '''
 Shader
 ======
@@ -133,12 +133,12 @@ cdef class ShaderSource:
             return 1
         return 0
 
-    cdef void process_message(self, str ctype, str message):
+    cdef void process_message(self, str ctype, message):
         message = message.strip()
         if message:
             Logger.info('Shader: %s: <%s>' % (ctype, message))
 
-    cdef str get_shader_log(self, int shader):
+    cdef get_shader_log(self, int shader):
         '''Return the shader log
         '''
         cdef char msg[2048]
@@ -303,8 +303,7 @@ cdef class Shader:
         glUniformMatrix4fv(loc, 1, False, mat)
 
     cdef int get_uniform_loc(self, str name):
-        name_byte_str = name
-        cdef char* c_name = name_byte_str
+        cdef bytes c_name = name.encode('utf-8')
         cdef int loc = glGetUniformLocation(self.program, c_name)
         self.uniform_locations[name] = loc
         return loc
@@ -389,9 +388,10 @@ cdef class Shader:
         glGetProgramiv(self.program, GL_LINK_STATUS, &result)
         return 1 if result == GL_TRUE else 0
 
-    cdef ShaderSource compile_shader(self, char* source, int shadertype):
+    cdef ShaderSource compile_shader(self, str source, int shadertype):
         cdef ShaderSource shader
         cdef str ctype, cacheid
+        cdef bytes b_source = source.encode('utf-8')
 
         ctype = 'vertex' if shadertype == GL_VERTEX_SHADER else 'fragment'
 
@@ -402,7 +402,7 @@ cdef class Shader:
             return shader
 
         shader = ShaderSource(shadertype)
-        shader.set_source(source)
+        shader.set_source(b_source)
         if shader.is_compiled() == 0:
             self._success = 0
             return None
@@ -410,15 +410,15 @@ cdef class Shader:
         Cache.append('kv.shader', cacheid, shader)
         return shader
 
-    cdef str get_program_log(self, shader):
+    cdef get_program_log(self, shader):
         '''Return the program log'''
         cdef char msg[2048]
         cdef GLsizei length
         msg[0] = '\0'
         glGetProgramInfoLog(shader, 2048, &length, msg)
-        return msg
+        return msg[:length]
 
-    cdef void process_message(self, str ctype, str message):
+    cdef void process_message(self, str ctype, message):
         message = message.strip()
         if message:
             Logger.info('Shader: %s: <%s>' % (ctype, message))

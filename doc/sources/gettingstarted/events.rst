@@ -58,7 +58,7 @@ easiest way to do this is to call `super()`::
             return True
         if not self.collide_point(touch.x, touch.y):
             return False
-        print 'you touched me!'
+        print('you touched me!')
         return True
 
 Get more familiar with events by reading the :doc:`/guide/events` documentation.

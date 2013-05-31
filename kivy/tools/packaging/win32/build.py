@@ -1,10 +1,11 @@
+from __future__ import print_function
 import os
 import sys
 import shutil
 import zipfile
 import shlex
 from zipfile import ZipFile
-from urllib import urlretrieve
+from urllib.request import urlretrieve
 from subprocess import Popen, PIPE
 from distutils.cmd import Command
 
@@ -51,44 +52,44 @@ class WindowsPortableBuild(Command):
 
     def run(self):
         width = 30
-        print "-" * width
-        print "Building Kivy Portable for Win 32"
-        print "-" * width
-        print "\nPreparing Build..."
-        print "-" * width
+        print("-" * width)
+        print("Building Kivy Portable for Win 32")
+        print("-" * width)
+        print("\nPreparing Build...")
+        print("-" * width)
         if os.path.exists(self.build_dir):
-            print "*Cleaning old build dir"
+            print("*Cleaning old build dir")
             shutil.rmtree(self.build_dir, ignore_errors=True)
-        print "*Creating build directory:", self.build_dir
+        print("*Creating build directory:", self.build_dir)
         os.makedirs(self.build_dir)
 
 
-        print "\nGetting binary dependencies..."
-        print "---------------------------------------"
-        print "*Downloading:", self.deps_url
+        print("\nGetting binary dependencies...")
+        print("---------------------------------------")
+        print("*Downloading:", self.deps_url)
         #report_hook is called every time a piece of teh file is downloaded to print progress
         def report_hook(block_count, block_size, total_size):
             p = block_count * block_size * 100.0 / total_size
-            print "\b\b\b\b\b\b\b\b\b", "%06.2f" % p + "%",
-        print " Progress: 000.00%",
+            print("\b\b\b\b\b\b\b\b\b", "%06.2f" % p + "%", end=' ')
+        print(" Progress: 000.00%", end=' ')
         urlretrieve(self.deps_url, # location of binary dependencies needed for portable kivy
                     os.path.join(self.build_dir, 'deps.zip'), # tmp file to store the archive
                     reporthook = report_hook)
-        print " [Done]"
+        print(" [Done]")
 
 
-        print "*Extracting binary dependencies..."
+        print("*Extracting binary dependencies...")
         zf = ZipFile(os.path.join(self.build_dir, 'deps.zip'))
         zf.extractall(self.build_dir)
         zf.close()
         if self.no_mingw:
-            print "*Excluding MinGW from portable distribution (--no-mingw option is set)"
+            print("*Excluding MinGW from portable distribution (--no-mingw option is set)")
             shutil.rmtree(os.path.join(self.build_dir, 'MinGW'), ignore_errors=True)
 
 
-        print "\nPutting kivy into portable environment"
-        print "---------------------------------------"
-        print "*Building kivy source distribution"
+        print("\nPutting kivy into portable environment")
+        print("---------------------------------------")
+        print("*Building kivy source distribution")
         sdist_cmd = [sys.executable, #path to python.exe
                      os.path.join(self.src_dir, 'setup.py'), #path to setup.py
                      'sdist', #make setup.py create a src distribution
@@ -96,15 +97,15 @@ class WindowsPortableBuild(Command):
         Popen(sdist_cmd, stdout=PIPE, stderr=PIPE).communicate()
 
 
-        print "*Placing kivy source distribution in portable context"
+        print("*Placing kivy source distribution in portable context")
         src_dist = os.path.join(self.build_dir, self.dist_name)
         zf = ZipFile(src_dist+'.zip')
         zf.extractall(self.build_dir)
         zf.close()
         if self.no_mingw or self.no_cext:
-            print "*Skipping C Extension build (either --no_cext or --no_mingw option set)"
+            print("*Skipping C Extension build (either --no_cext or --no_mingw option set)")
         else:
-            print "*Compiling C Extensions inplace for portable distribution"
+            print("*Compiling C Extensions inplace for portable distribution")
             cext_cmd = [sys.executable, #path to python.exe
                         'setup.py',
                         'build_ext', #make setup.py create a src distribution
@@ -115,9 +116,9 @@ class WindowsPortableBuild(Command):
             Popen(cext_cmd, cwd=src_dist).communicate()
 
 
-        print "\nFinalizing kivy portable distribution..."
-        print "---------------------------------------"
-        print "*Copying scripts and resources"
+        print("\nFinalizing kivy portable distribution...")
+        print("---------------------------------------")
+        print("*Copying scripts and resources")
         #copy launcher script and readme to portable root dir/build dir
         kivy_bat = os.path.join(src_dist, 'kivy', 'tools', 'packaging', 'win32', 'kivy.bat')
         shutil.copy(kivy_bat, os.path.join(self.build_dir, 'kivy.bat'))
@@ -128,18 +129,18 @@ class WindowsPortableBuild(Command):
         #rename kivy directory to "kivy"
         os.rename(src_dist, os.path.join(self.build_dir, 'kivy'))
 
-        print "*Removing intermediate file"
+        print("*Removing intermediate file")
         os.remove(os.path.join(self.build_dir, 'deps.zip'))
         os.remove(os.path.join(self.build_dir, src_dist + '.zip'))
 
-        print "*Compressing portable distribution target"
+        print("*Compressing portable distribution target")
         target = os.path.join(self.dist_dir, self.dist_name + "-w32.zip")
         zip_directory(self.build_dir, target)
-        print "*Writing target:", target
-        print "*Removing build dir"
+        print("*Writing target:", target)
+        print("*Removing build dir")
         shutil.rmtree(self.build_dir, ignore_errors=True)
 
-        print "*Upload to google code"
+        print("*Upload to google code")
         sys.path += [os.path.join(self.src_dir, 'kivy', 'tools', 'packaging')]
         import googlecode_upload
         version = self.dist_name.replace("Kivy-", "")
@@ -150,8 +151,9 @@ class WindowsPortableBuild(Command):
             ['Featured', 'OsSys-Windows'])
 
         if url:
-              print 'The file was uploaded successfully.'
-              print 'URL: %s' % url
+              print('The file was uploaded successfully.')
+              print('URL: %s' % url)
         else:
-              print 'An error occurred. Your file was not uploaded.'
-              print 'Google Code upload server said: %s (%s)' % (reason, status)
+              print('An error occurred. Your file was not uploaded.')
+              print('Google Code upload server said: %s (%s)' % (reason,
+                  status))

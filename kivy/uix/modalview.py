@@ -55,7 +55,7 @@ There are two events available: `on_open` when the view is opening, and
 view from closing by explictly returning True from your callback ::
 
     def my_callback(instance):
-        print 'ModalView', instance, 'is being dismissed, but is prevented!'
+        print('ModalView', instance, 'is being dismissed, but is prevented!')
         return True
     view = ModalView()
     view.add_widget(Label(text='Hello world'))
@@ -289,7 +289,7 @@ if __name__ == '__main__':
         view.open()
 
     layout = GridLayout(cols=3)
-    for x in xrange(9):
+    for x in range(9):
         btn = Button(text='click me %s' % x)
         btn.bind(on_release=view.open)
         layout.add_widget(btn)

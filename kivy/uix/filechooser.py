@@ -50,6 +50,7 @@ from os.path import (
     basename, getsize, isdir, join, sep, normpath, expanduser, altsep,
     splitdrive, realpath)
 from fnmatch import fnmatch
+import collections
 
 platform = core_platform()
 filesize_units = ('B', 'KB', 'MB', 'GB', 'TB')
@@ -161,7 +162,7 @@ class FileChooserController(FloatLayout):
     '''
     _ENTRY_TEMPLATE = None
 
-    path = StringProperty(u'/')
+    path = StringProperty('/')
     '''
     :class:`~kivy.properties.StringProperty`, defaults to current working
     directory as unicode string. Specifies the path on the filesystem that
@@ -397,12 +398,7 @@ class FileChooserController(FloatLayout):
             # _add_file does, so if it fails here, it would also fail later
             # on. Do the check here to prevent setting path to an invalid
             # directory that we cannot list.
-            try:
-                path = entry.path.decode('utf-8')
-            except UnicodeEncodeError:
-                path = entry.path
-                pass
-            listdir(path)
+            listdir(entry.path)
         except OSError:
             #Logger.exception(e)
             entry.locked = True
@@ -415,8 +411,8 @@ class FileChooserController(FloatLayout):
             return files
         filtered = []
         for filter in self.filters:
-            if callable(filter):
-                filtered.extend([fn for fn in files if filter(self.path, fn)])
+            if isinstance(filter, collections.Callable):
+                filtered.extend([fn for fn in files if list(filter(self.path, fn))])
             else:
                 filtered.extend([fn for fn in files if fnmatch(fn, filter)])
         if not self.filter_dirs:
@@ -470,7 +466,7 @@ class FileChooserController(FloatLayout):
         index = total = count = 1
         while time() - start < 0.05 or count < 10:
             try:
-                index, total, item = self._gitems_gen.next()
+                index, total, item = next(self._gitems_gen)
                 self._gitems.append(item)
                 count += 1
             except StopIteration:
@@ -622,7 +618,7 @@ class FileChooserController(FloatLayout):
     def _force_unicode(self, s):
         # the idea is, whatever is the filename, unicode or str, even if the
         # str can't be directly returned as a unicode, return something.
-        if type(s) is unicode:
+        if type(s) is str:
             return s
         encodings = self.file_encodings
         for encoding in encodings:

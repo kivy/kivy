@@ -37,11 +37,11 @@ For example, let's use a JsonStore::
     store.put('tshirtman', name='Gabriel', age=27)
 
     # get from a key
-    print 'tito is', store.get('tito')
+    print('tito is', store.get('tito'))
 
     # or guess the key/entry for a part of the key
     key, tshirtman = store.find(name='Gabriel')
-    print 'tshirtman is', tshirtman
+    print('tshirtman is', tshirtman)
 
 Because the data is persistant, i can check later if the key exists::
 
@@ -49,7 +49,7 @@ Because the data is persistant, i can check later if the key exists::
 
     store = JsonStore('hello.json')
     if store.exists('tite'):
-        print 'tite exists:', store.get('tito')
+        print('tite exists:', store.get('tito'))
         store.delete('tito')
 
 
@@ -72,12 +72,12 @@ and the result will be returned directly.
 Without callback (Synchronous API)::
 
     entry = mystore.get('tito')
-    print 'tito =', entry
+    print('tito =', entry)
 
 With callback (Asynchronous API):
 
     def my_callback(store, key, entry):
-        print 'the key', key, 'have', entry
+        print('the key', key, 'have', entry)
     mystore.get('plop', callback=my_callback)
 
 
@@ -219,7 +219,7 @@ class AbstractStore(EventDispatcher):
         through a generator, as a list of (key, entry)::
 
             for key, entry in store.find(name='Mathieu'):
-                print 'entry:', key, '->', value
+                print('entry:', key, '->', value)
 
         Because it's a generator, you cannot directly use it as a list. You can
         do::
