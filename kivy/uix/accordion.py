@@ -386,7 +386,10 @@ class Accordion(Widget):
 
     def _do_layout(self, dt):
         children = self.children
-        all_collapsed = all(x.collapse for x in children)
+        if children:
+            all_collapsed = all(x.collapse for x in children)
+        else:
+            all_collapsed = False
 
         if all_collapsed:
             children[0].collapse = False
