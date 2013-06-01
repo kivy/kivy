@@ -126,6 +126,8 @@ class UrlRequest(Thread):
             If set, blocking operations will timeout after that many seconds.
         `method`: str, default to 'GET' (or 'POST' if body)
             HTTP method to use
+        `decode`: bool, default to True
+            If False, skip decoding of response.
         `debug`: bool, default to False
             If True, it will use the Logger.debug to print information about url
             access/progression/error.
@@ -134,7 +136,7 @@ class UrlRequest(Thread):
     def __init__(self, url, on_success=None, on_redirect=None,
             on_failure=None,on_error=None, on_progress=None, req_body=None,
             req_headers=None, chunk_size=8192, timeout=None, method=None,
-            debug=False):
+            decode=True, debug=False):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -144,6 +146,7 @@ class UrlRequest(Thread):
         self.on_failure = WeakMethod(on_failure) if on_failure else None
         self.on_error = WeakMethod(on_error) if on_error else None
         self.on_progress = WeakMethod(on_progress) if on_progress else None
+        self.decode = decode
         self._debug = debug
         self._result = None
         self._error = None
@@ -177,7 +180,8 @@ class UrlRequest(Thread):
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
-            result = self.decode_result(result, resp)
+            if self.decode:
+                result = self.decode_result(result, resp)
         except Exception as e:
             q(('error', None, e))
         else:
