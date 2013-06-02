@@ -148,11 +148,18 @@ the value can use the values of other properties using reserved keywords.
                     text: root.custom
 
     app
-        This keyword allways refer to your app instance, it's equivalent
-        to a call to :meth:`App.get_running_app` in python.
+        This keyword always refers to your app instance, it's equivalent
+        to a call to :meth:`App.get_running_app` in python.::
 
             Label:
                 text: app.name
+
+    args
+        This keyword is available in on_<action> callbacks. It refers to the
+        arguments passed to the callback.::
+
+            TextInput:
+                on_focus: self.insert_text("I'm focused!") if args[1] else self.insert_text("I'm not focused.")
 
 Furthermore, if a class definition contains an id, you can use it as a
 keyword::
