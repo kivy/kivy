@@ -582,7 +582,6 @@ from kivy.logger import Logger
 from kivy.utils import QueryDict
 from kivy.cache import Cache
 from kivy import kivy_data_dir, require
-from kivy.lib.debug import make_traceback
 from kivy.compat import PY2, iteritems, iterkeys
 import kivy.metrics as Metrics
 from weakref import ref
@@ -736,6 +735,7 @@ class ParserRuleProperty(object):
                 return
 
         # ok, we can compile.
+        value = '\n' * self.line + value
         self.co_value = compile(value, self.ctx.filename or '<string>', mode)
 
         # for exec mode, we don't need to watch any keys.
@@ -1176,13 +1176,7 @@ class Parser(object):
 
 def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     idmap['args'] = largs
-    try:
-        exec(__kvlang__.co_value, idmap)
-    except:
-        exc_info = sys.exc_info()
-        traceback = make_traceback(exc_info)
-        exc_type, exc_value, tb = traceback.standard_exc_info
-        raise exc_type(exc_value).with_traceback(tb)
+    exec(__kvlang__.co_value, idmap)
 
 
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
@@ -1225,7 +1219,8 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     try:
         return eval(value, idmap)
     except Exception as e:
-        raise BuilderException(rule.ctx, rule.line, str(e))
+        raise BuilderException(rule.ctx, rule.line,
+                '{}: {}'.format(e.__class__.__name__, e))
 
 
 class ParserSelector(object):
@@ -1506,7 +1501,8 @@ class BuilderBase(object):
                         value = eval(prule.value, idmap)
                         ctx[prule.name] = value
                 except Exception as e:
-                    raise BuilderException(prule.ctx, prule.line, str(e))
+                    raise BuilderException(prule.ctx, prule.line,
+                        '{}: {}'.format(e.__class__.__name__, e))
 
                 # create the template with an explicit ctx
                 child = cls(**ctx)
@@ -1539,33 +1535,46 @@ class BuilderBase(object):
             return
 
         # normally, we can apply a list of properties with a proper context
-        for widget_set, rules in reversed(rctx['set']):
-            for rule in rules:
-                assert(isinstance(rule, ParserRuleProperty))
-                key = rule.name
-                value = rule.co_value
-                if type(value) is CodeType:
-                    value = create_handler(widget_set, widget_set, key,
-                                           value, rule, rctx['ids'])
-                setattr(widget_set, key, value)
+        try:
+            rule = None
+            for widget_set, rules in reversed(rctx['set']):
+                for rule in rules:
+                    assert(isinstance(rule, ParserRuleProperty))
+                    key = rule.name
+                    value = rule.co_value
+                    if type(value) is CodeType:
+                        value = create_handler(widget_set, widget_set, key,
+                                               value, rule, rctx['ids'])
+                    setattr(widget_set, key, value)
+        except Exception as e:
+            if rule is not None:
+                raise BuilderException(rule.ctx, rule.line,
+                    '{}: {}'.format(e.__class__.__name__, e))
+            raise e
 
         # build handlers
-        for widget_set, rules in rctx['hdl']:
-            for crule in rules:
-                assert(isinstance(crule, ParserRuleProperty))
-                assert(crule.name.startswith('on_'))
-                key = crule.name
-                if not widget_set.is_event_type(key):
-                    key = key[3:]
-                idmap = copy(global_idmap)
-                idmap.update(rctx['ids'])
-                idmap['self'] = widget_set
-                widget_set.bind(**{key: partial(custom_callback,
-                                                crule, idmap)})
-
-                #hack for on_parent
-                if crule.name == 'on_parent':
-                    Factory.Widget.parent.dispatch(widget_set)
+        try:
+            crule = None
+            for widget_set, rules in rctx['hdl']:
+                for crule in rules:
+                    assert(isinstance(crule, ParserRuleProperty))
+                    assert(crule.name.startswith('on_'))
+                    key = crule.name
+                    if not widget_set.is_event_type(key):
+                        key = key[3:]
+                    idmap = copy(global_idmap)
+                    idmap.update(rctx['ids'])
+                    idmap['self'] = widget_set
+                    widget_set.bind(**{key: partial(custom_callback,
+                                                    crule, idmap)})
+                    #hack for on_parent
+                    if crule.name == 'on_parent':
+                        Factory.Widget.parent.dispatch(widget_set)
+        except Exception as e:
+            if crule is not None:
+                raise BuilderException(crule.ctx, crule.line,
+                    '{}: {}'.format(e.__class__.__name__, e))
+            raise e
 
         # rule finished, forget it
         del self.rulectx[rootrule]
@@ -1621,7 +1630,8 @@ class BuilderBase(object):
                             widget, instr, key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
-                raise BuilderException(prule.ctx, prule.line, str(e))
+                raise BuilderException(prule.ctx, prule.line,
+                        '{}: {}'.format(e.__class__.__name__, e))
 
 #: Main instance of a :class:`BuilderBase`.
 Builder = BuilderBase()

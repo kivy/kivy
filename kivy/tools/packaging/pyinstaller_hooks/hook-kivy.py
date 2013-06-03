@@ -43,7 +43,6 @@ _kivy_modules = [
     'kivy.lib.osc.OSC',
     'kivy.lib.osc.oscAPI',
     'kivy.lib.mtdev',
-    'kivy.lib.debug',
     'kivy.factory_registers',
     'kivy.input.recorder',
     'kivy.input.providers',
