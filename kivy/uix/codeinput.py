@@ -124,14 +124,16 @@ class CodeInput(TextInput):
 
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
-        width = Cache_get('textinput.width', text + '_' + str(self.lexer))
+        width = Cache_get(
+                        'textinput.width',
+                        ''.join((text, '_', self.lexer.__repr__())))
         if width:
             return width
         lbl = self._create_line_label(text)
         width = lbl.width if lbl else 0
         Cache_append(
                     'textinput.width',
-                    text + '_' + str(self.lexer), width)
+                    text + '_' + self.lexer.__repr__(), width)
         return width
 
     def _get_bbcode(self, ntext):
@@ -142,9 +144,16 @@ class CodeInput(TextInput):
             # by pygment. can't use &bl; ... cause & is highlighted
             # if at some time support for braille is added then replace these
             # characters with something else
-            ntext = ntext.replace('[', '⣿;').replace(']', '⣾;')
+            try:
+                ntext = ntext.replace('[', u'⣿;').replace(']', u'⣾;')
+            except UnicodeDecodeError:
+                ntext = ntext.replace('[', '⣿;').replace(']', '⣾;')
+
             ntext = highlight(ntext, self.lexer, self.formatter)
-            ntext = ntext.replace('⣿;', '&bl;').replace('⣾;', '&br;')
+            try:
+                ntext = ntext.replace(u'⣿;', '&bl;').replace(u'⣾;', '&br;')
+            except UnicodeDecodeError:
+                ntext = ntext.replace(u'⣿;', '&bl;').replace(u'⣾;', '&br;')
             # replace special chars with &bl; and &br;
             ntext = ''.join(('[color=', str(self.text_color), ']',
                              ntext, '[/color]'))

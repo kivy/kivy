@@ -3,6 +3,7 @@ kivy.require('1.4.2')
 import os
 import sys
 from kivy.app import App
+from kivy.compat import PY2
 from kivy.factory import Factory
 from kivy.lang import Builder, Parser, ParserException
 from kivy.properties import ObjectProperty
@@ -115,7 +116,10 @@ class Catalog(BoxLayout):
 
     def schedule_reload(self):
         if self.auto_reload:
-            txt = self.language_box.text.encode('utf8')
+            if PY2:
+                txt = self.language_box.text.encode('utf8')
+            else:
+                txt = self.language_box.text
             if txt == self._previously_parsed_text:
                 return
             self._previously_parsed_text = txt
@@ -128,7 +132,11 @@ class Catalog(BoxLayout):
         on the kv file the user entered. If there is an error in their kv
         syntax, show a nice popup.'''
 
-        txt = self.language_box.text.encode('utf8')
+        if PY2:
+            txt = self.language_box.text.encode('utf8')
+        else:
+            txt = self.language_box.text
+        
         kv_container = self.screen_manager.current_screen.children[0]
         try:
             parser = Parser(content=txt)

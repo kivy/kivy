@@ -1047,7 +1047,7 @@ class TextInput(Widget):
         # so as to avoid putting spurious data after the end.
         # MS windows issue.
         self._ensure_clipboard()
-        data = data.encode(self._encoding) + '\x00'
+        data = data.encode(self._encoding) + b'\x00'
         Clipboard.put(data, self._clip_mime_type)
 
     def _paste(self):
@@ -1919,7 +1919,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_normal` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_disabled_normal` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled'
     '''
 
@@ -1939,7 +1940,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_active` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_disabled_active` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled_active'
     '''
 
@@ -1966,7 +1968,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled_foreground_color` is a :class:`~kivy.properties.ListProperty`,
+    :data:`disabled_foreground_color` is a
+    :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 5] # 50% translucent Black
     '''
 
