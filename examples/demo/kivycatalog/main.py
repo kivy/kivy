@@ -116,10 +116,7 @@ class Catalog(BoxLayout):
 
     def schedule_reload(self):
         if self.auto_reload:
-            if PY2:
-                txt = self.language_box.text.encode('utf8')
-            else:
-                txt = self.language_box.text
+            txt = self.language_box.text
             if txt == self._previously_parsed_text:
                 return
             self._previously_parsed_text = txt
@@ -132,11 +129,8 @@ class Catalog(BoxLayout):
         on the kv file the user entered. If there is an error in their kv
         syntax, show a nice popup.'''
 
-        if PY2:
-            txt = self.language_box.text.encode('utf8')
-        else:
-            txt = self.language_box.text
-        
+        txt = self.language_box.text
+
         kv_container = self.screen_manager.current_screen.children[0]
         try:
             parser = Parser(content=txt)
