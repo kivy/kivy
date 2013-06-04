@@ -23,10 +23,10 @@ relative to the containing layout.
     Prior to version 1.7.0 The :class:`RelativeLayout` was implemented as a
     :class`FloatLayout` inside a :class:`Scatter`.  This behaviour/widget has
     been renamed to `ScatterLayout`.  The :class:`RelativeLayout` now only
-    supports relative position (and cant be roatated or scaled), so that the
-    implemetation can be optimized and avoid the heavier calculations from
-    :class:`Scatter` (e.g. inverse matrix, recaculating multiple properties,
-    etc)
+    supports relative position (and can't be rotated, scaled or translated on 
+    a multitouch system using two or more fingers), so that the implementation 
+    can be optimized and avoid the heavier calculations from :class:`Scatter` 
+    (e.g. inverse matrix, recaculating multiple properties,etc)
 
 '''
 
