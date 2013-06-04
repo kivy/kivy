@@ -31,6 +31,11 @@ __all__ = (
 __version__ = '1.8.0-dev'
 
 import sys
+# reset encoding to utf-8
+if sys.version_info[0] == 2:
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+
 import shutil
 from getopt import getopt, GetoptError
 from os import environ, mkdir

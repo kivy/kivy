@@ -111,19 +111,23 @@ import re
 from os import environ
 from weakref import ref
 from functools import partial
+
 from kivy.base import EventLoop
 from kivy.logger import Logger
 from kivy.utils import boundary, platform
 from kivy.clock import Clock
 from kivy.cache import Cache
+
+from kivy.animation import Animation
 from kivy.core.text import Label
+from kivy.graphics import Color, Rectangle
+from kivy.metrics import inch
+
 from kivy.uix.widget import Widget
 from kivy.uix.bubble import Bubble
-from kivy.graphics import Color, Rectangle
+
 from kivy.config import Config
-from kivy.utils import platform
-from kivy.metrics import inch
-from kivy.animation import Animation
+from kivy.compat import PY2
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
         ListProperty, ObjectProperty, VariableListProperty
@@ -1047,7 +1051,7 @@ class TextInput(Widget):
         # so as to avoid putting spurious data after the end.
         # MS windows issue.
         self._ensure_clipboard()
-        data = data.encode(self._encoding) + '\x00'
+        data = data.encode(self._encoding) + b'\x00'
         Clipboard.put(data, self._clip_mime_type)
 
     def _paste(self):
@@ -1066,6 +1070,8 @@ class TextInput(Widget):
             # remove null strings mostly a windows issue
             data = data.replace('\x00', '')
             self.delete_selection()
+            if PY2:
+                data = data.decode('utf8')
             self.insert_text(data)
         data = None
 
@@ -1919,7 +1925,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_normal` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_disabled_normal` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled'
     '''
 
@@ -1939,7 +1946,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_active` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_disabled_active` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled_active'
     '''
 
@@ -1966,7 +1974,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled_foreground_color` is a :class:`~kivy.properties.ListProperty`,
+    :data:`disabled_foreground_color` is a
+    :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 5] # 50% translucent Black
     '''
 
@@ -2036,6 +2045,9 @@ class TextInput(Widget):
     def _set_text(self, text):
         if self.text == text:
             return
+        if PY2:
+            if type(text) is not str:
+                text.decode('utf8')
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
 

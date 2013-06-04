@@ -72,7 +72,7 @@ call(['git', 'stash', 'pop', '--quiet'])
 
 if retval:
     # There are styleguide violations
-    print "Error:", retval, "styleguide violation(s) encountered!"
-    print "Your commit has been aborted. Please fix the violations and retry."
+    print ("Error:", retval, "styleguide violation(s) encountered!")
+    print ("Your commit has been aborted. Please fix the violations and retry.")
     sys.exit(retval)
 
