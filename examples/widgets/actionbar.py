@@ -4,7 +4,7 @@ from kivy.clock import Clock
 from kivy.uix import actionbar
 from kivy.lang import Builder
 
-Builder.load_string ('''
+Builder.load_string('''
 <MainWindow>:
     ActionBar:
         size_hint: 1,0.1
@@ -34,7 +34,6 @@ Builder.load_string ('''
                 ActionButton:
                     text: 'Btn7'
 ''')
-
 
 class MainWindow(FloatLayout):
     pass
