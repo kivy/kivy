@@ -41,19 +41,6 @@ __all__ = ('Spinner', 'SpinnerOption')
 from kivy.properties import ListProperty, ObjectProperty, BooleanProperty
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
-from kivy.lang import Builder
-
-
-Builder.load_string('''
-<SpinnerOption>:
-    size_hint_y: None
-    height: 44
-
-<Spinner>:
-    background_normal: 'atlas://data/images/defaulttheme/spinner'
-    background_disabled_normal: 'atlas://data/images/defaulttheme/spinner_disabled'
-    background_down: 'atlas://data/images/defaulttheme/spinner_pressed'
-''')
 
 
 class SpinnerOption(Button):
