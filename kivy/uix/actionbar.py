@@ -278,7 +278,7 @@ class ActionView(BoxLayout):
     '''Previous button for ActionView.
 
        :data:`action_previous` is an :class:`~kivy.properties.ObjectProperty`,
-       default to an instance of ActionPrevious.
+        default to None.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
@@ -321,6 +321,9 @@ class ActionView(BoxLayout):
         self._list_action_items.insert(0, value)
 
     def add_widget(self, action_item, index=0):
+        if action_item is None:
+            return
+
         if not isinstance(action_item, ActionItem):
             raise ActionBarException('ActionView only accepts ActionItem')
 
@@ -535,8 +538,9 @@ class ActionBar(BoxLayout):
     def add_widget(self, view):
         if isinstance(view, ContextualActionView):
             self._stack_cont_action_view.append(view)
-            view.action_view.unbind(on_release=self._emit_previous)
-            view.action_view.bind(on_release=self._emit_previous)
+            if view.action_previous is not None:
+                view.action_previous.unbind(on_release=self._emit_previous)
+                view.action_previous.bind(on_release=self._emit_previous)
             self.clear_widgets()
             super(ActionBar, self).add_widget(view)
 
