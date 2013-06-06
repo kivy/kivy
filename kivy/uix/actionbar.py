@@ -108,6 +108,14 @@ class ActionPrevious(ActionButton):
     '''ActionPrevious class, see module documentation for more information.
     '''
 
+    with_previous = BooleanProperty(True)
+    '''Specifies, if upon clicking ActionPrevious previous screen will be loaded
+       or not. If its True then previous_icon will be shown otherwise not.
+
+       :data:`with_previous` is a :class:`~kivy.properties.BooleanProperty`,
+       default to True.
+    '''
+
     app_icon = StringProperty(
         Config.get('kivy', 'window_icon'))
     '''Application icon for the ActionView.
@@ -569,6 +577,7 @@ if __name__ == "__main__":
             use_separator: True
             ActionPrevious:
                 title: 'Title'
+                with_previous: False
             ActionOverflow:
             ActionButton:
                 text: 'Btn0'

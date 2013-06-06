@@ -543,6 +543,7 @@
         padding: '2dp'
         Image:
             source: root.previous_image
+            opacity: 1 if root.with_previous else 0
             allow_stretch: True
             size_hint_x: None
             width: self.texture_size[0] if self.texture else 20
