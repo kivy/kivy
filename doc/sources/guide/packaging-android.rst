@@ -59,6 +59,12 @@ examples of building distributions::
     ./distribute.sh -m "openssl kivy"
     ./distribute.sh -m "pil ffmpeg kivy"
 
+.. note::
+
+    The order of modules provided are important, as a general rule put
+    dependencies first and then the dependent modules, C libs come first
+    then python modules.
+
 To see the available options for distribute.sh, type::
 
     ./distribute.sh -h
