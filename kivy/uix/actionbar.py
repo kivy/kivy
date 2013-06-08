@@ -121,7 +121,7 @@ class ActionPrevious(ActionButton):
     '''Application icon for the ActionView.
 
        :data:`app_icon` is a :class:`~kivy.properties.StringProperty`,
-       default to window icon if set otherwise 'data/logo/kivy-icon-32'.
+       default to window icon if set otherwise 'data/logo/kivy-icon-32.png'.
     '''
 
     previous_image = StringProperty(
@@ -142,7 +142,7 @@ class ActionPrevious(ActionButton):
     def __init__(self, **kwargs):
         super(ActionPrevious, self).__init__(**kwargs)
         if not self.app_icon:
-            self.app_icon = 'data/logo/kivy-icon-32'
+            self.app_icon = 'data/logo/kivy-icon-32.png'
 
 
 class ActionToggleButton(ActionItem, ToggleButton):
