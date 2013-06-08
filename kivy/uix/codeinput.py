@@ -87,9 +87,9 @@ class CodeInput(TextInput):
 
     def _create_line_label(self, text, hint=False):
         # Create a label from a text, using line options
-        ntext = text.replace('\n', '').replace('\t', ' ' * self.tab_width)
+        ntext = text.replace(u'\n', u'').replace(u'\t', u' ' * self.tab_width)
         if self.password and not hint:  # Don't replace hint_text with *
-            ntext = '*' * len(ntext)
+            ntext = u'*' * len(ntext)
         ntext = self._get_bbcode(ntext)
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
@@ -100,8 +100,8 @@ class CodeInput(TextInput):
             # if we move on "VBO" version as fallback, we won't need to do this.
             # try to found the maximum text we can handle
             label = Label(text=ntext, **kw)
-            if text.find('\n') > 0:
-                label.text = ''
+            if text.find(u'\n') > 0:
+                label.text = u''
             else:
                 label.text = ntext
             try:
@@ -124,14 +124,14 @@ class CodeInput(TextInput):
 
     def _get_text_width(self, text, tab_width, _label_cached):
         # Return the width of a text, according to the current line options
-        width = Cache_get('textinput.width', text + '_' + str(self.lexer))
+        width = Cache_get('textinput.width', text + u'_' + repr(self.lexer))
         if width:
             return width
         lbl = self._create_line_label(text)
         width = lbl.width if lbl else 0
         Cache_append(
                     'textinput.width',
-                    text + '_' + str(self.lexer), width)
+                    text + u'_' + repr(self.lexer), width)
         return width
 
     def _get_bbcode(self, ntext):
@@ -142,13 +142,13 @@ class CodeInput(TextInput):
             # by pygment. can't use &bl; ... cause & is highlighted
             # if at some time support for braille is added then replace these
             # characters with something else
-            ntext = ntext.replace('[', '⣿;').replace(']', '⣾;')
+            ntext = ntext.replace(u'[', u'⣿;').replace(u']', u'⣾;')
             ntext = highlight(ntext, self.lexer, self.formatter)
-            ntext = ntext.replace('⣿;', '&bl;').replace('⣾;', '&br;')
+            ntext = ntext.replace(u'⣿;', u'&bl;').replace(u'⣾;', u'&br;')
             # replace special chars with &bl; and &br;
-            ntext = ''.join(('[color=', str(self.text_color), ']',
-                             ntext, '[/color]'))
-            ntext = ntext.replace('\n', '')
+            ntext = ''.join((u'[color=', str(self.text_color), u']',
+                             ntext, u'[/color]'))
+            ntext = ntext.replace(u'\n', u'')
             return ntext
         except IndexError:
             return ''

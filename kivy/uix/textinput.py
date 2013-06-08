@@ -105,25 +105,28 @@ Control + r     redo
 
 __all__ = ('TextInput', )
 
-import sys
 import re
-
+import sys
+from functools import partial
 from os import environ
 from weakref import ref
-from functools import partial
+
+from kivy.animation import Animation
 from kivy.base import EventLoop
-from kivy.logger import Logger
-from kivy.utils import boundary, platform
-from kivy.clock import Clock
 from kivy.cache import Cache
+from kivy.clock import Clock
+from kivy.config import Config
+from kivy.compat import PY2
+from kivy.logger import Logger
+from kivy.metrics import inch
+from kivy.utils import boundary, platform
+
 from kivy.core.text import Label
+from kivy.graphics import Color, Rectangle
+
 from kivy.uix.widget import Widget
 from kivy.uix.bubble import Bubble
-from kivy.graphics import Color, Rectangle
-from kivy.config import Config
-from kivy.utils import platform
-from kivy.metrics import inch
-from kivy.animation import Animation
+
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
         ListProperty, ObjectProperty, VariableListProperty
@@ -271,7 +274,7 @@ class TextInput(Widget):
         self._selection = False
         self._selection_finished = True
         self._selection_touch = None
-        self.selection_text = ''
+        self.selection_text = u''
         self._selection_from = None
         self._selection_to = None
         self._bubble = None
@@ -1047,7 +1050,7 @@ class TextInput(Widget):
         # so as to avoid putting spurious data after the end.
         # MS windows issue.
         self._ensure_clipboard()
-        data = data.encode(self._encoding) + '\x00'
+        data = data.encode(self._encoding) + b'\x00'
         Clipboard.put(data, self._clip_mime_type)
 
     def _paste(self):
@@ -1061,8 +1064,7 @@ class TextInput(Widget):
         data = Clipboard.get(mime_type)
         if data is not None:
             # decode only if we don't have unicode
-            if type(data) is not str:
-                data = data.decode(self._encoding, 'ignore')
+            data = data.decode(self._encoding, 'ignore')
             # remove null strings mostly a windows issue
             data = data.replace('\x00', '')
             self.delete_selection()
@@ -1919,7 +1921,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_normal` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_disabled_normal` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled'
     '''
 
@@ -1929,7 +1932,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.4.1
 
-    :data:`background_active` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_active` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_active'
     '''
 
@@ -1939,7 +1943,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_active` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_disabled_active` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled_active'
     '''
 
@@ -1966,7 +1971,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled_foreground_color` is a :class:`~kivy.properties.ListProperty`,
+    :data:`disabled_foreground_color` is a
+    :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 5] # 50% translucent Black
     '''
 
@@ -2124,4 +2130,4 @@ if __name__ == '__main__':
             root.add_widget(textinput2)
             return root
 
-    TextInputApp().run()
+    #TextInputApp().run()

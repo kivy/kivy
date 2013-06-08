@@ -7,6 +7,7 @@ from kivy.factory import Factory
 from kivy.lang import Builder, Parser, ParserException
 from kivy.properties import ObjectProperty
 from kivy.config import Config
+from kivy.compat import PY2
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.codeinput import CodeInput
@@ -115,7 +116,9 @@ class Catalog(BoxLayout):
 
     def schedule_reload(self):
         if self.auto_reload:
-            txt = self.language_box.text.encode('utf8')
+            txt = self.language_box.text
+            if PY2 and type(txt) is not str:
+                txt = txt.encode('utf8')
             if txt == self._previously_parsed_text:
                 return
             self._previously_parsed_text = txt
@@ -128,7 +131,9 @@ class Catalog(BoxLayout):
         on the kv file the user entered. If there is an error in their kv
         syntax, show a nice popup.'''
 
-        txt = self.language_box.text.encode('utf8')
+        txt = self.language_box.text
+        if PY2 and type(txt) is not str:
+            txt = txt.encode('utf8')
         kv_container = self.screen_manager.current_screen.children[0]
         try:
             parser = Parser(content=txt)
@@ -142,7 +147,7 @@ class Catalog(BoxLayout):
             self.show_error(e)
 
     def show_error(self, e):
-        self.info_label.text = str(e)
+        self.info_label.text = e.message
         self.anim = Animation(top=190.0, opacity=1, d=2, t='in_back') +\
             Animation(top=190.0, d=3) +\
             Animation(top=0, opacity=0, d=2)
