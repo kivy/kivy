@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 '''
 Code Input
 ==========
@@ -140,11 +139,9 @@ class CodeInput(TextInput):
             ntext[0]
             # replace brackets with special chars that aren't highlighted
             # by pygment. can't use &bl; ... cause & is highlighted
-            # if at some time support for braille is added then replace these
-            # characters with something else
-            ntext = ntext.replace(u'[', u'⣿;').replace(u']', u'⣾;')
+            ntext = ntext.replace(u'[', u'\x01;').replace(u']', u'\x02;')
             ntext = highlight(ntext, self.lexer, self.formatter)
-            ntext = ntext.replace(u'⣿;', u'&bl;').replace(u'⣾;', u'&br;')
+            ntext = ntext.replace(u'\x01;', u'&bl;').replace(u'\x02;', u'&br;')
             # replace special chars with &bl; and &br;
             ntext = ''.join((u'[color=', str(self.text_color), u']',
                              ntext, u'[/color]'))

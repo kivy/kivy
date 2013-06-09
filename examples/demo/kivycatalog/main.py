@@ -109,16 +109,14 @@ class Catalog(BoxLayout):
         self.screen_manager.current = value
 
         child = self.screen_manager.current_screen.children[0]
-        with open(child.kv_file) as file:
-            self.language_box.text = file.read()
+        with open(child.kv_file, 'rb') as file:
+            self.language_box.text = file.read().decode('utf8')
         # reset undo/redo history
         self.language_box.reset_undo()
 
     def schedule_reload(self):
         if self.auto_reload:
             txt = self.language_box.text
-            if PY2 and type(txt) is not str:
-                txt = txt.encode('utf8')
             if txt == self._previously_parsed_text:
                 return
             self._previously_parsed_text = txt
@@ -132,8 +130,6 @@ class Catalog(BoxLayout):
         syntax, show a nice popup.'''
 
         txt = self.language_box.text
-        if PY2 and type(txt) is not str:
-            txt = txt.encode('utf8')
         kv_container = self.screen_manager.current_screen.children[0]
         try:
             parser = Parser(content=txt)
