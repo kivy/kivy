@@ -158,6 +158,7 @@ class Bubble(GridLayout):
     '''
 
     def __init__(self, **kwargs):
+        self._prev_arrow_pos = None
         self._arrow_layout = GridLayout(rows=1)
         self._bk_img = Image(
             source=self.background_image, allow_stretch=True,
@@ -169,6 +170,7 @@ class Bubble(GridLayout):
         super(Bubble, self).__init__(**kwargs)
         content.parent = None
         self.add_widget(content)
+        self.arrow_pos = kwargs.get('arrow_pos', 'bottom_mid')
         self.on_arrow_pos()
 
     def add_widget(self, *l):
@@ -183,7 +185,7 @@ class Bubble(GridLayout):
 
     def remove_widget(self, *l):
         content = self.content
-        if content is None:
+        if not content:
             return
         if l[0] == content or l[0] == self._arrow_img\
             or l[0] == self._arrow_layout:
@@ -193,7 +195,7 @@ class Bubble(GridLayout):
 
     def clear_widgets(self, **kwargs):
         content = self.content
-        if content is None:
+        if not content:
             return
         if kwargs.get('do_super', False):
             super(Bubble, self).clear_widgets()
@@ -238,9 +240,14 @@ class Bubble(GridLayout):
 
     def on_arrow_pos(self, *l):
         self_content = self.content
-        if not self_content:
+        if not (self_content and self.canvas):
             return
+
         self_arrow_pos = self.arrow_pos
+        if self._prev_arrow_pos == self_arrow_pos:
+            return
+        self._prev_arrow_pos = self_arrow_pos
+
         self_arrow_layout = self._arrow_layout
         self_arrow_layout.clear_widgets()
         self_arrow_img = self._arrow_img
