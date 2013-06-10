@@ -60,8 +60,9 @@ from os.path import dirname, join, exists
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty, NumericProperty, \
         DictProperty, ListProperty, StringProperty, \
-        BooleanProperty
+        BooleanProperty, AliasProperty
 from kivy.lang import Builder
+from kivy.utils import get_hex_from_color, get_color_from_hex
 from kivy.uix.widget import Widget
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
@@ -123,7 +124,7 @@ Builder.load_string('''
     do_scroll_x: False
     canvas:
         Color:
-            rgb: parse_color(root.colors['background'])
+            rgba: parse_color(root.colors['background'])
         Rectangle:
             pos: self.pos
             size: self.size
@@ -410,12 +411,27 @@ class RstDocument(ScrollView):
     to False
     '''
 
+    def _get_bgc(self):
+        return get_color_from_hex(self.colors.background)
+
+    def _set_bgc(self, value):
+        self.colors.background = get_hex_from_color(value)[1:]
+
+    background_color = AliasProperty(_get_bgc, _set_bgc, bind=('colors',))
+    '''Indicates the background_color to be used for the RstDocument
+
+    .. versionadded:: 1.8.0
+
+    :data:`background_color` is a :class:`~kivy.properties.AliasProeprty`.
+    This is a alias for colors['background']
+    '''
+
     colors = DictProperty({
-        'background': 'e5e6e9',
-        'link': 'ce5c00',
-        'paragraph': '202020',
-        'title': '204a87',
-        'bullet': '000000'})
+        'background': 'e5e6e9ff',
+        'link': 'ce5c00ff',
+        'paragraph': '202020ff',
+        'title': '204a87ff',
+        'bullet': '000000ff'})
     '''Dictionary of all the colors used in the RST rendering.
 
     .. warning::
