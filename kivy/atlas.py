@@ -229,6 +229,9 @@ class Atlas(EventDispatcher):
                 so for example, if the path and filename is ``../data/tiles/green_grass.png``
                 then the id will be ``green_grass`` if use_path is False, and it will be
                 ``data_tiles_green_grass`` if use_path is True
+
+            .. versionchanged:: 1.8.0
+                Parameter use_path added
         '''
         # Thanks to
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
@@ -365,9 +368,9 @@ if __name__ == '__main__':
 
     if argv[0] == 'use_path':
         argv = argv[1:]
-        use_path=True
+        use_path = True
     else:
-        use_path=False
+        use_path = False
 
     outname = argv[0]
     try:
