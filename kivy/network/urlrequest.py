@@ -131,6 +131,9 @@ class UrlRequest(Thread):
         `debug`: bool, default to False
             If True, it will use the Logger.debug to print information about url
             access/progression/error.
+
+    .. versionadded:: 1.8.0
+        Parameter `decode` added.
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
