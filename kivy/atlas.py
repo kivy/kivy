@@ -77,7 +77,13 @@ As you can see, we got 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
 
     When using this script, the ids referenced in the atlas is the basename of
     the image, without the extension. So if you are going to give a filename
-    ``../images/button.png``, the id for this image will be ``button``.
+    ``../images/button.png``, the id for this image will be ``button``, unless
+    use_path is specified, like this:
+
+    $ python -m kivy.atlas use_path myatlas 256 *.png
+
+    In which case the id for ``../images/button.png`` will be ``.._images_button``
+
 
 How to use an atlas
 -------------------
