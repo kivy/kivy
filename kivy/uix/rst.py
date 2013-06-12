@@ -396,8 +396,9 @@ class RstDocument(ScrollView):
     :data:`source_encoding` is a :class:`~kivy.properties.StringProperty`,
     default to `utf-8`.
 
-    .. Note:: it's your responsibility to ensure that the value provided is a
-    valid codec supported by python.
+    .. Note::
+        it's your responsibility to ensure that the value provided is a
+        valid codec supported by python.
     '''
 
     source_error = OptionProperty('strict',
@@ -407,7 +408,7 @@ class RstDocument(ScrollView):
 
     :data:`source_eerror` is a :class:`~kivy.properties.OptionProperty`,
     default to `strict`. Can be one of 'strict', 'ignore', 'replace',
-                                    'xmlcharrefreplace', 'backslashreplac'
+    'xmlcharrefreplace', 'backslashreplac'
     '''
 
     text = StringProperty(None)
