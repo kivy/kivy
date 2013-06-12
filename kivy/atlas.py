@@ -192,7 +192,7 @@ class Atlas(EventDispatcher):
         self.textures = textures
 
     @staticmethod
-    def create(outname, filenames, size, padding=2):
+    def create(outname, filenames, size, padding=2, use_path=False):
         '''This method can be used to create manually an atlas from a set of
         images.
 
@@ -215,6 +215,13 @@ class Atlas(EventDispatcher):
                 "border" of 1px of your image, around the image. If you look at
                 the result, don't be scared if the image inside it are not
                 exactly the same as yours :).
+            `use_path`: bool, if true, the relative path of the source png
+                filenames will be included in their atlas ids, rather
+                that just the filename. path separator slashes in the path
+                will be replaced with underscores, so for example, if the path
+                and filename is data/tiles/green_grass.png then the id will be
+                green_grass if use_path is False, and it will be
+                data_tiles_green_grass if use_path is True
         '''
         # Thanks to
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
@@ -319,9 +326,16 @@ class Atlas(EventDispatcher):
             else:
                 d = meta[fn]
 
-            # fb[6] contain the filename aka '../apok.png'. just get only 'apok'
-            # as the uniq id.
-            uid = splitext(basename(fb[6]))[0]
+            # fb[6] contain the filename
+            if use_path:
+                # use the path with separators replaced by _
+                # example 'data/tiles/green_grass.png' becomes 'data_tiles_green_grass'
+                uid = splitext(fb[6])[0].replace('/','_').replace('\\', '_')
+            else:
+                # for example, '../apok.png'
+                # just get only 'apok' as the uniq id.
+                uid = splitext(basename(fb[6]))[0]
+
             x, y, w, h = fb[2:6]
             d[uid] = x, size - y - h, w, h
 
@@ -348,7 +362,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     filenames = argv[2:]
-    ret = Atlas.create(outname, filenames, size)
+    ret = Atlas.create(outname, filenames, size, use_path=False)
     if not ret:
         print('Error while creating atlas!')
         sys.exit(1)
