@@ -105,25 +105,28 @@ Control + r     redo
 
 __all__ = ('TextInput', )
 
-import sys
 import re
-
+import sys
+from functools import partial
 from os import environ
 from weakref import ref
-from functools import partial
+
+from kivy.animation import Animation
 from kivy.base import EventLoop
-from kivy.logger import Logger
-from kivy.utils import boundary, platform
-from kivy.clock import Clock
 from kivy.cache import Cache
+from kivy.clock import Clock
+from kivy.config import Config
+from kivy.compat import PY2
+from kivy.logger import Logger
+from kivy.metrics import inch
+from kivy.utils import boundary, platform
+
 from kivy.core.text import Label
+from kivy.graphics import Color, Rectangle
+
 from kivy.uix.widget import Widget
 from kivy.uix.bubble import Bubble
-from kivy.graphics import Color, Rectangle
-from kivy.config import Config
-from kivy.utils import platform
-from kivy.metrics import inch
-from kivy.animation import Animation
+
 from kivy.properties import StringProperty, NumericProperty, \
         ReferenceListProperty, BooleanProperty, AliasProperty, \
         ListProperty, ObjectProperty, VariableListProperty
@@ -271,7 +274,7 @@ class TextInput(Widget):
         self._selection = False
         self._selection_finished = True
         self._selection_touch = None
-        self.selection_text = ''
+        self.selection_text = u''
         self._selection_from = None
         self._selection_to = None
         self._bubble = None
@@ -415,10 +418,11 @@ class TextInput(Widget):
 
     def _auto_indent(self, substring):
         index = self.cursor_index()
+        _text = self._get_text(encode=False)
         if index > 0:
-            line_start = self.text.rfind('\n', 0, index)
+            line_start = _text.rfind('\n', 0, index)
             if line_start > -1:
-                line = self.text[line_start + 1:index]
+                line = _text[line_start + 1:index]
                 indent = self.re_indent.match(line).group()
                 substring += indent
         return substring
@@ -431,7 +435,7 @@ class TextInput(Widget):
             return
 
         if not from_undo and self.multiline and self.auto_indent \
-                and substring == '\n':
+                and substring == u'\n':
             substring = self._auto_indent(substring)
 
         cc, cr = self.cursor
@@ -439,7 +443,7 @@ class TextInput(Widget):
         ci = sci()
         text = self._lines[cr]
         len_str = len(substring)
-        insert_at_end = True if text[cc:] == '' else False
+        insert_at_end = True if text[cc:] == u'' else False
         new_text = text[:cc] + substring + text[cc:]
         self._set_line_text(cr, new_text)
 
@@ -447,7 +451,7 @@ class TextInput(Widget):
                                     new_text,
                                     self.tab_width,
                                     self._label_cached) > self.width)
-        if len_str > 1 or substring == '\n' or wrap:
+        if len_str > 1 or substring == u'\n' or wrap:
             # Avoid refreshing text on every keystroke.
             # Allows for faster typing of text when the amount of text in
             # TextInput gets large.
@@ -471,10 +475,10 @@ class TextInput(Widget):
         linesflags = self._lines_flags
         if start and not linesflags[start]:
             start -= 1
-            new_text = ''.join((lines[start], new_text))
+            new_text = u''.join((lines[start], new_text))
         try:
             while not linesflags[finish + 1]:
-                new_text = ''.join((new_text, lines[finish + 1]))
+                new_text = u''.join((new_text, lines[finish + 1]))
                 finish += 1
         except IndexError:
             pass
@@ -587,7 +591,7 @@ class TextInput(Widget):
         _lines_flags = self._lines_flags
         start = cr
         if cc == 0:
-            substring = '\n' if _lines_flags[cr] else ' '
+            substring = u'\n' if _lines_flags[cr] else u' '
             new_text = text_last_line + text
             self._set_line_text(cr - 1, new_text)
             self._delete_line(cr)
@@ -720,7 +724,7 @@ class TextInput(Widget):
         cc, cr = self.cursor
         if not self._selection:
             return
-        v = self.text
+        v = self._get_text(encode=False)
         a, b = self._selection_from, self._selection_to
         if a > b:
             a, b = b, a
@@ -761,7 +765,7 @@ class TextInput(Widget):
         if a > b:
             a, b = b, a
         self._selection_finished = finished
-        self.selection_text = self.text[a:b]
+        self.selection_text = self._get_text(encode=False)[a:b]
         if not finished:
             self._selection = True
         else:
@@ -795,8 +799,8 @@ class TextInput(Widget):
         cc = self.cursor_col
         line = self._lines[self.cursor_row]
         len_line = len(line)
-        start = max(0, len(line[:cc]) - line[:cc].rfind(' ') - 1)
-        end = line[cc:].find(' ')
+        start = max(0, len(line[:cc]) - line[:cc].rfind(u' ') - 1)
+        end = line[cc:].find(u' ')
         end = end if end > - 1 else (len_line - cc)
         Clock.schedule_once(lambda dt: self.select_text(ci - start, ci + end))
 
@@ -1047,7 +1051,7 @@ class TextInput(Widget):
         # so as to avoid putting spurious data after the end.
         # MS windows issue.
         self._ensure_clipboard()
-        data = data.encode(self._encoding) + '\x00'
+        data = data.encode(self._encoding) + b'\x00'
         Clipboard.put(data, self._clip_mime_type)
 
     def _paste(self):
@@ -1061,10 +1065,11 @@ class TextInput(Widget):
         data = Clipboard.get(mime_type)
         if data is not None:
             # decode only if we don't have unicode
-            if type(data) is not str:
-                data = data.decode(self._encoding, 'ignore')
+            # we would still need to decode from utf-16 (windows)
+            # data is of type bytes in PY3
+            data = data.decode(self._encoding, 'ignore')
             # remove null strings mostly a windows issue
-            data = data.replace('\x00', '')
+            data = data.replace(u'\x00', u'')
             self.delete_selection()
             self.insert_text(data)
         data = None
@@ -1147,7 +1152,7 @@ class TextInput(Widget):
         self._refresh_text_from_property(*largs)
 
     def _refresh_text_from_property(self, *largs):
-        self._refresh_text(self.text, *largs)
+        self._refresh_text(self._get_text(encode=False), *largs)
 
     def _refresh_text(self, text, *largs):
         # Refresh all the lines from a new text.
@@ -1450,9 +1455,9 @@ class TextInput(Widget):
 
     def _create_line_label(self, text, hint=False):
         # Create a label from a text, using line options
-        ntext = text.replace('\n', '').replace('\t', ' ' * self.tab_width)
+        ntext = text.replace(u'\n', u'').replace(u'\t', u' ' * self.tab_width)
         if self.password and not hint:  # Don't replace hint_text with *
-            ntext = '*' * len(ntext)
+            ntext = u'*' * len(ntext)
         kw = self._get_line_options()
         cid = '%s\0%s' % (ntext, str(kw))
         texture = Cache_get('textinput.label', cid)
@@ -1493,7 +1498,7 @@ class TextInput(Widget):
         # Tokenize a text string from some delimiters
         if text is None:
             return
-        delimiters = ' ,\'".;:\n\r\t'
+        delimiters = u' ,\'".;:\n\r\t'
         oldindex = 0
         for index, char in enumerate(text):
             if char not in delimiters:
@@ -1512,7 +1517,7 @@ class TextInput(Widget):
 
         # depend of the options, split the text on line, or word
         if not self.multiline:
-            lines = text.split('\n')
+            lines = text.split(u'\n')
             lines_flags = [0] + [FL_IS_NEWLINE] * (len(lines) - 1)
             return lines, lines_flags
 
@@ -1521,7 +1526,7 @@ class TextInput(Widget):
         line = []
         lines = []
         lines_flags = []
-        _join = ''.join
+        _join = u''.join
         lines_append, lines_flags_append = lines.append, lines_flags.append
         padding_left = self.padding[0]
         padding_right = self.padding[2]
@@ -1531,7 +1536,7 @@ class TextInput(Widget):
 
         # try to add each word on current line.
         for word in self._tokenize(text):
-            is_newline = (word == '\n')
+            is_newline = (word == u'\n')
             w = text_width(word, _tab_width, _label_cached)
             # if we have more than the width, or if it's a newline,
             # push the current line, and create a new one
@@ -1584,7 +1589,7 @@ class TextInput(Widget):
             self.do_backspace()
         elif internal_action == 'enter':
             if self.multiline:
-                self.insert_text('\n')
+                self.insert_text(u'\n')
             else:
                 self.dispatch('on_text_validate')
                 self.focus = False
@@ -1633,7 +1638,7 @@ class TextInput(Widget):
             self.focus = False
             return True
         elif key == 9:  # tab
-            self.insert_text('\t')
+            self.insert_text(u'\t')
             return True
 
         k = self.interesting_keys.get(key)
@@ -1919,7 +1924,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_normal` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_disabled_normal` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled'
     '''
 
@@ -1929,7 +1935,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.4.1
 
-    :data:`background_active` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_active` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_active'
     '''
 
@@ -1939,7 +1946,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`background_disabled_active` is a :class:`~kivy.properties.StringProperty`,
+    :data:`background_disabled_active` is a
+    :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/textinput_disabled_active'
     '''
 
@@ -1966,7 +1974,8 @@ class TextInput(Widget):
 
     .. versionadded:: 1.8.0
 
-    :data:`disabled_foreground_color` is a :class:`~kivy.properties.ListProperty`,
+    :data:`disabled_foreground_color` is a
+    :class:`~kivy.properties.ListProperty`,
     default to [0, 0, 0, 5] # 50% translucent Black
     '''
 
@@ -2005,7 +2014,7 @@ class TextInput(Widget):
     default to None, readonly.
     '''
 
-    selection_text = StringProperty('')
+    selection_text = StringProperty(u'')
     '''Current content selection.
 
     :data:`selection_text` is a :class:`~kivy.properties.StringProperty`,
@@ -2026,15 +2035,20 @@ class TextInput(Widget):
             text (select_all, select_text).
     '''
 
-    def _get_text(self):
+    def _get_text(self, encode=True):
         lf = self._lines_flags
         l = self._lines
-        text = ''.join([('\n' if (lf[i] & FL_IS_NEWLINE) else '') + l[i]
+        text = u''.join([(u'\n' if (lf[i] & FL_IS_NEWLINE) else u'') + l[i]
                         for i in range(len(l))])
+        if PY2 and encode and type(text) is not str:
+            text = text.encode('utf-8')
         return text
 
     def _set_text(self, text):
-        if self.text == text:
+        if PY2 and type(text) is str:
+            text = text.decode('utf-8')
+
+        if self._get_text(encode=False) == text:
             return
         self._refresh_text(text)
         self.cursor = self.get_cursor_from_index(len(text))
@@ -2124,4 +2138,4 @@ if __name__ == '__main__':
             root.add_widget(textinput2)
             return root
 
-    TextInputApp().run()
+    #TextInputApp().run()
