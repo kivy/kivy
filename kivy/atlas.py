@@ -77,12 +77,13 @@ As you can see, we got 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
 
     When using this script, the ids referenced in the atlas is the basename of
     the image, without the extension. So if you are going to give a filename
-    ``../images/button.png``, the id for this image will be ``button``, unless
-    use_path is specified, like this:
+    ``../images/button.png``, the id for this image will be ``button``
+
+    If you need path infromation included, you must include use_path like this:
 
     $ python -m kivy.atlas use_path myatlas 256 *.png
 
-    In which case the id for ``../images/button.png`` will be ``.._images_button``
+    In which case the id for ``../images/button.png`` will be ``images_button``
 
 
 How to use an atlas
@@ -223,11 +224,11 @@ class Atlas(EventDispatcher):
                 exactly the same as yours :).
             `use_path`: bool, if true, the relative path of the source png
                 filenames will be included in their atlas ids, rather
-                that just the filename. path separator slashes in the path
-                will be replaced with underscores, so for example, if the path
-                and filename is data/tiles/green_grass.png then the id will be
-                green_grass if use_path is False, and it will be
-                data_tiles_green_grass if use_path is True
+                that just the filename. Leading dots and slashes will be excluded
+                and all other slashes in the path will be replaced with underscores,
+                so for example, if the path and filename is ``../data/tiles/green_grass.png``
+                then the id will be ``green_grass`` if use_path is False, and it will be
+                ``data_tiles_green_grass`` if use_path is True
         '''
         # Thanks to
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
@@ -335,11 +336,13 @@ class Atlas(EventDispatcher):
             # fb[6] contain the filename
             if use_path:
                 # use the path with separators replaced by _
-                # example 'data/tiles/green_grass.png' becomes 'data_tiles_green_grass'
-                uid = splitext(fb[6])[0].replace('/','_').replace('\\', '_')
+                # example '../data/tiles/green_grass.png' becomes 'data_tiles_green_grass'
+                uid = splitext(fb[6])[0]
+                uid = uid.lstrip('./\\') # remove leading dots and slashes
+                uid = uid.replace('/','_').replace('\\', '_') # replace remaining slashes with _
             else:
-                # for example, '../apok.png'
-                # just get only 'apok' as the uniq id.
+                # for example, '../data/tiles/green_grass.png'
+                # just get only 'green_grass' as the uniq id.
                 uid = splitext(basename(fb[6]))[0]
 
             x, y, w, h = fb[2:6]
