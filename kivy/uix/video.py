@@ -200,8 +200,9 @@ class Video(Image):
         self.canvas.ask_update()
 
     def _on_eos(self, *largs):
-        self.state = 'stop'
-        self.eos = True
+        if self._video.eos != 'loop':
+            self.state = 'stop'
+            self.eos = True
 
     def _on_load(self, *largs):
         self.loaded = True
