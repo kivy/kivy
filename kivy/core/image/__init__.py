@@ -258,8 +258,10 @@ class ImageLoader(object):
         Returns an Image with a list/array of type ImageData stored in
         Image._data
         '''
+        # read zip in menory for faster access
+        _file = SIO.BytesIO(open(filename, 'rb').read())
         # read all images inside the zip
-        z = zipfile.ZipFile(filename, 'r')
+        z = zipfile.ZipFile(_file)
         image_data = []
         # sort filename list
         znamelist = z.namelist()
@@ -268,7 +270,7 @@ class ImageLoader(object):
         for zfilename in znamelist:
             try:
                 #read file and store it in mem with fileIO struct around it
-                tmpfile = SIO.StringIO(z.read(zfilename))
+                tmpfile = SIO.BytesIO(z.read(zfilename))
                 ext = zfilename.split('.')[-1].lower()
                 im = None
                 for loader in ImageLoader.loaders:
