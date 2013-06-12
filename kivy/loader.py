@@ -347,7 +347,7 @@ class LoaderBase(object):
             self._trigger_update()
             return
 
-        for x in xrange(self.max_upload_per_frame):
+        for x in range(self.max_upload_per_frame):
             try:
                 filename, data = self._q_done.pop()
             except IndexError:

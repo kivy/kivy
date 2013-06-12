@@ -70,7 +70,7 @@ In its simplest form, we make a listview with 100 items::
             super(MainView, self).__init__(**kwargs)
 
             list_view = ListView(
-                item_strings=[str(index) for index in xrange(100)])
+                item_strings=[str(index) for index in range(100)])
 
             self.add_widget(list_view)
 
@@ -92,7 +92,7 @@ Or, we could declare the listview in using the kv language::
         size: 400, 400
         ListView:
             size_hint: .8, .8
-            item_strings: [str(index) for index in xrange(100)]
+            item_strings: [str(index) for index in range(100)]
     """)
 
 
@@ -134,7 +134,7 @@ To use :class:`SimpleListAdaper` explicitly in creating a ListView instance,
 do::
 
     simple_list_adapter = SimpleListAdapter(
-            data=["Item #{0}".format(i) for i in xrange(100)],
+            data=["Item #{0}".format(i) for i in range(100)],
             cls=Label)
 
     list_view = ListView(adapter=simple_list_adapter)
@@ -170,7 +170,7 @@ given to the way longer python blocks are indented::
             size_hint: .8, .8
             adapter:
                 sla.SimpleListAdapter(
-                data=["Item #{0}".format(i) for i in xrange(100)],
+                data=["Item #{0}".format(i) for i in range(100)],
                 cls=label.Label)
     """)
 
@@ -320,7 +320,7 @@ Now, to some example code::
     from kivy.adapters.listadapter import ListAdapter
     from kivy.uix.listview import ListItemButton, ListView
 
-    data = [{'text': str(i), 'is_selected': False} for i in xrange(100)]
+    data = [{'text': str(i), 'is_selected': False} for i in range(100)]
 
     args_converter = lambda row_index, rec: {'text': rec['text'],
                                              'size_hint_y': None,
@@ -442,9 +442,9 @@ template. For example, to use the kv template above::
                                     'size_hint_y': None,
                                     'height': 25}
     integers_dict = \
-        { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
+        { str(i): {'text': str(i), 'is_selected': False} for i in range(100)}
 
-    dict_adapter = DictAdapter(sorted_keys=[str(i) for i in xrange(100)],
+    dict_adapter = DictAdapter(sorted_keys=[str(i) for i in range(100)],
                                data=integers_dict,
                                args_converter=list_item_args_converter,
                                template='CustomListItem')
@@ -482,10 +482,10 @@ widget method::
                            {'cls': ListItemButton,
                             'kwargs': {'text': rec['text']}}]}
 
-    item_strings = ["{0}".format(index) for index in xrange(100)]
+    item_strings = ["{0}".format(index) for index in range(100)]
 
     integers_dict = \
-        { str(i): {'text': str(i), 'is_selected': False} for i in xrange(100)}
+        { str(i): {'text': str(i), 'is_selected': False} for i in range(100)}
 
     dict_adapter = DictAdapter(sorted_keys=item_strings,
                                data=integers_dict,

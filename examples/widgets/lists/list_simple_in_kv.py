@@ -9,7 +9,7 @@ Builder.load_string("""
     size: 400,400
     ListView:
         size_hint: .8,.8
-        item_strings: [str(index) for index in xrange(100)]
+        item_strings: [str(index) for index in range(100)]
 """)
 
 
