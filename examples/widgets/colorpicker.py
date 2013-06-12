@@ -7,6 +7,7 @@ from kivy.graphics import Line, Color, Point
 
 from math import sqrt
 from os import walk
+from os.path import dirname, join
 
 from kivy.lang import Builder
 
@@ -118,7 +119,7 @@ def calculate_points(x1, y1, x2, y2, steps=5):
         return None
     o = []
     m = dist / steps
-    for i in xrange(1, int(m)):
+    for i in range(1, int(m)):
         mi = i / m
         lastx = x1 + dx * mi
         lasty = y1 + dy * mi
@@ -170,7 +171,7 @@ class Picture(Scatter):
         if points:
             try:
                 lp = ud['lines'].add_point
-                for idx in xrange(0, len(points), 2):
+                for idx in range(0, len(points), 2):
                     lp(points[idx], points[idx+1])
             except GraphicException:
                 pass
@@ -194,7 +195,7 @@ class MainRootWidget(BoxLayout):
 
     def on_parent(self, instance, parent):
         if parent:
-            _dir = 'lists/fruit_images/'
+            _dir = join(dirname(__file__), 'lists/fruit_images/')
             for image in list(walk(_dir))[0][2]:
                 if image.find('512') > -1:
                     self.client_area.add_widget(Picture(

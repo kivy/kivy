@@ -363,7 +363,7 @@ class GifDecoder(Gif):
                 image.has_transparent_color = has_transparent_color
                 image.draw_method = drw_method
                 image.codesize = self_pops('<B', self_data)[0]
-                image.lzwcode = ''
+                image.lzwcode = b''
                 image_lzwcode = image.lzwcode
                 ###TODO too many corner casses for gifs:(
                 table_size = image.local_color_table_size\
@@ -379,7 +379,7 @@ class GifDecoder(Gif):
                     if blocksize == 0:
                         break   # no more image data
                     lzwdata = self_pop(self_data, blocksize)
-                    image_lzwcode = ''.join((image_lzwcode, lzwdata))
+                    image_lzwcode = b''.join((image_lzwcode, lzwdata))
 
                 if self_debug_enabled:
                     print('LZW length:', len(image_lzwcode))

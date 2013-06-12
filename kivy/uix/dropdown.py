@@ -23,7 +23,7 @@ then, the main button text will display the selection of the dropdown. ::
 
     # create a dropdown with 10 button
     dropdown = DropDown()
-    for index in xrange(10):
+    for index in range(10):
         btn = Button(text='Value %d' % index, size_hint_y=None, height=44)
 
         # for each button, attach a callback that will call the select() method
