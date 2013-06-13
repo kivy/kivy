@@ -1,5 +1,6 @@
 usr/lib/python2.7/site-packages/Kivy-*.egg-info
-usr/lib/python2.7/site-packages/kivy/*.*
+usr/lib/python2.7/site-packages/kivy/*.py
+usr/lib/python2.7/site-packages/kivy/*.pyc
 usr/lib/python2.7/site-packages/kivy/adapters/*
 usr/lib/python2.7/site-packages/kivy/core/*
 usr/lib/python2.7/site-packages/kivy/effects/*
