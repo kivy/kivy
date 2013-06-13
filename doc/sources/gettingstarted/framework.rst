@@ -13,13 +13,13 @@ Non-widget stuff
 .. |atlas_img| image:: ../images/gs-atlas.png
 
 .. |atlas_text| replace:: :class:`Atlas <kivy.atlas.Atlas>` is a class for
-    managing texture maps i.e. packing multiple textures into one image.
+    managing texture maps, i.e. packing multiple textures into one image.
     This allows you to reduce the number of images loaded and thus speed up the
     application start.
 
 .. |clock_text| replace:: :class:`Clock <kivy.clock.Clock>` provides you with a
-    convenient way to schecdule jobs at set time intervals and is preferred
-    over *sleep()*,  which would block the kivy event loop. These intervals can
+    convenient way to schedule jobs at set time intervals and is preferred
+    over `sleep()`,  which would block the kivy event loop. These intervals can
     be set relative to the OpenGL drawing instructions,
     :ref:`before <schedule-before-frame>` or
     :ref:`after <schedule-before-frame>`. The Clock also provides you with a way

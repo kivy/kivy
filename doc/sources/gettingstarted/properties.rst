@@ -27,7 +27,7 @@ To use them, **you have to declare them at class level**. That is, directly in
 the class, not in any method of the class. A property is a class attribute
 that will automatically create instance attributes. Each property by default
 provides an ``on_<propertyname>`` event that is called whenever the property's
-state/value changes .
+state/value changes.
 
 Kivy provides the following properties:
     :mod:`~kivy.properties.NumericProperty`,
@@ -41,4 +41,4 @@ Kivy provides the following properties:
     :mod:`~kivy.properties.AliasProperty`,
     :mod:`~kivy.properties.DictProperty`,
 
-For an in-depth explaination, look at :doc:`/api-kivy.properties`
+For an in-depth explaination, take a look at :doc:`/api-kivy.properties`.
