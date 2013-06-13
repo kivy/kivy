@@ -28,7 +28,7 @@ Using Kivy on your computer, you can create apps that run on:
 - Any other touch-enabled professional/homebrew devices supporting TUIO
   (Tangible User Interface Objects).
 
-Kivy empowers you with the freedom of writing your code once and having it run
+Kivy empowers you with the freedom to write your code once and have it run
 as-is on different platforms.
 
 Follow this guide to get the tools you need, understand the major concepts and
