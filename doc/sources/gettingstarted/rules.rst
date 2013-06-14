@@ -21,6 +21,6 @@ In the above code :
                     # (note the indentation).
             rows: 2 # this how you set each property of your widget/layout
 
-That's it, that's how simple it is to design your GUI in the kv language. To get
+That's it, that's how simple it is to design your GUI in the Kv language. For
 a more in-depth understanding, please refer to the :doc:`/guide/lang`
 documentation.
