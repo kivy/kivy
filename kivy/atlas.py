@@ -75,13 +75,14 @@ As you can see, we got 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
 
 .. note::
 
-    When using this script, the ids referenced in the atlas is the basename of
-    the image, without the extension. So if you are going to give a filename
-    ``../images/button.png``, the id for this image will be ``button``
+    When using this script, the ids referenced in the atlas is the base name of
+    the image, without the extension. So if you are going to give a file name
+    ``../images/button.png``, the id for this image will be ``button``.
 
-    If you need path infromation included, you must include use_path like this:
+    If you need path information included, you must include ``use_path`` like
+    this::
 
-    $ python -m kivy.atlas use_path myatlas 256 *.png
+        $ python -m kivy.atlas use_path myatlas 256 *.png
 
     In which case the id for ``../images/button.png`` will be ``images_button``
 
@@ -223,11 +224,12 @@ class Atlas(EventDispatcher):
                 the result, don't be scared if the image inside it are not
                 exactly the same as yours :).
             `use_path`: bool, if true, the relative path of the source png
-                filenames will be included in their atlas ids, rather
-                that just the filename. Leading dots and slashes will be excluded
-                and all other slashes in the path will be replaced with underscores,
-                so for example, if the path and filename is ``../data/tiles/green_grass.png``
-                then the id will be ``green_grass`` if use_path is False, and it will be
+                file names will be included in their atlas ids, rather
+                that just the file name. Leading dots and slashes will be
+                excluded and all other slashes in the path will be replaced
+                with underscores, so for example, if the path and file name is
+                ``../data/tiles/green_grass.png`` then the id will be
+                ``green_grass`` if use_path is False, and it will be
                 ``data_tiles_green_grass`` if use_path is True
 
             .. versionchanged:: 1.8.0
@@ -339,10 +341,13 @@ class Atlas(EventDispatcher):
             # fb[6] contain the filename
             if use_path:
                 # use the path with separators replaced by _
-                # example '../data/tiles/green_grass.png' becomes 'data_tiles_green_grass'
+                # example '../data/tiles/green_grass.png' becomes
+                # 'data_tiles_green_grass'
                 uid = splitext(fb[6])[0]
-                uid = uid.lstrip('./\\') # remove leading dots and slashes
-                uid = uid.replace('/','_').replace('\\', '_') # replace remaining slashes with _
+                # remove leading dots and slashes
+                uid = uid.lstrip('./\\')
+                # replace remaining slashes with _
+                uid = uid.replace('/', '_').replace('\\', '_')
             else:
                 # for example, '../data/tiles/green_grass.png'
                 # just get only 'green_grass' as the uniq id.
@@ -362,8 +367,8 @@ if __name__ == '__main__':
     import sys
     argv = sys.argv[1:]
     if len(argv) < 3:
-        print('Usage: python -m kivy.atlas [use_path] <outname> <size> <img1.png>' \
-              '[<img2.png>, ...]')
+        print('Usage: python -m kivy.atlas [use_path] <outname>' +
+            ' <size> <img1.png> [<img2.png>, ...]')
         sys.exit(1)
 
     if argv[0] == 'use_path':
