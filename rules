@@ -10,10 +10,15 @@
 export DH_VERBOSE=1
 
 %:
-	dh $@ --with python2
+	dh $@ --with python2,python3
+
+override_dh_auto_build:
+	python  setup.py build_ext --inplace 
+	python3 setup.py build_ext --inplace
 
 override_dh_auto_install:
-	python setup.py install --root=$(CURDIR)/debian/tmp --prefix=/usr
+	python  setup.py install --root=$(CURDIR)/debian/tmp --prefix=/usr --install-layout=deb
+	python3 setup.py install --root=$(CURDIR)/debian/tmp --prefix=/usr --install-layout=deb
 
 override_dh_auto_test:
 	#xvfb-run -s "+extension GLX" dh_auto_test
