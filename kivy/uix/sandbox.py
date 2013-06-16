@@ -89,6 +89,11 @@ if __name__ == '__main__':
     # invalid... for testing.
     on_release: args()
 ''')
+
         s.add_widget(Button(text='Hello World'))
+
+        # this exception is within the "with" block, but will be ignored by
+        # default because the sandbox on_exception will return True
         raise Exception('hello')
+
     runTouchApp(s)
