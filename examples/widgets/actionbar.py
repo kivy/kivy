@@ -1,13 +1,16 @@
-if __name__ == "__main__":
-    from kivy.base import runTouchApp
-    from kivy.uix.floatlayout import FloatLayout
-    from kivy.lang import Builder
-    from kivy.uix import actionbar
-    
-    Builder.load_string('''
-<MainWindow>:
+from kivy.base import runTouchApp
+from kivy.lang import Builder
+
+runTouchApp(Builder.load_string('''
+FloatLayout
+    canvas:
+        Color:
+            rgb: .9, .9, .9
+        Rectangle:
+            size: self.size
     ActionBar:
-        size_hint: 1,0.1
+        size_hint_y: None
+        height: '48dp'
         pos_hint: {'top':1}
         ActionView:
             use_separator: True
@@ -15,7 +18,9 @@ if __name__ == "__main__":
                 title: 'Title'
             ActionOverflow:
             ActionButton:
-                text: 'Btn0'
+                text: 'A'
+                size_hint_x: None
+                width: '48dp'
             ActionButton:
                 text: 'Btn1'
             ActionButton:
@@ -32,11 +37,5 @@ if __name__ == "__main__":
                     text: 'Btn6'
                 ActionButton:
                     text: 'Btn7'
-''')
+'''))
 
-
-    class MainWindow(FloatLayout):
-        pass
-
-    float_layout = MainWindow()
-    runTouchApp(float_layout)

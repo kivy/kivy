@@ -36,26 +36,17 @@ to the :data:`Button.state` property::
 __all__ = ('Button', )
 
 from kivy.uix.label import Label
-from kivy.properties import OptionProperty, StringProperty, ListProperty
-from kivy.clock import Clock
+from kivy.properties import StringProperty, ListProperty
+from kivy.uix.behaviors import ButtonBehavior
 
-class Button(Label):
+class Button(ButtonBehavior, Label):
     '''Button class, see module documentation for more information.
 
-    :Events:
-        `on_press`
-            Fired when the button is pressed.
-        `on_release`
-            Fired when the button is released (i.e., the touch/click that
-            pressed the button goes away).
-    '''
+    .. versionchanged:: 1.8.0
 
-    state = OptionProperty('normal', options=('normal', 'down'))
-    '''State of the button, must be one of 'normal' or 'down'.
-    The state is 'down' only when the button is currently touched/clicked,
-    otherwise 'normal'.
+        The behavior / logic of the button has been moved into a
+        :class:`~kivy.uix.behaviors.ButtonBehaviors`.
 
-    :data:`state` is an :class:`~kivy.properties.OptionProperty`.
     '''
 
     background_color = ListProperty([1, 1, 1, 1])
@@ -123,68 +114,3 @@ class Button(Label):
     16, 16, 16)
     '''
 
-    __events__ = ('on_press', 'on_release')
-
-    def _do_press(self):
-        self.state = 'down'
-
-    def _do_release(self):
-        self.state = 'normal'
-
-    def on_touch_down(self, touch):
-        if super(Button, self).on_touch_down(touch):
-            return True
-        if touch.is_mouse_scrolling:
-            return False
-        if not self.collide_point(touch.x, touch.y):
-            return False
-        if self in touch.ud:
-            return False
-        touch.grab(self)
-        touch.ud[self] = True
-        self._do_press()
-        self.dispatch('on_press')
-        return True
-
-    def on_touch_move(self, touch):
-        if touch.grab_current is self:
-            return True
-        if super(Button, self).on_touch_move(touch):
-            return True
-        return self in touch.ud
-
-    def on_touch_up(self, touch):
-        if touch.grab_current is not self:
-            return super(Button, self).on_touch_up(touch)
-        assert(self in touch.ud)
-        touch.ungrab(self)
-        self._do_release()
-        self.dispatch('on_release')
-        return True
-
-    def on_press(self):
-        pass
-
-    def on_release(self):
-        pass
-
-    def trigger_action(self, duration=0.1):
-        '''Trigger whatever action(s) have been bound to the button by calling
-        both the on_press and on_release callbacks.
-
-        This simulates a quick button press without using any touch events.
-
-        Duration is the length of the press in seconds. Pass 0 if you want
-        the action to happen instantly.
-
-        .. versionadded:: 1.8.0
-        '''
-        self._do_press()
-        self.dispatch("on_press")
-        def trigger_release(dt):
-            self._do_release()
-            self.dispatch("on_release")
-        if not duration:
-            trigger_release(0)
-        else:
-            Clock.schedule_once(trigger_release, duration)

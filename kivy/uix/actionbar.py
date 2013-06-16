@@ -2,7 +2,7 @@
 ActionBar
 =========
 
-..versionadded:: <enter kivy version>
+..versionadded:: 1.8.0
 
 .. image:: images/actionbar.jpg
     :align: right
@@ -51,7 +51,7 @@ class ActionBarException(Exception):
     pass
 
 
-class ActionItem(Widget):
+class ActionItem(object):
     '''ActionItem class, an abstract class for all ActionVar widgets. To create
        a custom widget for ActionBar, custom widget should inherit from this
        class. See module documentation for more information
@@ -98,7 +98,7 @@ class ActionItem(Widget):
     '''
 
 
-class ActionButton(ActionItem, Button):
+class ActionButton(Button, ActionItem):
     '''ActionButton class, see module documentation for more information.
     '''
     pass
@@ -157,7 +157,7 @@ class ActionCheck(ActionItem, CheckBox):
     pass
 
 
-class ActionSeparator(ActionItem):
+class ActionSeparator(ActionItem, Widget):
     '''ActionSeparator class, see module documentation for more information.
     '''
 
@@ -176,7 +176,7 @@ class ActionDropDown(DropDown):
     pass
 
 
-class ActionGroup(Spinner, ActionItem):
+class ActionGroup(ActionItem, Spinner):
     '''ActionGroup class, , see module documentation for more information.
     '''
 
@@ -328,21 +328,17 @@ class ActionView(BoxLayout):
             raise ActionBarException('ActionView only accepts ActionItem')
 
         elif isinstance(action_item, ActionOverflow):
-            #action_item is an ActionOverflow
             self.overflow_group = action_item
             action_item.use_separator = self.use_separator
 
         elif isinstance(action_item, ActionGroup):
-            #action_item is an ActionGroup
             self._list_action_group.append(action_item)
             action_item.use_separator = self.use_separator
 
         elif isinstance(action_item, ActionPrevious):
-            #action_item is ActionPrevious
             self.action_previous = action_item
 
         else:
-            #otherwise its an ActionItem only
             super(ActionView, self).add_widget(action_item, index)
             if index == 0:
                 index = len(self._list_action_items)
@@ -361,133 +357,134 @@ class ActionView(BoxLayout):
         self.overflow_group.clear_widgets()
         self.overflow_group.list_action_item = []
 
-    def on_width(self, width, *args):
-        total_width = 0
+    def _layout_all(self):
+        # all the items can fit to the view, so expand everything. 
         super_add = super(ActionView, self).add_widget
-
-        for child in self._list_action_items:
-            total_width += child.minimum_width
+        self._state = 'all'
+        self._clear_all()
+        super_add(self.action_previous)
+        if len(self._list_action_items) > 1:
+            for child in self._list_action_items[1:]:
+                child.inside_group = False
+                super_add(child)
 
         for group in self._list_action_group:
-            for child in group.list_action_item:
-                total_width += child.minimum_width
-
-        #First check if ActionView could display all ActionItems
-        if total_width <= self.width:
-            if self._state == 'all':
-                return
-
-            self._state = 'all'
-            self._clear_all()
-            #If yes, then display them
-            super_add(self.action_previous)
-            if len(self._list_action_items) > 1:
-                for child in self._list_action_items[1:]:
-                    child.size_hint_y = 1
+            if group.mode == 'spinner':
+                super_add(group)
+                group.show_group()
+            else:
+                if group.list_action_item != []:
+                    super_add(ActionSeparator())
+                for child in group.list_action_item:
                     child.inside_group = False
                     super_add(child)
 
-            for group in self._list_action_group:
-                if group.mode == 'spinner':
-                    super_add(group)
-                    group.show_group()
+    def _layout_group(self):
+        # layout all the items in order to pack them per group
+        super_add = super(ActionView, self).add_widget
+        self._state = 'group'
+        self._clear_all()
+        super_add(self.action_previous)
+        if len(self._list_action_items) > 1:
+            for child in self._list_action_items[1:]:
+                super_add(child)
+                child.inside_group = False
+
+        for group in self._list_action_group:
+            super_add(group)
+            group.show_group()
+
+    def _layout_random(self):
+        # layout the items in order to pack all of them grouped, and display
+        # only the action items having 'important'
+        super_add = super(ActionView, self).add_widget
+        self._state = 'random'
+        self._clear_all()
+        hidden_items = []
+        hidden_groups = []
+        total_width = 0
+        super_add(self.action_previous)
+
+        width = (self.width - self.overflow_group.minimum_width -
+                self.action_previous.minimum_width)
+
+        if len(self._list_action_items) >= 1:
+            for child in self._list_action_items[1:]:
+                if child.important:
+                    if child.minimum_width + total_width < width:
+                        super_add(child)
+                        child.inside_group = False
+                        total_width += child.minimum_width
+                    else:
+                        hidden_items.append(child)
                 else:
-                    if group.list_action_item != []:
-                        super_add(ActionSeparator())
-                    for child in group.list_action_item:
-                        child.inside_group = False
-                        child.size_hint = 1, 1
-                        super_add(child)
+                    hidden_items.append(child)
 
-        else:
-            #If no, then check if all ActionItems could be displayed
-            #using ActionGroup
-            total_width = 0
-            for child in self._list_action_items:
-                total_width += child.minimum_width
+        # if space is left then display ActionItem inside their
+        # ActionGroup
+        if total_width < self.width:
             for group in self._list_action_group:
-                total_width += group.minimum_width
-
-            if total_width < self.width:
-                if self._state == 'group':
-                    return
-
-                self._state = 'group'
-                self._clear_all()
-                #If yes, then display them using ActionGroup
-                super_add(self.action_previous)
-                if len(self._list_action_items) > 1:
-                    for child in self._list_action_items[1:]:
-                        child.size_hint = 1, 1
-                        super_add(child)
-                        child.inside_group = False
-
-                for group in self._list_action_group:
+                if group.minimum_width + total_width +\
+                   group.separator_width < width:
                     super_add(group)
                     group.show_group()
+                    total_width += group.minimum_width +\
+                                   group.separator_width
 
-            else:
-                #If no, then display as many ActionItem having 'important'
-                #set to true
-                self._state = 'random'
-                self._clear_all()
-                hidden_items = []
-                hidden_groups = []
-                total_width = 0
-                super_add(self.action_previous)
+                else:
+                    hidden_groups.append(group)
 
-                width = self.width - self.overflow_group.minimum_width -\
-                        self.action_previous.minimum_width
+        # if space is left then display other ActionItems
+        if total_width < self.width:
+            for child in hidden_items[:]:
+                if child.minimum_width + total_width < width:
+                    super_add(child, 1)
+                    total_width += child.minimum_width
+                    child.inside_group = False
+                    hidden_items.remove(child)
 
-                if len(self._list_action_items) >= 1:
-                    for child in self._list_action_items[1:]:
-                        if child.important:
-                            if child.minimum_width + total_width < width:
-                                child.size_hint = 1, 1
-                                super_add(child)
-                                child.inside_group = False
-                                total_width += child.minimum_width
-                            else:
-                                hidden_items.append(child)
-                        else:
-                            hidden_items.append(child)
+        # for all the remaining ActionItems and ActionItems with in
+        # ActionGroups, Display them inside overflow_group
+        for group in hidden_groups:
+            hidden_items.extend(group.list_action_item)
 
-                #If space is left then display ActionItem inside
-                #their ActionGroup
-                if total_width < self.width:
-                    for group in self._list_action_group:
-                        if group.minimum_width + total_width +\
-                           group.separator_width < width:
-                            super_add(group)
-                            group.show_group()
-                            total_width += group.minimum_width +\
-                                           group.separator_width
+        if hidden_items != []:
+            for child in hidden_items:
+                self.overflow_group.add_widget(child)
 
-                        else:
-                            hidden_groups.append(group)
+            self.overflow_group.show_group()
+            super_add(self.overflow_group)
 
-                #If space is left then display other ActionItems
-                if total_width < self.width:
-                    for child in hidden_items[:]:
-                        if child.minimum_width + total_width < width:
-                            child.size_hint = 1, 1
-                            super_add(child, 1)
-                            total_width += child.minimum_width
-                            child.inside_group = False
-                            hidden_items.remove(child)
+    def on_width(self, width, *args):
+        # determine the layout to use
 
-                #For all the remaining ActionItems and ActionItems
-                #with in ActionGroups, Display them inside overflow_group
-                for group in hidden_groups:
-                    hidden_items.extend(group.list_action_item)
+        # can we display all of them?
+        total_width = 0
+        for child in self._list_action_items:
+            total_width += child.minimum_width
+        for group in self._list_action_group:
+            for child in group.list_action_item:
+                total_width += child.minimum_width
+        if total_width <= self.width:
+            if self._state != 'all':
+                self._layout_all()
+            return
 
-                if hidden_items != []:
-                    for child in hidden_items:
-                        child.size_hint_x = 1
-                        self.overflow_group.add_widget(child)
+        # can we display them per group?
+        total_width = 0
+        for child in self._list_action_items:
+            total_width += child.minimum_width
+        for group in self._list_action_group:
+            total_width += group.minimum_width
+        if total_width < self.width:
+            # ok, we can display all the items grouped
+            if self._state != 'group':
+                self._layout_group()
+            return
 
-                    self.overflow_group.show_group()
-                    super_add(self.overflow_group)
+        # none of the solutions worked, display them in pack mode
+        self._layout_random()
+
 
 
 class ContextualActionView(ActionView):
