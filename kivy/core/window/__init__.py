@@ -221,7 +221,7 @@ class WindowBase(EventDispatcher):
     _size = ListProperty([0, 0])
     _modifiers = ListProperty([])
     _rotation = NumericProperty(0)
-    _clearcolor = ListProperty([0, 0, 0, 0])
+    _clearcolor = ObjectProperty([0, 0, 0, 1])
 
     children = ListProperty([])
     '''List of children of this window.
@@ -298,6 +298,11 @@ class WindowBase(EventDispatcher):
 
         # don't clear background at all
         Window.clearcolor = None
+
+    .. versionchanged:: 1.7.2
+
+        Clear color default value is now: (0, 0, 0, 1).
+
     '''
 
     # make some property read-only
