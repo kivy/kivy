@@ -21,6 +21,7 @@ from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
+from kivy.context import register_context
 
 # private vars
 EventLoop = None
@@ -78,7 +79,7 @@ class ExceptionManagerBase:
         return ret
 
 #: Kivy Exception Manager instance
-ExceptionManager = ExceptionManagerBase()
+ExceptionManager = register_context('ExceptionManager', ExceptionManagerBase)
 
 
 class EventLoopBase(EventDispatcher):
@@ -242,6 +243,8 @@ class EventLoopBase(EventDispatcher):
 
             me.grab_current = wid
 
+            wid._context.push()
+
             if etype == 'begin':
                 # don't dispatch again touch in on_touch_down
                 # a down event are nearly uniq here.
@@ -251,6 +254,8 @@ class EventLoopBase(EventDispatcher):
                 wid.dispatch('on_touch_move', me)
             elif etype == 'end':
                 wid.dispatch('on_touch_up', me)
+
+            wid._context.pop()
 
             me.grab_current = None
 
