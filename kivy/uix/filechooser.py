@@ -400,7 +400,6 @@ class FileChooserController(FloatLayout):
             # directory that we cannot list.
             listdir(entry.path)
         except OSError:
-            #Logger.exception(e)
             entry.locked = True
         else:
             self.path = join(self.path, entry.path)
@@ -429,7 +428,6 @@ class FileChooserController(FloatLayout):
         try:
             size = getsize(fn)
         except OSError:
-            #Logger.exception(e)
             return '--'
 
         for unit in filesize_units:
