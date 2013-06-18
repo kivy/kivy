@@ -9,29 +9,25 @@ ListAdapter
     This code is still experimental, and its API is subject to change in a
     future version.
 
-:class:`ListAdapter` is an adapter around a python list.
+A :class:`ListAdapter` is an adapter around a python list.
 
 Selection operations are a main concern for the class.
 
-From :class:`Adapter`, :class:`ListAdapter` gets cls, template, and
-args_converter properties.
-
-and adds several for selection:
+From an :class:`Adapter`, a :class:`ListAdapter` gets cls, template, and
+args_converter properties and adds others that control selection behaviour:
 
 * *selection*, a list of selected items.
 
 * *selection_mode*, 'single', 'multiple', 'none'
 
-* *allow_empty_selection*, a boolean -- False, and a selection is forced;
-  True, and only user or programmatic action will change selection, and it can
+* *allow_empty_selection*, a boolean -- If False, a selection is forced. If
+  True, and only user or programmatic action will change selection, it can
   be empty.
 
-and several methods used in selection operations.
-
-If you wish to have a bare-bones list adapter, without selection, use
+If you wish to have a bare-bones list adapter, without selection, use a
 :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter`.
 
-:class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of
+A :class:`~kivy.adapters.dictadapter.DictAdapter` is a subclass of a
 :class:`~kivy.adapters.listadapter.ListAdapter`. They both dispatch the
 *on_selection_change* event.
 
@@ -44,7 +40,7 @@ If you wish to have a bare-bones list adapter, without selection, use
     Added data = ListProperty([]), which was proably inadvertently deleted at
     some point. This means that whenever data changes an update will fire,
     instead of having to reset the data object (Adapter has data defined as
-    and ObjectProperty, so we need to reset it here to ListProperty). See also
+    an ObjectProperty, so we need to reset it here to ListProperty). See also
     DictAdapter and its set of data = DictProperty().
 
 '''
@@ -65,26 +61,26 @@ from kivy.lang import Builder
 
 class ListAdapter(Adapter, EventDispatcher):
     '''
-    A base class for adapters interfacing with lists, dictionaries, or other
-    collection type data, adding selection and view creation and management
+    A base class for adapters interfacing with lists, dictionaries or other
+    collection type data, adding selection, view creation and management
     functonality.
     '''
 
     data = ListProperty([])
     '''The data list property is redefined here, overriding its definition as
-    an ObjectProperty in the Adapter class.. We will bind to data and want any
-    changes to trigger updates. See also how
-    :class:`~kivy.adapters.DictAdapter` redefines data as
+    an ObjectProperty in the Adapter class. We bind to data so that any
+    changes will trigger updates. See also how the
+    :class:`~kivy.adapters.DictAdapter` redefines data as a
     :class:`~kivy.properties.DictProperty`.
 
-    :data:`data` is a :class:`~kivy.properties.ListProperty`, default
+    :data:`data` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
     '''
 
     selection = ListProperty([])
     '''The selection list property is the container for selected items.
 
-    :data:`selection` is a :class:`~kivy.properties.ListProperty`, default
+    :data:`selection` is a :class:`~kivy.properties.ListProperty` and defaults
     to [].
     '''
 
@@ -95,92 +91,86 @@ class ListAdapter(Adapter, EventDispatcher):
        * *none*, use the list as a simple list (no select action). This option
          is here so that selection can be turned off, momentarily or
          permanently, for an existing list adapter.
-         :class:`~kivy.adapters.listadapter.ListAdapter` is not meant to be
-         used as a primary no-selection list adapter.  Use
+         A :class:`~kivy.adapters.listadapter.ListAdapter` is not meant to be
+         used as a primary no-selection list adapter.  Use a
          :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` for that.
 
-       * *single*, multi-touch/click ignored. single item selecting only
+       * *single*, multi-touch/click ignored. Single item selection only.
 
        * *multiple*, multi-touch / incremental addition to selection allowed;
          may be limited to a count by selection_limit
 
-    :data:`selection_mode` is an :class:`~kivy.properties.OptionProperty`,
-    default to 'single'.
+    :data:`selection_mode` is an :class:`~kivy.properties.OptionProperty` and
+    defaults to 'single'.
     '''
 
     propagate_selection_to_data = BooleanProperty(False)
-    '''Normally, data items are not selected/deselected, because the data items
+    '''Normally, data items are not selected/deselected because the data items
     might not have an is_selected boolean property -- only the item view for a
-    given data item is selected/deselected, as part of the maintained selection
+    given data item is selected/deselected as part of the maintained selection
     list. However, if the data items do have an is_selected property, or if
     they mix in :class:`~kivy.adapters.models.SelectableDataItem`, the
     selection machinery can propagate selection to data items. This can be
     useful for storing selection state in a local database or backend database
-    for maintaining state in game play or other similar needs. It is a
+    for maintaining state in game play or other similar scenarios. It is a
     convenience function.
 
     To propagate selection or not?
 
     Consider a shopping list application for shopping for fruits at the
-    market. The app allows selection of fruits to buy for each day of the
-    week, presenting seven lists, one for each day of the week. Each list is
+    market. The app allows for the selection of fruits to buy for each day of
+    the week, presenting seven lists: one for each day of the week. Each list is
     loaded with all the available fruits, but the selection for each is a
     subset. There is only one set of fruit data shared between the lists, so
-    it would not make sense to propagate selection to the data, because
-    selection in any of the seven lists would clobber and mix with that of the
+    it would not make sense to propagate selection to the data because
+    selection in any of the seven lists would clash and mix with that of the
     others.
 
     However, consider a game that uses the same fruits data for selecting
     fruits available for fruit-tossing. A given round of play could have a
     full fruits list, with fruits available for tossing shown selected. If the
     game is saved and rerun, the full fruits list, with selection marked on
-    each item, would be reloaded fine if selection is always propagated to the
-    data. You could accomplish the same functionality by writing code to
-    operate on list selection, but having selection stored on the data might
-    prove convenient in some cases.
+    each item, would be reloaded correctly if selection is always propagated to
+    the data. You could accomplish the same functionality by writing code to
+    operate on list selection, but having selection stored in the data
+    ListProperty might prove convenient in some cases.
 
     :data:`propagate_selection_to_data` is a
-    :class:`~kivy.properties.BooleanProperty`,
-    default to False.
+    :class:`~kivy.properties.BooleanProperty` and defaults to False.
     '''
 
     allow_empty_selection = BooleanProperty(True)
     '''The allow_empty_selection may be used for cascading selection between
     several list views, or between a list view and an observing view. Such
-    automatic maintainence of selection is important for all but simple
-    list displays. Set allow_empty_selection False, so that selection is
-    auto-initialized, and always maintained, and so that any observing views
+    automatic maintenance of the selection is important for all but simple
+    list displays. Set allow_empty_selection to False and the selection is
+    auto-initialized and always maintained, so any observing views
     may likewise be updated to stay in sync.
 
     :data:`allow_empty_selection` is a
-    :class:`~kivy.properties.BooleanProperty`,
-    default to True.
+    :class:`~kivy.properties.BooleanProperty` and defaults to True.
     '''
 
     selection_limit = NumericProperty(-1)
-    '''When selection_mode is multiple, if selection_limit is non-negative,
-    this number will limit the number of selected items. It can even be 1,
-    which is equivalent to single selection. This is because a program could
-    be programmatically changing selection_limit on the fly, and all possible
-    values should be included.
+    '''When the selection_mode is multiple and the selection_limit is
+    non-negative, this number will limit the number of selected items. It can
+    be set to 1, which is equivalent to single selection. If selection_limit is
+    not set, the default value is -1, meaning that no limit will be enforced.
 
-    If selection_limit is not set, the default is -1, meaning that no limit
-    will be enforced.
-
-    :data:`selection_limit` is a :class:`~kivy.properties.NumericProperty`,
-    default to -1 (no limit).
+    :data:`selection_limit` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to -1 (no limit).
     '''
 
     cached_views = DictProperty({})
-    '''View instances for data items are instantiated and managed in the
+    '''View instances for data items are instantiated and managed by the
     adapter. Here we maintain a dictionary containing the view
     instances keyed to the indices in the data.
 
     This dictionary works as a cache. get_view() only asks for a view from
     the adapter if one is not already stored for the requested index.
 
-    :data:`cached_views` is a :class:`~kivy.properties.DictProperty`,
-    default to {}.
+    :data:`cached_views` is a :class:`~kivy.properties.DictProperty` and
+    defaults to {}.
     '''
 
     __events__ = ('on_selection_change', )
@@ -224,7 +214,7 @@ class ListAdapter(Adapter, EventDispatcher):
         '''This method is more complicated than the one in
         :class:`kivy.adapters.adapter.Adapter` and
         :class:`kivy.adapters.simplelistadapter.SimpleListAdapter`, because
-        here we create bindings for the data item, and its children back to
+        here we create bindings for the data item and its children back to
         self.handle_selection(), and do other selection-related tasks to keep
         item views in sync with the data.
         '''
@@ -415,7 +405,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
     def trim_left_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are less than the
-        index of the first selected item, if there is selection.
+        index of the first selected item if there is a selection.
         '''
         if len(self.selection) > 0:
             first_sel_index = min([sel.index for sel in self.selection])
@@ -423,7 +413,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
     def trim_right_of_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are greater than
-        the index of the last selected item, if there is selection.
+        the index of the last selected item if there is a selection.
         '''
         if len(self.selection) > 0:
             last_sel_index = max([sel.index for sel in self.selection])
@@ -432,7 +422,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
     def trim_to_sel(self, *args):
         '''Cut list items with indices in sorted_keys that are les than or
-        greater than the index of the last selected item, if there is
+        greater than the index of the last selected item if there is a
         selection. This preserves intervening list items within the selected
         range.
         '''
@@ -444,7 +434,7 @@ class ListAdapter(Adapter, EventDispatcher):
 
     def cut_to_sel(self, *args):
         '''Same as trim_to_sel, but intervening list items within the selected
-        range are cut also, leaving only list items that are selected.
+        range are also cut, leaving only list items that are selected.
         '''
         if len(self.selection) > 0:
             self.data = self.selection
