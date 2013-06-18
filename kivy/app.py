@@ -211,7 +211,7 @@ Here is a simple example of how on_pause() should be used::
    
       def on_resume(self):
          # Here you can check if any data needs replacing (usually nothing)
-         return True
+         pass
 
 .. warning::
 
