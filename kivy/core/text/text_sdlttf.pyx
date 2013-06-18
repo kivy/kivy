@@ -111,7 +111,7 @@ cdef TTF_Font *_get_font(self):
         # fallback to search a system font
         if fontobject == NULL:
             s_error = <bytes>SDL_GetError()
-            print s_error
+            print(s_error)
             assert(0)
         pygame_cache[fontid] = ttfc = _TTFContainer()
         ttfc.font = fontobject
