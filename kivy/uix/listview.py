@@ -637,8 +637,8 @@ class ListItemButton(SelectableView, Button):
     def __init__(self, **kwargs):
         super(ListItemButton, self).__init__(**kwargs)
 
-        # Set deselected_color to be default Button bg color.
-        self.deselected_color = self.background_color
+        # Set Button bg color to be deselected_color.
+        self.background_color = self.deselected_color
 
     def select(self, *args):
         self.background_color = self.selected_color
