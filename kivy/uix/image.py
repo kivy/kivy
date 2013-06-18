@@ -48,6 +48,7 @@ from kivy.properties import StringProperty, ObjectProperty, ListProperty, \
         AliasProperty, BooleanProperty, NumericProperty
 from kivy.loader import Loader
 from kivy.logger import Logger
+from kivy.clock import Clock
 
 
 class Image(Widget):
@@ -208,6 +209,15 @@ class Image(Widget):
     read-only.
     '''
 
+    auto_reload = NumericProperty(0)
+    '''If image file was not found (image turns out white), reload it automatically in x seconds.
+
+    .. versionadded:: 1.8.0
+
+    :data:`auto_reload` is a :class:`~kivy.properties.NumericProperty`, default
+    to 0 (disabled).
+    '''
+
     def __init__(self, **kwargs):
         self._coreimage = None
         super(Image, self).__init__(**kwargs)
@@ -222,6 +232,8 @@ class Image(Widget):
         else:
             filename = resource_find(self.source)
             if filename is None:
+                if self.auto_reload > 0:
+                    Clock.schedule_once(self.texture_update, self.auto_reload)
                 return Logger.error('Image: Error reading file {filename}'.
                                     format(filename=self.source))
             mipmap = self.mipmap
