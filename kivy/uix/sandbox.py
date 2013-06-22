@@ -6,10 +6,14 @@ Sandbox
 
 from kivy.context import Context
 from kivy.base import ExceptionManagerBase
+from kivy.clock import Clock
 from kivy.uix.widget import Widget
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.relativelayout import RelativeLayout
 
 def sandbox(f):
     def _f2(self, *args, **kwargs):
+        ret = None
         with self:
             ret = f(self, *args, **kwargs)
         return ret
@@ -28,7 +32,11 @@ class SandboxExceptionManager(ExceptionManagerBase):
         return ExceptionManagerBase.PASS
 
 
-class Sandbox(Widget):
+class SandboxContent(RelativeLayout):
+    pass
+
+
+class Sandbox(FloatLayout):
 
     def __init__(self, **kwargs):
         self._context = Context()
@@ -36,7 +44,12 @@ class Sandbox(Widget):
         self._context.push()
         self.on_context_created()
         super(Sandbox, self).__init__(**kwargs)
+        self._container = SandboxContent()
         self._context.pop()
+
+        # now force Clock scheduling
+        Clock.schedule_interval(self._clock_sandbox, 0)
+        Clock.schedule_interval(self._clock_sandbox_draw, -1)
 
     def __enter__(self):
         #print 'ENTERING THE SANDBOX', self
@@ -46,23 +59,56 @@ class Sandbox(Widget):
         self._context.pop()
         #print 'EXITING THE SANDBOX', (self, _type, value, traceback)
         if _type is not None:
-            return self.on_exception(value, traceback=traceback)
+            return self.on_exception(value, _traceback=traceback)
 
     def on_context_created(self):
         # override this method in order to load kv, or anything you need afte
         # the new created context.
         print 'on_context_created()'
 
-    def on_exception(self, exception, traceback=None):
+    def on_exception(self, exception, _traceback=None):
         # override this method in order to deal with exceptions
         # return True = don't reraise the exception
         # return False = raise to the parent
-        print 'on_exception() {!r} {!r}'.format(exception, traceback)
+        print 'on_exception() {!r} {!r}'.format(exception, _traceback)
+        import traceback
+        traceback.print_tb(_traceback)
         return True
 
     on_touch_down = sandbox(Widget.on_touch_down)
     on_touch_move = sandbox(Widget.on_touch_move)
     on_touch_up = sandbox(Widget.on_touch_move)
+
+    @sandbox
+    def add_widget(self, *args, **kwargs):
+        self._container.add_widget(*args, **kwargs)
+
+    @sandbox
+    def remove_widget(self, *args, **kwargs):
+        self._container.remove_widget(*args, **kwargs)
+
+    @sandbox
+    def clear_widgets(self, *args, **kwargs):
+        self._container.clear_widgets()
+
+    @sandbox
+    def on_size(self, *args):
+        self._container.size = self.size
+
+    @sandbox
+    def on_pos(self, *args):
+        self._container.pos = self.pos
+
+    @sandbox
+    def _clock_sandbox(self, dt):
+        import pdb; pdb.set_trace()
+        Clock.tick(dt)
+        Builder.apply()
+
+    @sandbox
+    def _clock_sandbox_draw(self, dt):
+        Clock.tick_draw()
+        Builder.apply()
 
 
 if __name__ == '__main__':
