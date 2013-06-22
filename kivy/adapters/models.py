@@ -13,13 +13,15 @@ Data Models
 -----------
 
 Kivy is open about the type of data used in applications built with
-the system. However, base classes are optionally needed to conform data to
-requirements of some parts of the system.
+the system. However, base classes are sometimes needed to ensure data conforms
+to the requirements of some parts of the system.
 
-:class:`SelectableDataItem` is a basic Python data model class that can be
-used as a mixin to build data objects that are compatible with Kivy's adapter
-and selection system, which works with views such as ListView. The boolean
-property is_selected is the requirement.
+A :class:`SelectableDataItem` is a basic Python data model class that can be
+used as a mixin to build data objects that are compatible with Kivy's
+:class:`~kivy.adapters.adapter.Adapter`
+and selection system, which works with views such as a
+:class:`~kivy.uix.listview.ListView`. The boolean
+property is_selected is a requirement.
 
 The default operation of the selection system is to not propogate selection in
 views such as ListView to the underlying data -- selection is by default a
@@ -36,7 +38,7 @@ system with Kivy, this class could be redefined as::
         ... other properties
         is_selected = db.BooleanProperty()
 
-It is easy to build such a class with plain Python, also.
+It is easy to build such a class with plain Python.
 
 '''
 
@@ -47,7 +49,7 @@ class SelectableDataItem(object):
     '''
     A mixin class containing requirements for selection operations.
 
-    This is the is_selected boolean.
+    This is the is_selected boolean property.
     '''
 
     def __init__(self, **kwargs):
