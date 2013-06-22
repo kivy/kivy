@@ -285,6 +285,9 @@ class UrlRequest(Thread):
                 if report_progress:
                     q(('progress', resp, (bytes_so_far, total_size)))
                     trigger()
+
+            open_file.close()
+
             # ensure that restults are dispatched for the last chunk,
             # avoid trigger
             if report_progress:
