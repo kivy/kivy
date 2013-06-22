@@ -213,8 +213,6 @@ class UrlRequest(Thread):
         report_progress = self.on_progress is not None
         timeout = self._timeout
         file_path = self.file_path
-        if file_path is not None:
-            open_file = open(file_path, 'wb')
 
         if self._debug:
             Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(
@@ -271,22 +269,27 @@ class UrlRequest(Thread):
             # user to initialize his ui
             if report_progress:
                 q(('progress', resp, (bytes_so_far, total_size)))
-            while 1:
-                chunk = resp.read(chunk_size)
-                if not chunk:
-                    break
 
-                if file_path is not None:
-                    open_file.write(chunk)
+            def get_chunks():
+                while 1:
+                    chunk = resp.read(chunk_size)
+                    if not chunk:
+                        break
 
-                bytes_so_far += len(chunk)
-                result += chunk
-                # report progress to user
-                if report_progress:
-                    q(('progress', resp, (bytes_so_far, total_size)))
-                    trigger()
+                    if file_path is not None:
+                        open_file.write(chunk)
 
-            open_file.close()
+                    bytes_so_far += len(chunk)
+                    result += chunk
+                    # report progress to user
+                    if report_progress:
+                        q(('progress', resp, (bytes_so_far, total_size)))
+                        trigger()
+            if file_path is not None:
+                with open(file_path, 'wb') as open_file:
+                    get_chunks()
+            else:
+                get_chunks()
 
             # ensure that restults are dispatched for the last chunk,
             # avoid trigger
