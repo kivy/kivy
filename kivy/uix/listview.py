@@ -283,6 +283,12 @@ either a cls or template.
     ListItemLabel and ListItemButton, or custom classes like them, and not the
     bare Label nor Button classes, are to be used in the listview system.
 
+.. warning::
+
+    ListItemButton inherits the `background_normal` and `background_down`
+    properties from the Button widget, so the `selected_color` and
+    `deselected_color` are not represented faithfully by default.
+
 Here is an args_converter for use with the built-in
 :class:`~kivy.uix.listview.ListItemButton`, specified as a normal Python
 function::
