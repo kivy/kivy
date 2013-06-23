@@ -17,7 +17,7 @@ __all__ = ('EventDispatcher', )
 
 from functools import partial
 from kivy.weakmethod import WeakMethod
-from kivy.properties cimport Property, ObjectProperty
+from kivy.properties cimport Property, PropertyStorage, ObjectProperty
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
@@ -261,6 +261,20 @@ cdef class EventDispatcher(object):
             else:
                 prop = self.__properties[key]
                 prop.unbind(self, value)
+
+    def bound_events(self):
+        ''' Returns a dict of properties and events of the Widget along with
+        a list of methods that are bound to the property/event.
+
+        .. versionadded:: 1.8.0
+
+        '''
+        _list = dict(self.__event_stack)
+        cdef PropertyStorage ps
+        for prop in self.__properties:
+            ps = self.__storage[prop]
+            _list[prop] = ps.observers
+        return _list
 
     def dispatch(self, str event_type, *largs):
         '''Dispatch an event across all the handler added in bind().
