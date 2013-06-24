@@ -848,6 +848,14 @@ class TextInput(Widget):
         if self._touch_count == 4:
             self.dispatch('on_quad_touch')
 
+        win = self._win
+        if not win:
+            self._win = win = EventLoop.window
+        if not win:
+            Logger.warning('Textinput: '
+                'Cannot show bubble, unable to get root window')
+            return True
+
         self._hide_cut_copy_paste(self._win)
         # schedule long touch for paste
         self._long_touch_pos = touch.pos
@@ -891,12 +899,6 @@ class TextInput(Widget):
             self._update_selection(True)
             # show Bubble
             win = self._win
-            if not win:
-                self._win = win = EventLoop.window
-            if not win:
-                Logger.warning('Textinput: '
-                    'Cannot show bubble, unable to get root window')
-                return True
             if self._selection_to != self._selection_from:
                 self._show_cut_copy_paste(touch.pos, win)
             return True
@@ -2138,4 +2140,4 @@ if __name__ == '__main__':
             root.add_widget(textinput2)
             return root
 
-    #TextInputApp().run()
+    TextInputApp().run()
