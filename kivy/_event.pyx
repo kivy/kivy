@@ -262,19 +262,20 @@ cdef class EventDispatcher(object):
                 prop = self.__properties[key]
                 prop.unbind(self, value)
 
-    def bound_events(self):
-        ''' Returns a dict of properties and events of the Widget along with
-        a list of methods that are bound to the property/event.
+    def get_property_observers(self, name):
+        ''' Returns a list of methods that are bound to the property/event.
+        passed as the argument.
+
+        .. usage::
+            widget_instance.get_property_observers('on_release')
 
         .. versionadded:: 1.8.0
 
         '''
-        _list = dict(self.__event_stack)
-        cdef PropertyStorage ps
-        for prop in self.__properties:
-            ps = self.__storage[prop]
-            _list[prop] = ps.observers
-        return _list
+        if name[:3] == 'on_':
+            return self.__event_stack[name]
+        cdef PropertyStorage ps = self.__storage[name]
+        return ps.observers
 
     def dispatch(self, str event_type, *largs):
         '''Dispatch an event across all the handler added in bind().
