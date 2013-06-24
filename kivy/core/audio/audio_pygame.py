@@ -11,7 +11,11 @@ from kivy.core.audio import Sound, SoundLoader
 _platform = platform()
 try:
     if _platform == 'android':
-        import android_mixer as mixer
+        try:
+            import android.mixer as mixer
+        except ImportError:
+            # old python-for-android version
+            import android_mixer as mixer
     else:
         from pygame import mixer
 except:
