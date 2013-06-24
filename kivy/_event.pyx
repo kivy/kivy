@@ -277,6 +277,14 @@ cdef class EventDispatcher(object):
         cdef PropertyStorage ps = self.__storage[name]
         return ps.observers
 
+    def events(EventDispatcher self):
+        '''Return all the events in that class. Can be used for introspection.
+
+        .. versionadded:: 1.8.0
+
+        '''
+        return self.__event_stack.keys()
+
     def dispatch(self, str event_type, *largs):
         '''Dispatch an event across all the handler added in bind().
         As soon as a handler return True, the dispatching stop
