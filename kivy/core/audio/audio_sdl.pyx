@@ -113,6 +113,7 @@ class SoundSDL(Sound):
         self.stop()
         if mc.chunk == NULL:
             return
+        mc.chunk.volume = int(volume * 128)
         mc.channel = Mix_PlayChannel(-1, mc.chunk, 0)
         if mc.channel == -1:
             Logger.warning(
