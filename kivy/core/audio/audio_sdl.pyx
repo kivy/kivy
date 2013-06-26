@@ -148,16 +148,9 @@ class SoundSDL(Sound):
             Mix_FreeChunk(mc.chunk)
             mc.chunk = NULL
 
-    def _get_volume(self):
-        cdef MixContainer mc = self.mc
-        if mc.chunk != NULL:
-            self._volume = mc.chunk.volume / 128.
-        return super(SoundSDL, self)._get_volume()
-
-    def _set_volume(self, volume):
+    def on_volume(self, instance, volume):
         cdef MixContainer mc = self.mc
         if mc.chunk != NULL:
             mc.chunk.volume = int(volume * 128)
-        return super(SoundSDL, self)._set_volume(volume)
 
 SoundLoader.register(SoundSDL)
