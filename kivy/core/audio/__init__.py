@@ -98,7 +98,7 @@ class Sound(EventDispatcher):
 
     :data:`state` is an :class:`~kivy.properties.OptionProperty`, read-only.
     '''
-    
+
     loop = BooleanProperty(False)
     '''Set to True if the sound should automatically loop when it finishes.
 

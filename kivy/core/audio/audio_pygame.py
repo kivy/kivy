@@ -62,6 +62,7 @@ class SoundPygame(Sound):
     def play(self):
         if not self._data:
             return
+        self._data.set_volume(self.volume)
         self._channel = self._data.play()
         # schedule event to check if the sound is still playing or not
         Clock.schedule_interval(self._check_play, 0.1)
@@ -99,15 +100,9 @@ class SoundPygame(Sound):
             return mixer.music.get_pos()
         return 0
 
-    def _get_volume(self):
-        if self._data is not None:
-            self._volume = self._data.get_volume()
-        return super(SoundPygame, self)._get_volume()
-
-    def _set_volume(self, volume):
+    def on_volume(self, instance, volume):
         if self._data is not None:
             self._data.set_volume(volume)
-        return super(SoundPygame, self)._set_volume(volume)
 
     def _get_length(self):
         if _platform == 'android' and self._channel:
