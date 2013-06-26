@@ -351,16 +351,22 @@ class Sequence(Animation):
 
     def start(self, widget):
         self.stop(widget)
-        self.anim1.start(widget)
         self._widgets[widget] = True
         self._register()
+        self.anim1.start(widget)
 
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        self._widgets.pop(widget, None)
-        if not self._widgets:
-            self._unregister()
+        props = self._widgets.pop(widget, None)
+        if props:
+            self.dispatch('on_complete', widget)
+        super(Sequence, self).cancel(widget)
+
+    def cancel(self, widget):
+        self.anim1.cancel(widget)
+        self.anim2.cancel(widget)
+        super(Sequence, self).cancel(widget)
 
     def on_anim1_start(self, instance, widget):
         self.dispatch('on_start', widget)
@@ -372,7 +378,7 @@ class Sequence(Animation):
         self.dispatch('on_progress', widget, progress / 2.)
 
     def on_anim2_complete(self, instance, widget):
-        self.dispatch('on_complete', widget)
+        self.stop(widget)
 
     def on_anim2_progress(self, instance, widget, progress):
         self.dispatch('on_progress', widget, .5 + progress / 2.)
@@ -403,14 +409,20 @@ class Parallel(Animation):
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        self._widgets.pop(widget, None)
-        if not self._widgets:
-            self._unregister()
+        props = self._widgets.pop(widget, None)
+        if props:
+            self.dispatch('on_complete', widget)
+        super(Parallel, self).cancel(widget)
+
+    def cancel(self, widget):
+        self.anim1.cancel(widget)
+        self.anim2.cancel(widget)
+        super(Parallel, self).cancel(widget)
 
     def on_anim_complete(self, instance, widget):
         self._widgets[widget]['complete'] += 1
         if self._widgets[widget]['complete'] == 2:
-            self.dispatch('on_complete', widget)
+            self.stop(widget)
 
 
 class AnimationTransition(object):
