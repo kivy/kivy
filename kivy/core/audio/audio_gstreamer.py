@@ -53,6 +53,7 @@ class SoundGstreamer(Sound):
     def play(self):
         if not self._data:
             return
+        self._data.set_property('volume', self.volume)
         self._data.set_state(gst.STATE_PLAYING)
         super(SoundGstreamer, self).play()
 
