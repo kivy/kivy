@@ -21,6 +21,8 @@ cdef class Instruction:
     cdef int flags
     cdef str group
     cdef InstructionGroup parent
+    cdef object __weakref__
+    cdef object __proxy_ref
 
     cdef void apply(self)
     cdef void flag_update(self, int do_parent=?)
@@ -81,7 +83,6 @@ cdef class CanvasBase(InstructionGroup):
     pass
 
 cdef class Canvas(CanvasBase):
-    cdef object __weakref__
     cdef float _opacity
     cdef CanvasBase _before
     cdef CanvasBase _after
