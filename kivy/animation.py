@@ -351,7 +351,6 @@ class Sequence(Animation):
 
     def start(self, widget):
         self.stop(widget)
-        self._widgets[widget] = True
         self._register()
         self.anim1.start(widget)
 
