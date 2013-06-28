@@ -86,6 +86,21 @@ from kivy.properties import NumericProperty, StringProperty, \
 from kivy.graphics import Canvas
 from kivy.base import EventLoop
 from kivy.lang import Builder
+from weakref import proxy
+from functools import partial
+
+
+# references to all the destructors widgets (partial method with widget uid as
+# key.)
+_widget_destructors = {}
+
+
+def _widget_destructor(uid, r):
+    # internal method called when a widget is deleted from memory. the only
+    # thing we remember about it is its uid. Clear all the associated callback
+    # created in kv language.
+    del _widget_destructors[uid]
+    Builder.unbind_widget(uid)
 
 
 class WidgetException(Exception):
@@ -130,6 +145,8 @@ class Widget(EventDispatcher):
     __events__ = ('on_touch_down', 'on_touch_move', 'on_touch_up')
 
     def __init__(self, **kwargs):
+        self._proxy_ref = None
+
         # Before doing anything, ensure the windows exist.
         EventLoop.ensure_window()
 
@@ -153,6 +170,34 @@ class Widget(EventDispatcher):
         for argument in kwargs:
             if argument[:3] == 'on_':
                 self.bind(**{argument: kwargs[argument]})
+
+    @property
+    def proxy_ref(self):
+        '''Return a proxy reference to the widget, ie, without taking a
+        reference of the widget. See `weakref.proxy
+        <http://docs.python.org/2/library/weakref.html?highlight=proxy#weakref.proxy>`_
+        for more information about it.
+
+        .. versionadded:: 1.7.2
+        '''
+        _proxy_ref = self._proxy_ref
+        if _proxy_ref is None:
+            f = partial(_widget_destructor, self.uid)
+            self._proxy_ref = _proxy_ref = proxy(self, f)
+            # only f should be enough here, but it appears that is a very
+            # specific case, the proxy destructor is not called if both f and
+            # _proxy_ref are not together in a tuple
+            _widget_destructors[self.uid] = (f, _proxy_ref)
+        return _proxy_ref
+
+    def __eq__(self, other):
+        if not isinstance(other, Widget):
+            return False
+        return self.proxy_ref is other.proxy_ref
+
+    @property
+    def __self__(self):
+        return self
 
     #
     # Collision
@@ -614,3 +659,4 @@ class Widget(EventDispatcher):
 
     See :class:`~kivy.graphics.Canvas` for more information about the usage.
     '''
+
