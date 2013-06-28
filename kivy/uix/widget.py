@@ -195,6 +195,10 @@ class Widget(EventDispatcher):
             return False
         return self.proxy_ref is other.proxy_ref
 
+    @property
+    def __self__(self):
+        return self
+
     #
     # Collision
     #

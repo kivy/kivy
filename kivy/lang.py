@@ -1563,7 +1563,7 @@ class BuilderBase(object):
 
                 #hack for on_parent
                 if crule.name == 'on_parent':
-                    Factory.Widget.parent.dispatch(widget_set)
+                    Factory.Widget.parent.dispatch(widget_set.__self__)
 
         # rule finished, forget it
         del self.rulectx[rootrule]
