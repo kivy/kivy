@@ -69,6 +69,13 @@ To see the available options for distribute.sh, type::
 
     ./distribute.sh -h
 
+.. note::
+
+    To use the latest Kivy development version to build your distribution,
+    link "P4A_kivy_DIR" to the kivy folder you cloned from git. On linux
+    you would use the export command, like this: 
+    "export P4A_kivy_DIR=/path/to/cloned/kivy/"
+
 Package your application
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
