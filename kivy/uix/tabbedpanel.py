@@ -397,6 +397,7 @@ class TabbedPanel(GridLayout):
     def __init__(self, **kwargs):
         # these variables need to be initialised before the kv lang is
         # processed setup the base layout for the tabbed panel
+        self._childrens = []
         self._tab_layout = GridLayout(rows=1)
         self.rows = 1
         # bakground_image
@@ -464,6 +465,7 @@ class TabbedPanel(GridLayout):
             self.on_tab_width()
         else:
             widget.pos_hint = {'x': 0, 'top': 1}
+            self._childrens.append(widget)
             content.add_widget(widget, index)
 
     def remove_widget(self, widget):
@@ -484,6 +486,7 @@ class TabbedPanel(GridLayout):
                 Logger.info('TabbedPanel: default tab! can\'t be removed.\n' +
                             'Change `default_tab` to a different tab.')
         else:
+            self._childrens.pop(widget, None)
             if widget in content.children:
                 content.remove_widget(widget)
 

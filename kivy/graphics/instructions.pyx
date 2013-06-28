@@ -20,6 +20,7 @@ IF USE_OPENGL_DEBUG == 1:
     from c_opengl_debug cimport *
 from kivy.logger import Logger
 from kivy.graphics.context cimport get_context, Context
+from weakref import proxy
 
 
 cdef int _need_reset_gl = 1
@@ -42,6 +43,7 @@ cdef class Instruction:
     usage only, don't use it directly.
     '''
     def __cinit__(self):
+        self.__proxy_ref = None
         self.flags = 0
         self.parent = None
 
@@ -92,6 +94,19 @@ cdef class Instruction:
             if (self.flags & GI_NEEDS_UPDATE) > 0:
                 return True
             return False
+
+    property proxy_ref:
+        '''Return a proxy reference to the Instruction, ie, without taking a
+        reference of the widget. See `weakref.proxy
+        <http://docs.python.org/2/library/weakref.html?highlight=proxy#weakref.proxy>`_
+        for more information about it.
+
+        .. versionadded:: 1.7.2
+        '''
+        def __get__(self):
+            if self.__proxy_ref is None:
+                self.__proxy_ref = proxy(self)
+            return self.__proxy_ref
 
 
 cdef class InstructionGroup(Instruction):
