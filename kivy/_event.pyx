@@ -264,9 +264,8 @@ cdef class EventDispatcher(object):
 
     def get_property_observers(self, name):
         ''' Returns a list of methods that are bound to the property/event.
-        passed as the argument.
+        passed as the argument::
 
-        .. usage::
             widget_instance.get_property_observers('on_release')
 
         .. versionadded:: 1.8.0
