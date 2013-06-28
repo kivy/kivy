@@ -283,6 +283,12 @@ either a cls or template.
     ListItemLabel and ListItemButton, or custom classes like them, and not the
     bare Label nor Button classes, are to be used in the listview system.
 
+.. warning::
+
+    ListItemButton inherits the `background_normal` and `background_down`
+    properties from the Button widget, so the `selected_color` and
+    `deselected_color` are not represented faithfully by default.
+
 Here is an args_converter for use with the built-in
 :class:`~kivy.uix.listview.ListItemButton`, specified as a normal Python
 function::
@@ -637,8 +643,8 @@ class ListItemButton(SelectableView, Button):
     def __init__(self, **kwargs):
         super(ListItemButton, self).__init__(**kwargs)
 
-        # Set deselected_color to be default Button bg color.
-        self.deselected_color = self.background_color
+        # Set Button bg color to be deselected_color.
+        self.background_color = self.deselected_color
 
     def select(self, *args):
         self.background_color = self.selected_color
