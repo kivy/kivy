@@ -259,25 +259,26 @@ class UrlRequest(Thread):
 
         # read content
         if report_progress or file_path is not None:
-            bytes_so_far = 0
-            result = b''
             try:
                 total_size = int(resp.getheader('content-length'))
             except:
                 total_size = -1
+
             # before starting the download, send a fake progress to permit the
             # user to initialize his ui
             if report_progress:
-                q(('progress', resp, (bytes_so_far, total_size)))
+                q(('progress', resp, (0, total_size)))
 
-            def get_chunks():
+            def get_chunks(fd=None):
+                bytes_so_far = 0
+                result = b''
                 while 1:
                     chunk = resp.read(chunk_size)
                     if not chunk:
                         break
 
-                    if file_path is not None:
-                        open_file.write(chunk)
+                    if fd:
+                        fd.write(chunk)
 
                     bytes_so_far += len(chunk)
                     result += chunk
@@ -285,11 +286,13 @@ class UrlRequest(Thread):
                     if report_progress:
                         q(('progress', resp, (bytes_so_far, total_size)))
                         trigger()
+                return bytes_so_far
+
             if file_path is not None:
-                with open(file_path, 'wb') as open_file:
-                    get_chunks()
+                with open(file_path, 'wb') as fd:
+                    bytes_so_far = get_chunks(fd)
             else:
-                get_chunks()
+                bytes_so_far = get_chunks()
 
             # ensure that restults are dispatched for the last chunk,
             # avoid trigger
