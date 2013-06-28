@@ -200,6 +200,18 @@ The current implemented Pause mechanism is:
     #. We got a `resume`, :func:`App.on_resume` is called.
     #. If our app memory has been reclaimed by the OS, then nothing will be
        called.
+       
+Here is a simple example of how on_pause() should be used::
+
+   class TestApp(App):
+   
+      def on_pause(self):
+         # Here you can save data if needed
+         return True
+   
+      def on_resume(self):
+         # Here you can check if any data needs replacing (usually nothing)
+         pass
 
 .. warning::
 

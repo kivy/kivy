@@ -29,8 +29,13 @@ Development Version
 ~~~~~~~~~~~~~~~~~~~
 
 If you want the development version of Kivy in order to benefit from the latest
-additions to the framework, you can get the source code from github::
+additions to the framework, you can get the
+`source code <https://github.com/kivy/kivy>`_ from github_::
+
 
     git clone http://github.com/kivy/kivy
 
-Take a look at our instructions for installing the :ref:`installation_devel`
+Take a look at our instructions for installing the :ref:`installation_devel`.
+
+
+.. _github: https://github.com/

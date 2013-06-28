@@ -150,7 +150,7 @@ class VideoBase(EventDispatcher):
         elif self.eos == 'stop':
             self.stop()
         elif self.eos == 'loop':
-            self.stop()
+            self.position = 0
             self.play()
 
         self.dispatch('on_eos')

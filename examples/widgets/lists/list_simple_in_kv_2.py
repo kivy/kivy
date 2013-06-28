@@ -19,7 +19,7 @@ Builder.load_string("""
         size_hint: .8,.8
         adapter:
             sla.SimpleListAdapter(
-            data=["Item #{0}".format(i) for i in xrange(100)],
+            data=["Item #{0}".format(i) for i in range(100)],
             cls=label.Label)
 """)
 

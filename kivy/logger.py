@@ -13,8 +13,8 @@ Examples of usage::
 
     try:
         raise Exception('bleh')
-    except Exception, e:
-        Logger.exception(e)
+    except Exception:
+        Logger.exception('Something happen!')
 
 The message passed to the logger is splited to the first :. The left part is
 used as a title, and the right part is used as a message. This way, you can

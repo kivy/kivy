@@ -32,7 +32,7 @@ class ExceptionHandler:
 
         class E(ExceptionHandler):
             def handle_exception(self, inst):
-                Logger.exception(inst)
+                Logger.exception('Exception catched by ExceptionHandler')
                 return ExceptionManager.PASS
 
         ExceptionManager.add_handler(E())

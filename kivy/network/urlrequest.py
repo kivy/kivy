@@ -126,15 +126,23 @@ class UrlRequest(Thread):
             If set, blocking operations will timeout after that many seconds.
         `method`: str, default to 'GET' (or 'POST' if body)
             HTTP method to use
+        `decode`: bool, default to True
+            If False, skip decoding of response.
         `debug`: bool, default to False
             If True, it will use the Logger.debug to print information about url
             access/progression/error.
+        `file_path`: str, default to None
+            If set, the result of the UrlRequest will be written to this path.
+
+    .. versionadded:: 1.8.0
+        Parameter `decode` added.
+        Parameter `file_path` added.
     '''
 
     def __init__(self, url, on_success=None, on_redirect=None,
             on_failure=None,on_error=None, on_progress=None, req_body=None,
             req_headers=None, chunk_size=8192, timeout=None, method=None,
-            debug=False):
+            decode=True, debug=False, file_path=None):
         super(UrlRequest, self).__init__()
         self._queue = deque()
         self._trigger_result = Clock.create_trigger(self._dispatch_result, 0)
@@ -144,6 +152,8 @@ class UrlRequest(Thread):
         self.on_failure = WeakMethod(on_failure) if on_failure else None
         self.on_error = WeakMethod(on_error) if on_error else None
         self.on_progress = WeakMethod(on_progress) if on_progress else None
+        self.decode = decode
+        self.file_path = file_path
         self._debug = debug
         self._result = None
         self._error = None
@@ -177,7 +187,8 @@ class UrlRequest(Thread):
 
         try:
             result, resp = self._fetch_url(url, req_body, req_headers, q)
-            result = self.decode_result(result, resp)
+            if self.decode:
+                result = self.decode_result(result, resp)
         except Exception as e:
             q(('error', None, e))
         else:
@@ -201,6 +212,7 @@ class UrlRequest(Thread):
         chunk_size = self._chunk_size
         report_progress = self.on_progress is not None
         timeout = self._timeout
+        file_path = self.file_path
 
         if self._debug:
             Logger.debug('UrlRequest: {0} Fetch url <{1}>'.format(
@@ -246,29 +258,47 @@ class UrlRequest(Thread):
         resp = req.getresponse()
 
         # read content
-        if report_progress:
-            bytes_so_far = 0
-            result = b''
+        if report_progress or file_path is not None:
             try:
                 total_size = int(resp.getheader('content-length'))
             except:
                 total_size = -1
+
             # before starting the download, send a fake progress to permit the
             # user to initialize his ui
-            q(('progress', resp, (bytes_so_far, total_size)))
-            while 1:
-                chunk = resp.read(chunk_size)
-                if not chunk:
-                    break
-                bytes_so_far += len(chunk)
-                result += chunk
-                # report progress to user
+            if report_progress:
+                q(('progress', resp, (0, total_size)))
+
+            def get_chunks(fd=None):
+                bytes_so_far = 0
+                result = b''
+                while 1:
+                    chunk = resp.read(chunk_size)
+                    if not chunk:
+                        break
+
+                    if fd:
+                        fd.write(chunk)
+
+                    bytes_so_far += len(chunk)
+                    result += chunk
+                    # report progress to user
+                    if report_progress:
+                        q(('progress', resp, (bytes_so_far, total_size)))
+                        trigger()
+                return bytes_so_far
+
+            if file_path is not None:
+                with open(file_path, 'wb') as fd:
+                    bytes_so_far = get_chunks(fd)
+            else:
+                bytes_so_far = get_chunks()
+
+            # ensure that restults are dispatched for the last chunk,
+            # avoid trigger
+            if report_progress:
                 q(('progress', resp, (bytes_so_far, total_size)))
                 trigger()
-            # ensure that restults are dispatch for the last chunk,
-            # avaoid trigger
-            q(('progress', resp, (bytes_so_far, total_size)))
-            trigger()
         else:
             result = resp.read()
         req.close()

@@ -584,7 +584,7 @@ from kivy.cache import Cache
 from kivy import kivy_data_dir, require
 from kivy.compat import PY2, iteritems, iterkeys
 import kivy.metrics as Metrics
-from weakref import ref
+from weakref import ref, proxy
 
 
 trace = Logger.trace
@@ -603,6 +603,10 @@ lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 
 # delayed calls are canvas expression triggered during an loop
 _delayed_calls = []
+
+# all the widget handlers, used to correctly unbind all the callbacks then the
+# widget is deleted
+_handlers = {}
 
 
 class ProxyApp(object):
@@ -1178,14 +1182,17 @@ def custom_callback(__kvlang__, idmap, *largs, **kwargs):
     idmap['args'] = largs
     exec(__kvlang__.co_value, idmap)
 
-
 def create_handler(iself, element, key, value, rule, idmap, delayed=False):
     locals()['__kvlang__'] = rule
 
     # create an handler
+    uid = iself.uid
+    if uid not in _handlers:
+        _handlers[uid] = []
+
     idmap = copy(idmap)
     idmap.update(global_idmap)
-    idmap['self'] = iself
+    idmap['self'] = iself.proxy_ref
 
     def call_fn(*args):
         if __debug__:
@@ -1211,6 +1218,7 @@ def create_handler(iself, element, key, value, rule, idmap, delayed=False):
                     f = getattr(f, x)
                 if hasattr(f, 'bind'):
                     f.bind(**{k[-1]: fn})
+                    _handlers[uid].append([f, k[-1], fn])
             except KeyError:
                 continue
             except AttributeError:
@@ -1427,7 +1435,7 @@ class BuilderBase(object):
         # will collect reference to all the id in children
         assert(rule not in self.rulectx)
         self.rulectx[rule] = rctx = {
-            'ids': {'root': widget},
+            'ids': {'root': widget.proxy_ref},
             'set': [], 'hdl': []}
 
         # extract the context of the rootrule (not rule!)
@@ -1442,7 +1450,7 @@ class BuilderBase(object):
         if rule.id:
             # use only the first word as `id` discard the rest.
             rule.id = rule.id.split('#', 1)[0].strip()
-            rctx['ids'][rule.id] = widget
+            rctx['ids'][rule.id] = widget.proxy_ref
             # set id name as a attribute for root widget so one can in python
             # code simply access root_widget.id_name
             _ids = dict(rctx['ids'])
@@ -1452,7 +1460,7 @@ class BuilderBase(object):
                 if _ids[_key] == _root:
                     # skip on self
                     continue
-                _new_ids[_key] = ref(_ids[_key])
+                _new_ids[_key] = _ids[_key]
             _root.ids = _new_ids
 
         # first, ensure that the widget have all the properties used in
@@ -1524,9 +1532,9 @@ class BuilderBase(object):
 
         # append the properties and handlers to our final resolution task
         if rule.properties:
-            rctx['set'].append((widget, list(rule.properties.values())))
+            rctx['set'].append((widget.proxy_ref, list(rule.properties.values())))
         if rule.handlers:
-            rctx['hdl'].append((widget, rule.handlers))
+            rctx['hdl'].append((widget.proxy_ref, rule.handlers))
 
         # if we are applying another rule that the root one, then it's done for
         # us!
@@ -1564,12 +1572,12 @@ class BuilderBase(object):
                         key = key[3:]
                     idmap = copy(global_idmap)
                     idmap.update(rctx['ids'])
-                    idmap['self'] = widget_set
+                    idmap['self'] = widget_set.proxy_ref
                     widget_set.bind(**{key: partial(custom_callback,
                                                     crule, idmap)})
                     #hack for on_parent
                     if crule.name == 'on_parent':
-                        Factory.Widget.parent.dispatch(widget_set)
+                        Factory.Widget.parent.dispatch(widget_set.__self__)
         except Exception as e:
             if crule is not None:
                 raise BuilderException(crule.ctx, crule.line,
@@ -1604,7 +1612,27 @@ class BuilderBase(object):
         l = set(_delayed_calls)
         del _delayed_calls[:]
         for func in l:
-            func(None, None)
+            try:
+                func(None, None)
+            except ReferenceError:
+                continue
+
+    def unbind_widget(self, uid):
+        '''(internal) Unbind all the handlers created by the rules of the
+        widget. The :data:`kivy.uix.widget.Widget.uid` is passed here instead of
+        the widget itself, because we are using it in the widget destructor.
+
+        .. versionadded:: 1.7.2
+        '''
+        if uid not in _handlers:
+            return
+        for f, k, fn in _handlers[uid]:
+            try:
+                f.unbind(**{k: fn})
+            except ReferenceError:
+                # proxy widget is already gone, that's cool :)
+                pass
+        del _handlers[uid]
 
     def _build_canvas(self, canvas, widget, rule, rootrule):
         global Instruction
@@ -1627,7 +1655,7 @@ class BuilderBase(object):
                     value = prule.co_value
                     if type(value) is CodeType:
                         value = create_handler(
-                            widget, instr, key, value, prule, idmap, True)
+                            widget, instr.proxy_ref, key, value, prule, idmap, True)
                     setattr(instr, key, value)
             except Exception as e:
                 raise BuilderException(prule.ctx, prule.line,

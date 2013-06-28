@@ -40,6 +40,7 @@ from kivy.logger import Logger
 from kivy.clock import Clock
 from kivy.cache import Cache
 from kivy.core.image import ImageLoader, Image
+from kivy.compat import PY2
 
 from collections import deque
 from time import sleep
@@ -276,7 +277,10 @@ class LoaderBase(object):
     def _load_urllib(self, filename, kwargs):
         '''(internal) Loading a network file. First download it, save it to a
         temporary file, and pass it to _load_local()'''
-        import urllib.request, urllib.error, urllib.parse
+        if PY2:
+            import urllib2 as urllib_request
+        else:
+            import urllib.request as urllib_request
         proto = filename.split(':', 1)[0]
         if proto == 'smb':
             try:
@@ -297,10 +301,10 @@ class LoaderBase(object):
 
             if proto == 'smb':
                 # read from samba shares
-                fd = urllib.request.build_opener(SMBHandler).open(filename)
+                fd = urllib_request.build_opener(SMBHandler).open(filename)
             else:
                 # read from internet
-                fd = urllib.request.urlopen(filename)
+                fd = urllib_request.urlopen(filename)
             idata = fd.read()
             fd.close()
             fd = None
@@ -347,7 +351,7 @@ class LoaderBase(object):
             self._trigger_update()
             return
 
-        for x in xrange(self.max_upload_per_frame):
+        for x in range(self.max_upload_per_frame):
             try:
                 filename, data = self._q_done.pop()
             except IndexError:

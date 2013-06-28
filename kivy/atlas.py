@@ -75,9 +75,17 @@ As you can see, we got 2 new files: ``myatlas.atlas`` and ``myatlas-0.png``.
 
 .. note::
 
-    When using this script, the ids referenced in the atlas is the basename of
-    the image, without the extension. So if you are going to give a filename
+    When using this script, the ids referenced in the atlas is the base name of
+    the image, without the extension. So if you are going to give a file name
     ``../images/button.png``, the id for this image will be ``button``.
+
+    If you need path information included, you must include ``use_path`` like
+    this::
+
+        $ python -m kivy.atlas use_path myatlas 256 *.png
+
+    In which case the id for ``../images/button.png`` will be ``images_button``
+
 
 How to use an atlas
 -------------------
@@ -192,7 +200,7 @@ class Atlas(EventDispatcher):
         self.textures = textures
 
     @staticmethod
-    def create(outname, filenames, size, padding=2):
+    def create(outname, filenames, size, padding=2, use_path=False):
         '''This method can be used to create manually an atlas from a set of
         images.
 
@@ -215,6 +223,17 @@ class Atlas(EventDispatcher):
                 "border" of 1px of your image, around the image. If you look at
                 the result, don't be scared if the image inside it are not
                 exactly the same as yours :).
+            `use_path`: bool, if true, the relative path of the source png
+                file names will be included in their atlas ids, rather
+                that just the file name. Leading dots and slashes will be
+                excluded and all other slashes in the path will be replaced
+                with underscores, so for example, if the path and file name is
+                ``../data/tiles/green_grass.png`` then the id will be
+                ``green_grass`` if use_path is False, and it will be
+                ``data_tiles_green_grass`` if use_path is True
+
+            .. versionchanged:: 1.8.0
+                Parameter use_path added
         '''
         # Thanks to
         # omnisaurusgames.com/2011/06/texture-atlas-generation-using-python/
@@ -319,9 +338,21 @@ class Atlas(EventDispatcher):
             else:
                 d = meta[fn]
 
-            # fb[6] contain the filename aka '../apok.png'. just get only 'apok'
-            # as the uniq id.
-            uid = splitext(basename(fb[6]))[0]
+            # fb[6] contain the filename
+            if use_path:
+                # use the path with separators replaced by _
+                # example '../data/tiles/green_grass.png' becomes
+                # 'data_tiles_green_grass'
+                uid = splitext(fb[6])[0]
+                # remove leading dots and slashes
+                uid = uid.lstrip('./\\')
+                # replace remaining slashes with _
+                uid = uid.replace('/', '_').replace('\\', '_')
+            else:
+                # for example, '../data/tiles/green_grass.png'
+                # just get only 'green_grass' as the uniq id.
+                uid = splitext(basename(fb[6]))[0]
+
             x, y, w, h = fb[2:6]
             d[uid] = x, size - y - h, w, h
 
@@ -336,9 +367,15 @@ if __name__ == '__main__':
     import sys
     argv = sys.argv[1:]
     if len(argv) < 3:
-        print('Usage: python -m kivy.atlas <outname> <size> <img1.png>' \
-              '[<img2.png>, ...]')
+        print('Usage: python -m kivy.atlas [use_path] <outname>' +
+            ' <size> <img1.png> [<img2.png>, ...]')
         sys.exit(1)
+
+    if argv[0] == 'use_path':
+        argv = argv[1:]
+        use_path = True
+    else:
+        use_path = False
 
     outname = argv[0]
     try:
@@ -348,7 +385,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     filenames = argv[2:]
-    ret = Atlas.create(outname, filenames, size)
+    ret = Atlas.create(outname, filenames, size, use_path=use_path)
     if not ret:
         print('Error while creating atlas!')
         sys.exit(1)
