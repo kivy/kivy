@@ -14,9 +14,8 @@ from kivy.uix.bubble import Bubble
 Builder.load_string('''
 <cut_copy_paste>
     size_hint: (None, None)
-    size: (150, 50)
+    size: (150, 200)
     pos_hint: {'center_x': .5, 'y': .6}
-    arrow_pos: 'bottom_mid'
     orientation: 'horizontal'
     BubbleButton:
         text: 'Cut'

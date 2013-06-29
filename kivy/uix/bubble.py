@@ -61,9 +61,11 @@ from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.uix.scatter import Scatter
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
         ListProperty
+from kivy.clock import Clock
 from kivy.base import EventLoop
 
 
@@ -159,7 +161,7 @@ class Bubble(GridLayout):
 
     def __init__(self, **kwargs):
         self._prev_arrow_pos = None
-        self._arrow_layout = GridLayout(rows=1)
+        self._arrow_layout = BoxLayout()
         self._bk_img = Image(
             source=self.background_image, allow_stretch=True,
             keep_ratio=False, color=self.background_color)
@@ -170,7 +172,6 @@ class Bubble(GridLayout):
         super(Bubble, self).__init__(**kwargs)
         content.parent = None
         self.add_widget(content)
-        self.arrow_pos = kwargs.get('arrow_pos', 'bottom_mid')
         self.on_arrow_pos()
 
     def add_widget(self, *l):
@@ -240,9 +241,12 @@ class Bubble(GridLayout):
 
     def on_arrow_pos(self, *l):
         self_content = self.content
-        if not (self_content and self.canvas):
+        if not self_content:
+            Clock.schedule_once(self.on_arrow_pos)
             return
-
+        if self_content not in self.children:
+            Clock.schedule_once(self.on_arrow_pos)
+            return
         self_arrow_pos = self.arrow_pos
         if self._prev_arrow_pos == self_arrow_pos:
             return
@@ -266,9 +270,8 @@ class Bubble(GridLayout):
 
         if self_arrow_pos[0] == 'b' or self_arrow_pos[0] == 't':
             self.cols = 1
-            self.rows = 2
-            self_arrow_layout.rows = 1
-            self_arrow_layout.cols = 3
+            self.rows = 3
+            self_arrow_layout.orientation = 'horizontal'
             self_arrow_img.width = self.width / 3
             self_arrow_layout.size_hint = (1, None)
             self_arrow_layout.height = self_arrow_img.height
@@ -299,21 +302,21 @@ class Bubble(GridLayout):
                     arrow_list = (Widget(), Widget(), sctr)
                 widget_list = (self_arrow_layout, self_content)
         elif self_arrow_pos[0] == 'l' or self_arrow_pos[0] == 'r':
-            self.cols = 2
+            self.cols = 3
             self.rows = 1
             self_arrow_img.width = self.height / 3
-            self_arrow_layout.rows = 3
+            self_arrow_layout.orientation = 'vertical'
             self_arrow_layout.cols = 1
             self_arrow_layout.size_hint = (None, 1)
             self_arrow_layout.width = self_arrow_img.height
 
             rotation = -90 if self_arrow_pos[0] == 'l' else 90
             sctr = Scatter(do_translation=False,
-                               rotation=rotation,
-                               do_rotation=False,
-                               do_scale=False,
-                               size_hint=(None, None),
-                               size=self_arrow_img.size)
+                            rotation=rotation,
+                            do_rotation=False,
+                            do_scale=False,
+                            size_hint=(None, None),
+                            size=(self_arrow_img.size))
             sctr.add_widget(self_arrow_img)
 
             lenarrow_pos = len(self_arrow_pos)
@@ -322,6 +325,9 @@ class Bubble(GridLayout):
                               sctr, Widget(size_hint=(1, .3)))
             elif self_arrow_pos[lenarrow_pos - 4:] == '_mid':
                 arrow_list = (Widget(), sctr, Widget())
+                Clock.schedule_once(lambda dt: self.update_arrow(
+                                        self_arrow_layout,
+                                        sctr))
             elif self_arrow_pos[lenarrow_pos - 7:] == '_bottom':
                 arrow_list = (Widget(), Widget(), sctr)
 
@@ -340,3 +346,5 @@ class Bubble(GridLayout):
         for widg in widget_list:
             add(widg)
 
+    def update_arrow(self, self_arrow_layout, sctr):
+        sctr.center_y = self_arrow_layout.center_y
