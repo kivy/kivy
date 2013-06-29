@@ -17,7 +17,7 @@ __all__ = ('EventDispatcher', )
 
 from functools import partial
 from kivy.weakmethod import WeakMethod
-from kivy.properties cimport Property, ObjectProperty
+from kivy.properties cimport Property, PropertyStorage, ObjectProperty
 
 cdef int widget_uid = 0
 cdef dict cache_properties = {}
@@ -261,6 +261,28 @@ cdef class EventDispatcher(object):
             else:
                 prop = self.__properties[key]
                 prop.unbind(self, value)
+
+    def get_property_observers(self, name):
+        ''' Returns a list of methods that are bound to the property/event.
+        passed as the argument::
+
+            widget_instance.get_property_observers('on_release')
+
+        .. versionadded:: 1.8.0
+
+        '''
+        if name[:3] == 'on_':
+            return self.__event_stack[name]
+        cdef PropertyStorage ps = self.__storage[name]
+        return ps.observers
+
+    def events(EventDispatcher self):
+        '''Return all the events in that class. Can be used for introspection.
+
+        .. versionadded:: 1.8.0
+
+        '''
+        return self.__event_stack.keys()
 
     def dispatch(self, str event_type, *largs):
         '''Dispatch an event across all the handler added in bind().

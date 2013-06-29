@@ -183,7 +183,7 @@ class Animation(EventDispatcher):
     def stop(self, widget):
         '''Stop the animation previously applied on a widget, triggering
         `on_complete` event '''
-        props = self._widgets.pop(widget, None)
+        props = self._widgets.pop(widget.uid, None)
         if props:
             self.dispatch('on_complete', widget)
         self.cancel(widget)
@@ -195,7 +195,7 @@ class Animation(EventDispatcher):
 
         .. versionadded:: 1.4.0
         '''
-        self._widgets.pop(widget, None)
+        self._widgets.pop(widget.uid, None)
         self._clock_uninstall()
         if not self._widgets:
             self._unregister()
@@ -205,7 +205,7 @@ class Animation(EventDispatcher):
         animated further. If it was the only/last property being animated on.
         the widget, the animation will be stopped (see :data:`stop`)
         '''
-        props = self._widgets.get(widget, None)
+        props = self._widgets.get(widget.uid, None)
         if not props:
             return
         props['properties'].pop(prop, None)
@@ -221,7 +221,7 @@ class Animation(EventDispatcher):
 
         .. versionadded:: 1.4.0
         '''
-        props = self._widgets.get(widget, None)
+        props = self._widgets.get(widget.uid, None)
         if not props:
             return
         props['properties'].pop(prop, None)
@@ -241,7 +241,8 @@ class Animation(EventDispatcher):
             Animation._instances.remove(self)
 
     def _initialize(self, widget):
-        d = self._widgets[widget] = {
+        d = self._widgets[widget.uid] = {
+            'widget': widget,
             'properties': {},
             'time': None}
 
@@ -269,8 +270,9 @@ class Animation(EventDispatcher):
         widgets = self._widgets
         transition = self._transition
         calculate = self._calculate
-        for widget in list(widgets.keys())[:]:
-            anim = widgets[widget]
+        for uid in widgets.keys()[:]:
+            anim = widgets[uid]
+            widget = anim['widget']
             if anim['time'] is None:
                 anim['time'] = 0.
             else:
@@ -357,7 +359,7 @@ class Sequence(Animation):
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        props = self._widgets.pop(widget, None)
+        props = self._widgets.pop(widget.uid, None)
         if props:
             self.dispatch('on_complete', widget)
         super(Sequence, self).cancel(widget)
@@ -401,14 +403,14 @@ class Parallel(Animation):
         self.stop(widget)
         self.anim1.start(widget)
         self.anim2.start(widget)
-        self._widgets[widget] = {'complete': 0}
+        self._widgets[widget.uid] = {'complete': 0}
         self._register()
         self.dispatch('on_start', widget)
 
     def stop(self, widget):
         self.anim1.stop(widget)
         self.anim2.stop(widget)
-        props = self._widgets.pop(widget, None)
+        props = self._widgets.pop(widget.uid, None)
         if props:
             self.dispatch('on_complete', widget)
         super(Parallel, self).cancel(widget)
@@ -419,8 +421,8 @@ class Parallel(Animation):
         super(Parallel, self).cancel(widget)
 
     def on_anim_complete(self, instance, widget):
-        self._widgets[widget]['complete'] += 1
-        if self._widgets[widget]['complete'] == 2:
+        self._widgets[widget.uid]['complete'] += 1
+        if self._widgets[widget.uid]['complete'] == 2:
             self.stop(widget)
 
 

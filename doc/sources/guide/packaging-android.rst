@@ -3,15 +3,11 @@
 Create a package for Android
 ============================
 
-.. versionchanged:: 1.1.0
-    Kivy-XXX-android.zip is not provided anymore.  We are using
-    `python-for-android <http://github.com/kivy/python-for-android>`_
-    (`doc <http://python-for-android.readthedocs.org/en/latest/index.html>`_)
-
 .. _Packaging your application into APK:
 
 TestDrive
 ---------
+
 There is a VirtualBox Image we provide with the prerequisites along with
 the Android SDK and NDK preinstalled to ease your installation woes. You can
 download it from `here <http://kivy.org/#download>`_.
@@ -68,6 +64,14 @@ examples of building distributions::
 To see the available options for distribute.sh, type::
 
     ./distribute.sh -h
+
+.. note::
+
+    To use the latest Kivy development version to build your distribution, link
+    "P4A_kivy_DIR" to the kivy folder environment variable to the kivy folder
+    location. On linux you would use the export command, like this::
+
+        export P4A_kivy_DIR=/path/to/cloned/kivy/
 
 Package your application
 ~~~~~~~~~~~~~~~~~~~~~~~~
