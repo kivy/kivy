@@ -9,9 +9,9 @@ SimpleListAdapter
     This code is still experimental, and its API is subject to change in a
     future version.
 
-:class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is for basic lists,
-such as for showing a text-only display of strings, that have no user
-interaction.
+The :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is used for
+basic lists. For example, it can be used for displaying a list of read-only
+strings that do not require user interaction.
 
 '''
 
@@ -23,22 +23,22 @@ from kivy.lang import Builder
 
 
 class SimpleListAdapter(Adapter):
-    ''':class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is an
+    '''A :class:`~kivy.adapters.simplelistadapter.SimpleListAdapter` is an
     adapter around a Python list.
 
-    From :class:`~kivy.adapters.adapter.Adapter`,
+    From :class:`~kivy.adapters.adapter.Adapter`, the
     :class:`~kivy.adapters.simplelistadapter.ListAdapter` gets cls, template,
     and args_converter properties.
     '''
 
     data = ListProperty([])
-    '''The data list property contains a list of objects (can be strings) that
-    will be used directly if no args_converter function is provided. If there
-    is an args_converter, the data objects will be passed to it for
-    instantiation of item view class instances from the data.
+    '''The data list property contains a list of objects (which can be strings)
+    that will be used directly if no args_converter function is provided. If
+    there is an args_converter, the data objects will be passed to it for
+    instantiating the item view class instances.
 
-    :data:`data` is a :class:`~kivy.properties.ListProperty`,
-    default to [].
+    :data:`data` is a :class:`~kivy.properties.ListProperty` and
+    defaults to [].
     '''
 
     def __init__(self, **kwargs):
