@@ -64,7 +64,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, StringProperty, OptionProperty, \
-        ListProperty
+        ListProperty, BooleanProperty
 from kivy.clock import Clock
 from kivy.base import EventLoop
 
@@ -120,6 +120,15 @@ class Bubble(GridLayout):
 
     :data:`arrow_image` is a :class:`~kivy.properties.StringProperty`,
     default to 'atlas://data/images/defaulttheme/bubble_arrow'.
+    '''
+
+    show_arrow = BooleanProperty(True)
+    ''' Indicates whether to show arrow.
+
+    .. versionadded:: 1.8.0
+
+    :data:`show_arrow` is a :class:`~kivy.properties.BooleanProperty`,
+    default to `True`.
     '''
 
     arrow_pos = OptionProperty('bottom_mid',
@@ -203,6 +212,12 @@ class Bubble(GridLayout):
         else:
             content.clear_widgets()
 
+    def on_show_arrow(self, instance, value):
+        self._arrow_img.opacity = int(value)
+
+    def on_parent(self, instance, value):
+        Clock.schedule_once(self._update_arrow)
+
     def on_pos(self, instance, pos):
         lt = self.limit_to
         if lt and lt is not object:
@@ -255,13 +270,13 @@ class Bubble(GridLayout):
         self_arrow_layout = self._arrow_layout
         self_arrow_layout.clear_widgets()
         self_arrow_img = self._arrow_img
-        self_arrow_img.pos = (0, 0)
-
+        self._sctr = self._arrow_img
         self.clear_widgets(do_super=True)
         self_content.parent = None
 
         self_arrow_img.size_hint = (1, None)
         self_arrow_img.height = self_arrow_img.texture_size[1]
+        self_arrow_img.pos = 0, 0
         widget_list = []
         arrow_list = []
         parent = self_arrow_img.parent
@@ -311,24 +326,21 @@ class Bubble(GridLayout):
             self_arrow_layout.width = self_arrow_img.height
 
             rotation = -90 if self_arrow_pos[0] == 'l' else 90
-            sctr = Scatter(do_translation=False,
-                            rotation=rotation,
-                            do_rotation=False,
-                            do_scale=False,
-                            size_hint=(None, None),
-                            size=(self_arrow_img.size))
+            self._sctr = sctr = Scatter(do_translation=False,
+                                        rotation=rotation,
+                                        do_rotation=False,
+                                        do_scale=False,
+                                        size_hint=(None, None),
+                                        size=(self_arrow_img.size))
             sctr.add_widget(self_arrow_img)
 
-            lenarrow_pos = len(self_arrow_pos)
-            if self_arrow_pos[lenarrow_pos - 4:] == '_top':
+            if self_arrow_pos[-4:] == '_top':
                 arrow_list = (Widget(size_hint=(1, .07)),
                               sctr, Widget(size_hint=(1, .3)))
-            elif self_arrow_pos[lenarrow_pos - 4:] == '_mid':
+            elif self_arrow_pos[-4:] == '_mid':
                 arrow_list = (Widget(), sctr, Widget())
-                Clock.schedule_once(lambda dt: self.update_arrow(
-                                        self_arrow_layout,
-                                        sctr))
-            elif self_arrow_pos[lenarrow_pos - 7:] == '_bottom':
+                Clock.schedule_once(self._update_arrow)
+            elif self_arrow_pos[-7:] == '_bottom':
                 arrow_list = (Widget(), Widget(), sctr)
 
             if self_arrow_pos[0] == 'l':
@@ -346,5 +358,6 @@ class Bubble(GridLayout):
         for widg in widget_list:
             add(widg)
 
-    def update_arrow(self, self_arrow_layout, sctr):
-        sctr.center_y = self_arrow_layout.center_y
+    def _update_arrow(self, *dt):
+        if self.arrow_pos in ('left_mid', 'right_mid'):
+            self._sctr.center_y = self._arrow_layout.center_y
