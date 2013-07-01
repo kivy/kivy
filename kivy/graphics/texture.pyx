@@ -981,8 +981,7 @@ cdef class Texture:
                 self._tex_coords[4],
                 self._tex_coords[5],
                 self._tex_coords[6],
-                self._tex_coords[7],
-            )
+                self._tex_coords[7])
 
     property uvpos:
         '''Get/set the UV position inside texture

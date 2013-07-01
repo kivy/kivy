@@ -255,7 +255,9 @@ cdef class VertexInstruction(Instruction):
         # this instruction before the actual vertex instruction
         self.texture_binding = BindTexture(noadd=True, **kwargs)
         self.texture = self.texture_binding.texture #auto compute tex coords
-        self.tex_coords = kwargs.get('tex_coords', self._tex_coords)
+        tex_coords = kwargs.get('tex_coords')
+        if tex_coords:
+            self.tex_coords = tex_coords
 
         Instruction.__init__(self, **kwargs)
         self.flags = GI_VERTEX_DATA & GI_NEEDS_UPDATE
@@ -357,9 +359,19 @@ cdef class VertexInstruction(Instruction):
 
         '''
         def __get__(self):
-            return self._tex_coords
+            return (
+                self._tex_coords[0],
+                self._tex_coords[1],
+                self._tex_coords[2],
+                self._tex_coords[3],
+                self._tex_coords[4],
+                self._tex_coords[5],
+                self._tex_coords[6],
+                self._tex_coords[7])
         def __set__(self, tc):
-            self._tex_coords = list(tc)
+            cdef int index
+            for index in xrange(8):
+                self._tex_coords[index] = tc[index]
             self.flag_update()
 
     cdef void build(self):

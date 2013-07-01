@@ -60,7 +60,7 @@ cdef class ContextInstruction(Instruction):
 cdef class VertexInstruction(Instruction):
     cdef BindTexture texture_binding
     cdef VertexBatch batch
-    cdef list _tex_coords
+    cdef float _tex_coords[8]
 
     cdef void radd(self, InstructionGroup ig)
     cdef void rinsert(self, InstructionGroup ig, int index)
