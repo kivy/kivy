@@ -855,7 +855,7 @@ cdef class Ellipse(Rectangle):
             raise MemoryError('indices')
 
         # calculate the start/end angle in radians, and adapt the range
-        if self.angle_end > self.angle_start:
+        if self._angle_end > self._angle_start:
             angle_dir = 1
         else:
             angle_dir = -1
