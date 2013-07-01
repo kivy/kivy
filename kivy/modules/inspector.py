@@ -225,7 +225,7 @@ class Inspector(FloatLayout):
     def highlight_at(self, x, y):
         widget = None
         # reverse the loop - look at children on top first
-        for child in reversed(self.win.children):
+        for child in self.win.children:
             if child is self:
                 continue
             widget = self.pick(child, x, y)
@@ -275,7 +275,7 @@ class Inspector(FloatLayout):
             ret = widget
             x2, y2 = widget.to_local(x, y)
             # reverse the loop - look at children on top first
-            for child in reversed(widget.children):
+            for child in widget.children:
                 ret = self.pick(child, x2, y2) or ret
         return ret
 
