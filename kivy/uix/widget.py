@@ -316,12 +316,13 @@ class Widget(WidgetBase):
         >>> slider = Slider()
         >>> root.add_widget(slider)
         '''
-        widget = widget.__self__
-        if widget is self:
-            raise WidgetException('You cannot add yourself in a Widget')
         if not isinstance(widget, Widget):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
+
+        widget = widget.__self__
+        if widget is self:
+            raise WidgetException('You cannot add yourself in a Widget')
         parent = widget.parent
         # check if widget is already a child of another widget
         if parent:
