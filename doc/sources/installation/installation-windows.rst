@@ -142,6 +142,13 @@ If you want to use the latest development version of Kivy, you can follow these 
 
 #. That's all, you have a latest development version!
 
+.. note::
+
+    If you get errors you may need to upgrade Cython:
+    
+    1.  Launch kivy.bat
+    2. 'cd Python/Scripts'
+    3. 'pip install --upgrade cython'
 
 .. _winpackagecontents:
 
