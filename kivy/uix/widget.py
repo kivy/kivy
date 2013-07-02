@@ -179,8 +179,8 @@ class Widget(WidgetBase):
     def proxy_ref(self):
         '''Return a proxy reference to the widget, ie, without taking a
         reference of the widget. See `weakref.proxy
-        <http://docs.python.org/2/library/weakref.html?highlight=proxy#weakref.proxy>`_
-        for more information about it.
+        <http://docs.python.org/2/library/weakref.html?highlight\
+        =proxy#weakref.proxy>`_ for more information about it.
 
         .. versionadded:: 1.7.2
         '''
@@ -316,11 +316,13 @@ class Widget(WidgetBase):
         >>> slider = Slider()
         >>> root.add_widget(slider)
         '''
-        if widget is self:
-            raise WidgetException('You cannot add yourself in a Widget')
         if not isinstance(widget, Widget):
             raise WidgetException(
                 'add_widget() can be used only with Widget classes.')
+
+        widget = widget.__self__
+        if widget is self:
+            raise WidgetException('You cannot add yourself in a Widget')
         parent = widget.parent
         # check if widget is already a child of another widget
         if parent:
