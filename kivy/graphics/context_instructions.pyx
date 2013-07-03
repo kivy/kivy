@@ -18,6 +18,7 @@ The context instructions represent non graphics elements like:
 '''
 
 __all__ = ('Color', 'BindTexture', 'PushMatrix', 'PopMatrix',
+           'PushState', 'ChangeState', 'SetState', 'PopState',
            'Rotate', 'Scale', 'Translate', 'MatrixInstruction',
            'gl_init_resources')
 
@@ -138,6 +139,23 @@ cdef class ChangeState(ContextInstruction):
             return self.context_state
         def __set__(self, value):
             self.context_state = dict(value)
+
+
+cdef class SetState(ContextInstruction): 
+
+    def __init__(self, **kwargs):
+        ContextInstruction.__init__(self, **kwargs)
+        self._set_states = kwargs
+        
+    def __setitem__(self, key, val):
+        self._set_states[key] = val
+
+    def __getitem__(self, key):
+        return self._set_states[key]
+
+    cdef void apply(self):
+        cdef RenderContext context = self.get_context()
+        context.set_states(self._set_states)
 
 
 cdef class PopState(ContextInstruction):

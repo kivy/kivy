@@ -11,6 +11,10 @@ cdef class PushState(ContextInstruction):
 
 cdef class ChangeState(ContextInstruction):
     pass
+    
+cdef class SetState(ContextInstruction):
+    cdef dict _set_states
+    cdef void apply(self)
 
 cdef class PopState(ContextInstruction):
     pass
