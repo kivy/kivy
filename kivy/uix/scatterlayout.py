@@ -4,20 +4,19 @@ Scatter Layout
 
 .. versionadded:: 1.6.0
 
-
-This layout allows you to set relative coordinates for children. If you want
-absolute positioning, check :class:`~kivy.uix.floatlayout.FloatLayout`.
-
-The :class:`ScatterLayout` class behaves just like the regular Float
-Layout, except that its child widgets are positioned relative to the layout.
-
+This layout behaves just as :class:`~kivy.uix.floatlayout.RelativeLayout`.
 For example, if you create a :class:`ScatterLayout`, add a widget with
 position = (0,0), the child widget will also move, when you change the
 position of the :class:`ScatterLayout`.  The child widget's coordinates remain
-(0,0), i.e. they are relative to the containing layout. Since
-:class:`ScatterLayout` is implemented using a :class:`Scatter` widget, you can
-also translate and scale the layout like a normal :class:`Scatter` widget,
-and the child widgets will behave as expected.
+(0,0), i.e. they are relative to the containing layout.
+
+However, since :class:`ScatterLayout` is implemented using a :class:`Scatter` 
+widget, you can also translate, rotate and scale the layout using touches 
+(mouse or fingers) just like a normal :class:`Scatter` widget, and the child 
+widgets will behave as expected.
+
+In contrast with a Scatter, the Layout favours 'hint' properties, such as
+size_hint, size_hint_x, size_hint_y and pos_hint. 
 
 ..note::
 
