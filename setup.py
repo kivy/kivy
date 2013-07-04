@@ -4,7 +4,9 @@
 #
 
 import sys
+
 from copy import deepcopy
+import os
 from os.path import join, dirname, sep, exists
 from os import walk, environ
 from distutils.core import setup
@@ -205,7 +207,11 @@ def determine_base_flags():
         flags['extra_compile_args'] += ['-isysroot', sysroot]
         flags['extra_link_args'] += ['-isysroot', sysroot]
     elif platform == 'darwin':
-        sysroot = '/System/Library/Frameworks/ApplicationServices.framework/Frameworks'
+        v = os.uname()
+        if v[2] == '13.0.0':
+    	    sysroot = '/Applications/Xcode5-DP.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/System/Library/Frameworks'
+        else:
+            sysroot = '/System/Library/Frameworks/ApplicationServices.framework/Frameworks'
         flags['extra_compile_args'] += ['-F%s' % sysroot]
         flags['extra_link_args'] += ['-F%s' % sysroot]
     return flags
