@@ -18,6 +18,7 @@ If you want to compile it, don't forget to add the CAMERA permission::
 
 '''
 
+__version__ = '0.1'
 
 from kivy.app import App
 from os.path import exists
