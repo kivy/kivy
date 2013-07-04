@@ -753,7 +753,7 @@ class VKeyboard(Scatter):
         x, y = self.to_local(x, y)
         if not self.collide_margin(x, y):
             self.process_key_on(touch)
-            touch.grab(self)
+            touch.grab(self, exclusive=True)
         else:
             super(VKeyboard, self).on_touch_down(touch)
         return True
