@@ -34,3 +34,9 @@ kivy/core/audio/audio_sdl.c
 kivy/core/text/text_sdlttf.c
 
 kivy/core/window/window_x11.c
+
+kivy/lib/vidcore_lite/bcm.c
+
+kivy/lib/vidcore_lite/bcm.h
+
+kivy/lib/vidcore_lite/egl.c
