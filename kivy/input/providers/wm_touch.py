@@ -10,7 +10,7 @@ from kivy.input.providers.wm_common import (WM_TABLET_QUERYSYSTEMGESTURE,
         GWL_WNDPROC, QUERYSYSTEMGESTURE_WNDPROC, WM_TOUCH, WM_MOUSEMOVE,
         WM_MOUSELAST, PEN_OR_TOUCH_MASK, PEN_OR_TOUCH_SIGNATURE,
         PEN_EVENT_TOUCH_MASK, TOUCHEVENTF_UP, TOUCHEVENTF_DOWN,
-        TOUCHEVENTF_MOVE)
+        TOUCHEVENTF_MOVE, SM_CYCAPTION)
 from kivy.input.motionevent import MotionEvent
 from kivy.input.shape import ShapeRect
 
@@ -125,6 +125,8 @@ else:
     windll.user32.GetTouchInputInfo.restype = BOOL
     windll.user32.GetTouchInputInfo.argtypes = [HANDLE, UINT,
                                                 POINTER(TOUCHINPUT), c_int]
+    windll.user32.GetSystemMetrics.restype = c_int
+    windll.user32.GetSystemMetrics.argtypes = [c_int]
 
     class WM_MotionEventProvider(MotionEventProvider):
 
@@ -143,9 +145,12 @@ else:
             self.old_windProc = SetWindowLong_wrapper(
                 self.hwnd, GWL_WNDPROC, self.new_windProc)
 
+            self.caption_size = windll.user32.GetSystemMetrics(SM_CYCAPTION)
+
         def update(self, dispatch_fn):
             win_rect = RECT()
             windll.user32.GetWindowRect(self.hwnd, byref(win_rect))
+            caption = self.caption_size
 
             while True:
                 try:
@@ -155,7 +160,8 @@ else:
 
                 # adjust x,y to window coordinates (0.0 to 1.0)
                 x = (t.screen_x() - win_rect.x) / float(win_rect.w)
-                y = 1.0 - (t.screen_y() - win_rect.y) / float(win_rect.h)
+                y = 1.0 - (t.screen_y() - win_rect.y - caption
+                           ) / float(win_rect.h)
 
                 # actually dispatch input
                 if t.event_type == 'begin':
