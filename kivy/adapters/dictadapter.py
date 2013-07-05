@@ -52,32 +52,34 @@ class RangeObservingObservableDict(ObservableDict):
     #    self.__setitem__(attr, value)
 
     def __setitem__(self, key, value):
+        if isinstance(value, tuple) and key == 'range_change':
+            return
         if value is None:
             # ObservableDict will delete the item if value is None, so this is
             # like a delete op.
-            self.range_change = ('delete', (key, ))
+            self.range_change = ('rood_delete', (key, ))
         else:
-            self.range_change = ('add', (key, ))
+            self.range_change = ('rood_add', (key, ))
         super(RangeObservingObservableDict, self).__setitem__(key, value)
 
     def __delitem__(self, key):
-        self.range_change = ('delete', (key, ))
+        self.range_change = ('rood_delete', (key, ))
         super(RangeObservingObservableDict, self).__delitem__(key)
 
     def clear(self, *largs):
         # TODO: Should this, and other cases below, be (*largs)?
-        self.range_change = ('delete', largs)
+        self.range_change = ('rood_delete', largs)
         super(RangeObservingObservableDict, self).clear(*largs)
 
     def remove(self, *largs):
         # remove(x) is same as del s[s.index(x)]
-        self.range_change = ('delete', largs)
+        self.range_change = ('rood_delete', largs)
         super(RangeObservingObservableDict, self).remove(*largs)
 
     def pop(self, *largs):
         # This is pop on a specific key.
         # s.pop([i]) is same as x = s[i]; del s[i]; return x
-        self.range_change = ('delete', largs)
+        self.range_change = ('rood_delete', largs)
         return super(RangeObservingObservableDict, self).pop(*largs)
 
     def popitem(self, *largs):
@@ -85,18 +87,18 @@ class RangeObservingObservableDict(ObservableDict):
         # from the dictionary." From other reading, arbitrary here effectively
         # means "random" in the loose sense -- for truely random ops, use the
         # proper random module. Nevertheless, the item is deleted and returned.
-        self.range_change = ('delete', largs)
+        self.range_change = ('rood_delete', largs)
         return super(RangeObservingObservableDict, self).popitem(*largs)
 
     def setdefault(self, *largs):
         present_keys = super(RangeObservingObservableDict, self).keys()
         if not largs[0] in present_keys:
-            self.range_change = ('add', largs)
+            self.range_change = ('rood_add', largs)
         super(RangeObservingObservableDict, self).setdefault(*largs)
 
     def update(self, *largs):
         present_keys = super(RangeObservingObservableDict, self).keys()
-        self.range_change = ('add', list(set(largs) - set(present_keys)))
+        self.range_change = ('rood_add', list(set(largs) - set(present_keys)))
         super(RangeObservingObservableDict, self).update(*largs)
 
 
@@ -118,7 +120,7 @@ class DictAdapter(ListAdapter):
     '''
 
     # TODO: This was initialized to None. Problem with setting to {} instead?
-    data = DictProperty({}, RangeObservingObservableDict)
+    data = DictProperty({}, cls=RangeObservingObservableDict)
     '''A dict that indexes records by keys that are equivalent to the keys in
     sorted_keys, or they are a superset of the keys in sorted_keys.
 
@@ -139,8 +141,7 @@ class DictAdapter(ListAdapter):
                 # Copy the provided sorted_keys, and maintain it internally.
                 # The only function in the API for sorted_keys is to reset it
                 # wholesale with a call to reset_sorted_keys().
-                self.sorted_keys = list(kwargs['sorted_keys'])
-                kwargs.remove('sorted_keys')
+                self.sorted_keys = list(kwargs.pop('sorted_keys'))
         else:
             self.sorted_keys = sorted(kwargs['data'].keys())
 
@@ -163,9 +164,9 @@ class DictAdapter(ListAdapter):
 
             data_op, keys = self.data.range_change
 
-            if data_op == 'add':
+            if data_op == 'rood_add':
                 self.sorted_keys.extend(keys)
-            elif data_op == 'delete':
+            elif data_op == 'rood_delete':
 
                 delete_affected_selection = False
 

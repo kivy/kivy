@@ -1050,5 +1050,76 @@ class ListView(AbstractView, EventDispatcher):
             self.populate()
             self.dispatch('on_scroll_complete')
 
+    def scroll_after_add(self):
+        if not self.scrolling:
+            available_height = self.height
+            index = self._index
+
+            print 'index', index
+            print 'available_height', available_height
+
+            while available_height > 0:
+                item_view = self.adapter.get_view(index)
+                if item_view is None:
+                    break
+                index += 1
+                available_height -= item_view.height
+
+            print 'available_height', available_height
+
+            if available_height <= 0:
+                self._index += 1
+
+            self.scrolling = True
+            self.populate()
+            self.dispatch('on_scroll_complete')
+
     def on_scroll_complete(self, *args):
         self.scrolling = False
+
+    def data_changed(self, *dt):
+
+        print 'LISTVIEW data_changed callback', dt
+
+        print self.adapter.data.range_change
+
+        if self.adapter.data.range_change:
+            first_item_view = self.container.children[-1]
+            last_item_view = self.container.children[0]
+
+            data_op, (start_index, end_index) = self.adapter.data.range_change
+
+            change_in_range = False
+
+            if (first_item_view.index <= start_index <= last_item_view.index
+                or
+                first_item_view.index <= end_index <= last_item_view.index):
+                change_in_range = True
+
+            if data_op in ['rool_add', 'rood_add']:
+
+                self.scroll_after_add()
+
+            elif data_op in ['rool_delete', 'rood_delete']:
+
+                deleted_indices = range(start_index, end_index + 1)
+                num_deleted = len(deleted_indices)
+
+                for item_view in self.container.children:
+                    if item_view.index in deleted_indices:
+                        self.container.remove_widget(item_view)
+
+                if change_in_range:
+                    self.scrolling = True
+                    self.populate()
+                    self.dispatch('on_scroll_complete')
+
+            elif data_op in ['rool_insert', 'rood_insert']:
+
+                self.scroll_after_add()
+
+            elif data_op in ['rool_sort', 'rood_sort']:
+
+                self.scrolling = True
+                self.populate()
+                self.dispatch('on_scroll_complete')
