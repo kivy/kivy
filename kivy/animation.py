@@ -270,7 +270,7 @@ class Animation(EventDispatcher):
         widgets = self._widgets
         transition = self._transition
         calculate = self._calculate
-        for uid in widgets.keys()[:]:
+        for uid in list(widgets.keys())[:]:
             anim = widgets[uid]
             widget = anim['widget']
             if anim['time'] is None:
